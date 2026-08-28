@@ -132,11 +132,24 @@
 .footerAction {
   flex-shrink: 0;
   white-space: nowrap;
+
+  @include media.tablet-landscape {
+    /* Holds the right edge when the hint is not rendered — `space-between` on a
+       lone child behaves as `flex-start`, which would put this on the left. An
+       auto margin takes the free space before `justify-content` sees it, and
+       resolves to zero when the sentence is there to take it instead.
+
+       Scoped to the row, and that is not tidiness. Below this breakpoint the bar
+       is a `column` with `align-items: stretch`, where left/right is the *cross*
+       axis — an auto margin there beats `stretch` and would shrink the button off
+       full width on every phone. */
+    margin-left: auto;
+  }
 }
 
-// One sentence, and it changes: before the requirement is met it says what is
-// missing, after it says what is optional. A disabled button with no reason
-// next to it is a door with no sign.
+// The sentence beside it, when there is one — an incomplete profile renders no
+// hint at all, because what is missing is named on the card that is missing it.
+// Once the requirement is met this says what remains optional.
 .footerHint {
   margin: 0;
   font-size: 12px;

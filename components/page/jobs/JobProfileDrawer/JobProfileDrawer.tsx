@@ -222,7 +222,13 @@ export function JobProfilePane(props: JobProfilePaneProps) {
               and carries it in the lede two lines above, so the strip spent a
               full-width amber band restating what the screen already said, and
               it sat *outside* the card it was about. `Required to continue` says
-              the same thing where the answer is, in the words the footer uses.
+              the same thing where the answer is.
+
+              It is now the *only* place that says it. The footer used to carry a
+              second telling ("…to continue. Everything else is optional."); that
+              went, so this mark and the header card's strip are what a short
+              profile has to go on. Do not remove either without putting the
+              requirement somewhere a person can act on it.
 
               The amber card treatment stays: `missingData` is what marks the
               section, and that is the part the strip was only decorating. */}
@@ -328,7 +334,10 @@ export function JobProfileDrawer({
   /** The footer press. Completeness comes from the pane's own (freshest) read. */
   onFooterAction: (args: { profileComplete: boolean }) => void;
 }) {
-  const [{ complete, hasRole, hasStatus }, setProfileState] = React.useState<ProfileState>({
+  /* Only `complete` is read here now — `hasRole`/`hasStatus` were what the
+     footer's missing-answer sentence was built from, and that sentence is gone.
+     The pane still reports all three; see `ProfileState`. */
+  const [{ complete }, setProfileState] = React.useState<ProfileState>({
     complete: false,
     hasRole: false,
     hasStatus: false,
@@ -354,11 +363,14 @@ export function JobProfileDrawer({
           back to the board, because nothing was waiting on it. */}
       <div className={d.footer}>
         <div className={d.footerInner}>
-          <p className={d.footerHint}>
-            {!complete
-              ? `${sentenceCase(missingHint(hasRole, hasStatus))} to continue. Everything else is optional.`
-              : 'Experience, skills and bio are optional — you can add them any time.'}
-          </p>
+          {/* Silent while the profile is short — what is missing is named on the
+              card that is missing it, and the footer restating it from down here
+              was the same complaint at the greater distance. Absent rather than
+              empty: `.footerInner` is a 12px-gap column on a phone, and a
+              zero-height paragraph still earns its gap. */}
+          {complete && (
+            <p className={d.footerHint}>Experience, skills and bio are optional — you can add them any time.</p>
+          )}
           <Button
             variant="primary"
             style="fill"
@@ -375,14 +387,12 @@ export function JobProfileDrawer({
   );
 }
 
-/** What's still owed, as a verb phrase the footer drops into its sentence. */
-export function missingHint(hasRole: boolean, hasStatus: boolean): string {
-  if (!hasRole && !hasStatus) return 'add your current role and choose a job search status';
-  if (!hasRole) return 'add your current role';
-  return 'choose a job search status';
-}
-
-export const sentenceCase = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
+/* (`missingHint` and `sentenceCase` stood here. They existed to build one
+    sentence — "Add your current role and choose a job search status to continue.
+    Everything else is optional." — for the two footers that showed it, and both
+    footers stopped showing it. The requirement they described is unchanged and
+    is still stated where it is actionable: `DataIncomplete`'s amber strip on the
+    card whose answer is missing.) */
 
 /* (`JobSearchStatusInput` stood here, with its ~12 rules in this file's
     stylesheet. It moved to `components/page/jobs/JobSearchStatusInput/` when the

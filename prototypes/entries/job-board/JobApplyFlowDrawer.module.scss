@@ -150,9 +150,11 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-// The step's opening block: a title and, on the logged-out details step, the
-// "Already a member? Sign in" escape under it. It held a `.lede` between them
-// until the title took over what that sentence was saying.
+// The step's opening block: a title, a `.lede` under it on the logged-out
+// details step, and the "Already a member? Sign in" escape under that. The
+// lede was cut for a while, on the grounds that the title had taken over what
+// it said; it is back, because the title names what is being made and the lede
+// names what it is for.
 //
 // **Why a wrapper and not two siblings.** `.drawerContent` has a uniform 16px
 // gap, so an escape dropped straight into it would sit equally far from the
@@ -180,10 +182,12 @@
 // biggest thing, step 1's 22/30/600 role title, which is right: the job is the
 // subject of the flow, a step is only a place in it.
 //
-// No bottom margin. It carried 6px while a lede sat under it — a heading and its
-// own qualifying sentence are one unit — and with that sentence gone the next
-// thing down is the escape, which is not part of the title and states its own
-// distance.
+// No bottom margin, even though a lede sits under it again on the logged-out
+// step — a heading and its own qualifying sentence are one unit, and that 6px
+// is real, but it belongs to the pair rather than to this class. `.stepTitle`
+// is also the member pane's heading, which has no lede beneath it, so a margin
+// here would be spacing one step for the sake of the other. The distance is
+// stated on `JobAccountPane`'s own `.stepLede`, the way the escape states its.
 .stepTitle {
   width: 100%;
   margin: 0;
@@ -222,15 +226,75 @@
   @include media.tablet-landscape {
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    /* `flex-end`, not `space-between`. With a hint present the two are
+       identical — `.footerHint` takes `flex: 1` and pushes the button to the
+       right end on its own. They differ only in the case that now exists: a
+       step whose hint is `undefined` renders no paragraph at all, and
+       `space-between` with a single item would slide the button to the left
+       edge of the bar. The action's position must not depend on whether there
+       happens to be a sentence beside it. */
+    justify-content: flex-end;
     gap: 16px;
     padding: 12px 20px;
   }
 }
 
+/* The completeness tick, sitting in the bar beside the button.
+
+   `flex-shrink: 0` because the hint beside it is the part that reflows:
+   this is a control with a fixed label, and a checkbox whose text wraps
+   mid-bar reads as a paragraph someone put a box in front of.
+
+   Ranked between the two: `--foreground-neutral-primary` rather than the
+   hint’s secondary grey, since this one is a thing to do rather than a
+   thing to read — but at the hint’s size, so it does not compete with the
+   button label it stands next to. */
+.footerCheck {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  /* The DS Checkbox ships as a button; the `<label>` owns the hit area, so
+     the inner control must not swallow the press. Same guard the sign-up
+     form’s rows use. */
+  button {
+    pointer-events: none;
+  }
+
+  /* Holds the left end of the bar. The hint between this and the button
+     already does that whenever there is a hint — `margin-right: auto` is
+     for the steps where there is not, so the tick does not slide over and
+     sit against the button on the frames where the sentence is absent. A
+     control that changes position depending on whether a sentence exists
+     is a control the eye has to find again. */
+  @include media.tablet-landscape {
+    margin-right: auto;
+  }
+}
+
+/* The required mark, transcribed from the DS's own `FormField` label rule
+   (`components/form/FormField/FormField.module.scss`, `.label.required`):
+   the same `*`, the same bare `red`, the same 0.25rem gap. Bare `red` is
+   not a token and would normally be wrong here — it is kept because this
+   asterisk stands on the same screen as the ones `FormField` draws for the
+   required text fields, and a near-miss red between two marks meaning the
+   same thing is worse than an untokenised one. If the DS tokenises that
+   rule, this follows it. */
+.footerCheckLabel:after {
+  content: '*';
+  color: red;
+  margin-left: 0.25rem;
+}
+
 /* The footer's button, in every step of the flow.
 
-   `justify-content: space-between` does not stop a flex item shrinking, and a
+   The row's `justify-content` (whatever it is — it has been both
+   `space-between` and `flex-end`) does not stop a flex item shrinking, and a
    Button's `min-width` is a floor for a *bare* label — so "Continue to apply"
    was being squeezed against a sentence that takes as much width as it is
    given, wrapping to two lines and doubling the bar's height. The hint is the

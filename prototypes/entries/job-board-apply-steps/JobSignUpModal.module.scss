@@ -322,6 +322,53 @@
   width: 100%;
 }
 
+// The "I'm already a member of a PL Network team" row, and any consent-shaped
+// checkbox this form grows later.
+//
+// Shape copied from `SecRulesCheckbox` — the repo's own labelled checkbox: a
+// `<label>` wrapping the control and the text, so the words are the hit area and
+// no `htmlFor`/`id` pair has to be kept in sync. Its type is transcribed too
+// (14px / 500 / lh 20), with production's literal `#0f172a` swapped for the PL
+// primary pair per prototypes/CLAUDE.md #3.
+//
+// One departure from that source: `gap: 8px` rather than `1rem`, which is the
+// gap the rest of this form uses between a control and its word. `width:
+// fit-content` is kept, so the clickable area ends with the sentence rather than
+// running to the far edge of an empty row.
+//
+// `align-items: flex-start` is kept from the source and is load-bearing on the
+// second user of this class — the apply flow's consent line, which is a whole
+// sentence and wraps at drawer width. Centring a 20px box against two lines of
+// text floats it into the gutter between them; against one line the two rules
+// are indistinguishable, since the box and the line are both 20px tall.
+.checkboxRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: fit-content;
+  cursor: pointer;
+
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+}
+
+// The paired row sits directly under its checkbox, so it gets the tighter gap
+// rather than the group's 24px rhythm: at 24 the switch and the thing it
+// switches on read as two unrelated fields. 12px is what `.fieldStack`'s
+// half-step would be, and it is the same distance a `FormField` puts between its
+// own label and its input plus a little air for the wider control.
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 // Source's `.inputsLabel`. Its literal colour is #475569 — a Tailwind slate the
 // house rules ban outright (prototypes/CLAUDE.md #3), and the same value
 // FormField's own labels use. Swapped for the PL secondary pair: a 3-unit shift

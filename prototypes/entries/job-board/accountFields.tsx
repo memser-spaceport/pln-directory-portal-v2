@@ -1,19 +1,27 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useWatch } from 'react-hook-form';
+import { useFormContext, useWatch } from 'react-hook-form';
 import * as yup from 'yup';
 
 import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
-// `FormField`'s own label pair, for the two labels this group has to place by
-// hand because they carry a mark and the `label` prop only takes a string.
-import ff from '@/components/form/FormField/FormField.module.scss';
+// The design system's checkbox. `SignupWizard` — the same production form this
+// group takes its shape from — mounts this exact component inside a plain
+// `<label>`, which is the pattern the team select's gate copies. (Its sibling
+// `SecRulesCheckbox` builds the same row straight out of base-ui; the DS
+// component is the same thing with the paint already on it.)
+import { Checkbox } from '@/components/common/Checkbox';
 
-// The product's `(Optional)`, transcribed from `SignupWizard` — see the
-// component. This form is where that mark's original lives, not a borrowing:
-// its source is a field label too.
-import { OptionalMark } from '../profile-shared/OptionalMark';
+// One applicant across the sign-up form, the pre-filled account step and the
+// profile behind them — see the note in `viewerIdentity`.
+import { VIEWER_EMAIL, VIEWER_NAME, VIEWER_ROLE, VIEWER_LINKEDIN } from './profile/viewerIdentity';
+
+/* (`OptionalMark` and `FormField`'s own label pair were imported here, for two
+    hand-rolled labels that carried the `(Optional)` mark. Neither field is
+    optional any more — LinkedIn is required and the team select is behind a
+    checkbox that asks the question the mark used to imply — so both labels are
+    `FormField`'s own `label` prop again and the imports went with them.) */
 
 import { MOCK_JOB_GROUPS } from './mocks';
 import s from './JobSignUpModal.module.scss';
@@ -64,6 +72,22 @@ export type AccountFormData = {
   name: string;
   linkedin: string;
   role: string;
+  /**
+   * Whether the person says they are already on a PL network team — and so
+   * whether the team select is on screen at all.
+   *
+   * **A form field, not component state.** It lives here because it is an
+   * answer: it decides what `company` is allowed to be, it has to survive the
+   * pane unmounting when someone steps away and back, and a branch held in a
+   * `useState` inside a group with two hosts is a branch that resets in one of
+   * them and not the other.
+   *
+   * It never reaches `AccountDetails`. What the board does with this form is
+   * read a team name; "no team" and "not on the network" are the same answer to
+   * that question, and passing the flag on would invite a consumer to tell them
+   * apart when nothing downstream should.
+   */
+  atPlTeam: boolean;
   company?: { label: string; value: string } | null;
 };
 
@@ -81,6 +105,32 @@ export const EMPTY_ACCOUNT_FORM: AccountFormData = {
   name: '',
   linkedin: '',
   role: '',
+  /* Unchecked by default, which is also the shorter form. Most people arriving
+     at a job board are not already on a PL team; defaulting the other way would
+     show every visitor a select they cannot answer and make the common case the
+     one that has to be corrected. */
+  atPlTeam: false,
+  company: null,
+};
+
+/**
+ * The same form, filled in — one fixture, used by every surface that needs to
+ * show this form already answered.
+ *
+ * Two of those exist: `JobSignUpModal`'s filled design-canvas frame, and the
+ * `signed-up-modal` viewer, whose account step opens pre-filled because that
+ * person typed these answers into the modal a moment ago. They were separate
+ * literals; one fixture means the two can never disagree about who signed up.
+ */
+export const FILLED_ACCOUNT_FORM: AccountFormData = {
+  email: VIEWER_EMAIL,
+  name: VIEWER_NAME,
+  linkedin: VIEWER_LINKEDIN,
+  role: VIEWER_ROLE,
+  /* Not on a PL team: the shorter form, and the one the checkbox defaults to.
+     A filled fixture that also happened to exercise the gated select would be
+     showing the uncommon case as the representative one. */
+  atPlTeam: false,
   company: null,
 };
 
@@ -105,11 +155,20 @@ export const accountSchema = yup.object({
      schema key with no input is a validation nobody can fail, and the next
      reader has to open the form to find that out.) */
   name: yup.string().required('Name is required'),
+  /* **Required, where it used to be optional.**
+     The PL team reviews these accounts by hand and this is the one field that
+     lets them do it: a name and an email say who typed the form, a LinkedIn
+     says who the person is. Every other route to that — the CV importer, the
+     LinkedIn OAuth — either isn't on this step or doesn't return work history
+     at all, so leaving it blank meant a reviewer with nothing to go on.
+
+     The format test is unchanged and still runs first on a non-empty value, so
+     someone who types something wrong gets the specific complaint rather than
+     "required". `required()` is what fires on an empty box. */
   linkedin: yup
     .string()
-    .defined()
     .test('linkedin-url', 'Please enter a valid LinkedIn handle or URL', (value) => {
-      if (!value || value.trim() === '') return true; // Allow empty values
+      if (!value || value.trim() === '') return true; // Let required() handle empty values
 
       const trimmedValue = value.trim();
 
@@ -120,8 +179,14 @@ export const accountSchema = yup.object({
       const linkedinHandlePattern = /^[\w-]{3,100}$/;
 
       return linkedinUrlPattern.test(trimmedValue) || linkedinHandlePattern.test(trimmedValue);
-    }),
+    })
+    .required('LinkedIn profile is required'),
   role: yup.string().required('Role is required'),
+  /* No rule of its own: unchecked is a valid answer and the only thing it
+     governs is whether `company` is asked for. `defined()` rather than
+     `required()` — `required()` on a boolean rejects `false`, which is the
+     default and the common case. */
+  atPlTeam: yup.boolean().defined(),
   company: yup.mixed<{ label: string; value: string }>().nullable(),
 });
 
@@ -132,7 +197,11 @@ export const toAccountDetails = (data: AccountFormData): AccountDetails => ({
   email: data.email.trim(),
   linkedin: (data.linkedin ?? '').trim(),
   role: data.role.trim(),
-  company: data.company?.label ?? '',
+  /* `atPlTeam` gates the answer and does not become one — see the field's note.
+     The group already clears `company` when the box is unticked, so this second
+     check is belt and braces: a stale team picked before the box was unticked
+     must not travel just because the field held the last thing it saw. */
+  company: data.atPlTeam ? (data.company?.label ?? '') : '',
 });
 
 /**
@@ -231,10 +300,15 @@ const isPersonalEmailDomain = (email: string): boolean => {
 const WORK_EMAIL_NOTE = 'A work address helps the PL team review your account — this one works too.';
 
 /**
- * The four fields, in production's order. Must be rendered inside a
- * `FormProvider` holding an `AccountFormData` form — both hosts own their own
- * `useForm`, because the modal submits on its own footer and the pane's answers
- * are submitted two steps later by the flow's.
+ * The fields, in production's order: email, name, LinkedIn, then role — with
+ * the PL-team checkbox and, when it is ticked, the team select. Must be
+ * rendered inside a `FormProvider` holding an `AccountFormData` form — both
+ * hosts own their own `useForm`, because the modal submits on its own footer
+ * and the pane's answers are submitted two steps later by the flow's.
+ *
+ * (It was "the four fields" for a long time and the count kept going stale —
+ * Team email came and went, the team select is now conditional. Named rather
+ * than counted.)
  *
  * **`layout` changes the arrangement and nothing else.** Same fields, same
  * order, same schema, same copy — `grid` only puts email and full name on one
@@ -252,6 +326,14 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
      and this is the host. `useWatch` re-renders this group on the keystroke that
      completes a domain, which is the one moment the note has something to say. */
   const email = useWatch<AccountFormData, 'email'>({ name: 'email' }) ?? '';
+
+  /* The team gate, read the same way and for the same reason: it decides what
+     this group renders, so the group is what has to re-render when it changes.
+     `setValue` rather than a `Controller` — the checkbox is one boolean with no
+     error slot of its own, and registering it as a field would give it a label,
+     a description and a validation message it has no use for. */
+  const atPlTeam = useWatch<AccountFormData, 'atPlTeam'>({ name: 'atPlTeam' }) ?? false;
+  const { setValue } = useFormContext<AccountFormData>();
 
   return (
     /* The group carries its own 24px rhythm rather than inheriting one.
@@ -318,34 +400,79 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
 
       {/* The field always asked for this and the answer used to be thrown away —
           the board seeded only `role`. It now lands on the profile, and the
-          description says what it is *for*, because an optional field with no
-          stated payoff is one people skip.
+          description says what it is *for*.
 
           The description used to end "...bring your LinkedIn profile as a PDF in
           the next step", pointing at the importer's LinkedIn door. That door is
           gone, so the sentence went with it rather than surviving as an
           instruction for a control nobody will find. What is left is the whole
           truth about this field: it is a link on your profile, not a way to fill
-          anything in. */}
-      {/* Marked too, and it has to be. Adding `(Optional)` to Team email gave
-          this form a *system* — required carries `*`, optional carries the mark
-          — and a system with one member is just an exception. LinkedIn is the
-          only other field here that can be left blank, so leaving it unmarked
-          would have made it the one input whose state you work out by noticing
-          an absent asterisk. Same hand-rolled label, same reason as below. */}
-      <div className={s.column}>
-        <div className={ff.labelWrapper}>
-          <label className={ff.label} htmlFor="linkedin">
-            LinkedIn profile
-            <OptionalMark />
-          </label>
-        </div>
-        <FormField
-          name="linkedin"
-          placeholder="eg., johndoe or https://linkedin.com/in/johndoe"
-          description="Shown on your profile, alongside your other links."
+          anything in.
+
+          **Required now, and the `(Optional)` system it used to anchor is
+          gone.** This label was hand-rolled — a `<div className={ff.labelWrapper}>`
+          around an `<label>` and an `OptionalMark` — because `FormField`'s
+          `label` prop takes a string and cannot carry a mark. The argument for
+          the mark was that Team email had one, so the form had a *system* in
+          which optional fields were labelled and a system with one member is
+          just an exception. Team email was deleted; LinkedIn was then the only
+          member left, and now it is required too. A system with no members is
+          not a system, so what is left is the plain one every other field here
+          already uses: required fields carry `*`, and nothing else needs a mark
+          because there is nothing else.
+
+          So it goes back through `label` + `isRequired` — the same two props as
+          Email, Full name and Role. That is worth more than the mark ever was:
+          five identical labels are a form you can read at a glance, where one
+          bespoke label is a field you have to look at twice to find out why it
+          is different. (`s.column` goes with the hand-rolled wrapper; `FormField`
+          places its own label above its own control.) */}
+      <FormField
+        name="linkedin"
+        label="LinkedIn profile"
+        isRequired
+        placeholder="eg., johndoe or https://linkedin.com/in/johndoe"
+        description="Shown on your profile, alongside your other links."
+      />
+
+      {/* **The question the team select was always asking, asked out loud.**
+
+          The select used to be on screen for everybody, with a line of fine
+          print under it explaining that a blank was fine. That made the common
+          case — someone who has never worked at a PL team — the case that has
+          to read a sentence and then do nothing, in front of a closed list of
+          six names that reads as a wall. And it made "am I one of these people?"
+          a question you answered by inspecting a dropdown.
+
+          A checkbox asks it directly and costs one glance to say no. Checked, it
+          reveals the pair it has always been; unchecked, the row is one input
+          and the form is shorter for the majority who need it to be.
+
+          **Progressive disclosure and not a disabled select**, because there is
+          nothing to explain here — the answer is one press away and reversible,
+          so a greyed control would only be a promise the person can already
+          keep. The revealed half is one row directly underneath, which is the
+          only placement that reads as *this checkbox's* consequence.
+
+          `<label>` around the DS `Checkbox`, which is `SignupWizard`'s exact
+          shape for its own two consent ticks — the same production form this
+          group takes its field order from. See `.checkRow`. */}
+      <label className={s.checkRow}>
+        <Checkbox
+          checked={atPlTeam}
+          onChange={(next) => {
+            setValue('atPlTeam', next, { shouldValidate: true });
+            /* Cleared on the way out, not merely hidden. A `company` left in
+               form state behind an unticked box is an answer nobody can see and
+               nobody can remove — it would travel with the account and put a
+               team on a profile whose owner has just said they are not on one.
+               `toAccountDetails` guards the same thing again; this is the half
+               that keeps the form state itself honest. */
+            if (!next) setValue('company', null, { shouldValidate: true });
+          }}
         />
-      </div>
+        <span className={s.checkText}>I&apos;m already a member of a PL Network team</span>
+      </label>
 
       {/* **The label names the network, because the list is the network.**
           This read "Current role & company" and the select said "Select a
@@ -366,90 +493,69 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
           a field labelled from the asker's side undersells and mis-describes
           what is actually in it.
 
+          **The label follows the row, because the row is now two rows.** It read
+          "Current role & PL network team" unconditionally, which was written for
+          a pair that was always on screen. With the select behind a checkbox the
+          unchecked case is a single unlabelled input under a label naming a
+          control that isn't there — so the label states what is actually below
+          it, and only names the team when the team is being asked for.
+
           **Why the label is not the question itself.** "Are you already at a PL
-          network team?" is what this asks, and it was the obvious candidate —
-          but the group holds one required field and one optional one. `role` is
-          required of everybody; the team is answerable only if you are on the
-          network. A question-shaped label covering both would make the required
-          half read as skippable, and the group can't carry a single
-          `OptionalMark` for the same reason. So the label states the pair, and
-          the description under the select — the half that is actually optional —
-          answers the question. */}
+          network team?" is what the pair used to ask implicitly, and it was
+          always the better question — it just had nowhere to live, because a
+          question-shaped label over a required `role` and an optional team would
+          make the required half read as skippable. The checkbox above is that
+          question, given its own control. The label is free to be a label
+          again. */}
       <div className={s.column}>
-        <div className={s.inputsLabel}>Current role &amp; PL network team</div>
+        <div className={s.inputsLabel}>{atPlTeam ? 'Current role & PL network team' : 'Current role'}</div>
         <div className={s.inputsWrapper}>
           <FormField name="role" placeholder="Enter your current role" />
-          <span className={s.separator}>@</span>
-          {/* "Select a team", not the source's "Search or add a team". Two
-              reasons, both still true now the word is "team". It fits on one
-              line at this width — the longer string wrapped and left the select
-              taller than the role field beside it, so a paired row stopped
-              looking paired. And "add" would be a promise this select doesn't
-              keep: production backs that word with an inline add-a-team form
-              behind the select's empty state, which this prototype doesn't
-              carry.
+          {/* The `@` is part of the pair, not part of the role field. It joins
+              two controls, so it renders only when there are two to join —
+              left standing on its own it is a preposition with nothing after
+              it, pointing at a select that isn't there. */}
+          {atPlTeam && (
+            <>
+              <span className={s.separator}>@</span>
+              {/* "Select a team", not the source's "Search or add a team". Two
+                  reasons, both still true now the word is "team". It fits on one
+                  line at this width — the longer string wrapped and left the
+                  select taller than the role field beside it, so a paired row
+                  stopped looking paired. And "add" would be a promise this
+                  select doesn't keep: production backs that word with an inline
+                  add-a-team form behind the select's empty state, which this
+                  prototype doesn't carry.
 
-              The hint below is the one thing neither the label nor the list can
-              show: that a blank is a *correct* answer. Without it the closed
-              list reads as a wall to anyone whose employer isn't on it — and
-              they are exactly the people this board most wants applying. */}
-          <FormSelect name="company" placeholder="Select a team" isClearable options={companyOptions} />
+                  It no longer needs a hint saying a blank is a correct answer.
+                  That sentence existed because the select was on screen for
+                  everybody, including the people it was never for — the closed
+                  list read as a wall to anyone whose employer wasn't on it. Only
+                  people who have said they are on a network team see it now, so
+                  the empty case it was reassuring has stopped happening here. */}
+              <FormSelect name="company" placeholder="Select a team" isClearable options={companyOptions} />
+            </>
+          )}
         </div>
-        {/* **Hand-rolled with `FormField`'s own `.fieldDescription`, not passed
-            to `FormSelect` as a `description` prop.**
+        {/* (A one-line description sat under this row — "Fill in if you are
+            already at a PL network team." — hand-rolled with `FormField`'s own
+            `.fieldDescription` rather than passed to `FormSelect`, because the
+            two components' description slots disagree on size, weight, leading
+            and colour, and `FormSelect`'s raw `#878b94` is not in the PL
+            palette.
 
-            It was that prop first, which looked like the in-pattern choice —
-            `FormSelect` renders `description` under its control in its own
-            `Field.Root`, the same slot `FormField` uses. The two components do
-            not agree on what that slot looks like. Measured on this form, the
-            three descriptions read:
+            The sentence is gone because the checkbox above **is** that
+            sentence, promoted from fine print to a control. It was doing the
+            work of a condition ("fill in if…") in a voice that can only advise,
+            under a select that was on screen whether or not the condition held.
+            The checkbox states the same condition and then acts on it, which is
+            the difference between telling someone a field may not be for them
+            and not showing them the field.
 
-              LinkedIn (FormField) .... 12px / 18px / 400 / #455468 / mt 8
-              this one (FormSelect) ... 10px / 20px / 500 / #878b94 / mt 0
-              Team email (FormField) .. 12px / 18px / 400 / #455468 / mt 8
-
-            Five divergences, and not one of them was a decision — they are two
-            stylesheets' defaults meeting in one card. The 200% leading is what
-            reads as wrong (a 10px line with 20px of air around it looks like a
-            caption that came loose), but the raw `#878b94` is the worse half:
-            it is not in the PL palette, which is the same reason `.inputsLabel`
-            below swapped production's `#475569` for the token pair.
-
-            So it wears the treatment the other two already have rather than a
-            new one invented to sit between them.
-
-            **And it moved out of the select's column, under the whole row.**
-            At 10px it wrapped to two lines inside a 241px half; at 12px it
-            would have been three. Given the row's full width it is one line —
-            and it belongs to the pair anyway, which is how the group is
-            labelled one line above.
-
-            The cost, stated: `Field.Description` inside `FormSelect` is
-            associated with the control; this `<p>` is not. DOM order still puts
-            it immediately after the row, and the group's own label is already a
-            plain `<div>` with no `htmlFor` — production's `SignupWizard` does
-            the same — so this group was never programmatically labelled to
-            begin with. Worth fixing properly if the pattern spreads. */}
-        {/* One sentence, and it is an instruction rather than an explanation.
-
-            This went through two longer versions. The first was a rule about the
-            list — "Only teams already on the PL network are listed, leave it
-            blank if yours isn't one" — which describes the select's contents and
-            leaves the reader to work out whether the question is for them. The
-            second put a payoff in front of that ("Helps the PL team place you
-            when they review your account"), on the reasoning that an optional
-            field with no stated reason is one people skip.
-
-            Both were answering a question nobody was asking. The only thing a
-            person needs here is whether to type: *are you at one of these
-            teams?* — yes, fill it in; no, move on. "Fill in if" carries the
-            condition and the permission in one clause, so the blank case needs no
-            sentence of its own, and the payoff was justifying a field that costs
-            one glance to skip.
-
-            It still names the network, which is the one thing neither the control
-            nor the list can show a person whose employer isn't on it. */}
-        <p className={ff.fieldDescription}>Fill in if you are already at a PL network team.</p>
+            The `FormField`-vs-`FormSelect` description finding outlives the
+            sentence and is worth keeping: if a description is ever needed under
+            a select on this form, hand-roll it with `ff.fieldDescription` — the
+            two slots are not interchangeable.) */}
       </div>
 
       {/* (The `Team email` field stood here — a hand-rolled `(Optional)` label

@@ -1,19 +1,29 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useWatch } from 'react-hook-form';
+import { useFormContext, useWatch } from 'react-hook-form';
 import * as yup from 'yup';
 
 import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
-// `FormField`'s own label pair, for the two labels this group has to place by
-// hand because they carry a mark and the `label` prop only takes a string.
+// The design system's checkbox, so the one control on this form that isn't a
+// text input is still the product's own. Shape of the labelled row is copied
+// from `SecRulesCheckbox` (a `<label>` around the control and its words); the
+// import is this one rather than its raw base-ui root.
+import { Checkbox } from '@/components/common/Checkbox';
+
+// One applicant across the sign-up form, the pre-filled account step and the
+// profile behind them — see the note in `viewerIdentity`.
+import { VIEWER_EMAIL, VIEWER_NAME, VIEWER_ROLE, VIEWER_LINKEDIN } from './profile/viewerIdentity';
+// `FormField`'s own description class, for the one line this group places by
+// hand under a whole row rather than under a single control.
 import ff from '@/components/form/FormField/FormField.module.scss';
 
-// The product's `(Optional)`, transcribed from `SignupWizard` — see the
-// component. This form is where that mark's original lives, not a borrowing:
-// its source is a field label too.
-import { OptionalMark } from '../profile-shared/OptionalMark';
+/* (`OptionalMark` was imported here for the LinkedIn label. LinkedIn is required
+    now, so the only marked-optional field on this form is gone and with it the
+    reason to hand-roll a label at all — `FormField`'s own `label` + `isRequired`
+    covers every field in the group. The component itself is untouched and still
+    used elsewhere in `profile-shared`.) */
 
 import { MOCK_JOB_GROUPS } from './mocks';
 import s from './JobSignUpModal.module.scss';
@@ -64,6 +74,17 @@ export type AccountFormData = {
   name: string;
   linkedin: string;
   role: string;
+  /**
+   * "I'm already a member of a PL Network team" — the switch that reveals the
+   * team select below the role input.
+   *
+   * It is form state rather than component state because it is an *answer*: it
+   * decides whether `company` is a question this person was asked at all, and a
+   * value that governs another value has to live where that value lives, or the
+   * two disagree the moment the group unmounts and remounts (which it does —
+   * the modal and the drawer's step 2 are two hosts).
+   */
+  onPlTeam: boolean;
   company?: { label: string; value: string } | null;
 };
 
@@ -81,6 +102,32 @@ export const EMPTY_ACCOUNT_FORM: AccountFormData = {
   name: '',
   linkedin: '',
   role: '',
+  /* Unchecked, and that is the honest default: most people arriving at a public
+     job board are not already on a PL network team, so the form opens in the
+     shape that fits them and the select is something you ask for rather than
+     something you dismiss. */
+  onPlTeam: false,
+  company: null,
+};
+
+/**
+ * The same form, filled in — one fixture, used by every surface that needs to
+ * show this form already answered.
+ *
+ * Two of those exist: `JobSignUpModal`'s filled design-canvas frame, and the
+ * `signed-up-modal` viewer, whose account step opens pre-filled because that
+ * person typed these answers into the modal a moment ago. They were separate
+ * literals; one fixture means the two can never disagree about who signed up.
+ */
+export const FILLED_ACCOUNT_FORM: AccountFormData = {
+  email: VIEWER_EMAIL,
+  name: VIEWER_NAME,
+  linkedin: VIEWER_LINKEDIN,
+  role: VIEWER_ROLE,
+  /* Not on a PL team: the shorter form, and the one the checkbox defaults to.
+     A filled fixture that also happened to exercise the gated select would be
+     showing the uncommon case as the representative one. */
+  onPlTeam: false,
   company: null,
 };
 
@@ -105,11 +152,22 @@ export const accountSchema = yup.object({
      schema key with no input is a validation nobody can fail, and the next
      reader has to open the form to find that out.) */
   name: yup.string().required('Name is required'),
+  /* **Required, where it used to be the form's one optional field.**
+     What changed is what the answer is for. It was a link that would sit on the
+     profile — nice to have, skippable — and it is now the only thing on this
+     form a human reviewer can actually check: an email and a typed job title are
+     claims, a LinkedIn profile is a person. The PL team approves these accounts
+     by hand, so the field that makes that possible is not an extra.
+
+     The format test keeps its `return true` on empty. That is not a loophole —
+     `.required()` below owns the empty case and says so in its own words, and a
+     blank field answered with "enter a valid LinkedIn handle or URL" would be
+     telling someone their nothing is malformed. One rule, one message. */
   linkedin: yup
     .string()
     .defined()
     .test('linkedin-url', 'Please enter a valid LinkedIn handle or URL', (value) => {
-      if (!value || value.trim() === '') return true; // Allow empty values
+      if (!value || value.trim() === '') return true; // Let required() handle empty values
 
       const trimmedValue = value.trim();
 
@@ -120,19 +178,37 @@ export const accountSchema = yup.object({
       const linkedinHandlePattern = /^[\w-]{3,100}$/;
 
       return linkedinUrlPattern.test(trimmedValue) || linkedinHandlePattern.test(trimmedValue);
-    }),
+    })
+    .required('LinkedIn profile is required'),
   role: yup.string().required('Role is required'),
+  /* No rule of its own: it is a switch, not an answer to validate, and both of
+     its states are valid. It is in the schema so `AccountFormData` and the
+     resolver agree on the shape of the form — a key react-hook-form holds and
+     yup has never heard of is the drift this file exists to prevent. */
+  onPlTeam: yup.boolean().default(false),
+  /* Still nullable, and still with no `when('onPlTeam')` rule. The select is
+     optional whether or not it is on screen: someone can be at a network team
+     the closed list doesn't carry, tick the box honestly, and find nothing to
+     pick. Requiring it would turn an honest tick into a dead end. */
   company: yup.mixed<{ label: string; value: string }>().nullable(),
 });
 
 /** Form state → the answers. One flattener, so the modal and the pane cannot
- *  disagree about whether `company` travels as a label or a uid. */
+ *  disagree about whether `company` travels as a label or a uid.
+ *
+ *  **`onPlTeam` does not appear in `AccountDetails`, and shouldn't.** It is the
+ *  question, and `company` is the answer: an empty company already says "not on
+ *  a network team", so carrying the flag downstream would give every consumer
+ *  two fields to reconcile and one of them redundant. It is read here only to
+ *  make sure the two can never disagree — the group clears `company` when the
+ *  box is unticked, and this is the belt to that's braces, for the one render
+ *  where a stale option could still be sitting in form state. */
 export const toAccountDetails = (data: AccountFormData): AccountDetails => ({
   name: data.name.trim(),
   email: data.email.trim(),
   linkedin: (data.linkedin ?? '').trim(),
   role: data.role.trim(),
-  company: data.company?.label ?? '',
+  company: data.onPlTeam ? (data.company?.label ?? '') : '',
 });
 
 /**
@@ -246,12 +322,27 @@ const WORK_EMAIL_NOTE = 'A work address helps the PL team review your account �
  */
 export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' } = {}) {
   const companyOptions = useCompanyOptions();
+  const { setValue } = useFormContext<AccountFormData>();
 
   /* Read here rather than inside `FormField`, which watches its own value only
      to drive a character counter — the *description* is the host's to compose,
      and this is the host. `useWatch` re-renders this group on the keystroke that
      completes a domain, which is the one moment the note has something to say. */
   const email = useWatch<AccountFormData, 'email'>({ name: 'email' }) ?? '';
+
+  /* The team row's switch, watched for the same reason: the group re-renders on
+     the tick, because the tick is what puts the select on screen. */
+  const onPlTeam = useWatch<AccountFormData, 'onPlTeam'>({ name: 'onPlTeam' }) ?? false;
+
+  /* Unticking clears the team rather than hiding it.
+     A hidden select still holding "Filecoin Foundation" would submit an employer
+     the person has just told the form they don't have — the answer would be
+     invisible, kept, and wrong, which is the worst of the three. So the switch
+     owns the field it reveals in both directions. */
+  const toggleOnPlTeam = (next: boolean) => {
+    setValue('onPlTeam', next, { shouldDirty: true });
+    if (!next) setValue('company', null, { shouldDirty: true });
+  };
 
   return (
     /* The group carries its own 24px rhythm rather than inheriting one.
@@ -318,8 +409,10 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
 
       {/* The field always asked for this and the answer used to be thrown away —
           the board seeded only `role`. It now lands on the profile, and the
-          description says what it is *for*, because an optional field with no
-          stated payoff is one people skip.
+          description still says what it is *for* — a required field owes the
+          person an answer to "why are you asking?" at least as much as an
+          optional one did, and this is the only field here whose payoff isn't
+          self-evident from its label.
 
           The description used to end "...bring your LinkedIn profile as a PDF in
           the next step", pointing at the importer's LinkedIn door. That door is
@@ -327,25 +420,30 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
           instruction for a control nobody will find. What is left is the whole
           truth about this field: it is a link on your profile, not a way to fill
           anything in. */}
-      {/* Marked too, and it has to be. Adding `(Optional)` to Team email gave
-          this form a *system* — required carries `*`, optional carries the mark
-          — and a system with one member is just an exception. LinkedIn is the
-          only other field here that can be left blank, so leaving it unmarked
-          would have made it the one input whose state you work out by noticing
-          an absent asterisk. Same hand-rolled label, same reason as below. */}
-      <div className={s.column}>
-        <div className={ff.labelWrapper}>
-          <label className={ff.label} htmlFor="linkedin">
-            LinkedIn profile
-            <OptionalMark />
-          </label>
-        </div>
-        <FormField
-          name="linkedin"
-          placeholder="eg., johndoe or https://linkedin.com/in/johndoe"
-          description="Shown on your profile, alongside your other links."
-        />
-      </div>
+      {/* **Required now, and back on `FormField`'s own label.**
+
+          It used to be optional, and it wore a hand-rolled label so it could
+          carry `(Optional)`. The argument for that mark was a *system*: Team
+          email had one, required fields carry `*`, so the one other skippable
+          field had to be marked or it would be the input whose state you work
+          out from an absent asterisk. Team email is long gone and LinkedIn is
+          required, so the system has no optional members left — there is nothing
+          for a mark to distinguish, and the only honest state left on this form
+          is `*`.
+
+          Which means the hand-rolled label goes too. It existed solely because
+          `FormField`'s `label` prop takes a string and a mark is a node; with no
+          mark, `label` + `isRequired` is the component doing its own job, and
+          this field stops being the one place the group draws a label by hand
+          (it associates the label with the input, which the hand-rolled version
+          never did — see the note under the team row for the same debt). */}
+      <FormField
+        name="linkedin"
+        label="LinkedIn profile"
+        isRequired
+        placeholder="eg., johndoe or https://linkedin.com/in/johndoe"
+        description="Shown on your profile, alongside your other links."
+      />
 
       {/* **The label names the network, because the list is the network.**
           This read "Current role & company" and the select said "Select a
@@ -366,20 +464,57 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
           a field labelled from the asker's side undersells and mis-describes
           what is actually in it.
 
-          **Why the label is not the question itself.** "Are you already at a PL
-          network team?" is what this asks, and it was the obvious candidate —
-          but the group holds one required field and one optional one. `role` is
-          required of everybody; the team is answerable only if you are on the
-          network. A question-shaped label covering both would make the required
-          half read as skippable, and the group can't carry a single
-          `OptionalMark` for the same reason. So the label states the pair, and
-          the description under the select — the half that is actually optional —
-          answers the question. */}
-      <div className={s.column}>
-        <div className={s.inputsLabel}>Current role &amp; PL network team</div>
-        <div className={s.inputsWrapper}>
-          <FormField name="role" placeholder="Enter your current role" />
-          <span className={s.separator}>@</span>
+          **The question is now a checkbox, and the label is back to naming one
+          field.** It used to be a pair — "Current role & PL network team" — over
+          a row that always showed both halves, and the label had to state the
+          pair because there was no other way to say that only the second half
+          was optional. It could not be written as the question itself ("Are you
+          already at a PL network team?") for exactly that reason: a
+          question-shaped label over a required `role` would make the required
+          half read as skippable.
+
+          The checkbox above takes the question, which frees the label to name
+          what is under it. Most people on a public job board are not on a PL
+          network team, and the old row put a select in front of all of them
+          whose only correct answer was to leave it alone — a closed list of six
+          teams reads as a wall to everyone not on it, and the sentence
+          underneath existed to talk them past a control they should never have
+          been shown. Now the default form is the one that fits them: a role
+          input and nothing else. Ticking the box is what asks for the select,
+          which turns "leave it blank if this isn't you" into "say so, and we'll
+          ask". The description below survives, because the tick is where its
+          condition now lives. */}
+      <div className={s.checkboxGroup}>
+        {/* The `<label>` wraps both, so the sentence is the hit area — a 20px
+            box is a small target and the words next to it are the obvious one.
+            Shape from `SecRulesCheckbox`, the repo's own labelled checkbox;
+            control from `@/components/common/Checkbox`, which is that pattern's
+            base-ui root already dressed in the design system.
+
+            First person ("I'm already a member…") rather than the form's usual
+            noun-phrase labels, and deliberately so: every other line in this
+            group names a thing to fill in, and this one is a claim the person is
+            making about themselves. It is the same voice the DS uses for its
+            other checkbox — "I'm an accredited investor under SEC rules" — which
+            is the nearest thing this codebase has to a precedent for a box you
+            tick about yourself. */}
+        <label className={s.checkboxRow}>
+          <Checkbox checked={onPlTeam} onChange={toggleOnPlTeam} />
+          I&apos;m already a member of a PL Network team
+        </label>
+
+        <div className={s.column}>
+          <div className={s.inputsLabel}>{onPlTeam ? 'Current role & PL network team' : 'Current role'}</div>
+          <div className={s.inputsWrapper}>
+            <FormField name="role" placeholder="Enter your current role" />
+            {/* The `@` and the select appear together or not at all. The
+                separator is punctuation *between* two fields — on its own beside
+                a single input it is a dangling preposition, a row that looks
+                like it lost something. So the reveal is the whole right-hand
+                half of the row, not just the control. */}
+            {onPlTeam && (
+              <>
+                <span className={s.separator}>@</span>
           {/* "Select a team", not the source's "Search or add a team". Two
               reasons, both still true now the word is "team". It fits on one
               line at this width — the longer string wrapped and left the select
@@ -390,11 +525,15 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
               carry.
 
               The hint below is the one thing neither the label nor the list can
-              show: that a blank is a *correct* answer. Without it the closed
-              list reads as a wall to anyone whose employer isn't on it — and
-              they are exactly the people this board most wants applying. */}
-          <FormSelect name="company" placeholder="Select a team" isClearable options={companyOptions} />
-        </div>
+              show: that a blank is still a *correct* answer even here. The
+              checkbox now filters out everyone who isn't on the network, but it
+              does not filter out someone who is on a team this closed list of
+              six doesn't carry — and for them the wall is exactly as high as it
+              ever was. */}
+                <FormSelect name="company" placeholder="Select a team" isClearable options={companyOptions} />
+              </>
+            )}
+          </div>
         {/* **Hand-rolled with `FormField`'s own `.fieldDescription`, not passed
             to `FormSelect` as a `description` prop.**
 
@@ -448,15 +587,28 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
             one glance to skip.
 
             It still names the network, which is the one thing neither the control
-            nor the list can show a person whose employer isn't on it. */}
-        <p className={ff.fieldDescription}>Fill in if you are already at a PL network team.</p>
+            nor the list can show a person whose employer isn't on it.
+
+            **Rewritten, and now conditional on the tick.** It used to read "Fill
+            in if you are already at a PL network team", which is the condition
+            the checkbox above has taken over — under an unticked box it would be
+            pointing at a select that isn't on screen, and under a ticked one it
+            would be asking a question the person has just answered. So it only
+            renders with the row it belongs to, and it says the one thing the
+            tick does not settle: the list is closed and short, and finding
+            nothing in it is not a failed answer. */}
+          {onPlTeam && (
+            <p className={ff.fieldDescription}>Leave the team blank if yours isn&apos;t on the list yet.</p>
+          )}
+        </div>
       </div>
 
       {/* (The `Team email` field stood here — a hand-rolled `(Optional)` label
           over a `FormField`, last in the group and directly under the team select.
           Gone; see the note on `AccountFormData`. The hand-rolled-label pattern
-          it demonstrated is still in use one field up, on `LinkedIn profile`, so
-          nothing about how this form places a marked label is lost with it.) */}
+          it demonstrated went too, when LinkedIn became required and lost its
+          `(Optional)` mark — every label in this group is `FormField`'s own
+          again, which is the better end state.) */}
     </div>
   );
 }

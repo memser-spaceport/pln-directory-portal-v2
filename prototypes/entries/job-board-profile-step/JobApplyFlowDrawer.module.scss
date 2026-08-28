@@ -222,7 +222,14 @@
   @include media.tablet-landscape {
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    /* `flex-end`, not `space-between`. With a hint present the two are
+       identical — `.footerHint` takes `flex: 1` and pushes the button to the
+       right end on its own. They differ only in the case that now exists: a
+       step whose hint is `undefined` renders no paragraph at all, and
+       `space-between` with a single item would slide the button to the left
+       edge of the bar. The action's position must not depend on whether there
+       happens to be a sentence beside it. */
+    justify-content: flex-end;
     gap: 16px;
     padding: 12px 20px;
   }

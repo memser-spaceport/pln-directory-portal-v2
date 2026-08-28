@@ -31,8 +31,13 @@ interface JobReferRoleRowProps {
   /** Mirrors production's `source`: this row is shared by the board and team-profile prototypes. */
   source?: JobSurface;
   onClick?: () => void;
-  /** Referring needs a signed-in referrer; logged out, the button isn't there at all. */
+  /** Whether pressing Refer may actually open the referral modal. The button is
+   *  rendered either way — see `onReferSignUp` for what the other case does. */
   canRefer?: boolean;
+  /** Where the press goes when `canRefer` is false: the board's sign-up door.
+   *  Required in practice on the board; the team profile passes `canRefer` and
+   *  has no modal to fall back to. */
+  onReferSignUp?: () => void;
   /* (`onApply` — an in-app Apply button in this row — is gone. It was the board's
       slot back when pressing Apply from a row was possible; the row's button
       became **View job** when the description moved in-app, which left the
@@ -55,23 +60,35 @@ interface JobReferRoleRowProps {
  * the share icon. The two are different jobs: the share icon pushes the role out
  * to LinkedIn/X, the Refer button opens the in-network referral modal.
  *
- * **Both actions are gated when logged out, for two different reasons — and the
- * difference between the reasons is the point.**
+ * **Both actions are gated when logged out, and both are gated the same way: the
+ * control is on screen for everyone, and the press asks for an account.**
  *
  *  - **Refer** needs a signed-in referrer because you genuinely cannot vouch for
  *    someone as nobody: the modal signs the note with your name, and a referral
- *    from no one is worth nothing to the team that receives it. It is therefore
- *    **hidden** rather than nudged. Referring is a thing you do *for someone else*
- *    once you're already in the network — nobody arrives at the board wanting to
- *    refer, so offering it to a stranger only to bounce them into sign-in
- *    advertises a job they didn't come to do and spends the row's sign-in ask on
- *    the wrong action. Apply is the ask worth making to a logged-out visitor;
- *    this one waits until it means something.
- *  - **Apply** is now gated too, and not as a login toll. One-click applying
+ *    from no one is worth nothing to the team that receives it. So the *modal*
+ *    stays shut to a stranger — but the *button* does not.
+ *
+ *    It used to be hidden outright, on the reasoning that nobody arrives at a
+ *    job board wanting to refer, so offering it to a stranger only to bounce
+ *    them into sign-in advertises a job they didn't come to do. That reversed.
+ *    Hiding it means a logged-out visitor cannot learn that referring is a thing
+ *    this board does at all — and the person best placed to refer is very often
+ *    exactly the visitor with no account yet, who opened this role, decided it
+ *    wasn't for them, and knows who it is for. Removing the control removes the
+ *    thought. So the button is there for everyone, and pressing it while logged
+ *    out opens the board's sign-up door (`onReferSignUp`) rather than the
+ *    referral modal — which is what production's own `ReferRoleRow` does with an
+ *    anonymous visitor, one step earlier. The sign-up modal carries "Already
+ *    have an account? Sign in", so a single press offers both doors.
+ *  - **Apply** is gated too, and not as a login toll. One-click applying
  *    means the team receives your *profile* rather than a form you retyped, so
  *    there has to be a profile to send. The exchange is real in both directions:
  *    you give a name, a role and a length of experience; you stop refilling the
  *    same fields once per posting.
+ *
+ * Neither gate is a dead control: both press through to the same ask, so the row
+ * looks identical to everyone and the only thing the account changes is where
+ * the press lands.
  *
  * Nothing on the board is hidden from a logged-out visitor — every role, every
  * team, every link out to the original posting stays open, and the role title
@@ -100,6 +117,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
     source = 'job-board',
     onClick,
     canRefer = true,
+    onReferSignUp,
     onViewJob,
     applied = false,
     appliedAt,
@@ -179,21 +197,23 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
                 which is why `.referButton` — pure horizontal padding for the
                 bordered shape Refer used to wear — went with it.
 
-                Absent, not disabled, when logged out — see the note above the
-                component. The row keeps its geometry either way: this is a text
-                button in a right-aligned cluster, so removing it closes up
-                rather than leaving a hole. */}
-            {canRefer && (
-              <Button
-                size="s"
-                style="link"
-                variant="secondary"
-                className={js.referTone}
-                onClick={() => setReferOpen(true)}
-              >
-                Refer
-              </Button>
-            )}
+                Present for everyone, signed in or not. The account changes only
+                where the press lands: the referral modal if there is a name to
+                sign the note with, the board's sign-up door if there isn't. Not
+                disabled and not hidden in the second case — a stranger has to be
+                able to find out that referring is something this board does, and
+                a press that opens the one control standing between them and
+                doing it is a working button, not a refused one. See the note
+                above the component for why this reversed. */}
+            <Button
+              size="s"
+              style="link"
+              variant="secondary"
+              className={js.referTone}
+              onClick={() => (canRefer ? setReferOpen(true) : onReferSignUp?.())}
+            >
+              Refer
+            </Button>
 
             <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />
 

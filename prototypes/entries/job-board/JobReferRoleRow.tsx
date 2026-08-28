@@ -31,8 +31,15 @@ interface JobReferRoleRowProps {
   /** Mirrors production's `source`: this row is shared by the board and team-profile prototypes. */
   source?: JobSurface;
   onClick?: () => void;
-  /** Referring needs a signed-in referrer; logged out, the button isn't there at all. */
-  canRefer?: boolean;
+  /** Whether pressing **Refer** may actually open the referral modal. The button
+   *  is rendered either way — this gates the modal, never the offer. */
+  canOpenReferral?: boolean;
+  /** Where the Refer press goes when `canOpenReferral` is false: the board's
+   *  sign-up door. Production's own `ReferRoleRow` sends anonymous visitors to
+   *  login for the same reason — an unsigned referral is worthless. Omitted on a
+   *  surface with no such door, where the button then does nothing and should be
+   *  gated by `canOpenReferral` staying true instead. */
+  onReferSignUp?: () => void;
   /* (`onApply` — an in-app Apply button in this row — is gone. It was the board's
       slot back when pressing Apply from a row was possible; the row's button
       became **View job** when the description moved in-app, which left the
@@ -55,19 +62,29 @@ interface JobReferRoleRowProps {
  * the share icon. The two are different jobs: the share icon pushes the role out
  * to LinkedIn/X, the Refer button opens the in-network referral modal.
  *
- * **Both actions are gated when logged out, for two different reasons — and the
- * difference between the reasons is the point.**
+ * **Both actions are gated when logged out, and both are now *offered* to a
+ * logged-out visitor rather than one of them being hidden.**
  *
- *  - **Refer** needs a signed-in referrer because you genuinely cannot vouch for
- *    someone as nobody: the modal signs the note with your name, and a referral
- *    from no one is worth nothing to the team that receives it. It is therefore
- *    **hidden** rather than nudged. Referring is a thing you do *for someone else*
- *    once you're already in the network — nobody arrives at the board wanting to
- *    refer, so offering it to a stranger only to bounce them into sign-in
- *    advertises a job they didn't come to do and spends the row's sign-in ask on
- *    the wrong action. Apply is the ask worth making to a logged-out visitor;
- *    this one waits until it means something.
- *  - **Apply** is now gated too, and not as a login toll. One-click applying
+ *  - **Refer** still needs a signed-in referrer: the modal signs the note with
+ *    your name, and a referral from nobody is worth nothing to the team that
+ *    receives it. So the press is gated — but the *button* is not. It used to be
+ *    hidden, on the reasoning that nobody arrives at a board wanting to refer
+ *    and that offering it to a stranger spent the row's sign-in ask on the
+ *    wrong action. That reasoning is overturned, for two reasons. A hidden
+ *    control cannot be learned: a visitor who does know someone right for the
+ *    role has no way to find out that this board can carry that, and the person
+ *    most likely to be logged out is exactly the one who has never seen the
+ *    feature. And the press no longer opens a modal they cannot use — it opens
+ *    the board's sign-up door, which is the same ask Apply makes, arriving from
+ *    a person who has just told us they have somebody in mind. That is a better
+ *    moment to ask than a colder one, not a worse one.
+ *
+ *    The rule, stated plainly: **Refer is visible to everyone; opening the
+ *    referral modal requires an account.** Pressing it logged out lands on
+ *    `JobSignUpModal`, which carries its own "Already have an account? Sign in"
+ *    escape — so one press offers both doors, and nobody is bounced into a form
+ *    with no way back to the one they wanted.
+ *  - **Apply** is gated too, and not as a login toll. One-click applying
  *    means the team receives your *profile* rather than a form you retyped, so
  *    there has to be a profile to send. The exchange is real in both directions:
  *    you give a name, a role and a length of experience; you stop refilling the
@@ -99,7 +116,8 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
     team,
     source = 'job-board',
     onClick,
-    canRefer = true,
+    canOpenReferral = true,
+    onReferSignUp,
     onViewJob,
     applied = false,
     appliedAt,
@@ -179,21 +197,22 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
                 which is why `.referButton` — pure horizontal padding for the
                 bordered shape Refer used to wear — went with it.
 
-                Absent, not disabled, when logged out — see the note above the
-                component. The row keeps its geometry either way: this is a text
-                button in a right-aligned cluster, so removing it closes up
-                rather than leaving a hole. */}
-            {canRefer && (
-              <Button
-                size="s"
-                style="link"
-                variant="secondary"
-                className={js.referTone}
-                onClick={() => setReferOpen(true)}
-              >
-                Refer
-              </Button>
-            )}
+                **Present in every viewer state, and never disabled.** It was
+                absent when logged out; it isn't any more — see the note above
+                the component for why that reversed. It is not disabled either:
+                a dead control tells a stranger the row has something they may
+                not have, which is the worst of both readings. The press is
+                live and lands where it can be honoured — the referral modal
+                with an account, the board's sign-up door without one. */}
+            <Button
+              size="s"
+              style="link"
+              variant="secondary"
+              className={js.referTone}
+              onClick={() => (canOpenReferral ? setReferOpen(true) : onReferSignUp?.())}
+            >
+              Refer
+            </Button>
 
             <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />
 

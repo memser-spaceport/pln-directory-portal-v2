@@ -11,6 +11,8 @@ import { formatRelativeDays } from '@/utils/jobs.utils';
 import { Drawer } from '@/components/common/Drawer/Drawer';
 import { Button } from '@/components/common/Button';
 import { CheckIcon, CloseIcon } from '@/components/icons';
+// The DS checkbox, for the completeness tick in the footer bar.
+import { Checkbox } from '@/components/common/Checkbox';
 // Button's stylesheet, for the "Applied" report — an element wearing the DS
 // button rather than a lookalike, exactly as the row does it.
 import btn from '@/components/common/Button/Button.module.scss';
@@ -38,6 +40,7 @@ import { JobAccountPane } from './JobAccountPane';
 import { JobApplicationPane } from './JobApplicationPane';
 import {
   EMPTY_ACCOUNT_FORM,
+  FILLED_ACCOUNT_FORM,
   accountSchema,
   toAccountDetails,
   type AccountDetails,
@@ -126,22 +129,12 @@ const backLabelFor = (id: ApplyFlowStepId, loggedIn: boolean): string => {
   }
 };
 
-/**
- * What's still owed, as a verb phrase the footer can drop into either of its two
- * sentences. Lower-case and un-punctuated so it composes; `sentenceCase` lifts
- * it when it starts the sentence.
- *
- * Both missing gets one clause, not two — "add your current role and choose a
- * job search status" is a single instruction to fill in the first two cards, and
- * splitting it into two sentences would imply an order that doesn't exist.
- */
-function missingHint(hasRole: boolean, hasStatus: boolean): string {
-  if (!hasRole && !hasStatus) return 'add your current role and choose a job search status';
-  if (!hasRole) return 'add your current role';
-  return 'choose a job search status';
-}
-
-const sentenceCase = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
+/* `missingHint` and `sentenceCase` stood here. They existed to compose a
+   single footer sentence out of the three ways the profile step can be
+   incomplete — naming the missing answer, then reassuring that the rest was
+   optional. That sentence is gone: each required card already carries its own
+   amber strip naming what it wants, in the place where it can be given, and
+   every optional section is labelled as one. */
 
 interface JobApplyFlowDrawerProps {
   open: boolean;
@@ -186,6 +179,13 @@ interface JobApplyFlowDrawerProps {
    */
   onCreateAccount: (payload: { details: AccountDetails; profile: MemberProfile }) => void;
   loggedIn: boolean;
+  /** True for the `signed-up-modal` viewer: the account form opens filled with
+   *  what the modal collected, and the completeness tick appears beside the
+   *  footer button. Both follow from the same fact — there is nothing here for
+   *  this person to type, so the step becomes something to confirm rather than
+   *  something to fill in, and that is the only state where confirming is a
+   *  sensible thing to ask for. */
+  accountPrefilled?: boolean;
   /**
    * The details step's escape, for a visitor who turns out to have an account
    * already. Signs in and leaves the flow exactly where it stands: same job,
@@ -288,6 +288,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     onSubmitApplication,
     onCreateAccount,
     loggedIn,
+  accountPrefilled = false,
     onSignIn,
     pendingApproval,
     applied,
@@ -310,6 +311,19 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
      sends it is this footer, not the pane that collects it. */
   const [coverLetter, setCoverLetter] = useState('');
 
+  /* The logged-out details step's confirmedComplete tick.
+
+     Held here beside the draft, not on it, and not in the account form. Not on
+     `MemberProfile`, because it is not a profile field — nothing about it
+     survives this flow or belongs on a card a hiring team reads; it is a
+     permission granted for one press. Not in `accountMethods` either, because
+     the account form is validated *by* the press and this gates the press: a
+     value that decides whether the button is alive has to be readable without
+     asking a resolver, the same way `jobSearchStatus` is. Its own `useState` at
+     this level is the honest home — the pane that shows it unmounts, the footer
+     that reads it does not. */
+  const [confirmedComplete, setConfirmedComplete] = useState(false);
+
   /* The account form, lifted for exactly the reason the draft is: `JobAccountPane`
      unmounts every time someone steps to the letter, and a stranger who went to
      write it and came back to fix their email would otherwise find five empty
@@ -321,7 +335,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
      this same form: errors appear when you leave a field, not while you type
      into it. */
   const accountMethods = useForm<AccountFormData>({
-    defaultValues: EMPTY_ACCOUNT_FORM,
+    defaultValues: accountPrefilled ? FILLED_ACCOUNT_FORM : EMPTY_ACCOUNT_FORM,
     resolver: yupResolver(accountSchema) as Resolver<AccountFormData>,
     mode: 'onBlur',
   });
@@ -350,7 +364,11 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     setDraft(profile);
     setEditing(null);
     setCoverLetter(canvasCoverLetter ?? '');
-    accountMethods.reset(EMPTY_ACCOUNT_FORM);
+    accountMethods.reset(accountPrefilled ? FILLED_ACCOUNT_FORM : EMPTY_ACCOUNT_FORM);
+    /* Cleared with everything else. A confirmedComplete that persisted across flow runs
+       would be permission for *this* application carried over from a different
+       one — which is the only kind of confirmedComplete that isn't confirmedComplete. */
+    setConfirmedComplete(false);
     /* `loggedIn &&` is belt and braces — a logged-out viewer's profile is the
        empty one, so `isProfileComplete` is already false — but the step is about
        *having an account*, not about the record being full, and stating that
@@ -654,14 +672,32 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
         /* The pending-approval variant is back, with the gate it describes.
            It names the thing that ends the wait — an email — because "under
            review" on its own leaves the person with nothing to expect and no
-           idea whether to keep checking. */
+           idea whether to keep checking.
+
+           **Nothing at all when logged out.** There was a sentence here —
+           "Applying sends a profile — the next step opens your account, and
+           applying opens once it is approved" — and it spent three clauses
+           warning a stranger about two things they had not asked about yet. The
+           button beside it now says `Sign up to Apply`, which carries the only
+           part of that they need before pressing: this costs an account. The
+           rest is step 2's to say, at the moment it is true. `undefined` rather
+           than `''`, so the footer drops the paragraph instead of reserving a
+           blank line for it — see where `footer.hint` is rendered. */
         hint: blockedByReview
           ? "Applying opens once the PL team approves your account. We'll email you."
           : !loggedIn
-            ? 'Applying sends a profile — the next step opens your account, and applying opens once it is approved.'
+            ? undefined
             : complete
               ? 'One press sends your PL profile with a short note. Nothing to refill.'
-              : 'Applying sends your PL profile — the next step is finishing it.',
+              : /* **Nothing here either.** This said that applying sends a profile
+                   and that finishing it comes next — both of which the step rail
+                   directly above already carries: it draws step 2 as the next
+                   stop and names it. A footer that narrates the rail is a
+                   second voice describing one journey.
+
+                   `undefined`, not `''`, so the footer drops the paragraph
+                   rather than reserving space for it. */
+                undefined,
         action: (
           /* Dead on purpose, and only in the one state where the reason is on
              screen beside it. The rule this file follows elsewhere — never
@@ -676,7 +712,15 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             disabled={blockedByReview}
             onClick={onApplyPressed}
           >
-            Apply
+            {/* The label carries the toll, because nothing else does any more.
+                A logged-out visitor gets no hint under this button, so `Apply`
+                alone would promise a send and deliver a form — the classic
+                bait, and the exact thing a person resents finding out one press
+                in. `Sign up to Apply` states the order of events in four words
+                and keeps `Apply` as the object of the sentence, so the button is
+                still named after what the person came to do. Members see the
+                plain verb: there is no toll to name. */}
+            {loggedIn ? 'Apply' : 'Sign up to Apply'}
           </Button>
         ),
       };
@@ -777,6 +821,16 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
          requirement — the four text fields are validated by the press rather
          than gating it. */
       if (!loggedIn) {
+        /* The two visible gates on this step, together. Both are answers on
+           cards the person is looking at, both carry the amber `DataIncomplete`
+           treatment while they are open, and neither can be satisfied by typing
+           — so the button may safely be dead on either. See the note on
+           `disabled` for why the *text fields* are not in here. */
+        /* The tick only exists for the pre-filled step, so it can only gate that
+           one. A plain visitor is typing these answers as they go, and asking
+           someone to confirm that what they just typed is complete is asking
+           them to read their own form back — the press is already that. */
+        const canContinue = hasStatus && (!accountPrefilled || confirmedComplete);
         return {
           /* Says where this ends, because it no longer ends where the rail
              implies. The step used to hand straight on to the letter; now it is
@@ -794,15 +848,34 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
              part they do. Production reached the same answer from the other
              direction: an unapproved account applying to a non-PL role is sent
              to the team's site, and this is that rule one viewer earlier. */
-          hint: !hasStatus
-            ? 'Choose a job search status to continue. It is only ever shown to the PL team.'
-            : `${team?.name ?? 'The team'} takes applications on their own site — it opens in a new tab. Your PL account is created too.`,
+          /* **And nothing while the gaps are open.** There was a second arm
+             here — "Choose a job search status to continue. It is only ever
+             shown to the PL team." — restating, in the footer, both halves of
+             what the amber strip and the PL-team-only pill already say one inch
+             above, on the card they are about to point at. A hint that repeats
+             the sign it is standing next to teaches the reader that the footer
+             says nothing new, which is exactly the habit the *other* arm of this
+             ternary needs them not to have. So the footer stays quiet until the
+             requirements are met and it has something of its own to report. */
+          hint: !canContinue
+            ? undefined
+            : /* The account clause is dropped for someone who signed up through the
+                 modal: theirs already exists, and reporting its creation here would
+                 date-stamp an event that happened before they pressed Apply. The
+                 rest of the sentence is the part they can act on and is unchanged. */
+              `${team?.name ?? 'The team'} takes applications on their own site — it opens in a new tab.${
+                accountPrefilled ? '' : ' Your PL account is created too.'
+              }`,
           action: (
-            /* Disabled on the status and nothing else.
+            /* Disabled on the status and, where it exists, the completeness tick.
 
                The split is deliberate. A missing status is a *visible* gap: the
                amber strip is on screen pointing at it, so a dead button has a
-               sign next to it. Field validity is invisible until something
+               sign next to it. The tick is a peer of it and is visible for a simpler
+               reason — it sits in this same bar, an inch from the button it
+               blocks, wearing the required asterisk. It only appears for the
+               pre-filled step; on a step the person is typing, the status strip
+               is the only gap there is. Field validity is invisible until something
                checks it — so the press is what checks, and errors land under the
                fields they belong to. `JobSignUpModal` makes exactly this call on
                exactly this form: "Disabled only while submitting, never on
@@ -813,7 +886,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               style="fill"
               size="m"
               className={clsx(d.footerAction, d.footerActionIcon)}
-              disabled={!hasStatus}
+              disabled={!canContinue}
               onClick={submitAccount}
             >
               {/* FORK ONLY. `Create account` named the only thing this press did
@@ -880,8 +953,13 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             "Applying opens once the PL team approves your account — we'll email you."
           : !complete
             ? editing
-              ? `Save this card, then ${missingHint(hasRole, hasStatus)} to continue.`
-              : `${sentenceCase(missingHint(hasRole, hasStatus))} to continue. Everything else is optional.`
+              ? 'Save this card to continue.'
+              : /* Nothing at rest. The instruction that stood here — name the two
+                   required answers, then reassure that the rest is optional — was
+                   already on screen twice over: each required card carries its own
+                   amber `Required to continue.` strip, and every optional section
+                   is labelled `(Optional)`. */
+                undefined
             : /* FORK ONLY. It said "Experience, skills and bio are optional — you
                  can add them any time", which was true when the sections sat
                  below this footer on the same step. Experience is its own screen
@@ -1090,7 +1168,41 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
           makes them read as one screen rather than three. */}
       <div className={d.footer}>
         <div className={d.footerInner}>
-          <p className={d.footerHint}>{footer.hint}</p>
+          {/* Rendered only when there is something to say. Two footers are
+              deliberately silent now — the logged-out review step and the
+              logged-out details step while its two required answers are still
+              open — and an empty `<p>` in a flex column is not silence: it is a
+              line of leading plus the container's 12px gap, i.e. a hole where a
+              sentence used to be. Dropping the node lets the bar close up to the
+              button, which is what a footer with one control should look like. */}
+          {/* The step's second gate, in the bar with the press it gates.
+
+              It was a card up in the scroll, wearing the amber `missingData`
+              treatment so that a dead button always had its reason visible
+              somewhere. Beside the button that compensation is unnecessary:
+              the tick and the press are one object, and nothing about why the
+              button is dead can be scrolled away from.
+
+              **First in the bar, and held at the left end.** It reads before
+              the button rather than crowding it: the two are a condition and
+              its consequence, and that is their order. It also stops the tick
+              from moving — with the hint between them the pair sit at opposite
+              ends whether or not there is a sentence, so nothing shifts under
+              the cursor when one appears. See `.footerCheck`.
+
+              The asterisk is the DS mark, transcribed rather than typed — the
+              same red `*` the required text fields on this flow already wear,
+              so one screen has one way of saying "required".
+
+              Only on this step, and only for a visitor — a member's profile
+              already exists, so there is nothing here for them to confirm. */}
+          {step === 'details' && accountPrefilled && (
+            <label className={d.footerCheck}>
+              <Checkbox checked={confirmedComplete} onChange={setConfirmedComplete} />
+              <span className={d.footerCheckLabel}>My profile is complete</span>
+            </label>
+          )}
+          {footer.hint && <p className={d.footerHint}>{footer.hint}</p>}
           {footer.action}
         </div>
       </div>

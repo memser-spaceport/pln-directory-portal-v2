@@ -36,6 +36,19 @@
 // It does not go tertiary. Tertiary is for something to read once (the privacy
 // note, the status hints); this is something to press, and the returning member
 // it is for should be able to find it without hunting.
+// The step's description, under the title.
+//
+// Type comes from the flow's shared `.lede`; this adds the one thing that is
+// local — the 6px under the title. A heading and its own qualifying sentence
+// are one unit, and 6 against `.stepIntro`'s no-gap column is what makes them
+// one. It cannot live on `.lede` (shared with steps that have no title) or on
+// `.stepTitle` (shared with the member pane, which has no lede), so it lives
+// here — the same reason `.signInEscape` states its own 12 rather than the
+// wrapper carrying a gap for everyone.
+.stepLede {
+  margin-top: 6px;
+}
+
 .signInEscape {
   width: 100%;
   // 12 above, nothing below — `.stepIntro` carries no gap of its own, so this is

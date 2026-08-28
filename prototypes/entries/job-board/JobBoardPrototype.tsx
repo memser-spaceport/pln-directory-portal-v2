@@ -224,6 +224,8 @@ import { ApplicationEmailPreview } from './email/ApplicationEmailPreview';
 import type { ApplicationEmailInput } from './email/applicationEmail';
 import {
   EMPTY_PROFILE,
+  isViewerSignedIn,
+  profileForViewer,
   FILLED_PROFILE,
   type BoardViewer,
   hasCriteria,
@@ -284,9 +286,14 @@ const SAMPLE_APPLICATION_EMAIL: ApplicationEmailInput = {
  * has, not after the slot that moves — "PL Infra viewer" is a fact about the
  * account; which of Events or PL Infra ends up in slot two is the consequence.
  */
-/** The five entry states the apply flow branches into — see `BoardViewer`. */
+/** The entry states the apply flow branches into — see `BoardViewer`. */
 const VIEWER_OPTIONS: Array<{ value: BoardViewer; label: string }> = [
   { value: 'logged-out', label: 'Logged out' },
+  /* Second, because it is the next thing that happens to the same person: they
+     took the header door instead of the Apply one. Still signed out as far as
+     the flow is concerned — what it changes is that step 2 opens already
+     answered, which is the only state where the completeness tick appears. */
+  { value: 'signed-up-modal', label: 'Signed up through modal' },
   { value: 'pending-approval', label: 'Signed up, pending approval' },
   { value: 'profile-incomplete', label: 'Signed in, profile empty' },
   { value: 'profile-ready', label: 'Signed in, profile ready' },
@@ -299,6 +306,8 @@ const VIEWER_OPTIONS: Array<{ value: BoardViewer; label: string }> = [
 const VIEWER_NOTE: Record<BoardViewer, string> = {
   'logged-out':
     'No account, and no separate sign-up. Apply opens the flow and step 2 becomes “Your details” — the form that opens the account. That is where a first visit ends: an application can’t be sent from an account under review, so they come back to apply once the PL team approves it.',
+  'signed-up-modal':
+    'Signed up through the modal in the header or the banner, then pressed Apply. The account form on step 2 opens already filled in — these are the answers they just gave — so the only thing left is the “My profile is complete” tick beside the button, which is the one state that shows it. Everything else about the flow is the logged-out flow.',
   'pending-approval':
     'Signed up, waiting on the PL team. Browsing and the profile work exactly as they do for an approved member; applying is the one thing that waits, and every surface that mentions it says the same thing — the banner, the flow footer and the profile step.',
   'profile-incomplete':
@@ -424,8 +433,8 @@ export default function JobBoardPrototype() {
       const asViewer = q.get('viewer') as BoardViewer | null;
       if (asViewer && VIEWER_OPTIONS.some((o) => o.value === asViewer)) {
         setViewer(asViewer);
-        setIsLoggedIn(asViewer !== 'logged-out');
-        setProfile(asViewer === 'profile-ready' || asViewer === 'applied' ? FILLED_PROFILE : EMPTY_PROFILE);
+        setIsLoggedIn(isViewerSignedIn(asViewer));
+        setProfile(profileForViewer(asViewer));
         // Same seeding as the switcher, so `?viewer=applied` lands on the state
         // the tab shows rather than on an empty version of it.
         if (asViewer === 'applied') setApplications(seededApplications());
@@ -470,8 +479,8 @@ export default function JobBoardPrototype() {
         setCanvasPin(pinned);
         if (pinned.viewer) {
           setViewer(pinned.viewer);
-          setIsLoggedIn(pinned.viewer !== 'logged-out');
-          setProfile(pinned.viewer === 'profile-ready' || pinned.viewer === 'applied' ? FILLED_PROFILE : EMPTY_PROFILE);
+          setIsLoggedIn(isViewerSignedIn(pinned.viewer));
+          setProfile(profileForViewer(pinned.viewer));
           if (pinned.viewer === 'applied') setApplications(seededApplications());
         }
         /* One role for every pinned frame, so the sign-up form and every step
@@ -699,12 +708,19 @@ export default function JobBoardPrototype() {
    * have. That was true only while sign-up had nothing of its own to show.
    * `JobSignUpModal` is that form.
    *
-   * **The only door left into this modal.** Applying from a role used to open it
-   * too; that case is the apply flow's own details step now, which is why the
-   * state below is a plain boolean and the modal no longer takes a role. What
-   * remains is the person who wants an account before they have picked a job —
-   * the header and banner `Sign up` presses — and for them the generic form is
-   * exactly right. */
+   * **Who comes through this modal.** Applying from a role used to, and no
+   * longer does: that case is the apply flow's own details step now, which is
+   * why the state below is a plain boolean and the modal no longer takes a
+   * role. What is left are the presses that name no job and so have no flow to
+   * run — the header and banner `Sign up`, and now a row's **Refer** pressed
+   * without an account. All three want the same thing (an account, generically)
+   * and the generic form is exactly right for them.
+   *
+   * Refer is the one that arrives with a reason, and the modal does not try to
+   * say so. A variant of this form headlined "Sign up to refer someone" would
+   * be a fourth copy of a four-field form maintained for one sentence, and the
+   * sentence is already true of everything behind the door: an account is what
+   * lets you act on this board rather than read it. */
   const onSignUp = () => setSignUp(true);
 
   /** Which team posted a role. The card hands the row only the role, so the team
@@ -937,10 +953,11 @@ export default function JobBoardPrototype() {
      or stale application carried in from the tab before. */
   const onSelectViewer = (next: BoardViewer) => {
     setViewer(next);
-    setIsLoggedIn(next !== 'logged-out');
+    setIsLoggedIn(isViewerSignedIn(next));
     /* `applied` is `profile-ready` plus a history: same finished profile, because
-       you cannot have applied without one. */
-    setProfile(next === 'profile-ready' || next === 'applied' ? FILLED_PROFILE : EMPTY_PROFILE);
+       you cannot have applied without one; `signed-up-modal` gets the answers the
+       modal collected. All three splits live in `profileForViewer`. */
+    setProfile(profileForViewer(next));
     onCloseFlow();
     setApplications(next === 'applied' ? seededApplications() : new Map());
   };
@@ -1145,7 +1162,12 @@ export default function JobBoardPrototype() {
               key={group.team.uid}
               group={group}
               newsVariant={NEWS_VARIANT}
-              canRefer={isLoggedIn}
+              /* The Refer button is on every row for every viewer. Only the
+                 modal behind it needs an account — logged out the press opens
+                 the sign-up door instead, which carries its own sign-in escape.
+                 See the note above `JobReferRoleRow`. */
+              canOpenReferral={isLoggedIn}
+              onReferSignUp={onSignUp}
               onViewJob={onViewJob}
               appliedRoleUids={appliedRoleUids}
               appliedAtByRole={appliedAtByRole}
@@ -1166,9 +1188,12 @@ export default function JobBoardPrototype() {
   const reviewControls = (
     <div className={s.reviewBand}>
       <div className={s.versionRow}>
-        {/* The four states the apply flow branches into. Only the first was ever
-            reachable without editing code, which meant the other three — the ones
-            most members are actually in — could not be looked at. */}
+        {/* Every state the apply flow branches into. Only the first is reachable
+            without editing code, which is why the rest are here at all — the
+            states most people are actually in were the ones that couldn't be
+            looked at. Deliberately uncounted: this comment said "four" while the
+            list held five, which is what a number in prose next to a list it does
+            not control is always eventually for. */}
         <div className={v0.switchBar}>
           <span className={v0.switchLabel}>Preview as</span>
           <div className={v0.switch} role="tablist" aria-label="Board viewer state">
@@ -1220,6 +1245,7 @@ export default function JobBoardPrototype() {
         onSubmitApplication={onSubmitApplication}
         onCreateAccount={onCreateAccount}
         loggedIn={isLoggedIn}
+        accountPrefilled={viewer === 'signed-up-modal'}
         onSignIn={onFlowSignIn}
         pendingApproval={isPendingApproval}
         applied={flowJob ? appliedRoleUids.has(flowJob.role.uid) : false}

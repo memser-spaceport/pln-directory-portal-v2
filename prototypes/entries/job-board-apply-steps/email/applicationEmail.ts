@@ -84,9 +84,13 @@ export const SUBJECT_TEMPLATE = `{{applicant_name}} applied for {{role_title}}`;
  *
  * **`jobSearchStatus` is not here, in any form, and must never be added.** It is
  * private by design (`JobSearchStatus` in viewerState) and does not travel with
- * an application: "Not looking" is only an honest answer while saying it costs
- * nothing, and putting it in front of a hiring team is exactly the cost that
- * would make it dishonest. It is not a missing field.
+ * an application. Both of its two answers mean "open" — the "Not looking"
+ * opt-out is gone — so the field no longer risks telling a team the applicant
+ * isn't interested. What it would tell them is how many other doors the same
+ * person is knocking on, which is a fact about someone's whole search rather
+ * than about this application, and putting it in front of a hiring team is
+ * exactly the cost that would make the answer dishonest. It is not a missing
+ * field.
  */
 export const BODY_TEMPLATE = `Hi {{recipient_first_name}},
 

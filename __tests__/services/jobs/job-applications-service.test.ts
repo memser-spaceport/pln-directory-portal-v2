@@ -84,9 +84,7 @@ describe('wire contract', () => {
   });
 
   it('sends the letter and nothing else — the job uid belongs in the path', () => {
-    expect(() =>
-      submitJobApplicationInputSchema.parse({ coverLetter: 'Hello', teamUid: 'team-1' } as never),
-    ).toThrow();
+    expect(() => submitJobApplicationInputSchema.parse({ coverLetter: 'Hello', teamUid: 'team-1' } as never)).toThrow();
 
     expect(submitJobApplicationInputSchema.parse({ coverLetter: '  Hello  ' }).coverLetter).toBe('Hello');
   });
@@ -117,5 +115,9 @@ describe('wire contract', () => {
   it('will not send a sign-up missing what the endpoint requires', () => {
     expect(() => jobBoardSignUpInputSchema.parse({ name: 'Ada', email: 'not-an-email', role: 'Engineer' })).toThrow();
     expect(() => jobBoardSignUpInputSchema.parse({ name: 'Ada', email: 'ada@example.com', role: '' })).toThrow();
+  });
+
+  it('treats role as optional — omitted is fine, a blank string is not', () => {
+    expect(jobBoardSignUpInputSchema.parse({ name: 'Ada', email: 'ada@example.com' }).role).toBeUndefined();
   });
 });

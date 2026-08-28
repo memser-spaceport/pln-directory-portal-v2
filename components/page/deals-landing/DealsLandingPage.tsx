@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/common/Button';
 import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
@@ -12,9 +11,10 @@ import { useSubmitDealModalStore } from '@/services/deals/store';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { vendorLogoItems, mockFaqItems, mockHowItWorksSteps, mockValueProps } from './mock-data';
 import s from './DealsLandingPage.module.scss';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 export function DealsLandingPage() {
-  const router = useRouter();
+  const goToLogin = useLoginRedirect();
   const analytics = useDealsAnalytics();
   const { openModal } = useSubmitDealModalStore((state) => state.actions);
   const { currentUser } = useCurrentUserStore();
@@ -28,7 +28,7 @@ export function DealsLandingPage() {
   const handleLoginClick = () => {
     analytics.trackDealsLandingSignInClicked();
     sessionStorage.setItem('dealsLoginIntent', '1');
-    router.push(`${window.location.pathname}${window.location.search}#login`);
+    goToLogin();
   };
 
   return (

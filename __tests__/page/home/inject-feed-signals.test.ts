@@ -23,7 +23,14 @@ const group = (
   postedDate: string | null = null,
 ): IJobTeamGroup =>
   ({
-    team: { uid, name: `Team ${uid}`, logoUrl: null, focusAreas: [], subFocusAreas: [] },
+    team: {
+      uid,
+      name: `Team ${uid}`,
+      logoUrl: null,
+      focusAreas: [],
+      subFocusAreas: [],
+      jobReferEmail: null,
+    },
     totalRoles: 3,
     roles: [
       {

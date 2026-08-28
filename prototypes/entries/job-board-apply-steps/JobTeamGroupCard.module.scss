@@ -1,0 +1,59 @@
+// Local overrides on top of the reused production TeamGroupCard.module.scss.
+// Descendant selectors (.card .avatar) outrank the single-class production rules
+// so these win regardless of stylesheet order.
+@use 'styles/media';
+
+// Team name + its latest story on one line, the story wrapping under the name
+// when the header runs out of width (mobile, or a long team name). Baseline
+// alignment so the 14px headline sits on the 24px name's baseline rather than
+// floating at its optical centre.
+.nameRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+}
+
+// A pill doesn't sit on a baseline — it's an object beside the name, not a
+// second phrase continuing it, so it centres on the name's 34px line box
+// instead. Baseline alignment hung it a few pixels low, reading as a chip that
+// had slipped rather than one placed. Only the `count` variant takes this: the
+// `inline` headline IS text, and text keeps the baseline above.
+.nameRowChip {
+  align-items: center;
+}
+
+// "Open in newsfeed" in the story modal's footer. Everything but the underline
+// comes from the Share trigger's own classes (FeedActions .subItem/.button); an
+// anchor just needs telling not to underline.
+.feedLink {
+  text-decoration: none;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.card .avatar {
+  @include media.mobile-only {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+  }
+}
+
+.card .avatarInitials {
+  @include media.mobile-only {
+    font-size: 14px;
+  }
+}
+
+// Darken the per-row Refer/Share trigger to match the newsfeed's share icon,
+// which sits at secondary weight (#455468) rather than the production ReferMenu's
+// tertiary #8897ae. Scoped to the closed state only ([aria-expanded='false']) so
+// the open state keeps its brand-blue tint. Targets the trigger by its
+// aria-haspopup hook since the production class is hashed and unreachable by name.
+.card [aria-haspopup='menu'][aria-expanded='false'] {
+  color: var(--foreground-neutral-secondary, #455468);
+}

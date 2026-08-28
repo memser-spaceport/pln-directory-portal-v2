@@ -26,6 +26,7 @@ export type JobReferBaseParams = {
   role_category: string | null;
   seniority: string | null;
   source: JobSurface;
+  uses_team_refer_email?: boolean;
 };
 
 /**
@@ -34,7 +35,8 @@ export type JobReferBaseParams = {
  * Privy round trip rather than anything the person pressed. Kept distinct so
  * apply-click counts stay a count of actual clicks.
  */
-export type JobApplyTrigger = 'row' | 'banner' | 'header' | 'resume';
+/** `detail` is the drawer's own footer — the press that used to live on the row. */
+export type JobApplyTrigger = 'row' | 'banner' | 'header' | 'resume' | 'detail';
 
 /**
  * Apply-funnel payloads carry ONLY what's listed here: uids, viewer state,
@@ -243,12 +245,28 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_CLICKED, { ...args });
   };
 
-  const onJobApplySignUpSubmitted = (args: JobApplyBaseParams & { trigger: JobApplyTrigger }) => {
+  /**
+   * Kept on the payload so existing dashboards do not break. The Team email
+   * field is gone from sign-up, so this is always false.
+   */
+  const onJobApplySignUpSubmitted = (
+    args: JobApplyBaseParams & { trigger: JobApplyTrigger; has_team_email: boolean },
+  ) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_SIGNUP_SUBMITTED, { ...args });
   };
 
   const onJobApplySignUpFailed = (args: JobApplyBaseParams & { failure_category: 'duplicate' | 'request-failed' }) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_SIGNUP_FAILED, { ...args });
+  };
+
+  /**
+   * The reading step opened — the top of the funnel now that Apply sits behind
+   * it. Against `ON_JOB_APPLY_CLICKED` this is the number that says whether the
+   * extra press is earning its place: opens that never reach an apply are
+   * people the row used to send straight into the flow.
+   */
+  const onJobDetailOpened = (args: JobApplyBaseParams) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_DETAIL_OPENED, { ...args });
   };
 
   const onJobApplyDrawerOpened = (args: JobApplyBaseParams) => {
@@ -265,6 +283,38 @@ export const useJobsAnalytics = () => {
 
   const onJobApplyFailed = (args: JobApplyBaseParams & { failure_category: 'already-applied' | 'request-failed' }) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_FAILED, { ...args });
+  };
+
+  /**
+   * A named step of the unified flow became visible. `job-detail-opened` and
+   * `job-apply-drawer-opened` still fire for review and profile; this one is
+   * the funnel that also covers application and the role-less sign-up modal.
+   */
+  const onJobApplyStepViewed = (
+    args: JobApplyBaseParams & { step: 'review' | 'profile' | 'application' | 'sign-up' },
+  ) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_STEP_VIEWED, { ...args });
+  };
+
+  /**
+   * Closed without submitting. `step` is where they left; skip this when the
+   * close is the success path (sign-up posted, profile-only saved).
+   */
+  const onJobApplyFlowClosed = (
+    args: JobApplyBaseParams & {
+      step: 'review' | 'profile' | 'application' | 'sign-up';
+      cover_letter_started: boolean;
+    },
+  ) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_FLOW_CLOSED, { ...args });
+  };
+
+  /**
+   * Pending applicant sent to the team's own posting. Without this, apply-clicked
+   * with no submit cannot be told apart from abandoning the in-app flow.
+   */
+  const onJobApplyExternalRedirected = (args: JobApplyBaseParams) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_EXTERNAL_REDIRECTED, { ...args });
   };
 
   return {
@@ -297,9 +347,13 @@ export const useJobsAnalytics = () => {
     onJobApplyClicked,
     onJobApplySignUpSubmitted,
     onJobApplySignUpFailed,
+    onJobDetailOpened,
     onJobApplyDrawerOpened,
     onJobApplyDrawerSaved,
     onJobApplySubmitted,
     onJobApplyFailed,
+    onJobApplyStepViewed,
+    onJobApplyFlowClosed,
+    onJobApplyExternalRedirected,
   };
 };

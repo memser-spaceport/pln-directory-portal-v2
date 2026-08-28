@@ -6,8 +6,52 @@
    signal, the prototype control bar, and the email. */
 
 /* The `.controlBar` / `.controlGroup` / `.controlLabel` rules styled the
-   prototype's Path / Mix / Curated-by switch row. The switches are gone — the
-   feed renders one settled configuration — so their styles went with them. */
+   prototype's Path / Mix / Curated-by switch row. Those switches are gone — the
+   feed renders one settled configuration — so their styles went with them. What
+   stands in their place is the single review switch below, which picks the
+   *reader* rather than a version of the feed. */
+
+/* ---------- Review scaffolding: the viewer switch ---------- */
+
+/* A band directly under the navbar, mirroring the job board's `.reviewBand`
+   (`../job-board/JobBoardPrototype.module.scss`) so the two entries' review
+   controls are one thing in two places rather than two inventions.
+
+   Outside the content column on purpose. Between the header actions and the
+   tabs it would read as a product control and push the feed — the one thing
+   under review — down the page; the navbar is sticky and this band is not, so
+   it scrolls away and leaves the page to be judged on its own. Nothing under it
+   is a viewport-height sticky (`v0.feedRail` sets `top` but no `height`), so
+   the offset it adds costs the rail nothing. */
+.reviewBand {
+  padding: 12px 16px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+
+  @include tablet-landscape {
+    padding: 12px 24px;
+  }
+}
+
+/* The switch chrome itself is newsfeed-v0's (`.switchBar` / `.switch` /
+   `.switchBtn` / `.switchNote`); only the row is local, because v0's own
+   `.versionRow` reserves a 312px right rail this band sits outside of. */
+.reviewRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+/* The note goes below 640px. At phone width it wraps to four or five 12px lines
+   and turns a one-row control into a ~100px slab standing between the navbar and
+   the banner that is the whole point of the signed-out state — scaffolding
+   taking space from the thing it demonstrates. The label and the two buttons
+   still say which reader is selected, and the page under them shows it. */
+.reviewNote {
+  @include mobile-only {
+    display: none;
+  }
+}
 
 /* The `?focus=<teamUid>` landing target — one team's cluster in the feed, arrived
    at from a "N new posts" chip on the teams grid or the job board.
@@ -1472,4 +1516,36 @@
      at the same content edge — is one placement, not two. */
   justify-content: flex-start;
   gap: 2px 8px;
+}
+
+// The signed-out banner, a little taller than production's `Welcome`.
+//
+// `Welcome` ships `padding: 20px`, which on this route gives a 102px card
+// across the full 1200px column — two short lines in a strip nearly twelve
+// times wider than it is tall. That reads as a system message you scroll past,
+// not as the page's one standing offer to someone with no account.
+//
+// **24, having tried 32.** 32 was the first pass and came back as too tall —
+// fair, because it was set before the buttons moved into the card. An empty
+// right half needed the extra height to stop the strip reading as a rule; with
+// the pair sitting in it, the card has an object on both sides and the air was
+// doing a job that no longer existed. 24 keeps the step up from production and
+// gives it back: 62px of text, 110px of card.
+//
+// On the 8px grid either way — the sizes around it are 16 / 24 / 32, and a
+// number picked to land between two of them is the kind that gets nudged
+// forever.
+//
+// **Vertical only.** The horizontal 20px is production's and stays: the card
+// already has more width than its content needs (the sub-line caps at
+// `max-width: 800px` inside 1160px of room), so adding side padding would
+// squeeze the measure without touching the thing that is wrong. What is wrong
+// is the ratio, and only the vertical half of it is short.
+//
+// A deviation from a transcription, so it is stated rather than quietly
+// applied — prototypes/CLAUDE.md #6. Everything else about the card is still
+// `Welcome.module.scss`, untouched.
+.signedOutBanner {
+  padding-top: 24px;
+  padding-bottom: 24px;
 }

@@ -11,4 +11,11 @@ export const teamContactInfoSchema = yup.object({
   bluesky: socialFieldSchema('bluesky'),
   crunchbase: socialFieldSchema('crunchbase'),
   contactMethod: yup.string().required('Contact method is required'),
+  jobReferEmail: yup
+    .string()
+    .defined()
+    .test('email-or-empty', 'Enter a valid email', (value) => {
+      const trimmed = value?.trim() ?? '';
+      return !trimmed || yup.string().email().isValidSync(trimmed);
+    }),
 });

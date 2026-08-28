@@ -13,37 +13,28 @@
 }
 
 // Visitor "App Details" action, in flow at the right of the footer row so it
-// sits on the author / deployment-date line. The visual is the DS grey Badge;
-// this button is just the interaction wrapper.
+// sits on the author / update line.
+//
+// Transcribed from dev's AiAppCard.module.scss: colors and typography come from
+// the shared Button (border / neutral / xxs). This prototype used to draw it as
+// a reused TeamCard `.stage` pill, which predates dev shipping the real button —
+// the pill is gone from both this card and the detail bar in the same pass, so
+// the two entry points and production all read the same.
 .detailsButton {
   flex-shrink: 0;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
 
   &:focus-visible {
     outline: 2px solid var(--foreground-brand-primary, #1b4dff);
     outline-offset: 2px;
-    border-radius: 26px;
   }
-}
-
-// Layers on top of the reused TeamCard `.stage` tag: reset its card-specific
-// top margin, add room for the leading doc icon, and a hover.
-.detailsBadge {
-  margin-top: 0;
-  gap: 4px;
-  padding: 3px 6px;
-  transition: background 0.15s;
 
   svg {
     flex-shrink: 0;
   }
-}
-
-.detailsButton:hover .detailsBadge {
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
 }
 
 .cardButton {
@@ -304,4 +295,21 @@
   font-weight: 400;
   line-height: 18px;
   color: #94a3b8;
+}
+
+/* Activity row. The container is production's NotificationFooter `.details`
+   (imported, not copied); this only pins the glyphs, whose parent `.data` is a
+   flex row with default `align-items: stretch` — an <svg> sized by attribute
+   has no CSS height to stop it growing to the 18px line box. */
+.metricsRow {
+  svg {
+    flex-shrink: 0;
+    align-self: center;
+  }
+}
+
+/* Atomic units inside the update note — a person's name and a relative time
+   are each a single word as far as the reader is concerned. */
+.noBreak {
+  white-space: nowrap;
 }

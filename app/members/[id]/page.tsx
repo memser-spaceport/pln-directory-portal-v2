@@ -24,12 +24,12 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useQuery } from '@tanstack/react-query';
 import { IMember } from '@/types/members.types';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { AccountCreatedView } from '@/components/page/member-details/AccountCreatedView';
 
 import MemberPageLoader from './loading';
 import Head from 'next/head';
-import { MembersQueryKeys } from '@/services/members/constants';
+import { MembersQueryKeys, SHOW_CV_IMPORT } from '@/services/members/constants';
 import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
 import { ForumActivity } from '@/components/page/member-details/ForumActivity';
 import { TeamNewsDetails } from '@/components/page/member-details/TeamNewsDetails';
@@ -39,6 +39,7 @@ import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useAffinityAccess } from '@/services/access-control/hooks/useAffinityAccess';
 import { useAffinityMember } from '@/services/affinity/hooks/useAffinityMember';
 import { RelationshipDetails } from '@/components/page/member-details/RelationshipDetails';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 const shouldShowInvestorProfileForThirdParty = (
   member: IMember,
@@ -61,7 +62,7 @@ const MemberDetails = (props: { params: Promise<any> }) => {
   const params = use(props.params);
   const memberId = params?.id;
   const searchParams = useSearchParams();
-  const router = useRouter();
+  const goToLogin = useLoginRedirect();
 
   const { currentUser: userInfo } = useCurrentUserStore();
   const isAdmin = isAdminUser(userInfo);
@@ -131,7 +132,7 @@ const MemberDetails = (props: { params: Promise<any> }) => {
   // Handle login click from AccountCreatedView
   const handleLoginClick = () => {
     // Stay on the same page and add #login hash
-    router.push(`${window.location.pathname}${window.location.search}#login`);
+    goToLogin();
   };
 
   // Show AccountCreatedView if user is not logged in and has prefillEmail and returnTo params
@@ -195,7 +196,17 @@ const MemberDetails = (props: { params: Promise<any> }) => {
         {isBelowTabletLandscape && <TeamNewsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />}
         {!isInvestorOnly && (
           <>
-            <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {/* The CV importer's second host. The section decides *where* to put
+                the offer (empty-state drop area, or the header's "Update from
+                CV") and refuses both to anyone who cannot edit this profile —
+                `canEditMemberProfile`, the same gate its Add and Edit controls
+                use — so this prop only has to say that the host allows it. */}
+            <ExperienceDetails
+              userInfo={userInfo}
+              member={member}
+              isLoggedIn={isLoggedIn}
+              enableCvImport={SHOW_CV_IMPORT}
+            />
             <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
           </>
         )}

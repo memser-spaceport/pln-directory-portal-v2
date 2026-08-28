@@ -8,9 +8,11 @@ import { useToggle } from 'react-use';
 import { Button } from '@/components/common/Button';
 import { CheckIcon } from '@/components/icons';
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
-import { useIsRoleApplied } from '@/services/jobs/hooks/useJobApplications';
+import { useRoleApplication } from '@/services/jobs/hooks/useJobApplications';
 
-import type { IJobRole } from '@/types/jobs.types';
+import type { IJobRole, IJobTeam } from '@/types/jobs.types';
+import type { JobDetailTarget } from '@/components/page/jobs/hooks/useJobApplyFlow';
+import { canSeeOriginalPosting } from '@/services/jobs/job-board-viewer';
 import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
 import { jobApplyQueryParams } from './constants';
@@ -24,7 +26,7 @@ import s from './ReferRoleRow.module.scss';
 import btn from '@/components/common/Button/Button.module.scss';
 import ap from './ReferRoleRowApply.module.scss';
 import { IUserInfo } from '@/types/shared.types';
-import { useRouter } from 'next/navigation';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 /**
  * In-app Apply, switched on by prop PRESENCE — the row imports no feature flag.
@@ -33,9 +35,22 @@ import { useRouter } from 'next/navigation';
  * rather than test-enforced.
  */
 export interface RowApplyProps {
-  onApply: (target: { role: IJobRole; teamId: string; teamName: string }) => void;
+  onApply: (target: JobDetailTarget) => void;
   /** Scopes the applied-map subscription; undefined while logged out. */
   memberUid: string | undefined;
+  /**
+   * Read the job in the app first.
+   *
+   * Presence swaps the row's one button from **Apply** to **View job** and
+   * moves Apply to the bottom of the description it applies to — a row carries
+   * a title, a seniority and a location, which is not enough to decide with, so
+   * pressing Apply from it was pressing send on a job you had not read.
+   *
+   * Optional for the same reason `apply` is: the host decides. The board passes
+   * it with every apply slot now that reading is step 1 of the flow; the team
+   * profile does not, and keeps its direct Apply.
+   */
+  onViewJob?: (target: { role: IJobRole; teamId: string; teamName: string; team: IJobTeam }) => void;
 }
 
 interface ReferRoleRowProps {
@@ -45,6 +60,15 @@ interface ReferRoleRowProps {
   currentUser: IUserInfo | null;
   /** Which surface this row is rendered on — drives analytics and the outbound utm_medium. */
   source: JobSurface;
+  /**
+   * The full team record, for surfaces that can open the in-app description —
+   * its masthead needs the logo and focus areas that `teamId`/`teamName` cannot
+   * carry. Only the board passes it; the team profile has no detail drawer.
+   *
+   * View job is offered only when this AND `apply.onViewJob` are present, so a
+   * drawer can never be opened without the masthead it renders.
+   */
+  team?: IJobTeam;
   onClick?: () => void;
   apply?: RowApplyProps;
 }
@@ -56,22 +80,34 @@ interface ReferRoleRowProps {
  *
  * With `apply` present (the in-app apply flow), the trailing slot becomes a real
  * Apply button — rendered regardless of `applyUrl`, which makes link-less roles
- * appliable for the first time — the external arrow stays as the link out to the
- * posting, and Refer drops to the quiet text button (Apply is what the row is
- * for; Refer is the sideline). A row already applied to reports "Applied" in the
- * same geometry instead of offering again.
+ * appliable for the first time — and Refer drops to the quiet text button (Apply
+ * is what the row is for; Refer is the sideline). When the row opens the job
+ * drawer, the external arrow is gone: the drawer is the way to read the posting.
+ * A row already applied to reports "Applied" in the same geometry instead of
+ * offering again.
  */
 export function ReferRoleRow(props: ReferRoleRowProps) {
-  const { role, teamId, teamName, currentUser, source, onClick, apply } = props;
+  const { role, teamId, teamName, currentUser, source, onClick, apply, team } = props;
 
-  const router = useRouter();
+  const goToLogin = useLoginRedirect();
+
+  /* The way out to the company's own posting — withheld from the two people who
+     came here to apply through this board. See `canSeeOriginalPosting`. */
+  const showPosting = canSeeOriginalPosting({ isLoggedIn: Boolean(currentUser), userInfo: currentUser });
   const analytics = useJobsAnalytics();
   const [referOpen, toggleReferOpen] = useToggle(false);
 
-  const inAppApply = Boolean(apply);
+  /* Both, or neither — the same rule `viewJob` follows, and for the same
+     reason: the flow opens on the reading step, which needs the team record to
+     draw its masthead. A row without one cannot start a flow. */
+  const inAppApply = Boolean(apply && team);
   // Per-row subscription to the shared applied map: one application re-renders
   // exactly this row, never the list. Inert (enabled: false) without apply props.
-  const applied = useIsRoleApplied(role.uid, { memberUid: apply?.memberUid, enabled: Boolean(apply?.memberUid) });
+  const application = useRoleApplication(role.uid, { memberUid: apply?.memberUid, enabled: Boolean(apply?.memberUid) });
+  const applied = Boolean(application);
+  const onViewJob = apply?.onViewJob;
+  /* Both, or neither — see the `team` prop. */
+  const viewJob = onViewJob && team ? () => onViewJob({ role, teamId, teamName, team }) : null;
 
   const { location, seniority, roleTitle, applyUrl, roleCategory } = role;
 
@@ -103,6 +139,7 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
     role_category: roleCategory,
     seniority,
     source,
+    uses_team_refer_email: Boolean(team?.jobReferEmail?.trim()),
   };
 
   function onRefer() {
@@ -112,7 +149,7 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
     if (currentUser) {
       toggleReferOpen();
     } else {
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      goToLogin();
     }
   }
 
@@ -120,7 +157,17 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
     <div className={`${s.root} ${s.row}`}>
       <div className={s.body}>
         <div className={s.titleRow}>
-          {hasApplyUrl ? (
+          {/* The title opens whatever this surface's canonical reading of the
+              job is. With the in-app description on, that is the drawer — so the
+              title and the View job button are one door with two handles. The
+              alternative was a title going somewhere other than the button
+              beside it. Everywhere without an in-app description the title is
+              still the link out, unchanged. */}
+          {viewJob ? (
+            <button type="button" className={`${s.title} ${s.titleLink} ${ap.titleButton}`} onClick={viewJob}>
+              {roleTitle}
+            </button>
+          ) : hasApplyUrl ? (
             <a className={`${s.title} ${s.titleLink}`} {...linkProps}>
               {roleTitle}
             </a>
@@ -135,10 +182,13 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
 
       <div className={`${s.right} ${s.actions}`}>
         {showNew && <span className={`${s.newBadge} ${s.newBadgeDesktop}`}>● New</span>}
-        {relative && (
+        {/* Once applied, the clock reports the application rather than the
+            posting's age — which is what makes a second "Applied" chip in the
+            action slot unnecessary below. */}
+        {(relative || application) && (
           <span className={clsx(s.relative, inAppApply && ap.relativeTone)}>
             <ClockIcon />
-            {relative}
+            {application ? `Applied ${formatRelativeDays(application.appliedAt)}` : relative}
           </span>
         )}
 
@@ -157,12 +207,15 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
 
           <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />
 
-          {hasApplyUrl &&
+          {showPosting &&
+            hasApplyUrl &&
+            !viewJob &&
             (inAppApply ? (
-              /* The arrow's job changes when Apply moves in-app: it stays as the
-                 link out to the posting — reading the ad and applying are
-                 different acts — and survives the applied state. */
-              <a className={`${s.applyArrow} ${ap.arrowTone}`} aria-label={`Open the ${roleTitle} posting`} {...linkProps}>
+              <a
+                className={`${s.applyArrow} ${ap.arrowTone}`}
+                aria-label={`Open the ${roleTitle} posting`}
+                {...linkProps}
+              >
                 <ArrowIcon />
               </a>
             ) : (
@@ -171,7 +224,23 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
               </a>
             ))}
 
-          {inAppApply &&
+          {/* The board's one action, once the description moved in-app. Apply is
+              no longer here: the row's job is now the reading step, and Apply
+              sits at the bottom of what it applies to.
+
+              One button in both states, because the applied fact is already in
+              this row — the clock to the left reads "Applied 3d ago" instead of
+              the posting's age. A second report of the same fact, in the slot
+              that used to hold the offer, would only be filling the space the
+              offer left. And having applied is no reason to stop being able to
+              reread the job. The drawer's own footer carries the Applied
+              control, where the offer it replaces is. */}
+          {viewJob ? (
+            <Button size="s" style="fill" variant="primary" className={ap.applyButton} onClick={viewJob}>
+              View job
+            </Button>
+          ) : (
+            inAppApply &&
             (applied ? (
               /* Same slot, same geometry: a row you've applied to must not
                  resize the list around it. `disabled` is the honest semantics —
@@ -193,11 +262,12 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
                 style="fill"
                 variant="primary"
                 className={ap.applyButton}
-                onClick={() => apply!.onApply({ role, teamId, teamName })}
+                onClick={() => apply!.onApply({ role, teamId, teamName, team: team! })}
               >
                 Apply
               </Button>
-            ))}
+            ))
+          )}
         </div>
       </div>
 
@@ -208,6 +278,7 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
         teamId={teamId}
         teamName={teamName}
         source={source}
+        jobReferEmail={team?.jobReferEmail}
       />
     </div>
   );

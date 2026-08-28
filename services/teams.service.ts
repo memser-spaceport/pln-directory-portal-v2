@@ -144,6 +144,7 @@ export const getTeam = async (
     website: result?.website,
     twitter: result?.twitterHandler,
     contactMethod: result?.contactMethod,
+    jobReferEmail: result?.jobReferEmail ?? null,
     linkedinHandle: result?.linkedinHandler,
     membershipSources: result?.membershipSources,
     longDescription: result?.longDescription,

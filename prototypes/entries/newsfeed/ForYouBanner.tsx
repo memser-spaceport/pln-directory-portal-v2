@@ -19,9 +19,14 @@ interface ForYouBannerProps {
  * filter reads as a note about a thing you switched to, which is exactly wrong
  * for the state you arrive in. "This feed" fixed that and stopped one step
  * short: it points at the object, where the whole sentence is about the reader's
- * relationship to it. "Your feed … your focus areas, skills, and teams" puts the
- * possessive on both halves, so the claim and the thing you can go change are in
- * the same voice as the button under them.
+ * relationship to it. "Your feed … your skills, your focus areas, and the teams
+ * you follow" puts the possessive on both halves, so the claim and the thing you
+ * can go change are in the same voice as the button under them.
+ *
+ * Only true *here*, note: `SignedOutBanner` names the pill outright ("and your
+ * feed is based on…" under a Sign in / sign up sentence), because a visitor has
+ * no feed yet and is being offered one. Same second half, different opening —
+ * one of them is a label on what you are reading, the other is an offer.
  *
  * "based on", not "built from", for the same reason — *built* describes how the
  * thing was assembled, which is the machine's side of it.
@@ -30,15 +35,24 @@ interface ForYouBannerProps {
  * to tell a thin week from a thin profile — and no way to act on either. So the
  * sentence names the inputs and ends on the way to change them.
  *
- * **Three inputs, named as profile fields.** An earlier version described them as
- * team relationships ("your teams, the teams you follow, and teams in your focus
- * areas") and printed the viewer's focus areas in parentheses. It read as a
- * description of a mechanism rather than of something the reader owns, which is
- * the wrong half to show next to a button that says Update profile. Now it names
- * what is on the profile: **focus areas, skills, and teams.** Teams is the third
- * because it is the input production's `forYouTeamUids` most directly derives
- * from, and because it is — with skills — editable at the other end of that
- * button.
+ * **Three inputs, and the third one says *follow*.** The list read "focus areas,
+ * skills, and teams" for a while, compressed from an earlier version that named
+ * them as team relationships ("your teams, the teams you follow, and teams in
+ * your focus areas") and printed the viewer's focus areas in parentheses. The
+ * compression was right about the first two — naming them as profile fields
+ * keeps the sentence in the reader's voice rather than the machine's — and it
+ * dropped a fact on the third: **"your teams" reads as the teams you are on**,
+ * and the input is the teams you *follow*. So the verb is back.
+ *
+ * **The order is where each one is changed.** Skills first: it is a field on the
+ * settings page this button opens, so the button's promise is true of the first
+ * thing the sentence names. Focus areas second — a true input, changed nowhere
+ * (see below). Follows last, because the sentence then ends on the page the
+ * reader is standing on: every card in the feed and the rail's "Teams to follow"
+ * are that lever, and naming it is what makes them read as personalization
+ * controls rather than as a bookmarking habit. That is also why there is no
+ * second button here for it — the controls are already on screen, and following
+ * one confirms the effect in the toast.
  *
  * Worth knowing: **focus areas are not member-editable today.** They exist on
  * teams (`manage-teams.tsx` copies `teamFocusAreas` onto `focusAreas`) and a
@@ -92,7 +106,11 @@ export function ForYouBanner({ onUpdateProfile }: ForYouBannerProps) {
         local.noteRow,
       )}
     >
-      <span>Your feed is based on your focus areas, skills, and teams.</span>
+      {/* The second half of this sentence is verbatim the second half of
+          `SignedOutBanner`'s, so the promise made to a visitor and the label
+          shown to a member cannot drift into two different claims. Only the
+          opening differs, because only one of them has a feed yet. */}
+      <span>Your feed is based on your skills, your focus areas, and the teams you follow.</span>
       <Button
         size="s"
         type="button"

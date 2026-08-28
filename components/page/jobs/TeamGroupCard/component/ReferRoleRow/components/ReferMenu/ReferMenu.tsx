@@ -3,9 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
+import { jobDetailShareUrl } from '@/services/jobs/job-detail-link';
 import type { IJobRole } from '@/types/jobs.types';
-
-import { jobApplyQueryParams } from '../../constants';
 
 import { LinkIcon, CheckIcon, ShareIcon } from './components/Icons';
 
@@ -19,9 +18,11 @@ interface ReferMenuProps {
 }
 
 /**
- * Prototype-only "Refer" control on each job row: a small popover that shares the
- * role to LinkedIn or X via each platform's web share-intent URL, or copies the
- * role link. Uses the mocked applyUrl as the shared link (falls back to the page).
+ * Share control on each job row: LinkedIn / X intents, or copy link.
+ *
+ * Always shares the in-app drawer deep link (`/jobs?job=<uid>`), never the
+ * company's own posting — recipients should land on the board with that role
+ * open, the same destination refer/apply emails now send.
  *
  * NOTE: TeamNews's NewsShareMenu is the hardened adaptation of this component
  * (base-ui Menu, encoded intents, cleared copy timer) — a third share surface
@@ -59,15 +60,7 @@ export function ReferMenu({ role, teamId, teamName, source }: ReferMenuProps) {
     };
   }, [open]);
 
-  const getJobLink = () => {
-    const { applyUrl } = role;
-
-    if (applyUrl) {
-      return `${applyUrl}?${jobApplyQueryParams(source)}`;
-    }
-
-    return typeof window !== 'undefined' ? window.location.href : '';
-  };
+  const getJobLink = () => jobDetailShareUrl(role.uid);
 
   const share = (network: 'linkedin' | 'x') => {
     const url = getJobLink();

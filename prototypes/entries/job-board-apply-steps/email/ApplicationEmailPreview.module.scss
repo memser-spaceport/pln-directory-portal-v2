@@ -1,0 +1,102 @@
+// Local extras only. The stage, the fake client chrome (From / Subject / Preview
+// with its character budget), the white email card, its masthead and its footer
+// are the Monday digest's — `newsfeed/Newsfeed.module.scss`, imported by the
+// component. This file adds the one thing a digest has no equivalent for: a
+// rendered plain-text body.
+@use 'styles/media';
+
+// The email body, rendered as the plain text it is.
+//
+// `pre-wrap` rather than a `<p>` per paragraph: the template is authored as one
+// string with blank lines in it, and splitting it into elements to display would
+// mean the preview and the sent mail disagree about where the breaks are. What is
+// on screen is the string.
+//
+// Not a monospace face, though — this is the email as a recipient reads it, not
+// the template as an author edits it. The digest's own body type.
+.body {
+  margin: 0;
+  padding: 24px 28px;
+  white-space: pre-wrap;
+
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  @include media.mobile-only {
+    padding: 20px 18px;
+    font-size: 14px;
+    line-height: 22px;
+  }
+}
+
+// The one line in the body that is a link. Left as text in the template — the
+// recipient's client will linkify it — so this only tints what is already there.
+.bodyLink {
+  color: var(--foreground-brand-primary, #1b4dff);
+  word-break: break-all;
+}
+
+// --- The review apparatus, outside the email itself --------------------------
+
+// Everything below the card is prototype scaffolding: the variable table and the
+// drop-rule report. It exists so a reviewer can see *why* a line is missing
+// rather than assuming the template forgot it — the same job the invite modal's
+// "left out rather than sent half-empty" footnote does.
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.notesTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  text-transform: uppercase;
+}
+
+.note {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// Amber, matching every other "this was left out" mark in the flow.
+.noteDropped {
+  color: var(--foreground-warning-primary, #b54708);
+}
+
+.varRow {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.varKey {
+  flex-shrink: 0;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 11px;
+  line-height: 18px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.varSource {
+  min-width: 0;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

@@ -16,6 +16,9 @@ jest.mock('@/prototypes/entries/job-board/components/ReferModal/ReferModal', () 
 
 import { ReferRoleRow } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow';
 import type { IJobRole } from '@/types/jobs.types';
+import type { IUserInfo } from '@/types/shared.types';
+
+const MEMBER = { uid: 'm1', name: 'Polina', email: 'p@example.com' } as unknown as IUserInfo;
 
 const role = (applyUrl: string | null): IJobRole => ({
   uid: 'role-1',
@@ -32,7 +35,7 @@ const role = (applyUrl: string | null): IJobRole => ({
 
 const renderRow = (applyUrl: string | null) =>
   render(
-    <ReferRoleRow role={role(applyUrl)} teamId="team-1" teamName="Acme" currentUser={null} source="team-profile" />,
+    <ReferRoleRow role={role(applyUrl)} teamId="team-1" teamName="Acme" currentUser={MEMBER} source="team-profile" />,
   );
 
 describe('ReferRoleRow without an applyUrl', () => {

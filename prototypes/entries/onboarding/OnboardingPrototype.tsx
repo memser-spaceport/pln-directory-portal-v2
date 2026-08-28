@@ -11,6 +11,8 @@ import { TagsList } from '@/components/common/profile/TagsList';
 import { AddButton } from '@/components/page/member-details/components/AddButton/AddButton';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete/DataIncomplete';
 import { InfoCircleIcon } from '@/components/icons';
+import { ProfileSocialLink } from '@/components/page/member-details/profile-social-link';
+import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 // Production's own stylesheets for every card on this page, imported rather than
@@ -24,11 +26,13 @@ import id from '@/components/page/member-details/InvestorProfileDetails/componen
 import e from '@/components/page/member-details/ExperienceDetails/components/ExperienceDetailsView/components/ExperiencesList/ExperiencesList.module.scss';
 import n from '@/components/page/member-details/ContributionsDetails/components/ContributionsList/ContributionsList.module.scss';
 import rl from '@/components/page/member-details/RepositoriesDetails/components/RepositoriesList/RepositoriesList.module.scss';
+import cd from '@/components/page/member-details/contact-details/ContactDetails.module.scss';
 
 import { ExperienceImportPanel } from '../profile-shared/ExperienceImport/ExperienceImportPanel';
+import { OptionalMark } from '../profile-shared/OptionalMark';
 import { ExperienceImportReview } from '../profile-shared/ExperienceImport/ExperienceImportReview';
 import type { ImportSelection, ParsedProfile } from '../profile-shared/ExperienceImport/types';
-import { ExperienceList } from '../job-board/JobProfileDrawer';
+import { ExperienceList } from '../job-board/JobProfilePane';
 import { formatExperienceDates, type ExperienceEntry } from '../job-board/viewerState';
 
 import { MOCK_USER } from './mocks';
@@ -80,6 +84,11 @@ export default function OnboardingPrototype() {
   const [pickedFile, setPickedFile] = useState<File | null>(null);
   const cvInput = useRef<HTMLInputElement>(null);
 
+  /* Seeded from the account, which is where production gets it: sign-up runs
+     before this page exists. `MOCK_USER.email` is empty and the name isn't —
+     that asymmetry is the fixture's whole point, and it is what makes the import
+     review offer an Email field here and no Name field. */
+  const [email, setEmail] = useState(MOCK_USER.email);
   const [role, setRole] = useState('');
   const [location, setLocation] = useState('');
   const [skills, setSkills] = useState<string[]>([]);
@@ -128,8 +137,15 @@ export default function OnboardingPrototype() {
   };
 
   /* The same three merge rules every surface mounting this importer applies:
-     fill only a blank, union the skills, append the positions. */
+     fill only a blank, union the skills, append the positions.
+
+     Email joins the first rule rather than getting one of its own — it is a
+     scalar the document offered and the profile was missing, which is exactly
+     what `role` and `location` are. The name is not here: `MOCK_USER.name` comes
+     from sign-up and is never blank, so the review never asks for it and there
+     is nothing to fill. */
   const applyImport = (selection: ImportSelection) => {
+    if (email.trim() === '') setEmail(selection.email.trim());
     if (role.trim() === '') setRole(selection.role.trim());
     if (location.trim() === '') setLocation(selection.location.trim());
     setSkills((prev) => uniq([...prev, ...selection.skills]));
@@ -162,6 +178,8 @@ export default function OnboardingPrototype() {
       applyImport({
         experiences: state.seed.experiences,
         skills: state.seed.skills,
+        name: state.seed.name ?? '',
+        email: state.seed.email ?? '',
         role: state.seed.role,
         location: state.seed.location,
       });
@@ -194,6 +212,13 @@ export default function OnboardingPrototype() {
             {importing && parsed ? (
               <ExperienceImportReview
                 parsed={parsed}
+                /* The account has a name from sign-up and no email yet, so this
+                   is the one surface where the review shows a contact field — an
+                   Email, and only an Email. Nothing is special-cased inside the
+                   card: it asks for the blank one and skips the filled one, the
+                   same rule it has always applied to role and location. */
+                currentName={MOCK_USER.name}
+                currentEmail={email}
                 currentRole={role}
                 currentLocation={location}
                 currentSkills={skills}
@@ -204,7 +229,16 @@ export default function OnboardingPrototype() {
               />
             ) : (
               <>
-                <DetailsSectionHeader title="Start with your CV" />
+                {/* Same offer, same mark, same words as the two job-board
+                    surfaces that make it — see `OptionalMark`. */}
+                <DetailsSectionHeader
+                  title={
+                    <>
+                      You can upload your CV
+                      <OptionalMark />
+                    </>
+                  }
+                />
                 {/* Word for word the apply drawer's line. One sentence for one
                     offer across every surface that makes it — a cross-surface
                     promise that reads differently per page is drift. */}
@@ -358,7 +392,23 @@ export default function OnboardingPrototype() {
         </DetailsSection>
 
         {/* 4. Contact details, with its own prompt — the strip the screenshot
-               cuts off at the bottom of the fold. */}
+               cuts off at the bottom of the fold.
+
+               **Where the imported email lands.** The review offers to fill an
+               email because this account hasn't got one; this is the card that
+               owns email on dev's page, so this is where the answer has to show
+               up. Without that the field would ask for something and do nothing
+               with it, which is the worst kind of field.
+
+               The filled state is production's own — `contact-details`' grey
+               `.social` block holding a `ProfileSocialLink` — rather than a line
+               of text, so the row a CV fills in looks like the row a person
+               types in. `isPreview` because a mocked address has no inbox behind
+               it; a link that goes nowhere is worse than no link.
+
+               The prompt strip stays either way. It asks for "contact details"
+               plural — Telegram and the social links are still missing — and one
+               filled row does not answer it. */}
         <DetailsSection>
           <DataIncomplete className={o.promptStrip}>
             Complete your profile by adding contact details — make it easier for others to connect with you.
@@ -367,11 +417,30 @@ export default function OnboardingPrototype() {
             <DetailsSectionHeader title="Contact Details">
               <EditButton onClick={() => undefined} />
             </DetailsSectionHeader>
-            <div className={e.root}>
-              <div className={e.emptyData}>
-                <span className={e.label}>Add your email, Telegram and social links so members can reach you.</span>
+            {email ? (
+              <div className={cd.social}>
+                <div className={cd.top}>
+                  <div className={cd.content}>
+                    <ProfileSocialLink
+                      type="email"
+                      profile={email}
+                      handle={email}
+                      logo={getContactLogoByProvider('email')}
+                      height={24}
+                      width={24}
+                      isPreview
+                      callback={() => undefined}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className={e.root}>
+                <div className={e.emptyData}>
+                  <span className={e.label}>Add your email, Telegram and social links so members can reach you.</span>
+                </div>
+              </div>
+            )}
           </div>
         </DetailsSection>
 
@@ -381,6 +450,13 @@ export default function OnboardingPrototype() {
             parsed ? (
               <ExperienceImportReview
                 parsed={parsed}
+                /* The account has a name from sign-up and no email yet, so this
+                   is the one surface where the review shows a contact field — an
+                   Email, and only an Email. Nothing is special-cased inside the
+                   card: it asks for the blank one and skips the filled one, the
+                   same rule it has always applied to role and location. */
+                currentName={MOCK_USER.name}
+                currentEmail={email}
                 currentRole={role}
                 currentLocation={location}
                 currentSkills={skills}

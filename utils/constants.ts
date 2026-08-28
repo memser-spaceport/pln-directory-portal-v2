@@ -90,9 +90,13 @@ export const JOBS_ANALYTICS = {
   ON_JOB_APPLY_SIGNUP_SUBMITTED: 'job-apply-signup-submitted',
   ON_JOB_APPLY_SIGNUP_FAILED: 'job-apply-signup-failed',
   ON_JOB_APPLY_DRAWER_OPENED: 'job-apply-drawer-opened',
+  ON_JOB_DETAIL_OPENED: 'job-detail-opened',
   ON_JOB_APPLY_DRAWER_SAVED: 'job-apply-drawer-saved',
   ON_JOB_APPLY_SUBMITTED: 'job-apply-submitted',
   ON_JOB_APPLY_FAILED: 'job-apply-failed',
+  ON_JOB_APPLY_STEP_VIEWED: 'job-apply-step-viewed',
+  ON_JOB_APPLY_FLOW_CLOSED: 'job-apply-flow-closed',
+  ON_JOB_APPLY_EXTERNAL_REDIRECTED: 'job-apply-external-redirected',
 };
 
 export const EVENTS = {
@@ -361,6 +365,8 @@ export const AUTH_ANALYTICS = {
   AUTH_SETTINGS_EMAIL_UPDATE_FAILED: 'AUTH_SETTINGS_EMAIL_UPDATE_FAILED',
   AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD: 'AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD',
   AUTH_SIGN_UP_BTN_CLICKED: 'AUTH_SIGN_UP_BTN_CLICKED',
+  AUTH_INVALID_USER_MODAL_SHOWN: 'AUTH_INVALID_USER_MODAL_SHOWN',
+  AUTH_INVALID_USER_SIGNUP_CLICKED: 'AUTH_INVALID_USER_SIGNUP_CLICKED',
   AUTH_LINK_ACCOUNT_SUBMIT_CLICKED: 'AUTH_LINK_ACCOUNT_SUBMIT_CLICKED',
   AUTH_LINK_ACCOUNT_CANCEL_CLICKED: 'AUTH_LINK_ACCOUNT_CANCEL_CLICKED',
 };
@@ -432,8 +438,10 @@ export const TEAMS_ANALYTICS_EVENTS = {
   TEAM_FOLLOWERS_MODAL_OPENED: 'team-followers-modal-opened',
   TEAM_DETAIL_OPEN_ROLES_VIEW_ALL_CLICKED: 'team-detail-open-roles-view-all-clicked',
   TEAM_DETAIL_CONTACT_SAVE_CLICKED: 'team-detail-contact-save-clicked',
+  TEAM_DETAIL_JOB_REFER_EMAIL_SAVED: 'team-detail-job-refer-email-saved',
   TEAM_DETAIL_ENRICHMENT_REVIEWED: 'team-detail-enrichment-reviewed',
   TEAM_DETAIL_STATUS_CHANGED: 'team-detail-status-changed',
+  TEAMS_STATUS_FILTER_SELECTED: 'team-status-filter-selected',
 };
 
 export const MEMBER_ANALYTICS_EVENTS = {
@@ -517,6 +525,20 @@ export const MEMBER_ANALYTICS_EVENTS = {
   INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_DELETE_CLICKED: 'inline-profile-editor-experience-details-delete-clicked',
   INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_EDIT_CLICKED: 'inline-profile-editor-experience-details-edit-clicked',
 
+  /* Filling the Experience section from a CV.
+     One funnel, so the names read as one: opened → parsed (or empty / failed) →
+     saved or cancelled. The two ways a read can come back with nothing are
+     separate events on purpose — "the document had no jobs in it" and "the
+     request didn't come back" are different problems with different fixes, and
+     a single failure event would average them into neither. */
+  CV_IMPORT_OPENED: 'cv-import-opened',
+  CV_IMPORT_PARSE_SUCCEEDED: 'cv-import-parse-succeeded',
+  CV_IMPORT_PARSE_EMPTY: 'cv-import-parse-empty',
+  CV_IMPORT_PARSE_FAILED: 'cv-import-parse-failed',
+  CV_IMPORT_SAVED: 'cv-import-saved',
+  CV_IMPORT_SAVE_FAILED: 'cv-import-save-failed',
+  CV_IMPORT_CANCELLED: 'cv-import-cancelled',
+
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_ADD_CLICKED: 'inline-profile-editor-contribution-details-add-clicked',
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_EDIT_CLICKED: 'inline-profile-editor-contribution-details-edit-clicked',
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_DELETE_CLICKED:
@@ -575,6 +597,8 @@ export const FORUM_ANALYTICS_EVENTS = {
   EDIT_POST_SUBMIT: 'forum-edit-post-submit',
   EDIT_POST_CANCEL: 'forum-edit-post-cancel',
   DIGEST_EMAIL_POST_CLICKED: 'forum-digest-email-post-clicked',
+  DIGEST_EMAIL_NEWS_CLICKED: 'forum-digest-email-news-clicked',
+  DIGEST_EMAIL_SEE_ALL_NEWS_CLICKED: 'forum-digest-email-see-all-news-clicked',
   COMMENT_NOTIFICATION_EMAIL_LINK_CLICKED: 'forum-comment-notification-email-link-clicked',
   COMMENT_NOTIFICATION_EMAIL_REPLY_CLICKED: 'forum-comment-notification-email-reply-clicked',
   MENTION_INITIATED: 'forum-mention-initiated',
@@ -613,6 +637,7 @@ export const HOME_ANALYTICS_EVENTS = {
   DISCOVER_CARD_CLICKED: 'discover-card-clicked',
   DISCOVER_HUSKY_AI_CLICKED: 'discover-husky-ai-clicked',
   FEATURED_FILTER_CLICKED: 'home_featured_filter_click',
+  WELCOME_SIGNIN_CLICKED: 'home-welcome-signin-clicked',
 };
 
 export const TEAM_NEWS_ANALYTICS_EVENTS = {
@@ -865,6 +890,27 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.26 - In-app Apply, CV Import & For You',
+    tag: 'New Feature',
+    date: '28, Aug 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">For You</span> - Recent forum posts from the last week now appear alongside news from your profile, primary team, and followed teams.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">In-app apply</span> - Apply from a three-step drawer: Review job, Your profile, then Application. Opening a role starts on the description, and you can sign up from the board without joining a team.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Upload a CV</span> - Fill your role, location, skills, and work history from a CV when you apply, or from Experience on your profile.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Referral contact</span> - Set a Job Referral/Application Contact so referrals go there instead of to team leads.</li>
+        </ul>
+        </div>`,
+  },
+  {
     title: 'Version 4.5.25 - LabOS MCP, News Discovery & Profiles',
     tag: 'New Feature',
     date: '21, Aug 2026',
@@ -872,7 +918,7 @@ export const ChangeLogList = [
         <div style="font-size: 14px; line-height:23px;">
         <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
         <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">For You</span> - A new default tab with personalized team news from the teams you're on and ones recommended for you.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">For You</span> - A new default tab with personalized team news from the teams you're on, the teams you follow, and ones recommended for you.</li>
         </ul>
         <span style="font-size: 14px; line-height:23px; font-weight: 600">Teams Directory</span><br/>
         <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">

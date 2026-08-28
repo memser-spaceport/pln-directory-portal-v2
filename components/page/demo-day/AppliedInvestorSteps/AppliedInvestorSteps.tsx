@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
+
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 import { useCurrentUserStore } from '@/services/auth/store';
 import { checkInvestorProfileComplete } from '@/utils/member.utils';
@@ -51,7 +52,7 @@ const CheckboxIcon = () => (
 );
 
 export const AppliedInvestorSteps: React.FC<Props> = ({ isNew, isLoggedIn, uid, email, demoDaySlug }) => {
-  const router = useRouter();
+  const goToLogin = useLoginRedirect();
   const { currentUser: userInfo } = useCurrentUserStore();
   const { data: memberData } = useMember(isLoggedIn ? uid : undefined);
   const { onAccountCreatedSuccessModalContinueToLoginClicked } = useDemoDayAnalytics();
@@ -76,7 +77,8 @@ export const AppliedInvestorSteps: React.FC<Props> = ({ isNew, isLoggedIn, uid, 
     if (isLoggedIn) {
       setDrawerOpen(true);
     } else {
-      router.replace(`${demoDayPath}?prefillEmail=${encodeURIComponent(email ?? '')}#login`);
+      // Encoding is the helper's job — encoding here too would double-escape it.
+      goToLogin({ returnTo: demoDayPath, params: { prefillEmail: email ?? '' }, replace: true });
     }
   };
 

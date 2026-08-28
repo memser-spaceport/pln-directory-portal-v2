@@ -47,12 +47,17 @@ interface JobTeamGroupCardProps {
    * headline in that same slot instead; the other two put it below the roles.
    */
   newsVariant?: JobCardNewsVariant;
-  canRefer?: boolean;
-  onReferBlocked?: () => void;
-  /** Handed straight to the row: applying happens in-app, so the board owns the press. */
-  onApply?: (role: IJobRole) => void;
-  /** Same, for the reading step: the description opens in a drawer the board
-   *  owns, over the whole list rather than inside one card. */
+  /** Handed to the row: whether pressing **Refer** may open the referral modal.
+   *  The button itself is shown to everyone — this gates the modal, not the
+   *  offer. */
+  canOpenReferral?: boolean;
+  /** Handed to the row: where Refer goes without an account — the board's
+   *  sign-up door. */
+  onReferSignUp?: () => void;
+  /** Handed straight to the row: opening a role starts the apply flow, which
+   *  the board owns — one drawer over the whole list rather than one per card.
+   *  (`onApply` used to sit beside this, from when a row could apply directly.
+   *  The row has no such button any more; the flow footer has it.) */
   onViewJob?: (role: IJobRole) => void;
   /** Uids of roles already applied to. */
   appliedRoleUids?: Set<string>;
@@ -69,9 +74,8 @@ interface JobTeamGroupCardProps {
 export function JobTeamGroupCard({
   group,
   newsVariant = 'full',
-  canRefer = true,
-  onReferBlocked,
-  onApply,
+  canOpenReferral = true,
+  onReferSignUp,
   onViewJob,
   appliedRoleUids,
   appliedAtByRole,
@@ -187,10 +191,10 @@ export function JobTeamGroupCard({
             <JobReferRoleRow
               role={role}
               teamName={team.name}
+              team={team}
               source="job-board"
-              canRefer={canRefer}
-              onReferBlocked={onReferBlocked}
-              onApply={onApply}
+              canOpenReferral={canOpenReferral}
+              onReferSignUp={onReferSignUp}
               onViewJob={onViewJob}
               applied={appliedRoleUids?.has(role.uid) ?? false}
               appliedAt={appliedAtByRole?.get(role.uid)}

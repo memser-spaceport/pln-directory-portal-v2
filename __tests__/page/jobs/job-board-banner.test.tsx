@@ -1,0 +1,179 @@
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
+
+import { JobBoardBanner } from '@/components/page/jobs/JobBoardBanner/JobBoardBanner';
+import type { IJobAlertFilterState } from '@/types/job-alerts.types';
+
+/**
+ * The board's one banner slot — four states, one card.
+ *
+ * The thing most worth guarding is the pair of doors. They used to be boxed
+ * buttons in a CTA slot and are now text buttons inside the first bullet's
+ * sentence; that is a move, not a removal, and a move is exactly the kind of
+ * change that silently drops a click handler while still looking right.
+ */
+
+const emptyFilters: IJobAlertFilterState = {
+  roleCategory: [],
+  seniority: [],
+  workMode: [],
+  focus: [],
+  location: [],
+};
+
+const baseProps = {
+  roleCount: 34,
+  teamCount: 6,
+  filterState: emptyFilters,
+  profileComplete: false,
+  onSignIn: jest.fn(),
+  onSignUp: jest.fn(),
+  onUpdateProfile: jest.fn(),
+};
+
+const renderBanner = (overrides: Partial<React.ComponentProps<typeof JobBoardBanner>> = {}) =>
+  render(<JobBoardBanner viewer="logged-out" {...baseProps} {...overrides} />);
+
+describe('the job board banner', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  describe('logged out', () => {
+    it('leads with the inventory and makes the case in two bullets', () => {
+      renderBanner();
+
+      expect(screen.getByText(/34 open roles/)).toBeInTheDocument();
+      expect(screen.getByText(/across 6 PL network teams/)).toBeInTheDocument();
+      /* The visitor's half of the pitch, in the same words the sign-up form
+         uses for it — the banner and the form it opens should agree about what
+         an account is for. The member's variant says something else on purpose;
+         see the `signed in` block below. */
+      expect(screen.getByText(/discover open roles across the network/i)).toBeInTheDocument();
+    });
+
+    /**
+     * Both doors, in the sentence. "Sign in" alone would tell the likeliest
+     * reader of a sign-in banner — someone with no account — that the offer
+     * isn't for them.
+     */
+    it('still opens both doors now that they live inside the sentence', () => {
+      renderBanner();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+      expect(baseProps.onSignIn).toHaveBeenCalled();
+
+      fireEvent.click(screen.getByRole('button', { name: 'sign up' }));
+      expect(baseProps.onSignUp).toHaveBeenCalled();
+    });
+
+    /**
+     * Matching was removed from this board outright. Copy that promises it
+     * describes a mechanism that no longer exists, which is worse than saying
+     * less.
+     */
+    it('does not promise the matching mechanism the board no longer has', () => {
+      renderBanner();
+
+      expect(screen.getByText("Founders reach out when they're hiring for what you do.")).toBeInTheDocument();
+      expect(screen.queryByText(/matches the roles/i)).not.toBeInTheDocument();
+    });
+
+    /**
+     * Narrowing the rail replaces the standing pitch with the person's own
+     * selection read back — the more specific thing to say to someone who just
+     * told you what they want. The doors go with the bullets, which is fine:
+     * the navbar's pair is one row above and Apply asks at the moment of intent.
+     */
+    it('swaps the pitch for the selection read-back once the rail is narrowed', () => {
+      renderBanner({ filterState: { ...emptyFilters, roleCategory: ['Engineering'], location: ['Berlin'] } });
+
+      expect(screen.getByText(/Engineering · Berlin/)).toBeInTheDocument();
+      /* The pitch this replaces is the logged-out one, so that is the string to
+         look for. It used to check `/hundreds of open roles/i`, which the
+         logged-out bullet no longer contains in any state — the assertion would
+         have passed whether or not the swap happened. */
+      expect(screen.queryByText(/discover open roles across the network/i)).not.toBeInTheDocument();
+    });
+
+    /**
+     * Zero is a filter result, not a smaller board. "Browse 0 open roles" is an
+     * invitation to do nothing, and the empty state below already says there is
+     * nothing there — so no read-back either, which would just rub it in.
+     */
+    it('drops the counts rather than claiming zero roles', () => {
+      renderBanner({
+        roleCount: 0,
+        teamCount: 0,
+        filterState: { ...emptyFilters, roleCategory: ['Design'] },
+      });
+
+      expect(screen.getByText(/Browse every open role across the PL network/)).toBeInTheDocument();
+      expect(screen.queryByText(/0 open roles/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Looking for/)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('signed in', () => {
+    /**
+     * A different first claim, and the doors gone.
+     *
+     * The visitor above is offered discovery; a member already has the board, so
+     * theirs starts at applying. Asserted with an anchored match so this cannot
+     * quietly become the visitor's sentence.
+     */
+    it('promises a member with an empty profile the applying half, without the doors', () => {
+      renderBanner({ viewer: 'profile-incomplete' });
+
+      expect(screen.getByText('Update your profile to apply')).toBeInTheDocument();
+      expect(screen.getByText(/^Apply to hundreds of open roles with a single profile\.$/)).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Sign in' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'sign up' })).not.toBeInTheDocument();
+    });
+
+    it('gives a waiting member something to do while the profile is unfinished', () => {
+      renderBanner({ viewer: 'pending-approval', profileComplete: false });
+
+      fireEvent.click(screen.getByRole('button', { name: /complete profile/i }));
+      expect(baseProps.onUpdateProfile).toHaveBeenCalled();
+    });
+
+    /**
+     * Once the profile is done there is genuinely nothing to press, and a card
+     * shaped like "a claim next to a button" with an empty action slot reads as
+     * a control that failed to load.
+     */
+    it('offers no action once a waiting member has nothing left to do', () => {
+      renderBanner({ viewer: 'pending-approval', profileComplete: true });
+
+      /* This used to read "applying unlocks as soon as your account is
+         approved". Approval stopped gating applying, and this is the state where
+         the old sentence would cost the most — a finished profile with nothing
+         left to do, told to wait for something that is not holding it up. */
+      expect(screen.getByText(/Nothing here is waiting on it: browse and apply as normal/i)).toBeInTheDocument();
+      expect(screen.queryByText(/applying unlocks/i)).not.toBeInTheDocument();
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    });
+
+    /* The unfinished-profile card gives its reason for finishing, and that reason
+       changed with the gate: it used to be "so you can apply the moment it is",
+       which was about the wait. Now the profile is what the application carries. */
+    it('tells a waiting member with an unfinished profile that they can apply meanwhile', () => {
+      renderBanner({ viewer: 'pending-approval', profileComplete: false });
+
+      expect(screen.getByText(/We'll notify you once approved\./i)).toBeInTheDocument();
+      expect(screen.getByText(/You can apply meanwhile/i)).toBeInTheDocument();
+      expect(screen.queryByText(/apply the moment it is/i)).not.toBeInTheDocument();
+    });
+  });
+
+  /**
+   * Three states render nothing, for three different reasons: `resolving`
+   * hasn't settled (and banner-absence is already the `profile-ready`
+   * presentation, so nothing can flash wrong), `rejected` would be promised an
+   * approval that will not come, and `profile-ready` has no ask left.
+   */
+  it.each(['resolving', 'rejected', 'profile-ready'] as const)('renders nothing for %s', (viewer) => {
+    const { container } = renderBanner({ viewer });
+
+    expect(container).toBeEmptyDOMElement();
+  });
+});

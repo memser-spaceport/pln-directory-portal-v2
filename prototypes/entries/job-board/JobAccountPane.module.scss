@@ -1,0 +1,100 @@
+// The details step's own two classes, both on the sign-in escape. Everything
+// else this pane wears is borrowed — the profile step's stylesheet for the
+// section notes, the amber strip and the status group, the flow drawer's for the
+// lede, the sign-up modal's for the form group and the sign-in link. What is
+// left here is the part no other surface has: the escape line's rank.
+//
+// Every custom property is written `var(--name, #fallback)`: this app doesn't
+// load the DS token sheet, so a bare token resolves to nothing.
+//
+// This sheet also held `.orRule`, the divider between the CV card and the form.
+// The CV offer is off this pane now and the rule went with it; the note where it
+// stood says why. Of the three changes tried behind that same `Details step`
+// switch in the review band, what survives is `AccountFields layout="grid"`
+// (kept, and it lives with the form group it belongs to) — the row of titled
+// tiles for the job search status was dropped, and the note where that group is
+// rendered says why.
+
+// --- 0. The escape, told apart from the lede ---------------------------------
+
+// "Already a member? Sign in", under the step's opening sentence.
+//
+// **The problem was rank, not distance.** Both lines were 14px/400 in secondary
+// grey, so two sentences in one voice stacked eight pixels apart read as one
+// paragraph — and they are not one thing. The lede is a *label*: what these
+// answers become. This is an *offer*: you may not need to be here at all. Adding
+// air alone would have made them a loosely-set paragraph rather than two
+// objects, and past 16px the escape stops belonging to the lede and starts
+// floating between it and the card below.
+//
+// So it steps down a rank instead: 12px/18 in the same secondary tone. That is
+// `.cvFirstNote`'s voice — this drawer's settled treatment for one line
+// annotating what is beside it — and a size change is a difference the eye
+// reads before it reads a word, which is exactly what "these are two things"
+// needs to say.
+//
+// It does not go tertiary. Tertiary is for something to read once (the privacy
+// note, the status hints); this is something to press, and the returning member
+// it is for should be able to find it without hunting.
+// The step's description, under the title.
+//
+// Type comes from the flow's shared `.lede`; this adds the one thing that is
+// local — the 6px under the title. A heading and its own qualifying sentence
+// are one unit, and 6 against `.stepIntro`'s no-gap column is what makes them
+// one. It cannot live on `.lede` (shared with steps that have no title) or on
+// `.stepTitle` (shared with the member pane, which has no lede), so it lives
+// here — the same reason `.signInEscape` states its own 12 rather than the
+// wrapper carrying a gap for everyone.
+.stepLede {
+  margin-top: 6px;
+}
+
+.signInEscape {
+  width: 100%;
+  // 12 above, nothing below — `.stepIntro` carries no gap of its own, so this is
+  // the one distance in that block and it lives here. It was 10 when a lede sat
+  // between this line and the title; against a 20px heading it wants slightly
+  // more, and 12 still reads as nearer the title than the 16px to the first card
+  // below, which is what keeps it part of the opening block rather than floating
+  // between the two. See the note on `.stepIntro`.
+  margin: 12px 0 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// The sign-up modal's `.signInLink`, re-ranked to sit in the line above rather
+// than re-styled: same brand colour, same 500 weight, same underline and 0.3em
+// offset — only the size follows its host. A 14px link inside a 12px sentence
+// would be the one place in this drawer where a control outgrew the words around
+// it. `.backLink` in the import panel is already a 12/500 text button on this
+// same surface, so the size is not new here.
+//
+// The two doors therefore disagree about one number by design. The modal's
+// escape sits below a submit button in a 440px dialog and is the loudest thing
+// left on it; this one sits under a sentence at the top of a three-card step.
+//
+// Doubled to outrank `su.signInLink`, which is a single class in a *different*
+// stylesheet and therefore the same specificity — with both applied, the winner
+// would otherwise be whichever sheet the bundler emitted last. The same guard
+// `JobProfilePane`'s `.incompleteStrip` uses against production's `.root`.
+.signInEscapeLink.signInEscapeLink {
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+}
+
+/* (Three classes for the CV card stood here and all three are gone with it.
+    `.heroTitle` and `.heroNote` went first — a 16/600 primary title and a 14px
+    note, which gave one card a title rank its own neighbours didn't share; the
+    card went back to `DetailsSectionHeader` and `.cvFirstNote`, and the 16px of
+    air they had introduced moved onto `.cvFirstNote` itself, where it fixes the
+    same 0px gap on all three hosts. `.orRule` went with the card: a 12px tertiary
+    label on a hairline, `or fill it in yourself`, set between the CV card and the
+    account form with a -4px margin so the divider sat closer than the cards it
+    separated. Its only job was to name the document as the fast path and the form
+    as the fallback, and with the offer off this pane there is no alternative left
+    to name. `.cvFirstNote` itself lives in `JobProfilePane.module.scss` and is
+    untouched — the profile step still mounts the importer.) */

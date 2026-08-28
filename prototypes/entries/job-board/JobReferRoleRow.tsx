@@ -4,14 +4,14 @@ import { HTMLProps, useState } from 'react';
 import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
 
-import type { IJobRole } from '@/types/jobs.types';
+import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 import type { JobSurface } from '@/analytics/jobs.analytics';
 import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
 import { Button } from '@/components/common/Button';
 import { CheckIcon } from '@/components/icons';
 import { ReferMenu } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/ReferMenu';
-import { ArrowIcon, ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
+import { ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
 import { jobApplyQueryParams } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
 
 // Reuse the production ReferRoleRow styling 1:1, with local extras for the button.
@@ -27,20 +27,28 @@ interface JobReferRoleRowProps {
   role: IJobRole;
   teamId: string;
   teamName: string;
+  team?: IJobTeam;
   /** Mirrors production's `source`: this row is shared by the board and team-profile prototypes. */
   source?: JobSurface;
   onClick?: () => void;
-  /** Referring needs a signed-in referrer; logged out, the button nudges instead. */
-  canRefer?: boolean;
-  onReferBlocked?: () => void;
-  /** Job board: apply happens in-app (sign-in gate → profile → cover letter), so
-   *  the parent handles the press. Omitted on the team profile, where Apply is
-   *  still a plain link out to the posting. */
-  onApply?: (role: IJobRole) => void;
-  /** Job board: opens the role's description in a drawer over the list. When it
-   *  is present the row's button becomes **View job** and Apply moves inside
-   *  that drawer — see the note above the actions. Omitted on the team profile,
-   *  which has no in-app description to open. */
+  /** Whether pressing **Refer** may actually open the referral modal. The button
+   *  is rendered either way — this gates the modal, never the offer. */
+  canOpenReferral?: boolean;
+  /** Where the Refer press goes when `canOpenReferral` is false: the board's
+   *  sign-up door. Production's own `ReferRoleRow` sends anonymous visitors to
+   *  login for the same reason — an unsigned referral is worthless. Omitted on a
+   *  surface with no such door, where the button then does nothing and should be
+   *  gated by `canOpenReferral` staying true instead. */
+  onReferSignUp?: () => void;
+  /* (`onApply` — an in-app Apply button in this row — is gone. It was the board's
+      slot back when pressing Apply from a row was possible; the row's button
+      became **View job** when the description moved in-app, which left the
+      branch reachable from no caller at all. The team profile never had it: its
+      Apply is the plain link out below.) */
+  /** Job board: opens the role in the apply flow, on its reading step. When it is
+   *  present the row's button becomes **View job** and Apply sits in that flow's
+   *  footer — see the note above the actions. Omitted on the team profile, which
+   *  has no in-app description to open. */
   onViewJob?: (role: IJobRole) => void;
   /** Already applied from this session — the row reports it instead of offering again. */
   applied?: boolean;
@@ -54,13 +62,29 @@ interface JobReferRoleRowProps {
  * the share icon. The two are different jobs: the share icon pushes the role out
  * to LinkedIn/X, the Refer button opens the in-network referral modal.
  *
- * **Both actions are gated when logged out, for two different reasons — and the
- * difference between the reasons is the point.**
+ * **Both actions are gated when logged out, and both are now *offered* to a
+ * logged-out visitor rather than one of them being hidden.**
  *
- *  - **Refer** needs a signed-in referrer because you genuinely cannot vouch for
- *    someone as nobody: the modal signs the note with your name, and a referral
- *    from no one is worth nothing to the team that receives it.
- *  - **Apply** is now gated too, and not as a login toll. One-click applying
+ *  - **Refer** still needs a signed-in referrer: the modal signs the note with
+ *    your name, and a referral from nobody is worth nothing to the team that
+ *    receives it. So the press is gated — but the *button* is not. It used to be
+ *    hidden, on the reasoning that nobody arrives at a board wanting to refer
+ *    and that offering it to a stranger spent the row's sign-in ask on the
+ *    wrong action. That reasoning is overturned, for two reasons. A hidden
+ *    control cannot be learned: a visitor who does know someone right for the
+ *    role has no way to find out that this board can carry that, and the person
+ *    most likely to be logged out is exactly the one who has never seen the
+ *    feature. And the press no longer opens a modal they cannot use — it opens
+ *    the board's sign-up door, which is the same ask Apply makes, arriving from
+ *    a person who has just told us they have somebody in mind. That is a better
+ *    moment to ask than a colder one, not a worse one.
+ *
+ *    The rule, stated plainly: **Refer is visible to everyone; opening the
+ *    referral modal requires an account.** Pressing it logged out lands on
+ *    `JobSignUpModal`, which carries its own "Already have an account? Sign in"
+ *    escape — so one press offers both doors, and nobody is bounced into a form
+ *    with no way back to the one they wanted.
+ *  - **Apply** is gated too, and not as a login toll. One-click applying
  *    means the team receives your *profile* rather than a form you retyped, so
  *    there has to be a profile to send. The exchange is real in both directions:
  *    you give a name, a role and a length of experience; you stop refilling the
@@ -72,26 +96,28 @@ interface JobReferRoleRowProps {
  * the act of applying, never on browsing: the moment something is *sent on your
  * behalf* is the only moment identity is actually needed.
  *
- * The Apply slot therefore has three states — `applied`, in-app apply
- * (`onApply`), and the plain link out — and all three wear the same button
- * geometry, so a list of roles doesn't jitter as rows change state.
+ * The row's action slot therefore has three states — **View job** where an
+ * in-app description exists, `applied`, and the plain link out where it doesn't
+ * — and all three wear the same button geometry, so a list of roles doesn't
+ * jitter as rows change state.
  *
- * **The board keeps production's arrow**, now beside Apply rather than instead of
- * it. It was the apply link before Apply moved in-app; it stays as the link out
- * to the posting, because that route is not something the new button replaced —
- * it's something the new button displaced. Board only: where Apply is still the
- * link (the team profile), an arrow would be the same door drawn twice.
+ * **The board no longer carries production's `↗`.** It was the apply link before
+ * Apply moved in-app, then stood for a while beside Apply as the link out to the
+ * posting. The route is what mattered and the route survives one level in — the
+ * drawer's step 1 opens with a labelled `Original posting` link. See the note
+ * where the arrow was rendered. On the team profile, where there is no in-app
+ * description, Apply *is* still the link out and nothing changed.
  */
 export function JobReferRoleRow(props: JobReferRoleRowProps) {
   const {
     role,
     teamId,
     teamName,
+    team,
     source = 'job-board',
     onClick,
-    canRefer = true,
-    onReferBlocked,
-    onApply,
+    canOpenReferral = true,
+    onReferSignUp,
     onViewJob,
     applied = false,
     appliedAt,
@@ -132,9 +158,8 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
                 job is. On the board that is now the in-app description, so the
                 title and the **View job** button are one door with two handles —
                 the alternative was a title that went somewhere else than the
-                button beside it, which is the confusion the arrow already sits
-                close to. Everywhere without an in-app description (the team
-                profile) the title is still the link out, unchanged. */}
+                button beside it. Everywhere without an in-app description (the
+                team profile) the title is still the link out, unchanged. */}
             {onViewJob ? (
               <button
                 type="button"
@@ -170,50 +195,49 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
                 `.link` carries no `neutral`, so `secondary` is the design
                 system's quiet text button. It also zeroes padding and min-width,
                 which is why `.referButton` — pure horizontal padding for the
-                bordered shape Refer used to wear — went with it. */}
+                bordered shape Refer used to wear — went with it.
+
+                **Present in every viewer state, and never disabled.** It was
+                absent when logged out; it isn't any more — see the note above
+                the component for why that reversed. It is not disabled either:
+                a dead control tells a stranger the row has something they may
+                not have, which is the worst of both readings. The press is
+                live and lands where it can be honoured — the referral modal
+                with an account, the board's sign-up door without one. */}
             <Button
               size="s"
               style="link"
               variant="secondary"
               className={js.referTone}
-              onClick={() => (canRefer ? setReferOpen(true) : onReferBlocked?.())}
+              onClick={() => (canOpenReferral ? setReferOpen(true) : onReferSignUp?.())}
             >
               Refer
             </Button>
 
             <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />
 
-            {/* The arrow out to the posting — production's own `.applyArrow`, kept
-                on the board.
+            {/* (The `↗` out to the external posting stood here, on the board
+                only. It was removed, and the route it carried was not: the
+                drawer's step 1 opens with **Original posting** in its masthead
+                (`JobDetailPane`'s `.postingLink`), a labelled link to the same
+                URL — so the ad is still one press from the row, via the control
+                that already opens the job.
 
-                It used to BE Apply here: the board's action row ended in a bare
-                arrow linking to the external ad. Turning Apply into an in-app
-                button took that link with it and left the row with no visible
-                way to go read the job description. So the arrow came back with
-                the job it actually always did: open the posting. Only the label
-                changed, because "Apply to X" is no longer what pressing it does.
+                Narrowed since: that link is **members only** now, so for a
+                logged-out visitor the row genuinely is the end of the road to
+                the external ad. Deliberate — see the note on `postingHref` — and
+                it does not argue for putting the arrow back, because restoring
+                it here would reopen on the board exactly the door the drawer
+                just closed.
 
-                It matters more now, not less. With an in-app description the
-                title opens *that*, so this is the row's only route to the team's
-                own ad — two different readings of one job, and the second one is
-                the authority. The drawer repeats the link at the top of the
-                panel for whoever gets that far.
-
-                Board only. On the team profile there is no `onApply`, so Apply
-                *is* the link out, and a second control to the same URL in the
-                same row would be the same door twice. It also survives the
-                applied state — having applied is no reason to stop being able to
-                read the ad. */}
-            {(onApply || onViewJob) && applyUrl && (
-              <a
-                className={`${s.applyArrow} ${js.arrowTone}`}
-                aria-label={`Open the ${roleTitle} posting`}
-                {...linkProps}
-              >
-                <ArrowIcon />
-              </a>
-            )}
-
+                Worth recording that this glyph was restored once before, after
+                being deleted along with the old arrow-as-Apply. That restore was
+                right at the time: the row had no other way to reach the ad. It
+                does now, and the version that survived is the better one — a
+                bare arrow at the end of an action row is a destination nobody
+                can name until they press it, where "Original posting" says which
+                of the two readings of this job it is. It also takes a fourth
+                grey out of a 200px cluster that had no business holding four. */}
             {onViewJob ? (
               /* The board's button, once the description moved in-app.
 
@@ -259,13 +283,6 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
                 <CheckIcon width={12} height={12} aria-hidden="true" />
                 Applied
               </button>
-            ) : onApply ? (
-              /* A real <button>, not the anchor: the press no longer leaves the
-                 page. It hands off to the parent, which runs the sign-in gate,
-                 the profile check and the cover letter in place. */
-              <Button size="s" style="fill" variant="primary" className={js.applyButton} onClick={() => onApply(role)}>
-                Apply
-              </Button>
             ) : (
               /* An anchor wearing Button's classes rather than a <Button>: this
                  opens an external posting, so it has to stay a real link (new
@@ -290,6 +307,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
         teamId={teamId}
         teamName={teamName}
         source={source}
+        jobReferEmail={team?.jobReferEmail}
       />
     </>
   );

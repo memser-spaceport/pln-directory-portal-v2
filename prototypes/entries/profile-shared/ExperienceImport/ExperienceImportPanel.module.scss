@@ -92,7 +92,16 @@
 
 // `.howto`, `.howtoLead` and `.howtoSteps` used to live here — the brand-soft
 // panel behind the LinkedIn door's three-step "open LinkedIn → More → Save to
-// PDF". Both the door and the block are gone, so the rules went with them.
+// PDF". The door is gone for good; what replaced the block is `.linkedinSteps`
+// below.
+//
+// It is a tinted panel again, and deliberately so — but a one-line one, not a
+// three-step one. The tint was dropped when this was a *disclosure*, on the
+// argument that a tinted box is the chrome of an announcement while an answer to
+// a question is a plainer thing. With the toggle gone there is no question being
+// answered: the sentence simply stands under the box, and standing prose in a
+// column of other prose needs some ground of its own or it reads as one more
+// line of the same rank as the privacy note beneath it.
 
 // --- Reading ------------------------------------------------------------------
 
@@ -208,6 +217,74 @@
     width: auto;
     min-width: 160px;
   }
+}
+
+// --- The way in, for someone with no CV ---------------------------------------
+
+// `.linkedinHint` (the column that held them apart), `.linkedinToggle`, and the
+// rotating `.linkedinCaret` / `.linkedinCaretOpen` pair are gone with the
+// disclosure — see the note on `LINKEDIN_HINT`. One standing sentence needs no
+// wrapper to be a column of one, so `.linkedinSteps` is now the whole thing and
+// carries the spacing the wrapper used to.
+//
+// Pulled 4px up out of `.panel`'s 12px gap. Equidistant from the drop area above
+// and the privacy note below would say this belongs to neither; it belongs to the
+// box, because it is how you get something to put in it. 8px above, 12px below —
+// asymmetry rather than a smaller number, so nothing else in the column moves.
+//
+// Secondary, deliberately NOT a third grey: the count under this box is two —
+// secondary for the thing you act on, tertiary for the note you read once.
+.linkedinSteps {
+  // A row, so the info glyph sits beside the sentence rather than inside its
+  // text flow — `DataIncomplete`'s own gap for this exact pairing.
+  display: flex;
+  gap: 8px;
+  // Not `center`: the sentence wraps to two lines at this measure, and a centred
+  // glyph would then float against the gap between them. Top-aligned it stays
+  // against the line it introduces.
+  align-items: flex-start;
+
+  // Tinted, on `DataIncomplete`'s own surface — production's soft-brand ground
+  // for exactly this: a small informational row carrying an info glyph and 12px
+  // text. Its radius is the DS `md`, square on all four corners rather than
+  // production's `8px 8px 0 0`, because that one is welded to the top of a card
+  // and this one is a block standing on its own in a column.
+  padding: 8px 12px;
+  border-radius: var(--corner-radius-md, 8px);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+
+  // The negative top is the 4px described above; `margin: 0` first, because the
+  // browser gives a `<p>` a top and bottom margin of its own and this line has to
+  // sit on `.panel`'s gap alone.
+  margin: 0;
+  margin-top: -4px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// Rendered at 14px rather than the glyph's native 18px: against 12px text an
+// 18px mark outweighed the sentence it introduces, and on a tinted ground the
+// panel is already doing the work of saying "this is a note" — the icon only has
+// to name what kind.
+//
+// `flex-start` puts its 14px box at the top of an 18px line, so 2px of top margin
+// centres it on that first line. `currentColor`, so it stays one tone with the
+// sentence rather than being a second colour to keep in step.
+.linkedinStepsIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: currentColor;
+}
+
+// The menu path, weighted rather than coloured — it is a label to find on another
+// site, and a colour here would be a third tone for no extra meaning. `nowrap` so
+// "More → Save to PDF" never breaks across the arrow.
+.linkedinPath {
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 // --- The honesty line ---------------------------------------------------------

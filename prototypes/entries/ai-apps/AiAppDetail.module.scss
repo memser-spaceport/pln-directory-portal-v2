@@ -31,12 +31,14 @@
   }
 }
 
-/* Right-side action cluster: "App Details" pill + ⋯ manage menu, kept on one
-   line opposite the Back button. */
+/* Right-side action cluster: "Give feedback" + "App Details" + ⋯ manage menu,
+   kept on one line opposite the Back button. 8px is dev's own topBarActions gap
+   (AiAppDetailPage.module.scss) — three controls in a strip want to read as one
+   cluster, and the 10px this used to carry was a guess. */
 .topBarActions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
 }
 

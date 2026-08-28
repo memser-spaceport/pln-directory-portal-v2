@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from '@/components/core/ToastContainer';
 import { getChatCount } from '@/utils/husky.utlils';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 interface ChatHomeProps {
   onSubmit: (query: string) => void;
@@ -22,6 +23,7 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
   const [limitReached, setLimitReached] = useState<boolean>(false); // daily limit check
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
+  const goToLogin = useLoginRedirect();
   const analytics = useHuskyAnalytics();
 
   useEffect(() => {
@@ -99,11 +101,7 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();
     } else {
-      if (window.location.pathname === '/sign-up') {
-        router.push(`/#login`);
-      } else {
-        router.push(`${window.location.pathname}${window.location.search}#login`);
-      }
+      goToLogin();
     }
   };
 

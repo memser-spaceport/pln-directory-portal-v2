@@ -8,9 +8,7 @@ import { createStateUid } from '@/services/auth.service';
 import { usePrivyWrapper } from '../../hooks';
 import { authEvents } from '../../utils';
 
-import { LoadingSpinner } from './components/LoadingSpinner';
-
-import s from './AuthInfo.module.scss';
+import { ProgressBar } from '@/components/core/Loader/ProgressBar';
 
 /**
  * AuthInfo - Handles login initialization
@@ -20,6 +18,13 @@ import s from './AuthInfo.module.scss';
  * 2. Logs out any existing session
  * 3. Creates a state UID for the login flow
  * 4. Triggers Privy login modal
+ *
+ * It only has to cover the gap between the click and Privy's modal appearing (a logout
+ * plus the createStateUid round-trip), so it shows the same top progress bar as the rest
+ * of the app. It used to be a blocking rgba(0,0,0,.6) dim + "Loading..." box at z-index
+ * 99999, which was both the ugliest surface in the app and the thing that painted over
+ * the auth error modal when a login attempt failed. Privy renders its own backdrop for
+ * its modal, so nothing here needs to supply one.
  */
 export function AuthInfo() {
   const router = useRouter();
@@ -59,12 +64,5 @@ export function AuthInfo() {
     }
   }, []);
 
-  return (
-    <div className={s.overlay}>
-      <div className={s.loader}>
-        <LoadingSpinner />
-        Loading...
-      </div>
-    </div>
-  );
+  return <ProgressBar />;
 }

@@ -1,0 +1,26 @@
+// Transcribed from `SignupWizard.module.scss`'s `.aboutLabelOptional` — the
+// product's only existing "this field is optional" mark.
+//
+// Source: `font-weight: 400; color: #8897ae;` against a label at 500 / `#455468`,
+// separated by the parent's `gap: 4px`.
+//
+// Two translations, both required by where it lands:
+//
+//   - the colour becomes the token/fallback pair for that exact hex
+//     (`--foreground-neutral-tertiary`, the canonical muted tone in
+//     prototypes/CLAUDE.md §4), because this app doesn't load the DS token sheet
+//     and the source writes bare hex;
+//   - the 4px gap becomes a `margin-left`, because the host here is
+//     `DetailsSectionHeader`'s `<h2>` rather than a flex label row, and turning
+//     that heading into a flex container to reproduce one gap would change how
+//     every other section header in the drawer lays out.
+//
+// Size, line-height and letter-spacing are deliberately not set: inheriting them
+// from the heading is what keeps the mark on the same baseline as the words it
+// qualifies. The weight and tone are the whole difference, which is the point —
+// it is a qualifier, not a second heading.
+.mark {
+  margin-left: 4px;
+  font-weight: 400;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

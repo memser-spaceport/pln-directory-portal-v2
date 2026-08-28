@@ -1,0 +1,27 @@
+/* One rule, and it is a layout *fix*, not a restyle — the deviation rule #6 asks
+   to be declared out loud, so here it is.
+
+   Production's `FilterSearch` lays the field out as a flex row: `.input { flex: 1 }`
+   next to `.inputPrefix { flex-shrink: 0; padding: 0 12px }` holding a 16px
+   magnifier. `flex: 1` is `flex: 1 1 0%`, but a flex item's default
+   `min-width: auto` resolves to its *min-content* width — and for an `<input>`
+   that comes from the legacy `size` attribute (20 characters by default), not
+   from the flex basis. So inside the 246px rail the input plants itself at 219px
+   and will not shrink, and the 40px prefix is pushed 13px past the container's
+   inner edge: measured, the magnifier sits at -1px clearance, hard against the
+   border, instead of the 12px its own padding asks for.
+
+   `min-width: 0` is the release valve, and it is not invented here — the design
+   system's own `SearchInput` declares exactly that on its root
+   (`SearchInput.module.scss:3`), which is why the *other* search field in this
+   same rail measures a clean 12px. That component also sidesteps the fight
+   entirely by absolutely positioning its icon and reserving `padding-right: 40px`
+   on the input; this field can't, because it is a transcription and its icon is a
+   flex sibling.
+
+   The selector is doubled so it resolves to specificity (0,2,0) and beats the
+   production module's single-class `.input` regardless of which stylesheet the
+   bundler emits first. */
+.input.input {
+  min-width: 0;
+}

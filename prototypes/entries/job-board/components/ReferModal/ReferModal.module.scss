@@ -189,13 +189,11 @@
   margin: -2px;
 }
 
-// Sits directly above the actions, where the reference has nothing — our version
-// emails people the referrer didn't type, so who receives it has to be legible.
-.privacyNote {
+.teamReferDestination {
   margin: 0;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 400;
-  line-height: 18px;
+  line-height: 22px;
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-secondary, #455468);
 }

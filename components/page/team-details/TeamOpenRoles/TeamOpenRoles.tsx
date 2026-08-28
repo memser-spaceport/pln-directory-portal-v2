@@ -69,6 +69,7 @@ export function TeamOpenRoles({ group }: TeamOpenRolesProps) {
             role={role}
             teamId={team.uid}
             teamName={team.name}
+            team={team}
             currentUser={currentUser}
             source="team-profile"
             onClick={() => {

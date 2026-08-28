@@ -532,6 +532,80 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_SAVE_CLICKED);
   }
 
+  /* ---------------------------------------------- filling Experience from a CV --- */
+
+  /**
+   * Someone came back with a newer CV.
+   *
+   * One value, because there is one press. The empty-row pill that used to sit
+   * beside it is gone — the drop area stands open there now, so there is no
+   * door to record and an impression is not an intent. The header button is the
+   * only place a person still declares "I want to do this again", which is why
+   * it is the only place this fires.
+   */
+  function onCvImportOpened(entry: 'header-button') {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.CV_IMPORT_OPENED, { entry });
+  }
+
+  /**
+   * What the parser found. `experiences_found` against `experiences_selected`
+   * later in the funnel is the one number that says whether the extraction is
+   * any good — a document that yields five rows of which one is ever kept is a
+   * parser problem wearing a UI problem's clothes.
+   */
+  function onCvImportParseSucceeded(params: {
+    experiences_found: number;
+    skills_found: number;
+    has_role: boolean;
+    has_location: boolean;
+  }) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.CV_IMPORT_PARSE_SUCCEEDED, params);
+  }
+
+  /** The document was read and carried no positions. Not a failure. */
+  function onCvImportParseEmpty() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.CV_IMPORT_PARSE_EMPTY);
+  }
+
+  /** The read didn't come back. Categories are `CvParseFailure`'s, minus
+   *  `aborted` — a cancel is its own event. */
+  function onCvImportParseFailed(failure_category: 'rejected' | 'server' | 'network') {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.CV_IMPORT_PARSE_FAILED, { failure_category });
+  }
+
+  /**
+   * What was actually kept.
+   *
+   * `experiences_offered` travels with `experiences_selected` so the pair can be
+   * read without joining back to the parse event, and `duplicates_overridden`
+   * counts the rows someone re-ticked after being told they already had them —
+   * if that number is high, the duplicate rule is matching things that aren't
+   * the same job.
+   */
+  function onCvImportSaved(params: {
+    experiences_selected: number;
+    experiences_offered: number;
+    duplicates_overridden: number;
+    skills_saved: number;
+    filled_role: boolean;
+    filled_location: boolean;
+  }) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.CV_IMPORT_SAVED, params);
+  }
+
+  function onCvImportSaveFailed(params: { experiences_selected: number }) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.CV_IMPORT_SAVE_FAILED, params);
+  }
+
+  /**
+   * Where they left. `reading` is someone who changed their mind about the file;
+   * `review` is someone who saw what we extracted and didn't want it — which is
+   * the more interesting number, and the one no other event can tell you.
+   */
+  function onCvImportCancelled(stage: 'panel' | 'reading' | 'review') {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.CV_IMPORT_CANCELLED, { stage });
+  }
+
   function onAddContributionDetailsClicked() {
     captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_ADD_CLICKED);
   }
@@ -710,6 +784,13 @@ export const useMemberAnalytics = () => {
     onAddExperienceDetailsClicked,
     onDeleteExperienceDetailsClicked,
     onSaveExperienceDetailsClicked,
+    onCvImportOpened,
+    onCvImportParseSucceeded,
+    onCvImportParseEmpty,
+    onCvImportParseFailed,
+    onCvImportSaved,
+    onCvImportSaveFailed,
+    onCvImportCancelled,
     onEditExperienceDetailsClicked,
     onAddContributionDetailsClicked,
     onSaveContributionDetailsClicked,

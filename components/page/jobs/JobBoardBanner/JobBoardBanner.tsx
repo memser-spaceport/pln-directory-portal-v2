@@ -3,10 +3,13 @@
 import clsx from 'clsx';
 
 // The same surface production's home page shows a signed-out visitor
-// (`components/page/home/Welcome`) — the board wears the same card, type and
-// blue CTA rather than inventing a second sign-in look. Three asks sit in this
-// slot (sign in, finish your profile, wait for approval) and they are one ask
-// at three stages, so they share one slot and mostly one card.
+// (`components/page/home/Welcome`) — the board wears the same card rather than
+// inventing a second sign-in look. Three asks sit in this slot (sign in, finish
+// your profile, wait for approval) and they are one ask at three stages, so they
+// share one slot and mostly one card. What this file overrides on top of it is
+// the slot's own surface and type scale (`.brandSurface`, `.bannerTitle`,
+// `.bannerSub`), applied to every state so the slot doesn't appear to change
+// component when the reader's situation changes.
 import welcome from '@/components/page/home/Welcome/Welcome.module.scss';
 // Demo Day's quiet info card, for the pending state that has no action in it.
 import alert from '@/components/page/demo-day/FounderPendingView/components/Alert/Alert.module.scss';
@@ -69,20 +72,66 @@ function summariseFilters(filterState: IJobAlertFilterState): string {
   ].join(' · ');
 }
 
+/** The two doors, when the banner is the one offering them. Absent on the
+ *  signed-in banners, where there is nothing to sign into. */
+interface Doors {
+  onSignIn: () => void;
+  onSignUp: () => void;
+}
+
 /**
  * The two things a profile buys you, one line each — shared between the
  * logged-out banner and the signed-in nudge so the two states cannot end up
  * making different promises. Only the first bullet changes, because the door
  * behind it has.
+ *
+ * **The doors live in the first bullet**, as text buttons, rather than in a
+ * button pair beside the card — see `SignInBanner`. Their presence *is* the
+ * signed-out case: `doors` optional rather than a `signedOut` boolean, so there
+ * is no flag that can disagree with whether handlers were passed.
+ *
+ * Door order is sign in, then sign up — the reverse of the navbar's pair, and
+ * deliberate here: this reads as a sentence rather than as a control cluster,
+ * and the sentence names the commoner case first.
  */
-function ApplyValueBullets({ signedOut = false }: { signedOut?: boolean }) {
+function ApplyValueBullets({ className, doors }: { className?: string; doors?: Doors }) {
   return (
-    <ul className={`${welcome.sub} ${s.valueBullets}`}>
+    <ul className={clsx(welcome.sub, s.valueBullets, className)}>
       <li>
-        {signedOut ? 'Sign in and apply' : 'Apply'} to hundreds of startup teams across the network with a single
-        profile.
+        {doors ? (
+          <>
+            {/* Both doors, still — the pair moved out of the CTA slot, not out
+                of the banner. "Sign in" alone would tell the likeliest reader of
+                a sign-in banner, someone with no account, that the offer isn't
+                for them. */}
+            <button type="button" className={s.inlineDoor} onClick={doors.onSignIn}>
+              Sign in
+            </button>{' '}
+            or{' '}
+            <button type="button" className={s.inlineDoor} onClick={doors.onSignUp}>
+              sign up
+            </button>{' '}
+            and discover open roles across the network.
+          </>
+        ) : (
+          /* **No longer the same claim as the one above**, and the difference is
+             the audience. A visitor is being offered the thing they came for —
+             discovering roles — in the same words the sign-up form uses for it,
+             so the banner and the form they land on agree about what an account
+             is for. A member already has the account and already has the board;
+             what is still ahead of them is applying, so their sentence starts
+             there.
+
+             Kept in step deliberately, not by accident: if the visitor line
+             changes again, this one is the other half to think about. */
+          'Apply to hundreds of open roles with a single profile.'
+        )}
       </li>
-      <li>Founders reach out when your profile matches the roles they&apos;re hiring for.</li>
+      {/* "when they're hiring for what you do", not "when your profile matches
+          the roles they're hiring for". Matching was removed from this board
+          outright; leaving its vocabulary here promises a mechanism that is
+          gone. */}
+      <li>Founders reach out when they&apos;re hiring for what you do.</li>
     </ul>
   );
 }
@@ -101,18 +150,30 @@ const ArrowGlyph = () => (
 
 /**
  * The logged-out banner: the headline is the inventory (filtered counts), the
- * case for signing in is the two bullets, and the two doors sit in the
- * navbar's order and ranking. Narrowing the rail condenses and pins it — the
+ * case for signing in is the two bullets, and the two doors are text buttons
+ * inside the first of them. Narrowing the rail condenses and pins it — the
  * standing offer stays in view without blocking anything.
+ *
+ * **There is no CTA slot.** This used to end in a Sign up / Sign in pair wearing
+ * `welcome.cta` — a boxed auth cluster, which made this an *offer* card in the
+ * same viewport as two other copies of the same offer: the navbar's own pair one
+ * row above, and the sign-up form that Apply opens for a logged-out visitor at
+ * the moment of intent. Three asks for one account, and this was the one nobody
+ * arrived for.
+ *
+ * What is left is a note: it says what the board is worth to you and names the
+ * two doors inline, in the sentence. That is the treatment for an aside that
+ * carries an action — a boxed control inside a sentence reads as a second
+ * object.
  */
 function SignInBanner({ filterState, roleCount, teamCount, onSignIn, onSignUp }: JobBoardBannerProps) {
   const filtersApplied = hasActiveFilters(filterState);
 
   return (
     <div className={clsx(s.slot, filtersApplied && s.pinned)}>
-      <section className={clsx(welcome.welcome, filtersApplied && s.condensed)}>
+      <section className={clsx(welcome.welcome, s.brandSurface, filtersApplied && s.condensed)}>
         <div className={welcome.text}>
-          <p className={clsx(welcome.title, filtersApplied && s.oneLine)}>
+          <p className={clsx(welcome.title, s.bannerTitle, filtersApplied && s.oneLine)}>
             {roleCount > 0 ? (
               <>
                 Browse{' '}
@@ -128,7 +189,7 @@ function SignInBanner({ filterState, roleCount, teamCount, onSignIn, onSignUp }:
             )}
           </p>
           {filtersApplied || roleCount === 0 ? (
-            <p className={clsx(welcome.sub, filtersApplied && s.oneLine)}>
+            <p className={clsx(welcome.sub, s.bannerSub, filtersApplied && s.oneLine)}>
               {roleCount === 0 ? (
                 <>
                   Your profile goes with every application, so when a role does fit, applying is a cover letter and
@@ -136,23 +197,14 @@ function SignInBanner({ filterState, roleCount, teamCount, onSignIn, onSignUp }:
                 </>
               ) : (
                 <>
-                  Looking for <strong className={s.criteria}>{summariseFilters(filterState)}</strong>? Your profile
-                  goes with the application, so all you write is a cover letter.
+                  Looking for <strong className={s.criteria}>{summariseFilters(filterState)}</strong>? Your profile goes
+                  with the application, so all you write is a cover letter.
                 </>
               )}
             </p>
           ) : (
-            <ApplyValueBullets signedOut />
+            <ApplyValueBullets className={s.bannerSub} doors={{ onSignIn, onSignUp }} />
           )}
-        </div>
-        <div className={s.ctaGroup}>
-          <button type="button" className={s.ctaSecondary} onClick={onSignUp}>
-            Sign up
-          </button>
-          <button type="button" className={welcome.cta} onClick={onSignIn}>
-            Sign in
-            <ArrowGlyph />
-          </button>
         </div>
       </section>
     </div>
@@ -163,10 +215,11 @@ function SignInBanner({ filterState, roleCount, teamCount, onSignIn, onSignUp }:
 function ProfileNudgeBanner({ onUpdateProfile }: { onUpdateProfile: () => void }) {
   return (
     <div className={s.slot}>
-      <section className={welcome.welcome}>
+      <section className={clsx(welcome.welcome, s.brandSurface)}>
         <div className={welcome.text}>
-          <p className={welcome.title}>Update your profile to apply</p>
-          <ApplyValueBullets />
+          <p className={clsx(welcome.title, s.bannerTitle)}>Update your profile to apply</p>
+          {/* No `doors` — a member reading this one is already through both. */}
+          <ApplyValueBullets className={s.bannerSub} />
         </div>
         <div className={s.ctaGroup}>
           <button type="button" className={welcome.cta} onClick={onUpdateProfile}>
@@ -196,12 +249,29 @@ function PendingApprovalBanner({
   if (!profileComplete) {
     return (
       <div className={s.slot}>
-        <section className={welcome.welcome}>
+        <section className={clsx(welcome.welcome, s.brandSurface)}>
           <div className={welcome.text}>
-            <p className={welcome.title}>Profile under review</p>
-            <p className={welcome.sub}>
-              We&apos;ll notify you once approved. Complete your profile in the meantime, so you can apply the moment it
-              is.
+            <p className={clsx(welcome.title, s.bannerTitle)}>Profile under review</p>
+            {/* Two sentences, two lines — and two different kinds of thing,
+                which is why they are separate `<p>`s rather than one broken with
+                a `<br />`. The first is a status: the review is running, we will
+                tell you. The second is the one move that is theirs, and it is
+                what the button beside it does. Run together they read as one
+                paragraph about waiting, and the instruction gets lost in the
+                middle of it.
+
+                No new CSS: `welcome.text` is already a 4px-gap column, so a
+                second `<p>` lands on the next line at the card's own rhythm.
+
+                The second line used to end "so you can apply the moment it is",
+                which was the reason to finish a profile while approval was the
+                thing standing in the way. It no longer is — applying works now —
+                so the reason had to change with it: a profile is what the
+                application carries, and that is true whether or not anyone is
+                reviewing the account. */}
+            <p className={clsx(welcome.sub, s.bannerSub)}>We&apos;ll notify you once approved.</p>
+            <p className={clsx(welcome.sub, s.bannerSub)}>
+              You can apply meanwhile — finish your profile so it goes with a full picture of you.
             </p>
           </div>
           <div className={s.ctaGroup}>
@@ -217,15 +287,27 @@ function PendingApprovalBanner({
 
   return (
     <div className={clsx(s.slot, s.pendingSlot)}>
-      <div className={alert.alert}>
+      <div className={clsx(alert.alert, s.alertBrand)}>
         <div className={alert.alertContent}>
           <div className={alert.alertIcon}>
             <InfoIcon />
           </div>
           <div className={alert.alertText}>
+            {/* The second sentence names what is and isn't available, because
+                "under review" alone leaves someone guessing whether the board
+                itself is half-working.
+
+                It used to end "applying unlocks as soon as your account is
+                approved" — the truth while approval gated applying. It doesn't
+                any more, and this is the state where getting that wrong would
+                cost the most: a finished profile with nothing left to do, being
+                told to wait for something that isn't holding them up. Now the
+                sentence says the board is entirely open and leaves the review as
+                what it is — a fact about the account, running in the
+                background. */}
             <p>
-              Profile under review — we&apos;ll notify you once approved. Your profile is ready and every role is open
-              to browse; applying unlocks as soon as your account is approved.
+              Profile under review — we&apos;ll notify you once approved. Nothing here is waiting on it: browse and
+              apply as normal.
             </p>
           </div>
         </div>

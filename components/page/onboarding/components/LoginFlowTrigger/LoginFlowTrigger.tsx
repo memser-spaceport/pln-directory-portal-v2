@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { IUserInfo } from '@/types/shared.types';
+import { useLoginRedirect } from '@/components/core/login/utils';
 import { useMemberApprovalEvents } from '@/services/members/hooks/useMemberApprovalEvents';
 
 interface Props {
@@ -11,15 +12,15 @@ interface Props {
 }
 
 export const LoginFlowTrigger = ({ isLoggedIn }: Props) => {
-  const router = useRouter();
   const searchParams = useSearchParams();
+  const goToLogin = useLoginRedirect();
   const isLoginFlow = searchParams.get('loginFlow') === 'login';
 
   useEffect(() => {
     if (!isLoggedIn && isLoginFlow) {
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      goToLogin();
     }
-  }, [isLoggedIn, router, isLoginFlow]);
+  }, [isLoggedIn, goToLogin, isLoginFlow]);
 
   useMemberApprovalEvents();
 

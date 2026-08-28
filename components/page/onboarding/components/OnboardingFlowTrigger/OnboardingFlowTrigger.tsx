@@ -2,7 +2,8 @@
 
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useLoginRedirect } from '@/components/core/login/utils';
 import { IUserInfo } from '@/types/shared.types';
 import { OnboardingWizard } from '@/components/page/onboarding/components/OnboardingWizard';
 import { useMember } from '@/services/members/hooks/useMember';
@@ -19,16 +20,16 @@ const fade = {
 };
 
 export const OnboardingFlowTrigger = ({ isLoggedIn, userInfo }: Props) => {
-  const router = useRouter();
   const searchParams = useSearchParams();
+  const goToLogin = useLoginRedirect();
   const isOnboardingLoginFlow = searchParams.get('loginFlow') === 'onboarding';
   const { data: memberData } = useMember(userInfo.uid);
 
   useEffect(() => {
     if (!isLoggedIn && isOnboardingLoginFlow) {
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      goToLogin();
     }
-  }, [isLoggedIn, router, isOnboardingLoginFlow]);
+  }, [isLoggedIn, goToLogin, isOnboardingLoginFlow]);
 
   // Check if member has onboarding permission (replaces L4-based check)
   const hasOnboardingPermission = memberData?.memberInfo?.rbac?.effectivePermissions?.some(

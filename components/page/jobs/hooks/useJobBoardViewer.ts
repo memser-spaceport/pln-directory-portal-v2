@@ -29,9 +29,14 @@ export interface JobBoardViewerResult {
   profileComplete: boolean;
   /**
    * Refetch the member record and return the fresh verdict. Used on an Apply
-   * press while `pending-approval`: the cookie-derived status can lag an
-   * approval that landed mid-session (cookie and API diverge both ways), and
-   * this is the one moment the pending copy could lie.
+   * press by a non-approved account, where the cookie-derived status can lag the
+   * record (cookie and API diverge both ways).
+   *
+   * It used to be about catching an approval that landed mid-session, so the
+   * member got the in-app letter rather than the hiring team's own posting.
+   * Approval no longer gates applying, so what this now guards is rejection —
+   * and it matters more than it did, because the press it precedes sends a real
+   * application.
    */
   refreshVerdict: () => Promise<JobsAccessVerdict>;
 }
@@ -65,7 +70,12 @@ export function useJobBoardViewer(args: {
      the live memberState); the cookie-derived userInfo is the fallback while it
      loads or errors. */
   const effectiveUserInfo: IUserInfo | null = member
-    ? { ...userInfo, accessLevel: member.accessLevel ?? userInfo?.accessLevel, rbac: member.rbac ?? userInfo?.rbac }
+    ? {
+        ...userInfo,
+        signUpSource: member.signUpSource ?? userInfo?.signUpSource,
+        accessLevel: member.accessLevel ?? userInfo?.accessLevel,
+        rbac: member.rbac ?? userInfo?.rbac,
+      }
     : (userInfo ?? null);
 
   // One query settles the whole viewer now: the job search status rides on the
@@ -88,13 +98,14 @@ export function useJobBoardViewer(args: {
       // read the cache — an explicit refetch bypasses any staleTime politeness.
       await queryClient.refetchQueries({ queryKey: [MembersQueryKeys.GET_MEMBER, memberUid] });
     }
-    const data = queryClient.getQueryData<{ memberInfo?: { accessLevel?: IUserInfo['accessLevel']; rbac?: IUserInfo['rbac'] } }>([
-      MembersQueryKeys.GET_MEMBER,
-      memberUid,
-    ]);
+    const data = queryClient.getQueryData<{
+      memberInfo?: { accessLevel?: IUserInfo['accessLevel']; rbac?: IUserInfo['rbac'] };
+    }>([MembersQueryKeys.GET_MEMBER, memberUid]);
     const fresh = data?.memberInfo;
     return getJobsAccessVerdict(
-      fresh ? { ...userInfo, accessLevel: fresh.accessLevel ?? userInfo?.accessLevel, rbac: fresh.rbac ?? userInfo?.rbac } : (userInfo ?? null),
+      fresh
+        ? { ...userInfo, accessLevel: fresh.accessLevel ?? userInfo?.accessLevel, rbac: fresh.rbac ?? userInfo?.rbac }
+        : (userInfo ?? null),
     );
   }, [memberUid, queryClient, userInfo]);
 

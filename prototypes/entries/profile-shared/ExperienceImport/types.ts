@@ -40,13 +40,24 @@ export interface ParsedExperience {
 
 export interface ParsedProfile {
   /**
-   * Optional because only one surface asks for them.
+   * Optional because not every document carries them — never because a surface
+   * declines to look.
    *
    * A real CV parser returns the name and email off the top of the document —
    * Mercor collects exactly those two alongside the resume in step 1 of its
-   * wizard. The job board never reads them (it already has an account by the
-   * time the importer runs); onboarding does, because there the CV arrives
-   * *before* the name-and-email step and can fill it in.
+   * wizard, and production's own onboarding `ProfileStep` is those same two
+   * fields in that same order. The review renders them under the rule it
+   * already applies to role and location: asked for only when the profile is
+   * still missing them (`currentName` / `currentEmail`), so the job board —
+   * which has an account by the time the importer runs — is never offered its
+   * own name back, and onboarding is.
+   *
+   * **What is deliberately not here.** A phone number: `IMember` has no phone
+   * field at all, so a parsed one would have nowhere to land, and confirming a
+   * fact the record cannot hold is asking a question for nothing. A LinkedIn or
+   * GitHub URL: those are social links owned by the Contact Details card, and
+   * taking one means taking all of them — at which point the review has stopped
+   * reviewing a work history and become a second sign-up form.
    */
   name?: string;
   email?: string;
@@ -57,10 +68,19 @@ export interface ParsedProfile {
   experiences: ParsedExperience[];
 }
 
-/** What the person actually agreed to add, after the review. */
+/**
+ * What the person actually agreed to add, after the review.
+ *
+ * `name` and `email` are always present, and always carry whatever the card was
+ * holding when Save was pressed — the confirmed value where it asked, the host's
+ * own current value where it didn't. Consumers apply the same rule to them as to
+ * `role`: fill a blank, never overwrite an answer given by hand.
+ */
 export interface ImportSelection {
   experiences: ParsedExperience[];
   skills: string[];
+  name: string;
+  email: string;
   role: string;
   location: string;
 }

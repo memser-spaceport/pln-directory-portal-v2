@@ -8,17 +8,20 @@ import s from './PlTeamOnlyPill.module.scss';
  *
  * **The audience is not the same in both places, and that is the whole point.**
  * The default sentence is for a member's own private field — the job board's
- * "Job search status", which they set, they can see, and only admins can read.
- * There, leaving the member out of a sentence about their own data answers the
- * first question anyone asks of a lock ("can *I* see it?") with a flat no. And
- * "PL Team" is not what this product calls its administrators anywhere a member
- * reads: the app is LabOS, so the people with the keys are LabOS admins.
+ * "Job search status", which they set, they can see, and nobody on the network
+ * reads. It answers the first question anyone asks of a lock ("can *I* see
+ * it?") in its first two words, and it names no second audience, because naming
+ * one is what made the old sentence ("Visible to you and LabOS admins") read as
+ * a disclosure notice rather than a privacy promise. The pill's job here is to
+ * make a private field feel safe to answer honestly; every extra reader in the
+ * sentence works against that.
  *
  * The member profile's Relationship card is a different fact. That card is
  * Affinity CRM context — PL's own notes *about* the member, gated on
- * `hasAffinityAccess`, which the member does not have. "Visible to you and
- * LabOS admins" is not merely wordier there, it is wrong: "you" is a PL staffer
- * and the member never sees the card at all. So that surface passes
+ * `hasAffinityAccess`, which the member does not have. "Only visible to you" is
+ * not merely vaguer there, it is wrong twice over: "you" is a PL staffer, and
+ * the member — the person the card is *about* — never sees it at all. So that
+ * surface passes
  * `label="PL team only"`, which is what it actually means.
  *
  * Hence a prop rather than two components. The mark, the lock and the geometry
@@ -44,7 +47,7 @@ import s from './PlTeamOnlyPill.module.scss';
  */
 export function PlTeamOnlyPill({
   className,
-  label = 'Visible to you and LabOS admins',
+  label = 'Only visible to you',
 }: {
   className?: string;
   /** Who can see it. Override only when the audience genuinely differs — the

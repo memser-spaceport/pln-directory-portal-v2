@@ -47,8 +47,13 @@ interface JobTeamGroupCardProps {
    * headline in that same slot instead; the other two put it below the roles.
    */
   newsVariant?: JobCardNewsVariant;
-  /** Handed to the row: logged out, the Refer button isn't rendered at all. */
-  canRefer?: boolean;
+  /** Handed to the row: whether pressing **Refer** may open the referral modal.
+   *  The button itself is shown to everyone — this gates the modal, not the
+   *  offer. */
+  canOpenReferral?: boolean;
+  /** Handed to the row: where Refer goes without an account — the board's
+   *  sign-up door. */
+  onReferSignUp?: () => void;
   /** Handed straight to the row: opening a role starts the apply flow, which
    *  the board owns — one drawer over the whole list rather than one per card.
    *  (`onApply` used to sit beside this, from when a row could apply directly.
@@ -69,7 +74,8 @@ interface JobTeamGroupCardProps {
 export function JobTeamGroupCard({
   group,
   newsVariant = 'full',
-  canRefer = true,
+  canOpenReferral = true,
+  onReferSignUp,
   onViewJob,
   appliedRoleUids,
   appliedAtByRole,
@@ -187,7 +193,8 @@ export function JobTeamGroupCard({
               teamName={team.name}
               team={team}
               source="job-board"
-              canRefer={canRefer}
+              canOpenReferral={canOpenReferral}
+              onReferSignUp={onReferSignUp}
               onViewJob={onViewJob}
               applied={appliedRoleUids?.has(role.uid) ?? false}
               appliedAt={appliedAtByRole?.get(role.uid)}

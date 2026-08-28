@@ -134,18 +134,58 @@ export function ApplyValueBullets({ className, doors }: { className?: string; do
             <button type="button" className={s.inlineDoor} onClick={doors.onSignUp}>
               sign up
             </button>{' '}
-            and apply to hundreds of open roles with a single profile.
+            {/* Reviewer's copy, replacing "and apply to hundreds of open roles
+                with a single profile."
+
+                It drops the "hundreds", which was the one number on this card
+                nobody could check: the headline counts the rail (13 today) and
+                this said hundreds, and the file's own note conceded it was "a
+                claim about the network rather than about this list". A sentence
+                that has to be defended by scope-switching is a sentence the
+                reader has already stopped trusting.
+
+                Two things it costs, both worth stating rather than discovering.
+                Discovering roles is something this board lets you do signed out —
+                nothing on it is gated — so the loudest promise in the ask now
+                names something an account does not change. And "open roles
+                across the network" is close to the headline directly above it
+                ("Browse N open roles across M PL network teams"), so the two
+                lines carry one fact between them where they used to carry two.
+                See the note on the headline for the standing version of that
+                tension. */}
+            and discover open roles across the network.
           </>
         ) : (
-          /* The same claim with the doors taken out — a member reading this one
-             is already signed in, so the sentence starts at what the profile
-             does rather than at how to get one. */
+          /* **No longer the same claim with the doors taken out, and that is a
+             loose end rather than a decision.** This component exists so the two
+             banners cannot drift: one argument, two audiences, doors or no
+             doors. The logged-out half now offers discovery; this half still
+             offers applying — which is right for *this* reader (a signed-in
+             member with an empty profile, who has already discovered everything
+             and is being asked for a profile), but it means the shared sentence
+             is no longer shared.
+
+             Left as it is deliberately. Rewriting it to match would tell a
+             member to "discover open roles across the network" from inside a
+             banner whose button says `Complete profile` — the one thing they are
+             not being asked to do. The real question is whether these two are
+             still one component; that is a decision, not a tidy-up. */
           'Apply to hundreds of open roles with a single profile.'
         )}
       </li>
       {/* The half a job board can't show you: the profile is not only how you
           apply, it's how you're found. Second because it is the payoff you get
           without doing anything else.
+
+          **Shown to both audiences, and that is the settled answer.** It was
+          briefly gated to signed-in only, on the reasoning that a visitor has no
+          profile for founders to reach out about — so the line was selling the
+          benefit of a thing they had not made yet. Reverted: that is exactly the
+          reason to say it. The sentence above asks for an account and names what
+          you can do with one; this one names what happens without you doing
+          anything else, which is the better half of the offer and the half a
+          board full of role rows cannot show. A visitor is the reader who most
+          needs to hear it.
 
           "when they're hiring for what you do", not "when your profile matches
           the roles they're hiring for". Matching was removed from this board

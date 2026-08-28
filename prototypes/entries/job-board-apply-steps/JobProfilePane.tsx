@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import clsx from 'clsx';
@@ -12,6 +12,13 @@ import { FormProvider, useForm, useWatch } from 'react-hook-form';
 //  drawer and one footer for all three steps of the flow.)
 import { TagsList } from '@/components/common/profile/TagsList';
 import { EditButton } from '@/components/common/profile/EditButton';
+// The Contact details card's three production parts, imported rather than
+// redrawn: the row of provider links, the `·` between them, and the two helpers
+// that turn a bare handle into a URL and a logo. See `ContactCard` below.
+import { Divider } from '@/components/common/profile/Divider';
+import { ProfileSocialLink } from '@/components/page/member-details/profile-social-link';
+import { getProfileFromURL } from '@/utils/common.utils';
+import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
 import { DetailsSection } from '@/components/common/profile/DetailsSection/DetailsSection';
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { AddButton } from '@/components/page/member-details/components/AddButton/AddButton';
@@ -48,6 +55,13 @@ import di from '@/components/page/member-details/ExperienceDetails/components/Ex
 // to the flat `#f2f5ff` + `#aebfff` pair, and that override is passed back in
 // through `DetailsSection`'s `classes` prop exactly as ContactDetails passes it.
 import c from '@/components/page/member-details/ContactDetails/ContactDetails.module.scss';
+// The *other* ContactDetails — production keeps two directories with one name.
+// `ContactDetails/` above is the editing card, and this file borrows its edit-view
+// tint from it; `contact-details/` here is the read-only block on the member
+// profile page, and `ContactCard` below is a transcription of that one. Two
+// aliases rather than one, because they are two different components that happen
+// to share a word.
+import cd from '@/components/page/member-details/contact-details/ContactDetails.module.scss';
 // The profile card's own shell — white, 8px, card shadow — plus its edit-view
 // tint and its bio block. `ProfileDetails` is a plain div rather than a
 // `DetailsSection`, so the header card here is one too.
@@ -753,10 +767,12 @@ export function JobProfilePane(props: JobProfilePaneProps) {
           now, and it is a control rather than a rule. Deleted rather than left
           behind a `false &&`, which is how a removed thing comes back. */}
 
-      {/* FORK ONLY: cards 1 and 2 — the only two answers applying requires — are
-          the details step, and nothing else is. A Fragment rather than a wrapper
-          div so both stay direct flex children of the drawer's column and keep
-          its 16px gap. */}
+      {/* FORK ONLY: the two answers applying requires are on this step and
+          nothing else that gates anything is. Contact details ride along between
+          them — production's own position for that card, and it asks for nothing
+          — so the step is "who you are, and the two things we need from you".
+          A Fragment rather than a wrapper div so all three stay direct flex
+          children of the drawer's column and keep its 16px gap. */}
       {section === 'details' && (
       <>
       {/* 1. The header card, and the first of the two required answers: your
@@ -797,9 +813,28 @@ export function JobProfilePane(props: JobProfilePaneProps) {
         )}
       </div>
 
-      {/* 2. Job search status — the required section, so it comes first and,
-               while it is unanswered, wears `missingData` and carries the strip
-               naming the consequence rather than a generic "incomplete".
+      {/* 1b. Contact details, in production's own position: straight after the
+               header card, before anything the person has to answer.
+
+               It is not numbered as a step in this stack because it asks for
+               nothing — it is the second half of the identity card above it,
+               which is exactly how the member profile page reads it. Placing it
+               here rather than further down is the whole of the transcription:
+               production puts it directly under the header, and a read-back that
+               reorders the record it is quoting is a read-back you cannot trust.
+
+               Hidden entirely while every handle is blank, rather than showing
+               production's empty state. Nothing on this step can fill it in, so
+               an empty contact card would be a card announcing a gap with no way
+               to close it — see the note on the component. */}
+      <ContactCard profile={draft} />
+
+      {/* 2. Job search status — the required section, so it comes ahead of every
+               optional one and, while it is unanswered, wears `missingData` and
+               carries the strip naming the consequence rather than a generic
+               "incomplete". (Contact details sit above it and are not a
+               counter-example: they ask for nothing, and they are part of the
+               identity card, not one of the answers this step collects.)
 
                It used to sit third, under Experience, as an optional private
                extra. It moved up when it became the one thing this flow asks
@@ -1076,6 +1111,103 @@ export function JobProfilePane(props: JobProfilePaneProps) {
           steps instead of only this one, which is what stops the flow ending in
           three differently-worded buttons.) */}
     </>
+  );
+}
+
+/* ----------------------------------------------------------------- contact --- */
+
+/**
+ * Which provider each handle on `MemberProfile` answers to, and the order the
+ * card shows them in.
+ *
+ * Both transcribed from `member-profile`'s own ContactCard, which took them from
+ * the production member page — including the order, which is not alphabetical
+ * and is not arbitrary: it runs from the address a hiring team will actually use
+ * to the ones that are more nearly proof of a person. Reordering it here would
+ * put two different answers to "how do I reach this member" in one product.
+ *
+ * `linkedin` and `github` map onto the two keys this record already had under
+ * their own names; the rest were added for this card. A handle that is an empty
+ * string is skipped, which is the whole of the empty-profile branch.
+ */
+const CONTACT_HANDLE_KEYS = {
+  email: 'email',
+  linkedin: 'linkedin',
+  telegram: 'telegramHandle',
+  twitter: 'twitter',
+  bluesky: 'blueskyHandle',
+  discord: 'discordHandle',
+  github: 'githubHandle',
+} as const satisfies Record<string, keyof MemberProfile>;
+
+const VISIBLE_HANDLES = ['email', 'linkedin', 'telegram', 'twitter', 'bluesky', 'discord', 'github'] as const;
+
+/**
+ * Contact details, transcribed from `member-profile`'s `ContactCard` — which is
+ * itself a copy-simplify of production's read-only contact block
+ * (`components/page/member-details/contact-details/`). Every class comes from
+ * that component's own stylesheet, so this is the same card at the same size.
+ *
+ * **Why it is here at all.** The drawer's profile step is a read-back: it shows
+ * a member what is about to be sent so they can fix it before it goes. Contact
+ * details sit directly under the header card on the real profile page and are
+ * the second thing anyone reads there — leaving them out made this step a
+ * *different* profile from the one it claims to be quoting, and the omission
+ * fell on the one section a hiring team needs most once they decide to reply.
+ *
+ * **Display-only, deliberately.** No edit affordance, where production's card
+ * has one. This step's job is to show what will be sent, and the two answers it
+ * *asks* for — the role and the job search status — are the two the application
+ * is blocked on. A third editor here would offer a detour into a form nothing is
+ * waiting on, on the screen whose whole point is to get to the footer.
+ *
+ * **Sourced from the flow's own draft**, not from a second mock. The application
+ * email, the sign-up form and this card all describe one applicant; a private
+ * dataset for the contact block would be the fastest way to end that.
+ */
+function ContactCard({ profile }: { profile: MemberProfile }) {
+  /* Skips the blanks rather than rendering a link to nothing. Production's card
+     is fed a real member whose handles are mostly set; the drawer's draft can be
+     the empty profile, and `getProfileFromURL('')` would give every provider the
+     same dead href. */
+  const handles = VISIBLE_HANDLES.map((type) => ({
+    type,
+    handle: String(profile[CONTACT_HANDLE_KEYS[type]] ?? ''),
+  })).filter(({ handle }) => handle.trim() !== '');
+
+  if (handles.length === 0) return null;
+
+  return (
+    <DetailsSection>
+      <div className={cd.contentRoot}>
+        <DetailsSectionHeader title="Contact Details" />
+        <div className={cd.container}>
+          <div className={cd.social}>
+            <div className={cd.top}>
+              <div className={cd.content}>
+                {handles.map(({ type, handle }, i, arr) => (
+                  <Fragment key={type}>
+                    <ProfileSocialLink
+                      profile={getProfileFromURL(handle, type)}
+                      height={24}
+                      width={24}
+                      /* Analytics is the one thing dropped from the source: the
+                         production card reports every click, and a prototype has
+                         nothing to report to. */
+                      callback={() => {}}
+                      type={type}
+                      handle={handle}
+                      logo={getContactLogoByProvider(type)}
+                    />
+                    {i === arr.length - 1 ? null : <Divider />}
+                  </Fragment>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </DetailsSection>
   );
 }
 
@@ -2074,10 +2206,16 @@ function GithubHandleForm({
  *
  * **The one required answer, and why that doesn't make it unsafe.** This is now
  * what `isProfileComplete` reads. What is required is *an* answer, never a
- * particular one: "Not looking" completes the profile exactly as "Actively
- * looking" does, and applying is open either way. The honesty of the field
- * depends on it costing nothing to say no, and it still costs nothing — what
- * changed is only that the question can't be walked past.
+ * particular one: the two options complete the profile identically and applying
+ * is open either way.
+ *
+ * The field used to carry a third, "Not looking", and the argument for requiring
+ * an answer leaned on it — a required question is only honest if declining is
+ * one of the answers. That option is gone (see `JOB_SEARCH_STATUS_OPTIONS`), and
+ * the argument survives it: nobody meets this field except mid-apply, so both
+ * remaining answers are already true of whoever is reading them. The question
+ * asks how actively, not whether, and there is no answer here a person has to
+ * overclaim to give.
  */
 /** Exported for `JobAccountPane`, the apply flow's step 2 for a visitor with no
  *  account. That pane asks the same required question this one does — the status
@@ -2092,16 +2230,30 @@ export function JobSearchStatusInput({
 }) {
   return (
     <div className={d.statusRoot}>
-      {/* The pill carries the audience; this line carries the purpose.
+      {/* The pill carries the audience; this line carries the purpose — and now
+          the one exclusion that purpose implies but does not state.
 
           It used to say "Never shown on your profile" — true, but a second
           statement of the same promise the pill above it had just made, which
           left the actual question ("why are you asking?") unanswered. What the
           answer buys is being surfaced to founders who are hiring, so the note
-          says that and lets the pill own the privacy. One sentence, in the same
-          12px tertiary voice as the option hints, so it reads as a note on the
-          section rather than a second announcement competing with the pill. */}
-      <p className={d.statusPrivacyNote}>Used to decide whether to surface your profile to founders who are hiring.</p>
+          says that and lets the pill own the privacy.
+
+          **The second clause is the one that decides whether the field gets an
+          honest answer.** "Surfaced to founders who are hiring" is, read by
+          someone currently employed, a sentence that includes their own
+          founder — and the cost of that reading is not a worse answer, it is a
+          false one or none at all. A privacy promise the reader has to infer
+          from an omission is not a promise; the exclusion has to be said in
+          the same breath as the purpose, which is why it is one sentence and
+          not a second line under it.
+
+          Still one sentence in the same 12px tertiary voice as the option
+          hints, so it reads as a note on the section rather than a second
+          announcement competing with the pill. */}
+      <p className={d.statusPrivacyNote}>
+        Used to decide whether to surface your profile to founders who are hiring — never to your current team.
+      </p>
 
       <div className={d.statusOptions} role="radiogroup" aria-label="Job search status">
         {JOB_SEARCH_STATUS_OPTIONS.map((option) => (

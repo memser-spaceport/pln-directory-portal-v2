@@ -19,9 +19,14 @@ import { PlTeamOnlyPill } from '../profile-shared/PlTeamOnlyPill';
 import { AccountFields } from './accountFields';
 import { JobSearchStatusInput } from './JobProfilePane';
 import type { JobSearchStatus } from './viewerState';
-// The sign-up modal's `.signInLink` — the board's other door has carried this
-// exact escape since it existed, and the two should not disagree about what a
-// sign-in link looks like. Only its *placement* differs here; see `.stepIntro`.
+// The account form's own sheet, for two things this pane borrows from it.
+// `.signInLink`: the board's other door has carried this exact escape since it
+// existed, and the two should not disagree about what a sign-in link looks like
+// (only its *placement* differs here; see `.stepIntro`). `.checkRow` /
+// `.checkText`: the labelled-checkbox row, defined once there because the
+// sign-up form's team gate wears it. (The pane's own consent tick used to wear
+// it too; that row now lives in the drawer's footer bar and has its own rule
+// there, sized for a control standing beside a button rather than inside a card.)
 import su from './JobSignUpModal.module.scss';
 // This pane's own two classes, both on the sign-in escape. Everything else it
 // wears is borrowed from the profile step or the flow's chrome. (It held a third,
@@ -87,13 +92,28 @@ interface JobAccountPaneProps {
  * one answer nothing else in this flow collects, so deferring it would mean
  * asking for it after the application had already gone.
  *
- * **Two stores, deliberately.** The four text fields live in the flow drawer's
+ * **Three stores, deliberately.** The text fields live in the flow drawer's
  * react-hook-form (lifted, so stepping to the letter and back doesn't cost what
  * was typed); the status lives on the profile draft, because that is what it is
- * — a profile field the account form has no claim on. Each store owns what it
- * owns, and the drawer merges them when the press is made.
+ * — a profile field the account form has no claim on; and the completeness
+ * tick lives beside the draft rather than in it, because it is an answer about
+ * one session and not a fact about the person that belongs on their record.
+ * Each store owns what it owns, and the drawer merges them when the press is
+ * made.
+ *
+ * **What this step waits on: the status here, and a tick that is no longer on
+ * this pane.** The second gate — "My profile is complete" — moved into the
+ * drawer's fixed footer, next to the button it blocks, so this pane now renders
+ * only one of the two. They are still peers and still one condition: the footer
+ * does not reveal the second only once the first is cleared. The text fields are
+ * validated *by* the press rather than gating it; see the footer's note in the
+ * drawer for why those two kinds of requirement are handled differently.
  */
-export function JobAccountPane({ jobSearchStatus, onJobSearchStatusChange, onSignIn }: JobAccountPaneProps) {
+export function JobAccountPane({
+  jobSearchStatus,
+  onJobSearchStatusChange,
+  onSignIn,
+}: JobAccountPaneProps) {
   const hasStatus = jobSearchStatus !== '';
 
   /* (`parsed`, `imported`, `showCvOffer` and `applyImport` stood here, along with
@@ -108,8 +128,8 @@ export function JobAccountPane({ jobSearchStatus, onJobSearchStatusChange, onSig
       {/* This pane opens on its title and nothing else. The other two steps open
           on a `.lede`, and this one did too — "These details become your
           profile, and go to <role> with your note." It has been removed, and
-          what removed it was the title added directly above it: "Fill in your
-          profile" says the first half, and the second half was never this
+          what removed it was the title added directly above it: "Create Lab OS
+          Job profile" says the first half, and the second half was never this
           sentence's alone to carry. The role is still named on the step without
           it — the footer, beside the button that acts on it — and it says it at
           the moment it bears on a decision, where the lede said it to nobody in
@@ -123,8 +143,37 @@ export function JobAccountPane({ jobSearchStatus, onJobSearchStatusChange, onSig
             It says "profile", where the rail two inches above says "Your
             details". Not a slip: the rail names the *position* for someone who
             has no account yet and no profile to speak of, and this names what
-            the answers under it are about to become. */}
-        <h2 className={fd.stepTitle}>Fill in your profile</h2>
+            the answers under it are about to become.
+
+            **And it names the product, once.** "Fill in your profile" is an
+            instruction — it tells someone to do the thing they are visibly
+            already doing, which is the least a heading can be worth. This
+            names what is being made instead, and where: a stranger three cards
+            into a form on a job board has been told the network's name in the
+            banner and nowhere since, and the top of the step that creates the
+            account is the one place it bears on the decision. Every other line
+            on this pane stays product-neutral; a title is enough. */}
+        <h2 className={fd.stepTitle}>Create Lab OS Job profile</h2>
+
+        {/* **The lede, back.** One stood here and was cut when the title took
+            over what it was saying — but the title says what is being *made*,
+            and this says what it is *for*, which the title cannot carry without
+            becoming a sentence.
+
+            It is the sign-up modal's subtitle, word for word, and deliberately
+            so: the modal and this pane are the same form behind two doors, and
+            a person who saw one and then the other should not be told the offer
+            twice in two different sets of words. Change it in one place and the
+            other is now the odd one out — they are meant to be checked against
+            each other.
+
+            `fd.lede` is the flow's shared 14/20 secondary; the local class adds
+            only the 6px under the title, because `.lede` is shared with steps
+            that have no title above them and must not carry a margin for this
+            one's sake. */}
+        <p className={clsx(fd.lede, v.stepLede)}>
+          Discover open roles across the network — and let founders reach out.
+        </p>
 
         {/* **The escape, and why it is at the top here.**
             This pane only ever renders for a visitor the board believes is
@@ -146,13 +195,20 @@ export function JobAccountPane({ jobSearchStatus, onJobSearchStatusChange, onSig
             control at the top of a step would price itself against the step
             (lesson: an exception must not read as a peer of the main action).
 
-            **Its 12px rank outlived the reason for it, and is kept anyway.** It
-            was stepped down from 14 to tell it apart from the lede, which used
-            to sit between it and the title — two sentences in one voice eight
-            pixels apart read as a single paragraph. The lede is gone, so that
-            job is done; but the rank is right on its own terms now, because the
-            line it has to be told apart from is a 20px title, and an offer to
-            leave should not answer a heading at the same weight. */}
+            **Its 12px rank is doing its original job again.** It was stepped
+            down from 14 to tell it apart from the lede sitting between it and
+            the title — two sentences in one voice eight pixels apart read as a
+            single paragraph. That lede was cut, the reason lapsed, and the rank
+            was kept on separate grounds (an offer to leave should not answer a
+            20px heading at the same weight). The lede is back, so both reasons
+            now hold at once and the value is unchanged either way.
+
+            One loose end, left deliberately rather than quietly adjusted: the
+            margin below is 12, and it was 10 the last time a lede sat above it
+            — see the note on `.signInEscape`. 12 still reads as nearer the
+            block above than the 16 to the first card below, which is the job
+            the number has to do, so it stays until someone decides otherwise
+            on purpose. */}
         <p className={v.signInEscape}>
           Already a member?{' '}
           <button type="button" className={clsx(su.signInLink, v.signInEscapeLink)} onClick={onSignIn}>
@@ -220,6 +276,18 @@ export function JobAccountPane({ jobSearchStatus, onJobSearchStatusChange, onSig
           <JobSearchStatusInput value={jobSearchStatus} onChange={onJobSearchStatusChange} />
         </div>
       </DetailsSection>
+
+      {/* (The consent card stood here — its own headerless `DetailsSection`
+          wearing the status card's amber `missingData` treatment, holding
+          "I agree that my profile is shared with the hiring team when I apply."
+
+          It is now a single line in the drawer's fixed footer, reading "My
+          profile is complete", immediately beside the button it gates. A
+          required tick that lives in the scroll can be scrolled away from the
+          control it blocks; in the footer the gate and the gated press are the
+          same object, and the button is never dead for a reason that is off
+          screen — which is what the amber strip was compensating for. See the
+          drawer's footer bar.) */}
     </>
   );
 }

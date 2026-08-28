@@ -101,22 +101,12 @@ const backLabelFor = (id: ApplyFlowStepId, loggedIn: boolean): string => {
   }
 };
 
-/**
- * What's still owed, as a verb phrase the footer can drop into either of its two
- * sentences. Lower-case and un-punctuated so it composes; `sentenceCase` lifts
- * it when it starts the sentence.
- *
- * Both missing gets one clause, not two — "add your current role and choose a
- * job search status" is a single instruction to fill in the first two cards, and
- * splitting it into two sentences would imply an order that doesn't exist.
- */
-function missingHint(hasRole: boolean, hasStatus: boolean): string {
-  if (!hasRole && !hasStatus) return 'add your current role and choose a job search status';
-  if (!hasRole) return 'add your current role';
-  return 'choose a job search status';
-}
-
-const sentenceCase = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
+/* `missingHint` and `sentenceCase` stood here. They existed to compose a
+   single footer sentence out of the three ways the profile step can be
+   incomplete — naming the missing answer, then reassuring that the rest was
+   optional. That sentence is gone: each required card already carries its own
+   amber strip naming what it wants, in the place where it can be given, and
+   every optional section is labelled as one. */
 
 interface JobApplyFlowDrawerProps {
   open: boolean;
@@ -551,7 +541,15 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             ? 'Applying sends a profile — the next step opens your account, and applying opens once it is approved.'
             : complete
               ? 'One press sends your PL profile with a short note. Nothing to refill.'
-              : 'Applying sends your PL profile — the next step is finishing it.',
+              : /* **Nothing here either.** This said that applying sends a profile
+                   and that finishing it comes next — both of which the step rail
+                   directly above already carries: it draws step 2 as the next
+                   stop and names it. A footer that narrates the rail is a
+                   second voice describing one journey.
+
+                   `undefined`, not `''`, so the footer drops the paragraph
+                   rather than reserving space for it. */
+                undefined,
         action: (
           /* Dead on purpose, and only in the one state where the reason is on
              screen beside it. The rule this file follows elsewhere — never
@@ -628,8 +626,13 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             "Applying opens once the PL team approves your account — we'll email you."
           : !complete
             ? editing
-              ? `Save this card, then ${missingHint(hasRole, hasStatus)} to continue.`
-              : `${sentenceCase(missingHint(hasRole, hasStatus))} to continue. Everything else is optional.`
+              ? 'Save this card to continue.'
+              : /* Nothing at rest. The instruction that stood here — name the two
+                   required answers, then reassure that the rest is optional — was
+                   already on screen twice over: each required card carries its own
+                   amber `Required to continue.` strip, and every optional section
+                   is labelled `(Optional)`. */
+                undefined
             : /* FORK ONLY. This read "Experience, skills and bio are optional —
                  you can add them any time." That sentence was written when those
                  sections were four open cards below it and nothing else on the
@@ -808,7 +811,13 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
           makes them read as one screen rather than three. */}
       <div className={d.footer}>
         <div className={d.footerInner}>
-          <p className={d.footerHint}>{footer.hint}</p>
+          {/* Rendered only when there is something to say. Several arms of the
+              footer now hand over `undefined` deliberately, and an empty
+              `<p>` left standing in a `gap: 12px` column is a blank line the
+              bar pays for. `.footerInner` right-aligns rather than spacing
+              apart, so the button holds its end of the bar with or without
+              this. */}
+          {footer.hint && <p className={d.footerHint}>{footer.hint}</p>}
           {footer.action}
         </div>
       </div>

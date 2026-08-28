@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import clsx from 'clsx';
@@ -14,6 +14,14 @@ import { TagsList } from '@/components/common/profile/TagsList';
 import { EditButton } from '@/components/common/profile/EditButton';
 import { DetailsSection } from '@/components/common/profile/DetailsSection/DetailsSection';
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
+// The Contact Details card's three production parts: the per-handle link, the
+// hairline between two of them, and the two helpers that turn a bare handle into
+// a URL and an icon. Same four imports `member-profile`'s copy of this card
+// takes — see `ContactCard` below.
+import { Divider } from '@/components/common/profile/Divider';
+import { ProfileSocialLink } from '@/components/page/member-details/profile-social-link';
+import { getProfileFromURL } from '@/utils/common.utils';
+import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
 import { AddButton } from '@/components/page/member-details/components/AddButton/AddButton';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete/DataIncomplete';
 import { EditOfficeHoursFormControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursFormControls';
@@ -48,6 +56,11 @@ import di from '@/components/page/member-details/ExperienceDetails/components/Ex
 // to the flat `#f2f5ff` + `#aebfff` pair, and that override is passed back in
 // through `DetailsSection`'s `classes` prop exactly as ContactDetails passes it.
 import c from '@/components/page/member-details/ContactDetails/ContactDetails.module.scss';
+// A *different* sheet from `c` above, despite the near-identical path — the
+// product has both `ContactDetails/` and `contact-details/`, and only this one
+// defines the card's `.contentRoot` / `.container` / `.social` / `.top` /
+// `.content` nesting. `c` stays for the edit-view tint it is imported for.
+import cd from '@/components/page/member-details/contact-details/ContactDetails.module.scss';
 // The profile card's own shell — white, 8px, card shadow — plus its edit-view
 // tint and its bio block. `ProfileDetails` is a plain div rather than a
 // `DetailsSection`, so the header card here is one too.
@@ -763,6 +776,39 @@ export function JobProfilePane(props: JobProfilePaneProps) {
         )}
       </div>
 
+      {/* 1b. Contact details, in the position production's member profile puts
+               it: directly under the header card, before everything else. It was
+               simply missing from this step — the pane reproduces the member
+               profile card for card and skipped the one card that is a person's
+               links.
+
+               **Straight after the header, and that placement is the whole
+               point.** It is the second half of "who is this" — the header says
+               the name, role and location, this says how to reach them — so
+               anywhere further down would have put a required question or an
+               experience list between two halves of one answer. Production made
+               that call already; this follows it rather than re-deciding it.
+
+               **Display-only, deliberately.** Production's ContactDetails has an
+               edit view, a preview/locked state for visitors, and a per-link
+               analytics callback. None of that is here: this step's job is to
+               show what an application will carry, and the links are the one
+               part of it that arrives from the account rather than being typed
+               into this flow. Nothing on the card is editable and `callback` is
+               a no-op — the prototype has no analytics. Said out loud because
+               the missing Edit button is a deviation from the section beside it,
+               not an oversight.
+
+               Transcribed from `member-profile`'s own copy-simplify of the same
+               card (prototypes/CLAUDE.md #6): same `DetailsSection`, same
+               `.contentRoot` / `.container` / `.social` / `.top` / `.content`
+               nesting, same 24px `ProfileSocialLink` and the same `Divider`
+               between entries. It reads from *this* prototype's profile record
+               rather than a second mock, so the LinkedIn on this card and the
+               LinkedIn the sign-up form collected are one value. */}
+      <ContactCard profile={draft} />
+
+
       {/* 2. Job search status — the required section, so it comes first and,
                while it is unanswered, wears `missingData` and carries the strip
                naming the consequence rather than a generic "incomplete".
@@ -1061,6 +1107,79 @@ export function JobProfilePane(props: JobProfilePaneProps) {
  * cover for a missing avatar, so the moment the avatar returned production's own
  * rule was correct again and the override was the only thing left to be wrong.
  */
+/**
+ * Which handles the card shows, and in what order — production's list, verbatim.
+ *
+ * It is a fixed order rather than "whatever the profile has", because a row of
+ * icons that reshuffles as fields are filled in is a row nobody can build a
+ * habit on. Anything the profile hasn't got is skipped and the rest close up.
+ */
+const CONTACT_HANDLES: Array<{ type: string; key: keyof MemberProfile }> = [
+  { type: 'email', key: 'email' },
+  { type: 'linkedin', key: 'linkedin' },
+  { type: 'telegram', key: 'telegram' },
+  { type: 'twitter', key: 'twitter' },
+  { type: 'bluesky', key: 'bluesky' },
+  { type: 'discord', key: 'discord' },
+  { type: 'github', key: 'githubHandle' },
+];
+
+/**
+ * Contact details — production's card, display-only.
+ *
+ * `member-profile`'s `ContactCard` is the source; see the note where this is
+ * rendered for what was dropped and why. The one structural difference is that
+ * this one filters: that prototype's mock fills every handle, so its map never
+ * meets a blank, and a `ProfileSocialLink` handed an empty string renders a live
+ * link to nowhere. Filtering first is also what makes the `Divider` correct —
+ * "last one" has to mean the last *rendered* one, or a trailing divider hangs
+ * off the end of a partial row.
+ */
+function ContactCard({ profile }: { profile: MemberProfile }) {
+  const handles = CONTACT_HANDLES.map((h) => ({ ...h, handle: (profile[h.key] as string) ?? '' })).filter(
+    (h) => h.handle.trim() !== '',
+  );
+
+  /* Nothing to show, so no card. An empty contact card is a box announcing that
+     a person has no links — which is not a thing this step needs to say, and
+     unlike the role and the status it is not a gap anyone is being asked to
+     close here (the links arrive from the account). The logged-out step's
+     `EMPTY_PROFILE` is exactly this case. */
+  if (handles.length === 0) return null;
+
+  return (
+    <DetailsSection classes={{ root: fd.cardEdge }}>
+      <div className={cd.contentRoot}>
+        <DetailsSectionHeader title="Contact Details" />
+        <div className={cd.container}>
+          <div className={cd.social}>
+            <div className={cd.top}>
+              <div className={cd.content}>
+                {handles.map((item, i, arr) => (
+                  <Fragment key={item.type}>
+                    <ProfileSocialLink
+                      profile={getProfileFromURL(item.handle, item.type)}
+                      height={24}
+                      width={24}
+                      /* No analytics in the prototype — production sends a
+                         `contact clicked` event from here. */
+                      callback={() => {}}
+                      type={item.type}
+                      handle={item.handle}
+                      logo={getContactLogoByProvider(item.type)}
+                    />
+                    {i === arr.length - 1 ? null : <Divider />}
+                  </Fragment>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </DetailsSection>
+  );
+}
+
 function ProfileHeaderCard({ profile, onEdit }: { profile: MemberProfile; onEdit?: () => void }) {
   const skillTags = useMemo(() => profile.skills.map((title) => ({ title })), [profile.skills]);
   /* Production's own emptiness test (`ProfileDetails` L34): an empty rich-text
@@ -2030,10 +2149,16 @@ function GithubHandleForm({
  *
  * **The one required answer, and why that doesn't make it unsafe.** This is now
  * what `isProfileComplete` reads. What is required is *an* answer, never a
- * particular one: "Not looking" completes the profile exactly as "Actively
- * looking" does, and applying is open either way. The honesty of the field
- * depends on it costing nothing to say no, and it still costs nothing — what
- * changed is only that the question can't be walked past.
+ * particular one: "Open to the right role" completes the profile exactly as
+ * "Actively looking" does, and applying is open either way. Neither answer is
+ * the better one to give, which is the whole reason a required field here is
+ * fair — the question can't be walked past, but there is no wrong way to pass
+ * it.
+ *
+ * **Two options, since "Not looking" was removed.** The field is asked of
+ * someone in the middle of applying for a job, and a third option denying that
+ * was a way to answer the question wrongly by accident. See the note on
+ * `JobSearchStatus` in `viewerState.ts`.
  */
 /** Exported for `JobAccountPane`, the apply flow's step 2 for a visitor with no
  *  account. That pane asks the same required question this one does — the status
@@ -2048,16 +2173,30 @@ export function JobSearchStatusInput({
 }) {
   return (
     <div className={d.statusRoot}>
-      {/* The pill carries the audience; this line carries the purpose.
+      {/* The pill carries the audience; this line carries the purpose — and now
+          the one exclusion that purpose implies but does not state.
 
           It used to say "Never shown on your profile" — true, but a second
           statement of the same promise the pill above it had just made, which
           left the actual question ("why are you asking?") unanswered. What the
           answer buys is being surfaced to founders who are hiring, so the note
-          says that and lets the pill own the privacy. One sentence, in the same
-          12px tertiary voice as the option hints, so it reads as a note on the
-          section rather than a second announcement competing with the pill. */}
-      <p className={d.statusPrivacyNote}>Used to decide whether to surface your profile to founders who are hiring.</p>
+          says that and lets the pill own the privacy.
+
+          **The second clause is the one that decides whether the field gets an
+          honest answer.** "Surfaced to founders who are hiring" is, read by
+          someone currently employed, a sentence that includes their own
+          founder — and the cost of that reading is not a worse answer, it is a
+          false one or none at all. A privacy promise the reader has to infer
+          from an omission is not a promise; the exclusion has to be said in
+          the same breath as the purpose, which is why it is one sentence and
+          not a second line under it.
+
+          Still one sentence in the same 12px tertiary voice as the option
+          hints, so it reads as a note on the section rather than a second
+          announcement competing with the pill. */}
+      <p className={d.statusPrivacyNote}>
+        Used to decide whether to surface your profile to founders who are hiring — never to your current team.
+      </p>
 
       <div className={d.statusOptions} role="radiogroup" aria-label="Job search status">
         {JOB_SEARCH_STATUS_OPTIONS.map((option) => (

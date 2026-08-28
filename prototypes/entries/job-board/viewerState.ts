@@ -1,6 +1,10 @@
 import type { IJobRole } from '@/types/jobs.types';
 import { seniorityDisplayLabel, workplaceTypeDisplayLabel } from '@/utils/jobs.utils';
 
+// The account's address, so the profile's contact card and the account fact are
+// one address rather than two that drift. See `FILLED_PROFILE.email`.
+import { VIEWER_EMAIL, VIEWER_ROLE, VIEWER_LINKEDIN } from './profile/viewerIdentity';
+
 /**
  * Who is looking at the board, and whether they can apply from it.
  *
@@ -83,8 +87,18 @@ export interface ContributionEntry {
  * Where someone is in their search.
  *
  * **Private.** It is never rendered on the profile and never leaves this record —
- * which is the whole reason it can be honest. "Not looking" is only a safe answer
- * if saying it costs nothing, and a public field would make it cost something.
+ * which is the whole reason it can be honest. A public field would make the
+ * degree of your interest something you have to manage in front of the people
+ * you might work for; kept private, it can just be true.
+ *
+ * **Two options, not three.** "Not looking" was here and is gone. It was the
+ * answer that made the field a status report about the person rather than an
+ * answer to the question this flow is actually asking — which is asked of
+ * someone who has just pressed Apply on a job. Somebody standing in an
+ * application is by definition not "not looking", so the option was either
+ * never picked or picked by mistake, and it made a required question read as a
+ * survey. What is left is the only distinction a hiring team can act on: are
+ * you searching now, or would you take the right conversation.
  *
  * Deliberately NOT `member.openToWork`. That field is public in three places
  * (the profile header pill "Open to Collaborate", the members-list badge, the
@@ -97,7 +111,7 @@ export interface ContributionEntry {
  * `utils/jobs.utils.ts` (`WORKPLACE_TYPE_LABELS`, `SENIORITY_DISPLAY`) — same
  * `?? raw` fallback, so an unknown value degrades to itself.
  */
-export type JobSearchStatus = 'actively-looking' | 'open-to-right-role' | 'not-looking';
+export type JobSearchStatus = 'actively-looking' | 'open-to-right-role';
 
 export const JOB_SEARCH_STATUS_OPTIONS: Array<{
   value: JobSearchStatus;
@@ -117,11 +131,9 @@ export const JOB_SEARCH_STATUS_OPTIONS: Array<{
        they are actually answering. */
     hint: "You're not searching, but you'd take the right conversation.",
   },
-  {
-    value: 'not-looking',
-    label: 'Not looking',
-    hint: "You don't want to hear about roles right now.",
-  },
+  /* (A third option, `not-looking` / "Not looking", stood here. Removed — see
+      the note on `JobSearchStatus`. Nothing else in the folder read the value,
+      so no mock or canvas state had to be re-seeded.) */
 ];
 
 const JOB_SEARCH_STATUS_LABELS: Record<string, string> = Object.fromEntries(
@@ -175,6 +187,29 @@ export interface MemberProfile {
    * `profile-shared/ExperienceImport`.
    */
   linkedin: string;
+  /**
+   * The rest of production's contact handles, so the profile step can render
+   * the Contact Details card production puts directly under the header.
+   *
+   * **Added to this record rather than mocked separately.** `linkedin` and
+   * `githubHandle` were already here, which meant a contact card built from a
+   * second dataset would have shown one LinkedIn on the card and a different
+   * one everywhere else on the same screen. One profile, one set of links.
+   *
+   * Production's names, so the mapping to `VISIBLE_HANDLES` is a rename and not
+   * a translation: `member.email`, `member.telegramHandle`, `member.twitter`,
+   * `member.discordHandle`, `member.blueskyHandle`. Empty string means "not
+   * given" and the card simply renders nothing for it — the same thing
+   * production does.
+   *
+   * All optional. `isProfileComplete` is unchanged: adding a section never adds
+   * a requirement.
+   */
+  email: string;
+  telegram: string;
+  twitter: string;
+  discord: string;
+  bluesky: string;
   /** Private — see `JobSearchStatus`. Empty until answered. */
   jobSearchStatus: JobSearchStatus | '';
 }
@@ -188,6 +223,11 @@ export const EMPTY_PROFILE: MemberProfile = {
   contributions: [],
   githubHandle: '',
   linkedin: '',
+  email: '',
+  telegram: '',
+  twitter: '',
+  discord: '',
+  bluesky: '',
   jobSearchStatus: '',
 };
 
@@ -236,6 +276,21 @@ export const FILLED_PROFILE: MemberProfile = {
   githubHandle: '',
   /* Matches `VIEWER_NAME`, which is who this profile belongs to. */
   linkedin: 'polina-bublii',
+  /* Enough handles for the Contact Details card to show a real row rather than
+     one lonely link — but not all of them. `githubHandle` is deliberately still
+     blank (the Repositories section's empty state is a thing this prototype
+     exercises), and so are Discord and Bluesky: a card where every slot happens
+     to be filled is the one arrangement that never has to decide what a partial
+     row looks like, which is what almost every real profile is. */
+  /* `VIEWER_EMAIL`, not a second literal. `viewerIdentity` is explicit that the
+     board, the sign-up form and the application email must all name one
+     applicant rather than three near-identical addresses; a contact card
+     showing a fourth would be the same mistake on the same screen. */
+  email: VIEWER_EMAIL,
+  telegram: 'polinabublii',
+  twitter: 'polinabublii',
+  discord: '',
+  bluesky: '',
   jobSearchStatus: 'open-to-right-role',
 };
 
@@ -265,7 +320,56 @@ export const FILLED_PROFILE: MemberProfile = {
  *                         roles first — three modals each — which is exactly the
  *                         friction that stops a state from being reviewed.
  */
-export type BoardViewer = 'logged-out' | 'pending-approval' | 'profile-incomplete' | 'profile-ready' | 'applied';
+/**
+ * What the `signed-up-modal` viewer arrives holding: the two profile facts the
+ * sign-up form collected, plus an answered job search status.
+ *
+ * The status is seeded deliberately, and it is the one judgement call in this
+ * fixture. The modal does not ask for it — it is a profile field, collected in
+ * the flow — so a literal reading would leave it blank. Seeded, the account
+ * step opens with every answer given and exactly one thing outstanding: the
+ * completeness tick. That is the state this tab exists to show. Blank it out if
+ * the tab should instead demonstrate a half-filled step.
+ */
+export const SIGNED_UP_PROFILE: MemberProfile = {
+  ...EMPTY_PROFILE,
+  role: VIEWER_ROLE,
+  linkedin: VIEWER_LINKEDIN,
+  jobSearchStatus: 'actively-looking',
+};
+
+export type BoardViewer =
+  | 'logged-out'
+  /* Signed up through the modal — the header/banner door rather than the flow.
+     Still not signed in for the flow's purposes: step 2 is the account pane,
+     not the member profile. What changed is that its answers are already
+     given, so the step opens filled and the only thing left is to say so. */
+  | 'signed-up-modal'
+  | 'pending-approval'
+  | 'profile-incomplete'
+  | 'profile-ready'
+  | 'applied';
+
+/**
+ * Whether this viewer is signed in *for the flow* — i.e. whether step 2 shows
+ * the member profile or the account form.
+ *
+ * A function rather than `viewer !== 'logged-out'` written out at each call
+ * site. It was written out at three (the query-string entry, the canvas pin
+ * and the switcher), and adding a second signed-out state meant all three had
+ * to learn the same exception on the same day. The next state only has to
+ * teach it here.
+ */
+export const isViewerSignedIn = (viewer: BoardViewer): boolean =>
+  viewer !== 'logged-out' && viewer !== 'signed-up-modal';
+
+/** The profile each viewer arrives holding. Same three-way split, one copy. */
+export const profileForViewer = (viewer: BoardViewer): MemberProfile =>
+  viewer === 'profile-ready' || viewer === 'applied'
+    ? FILLED_PROFILE
+    : viewer === 'signed-up-modal'
+      ? SIGNED_UP_PROFILE
+      : EMPTY_PROFILE;
 
 /**
  * The gate on Apply: **your current role, and an answered job search status.**

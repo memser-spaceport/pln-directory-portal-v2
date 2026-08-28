@@ -24,6 +24,9 @@ import {
   accountSchema,
   toAccountDetails,
   type AccountFormData,
+  // The filled fixture both this modal's canvas frame and the flow's pre-filled
+  // account step read, so one applicant signs up in both.
+  FILLED_ACCOUNT_FORM,
 } from './accountFields';
 import s from './JobSignUpModal.module.scss';
 
@@ -62,32 +65,11 @@ interface JobSignUpModalProps {
   canvasRefused?: boolean;
 }
 
-/**
- * DELETE WITH: the `design-canvas/` folder.
- *
- * The same form with answers in it, so the canvas can hold the filled beat beside
- * the empty one — a form with placeholders in every field and a form someone has
- * worked through are two different designs, and only one of them was reviewable.
- *
- * The person is the board's own viewer (see `FILLED_PROFILE` and `VIEWER_NAME`),
- * not a second invented member: the sign-up form, the profile and the application
- * email should all describe one applicant.
- *
- * `company` stays null. It is a react-select option object rather than a string,
- * and the list it is chosen from is built at render from the board's own teams —
- * so a value hard-coded here could name a team the select does not offer.
- */
-const CANVAS_FILLED_FORM: AccountFormData = {
-  /* From `viewerIdentity`, not typed again here — the importer's review card now
-     reads the same two constants to decide it must not ask for them, and two
-     literals of one address is two chances for the applicant to become two
-     people. */
-  email: VIEWER_EMAIL,
-  name: VIEWER_NAME,
-  linkedin: 'polina-bublii',
-  role: 'Senior Protocol Engineer',
-  company: null,
-};
+
+/* (`FILLED_ACCOUNT_FORM` stood here. It is now `FILLED_ACCOUNT_FORM` in
+    `accountFields`, beside the empty one and beside the schema they are both
+    shaped by, because the apply flow's pre-filled account step needs the same
+    answers and two literals of one applicant is two chances to drift.) */
 
 /**
  * The account, opened on its own — for someone who wants one before they have
@@ -170,7 +152,7 @@ export function JobSignUpModal({
   // something about a person it holds no account for.
   useEffect(() => {
     if (open) {
-      reset(canvasFilled ? CANVAS_FILLED_FORM : EMPTY_ACCOUNT_FORM);
+      reset(canvasFilled ? FILLED_ACCOUNT_FORM : EMPTY_ACCOUNT_FORM);
     }
   }, [open, reset, canvasFilled]);
 
@@ -242,7 +224,17 @@ export function JobSignUpModal({
             Apply. */}
         <div className={s.text}>
           <h2 className={s.title}>Sign up to apply</h2>
-          <div className={s.subtitle}>One profile applies to every open role across the Protocol Labs network.</div>
+          {/* The banner's two lines, fused into one. The card has room for a
+              single sentence under the title, and the offer has always been two
+              halves — the roles you can go and find, and the ones that come to
+              you. Naming only the first made the account sound like a search
+              tool; the second half is the part a board full of role rows cannot
+              show you, and it is why the profile is worth filling in.
+
+              Same claim as the banner behind this card, deliberately: this is
+              the door that banner was offering, so it should not open onto a
+              different pitch. */}
+          <div className={s.subtitle}>Discover open roles across the network — and let founders reach out.</div>
         </div>
 
         <FormProvider {...methods}>
@@ -263,8 +255,8 @@ export function JobSignUpModal({
                   form above it.
 
                   What it lost was duplication and one falsehood. The account is
-                  already named twice — the subtitle says creating it is the
-                  first step, the submit button says "Create account" — so
+                  already named twice — the title says "Sign up", the submit
+                  button says "Create account" — so
                   "submitting this creates your LabOS account" was the third
                   telling. And "sends your details to <team>" was simply untrue:
                   submitting creates a *pending* account and opens the profile

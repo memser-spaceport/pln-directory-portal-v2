@@ -205,10 +205,13 @@ type ApplyFormData = {
  *
  * `profile.jobSearchStatus` is **never rendered in this pane, in any form.** It
  * is private by design (see `JobSearchStatus` in viewerState) and does not travel
- * with an application: "Not looking" is only an honest answer while saying it
- * costs nothing, and showing it on the card that gets sent to a hiring team is
- * exactly the cost that would make it dishonest. It is not an oversight and it is
- * not a missing field — do not "complete" the panel by adding it.
+ * with an application. Both of its two answers mean "open" — the "Not looking"
+ * opt-out is gone — so the risk is no longer that it reads as disinterest. It is
+ * that "Actively looking" describes the applicant's whole search rather than
+ * this application, and showing it on the card that gets sent to a hiring team
+ * is exactly the cost that would make the answer dishonest. It is not an
+ * oversight and it is not a missing field — do not "complete" the panel by
+ * adding it.
  *
  * **There is no fourth step confirming the send.** A referral disappears into an
  * inbox, so `ReferModal` has to say it left; an application changes the board —

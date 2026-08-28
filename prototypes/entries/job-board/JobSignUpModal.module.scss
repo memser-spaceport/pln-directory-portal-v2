@@ -355,6 +355,49 @@
   }
 }
 
+// A labelled checkbox row, transcribed from `SignupWizard.module.scss`'s
+// `.Label` + `.primary` — the pair production wraps around its own two DS
+// `Checkbox` ticks (Subscribe to PL Newsletter, and the Terms agreement). That
+// form is already this group's source for field order and for `OptionalMark`,
+// so its checkbox row is the one to copy rather than a shape invented here.
+//
+// Used twice: the team gate in `accountFields`, and the apply flow's consent
+// tick on the logged-out details step (`JobAccountPane` imports this sheet
+// already, for `.signInLink`). One definition, so the board's two checkboxes
+// cannot drift.
+//
+// Transcribed 1:1 from the source: `flex`, `align-items: flex-start`, and the
+// `button { pointer-events: none }` — that last rule is load-bearing rather
+// than cosmetic. base-ui's `Checkbox.Root` renders a `<button>`, which is a
+// labelable element, so a wrapping `<label>` forwards its click to it; without
+// this the tick would fire twice on a press that lands on the box itself and
+// cancel itself out.
+//
+// **One deviation from the source, and one colour translation.** The gap is
+// 8px, not the source's `1rem`: `.Label` there is a `space-between` row on a
+// wider card, and at 16px against a 20px box the sentence stops reading as this
+// checkbox's own label. And `.primary`'s raw `#475569` becomes the PL secondary
+// pair — the same swap `.inputsLabel` above already makes, and for the same
+// reason (prototypes/CLAUDE.md #3).
+.checkRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+
+  button {
+    pointer-events: none;
+  }
+}
+
+.checkText {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 19px; /* 158.333% */
+}
+
 // Source's `.separator`, minus its padding-bottom: that value hangs the glyph
 // off a field that carries a label above it, and the `@` here sits between two
 // unlabelled controls under one shared label.

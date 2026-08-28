@@ -242,7 +242,17 @@ export function JobSignUpModal({
             Apply. */}
         <div className={s.text}>
           <h2 className={s.title}>Sign up to apply</h2>
-          <div className={s.subtitle}>One profile applies to every open role across the Protocol Labs network.</div>
+          {/* The banner's two lines, fused into one. The card has room for a
+              single sentence under the title, and the offer has always been two
+              halves — the roles you can go and find, and the ones that come to
+              you. Naming only the first made the account sound like a search
+              tool; the second half is the part a board full of role rows cannot
+              show you, and it is why the profile is worth filling in.
+
+              Same claim as the banner behind this card, deliberately: this is
+              the door that banner was offering, so it should not open onto a
+              different pitch. */}
+          <div className={s.subtitle}>Discover open roles across the network — and let founders reach out.</div>
         </div>
 
         <FormProvider {...methods}>
@@ -263,8 +273,8 @@ export function JobSignUpModal({
                   form above it.
 
                   What it lost was duplication and one falsehood. The account is
-                  already named twice — the subtitle says creating it is the
-                  first step, the submit button says "Create account" — so
+                  already named twice — the title says "Sign up", the submit
+                  button says "Create account" — so
                   "submitting this creates your LabOS account" was the third
                   telling. And "sends your details to <team>" was simply untrue:
                   submitting creates a *pending* account and opens the profile

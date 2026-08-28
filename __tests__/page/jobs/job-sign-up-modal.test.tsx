@@ -417,13 +417,49 @@ describe('the job board sign-up modal', () => {
   });
 
   describe('the copy and the doors', () => {
-    /* The prototype's line says a new account can browse *and apply* while the
-       review runs. That is true only after the flow change this pass deferred;
-       here approval still gates applying, and the endpoint still answers 403. */
-    it('says approval gates applying, which is what the board actually does', () => {
+    /**
+     * The note under the form, and the claim it must not make again.
+     *
+     * It used to tell every reader "The PL team reviews new accounts first —
+     * you can browse every role while you wait, and applying opens up once
+     * you're approved." Both clauses were false for the commoner reader: a
+     * sign-up with no network team is filed as a Job Aspirant, whom no admin
+     * reviews, and approval stopped gating applying when the board dropped that
+     * rule. It was also the likeliest reason someone would go looking for a
+     * review banner that is deliberately absent for them.
+     *
+     * Asserted as the absence of the promise rather than the presence of one
+     * phrasing, so a later reword can't quietly reintroduce it.
+     */
+    it('promises no review and no approval gate to a sign-up with no team', () => {
       renderModal();
 
-      expect(screen.getByText(/applying opens up once you're approved/)).toBeInTheDocument();
+      expect(screen.getByText(/sends nothing to a hiring team/)).toBeInTheDocument();
+      expect(screen.queryByText(/approved/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/review/i)).not.toBeInTheDocument();
+    });
+
+    /* Ticked, the review sentence is true — the backend files a sign-up naming a
+       network team as a regular member, and an admin does review it. The second
+       clause matches the pending banner they will meet on the board, so the two
+       surfaces agree about what the review holds up: nothing. */
+    it('names the review once the sign-up claims a network team', () => {
+      renderModal();
+      fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
+
+      expect(screen.getByText(/The PL team reviews network-team accounts/)).toBeInTheDocument();
+      expect(screen.getByText(/applying never waits on that/)).toBeInTheDocument();
+    });
+
+    /* The reassurance the note exists for survives both branches: this press
+       files no application. It is the flow's pending-never-claims-applied rule
+       at the moment trust is being asked for. */
+    it('says nothing is sent to a hiring team either way', () => {
+      renderModal();
+      expect(screen.getByText(/sends nothing to a hiring team/)).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
+      expect(screen.getByText(/sends nothing to a hiring team/)).toBeInTheDocument();
     });
 
     it('offers the sign-in escape', () => {

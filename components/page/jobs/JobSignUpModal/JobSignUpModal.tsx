@@ -12,6 +12,7 @@ import { CloseIcon } from '@/components/icons';
 import {
   AccountFields,
   JobSearchStatusField,
+  SignUpReviewNote,
   accountSchema,
   toAccountDetails,
   signUpFailureMessage,
@@ -95,12 +96,17 @@ interface JobSignUpModalProps {
  * above `.text` in the render, and `role` on the props interface for why the
  * prop outlived it.
  *
- * One deliberate copy change from the prototype: nothing here claims details
- * are sent to the hiring team or that an application happens — the request
- * goes to PL admins for review and no application exists yet. The button
- * always reads "Create account", and the body names the wait. Claiming
- * otherwise would violate the flow's own pending-never-claims-applied rule at
- * the exact moment trust is being asked for.
+ * One deliberate copy change from the prototype: nothing here claims details are
+ * sent to the hiring team or that an application happens — no application exists
+ * yet, and the button always reads "Create account". Claiming otherwise would
+ * violate the flow's own pending-never-claims-applied rule at the exact moment
+ * trust is being asked for.
+ *
+ * What the body no longer does is *name a wait*. It used to, for every reader,
+ * on the premise that the request "goes to PL admins for review". That is true
+ * only of a sign-up naming a network team; without one the account is a Job
+ * Aspirant, which no admin reviews. `SignUpReviewNote` splits the sentence on
+ * that tick — see its note.
  */
 export function JobSignUpModal({ open, onClose, onSignUp, onSignIn }: JobSignUpModalProps) {
   const methods = useForm<AccountFormData>({
@@ -198,30 +204,21 @@ export function JobSignUpModal({ open, onClose, onSignUp, onSignIn }: JobSignUpM
             <JobSearchStatusField />
 
             <div className={s.bottomText}>
-              {/* One line, and only the part nothing else on the card says.
-                  Nothing is sent to any team by this press, and no application
-                  exists yet — approval is what unlocks applying, and the
-                  sentence says so.
+              {/* One line, and only the part nothing else on the card says: this
+                  press sends nothing to a hiring team.
 
-                  This ran to two sentences and four rendered lines, which pushed
-                  "Already have an account? Sign in" off the bottom of any window
-                  shorter than ~730px — hiding the escape from precisely the
-                  people who need it, since someone who already has an account
-                  has no use for the form above it. What it lost was duplication:
-                  "Submitting this creates your LabOS account" was the third
-                  telling, after the subtitle and the submit button.
+                  It lives in `accountFields` rather than here because it follows
+                  the PL-team tick — a sign-up that names a network team is
+                  reviewed, one that doesn't is not, and one sentence cannot be
+                  true of both. See its own note for what the single line used to
+                  claim and why both of its clauses were false.
 
-                  **Deliberately not the prototype's line.** The prototype says
-                  "you can browse and apply while that runs", which is true only
-                  after the flow change that lets a new account apply the moment
-                  it exists. Here approval still gates applying — that is what
-                  the 403 in `job-applications.service.ts` is for — so copy
-                  promising otherwise would describe a wall the board has not
-                  removed. */}
-              <p className={s.body}>
-                The PL team reviews new accounts first — you can browse every role while you wait, and applying opens up
-                once you&apos;re approved.
-              </p>
+                  The length constraint is still live and is recorded there: this
+                  ran to four rendered lines once and pushed "Already have an
+                  account? Sign in" off the bottom of any window shorter than
+                  ~730px, hiding the escape from the only people with no use for
+                  the form above it. */}
+              <SignUpReviewNote />
               <p className={s.bodySecondary}>
                 By submitting this form, you agree to our{' '}
                 <a

@@ -392,6 +392,53 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
 }
 
 /**
+ * What this press does, and what it doesn't — the one line under the form.
+ *
+ * **It follows the PL-team tick, because the two answers are genuinely
+ * different.** A sign-up that names a network team is filed as a regular member
+ * and the PL team reviews it. One that doesn't is filed as a Job Aspirant:
+ * apply-only, never reviewed, and shown no "profile under review" banner
+ * anywhere in the product. One sentence cannot be true of both.
+ *
+ * **What it used to say, for everyone:** *"The PL team reviews new accounts
+ * first — you can browse every role while you wait, and applying opens up once
+ * you're approved."* Both clauses were false for the majority reader. No admin
+ * reviews an aspirant, so there is no "first" and no approval coming; and
+ * applying stopped being gated on approval when the board dropped that rule —
+ * the 403 it names is dead enough that `applyFailureMessage` keeps its handler
+ * only for a deploy where this frontend runs ahead of an older API. It was also
+ * the likeliest reason someone would go hunting for a review banner that, for
+ * them, is deliberately absent.
+ *
+ * **Both variants keep the half that was always true and is still the only
+ * thing nothing else on the card says:** this press sends nothing to a hiring
+ * team. That is the reassurance the sentence exists for — it is the flow's
+ * pending-never-claims-applied rule, at the moment trust is being asked for.
+ *
+ * One sentence each, and deliberately no longer than the line they replace.
+ * This ran to four rendered lines once before and pushed "Already have an
+ * account? Sign in" off the bottom of any window shorter than ~730px, hiding the
+ * escape from the only people with no use for the form above it.
+ */
+export function SignUpReviewNote() {
+  const onPlTeam = useWatch<AccountFormData, 'onPlTeam'>({ name: 'onPlTeam' }) ?? false;
+
+  return (
+    <p className={s.body}>
+      {onPlTeam
+        ? // True for them, and the second clause matters as much as the first:
+          // the pending banner they will meet on the board says the same thing
+          // ("Nothing here is waiting on it"), so the two surfaces agree about
+          // what the review does and doesn't hold up.
+          'Creating your account sends nothing to a hiring team. The PL team reviews network-team accounts; applying never waits on that.'
+        : // No review to name, so the sentence stops at what is true: the account
+          // exists after this press, and applying is the next thing they do.
+          "Creating your account sends nothing to a hiring team — you'll browse and apply once you're signed in."}
+    </p>
+  );
+}
+
+/**
  * The status, bound to the account form, for a host that wants to frame it
  * itself — the apply flow's step 2 draws it inside a card with the amber
  * required strip, where a plain label would be a second way of saying required.

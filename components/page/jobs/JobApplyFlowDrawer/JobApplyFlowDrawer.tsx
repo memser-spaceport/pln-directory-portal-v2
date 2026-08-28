@@ -38,6 +38,7 @@ import {
 } from '@/components/page/jobs/hooks/useJobApplyFlow';
 import { formatRelativeDays } from '@/utils/jobs.utils';
 import { isProtocolLabsTeam } from '@/services/jobs/protocol-labs-team';
+import { getJobProfileReviewed, setJobProfileReviewed } from '@/services/jobs/job-profile-reviewed';
 import { JobAccountPane } from '@/components/page/jobs/JobAccountPane/JobAccountPane';
 import {
   accountSchema,
@@ -356,13 +357,30 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   /* "I've reviewed my profile" — the profile step's consent, and the second half
      of what unlocks the application.
 
-     Held here rather than in the pane for the same reason the account form is:
-     the panes unmount on every step change, so a tick owned by the pane would be
-     undone by stepping back to re-read the posting. Held here and not in
-     `ApplyFlowState` because unlike the letter it *should* not outlive the visit
-     — a profile reviewed in a session that has since ended, and possibly edited
-     elsewhere since, is not a profile anyone reviewed. */
-  const [reviewed, setReviewed] = useState(false);
+     **Remembered across visits, keyed by member uid.** Asked once, not once per
+     application: someone applying to their fourth role this week has confirmed
+     the same profile three times already, and a gate that re-asks a question it
+     has the answer to stops reading as a check and starts reading as a toll.
+
+     This reverses what stood here, which argued the tick should die with the
+     visit because "a profile reviewed in a session that has since ended, and
+     possibly edited elsewhere since, is not a profile anyone reviewed." That
+     cost is real and is now accepted: a confirmation made months ago survives
+     edits made since, so this is a one-time acknowledgement rather than a
+     per-application freshness check. If it ever needs to be the latter, the
+     thing to key it on is the profile's own last-modified stamp, not the visit.
+
+     `useState` still, and not read on every render: the stored answer is a
+     mount-time snapshot, and re-reading localStorage mid-flow would let another
+     tab's tick change this footer under the person using it. */
+  const [reviewed, setReviewedState] = useState(() => getJobProfileReviewed(memberUid));
+
+  /* Writes on every change, `false` included — see the store's note on why
+     unticking has to be recorded rather than merely forgotten. */
+  const setReviewed = (next: boolean) => {
+    setReviewedState(next);
+    setJobProfileReviewed(memberUid, next);
+  };
 
   /* The steps this run stops at, in order — all three, for everyone applying in
      app. Back and the footer both walk this, which is what keeps them agreeing

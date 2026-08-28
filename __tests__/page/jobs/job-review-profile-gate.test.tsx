@@ -50,6 +50,7 @@ jest.mock('@/analytics/jobs.analytics', () => ({
 }));
 
 import { JobApplyFlowDrawer } from '@/components/page/jobs/JobApplyFlowDrawer/JobApplyFlowDrawer';
+import { setJobProfileReviewed } from '@/services/jobs/job-profile-reviewed';
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 
 const role = { uid: 'r1', roleTitle: 'Protocol Engineer' } as unknown as IJobRole;
@@ -93,7 +94,13 @@ const consent = () => screen.getByRole('checkbox', { name: /I've reviewed my pro
 const continueButton = () => screen.getByRole('button', { name: 'Continue to apply' });
 
 describe('the profile step’s review gate', () => {
-  beforeEach(() => jest.clearAllMocks());
+  /* The tick is remembered in localStorage, so a leftover from one case would
+     silently pre-answer the next and turn "holds Continue shut" green for the
+     wrong reason. */
+  beforeEach(() => {
+    jest.clearAllMocks();
+    window.localStorage.clear();
+  });
 
   it('offers the consent in the footer', () => {
     renderProfileStep();
@@ -143,6 +150,76 @@ describe('the profile step’s review gate', () => {
     fireEvent.click(consent());
 
     expect(continueButton()).toBeDisabled();
+  });
+
+  /**
+   * Asked once, not once per application.
+   *
+   * The point of persisting it: someone applying to their fourth role this week
+   * has confirmed the same profile three times already. They open step 2 with the
+   * box already ticked and Continue already live.
+   */
+  describe('once it has been answered before', () => {
+    it('opens pre-ticked with Continue already live', () => {
+      setJobProfileReviewed('m1', true);
+
+      renderProfileStep();
+
+      expect(consent()).toBeChecked();
+      expect(continueButton()).toBeEnabled();
+    });
+
+    it('remembers the tick made in an earlier visit of the same session', () => {
+      const first = renderProfileStep();
+      fireEvent.click(consent());
+      first.unmount();
+
+      renderProfileStep();
+
+      expect(consent()).toBeChecked();
+    });
+
+    /* Unticking is an answer. Someone saying they no longer stand behind the
+       profile must not be re-confirmed by the store on their next visit. */
+    it('forgets it again when the box is unticked', () => {
+      setJobProfileReviewed('m1', true);
+
+      const first = renderProfileStep();
+      fireEvent.click(consent());
+      first.unmount();
+
+      renderProfileStep();
+
+      expect(consent()).not.toBeChecked();
+      expect(continueButton()).toBeDisabled();
+    });
+
+    /**
+     * The confirmation belongs to a member, not to a browser.
+     *
+     * One laptop can sign in as two people, and handing the second of them the
+     * first's tick would be the flow confirming a profile on behalf of someone
+     * who never saw it.
+     */
+    it('does not carry one member’s confirmation to another', () => {
+      setJobProfileReviewed('m1', true);
+
+      renderProfileStep({ memberUid: 'm2' });
+
+      expect(consent()).not.toBeChecked();
+      expect(continueButton()).toBeDisabled();
+    });
+
+    /* An incomplete profile is still incomplete, whatever was stored. The
+       remembered tick satisfies one of the two gates, never both. */
+    it('still stays shut for an incomplete profile', () => {
+      setJobProfileReviewed('m1', true);
+
+      renderProfileStep({ profileComplete: false });
+
+      expect(consent()).toBeChecked();
+      expect(continueButton()).toBeDisabled();
+    });
   });
 
   /**

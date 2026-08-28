@@ -58,7 +58,7 @@
 // The page's header, below 960 only — `EditInvestorProfileDrawer`'s own bar,
 // which is the same sticky 64px white row with `← Back` that the profile drawer
 // shows one step later in this flow. Above 960 the floating ✕ takes over.
-.mobileHeader {
+.mobileHeader.mobileHeader {
   @include media.tablet-landscape {
     display: none;
   }

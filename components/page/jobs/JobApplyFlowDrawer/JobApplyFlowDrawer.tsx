@@ -151,8 +151,11 @@ interface JobApplyFlowDrawerProps {
   /** Signed up, waiting on the PL team. Says so in the profile lede; gates nothing. */
   pendingApproval: boolean;
   /** Whether the profile already satisfies what an application needs, as the
-   *  board understands it on open — this is what decides whether step 2 is on
-   *  the path. */
+   *  board understands it on open. It seeds `profileState`, so the footer is
+   *  right on the first frame rather than after the pane's fetch.
+   *
+   *  It no longer decides whether step 2 is on the path — nothing does, every
+   *  in-app application stops there. See `useJobApplyFlow.onApply`. */
   profileComplete: boolean;
   applied: boolean;
   appliedAt?: string | null;
@@ -333,15 +336,20 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     hasStatus: profileComplete,
   });
 
-  /* Whether this run stops at the profile step, decided when the flow opens and
-     then left alone.
+  /* (`skipProfile` stood here — `isLoggedIn && profileComplete && at !==
+     'profile'` — and dropped the middle step for a member who arrived with
+     nothing left to fill in. It went with the routing rule it mirrored; see
+     `useJobApplyFlow.onApply`. The short version: the step is no longer only for
+     collecting, because it now asks for "I've reviewed my profile", and a
+     confirmation nobody is shown is not a confirmation.
 
-     Recomputing it from the live profile would be the obvious thing and it is
-     wrong in both directions: a profile completed *during* the flow would
-     silently drop the step out from under someone standing on it, and Back from
-     the application would start landing somewhere different than it did a minute
-     earlier. A rail that reshapes itself is a rail nobody can learn. */
-  const [skipProfile] = useState(() => isLoggedIn && profileComplete && at !== 'profile');
+     Its own reasoning is worth keeping in view if a skip is ever reintroduced.
+     It was `useState` with an initialiser rather than a derived value on
+     purpose: recomputing it from the live profile is wrong in both directions —
+     a profile completed *during* the flow would drop the step out from under
+     someone standing on it, and Back from the application would start landing
+     somewhere different than it did a minute earlier. A rail that reshapes
+     itself is a rail nobody can learn.) */
 
   const complete = profileState.complete;
 
@@ -356,32 +364,25 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
      elsewhere since, is not a profile anyone reviewed. */
   const [reviewed, setReviewed] = useState(false);
 
-  /* The steps this run actually stops at, in order. The rail always draws all
-     three — see the note at the top of the file — but Back and the footer walk
-     this, so a skipped profile step is skipped in both directions. Symmetry is
-     the point: a flow whose Next skips a step and whose Back does not is a flow
-     that puts you somewhere you have never been. */
-  const path: ApplyFlowStepId[] = skipProfile ? ['review', 'application'] : ['review', 'profile', 'application'];
+  /* The steps this run stops at, in order — all three, for everyone applying in
+     app. Back and the footer both walk this, which is what keeps them agreeing
+     about where "the step before this one" is. */
+  const path: ApplyFlowStepId[] = ['review', 'profile', 'application'];
   /* -1 when the current step is off the path — which `backTarget` handles
      explicitly rather than clamping to 0. Clamping was the bug: it made an
      off-path step look like the first one, so Back read "Back to roles" and
      closed the flow out from under a written letter. */
   const pathIndex = path.indexOf(at);
 
-  /** Whether the last step is reachable at all. The only rule left is the one
-   *  that was always the real one — an application must carry a complete
-   *  profile. Nobody is refused, they are only ever *not finished yet*, which is
-   *  what the middle step is for. */
-  /* `skipProfile ||` and not a bare `&& reviewed`, because the tick is only ever
-     asked for on a step this run actually stops at. A member whose profile was
-     already complete when the flow opened goes review → application and is never
-     shown the checkbox; gating the rail on a control that never rendered would
-     lock them out of their own application.
-
-     Where step 2 *is* on the path, the rail obeys the same rule the footer does.
-     A gate the rail can walk around is not a gate — and the rail could: its
-     Application stop is a live control while step 2 sits there untouched. */
-  const canApply = isLoggedIn && complete && (skipProfile || reviewed);
+  /** Whether the last step is reachable at all. Two rules, and both are about
+   *  the profile: it has to be complete enough to send, and you have to have said
+   *  you looked at it. Nobody is refused — they are only ever *not finished yet*,
+   *  which is what the middle step is for.
+   *
+   *  The rail obeys the same pair the footer does. A gate the rail can walk
+   *  around is not a gate, and this one could: the Application stop is a live
+   *  control sitting two inches from a step 2 nobody has touched. */
+  const canApply = isLoggedIn && complete && reviewed;
 
   /** Where a finished step can be revisited from the rail. The current step is
    *  never reachable — a control that goes where you already are is a control
@@ -397,14 +398,16 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     const status: ApplyFlowStep['status'] =
       id === at
         ? 'current'
-        : /* A profile that was already finished shows its check from the first
-             frame, on every step. That mark is the offer's evidence, not a record
-             of something you did in this session. */
-          id === 'profile' && skipProfile
+        : /* (`id === 'profile' && skipProfile → 'completed'` stood here, so a
+             profile that was already finished wore its check from the first
+             frame. It went with `skipProfile`: every run now stops at step 2, so
+             a check on a step ahead of you would be claiming you had been
+             somewhere you have not — and with the review tick waiting there, it
+             would be claiming you had done the one thing the step exists to
+             ask.) */
+          APPLY_FLOW_STEPS.indexOf(id) < APPLY_FLOW_STEPS.indexOf(at)
           ? 'completed'
-          : APPLY_FLOW_STEPS.indexOf(id) < APPLY_FLOW_STEPS.indexOf(at)
-            ? 'completed'
-            : 'upcoming';
+          : 'upcoming';
     return { id, title: stepTitle(id, isLoggedIn), status, reachable: canVisit(id) };
   });
 

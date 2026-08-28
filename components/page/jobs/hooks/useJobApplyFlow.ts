@@ -122,7 +122,13 @@ export function applyFlowReducer(state: ApplyFlowState, action: ApplyFlowAction)
 export interface JobApplyFlowArgs {
   viewer: BoardViewerState;
   verdict: JobsAccessVerdict;
-  profileComplete: boolean;
+  /* (`profileComplete` stood here. It had one reader — the branch in `onApply`
+      that skipped the profile step for a member who had already filled one in —
+      and went when that branch did. The routing no longer consults the profile
+      at all: every in-app application stops at step 2, because that step now asks
+      for a confirmation as well as collecting answers. The drawer still takes a
+      `profileComplete` prop, from `useJobBoardViewer` directly; it seeds what the
+      footer gates on, which is a different question from where Apply lands.) */
   refreshVerdict: () => Promise<JobsAccessVerdict>;
   source: JobSurface;
 }
@@ -135,7 +141,7 @@ export interface JobApplyFlowArgs {
  * The dispatch handlers are also the analytics choke point — every funnel edge
  * is exactly one handler, so instrumentation cannot drift from behavior.
  */
-export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdict, source }: JobApplyFlowArgs) {
+export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: JobApplyFlowArgs) {
   const [state, dispatch] = useReducer(applyFlowReducer, IDLE);
   const analytics = useJobsAnalytics();
   const applyPressInFlight = useRef(false);
@@ -277,25 +283,29 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
         return;
       }
 
-      /* Past that, the only question left is the one that was always the real
-         one: is there enough profile to send? If not, the middle step collects
-         it. Either way the answer is "here is what's needed", never a different
-         dialog and never a no.
+      /* Past that, everyone lands on the profile step — including a member whose
+         profile is already complete.
+
+         **This used to skip straight to the application for them** (`if
+         (profileComplete) … at: 'application'`), on the reasoning that a step
+         with nothing left to collect is a step worth saving. That reasoning was
+         about *collecting*, and the step is no longer only for that: it now asks
+         for "I've reviewed my profile", and what the hiring team reads is the
+         profile rather than the letter alone. A confirmation nobody is shown is
+         not a confirmation, and the people most likely to be sending something
+         stale are exactly the ones the skip was routing around.
+
+         So the rail is three stops for every in-app application, and its middle
+         one is a read rather than a form for anyone who has already filled it in.
 
          `OPEN_FLOW` rather than `GO_TO_STEP` even when the flow is already open
          on the review step: it is idempotent on the target and it is the one
          action that can also start the flow from a row that never opened one. */
-      if (profileComplete) {
-        dispatch({ type: 'OPEN_FLOW', target, at: 'application' });
-        viewStep('application', target);
-        return;
-      }
-
       dispatch({ type: 'OPEN_FLOW', target, at: 'profile' });
       analytics.onJobApplyDrawerOpened(applyBase(target));
       viewStep('profile', target);
     },
-    [analytics, applyBase, profileComplete, refreshVerdict, source, verdict, viewer, viewStep],
+    [analytics, applyBase, refreshVerdict, source, verdict, viewer, viewStep],
   );
 
   /** Moving along the rail, or the header's Back. Analytics for arriving at the

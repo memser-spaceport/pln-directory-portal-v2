@@ -1,9 +1,10 @@
 /**
  * Repairs the converter artifacts an ingest ships in `IJobRole.descriptionHtml`.
  *
- * Three defects, all of them **encoding** rather than content — a `&` that was
- * escaped twice, a link whose converter never ran, a list emitted one element
- * per item. Repairing them shows more of what the team wrote, not less, which
+ * Four defects, all of them **encoding** rather than content — a `&` that was
+ * escaped twice, a whole body HTML-encoded as text (`&lt;p&gt;…`, Greenhouse),
+ * a link whose converter never ran, a list emitted one element per item.
+ * Repairing them shows more of what the team wrote, not less, which
  * is why this does not reverse the drawer's "sanitize + style only, no content
  * normalization" rule: that rule forbids editing what the posting SAYS (the
  * duplicated titles, the trailing in-body apply link), and those stay untouched.
@@ -15,11 +16,10 @@
  * host check here: there is nothing to branch on, and the next source with the
  * same broken converter gets fixed for free.
  *
- * **The backend is not the cause.** `job-description-html.util.ts` wraps
- * `sanitize-html`, which is entity-idempotent and never merges lists. This
- * markup arrives from a service in neither repo, so the repair lives here until
- * that is fixed — at which point all three transforms quietly become no-ops and
- * nothing has to be removed.
+ * **The backend now unwraps this too.** Ingest used to persist Greenhouse's
+ * encoded `content` as a text node. The write path decodes before
+ * `sanitize-html`, and this read path still does, so a row written before
+ * that change renders correctly without waiting for a re-ingest.
  *
  * **Run it BEFORE sanitizing, never after** — the same rule `linkifyHtml`
  * documents, for the same reason: this emits markup, and letting the sanitizer
@@ -37,6 +37,31 @@
  * `&amp;lt;img src=x onerror=…&amp;gt;` into a live tag. Exactly one layer.
  */
 const DOUBLE_ESCAPED_ENTITY = /&amp;(#\d{1,7}|#[xX][0-9a-fA-F]{1,6}|[a-zA-Z][a-zA-Z0-9]{1,31});/g;
+
+/**
+ * A body whose tags were stored as entities, not as tags — Greenhouse's Job
+ * Boards API HTML-encodes `content`, and ingest used to persist that as-is.
+ * The drawer then prints `&lt;div` as the characters `<div`.
+ *
+ * Only when the whole blob is encoded. A well-formed `<p>a &lt; b</p>` has
+ * raw tags and must stay that way; decoding it would turn the `&lt;` into a
+ * stray `<`. One pass; `&amp;` last so `&amp;lt;` becomes `&lt;`, not a tag.
+ * The sanitizer runs afterwards and is what actually admits any markup this
+ * unwraps.
+ */
+const ESCAPED_TAG = /&lt;\s*\/?[a-z]/i;
+const RAW_TAG = /<\/?[a-z][\s\S]*>/i;
+
+function decodeEntityEncodedHtml(html: string): string {
+  if (!ESCAPED_TAG.test(html) || RAW_TAG.test(html)) return html;
+  return html
+    .replace(/&quot;|&#0*34;/g, '"')
+    .replace(/&apos;|&#0*39;/g, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/g, '&');
+}
 
 /**
  * `[label](url)` left as literal text by a markdown-to-HTML converter that
@@ -118,7 +143,7 @@ export function normalizeJobDescriptionHtml(html: string): string {
   /* Entities first: an escaped `&` inside a markdown URL has to be repaired
      before that URL is read. The list merge is structural and independent, so
      it goes last. */
-  const decoded = (html ?? '').replace(DOUBLE_ESCAPED_ENTITY, '&$1;');
+  const decoded = decodeEntityEncodedHtml((html ?? '').replace(DOUBLE_ESCAPED_ENTITY, '&$1;'));
 
   return markdownLinksToAnchors(decoded).replace(ADJACENT_LIST, '');
 }

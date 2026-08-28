@@ -1,0 +1,99 @@
+@use 'styles/media';
+
+.bar {
+  display: none;
+  align-items: center;
+  gap: 20px;
+  padding: 11px 24px;
+  background: #1b4dff;
+  color: #ffffff;
+  flex: none;
+  width: 100%;
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
+}
+
+.period {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.divider {
+  width: 1px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.25);
+  flex: none;
+}
+
+.daysLeft {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: nowrap;
+}
+
+.progressTrack {
+  flex: 1;
+  max-width: 260px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  display: block;
+  height: 100%;
+  background: #ffffff;
+  border-radius: 999px;
+}
+
+.points {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.pointsValue {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.pointsLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.summaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  flex: none;
+  white-space: nowrap;
+}
+
+.summaryBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

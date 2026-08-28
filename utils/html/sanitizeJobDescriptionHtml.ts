@@ -27,8 +27,9 @@ import DOMPurify from 'isomorphic-dompurify';
  * is an uncontrolled third-party request fired from a job panel.
  *
  * **This is half the pipeline.** Job bodies also carry converter artifacts that
- * an allowlist cannot see — double-escaped entities, markdown link syntax left
- * as text, one `<ul>` per `<li>` — so a caller wants
+ * an allowlist cannot see — double-escaped entities, a whole body stored as
+ * `&lt;p&gt;…` instead of tags, markdown link syntax left as text, one `<ul>`
+ * per `<li>` — so a caller wants
  * `sanitizeJobDescriptionHtml(normalizeJobDescriptionHtml(raw))`, in that order.
  * See `normalizeJobDescriptionHtml` for why the order is not negotiable.
  */

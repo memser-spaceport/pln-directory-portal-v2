@@ -166,9 +166,10 @@ interface JobApplyFlowDrawerProps {
   showOriginalPosting: boolean;
   /**
    * Pressing Apply will open the employer's own posting rather than advance the
-   * rail: an account awaiting approval, applying to a role Protocol Labs did not
-   * post. The footer has to say so, and the rail comes off — three named steps
-   * above a button that leaves the site is the flow lying about itself.
+   * rail: no approved account yet (signed out, or awaiting review), applying to
+   * a role Protocol Labs did not post. The footer has to say so, and the rail
+   * comes off — three named steps above a button that leaves the site is the
+   * flow lying about itself.
    */
   applyGoesExternal: boolean;
   /** Pressing Apply on the review step, which the flow answers by routing. */

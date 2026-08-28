@@ -127,18 +127,31 @@ describe('Apply routing while unapproved', () => {
   /**
    * Where Apply lands for someone with no account at all.
    *
-   * This used to open `JobSignUpModal` on top of the flow, which hid the rail
-   * from the one visitor least sure how much further there was. The account is
-   * step 2 now, so the assertion that matters is that the flow *opens* rather
-   * than forks — a regression here would be invisible in the UI tests, because
-   * both outcomes render a form asking the same six questions.
+   * A non-PL role leaves the site — the same rule as a pending account, and the
+   * footer already labels the press "Apply on their site". Protocol Labs still
+   * opens the flow on its account step: that is the one employer whose hiring
+   * this board runs, so the account is the ask at the moment of intent rather
+   * than a modal over the top.
    */
   describe('and while logged out', () => {
-    it('opens the flow on its account step rather than a modal over it', async () => {
+    it('sends a visitor to the employer site for a non-PL role', async () => {
       const { result } = setup('approved', false, 'logged-out');
 
       await act(async () => {
         await result.current.onApply(target(OTHER));
+      });
+
+      expect(mockOpenExternal).toHaveBeenCalledWith('https://example.com/apply', 'job-board');
+      expect(result.current.state.step).toBe('idle');
+      expect(mockOnJobApplyExternalRedirected).toHaveBeenCalledTimes(1);
+      expect(mockOnJobApplyStepViewed).not.toHaveBeenCalled();
+    });
+
+    it('opens the flow on its account step for a Protocol Labs role', async () => {
+      const { result } = setup('approved', false, 'logged-out');
+
+      await act(async () => {
+        await result.current.onApply(target(PL));
       });
 
       expect(result.current.state).toMatchObject({ step: 'flow', at: 'profile' });

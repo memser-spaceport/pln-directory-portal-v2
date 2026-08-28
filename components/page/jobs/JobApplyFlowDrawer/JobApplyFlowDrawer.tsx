@@ -534,7 +534,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
       }
       if (applyGoesExternal) {
         return {
-          hint: `${target.teamName} takes applications on their own site — it opens in a new tab.`,
+          hint: null, // `${target.teamName} takes applications on their own site — it opens in a new tab.`,
           action: (
             /* "Continue to apply", not "Apply on their site" — the hint beside
                it already says whose site and that it opens in a new tab, so a
@@ -563,7 +563,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
            this component does not own, and the sentence says "your PL profile"
            — a claim that must never reach someone who has no account, whatever
            that prop is doing. */
-        hint: isLoggedIn && complete ? 'One press sends your PL profile with a short note. Nothing to refill.' : null,
+        hint: isLoggedIn && complete ? null : null,
         action: (
           /* Four words that carry what the deleted sentence was carrying: the
              press signs you up, and applying is what it is for. A stranger

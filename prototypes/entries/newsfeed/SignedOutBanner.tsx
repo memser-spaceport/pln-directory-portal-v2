@@ -106,7 +106,7 @@ export function SignedOutBanner({ teamCount, memberCount, onSignIn }: SignedOutB
           <span className={welcome.titleHighlight}>{memberCount.toLocaleString('en-US')}</span>{' '}
           {memberCount === 1 ? 'member' : 'members'}
         </p>
-        <p className={welcome.sub}>The feed reorders around your skills, your focus areas, and the teams you follow.</p>
+        <p className={welcome.sub}>The feed is curated based on your skills and team plus the teams you follow.</p>
       </div>
 
       <div className={welcome.ctas}>

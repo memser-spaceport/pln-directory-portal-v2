@@ -44,6 +44,8 @@ function niceMax(value: number): number {
   return Math.ceil(value / magnitude) * magnitude;
 }
 
+const MAX_X_LABELS = 6;
+
 function buildChart(entries: ContributionHistoryEntry[], hasPointsData: boolean) {
   const maxBalance = niceMax(Math.max(...entries.map((e) => e.cum), 1));
   const plotWidth = PLOT_RIGHT - PLOT_LEFT;
@@ -54,6 +56,7 @@ function buildChart(entries: ContributionHistoryEntry[], hasPointsData: boolean)
   const rightAxisTicks = grid.map((y, i) => ({ y, label: Math.round((maxBalance * (GRID_LINES - 1 - i)) / (GRID_LINES - 1)) }));
 
   const centers = entries.map((_, i) => PLOT_LEFT + step * i + step / 2);
+  const labelStride = Math.max(1, Math.ceil(entries.length / MAX_X_LABELS));
 
   let bars: Array<{ x: number; y: number; w: number; h: number; value: number }> = [];
   let leftAxisTicks: Array<{ y: number; label: number }> = [];
@@ -72,7 +75,10 @@ function buildChart(entries: ContributionHistoryEntry[], hasPointsData: boolean)
   }));
 
   const line = dots.map((d) => `${d.cx},${d.cy}`).join(' ');
-  const labels = entries.map((e, i) => ({ x: centers[i], period: e.period }));
+  const lastIndex = entries.length - 1;
+  const labels = entries
+    .map((e, i) => ({ x: centers[i], period: e.period, i }))
+    .filter(({ i }) => i % labelStride === 0 || i === lastIndex);
   const hoverZones = entries.map((e, i) => ({ x: centers[i] - step / 2, w: step, balance: e.cum }));
 
   return { grid, bars, dots, line, labels, leftAxisTicks, rightAxisTicks, hoverZones };
@@ -102,12 +108,12 @@ export default function ContributionProfileTab({ entries, currentBalance }: Cont
         <div className={styles.chartHeader}>
           <div>
             <h3 className={styles.chartTitle}>
-              {hasPointsData ? 'Points and PLAA balance over time' : 'PLAA balance over time'}
+              {hasPointsData ? 'Points and PLAA earned over time' : 'PLAA earned over time'}
             </h3>
             <p className={styles.chartSubtitle}>
               {hasPointsData
-                ? 'Points collected in each snapshot, and your PLAA balance after each close.'
-                : 'Your PLAA balance after each snapshot close.'}
+                ? 'Points collected in each snapshot, and your PLAA earned, cumulative, before redemptions.'
+                : 'Your PLAA earned, cumulative, before redemptions.'}
             </p>
           </div>
           <div className={styles.legend}>
@@ -119,7 +125,7 @@ export default function ContributionProfileTab({ entries, currentBalance }: Cont
             )}
             <span className={styles.legendItem}>
               <span className={styles.legendSwatchLine} />
-              PLAA balance
+              PLAA earned (cumulative)
             </span>
           </div>
         </div>
@@ -218,7 +224,7 @@ export default function ContributionProfileTab({ entries, currentBalance }: Cont
 
         <div className={styles.axisLabels}>
           {hasPointsData && <span className={styles.axisLabel}>Points per snapshot</span>}
-          <span className={`${styles.axisLabel} ${styles.brand}`}>PLAA balance</span>
+          <span className={`${styles.axisLabel} ${styles.brand}`}>PLAA earned</span>
         </div>
 
         <div className={styles.divider} />
@@ -241,7 +247,7 @@ export default function ContributionProfileTab({ entries, currentBalance }: Cont
             <span>Activities</span>
             <span>Infra rewards</span>
             <span>Redeemed</span>
-            <span className={styles.brand}>Balance</span>
+            <span className={styles.brand}>PLAA earned</span>
           </div>
 
           {entries.map((entry) => (
@@ -264,6 +270,11 @@ export default function ContributionProfileTab({ entries, currentBalance }: Cont
             <span className={styles.balanceChip}>{currentBalance === null ? '—' : currentBalance.toLocaleString()}</span>
           </div>
         </div>
+
+        <p className={styles.historySubtitle}>
+          The last cell above is your confirmed current balance, after redemptions. Every other PLAA figure on this
+          page is cumulative earned, not yet adjusted for redemptions.
+        </p>
       </div>
     </div>
   );

@@ -239,7 +239,19 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
   );
 
   return (
-    <>
+    /* The group carries its own 24px rhythm rather than inheriting one.
+       This was a fragment, which worked for exactly as long as the sign-up modal
+       was the only host: `.form` there is a 24px column, so the fragment's
+       children picked the spacing up from it. The apply flow's step 2 is the
+       second host, and it mounts this inside `DetailsSection` — whose `.root`
+       ships `gap` **commented out** (`DetailsSection.module.scss:15`) so callers
+       space themselves. A fragment there gets nothing, and the rows sat flush
+       against each other.
+
+       Nothing changes for the modal: `.form`'s gap now falls between this
+       wrapper and its siblings instead of between these fields, and the wrapper
+       reinstates the same 24px inside. */
+    <div className={s.fieldStack}>
       {/* The two short ones, always wrapped so the arrangement is the wrapper's
           business in both layouts: `stack` gives them the same 24px column the
           rest of the group sits in, `grid` puts them on one line. */}
@@ -307,7 +319,7 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

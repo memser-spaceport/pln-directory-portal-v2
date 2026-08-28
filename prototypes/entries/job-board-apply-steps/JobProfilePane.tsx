@@ -2230,16 +2230,30 @@ export function JobSearchStatusInput({
 }) {
   return (
     <div className={d.statusRoot}>
-      {/* The pill carries the audience; this line carries the purpose.
+      {/* The pill carries the audience; this line carries the purpose — and now
+          the one exclusion that purpose implies but does not state.
 
           It used to say "Never shown on your profile" — true, but a second
           statement of the same promise the pill above it had just made, which
           left the actual question ("why are you asking?") unanswered. What the
           answer buys is being surfaced to founders who are hiring, so the note
-          says that and lets the pill own the privacy. One sentence, in the same
-          12px tertiary voice as the option hints, so it reads as a note on the
-          section rather than a second announcement competing with the pill. */}
-      <p className={d.statusPrivacyNote}>Used to decide whether to surface your profile to founders who are hiring.</p>
+          says that and lets the pill own the privacy.
+
+          **The second clause is the one that decides whether the field gets an
+          honest answer.** "Surfaced to founders who are hiring" is, read by
+          someone currently employed, a sentence that includes their own
+          founder — and the cost of that reading is not a worse answer, it is a
+          false one or none at all. A privacy promise the reader has to infer
+          from an omission is not a promise; the exclusion has to be said in
+          the same breath as the purpose, which is why it is one sentence and
+          not a second line under it.
+
+          Still one sentence in the same 12px tertiary voice as the option
+          hints, so it reads as a note on the section rather than a second
+          announcement competing with the pill. */}
+      <p className={d.statusPrivacyNote}>
+        Used to decide whether to surface your profile to founders who are hiring — never to your current team.
+      </p>
 
       <div className={d.statusOptions} role="radiogroup" aria-label="Job search status">
         {JOB_SEARCH_STATUS_OPTIONS.map((option) => (

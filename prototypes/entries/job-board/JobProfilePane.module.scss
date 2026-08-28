@@ -318,6 +318,20 @@
   flex-direction: column;
   gap: 8px;
   width: 100%;
+
+  /* Trims `DetailsSectionHeader`'s own 8px bottom margin to an effective 4,
+     for this section only.
+
+     The note under the title is a caption on it, not the next thing in the
+     section — it finishes the sentence the header starts. At 8 it sat the
+     same distance from the title as the title sat from the section above,
+     which reads as a peer rather than a subtitle. 4 attaches it.
+
+     A negative margin because the 8 belongs to a production component this
+     prototype must not edit, and it is the one number in play — the header
+     ships one margin and this is the one section that wants less of it.
+     Prefer overriding it properly if that component ever takes a size. */
+  margin-top: -4px;
 }
 
 /* The consequence the pill can't carry, in the same 12px tertiary voice the

@@ -1,5 +1,7 @@
 import { IUserInfo } from '@/types/shared.types';
 import {
+  BLUESKY_URL_REGEX,
+  CRUNCHBASE_URL_REGEX,
   DISCORD_URL_REGEX,
   EMAIL_REGEX,
   EVENTS,
@@ -266,6 +268,8 @@ export function getSocialLinkUrl(
     telegram: `https://t.me/${linkContent}`,
     linkedin: getLinkedInUrl(linkContent, linkedinProfileKind),
     discord: 'https://discord.com/app',
+    bluesky: `https://bsky.app/profile/${linkContent}`,
+    crunchbase: `https://www.crunchbase.com/organization/${linkContent}`,
   };
 
   // For website and blog types, ensure protocol is present
@@ -325,17 +329,29 @@ export const getProfileFromURL = (handle: string, type: string) => {
     telegram: TELEGRAM_URL_REGEX,
     github: GITHUB_URL_REGEX,
     discord: DISCORD_URL_REGEX,
+    bluesky: BLUESKY_URL_REGEX,
+    crunchbase: CRUNCHBASE_URL_REGEX,
   };
 
   const regex = urlRegexMap[type];
 
   const match = regex && handle?.match(regex);
 
-  return match && match[1]
-    ? decodeURIComponent(match[1]).replace(/^@/, '')
-    : type === 'telegram' || type === 'twitter'
-      ? handle?.replace(/^@/, '')
-      : handle;
+  if (match && match[1]) {
+    return decodeURIComponent(match[1]).replace(/^@/, '');
+  }
+
+  // Nothing URL-shaped was pasted in, so fall back to the per-provider bare form.
+  if (type === 'crunchbase') {
+    // `organization/protocol-labs` and `protocol-labs` both store as the bare slug.
+    return handle?.trim().replace(/^organization\//i, '');
+  }
+
+  if (type === 'telegram' || type === 'twitter' || type === 'bluesky') {
+    return handle?.trim().replace(/^@/, '');
+  }
+
+  return handle;
 };
 
 export const sortMemberByRole = (

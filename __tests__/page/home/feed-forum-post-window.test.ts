@@ -23,6 +23,7 @@ function post(uid: string, createdAt: string, lastActivityAt = createdAt): IFeed
     forumTopicUrl: null,
     commentCount: 0,
     likeCount: 0,
+    viewCount: 0,
     viewerHasLiked: false,
   };
 }

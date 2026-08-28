@@ -3,14 +3,13 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 
 import { useOfficeHoursAccess } from '@/services/access-control/hooks/useOfficeHoursAccess';
-import { useFounderGuidesAccess } from '@/services/access-control/hooks/useFounderGuidesAccess';
 
 import { JobsIcon, DealsIcon, MembersIcon } from '@/components/core/navbar/components/icons';
 import { CalendarBlankIcon } from '@/components/icons';
 
-import { detectUserGroup } from './utils/detectUserGroup';
+import type { QuickActionsState } from './utils/resolveQuickActionsState';
 
-import { ActionCard } from './components/ActionCard/ActionCard';
+import { ActionCard, ActionCardSkeleton } from './components/ActionCard';
 
 import s from './QuickActions.module.scss';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -18,16 +17,29 @@ import { useCurrentUserStore } from '@/services/auth/store';
 // TODO: Replace with the confirmed external Office Hours scheduling URL
 const OH_HREF = '/members?hasOfficeHours=true';
 
-export function QuickActions() {
-  const { currentUser } = useCurrentUserStore();
-  const group = detectUserGroup(currentUser?.rbac?.policies);
-  const { canViewSupply, canSupply, canViewDemand, canRequestDemand, isLoading: ohLoading } = useOfficeHoursAccess();
+interface QuickActionsProps {
+  /**
+   * Card set resolved on the server (app/home/page.tsx). Rendering from this
+   * rather than from client state is what makes the first paint final — the
+   * user store and /me/access both land after hydration, and deriving the
+   * cards from them made the band render 2 cards, collapse, then settle on 2-4.
+   */
+  initial: QuickActionsState | null;
+  /**
+   * Whether `initial.hasOhAccess` came from /me/access. False when that
+   * server-side call failed, in which case Office Hours access falls back to
+   * the client query and the band holds its height with skeletons meanwhile.
+   */
+  ohResolved: boolean;
+}
 
-  const hasDealsAccess = !!currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'deals.read');
+export function QuickActions({ initial, ohResolved }: QuickActionsProps) {
+  const { isHydrated } = useCurrentUserStore();
+  const { canViewSupply, canSupply, canViewDemand, canRequestDemand, isLoading: ohLoading } = useOfficeHoursAccess();
 
   // Drives the mobile scroll container's left/right edge fade — only fades
   // the side that still has more cards to reveal. Hooks run unconditionally,
-  // ahead of the loading-guard early-returns below.
+  // ahead of the early return below.
   const gridRef = useRef<HTMLDivElement>(null);
   const [scrollEdges, setScrollEdges] = useState({ canScrollLeft: false, canScrollRight: false });
 
@@ -44,7 +56,7 @@ export function QuickActions() {
   }, []);
 
   // No dependency array: re-checks after every render, so it also catches the
-  // ref attaching once the loading-guard below lets real content mount.
+  // ref attaching once real content replaces the skeletons below.
   useEffect(() => {
     updateScrollEdges();
   });
@@ -54,12 +66,21 @@ export function QuickActions() {
     return () => window.removeEventListener('resize', updateScrollEdges);
   }, [updateScrollEdges]);
 
-  // For 'others' we defer until OH access resolves to prevent a card swap — on the mobile
-  // scroll-snap carousel a late-arriving card ahead of ones already swiped
-  // past would visibly shift scroll position under the user.
-  if (group === 'others' && ohLoading) return null;
+  // Only null for logged-out visitors, who never render this component at all.
+  if (!initial) return null;
 
-  const hasOhAccess = canViewSupply || canSupply || canViewDemand || canRequestDemand;
+  const { group, hasDealsAccess } = initial;
+
+  // Office Hours drives which card leads the 'others' row, so showing the wrong
+  // one and swapping it would shift the mobile carousel under a user mid-swipe.
+  // With ohResolved the answer is already correct at paint; without it we hold
+  // the row's height with skeletons until the client query answers. isHydrated
+  // covers the window before the user store fills, where the query is still
+  // disabled and so reports isLoading: false without having run.
+  const ohFallbackPending = !isHydrated || ohLoading;
+  const showSkeletons = !ohResolved && group === 'others' && ohFallbackPending;
+
+  const hasOhAccess = ohResolved ? initial.hasOhAccess : canViewSupply || canSupply || canViewDemand || canRequestDemand;
 
   const ohCard = (
     <ActionCard
@@ -115,7 +136,14 @@ export function QuickActions() {
           </>
         )}
 
-        {group === 'others' && (
+        {group === 'others' && showSkeletons && (
+          <>
+            <ActionCardSkeleton />
+            <ActionCardSkeleton />
+          </>
+        )}
+
+        {group === 'others' && !showSkeletons && (
           <>
             {hasOhAccess ? (
               ohCard

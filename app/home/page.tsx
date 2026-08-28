@@ -17,10 +17,16 @@ import { formatFeaturedData } from '@/utils/home.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Welcome } from '@/components/page/home/Welcome';
 import { QuickActions } from '@/components/page/home/QuickActions';
-import { TeamNews, AutoMarkNewsNotification } from '@/components/page/home/TeamNews';
+import { TeamNews, AutoMarkNewsNotification, MarkHomeVisited } from '@/components/page/home/TeamNews';
 import { getTeamNewsGroupedByFocusArea, getTeamNewsPopular } from '@/services/team-news/team-news.service';
 import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
+import type { MyAccessResponse } from '@/services/access-control/access-control.service';
+import {
+  resolveQuickActionsState,
+  codesFromCookiePolicies,
+  codesFromCookiePermissions,
+} from '@/components/page/home/QuickActions/utils/resolveQuickActionsState';
 
 export default async function Home() {
   const {
@@ -30,8 +36,11 @@ export default async function Home() {
     focusAreas,
     teamNewsGroups,
     teamNewsAllTabExtraItems,
+    teamNewsForYouTeamUids,
     popularItems,
     initialDigestSettings,
+    quickActionsState,
+    quickActionsOhResolved,
   } = await getPageData();
 
   if (isError) {
@@ -47,11 +56,12 @@ export default async function Home() {
               <Welcome />
             </div>
           )}
-          {isLoggedIn && <QuickActions />}
+          {isLoggedIn && <QuickActions initial={quickActionsState} ohResolved={quickActionsOhResolved} />}
           <div className={styles.home__cn__teamnews}>
             <TeamNews
               groups={teamNewsGroups}
               allTabExtraItems={teamNewsAllTabExtraItems}
+              forYouTeamUids={teamNewsForYouTeamUids}
               popularItems={popularItems}
               initialDigestSettings={initialDigestSettings}
             />
@@ -65,6 +75,7 @@ export default async function Home() {
       <HuskyDialog isLoggedIn={isLoggedIn} />
       <HuskyDiscover isLoggedIn={isLoggedIn} />
       <AutoMarkNewsNotification />
+      <MarkHomeVisited />
     </>
   );
 }
@@ -78,8 +89,33 @@ const getPageData = async () => {
   let projectFocusAreas: IFocusArea[] = [];
   let teamNewsGroups: ITeamNewsGroup[] = [];
   let teamNewsAllTabExtraItems: ITeamNewsItem[] = [];
+  let teamNewsForYouTeamUids: string[] = [];
   let popularItems: ITeamNewsPopularItem[] = [];
   let initialDigestSettings: ForumDigestSettings | null = null;
+
+  // Quick Actions is resolved server-side so its card set is final on first
+  // paint — deriving it client-side made the band render 2 cards, collapse to
+  // nothing, then settle on 2-4 as the user store and /me/access arrived.
+  // The cookie alone already fixes the group and Deals card; /me/access below
+  // upgrades it with the Office Hours permissions, which the cookie does not
+  // carry reliably (it skips the backend's alias expansion).
+  let quickActionsState = isLoggedIn
+    ? resolveQuickActionsState(codesFromCookiePolicies(userInfo?.rbac), codesFromCookiePermissions(userInfo?.rbac))
+    : null;
+  let quickActionsOhResolved = false;
+
+  // Passed to QuickActions as a prop, never seeded into the React Query cache:
+  // QueryProvider's client is a module-scope singleton shared across SSR
+  // requests, so writing per-user access into it would leak between users.
+  const myAccessPromise: Promise<MyAccessResponse | null> =
+    isLoggedIn && authToken
+      ? fetch(`${process.env.DIRECTORY_API_URL}/v2/access-control-v2/me/access`, {
+          headers: { Authorization: `Bearer ${authToken}` },
+          cache: 'no-store',
+        })
+          .then((res) => (res.ok ? res.json() : null))
+          .catch(() => null)
+      : Promise.resolve(null);
 
   // Seeded server-side (like Settings > Email does) so NewsRail's digest card
   // shows the correct subscribed/not-subscribed state on first paint, instead
@@ -102,6 +138,7 @@ const getPageData = async () => {
       teamNewsResponse,
       popularResponse,
       digestSettingsResponse,
+      myAccessResponse,
     ] = await Promise.all([
       getFocusAreas('Team', {}),
       getFocusAreas('Project', {}),
@@ -110,12 +147,26 @@ const getPageData = async () => {
       getTeamNewsGroupedByFocusArea({}, authToken),
       getTeamNewsPopular(undefined, authToken),
       digestSettingsPromise,
+      myAccessPromise,
     ]);
 
     teamNewsGroups = teamNewsResponse?.groups ?? [];
     teamNewsAllTabExtraItems = teamNewsResponse?.allTabExtraItems ?? [];
+    teamNewsForYouTeamUids = teamNewsResponse?.forYouTeamUids ?? [];
     popularItems = popularResponse?.items ?? [];
     initialDigestSettings = digestSettingsResponse;
+
+    if (isLoggedIn && myAccessResponse) {
+      quickActionsState = resolveQuickActionsState(
+        myAccessResponse.policies.map((policy) => policy.code),
+        // Union, not replacement: the two permission sets diverge both ways —
+        // /me/access expands legacy aliases but drops role-derived permissions,
+        // while the cookie carries role-derived ones unexpanded. Merging can
+        // only add cards, so nobody loses one they can see today.
+        [...myAccessResponse.effectivePermissions, ...codesFromCookiePermissions(userInfo?.rbac)],
+      );
+      quickActionsOhResolved = true;
+    }
     if (
       teamFocusAreaResponse?.error ||
       projectFocusAreaResponse?.error ||
@@ -134,8 +185,11 @@ const getPageData = async () => {
         featuredData,
         teamNewsGroups,
         teamNewsAllTabExtraItems,
+        teamNewsForYouTeamUids,
         popularItems,
         initialDigestSettings,
+        quickActionsState,
+        quickActionsOhResolved,
       };
     }
     teamFocusAreas = Array.isArray(teamFocusAreaResponse?.data)
@@ -158,8 +212,11 @@ const getPageData = async () => {
       discoverData,
       teamNewsGroups,
       teamNewsAllTabExtraItems,
+      teamNewsForYouTeamUids,
       popularItems,
       initialDigestSettings,
+      quickActionsState,
+      quickActionsOhResolved,
     };
   } catch (error) {
     console.error(error);
@@ -176,8 +233,11 @@ const getPageData = async () => {
       discoverData,
       teamNewsGroups,
       teamNewsAllTabExtraItems,
+      teamNewsForYouTeamUids,
       popularItems,
       initialDigestSettings,
+      quickActionsState,
+      quickActionsOhResolved,
     };
   }
 };

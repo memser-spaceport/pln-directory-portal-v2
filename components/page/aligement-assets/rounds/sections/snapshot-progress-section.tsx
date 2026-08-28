@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { TipContent } from '../types';
@@ -23,13 +23,25 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
   const handleTipLinkClick = (linkText: string, url: string) => {
     onSnapshotTipLinkClicked(linkText, url);
   };
+  // Left null through SSR and first paint to avoid a hydration mismatch,
+  // then filled in after mount.
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
+
   const { progressPercentage, timeRemaining, dateRangeLabel } = useMemo(() => {
-    const { progressPercentage, timeRemainingLabel, dateRangeLabel } = getSnapshotProgress(
-      new Date(startDate),
-      new Date(endDate),
-    );
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (!now) {
+      const { dateRangeLabel } = getSnapshotProgress(start, end, start);
+      return { progressPercentage: 0, timeRemaining: '', dateRangeLabel };
+    }
+
+    const { progressPercentage, timeRemainingLabel, dateRangeLabel } = getSnapshotProgress(start, end, now);
     return { progressPercentage, timeRemaining: timeRemainingLabel, dateRangeLabel };
-  }, [startDate, endDate]);
+  }, [startDate, endDate, now]);
 
   return (
     <>

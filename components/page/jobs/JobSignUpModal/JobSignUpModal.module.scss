@@ -1,0 +1,276 @@
+// Promoted from prototypes/entries/job-board/JobSignUpModal.module.scss, itself
+// transcribed from ApplyForDemoDayModal.module.scss. Sizes, spacing and
+// structure are copied 1:1; the colour layer is token/fallback pairs.
+@use 'styles/media';
+
+.modal {
+  position: relative;
+  background: var(--background-neutral-primary, #ffffff);
+  border-radius: 16px;
+  width: 100%;
+  // 560, not the source's 680. Demo Day's form carries an accredited-investor
+  // checkbox with a paragraph of legalese, an add-a-team sub-form and a longer
+  // description — content that needs the measure. This one is five fields, and
+  // at 680 the single-column inputs run to a line length that makes a short form
+  // look like a long one. 560 still clears the `role @ company` two-up row, which
+  // is the only thing here with a real width floor, and brings the card closer to
+  // its neighbours in this flow (the apply modal is 440).
+  max-width: 560px;
+  padding: 20px;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+  }
+}
+
+// Source's rule, doubled selector included: the form is taller than the
+// viewport on a phone, and a vertically centred card would push the first
+// field above the top edge.
+.overlay.overlay {
+  align-items: flex-start;
+}
+
+// The house close button: a 16px glyph in a 24px grey disc.
+//
+// This used to be a bare ✕ with the 16px `CloseIcon` scaled up to 24px, and it
+// was a faithful transcription — of the wrong variant. `ApplyForDemoDayModal`,
+// the source this modal copies, really does render a bare oversized X, but it is
+// the outlier: its own sibling one file over (`AccountCreatedSuccessModal`) uses
+// the disc, and so does everything else in the product — Demo Day's refer modal,
+// every deals dialog, the IRL gathering modal, the AI-apps feedback dialog. The
+// two modals this one stands beside on the job board (apply, refer) wear the
+// disc too, so the odd one out was the one dialog in the flow that closed
+// differently.
+//
+// Values are `AccountCreatedSuccessModal`'s, which is the same disc as
+// `ReferCompanyModal`'s but written in token/fallback pairs rather than raw
+// rgba. The scale-up goes with it: at 4px padding inside 24px, the glyph is
+// 16px, which is the size `CloseIcon` ships at.
+.closeButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--action-background-neutral-light_normal, rgba(14, 15, 17, 0.04));
+  border: none;
+  border-radius: var(--corner-radius-full-round, 9999px);
+  padding: var(--spacing-4xs, 4px);
+  cursor: pointer;
+  color: var(--foreground-neutral-secondary, #455468);
+  transition: background 0.2s;
+  z-index: 1;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.08);
+  }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// The source's `.text`: header block plus the rule that separates naming what
+// you are applying to from the fields that do it.
+.text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.title {
+  text-align: left;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 27px; /* 135% */
+  letter-spacing: -0.4px;
+}
+
+// Source's `.dateInfo`, renamed for what it holds here: the team name and what
+// submitting does.
+.subtitle {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px; /* 157.143% */
+  letter-spacing: -0.2px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+// Source's `.inputsLabel`. Its literal colour is #475569 — a Tailwind slate the
+// house rules ban outright (prototypes/CLAUDE.md #3), and the same value
+// FormField's own labels use. Swapped for the PL secondary pair: a 3-unit shift
+// nobody can see, and a token name that is true rather than one that isn't.
+.inputsLabel {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 166.667% */
+  margin-bottom: 0.25rem;
+}
+
+.inputsWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+    align-items: flex-start;
+
+    > span {
+      margin-top: 1rem;
+    }
+  }
+}
+
+// Source's `.separator`, minus its padding-bottom: that value hangs the glyph
+// off a field that carries a label above it, and the `@` here sits between two
+// unlabelled controls under one shared label.
+.separator {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  line-height: 20px;
+}
+
+// Source also sets `text-align: center` here, which both children immediately
+// override back to left. Dropped rather than transcribed dead.
+.bottomText {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.body {
+  color: var(--foreground-neutral-secondary, #455468);
+  text-align: left;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}
+
+.bodySecondary {
+  color: var(--foreground-neutral-secondary, #455468);
+  text-align: left;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+}
+
+// Source's `.link` inside `.bodySecondary`: the Privacy / Terms pair stays the
+// same grey as the sentence around it and is marked only by the underline.
+// Painting boilerplate brand blue would give it more pull than the submit
+// button beneath it.
+.inlineLink {
+  color: var(--foreground-neutral-secondary, #455468);
+  text-decoration: underline;
+
+  &:hover {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+// Both actions together on the right, against the source's `space-between`.
+//
+// Pushed to opposite ends, Cancel reads as the other half of a pair — equal
+// standing, equal claim on the eye — and at 560px the gap between them is wide
+// enough that they stop looking like one control group at all. Sat next to the
+// primary it is plainly the secondary: same row, same baseline, lower contrast,
+// and the eye lands on the filled button first because nothing else is competing
+// for the corner. This is also the order every other dialog in this flow uses —
+// the apply modal and the refer modal both put Cancel immediately left of the
+// primary.
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+
+  @media (max-width: 768px) {
+    flex-direction: column-reverse;
+
+    button {
+      width: 100%;
+    }
+  }
+}
+
+// The sign-in escape. Sits below the footer actions, centred, and reads as one
+// sentence — the surrounding words are the label, so they take the secondary
+// grey and only "Sign in" carries the link treatment.
+.signInRow {
+  text-align: center;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+// Landing.module.scss's `.link`, stripped back to a button element: a link, not
+// a second button, so it can't compete with Submit four pixels above it.
+.signInLink {
+  color: var(--action-foreground-brand-inverted_normal, #1b4dff);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+// The server's answer when the request cannot be filed. One neutral sentence —
+// deliberately NOT distinguishing "existing member" from "pending request":
+// this is an unauthenticated endpoint, and the split would be an account-status
+// oracle for arbitrary emails. Privy disambiguates after the person proves
+// ownership by signing in.
+.serverError {
+  color: var(--foreground-error-primary, #cc0523);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+}

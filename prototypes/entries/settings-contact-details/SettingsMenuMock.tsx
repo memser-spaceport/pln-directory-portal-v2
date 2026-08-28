@@ -30,7 +30,7 @@
  * One item, not two. "Contact details" and "Connected accounts" sitting next to
  * each other both read as "where my identity lives", which reproduces the
  * dithering this change exists to remove — so they are merged into a single tab
- * holding the email address, the sign-in methods and the contact handles.
+ * holding the email address, the sign-in methods and the social links.
  *
  * The envelope is free again: it belonged to "email preferences", which is now
  * "notification preferences" under the bell. So the one item a member hunting
@@ -45,9 +45,13 @@ const ACCOUNT = [{ name: 'email & accounts', icon: '/icons/email.svg', activeIco
  * (menu.tsx:46), and `/settings/recommendations` redirects home otherwise. The
  * mocked member doesn't have it.
  */
+/* `job preferences` where production has `job alert` (menu.tsx:55). Same slot,
+   same briefcase — what changed is what the item manages: the criteria that sort
+   the job board and make you findable, rather than a weekly email built on them.
+   The email is downstream of these, so it doesn't need a sibling item. */
 const PREFERENCES = [
   { name: 'notification preferences', icon: '/icons/bell.svg', activeIcon: '/icons/bell-blue.svg' },
-  { name: 'job alert', icon: '/icons/briefcase.svg', activeIcon: '/icons/briefcase-blue.svg' },
+  { name: 'job preferences', icon: '/icons/briefcase.svg', activeIcon: '/icons/briefcase-blue.svg' },
 ];
 
 /** Production's Admin Settings group: `manage members` (isAdmin), `manage teams` (isTeamLead || isAdmin). */

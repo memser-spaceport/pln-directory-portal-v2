@@ -22,25 +22,32 @@
 }
 
 /* ---- layout ---- */
+/* Mobile-first, and it was the wrong way round: the 260px rail was the default
+   and the single column was `@include tablet-portrait` (min-width, not a range),
+   so narrow screens got a 260px sidebar next to a squeezed form — every label
+   wrapped one word per line — while wide ones stacked. The rail appears from
+   960 up, where there's room for it beside a two-up field grid. */
 .layout {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
   max-width: 1080px;
   margin: 0 auto;
   align-items: start;
 
-  @include media.tablet-portrait {
-    grid-template-columns: minmax(0, 1fr);
+  @include media.tablet-landscape {
+    grid-template-columns: 260px minmax(0, 1fr);
   }
 }
 
 .aside {
-  position: sticky;
-  top: 20px;
+  position: static;
 
-  @include media.tablet-portrait {
-    position: static;
+  /* Only sticky once it's a column of its own; stuck to the top of a stacked
+     layout it would pin the menu over the form it sits above. */
+  @include media.tablet-landscape {
+    position: sticky;
+    top: 20px;
   }
 }
 
@@ -137,6 +144,38 @@
   line-height: 22px;
   font-weight: 600;
   color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* A line under a section title. Pulled up out of the section's own 16px gap —
+   at a full 16px it read as the first field's description rather than as the
+   title's. */
+.sectionHint {
+  margin: -8px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Start / end / Present, the same three controls as production's
+   `ExperienceDatesInput`. Bottom-aligned rather than production's top-aligned
+   row: there the switch sits beside two labels, here it should line up with the
+   controls it qualifies. */
+.dates {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+
+  > *:first-child,
+  > *:nth-child(2) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
 }
 
 .avatarRow {

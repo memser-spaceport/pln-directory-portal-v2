@@ -2,6 +2,8 @@ import { AUTH_ANALYTICS } from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 
+export type EmailUpdateSource = 'email-and-accounts' | 'member-profile';
+
 export const useAuthAnalytics = () => {
   const postHogProps = usePostHog();
 
@@ -78,20 +80,20 @@ export const useAuthAnalytics = () => {
     captureEvent(AUTH_ANALYTICS.AUTH_SETTINGS_PRIVY_ACCOUNT_LINK, { ...privyUser });
   };
 
-  const onUpdateEmailClicked = (privyUser: any) => {
-    captureEvent(AUTH_ANALYTICS.SETTINGS_USER_CHANGE_EMAIL_CLICKED, { ...privyUser });
+  const onUpdateEmailClicked = (privyUser: any, source?: EmailUpdateSource) => {
+    captureEvent(AUTH_ANALYTICS.SETTINGS_USER_CHANGE_EMAIL_CLICKED, { ...privyUser, source });
   };
 
-  const onUpdateEmailSuccess = (privyUser: any) => {
-    captureEvent(AUTH_ANALYTICS.AUTH_SETTINGS_EMAIL_UPDATE_SUCCESS, { ...privyUser });
+  const onUpdateEmailSuccess = (privyUser: any, source?: EmailUpdateSource) => {
+    captureEvent(AUTH_ANALYTICS.AUTH_SETTINGS_EMAIL_UPDATE_SUCCESS, { ...privyUser, source });
   };
 
-  const onUpdateEmailFailure = (privyUser: any) => {
-    captureEvent(AUTH_ANALYTICS.AUTH_SETTINGS_EMAIL_UPDATE_FAILED, { ...privyUser });
+  const onUpdateEmailFailure = (privyUser: any, source?: EmailUpdateSource) => {
+    captureEvent(AUTH_ANALYTICS.AUTH_SETTINGS_EMAIL_UPDATE_FAILED, { ...privyUser, source });
   };
 
-  const onUpdateSameEmailProvided = (privyUser: any) => {
-    captureEvent(AUTH_ANALYTICS.AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD, { ...privyUser });
+  const onUpdateSameEmailProvided = (privyUser: any, source?: EmailUpdateSource) => {
+    captureEvent(AUTH_ANALYTICS.AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD, { ...privyUser, source });
   };
 
   const onLinkAccountSubmitClicked = () => {

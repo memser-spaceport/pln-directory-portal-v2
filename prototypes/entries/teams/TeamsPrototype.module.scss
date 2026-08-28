@@ -33,7 +33,6 @@
   }
 }
 
-
 /* Mobile: tabs span the full row, each half stretched. Desktop: content-width,
    left-aligned to the header (the -12px cancels the first tab's own padding). */
 .tabsRoot {
@@ -61,8 +60,11 @@
   }
 }
 
+/* The link is the grid item, so it's what the row stretches — it has to pass
+   that height down to the card rather than shrink-wrap it. */
 .cardLink {
   display: block;
+  height: 100%;
   text-decoration: none;
   color: inherit;
 }
@@ -85,44 +87,146 @@
   }
 }
 
-/* Let the card grow to fit the in-card Follow button (production sets a fixed
-   168px height) and fill its grid column. Double class beats production sizing. */
+/* Fill the grid cell in both axes — cards in a row are as tall as the tallest,
+   so their bottom edges line up instead of stepping. Double class beats
+   production's fixed height. */
 .teamCard.teamCard {
-  height: auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   padding-bottom: 2px;
   width: 100%;
   position: relative;
 }
 
-/* 'top' variant, desktop: tertiary Follow link pinned to the card's top-right.
-   Hidden on mobile, where the secondary button below takes over. */
-.topFollow {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 2;
+/* Production's `.detailsContainer` is the card's last child (the absolutely
+   positioned corner badge comes first). Reached by position because it's a
+   production module class the prototype can't name. It absorbs the row's extra
+   height so the white card body fills to the bottom edge. */
+.teamCard.teamCard > :last-child {
+  flex: 1;
+}
 
-  @media (max-width: 1023.98px) {
-    display: none;
+/* ── Inactive team ─────────────────────────────────────────────────────────
+   A team that has wound down. The card steps back so the state reads from
+   across the grid; the badge in the corner names it once you're close.
+
+   Everything on the card steps down a rank: body off white, elevation dropped
+   for a hairline, logo desaturated, name to secondary, tag chips drained of
+   colour. The description alone is left where it is — it's already the card's
+   quietest type, and taking it further would put 12px text under the contrast
+   floor on a tinted card (#8897ae on #f9fafb measures 2.85:1, well short of
+   4.5). Muting is a hierarchy move, not a disabled state: the card is still a
+   link to a real profile with real people on it, and every word on it stays
+   readable.
+
+   Doubled selector to out-specify production's `.grid`, the same trick
+   `.teamCard.teamCard` above uses. */
+.teamCardInactive.teamCardInactive {
+  /* One step off white, against the #f1f5f9 page. `--background-neutral-subtle`
+     would have been the obvious name, but production spends it six different
+     ways (#f8f9fa, #f0f3f9, #f1f5f9, #f9fafb, an rgba…) and one of those is the
+     page background itself, which would sink the card into the page.
+     `soft-surface` is the pair production actually agrees on — 22 uses, one
+     value — and it means what is wanted here: a surface a step below white. */
+  background-color: var(--background-neutral-soft-surface, #f9fafb);
+
+  /* The tint alone did not survive contact with a real grid — rendered next to
+     eleven white cards, a 3% background step is invisible past arm's length,
+     and the badge ended up carrying the whole state on its own. Elevation is
+     what actually reads at a glance: every other card floats on a soft drop
+     shadow, so an inactive one sits flat inside a hairline border instead.
+     Same footprint, no motion, and legible from across the grid — which is what
+     the muting was for.
+
+     A real `border`, after an inset `box-shadow` failed here. Two things were
+     wrong with the inset: it is painted *behind* the element's children, so
+     `.profileContainer` — an opaque full-bleed band across the top third —
+     covered the whole top edge and both upper corners, leaving the card open at
+     the exact place a border is first read. And the reason for reaching for it
+     was false: the note said a border would push the card 2px past its
+     siblings, but `app/globals.scss` sets `* { box-sizing: border-box }`
+     globally, so a border costs no width at all. */
+  box-shadow: none;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  /* Production's card answers hover with a brand ring, which reads as "act on
+     this". Kept, at the neutral border tone: the card is still a link to a real
+     profile with real people on it, and it should still say so — just without
+     the invitation. The border deepens with it so the whole outline moves as
+     one thing rather than growing a second, differently-coloured edge. */
+  &:hover,
+  &:active {
+    outline: none;
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow: 0 0 0 2px var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
   }
 }
 
-/* 'pill' variant: upvote-style pill pinned to the card's top-right on every
-   viewport — at 24px tall it fits the mobile card without a fallback. */
-.cornerPill {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 2;
+/* The logo is the card's face and the loudest thing on it, so it carries most
+   of the muting. Greyscale rather than opacity alone: a half-transparent mark
+   over a tinted card just looks like a rendering bug, where a desaturated one
+   reads as deliberate. */
+.mutedLogo {
+  filter: grayscale(1);
+  opacity: 0.45;
 }
 
-.followRow.followRowSecondaryMobile {
-  @include breakpoint-1024 {
-    display: none;
-  }
+/* Production draws the card name at #0f172a — the darkest thing on the grid,
+   and on an inactive card the one element still shouting. Down to the secondary
+   text tone, which is where the description already sits: the two now differ by
+   size and weight (18px/600 against 12px/400) rather than by darkness, so the
+   name still leads its card without leading the grid. */
+.mutedName.mutedName {
+  color: var(--foreground-neutral-secondary, #455468);
 }
 
-/* Demo-only bar to switch the Follow-control card design. */
+/* The card's top band — production draws it `linear-gradient(180deg, #fff 0%,
+   #e2e8f0 205%)`, so it opens on pure white and was the thing still making an
+   inactive card read light from a distance. Measured, it's a third of the card
+   above the fold of the name.
+
+   Flattened to one muted tone rather than re-tinted as a gradient: a gradient
+   is a light source, and the whole point of the state is that this card isn't
+   lit. A step cooler and darker than the body below it, so the band still reads
+   as a band and the logo still has something to sit on. */
+.mutedBand.mutedBand {
+  background: var(--background-neutral-subtle, #f0f3f9);
+  border-bottom-color: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+/* The tag chips take their fill from `--tag-color`, which production sets
+   per-tag; desaturating the row drains those without touching `Tag` itself, and
+   greyscale moves hue rather than lightness so the 12px labels keep their own
+   contrast. Worth stating plainly: against *these* mocks it is a no-op — none
+   of MOCK_TEAMS' tags carry a `color`, so every chip is already the neutral
+   #f1f5f9 default. It's here for the production data this grid stands in for,
+   where they do. The chips still recede on an inactive card, just passively:
+   a #f1f5f9 fill on a #f9fafb body has almost nowhere to be seen, where the
+   same chip on a white card has a whole step of contrast. */
+.mutedTags {
+  filter: grayscale(1);
+}
+
+/* The state badge: production `Badge` at `default`, re-ranked for this corner.
+
+   Badge ships 14px/20px, which is right for the settings rows it was drawn for
+   and wrong here — against an 18px card title, a 14px state label lands at 78%
+   of the name and competes with it for a fact nobody came to read. The corner
+   already has a scale: the news chip wears 11px/16px, so this takes the same
+   one. Size is not what tells the two pills apart — the news chip carries a dot
+   and a number and sits on a white card; this carries a bare word on a grey
+   one. */
+.stateChip.stateChip {
+  padding: 0 6px;
+  font-size: 11px;
+  line-height: 16px;
+  min-width: 0;
+  /* "Inactive" breaking across two lines in a corner would read as a bug. */
+  white-space: nowrap;
+}
+
+/* Demo-only bar to switch how the updates badge labels itself. */
 .demoBar {
   display: flex;
   align-items: center;
@@ -139,11 +243,246 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-/* Full-width follow button placed in-card, after the tags. */
+/* "N new updates" badge in the card's top-right corner — the slot the Follow
+   control used to hold. With Follow gone it's the only thing on the card you can
+   act on, so it takes the corner the eye already checks. */
+.cornerUpdates {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  max-width: calc(100% - 24px);
+
+  /* The two-up mobile card is ~170px wide and its logo is centred at the top —
+     a corner badge lands on top of it, so mobile uses the row below the tags. */
+  @media (max-width: 1023.98px) {
+    display: none;
+  }
+}
+
+/* Mobile home for the badge, under the tags. `margin-top: auto` pins it to the
+   card's bottom edge, so on equal-height cards the badges line up across the
+   row instead of chasing each description. */
+.updatesRow {
+  display: flex;
+  margin-top: auto;
+  padding-top: 8px;
+
+  @include breakpoint-1024 {
+    display: none;
+  }
+}
+
+/* Hulu-style state pill. A bare button wrapper so the Badge (a <span>) can take
+   the click without the card link stealing it. */
+.pillButton {
+  display: inline-flex;
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 26px;
+  }
+}
+
+/* The neutral count chip. Wears TeamUpdateStrip's `.sourceChip` for its shell
+   (see TeamCardView); this class carries only the interaction, since the chip
+   opens something and the source chip doesn't.
+   Doubled selector because the two classes come from different CSS modules, so
+   source order between them isn't guaranteed. */
+.countChip.countChip {
+  /* `.sourceChip` sets `display: inline-block` — right for a bare word, wrong
+     the moment the chip holds a glyph and a count, because it drops Badge's own
+     `gap: 2px` and centring on the floor. Back to the Badge's flex row. */
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+/* The glyph sized to the 11px chip rather than the 16px box it ships in — the
+   same step down `TeamUpdatesLink.small` makes for the same reason. */
+.countChipIcon {
+  display: flex;
+  flex-shrink: 0;
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* The `dot` mode's mark. Production's unread dot verbatim
+   (NotificationItem.unreadDot: 5px circle, #4174ff) — and the design system's
+   own Badge `dotIndicator` lands on 5px too at the size whose icon slot is the
+   12px one above, so the two sources agree on the pairing.
+   Brand-coloured at rest where the glyph is grey: a dot carries no meaning of
+   its own, so if it isn't the unread colour it's just a bullet. One 5px circle
+   is a twelfth of the ink a blue badge spends to say the same thing. */
+.countChipDot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--foreground-brand-secondary_inverted, #4174ff);
+  transition: background 0.15s ease;
+}
+
+/* Once the chip itself goes brand, the dot rides its text colour — the DS's own
+   `dotIndicator` is `background: currentColor` for exactly this reason. At the
+   arm state that resolves to the same #4174ff it already was; on chip hover it
+   deepens with the label instead of being left a shade behind it. */
+.teamCard:hover .countChipDot {
+  background: currentColor;
+}
+
+/* Step one, on the card. The chip's own hover came too late to be an
+   affordance — you only saw it once you were already on the target — so the card
+   arms it on approach, the way production's own card answers hover with a brand
+   ring (`0 0 0 2px #156ff740`). Keyed to the card, not the grid, so exactly one
+   chip is ever lit: the objection to a brand-blue badge here was twelve of them
+   competing for one click, and one at a time is not twelve.
+   Border and text only — no fill yet, so the resting grid stays quiet and the
+   chip still has somewhere to go when you actually reach it.
+   Scoped to the two slots where the chip stands alone (the desktop corner, the
+   mobile row). Deliberately NOT `follow` mode's shared row: Follow is the blue
+   thing there, and arming the chip on card hover would light both ends of one
+   row at once — the competition that row was arranged to avoid. In `follow` the
+   chip earns its colour only when you actually point at it. */
+.teamCard:hover .cornerUpdates .countChip.countChip,
+.teamCard:hover .updatesRow .countChip.countChip {
+  border-color: var(--border-brand-subtle, #aebfff);
+  color: var(--foreground-brand-secondary_inverted, #4174ff);
+}
+
+/* Step two, on the chip. Every chip in the product you can press answers hover
+   with brand — PathProfileChip and RouteChip go `#eef2ff`/`#1b4dff`,
+   TeamUpdatesLink goes `#e8edff`/`#1b4dff`. Grey-on-grey is the *static* chip's
+   language: PathProfileChip ships a `.chipStatic` modifier whose whole job is to
+   revert a chip to a neutral no-op hover, which is what this used to be.
+   Lands on TeamUpdatesLink's own *hover* fill (#e8edff), not its rest fill: the
+   arm state above already spends the badge's resting colours, so reusing them
+   here made the second step invisible at chip scale — two states a hair apart
+   read as one state that flickers.
+   Written under `.teamCard:hover` because it always *is* — the chip lives inside
+   the card — and because step one would otherwise outrank this one on
+   specificity and hold the chip at the arm state you just walked past. */
+.teamCard:hover .pillButton:hover .countChip.countChip {
+  background: #e8edff;
+  border-color: var(--border-brand-subtle, #aebfff);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* Badge left, Follow right, straddling the card's top band — the arrangement a
+   feed card uses for a team's name and its Follow control.
+   Absolutely positioned across the logo band (which is the slot the corner badge
+   uses), so the centred logo sits between the two rather than being pushed by
+   them. z-index clears the logo; the band is only 64px tall. */
+.followTopRow {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+
+  /* Two-up mobile cards are ~170px wide with a centred logo — no room for a
+     control either side of it, so mobile uses the row below the tags. */
+  @media (max-width: 1023.98px) {
+    display: none;
+  }
+}
+
+/* Mobile home for the same pair. Bottom-pinned like .updatesRow so the cards in
+   a row line up rather than each chasing its own description. */
 .followRow {
   display: flex;
-  width: 100%;
-  margin-top: 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  margin-top: auto;
+  padding-top: 8px;
+
+  @include breakpoint-1024 {
+    display: none;
+  }
+}
+
+/* Headline experiment. Same bottom-pinned slot as .updatesRow, but at every
+   width — the corner can't hold a headline — and with a hairline above it,
+   because a line of text under the tags otherwise reads as more description. */
+.headlineRow {
+  display: flex;
+  min-width: 0;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+/* No tags on this card.
+   Production draws a rule under .teamDetail (the name + description block) to
+   separate it from the tags — but it draws it unconditionally, so a team with
+   no tags gets a rule with nothing under it, closing off the card for no
+   reason. Two rules then stack up in Headline mode.
+   Kill that one and keep the headline's own, which is the rule actually doing
+   work: it separates the team from its news.
+   Reached by position, like the .teamCard rule above — .teamDetail is a
+   production module class this file can't name. `> :last-child` is
+   .detailsContainer, whose `> :first-child` is .teamDetail. */
+.teamCardNoTags > :last-child > :first-child {
+  border-bottom: none;
+}
+
+/* MOVED: the `.newsModal*` rules that styled TeamNewsModal now live beside the
+   component in news-shared/TeamNewsModal.module.scss — the job board opens the
+   same modal from the same chip, so its styling cannot stay inside one entry's
+   stylesheet. Nothing here referenced them but the modal itself. */
+
+/* Gutter for the mobile "⊕ Filters + Sort by" bar.
+   Production's MobileFilterWrapper sets `padding-inline: 0` on its own root and
+   leaves the horizontal gutter to whatever contains it. Here it sat as a bare
+   sibling of .titleSec, so it spanned the full 390px — Filters starting at x=0
+   and the sort menu ending at x=390 — while the "Teams (12)" line above was
+   inset 16px. Nothing overflowed; the controls just had no margin to breathe in
+   and the header column didn't line up.
+   16px matches .titleSec's own padding, so title, filters and cards share one
+   left edge. */
+.mobileFiltersGutter {
+  padding: 0 16px;
+}
+
+/* The "Show it" inside the empty state — the one pressable thing in a sentence
+   that is otherwise a statement, so it takes the link tone and nothing else. */
+.hiddenNoteAction {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  /* The link pair, not the chip-dot pair the card uses a few rules up: this is
+     running text someone reads and presses, so it takes the brand tone the rest
+     of the product gives a link. */
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .empty {
@@ -156,4 +495,3 @@
   font-size: 14px;
   line-height: 20px;
 }
-

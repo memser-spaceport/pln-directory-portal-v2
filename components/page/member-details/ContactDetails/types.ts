@@ -4,6 +4,7 @@ export interface TEditContactForm {
   linkedin: string | null;
   discord: string | null;
   twitter: string | null;
+  bluesky: string | null;
   email: string | null;
   shareContacts: boolean;
 }

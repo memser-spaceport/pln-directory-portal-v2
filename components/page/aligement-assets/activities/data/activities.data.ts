@@ -353,7 +353,7 @@ export const activitiesData: ActivitiesData = {
       points: '1000',
       frequency: 'Recurring',
       verificationType: 'Auto',
-      cta: 'submit',
+      cta: 'confirm',
       popupContent: {
         title: 'Help Organize an Event',
         overview: 'Host or co-host a curated activity or event catered to Protocol Labs participants to aid with an array of topics, ranging from company formation, dedicated development, cross-network collaboration, etc. Events should be intentionally designed, independently run without direct PL, Inc. or Polaris, Inc. sponsorship in the form of direct compensation for time or labor, and focused on delivering real value to the Protocol Labs community.',

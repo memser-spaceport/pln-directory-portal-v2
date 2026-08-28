@@ -54,6 +54,8 @@ export type ITeamListOptions = IListOptions & {
   askTags?: string;
 };
 
+export type TeamStatus = 'ACTIVE' | 'INACTIVE';
+
 export interface ITeamResponse {
   uid?: string;
   tier?: string | number;
@@ -73,6 +75,12 @@ export interface ITeamResponse {
   teamMemberRoles?: [];
   linkedinHandler?: string;
   twitterHandler?: string;
+  blueskyHandler?: string | null;
+  crunchbaseHandler?: string | null;
+  dateFounded?: number | null;
+  teamSize?: string | number | null;
+  location?: string | null;
+  status?: TeamStatus | null;
   linkedinHandle?: string | null;
   createdAt?: string;
   asks?: string[];
@@ -150,6 +158,16 @@ export interface ITeam {
     [key: string]: unknown;
   };
   telegramHandler?: string | null;
+  blueskyHandler?: string | null;
+  crunchbaseHandler?: string | null;
+  /** Founding year, as a 4-digit integer (e.g. 2014). */
+  dateFounded?: number | null;
+  /** Employee count (as a number) or a range label (e.g. "11-50"). Stored as text by the API. */
+  teamSize?: string | number | null;
+  /** Free-text place label, e.g. "San Francisco, United States". */
+  location?: string | null;
+  /** Absent or null counts as `ACTIVE` — see `isTeamInactive`. */
+  status?: TeamStatus | null;
   blog?: string | null;
   isFollowed?: boolean;
 }

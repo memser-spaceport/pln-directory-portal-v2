@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/common/Checkbox';
 import { FormField } from '@/components/form/FormField';
 import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 import { FormSelect } from '@/components/form/FormSelect';
+import { FormSwitch } from '@/components/form/FormSwitch';
 import { BioInput } from '@/components/page/member-details/BioDetails/components/BioInput';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 import { EditFormControls } from '@/components/common/profile/EditFormControls';
@@ -21,7 +22,10 @@ import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions'
 import { IUserInfo } from '@/types/shared.types';
 import { ITeam } from '@/types/teams.types';
 import { ENROLLMENT_TYPE } from '@/utils/constants';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useOnSubmit } from '@/components/page/team-details/hooks/useOnSubmit';
+
+import { isTeamInactive } from '../../utils/isTeamInactive';
 
 import { editTeamDetailsSchema } from './helpers';
 
@@ -34,6 +38,10 @@ type TEditTeamDetailsForm = {
   isImageDeleted: boolean;
   name: string;
   shortDescription: string;
+  dateFounded: string;
+  teamSize: string;
+  location: string;
+  isActive: boolean;
   isFund: boolean;
   fundingStage: TOption | null;
   industryTags: TOption[];
@@ -51,9 +59,10 @@ const toOption = (item?: { title?: string; uid?: string }, fallbackValue?: strin
   return { label: item?.title || fallbackValue || '', value: item?.uid || fallbackValue || item?.title || '' };
 };
 
-export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
+export const EditTeamDetailsForm = ({ team, userInfo, onClose }: Props) => {
   const { data: formOptions } = useTeamsFormOptions();
   const analytics = useTeamAnalytics();
+  const isAdmin = isAdminUser(userInfo);
 
   const fundingStageOptions =
     formOptions?.fundingStage?.map((item: { id: string; name: string }) => ({ label: item.name, value: item.id })) ||
@@ -77,6 +86,10 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
       isImageDeleted: false,
       name: team?.name || '',
       shortDescription: team?.shortDescription || '',
+      dateFounded: team?.dateFounded ? String(team.dateFounded) : '',
+      teamSize: team?.teamSize === null || team?.teamSize === undefined ? '' : String(team.teamSize),
+      location: team?.location || '',
+      isActive: !isTeamInactive(team),
       isFund: team?.isFund ?? false,
       fundingStage: defaultFundingStage,
       industryTags: defaultIndustryTags,
@@ -86,10 +99,19 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
     resolver: yupResolver(editTeamDetailsSchema),
   });
 
-  const { handleSubmit, reset, watch } = methods;
+  const { handleSubmit, reset, watch, setValue } = methods;
   const formValues = watch();
   const prevValuesRef = useRef<Record<string, unknown>>({});
   const isFirstRenderRef = useRef(true);
+
+  const dateFoundedValue = formValues.dateFounded;
+  useEffect(() => {
+    const digitsOnly = (dateFoundedValue ?? '').replace(/\D/g, '').slice(0, 4);
+
+    if (digitsOnly !== dateFoundedValue) {
+      setValue('dateFounded', digitsOnly, { shouldValidate: true, shouldDirty: true });
+    }
+  }, [dateFoundedValue, setValue]);
 
   useEffect(() => {
     if (isFirstRenderRef.current) {
@@ -139,6 +161,10 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
       name: formData.name.trim(),
       shortDescription: formData.shortDescription.trim(),
       longDescription: formData.about,
+      dateFounded: formData.dateFounded.trim() ? Number(formData.dateFounded.trim()) : null,
+      teamSize: formData.teamSize.trim() || null,
+      location: formData.location.trim() || null,
+      ...(isAdmin ? { status: formData.isActive ? 'ACTIVE' : 'INACTIVE' } : {}),
       isFund: formData.isFund,
       fundingStage: formData.fundingStage
         ? { uid: formData.fundingStage.value, title: formData.fundingStage.label }
@@ -159,12 +185,27 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
       values: {
         name: formData.name.trim(),
         shortDescription: formData.shortDescription.trim(),
+        dateFounded: formData.dateFounded.trim(),
+        teamSize: formData.teamSize.trim(),
+        location: formData.location.trim(),
+        isActive: formData.isActive,
         isFund: formData.isFund,
         fundingStage: formData.fundingStage?.value ?? null,
         industryTags: formData.industryTags.map((item) => item.value),
         about: formData.about,
       },
     });
+
+    if (isAdmin) {
+      const wasActive = !isTeamInactive(team);
+      if (formData.isActive !== wasActive) {
+        analytics.onTeamDetailStatusChanged({
+          teamUid: team.id,
+          from: wasActive ? 'ACTIVE' : 'INACTIVE',
+          to: formData.isActive ? 'ACTIVE' : 'INACTIVE',
+        });
+      }
+    }
 
     reset(formData);
   };
@@ -195,6 +236,37 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
               </>
             }
           />
+          <FormField
+            name="dateFounded"
+            placeholder="eg., 2014"
+            label="Date Founded"
+            maxLength={4}
+            inputMode="numeric"
+            description="The 4-digit year your team was founded."
+          />
+
+          <FormField
+            name="teamSize"
+            placeholder="eg., 50 or 11-50"
+            label="Team Size"
+            description="Employee count as a number, or a range label."
+          />
+
+          <FormField
+            name="location"
+            placeholder="eg., San Francisco, United States"
+            label="Location"
+            description="Where your team is based."
+          />
+
+          {isAdmin && (
+            <FormSwitch
+              name="isActive"
+              label="This team is active"
+              helperText="Inactive teams are hidden from the Teams page and search, and their profile shows an “Inactive” badge."
+            />
+          )}
+
           <div className={s.checkboxLabel}>
             <Checkbox
               checked={!!methods.watch('isFund')}

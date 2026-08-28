@@ -52,6 +52,13 @@ export function CommentLayerMount() {
 
     (async () => {
       try {
+        // Load in isolation first: the vendored bundles below attach global
+        // click/mousemove listeners as a side effect of import, before
+        // .init() runs — if the CDN script fails, those listeners are still
+        // live and throw on every click.
+        await ensureScript(SUPABASE_JS_CDN, () => !!(window as any).supabase);
+        if (disposed) return;
+
         await Promise.all([
           // Vendored browser IIFEs, no exports — imported for their
           // `window.CommentLayer` / `window.CommentLayerSupabase` side effects.
@@ -59,9 +66,6 @@ export function CommentLayerMount() {
           import('./comment-layer.min.js'),
           // @ts-expect-error vendored side-effect-only bundle
           import('./supabase-adapter.min.js'),
-          // Adapter dependency — must exist as window.supabase before the store
-          // factory runs.
-          ensureScript(SUPABASE_JS_CDN, () => !!(window as any).supabase),
         ]);
         if (disposed) return;
 

@@ -11,7 +11,7 @@ import { CloseIcon } from '@/components/icons';
 import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import type { Option } from '@/components/form/FormSelect/types';
 import { toast } from '@/components/core/ToastContainer';
-import { useJobsAnalytics } from '@/analytics/jobs.analytics';
+import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 
 import { useCreateJobReferral, useJobReferralDraft } from '@/services/jobs/hooks/useJobReferral';
 
@@ -40,6 +40,8 @@ interface ReferModalProps {
   role: IJobRole;
   teamId: string;
   teamName: string;
+  /** Surface the referral was started from, carried onto every event in the funnel. */
+  source: JobSurface;
 }
 
 type ReferFormData = {
@@ -76,7 +78,7 @@ type ReferFormData = {
  * directory as you type, which no production select can drive — see
  * `MemberSearchSelect` and `RecipientPicker`.
  */
-export function ReferModal({ open, onClose, role, teamId, teamName }: ReferModalProps) {
+export function ReferModal({ open, onClose, role, teamId, teamName, source }: ReferModalProps) {
   const [sent, setSent] = useState(false);
   const [messageEdited, setMessageEdited] = useState(false);
   const [recipientsSeeded, setRecipientsSeeded] = useState(false);
@@ -102,6 +104,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName }: ReferModal
     role_title: role.roleTitle,
     role_category: role.roleCategory,
     seniority: role.seniority,
+    source,
   };
 
   // Only fetched while the modal is open — a job board page holds one of these per role.
@@ -288,13 +291,26 @@ export function ReferModal({ open, onClose, role, teamId, teamName }: ReferModal
           <CloseIcon />
         </Button>
 
-        <div className={s.iconWrapper}>
+        {/* The masthead aligns to the state under it, which is why these three
+            carry a modifier rather than a fixed alignment.
+
+            Composing, the card is a form — a recipient field, a message box,
+            twin footer actions — and a form has one left edge that every label
+            and field starts from; a centred icon and title over it put two
+            alignment axes in a 400px card. Sent, there is no form left: one
+            sentence and a `Done` button, which is an announcement, and an
+            announcement is the thing centring is actually for. Same rule the
+            apply modal follows (see `.headerLeft` there), applied to a dialog
+            that happens to be both kinds of card in turn. */}
+        <div className={`${s.iconWrapper} ${sent ? '' : s.headerIconLeft}`}>
           <EnvelopeIcon />
         </div>
 
-        <h2 className={s.title}>{sent ? 'Referral sent' : `Refer for ${role.roleTitle}`}</h2>
+        <h2 className={`${s.title} ${sent ? '' : s.headerLeft}`}>
+          {sent ? 'Referral sent' : `Refer for ${role.roleTitle}`}
+        </h2>
 
-        <p className={s.desc}>
+        <p className={`${s.desc} ${s.headerDesc} ${sent ? '' : s.headerLeft}`}>
           {sent
             ? `Your note is on its way to ${sentTo}. They can reply to you directly, and ${firstName} is notified too.`
             : 'Referral email will be sent to everyone listed including you.'}

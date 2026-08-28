@@ -78,7 +78,9 @@ export const MOCK_MEMBER = {
   ],
   teams: [
     {
-      id: 'lattice',
+      // uid matches the newsfeed prototype's roster, so the team's "N new
+      // updates" badge lands on the same stories it counted.
+      id: 'lattice-compute',
       name: 'Lattice Compute',
       role: 'Co-founder & CEO',
       logo: null,

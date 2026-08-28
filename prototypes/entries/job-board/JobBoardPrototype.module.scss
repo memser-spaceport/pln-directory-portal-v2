@@ -2,8 +2,66 @@
 // JobsContent.module.scss (imported in JobBoardPrototype.tsx). Only the mount gate
 // and the local empty state live here.
 
+@use 'styles/media';
+
 .mountGate {
   min-height: 60vh;
+}
+
+// The review band: the prototype-only "Preview as" tabs, sitting directly under
+// the navbar. The mobile-bar switch that used to share it is gone, so this is
+// the only scaffolding left on the page.
+//
+// They sat between the toolbar and the job list, where they read as part of the
+// product and pushed the thing under review below the fold. Outside the page
+// column they are plainly scaffolding — and because the navbar is sticky and
+// this band is not, they scroll away and leave the board to be judged on its own.
+//
+// Tinted, not bordered. The navbar is white and carries its own
+// `0 1px 4px #e2e8f0` shadow; a border here would draw a second line directly
+// under that one, where a tint separates band from header without adding
+// anything. Horizontal padding matches NavBar's `.Root` (16px, 24px from
+// tablet-landscape) so the tabs start on the logo's left edge.
+.reviewBand {
+  padding: 12px 16px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+
+  @include media.tablet-landscape {
+    padding: 12px 24px;
+  }
+}
+
+// The role count inside production's `.titleCount` parenthetical. Brand blue and
+// 600, against the 400 muted grey the rest of the line keeps — the contrast is
+// the point, so lifting the whole parenthetical would buy nothing.
+//
+// Colour and weight only: no size change. It sits inside a 24px/700 h1 as a
+// smaller aside, and growing it would start a second heading rather than
+// emphasise a word inside one.
+// Primary black, not brand blue. Blue is this product's link-and-action colour —
+// on a page whose every card carries a blue Apply button, a blue phrase inside
+// the heading reads as something to press. The contrast against the muted grey
+// the rest of the parenthetical keeps is what does the work; weight and tone are
+// enough, and they don't promise a click that isn't there.
+.titleCountRoles {
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// `mobileHeader` is a no-wrap baseline row; keep it able to wrap so a long title
+// block never gets pushed off the edge.
+.mobileHeaderWrap {
+  flex-wrap: wrap;
+}
+
+// The switch chrome itself is newsfeed-v0's (.switchBar / .switch / .switchBtn /
+// .switchNote); only the row is local, because v0's own .versionRow reserves a
+// 312px right rail this page doesn't have.
+.versionRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .empty {
@@ -16,4 +74,53 @@
   font-size: 14px;
   line-height: 20px;
   text-align: center;
+}
+
+// The `?email=1` review surface: the application email on its own page.
+//
+// Narrow and centred, because the thing under review is an email — reading it at
+// the board's full width would be reading it at a width no mail client uses. 640
+// is the digest's own reading measure.
+.emailStage {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+
+  @include media.tablet-landscape {
+    padding: 32px 0 64px;
+  }
+}
+
+// The All / Applied scope strip, on its own row above the list.
+//
+// Its own row rather than production's placement beside the title: this board
+// renders two title rows (mobile header + desktop toolbar) and hides one, which
+// is fine for a heading and wrong for a live control — see the note in the
+// component. One row, visible at every width, and the strip keeps its left edge
+// with the list it scopes.
+.scopeTabs {
+  // The list's own inset on mobile, flush from 1024 up, matching `JobsContent`'s
+  // `.list` so the tabs line up with the cards under them rather than with the
+  // toolbar above.
+  padding: 0 8px;
+
+  @include media.breakpoint-1024 {
+    padding: 0;
+  }
+}
+
+// The way back out of an empty Applied tab. A text button, not a filled one:
+// the empty state is a sentence, and the action is the last clause of it.
+.emptyLink {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }

@@ -7,8 +7,10 @@ import {
 
 const realDate = Date;
 
-function freeze(iso: string) {
-  const frozen = new realDate(iso);
+/** Takes an ISO string or a Date, so a caller can pin *local* calendar components
+ * directly when the assertion depends on which local month the clock lands in. */
+function freeze(when: string | Date) {
+  const frozen = when instanceof realDate ? when : new realDate(when);
   // @ts-expect-error — minimal Date stub for the frozen clock
   global.Date = class extends realDate {
     constructor(...args: any[]) {
@@ -36,11 +38,23 @@ describe('getCurrentRoundNumber', () => {
     expect(getCurrentRoundNumber()).toBe(18);
   });
 
-  it('rolls to the next round at the month boundary', () => {
-    freeze('2026-07-31T23:59:00Z');
+  // getCurrentRoundNumber reads the LOCAL calendar month, so the boundary has to
+  // be expressed in local time. Written as the UTC instants 2026-07-31T23:59Z /
+  // 2026-08-01T00:01Z, this straddled the boundary only in UTC: at +03:00 both
+  // land in August and at -07:00 both land in July, so it passed in CI and failed
+  // on every developer machine outside UTC. Both Dates are built before the first
+  // freeze() so they use the real constructor, not the stub installed below.
+  it('rolls to the next round at the local month boundary', () => {
+    const endOfJuly = new realDate(2026, 6, 31, 23, 59);
+    const startOfAugust = new realDate(2026, 7, 1, 0, 1);
+
+    freeze(endOfJuly);
     const july = getCurrentRoundNumber();
-    freeze('2026-08-01T00:01:00Z');
+    expect(getRoundDateInfo(july).snapshotPeriod).toBe('2026-07');
+
+    freeze(startOfAugust);
     expect(getCurrentRoundNumber()).toBe(july + 1);
+    expect(getRoundDateInfo(july + 1).snapshotPeriod).toBe('2026-08');
   });
 
   it('round-trips against getRoundDateInfo', () => {

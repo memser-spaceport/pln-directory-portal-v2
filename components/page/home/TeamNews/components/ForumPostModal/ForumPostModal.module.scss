@@ -90,3 +90,24 @@
     text-decoration: underline;
   }
 }
+
+.footerSplit.footerSplit {
+  justify-content: space-between;
+}
+
+.openInForum {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-decoration: none;
+
+  &:hover {
+    filter: brightness(0.8);
+    text-decoration: underline;
+  }
+}

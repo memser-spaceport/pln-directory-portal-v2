@@ -50,7 +50,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'teams',
     title: 'Teams — listing page',
     description:
-      'Mocked recreation of the teams listing: filters rail, toolbar (search / sort / view toggle), and a responsive grid of real TeamGridView cards linking to the team profile.',
+      'Mocked recreation of the teams listing: filters rail, toolbar (search / sort / view toggle), and a responsive grid of real TeamGridView cards linking to the team profile. Teams that have wound down carry an "Inactive" state — muted card, grey badge, no news mark — and are out of the default set behind a "Show inactive teams" toggle in the filter rail.',
     category: 'Teams',
     load: () => import('./entries/teams/TeamsPrototype'),
   },
@@ -109,6 +109,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Member profile page augmented with Affinity CRM context: relationship owner, last contact (date + one-line summary), and an interaction-frequency read (high-touch vs neglected) over the last 6 months. Adds a Follow button + follower count on the right of the header, with a manage-notifications modal.',
     category: 'Members',
     load: () => import('./entries/member-profile/MemberProfilePrototype'),
+  },
+  {
+    key: 'person-city-calendar',
+    title: 'Person city calendar',
+    description:
+      "Signal which city you'll be in over time, defaulting to your home city. Four real pages at production fidelity — the IRL gathering RSVP that seeds a trip, a Travel plans section on your profile beside Office Hours, /members with a third Travel view (person × day overlap matrix), and a visitor's profile. State carries across tabs: RSVP on the gathering and the trip appears everywhere else.",
+    category: 'Members',
+    load: () => import('./entries/person-city-calendar/PersonCityCalendarPrototype'),
   },
   {
     key: 'demoday-tag-placements',
@@ -170,9 +178,17 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'job-board',
     title: 'Job Board',
     description:
-      'Faithful mocked copy of the production /jobs page: the two-pane dashboard shell with a filters rail (search, role category, seniority, workplace type, location) and the team-grouped role cards (real TeamGroupCard + RoleRow, "New" badges, relative dates, expandable role lists) with a Sort by dropdown. Each role carries two referral controls: a "Refer" button that opens the referral modal (search the directory for the person you\'re referring, choose who receives it in one "type a name or email" field (hiring team listed first with role lines, external addresses added straight from the same menu) and send a note pre-drafted from a template that re-drafts as the person or recipients change, and that you can edit or reset), and the share icon popover for pushing the role out to LinkedIn / X / copy link. The roles are mocked but the people are not: both pickers in the referral modal search live directory members, and the hiring team\'s leads are prefilled as recipients from the directory.',
+      'Faithful mocked copy of the production /jobs page, carrying the apply flow. Logged out, one standing banner makes the offer — "Sign in to apply for N open roles with one click", counting whatever the rail is currently showing, with both Sign up and Sign in. Every role row leads with a real Apply button, keeping the arrow beside it as the way out to the posting; pressing Apply signs you in, then opens a profile drawer. The drawer is the member profile itself, card for card (header, Experience, Teams, Project Contributions, Repositories) on production\'s own DetailsSection chrome, and it opens straight into the Experience form because one experience entry is the entire requirement — everything else is optional. It also holds a private "Job search status" (actively looking / open to the right role / not looking) marked PL Team only and shown nowhere on the profile. Save and the application you were on resumes: an apply modal reads your profile back with an Edit escape, takes a required cover letter, and the row flips to "Applied". Nothing on the board is hidden from a logged-out visitor — the gate is on applying, not browsing. The earlier matching answer to the same question ("Matches you" badges, a "Best match for me" sort, the nudge strip, the preferences modal) is gone, as is the timed dwell prompt: with an Apply button on every row the ask is already made at the moment of intent. Refer is unchanged and still signed-in only: the referral modal searches live directory members and prefills the hiring team\'s leads as recipients, alongside the share popover for LinkedIn / X / copy link.',
     category: 'Jobs',
     load: () => import('./entries/job-board/JobBoardPrototype'),
+  },
+  {
+    key: 'newsfeed-discovery',
+    title: 'Newsfeed discoverability — labelled door + unread signal',
+    description:
+      "The feed isn't hard to find — `/` redirects to `/home`, so every session starts on it. It's hard to get *back* to: the navbar has no Home or News item, and the logo is the only route there. Rather than a second /newsfeed route competing with the page that already owns network news, this adds a labelled News item to the real navbar, reorders home so the feed leads and Quick Actions demotes to a chip strip, and puts the unread signal on that item — a dot, never a count. Cards published since your last visit carry a New tag (a Badge, right-aligned into one scan column), which suppresses itself entirely once new items pass a third of the list, since a tag on everything labels nothing. Both signals read one primitive, `newsLastSeenAt`: no per-item read state, no viewport tracking, no mark-all-as-read. A Last visit switch flips between nothing new, a few new, and everything new; clicking News clears the dot and the tags together.",
+    category: 'Newsfeed',
+    load: () => import('./entries/newsfeed-discovery/NewsfeedDiscoveryPrototype'),
   },
   {
     key: 'newsfeed-v0',
@@ -218,7 +234,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'settings-contact-details',
     title: 'Settings — Email & accounts',
     description:
-      'The member settings surface, fully walkable, with one findable home for the email address. Today the only self-serve control is an unlabeled grey pencil inside a disabled field on the member\'s own profile page, so people write to support instead — while "Account settings" redirects to Connected Accounts (which omits email entirely) and "Email preferences" holds digest toggles. Two rail changes: "Email preferences" becomes "Notification preferences" under a bell, which frees the word "email"; and "Connected accounts" becomes "Email & accounts" under the envelope, absorbing the contact fields so there is exactly one plausible door rather than two adjacent ones. That tab holds three sections — the email address, the sign-in methods (Google / GitHub / Wallet), and the contact handles with their visibility switch. The email row is read-only with a labeled Change button rather than disabled with a hidden pencil, states that the address is also the login before any code is sent, names the cause and the way out when the address is refused, and says that the change signs you out. Notification preferences and Job Alert are reproduced as they ship, as is the shell: the mobile /settings menu page, the sticky back bar, and the 1024px rail breakpoint.',
+      'The member settings surface, fully walkable, with one findable home for the email address. Today the only self-serve control is an unlabeled grey pencil inside a disabled field on the member\'s own profile page, so people write to support instead — while "Account settings" redirects to Connected Accounts (which omits email entirely) and "Email preferences" holds digest toggles. Two rail changes: "Email preferences" becomes "Notification preferences" under a bell, which frees the word "email"; and "Connected accounts" becomes "Email & accounts" under the envelope, absorbing the contact fields so there is exactly one plausible door rather than two adjacent ones. That tab holds three sections — the email address, the sign-in methods (Google / GitHub / Wallet), and the social links with their visibility switch. The email row is read-only with a labeled Change button rather than disabled with a hidden pencil, states that the address is also the login before any code is sent, names the cause and the way out when the address is refused. That row is now the shipped component (Settings › Connected accounts renders this exact file), so its Change button hands off to the real Privy code flow rather than a mocked one — the rest of the tab is still mocked. Notification preferences and Job Alert are reproduced as they ship, as is the shell: the mobile /settings menu page, the sticky back bar, and the 1024px rail breakpoint.',
     category: 'Cross-product',
     load: () => import('./entries/settings-contact-details/SettingsContactDetailsPrototype'),
   },
@@ -237,6 +253,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Mocked recreation of the PL Infra AI Apps page: app grid, the "Create AI App" step-by-step modal, and a detail view embedding a deployed app preview. The creator can edit an app name/description and upload a 1-pager as HTML or Markdown (a PRD) that anyone can open; use the "View as" toggle to switch between the creator and visitor experience.',
     category: 'AI Apps',
     load: () => import('./entries/ai-apps/AiAppsPrototype'),
+  },
+  {
+    key: 'agent-session-chat',
+    title: 'Agent session — chat & detail',
+    description:
+      'Mocked recreation of /pl-infra/agent-sessions/<id>: the sticky identity header with its status badge, the Overview / Chat tabs, the message thread (agent markdown vs. plain admin bubbles, the amber question treatment, the outcome badge that closes a run ending without a final message) and the docked composer that says sending starts a new agent run. Overview carries the meta grid, the prompt, the feature-env deploy / delete controls and the derived progress steps. A state switcher moves the session between running, waiting for input, PR created with a live feature env, and failed; View as flips between the admin (tabs + chat) and the VIEW-only member, who gets no tab bar at all. Answering the agent while it waits resumes the run, and Deploy / Delete walk the feature environment through its states.',
+    category: 'PL Infra',
+    load: () => import('./entries/agent-session-chat/AgentSessionChatPrototype'),
   },
   {
     key: 'ai-apps-feedback',
@@ -269,6 +293,22 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Every visible string that needs the log→sign change, with file, line, current text and replacement: wrong verb, wrong case, body copy and assistive text. Also lists the identifiers a sweep will match but must not rename — the #login route, auth events, PostHog names, CSS classes — and a suggested order.',
     category: 'Cross-product',
     load: () => import('./entries/auth-copy-audit/AuthCopyAuditPrototype'),
+  },
+  {
+    key: 'kudos-edit',
+    title: 'Kudos — edit states',
+    description:
+      'PLAA-50 click-through with the real KudosCard component and a mocked signed-in giver: your own kudos on the current round (Edit action), your own kudos on a past round (locked, frozen), and someone else\'s kudos (neither). Save changes calls a mocked update so you can see a full successful edit without a reachable PLAA_API_URL.',
+    category: 'PLAA',
+    load: () => import('./entries/kudos-edit/KudosEditPrototype'),
+  },
+  {
+    key: 'pl-spotlight-table',
+    title: 'PL Spotlight — back-office participants table',
+    description:
+      'Recreation of the PL Spotlight participants table from the Back Office Figma file (node 750:690): the ten-column grid — select, member (name + email + avatar), team link, investor-type badge (Angel / Fund / not provided), invite-accepted check or cross, follow-up count over its date, the clipped Template vars JSON, the purple Type pill, the wide blue Access pill, and the three action buttons. Column widths, row heights, badge ramps and the Send-vs-Resend state of every button are transcribed from the frame; the controls are real, so checkboxes select (with an indeterminate header), both dropdowns change, invites and follow-ups update the row they act on, and removing a participant is undoable. Type and Access take their option sets from production enums rather than invented ones, since the frame renders native selects and the canvas cannot draw their labels. The envelope button no longer fires on click: it opens a compose modal — the portal referral modal chrome, not the back-office confirm sheet — carrying the recipient card, an editable subject and body drafted from a template, a note saying which template vars filled in and which line was dropped for want of one, the list of what the send adds on its own, and the amber already-invited warning. The navbar’s Settings item is a working destination: it opens Settings → Email templates, the org-wide list of what the back office sends (the spotlight invite and the follow-up), each row carrying where it is sent from, whether it still says what shipped, which records keep their own version of it, and an Edit button onto the same template editor the Overview card uses. That makes the wording three-level and the levels visible: Settings holds the default, a spotlight overrides it for itself, one send drafts from whichever applies — saving a spotlight template identical to the default drops the override rather than freezing a copy, and the Settings row reports the override so editing a default cannot silently miss the record that stopped listening.',
+    category: 'Back office',
+    load: () => import('./entries/pl-spotlight-table/PlSpotlightTablePrototype'),
   },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).

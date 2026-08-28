@@ -1,0 +1,20 @@
+/* The root layout renders the real `SiteHeader` and `MobileBottomNav` above and
+   below every prototype page. Prototypes supply their own chrome (or deliberately
+   run without it), so the inherited pair is hidden across /prototypes/* —
+   production is untouched.
+
+   Gated on `[data-prototype-chrome]`, which only the marker below carries: a
+   stylesheet stays in the document after you client-navigate away from the route
+   that loaded it, so an unconditional rule would keep production's header hidden
+   on /home once you had visited a prototype. Keying off an element that unmounts
+   with the route makes the rule stop matching the moment you leave. */
+:global(body:has([data-prototype-chrome]) .layout__header),
+:global(body:has([data-prototype-chrome]) #mobile-bottom-nav) {
+  display: none;
+}
+
+/* The marker itself contributes nothing to the page — `:has()` matches on
+   presence, not on rendering. */
+.marker {
+  display: none;
+}

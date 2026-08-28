@@ -14,10 +14,13 @@ interface Props {
   icon: ReactNode;
   label: ReactNode;
   items: ISubItem[];
+  /** Same signature the desktop nav's NavItemWithMenu takes, so both bars
+   *  report sub-item navigations through one event. */
+  onNavItemClickHandler: (href: string, title: string) => void;
 }
 
 export function MobileNavItemWithMenu(props: Props) {
-  const { icon, label, items } = props;
+  const { icon, label, items, onNavItemClickHandler } = props;
 
   const pathname = usePathname();
 
@@ -38,7 +41,7 @@ export function MobileNavItemWithMenu(props: Props) {
           <Menu.Positioner className={s.positioner} side="top" sideOffset={16} align="center">
             <Menu.Popup className={s.popup}>
               {items.map(({ href, title, icon }) => (
-                <Link key={href} href={href}>
+                <Link key={href} href={href} onClick={() => onNavItemClickHandler(href, title)}>
                   <Menu.Item className={clsx(s.menuItem, pathname.startsWith(href) && s.menuItemActive)}>
                     {icon}
                     <span>{title}</span>

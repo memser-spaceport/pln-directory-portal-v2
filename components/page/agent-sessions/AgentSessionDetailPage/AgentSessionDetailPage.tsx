@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePermissions } from '@/services/rbac/hooks/usePermissions';
 import { canAdminAgentSessions } from '@/services/rbac/utils/agentSessions/canAdminAgentSessions';
@@ -10,23 +10,13 @@ import {
   useDeleteAgentSessionFeatureEnv,
   useDeployAgentSessionFeatureEnv,
 } from '@/services/agent-sessions/hooks/useAgentSessionFeatureEnv';
-import {
-  deriveProgressSteps,
-  type DerivedStepPhase,
-} from '@/services/agent-sessions/deriveProgressSteps';
-import type { AgentSession } from '@/services/agent-sessions/agent-sessions.service';
+import { deriveProgressSteps, type DerivedStepPhase } from '@/services/agent-sessions/deriveProgressSteps';
+import { canDeleteFeatureEnv, canDeployFeatureEnv } from '@/services/agent-sessions/featureEnvActions';
+import { AgentSessionChat } from '../AgentSessionChat';
 import { formatDate, SessionStatusBadge } from '../shared/sessionStatus';
 import s from '../shared/AgentSessions.module.scss';
 
-const ACTIVE_FEATURE_ENV_STATUSES = new Set([
-  'queued',
-  'cleanup_pending',
-  'dispatching',
-  'in_progress',
-  'deploying',
-  'ready',
-  'deleting',
-]);
+type DetailTab = 'overview' | 'chat';
 
 const STEP_DOT_CLASS: Record<DerivedStepPhase, string> = {
   pending: '',
@@ -46,21 +36,6 @@ function featureEnvUrlFromProgress(progress: ReturnType<typeof useAgentSessionPr
   return null;
 }
 
-function canDeployFeatureEnv(session: AgentSession) {
-  if (!session.pull_request_url || !session.working_branch) return false;
-  const status = session.feature_environment_status;
-  if (!status || status === 'deleted' || status === 'failed' || status === 'cancelled' || status === 'cleanup_failed') {
-    return true;
-  }
-  return status === 'ready';
-}
-
-function canDeleteFeatureEnv(session: AgentSession) {
-  const status = session.feature_environment_status;
-  if (!status || status === 'deleted') return false;
-  return ACTIVE_FEATURE_ENV_STATUSES.has(status) || status === 'failed' || status === 'cancelled' || status === 'cleanup_failed';
-}
-
 export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
   const { permsSet } = usePermissions();
   const canAdmin = canAdminAgentSessions(permsSet);
@@ -69,6 +44,7 @@ export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
   const deployMutation = useDeployAgentSessionFeatureEnv(sessionId);
   const deleteMutation = useDeleteAgentSessionFeatureEnv(sessionId);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<DetailTab>('overview');
 
   const session = sessionQuery.data;
   const progress = progressQuery.data;
@@ -103,16 +79,45 @@ export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
   return (
     <div className={s.pageFrame}>
       <div className={s.content}>
-        <Link href="/pl-infra/agent-sessions" className={s.backLink}>
-          ← Back to sessions
-        </Link>
+        {/* Back link, identity and tabs travel together: the tabs are page chrome,
+            and leaving them to scroll out from under a pinned title reads as broken. */}
+        <div className={s.stickyHeader}>
+          <Link href="/pl-infra/agent-sessions" className={s.backLink}>
+            <ChevronLeftIcon /> Back to sessions
+          </Link>
 
-        <div className={s.header}>
-          <div className={s.titleBlock}>
-            <h1 className={s.title}>Agent Session</h1>
-            <p className={s.description}>{sessionId}</p>
+          <div className={s.header}>
+            <div className={s.titleBlock}>
+              <h1 className={s.title}>Agent Session</h1>
+              <p className={s.description}>{sessionId}</p>
+            </div>
+            {session ? <SessionStatusBadge status={session.status} /> : null}
           </div>
-          {session ? <SessionStatusBadge status={session.status} /> : null}
+
+          {/* Chat is admin-only: a message starts a new agent run, so a VIEW-only
+              user gets no tab bar at all rather than a read-only thread. */}
+          {canAdmin ? (
+            <div className={s.tabs} role="tablist">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === 'overview'}
+                className={`${s.tab} ${activeTab === 'overview' ? s.tabActive : ''}`}
+                onClick={() => setActiveTab('overview')}
+              >
+                Overview
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === 'chat'}
+                className={`${s.tab} ${activeTab === 'chat' ? s.tabActive : ''}`}
+                onClick={() => setActiveTab('chat')}
+              >
+                Chat
+              </button>
+            </div>
+          ) : null}
         </div>
 
         {(sessionQuery.isLoading || progressQuery.isLoading) && !session ? (
@@ -129,7 +134,11 @@ export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
           </div>
         ) : null}
 
-        {session ? (
+        {/* Mounted only while its tab is active, so the messages poll stops when
+            the admin is looking at Overview. */}
+        {canAdmin && activeTab === 'chat' ? <AgentSessionChat sessionId={sessionId} session={session} /> : null}
+
+        {session && activeTab === 'overview' ? (
           <>
             <div className={s.panel}>
               <h2 className={s.sectionTitle}>Overview</h2>
@@ -177,8 +186,12 @@ export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
                       <a className={s.externalLink} href={featureEnvUrl} target="_blank" rel="noreferrer">
                         {featureEnvUrl}
                       </a>
+                    ) : session.feature_environment_status ? (
+                      // Same vocabulary as the session status, so it gets the same
+                      // treatment rather than a bare `dispatched` string.
+                      <SessionStatusBadge status={session.feature_environment_status} />
                     ) : (
-                      session.feature_environment_status || '—'
+                      '—'
                     )}
                   </span>
                 </div>
@@ -201,12 +214,7 @@ export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
                     </button>
                   ) : null}
                   {canDeleteFeatureEnv(session) ? (
-                    <button
-                      type="button"
-                      className={s.dangerButton}
-                      disabled={busy}
-                      onClick={handleDelete}
-                    >
+                    <button type="button" className={s.dangerButton} disabled={busy} onClick={handleDelete}>
                       {deleteMutation.isPending ? 'Deleting…' : 'Delete feature env'}
                     </button>
                   ) : null}
@@ -255,3 +263,9 @@ export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
     </div>
   );
 }
+
+const ChevronLeftIcon = () => (
+  <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M11 14.5L5 8.5L11 2.5" stroke="#156FF7" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);

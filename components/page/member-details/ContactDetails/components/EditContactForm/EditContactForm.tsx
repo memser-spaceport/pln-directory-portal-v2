@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FormField } from '@/components/form/FormField';
@@ -16,16 +16,11 @@ import { getProfileFromURL } from '@/utils/common.utils';
 
 import s from './EditContactForm.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { getAnalyticsUserInfo } from '@/utils/common.utils';
-import Cookies from 'js-cookie';
-import { useAuthAnalytics } from '@/analytics/auth.analytics';
-import { authEvents } from '@/components/core/login/utils';
 import { toast } from '@/components/core/ToastContainer';
-import { updateUserDirectoryEmail } from '@/services/members.service';
-import { decodeToken } from '@/utils/auth.utils';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 import { clsx } from 'clsx';
 import { useUpdateMemberPreferences } from '@/services/members/hooks/useUpdateMemberPreferences';
+import { useUpdateEmail } from '@/services/members/hooks/useUpdateEmail';
 import { FormSwitch } from '@/components/form/FormSwitch';
 import { ContactDetailsVariant } from '@/components/page/member-details/ContactDetails';
 import { isAdminUser } from '@/utils/user/isAdminUser';
@@ -48,6 +43,7 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
       linkedin: member.linkedinHandle,
       discord: member.discordHandle,
       twitter: member.twitter,
+      bluesky: member.blueskyHandle,
       email: member.email,
       shareContacts: getDefaultToggleValue(member.preferences),
     },
@@ -59,7 +55,13 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
   const { mutateAsync: updatePreferences } = useUpdateMemberPreferences();
   const { data: memberData } = useMember(member.id);
   const { onSaveContactDetailsClicked } = useMemberAnalytics();
-  const analytics = useAuthAnalytics();
+
+  const { requestEmailChange } = useUpdateEmail({
+    uid: member.id,
+    email: member.email,
+    userInfo,
+    source: 'member-profile',
+  });
 
   const onSubmit = async (formData: TEditContactForm) => {
     onSaveContactDetailsClicked();
@@ -69,6 +71,7 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
     }
 
     const preferencesPayload = {
+      bluesky: formData.shareContacts,
       discord: formData.shareContacts,
       email: formData.shareContacts,
       github: formData.shareContacts,
@@ -82,6 +85,7 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
       showLinkedin: formData.shareContacts,
       showTelegram: formData.shareContacts,
       showTwitter: formData.shareContacts,
+      showBluesky: formData.shareContacts,
       telegram: formData.shareContacts,
       twitter: formData.shareContacts,
     };
@@ -117,65 +121,8 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
     e.stopPropagation();
     e.preventDefault();
 
-    analytics.onUpdateEmailClicked(getAnalyticsUserInfo(userInfo));
-    const authToken = Cookies.get('authToken');
-    if (!authToken) {
-      return;
-    }
-
-    authEvents.emit('auth:link-account', 'updateEmail');
+    requestEmailChange();
   };
-
-  useEffect(() => {
-    async function updateUserEmail(data: { newEmail: string }) {
-      try {
-        const { newEmail } = data;
-        const oldAccessToken = Cookies.get('authToken');
-        if (!oldAccessToken) {
-          return;
-        }
-        const header = {
-          Authorization: `Bearer ${JSON.parse(oldAccessToken)}`,
-          'Content-Type': 'application/json',
-        };
-        if (newEmail === member.email) {
-          analytics.onUpdateSameEmailProvided({ newEmail, oldEmail: member.email });
-          toast.error('New and current email cannot be same');
-          return;
-        }
-        const result = await updateUserDirectoryEmail({ newEmail }, member.id, header);
-
-        const { refreshToken, accessToken, userInfo: newUserInfo } = result;
-        if (refreshToken && accessToken) {
-          const accessTokenExpiry = decodeToken(accessToken);
-          const refreshTokenExpiry = decodeToken(refreshToken);
-          Cookies.set('authToken', JSON.stringify(accessToken), {
-            expires: new Date(accessTokenExpiry.exp * 1000),
-            domain: process.env.COOKIE_DOMAIN || '',
-          });
-          Cookies.set('refreshToken', JSON.stringify(refreshToken), {
-            expires: new Date(refreshTokenExpiry.exp * 1000),
-            domain: process.env.COOKIE_DOMAIN || '',
-          });
-          Cookies.set('userInfo', JSON.stringify(newUserInfo), {
-            expires: new Date(refreshTokenExpiry.exp * 1000),
-            domain: process.env.COOKIE_DOMAIN || '',
-          });
-          document.dispatchEvent(new CustomEvent('app-loader-status'));
-          analytics.onUpdateEmailSuccess({ newEmail, oldEmail: member.email });
-          toast.success('Email Updated Successfully');
-          window.location.reload();
-        }
-      } catch {
-        analytics.onUpdateEmailFailure({ newEmail: data.newEmail, oldEmail: member.email });
-        document.dispatchEvent(new CustomEvent('app-loader-status'));
-        toast.error('Email Update Failed');
-      }
-    }
-
-    const unsubscribe = authEvents.on('auth:update-email', updateUserEmail);
-    return unsubscribe;
-  }, []);
 
   return (
     <FormProvider {...methods}>
@@ -234,6 +181,14 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
               placeholder="eg., @protocollabs or https://twitter.com/protocollabs"
             />
           </div>
+          <div className={s.row}>
+            <Image src={getContactLogoByProvider('bluesky')} alt="Bluesky" height={24} width={24} />
+            <FormField
+              name="bluesky"
+              label="Bluesky"
+              placeholder="eg., @protocol.ai or https://bsky.app/profile/protocol.ai"
+            />
+          </div>
           {variant !== 'drawer' && (
             <div className={clsx(s.row, s.center)}>
               <div className={s.switchLabelWrapper}>
@@ -257,6 +212,7 @@ function formatPayload(memberInfo: any, formData: TEditContactForm, isAdmin: boo
   const normalizedDiscord = formData.discord ? getProfileFromURL(formData.discord, 'discord') : formData.discord;
   const normalizedGithub = formData.github ? getProfileFromURL(formData.github, 'github') : formData.github;
   const normalizedTelegram = formData.telegram ? getProfileFromURL(formData.telegram, 'telegram') : formData.telegram;
+  const normalizedBluesky = formData.bluesky ? getProfileFromURL(formData.bluesky.trim(), 'bluesky') : formData.bluesky;
 
   return {
     imageUid: memberInfo.imageUid,
@@ -270,6 +226,7 @@ function formatPayload(memberInfo: any, formData: TEditContactForm, isAdmin: boo
     linkedinHandler: normalizedLinkedin,
     discordHandler: normalizedDiscord,
     twitterHandler: normalizedTwitter,
+    blueskyHandler: normalizedBluesky,
     githubHandler: normalizedGithub,
     telegramHandler: normalizedTelegram,
     moreDetails: memberInfo.moreDetails,

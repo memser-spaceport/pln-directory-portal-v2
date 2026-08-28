@@ -73,9 +73,10 @@ const clusterLatestEventDate = (c: TeamCluster): string =>
  * session-frozen and like optimism never touches it, so this merge is
  * deterministic after the single arrival — the feed never re-sorts mid-session.
  *
- * Slot-2 rule (prototype parity): the first news entry stays first and the
- * best-ranked forum post is pulled to position 2, so the news + discussion mix
- * reads immediately.
+ * Slot-2 rule (prototype parity), under 'popular' ONLY: the first news entry
+ * stays first and the best-ranked forum post is pulled to position 2, so the
+ * news + discussion mix reads immediately. Skipped under 'latest' and
+ * 'following', both of which promise an order it breaks — see the guard below.
  */
 export function mergeFeedEntries({
   sortedClusters,
@@ -122,7 +123,25 @@ export function mergeFeedEntries({
     merged.push({ kind: 'forum', post: rankedPosts[postIndex++] });
   }
 
-  // Slot-2 rule.
+  // Slot-2 rule — 'popular' ONLY. It is the one mode that ranks by a measure the
+  // promotion doesn't contradict: position 2 promises relevance, and a
+  // well-liked post is relevant.
+  //
+  // The other two make promises it breaks:
+  //   'latest'    — the promise is recency. Pulling a post over fresher clusters
+  //                 puts an 11-day-old discussion between a 3-day and a 4-day
+  //                 story, which reads as a broken sort however it got there.
+  //   'following' — the promise is follow status, and the breach is structural:
+  //                 the loop above refuses to place a post ahead of a followed
+  //                 cluster, then this rule moved one to index 1 anyway. With a
+  //                 single followed team that lands inside the unfollowed tail
+  //                 and looks harmless; with two, the post jumps a team the
+  //                 reader explicitly follows.
+  //
+  // Guard sits AFTER the merge loop on purpose — the loop's ranking is correct
+  // under every mode; only this post-hoc promotion was wrong.
+  if (sort !== 'popular') return merged;
+
   const firstNewsIdx = merged.findIndex((e) => e.kind === 'news');
   const firstForumIdx = merged.findIndex((e) => e.kind === 'forum');
   if (firstNewsIdx === -1 || firstForumIdx === -1) return merged;

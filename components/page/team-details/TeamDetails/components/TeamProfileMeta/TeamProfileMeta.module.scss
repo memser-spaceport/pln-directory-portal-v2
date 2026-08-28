@@ -1,0 +1,18 @@
+.root {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}

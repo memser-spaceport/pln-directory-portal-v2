@@ -100,12 +100,54 @@
   }
 }
 
+/* Back control for the drill-in-place header (team profile's news archive).
+   Production `.backBtn` supplies the chevron/label type but assumes a styled
+   element around it, so the button reset lives here. `margin-right: auto` pins
+   the identity beside it rather than letting `space-between` fling it right. */
+.backBtn {
+  flex-shrink: 0;
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  margin-right: 4px;
+  cursor: pointer;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
 /* Logo + name group on the left of the header. */
 .headIdentity {
   display: flex;
   align-items: center;
   gap: 12px;
   min-width: 0;
+  margin-right: auto;
+}
+
+/* Drilled inside another overlay: the shell already draws the box, so drop this
+   one's own height, shadow and radius.
+   `flex: 1; min-height: 0` rather than `height: auto` — the shell is a
+   fixed-height column, and filling it is what keeps the box the same size in
+   both views. Sized to content instead, the modal would grow or shrink as you
+   moved between the list and a story, which reads as the overlay being replaced
+   rather than the same box drilling. min-height:0 lets the inner .body scroll
+   instead of the card stretching past the shell. */
+.embedded.embedded {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  max-height: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .logo,

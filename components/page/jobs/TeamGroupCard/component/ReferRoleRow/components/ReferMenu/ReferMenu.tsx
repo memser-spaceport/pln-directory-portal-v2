@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import { useJobsAnalytics } from '@/analytics/jobs.analytics';
+import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 import type { IJobRole } from '@/types/jobs.types';
 
-import { JOB_QUERY_PARAMS } from '../../constants';
+import { jobApplyQueryParams } from '../../constants';
 
 import { LinkIcon, CheckIcon, ShareIcon } from './components/Icons';
 
@@ -15,6 +15,7 @@ interface ReferMenuProps {
   role: IJobRole;
   teamId: string;
   teamName: string;
+  source: JobSurface;
 }
 
 /**
@@ -26,7 +27,7 @@ interface ReferMenuProps {
  * (base-ui Menu, encoded intents, cleared copy timer) — a third share surface
  * should extract from there, not copy this one again.
  */
-export function ReferMenu({ role, teamId, teamName }: ReferMenuProps) {
+export function ReferMenu({ role, teamId, teamName, source }: ReferMenuProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -39,6 +40,7 @@ export function ReferMenu({ role, teamId, teamName }: ReferMenuProps) {
     role_title: role.roleTitle,
     role_category: role.roleCategory,
     seniority: role.seniority,
+    source,
   };
 
   useEffect(() => {
@@ -61,7 +63,7 @@ export function ReferMenu({ role, teamId, teamName }: ReferMenuProps) {
     const { applyUrl } = role;
 
     if (applyUrl) {
-      return `${applyUrl}?${JOB_QUERY_PARAMS}`;
+      return `${applyUrl}?${jobApplyQueryParams(source)}`;
     }
 
     return typeof window !== 'undefined' ? window.location.href : '';

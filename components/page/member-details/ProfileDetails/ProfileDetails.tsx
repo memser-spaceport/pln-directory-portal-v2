@@ -1,6 +1,7 @@
 'use client';
 
 import { clsx } from 'clsx';
+import DOMPurify from 'isomorphic-dompurify';
 import React, { useRef, useState } from 'react';
 
 import { MemberDetailHeader } from '@/components/page/member-details/MemberDetailHeader';
@@ -65,7 +66,10 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member, variant }: Props)
             <div className={s.bioContainer}>
               <div className={s.bioTitle}>Bio</div>
               <ExpandableDescription>
-                <div className={s.bioContent} dangerouslySetInnerHTML={{ __html: member.bio }} />
+                {/* Sanitize-on-read, like the experience descriptions one section
+                    down: the bio is member-authored rich text and this is a new
+                    execution context for whatever is stored in it. */}
+                <div className={s.bioContent} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(member.bio) }} />
               </ExpandableDescription>
             </div>
           )}

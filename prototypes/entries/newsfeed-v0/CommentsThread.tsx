@@ -14,6 +14,9 @@ import s from './CommentsThread.module.scss';
 // Reuse the production forum comment-input styling (its layout row + the brand
 // "Comment" button) so the composer matches the forum 1:1.
 import fs from '@/components/page/forum/CommentsInputDesktop/CommentsInputDesktop.module.scss';
+// …and the forum's own section title, so "Comments (N)" reads here exactly as it
+// does above a real forum thread (PostComments renders the same string).
+import pcs from '@/components/page/forum/PostComments/PostComments.module.scss';
 
 interface Props {
   comments: FeedComment[];
@@ -26,6 +29,15 @@ interface Props {
   isCommentLiked: (commentUid: string) => boolean;
   /** Toggle the viewer's like on a comment — available at every nesting depth. */
   onToggleCommentLike: (commentUid: string) => void;
+  /**
+   * Render the forum's "Comments (N)" section title above the composer.
+   *
+   * On in the detail modals, where the thread otherwise just appears under the
+   * body with nothing naming it. Off in the feed cards: there the thread is
+   * opened by a Comment button that already carries the count, so a section
+   * title would repeat the number and out-shout the card it sits inside.
+   */
+  heading?: boolean;
 }
 
 /** A comment with its direct replies attached — the render-time shape. */
@@ -211,7 +223,13 @@ function CommentRow({
   );
 }
 
-export function CommentsThread({ comments, onAddComment, isCommentLiked, onToggleCommentLike }: Props) {
+export function CommentsThread({
+  comments,
+  onAddComment,
+  isCommentLiked,
+  onToggleCommentLike,
+  heading = false,
+}: Props) {
   const [draft, setDraft] = useState('');
   const [expanded, setExpanded] = useState(false);
   // One open reply composer at a time across the whole thread, like the forum.
@@ -230,6 +248,12 @@ export function CommentsThread({ comments, onAddComment, isCommentLiked, onToggl
 
   return (
     <div className={s.thread} onClick={(e) => e.stopPropagation()}>
+      {/* Section title, in the forum's own words and stylesheet class. The count
+          is the flat total — replies included — which is what production counts
+          and what the footer's Comment metric already shows, so the two figures
+          on screen can never disagree. */}
+      {heading && <div className={clsx(pcs.title, s.heading)}>Comments ({comments.length})</div>}
+
       {/* Composer sits above the list — leave a comment first, then read. */}
       <Composer
         value={draft}

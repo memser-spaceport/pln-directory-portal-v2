@@ -209,4 +209,5 @@ export const MOCK_TEAM_NEWS_GROUPED_RESPONSE: ITeamNewsGroupedResponse = {
   generatedAt: '2026-07-06T00:00:00.000Z',
   groups: MOCK_GROUPS,
   allTabExtraItems: [],
+  forYouTeamUids: [],
 };

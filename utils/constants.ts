@@ -86,6 +86,13 @@ export const JOBS_ANALYTICS = {
   ON_JOB_REFER_FAILED: 'job-refer-failed',
   ON_JOB_REFER_SHARE_MENU_OPENED: 'job-refer-share-menu-opened',
   ON_JOB_REFER_SHARED: 'job-refer-shared',
+  ON_JOB_APPLY_CLICKED: 'job-apply-clicked',
+  ON_JOB_APPLY_SIGNUP_SUBMITTED: 'job-apply-signup-submitted',
+  ON_JOB_APPLY_SIGNUP_FAILED: 'job-apply-signup-failed',
+  ON_JOB_APPLY_DRAWER_OPENED: 'job-apply-drawer-opened',
+  ON_JOB_APPLY_DRAWER_SAVED: 'job-apply-drawer-saved',
+  ON_JOB_APPLY_SUBMITTED: 'job-apply-submitted',
+  ON_JOB_APPLY_FAILED: 'job-apply-failed',
 };
 
 export const EVENTS = {
@@ -182,6 +189,8 @@ export const COMMON_ANALYTICS_EVENTS = {
   NAVBAR_NOTIFICATION_MENU_CLICKED: 'navbar-notification-menu-clicked',
   NAVBAR_APP_LOGO_CLICKED: 'navbar_app_logo_clicked',
   SUBMIT_A_TEAM_BTN_CLICKED: 'submit_a_team_btn_clicked',
+  NAVBAR_HOME_CLICKED: 'navbar-home-clicked',
+  NAVBAR_HOME_NEW_NEWS_DOT_SHOWN: 'navbar-home-new-news-dot-shown',
 };
 
 export const NOTIFICATION_ANALYTICS_EVENTS = {
@@ -213,6 +222,8 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_CLICK: 'settings-member-change-email-clicked',
   SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_CANCEL: 'settings-member-change-email-cancelled',
   SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_SUCCESS: 'settings-member-change-email-success',
+  SETTINGS_EMAIL_CHANGE_PANEL_OPENED: 'settings-email-change-panel-opened',
+  SETTINGS_EMAIL_CHANGE_CANCELLED: 'settings-email-change-cancelled',
   SETTINGS_USER_PROFILE_EDIT_FORM: 'settings-user-profile-edit-form',
   SETTINGS_MEMBER_PROFILE_EDIT_FORM: 'settings-member-profile-edit-form',
   SETTINGS_TEAM_PROFILE_EDIT_FORM: 'settings-team-profile-edit-form',
@@ -419,6 +430,10 @@ export const TEAMS_ANALYTICS_EVENTS = {
   TEAMS_ALL_TAB_SELECTED: 'teams-all-tab-selected',
   TEAMS_FOLLOWING_EMPTY_BROWSE_ALL_CLICKED: 'teams-following-empty-browse-all-clicked',
   TEAM_FOLLOWERS_MODAL_OPENED: 'team-followers-modal-opened',
+  TEAM_DETAIL_OPEN_ROLES_VIEW_ALL_CLICKED: 'team-detail-open-roles-view-all-clicked',
+  TEAM_DETAIL_CONTACT_SAVE_CLICKED: 'team-detail-contact-save-clicked',
+  TEAM_DETAIL_ENRICHMENT_REVIEWED: 'team-detail-enrichment-reviewed',
+  TEAM_DETAIL_STATUS_CHANGED: 'team-detail-status-changed',
 };
 
 export const MEMBER_ANALYTICS_EVENTS = {
@@ -606,6 +621,15 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_SORT_CHANGED: 'team-news-sort-changed',
   TEAM_NEWS_LOAD_MORE_CLICKED: 'team-news-load-more-clicked',
   TEAM_NEWS_VIEW_ALL_CLICKED: 'team-news-view-all-clicked',
+  // The other exit from a team-scoped news list: "View all news" stays inside
+  // the team, this one widens to the whole network feed. Two different intents
+  // sitting on one row, so they need two events to be told apart.
+  TEAM_NEWS_ALL_NETWORK_UPDATES_CLICKED: 'team-news-all-network-updates-clicked',
+  TEAM_NEWS_COUNT_CHIP_CLICKED: 'team-news-count-chip-clicked',
+  // Denominator for COUNT_CHIP_CLICKED — without it a low click count can't be
+  // told apart from a chip nobody saw.
+  TEAM_NEWS_COUNT_CHIP_SHOWN: 'team-news-count-chip-shown',
+  TEAM_NEWS_FOR_YOU_UPDATE_PROFILE_CLICKED: 'team-news-for-you-update-profile-clicked',
   TEAM_NEWS_SHOW_MORE_CLICKED: 'team-news-show-more-clicked',
   TEAM_NEWS_CARD_CLICKED: 'team-news-card-clicked',
   TEAM_NEWS_DETAIL_MODAL_OPENED: 'team-news-detail-modal-opened',
@@ -785,6 +809,8 @@ export const TWITTER_URL_REGEX = /(?:twitter|x)\.com\/([^/]+)/;
 export const GITHUB_URL_REGEX = /github\.com\/([^/]+)/;
 export const TELEGRAM_URL_REGEX = /t\.me\/([^/]+)/;
 export const DISCORD_URL_REGEX = /discord\.(?:com|gg)\/(?:users\/)?([^/\s]+)/;
+export const BLUESKY_URL_REGEX = /^\s*(?:https?:\/\/)?(?:www\.)?bsky\.app\/profile\/@?([^/?#\s]+)/i;
+export const CRUNCHBASE_URL_REGEX = /^\s*(?:https?:\/\/)?(?:www\.)?crunchbase\.com\/organization\/([^/?#\s]+)/i;
 export const EMAIL_REGEX = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})$/;
 
 export const LEARN_MORE_URL =
@@ -818,6 +844,7 @@ export const PRIVACY_CONSTANTS = {
     showDiscord: DEFAULT_PRIVACY_VISIBILITY,
     showGithubProjects: DEFAULT_PRIVACY_VISIBILITY,
     showTwitter: DEFAULT_PRIVACY_VISIBILITY,
+    showBluesky: DEFAULT_PRIVACY_VISIBILITY,
   },
 };
 
@@ -837,6 +864,39 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.5.25 - LabOS MCP, News Discovery & Profiles',
+    tag: 'New Feature',
+    date: '21, Aug 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">For You</span> - A new default tab with personalized team news from the teams you're on and ones recommended for you.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Teams Directory</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">New posts</span> - Team cards on Teams and the Job Board show an "N new posts" chip when a team has published in the last week.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">News detail</span> - Open a story in a modal from the team news rail, or jump to All network updates for the full archive.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Open roles</span> - See a team's current openings directly on their profile.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Profile details</span> - Founded year, team size, location, Bluesky, and Crunchbase now appear on team profiles.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inactive teams</span> - Inactive teams are hidden from the Teams directory and search; their profile shows an Inactive badge.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Member Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team news</span> - Member profiles show recent headlines from the member's primary team, with story modals and a link to All network updates.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Bluesky</span> - Add a Bluesky handle to contact details.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Account Settings</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">LabOS MCP</span> - Connect Claude Code, Codex, or any HTTP MCP client to LabOS from Email & Accounts; the agent acts as you and can work with Warm Intros data.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Change email</span> - Update your sign-in email from Email & Accounts without contacting support.</li>
+        </ul>
+        </div>`,
+  },
   {
     title: 'Version 4.5.24 - Top Stories, Job Referrals & Warm Intros',
     tag: 'New Feature',
@@ -2459,6 +2519,7 @@ export const AI_APPS_ANALYTICS = {
   FEEDBACK_REVIEW_VIEWED: 'ai_apps_feedback_review_viewed',
   FEEDBACK_TAB_FILTERED: 'ai_apps_feedback_tab_filtered',
   FEEDBACK_EXPORTED: 'ai_apps_feedback_exported',
+  FEEDBACK_STATUS_CHANGED: 'ai_apps_feedback_status_changed',
   FEEDBACK_DIALOG_OPENED: 'ai_apps_feedback_dialog_opened',
   VIEW_FEEDBACK_CLICKED: 'ai_apps_view_feedback_clicked',
   SECRETS_PANEL_OPENED: 'ai_apps_secrets_panel_opened',
@@ -2481,4 +2542,21 @@ export const AI_APPS_ANALYTICS = {
   DEPLOYMENT_LOGS_OPENED: 'ai_apps_deployment_logs_opened',
   DEPLOYMENT_LOGS_TAB_SWITCHED: 'ai_apps_deployment_logs_tab_switched',
   DEPLOYMENT_LOGS_EXPORTED: 'ai_apps_deployment_logs_exported',
+};
+
+export const MCP_ANALYTICS_EVENTS = {
+  SETTINGS_SECTION_VIEWED: 'mcp-settings-section-viewed',
+  SETUP_SNIPPET_COPIED: 'mcp-setup-snippet-copied',
+  CONNECT_PAGE_VIEWED: 'mcp-connect-page-viewed',
+  CONNECT_SIGN_IN_CLICKED: 'mcp-connect-sign-in-clicked',
+  CONNECT_APPROVED: 'mcp-connect-approved',
+  CONNECT_DENIED: 'mcp-connect-denied',
+  CONNECT_ERROR: 'mcp-connect-error',
+  AUTHORIZATION_REVOKED: 'mcp-authorization-revoked',
+  AUTHORIZATION_REVOKE_FAILED: 'mcp-authorization-revoke-failed',
+  WARM_PATH_FEEDBACK_OPENED: 'mcp-warm-path-feedback-opened',
+  WARM_PATH_FEEDBACK_SUBMITTED: 'mcp-warm-path-feedback-submitted',
+  WARM_PATH_NOTE_OPENED: 'mcp-warm-path-note-opened',
+  WARM_PATH_NOTE_SUBMITTED: 'mcp-warm-path-note-submitted',
+  WARM_PATH_NOTE_CLEARED: 'mcp-warm-path-note-cleared',
 };

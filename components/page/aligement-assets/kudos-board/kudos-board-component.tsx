@@ -1,14 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 import KudosCard from './kudos-card';
 import GiveCommunityKudosModal from './give-kudos-modal';
 import { useKudosFeed, useCommunityPool, useRecipients } from '@/hooks/use-kudos';
 import { useKudosAnalytics } from '@/analytics/kudos.analytics';
-import { COMMUNITY_TRACK } from './data/kudos-board.data';
 import { getCurrentRoundNumber } from '@/utils/plaa-round.utils';
 
 interface IKudosBoardComponentProps {
@@ -42,19 +39,17 @@ export default function KudosBoardComponent({
     analytics.onGiveKudosOpened();
   }
 
-  // Undefined while the pool is still loading; treat that the same as
-  // ineligible so the module never flashes in before we know either way.
+  // Treat undefined (still loading) as ineligible to avoid a flash before we know either way.
   const eligible = pool.data?.eligible ?? false;
   const poolRemaining = pool.data?.pointsRemaining ?? 0;
-  const poolTotal = pool.data?.totalBudget ?? COMMUNITY_TRACK.perRoundBudget;
+  const poolTotal = pool.data?.totalBudget ?? 0;
   const poolUsed = pool.data?.pointsUsed ?? 0;
   const poolPct = poolTotal > 0 ? Math.max(0, Math.min(100, (poolRemaining / poolTotal) * 100)) : 0;
-  const canGive = eligible && poolRemaining >= COMMUNITY_TRACK.minGift;
+  const canGive = eligible && poolRemaining >= (pool.data?.pointsMin ?? 0);
 
   return (
     <div className="kudos-board">
-      <ToastContainer position="bottom-right" autoClose={4000} hideProgressBar theme="dark" />
-
+      {/* No local <ToastContainer> — the app already mounts one globally; a second one double-renders every toast. */}
       <div className="kudos-board__container">
         <header className="kudos-board__header">
           <div>
@@ -77,8 +72,8 @@ export default function KudosBoardComponent({
                 give this round.
               </p>
               <p className="pool__sub">
-                You&rsquo;ve given {poolUsed} of {poolTotal} points so far. Distribute in {COMMUNITY_TRACK.increment}
-                -point increments ({COMMUNITY_TRACK.minGift} pts minimum, {COMMUNITY_TRACK.maxGift} pts maximum per
+                You&rsquo;ve given {poolUsed} of {poolTotal} points so far. Distribute in {pool.data!.pointsStep}
+                -point increments ({pool.data!.pointsMin} pts minimum, {pool.data!.pointsMax} pts maximum per
                 gift).
               </p>
               <div className="pool__progress" aria-hidden>
@@ -117,19 +112,30 @@ export default function KudosBoardComponent({
         ) : (
           <div className="feed-grid">
             {feed.data!.items.map((k) => (
-              <KudosCard key={k.id} kudos={k} />
+              <KudosCard
+                key={k.id}
+                kudos={k}
+                recipients={recipients.data?.items ?? []}
+                recipientsLoading={recipients.isLoading}
+                poolRemaining={poolRemaining}
+                limits={pool.data}
+                currentRoundId={pool.data?.roundId}
+              />
             ))}
           </div>
         )}
       </div>
 
-      <GiveCommunityKudosModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        recipients={recipients.data?.items ?? []}
-        recipientsLoading={recipients.isLoading}
-        poolRemaining={poolRemaining}
-      />
+      {pool.data && (
+        <GiveCommunityKudosModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          recipients={recipients.data?.items ?? []}
+          recipientsLoading={recipients.isLoading}
+          poolRemaining={poolRemaining}
+          limits={pool.data}
+        />
+      )}
 
       <style jsx>{`
         /* Inset and max-width come from .plaa__content — don't clamp twice. */

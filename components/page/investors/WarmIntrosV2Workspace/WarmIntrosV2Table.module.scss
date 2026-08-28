@@ -157,7 +157,7 @@
   font-family: 'Inter', sans-serif;
   font-size: 11px;
   font-weight: 500;
-  color: #1b4dff;
+  color: var(--foreground-neutral-secondary, #455468);
   text-decoration: underline;
   text-underline-offset: 2px;
 
@@ -217,7 +217,18 @@
 // 13px band it doesn't need to clear. Only applied when a caption actually
 // renders — the two-hop fallback has no band to move into.
 .viewAllInCaptionBand {
-  margin-top: -11px;
+  margin-left: 8px;
+}
+
+// Why this row matched a "Path via → PL member" filter when the chain above names
+// someone else. Explanatory, so it sits quieter than the path it annotates.
+.alsoVia {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--foreground-neutral-secondary, #64748b);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 // Below 640px the same DOM lays out as a list of cards — same markup, no second

@@ -2,83 +2,95 @@
 
 import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
-import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from 'react';
 import { flushSync } from 'react-dom';
+import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from 'react';
+
+import type { IFeedForumPost, IFeedForumPostLikeStatus } from '@/types/feed.types';
+import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
+import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 
 import {
   useTeamNewsAnalytics,
-  type TeamNewsAnalyticsSource,
   type TeamNewsCardClickVia,
+  type TeamNewsAnalyticsSource,
 } from '@/analytics/team-news.analytics';
-import { useFollowAnalytics, type FollowAnalyticsSource } from '@/analytics/follow.analytics';
-import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
-import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
-import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsUpvoteToggle';
-import { useFeedForumPostLikeToggle } from '@/services/feed/hooks/useFeedForumPostLikeToggle';
-import { useFeedForumTopicLike } from '@/services/feed/hooks/useFeedComments';
 import { useCurrentUserStore } from '@/services/auth/store';
-import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
-import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
-import type { IFeedForumPost, IFeedForumPostLikeStatus } from '@/types/feed.types';
+import { useIsBelowDesktop } from '@/hooks/useIsBelowDesktop';
+import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
+import { useFeedForumTopicLike } from '@/services/feed/hooks/useFeedComments';
+import { useTeamNewsImpressions } from '@/services/team-news/hooks/useTeamNewsImpressions';
+import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsUpvoteToggle';
+import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
+import { useFeedForumPostLikeToggle } from '@/services/feed/hooks/useFeedForumPostLikeToggle';
+import { useFollowAnalytics, type FollowAnalyticsSource } from '@/analytics/follow.analytics';
 
 import { Button } from '@/components/common/Button';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
 
 import {
-  DISCUSSIONS_CAT,
-  DISCUSSIONS_CATEGORY,
   ALL_TAB,
   ALL_CAT,
   CATEGORIES,
-  SHOW_POPULAR_THIS_WEEK,
-  TOP_STORIES_WINDOW_LABEL,
-  type TeamNewsCategoryId,
+  DISCUSSIONS_CAT,
+  FOR_YOU_CAT,
+  FOR_YOU_CATEGORY,
   SHOW_HIRING_NEWS,
+  DISCUSSIONS_CATEGORY,
+  SHOW_POPULAR_THIS_WEEK,
+  type TeamNewsCategoryId,
+  TOP_STORIES_WINDOW_LABEL,
 } from './constants';
+import { EVENT_TYPE_LABEL } from './utils/getEventTypeConfig';
 
-import { hasExistingDiscussion } from './utils/hasExistingDiscussion';
-
+import {
+  SORT_OPTIONS,
+  type TeamNewsSort,
+  sortTeamNewsClusters,
+  DEFAULT_TEAM_NEWS_SORT,
+} from './utils/sortTeamNewsClusters';
 import { dedupeByUid } from './utils/dedupeByUid';
+import { clusterByTeam } from './utils/clusterByTeam';
+import { getSearchInputEl } from './utils/getSearchInputEl';
+import { injectFeedSignals } from './utils/injectFeedSignals';
 import { applyUpvoteOverlay } from './utils/applyUpvoteOverlay';
 import { resolveForumPostLike } from './utils/resolveForumPostLike';
-import { clusterByTeam } from './utils/clusterByTeam';
-import { selectTopStories, TOP_STORIES_MIN_CORPUS } from './utils/selectTopStories';
-import { injectFeedSignals } from './utils/injectFeedSignals';
-import { assertNever, feedEntryKey, mergeFeedEntries } from './utils/mergeFeedEntries';
-import { categoryIncludesForumPosts, filterFeedForumPosts } from './utils/matchesFeedForumPost';
-import { useStoryReveal } from './hooks/useStoryReveal';
-import { useNewsDeepLink } from './hooks/useNewsDeepLink';
-import { useFeedSocial } from './hooks/useFeedSocial';
-import { useIsBelowDesktop } from '@/hooks/useIsBelowDesktop';
-import { useFeedHiring } from './hooks/useFeedHiring';
-import { useFeedDeals } from './hooks/useFeedDeals';
-import { useForumPostDeepLink } from './hooks/useForumPostDeepLink';
-
-import { NewsDetailModal } from './components/NewsDetailModal';
-import { ForumPostModal } from './components/ForumPostModal/ForumPostModal';
-
-import { NewsGroupCard } from './components/NewsGroupCard';
-import { TopStoriesBlock, type TopStorySlot } from './components/TopStories';
-import { HiringCard } from './components/HiringCard/HiringCard';
-import { DealCardCompact } from './components/DealCardCompact/DealCardCompact';
-import { ForumPostCard } from './components/ForumPostCard/ForumPostCard';
-import { NewsBase } from './components/NewsBase';
-import { NewsRail } from './components/NewsRail';
-import {
-  useDelayedHideFollowedSuggestions,
-  useFeedModulesViewAnalytics,
-} from './components/NewsRail/useSuggestionsModule';
-import { FollowTeamsScroller } from './components/FeedScrollers/FollowTeamsScroller';
-import { PopularScroller } from './components/FeedScrollers/PopularScroller';
-import { NewsSearch } from './components/NewsSearch';
-import { TeamNewsTabs } from './components/TeamNewsTabs';
-
-import { getSearchInputEl } from './utils/getSearchInputEl';
+import { setStoredForumPostLike } from '@/utils/forumPostLikeStorage';
+import { isOwnForumPost } from './utils/isOwnForumPost';
 import { matchesTeamNewsQuery } from './utils/matchesTeamNewsQuery';
 import { matchesTeamNewsCategory } from './utils/matchesTeamNewsCategory';
 import { sortAllTabItemsByEventDate } from './utils/sortAllTabItemsByEventDate';
-import { SORT_OPTIONS, sortTeamNewsClusters, type TeamNewsSort } from './utils/sortTeamNewsClusters';
+import { selectTopStories, TOP_STORIES_MIN_CORPUS } from './utils/selectTopStories';
+import { selectForYouItems } from './utils/selectForYouItems';
+import { assertNever, feedEntryKey, mergeFeedEntries } from './utils/mergeFeedEntries';
+import { categoryIncludesForumPosts, filterFeedForumPosts } from './utils/matchesFeedForumPost';
+
+import {
+  useFeedModulesViewAnalytics,
+  useDelayedHideFollowedSuggestions,
+} from './components/NewsRail/useSuggestionsModule';
+import { useFeedDeals } from './hooks/useFeedDeals';
+import { useFeedSocial } from './hooks/useFeedSocial';
+import { useFeedHiring } from './hooks/useFeedHiring';
+import { useStoryReveal } from './hooks/useStoryReveal';
+import { useNewsDeepLink } from './hooks/useNewsDeepLink';
+import { useForumPostDeepLink } from './hooks/useForumPostDeepLink';
+
+import { NewsBase } from './components/NewsBase';
+import { NewsRail } from './components/NewsRail';
+import { NewsSearch } from './components/NewsSearch';
+import { ForYouHint } from './components/ForYouHint/ForYouHint';
+import { TeamNewsTabs } from './components/TeamNewsTabs';
+import { NewsGroupCard } from './components/NewsGroupCard';
+import { ForumPostCard } from './components/ForumPostCard';
+import { AutoMarkNewsCommentNotification } from './AutoMarkNewsCommentNotification';
+import { NewsDetailModal } from './components/NewsDetailModal';
+import { HiringCard } from './components/HiringCard/HiringCard';
+import { ForumPostModal } from './components/ForumPostModal/ForumPostModal';
+import { TopStoriesBlock, type TopStorySlot } from './components/TopStories';
+import { PopularScroller } from './components/FeedScrollers/PopularScroller';
+import { DealCardCompact } from './components/DealCardCompact/DealCardCompact';
+import { FollowTeamsScroller } from './components/FeedScrollers/FollowTeamsScroller';
 
 import s from './TeamNews.module.scss';
 
@@ -86,6 +98,8 @@ interface TeamNewsProps {
   groups: ITeamNewsGroup[];
   /** Allowlisted teams with no focus-area group; shown on "All" only. */
   allTabExtraItems?: ITeamNewsItem[];
+  /** Memberships ∪ follows ∪ matcher teams; empty for guests. Frozen at mount. */
+  forYouTeamUids?: string[];
   /** Server-ranked "Popular this week" (GET /v1/team-news/popular), fetched SSR
    * alongside `groups`. Empty → the rail's Popular module hides itself. */
   popularItems?: ITeamNewsPopularItem[];
@@ -96,12 +110,17 @@ interface TeamNewsProps {
 export const TeamNews = ({
   groups,
   allTabExtraItems = [],
+  forYouTeamUids = [],
   popularItems = [],
   pageSize = 6,
   initialDigestSettings = null,
 }: TeamNewsProps) => {
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
-  const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(ALL_CAT);
+  const [initialForYouTeamUids] = useState<ReadonlySet<string>>(() => new Set(forYouTeamUids));
+  const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(() => {
+    const items = sortAllTabItemsByEventDate(dedupeByUid([...groups.flatMap((g) => g.items), ...allTabExtraItems]));
+    return selectForYouItems(items, new Set(forYouTeamUids)).length > 0 ? FOR_YOU_CAT : ALL_CAT;
+  });
   const [expanded, setExpanded] = useState(false);
   const [query, setQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
@@ -111,6 +130,10 @@ export const TeamNews = ({
   const { mutate: followMutate } = useFollowTeam();
   const { mutate: upvoteMutate } = useTeamNewsUpvoteToggle();
   const { mutate: postLikeMutate } = useFeedForumPostLikeToggle();
+  // One instance for the whole page: holds every rendered card's dedup/queue
+  // state, regardless of tab/category remounts below it (see the hook's own
+  // unmount-vs-page-load-scoped comments).
+  const { recordVisible } = useTeamNewsImpressions();
 
   // `groups` is an SSR prop, not a React Query cache — there's nothing here for a
   // useArticleLike-style setQueryData patch to act on. Upvote state is tracked the
@@ -180,7 +203,7 @@ export const TeamNews = ({
     () => new Map(allItems.map((i) => [i.uid, i.upvoteCount ?? 0])),
   );
 
-  const [sort, setSort] = useState<TeamNewsSort>('popular');
+  const [sort, setSort] = useState<TeamNewsSort>(DEFAULT_TEAM_NEWS_SORT);
 
   // Both are client-side and non-blocking: the feed renders without them and
   // the cards pop in, the same arrival forum posts already have. `undefined`
@@ -193,6 +216,16 @@ export const TeamNews = ({
     const group = groups.find((g) => g.focusArea.title === activeTab);
     return applyUpvoteOverlay(group?.items ?? [], upvoteOverlay);
   }, [activeTab, allItems, groups, upvoteOverlay]);
+
+  const forYouItemsForActiveTab = useMemo(
+    () => selectForYouItems(itemsForActiveTab, initialForYouTeamUids),
+    [itemsForActiveTab, initialForYouTeamUids],
+  );
+
+  const hasForYouNews = useMemo(
+    () => selectForYouItems(allItems, initialForYouTeamUids).length > 0,
+    [allItems, initialForYouTeamUids],
+  );
 
   // Forum posts joining the current tab (they only ever show under the "All"
   // category pill — a post has no event type). Memoized so its array identity
@@ -207,6 +240,7 @@ export const TeamNews = ({
   // once already.
   const countForCategory = useCallback(
     (id: TeamNewsCategoryId) => {
+      if (id === FOR_YOU_CAT) return forYouItemsForActiveTab.length;
       const newsCount =
         id === ALL_CAT
           ? itemsForActiveTab.length
@@ -214,25 +248,43 @@ export const TeamNews = ({
       // Forum posts show under All and Discussions, and nowhere else.
       return newsCount + (categoryIncludesForumPosts(id) ? tabForumPosts.length : 0);
     },
-    [itemsForActiveTab, tabForumPosts],
+    [itemsForActiveTab, tabForumPosts, forYouItemsForActiveTab],
   );
 
   const categoriesWithCounts = useMemo(() => {
-    const base = CATEGORIES.map((c) => ({ ...c, count: countForCategory(c.id) }));
+    const base = CATEGORIES.reduce<Array<{ id: TeamNewsCategoryId; label: string; count: number }>>((acc, c) => {
+      if (c.label === EVENT_TYPE_LABEL.HIRING) {
+        if (SHOW_HIRING_NEWS) {
+          acc.push({ ...c, count: countForCategory(c.id) });
+        }
+      } else {
+        acc.push({ ...c, count: countForCategory(c.id) });
+      }
+
+      return acc;
+    }, []);
+
     const discussionsCount = countForCategory(DISCUSSIONS_CAT);
+    const forYouCount = countForCategory(FOR_YOU_CAT);
+
+    const withForYou: Array<{ id: TeamNewsCategoryId; label: string; count: number }> = hasForYouNews
+      ? [{ ...FOR_YOU_CATEGORY, count: forYouCount }, ...base]
+      : base;
 
     // Nothing to filter to ⇒ no pill, the same rule every other pill follows.
-    if (discussionsCount === 0) return base;
+    if (discussionsCount === 0) {
+      return withForYou;
+    }
 
     const withDiscussions: Array<{ id: TeamNewsCategoryId; label: string; count: number }> = [];
-    for (const c of base) {
+    for (const c of withForYou) {
       withDiscussions.push(c);
       if (c.id === ALL_CAT) {
         withDiscussions.push({ ...DISCUSSIONS_CATEGORY, count: discussionsCount });
       }
     }
     return withDiscussions;
-  }, [countForCategory]);
+  }, [countForCategory, hasForYouNews]);
 
   /**
    * The same list the pills render, shaped for the mobile "Type:" dropdown.
@@ -248,15 +300,16 @@ export const TeamNews = ({
   const categoryOptions = useMemo(
     () =>
       categoriesWithCounts
-        .filter((c) => c.id === ALL_CAT || c.count > 0)
+        .filter((c) => c.id === ALL_CAT || c.id === FOR_YOU_CAT || c.count > 0)
         .map((c) => ({ value: c.id, label: c.id === ALL_CAT ? c.label : `${c.label} (${c.count})` })),
     [categoriesWithCounts],
   );
 
   const filteredItems = useMemo(() => {
+    if (activeCategory === FOR_YOU_CAT) return forYouItemsForActiveTab;
     if (activeCategory === ALL_CAT) return itemsForActiveTab;
     return itemsForActiveTab.filter((i) => matchesTeamNewsCategory(i, activeCategory));
-  }, [activeCategory, itemsForActiveTab]);
+  }, [activeCategory, itemsForActiveTab, forYouItemsForActiveTab]);
 
   // Narrows filteredItems by team name, story title, summary, or tags —
   // combines with (doesn't replace) the active tab/category filter.
@@ -329,18 +382,25 @@ export const TeamNews = ({
   // Both are unfiltered by tab/category/search on purpose: neither carries a
   // focus area or an event type, so every narrowed view drops them. That falls
   // out of `isNarrowedView` below rather than being re-derived per stream.
+  // SHOW_HIRING_NEWS gates the INJECTION, not the render. Gating only the card
+  // (as #2775 did) still let the entry into `entries`, where it silently ate a
+  // `pageSize` slot — a first page of six showed five — and shifted the
+  // analytics `position` of every card after it. `undefined` is the same "leave
+  // the feed alone" signal a failed request already sends.
   const entries = useMemo(
     () =>
       isNarrowedView
         ? rankedEntries
-        : injectFeedSignals({ entries: rankedEntries, hiring: feedHiring, deals: feedDeals }),
+        : injectFeedSignals({
+            entries: rankedEntries,
+            hiring: SHOW_HIRING_NEWS ? feedHiring : undefined,
+            deals: feedDeals,
+          }),
     [rankedEntries, isNarrowedView, feedHiring, feedDeals],
   );
 
   const visibleEntries = expanded ? entries : entries.slice(0, pageSize);
   const newCount = allItems.length + (forumPosts?.length ?? 0);
-
-  console.log('>>>', visibleEntries);
 
   // Band is editorialRank; rail is upvotes — they should already diverge, but
   // still drop any accidental overlap so the same story isn't shown twice.
@@ -397,6 +457,15 @@ export const TeamNews = ({
   // handleForumPostLikeToggle, the correction lands in the overlay on first use
   // and outlives the modal.
   const activePostTopicLike = useFeedForumTopicLike(activePostUid);
+
+  // Persists the topic's correction to the local like cache the moment it's
+  // learned, so it also benefits this card on a future reload/session — not
+  // just the modal's own render (which resolvePostLike already covers).
+  useEffect(() => {
+    if (!activePostUid || !activePostTopicLike) return;
+    setStoredForumPostLike(activePostUid, activePostTopicLike.viewerHasLiked);
+  }, [activePostUid, activePostTopicLike]);
+
   const resolvePostLike = useCallback(
     (post: IFeedForumPost) =>
       resolveForumPostLike(
@@ -452,7 +521,9 @@ export const TeamNews = ({
     const nextItems = id === ALL_TAB ? allItems : (groups.find((g) => g.focusArea.title === id)?.items ?? []);
     analytics.onTeamNewsTabClicked(id, nextItems.length);
     setActiveTab(id);
-    setActiveCategory(ALL_CAT);
+    if (activeCategory !== FOR_YOU_CAT) {
+      setActiveCategory(ALL_CAT);
+    }
     setExpanded(false);
   };
 
@@ -501,7 +572,10 @@ export const TeamNews = ({
   // Forum-post counterpart of handleStoryOpen (card-clicked analytics fire in
   // ForumPostCard, which knows its own position).
   const handleForumPostOpen = (post: IFeedForumPost) => {
-    if (activeNewsUid) closeNews();
+    if (activeNewsUid) {
+      closeNews();
+    }
+
     openPost(post.uid);
   };
 
@@ -673,12 +747,20 @@ export const TeamNews = ({
   // caller passes the overlay-merged post, so `viewerHasLiked` is current.
   // No signed-out branch: only access-holding (signed-in) viewers see posts.
   const handleForumPostLikeToggle = (post: IFeedForumPost, source: TeamNewsAnalyticsSource = 'home') => {
+    // The button is already disabled for your own post, but the identity it's
+    // derived from hydrates client-side: for the first paint after a reload
+    // there is no currentUser yet and the control is briefly live. Bail rather
+    // than send a vote NodeBB will refuse ([[error:self-vote]]) and book a
+    // like-FAILED event for something that was never going to work.
+    if (isOwnForumPost(post, currentUser?.uid)) return;
+
     const wasLiked = post.viewerHasLiked;
     const nextLiked = !wasLiked;
     const prevCount = post.likeCount;
     const nextCount = wasLiked ? Math.max(0, prevCount - 1) : prevCount + 1;
 
     setPostLikeOverlay((prev) => new Map(prev).set(post.uid, { viewerHasLiked: nextLiked, likeCount: nextCount }));
+    setStoredForumPostLike(post.uid, nextLiked);
 
     const position = visibleEntries.findIndex((e) => feedEntryKey(e) === `forum:${post.uid}`);
 
@@ -687,11 +769,13 @@ export const TeamNews = ({
       {
         onError: () => {
           setPostLikeOverlay((prev) => new Map(prev).set(post.uid, { viewerHasLiked: wasLiked, likeCount: prevCount }));
+          setStoredForumPostLike(post.uid, wasLiked);
           analytics.onFeedForumPostLikeFailed(post, position, nextLiked, source);
         },
         onSuccess: (status) => {
           if (status) {
             setPostLikeOverlay((prev) => new Map(prev).set(post.uid, status));
+            setStoredForumPostLike(post.uid, status.viewerHasLiked);
           }
           analytics.onFeedForumPostLikeToggled(post, position, nextLiked, source);
         },
@@ -715,7 +799,11 @@ export const TeamNews = ({
     // same ALL_TAB-vs-group lookup inline — accurate here, before any of this
     // handler's own setState calls have applied.
     const tabMismatch = activeTab !== ALL_TAB && !itemsForActiveTab.some((i) => i.uid === fullItem.uid);
-    const categoryMismatch = activeCategory !== ALL_CAT && !matchesTeamNewsCategory(fullItem, activeCategory);
+    const categoryMismatch =
+      activeCategory !== ALL_CAT &&
+      (activeCategory === FOR_YOU_CAT
+        ? !forYouItemsForActiveTab.some((i) => i.uid === fullItem.uid)
+        : !matchesTeamNewsCategory(fullItem, activeCategory));
     const searchMismatch = query.trim() !== '' && !matchesTeamNewsQuery(fullItem, query.trim().toLowerCase());
     const filtersChanging = tabMismatch || categoryMismatch || searchMismatch;
 
@@ -798,7 +886,7 @@ export const TeamNews = ({
         <div className={s.catRow}>
           {categoriesWithCounts.map((c) => {
             const isActive = activeCategory === c.id;
-            const isDisabled = c.count === 0 && c.id !== ALL_CAT;
+            const isDisabled = c.count === 0 && c.id !== ALL_CAT && c.id !== FOR_YOU_CAT;
             return (
               <button
                 key={c.id}
@@ -835,6 +923,7 @@ export const TeamNews = ({
             the originating row is gone (deep link to a folded story) — focus must
             land somewhere in the feed, never on <body>. */}
         <div className={s.main} data-news-feed-root tabIndex={-1}>
+          {activeCategory === FOR_YOU_CAT && <ForYouHint memberUid={currentUser?.uid} />}
           {topStories?.lead && (
             <div className={s.topStories}>
               <TopStoriesBlock
@@ -845,6 +934,7 @@ export const TeamNews = ({
                 onFollowToggle={handleFollowToggle}
                 onUpvoteToggle={handleUpvoteToggle}
                 onStoryOpen={handleTopStoryOpen}
+                onStoryVisible={recordVisible}
               />
             </div>
           )}
@@ -906,6 +996,7 @@ export const TeamNews = ({
                           autoExpandStoryUid={
                             scrollTarget?.teamUid === entry.cluster.teamUid ? scrollTarget.storyUid : undefined
                           }
+                          onStoryVisible={recordVisible}
                         />
                       );
                     case 'forum':
@@ -917,12 +1008,17 @@ export const TeamNews = ({
                           // the feed.
                           post={resolvePostLike(entry.post)}
                           position={index}
+                          isOwnPost={isOwnForumPost(entry.post, currentUser?.uid)}
                           onOpenDetail={handleForumPostOpen}
                           onLikeToggle={handleForumPostLikeToggle}
                         />
                       );
                     case 'hiring':
-                      return SHOW_HIRING_NEWS ? (
+                      // No flag check here: with the injection gated above, a
+                      // hiring entry only exists when it is meant to be seen.
+                      // Re-checking would reintroduce the invisible-entry bug
+                      // the moment the two guards disagreed.
+                      return (
                         <HiringCard
                           key={key}
                           group={entry.group}
@@ -933,7 +1029,7 @@ export const TeamNews = ({
                           }
                           onViewAllClick={(group) => analytics.onFeedHiringViewAllClicked(group, index)}
                         />
-                      ) : null;
+                      );
                     case 'deal':
                       return (
                         <DealCardCompact
@@ -971,6 +1067,7 @@ export const TeamNews = ({
 
       {/* Conditional mount, no isOpen half-state: the item prop is always the
           live overlay-merged object. Trades away the exit animation (accepted). */}
+      <AutoMarkNewsCommentNotification newsItemUid={activeNewsUid} />
       {activeNewsItem && (
         <NewsDetailModal
           item={activeNewsItem}
@@ -978,12 +1075,17 @@ export const TeamNews = ({
           onUpvoteToggle={(item) => handleUpvoteToggle(item, 'news-modal')}
           isFollowing={followedTeamUids.has(activeNewsItem.teamUid)}
           onFollowToggle={handleFollowToggle}
+          // Constructed, not left to the body's current-URL fallback: the ?news=
+          // param is written with raw history.replaceState, so the round-trip
+          // has to name the story explicitly to survive a sign-in.
+          loginHref={`/home?news=${encodeURIComponent(activeNewsItem.uid)}#login`}
         />
       )}
       {activeForumPost && (
         <ForumPostModal
-          post={activeForumPost}
           onClose={closePost}
+          post={activeForumPost}
+          isOwnPost={isOwnForumPost(activeForumPost, currentUser?.uid)}
           onLikeToggle={(post) => handleForumPostLikeToggle(post, 'news-modal')}
         />
       )}

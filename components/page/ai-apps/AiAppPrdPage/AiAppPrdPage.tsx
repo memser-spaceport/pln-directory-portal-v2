@@ -45,6 +45,16 @@ export function AiAppPrdPage({ uid }: Props) {
     analytics.onPrdPageViewed(app.uid, app.name);
   }, [state.status, app, analytics]);
 
+  useEffect(() => {
+    const name = app?.name?.trim();
+    if (!name) return;
+    const previous = document.title;
+    document.title = name;
+    return () => {
+      document.title = previous;
+    };
+  }, [app?.name]);
+
   const renderViewport = () => {
     switch (state.status) {
       case 'loading':

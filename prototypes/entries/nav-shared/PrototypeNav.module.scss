@@ -1,0 +1,125 @@
+@import 'styles/media.scss';
+
+/* The production header/bottom bar this nav replaces are hidden for the whole
+   /prototypes/* subtree — see
+   prototypes/components/PrototypeRouteChrome/PrototypeRouteChrome.module.scss. */
+
+/* Stands in for the production `.layout__header` hidden there: same sticky
+   behaviour, height and z-index, so pages that offset sticky rails by
+   --app-header-height (DashboardPagesLayout's filter column) still line up. */
+.headerShell {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  width: 100%;
+  min-height: var(--app-header-height);
+  background-color: #ffffff;
+}
+
+/* The logo is a <button> on pages that own the feed and handle the click in
+   place, so it needs the reset production's .logoWrapper (an anchor) assumes.
+   Nothing visual changes — the logo looks and sits exactly where it does in
+   production; only what it links to and how it announces itself changed. */
+.logoButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+/* The News item is a <button> when the page has no route to push, so it needs
+   the anchor reset the production .Trigger assumes. */
+.newsTrigger {
+  position: relative;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+/* Unread signal. 6px is small enough to read as a state marker rather than a
+   badge — it says "something changed", and nothing more.
+
+   Absolute, like the mobile bar's dot: as a flex child it took the .Trigger's
+   6px gap plus its own 6px and 2px margin, pushing Directory 14px further from
+   News than Forum sits from Demo Day. The dot is a state marker on the item,
+   not a sibling of its label, so it shouldn't spend layout width — and the row
+   only reads as evenly spaced if the signal costs nothing. */
+.navDot {
+  position: absolute;
+  top: 7px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* ---------- Mobile bottom bar ---------- */
+
+/* The production bar hides itself on scroll-down; the prototype keeps it put so
+   the item under discussion can't scroll out from under you mid-review. */
+.mobileNav {
+  transform: none;
+}
+
+.mobileNewsItem {
+  position: relative;
+}
+
+/* On mobile the item is an icon over a label, so the dot rides the icon's
+   top-right corner — the desktop's inline-after-the-word placement would push
+   the label off-centre against its four neighbours. */
+.mobileNavDot {
+  position: absolute;
+  top: -1px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* Static stand-ins for the service-wired right-hand cluster. */
+.navIconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+/* The one that isn't a stand-in. Same box as .navIconButton plus the button
+   reset .logoButton and .newsTrigger already carry, so nothing moves when the
+   glyph becomes clickable — only the cursor and the hover say so. */
+.navIconTrigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.navAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}

@@ -1,0 +1,276 @@
+// Only what InviteEmailModal.module.scss has no equivalent of. The card, close
+// button, envelope, title, description, field stack and footer all come from
+// that file — this modal imports its classes directly rather than restating them
+// (see the header note in EmailTemplateModal.tsx).
+//
+// Same palette rule as that file: this is a portal-looking modal, not a
+// back-office table, so it paints in the PL design system with verified
+// name+fallback pairs (prototypes/CLAUDE.md #3, #4).
+
+@use 'styles/media';
+
+// The invite modal's 520px holds one email. This one holds an email being
+// written and the same email rendered, side by side, so it takes the width two
+// columns need: 880 − 40 of padding − 24 of gap = 408 a column, which is a
+// sane measure both for composing a paragraph and for reading one back.
+//
+// It takes TWO overrides, because production's Modal caps its own container at
+// 600px (components/common/Modal/Modal.module.scss) — a card widened on its own
+// just stops at the container. `.wideContainer` goes on the Modal's className,
+// `.wide` on the card inside it. Both selectors are doubled: what they override
+// is single-class too, so at equal specificity the winner would come down to
+// CSS bundle order.
+.wideContainer.wideContainer {
+  max-width: 880px;
+}
+
+.wide.wide {
+  max-width: 880px;
+
+  @include media.mobile-only {
+    max-width: 100%;
+  }
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+// Title and description ranged left over a rule, in place of the invite modal's
+// centred envelope / title / description column. The right padding keeps the
+// title clear of the close button, which sits 12px from the corner.
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+// Doubled, like every other override of a class from the borrowed stylesheet:
+// `.title` and `.desc` centre their text at single-class specificity, so at
+// equal weight the winner would be CSS bundle order.
+.headerText.headerText {
+  text-align: left;
+}
+
+// ── Edit / preview split ──────────────────────────────────────────────────────
+// `align-items: start` so the preview pane takes its content's height instead of
+// stretching to match a tall editor — an email four paragraphs long should not
+// be drawn inside a box sized for the textarea next to it.
+
+// One column by default and two from tablet-landscape (960px) up: the card is
+// `width: 100%` under its 880px cap, so below that the two columns would be
+// narrower than the measure they were sized for and both halves would suffer.
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+
+  @include media.tablet-landscape {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+// ── Section blocks (Variables, Preview) ───────────────────────────────────────
+// Same 6px label→content rhythm as the body block they sit under, so the three
+// read as one column rather than as three separately-designed panels.
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.blockLabel {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// ── Variable chips ────────────────────────────────────────────────────────────
+// A control chip, not a label chip — it does something on click, so it hovers
+// brand (see the two chip lineages in the design system). The chip is the token
+// and nothing else: it is a thing you insert, and every character beyond the
+// literal text it inserts makes it a worse label for itself.
+
+.varList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.varChip {
+  display: inline-flex;
+  align-items: baseline;
+  padding: 5px 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 9999px;
+  background: var(--background-base-white, #ffffff);
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    border-color: var(--foreground-brand-primary, #1b4dff);
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+.varChipToken {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 18px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  white-space: nowrap;
+}
+
+// ── Preview ───────────────────────────────────────────────────────────────────
+
+// Holds only the "Preview" label now — the cohort toggle went when both branches
+// became readable in the template, and the specimen caption went with the named
+// recipient. Kept as a flex row rather than flattened to the bare label, because
+// this is where a preview-scoped control would land if one is ever earned back.
+.previewHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+// The rendered email. Reading text, so it drops the -0.2px tracking the UI
+// labels carry and takes a 22px line height — the same pair the description at
+// the top of the card uses.
+//
+// NO inner scroll, and this pane used to have one. It was capped at 340px so
+// that an eleven-paragraph email couldn't push the editor column off the top of
+// the card — sound on its own terms, and wrong in the card. The chrome this
+// modal borrows has exactly one scroll region by design ("only the fields
+// scroll", InviteEmailModal.module.scss), and a capped pane made a second one
+// that covered half the card. The wheel goes to whatever is under the pointer,
+// so on any window short enough to clip the field stack — which is most of them,
+// the card wants ~790px — pointing at the preview or the body textarea scrolled
+// those instead, and the Variables below simply could not be reached. Measured:
+// the stack had 115px of scroll and responded only over a thin strip of the left
+// column. One scroller is worth more than a preview that never moves: scrolling
+// to read the end of a long email is what documents do, and it is now the same
+// gesture, in the same box, wherever the pointer happens to be.
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background-color: var(--background-neutral-soft-surface, #f9fafb);
+}
+
+.previewSubject {
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  overflow-wrap: anywhere;
+}
+
+.previewBody {
+  margin: 0;
+  // The template's paragraph breaks ARE its structure — the drop rule works on
+  // them — so they are preserved rather than collapsed.
+  white-space: pre-wrap;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  color: var(--foreground-neutral-secondary, #455468);
+  overflow-wrap: anywhere;
+}
+
+// ── Save note ─────────────────────────────────────────────────────────────────
+
+.saveNote {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// ── Template style tabs ───────────────────────────────────────────────────────
+
+// Production's Tabs component brings its own type, indicator and hover; all this
+// adds is where it sits — flush under the header rule, and far enough from the
+// Subject field below that it reads as governing the whole card rather than
+// labelling that one input.
+// `flex-shrink: 0` is the whole fix, and it is not optional.
+//
+// The card is a flex column with an 860px cap, so every direct child is a
+// shrinkable flex item. Production's Tabs root sets `overflow: auto` — which
+// means when the card runs out of room this row does not push back and does not
+// overflow visibly: it silently gives up height and CLIPS ITS OWN LABELS. It was
+// rendering at 35px around 54px of content, shearing the bottom off
+// "Conditional" and "Rules".
+//
+// An earlier pass misread that as the underline indicator hanging past the list
+// and added 6px of padding, which made it worse — padding is more content for a
+// box that is being squeezed. The 2px that remains is only the indicator's
+// overhang; the shrink is what was actually wrong.
+//
+// Checked the card's other children the same way: header, form and close button
+// all size to their content. This row is the only one with `overflow: auto`, and
+// therefore the only one that could lose height without anyone seeing it.
+// The negative top margin eats into the card's 24px flex gap.
+//
+// Left alone the row sat 40px below the header rule and 42px above the Subject
+// field — equidistant, so it read as floating between the two rather than
+// belonging to either. A tab row belongs to the header whose content it swaps,
+// so it moves up until that reading is unambiguous: ~20px above, ~34px below.
+// The asymmetry is the whole point; making the two gaps equal is what broke it.
+.styleTabs {
+  flex-shrink: 0;
+  margin-top: -16px;
+  padding-bottom: 2px;
+  margin-bottom: -4px;
+}
+
+// The `{{#if}}` chip. Same shape and same insert-at-caret job as a variable
+// chip, so it takes the same style — but it is a BLOCK, not a value, and mixing
+// it into a row of interchangeable-looking pills would invite clicking it where
+// a variable belongs. A dashed edge is the smallest mark that says "this one
+// wraps text" without promoting it out of the row.
+.ifChip {
+  border-style: dashed;
+}
+
+// ── Preview: template is unparseable ──────────────────────────────────────────
+
+// Amber, not red: the template is mid-edit, and a half-typed `{{#if}}` is the
+// normal state of typing one — an error colour would flash destructive every
+// time someone opens a block before closing it.
+//
+// The preview above keeps rendering, with the unbalanced tags left in the text
+// where the resolver gave up. That is deliberate: the unclosed block is visible
+// in the output at the point it went wrong, which locates the problem better
+// than a cleared pane or a frozen previous render would.
+.syntaxError.syntaxError {
+  color: var(--foreground-warning-primary, #b45309);
+}

@@ -2,17 +2,19 @@
 
 import clsx from 'clsx';
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { clampDepth } from '@/utils/comments';
+import { clampDepth, countComments } from '@/utils/comments';
 import { countMentions, isBlankHtml } from '@/utils/html';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 import { forumErrorMessage } from '@/services/forum/forum.service';
 import { useFeedComments } from '@/services/feed/hooks/useFeedComments';
+import { useFeedCommentCount } from '@/services/feed/hooks/useFeedCommentCounts';
+import { useReconcileFeedCommentCount } from '@/services/feed/hooks/useReconcileFeedCommentCount';
 import { useAddFeedComment } from '@/services/feed/hooks/useAddFeedComment';
 import { useDeleteFeedComment } from '@/services/feed/hooks/useDeleteFeedComment';
 import { FEED_COMMENT_MAX_LENGTH } from '@/services/feed/constants';
@@ -20,6 +22,8 @@ import { useTeamNewsAnalytics, type FeedItemKind, type TeamNewsAnalyticsSource }
 import { isForumPostUid, type IFeedComment } from '@/types/feed.types';
 import type { AnchorTarget } from '@/utils/html';
 
+import { useAnchorFeedComment } from '../../hooks/useAnchorFeedComment';
+import { FEED_COMMENT_PARAM, feedCommentDomId } from '../../utils/feedCommentAnchor';
 import { FeedCommentContent, hasRenderableContent } from './FeedCommentContent';
 
 import s from './FeedCommentsThread.module.scss';
@@ -46,12 +50,6 @@ const POST_FAILED = 'Couldn’t post your comment — try again.';
 // A mention costs ~150 characters of markup behind a short name, so this can
 // fire on a comment that looks well within the limit. Name the likely cause.
 const TOO_LONG = 'That’s too long to post — try shortening it, or removing a mention.';
-
-/** Total comments in the thread, replies included — matches what the count
- *  badge shows (the backend counts every row under an item, at any depth). */
-function countComments(comments: readonly IFeedComment[]): number {
-  return comments.reduce((total, comment) => total + 1 + countComments(comment.replies), 0);
-}
 
 /** Is `uid` this comment or anywhere in its subtree? */
 function containsUid(comment: IFeedComment, uid: string): boolean {
@@ -166,6 +164,7 @@ export function FeedCommentsThread({
   onBusyChange,
 }: FeedCommentsThreadProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const analytics = useTeamNewsAnalytics();
   const { currentUser, isHydrated } = useCurrentUserStore();
   const { canWrite: canWriteForum } = useForumAccess();
@@ -183,6 +182,15 @@ export function FeedCommentsThread({
   const isCard = onViewAll !== undefined;
 
   const { data, isPending, isError, errorUpdatedAt, refetch } = useFeedComments(itemUid, { enabled: true });
+  // The card's count badge is built from NodeBB's listing, which can lag a
+  // reply. The topic this thread just fetched is the same source the /forum
+  // page counts from, so opening a thread is what makes the two agree. One call
+  // site covers every surface: the card thread and both modals share this
+  // component.
+  useReconcileFeedCommentCount(itemUid);
+  // Placeholder for the header while the thread is still loading (or has
+  // failed) — see headerCount below for why it is never the settled source.
+  const cachedCount = useFeedCommentCount(itemUid);
   // The hooks report their own analytics, from their options callbacks — those
   // survive the remount a tab or category change causes, which a callback
   // passed to mutate() would not.
@@ -200,6 +208,15 @@ export function FeedCommentsThread({
   // re-checking depth.
   const comments = useMemo(() => clampDepth<IFeedComment>(items ?? [], MAX_DEPTH), [items]);
   const totalCount = useMemo(() => countComments(comments), [comments]);
+
+  // Notification deep links open the modal with ?comment=<uid>. Card previews
+  // stay capped and do not scroll.
+  const anchorCommentUid = !isCard ? searchParams.get(FEED_COMMENT_PARAM) : null;
+  useAnchorFeedComment({
+    enabled: !isCard,
+    commentUid: anchorCommentUid,
+    ready: !isPending && !isError && Boolean(items),
+  });
 
   // NodeBB serves one page of posts per request, so a busy topic's thread is
   // only partly here. Saying "View all N" over a subset would be a lie; the
@@ -368,12 +385,47 @@ export function FeedCommentsThread({
   const showEscalation = isCard && (comments.length > VISIBLE || missingReplyCount > 0);
   const hasRows = comments.length > 0 || Boolean(pendingText && !pending?.parentUid);
 
+  // The header's number, and deliberately NOT the shared counts cache. That
+  // entry omits any news uid with zero comments — the backend counts with a
+  // groupBy, which emits no row for an item nobody has commented on — so
+  // "unknown" and "genuinely zero" arrive identical, and an empty news thread
+  // would print a bare "Comments" where the forum prints "Comments (0)".
+  //
+  // Once the thread has settled it knows better than the cache anyway:
+  // totalCount is exact for news (the list is unpaginated and clampDepth lifts
+  // rather than drops), and for a forum post the topic's own totalReplyCount is
+  // the figure the "N more comments on the forum" link below counts against —
+  // totalCount there would only count the page NodeBB happened to serve.
+  //
+  // The cached number covers the states where the thread hasn't answered yet;
+  // `undefined` prints no parenthetical at all rather than asserting a zero
+  // nothing established, the same rule the card's count badge follows. The
+  // pending row is added because it is already on screen while the request that
+  // will make it real is still in flight.
+  const headerCount =
+    isPending || isError
+      ? typeof cachedCount === 'number'
+        ? cachedCount
+        : undefined
+      : (forumTopic ? forumTopic.totalReplyCount : totalCount) + (pendingText ? 1 : 0);
+
   return (
     <div
       id={feedThreadDomId(itemUid)}
       className={clsx(s.thread, isCard && s.threadCard)}
       onClick={(e) => e.stopPropagation()}
     >
+      {/* Modal surfaces only: on a card the actions row's count badge sits a few
+          pixels above this, so a header would say the same thing twice. Named
+          unconditionally, like the forum's — only the composer below is gated on
+          sign-in and forum.write, so a read-only member still gets the section
+          titled. A real heading rather than the forum's styled div: both modals
+          title their article with an h3, so this keeps the outline h2 → h3 → h4
+          and reaches screen-reader heading navigation. */}
+      {!isCard && (
+        <h4 className={s.heading}>{typeof headerCount === 'number' ? `Comments (${headerCount})` : 'Comments'}</h4>
+      )}
+
       {/* Composer sits above the list — leave a comment first, then read.
           Nothing renders before the auth store hydrates: `currentUser` is null
           either way at that point, so showing the composer would let a guest
@@ -677,7 +729,7 @@ function CommentRow(props: CommentRowProps) {
   };
 
   return (
-    <div className={s.item}>
+    <div className={s.item} id={feedCommentDomId(comment.uid)}>
       <img className={s.avatar} src={comment.author.avatarUrl || getDefaultAvatar(displayName)} alt="" loading="lazy" />
       <div className={s.body}>
         <div className={s.head}>

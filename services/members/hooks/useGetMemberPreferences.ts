@@ -10,6 +10,7 @@ export interface MemberPreferencesResponse {
     discord: boolean;
     linkedin: boolean;
     twitter: boolean;
+    bluesky: boolean;
     githubProjects: boolean;
     newsLetter: boolean;
   };
@@ -21,6 +22,7 @@ export interface MemberPreferencesResponse {
     discord: boolean;
     linkedin: boolean;
     twitter: boolean;
+    bluesky: boolean;
     newsLetter: boolean;
     showOfficeHoursDialog?: boolean;
     showForumBanner?: boolean;
@@ -58,6 +60,7 @@ async function fetcher(uid: string | undefined): Promise<MemberPreferencesRespon
     discord: rawPreferences?.discord ?? false,
     linkedin: rawPreferences?.linkedin ?? false,
     twitter: rawPreferences?.twitter ?? false,
+    bluesky: rawPreferences?.bluesky ?? false,
     githubProjects: rawPreferences?.github ?? false,
     newsLetter: true,
   };
@@ -70,6 +73,7 @@ async function fetcher(uid: string | undefined): Promise<MemberPreferencesRespon
     discord: rawPreferences?.showDiscord,
     linkedin: rawPreferences?.showLinkedin,
     twitter: rawPreferences?.showTwitter,
+    bluesky: rawPreferences?.showBluesky,
     newsLetter: rawPreferences?.isSubscribedToNewsletter ?? false,
     showOfficeHoursDialog: rawPreferences?.showOfficeHoursDialog ?? true, // Default to true
     showForumBanner: rawPreferences?.showForumBanner ?? true, // Default to true

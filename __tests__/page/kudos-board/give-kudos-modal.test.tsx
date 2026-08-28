@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { GiveCommunityKudosModal } from '@/components/page/aligement-assets/kudos-board/give-kudos-modal';
+import type { CommunityKudosLimits } from '@/schema/kudos-forms';
 
 const mutateAsync = jest.fn().mockResolvedValue({});
 jest.mock('@/hooks/use-kudos', () => ({
@@ -11,22 +12,37 @@ jest.mock('@/hooks/use-kudos', () => ({
 jest.mock('@/analytics/kudos.analytics', () => ({
   useKudosAnalytics: () => ({ onCommunityKudosSubmitted: jest.fn() }),
 }));
-jest.mock('react-toastify', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
+jest.mock('@/components/core/ToastContainer', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
 
 const recipients = [
   { memberId: 'uid-a', name: 'Alice' },
   { memberId: 'uid-b', name: 'Bob' },
 ];
 
+const LIMITS: CommunityKudosLimits = { pointsMin: 10, pointsMax: 100, pointsStep: 10, messageMin: 25, messageMax: 500 };
+
 function renderModal(poolRemaining: number) {
   return render(
-    <GiveCommunityKudosModal open onClose={jest.fn()} recipients={recipients} poolRemaining={poolRemaining} />,
+    <GiveCommunityKudosModal
+      open
+      onClose={jest.fn()}
+      recipients={recipients}
+      poolRemaining={poolRemaining}
+      limits={LIMITS}
+    />,
   );
 }
 
 function renderLoadingModal() {
   return render(
-    <GiveCommunityKudosModal open onClose={jest.fn()} recipients={[]} poolRemaining={100} recipientsLoading />,
+    <GiveCommunityKudosModal
+      open
+      onClose={jest.fn()}
+      recipients={[]}
+      poolRemaining={100}
+      recipientsLoading
+      limits={LIMITS}
+    />,
   );
 }
 
@@ -62,10 +78,7 @@ describe('GiveCommunityKudosModal — send button gating', () => {
 
     await user.selectOptions(screen.getByLabelText(/recipient/i), 'uid-a');
     await user.selectOptions(screen.getByLabelText(/points to give/i), '20');
-    await user.type(
-      screen.getByLabelText(/your message/i),
-      'Thanks for the thorough review and quick turnaround.',
-    );
+    await user.type(screen.getByLabelText(/your message/i), 'Thanks for the thorough review and quick turnaround.');
 
     await waitFor(() => expect(sendBtn()).toBeEnabled());
   });

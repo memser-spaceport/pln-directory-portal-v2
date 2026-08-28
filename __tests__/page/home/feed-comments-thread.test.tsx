@@ -4,6 +4,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { FeedCommentsThread } from '@/components/page/home/TeamNews/components/FeedCommentsThread/FeedCommentsThread';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useFeedComments } from '@/services/feed/hooks/useFeedComments';
+import { useFeedCommentCount } from '@/services/feed/hooks/useFeedCommentCounts';
 import { useAddFeedComment } from '@/services/feed/hooks/useAddFeedComment';
 import { useDeleteFeedComment } from '@/services/feed/hooks/useDeleteFeedComment';
 import type { IFeedComment, IFeedCommentsResponse } from '@/types/feed.types';
@@ -11,14 +12,20 @@ import type { IFeedComment, IFeedCommentsResponse } from '@/types/feed.types';
 jest.mock('@/services/feed/hooks/useFeedComments', () => ({ useFeedComments: jest.fn() }));
 jest.mock('@/services/feed/hooks/useAddFeedComment', () => ({ useAddFeedComment: jest.fn() }));
 jest.mock('@/services/feed/hooks/useDeleteFeedComment', () => ({ useDeleteFeedComment: jest.fn() }));
+// Mocked rather than left to the global react-query stub: that stub ignores
+// `select`, so the real hook would hand back an object here instead of a
+// number or undefined — the two values the header actually distinguishes.
+jest.mock('@/services/feed/hooks/useFeedCommentCounts', () => ({ useFeedCommentCount: jest.fn() }));
 
 const useFeedCommentsMock = useFeedComments as jest.Mock;
 const useAddFeedCommentMock = useAddFeedComment as jest.Mock;
 const useDeleteFeedCommentMock = useDeleteFeedComment as jest.Mock;
+const useFeedCommentCountMock = useFeedCommentCount as jest.Mock;
 
 const routerPush = jest.fn();
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: routerPush }),
+  useSearchParams: () => new URLSearchParams(window.location.search),
 }));
 
 // Quill needs a real DOM and is lazy-loaded, so it is useless in jsdom and
@@ -157,6 +164,9 @@ beforeEach(() => {
   signIn();
   mockMutation(useDeleteFeedCommentMock);
   mockForumAccess.mockReturnValue({ canWrite: true });
+  // "Count unknown" by default — the settled header derives its own number, so
+  // only the loading and failed states should depend on this.
+  useFeedCommentCountMock.mockReturnValue(undefined);
 });
 
 describe('FeedCommentsThread — list', () => {
@@ -224,6 +234,15 @@ describe('FeedCommentsThread — list', () => {
     expect(container.querySelector('script')).toBeNull();
     expect(container.textContent).not.toContain('alert(1)');
     expect(screen.getByText('Hello')).toBeInTheDocument();
+  });
+
+  it('gives each comment row a stable DOM id for notification deep links', () => {
+    mockThread([comment('c1', 'Hello'), comment('c2', 'World')]);
+    mockMutation(useAddFeedCommentMock);
+    const { container } = render(<FeedCommentsThread itemUid="n-1" kind="news" source="news-modal" />);
+
+    expect(container.querySelector('#feed-comment-c1')).toBeInTheDocument();
+    expect(container.querySelector('#feed-comment-c2')).toBeInTheDocument();
   });
 
   it('falls back to a readable byline when the author has no name (the wire allows null)', () => {
@@ -941,5 +960,85 @@ describe('FeedCommentsThread — read-path states', () => {
 
     expect(screen.queryByPlaceholderText('Write your comment here, use @ to mention someone')).not.toBeInTheDocument();
     expect(screen.getByText('No comments yet.')).toBeInTheDocument();
+  });
+});
+
+describe('FeedCommentsThread — comments header', () => {
+  it('counts replies too, not just top-level comments', () => {
+    mockThread([comment('c1', 'First', false, [reply('r1', 'Answer', 'c1')]), comment('c2', 'Second')]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="news-modal" />);
+
+    expect(screen.getByRole('heading', { level: 4, name: 'Comments (3)' })).toBeInTheDocument();
+  });
+
+  it('says (0) on an empty news thread — the counts cache omits zero-comment items, so it cannot be the source', () => {
+    mockThread([]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="news-modal" />);
+
+    expect(screen.getByRole('heading', { level: 4, name: 'Comments (0)' })).toBeInTheDocument();
+  });
+
+  it('counts the whole topic on a forum post, not the one page NodeBB served', () => {
+    mockThread([comment('c1', 'Loaded'), comment('c2', 'Also loaded')], forumTopicMeta(50));
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
+
+    // Has to agree with the link right below it, which a loaded-only count of 2
+    // would flatly contradict.
+    expect(screen.getByRole('heading', { level: 4, name: 'Comments (50)' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '48 more comments on the forum →' })).toBeInTheDocument();
+  });
+
+  it('shows the cached count while the thread loads, so the header does not shift in late', () => {
+    useFeedCommentCountMock.mockReturnValue(3);
+    useFeedCommentsMock.mockReturnValue({ isPending: true });
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="news-modal" />);
+
+    expect(screen.getByRole('heading', { level: 4, name: 'Comments (3)' })).toBeInTheDocument();
+  });
+
+  it('drops the number rather than inventing a zero when nothing knows the count yet', () => {
+    useFeedCommentsMock.mockReturnValue({ isPending: true });
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="news-modal" />);
+
+    expect(screen.getByRole('heading', { level: 4, name: 'Comments' })).toBeInTheDocument();
+  });
+
+  it('never asserts (0) over a load that failed — that is a number nothing established', () => {
+    useFeedCommentsMock.mockReturnValue({ isError: true, refetch: jest.fn() });
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="news-modal" />);
+
+    expect(screen.getByRole('heading', { level: 4, name: 'Comments' })).toBeInTheDocument();
+  });
+
+  it('counts the in-flight comment, which is already on screen', () => {
+    mockThread([comment('c1', 'First')]);
+    mockMutation(useAddFeedCommentMock, { isPending: true, variables: { text: 'Posting this now' } });
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="news-modal" />);
+
+    expect(screen.getByRole('heading', { level: 4, name: 'Comments (2)' })).toBeInTheDocument();
+  });
+
+  it('titles the section for a read-only forum member, who gets no composer', () => {
+    mockForumAccess.mockReturnValue({ canWrite: false });
+    mockThread([comment('c1', 'Readable')], forumTopicMeta(1));
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" />);
+
+    expect(screen.queryByPlaceholderText('Write your comment here, use @ to mention someone')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 4, name: 'Comments (1)' })).toBeInTheDocument();
+  });
+
+  it('renders no header on a card — the actions row above already carries the count', () => {
+    mockThread([comment('c1', 'First')]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" onViewAll={jest.fn()} />);
+
+    expect(screen.queryByRole('heading', { name: /^Comments/ })).not.toBeInTheDocument();
   });
 });

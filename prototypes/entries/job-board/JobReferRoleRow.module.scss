@@ -1,9 +1,141 @@
 // Local extras on top of the reused production ReferRoleRow.module.scss.
 
-// The row is dense (12px padding, 40px-ish action line), so the Refer button sits
-// tighter than the default `s` Button: same type scale, less horizontal air.
-.referButton {
+// The Apply control, in every state it takes: the in-app <Button>, the anchor
+// out to an external posting, and the disabled "Applied". It carries Button's
+// own classes, so every visual property — fill, border, radius, type scale,
+// min-width — comes from the design system. This adds ONLY what an <a> lacks
+// that a <button> has: box layout, centring, and no inherited underline. The two
+// <button> states wear it as well, which is the point: all three fill the slot
+// identically, so the row's geometry never shifts as a role goes from offered to
+// applied.
+//
+// Deliberately no padding here. An earlier version set 12px to match the Refer
+// button's old bordered shape, which was wrong: that padding existed for that
+// shape, and overriding `.small`'s own 8px/10px would have made this 4px wider
+// than a real DS button as soon as the label grew past the 72px min-width.
+.applyButton {
   flex-shrink: 0;
-  padding-left: 12px;
-  padding-right: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* One width for every state this slot takes.
+
+     Button's `.small` floors at 72px, which "Apply" sits exactly on — but
+     "Applied" carries a check and a 6px gap and measured 90px, so a row jumped
+     18px wider the moment it was applied to and pulled the whole action cluster
+     left with it. In a list where several rows can flip, that reads as the page
+     twitching rather than as a state changing. 90px is the widest label this
+     slot ever holds, so it is the floor for all of them.
+
+     On `.applyButton` rather than `.appliedButton` deliberately: it is worn by
+     all three states (the in-app button, the external anchor and Applied), which
+     is the only way they can be guaranteed to match. */
+  min-width: 90px;
+
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+// "Applied" — the same shell as Apply, worn in the bordered neutral shape. Only
+// two things differ from the offer state: the check glyph needs a gap (Button's
+// own sizes are drawn for a bare label), and the disabled paint comes back off.
+.appliedButton {
+  gap: 6px;
+}
+
+// Button's `.root:disabled` drops the control to 50% opacity with a not-allowed
+// cursor — the right paint for "you can't do this yet", the wrong one for
+// "done". This is a report, not a refusal, so it stays at full contrast and
+// takes the ordinary arrow. The class is doubled purely to outrank
+// `.root:disabled`, which is otherwise the same specificity and could win on
+// stylesheet order alone.
+/* Applied reads as disabled, and that is the point.
+
+   An earlier pass forced `opacity: 1` here, arguing this is a report rather than
+   a refusal and so should stay at full contrast. That was wrong in practice: at
+   full contrast the button still looks pressable, so on a board of live Apply
+   buttons the one you have already used is the only control that lies about
+   whether anything happens when you press it. Half opacity says "there is
+   nothing left to do here" at a glance, which is exactly what is true.
+
+   The cursor stays `default` rather than the design system's `not-allowed`.
+   "Not allowed" is a refusal — it means you may not do this — and what this
+   means is that you already did. Doubled selector because the rule it is beating,
+   `.root:disabled`, is the same specificity. */
+.appliedButton.appliedButton:disabled {
+  cursor: default;
+}
+
+/* ---------------------------------------------------------------------------
+   The action row's greys.
+
+   Measured, the cluster held FOUR different ones inside ~200px:
+
+     clock + "1d ago"   #94a3b8   Tailwind slate-400   (production `.relative`)
+     Refer              #6b7280   Tailwind gray-500    (DS Button `.link.secondary`)
+     share icon         #455468   PL neutral-secondary (production ReferMenu)
+     arrow              #000000   nothing              (`.applyArrow` is `color: inherit`,
+                                                        and no ancestor sets one)
+
+   Three of the four aren't PL palette at all — two are Tailwind grays, which
+   this folder's rules forbid outright, and the arrow's black is not a colour
+   anyone chose: `inherit` simply fell through to the browser default. Four
+   near-identical tones also flatten the row, because a reader can't tell which
+   differences are meant to carry information.
+
+   The share icon is the one that was already right, so the fix is to make the
+   others agree with it rather than to invent a scheme. Two tones, both tokens:
+
+     ambient metadata (when it was posted)  → --foreground-neutral-tertiary
+     every control (Refer, share, arrow)    → --foreground-neutral-secondary
+
+   That leaves exactly one grey boundary in the row, and it means something:
+   quieter is something to read, darker is something to press. Apply stays the
+   filled brand button, so the loudest thing is still the one action the row is
+   for.
+
+   These are colour-layer overrides of reused production classes — the
+   translation this folder's rules ask for (swap a raw/foreign hex for the
+   matching `var(--token, #fallback)` pair, keep every size and space 1:1).
+   Nothing here changes geometry.
+   --------------------------------------------------------------------------- */
+
+/* Doubled to outrank production's `.relative`, which is the same specificity and
+   would otherwise win or lose on stylesheet order. */
+.relativeTone.relativeTone {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  /* The clock rides inside the span but takes its own colour, so it needs saying
+     twice — production sets it to the slate-400 separately. */
+  svg {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+/* Tripled, not doubled: the rule being beaten is `.link.secondary` (0,2,0) from
+   Button's own stylesheet, so a two-class selector only ties and hands the
+   decision to bundle order. `link` + `secondary` is still the right component
+   API — the quiet text button — and only its Tailwind gray is replaced. */
+.referTone.referTone.referTone {
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover:not(:disabled) {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+/* The arrow, brought up from `inherit`-black to the share icon's tone — the two
+   sit side by side and do the same kind of job, so a reader should not be able
+   to tell them apart by weight. Production's hover tint stays; only rest colour
+   is set here. */
+.arrowTone.arrowTone {
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
 }

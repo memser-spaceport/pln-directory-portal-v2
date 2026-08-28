@@ -54,6 +54,22 @@
 .nameAndActions {
   display: flex;
   align-items: center;
+
+  @include media.mobile-only {
+    flex-wrap: wrap;
+  }
+}
+
+.statusBadge {
+  display: inline-flex;
+  margin-left: 8px;
+  flex-shrink: 0;
+
+  @include media.mobile-only {
+    flex-basis: 100%;
+    margin-left: 0;
+    margin-top: 6px;
+  }
 }
 
 .teamName {

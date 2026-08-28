@@ -5,6 +5,7 @@ import { EVENT_TYPE_LABEL } from './utils/getEventTypeConfig';
 
 export const ALL_TAB = 'All';
 export const ALL_CAT = 'all';
+export const FOR_YOU_CAT = 'forYou';
 
 /**
  * Everything in the feed that is a conversation rather than a story: member
@@ -20,7 +21,12 @@ export const ALL_CAT = 'all';
  */
 export const DISCUSSIONS_CAT = 'discussions';
 
-export type TeamNewsCategoryId = typeof ALL_CAT | typeof DISCUSSIONS_CAT | TeamNewsEventType;
+export type TeamNewsCategoryId = typeof ALL_CAT | typeof FOR_YOU_CAT | typeof DISCUSSIONS_CAT | TeamNewsEventType;
+
+export const FOR_YOU_CATEGORY = {
+  id: FOR_YOU_CAT,
+  label: 'For You',
+} as const;
 
 export const DISCUSSIONS_CATEGORY = {
   id: DISCUSSIONS_CAT,

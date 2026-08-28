@@ -88,7 +88,14 @@ export const FormSelect = (props: Props) => {
 
     return renderOption({
       option,
-      label: <div className={s.optionLabel}>{label}</div>,
+      // `title` so a name long enough to be truncated is still readable in
+      // full on hover — an ellipsis that hides the only distinguishing part of
+      // two similar names would make the list unusable rather than tidy.
+      label: (
+        <div className={s.optionLabel} title={typeof label === 'string' ? label : undefined}>
+          {label}
+        </div>
+      ),
       description: description && <div className={s.optionDesc}>{description}</div>,
     });
   };
@@ -246,6 +253,14 @@ export const FormSelect = (props: Props) => {
               ...base,
               width: '100%',
               padding: 0,
+              // The menu is a flex column, so this list is a flex item: without
+              // `minWidth: 0` its automatic minimum size is the widest option's
+              // min-content width, and one long label makes the whole list
+              // wider than the menu. That overflow is what turned `overflow-y:
+              // auto` into a horizontal scrollbar (a non-visible value on one
+              // axis computes the other away from `visible`).
+              minWidth: 0,
+              overflowX: 'hidden' as const,
             }),
             menu: (baseStyles) => ({
               ...baseStyles,
@@ -254,7 +269,9 @@ export const FormSelect = (props: Props) => {
               display: 'flex',
               padding: '8px',
               flexDirection: 'column',
-              alignItems: 'flex-start',
+              // `stretch` so the list fills the menu's width instead of sizing
+              // itself to its longest option.
+              alignItems: 'stretch',
             }),
             menuPortal: (base) => ({ ...base, zIndex: 10000 }),
             placeholder: (baseStyles) => ({

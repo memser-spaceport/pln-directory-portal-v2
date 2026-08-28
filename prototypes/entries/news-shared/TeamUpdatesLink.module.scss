@@ -1,0 +1,114 @@
+// Transcribed from the news page's own count badge (TeamNewsRail.module.scss —
+// .newsPageBadge / .newsPageBadgeText): 2px 8px, pill radius, brand hairline,
+// 14px/20 brand text. Additions here are only what a link needs that a badge
+// doesn't — an icon pair and a hover state.
+@use 'styles/media';
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  // Reset for the `nested` <button> rendering; harmless on the <a>.
+  appearance: none;
+  font: inherit;
+  cursor: pointer;
+
+  padding: 2px 8px;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  border-radius: 9999px;
+
+  color: var(--foreground-brand-secondary, #4174ff);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    background: #e8edff;
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: none;
+  }
+
+  // The badge had no focus style in either form, so on the teams grid — where it
+  // renders as a bare <button> inside a card link — a keyboard user had nothing
+  // to follow. The outline the prototypes already use everywhere else
+  // (TeamUpdateStrip's story target, the teams grid's own pill button): 2px
+  // brand, offset 2, radius matching the pill.
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 9999px;
+  }
+}
+
+.icon {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.text {
+  padding: 0 2px;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.arrow {
+  flex-shrink: 0;
+}
+
+// Dense rows — the teams grid tags row, profile team lists — where the badge
+// sits beside 12px chips rather than a 24px team name.
+.small {
+  gap: 2px;
+  padding: 1px 6px;
+
+  .text {
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .icon svg,
+  .arrow {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+// Sized to sit exactly where the teams grid's neutral count chip sits: Badge's
+// `.root` + TeamUpdateStrip's `.sourceChip` come to 11px/16 text in `0 6px` of
+// padding over a 1px border — 18px tall. Transcribed rather than approximated,
+// because the whole point of the pairing is that colour is the only difference
+// left between the two; a 2px height gap would quietly argue for one of them.
+.chip {
+  gap: 4px;
+  padding: 0 6px;
+
+  .text {
+    // The base `.text` carries `padding: 0 2px`; the neutral chip has no such
+    // inner inset, so the two would sit at different widths for the same string.
+    padding: 0;
+    font-size: 11px;
+    line-height: 16px;
+  }
+
+  .icon svg,
+  .arrow {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+@include media.mobile-only {
+  // The name row wraps the badge under a two-line team name here, so it holds
+  // its own; only the type shrinks to keep it off a line of its own.
+  .text {
+    font-size: 12px;
+    line-height: 16px;
+  }
+}

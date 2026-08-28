@@ -1,0 +1,298 @@
+// Back Office → Settings → Email templates.
+//
+// COLOR POLICY: the one the participants table's stylesheet sets out at length.
+// This is the back-office app, which paints in Tailwind grays rather than the PL
+// palette, so every color is `var(--pl-role, #back-office-hex)` — the fallback is
+// what renders, the token name says which PL role it would snap to
+// (prototypes/CLAUDE.md #3 + #6).
+//
+// METRICS are not invented either: the card, the scroller, the 52px header row,
+// the 12px/8px cells, the 0.8px #eee rules, the #f9fafb header surface, the row
+// hover and the badge ramp are all copied from PlSpotlightTablePrototype.module.scss
+// in this same entry. Two tables in one back office that measure differently read
+// as two apps, and this page's whole argument is that it belongs in that one.
+//
+// What is NOT copied is the fixed 1486.4px table width: that number is the
+// participants frame's ten columns. Five columns want less, so the min-width here
+// is the sum of this table's own columns.
+
+@use 'styles/media';
+
+.root {
+  padding: 24px;
+
+  @include media.mobile-only {
+    padding: 16px;
+  }
+}
+
+// ── Page head ─────────────────────────────────────────────────────────────────
+// One line, no description under it. The card below carries the sentence that
+// matters, and a settings page that explains itself twice before its first row
+// is a page apologising for existing.
+.pageTitle {
+  margin: 0 0 16px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #111827);
+}
+
+// ── The section card ──────────────────────────────────────────────────────────
+// Same shell as the Overview card and the table card: 0.8px #eee, 8px radius,
+// white. The head is padded and the table is not, so the rows can run to the
+// card's edges the way the participants table's do.
+.card {
+  overflow: hidden;
+  border: 0.8px solid var(--border-neutral-subtle, #eee);
+  border-radius: 8px;
+  background: var(--background-base-white, #ffffff);
+}
+
+.cardHead {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 24px;
+
+  @include media.mobile-only {
+    padding: 16px;
+  }
+}
+
+.cardHeading {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #111827);
+}
+
+// 640px, not the card's full width: this is a sentence to be read once, and a
+// line that runs the width of a five-column table is a line the eye skips.
+.cardDesc {
+  margin: 0;
+  max-width: 640px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #6b7280);
+}
+
+// ── Table ─────────────────────────────────────────────────────────────────────
+.scroller {
+  overflow-x: auto;
+  border-top: 0.8px solid var(--border-neutral-subtle, #eee);
+}
+
+.table {
+  min-width: 1040px;
+}
+
+.headRow,
+.row {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 0.8px solid var(--border-neutral-subtle, #eee);
+}
+
+.headRow {
+  background: var(--background-neutral-soft-surface, #f9fafb);
+}
+
+.row {
+  background: var(--background-base-white, #ffffff);
+
+  &:hover {
+    background: var(--background-neutral-soft-surface, #f9fafb);
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.headCell,
+.cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.headCell {
+  height: 52px;
+  padding: 4px 8px;
+}
+
+.cell {
+  padding: 12px 8px;
+}
+
+// The first and last cells take the card's own gutter, so the column of names
+// lines up with the heading above it rather than starting 8px inside it.
+.headCell.colTemplate,
+.cell.colTemplate {
+  flex: 1 1 0;
+  min-width: 280px;
+  padding-left: 24px;
+}
+
+.headCell.colSentFrom,
+.cell.colSentFrom {
+  flex: 0 0 260px;
+}
+
+.headCell.colUsedBy,
+.cell.colUsedBy {
+  flex: 0 0 280px;
+}
+
+.headCell.colEdited,
+.cell.colEdited {
+  flex: 0 0 160px;
+}
+
+.headCell.colActions,
+.cell.colActions {
+  flex: 0 0 120px;
+  justify-content: flex-end;
+  padding-right: 24px;
+}
+
+.headLabel {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+// ── Cell contents ─────────────────────────────────────────────────────────────
+// The name-over-detail pair is the participants table's member cell exactly:
+// 14/20/500 primary over a lighter second line. Reused rather than re-tuned, so
+// a row here scans at the same speed as a row there.
+.templateText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.templateName {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #111827);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// The purpose line wraps rather than clipping. A truncated name is still a name;
+// a truncated sentence is nothing, and this one is the reason the row exists.
+.templatePurpose {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #6b7280);
+}
+
+.value {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #374151);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ── Used by ───────────────────────────────────────────────────────────────────
+// Badge over a line of prose, not a badge with a tooltip: the count is the
+// scannable part and the names are the part you actually act on, and hiding names
+// behind a hover would put the one fact this column exists for out of reach.
+.usedBy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.usedByNote {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #6b7280);
+}
+
+// The participants table's badge, verbatim — 12/16/600, 4px 8px, pill.
+.badge {
+  align-self: flex-start;
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+// Grey, not green: "every send starts from this" is the resting state, not an
+// achievement. The table's neutral ramp.
+.badgeEverywhere {
+  background: var(--background-neutral-subtle, #f3f4f6);
+  color: var(--foreground-neutral-secondary, #4b5563);
+}
+
+// Amber — and the entry's OWN amber, not a new one: this is the pair the invite
+// modal's already-invited warning uses (`--background-warning-soft-surface` /
+// `--foreground-warning-primary`, verified in production), so the back office has
+// one caution color rather than two.
+// Not red — an override is a legitimate choice, not an error — and not blue,
+// which in the table next door means a type. It says "this is why your edit
+// didn't land everywhere", which is worth exactly one degree of heat.
+.badgeOverridden {
+  background: var(--background-warning-soft-surface, rgba(245, 158, 11, 0.1));
+  color: var(--foreground-warning-primary, #b45309);
+}
+
+// ── Last edited ───────────────────────────────────────────────────────────────
+.editedCell {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.editedNote {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #9ca3af);
+}
+
+// ── Status line ───────────────────────────────────────────────────────────────
+// The participants table's status bar, minus the selection count it has no
+// selection for. Same place, same metrics, so a save on either screen reports in
+// the same voice from the same spot.
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 20px;
+  margin-top: 12px;
+  padding: 0 4px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 13px;
+  line-height: 20px;
+}

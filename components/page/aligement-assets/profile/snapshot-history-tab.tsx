@@ -11,10 +11,26 @@ interface SnapshotHistoryTabProps {
   entries: SnapshotHistoryEntry[];
 }
 
+function dashOr(value: number | null, suffix = ''): string {
+  return value === null ? '—' : `${value.toLocaleString()}${suffix}`;
+}
+
 export default function SnapshotHistoryTab({ entries }: SnapshotHistoryTabProps) {
   const [openPeriod, setOpenPeriod] = useState<string | null>(null);
 
-  const totalPoints = entries.reduce((sum, e) => sum + e.points, 0);
+  if (entries.length === 0) {
+    return (
+      <div className={styles.card}>
+        <div className={styles.itemRow}>
+          <span className={styles.itemTitle}>No snapshot history yet</span>
+        </div>
+      </div>
+    );
+  }
+
+  const totalPoints = entries.some((e) => e.points === null)
+    ? null
+    : entries.reduce((sum, e) => sum + (e.points ?? 0), 0);
   const totalPlaa = entries.reduce((sum, e) => sum + e.plaaTotal, 0);
 
   return (
@@ -38,9 +54,9 @@ export default function SnapshotHistoryTab({ entries }: SnapshotHistoryTabProps)
               aria-expanded={isOpen}
             >
               <span className={styles.period}>{entry.period}</span>
-              <span className={styles.cell}>{entry.activities}</span>
-              <span className={styles.cell}>{entry.categories}</span>
-              <span className={styles.pointsCell}>{entry.points.toLocaleString()} points</span>
+              <span className={styles.cell}>{entry.activities ?? '—'}</span>
+              <span className={styles.cell}>{entry.categories ?? '—'}</span>
+              <span className={styles.pointsCell}>{dashOr(entry.points, ' points')}</span>
               <span className={styles.plaaCell}>{entry.plaaTotal.toLocaleString()}</span>
               <span className={styles.caretCell}>
                 <ChevronIcon expanded={isOpen} />
@@ -51,18 +67,24 @@ export default function SnapshotHistoryTab({ entries }: SnapshotHistoryTabProps)
               <div className={styles.expanded}>
                 <div className={styles.expandedInner}>
                   <div className={styles.itemsHeader}>Activities this snapshot</div>
-                  {entry.items.map((item, index) => (
-                    <div key={index} className={styles.itemRow}>
-                      <span className={styles.itemCategory}>{item.category}</span>
-                      <span className={styles.itemTitle}>{item.title}</span>
-                      <span className={styles.itemPoints}>+{item.points} points</span>
+                  {entry.items && entry.items.length > 0 ? (
+                    entry.items.map((item, index) => (
+                      <div key={index} className={styles.itemRow}>
+                        <span className={styles.itemCategory}>{item.category}</span>
+                        <span className={styles.itemTitle}>{item.title}</span>
+                        <span className={styles.itemPoints}>+{item.points} points</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className={styles.itemRow}>
+                      <span className={styles.itemTitle}>Per-activity breakdown not yet available</span>
                     </div>
-                  ))}
+                  )}
 
                   <div className={styles.conversionRow}>
                     <span className={styles.conversionLabel}>Activity rewards</span>
                     <span className={styles.conversionValue}>
-                      <span className={styles.conversionPoints}>{entry.points.toLocaleString()} points</span>
+                      <span className={styles.conversionPoints}>{dashOr(entry.points, ' points')}</span>
                       <span className={styles.conversionArrow}> &rarr; </span>
                       <span className={styles.conversionPlaa}>+{entry.activityPlaa.toLocaleString()} PLAA</span>
                     </span>
@@ -91,7 +113,7 @@ export default function SnapshotHistoryTab({ entries }: SnapshotHistoryTabProps)
         <span className={styles.footerLabel}>Total to date</span>
         <span />
         <span />
-        <span className={styles.footerPoints}>{totalPoints.toLocaleString()} points</span>
+        <span className={styles.footerPoints}>{dashOr(totalPoints, ' points')}</span>
         <span className={styles.footerPlaa}>{totalPlaa.toLocaleString()}</span>
         <span />
       </div>

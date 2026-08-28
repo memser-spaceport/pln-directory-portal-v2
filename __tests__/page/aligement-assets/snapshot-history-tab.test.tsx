@@ -69,4 +69,53 @@ describe('SnapshotHistoryTab', () => {
     fireEvent.click(screen.getByText('Jul 2026'));
     expect(screen.queryByText('Activities this snapshot')).not.toBeInTheDocument();
   });
+
+  describe('real PLAA data, points/activities/categories/items not yet wired (PLAA-57)', () => {
+    const realEntries: SnapshotHistoryEntry[] = [
+      {
+        period: 'Jul 2026',
+        activities: null,
+        categories: null,
+        points: null,
+        activityPlaa: 205,
+        hasInfra: false,
+        infra: 0,
+        plaaTotal: 205,
+        items: null,
+      },
+      {
+        period: 'May 2026',
+        activities: null,
+        categories: null,
+        points: null,
+        activityPlaa: 304,
+        hasInfra: true,
+        infra: 4300,
+        plaaTotal: 4604,
+        items: null,
+      },
+    ];
+
+    it('shows a dash for unavailable activities/categories/points, but a real PLAA total', () => {
+      render(<SnapshotHistoryTab entries={realEntries} />);
+
+      const dashes = screen.getAllByText('—');
+      expect(dashes.length).toBeGreaterThan(0);
+      expect(screen.getByText('4,604')).toBeInTheDocument();
+    });
+
+    it('shows a "not yet available" message instead of an empty activity list when expanded', () => {
+      render(<SnapshotHistoryTab entries={realEntries} />);
+
+      fireEvent.click(screen.getByText('Jul 2026'));
+      expect(screen.getByText('Per-activity breakdown not yet available')).toBeInTheDocument();
+    });
+
+    it('shows a dash for the footer points total when any entry has unavailable points', () => {
+      render(<SnapshotHistoryTab entries={realEntries} />);
+
+      expect(screen.getByText('Total to date')).toBeInTheDocument();
+      expect(screen.getByText('4,809')).toBeInTheDocument(); // 205 + 4604 PLAA total
+    });
+  });
 });

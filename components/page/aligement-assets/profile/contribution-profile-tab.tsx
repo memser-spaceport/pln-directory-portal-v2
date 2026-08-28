@@ -22,6 +22,21 @@ const PLOT_BOTTOM = 210;
 const BAR_WIDTH = 40;
 const GRID_LINES = 5;
 
+function dashOr(value: number | null): string {
+  return value === null ? '—' : value.toLocaleString();
+}
+
+/** null if any entry has no value for this field — a total is only meaningful when every period has one. */
+function sumOrNull(entries: ContributionHistoryEntry[], pick: (e: ContributionHistoryEntry) => number | null): number | null {
+  let total = 0;
+  for (const e of entries) {
+    const v = pick(e);
+    if (v === null) return null;
+    total += v;
+  }
+  return total;
+}
+
 /** Round a max value up to a "nice" tick ceiling so axis labels aren't awkward fractions. */
 function niceMax(value: number): number {
   if (value <= 0) return 1;
@@ -29,23 +44,27 @@ function niceMax(value: number): number {
   return Math.ceil(value / magnitude) * magnitude;
 }
 
-function buildChart(entries: ContributionHistoryEntry[]) {
-  const maxPoints = niceMax(Math.max(...entries.map((e) => e.points), 1));
+function buildChart(entries: ContributionHistoryEntry[], hasPointsData: boolean) {
   const maxBalance = niceMax(Math.max(...entries.map((e) => e.cum), 1));
   const plotWidth = PLOT_RIGHT - PLOT_LEFT;
   const plotHeight = PLOT_BOTTOM - PLOT_TOP;
   const step = plotWidth / entries.length;
 
   const grid = Array.from({ length: GRID_LINES }, (_, i) => PLOT_TOP + (plotHeight / (GRID_LINES - 1)) * i);
-  const leftAxisTicks = grid.map((y, i) => ({ y, label: Math.round((maxPoints * (GRID_LINES - 1 - i)) / (GRID_LINES - 1)) }));
   const rightAxisTicks = grid.map((y, i) => ({ y, label: Math.round((maxBalance * (GRID_LINES - 1 - i)) / (GRID_LINES - 1)) }));
 
   const centers = entries.map((_, i) => PLOT_LEFT + step * i + step / 2);
 
-  const bars = entries.map((e, i) => {
-    const h = (e.points / maxPoints) * plotHeight;
-    return { x: centers[i] - BAR_WIDTH / 2, y: PLOT_BOTTOM - h, w: BAR_WIDTH, h, value: e.points };
-  });
+  let bars: Array<{ x: number; y: number; w: number; h: number; value: number }> = [];
+  let leftAxisTicks: Array<{ y: number; label: number }> = [];
+  if (hasPointsData) {
+    const maxPoints = niceMax(Math.max(...entries.map((e) => e.points ?? 0), 1));
+    leftAxisTicks = grid.map((y, i) => ({ y, label: Math.round((maxPoints * (GRID_LINES - 1 - i)) / (GRID_LINES - 1)) }));
+    bars = entries.map((e, i) => {
+      const h = ((e.points ?? 0) / maxPoints) * plotHeight;
+      return { x: centers[i] - BAR_WIDTH / 2, y: PLOT_BOTTOM - h, w: BAR_WIDTH, h, value: e.points ?? 0 };
+    });
+  }
 
   const dots = entries.map((e, i) => ({
     cx: centers[i],
@@ -60,27 +79,44 @@ function buildChart(entries: ContributionHistoryEntry[]) {
 }
 
 export default function ContributionProfileTab({ entries, currentBalance }: ContributionProfileTabProps) {
-  const chart = buildChart(entries);
+  if (entries.length === 0) {
+    return (
+      <div className={styles.card}>
+        <p className={styles.historySubtitle}>No snapshot history yet.</p>
+      </div>
+    );
+  }
+
+  const hasPointsData = entries.some((e) => e.points !== null);
+  const chart = buildChart(entries, hasPointsData);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  const totalPoints = entries.reduce((sum, p) => sum + p.points, 0);
+  const totalPoints = sumOrNull(entries, (e) => e.points);
   const totalPlaa = entries.reduce((sum, p) => sum + p.plaa, 0);
   const totalInfra = entries.reduce((sum, p) => sum + p.infra, 0);
-  const totalRedeemed = entries.reduce((sum, p) => sum + p.redeemed, 0);
+  const totalRedeemed = sumOrNull(entries, (e) => e.redeemed);
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
       <div className={styles.card}>
         <div className={styles.chartHeader}>
           <div>
-            <h3 className={styles.chartTitle}>Points and PLAA balance over time</h3>
-            <p className={styles.chartSubtitle}>Points collected in each snapshot, and your PLAA balance after each close.</p>
+            <h3 className={styles.chartTitle}>
+              {hasPointsData ? 'Points and PLAA balance over time' : 'PLAA balance over time'}
+            </h3>
+            <p className={styles.chartSubtitle}>
+              {hasPointsData
+                ? 'Points collected in each snapshot, and your PLAA balance after each close.'
+                : 'Your PLAA balance after each snapshot close.'}
+            </p>
           </div>
           <div className={styles.legend}>
-            <span className={styles.legendItem}>
-              <span className={styles.legendSwatchBar} />
-              Points collected
-            </span>
+            {hasPointsData && (
+              <span className={styles.legendItem}>
+                <span className={styles.legendSwatchBar} />
+                Points collected
+              </span>
+            )}
             <span className={styles.legendItem}>
               <span className={styles.legendSwatchLine} />
               PLAA balance
@@ -181,7 +217,7 @@ export default function ContributionProfileTab({ entries, currentBalance }: Cont
         </svg>
 
         <div className={styles.axisLabels}>
-          <span className={styles.axisLabel}>Points per snapshot</span>
+          {hasPointsData && <span className={styles.axisLabel}>Points per snapshot</span>}
           <span className={`${styles.axisLabel} ${styles.brand}`}>PLAA balance</span>
         </div>
 
@@ -211,20 +247,20 @@ export default function ContributionProfileTab({ entries, currentBalance }: Cont
           {entries.map((entry) => (
             <div key={entry.period} className={styles.dataRow}>
               <span className={styles.period}>{entry.period}</span>
-              <span className={`${styles.right} ${styles.points}`}>{entry.points.toLocaleString()}</span>
+              <span className={`${styles.right} ${styles.points}`}>{dashOr(entry.points)}</span>
               <span className={`${styles.right} ${styles.secondary}`}>{entry.plaa.toLocaleString()}</span>
               <span className={`${styles.right} ${styles.secondary}`}>{entry.infra.toLocaleString()}</span>
-              <span className={`${styles.right} ${styles.tertiary}`}>{entry.redeemed.toLocaleString()}</span>
+              <span className={`${styles.right} ${styles.tertiary}`}>{dashOr(entry.redeemed)}</span>
               <span className={styles.balanceChip}>{entry.cum.toLocaleString()}</span>
             </div>
           ))}
 
           <div className={styles.footerRow}>
             <span className={styles.footerLabel}>Total to date</span>
-            <span className={`${styles.footerValue} ${styles.points}`}>{totalPoints.toLocaleString()}</span>
+            <span className={`${styles.footerValue} ${styles.points}`}>{dashOr(totalPoints)}</span>
             <span className={`${styles.footerValue} ${styles.secondary}`}>{totalPlaa.toLocaleString()}</span>
             <span className={`${styles.footerValue} ${styles.secondary}`}>{totalInfra.toLocaleString()}</span>
-            <span className={`${styles.footerValue} ${styles.tertiary}`}>{totalRedeemed.toLocaleString()}</span>
+            <span className={`${styles.footerValue} ${styles.tertiary}`}>{dashOr(totalRedeemed)}</span>
             <span className={styles.balanceChip}>{currentBalance === null ? '—' : currentBalance.toLocaleString()}</span>
           </div>
         </div>

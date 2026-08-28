@@ -1,6 +1,7 @@
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useCurrentSnapshotStatus } from '@/services/plaa/hooks/useCurrentSnapshotStatus';
 import { useProfileBalance } from '@/services/plaa/hooks/useProfileBalance';
+import { useProfilePlaaHistory, type ProfilePlaaHistoryEntry } from '@/services/plaa/hooks/useProfilePlaaHistory';
 
 export interface ProfileActivityItem {
   category: string;
@@ -10,25 +11,29 @@ export interface ProfileActivityItem {
 
 export interface SnapshotHistoryEntry {
   period: string;
-  activities: number;
-  categories: number;
-  points: number;
+  /** null: no per-period source yet (PLAA-57). */
+  activities: number | null;
+  categories: number | null;
+  points: number | null;
   activityPlaa: number;
   hasInfra: boolean;
   infra: number;
   /** activityPlaa + infra. */
   plaaTotal: number;
-  items: ProfileActivityItem[];
+  items: ProfileActivityItem[] | null;
 }
 
 export interface ContributionHistoryEntry {
   period: string;
-  points: number;
+  /** null: no per-period source yet (PLAA-57 for points, PLAA-56 for redemption timing). */
+  points: number | null;
   /** Matches this period's SnapshotHistoryEntry.activityPlaa. */
   plaa: number;
   infra: number;
-  redeemed: number;
-  /** Running balance after this period. */
+  redeemed: number | null;
+  /** Running balance after this period, earnings only — does not subtract
+   * redemptions (no per-period redemption source exists), so this can run
+   * ahead of the hero's real, redemption-adjusted balance. */
   cum: number;
 }
 
@@ -52,11 +57,16 @@ export interface ProfileBalance {
  * distinct from 'ready' so a consumer never renders balance's zeroed fields as confirmed. */
 export type ProfileBalanceStatus = 'loading' | 'ready' | 'unavailable';
 
+/** Same states as ProfileBalanceStatus. 'ready' with an empty array is a genuine
+ * "no history yet" — distinct from 'unavailable' (the request itself found nothing/failed). */
+export type ProfileHistoryStatus = 'loading' | 'ready' | 'unavailable';
+
 export interface ProfileData {
   identity: ProfileIdentity;
   balance: ProfileBalance;
   balanceStatus: ProfileBalanceStatus;
   pointsThisSnapshot: number;
+  historyStatus: ProfileHistoryStatus;
   snapshotHistory: SnapshotHistoryEntry[];
   contributionHistory: ContributionHistoryEntry[];
 }
@@ -71,76 +81,37 @@ function initialsFrom(name: string): string {
     .join('');
 }
 
-/**
- * TODO(backend): snapshotHistory/contributionHistory are still mocked — no per-user
- * history endpoint yet (PLAA-59). identity.isInfraMember is also mocked (true); wire it
- * to currentUser.rbac.policies checked for code === 'pl_infra_team_pl_internal', the
- * same check detectUserGroup() does in
- * components/page/home/QuickActions/utils/detectUserGroup.ts — confirm with
- * backend/design that team membership is meant to gate infra rewards before wiring it.
- */
-const MOCK_SNAPSHOT_HISTORY: SnapshotHistoryEntry[] = [
-  {
-    period: 'Jul 2026',
-    activities: 3,
-    categories: 3,
-    points: 450,
-    activityPlaa: 45,
-    hasInfra: true,
-    infra: 30,
-    plaaTotal: 75,
-    items: [
-      { category: 'Programs', title: 'Make a Network Introduction', points: 300 },
-      { category: 'Knowledge Sharing', title: 'Host Office Hours', points: 100 },
-      { category: 'Projects', title: 'Complete a Survey', points: 50 },
-    ],
-  },
-  {
-    period: 'Jun 2026',
-    activities: 4,
-    categories: 4,
-    points: 220,
-    activityPlaa: 22,
-    hasInfra: true,
-    infra: 30,
-    plaaTotal: 52,
-    items: [
-      { category: 'Knowledge Sharing', title: 'Thoughtful Responder', points: 60 },
-      { category: 'Programs', title: 'Complete a PLAA Survey', points: 50 },
-      { category: 'Projects', title: 'Give Excellent Survey Feedback', points: 60 },
-      { category: 'People/Talent', title: 'Refer New Alignment Asset Participants', points: 50 },
-    ],
-  },
-  {
-    period: 'May 2026',
-    activities: 2,
-    categories: 2,
-    points: 350,
-    activityPlaa: 35,
-    hasInfra: false,
-    infra: 0,
-    plaaTotal: 35,
-    items: [
-      { category: 'Programs', title: 'Make a Network Introduction', points: 300 },
-      { category: 'Projects', title: 'Complete a Survey', points: 50 },
-    ],
-  },
-];
+/** "2026-07-26" -> "Jul 2026". */
+function formatPeriodLabel(isoDate: string): string {
+  return new Date(`${isoDate}T00:00:00`).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
 
-const MOCK_REDEMPTIONS_BY_PERIOD: Record<string, number> = { 'Jul 2026': 50 };
+/** activities/categories/points/items stay null — no per-period source yet (PLAA-57). */
+function toSnapshotHistory(history: ProfilePlaaHistoryEntry[]): SnapshotHistoryEntry[] {
+  return [...history].reverse().map((entry) => ({
+    period: formatPeriodLabel(entry.period),
+    activities: null,
+    categories: null,
+    points: null,
+    activityPlaa: entry.iaPlaa,
+    hasInfra: entry.irPlaa > 0,
+    infra: entry.irPlaa,
+    plaaTotal: entry.plaaTotal,
+    items: null,
+  }));
+}
 
 function buildContributionHistory(snapshotHistory: SnapshotHistoryEntry[]): ContributionHistoryEntry[] {
   const oldestFirst = [...snapshotHistory].reverse();
   let cum = 0;
   return oldestFirst.map((entry) => {
-    const redeemed = MOCK_REDEMPTIONS_BY_PERIOD[entry.period] ?? 0;
-    cum += entry.activityPlaa + entry.infra - redeemed;
+    cum += entry.activityPlaa + entry.infra;
     return {
       period: entry.period,
       points: entry.points,
       plaa: entry.activityPlaa,
       infra: entry.infra,
-      redeemed,
+      redeemed: null,
       cum,
     };
   });
@@ -151,9 +122,11 @@ export function useProfileData(): ProfileData {
   const { pointsCollected } = useCurrentSnapshotStatus();
   const { data: balanceData, isLoading: isBalanceLoading } = useProfileBalance();
   const balanceStatus: ProfileBalanceStatus = isBalanceLoading ? 'loading' : balanceData ? 'ready' : 'unavailable';
+  const { data: historyData, isLoading: isHistoryLoading } = useProfilePlaaHistory();
+  const historyStatus: ProfileHistoryStatus = isHistoryLoading ? 'loading' : historyData ? 'ready' : 'unavailable';
 
   const name = currentUser?.name || 'Member';
-  const snapshotHistory = MOCK_SNAPSHOT_HISTORY;
+  const snapshotHistory = historyData ? toSnapshotHistory(historyData) : [];
   const contributionHistory = buildContributionHistory(snapshotHistory);
 
   return {
@@ -164,7 +137,7 @@ export function useProfileData(): ProfileData {
       memberSince: 'January 2025',
       // IS_DEV-only override, never true in a production build.
       isOnboarded: Boolean(currentUser) || IS_DEV,
-      isInfraMember: true, // TODO(backend): mocked, see module doc above.
+      isInfraMember: true, // TODO(backend): mocked, see PLAA-61.
     },
     balanceStatus,
     balance: {
@@ -174,6 +147,7 @@ export function useProfileData(): ProfileData {
       redeemed: balanceData?.redeemed ?? 0,
     },
     pointsThisSnapshot: pointsCollected,
+    historyStatus,
     snapshotHistory,
     contributionHistory,
   };

@@ -268,7 +268,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     onSubmitApplication,
     onCreateAccount,
     loggedIn,
-  accountPrefilled = false,
+    accountPrefilled = false,
     onSignIn,
     pendingApproval,
     applied,
@@ -612,7 +612,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                there is a way to apply during the wait, and a first step still
                refusing it while the second offers it would be the flow
                contradicting itself one press apart. */
-            `${team?.name ?? 'The team'} takes applications on their own site while your account is under review — it opens in a new tab.`
+            undefined // `${team?.name ?? 'The team'} takes applications on their own site while your account is under review — it opens in a new tab.`
           : !loggedIn
             ? /* **Nothing, for a logged-out visitor.** A sentence stood here
                  spelling out the whole road ahead — that applying sends a

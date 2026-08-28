@@ -39,16 +39,23 @@ const target = (team: IJobTeam): JobDetailTarget => ({ role, teamId: team.uid, t
 const PL = teamNamed('cldvnyxaf01ynu21k62uopjvg', 'Protocol Labs');
 const OTHER = teamNamed('t2', 'Bluesky');
 
+/**
+ * `profileComplete` was the second parameter and is gone from the hook: the
+ * routing no longer consults the profile, because every in-app application stops
+ * at step 2 now. The positional slot is kept as `_profileComplete` rather than
+ * removed so the many `setup(verdict, false)` / `setup(verdict, true, 'logged-out')`
+ * calls below keep meaning what they say — the third argument is the one several
+ * of them are actually reaching for.
+ */
 const setup = (
   verdict: 'approved' | 'pending' | 'rejected',
-  profileComplete = true,
+  _profileComplete = true,
   viewer: 'profile-ready' | 'logged-out' = 'profile-ready',
 ) =>
   renderHook(() =>
     useJobApplyFlow({
       viewer,
       verdict,
-      profileComplete,
       refreshVerdict: async () => verdict,
       source: 'job-board',
     }),
@@ -88,6 +95,11 @@ describe('Apply routing while unapproved', () => {
     expect(mockOnJobApplyStepViewed).not.toHaveBeenCalled();
   });
 
+  /* These land on `profile` where they used to land on `application`.
+     `onApply` no longer skips the middle step for a complete profile — that step
+     now asks for "I've reviewed my profile", and a confirmation nobody is shown
+     is not a confirmation. What each of these tests is *about* is unchanged:
+     whether Apply keeps you in the wizard or sends you off-site. */
   it('keeps an unapproved applicant in the wizard for a Protocol Labs role', async () => {
     const { result } = setup('pending');
 
@@ -96,7 +108,7 @@ describe('Apply routing while unapproved', () => {
     });
 
     expect(mockOpenExternal).not.toHaveBeenCalled();
-    expect(result.current.state).toMatchObject({ step: 'flow', at: 'application' });
+    expect(result.current.state).toMatchObject({ step: 'flow', at: 'profile' });
   });
 
   /* The carve-out is about approval, not about the team: an approved member was
@@ -109,11 +121,16 @@ describe('Apply routing while unapproved', () => {
     });
 
     expect(mockOpenExternal).not.toHaveBeenCalled();
-    expect(result.current.state).toMatchObject({ step: 'flow', at: 'application' });
+    expect(result.current.state).toMatchObject({ step: 'flow', at: 'profile' });
   });
 
   /* An unapproved PL applicant with nothing filled in still gets the middle
-     step — the carve-out grants the wizard, not a way past what it collects. */
+     step — the carve-out grants the wizard, not a way past what it collects.
+
+     This no longer distinguishes anything on its own (every in-app application
+     stops at step 2 now, filled in or not), and is kept as the unfinished half of
+     the pair above: the two together say the routing does not consult the profile
+     at all any more. */
   it('routes an unfinished PL applicant to the profile step, not past it', async () => {
     const { result } = setup('pending', false);
 
@@ -185,16 +202,18 @@ describe('Apply routing while unapproved', () => {
     });
   });
 
-  it('reports the application step when an approved member applies with a complete profile', async () => {
+  /* Renamed with the routing it reports on: a complete profile used to land on
+     the application and now lands on the profile step, so that is the step the
+     view event names. The assertion is the same one — that `onApply` reports
+     where it actually put you. */
+  it('reports the profile step when an approved member applies with a complete profile', async () => {
     const { result } = setup('approved');
 
     await act(async () => {
       await result.current.onApply(target(OTHER));
     });
 
-    expect(mockOnJobApplyStepViewed).toHaveBeenCalledWith(
-      expect.objectContaining({ step: 'application', job_id: 'r1' }),
-    );
+    expect(mockOnJobApplyStepViewed).toHaveBeenCalledWith(expect.objectContaining({ step: 'profile', job_id: 'r1' }));
   });
 
   it('reports a dismiss from the flow and skips it after a completed close', async () => {
@@ -207,7 +226,7 @@ describe('Apply routing while unapproved', () => {
       result.current.close();
     });
     expect(mockOnJobApplyFlowClosed).toHaveBeenCalledWith(
-      expect.objectContaining({ step: 'application', cover_letter_started: false }),
+      expect.objectContaining({ step: 'profile', cover_letter_started: false }),
     );
 
     mockOnJobApplyFlowClosed.mockClear();

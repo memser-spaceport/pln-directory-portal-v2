@@ -111,12 +111,19 @@ function ApplyValueBullets({ className, doors }: { className?: string; doors?: D
             <button type="button" className={s.inlineDoor} onClick={doors.onSignUp}>
               sign up
             </button>{' '}
-            and apply to hundreds of open roles with a single profile.
+            and discover open roles across the network.
           </>
         ) : (
-          /* The same claim with the doors taken out — a member reading this one
-             is already signed in, so the sentence starts at what the profile
-             does rather than at how to get one. */
+          /* **No longer the same claim as the one above**, and the difference is
+             the audience. A visitor is being offered the thing they came for —
+             discovering roles — in the same words the sign-up form uses for it,
+             so the banner and the form they land on agree about what an account
+             is for. A member already has the account and already has the board;
+             what is still ahead of them is applying, so their sentence starts
+             there.
+
+             Kept in step deliberately, not by accident: if the visitor line
+             changes again, this one is the other half to think about. */
           'Apply to hundreds of open roles with a single profile.'
         )}
       </li>

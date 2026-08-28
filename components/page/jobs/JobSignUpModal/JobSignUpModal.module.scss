@@ -58,7 +58,7 @@
 // The page's header, below 960 only — `EditInvestorProfileDrawer`'s own bar,
 // which is the same sticky 64px white row with `← Back` that the profile drawer
 // shows one step later in this flow. Above 960 the floating ✕ takes over.
-.mobileHeader {
+.mobileHeader.mobileHeader {
   @include media.tablet-landscape {
     display: none;
   }
@@ -190,6 +190,60 @@
     grid-template-columns: 1fr 1fr;
     gap: 16px;
   }
+}
+
+// The "I'm already a member of a PL Network team" row.
+//
+// **The text is `FormField`'s label, not a voice of its own.** It began at
+// `--foreground-neutral-primary` (#0a0c11) on the reasoning that a claim you make
+// about yourself is not a field label. On screen it just read as heavier than
+// everything around it: this line sits between "LinkedIn profile" and "Current
+// role", both of which are label-weight slate, and the near-black jumped out of
+// the stack like an error. The size and weight were already `FormField`'s — only
+// the colour was arguing, so only the colour changed.
+//
+// Matched to `FormField.module.scss`'s `.label`: 14px / 500 / #475569, plus the
+// same `liga`/`clig` pair every label in this group carries. The colour goes
+// through the PL secondary token, exactly as `.inputsLabel` below does and for
+// the reason given there — #475569 is a Tailwind slate, and #455468 is the same
+// colour with a name that is true.
+//
+// `line-height: 20px` is the one number NOT taken from `.label` (which ships 18).
+// The box beside it is 20px, and matching them is what puts the text on the
+// checkbox's centre line without a nudge.
+//
+// `align-items: flex-start` rather than `center`: at drawer width the label can
+// wrap, and centring a 20px box against two lines of text floats it into the
+// gutter between them. Against a single line the two are indistinguishable, so
+// the rule that also survives wrapping is the one to ship.
+//
+// `width: fit-content` keeps the hit area to the words. A full-width label would
+// make the whole row clickable, including the empty space to its right, which is
+// a tick nobody meant to make.
+.checkboxRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: fit-content;
+  cursor: pointer;
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+// The paired row sits directly under its checkbox, so it gets a tighter gap than
+// the group's 24px rhythm: at 24 the switch and the thing it switches on read as
+// two unrelated fields.
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .column {

@@ -7,6 +7,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 
 import { toast } from '@/components/core/ToastContainer';
 import { Button } from '@/components/common/Button';
+import { Checkbox } from '@/components/common/Checkbox';
 import { Drawer } from '@/components/common/Drawer';
 import { CheckIcon, CloseIcon } from '@/components/icons';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -37,6 +38,7 @@ import {
 } from '@/components/page/jobs/hooks/useJobApplyFlow';
 import { formatRelativeDays } from '@/utils/jobs.utils';
 import { isProtocolLabsTeam } from '@/services/jobs/protocol-labs-team';
+import { getJobProfileReviewed, setJobProfileReviewed } from '@/services/jobs/job-profile-reviewed';
 import { JobAccountPane } from '@/components/page/jobs/JobAccountPane/JobAccountPane';
 import {
   accountSchema,
@@ -150,8 +152,11 @@ interface JobApplyFlowDrawerProps {
   /** Signed up, waiting on the PL team. Says so in the profile lede; gates nothing. */
   pendingApproval: boolean;
   /** Whether the profile already satisfies what an application needs, as the
-   *  board understands it on open — this is what decides whether step 2 is on
-   *  the path. */
+   *  board understands it on open. It seeds `profileState`, so the footer is
+   *  right on the first frame rather than after the pane's fetch.
+   *
+   *  It no longer decides whether step 2 is on the path — nothing does, every
+   *  in-app application stops there. See `useJobApplyFlow.onApply`. */
   profileComplete: boolean;
   applied: boolean;
   appliedAt?: string | null;
@@ -332,35 +337,70 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     hasStatus: profileComplete,
   });
 
-  /* Whether this run stops at the profile step, decided when the flow opens and
-     then left alone.
+  /* (`skipProfile` stood here — `isLoggedIn && profileComplete && at !==
+     'profile'` — and dropped the middle step for a member who arrived with
+     nothing left to fill in. It went with the routing rule it mirrored; see
+     `useJobApplyFlow.onApply`. The short version: the step is no longer only for
+     collecting, because it now asks for "I've reviewed my profile", and a
+     confirmation nobody is shown is not a confirmation.
 
-     Recomputing it from the live profile would be the obvious thing and it is
-     wrong in both directions: a profile completed *during* the flow would
-     silently drop the step out from under someone standing on it, and Back from
-     the application would start landing somewhere different than it did a minute
-     earlier. A rail that reshapes itself is a rail nobody can learn. */
-  const [skipProfile] = useState(() => isLoggedIn && profileComplete && at !== 'profile');
+     Its own reasoning is worth keeping in view if a skip is ever reintroduced.
+     It was `useState` with an initialiser rather than a derived value on
+     purpose: recomputing it from the live profile is wrong in both directions —
+     a profile completed *during* the flow would drop the step out from under
+     someone standing on it, and Back from the application would start landing
+     somewhere different than it did a minute earlier. A rail that reshapes
+     itself is a rail nobody can learn.) */
 
   const complete = profileState.complete;
 
-  /* The steps this run actually stops at, in order. The rail always draws all
-     three — see the note at the top of the file — but Back and the footer walk
-     this, so a skipped profile step is skipped in both directions. Symmetry is
-     the point: a flow whose Next skips a step and whose Back does not is a flow
-     that puts you somewhere you have never been. */
-  const path: ApplyFlowStepId[] = skipProfile ? ['review', 'application'] : ['review', 'profile', 'application'];
+  /* "I've reviewed my profile" — the profile step's consent, and the second half
+     of what unlocks the application.
+
+     **Remembered across visits, keyed by member uid.** Asked once, not once per
+     application: someone applying to their fourth role this week has confirmed
+     the same profile three times already, and a gate that re-asks a question it
+     has the answer to stops reading as a check and starts reading as a toll.
+
+     This reverses what stood here, which argued the tick should die with the
+     visit because "a profile reviewed in a session that has since ended, and
+     possibly edited elsewhere since, is not a profile anyone reviewed." That
+     cost is real and is now accepted: a confirmation made months ago survives
+     edits made since, so this is a one-time acknowledgement rather than a
+     per-application freshness check. If it ever needs to be the latter, the
+     thing to key it on is the profile's own last-modified stamp, not the visit.
+
+     `useState` still, and not read on every render: the stored answer is a
+     mount-time snapshot, and re-reading localStorage mid-flow would let another
+     tab's tick change this footer under the person using it. */
+  const [reviewed, setReviewedState] = useState(() => getJobProfileReviewed(memberUid));
+
+  /* Writes on every change, `false` included — see the store's note on why
+     unticking has to be recorded rather than merely forgotten. */
+  const setReviewed = (next: boolean) => {
+    setReviewedState(next);
+    setJobProfileReviewed(memberUid, next);
+  };
+
+  /* The steps this run stops at, in order — all three, for everyone applying in
+     app. Back and the footer both walk this, which is what keeps them agreeing
+     about where "the step before this one" is. */
+  const path: ApplyFlowStepId[] = ['review', 'profile', 'application'];
   /* -1 when the current step is off the path — which `backTarget` handles
      explicitly rather than clamping to 0. Clamping was the bug: it made an
      off-path step look like the first one, so Back read "Back to roles" and
      closed the flow out from under a written letter. */
   const pathIndex = path.indexOf(at);
 
-  /** Whether the last step is reachable at all. The only rule left is the one
-   *  that was always the real one — an application must carry a complete
-   *  profile. Nobody is refused, they are only ever *not finished yet*, which is
-   *  what the middle step is for. */
-  const canApply = isLoggedIn && complete;
+  /** Whether the last step is reachable at all. Two rules, and both are about
+   *  the profile: it has to be complete enough to send, and you have to have said
+   *  you looked at it. Nobody is refused — they are only ever *not finished yet*,
+   *  which is what the middle step is for.
+   *
+   *  The rail obeys the same pair the footer does. A gate the rail can walk
+   *  around is not a gate, and this one could: the Application stop is a live
+   *  control sitting two inches from a step 2 nobody has touched. */
+  const canApply = isLoggedIn && complete && reviewed;
 
   /** Where a finished step can be revisited from the rail. The current step is
    *  never reachable — a control that goes where you already are is a control
@@ -376,14 +416,16 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     const status: ApplyFlowStep['status'] =
       id === at
         ? 'current'
-        : /* A profile that was already finished shows its check from the first
-             frame, on every step. That mark is the offer's evidence, not a record
-             of something you did in this session. */
-          id === 'profile' && skipProfile
+        : /* (`id === 'profile' && skipProfile → 'completed'` stood here, so a
+             profile that was already finished wore its check from the first
+             frame. It went with `skipProfile`: every run now stops at step 2, so
+             a check on a step ahead of you would be claiming you had been
+             somewhere you have not — and with the review tick waiting there, it
+             would be claiming you had done the one thing the step exists to
+             ask.) */
+          APPLY_FLOW_STEPS.indexOf(id) < APPLY_FLOW_STEPS.indexOf(at)
           ? 'completed'
-          : APPLY_FLOW_STEPS.indexOf(id) < APPLY_FLOW_STEPS.indexOf(at)
-            ? 'completed'
-            : 'upcoming';
+          : 'upcoming';
     return { id, title: stepTitle(id, isLoggedIn), status, reachable: canVisit(id) };
   });
 
@@ -474,6 +516,12 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     );
   };
 
+  /* The left half of the footer bar. `hint` is the usual occupant — a sentence
+     in 12px tertiary — and `lead` is for the one step that puts a control there
+     instead, which needs neither that wrapper nor that voice. A step sets one or
+     the other, never both. */
+  type FooterContent = { hint: string | null; lead?: React.ReactNode; action: React.ReactNode };
+
   /* One footer, three steps: a button that names the act, and beside it a
      sentence only when there is something the screen does not already say.
 
@@ -483,7 +531,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
      left are the states where the press does something the rail cannot show:
      that it is the last one, or that it ends somewhere off this site. The rest
      are silent, and `hint` is nullable for that reason. */
-  const footer = (() => {
+  const footer: FooterContent = (() => {
     if (at === 'review') {
       if (applied) {
         return {
@@ -504,7 +552,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
       }
       if (applyGoesExternal) {
         return {
-          hint: `${target.teamName} takes applications on their own site — it opens in a new tab.`,
+          hint: null, // `${target.teamName} takes applications on their own site — it opens in a new tab.`,
           action: (
             /* "Continue to apply", not "Apply on their site" — the hint beside
                it already says whose site and that it opens in a new tab, so a
@@ -533,7 +581,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
            this component does not own, and the sentence says "your PL profile"
            — a claim that must never reach someone who has no account, whatever
            that prop is doing. */
-        hint: isLoggedIn && complete ? 'One press sends your PL profile with a short note. Nothing to refill.' : null,
+        hint: isLoggedIn && complete ? null : null,
         action: (
           /* Four words that carry what the deleted sentence was carrying: the
              press signs you up, and applying is what it is for. A stranger
@@ -591,18 +639,38 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
 
     if (at === 'profile') {
       return {
-        /* Nothing while the profile is short. What is missing is named on the
-           card that is missing it — `DataIncomplete`'s amber strip, inches from
-           the field — and a footer restating it from the bottom of the drawer
-           was the same complaint at the greater distance. */
-        hint: complete ? 'Experience, skills and bio are optional — you can add them any time.' : null,
+        /* The sentence that stood here — "Experience, skills and bio are
+           optional — you can add them any time." — gives the slot up to the
+           consent below. It still runs in `JobProfileDrawer`, which has no
+           application behind it and so has nothing to consent to; here the one
+           thing the footer has to carry is the tick, and two claims in a bar
+           this size is one too many. */
+        hint: null,
+        /* **The last thing before the application, and the reason step 2 is not
+           a formality.** What goes to the hiring team is this profile, not the
+           letter alone — so the press that leaves here is the press that decides
+           what they read. A tick is cheap; sending a profile you last looked at
+           eight months ago is not.
+
+           A *second* gate, on top of role and job search status. Those are about
+           whether the profile can be sent at all; this is about whether you meant
+           to send this one. The amber "Required to continue" strips stay exactly
+           where they are — see `JobProfileDrawer`. */
+        lead: (
+          <label className={d.consentRow}>
+            <Checkbox checked={reviewed} onChange={setReviewed} />
+            {/* The `*` is `.consentLabel`'s `:after`, exactly as `FormField`
+                draws it on a required label. */}
+            <span className={d.consentLabel}>I&apos;ve reviewed my profile</span>
+          </label>
+        ),
         action: (
           <Button
             variant="primary"
             style="fill"
             size="m"
             className={d.footerAction}
-            disabled={!complete}
+            disabled={!complete || !reviewed}
             onClick={() => goTo('application')}
           >
             Continue to apply
@@ -727,7 +795,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                 paragraph still earns its gap — so an always-rendered `<p>`
                 would push the button down 12px on every phone screen where the
                 footer is now silent. */}
-            {footer.hint && <p className={d.footerHint}>{footer.hint}</p>}
+            {footer.lead ?? (footer.hint && <p className={d.footerHint}>{footer.hint}</p>)}
             {footer.action}
           </div>
         </div>

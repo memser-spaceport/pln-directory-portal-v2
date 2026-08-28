@@ -43,7 +43,11 @@ describe('the job board banner', () => {
 
       expect(screen.getByText(/34 open roles/)).toBeInTheDocument();
       expect(screen.getByText(/across 6 PL network teams/)).toBeInTheDocument();
-      expect(screen.getByText(/apply to hundreds of open roles with a single profile/i)).toBeInTheDocument();
+      /* The visitor's half of the pitch, in the same words the sign-up form
+         uses for it — the banner and the form it opens should agree about what
+         an account is for. The member's variant says something else on purpose;
+         see the `signed in` block below. */
+      expect(screen.getByText(/discover open roles across the network/i)).toBeInTheDocument();
     });
 
     /**
@@ -83,7 +87,11 @@ describe('the job board banner', () => {
       renderBanner({ filterState: { ...emptyFilters, roleCategory: ['Engineering'], location: ['Berlin'] } });
 
       expect(screen.getByText(/Engineering · Berlin/)).toBeInTheDocument();
-      expect(screen.queryByText(/hundreds of open roles/i)).not.toBeInTheDocument();
+      /* The pitch this replaces is the logged-out one, so that is the string to
+         look for. It used to check `/hundreds of open roles/i`, which the
+         logged-out bullet no longer contains in any state — the assertion would
+         have passed whether or not the swap happened. */
+      expect(screen.queryByText(/discover open roles across the network/i)).not.toBeInTheDocument();
     });
 
     /**
@@ -105,8 +113,14 @@ describe('the job board banner', () => {
   });
 
   describe('signed in', () => {
-    /** Same two claims, minus the doors — this reader is already through both. */
-    it('makes the same promise to a member with an empty profile, without the doors', () => {
+    /**
+     * A different first claim, and the doors gone.
+     *
+     * The visitor above is offered discovery; a member already has the board, so
+     * theirs starts at applying. Asserted with an anchored match so this cannot
+     * quietly become the visitor's sentence.
+     */
+    it('promises a member with an empty profile the applying half, without the doors', () => {
       renderBanner({ viewer: 'profile-incomplete' });
 
       expect(screen.getByText('Update your profile to apply')).toBeInTheDocument();

@@ -99,7 +99,6 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
   const applyFlow = useJobApplyFlow({
     viewer: boardViewer.viewer,
     verdict: boardViewer.verdict,
-    profileComplete: boardViewer.profileComplete,
     refreshVerdict: boardViewer.refreshVerdict,
     source: 'job-board',
   });

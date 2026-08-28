@@ -73,12 +73,70 @@ describe('the job board sign-up modal', () => {
     it('marks current role optional and leaves LinkedIn required', () => {
       renderModal();
 
-      expect(screen.getByText(/Current role & company/).textContent).toContain('Optional');
+      expect(screen.getByText(/^Current role/).textContent).toContain('Optional');
 
       expect(screen.getByText('LinkedIn profile').textContent).not.toContain('Optional');
       expect(screen.getByText('Email address').textContent).not.toContain('Optional');
       expect(screen.getByText('Full name').textContent).not.toContain('Optional');
       expect(screen.queryByText('Team email')).not.toBeInTheDocument();
+    });
+
+    /**
+     * The PL-team switch.
+     *
+     * The row used to put the team select in front of everyone, and for almost
+     * every visitor the only correct answer was to leave it alone. The default
+     * form is now the short one; ticking is what asks for the select.
+     *
+     * `FormSelect` is mocked to null in this suite, so what is asserted is the
+     * half this file can see: the label the row carries and the `@` separator,
+     * which renders with the select or not at all.
+     */
+    it('asks for a team only once you say you are on one', () => {
+      renderModal();
+
+      expect(screen.getByText(/^Current role/).textContent).not.toContain('PL network team');
+      expect(screen.queryByText('@')).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
+
+      expect(screen.getByText(/^Current role/).textContent).toContain('PL network team');
+      expect(screen.getByText('@')).toBeInTheDocument();
+      // Revealing a question does not create a requirement — someone can be on a
+      // team this closed list doesn't carry.
+      expect(screen.getByText(/^Current role/).textContent).toContain('Optional');
+    });
+
+    /* Unticking clears the team rather than merely hiding it. A hidden select
+       still holding a team would submit an employer the person has just told the
+       form they don't have — invisible, kept, and wrong. */
+    it('submits no team after the box is unticked', async () => {
+      renderModal();
+      fillRequired();
+
+      const box = screen.getByRole('checkbox', { name: /already a member of a PL Network team/i });
+      fireEvent.click(box);
+      fireEvent.click(box);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+      await waitFor(() => expect(baseProps.onSignUp).toHaveBeenCalled());
+      expect(baseProps.onSignUp).toHaveBeenCalledWith(expect.objectContaining({ teamUid: null }));
+    });
+
+    /* `onPlTeam` is a switch for this form and nothing the endpoint has heard of.
+       The sign-up payload is validated strictly, so an extra key is a refusal
+       rather than an ignored extra — this is the test that would catch it
+       leaking into `toAccountDetails`. */
+    it('keeps the switch out of the submitted payload', async () => {
+      renderModal();
+      fillRequired();
+      fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
+
+      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+      await waitFor(() => expect(baseProps.onSignUp).toHaveBeenCalled());
+      expect(baseProps.onSignUp.mock.calls[0][0]).not.toHaveProperty('onPlTeam');
     });
 
     it('associates LinkedIn with its input', () => {

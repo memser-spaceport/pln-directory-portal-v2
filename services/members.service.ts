@@ -15,6 +15,8 @@ import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { isJobSearchStatus } from '@/services/jobs/job-board-viewer';
 
+export const MEMBER_PROFILE_VISIBLE = 'member.profile.visible';
+
 const resolveAuthToken = (authToken?: string) => {
   if (authToken) return authToken;
   if (typeof window !== 'undefined') {
@@ -57,9 +59,7 @@ export const getMembers = async (
     {
       method: 'GET',
       headers: getHeader(token),
-      ...(token
-        ? { cache: 'no-store' as RequestCache }
-        : { next: { tags: ['member-list'] } }),
+      ...(token ? { cache: 'no-store' as RequestCache } : { next: { tags: ['member-list'] } }),
     },
   );
 
@@ -251,9 +251,12 @@ export const getMember = async (
   };
 
   const hasEditAccess = isAdminUser(userInfo) || userInfo?.uid === member?.id;
+  const isDirectoryVisible =
+    member?.rbac?.status === 'APPROVED' ||
+    member?.rbac?.effectivePermissions?.some((p) => p.code === MEMBER_PROFILE_VISIBLE);
 
   if (USE_ACCESS_CONTROL_V2) {
-    if (!hasEditAccess && member?.rbac?.status !== 'APPROVED') {
+    if (!hasEditAccess && !isDirectoryVisible) {
       return { error: { status: 404, statusText: 'Member not found' } };
     }
   } else {

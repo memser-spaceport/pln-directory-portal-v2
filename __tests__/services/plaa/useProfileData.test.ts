@@ -15,6 +15,11 @@ jest.mock('@/services/plaa/hooks/useProfileBalance', () => ({
   useProfileBalance: () => mockUseProfileBalance(),
 }));
 
+const mockUseProfilePlaaHistory = jest.fn();
+jest.mock('@/services/plaa/hooks/useProfilePlaaHistory', () => ({
+  useProfilePlaaHistory: () => mockUseProfilePlaaHistory(),
+}));
+
 import { useProfileData as useProfileDataDefault } from '@/services/plaa/hooks/useProfileData';
 
 const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
@@ -36,6 +41,7 @@ describe('useProfileData', () => {
     jest.clearAllMocks();
     mockUseCurrentSnapshotStatus.mockReturnValue({ pointsCollected: 420 });
     mockUseProfileBalance.mockReturnValue({ data: undefined, isLoading: false });
+    mockUseProfilePlaaHistory.mockReturnValue({ data: undefined, isLoading: false });
   });
 
   afterEach(() => {
@@ -81,24 +87,7 @@ describe('useProfileData', () => {
     expect(result.current.pointsThisSnapshot).toBe(777);
   });
 
-  it('keeps the mocked contribution history internally consistent', () => {
-    mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
-    const { result } = renderHook(() => useProfileDataDefault());
-    const { contributionHistory, snapshotHistory } = result.current;
-
-    // Running balance accumulates activityPlaa + infra - redeemed forward, oldest first.
-    const oldestFirst = [...snapshotHistory].reverse();
-    let expectedCum = 0;
-    oldestFirst.forEach((entry, i) => {
-      expectedCum += entry.activityPlaa + entry.infra - contributionHistory[i].redeemed;
-      expect(contributionHistory[i].cum).toBe(expectedCum);
-    });
-
-    // Contribution history is oldest-first, the reverse of snapshot history (newest-first).
-    expect(contributionHistory.map((c) => c.period)).toEqual([...snapshotHistory.map((s) => s.period)].reverse());
-  });
-
-  it('wires balance from useProfileBalance and reports balanceStatus "ready", independent of the mocked history', () => {
+  it('wires balance from useProfileBalance and reports balanceStatus "ready", independent of history', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
     mockUseProfileBalance.mockReturnValue({
       data: { plaaBalance: 4854, activities: 2297, infraRewards: 2557, redeemed: 0 },
@@ -131,5 +120,89 @@ describe('useProfileData', () => {
 
     expect(result.current.balanceStatus).toBe('unavailable');
     expect(result.current.balance).toEqual({ plaaBalance: 0, activities: 0, infraRewards: 0, redeemed: 0 });
+  });
+
+  describe('history (real per-period data)', () => {
+    const REAL_HISTORY = [
+      { period: '2026-05-26', iaPlaa: 304, irPlaa: 4300, plaaTotal: 4604 },
+      { period: '2026-06-26', iaPlaa: 0, irPlaa: 0, plaaTotal: 0 },
+      { period: '2026-07-26', iaPlaa: 205, irPlaa: 0, plaaTotal: 205 },
+    ];
+
+    it('reports historyStatus "loading" while the query is in flight, with empty history arrays', () => {
+      mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+      mockUseProfilePlaaHistory.mockReturnValue({ data: undefined, isLoading: true });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      expect(result.current.historyStatus).toBe('loading');
+      expect(result.current.snapshotHistory).toEqual([]);
+      expect(result.current.contributionHistory).toEqual([]);
+    });
+
+    it('reports historyStatus "unavailable" (not "ready") once settled with no data', () => {
+      mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+      mockUseProfilePlaaHistory.mockReturnValue({ data: null, isLoading: false });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      expect(result.current.historyStatus).toBe('unavailable');
+      expect(result.current.snapshotHistory).toEqual([]);
+    });
+
+    it('reports historyStatus "ready" for a genuinely empty history (a new member with no snapshots yet), distinct from "unavailable"', () => {
+      mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+      mockUseProfilePlaaHistory.mockReturnValue({ data: [], isLoading: false });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      expect(result.current.historyStatus).toBe('ready');
+      expect(result.current.snapshotHistory).toEqual([]);
+    });
+
+    it('formats each period as "Mon YYYY" and orders snapshotHistory newest-first', () => {
+      mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+      mockUseProfilePlaaHistory.mockReturnValue({ data: REAL_HISTORY, isLoading: false });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      expect(result.current.snapshotHistory.map((e) => e.period)).toEqual(['Jul 2026', 'Jun 2026', 'May 2026']);
+    });
+
+    it('maps iaPlaa/irPlaa/plaaTotal onto activityPlaa/infra/plaaTotal, and derives hasInfra as irPlaa > 0', () => {
+      mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+      mockUseProfilePlaaHistory.mockReturnValue({ data: REAL_HISTORY, isLoading: false });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      const may = result.current.snapshotHistory.find((e) => e.period === 'May 2026')!;
+      expect(may.activityPlaa).toBe(304);
+      expect(may.infra).toBe(4300);
+      expect(may.plaaTotal).toBe(4604);
+      expect(may.hasInfra).toBe(true);
+
+      const jun = result.current.snapshotHistory.find((e) => e.period === 'Jun 2026')!;
+      expect(jun.hasInfra).toBe(false);
+    });
+
+    it('leaves activities/categories/points/items null — no real per-period source yet', () => {
+      mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+      mockUseProfilePlaaHistory.mockReturnValue({ data: REAL_HISTORY, isLoading: false });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      for (const entry of result.current.snapshotHistory) {
+        expect(entry.activities).toBeNull();
+        expect(entry.categories).toBeNull();
+        expect(entry.points).toBeNull();
+        expect(entry.items).toBeNull();
+      }
+    });
+
+    it('accumulates cum forward oldest-first from real iaPlaa + irPlaa, with redeemed left null (no per-period source)', () => {
+      mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+      mockUseProfilePlaaHistory.mockReturnValue({ data: REAL_HISTORY, isLoading: false });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      expect(result.current.contributionHistory).toEqual([
+        { period: 'May 2026', points: null, plaa: 304, infra: 4300, redeemed: null, cum: 4604 },
+        { period: 'Jun 2026', points: null, plaa: 0, infra: 0, redeemed: null, cum: 4604 },
+        { period: 'Jul 2026', points: null, plaa: 205, infra: 0, redeemed: null, cum: 4809 },
+      ]);
+    });
   });
 });

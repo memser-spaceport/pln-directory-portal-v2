@@ -21,13 +21,12 @@ describe('ContributionProfileTab', () => {
     expect(screen.getAllByText('Jul 2026')).toHaveLength(2);
   });
 
-  it('renders the contribution history table with a Total to date row summing every mocked column', () => {
+  it('renders the contribution history table with a Total to date row summing every column', () => {
     render(<ContributionProfileTab entries={entries} currentBalance={112} />);
 
     expect(screen.getByText('Contribution History')).toBeInTheDocument();
     const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
 
-    // Points/plaa/infra/redeemed are still mocked history sums (PLAA-59).
     // Scoped to the footer row so chart axis-tick text (which can repeat these same
     // numbers) can't produce false matches.
     expect(within(totalRow).getByText('1,020')).toBeInTheDocument();
@@ -37,12 +36,12 @@ describe('ContributionProfileTab', () => {
     expect(within(totalRow).getByText('112')).toBeInTheDocument();
   });
 
-  it('renders the footer balance from the real currentBalance prop, not the mocked history\'s last cum — the two can legitimately differ until PLAA-59 wires real history', () => {
+  it('renders the footer balance from the real currentBalance prop, not entries\' own last cum — the two can legitimately differ', () => {
     render(<ContributionProfileTab entries={entries} currentBalance={4854} />);
 
     const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
     expect(within(totalRow).getByText('4,854')).toBeInTheDocument();
-    // The mocked history's own last cum (112) must not appear as if it were the balance.
+    // entries' own last cum (112) must not appear as if it were the balance.
     expect(within(totalRow).queryByText('112')).not.toBeInTheDocument();
   });
 
@@ -90,5 +89,44 @@ describe('ContributionProfileTab', () => {
     fireEvent.mouseEnter(hoverZones[2]);
     expect(screen.getByText('112', { selector: 'text' })).toBeInTheDocument();
     expect(screen.queryByText('35', { selector: 'text' })).not.toBeInTheDocument();
+  });
+
+  describe('real PLAA data, points not yet wired', () => {
+    const realEntries: ContributionHistoryEntry[] = [
+      { period: 'May 2026', points: null, plaa: 304, infra: 4300, redeemed: null, cum: 4604 },
+      { period: 'Jun 2026', points: null, plaa: 0, infra: 0, redeemed: null, cum: 4604 },
+      { period: 'Jul 2026', points: null, plaa: 205, infra: 0, redeemed: null, cum: 4809 },
+    ];
+
+    it('hides the points bars and left axis, keeps the real PLAA balance line and right axis', () => {
+      const { container } = render(<ContributionProfileTab entries={realEntries} currentBalance={4809} />);
+
+      expect(screen.getByText('PLAA balance over time')).toBeInTheDocument();
+      expect(screen.queryByText('Points collected')).not.toBeInTheDocument();
+      expect(screen.queryByText('Points per snapshot')).not.toBeInTheDocument();
+
+      const svgTexts = Array.from(container.querySelectorAll('svg text'));
+      const barLabels = svgTexts.filter((el) => el.getAttribute('font-weight') === '600' && el.getAttribute('fill') === '#4f9eff');
+      expect(barLabels).toHaveLength(0);
+
+      const rightAxisTexts = svgTexts.filter((el) => el.getAttribute('fill') === '#156ff7' && el.getAttribute('text-anchor') === 'start');
+      expect(rightAxisTexts.length).toBeGreaterThan(0);
+    });
+
+    it('shows a dash for Points and Redeemed columns, real values for Activities/Infra/Balance', () => {
+      render(<ContributionProfileTab entries={realEntries} currentBalance={4809} />);
+
+      const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
+      expect(within(totalRow).getByText('509')).toBeInTheDocument(); // plaa total: 304+0+205
+      expect(within(totalRow).getByText('4,300')).toBeInTheDocument(); // infra total
+      expect(within(totalRow).getByText('4,809')).toBeInTheDocument(); // real currentBalance
+    });
+  });
+
+  it('renders a "no snapshot history yet" placeholder instead of an empty chart/table when there are no entries', () => {
+    render(<ContributionProfileTab entries={[]} currentBalance={null} />);
+
+    expect(screen.getByText('No snapshot history yet.')).toBeInTheDocument();
+    expect(screen.queryByText('Contribution History')).not.toBeInTheDocument();
   });
 });

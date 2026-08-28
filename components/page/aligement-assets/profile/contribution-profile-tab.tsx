@@ -8,8 +8,8 @@ import styles from './contribution-profile-tab.module.css';
 
 interface ContributionProfileTabProps {
   entries: ContributionHistoryEntry[];
-  /** Real balance from the hero card, null while unconfirmed. Not derived from
-   * entries[last].cum, which is still mocked history and would disagree. */
+  /** From the hero card, null while unconfirmed. Not entries[last].cum — that's
+   * earnings-only and can disagree with the real, redemption-adjusted balance. */
   currentBalance: number | null;
 }
 
@@ -26,7 +26,7 @@ function dashOr(value: number | null): string {
   return value === null ? '—' : value.toLocaleString();
 }
 
-/** null if any entry has no value for this field — a total is only meaningful when every period has one. */
+/** null if any entry lacks the field — a total needs every period to have one. */
 function sumOrNull(entries: ContributionHistoryEntry[], pick: (e: ContributionHistoryEntry) => number | null): number | null {
   let total = 0;
   for (const e of entries) {

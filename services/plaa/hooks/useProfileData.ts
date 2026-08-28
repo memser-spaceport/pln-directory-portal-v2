@@ -25,15 +25,13 @@ export interface SnapshotHistoryEntry {
 
 export interface ContributionHistoryEntry {
   period: string;
-  /** null: no per-period source yet, for either points or redemption timing. */
+  /** null: no per-period source (points or redemption timing). */
   points: number | null;
   /** Matches this period's SnapshotHistoryEntry.activityPlaa. */
   plaa: number;
   infra: number;
   redeemed: number | null;
-  /** Running balance after this period, earnings only — does not subtract
-   * redemptions (no per-period redemption source exists), so this can run
-   * ahead of the hero's real, redemption-adjusted balance. */
+  /** Earnings only, not redemption-adjusted — can run ahead of the real balance. */
   cum: number;
 }
 
@@ -57,8 +55,7 @@ export interface ProfileBalance {
  * distinct from 'ready' so a consumer never renders balance's zeroed fields as confirmed. */
 export type ProfileBalanceStatus = 'loading' | 'ready' | 'unavailable';
 
-/** Same states as ProfileBalanceStatus. 'ready' with an empty array is a genuine
- * "no history yet" — distinct from 'unavailable' (the request itself found nothing/failed). */
+/** 'ready' + empty array: genuinely no history. Distinct from 'unavailable'. */
 export type ProfileHistoryStatus = 'loading' | 'ready' | 'unavailable';
 
 export interface ProfileData {
@@ -86,7 +83,6 @@ function formatPeriodLabel(isoDate: string): string {
   return new Date(`${isoDate}T00:00:00`).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
-/** activities/categories/points/items stay null — no per-period source yet. */
 function toSnapshotHistory(history: ProfilePlaaHistoryEntry[]): SnapshotHistoryEntry[] {
   return [...history].reverse().map((entry) => ({
     period: formatPeriodLabel(entry.period),

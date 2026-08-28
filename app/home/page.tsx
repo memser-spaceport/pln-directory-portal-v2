@@ -13,7 +13,6 @@ import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ScrollToTop from '@/components/page/home/featured/scroll-to-top';
 import { getFeaturedData } from '@/services/featured.service';
-import { getMemberListForQuery } from '@/app/actions/members.actions';
 import { getTeamList } from '@/app/actions/teams.actions';
 import { formatFeaturedData } from '@/utils/home.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
@@ -45,7 +44,6 @@ export default async function Home() {
     quickActionsState,
     quickActionsOhResolved,
     teamsCount,
-    membersCount,
   } = await getPageData();
 
   if (isError) {
@@ -58,7 +56,7 @@ export default async function Home() {
         <div className={styles.home__cn}>
           {!isLoggedIn && (
             <div className={styles.home__cn__welcome}>
-              <Welcome teamCount={teamsCount} memberCount={membersCount} />
+              <Welcome teamCount={teamsCount} />
             </div>
           )}
           {isLoggedIn && <QuickActions initial={quickActionsState} ohResolved={quickActionsOhResolved} />}
@@ -100,7 +98,6 @@ const getPageData = async () => {
   let initialDigestSettings: ForumDigestSettings | null = null;
 
   let teamsCount = 0;
-  let membersCount = 0;
 
   // Quick Actions is resolved server-side so its card set is final on first
   // paint — deriving it client-side made the band render 2 cards, collapse to
@@ -139,7 +136,6 @@ const getPageData = async () => {
       : Promise.resolve(null);
 
   const teamsCountPromise = isLoggedIn ? Promise.resolve(null) : getTeamList('', 1, 1).catch(() => null);
-  const membersCountPromise = isLoggedIn ? Promise.resolve(null) : getMemberListForQuery('', 1, 1).catch(() => null);
 
   try {
     const [
@@ -152,7 +148,6 @@ const getPageData = async () => {
       digestSettingsResponse,
       myAccessResponse,
       teamsCountResponse,
-      membersCountResponse,
     ] = await Promise.all([
       getFocusAreas('Team', {}),
       getFocusAreas('Project', {}),
@@ -163,7 +158,6 @@ const getPageData = async () => {
       digestSettingsPromise,
       myAccessPromise,
       teamsCountPromise,
-      membersCountPromise,
     ]);
 
     teamNewsGroups = teamNewsResponse?.groups ?? [];
@@ -172,7 +166,6 @@ const getPageData = async () => {
     popularItems = popularResponse?.items ?? [];
     initialDigestSettings = digestSettingsResponse;
     teamsCount = teamsCountResponse?.totalItems ?? 0;
-    membersCount = membersCountResponse?.total ?? 0;
 
     if (isLoggedIn && myAccessResponse) {
       quickActionsState = resolveQuickActionsState(
@@ -209,7 +202,6 @@ const getPageData = async () => {
         quickActionsState,
         quickActionsOhResolved,
         teamsCount,
-        membersCount,
       };
     }
     teamFocusAreas = Array.isArray(teamFocusAreaResponse?.data)
@@ -238,7 +230,6 @@ const getPageData = async () => {
       quickActionsState,
       quickActionsOhResolved,
       teamsCount,
-      membersCount,
     };
   } catch (error) {
     console.error(error);
@@ -261,7 +252,6 @@ const getPageData = async () => {
       quickActionsState,
       quickActionsOhResolved,
       teamsCount,
-      membersCount,
     };
   }
 };

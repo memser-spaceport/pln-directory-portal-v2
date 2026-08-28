@@ -1084,11 +1084,8 @@ export default function NewsfeedPrototype() {
 
   /* The signed-out banner's team count. Counted off `sourceItems` rather than
      the whole corpus for `SignInBanner`'s reason: a banner claiming more than the
-     list under it is contradicted by the list under it. Member count is a
-     network-scale stand-in — the feed has no member list to count from, and
-     production's `Welcome` uses the directory total. */
+     list under it is contradicted by the list under it. */
   const bannerTeamCount = useMemo(() => new Set(sourceItems.map((i) => i.teamUid)).size, [sourceItems]);
-  const bannerMemberCount = 3000;
 
   const resetPaging = () => setExpanded(false);
 
@@ -1273,7 +1270,7 @@ export default function NewsfeedPrototype() {
               </div>
             </>
           ) : (
-            <SignedOutBanner teamCount={bannerTeamCount} memberCount={bannerMemberCount} onSignIn={handleSignIn} />
+            <SignedOutBanner teamCount={bannerTeamCount} onSignIn={handleSignIn} />
           )}
 
           <div className={styles.home__cn__teamnews}>

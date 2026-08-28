@@ -2000,8 +2000,13 @@ describe('TeamNews', () => {
             { focusArea: FA_AI, total: items.length, items },
             { focusArea: FA_DHR, total: dhrItems.length, items: dhrItems },
           ]}
+          forYouTeamUids={['team-b-0']}
         />,
       );
+      // Lands on For You — same network-wide band as All categories.
+      expect(band()).toBeInTheDocument();
+
+      fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
       expect(band()).toBeInTheDocument();
 
       fireEvent.click(screen.getByRole('tab', { name: /Digital Human Rights/ }));
@@ -2010,7 +2015,7 @@ describe('TeamNews', () => {
       fireEvent.click(screen.getByRole('tab', { name: /^All/ }));
       expect(band()).toBeInTheDocument();
 
-      fireEvent.click(screen.getByRole('button', { name: /^Funding\b/ }));
+      fireEvent.click(within(catRow()).getByRole('button', { name: /^Funding\b/ }));
       expect(band()).not.toBeInTheDocument();
     });
 
@@ -2130,11 +2135,10 @@ describe('TeamNews', () => {
       { focusArea: FA_DHR, total: 1, items: [membershipDhr] },
     ];
 
-    it('defaults to For You, hides Top Stories, and shows one latest item per matching team', () => {
+    it('defaults to For You and shows one latest item per matching team', () => {
       renderTeamNews(<TeamNews groups={forYouGroups} forYouTeamUids={['team-mem', 'team-rec']} />);
 
       expect(within(catRow()).getByRole('button', { name: /For You/ })).toHaveClass(/catActive/);
-      expect(screen.queryByRole('region', { name: 'Top stories' })).not.toBeInTheDocument();
       expect(
         screen.getByText(/For you: Curated based on your profile, primary team attributes, and the teams you follow/),
       ).toBeInTheDocument();
@@ -2193,7 +2197,8 @@ describe('TeamNews', () => {
         <TeamNews groups={[{ focusArea: FA_AI, total: items.length, items }]} forYouTeamUids={['team-mem']} />,
       );
 
-      expect(screen.queryByRole('region', { name: 'Top stories' })).not.toBeInTheDocument();
+      expect(within(catRow()).getByRole('button', { name: /For You/ })).toHaveClass(/catActive/);
+      expect(screen.getByRole('region', { name: 'Top stories' })).toBeInTheDocument();
 
       fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
 

@@ -7,7 +7,6 @@ import s from './Welcome.module.scss';
 
 interface Props {
   teamCount?: number;
-  memberCount?: number;
 }
 
 function Count({ value }: { value: number }) {
@@ -15,28 +14,24 @@ function Count({ value }: { value: number }) {
 }
 
 export const Welcome = (props: Props) => {
-  const { teamCount, memberCount } = props;
+  const { teamCount } = props;
   const { onWelcomeSignInClicked } = useHomeAnalytics();
 
   return (
     <section className={s.welcome}>
       <div className={s.text}>
         <p className={s.title}>
-          See personalized updates from{' '}
+          Updates from{' '}
           {teamCount ? (
             <>
               <Count value={teamCount} />{' '}
             </>
           ) : null}
-          PL network {teamCount === 1 ? 'team' : 'teams'}
-          {memberCount ? (
-            <>
-              {' '}
-              and <Count value={memberCount} /> {memberCount === 1 ? 'member' : 'members'}
-            </>
-          ) : null}
+          {teamCount === 1 ? 'team' : 'teams'}, ordered around your work
         </p>
-        <p className={s.sub}>The feed is curated based on your skills and team plus the teams you follow.</p>
+        <p className={s.sub}>
+          Sign in and the updates matching your skills, your team&apos;s work, and the teams you follow show first.
+        </p>
       </div>
 
       <div className={s.ctas}>

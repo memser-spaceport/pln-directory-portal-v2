@@ -344,20 +344,25 @@ export const TeamNews = ({
     return filteredItems.filter((i) => matchesTeamNewsQuery(i, q));
   }, [filteredItems, query]);
 
-  // The band is network-wide, so it only exists on the unfiltered view: ranking
-  // it inside a focus area or a category pill would make "Top stories" mean
-  // something different on every filter. This one flag drives the band's
-  // visibility, the stream exclusion below, and the rail's Popular dedup — three
-  // separate conditions would drift.
+  // The band is network-wide, so ranking it inside a focus area or an event-type
+  // pill would make "Top stories" mean something different on every filter.
+  // For You is a resting view (the landing one), not a cut of the week — it
+  // gets the same three editorial picks as All categories.
+  //
+  // Hiring/deals still gate on `isNarrowedView` (All only). Those are mixed-feed
+  // signals, and this flag used to drive both; splitting them is what lets the
+  // band sit on For You without dragging hiring and deals into that slice.
+  const isRestingCategory = activeCategory === ALL_CAT || activeCategory === FOR_YOU_CAT;
   const isNarrowedView = activeTab !== ALL_TAB || activeCategory !== ALL_CAT || Boolean(query.trim());
+  const showTopStoriesBand = activeTab === ALL_TAB && isRestingCategory && !query.trim();
 
   // Ranked from editorialRank (LLM Top Stories picks), rendered from the live
   // overlay. Independent of upvote counts so the band stays distinct from
   // Popular this week. The band exists to sit above a feed, so it only appears
   // once the window can supply both it and a full first page (TOP_STORIES_MIN_CORPUS).
   const topStories = useMemo(
-    () => (isNarrowedView ? null : selectTopStories(allItems, TOP_STORIES_MIN_CORPUS)),
-    [isNarrowedView, allItems],
+    () => (showTopStoriesBand ? selectTopStories(allItems, TOP_STORIES_MIN_CORPUS) : null),
+    [showTopStoriesBand, allItems],
   );
   const hasTopStories = Boolean(topStories?.lead);
 

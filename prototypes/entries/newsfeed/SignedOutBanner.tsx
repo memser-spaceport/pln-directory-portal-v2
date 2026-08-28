@@ -29,20 +29,11 @@
  * even if they could see it — it is a *label* on a view you are reading, and
  * they are being made an *offer*.
  *
- * **Headline is the offer; the line under it is the mechanism.** This used to
- * run the other way — "Browse N updates from M PL network teams" over "Sign in
- * and the feed reorders…" — on job-board's rule that the headline orients and
- * the sub-line asks. That rule was answering a problem this banner does not
- * have. On the board, the bullet under the headline *is* an offer, so a headline
- * that also asked was the same sentence twice; here the second line describes a
- * mechanism, and nothing was competing for the ask.
- *
- * What the old order cost: "Browse N updates" described the page the visitor was
- * already looking at and could already read, so the loudest line in the banner
- * named something an account does not change. "See personalized updates" names
- * the thing it does. The counts stay in the headline as the teams and members
- * those updates come from — still what is on screen, the week's stream rather
- * than a database total, so they stay true as the feed changes under it.
+ * **Headline is the offer; the line under it is the mechanism.** "Updates from
+ * N teams, ordered around your work" names what is on screen and what an
+ * account changes, in that order. The count is the week's stream rather than a
+ * database total, so it stays true as the feed changes under it. The line under
+ * it is the ask plus the three inputs that do the ordering.
  *
  * **"Welcome to LabOS" is gone, deliberately** — again job-board's call, and
  * the argument transfers unchanged: a greeting is not an offer, and someone who
@@ -65,17 +56,9 @@
  *
  * Geometry for the button is production's `welcome.cta`.
  *
- * **The sentence's tail is `ForYouBanner`'s, verbatim.** A visitor is promised
- * "your skills, your focus areas, and the teams you follow"; a member standing
- * on For You is told the feed is based on those same three, in the same words.
- * Two surfaces describing one mechanism is exactly where copy drifts, and the
- * drift is invisible because nobody sees both states. Only the opening differs,
- * because only one of them has a feed yet.
- *
- * **And the tail no longer opens with "Sign in and".** The door is a button in
- * the same card and the headline's verb is already the ask, so naming the door
- * a third time priced one decision three ways. What is left is the plain claim
- * about what the feed does, which is the half the button cannot say.
+ * **The three inputs are skills, your team's work, and the teams you follow.**
+ * Same mechanism `ForYouBanner` names; different words, because a visitor is
+ * being told what will move, not labelled on a view they already have.
  */
 
 // Production's signed-out home banner, worn 1:1 — see the note above.
@@ -89,24 +72,23 @@ interface SignedOutBannerProps {
   /** Teams the week's stream comes from — what is on screen, not a network
    *  total. */
   teamCount: number;
-  /** Members named in the same headline. A network-scale stand-in in this
-   *  entry, matching production's `Welcome` memberCount. */
-  memberCount: number;
   onSignIn: () => void;
 }
 
-export function SignedOutBanner({ teamCount, memberCount, onSignIn }: SignedOutBannerProps) {
+export function SignedOutBanner({ teamCount, onSignIn }: SignedOutBannerProps) {
   return (
     <section className={`${welcome.welcome} ${local.signedOutBanner}`}>
       <div className={welcome.text}>
         <p className={welcome.title}>
-          See personalized updates from{' '}
-          <span className={welcome.titleHighlight}>{teamCount.toLocaleString('en-US')}</span> PL network{' '}
-          {teamCount === 1 ? 'team' : 'teams'} and{' '}
-          <span className={welcome.titleHighlight}>{memberCount.toLocaleString('en-US')}</span>{' '}
-          {memberCount === 1 ? 'member' : 'members'}
+          Updates from{' '}
+          <span className={welcome.titleHighlight}>
+            {teamCount.toLocaleString('en-US')} {teamCount === 1 ? 'team' : 'teams'}
+          </span>
+          , ordered around your work
         </p>
-        <p className={welcome.sub}>The feed is curated based on your skills and team plus the teams you follow.</p>
+        <p className={welcome.sub}>
+          Sign in and the updates matching your skills, your team&apos;s work, and the teams you follow show first.
+        </p>
       </div>
 
       <div className={welcome.ctas}>

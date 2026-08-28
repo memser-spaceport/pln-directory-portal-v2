@@ -37,10 +37,10 @@ describe('ContributionProfileTab', () => {
   });
 
   it('renders the footer balance from the real currentBalance prop, not entries\' own last cum — the two can legitimately differ', () => {
-    render(<ContributionProfileTab entries={entries} currentBalance={4854} />);
+    render(<ContributionProfileTab entries={entries} currentBalance={999} />);
 
     const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
-    expect(within(totalRow).getByText('4,854')).toBeInTheDocument();
+    expect(within(totalRow).getByText('999')).toBeInTheDocument();
     // entries' own last cum (112) must not appear as if it were the balance.
     expect(within(totalRow).queryByText('112')).not.toBeInTheDocument();
   });
@@ -93,13 +93,13 @@ describe('ContributionProfileTab', () => {
 
   describe('a period with no points data (still loading or settled empty)', () => {
     const realEntries: ContributionHistoryEntry[] = [
-      { period: 'May 2026', points: null, plaa: 304, infra: 4300, redeemed: null, cum: 4604 },
-      { period: 'Jun 2026', points: null, plaa: 0, infra: 0, redeemed: null, cum: 4604 },
-      { period: 'Jul 2026', points: null, plaa: 205, infra: 0, redeemed: null, cum: 4809 },
+      { period: 'May 2026', points: null, plaa: 100, infra: 900, redeemed: null, cum: 1000 },
+      { period: 'Jun 2026', points: null, plaa: 0, infra: 0, redeemed: null, cum: 1000 },
+      { period: 'Jul 2026', points: null, plaa: 50, infra: 0, redeemed: null, cum: 1050 },
     ];
 
     it('hides the points bars and left axis, keeps the real PLAA balance line and right axis', () => {
-      const { container } = render(<ContributionProfileTab entries={realEntries} currentBalance={4809} />);
+      const { container } = render(<ContributionProfileTab entries={realEntries} currentBalance={1050} />);
 
       expect(screen.getByText('PLAA earned over time')).toBeInTheDocument();
       expect(screen.queryByText('Points collected')).not.toBeInTheDocument();
@@ -114,12 +114,12 @@ describe('ContributionProfileTab', () => {
     });
 
     it('shows a dash for Points and Redeemed columns, real values for Activities/Infra/Balance', () => {
-      render(<ContributionProfileTab entries={realEntries} currentBalance={4809} />);
+      render(<ContributionProfileTab entries={realEntries} currentBalance={1050} />);
 
       const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
-      expect(within(totalRow).getByText('509')).toBeInTheDocument(); // plaa total: 304+0+205
-      expect(within(totalRow).getByText('4,300')).toBeInTheDocument(); // infra total
-      expect(within(totalRow).getByText('4,809')).toBeInTheDocument(); // real currentBalance
+      expect(within(totalRow).getByText('150')).toBeInTheDocument(); // plaa total: 100+0+50
+      expect(within(totalRow).getByText('900')).toBeInTheDocument(); // infra total
+      expect(within(totalRow).getByText('1,050')).toBeInTheDocument(); // real currentBalance
     });
   });
 

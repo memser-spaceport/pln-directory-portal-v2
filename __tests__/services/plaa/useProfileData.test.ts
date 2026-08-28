@@ -96,15 +96,15 @@ describe('useProfileData', () => {
   it('wires balance from useProfileBalance and reports balanceStatus "ready", independent of history', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
     mockUseProfileBalance.mockReturnValue({
-      data: { plaaBalance: 4854, activities: 2297, infraRewards: 2557, redeemed: 0 },
+      data: { plaaBalance: 1200, activities: 500, infraRewards: 700, redeemed: 0 },
       isLoading: false,
     });
     const { result } = renderHook(() => useProfileDataDefault());
 
     expect(result.current.balance).toEqual({
-      plaaBalance: 4854,
-      activities: 2297,
-      infraRewards: 2557,
+      plaaBalance: 1200,
+      activities: 500,
+      infraRewards: 700,
       redeemed: 0,
     });
     expect(result.current.balanceStatus).toBe('ready');
@@ -130,9 +130,9 @@ describe('useProfileData', () => {
 
   describe('history (real per-period data)', () => {
     const REAL_HISTORY = [
-      { period: '2026-05-26', iaPlaa: 304, irPlaa: 4300, plaaTotal: 4604 },
+      { period: '2026-05-26', iaPlaa: 100, irPlaa: 900, plaaTotal: 1000 },
       { period: '2026-06-26', iaPlaa: 0, irPlaa: 0, plaaTotal: 0 },
-      { period: '2026-07-26', iaPlaa: 205, irPlaa: 0, plaaTotal: 205 },
+      { period: '2026-07-26', iaPlaa: 50, irPlaa: 0, plaaTotal: 50 },
     ];
 
     it('reports historyStatus "loading" while the query is in flight, with empty history arrays', () => {
@@ -177,9 +177,9 @@ describe('useProfileData', () => {
       const { result } = renderHook(() => useProfileDataDefault());
 
       const may = result.current.snapshotHistory.find((e) => e.period === 'May 2026')!;
-      expect(may.activityPlaa).toBe(304);
-      expect(may.infra).toBe(4300);
-      expect(may.plaaTotal).toBe(4604);
+      expect(may.activityPlaa).toBe(100);
+      expect(may.infra).toBe(900);
+      expect(may.plaaTotal).toBe(1000);
       expect(may.hasInfra).toBe(true);
 
       const jun = result.current.snapshotHistory.find((e) => e.period === 'Jun 2026')!;
@@ -205,18 +205,18 @@ describe('useProfileData', () => {
       const { result } = renderHook(() => useProfileDataDefault());
 
       expect(result.current.contributionHistory).toEqual([
-        { period: 'May 2026', points: null, plaa: 304, infra: 4300, redeemed: null, cum: 4604 },
-        { period: 'Jun 2026', points: null, plaa: 0, infra: 0, redeemed: null, cum: 4604 },
-        { period: 'Jul 2026', points: null, plaa: 205, infra: 0, redeemed: null, cum: 4809 },
+        { period: 'May 2026', points: null, plaa: 100, infra: 900, redeemed: null, cum: 1000 },
+        { period: 'Jun 2026', points: null, plaa: 0, infra: 0, redeemed: null, cum: 1000 },
+        { period: 'Jul 2026', points: null, plaa: 50, infra: 0, redeemed: null, cum: 1050 },
       ]);
     });
   });
 
   describe('activity history (real per-period points, activities, categories)', () => {
     const REAL_HISTORY = [
-      { period: '2026-05-26', iaPlaa: 304, irPlaa: 4300, plaaTotal: 4604 },
+      { period: '2026-05-26', iaPlaa: 100, irPlaa: 900, plaaTotal: 1000 },
       { period: '2026-06-26', iaPlaa: 0, irPlaa: 0, plaaTotal: 0 },
-      { period: '2026-07-26', iaPlaa: 205, irPlaa: 0, plaaTotal: 205 },
+      { period: '2026-07-26', iaPlaa: 50, irPlaa: 0, plaaTotal: 50 },
     ];
 
     it("requests points for each period's raw ISO date, not the formatted \"Mon YYYY\" label", () => {
@@ -234,9 +234,9 @@ describe('useProfileData', () => {
         '2026-07-26': {
           snapshotPeriod: '2026-07-26',
           records: [
-            { category: 'Content', activityName: 'Wrote a blog post', description: '', pointsCollectedPerSnapshot: 150 },
-            { category: 'Content', activityName: 'Reviewed a PR', description: '', pointsCollectedPerSnapshot: 55 },
-            { category: 'Events', activityName: 'Hosted an office hour', description: '', pointsCollectedPerSnapshot: 245 },
+            { category: 'Category A', activityName: 'Activity 1', description: '', pointsCollectedPerSnapshot: 100 },
+            { category: 'Category A', activityName: 'Activity 2', description: '', pointsCollectedPerSnapshot: 50 },
+            { category: 'Category B', activityName: 'Activity 3', description: '', pointsCollectedPerSnapshot: 300 },
           ],
         },
       });
@@ -247,9 +247,9 @@ describe('useProfileData', () => {
       expect(jul.categories).toBe(2);
       expect(jul.points).toBe(450);
       expect(jul.items).toEqual([
-        { category: 'Content', title: 'Wrote a blog post', points: 150 },
-        { category: 'Content', title: 'Reviewed a PR', points: 55 },
-        { category: 'Events', title: 'Hosted an office hour', points: 245 },
+        { category: 'Category A', title: 'Activity 1', points: 100 },
+        { category: 'Category A', title: 'Activity 2', points: 50 },
+        { category: 'Category B', title: 'Activity 3', points: 300 },
       ]);
     });
 
@@ -259,7 +259,7 @@ describe('useProfileData', () => {
       mockUseSnapshotPointsHistory.mockReturnValue({
         '2026-05-26': undefined, // still loading
         '2026-06-26': null, // settled, no data
-        '2026-07-26': { snapshotPeriod: '2026-07-26', records: [{ category: 'Content', activityName: 'x', description: '', pointsCollectedPerSnapshot: 10 }] },
+        '2026-07-26': { snapshotPeriod: '2026-07-26', records: [{ category: 'Category A', activityName: 'Activity 1', description: '', pointsCollectedPerSnapshot: 10 }] },
       });
       const { result } = renderHook(() => useProfileDataDefault());
 
@@ -277,7 +277,7 @@ describe('useProfileData', () => {
       mockUseSnapshotPointsHistory.mockReturnValue({
         '2026-07-26': {
           snapshotPeriod: '2026-07-26',
-          records: [{ category: 'Content', activityName: 'Wrote a blog post', description: '', pointsCollectedPerSnapshot: 450 }],
+          records: [{ category: 'Category A', activityName: 'Activity 1', description: '', pointsCollectedPerSnapshot: 450 }],
         },
       });
       const { result } = renderHook(() => useProfileDataDefault());

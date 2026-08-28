@@ -11,7 +11,7 @@ export interface ProfileActivityItem {
 
 export interface SnapshotHistoryEntry {
   period: string;
-  /** null: no per-period source yet (PLAA-57). */
+  /** null: no per-period source yet. */
   activities: number | null;
   categories: number | null;
   points: number | null;
@@ -25,7 +25,7 @@ export interface SnapshotHistoryEntry {
 
 export interface ContributionHistoryEntry {
   period: string;
-  /** null: no per-period source yet (PLAA-57 for points, PLAA-56 for redemption timing). */
+  /** null: no per-period source yet, for either points or redemption timing. */
   points: number | null;
   /** Matches this period's SnapshotHistoryEntry.activityPlaa. */
   plaa: number;
@@ -86,7 +86,7 @@ function formatPeriodLabel(isoDate: string): string {
   return new Date(`${isoDate}T00:00:00`).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
-/** activities/categories/points/items stay null — no per-period source yet (PLAA-57). */
+/** activities/categories/points/items stay null — no per-period source yet. */
 function toSnapshotHistory(history: ProfilePlaaHistoryEntry[]): SnapshotHistoryEntry[] {
   return [...history].reverse().map((entry) => ({
     period: formatPeriodLabel(entry.period),
@@ -137,7 +137,7 @@ export function useProfileData(): ProfileData {
       memberSince: 'January 2025',
       // IS_DEV-only override, never true in a production build.
       isOnboarded: Boolean(currentUser) || IS_DEV,
-      isInfraMember: true, // TODO(backend): mocked, see PLAA-61.
+      isInfraMember: true, // TODO(backend): hardcoded, needs a real RBAC-based check.
     },
     balanceStatus,
     balance: {

@@ -122,7 +122,7 @@ describe('useProfileData', () => {
     expect(result.current.balance).toEqual({ plaaBalance: 0, activities: 0, infraRewards: 0, redeemed: 0 });
   });
 
-  describe('history (PLAA-59, real per-period data)', () => {
+  describe('history (real per-period data)', () => {
     const REAL_HISTORY = [
       { period: '2026-05-26', iaPlaa: 304, irPlaa: 4300, plaaTotal: 4604 },
       { period: '2026-06-26', iaPlaa: 0, irPlaa: 0, plaaTotal: 0 },
@@ -180,7 +180,7 @@ describe('useProfileData', () => {
       expect(jun.hasInfra).toBe(false);
     });
 
-    it('leaves activities/categories/points/items null — no real per-period source yet (PLAA-57)', () => {
+    it('leaves activities/categories/points/items null — no real per-period source yet', () => {
       mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
       mockUseProfilePlaaHistory.mockReturnValue({ data: REAL_HISTORY, isLoading: false });
       const { result } = renderHook(() => useProfileDataDefault());

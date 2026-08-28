@@ -70,7 +70,7 @@ describe('SnapshotHistoryTab', () => {
     expect(screen.queryByText('Activities this snapshot')).not.toBeInTheDocument();
   });
 
-  describe('real PLAA data, points/activities/categories/items not yet wired (PLAA-57)', () => {
+  describe('real PLAA data, points/activities/categories/items not yet wired', () => {
     const realEntries: SnapshotHistoryEntry[] = [
       {
         period: 'Jul 2026',

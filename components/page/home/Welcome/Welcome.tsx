@@ -36,7 +36,7 @@ export const Welcome = (props: Props) => {
             </>
           ) : null}
         </p>
-        <p className={s.sub}>The feed reorders around your skills, your focus areas, and the teams you follow.</p>
+        <p className={s.sub}>The feed is curated based on your skills and team plus the teams you follow.</p>
       </div>
 
       <div className={s.ctas}>

@@ -2,6 +2,8 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useCurrentSnapshotStatus } from '@/services/plaa/hooks/useCurrentSnapshotStatus';
 import { useProfileBalance } from '@/services/plaa/hooks/useProfileBalance';
 import { useProfilePlaaHistory, type ProfilePlaaHistoryEntry } from '@/services/plaa/hooks/useProfilePlaaHistory';
+import { useSnapshotPointsHistory, type SnapshotPointsByPeriod } from '@/services/plaa/hooks/useSnapshotPointsHistory';
+import type { SnapshotPointsResponse } from '@/services/points/hooks/usePoints';
 
 export interface ProfileActivityItem {
   category: string;
@@ -11,7 +13,7 @@ export interface ProfileActivityItem {
 
 export interface SnapshotHistoryEntry {
   period: string;
-  /** null: no per-period source yet. */
+  /** null: that period's points query hasn't settled with data yet. */
   activities: number | null;
   categories: number | null;
   points: number | null;
@@ -25,7 +27,7 @@ export interface SnapshotHistoryEntry {
 
 export interface ContributionHistoryEntry {
   period: string;
-  /** null: no per-period source (points or redemption timing). */
+  /** null: that period's points query hasn't settled with data yet. */
   points: number | null;
   /** Matches this period's SnapshotHistoryEntry.activityPlaa. */
   plaa: number;
@@ -83,18 +85,26 @@ function formatPeriodLabel(isoDate: string): string {
   return new Date(`${isoDate}T00:00:00`).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
-function toSnapshotHistory(history: ProfilePlaaHistoryEntry[]): SnapshotHistoryEntry[] {
-  return [...history].reverse().map((entry) => ({
-    period: formatPeriodLabel(entry.period),
-    activities: null,
-    categories: null,
-    points: null,
-    activityPlaa: entry.iaPlaa,
-    hasInfra: entry.irPlaa > 0,
-    infra: entry.irPlaa,
-    plaaTotal: entry.plaaTotal,
-    items: null,
-  }));
+function activityItemsFrom(response: SnapshotPointsResponse): ProfileActivityItem[] {
+  return response.records.map((r) => ({ category: r.category, title: r.activityName, points: r.pointsCollectedPerSnapshot }));
+}
+
+function toSnapshotHistory(history: ProfilePlaaHistoryEntry[], pointsByPeriod: SnapshotPointsByPeriod): SnapshotHistoryEntry[] {
+  return [...history].reverse().map((entry) => {
+    const pointsResponse = pointsByPeriod[entry.period];
+    const items = pointsResponse ? activityItemsFrom(pointsResponse) : null;
+    return {
+      period: formatPeriodLabel(entry.period),
+      activities: items ? items.length : null,
+      categories: items ? new Set(items.map((i) => i.category)).size : null,
+      points: items ? items.reduce((sum, i) => sum + i.points, 0) : null,
+      activityPlaa: entry.iaPlaa,
+      hasInfra: entry.irPlaa > 0,
+      infra: entry.irPlaa,
+      plaaTotal: entry.plaaTotal,
+      items,
+    };
+  });
 }
 
 function buildContributionHistory(snapshotHistory: SnapshotHistoryEntry[]): ContributionHistoryEntry[] {
@@ -120,9 +130,10 @@ export function useProfileData(): ProfileData {
   const balanceStatus: ProfileBalanceStatus = isBalanceLoading ? 'loading' : balanceData ? 'ready' : 'unavailable';
   const { data: historyData, isLoading: isHistoryLoading } = useProfilePlaaHistory();
   const historyStatus: ProfileHistoryStatus = isHistoryLoading ? 'loading' : historyData ? 'ready' : 'unavailable';
+  const pointsByPeriod = useSnapshotPointsHistory(historyData?.map((e) => e.period) ?? []);
 
   const name = currentUser?.name || 'Member';
-  const snapshotHistory = historyData ? toSnapshotHistory(historyData) : [];
+  const snapshotHistory = historyData ? toSnapshotHistory(historyData, pointsByPeriod) : [];
   const contributionHistory = buildContributionHistory(snapshotHistory);
 
   return {

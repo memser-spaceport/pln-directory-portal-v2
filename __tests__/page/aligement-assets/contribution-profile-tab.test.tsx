@@ -91,7 +91,7 @@ describe('ContributionProfileTab', () => {
     expect(screen.queryByText('35', { selector: 'text' })).not.toBeInTheDocument();
   });
 
-  describe('real PLAA data, points not yet wired', () => {
+  describe('a period with no points data (still loading or settled empty)', () => {
     const realEntries: ContributionHistoryEntry[] = [
       { period: 'May 2026', points: null, plaa: 304, infra: 4300, redeemed: null, cum: 4604 },
       { period: 'Jun 2026', points: null, plaa: 0, infra: 0, redeemed: null, cum: 4604 },

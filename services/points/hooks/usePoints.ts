@@ -57,7 +57,7 @@ async function fetchLifetimePoints(): Promise<LifetimePointsResponse | null> {
   }
 }
 
-async function fetchSnapshotPoints(
+export async function fetchSnapshotPoints(
   snapshotPeriod: string
 ): Promise<SnapshotPointsResponse | null> {
   const { authToken } = getCookiesFromClient();

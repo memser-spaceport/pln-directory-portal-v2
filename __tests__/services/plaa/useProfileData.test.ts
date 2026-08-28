@@ -20,6 +20,11 @@ jest.mock('@/services/plaa/hooks/useProfilePlaaHistory', () => ({
   useProfilePlaaHistory: () => mockUseProfilePlaaHistory(),
 }));
 
+const mockUseSnapshotPointsHistory = jest.fn();
+jest.mock('@/services/plaa/hooks/useSnapshotPointsHistory', () => ({
+  useSnapshotPointsHistory: (periods: string[]) => mockUseSnapshotPointsHistory(periods),
+}));
+
 import { useProfileData as useProfileDataDefault } from '@/services/plaa/hooks/useProfileData';
 
 const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
@@ -42,6 +47,7 @@ describe('useProfileData', () => {
     mockUseCurrentSnapshotStatus.mockReturnValue({ pointsCollected: 420 });
     mockUseProfileBalance.mockReturnValue({ data: undefined, isLoading: false });
     mockUseProfilePlaaHistory.mockReturnValue({ data: undefined, isLoading: false });
+    mockUseSnapshotPointsHistory.mockReturnValue({});
   });
 
   afterEach(() => {
@@ -180,7 +186,7 @@ describe('useProfileData', () => {
       expect(jun.hasInfra).toBe(false);
     });
 
-    it('leaves activities/categories/points/items null — no real per-period source yet', () => {
+    it('leaves activities/categories/points/items null when no points query has settled with data', () => {
       mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
       mockUseProfilePlaaHistory.mockReturnValue({ data: REAL_HISTORY, isLoading: false });
       const { result } = renderHook(() => useProfileDataDefault());
@@ -203,6 +209,81 @@ describe('useProfileData', () => {
         { period: 'Jun 2026', points: null, plaa: 0, infra: 0, redeemed: null, cum: 4604 },
         { period: 'Jul 2026', points: null, plaa: 205, infra: 0, redeemed: null, cum: 4809 },
       ]);
+    });
+  });
+
+  describe('activity history (real per-period points, activities, categories)', () => {
+    const REAL_HISTORY = [
+      { period: '2026-05-26', iaPlaa: 304, irPlaa: 4300, plaaTotal: 4604 },
+      { period: '2026-06-26', iaPlaa: 0, irPlaa: 0, plaaTotal: 0 },
+      { period: '2026-07-26', iaPlaa: 205, irPlaa: 0, plaaTotal: 205 },
+    ];
+
+    it("requests points for each period's raw ISO date, not the formatted \"Mon YYYY\" label", () => {
+      mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+      mockUseProfilePlaaHistory.mockReturnValue({ data: REAL_HISTORY, isLoading: false });
+      renderHook(() => useProfileDataDefault());
+
+      expect(mockUseSnapshotPointsHistory).toHaveBeenCalledWith(['2026-05-26', '2026-06-26', '2026-07-26']);
+    });
+
+    it('merges real per-period points, activity count, category count, and items when available for that period', () => {
+      mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+      mockUseProfilePlaaHistory.mockReturnValue({ data: REAL_HISTORY, isLoading: false });
+      mockUseSnapshotPointsHistory.mockReturnValue({
+        '2026-07-26': {
+          snapshotPeriod: '2026-07-26',
+          records: [
+            { category: 'Content', activityName: 'Wrote a blog post', description: '', pointsCollectedPerSnapshot: 150 },
+            { category: 'Content', activityName: 'Reviewed a PR', description: '', pointsCollectedPerSnapshot: 55 },
+            { category: 'Events', activityName: 'Hosted an office hour', description: '', pointsCollectedPerSnapshot: 245 },
+          ],
+        },
+      });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      const jul = result.current.snapshotHistory.find((e) => e.period === 'Jul 2026')!;
+      expect(jul.activities).toBe(3);
+      expect(jul.categories).toBe(2);
+      expect(jul.points).toBe(450);
+      expect(jul.items).toEqual([
+        { category: 'Content', title: 'Wrote a blog post', points: 150 },
+        { category: 'Content', title: 'Reviewed a PR', points: 55 },
+        { category: 'Events', title: 'Hosted an office hour', points: 245 },
+      ]);
+    });
+
+    it('leaves a period null when its points query has no data yet (still loading or settled empty), without affecting other periods', () => {
+      mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+      mockUseProfilePlaaHistory.mockReturnValue({ data: REAL_HISTORY, isLoading: false });
+      mockUseSnapshotPointsHistory.mockReturnValue({
+        '2026-05-26': undefined, // still loading
+        '2026-06-26': null, // settled, no data
+        '2026-07-26': { snapshotPeriod: '2026-07-26', records: [{ category: 'Content', activityName: 'x', description: '', pointsCollectedPerSnapshot: 10 }] },
+      });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      const may = result.current.snapshotHistory.find((e) => e.period === 'May 2026')!;
+      const jun = result.current.snapshotHistory.find((e) => e.period === 'Jun 2026')!;
+      const jul = result.current.snapshotHistory.find((e) => e.period === 'Jul 2026')!;
+      expect(may.items).toBeNull();
+      expect(jun.items).toBeNull();
+      expect(jul.items).not.toBeNull();
+    });
+
+    it('carries the merged per-period points value through to contributionHistory', () => {
+      mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+      mockUseProfilePlaaHistory.mockReturnValue({ data: REAL_HISTORY, isLoading: false });
+      mockUseSnapshotPointsHistory.mockReturnValue({
+        '2026-07-26': {
+          snapshotPeriod: '2026-07-26',
+          records: [{ category: 'Content', activityName: 'Wrote a blog post', description: '', pointsCollectedPerSnapshot: 450 }],
+        },
+      });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      expect(result.current.contributionHistory.find((e) => e.period === 'Jul 2026')!.points).toBe(450);
+      expect(result.current.contributionHistory.find((e) => e.period === 'May 2026')!.points).toBeNull();
     });
   });
 });

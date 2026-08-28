@@ -284,6 +284,24 @@
   color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
+// The other half of the pair: what this row wears once the PL-team tick makes
+// its two fields required. Same three declarations `FormField.module.scss` gives
+// `.label.required:after` — `content: '*'`, `color: red`, `margin-left: 0.25rem`
+// — so the mark is the product's own, not a second dialect of "required".
+//
+// A span with the character in the markup rather than that `:after`, because the
+// pseudo-element hangs off `.label`, which this row does not wear. The literal
+// `red` is copied deliberately: the required asterisk is one colour everywhere
+// in this product, and picking a nearer token here would make this the one label
+// that disagrees.
+//
+// Size, line-height and letter-spacing unset for the same reason as above —
+// inherited from the label, so the mark sits on the words' own baseline.
+.requiredMark {
+  margin-left: 0.25rem;
+  color: red;
+}
+
 .inputsWrapper {
   display: flex;
   flex-direction: column;

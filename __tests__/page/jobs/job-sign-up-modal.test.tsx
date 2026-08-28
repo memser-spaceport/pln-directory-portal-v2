@@ -6,10 +6,63 @@ jest.mock('@/components/common/Modal', () => ({
     isOpen ? <div>{children}</div> : null,
 }));
 
-// react-select in a form nobody drives through the company picker is noise. The
-// field stays out of the tree; `company` keeps its `null` default, which is what
-// a skipped select submits anyway.
-jest.mock('@/components/form/FormSelect', () => ({ FormSelect: () => null }));
+/**
+ * A native `<select>` standing in for react-select.
+ *
+ * It used to render `null`, on the reasoning that a form nobody drives through
+ * the company picker is noise. That stopped being true when the PL-team tick
+ * made the team an answer the form refuses to submit without: with the field out
+ * of the tree there is no way to give the answer, so every ticked case would
+ * test the gate instead of what it claims to check.
+ *
+ * Two behaviours have to survive the stand-in. It writes the whole option object
+ * into form state, not the uid (`FormSelect` does this via `setValue`, and
+ * `toAccountDetails` is what flattens it later) — and it renders its own field
+ * error, which is the only way anyone learns the team is missing. A mock that
+ * swallowed the message would let "the form refuses silently" pass as green.
+ *
+ * `requireActual` inside the factory because `jest.mock` is hoisted above the
+ * imports.
+ */
+jest.mock('@/components/form/FormSelect', () => {
+  const { useFormContext } = jest.requireActual('react-hook-form');
+  type Option = { label: string; value: string };
+
+  return {
+    FormSelect: ({ name, placeholder, options }: { name: string; placeholder: string; options: Option[] }) => {
+      const {
+        setValue,
+        watch,
+        formState: { errors },
+      } = useFormContext();
+      const selected = watch(name) as Option | null;
+      const error = errors[name]?.message as string | undefined;
+
+      return (
+        <>
+          <select
+            aria-label={placeholder}
+            value={selected?.value ?? ''}
+            onChange={(e) =>
+              setValue(name, options.find((o) => o.value === e.target.value) ?? null, {
+                shouldValidate: true,
+                shouldDirty: true,
+              })
+            }
+          >
+            <option value="">{placeholder}</option>
+            {options.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          {error && <p>{error}</p>}
+        </>
+      );
+    },
+  };
+});
 
 jest.mock('@/services/members/hooks/useMemberFormOptions', () => ({
   useMemberFormOptions: () => ({ data: { teams: [{ teamUid: 't1', teamTitle: 'Acme' }] } }),
@@ -63,6 +116,24 @@ const fillRequired = () => {
   chooseStatus();
 };
 
+/**
+ * Ticks the PL-team box and answers both fields it makes required.
+ *
+ * Separate from `fillRequired` because the tick is not part of the baseline
+ * form — most of this suite signs up as someone with no network team, which is
+ * the commoner case and the one the short form is shaped for.
+ */
+const claimPlTeam = () => {
+  fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
+  /* By placeholder, not label: the role/team row's label is a hand-rolled `div`
+     (it carries a styled mark `FormField`'s string `label` prop can't take), so
+     it is associated with neither input. See the note at the top of this file. */
+  fireEvent.change(screen.getByPlaceholderText('Enter your current role'), {
+    target: { value: 'Protocol Engineer' },
+  });
+  fireEvent.change(screen.getByLabelText('Select a team'), { target: { value: 't1' } });
+};
+
 describe('the job board sign-up modal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -87,10 +158,6 @@ describe('the job board sign-up modal', () => {
      * The row used to put the team select in front of everyone, and for almost
      * every visitor the only correct answer was to leave it alone. The default
      * form is now the short one; ticking is what asks for the select.
-     *
-     * `FormSelect` is mocked to null in this suite, so what is asserted is the
-     * half this file can see: the label the row carries and the `@` separator,
-     * which renders with the select or not at all.
      */
     it('asks for a team only once you say you are on one', () => {
       renderModal();
@@ -102,9 +169,22 @@ describe('the job board sign-up modal', () => {
 
       expect(screen.getByText(/^Current role/).textContent).toContain('PL network team');
       expect(screen.getByText('@')).toBeInTheDocument();
-      // Revealing a question does not create a requirement — someone can be on a
-      // team this closed list doesn't carry.
+    });
+
+    /* The mark has to move with the rule. A form that refuses to submit without
+       a field it has labelled optional is worse than one with no marking system
+       at all — which is the whole reason `JobSearchStatusField` carries the
+       asterisk `Email address` does. */
+    it('drops the optional mark for the required asterisk when the box is ticked', () => {
+      renderModal();
+
       expect(screen.getByText(/^Current role/).textContent).toContain('Optional');
+
+      fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
+
+      const label = screen.getByText(/^Current role/);
+      expect(label.textContent).not.toContain('Optional');
+      expect(label.textContent).toContain('*');
     });
 
     /* Unticking clears the team rather than merely hiding it. A hidden select
@@ -131,12 +211,91 @@ describe('the job board sign-up modal', () => {
     it('keeps the switch out of the submitted payload', async () => {
       renderModal();
       fillRequired();
-      fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
+      claimPlTeam();
 
       fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
 
       await waitFor(() => expect(baseProps.onSignUp).toHaveBeenCalled());
       expect(baseProps.onSignUp.mock.calls[0][0]).not.toHaveProperty('onPlTeam');
+    });
+
+    /**
+     * The tick is a claim, and the claim has to arrive with its answers.
+     *
+     * This is what the requirement is *for*: the backend files a sign-up as a
+     * Job Aspirant — apply-only, never reviewed, no "profile under review"
+     * banner — whenever no team comes with it. A tick with an empty select was
+     * not a softer claim, it was the claim being dropped at exactly the point
+     * where it was supposed to put the account in front of a human.
+     */
+    it('refuses a PL-team claim with no team behind it', async () => {
+      renderModal();
+      fillRequired();
+      fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
+      /* By placeholder, not label: the role/team row's label is a hand-rolled `div`
+     (it carries a styled mark `FormField`'s string `label` prop can't take), so
+     it is associated with neither input. See the note at the top of this file. */
+      fireEvent.change(screen.getByPlaceholderText('Enter your current role'), {
+        target: { value: 'Protocol Engineer' },
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+      expect(await screen.findByText('Select your PL network team')).toBeInTheDocument();
+      expect(baseProps.onSignUp).not.toHaveBeenCalled();
+    });
+
+    /* The other half of the same rule. Both fields sit under one label and the
+       tick makes them required together, so the role is guarded here too. */
+    it('refuses a PL-team claim with no current role', async () => {
+      renderModal();
+      fillRequired();
+      fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
+      fireEvent.change(screen.getByLabelText('Select a team'), { target: { value: 't1' } });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+      expect(await screen.findByText('Current role is required')).toBeInTheDocument();
+      expect(baseProps.onSignUp).not.toHaveBeenCalled();
+    });
+
+    /* Answered, it goes through — and the team reaches the payload as the uid
+       the endpoint takes, which is what makes the backend treat this account as
+       a network member rather than an aspirant. */
+    it('submits the team once the claim is answered', async () => {
+      renderModal();
+      fillRequired();
+      claimPlTeam();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+      await waitFor(() => expect(baseProps.onSignUp).toHaveBeenCalled());
+      expect(baseProps.onSignUp).toHaveBeenCalledWith(
+        expect.objectContaining({ teamUid: 't1', role: 'Protocol Engineer' }),
+      );
+    });
+
+    /**
+     * Unticking has to take the verdict with it.
+     *
+     * `mode: 'onBlur'` plus a failed submit leaves a live error on `role`, and
+     * the rule that produced it is gone the moment the box is cleared. Without
+     * the re-run in `toggleOnPlTeam` the message outlives its requirement and
+     * the form reads as broken — an error on a field that is now optional.
+     */
+    it('clears the required errors when the claim is withdrawn', async () => {
+      renderModal();
+      fillRequired();
+      const box = screen.getByRole('checkbox', { name: /already a member of a PL Network team/i });
+
+      fireEvent.click(box);
+      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+      expect(await screen.findByText('Current role is required')).toBeInTheDocument();
+
+      fireEvent.click(box);
+
+      await waitFor(() => expect(screen.queryByText('Current role is required')).not.toBeInTheDocument());
+      expect(screen.queryByText('Select your PL network team')).not.toBeInTheDocument();
     });
 
     it('associates LinkedIn with its input', () => {

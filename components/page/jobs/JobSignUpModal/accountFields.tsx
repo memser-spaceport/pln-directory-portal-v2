@@ -137,17 +137,46 @@ export const accountSchema = yup.object({
 
       return linkedinUrlPattern.test(trimmedValue) || linkedinHandlePattern.test(trimmedValue);
     }),
-  role: yup.string().defined(),
-  /* No rule of its own: it is a switch, not an answer to validate, and both of
-     its states are valid. It is in the schema so `AccountFormData` and the
+  /* Optional by default, required the moment the box is ticked — see `company`
+     below for what the tick is now taken to mean. A `test` rather than
+     `.trim().required()`, because yup's `trim()` is a transform in non-strict
+     mode and would quietly rewrite the submitted value; this only reads it. */
+  role: yup
+    .string()
+    .defined()
+    .when('onPlTeam', {
+      is: true,
+      then: (schema) => schema.test('role-on-pl-team', 'Current role is required', (value) => !!value?.trim()),
+    }),
+  /* Not sent anywhere, but no longer inert either: it is the condition on the
+     two rules above and below. It is in the schema so `AccountFormData` and the
      resolver agree on the shape of the form — a key react-hook-form holds and
      yup has never heard of is exactly the drift this file exists to prevent. */
   onPlTeam: yup.boolean().default(false),
-  /* Nullable, and with no `when('onPlTeam')` rule. The select is optional
-     whether or not it is on screen: someone can be at a network team this closed
-     list doesn't carry, tick the box honestly, and find nothing to pick.
-     Requiring it would turn an honest tick into a dead end. */
-  company: yup.mixed<{ label: string; value: string }>().nullable(),
+  /* Required when the box is ticked, and that is a deliberate reversal.
+     It used to be optional in both states, on the reasoning that someone could
+     be at a network team this closed list doesn't carry and requiring the select
+     would turn an honest tick into a dead end.
+
+     What that reasoning missed is where an unanswered tick lands. The backend
+     files a sign-up as a Job Aspirant — apply-only, never reviewed by an admin,
+     no "profile under review" banner — whenever no team comes with it
+     (`hasSelectedTeam` in `job-openings-sign-up.service.ts`). So a tick with no
+     team was not a softer version of the claim; it was the claim being dropped,
+     silently, at the one point where saying "I'm on a PL team" is supposed to
+     put the account in front of a human. Requiring the answer is what makes the
+     tick mean what it says.
+
+     The cost is real and is the dead end above: someone at a team the list
+     doesn't carry can only untick and sign up as everyone else does. That is a
+     worse form for them and a truthful account either way. */
+  company: yup
+    .mixed<{ label: string; value: string }>()
+    .nullable()
+    .when('onPlTeam', {
+      is: true,
+      then: (schema) => schema.required('Select your PL network team'),
+    }),
   /* Required, and that is the whole point of asking it — an optional version
      buys a shorter form and pays for it with an apply-flow step. `oneOf` rather
      than a bare `required()` so a stale value from anywhere can't pass: the
@@ -170,6 +199,26 @@ export const accountSchema = yup.object({
  * place in the product that marks a field optional at all.
  */
 const OptionalMark = () => <span className={s.optionalMark}>(Optional)</span>;
+
+/**
+ * The red `*` every required label in the product carries, as a span rather than
+ * `FormField`'s class.
+ *
+ * `JobSearchStatusField` below reaches for `${ff.label} ${ff.required}` and that
+ * is right there, where the label is otherwise unstyled. It is not available
+ * here: the asterisk lives on `.label.required:after`, so `ff.required` does
+ * nothing without `ff.label`, and `ff.label` would set colour, size, weight,
+ * line-height and margin a second time on a row that already has `.inputsLabel`
+ * saying all five — leaving which one wins to stylesheet order.
+ *
+ * So the mark is drawn the way `.optionalMark` beside it already is: locally,
+ * and to the same three declarations `FormField` uses.
+ */
+const RequiredMark = () => (
+  <span className={s.requiredMark} aria-hidden="true">
+    *
+  </span>
+);
 
 /** What the caller reports back after trying to create the account. */
 export type JobSignUpResult = { success: true } | { success: false; emailTaken?: boolean };
@@ -212,7 +261,11 @@ export const toAccountDetails = (data: AccountFormData): AccountDetails => ({
  * of the group.
  */
 export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' } = {}) {
-  const { setValue } = useFormContext<AccountFormData>();
+  const {
+    setValue,
+    trigger,
+    formState: { isSubmitted, errors },
+  } = useFormContext<AccountFormData>();
   /* `useWatch` and not `getValues`: this has to re-render on the tick, because
      the tick is what puts the select on screen. */
   const onPlTeam = useWatch<AccountFormData, 'onPlTeam'>({ name: 'onPlTeam' }) ?? false;
@@ -225,6 +278,16 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
   const toggleOnPlTeam = (next: boolean) => {
     setValue('onPlTeam', next, { shouldDirty: true });
     if (!next) setValue('company', null, { shouldDirty: true });
+
+    /* The tick changes which rule `role` and `company` are judged by, so any
+       verdict already on screen is now about the wrong one — untick with an
+       empty required role and the error outlives the requirement.
+
+       Guarded rather than unconditional, because the same call in the other
+       direction would be a form that starts complaining the instant you tell it
+       something true. Re-run only when there is a verdict to correct: after a
+       submit attempt, or while an error from `mode: 'onBlur'` is showing. */
+    if (isSubmitted || errors.role || errors.company) void trigger(['role', 'company']);
   };
 
   // The same teams source production's sign-up wizard uses, minus projects —
@@ -293,13 +356,18 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
         </label>
 
         <div className={s.column}>
-          {/* The label names what is under it, which changes with the tick. It
-              stays `(Optional)` in both states: the tick reveals a question, it
-              does not create a requirement — see the schema's note on why
-              requiring the team would turn an honest tick into a dead end. */}
+          {/* The label names what is under it, and the mark says which rule the
+              two fields are under — both change with the tick. Ticking now
+              *does* create a requirement (see the schema's note on `company`),
+              so the `(Optional)` has to go with it: a form that refuses to
+              submit without a field it has marked optional is worse than one
+              with no marking system at all.
+
+              One mark for the row rather than one per field, because the label
+              is one label for both and the tick makes both required together. */}
           <div className={s.inputsLabel}>
             {onPlTeam ? 'Current role & PL network team' : 'Current role'}
-            <OptionalMark />
+            {onPlTeam ? <RequiredMark /> : <OptionalMark />}
           </div>
           <div className={s.inputsWrapper}>
             <FormField name="role" placeholder="Enter your current role" />

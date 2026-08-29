@@ -54,6 +54,8 @@ function buildChart(entries: ContributionHistoryEntry[], hasPointsData: boolean)
   const centers = entries.map((_, i) => PLOT_LEFT + step * i + step / 2);
   const labelStride = Math.max(1, Math.ceil(entries.length / MAX_X_LABELS));
 
+  const barWidth = Math.min(BAR_WIDTH, step * 0.6);
+
   let bars: Array<{ x: number; y: number; w: number; h: number; value: number }> = [];
   let leftAxisTicks: Array<{ y: number; label: number }> = [];
   if (hasPointsData) {
@@ -61,7 +63,7 @@ function buildChart(entries: ContributionHistoryEntry[], hasPointsData: boolean)
     leftAxisTicks = grid.map((y, i) => ({ y, label: Math.round((maxPoints * (GRID_LINES - 1 - i)) / (GRID_LINES - 1)) }));
     bars = entries.map((e, i) => {
       const h = ((e.points ?? 0) / maxPoints) * plotHeight;
-      return { x: centers[i] - BAR_WIDTH / 2, y: PLOT_BOTTOM - h, w: BAR_WIDTH, h, value: e.points ?? 0 };
+      return { x: centers[i] - barWidth / 2, y: PLOT_BOTTOM - h, w: barWidth, h, value: e.points ?? 0 };
     });
   }
 

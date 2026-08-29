@@ -286,4 +286,53 @@ describe('useProfileData', () => {
       expect(result.current.contributionHistory.find((e) => e.period === 'May 2026')!.points).toBeNull();
     });
   });
+
+  describe('identity (isInfraMember, memberSince)', () => {
+    const REAL_HISTORY = [
+      { period: '2026-05-26', iaPlaa: 100, irPlaa: 900, plaaTotal: 1000 },
+      { period: '2026-06-26', iaPlaa: 0, irPlaa: 0, plaaTotal: 0 },
+    ];
+
+    it('reports isInfraMember false — no real RBAC source is wired yet', () => {
+      mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      expect(result.current.identity.isInfraMember).toBe(false);
+    });
+
+    it('derives memberSince from the real "Onboarding" activity record, formatted as "Mon YYYY"', () => {
+      mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+      mockUseProfilePlaaHistory.mockReturnValue({ data: REAL_HISTORY, isLoading: false });
+      mockUseSnapshotPointsHistory.mockReturnValue({
+        '2026-05-26': {
+          snapshotPeriod: '2026-05-01',
+          records: [{ category: 'PLAA', activityName: 'Onboarding', description: 'Month Onboarded to PLAA', pointsCollectedPerSnapshot: 0 }],
+        },
+        '2026-06-26': { snapshotPeriod: '2026-06-01', records: [] },
+      });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      expect(result.current.identity.memberSince).toBe('May 2026');
+    });
+
+    it('reports memberSince null when no Onboarding record is found — never guesses', () => {
+      mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+      mockUseProfilePlaaHistory.mockReturnValue({ data: REAL_HISTORY, isLoading: false });
+      mockUseSnapshotPointsHistory.mockReturnValue({
+        '2026-05-26': { snapshotPeriod: '2026-05-01', records: [] },
+        '2026-06-26': { snapshotPeriod: '2026-06-01', records: [] },
+      });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      expect(result.current.identity.memberSince).toBeNull();
+    });
+
+    it('reports memberSince null while history or points are still loading', () => {
+      mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+      mockUseProfilePlaaHistory.mockReturnValue({ data: undefined, isLoading: true });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      expect(result.current.identity.memberSince).toBeNull();
+    });
+  });
 });

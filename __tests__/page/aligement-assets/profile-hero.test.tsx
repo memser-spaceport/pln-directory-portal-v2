@@ -33,7 +33,7 @@ describe('ProfileHero', () => {
     expect(screen.queryByText('Activities')).not.toBeInTheDocument();
   });
 
-  it('hides the infra pill and infra rewards row for non-infra members', () => {
+  it('hides the infra pill when isInfraMember is false, independent of real infra rewards', () => {
     render(
       <ProfileHero
         identity={{ ...identity, isInfraMember: false }}
@@ -43,9 +43,25 @@ describe('ProfileHero', () => {
       />
     );
     expect(screen.queryByText('Infra Member')).not.toBeInTheDocument();
+  });
+
+  it('hides the infra rewards row when the real balance has none, regardless of isInfraMember', () => {
+    const zeroInfra: ProfileBalance = { ...balance, infraRewards: 0 };
+    render(
+      <ProfileHero identity={{ ...identity, isInfraMember: false }} balance={zeroInfra} balanceStatus="ready" pointsThisSnapshot={420} />
+    );
 
     fireEvent.click(screen.getByRole('button', { name: /show plaa balance breakdown/i }));
     expect(screen.queryByText('Infra rewards')).not.toBeInTheDocument();
+  });
+
+  it('shows the infra rewards row whenever the real balance has some, even when isInfraMember is false', () => {
+    render(
+      <ProfileHero identity={{ ...identity, isInfraMember: false }} balance={balance} balanceStatus="ready" pointsThisSnapshot={420} />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /show plaa balance breakdown/i }));
+    expect(screen.getByText('Infra rewards')).toBeInTheDocument();
   });
 
   it('swaps points-this-snapshot for the balance breakdown when toggled open', async () => {
@@ -115,5 +131,11 @@ describe('ProfileHero', () => {
 
     expect(screen.queryByText('0')).not.toBeInTheDocument();
     expect(screen.queryByText('Confirmed by Surus')).not.toBeInTheDocument();
+  });
+
+  it('omits the "Member since" line entirely when memberSince is null, rather than showing a blank date', () => {
+    render(<ProfileHero identity={{ ...identity, memberSince: null }} balance={balance} balanceStatus="ready" pointsThisSnapshot={420} />);
+
+    expect(screen.queryByText(/Member since/)).not.toBeInTheDocument();
   });
 });

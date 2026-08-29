@@ -13,27 +13,22 @@ export interface ProfileActivityItem {
 
 export interface SnapshotHistoryEntry {
   period: string;
-  /** null: that period's points query hasn't settled with data yet. */
   activities: number | null;
   categories: number | null;
   points: number | null;
   activityPlaa: number;
   hasInfra: boolean;
   infra: number;
-  /** activityPlaa + infra. */
   plaaTotal: number;
   items: ProfileActivityItem[] | null;
 }
 
 export interface ContributionHistoryEntry {
   period: string;
-  /** null: that period's points query hasn't settled with data yet. */
   points: number | null;
-  /** Matches this period's SnapshotHistoryEntry.activityPlaa. */
   plaa: number;
   infra: number;
   redeemed: number | null;
-  /** Earnings only, not redemption-adjusted — can run ahead of the real balance. */
   cum: number;
 }
 
@@ -53,11 +48,8 @@ export interface ProfileBalance {
   redeemed: number;
 }
 
-/** 'unavailable' covers signed-out, no synced row yet, or a failed request — kept
- * distinct from 'ready' so a consumer never renders balance's zeroed fields as confirmed. */
 export type ProfileBalanceStatus = 'loading' | 'ready' | 'unavailable';
 
-/** 'ready' + empty array: genuinely no history. Distinct from 'unavailable'. */
 export type ProfileHistoryStatus = 'loading' | 'ready' | 'unavailable';
 
 export interface ProfileData {
@@ -80,7 +72,6 @@ function initialsFrom(name: string): string {
     .join('');
 }
 
-/** "2026-07-26" -> "Jul 2026". */
 function formatPeriodLabel(isoDate: string): string {
   return new Date(`${isoDate}T00:00:00`).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
@@ -142,7 +133,6 @@ export function useProfileData(): ProfileData {
       initials: initialsFrom(name),
       avatarUrl: currentUser?.profileImageUrl,
       memberSince: 'January 2025',
-      // IS_DEV-only override, never true in a production build.
       isOnboarded: Boolean(currentUser) || IS_DEV,
       isInfraMember: true, // TODO(backend): hardcoded, needs a real RBAC-based check.
     },

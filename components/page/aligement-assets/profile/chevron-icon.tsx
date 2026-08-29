@@ -3,7 +3,6 @@
 interface ChevronIconProps {
   expanded: boolean;
   size?: number;
-  /** horizontal points right, vertical points down; both rotate 180° when expanded. */
   direction?: 'horizontal' | 'vertical';
 }
 

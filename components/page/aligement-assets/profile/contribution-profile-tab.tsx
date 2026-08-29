@@ -8,8 +8,6 @@ import styles from './contribution-profile-tab.module.css';
 
 interface ContributionProfileTabProps {
   entries: ContributionHistoryEntry[];
-  /** From the hero card, null while unconfirmed. Not entries[last].cum — that's
-   * earnings-only and can disagree with the real, redemption-adjusted balance. */
   currentBalance: number | null;
 }
 
@@ -26,7 +24,6 @@ function dashOr(value: number | null): string {
   return value === null ? '—' : value.toLocaleString();
 }
 
-/** null if any entry lacks the field — a total needs every period to have one. */
 function sumOrNull(entries: ContributionHistoryEntry[], pick: (e: ContributionHistoryEntry) => number | null): number | null {
   let total = 0;
   for (const e of entries) {
@@ -37,7 +34,6 @@ function sumOrNull(entries: ContributionHistoryEntry[], pick: (e: ContributionHi
   return total;
 }
 
-/** Round a max value up to a "nice" tick ceiling so axis labels aren't awkward fractions. */
 function niceMax(value: number): number {
   if (value <= 0) return 1;
   const magnitude = 10 ** Math.floor(Math.log10(value));

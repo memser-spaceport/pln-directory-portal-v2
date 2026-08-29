@@ -21,6 +21,8 @@ export interface SnapshotPointsResponse {
   records: PointsRecord[];
 }
 
+export type PointsHistoryResponse = SnapshotPointsResponse[];
+
 // ---------------------------------------------------------------------------
 // Query key constants
 // ---------------------------------------------------------------------------
@@ -28,6 +30,7 @@ export interface SnapshotPointsResponse {
 export const PointsQueryKeys = {
   LIFETIME: 'points-lifetime',
   SNAPSHOT: 'points-snapshot',
+  HISTORY: 'points-history',
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -81,6 +84,29 @@ export async function fetchSnapshotPoints(
     return res.json();
   } catch (error) {
     console.error('fetchSnapshotPoints error:', error);
+    return null;
+  }
+}
+
+export async function fetchPointsHistory(): Promise<PointsHistoryResponse | null> {
+  const { authToken } = getCookiesFromClient();
+  if (!authToken) return null;
+
+  try {
+    const res = await fetch('/api/plaa/points-history', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
+
+    if (res.status === 403 || res.status === 404) return null;
+    if (!res.ok) throw new Error(`Points history request failed: ${res.status}`);
+
+    return res.json();
+  } catch (error) {
+    console.error('fetchPointsHistory error:', error);
     return null;
   }
 }

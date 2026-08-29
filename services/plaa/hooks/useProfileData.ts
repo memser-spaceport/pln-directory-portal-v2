@@ -36,7 +36,7 @@ export interface ProfileIdentity {
   name: string;
   initials: string;
   avatarUrl?: string;
-  memberSince: string;
+  memberSince: string | null;
   isOnboarded: boolean;
   isInfraMember: boolean;
 }
@@ -78,6 +78,17 @@ function formatPeriodLabel(isoDate: string): string {
 
 function activityItemsFrom(response: SnapshotPointsResponse): ProfileActivityItem[] {
   return response.records.map((r) => ({ category: r.category, title: r.activityName, points: r.pointsCollectedPerSnapshot }));
+}
+
+function findMemberSince(historyData: ProfilePlaaHistoryEntry[] | null | undefined, pointsByPeriod: SnapshotPointsByPeriod): string | null {
+  if (!historyData) return null;
+  for (const entry of historyData) {
+    const points = pointsByPeriod[entry.period];
+    if (points?.records.some((r) => r.activityName === 'Onboarding')) {
+      return formatPeriodLabel(entry.period);
+    }
+  }
+  return null;
 }
 
 function toSnapshotHistory(history: ProfilePlaaHistoryEntry[], pointsByPeriod: SnapshotPointsByPeriod): SnapshotHistoryEntry[] {
@@ -132,9 +143,9 @@ export function useProfileData(): ProfileData {
       name,
       initials: initialsFrom(name),
       avatarUrl: currentUser?.profileImageUrl,
-      memberSince: 'January 2025',
+      memberSince: findMemberSince(historyData, pointsByPeriod),
       isOnboarded: Boolean(currentUser) || IS_DEV,
-      isInfraMember: true, // TODO(backend): hardcoded, needs a real RBAC-based check.
+      isInfraMember: false, // TODO(backend): no real RBAC source wired yet — never claim Infra without one.
     },
     balanceStatus,
     balance: {

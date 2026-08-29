@@ -42,16 +42,8 @@ export default function ProfileHero({ identity, balance, balanceStatus, pointsTh
       <div className={styles.identity}>
         <div className={styles.nameRow}>
           <h1 className={styles.name}>{identity.name}</h1>
-          <svg className={styles.verifiedIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path
-              d="M9 12.5l2 2 4.5-5M12 3l2.2 1.1 2.4-.4 1.3 2.1 2.1 1.3-.4 2.4L21 12l-1.1 2.2.4 2.4-2.1 1.3-1.3 2.1-2.4-.4L12 21l-2.2-1.1-2.4.4-1.3-2.1-2.1-1.3.4-2.4L3 12l1.1-2.2-.4-2.4 2.1-1.3 1.3-2.1 2.4.4L12 3Z"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinejoin="round"
-            />
-          </svg>
         </div>
-        <div className={styles.memberSince}>Member since {identity.memberSince}</div>
+        {identity.memberSince && <div className={styles.memberSince}>Member since {identity.memberSince}</div>}
         <div className={styles.pills}>
           {identity.isOnboarded && (
             <span className={styles.onboardedPill}>
@@ -134,7 +126,7 @@ export default function ProfileHero({ identity, balance, balanceStatus, pointsTh
             >
               <span className={styles.breakdownLabel}>Activities</span>
               <span className={styles.breakdownValue}>{displayBalanceValue(balanceStatus, balance.activities)}</span>
-              {identity.isInfraMember && (
+              {balance.infraRewards > 0 && (
                 <>
                   <span className={styles.breakdownLabel}>Infra rewards</span>
                   <span className={styles.breakdownValue}>{displayBalanceValue(balanceStatus, balance.infraRewards)}</span>

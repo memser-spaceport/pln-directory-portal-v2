@@ -12,7 +12,7 @@ const entries: ContributionHistoryEntry[] = [
 
 describe('ContributionProfileTab', () => {
   it('renders the chart axis labels and every period', () => {
-    render(<ContributionProfileTab entries={entries} currentBalance={112} />);
+    render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
 
     expect(screen.getByText('Points and PLAA earned over time')).toBeInTheDocument();
     // Each period appears twice: once as a chart x-axis label, once as a table row.
@@ -22,7 +22,7 @@ describe('ContributionProfileTab', () => {
   });
 
   it('renders the contribution history table with a Total to date row summing every column', () => {
-    render(<ContributionProfileTab entries={entries} currentBalance={112} />);
+    render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
 
     expect(screen.getByText('Contribution History')).toBeInTheDocument();
     const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
@@ -37,7 +37,7 @@ describe('ContributionProfileTab', () => {
   });
 
   it('renders the footer balance from the real currentBalance prop, not entries\' own last cum — the two can legitimately differ', () => {
-    render(<ContributionProfileTab entries={entries} currentBalance={999} />);
+    render(<ContributionProfileTab entries={entries} currentBalance={999} totalRedeemed={50} />);
 
     const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
     expect(within(totalRow).getByText('999')).toBeInTheDocument();
@@ -46,15 +46,39 @@ describe('ContributionProfileTab', () => {
   });
 
   it('renders a placeholder, not a fabricated balance, when currentBalance is null (not yet confirmed)', () => {
-    render(<ContributionProfileTab entries={entries} currentBalance={null} />);
+    render(<ContributionProfileTab entries={entries} currentBalance={null} totalRedeemed={null} />);
 
     const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
     expect(within(totalRow).queryByText('112')).not.toBeInTheDocument();
     expect(within(totalRow).queryByText('0')).not.toBeInTheDocument();
   });
 
+  it('renders the real total redeemed in the footer even though no per-period breakdown exists', () => {
+    const noRedemptionSource: ContributionHistoryEntry[] = entries.map((e) => ({ ...e, redeemed: null }));
+    const { container } = render(
+      <ContributionProfileTab entries={noRedemptionSource} currentBalance={112} totalRedeemed={231} />
+    );
+
+    const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
+    expect(within(totalRow).getByText('231')).toBeInTheDocument();
+    // Every per-row Redeemed cell still shows a dash — there's no month-by-month source.
+    const periodCells = Array.from(container.querySelectorAll('[class*="period"]'));
+    const dataRows = periodCells.map((el) => el.closest('[class*="dataRow"]') as HTMLElement);
+    expect(dataRows).toHaveLength(noRedemptionSource.length);
+    for (const row of dataRows) {
+      expect(within(row).getAllByText('—').length).toBeGreaterThan(0);
+    }
+  });
+
+  it('renders a dash for the footer Redeemed cell when the real total is null, not a summed zero', () => {
+    render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={null} />);
+
+    const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
+    expect(within(totalRow).getByText('—')).toBeInTheDocument();
+  });
+
   it('renders each bar\'s points value and a numeric scale on both Y axes', () => {
-    const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} />);
+    const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
 
     // Each period's points value renders twice: once as a bar label in the chart,
     // once in its table row — assert the SVG bar label specifically.
@@ -71,24 +95,27 @@ describe('ContributionProfileTab', () => {
     expect(rightAxisTexts.length).toBeGreaterThan(0);
   });
 
-  it('shows the corresponding PLAA balance when hovering a snapshot bar, hidden otherwise', () => {
-    const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} />);
+  it('shows a tooltip with the month, points collected, and PLAA earned when hovering a snapshot, hidden otherwise', () => {
+    const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
 
     const hoverZones = Array.from(container.querySelectorAll('rect[fill="transparent"]'));
     expect(hoverZones).toHaveLength(3);
-    expect(container.querySelector('text[fill="#ffffff"]')).not.toBeInTheDocument();
+    expect(screen.queryByText(/PLAA earned:/)).not.toBeInTheDocument();
 
-    // Hovering the May 2026 bar (index 0) should show its balance (cum: 35).
+    const tooltipTitle = () => container.querySelector('svg text[font-weight="700"][fill="#ffffff"]');
+
     fireEvent.mouseEnter(hoverZones[0]);
-    expect(screen.getByText('35', { selector: 'text' })).toBeInTheDocument();
+    expect(tooltipTitle()?.textContent).toBe('May 2026');
+    expect(screen.getByText('Points collected: 350')).toBeInTheDocument();
+    expect(screen.getByText('PLAA earned: 35')).toBeInTheDocument();
 
     fireEvent.mouseLeave(hoverZones[0]);
-    expect(container.querySelector('text[fill="#ffffff"]')).not.toBeInTheDocument();
+    expect(screen.queryByText(/PLAA earned:/)).not.toBeInTheDocument();
 
-    // Hovering Jul 2026 (index 2) should show its balance (cum: 112), not May's.
     fireEvent.mouseEnter(hoverZones[2]);
-    expect(screen.getByText('112', { selector: 'text' })).toBeInTheDocument();
-    expect(screen.queryByText('35', { selector: 'text' })).not.toBeInTheDocument();
+    expect(tooltipTitle()?.textContent).toBe('Jul 2026');
+    expect(screen.getByText('PLAA earned: 112')).toBeInTheDocument();
+    expect(screen.queryByText('PLAA earned: 35')).not.toBeInTheDocument();
   });
 
   describe('a period with no points data (still loading or settled empty)', () => {
@@ -99,7 +126,7 @@ describe('ContributionProfileTab', () => {
     ];
 
     it('hides the points bars and left axis, keeps the real PLAA balance line and right axis', () => {
-      const { container } = render(<ContributionProfileTab entries={realEntries} currentBalance={1050} />);
+      const { container } = render(<ContributionProfileTab entries={realEntries} currentBalance={1050} totalRedeemed={null} />);
 
       expect(screen.getByText('PLAA earned over time')).toBeInTheDocument();
       expect(screen.queryByText('Points collected')).not.toBeInTheDocument();
@@ -114,23 +141,33 @@ describe('ContributionProfileTab', () => {
     });
 
     it('shows a dash for Points and Redeemed columns, real values for Activities/Infra/Balance', () => {
-      render(<ContributionProfileTab entries={realEntries} currentBalance={1050} />);
+      render(<ContributionProfileTab entries={realEntries} currentBalance={1050} totalRedeemed={null} />);
 
       const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
       expect(within(totalRow).getByText('150')).toBeInTheDocument(); // plaa total: 100+0+50
       expect(within(totalRow).getByText('900')).toBeInTheDocument(); // infra total
       expect(within(totalRow).getByText('1,050')).toBeInTheDocument(); // real currentBalance
     });
+
+    it('omits Points collected from the hover tooltip when no period has real points data', () => {
+      const { container } = render(<ContributionProfileTab entries={realEntries} currentBalance={1050} totalRedeemed={null} />);
+
+      const hoverZones = Array.from(container.querySelectorAll('rect[fill="transparent"]'));
+      fireEvent.mouseEnter(hoverZones[0]);
+
+      expect(screen.queryByText(/Points collected:/)).not.toBeInTheDocument();
+      expect(screen.getByText('PLAA earned: 1,000')).toBeInTheDocument();
+    });
   });
 
   it('renders a "no snapshot history yet" placeholder instead of an empty chart/table when there are no entries', () => {
-    render(<ContributionProfileTab entries={[]} currentBalance={null} />);
+    render(<ContributionProfileTab entries={[]} currentBalance={null} totalRedeemed={null} />);
 
     expect(screen.getByText('No snapshot history yet.')).toBeInTheDocument();
     expect(screen.queryByText('Contribution History')).not.toBeInTheDocument();
   });
 
-  it('thins the x-axis labels when there are many periods, so they never overlap', () => {
+  it('caps x-axis labels at 6 and keeps them evenly spaced, so none ever sit adjacent and overlap', () => {
     const manyEntries: ContributionHistoryEntry[] = Array.from({ length: 17 }, (_, i) => ({
       period: `P${i + 1}`,
       points: 100,
@@ -139,14 +176,22 @@ describe('ContributionProfileTab', () => {
       redeemed: 0,
       cum: (i + 1) * 10,
     }));
-    const { container } = render(<ContributionProfileTab entries={manyEntries} currentBalance={170} />);
+    const { container } = render(<ContributionProfileTab entries={manyEntries} currentBalance={170} totalRedeemed={0} />);
 
     // Every period still gets a table row...
     expect(screen.getAllByText('P17')).toHaveLength(2);
-    // ...but the chart itself renders far fewer than 17 x-axis labels.
+
+    // ...but the chart itself renders at most 6 x-axis labels.
     const axisLabels = Array.from(container.querySelectorAll('svg text[fill="#94a3b8"]'));
-    expect(axisLabels.length).toBeLessThanOrEqual(7);
-    // The most recent period is always shown, never thinned away.
+    expect(axisLabels.length).toBeLessThanOrEqual(6);
     expect(axisLabels.some((el) => el.textContent === 'P17')).toBe(true);
+
+    // No two labels sit close enough to overlap — each is at least one slot's width apart.
+    const plotWidth = 668 - 52;
+    const slotWidth = plotWidth / manyEntries.length;
+    const xs = axisLabels.map((el) => Number(el.getAttribute('x'))).sort((a, b) => a - b);
+    for (let i = 1; i < xs.length; i++) {
+      expect(xs[i] - xs[i - 1]).toBeGreaterThanOrEqual(slotWidth - 1);
+    }
   });
 });

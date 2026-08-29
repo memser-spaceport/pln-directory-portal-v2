@@ -9,6 +9,7 @@ import styles from './contribution-profile-tab.module.css';
 interface ContributionProfileTabProps {
   entries: ContributionHistoryEntry[];
   currentBalance: number | null;
+  totalRedeemed: number | null;
 }
 
 const CHART_WIDTH = 720;
@@ -42,6 +43,15 @@ function niceMax(value: number): number {
 
 const MAX_X_LABELS = 6;
 
+function pickLabelIndices(length: number, maxLabels: number): Set<number> {
+  if (length <= maxLabels) return new Set(Array.from({ length }, (_, i) => i));
+  const indices = new Set<number>();
+  for (let i = 0; i < maxLabels; i++) {
+    indices.add(Math.round((i * (length - 1)) / (maxLabels - 1)));
+  }
+  return indices;
+}
+
 function buildChart(entries: ContributionHistoryEntry[], hasPointsData: boolean) {
   const maxBalance = niceMax(Math.max(...entries.map((e) => e.cum), 1));
   const plotWidth = PLOT_RIGHT - PLOT_LEFT;
@@ -52,7 +62,7 @@ function buildChart(entries: ContributionHistoryEntry[], hasPointsData: boolean)
   const rightAxisTicks = grid.map((y, i) => ({ y, label: Math.round((maxBalance * (GRID_LINES - 1 - i)) / (GRID_LINES - 1)) }));
 
   const centers = entries.map((_, i) => PLOT_LEFT + step * i + step / 2);
-  const labelStride = Math.max(1, Math.ceil(entries.length / MAX_X_LABELS));
+  const labelIndices = pickLabelIndices(entries.length, MAX_X_LABELS);
 
   const barWidth = Math.min(BAR_WIDTH, step * 0.6);
 
@@ -73,16 +83,15 @@ function buildChart(entries: ContributionHistoryEntry[], hasPointsData: boolean)
   }));
 
   const line = dots.map((d) => `${d.cx},${d.cy}`).join(' ');
-  const lastIndex = entries.length - 1;
   const labels = entries
     .map((e, i) => ({ x: centers[i], period: e.period, i }))
-    .filter(({ i }) => i % labelStride === 0 || i === lastIndex);
+    .filter(({ i }) => labelIndices.has(i));
   const hoverZones = entries.map((e, i) => ({ x: centers[i] - step / 2, w: step, balance: e.cum }));
 
   return { grid, bars, dots, line, labels, leftAxisTicks, rightAxisTicks, hoverZones };
 }
 
-export default function ContributionProfileTab({ entries, currentBalance }: ContributionProfileTabProps) {
+export default function ContributionProfileTab({ entries, currentBalance, totalRedeemed }: ContributionProfileTabProps) {
   if (entries.length === 0) {
     return (
       <div className={styles.card}>
@@ -98,7 +107,6 @@ export default function ContributionProfileTab({ entries, currentBalance }: Cont
   const totalPoints = sumOrNull(entries, (e) => e.points);
   const totalPlaa = entries.reduce((sum, p) => sum + p.plaa, 0);
   const totalInfra = entries.reduce((sum, p) => sum + p.infra, 0);
-  const totalRedeemed = sumOrNull(entries, (e) => e.redeemed);
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
@@ -183,28 +191,30 @@ export default function ContributionProfileTab({ entries, currentBalance }: Cont
               {l.period}
             </text>
           ))}
-          {hoveredIndex !== null && (
-            <g style={{ pointerEvents: 'none' }}>
-              <rect
-                x={chart.dots[hoveredIndex].cx - 24}
-                y={chart.dots[hoveredIndex].cy + 10}
-                width="48"
-                height="20"
-                rx="6"
-                fill="#156ff7"
-              />
-              <text
-                x={chart.dots[hoveredIndex].cx}
-                y={chart.dots[hoveredIndex].cy + 24}
-                textAnchor="middle"
-                fontSize="11"
-                fontWeight="600"
-                fill="#ffffff"
-              >
-                {entries[hoveredIndex].cum.toLocaleString()}
-              </text>
-            </g>
-          )}
+          {hoveredIndex !== null && (() => {
+            const entry = entries[hoveredIndex];
+            const dot = chart.dots[hoveredIndex];
+            const boxW = 140;
+            const boxH = hasPointsData ? 64 : 42;
+            const boxX = Math.min(Math.max(dot.cx - boxW / 2, PLOT_LEFT), PLOT_RIGHT - boxW);
+            const boxY = Math.max(dot.cy - boxH - 14, PLOT_TOP);
+            return (
+              <g style={{ pointerEvents: 'none' }}>
+                <rect x={boxX} y={boxY} width={boxW} height={boxH} rx="8" fill="#156ff7" />
+                <text x={boxX + 12} y={boxY + 19} textAnchor="start" fontSize="11" fontWeight="700" fill="#ffffff">
+                  {entry.period}
+                </text>
+                {hasPointsData && (
+                  <text x={boxX + 12} y={boxY + 37} textAnchor="start" fontSize="10" fill="#dbeafe">
+                    Points collected: {dashOr(entry.points)}
+                  </text>
+                )}
+                <text x={boxX + 12} y={boxY + (hasPointsData ? 55 : 37)} textAnchor="start" fontSize="10" fill="#dbeafe">
+                  PLAA earned: {entry.cum.toLocaleString()}
+                </text>
+              </g>
+            );
+          })()}
           {chart.hoverZones.map((z, i) => (
             <rect
               key={i}

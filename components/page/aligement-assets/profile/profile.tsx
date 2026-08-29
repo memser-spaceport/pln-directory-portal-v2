@@ -74,6 +74,7 @@ const Profile = () => {
         <ContributionProfileTab
           entries={data.contributionHistory}
           currentBalance={data.balanceStatus === 'ready' ? data.balance.plaaBalance : null}
+          totalRedeemed={data.balanceStatus === 'ready' ? data.balance.redeemed : null}
         />
       )}
     </div>

@@ -14,7 +14,7 @@ const entries: SnapshotHistoryEntry[] = [
     hasInfra: true,
     infra: 30,
     plaaTotal: 75,
-    items: [{ category: 'Programs', title: 'Make a Network Introduction', points: 300 }],
+    items: [{ category: 'Category A', title: 'Activity 1', points: 300 }],
   },
   {
     period: 'May 2026',
@@ -25,7 +25,7 @@ const entries: SnapshotHistoryEntry[] = [
     hasInfra: false,
     infra: 0,
     plaaTotal: 35,
-    items: [{ category: 'Programs', title: 'Complete a Survey', points: 50 }],
+    items: [{ category: 'Category A', title: 'Activity 2', points: 50 }],
   },
 ];
 
@@ -47,7 +47,7 @@ describe('SnapshotHistoryTab', () => {
 
     fireEvent.click(screen.getByText('Jul 2026'));
     expect(screen.getByText('Activities this snapshot')).toBeInTheDocument();
-    expect(screen.getByText('Make a Network Introduction')).toBeInTheDocument();
+    expect(screen.getByText('Activity 1')).toBeInTheDocument();
     expect(screen.getByText('Activity rewards')).toBeInTheDocument();
     expect(screen.getByText('Infra Member')).toBeInTheDocument();
     expect(screen.getByText('+30 PLAA')).toBeInTheDocument();
@@ -55,8 +55,8 @@ describe('SnapshotHistoryTab', () => {
 
     // Only one row open at a time.
     fireEvent.click(screen.getByText('May 2026'));
-    expect(screen.queryByText('Make a Network Introduction')).not.toBeInTheDocument();
-    expect(screen.getByText('Complete a Survey')).toBeInTheDocument();
+    expect(screen.queryByText('Activity 1')).not.toBeInTheDocument();
+    expect(screen.getByText('Activity 2')).toBeInTheDocument();
     expect(screen.queryByText('Infra Member')).not.toBeInTheDocument();
   });
 
@@ -70,17 +70,17 @@ describe('SnapshotHistoryTab', () => {
     expect(screen.queryByText('Activities this snapshot')).not.toBeInTheDocument();
   });
 
-  describe('real PLAA data, points/activities/categories/items not yet wired', () => {
+  describe('a period with no points data (still loading or settled empty)', () => {
     const realEntries: SnapshotHistoryEntry[] = [
       {
         period: 'Jul 2026',
         activities: null,
         categories: null,
         points: null,
-        activityPlaa: 205,
+        activityPlaa: 50,
         hasInfra: false,
         infra: 0,
-        plaaTotal: 205,
+        plaaTotal: 50,
         items: null,
       },
       {
@@ -88,10 +88,10 @@ describe('SnapshotHistoryTab', () => {
         activities: null,
         categories: null,
         points: null,
-        activityPlaa: 304,
+        activityPlaa: 100,
         hasInfra: true,
-        infra: 4300,
-        plaaTotal: 4604,
+        infra: 900,
+        plaaTotal: 1000,
         items: null,
       },
     ];
@@ -101,7 +101,7 @@ describe('SnapshotHistoryTab', () => {
 
       const dashes = screen.getAllByText('—');
       expect(dashes.length).toBeGreaterThan(0);
-      expect(screen.getByText('4,604')).toBeInTheDocument();
+      expect(screen.getByText('1,000')).toBeInTheDocument();
     });
 
     it('shows a "not yet available" message instead of an empty activity list when expanded', () => {
@@ -115,7 +115,7 @@ describe('SnapshotHistoryTab', () => {
       render(<SnapshotHistoryTab entries={realEntries} />);
 
       expect(screen.getByText('Total to date')).toBeInTheDocument();
-      expect(screen.getByText('4,809')).toBeInTheDocument(); // 205 + 4604 PLAA total
+      expect(screen.getByText('1,050')).toBeInTheDocument(); // 50 + 1000 PLAA total
     });
   });
 });

@@ -3,6 +3,7 @@ import {
   canApplyToJobs,
   deriveBoardViewer,
   getJobsAccessVerdict,
+  areAllJobProfileSectionsFilled,
   isJobAspirant,
   isJobProfileComplete,
   isJobSearchStatus,
@@ -145,6 +146,25 @@ describe('isJobProfileComplete', () => {
   it('falls back past an empty-string mainTeam.role (?? alone would not)', () => {
     expect(isJobProfileComplete({ role: 'Engineer', mainTeam: { role: '' } }, 'not-looking')).toBe(true);
     expect(isJobProfileComplete({ role: '   ', mainTeam: { role: '  ' } }, 'not-looking')).toBe(false);
+  });
+});
+
+describe('areAllJobProfileSectionsFilled', () => {
+  const filled = { role: 'Engineer', skills: [{ id: 's1', name: 'Rust' }], bio: '<p>Builder.</p>' };
+
+  it('needs role, status, skills, bio and at least one experience', () => {
+    expect(areAllJobProfileSectionsFilled(filled, 'actively-looking', 1)).toBe(true);
+    expect(areAllJobProfileSectionsFilled(filled, 'actively-looking', 0)).toBe(false);
+    expect(areAllJobProfileSectionsFilled({ ...filled, skills: [] }, 'actively-looking', 1)).toBe(false);
+    expect(areAllJobProfileSectionsFilled({ ...filled, bio: '<p><br></p>' }, 'actively-looking', 1)).toBe(false);
+    expect(areAllJobProfileSectionsFilled({ role: 'Engineer' }, 'actively-looking', 1)).toBe(false);
+    expect(areAllJobProfileSectionsFilled(filled, null, 1)).toBe(false);
+  });
+
+  it('treats an image-only bio as filled', () => {
+    expect(areAllJobProfileSectionsFilled({ ...filled, bio: '<p><img src="x.png"></p>' }, 'actively-looking', 1)).toBe(
+      true,
+    );
   });
 });
 

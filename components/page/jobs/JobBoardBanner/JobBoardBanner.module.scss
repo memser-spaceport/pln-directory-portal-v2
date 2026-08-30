@@ -17,10 +17,11 @@
   }
 }
 
-/* The criteria read-back. 600 rather than the browser's default 700 — emphasis
-   by weight alone, so it doesn't start reading as a link. */
-.criteria {
-  font-weight: 600;
+/* The secondary door under the pitch — a line of its own so it doesn't
+   compete with Get started, and a little air above so it doesn't sit on the
+   founders sentence. */
+.signInLine.signInLine {
+  margin-top: 4px;
 }
 
 /* --- the slot's surface, shared by all four states --------------------------

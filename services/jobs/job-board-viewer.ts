@@ -1,5 +1,6 @@
 import { IUserInfo } from '@/types/shared.types';
 import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { isBlankHtml } from '@/utils/html';
 
 /**
  * Who is looking at the job board, and whether they can apply from it.
@@ -164,6 +165,34 @@ export function isJobProfileComplete(
 ): boolean {
   const role = (member?.mainTeam?.role ?? '').trim() || (member?.role ?? '').trim();
   return role !== '' && jobSearchStatus !== null;
+}
+
+/**
+ * The Job Aspirant banner stays up until each fillable profile section has
+ * something in it — stricter than `isJobProfileComplete`, which only gates
+ * Apply.
+ *
+ * Role + job search status are the two Apply answers. Skills, bio and
+ * experience are the optional set the profile drawer names ("Experience, skills
+ * and bio are optional"). A JA who can already apply still sees the nudge
+ * until those are filled too. Contact is skipped: sign-up always writes an
+ * email, so the card would never read empty.
+ */
+export interface JobProfileSectionFields extends JobProfileFields {
+  skills?: unknown[] | null;
+  bio?: string | null;
+}
+
+export function areAllJobProfileSectionsFilled(
+  member: JobProfileSectionFields | null,
+  jobSearchStatus: JobSearchStatus | null,
+  experienceCount: number,
+): boolean {
+  if (!isJobProfileComplete(member, jobSearchStatus)) return false;
+  if (!Array.isArray(member?.skills) || member.skills.length === 0) return false;
+  const bio = member?.bio ?? '';
+  if (!bio.trim() || (isBlankHtml(bio) && !/<img\b/i.test(bio))) return false;
+  return experienceCount >= 1;
 }
 
 export const BOARD_VIEWER_STATES = [

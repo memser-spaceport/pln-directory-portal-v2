@@ -315,7 +315,8 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
     <div className={s.root}>
       {/* The board's one apply-flow banner slot — first block in the column,
           above the page's own content, the same slot the home page gives its
-          signed-out Welcome. Renders nothing for resolving/rejected/ready. */}
+          signed-out Welcome. Renders nothing for resolving/rejected/ready,
+          except a JA whose sections are still empty. */}
       {SHOW_JOB_BOARD_APPLY && (
         <JobBoardBanner
           viewer={boardViewer.viewer}
@@ -323,6 +324,8 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
           teamCount={totalGroups}
           filterState={alertFilterState}
           profileComplete={boardViewer.profileComplete}
+          isJobAspirant={boardViewer.jobAspirant}
+          allSectionsFilled={boardViewer.allSectionsFilled}
           onSignIn={pushLogin}
           onSignUp={() => flow.onSignUp('banner')}
           onUpdateProfile={flow.onUpdateProfile}

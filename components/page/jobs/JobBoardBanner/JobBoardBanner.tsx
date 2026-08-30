@@ -17,7 +17,6 @@ import alert from '@/components/page/demo-day/FounderPendingView/components/Aler
 import type { BoardViewerState } from '@/services/jobs/job-board-viewer';
 import type { IJobAlertFilterState } from '@/types/job-alerts.types';
 import { hasActiveFilters } from '@/utils/job-alerts.utils';
-import { seniorityDisplayLabel, workplaceTypeDisplayLabel } from '@/utils/jobs.utils';
 
 import s from './JobBoardBanner.module.scss';
 
@@ -29,6 +28,11 @@ interface JobBoardBannerProps {
   teamCount: number;
   filterState: IJobAlertFilterState;
   profileComplete: boolean;
+  /** Job Aspirant — signed up from the board, not already on a network team. */
+  isJobAspirant?: boolean;
+  /** Every fillable profile section has a value. The JA banner stays until this
+   *  is true; a member's banner still splits on `viewer` / Apply-completeness. */
+  allSectionsFilled?: boolean;
   onSignIn: () => void;
   onSignUp: () => void;
   onUpdateProfile: () => void;
@@ -41,99 +45,29 @@ interface JobBoardBannerProps {
  * Renders nothing for `resolving` (the sub-state queries haven't settled —
  * banner-absence is already the `profile-ready` presentation, so nothing can
  * flash wrong), nothing for `rejected` (the pending copy would promise an
- * approval that will not come), and nothing for `profile-ready`.
+ * approval that will not come), and nothing for `profile-ready` — except a
+ * Job Aspirant whose sections are still empty.
  */
 export function JobBoardBanner(props: JobBoardBannerProps) {
-  const { viewer } = props;
+  const { viewer, isJobAspirant = false, allSectionsFilled = false } = props;
 
   switch (viewer) {
     case 'logged-out':
       return <SignInBanner {...props} />;
     case 'profile-incomplete':
-      return <ProfileNudgeBanner onUpdateProfile={props.onUpdateProfile} />;
+      return (
+        <ProfileNudgeBanner variant={isJobAspirant ? 'aspirant' : 'member'} onUpdateProfile={props.onUpdateProfile} />
+      );
+    case 'profile-ready':
+      return isJobAspirant && !allSectionsFilled ? (
+        <ProfileNudgeBanner variant="aspirant" onUpdateProfile={props.onUpdateProfile} />
+      ) : null;
     case 'pending-approval':
       return <PendingApprovalBanner profileComplete={props.profileComplete} onUpdateProfile={props.onUpdateProfile} />;
     case 'resolving':
     case 'rejected':
-    case 'profile-ready':
       return null;
   }
-}
-
-/** "Engineering · Senior, Lead · Remote" — the person's own rail selection, in
- *  the words the rail used. */
-function summariseFilters(filterState: IJobAlertFilterState): string {
-  return [
-    ...filterState.roleCategory,
-    ...filterState.seniority.map(seniorityDisplayLabel),
-    ...filterState.workMode.map(workplaceTypeDisplayLabel),
-    ...filterState.focus,
-    ...filterState.location,
-  ].join(' · ');
-}
-
-/** The two doors, when the banner is the one offering them. Absent on the
- *  signed-in banners, where there is nothing to sign into. */
-interface Doors {
-  onSignIn: () => void;
-  onSignUp: () => void;
-}
-
-/**
- * The two things a profile buys you, one line each — shared between the
- * logged-out banner and the signed-in nudge so the two states cannot end up
- * making different promises. Only the first bullet changes, because the door
- * behind it has.
- *
- * **The doors live in the first bullet**, as text buttons, rather than in a
- * button pair beside the card — see `SignInBanner`. Their presence *is* the
- * signed-out case: `doors` optional rather than a `signedOut` boolean, so there
- * is no flag that can disagree with whether handlers were passed.
- *
- * Door order is sign in, then sign up — the reverse of the navbar's pair, and
- * deliberate here: this reads as a sentence rather than as a control cluster,
- * and the sentence names the commoner case first.
- */
-function ApplyValueBullets({ className, doors }: { className?: string; doors?: Doors }) {
-  return (
-    <ul className={clsx(welcome.sub, s.valueBullets, className)}>
-      <li>
-        {doors ? (
-          <>
-            {/* Both doors, still — the pair moved out of the CTA slot, not out
-                of the banner. "Sign in" alone would tell the likeliest reader of
-                a sign-in banner, someone with no account, that the offer isn't
-                for them. */}
-            <button type="button" className={s.inlineDoor} onClick={doors.onSignIn}>
-              Sign in
-            </button>{' '}
-            or{' '}
-            <button type="button" className={s.inlineDoor} onClick={doors.onSignUp}>
-              sign up
-            </button>{' '}
-            and discover open roles across the network.
-          </>
-        ) : (
-          /* **No longer the same claim as the one above**, and the difference is
-             the audience. A visitor is being offered the thing they came for —
-             discovering roles — in the same words the sign-up form uses for it,
-             so the banner and the form they land on agree about what an account
-             is for. A member already has the account and already has the board;
-             what is still ahead of them is applying, so their sentence starts
-             there.
-
-             Kept in step deliberately, not by accident: if the visitor line
-             changes again, this one is the other half to think about. */
-          'Apply to hundreds of open roles with a single profile.'
-        )}
-      </li>
-      {/* "when they're hiring for what you do", not "when your profile matches
-          the roles they're hiring for". Matching was removed from this board
-          outright; leaving its vocabulary here promises a mechanism that is
-          gone. */}
-      <li>Founders reach out when they&apos;re hiring for what you do.</li>
-    </ul>
-  );
 }
 
 const ArrowGlyph = () => (
@@ -149,24 +83,15 @@ const ArrowGlyph = () => (
 );
 
 /**
- * The logged-out banner: the headline is the inventory (filtered counts), the
- * case for signing in is the two bullets, and the two doors are text buttons
- * inside the first of them. Narrowing the rail condenses and pins it — the
- * standing offer stays in view without blocking anything.
+ * The logged-out banner: how many teams are hiring, what a profile buys you,
+ * Get started (sign-up) as the door, and Sign in as the secondary for people
+ * already on a network team.
  *
- * **There is no CTA slot.** This used to end in a Sign up / Sign in pair wearing
- * `welcome.cta` — a boxed auth cluster, which made this an *offer* card in the
- * same viewport as two other copies of the same offer: the navbar's own pair one
- * row above, and the sign-up form that Apply opens for a logged-out visitor at
- * the moment of intent. Three asks for one account, and this was the one nobody
- * arrived for.
- *
- * What is left is a note: it says what the board is worth to you and names the
- * two doors inline, in the sentence. That is the treatment for an aside that
- * carries an action — a boxed control inside a sentence reads as a second
- * object.
+ * Narrowing the rail pins it — the standing offer stays in view without
+ * blocking anything. The team count is the filtered one, so the headline
+ * stays true of the list under it.
  */
-function SignInBanner({ filterState, roleCount, teamCount, onSignIn, onSignUp }: JobBoardBannerProps) {
+function SignInBanner({ filterState, teamCount, onSignIn, onSignUp }: JobBoardBannerProps) {
   const filtersApplied = hasActiveFilters(filterState);
 
   return (
@@ -174,52 +99,54 @@ function SignInBanner({ filterState, roleCount, teamCount, onSignIn, onSignUp }:
       <section className={clsx(welcome.welcome, s.brandSurface, filtersApplied && s.condensed)}>
         <div className={welcome.text}>
           <p className={clsx(welcome.title, s.bannerTitle, filtersApplied && s.oneLine)}>
-            {roleCount > 0 ? (
+            {teamCount > 0 ? (
               <>
-                Browse{' '}
-                <span className={welcome.titleHighlight}>
-                  {roleCount} open {roleCount === 1 ? 'role' : 'roles'}
-                </span>{' '}
-                across {teamCount} PL network {teamCount === 1 ? 'team' : 'teams'}
+                <span className={welcome.titleHighlight}>{teamCount}</span> PL network{' '}
+                {teamCount === 1 ? 'team is' : 'teams are'} hiring. Let them find you.
               </>
             ) : (
-              /* Zero is a filter result, not a smaller board — the counts drop
+              /* Zero is a filter result, not a smaller board — the count drops
                  out and the standing claim stays. */
-              <>Browse every open role across the PL network</>
+              <>PL network teams are hiring. Let them find you.</>
             )}
           </p>
-          {filtersApplied || roleCount === 0 ? (
-            <p className={clsx(welcome.sub, s.bannerSub, filtersApplied && s.oneLine)}>
-              {roleCount === 0 ? (
-                <>
-                  Your profile goes with every application, so when a role does fit, applying is a cover letter and
-                  nothing else.
-                </>
-              ) : (
-                <>
-                  Looking for <strong className={s.criteria}>{summariseFilters(filterState)}</strong>? Your profile goes
-                  with the application, so all you write is a cover letter.
-                </>
-              )}
-            </p>
-          ) : (
-            <ApplyValueBullets className={s.bannerSub} doors={{ onSignIn, onSignUp }} />
-          )}
+          <p className={clsx(welcome.sub, s.bannerSub, filtersApplied && s.oneLine)}>
+            Founders reach out when your profile matches an open role.
+          </p>
+          <p className={clsx(welcome.sub, s.bannerSub, s.signInLine)}>
+            Already at a PL network team?{' '}
+            <button type="button" className={s.inlineDoor} onClick={onSignIn}>
+              Sign in
+            </button>
+          </p>
+        </div>
+        <div className={s.ctaGroup}>
+          <button type="button" className={welcome.cta} onClick={onSignUp}>
+            Get started
+            <ArrowGlyph />
+          </button>
         </div>
       </section>
     </div>
   );
 }
 
-/** Signed in, profile empty: the ask moves from "sign in" to "update your profile". */
-function ProfileNudgeBanner({ onUpdateProfile }: { onUpdateProfile: () => void }) {
+function ProfileNudgeBanner({
+  variant,
+  onUpdateProfile,
+}: {
+  variant: 'member' | 'aspirant';
+  onUpdateProfile: () => void;
+}) {
   return (
     <div className={s.slot}>
       <section className={clsx(welcome.welcome, s.brandSurface)}>
         <div className={welcome.text}>
-          <p className={clsx(welcome.title, s.bannerTitle)}>Update your profile to apply</p>
-          {/* No `doors` — a member reading this one is already through both. */}
-          <ApplyValueBullets className={s.bannerSub} />
+          <p className={clsx(welcome.title, s.bannerTitle)}>
+            {variant === 'member'
+              ? 'Interested in a role here? Your profile is what the team sees when you reach out.'
+              : 'The more complete your profile, the better teams can find you.'}
+          </p>
         </div>
         <div className={s.ctaGroup}>
           <button type="button" className={welcome.cta} onClick={onUpdateProfile}>

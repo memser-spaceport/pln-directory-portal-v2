@@ -5,12 +5,13 @@ import { JobBoardBanner } from '@/components/page/jobs/JobBoardBanner/JobBoardBa
 import type { IJobAlertFilterState } from '@/types/job-alerts.types';
 
 /**
- * The board's one banner slot — four states, one card.
+ * The board's one banner slot — logged-out, member, Job Aspirant, pending.
  *
- * The thing most worth guarding is the pair of doors. They used to be boxed
- * buttons in a CTA slot and are now text buttons inside the first bullet's
- * sentence; that is a move, not a removal, and a move is exactly the kind of
- * change that silently drops a click handler while still looking right.
+ * The thing most worth guarding is the pair of doors on the logged-out card:
+ * Get started (sign-up) and Sign in. They used to live inside a bullet
+ * sentence; they are now a boxed CTA and a text link, and a move is exactly
+ * the kind of change that silently drops a click handler while still looking
+ * right.
  */
 
 const emptyFilters: IJobAlertFilterState = {
@@ -38,95 +39,82 @@ describe('the job board banner', () => {
   beforeEach(() => jest.clearAllMocks());
 
   describe('logged out', () => {
-    it('leads with the inventory and makes the case in two bullets', () => {
+    it('leads with the hiring teams and makes the case for a profile', () => {
       renderBanner();
 
-      expect(screen.getByText(/34 open roles/)).toBeInTheDocument();
-      expect(screen.getByText(/across 6 PL network teams/)).toBeInTheDocument();
-      /* The visitor's half of the pitch, in the same words the sign-up form
-         uses for it — the banner and the form it opens should agree about what
-         an account is for. The member's variant says something else on purpose;
-         see the `signed in` block below. */
-      expect(screen.getByText(/discover open roles across the network/i)).toBeInTheDocument();
+      expect(screen.getByText('6')).toBeInTheDocument();
+      expect(screen.getByText(/PL network teams are hiring\. Let them find you\./)).toBeInTheDocument();
+      expect(screen.getByText('Founders reach out when your profile matches an open role.')).toBeInTheDocument();
+      expect(screen.getByText(/Already at a PL network team\?/)).toBeInTheDocument();
     });
 
-    /**
-     * Both doors, in the sentence. "Sign in" alone would tell the likeliest
-     * reader of a sign-in banner — someone with no account — that the offer
-     * isn't for them.
-     */
-    it('still opens both doors now that they live inside the sentence', () => {
+    it('opens sign-up from Get started and sign-in from the team line', () => {
       renderBanner();
+
+      fireEvent.click(screen.getByRole('button', { name: /get started/i }));
+      expect(baseProps.onSignUp).toHaveBeenCalled();
 
       fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
       expect(baseProps.onSignIn).toHaveBeenCalled();
-
-      fireEvent.click(screen.getByRole('button', { name: 'sign up' }));
-      expect(baseProps.onSignUp).toHaveBeenCalled();
     });
 
-    /**
-     * Matching was removed from this board outright. Copy that promises it
-     * describes a mechanism that no longer exists, which is worse than saying
-     * less.
-     */
-    it('does not promise the matching mechanism the board no longer has', () => {
-      renderBanner();
-
-      expect(screen.getByText("Founders reach out when they're hiring for what you do.")).toBeInTheDocument();
-      expect(screen.queryByText(/matches the roles/i)).not.toBeInTheDocument();
-    });
-
-    /**
-     * Narrowing the rail replaces the standing pitch with the person's own
-     * selection read back — the more specific thing to say to someone who just
-     * told you what they want. The doors go with the bullets, which is fine:
-     * the navbar's pair is one row above and Apply asks at the moment of intent.
-     */
-    it('swaps the pitch for the selection read-back once the rail is narrowed', () => {
+    it('keeps the standing pitch when the rail is narrowed', () => {
       renderBanner({ filterState: { ...emptyFilters, roleCategory: ['Engineering'], location: ['Berlin'] } });
 
-      expect(screen.getByText(/Engineering · Berlin/)).toBeInTheDocument();
-      /* The pitch this replaces is the logged-out one, so that is the string to
-         look for. It used to check `/hundreds of open roles/i`, which the
-         logged-out bullet no longer contains in any state — the assertion would
-         have passed whether or not the swap happened. */
-      expect(screen.queryByText(/discover open roles across the network/i)).not.toBeInTheDocument();
+      expect(screen.getByText(/PL network teams are hiring\. Let them find you\./)).toBeInTheDocument();
+      expect(screen.getByText('Founders reach out when your profile matches an open role.')).toBeInTheDocument();
+      expect(screen.queryByText(/Looking for/)).not.toBeInTheDocument();
     });
 
-    /**
-     * Zero is a filter result, not a smaller board. "Browse 0 open roles" is an
-     * invitation to do nothing, and the empty state below already says there is
-     * nothing there — so no read-back either, which would just rub it in.
-     */
-    it('drops the counts rather than claiming zero roles', () => {
+    it('drops the count rather than claiming zero teams', () => {
       renderBanner({
         roleCount: 0,
         teamCount: 0,
         filterState: { ...emptyFilters, roleCategory: ['Design'] },
       });
 
-      expect(screen.getByText(/Browse every open role across the PL network/)).toBeInTheDocument();
-      expect(screen.queryByText(/0 open roles/)).not.toBeInTheDocument();
-      expect(screen.queryByText(/Looking for/)).not.toBeInTheDocument();
+      expect(screen.getByText(/PL network teams are hiring\. Let them find you\./)).toBeInTheDocument();
+      expect(screen.queryByText('0')).not.toBeInTheDocument();
     });
   });
 
   describe('signed in', () => {
-    /**
-     * A different first claim, and the doors gone.
-     *
-     * The visitor above is offered discovery; a member already has the board, so
-     * theirs starts at applying. Asserted with an anchored match so this cannot
-     * quietly become the visitor's sentence.
-     */
-    it('promises a member with an empty profile the applying half, without the doors', () => {
+    it('tells a member with an empty profile what the team will see', () => {
       renderBanner({ viewer: 'profile-incomplete' });
 
-      expect(screen.getByText('Update your profile to apply')).toBeInTheDocument();
-      expect(screen.getByText(/^Apply to hundreds of open roles with a single profile\.$/)).toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: 'Sign in' })).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: 'sign up' })).not.toBeInTheDocument();
+      expect(
+        screen.getByText('Interested in a role here? Your profile is what the team sees when you reach out.'),
+      ).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /update profile/i }));
+      expect(baseProps.onUpdateProfile).toHaveBeenCalled();
+      expect(screen.queryByRole('button', { name: /get started/i })).not.toBeInTheDocument();
+    });
+
+    it('nudges a Job Aspirant to fill the profile so teams can find them', () => {
+      renderBanner({ viewer: 'profile-incomplete', isJobAspirant: true });
+
+      expect(screen.getByText('The more complete your profile, the better teams can find you.')).toBeInTheDocument();
+      expect(
+        screen.queryByText('Interested in a role here? Your profile is what the team sees when you reach out.'),
+      ).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /update profile/i }));
+      expect(baseProps.onUpdateProfile).toHaveBeenCalled();
+    });
+
+    it('keeps the Job Aspirant nudge up after Apply-completeness until every section has a value', () => {
+      renderBanner({ viewer: 'profile-ready', isJobAspirant: true, allSectionsFilled: false });
+
+      expect(screen.getByText('The more complete your profile, the better teams can find you.')).toBeInTheDocument();
+    });
+
+    it('hides the Job Aspirant nudge once every section has a value', () => {
+      const { container } = renderBanner({
+        viewer: 'profile-ready',
+        isJobAspirant: true,
+        allSectionsFilled: true,
+      });
+
+      expect(container).toBeEmptyDOMElement();
     });
 
     it('gives a waiting member something to do while the profile is unfinished', () => {
@@ -169,7 +157,8 @@ describe('the job board banner', () => {
    * Three states render nothing, for three different reasons: `resolving`
    * hasn't settled (and banner-absence is already the `profile-ready`
    * presentation, so nothing can flash wrong), `rejected` would be promised an
-   * approval that will not come, and `profile-ready` has no ask left.
+   * approval that will not come, and `profile-ready` has no ask left — unless
+   * the reader is a Job Aspirant whose sections are still empty (covered above).
    */
   it.each(['resolving', 'rejected', 'profile-ready'] as const)('renders nothing for %s', (viewer) => {
     const { container } = renderBanner({ viewer });

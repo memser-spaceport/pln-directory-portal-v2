@@ -374,8 +374,6 @@ export function AiAppDetailPage(props: Props) {
             appName={app.name}
             buttonProps={{
               size: 'xxs',
-              style: 'border',
-              variant: 'neutral',
               className: s.topBarBtn,
             }}
           />

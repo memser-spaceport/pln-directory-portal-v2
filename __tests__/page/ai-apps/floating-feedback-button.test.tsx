@@ -57,6 +57,15 @@ describe('FloatingFeedbackButton', () => {
     expect(button.className).not.toMatch(/floating/);
   });
 
+  it('uses a filled primary trigger by default', () => {
+    mockUsePermissions.mockReturnValue({ permsSet: new Set(['ai_apps.read']), isLoading: false });
+
+    render(<FloatingFeedbackButton />);
+    const button = screen.getByRole('button', { name: 'Give feedback' });
+    expect(button.className).toMatch(/fill/);
+    expect(button.className).toMatch(/primary/);
+  });
+
   it('anchors the dialog to the trigger wrapper', () => {
     mockUsePermissions.mockReturnValue({ permsSet: new Set(['ai_apps.read']), isLoading: false });
 

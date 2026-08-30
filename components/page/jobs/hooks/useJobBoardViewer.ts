@@ -5,10 +5,13 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { MembersQueryKeys } from '@/services/members/constants';
 import { useMember } from '@/services/members/hooks/useMember';
+import { useMemberExperience } from '@/services/members/hooks/useMemberExperience';
 import {
+  areAllJobProfileSectionsFilled,
   BoardViewerState,
   deriveBoardViewer,
   getJobsAccessVerdict,
+  isJobAspirant,
   isJobProfileComplete,
   isJobSearchStatus,
   JobsAccessVerdict,
@@ -27,6 +30,13 @@ export interface JobBoardViewerResult {
   memberUid: string | undefined;
   jobSearchStatus: JobSearchStatus | null;
   profileComplete: boolean;
+  jobAspirant: boolean;
+  /**
+   * Every fillable profile section has a value. The JA banner uses this, not
+   * `profileComplete` — Apply only needs role + status; the nudge stays until
+   * skills, bio and experience are filled too.
+   */
+  allSectionsFilled: boolean;
   /**
    * Refetch the member record and return the fresh verdict. Used on an Apply
    * press by a non-approved account, where the cookie-derived status can lag the
@@ -85,6 +95,12 @@ export function useJobBoardViewer(args: {
 
   const jobSearchStatus = isJobSearchStatus(member?.jobSearchStatus) ? member.jobSearchStatus : null;
   const profileComplete = isJobProfileComplete(member, jobSearchStatus);
+  const jobAspirant = isJobAspirant(effectiveUserInfo);
+
+  const experienceQuery = useMemberExperience(memberUid ?? '', { enabled: active && jobAspirant });
+  const experienceCount = Array.isArray(experienceQuery.data) ? experienceQuery.data.length : 0;
+  const experienceKnown = !jobAspirant || experienceQuery.isSuccess || experienceQuery.isError;
+  const allSectionsFilled = experienceKnown && areAllJobProfileSectionsFilled(member, jobSearchStatus, experienceCount);
 
   const viewer = deriveBoardViewer({ isLoggedIn, userInfo: effectiveUserInfo, isResolved, profileComplete });
   const verdict = getJobsAccessVerdict(effectiveUserInfo);
@@ -109,5 +125,14 @@ export function useJobBoardViewer(args: {
     );
   }, [memberUid, queryClient, userInfo]);
 
-  return { viewer, verdict, memberUid, jobSearchStatus, profileComplete, refreshVerdict };
+  return {
+    viewer,
+    verdict,
+    memberUid,
+    jobSearchStatus,
+    profileComplete,
+    jobAspirant,
+    allSectionsFilled,
+    refreshVerdict,
+  };
 }

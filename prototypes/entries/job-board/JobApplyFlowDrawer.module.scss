@@ -6,8 +6,8 @@
 // `EditInvestorProfileDrawer.module.scss`, and the panes bring their own
 // stylesheets. What is here is the layer none of those has an opinion about.
 //
-// `.lede`, `.drawerHeaderLift`, `.footer`, `.footerInner`, `.footerAction` and
-// `.footerHint` moved here verbatim from `JobProfilePane.module.scss` (then
+// `.lede`, `.drawerHeaderLift`, `.footer`, `.footerInner` and `.footerAction`
+// moved here verbatim from `JobProfilePane.module.scss` (then
 // `JobProfileDrawer.module.scss`) when the three surfaces became one drawer.
 // They were never about the profile: they described a header, a footer and a
 // column that every step renders. Their comments come with them, including the
@@ -226,29 +226,30 @@
   @include media.tablet-landscape {
     flex-direction: row;
     align-items: center;
-    /* `flex-end`, not `space-between`. With a hint present the two are
-       identical — `.footerHint` takes `flex: 1` and pushes the button to the
-       right end on its own. They differ only in the case that now exists: a
-       step whose hint is `undefined` renders no paragraph at all, and
-       `space-between` with a single item would slide the button to the left
-       edge of the bar. The action's position must not depend on whether there
-       happens to be a sentence beside it. */
+    /* `flex-end`, not `space-between`. This dated from when a hint sometimes
+       sat here and sometimes did not: `space-between` with a single item slides
+       that item to the left edge, so the button's position would have depended
+       on whether there happened to be a sentence beside it. The sentences are
+       gone and the rule is what keeps the button on the right end regardless —
+       on the steps that have no tick either, it is the only thing holding it
+       there. */
     justify-content: flex-end;
     gap: 16px;
     padding: 12px 20px;
   }
 }
 
-/* The completeness tick, sitting in the bar beside the button.
+/* The completeness tick, sitting in the bar beside the button — and now the
+   only text in it.
 
-   `flex-shrink: 0` because the hint beside it is the part that reflows:
-   this is a control with a fixed label, and a checkbox whose text wraps
-   mid-bar reads as a paragraph someone put a box in front of.
+   `flex-shrink: 0` because a checkbox whose label wraps mid-bar reads as a
+   paragraph someone put a box in front of.
 
-   Ranked between the two: `--foreground-neutral-primary` rather than the
-   hint’s secondary grey, since this one is a thing to do rather than a
-   thing to read — but at the hint’s size, so it does not compete with the
-   button label it stands next to. */
+   `--foreground-neutral-primary`, since this is a thing to do rather than a
+   thing to read — but at 13px, under the button label it stands next to. (Both
+   were once ranked against the footer's sentence, which sat a step quieter in
+   `--foreground-neutral-secondary`. The ranking is what it was; only the third
+   term is gone.) */
 .footerCheck {
   display: flex;
   align-items: center;
@@ -266,12 +267,10 @@
     pointer-events: none;
   }
 
-  /* Holds the left end of the bar. The hint between this and the button
-     already does that whenever there is a hint — `margin-right: auto` is
-     for the steps where there is not, so the tick does not slide over and
-     sit against the button on the frames where the sentence is absent. A
-     control that changes position depending on whether a sentence exists
-     is a control the eye has to find again. */
+  /* Holds the left end of the bar. This was written for the steps that had no
+     hint, back when the hint's `flex: 1` did the job on the ones that did; with
+     the sentences gone it is the only thing keeping the tick off the button's
+     shoulder. */
   @include media.tablet-landscape {
     margin-right: auto;
   }
@@ -340,27 +339,13 @@
   cursor: default;
 }
 
-// One sentence, and it changes with the step and with what the press will
-// actually do. A disabled button with no reason next to it is a door with no
-// sign; a footer that promised "one click" to someone with no account would be
-// describing a different person's experience of the same button.
-.footerHint {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 18px;
-  letter-spacing: 0.12px;
-  color: var(--foreground-neutral-secondary, #455468);
-
-  /* Takes what is left, rather than what it wants. `min-width: 0` because a
-     flex item's default `min-width: auto` refuses to shrink below its longest
-     word — which is how a long sentence shoves a nowrap button off the end of
-     the row instead of wrapping itself. */
-  @include media.tablet-landscape {
-    flex: 1;
-    min-width: 0;
-  }
-}
+// (`.footerHint` stood here — the one sentence in the bar, changing with the
+//  step and with what the press would do. It went with the sentences: every arm
+//  of the footer had been cut back to `undefined` except two, and those two came
+//  out as well, so the bar is a tick and a button and nothing else. The rules it
+//  left behind are the interesting part, and both survive it: `.footerInner`
+//  right-aligns rather than spacing apart, and `.footerCheck` holds the left end
+//  with its own `margin-right: auto` — see both.)
 
 // A real edge on the flow cards, not just a shadow.
 //

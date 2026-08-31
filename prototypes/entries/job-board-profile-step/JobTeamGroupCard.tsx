@@ -30,7 +30,7 @@ import { getTeamNews, feedFocusHref } from '../news-shared/mockTeamNews';
 // share and metrics — rather than a job-board retelling of it.
 import { FeedDetailModal, type FeedDetail } from '../newsfeed-v0/FeedDetailModal';
 import { EVENT_TYPE_LABEL, EVENT_TYPE_HEX } from '../newsfeed-v0/eventMeta';
-import { BASE_LIKES } from '../newsfeed-v0/mocks';
+import { BASE_LIKES, PL_TEAM_UID } from '../newsfeed-v0/mocks';
 import fa from '../newsfeed-v0/FeedActions.module.scss';
 
 const INITIAL_ROLES_SHOWN = 3;
@@ -82,6 +82,13 @@ export function JobTeamGroupCard({
      them by, and a team's list of openings has no second opinion to offer. */
   const visibleRoles = expanded ? roles : roles.slice(0, INITIAL_ROLES_SHOWN);
   const newCount = roles.filter((r) => isNew(getJobDate(r))).length;
+
+  /* Protocol Labs is the network's own org, and the board already pins its card
+     to the top — the gradient outline is what says so on the card itself, rather
+     than leaving the first position to be read as "newest". The same mark the
+     newsfeed gives PL's card, keyed off the same uid, so one org reads as one org
+     across the product. */
+  const isProtocolLabs = team.uid === PL_TEAM_UID;
 
   const focusTags = useGetFocusTags(team);
   const news = getTeamNews(team.uid, team.name);
@@ -143,7 +150,7 @@ export function JobTeamGroupCard({
   const newsOnNameRow = newsVariant === 'inline' || newsVariant === 'count';
 
   return (
-    <article className={`${s.card} ${js.card}`}>
+    <article className={`${s.card} ${js.card}${isProtocolLabs ? ` ${js.plCard}` : ''}`}>
       <header className={s.header}>
         <div className={`${s.avatar} ${js.avatar}`}>
           {team.logoUrl ? (

@@ -82,10 +82,18 @@ export type AccountFormData = {
    * `useState` inside a group with two hosts is a branch that resets in one of
    * them and not the other.
    *
-   * It never reaches `AccountDetails`. What the board does with this form is
-   * read a team name; "no team" and "not on the network" are the same answer to
-   * that question, and passing the flag on would invite a consumer to tell them
-   * apart when nothing downstream should.
+   * **It reaches `AccountDetails` now, and the note above is why it has to.**
+   * This said the flag never travels — that the board only reads a team name, so
+   * "no team" and "not on the network" are one answer. That held while the only
+   * consumer was a profile field. It stopped holding the moment the answer
+   * started deciding *which account gets made*: a claim to be on a PL team is
+   * what the PL team reviews, and someone who ticks the box and then does not
+   * pick a team has still made that claim. Reading it off `company` would file
+   * them as a job aspirant — approved instantly, on the strength of a select they
+   * left alone — which is the one place the two answers must not collapse.
+   *
+   * `company` still means what it meant: a team name, or none. The flag means
+   * the claim.
    */
   atPlTeam: boolean;
   company?: { label: string; value: string } | null;
@@ -93,6 +101,9 @@ export type AccountFormData = {
 
 /** The flattened answers, as every consumer wants them: trimmed strings. */
 export interface AccountDetails {
+  /** The claim, not the team — see `AccountFormData.atPlTeam`. Decides whether
+   *  the new account waits on a PL review or can apply straight away. */
+  atPlTeam: boolean;
   name: string;
   email: string;
   linkedin: string;
@@ -117,10 +128,12 @@ export const EMPTY_ACCOUNT_FORM: AccountFormData = {
  * The same form, filled in — one fixture, used by every surface that needs to
  * show this form already answered.
  *
- * Two of those exist: `JobSignUpModal`'s filled design-canvas frame, and the
- * `signed-up-modal` viewer, whose account step opens pre-filled because that
- * person typed these answers into the modal a moment ago. They were separate
- * literals; one fixture means the two can never disagree about who signed up.
+ * One of those is left: `JobSignUpModal`'s filled design-canvas frame. The other
+ * was the `signed-up-modal` viewer's pre-filled account step, and that viewer is
+ * gone — signing up through the modal produces an account, so what follows it is
+ * `pending-approval`, not a second signed-out state. The fixture stays shared
+ * rather than being inlined into the modal: it is still the answer to "who
+ * signed up", and `viewerIdentity` is where that person is defined.
  */
 export const FILLED_ACCOUNT_FORM: AccountFormData = {
   email: VIEWER_EMAIL,
@@ -193,14 +206,15 @@ export const accountSchema = yup.object({
 /** Form state → the answers. One flattener, so the modal and the pane cannot
  *  disagree about whether `company` travels as a label or a uid. */
 export const toAccountDetails = (data: AccountFormData): AccountDetails => ({
+  atPlTeam: data.atPlTeam,
   name: data.name.trim(),
   email: data.email.trim(),
   linkedin: (data.linkedin ?? '').trim(),
   role: data.role.trim(),
-  /* `atPlTeam` gates the answer and does not become one — see the field's note.
-     The group already clears `company` when the box is unticked, so this second
-     check is belt and braces: a stale team picked before the box was unticked
-     must not travel just because the field held the last thing it saw. */
+  /* `atPlTeam` gates this answer as well as being one of its own. The group
+     already clears `company` when the box is unticked, so this second check is
+     belt and braces: a stale team picked before the box was unticked must not
+     travel just because the field held the last thing it saw. */
   company: data.atPlTeam ? (data.company?.label ?? '') : '',
 });
 

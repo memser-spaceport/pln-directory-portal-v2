@@ -369,15 +369,6 @@ export function AiAppDetailPage(props: Props) {
           Back
         </Link>
         <div className={s.topBarActions}>
-          <FloatingFeedbackButton
-            appUid={app.uid}
-            appName={app.name}
-            buttonProps={{
-              size: 'xxs',
-              className: s.topBarBtn,
-            }}
-          />
-
           {hasPrd(app) && (
             <Button
               style="border"
@@ -426,6 +417,11 @@ export function AiAppDetailPage(props: Props) {
   return (
     <>
       {showSetupCard ? setupCard : normalLayout}
+      {/* Floats over both branches, for the same reason the modals sit here: it
+          owns an open dialog, and a status flip must not unmount it mid-typing.
+          It also gives the setup / deploying / failed states a feedback door —
+          they had none, and a failed deploy is when people most want one. */}
+      <FloatingFeedbackButton appUid={app.uid} appName={app.name} />
       {showDetails && (
         <AiAppDetailsModal
           isOpen

@@ -6,7 +6,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import clsx from 'clsx';
 
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
-import { formatRelativeDays } from '@/utils/jobs.utils';
 
 import { Drawer } from '@/components/common/Drawer/Drawer';
 import { Button } from '@/components/common/Button';
@@ -36,7 +35,6 @@ import { JobAccountPane } from './JobAccountPane';
 import { JobApplicationPane } from './JobApplicationPane';
 import {
   EMPTY_ACCOUNT_FORM,
-  FILLED_ACCOUNT_FORM,
   accountSchema,
   toAccountDetails,
   type AccountDetails,
@@ -159,13 +157,10 @@ interface JobApplyFlowDrawerProps {
    */
   onCreateAccount: (payload: { details: AccountDetails; profile: MemberProfile }) => void;
   loggedIn: boolean;
-  /** True for the `signed-up-modal` viewer: the account form opens filled with
-   *  what the modal collected, and the completeness tick appears beside the
-   *  footer button. Both follow from the same fact — there is nothing here for
-   *  this person to type, so the step becomes something to confirm rather than
-   *  something to fill in, and that is the only state where confirming is a
-   *  sensible thing to ask for. */
-  accountPrefilled?: boolean;
+  /* (`accountPrefilled` stood here, for a `signed-up-modal` viewer whose account
+     form opened already filled and whose only remaining act was the completeness
+     tick. Both the viewer and the prop are gone. The tick moved to the state a
+     real modal sign-up actually produces — see `pendingApproval`.) */
   /**
    * The details step's escape, for a visitor who turns out to have an account
    * already. Signs in and leaves the flow exactly where it stands: same job,
@@ -181,8 +176,20 @@ interface JobApplyFlowDrawerProps {
   onSignIn: () => void;
   /** Signed up, waiting on the PL team — and that wait stops the one thing this
    *  drawer exists for. Everything else stays open: the job is readable and the
-   *  profile is editable while it runs. See `canApply`. */
+   *  profile is editable while it runs. See `canApply`.
+   *
+   *  It is also the one state that carries the completeness tick beside the
+   *  footer button, because it is the one state where the press leaves for
+   *  somewhere this product cannot follow: the team's own site. The profile
+   *  cannot be re-read and fixed after the fact the way an in-flow application
+   *  can, so the last thing asked before the person goes is whether what they
+   *  have is what they meant to leave behind. */
   pendingApproval: boolean;
+  /** Signed up to look for work rather than to join a team. Nothing here waits
+   *  on the PL team, so this changes no gate in the flow — it is the profile
+   *  step's ask that differs, and this hands the pane the one fact it needs to
+   *  make it. See `BoardViewer` in `viewerState`. */
+  jobAspirant?: boolean;
   /** Already sent from this session, and when. */
   applied: boolean;
   appliedAt?: string;
@@ -268,9 +275,9 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     onSubmitApplication,
     onCreateAccount,
     loggedIn,
-    accountPrefilled = false,
     onSignIn,
     pendingApproval,
+    jobAspirant = false,
     applied,
     appliedAt,
     canvasImport,
@@ -291,8 +298,9 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
      sends it is this footer, not the pane that collects it. */
   const [coverLetter, setCoverLetter] = useState('');
 
-  /* The logged-out step's confirmedComplete tick: that the profile being made here is
-     shared with the hiring team on Apply.
+  /* The pending member's completeness tick: that the profile they are leaving
+     behind is the one they meant to leave, before the press hands them to the
+     team's own site.
 
      **Alongside `draft`, not inside it.** Every field on the profile draft is a
      fact about the person that outlives this drawer and lands on their record.
@@ -319,7 +327,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
      this same form: errors appear when you leave a field, not while you type
      into it. */
   const accountMethods = useForm<AccountFormData>({
-    defaultValues: accountPrefilled ? FILLED_ACCOUNT_FORM : EMPTY_ACCOUNT_FORM,
+    defaultValues: EMPTY_ACCOUNT_FORM,
     resolver: yupResolver(accountSchema) as Resolver<AccountFormData>,
     mode: 'onBlur',
   });
@@ -349,34 +357,39 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     setEditing(null);
     setCoverLetter(canvasCoverLetter ?? '');
     setConfirmedComplete(false);
-    accountMethods.reset(accountPrefilled ? FILLED_ACCOUNT_FORM : EMPTY_ACCOUNT_FORM);
+    accountMethods.reset(EMPTY_ACCOUNT_FORM);
     /* `loggedIn &&` is belt and braces — a logged-out viewer's profile is the
        empty one, so `isProfileComplete` is already false — but the step is about
        *having an account*, not about the record being full, and stating that
        here keeps the two from being confused if the mock ever seeds a profile
        for someone signed out. */
-    setSkipProfile(loggedIn && isProfileComplete(profile));
+    /* `!jobAspirant`, because that viewer's required answers arrive already
+       given and this test would otherwise collapse the rail to two stops for the
+       one person whose middle step is the point of the run. Stated here as well
+       as in `onApplyPressed` on purpose: that one picks the step, this one picks
+       the *shape*, and a rail promising three stops while the press goes to the
+       second is worse than either mistake alone. */
+    setSkipProfile(loggedIn && !jobAspirant && isProfileComplete(profile));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const complete = isProfileComplete(draft);
-  /* The two halves of that rule, for the footer's hint. Read off the draft with
-     the same tests `isProfileComplete` uses — deliberately not a second
-     definition of "required", just a finer-grained look at the one that exists. */
+  /* The two halves of that rule. Read off the draft with the same tests
+     `isProfileComplete` uses — deliberately not a second definition of
+     "required", just a finer-grained look at the one that exists. */
   const hasRole = draft.role.trim() !== '';
   const hasStatus = draft.jobSearchStatus !== '';
 
-  /* What the logged-out step 2 waits on, both halves together.
-     Two answers, not one: the status is a field the profile needs, the confirmedComplete
-     is permission for what happens to it. They are peers — each is a visible,
-     marked gap on its own card — so the footer treats them as one condition
-     rather than ranking them, and the person is never told about the second
-     only after clearing the first. */
-  /* The tick only exists for the pre-filled step, so it can only gate that one.
-     A plain logged-out visitor is typing these answers as they go, and asking
-     someone to confirm that what they just typed is complete is asking them to
-     read their own form back — the press is already that confirmation. */
-  const gatesAnswered = hasStatus && (!accountPrefilled || confirmedComplete);
+  /* What the logged-out step 2 waits on: the one answer the account form has no
+     field for.
+
+     It used to be two — the status and the completeness tick — while a
+     pre-filled account step existed. It is one again, and deliberately: a
+     visitor is typing these answers as they go, and asking someone to confirm
+     that what they just typed is complete is asking them to read their own form
+     back. The press is already that confirmation. The tick now belongs to the
+     step where the press *leaves*; see `confirmedComplete`. */
+  const gatesAnswered = hasStatus;
 
   /**
    * Whether the last step is reachable at all. Three conditions, and each one is
@@ -509,7 +522,18 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
    * different dialog and never a no.
    */
   const onApplyPressed = () => {
-    if (!canApply) {
+    /* **`|| jobAspirant`, and it is not a completeness test.** For everyone else
+       the middle step is what "you can't apply yet" resolves to, so a finished
+       profile skips it — showing someone a form they have already filled in is
+       the flow charging them a step for nothing.
+
+       An aspirant's step 2 is not that form. Their required answers arrive
+       already given (see `JOB_ASPIRANT_PROFILE`), so on the usual rule they would
+       be handed straight to the letter and never see the profile a hiring team
+       is about to read them by — nor the CV card that is the point of the
+       account, nor the tick that says they have looked. Skipping a step nobody
+       has seen is not saving them a step. */
+    if (!canApply || jobAspirant) {
       onStepChange('profile');
       return;
     }
@@ -522,8 +546,8 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
    * Everywhere else, "you can't apply yet" means "not finished yet" and the
    * middle step is the answer. A review is different in kind: nothing the person
    * can do on this screen ends it, so sending them to the profile step would be
-   * handing them busywork dressed as progress. The press is withheld instead and
-   * the hint beside it says what is running and what ends it.
+   * handing them busywork dressed as progress. The press goes outwards instead,
+   * to the team's own site, and the arrow on it says so.
    */
   const blockedByReview = loggedIn && pendingApproval;
 
@@ -552,7 +576,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   };
 
   /**
-   * `Create account`, and the last press a visitor with no account makes here.
+   * `Create profile`, and the last press a visitor with no account makes here.
    *
    * Runs the schema and either surfaces errors under the fields or opens the
    * account. It used to accept the answers and move on to the letter, holding
@@ -568,10 +592,12 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     const details = toAccountDetails(data);
     const profile = { ...draft, role: details.role, linkedin: details.linkedin };
     setDraft(profile);
-    /* Ends here. This used to be `onStepChange('application')` — the account was
-       held unregistered until the final Apply so that abandoning at the letter
-       cost nothing. There is no letter behind this press any more, so holding
-       the details would mean collecting a form and doing nothing with it. */
+    /* **The board decides what happens next, not this handler.** Whether the run
+       continues turns on which kind of account the form just described — see
+       `onCreateAccount` — and that is the board's fact: it owns the viewer and
+       the step. This used to call `onStepChange('application')` itself, from
+       when the account was held unregistered until the final Apply; the press
+       registers it now, so the details are never collected and dropped. */
     onCreateAccount({ details, profile });
   });
 
@@ -582,147 +608,76 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   const footer = (() => {
     if (step === 'review') {
       if (applied) {
-        return {
-          hint: appliedAt
-            ? `Applied ${formatRelativeDays(appliedAt)}. Your profile went with your note.`
-            : 'Your profile went with your note.',
-          action: (
-            /* The row's applied control, in the row's shell — a report, not an
+        return (
+          /* The row's applied control, in the row's shell — a report, not an
                offer. */
-            <button
-              type="button"
-              disabled
-              className={clsx(btn.root, btn.medium, btn.border, btn.neutral, d.appliedButton, d.footerAction)}
-            >
-              <CheckIcon width={14} height={14} aria-hidden="true" />
-              Applied
-            </button>
-          ),
-        };
+          <button
+            type="button"
+            disabled
+            className={clsx(btn.root, btn.medium, btn.border, btn.neutral, d.appliedButton, d.footerAction)}
+          >
+            <CheckIcon width={14} height={14} aria-hidden="true" />
+            Applied
+          </button>
+        );
       }
-      return {
-        /* The pending-approval variant is back, with the gate it describes.
-           It names the thing that ends the wait — an email — because "under
-           review" on its own leaves the person with nothing to expect and no
-           idea whether to keep checking. */
-        hint: blockedByReview
-          ? /* Swept with the profile step's button, not left behind. This said
-               "Applying opens once the PL team approves your account" over a dead
-               Apply — which was true while the review was the whole answer. Now
-               there is a way to apply during the wait, and a first step still
-               refusing it while the second offers it would be the flow
-               contradicting itself one press apart. */
-            undefined // `${team?.name ?? 'The team'} takes applications on their own site while your account is under review — it opens in a new tab.`
-          : !loggedIn
-            ? /* **Nothing, for a logged-out visitor.** A sentence stood here
-                 spelling out the whole road ahead — that applying sends a
-                 profile, that the next step opens an account, and that applying
-                 itself waits on approval. Three conditions in one line, read
-                 before the person has agreed to any of them, which is a contract
-                 where a footer should be a next step. The button beside it now
-                 says `Sign up to Apply`, and that is the honest and sufficient
-                 version of the first two clauses; the third belongs at the step
-                 where it becomes true, and step 2's own hint already says it.
-                 `undefined`, not `''`, so the footer drops the paragraph rather
-                 than reserving space for it — see where `hint` is rendered. */
-              undefined
-            : complete
-              ? 'One press sends your PL profile with a short note. Nothing to refill.'
-              : /* **Nothing here either.** This said that applying sends a profile
-                   and that finishing it comes next — both of which the step rail
-                   directly above already carries: it draws step 2 as the next
-                   stop and names it. A footer that narrates the rail is a
-                   second voice describing one journey.
-
-                   `undefined`, not `''`, so the footer drops the paragraph
-                   rather than reserving space for it. */
-                undefined,
-        action: (
-          /* No longer dead. The button was disabled for a pending member and the
-             hint beside it explained the wait, which satisfied this file's rule
-             about never disabling a control whose blocker is invisible — but the
+      return (
+        /* No longer dead. The button was disabled for a pending member, with a
+             sentence beside it explaining the wait — which satisfied this file's
+             rule about never disabling a control whose blocker is invisible. The
              better answer to "you cannot do this here" turned out to be
              somewhere they can. */
-          <Button
-            variant="primary"
-            style="fill"
-            size="m"
-            className={clsx(d.footerAction, blockedByReview && d.footerActionIcon)}
-            onClick={
-              blockedByReview
-                ? () => {
-                    openExternalPosting();
-                    onClose();
-                  }
-                : onApplyPressed
-            }
-          >
-            {blockedByReview ? (
-              <>
-                Continue to apply
-                <ArrowUpRightIcon aria-hidden="true" />
-              </>
-            ) : /* **Three labels, and the third is for a stranger.** A
+        <Button
+          variant="primary"
+          style="fill"
+          size="m"
+          className={clsx(d.footerAction, blockedByReview && d.footerActionIcon)}
+          onClick={
+            blockedByReview
+              ? () => {
+                  openExternalPosting();
+                  onClose();
+                }
+              : onApplyPressed
+          }
+        >
+          {blockedByReview ? (
+            <>
+              Continue to apply
+              <ArrowUpRightIcon aria-hidden="true" />
+            </>
+          ) : /* **Three labels, and the third is for a stranger.** A
                    logged-out visitor pressing a button that says `Apply` would
                    land in a sign-up form one press later, which is the flow
                    taking a press under a promise it doesn't keep. `Sign up to
                    Apply` names both halves in the order they happen, and it is
-                   the only place on this step that has to: the hint beside it
-                   is now empty for exactly this viewer, because a labelled
-                   button says the thing a sentence was saying.
+                   the only place on this step that has to: the sentence that
+                   used to say it stood beside this button, and a labelled button
+                   says the thing that sentence was saying.
 
                    It is still the primary button in the primary position —
                    naming the toll does not demote the action, and Apply is
                    still what the press is *for*. */
-            loggedIn ? (
-              'Apply'
-            ) : (
-              'Sign up to Apply'
-            )}
-          </Button>
-        ),
-      };
+          loggedIn ? (
+            'Apply'
+          ) : (
+            'Sign up to Apply'
+          )}
+        </Button>
+      );
     }
 
     if (step === 'profile') {
       /* A visitor with no account. Same position, different requirement — the
-         text fields are validated by the press rather than gating it; the two
-         marked answers (status, confirmedComplete) gate it. */
+         text fields are validated by the press rather than gating it; the one
+         marked answer (the job search status) gates it. */
       if (!loggedIn) {
-        return {
-          /* **One arm speaks, the other says nothing.**
+        return (
+          /* Disabled on the one marked answer, and nothing else.
 
-             The sentence that survives says where this ends, because it no
-             longer ends where the rail implies: the step used to hand straight
-             on to the letter, and now it is the last thing a visitor does here.
-             Without it someone presses `Create account` expecting step 3. That
-             is real news, and the footer is the only place it can be told.
-
-             The other arm is `undefined`. A sentence stood there naming the
-             status field and repeating that only the PL team sees it — both of
-             which are already on screen and closer to the thing they are about:
-             the amber `Required to continue.` strip points at the gap, and the
-             PL-team-only pill sits in the section header. Each gap now carries
-             its own mark where it is asked (the status card's amber strip, and the
-             required asterisk on the tick in the bar below), so a footer sentence would be a third
-             voice restating two visible labels from further away. It stays quiet
-             until it has something the cards can't say. */
-          hint:
-            /* Only for the visitor who is opening the account *here*. Someone who
-               signed up through the modal already has one, and telling them it
-               opens now would be the footer reporting an event that happened
-               before they pressed Apply. */
-            !accountPrefilled && gatesAnswered
-              ? "Your account opens now — the PL team reviews it, and you can apply once it's approved."
-              : undefined,
-          action: (
-            /* Disabled on the two marked answers, and nothing else.
-
-               The split is deliberate and the rule is unchanged by the second
-               gate joining the first: a control is only ever dead for a reason
-               already on screen. Both of these qualify — the status card wears
-               the amber strip when unanswered, and the tick sits in this same bar
-               wearing the required asterisk — so a dead button always has a
+               The split is deliberate: a control is only ever dead for a reason
+               already on screen, and this one qualifies — the status card wears
+               the amber strip when unanswered, so a dead button always has a
                sign beside it pointing at what to do. Field validity is invisible
                until something checks it, so it stays out of this: the press is
                what checks, and errors land under the fields they belong to.
@@ -730,136 +685,115 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                "Disabled only while submitting, never on !isValid … a dead button
                in front of someone who has filled the form in and cannot tell
                what is wrong." */
-            <Button
-              variant="primary"
-              style="fill"
-              size="m"
-              className={clsx(d.footerAction, d.footerActionIcon)}
-              disabled={!gatesAnswered}
-              onClick={submitAccount}
-            >
-              {/* `Create account` stood here, and named the press exactly: this
-                  is where a visitor's first run ends, because an application
-                  cannot leave an account that is still under review.
-
-                  Now the reviewer's label. It names the errand rather than the
-                  step — what the person came to do is apply, and the account is
-                  the toll — and it wears the same arrow the pending member's
-                  `Continue to apply` wears one branch below.
-
-                  **Worth knowing what the arrow means elsewhere in this file.**
-                  `ArrowUpRightIcon` is the board's outward mark: on the other
-                  `Continue to apply` it says the press leaves for the team's own
-                  site. This press does not leave — it opens the account and
-                  stays. The label and the arrow were asked for; if the press is
-                  meant to go outward too, that is a one-line change here. */}
-              Continue to apply
-              <ArrowUpRightIcon aria-hidden="true" />
-            </Button>
-          ),
-        };
-      }
-
-      return {
-        /* Names what is actually outstanding, rather than "complete your
-           profile". Two required answers means three ways to be incomplete, and
-           a hint that says "add your current role" to someone who has already
-           added it is the fastest way to make a footer look broken. */
-        hint: blockedByReview
-          ? /* Not "Saved as you go" first — the button beside this says `Save
-               profile`, so that clause was a sentence promising what a visible
-               control already promises. The hint spends its words on the part
-               the footer can't show. */
-            `${team?.name ?? 'The team'} takes applications on their own site while your account is under review — it opens in a new tab. Your profile is saved here first.`
-          : !complete
-            ? editing
-              ? 'Save this card to continue.'
-              : /* Nothing at rest. The instruction that stood here — name the two
-                   required answers, then reassure that the rest is optional — was
-                   already on screen twice over: each required card carries its own
-                   amber `Required to continue.` strip, and every optional section
-                   is labelled `(Optional)`. */
-                undefined
-            : 'Experience, skills and bio are optional — you can add them any time.',
-        action: (
-          /* Disabled while a card is open as well as while the profile is
-             incomplete: mid-edit there is unsaved work in front of the person,
-             and letting them leave past it would silently drop it.
-
-             **Two labels again.** `Save profile` came back with the gate: for a
-             member under review this press cannot reach the letter, and a button
-             saying `Continue to apply` that lands them back on the board would
-             be naming a destination it does not go to. Editing is still never
-             withheld while a review runs — the profile is the one useful thing
-             they can do meanwhile — so the press stays live and only its promise
-             changes. */
           <Button
             variant="primary"
             style="fill"
             size="m"
-            className={clsx(d.footerAction, blockedByReview && d.footerActionIcon)}
-            disabled={(!blockedByReview && !complete) || !!editing}
-            onClick={() => {
-              onSaveProfile(draft);
-              if (blockedByReview) {
-                /* The profile is committed first — they came here to edit it and
+            className={d.footerAction}
+            disabled={!gatesAnswered}
+            onClick={submitAccount}
+          >
+            {/* Names the press, and only the press. This briefly said
+                  `Continue to apply` — the errand rather than the step — and it
+                  named a destination the press does not reach: a visitor's run
+                  ends here, because an application cannot leave an account that
+                  is still under review. A sentence beside it was left carrying
+                  the correction on its own ("your account opens now… you can
+                  apply once it's approved"), which is a footnote arguing with a
+                  button — and the footer has no sentences left to argue with.
+
+                  `Create profile`, not `Create account`, because that is what the
+                  step calls the thing being made — `Create Lab OS Job profile` is
+                  the heading directly above. (`Your account` labels one section
+                  inside it.) One name for one object, top and bottom of the step.
+
+                  No arrow either: `ArrowUpRightIcon` is this file's outward mark
+                  — on `Continue to apply` it says the press leaves for the team's
+                  own site — and this press stays. */}
+            Create profile
+          </Button>
+        );
+      }
+
+      return (
+        /* Disabled while a card is open as well as while the profile is
+             incomplete: mid-edit there is unsaved work in front of the person,
+             and letting them leave past it would silently drop it.
+
+             **And, under review, on the tick.** The rule this file keeps is that
+             a control is only ever dead for a reason already on screen; the tick
+             sits in this same bar, wearing the required asterisk, so it
+             qualifies. Completeness itself is deliberately *not* a gate for a
+             pending member — the press goes outwards, where nothing this board
+             requires applies — which is exactly why the confirmation is a tick
+             they give rather than a rule the flow enforces. */
+        <Button
+          variant="primary"
+          style="fill"
+          size="m"
+          className={clsx(d.footerAction, blockedByReview && d.footerActionIcon)}
+          /* The tick joins the gates for both viewers that are shown one. It
+               is allowed to: the drawer's standing rule is that a control is
+               only ever dead for a reason already on screen, and this reason is
+               in the same bar as the button, which is the whole argument for
+               putting it there. Completeness stays out of the pending member's
+               gate — that press goes outwards, where nothing this board requires
+               applies — and stays in the aspirant's, whose press goes to step 3. */
+          disabled={
+            blockedByReview
+              ? !confirmedComplete || !!editing
+              : !complete || !!editing || (jobAspirant && !confirmedComplete)
+          }
+          onClick={() => {
+            onSaveProfile(draft);
+            if (blockedByReview) {
+              /* The profile is committed first — they came here to edit it and
                    a press that left without saving would lose the visit — then
                    the posting opens and the flow closes behind them. */
-                openExternalPosting();
-                onClose();
-                return;
-              }
-              onStepChange('application');
-            }}
-          >
-            {/* `Save profile` is gone. It was an honest name for the only thing
+              openExternalPosting();
+              onClose();
+              return;
+            }
+            onStepChange('application');
+          }}
+        >
+          {/* `Save profile` is gone. It was an honest name for the only thing
                 the press did — and the reason it only did that was a wait the
                 person could do nothing about. There is somewhere to send them
                 now: the team takes applications on its own site, so a pending
                 member continues, outwards, and the arrow says which. */}
-            {blockedByReview ? (
-              <>
-                Continue to apply
-                <ArrowUpRightIcon aria-hidden="true" />
-              </>
-            ) : (
-              'Continue to apply'
-            )}
-          </Button>
-        ),
-      };
+          {blockedByReview ? (
+            <>
+              Continue to apply
+              <ArrowUpRightIcon aria-hidden="true" />
+            </>
+          ) : (
+            'Continue to apply'
+          )}
+        </Button>
+      );
     }
 
     const canSend = coverLetter.trim().length > 0;
-    return {
-      /* One sentence, both states. It used to instruct while the box was empty
-         ("Add what you did in previous roles…") and switch to the reply
-         destination once it wasn't — which was right when the field's only
-         framing was a four-word label. The pane now opens the box with an
-         invitation that names what to write, so an instruction here would be the
-         same advice twice, 200px apart and in the quieter of the two voices.
-         What is left is the part only the footer can say: where this lands. */
-      hint: `${team?.name ?? 'The team'} can reply to you directly.`,
-      action: (
-        /* "Apply", and this is the press that applies — there is no fourth step
+    return (
+      /* "Apply", and this is the press that applies — there is no fourth step
            and no confirmation pane. The rail's last stop is where it happens.
 
            One act now, not two. This press used to open a stranger's account and
            file the application together; only an approved account reaches this
            step, so everyone standing here already has one and the letter is all
            that is left to send. */
-        <Button
-          variant="primary"
-          style="fill"
-          size="m"
-          className={d.footerAction}
-          disabled={!canSend}
-          onClick={() => onSubmitApplication(coverLetter.trim())}
-        >
-          Apply
-        </Button>
-      ),
-    };
+      <Button
+        variant="primary"
+        style="fill"
+        size="m"
+        className={d.footerAction}
+        disabled={!canSend}
+        onClick={() => onSubmitApplication(coverLetter.trim())}
+      >
+        Apply
+      </Button>
+    );
   })();
 
   return (
@@ -913,6 +847,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               setEditing={setEditing}
               pendingRoleTitle={role?.roleTitle ?? null}
               pendingApproval={pendingApproval}
+              jobAspirant={jobAspirant}
               canvasImport={canvasImport}
             />
           ) : (
@@ -963,12 +898,6 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
           makes them read as one screen rather than three. */}
       <div className={d.footer}>
         <div className={d.footerInner}>
-          {/* Rendered only when there is something to say. Several arms of the
-              footer now hand over `undefined` deliberately, and an empty
-              `<p>` left standing in a `gap: 12px` column is a blank line the
-              bar pays for. `.footerInner` right-aligns rather than spacing
-              apart, so the button holds its end of the bar with or without
-              this. */}
           {/* The step's second gate, in the bar with the press it gates.
 
               It was a card up in the scroll, wearing the amber `missingData`
@@ -979,25 +908,46 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
 
               **First in the bar, and held at the left end.** It reads before
               the button rather than crowding it: the two are a condition and
-              its consequence, and that is their order. It also stops the tick
-              from moving — with the hint between them the pair sit at opposite
-              ends whether or not there is a sentence, so nothing shifts under
-              the cursor when one appears. See `.footerCheck`.
+              its consequence, and that is their order. The bar has nothing
+              between them any more, so `.footerCheck`'s own `margin-right: auto`
+              is what holds that end — see it.
 
               The asterisk is the DS mark, transcribed rather than typed — the
               same red `*` the required text fields on this flow already wear,
               so one screen has one way of saying "required".
 
-              Only on this step, and only for a visitor — a member's profile
-              already exists, so there is nothing here for them to confirm. */}
-          {step === 'profile' && accountPrefilled && (
+              **Only on this step, and only for the two viewers who are asked.**
+              A pending member has no step 3 — the press hands them to the team's
+              own site, and the profile they leave behind is left as it stands —
+              so this is the last place that can ask, and it does. A job aspirant
+              is asked because the profile is the whole of what a hiring team
+              gets from a stranger: the CV and the cards are the introduction,
+              not a supporting document behind one they already have.
+
+              **Worth knowing, because it is the exception this file used to
+              rule out.** Everyone else is skipped here on the grounds that step 3
+              reads the profile back before anything is sent, and a tick in front
+              of a read-back is a confirmation asked twice. An aspirant does have
+              a step 3, so that argument applies to them too — the tick was asked
+              for on this step, and it is the one viewer where it sits in front
+              of a read-back. If it turns out to be the second ask, this
+              condition is where it comes back out.
+
+              **Two labels, because they confirm two different things.** The
+              pending member is asked whether the profile is *finished*, since
+              nothing can be added to it after the press leaves the product. The
+              aspirant is asked whether they have *read* it — everything on it is
+              still editable, and the question is whether what is there is what
+              they meant to send. */}
+          {step === 'profile' && (blockedByReview || jobAspirant) && (
             <label className={d.footerCheck}>
               <Checkbox checked={confirmedComplete} onChange={setConfirmedComplete} />
-              <span className={d.footerCheckLabel}>My profile is complete</span>
+              <span className={d.footerCheckLabel}>
+                {blockedByReview ? 'My profile is complete' : "I've reviewed my profile"}
+              </span>
             </label>
           )}
-          {footer.hint && <p className={d.footerHint}>{footer.hint}</p>}
-          {footer.action}
+          {footer}
         </div>
       </div>
     </Drawer>

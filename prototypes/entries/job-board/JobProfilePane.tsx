@@ -282,6 +282,16 @@ interface JobProfilePaneProps {
    *  the lede and the flow's footer say so. */
   pendingApproval?: boolean;
   /**
+   * Signed up to look for work rather than to join a team — see `BoardViewer`.
+   *
+   * Nothing waits on the PL team for this account, so this is not a lock like
+   * `pendingApproval` is. It changes what the step *asks for*: the CV stops
+   * being a first-run shortcut and becomes a standing part of the profile (it is
+   * the document they apply with), and the permission that makes the profile
+   * useful to a hiring team is asked for beside it.
+   */
+  jobAspirant?: boolean;
+  /**
    * DELETE WITH: the `design-canvas/` folder.
    *
    * Opens the Experience card straight into the importer, and optionally hands
@@ -320,7 +330,16 @@ export type EditTarget =
   | null;
 
 export function JobProfilePane(props: JobProfilePaneProps) {
-  const { draft, setDraft, editing, setEditing, pendingRoleTitle, pendingApproval = false, canvasImport } = props;
+  const {
+    draft,
+    setDraft,
+    editing,
+    setEditing,
+    pendingRoleTitle,
+    pendingApproval = false,
+    jobAspirant = false,
+    canvasImport,
+  } = props;
 
   /**
    * The file the header's "Update from CV" collected, on its way to the panel.
@@ -426,7 +445,14 @@ export function JobProfilePane(props: JobProfilePaneProps) {
    * Two entry points to one mechanism on one screen is a choice with no
    * consequence — the mistake the removed LinkedIn door was.
    */
-  const importAtTop = profileIsBlank;
+  /* **And always, for a job aspirant.** For everyone else this card is a
+     first-run shortcut: it is at the top because there is nothing to start from,
+     and it moves down into the Experience card the moment the profile has
+     anything in it. An aspirant's CV is not a shortcut — it is the document they
+     apply with, so it is part of the profile rather than a way of filling one
+     in. (This also keeps the one-importer-host rule: the Experience card checks
+     this same flag before offering its own.) */
+  const importAtTop = profileIsBlank || jobAspirant;
 
   const hasRole = draft.role.trim() !== '';
   const hasStatus = draft.jobSearchStatus !== '';
@@ -597,8 +623,22 @@ export function JobProfilePane(props: JobProfilePaneProps) {
             in-flow lede gone the title is often the wrapper's only child, and a
             margin under a last child would push the next card 22px away where
             every other gap in this column is 16. */}
-        {profileIsBlank && (
-          <h2 className={clsx(fd.stepTitle, hasIntroBody && d.stepTitleWithLede)}>Fill in your profile</h2>
+        {/* **Two verbs, because the step is two different jobs.** The title is
+            normally tied to `profileIsBlank` — a heading over an empty column
+            says what the column is for, and once there are answers in it the
+            rail above ("Your profile") is enough.
+
+            A job aspirant lands here with the required answers already given, so
+            that test would drop the heading entirely and leave the step opening
+            on a file drop area with nothing naming it. And "Fill in" would be
+            the wrong word anyway: there is nothing outstanding to fill. What
+            they are here to do is look at what a hiring team is about to read,
+            add the document to it, and say they have — which is the sentence the
+            footer's tick finishes. */}
+        {(profileIsBlank || jobAspirant) && (
+          <h2 className={clsx(fd.stepTitle, hasIntroBody && d.stepTitleWithLede)}>
+            {jobAspirant ? 'Review your profile' : 'Fill in your profile'}
+          </h2>
         )}
 
         {/* **In the flow, this step now has no lede at all.**
@@ -671,10 +711,35 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                   that make it — see `OptionalMark`. */}
               <DetailsSectionHeader
                 title={
-                  <>
-                    You can upload your CV
-                    <OptionalMark />
-                  </>
+                  /* **Two titles, one mark — and the mark is not a judgement about
+                     how central the CV is.** The aspirant's title briefly went
+                     without it, on the argument that the document is the thing
+                     that account exists to carry and "(Optional)" over it would
+                     misdescribe the step's own centre. That reads `optional` as a
+                     ranking. It isn't one: it reports whether anything on this
+                     screen refuses to proceed without the answer, and nothing
+                     does — no gate in the footer mentions the CV for any viewer,
+                     which is the same in both branches. A card that is not
+                     enforced and does not say so is the step overstating its
+                     demands, which is the more expensive mistake: someone with no
+                     CV to hand reads a required-looking ask and stops.
+
+                     The titles still differ, because they name different things.
+                     For a member this is an offer — a faster way to fill in cards
+                     they could type instead. For an aspirant it is a part of the
+                     profile that stays and travels with applications, so it gets
+                     a noun. Both are optional, and both say so. */
+                  jobAspirant ? (
+                    <>
+                      Your CV
+                      <OptionalMark />
+                    </>
+                  ) : (
+                    <>
+                      You can upload your CV
+                      <OptionalMark />
+                    </>
+                  )
                 }
               >
                 {/* Only while the importer is a *section being edited* — i.e.
@@ -700,11 +765,23 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                     visible buttons already promise — the second time that exact
                     reassurance has been cut from this flow. */}
               <p className={d.cvFirstNote}>
-                We&apos;ll fill in your role, skills and experience from it, so you don&apos;t have to type it all in.
+                {jobAspirant
+                  ? /* Says the second thing the file does here, because for this
+                       account it is the more important one. A member's CV is read
+                       and discarded; an aspirant's is kept and sent, and that is a
+                       material difference someone deserves to know before they
+                       drop a document. The fill-in clause stays first: it is
+                       still the reason to upload now rather than later. */
+                    "We'll fill in your role, skills and experience from it — and it goes with your applications, so teams read the document you wrote as well as the profile."
+                  : "We'll fill in your role, skills and experience from it, so you don't have to type it all in."}
               </p>
               <ExperienceImportPanel
                 entry="direct"
-                privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
+                privacyNote={
+                  jobAspirant
+                    ? 'Kept on your profile and sent with your applications. You can replace or remove it any time.'
+                    : "We read the file to fill in your experience. It isn't sent with your applications."
+                }
                 onParsed={openImportReview}
                 onAddManually={() => setEditing({ kind: 'experience', uid: null })}
                 // DELETE WITH: the `design-canvas/` folder.
@@ -736,6 +813,18 @@ export function JobProfilePane(props: JobProfilePaneProps) {
           And not while a parse is being reviewed. At that moment the card above
           has become the document's own result with its own Cancel and Save, so
           the alternative is no longer "or", it is "or cancel this". */}
+      {/* **`importAtTop`: the rule belongs to the card, and goes wherever it
+          goes.** This was briefly gated on `profileIsBlank` instead, when the two
+          came apart for the job aspirant — the argument being that a profile with
+          answers in it has no fork left to name. Wrong on the facts: an
+          aspirant's role and status arrive from the sign-up, and everything the
+          CV actually fills — experience, skills, the history — is still empty, so
+          "or fill it in yourself" is describing a choice that is genuinely still
+          open. It also left the card sitting directly on the stack below it with
+          nothing marking the seam.
+
+          Tied to the card, not to the state of the profile: whenever the CV card
+          is at the top, this is the line under it. */}
       {importAtTop && !parsed && <div className={d.orRule}>or fill it in yourself</div>}
 
       {/* 1. The header card, and the first of the two required answers: your
@@ -807,7 +896,6 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                rather than a second mock, so the LinkedIn on this card and the
                LinkedIn the sign-up form collected are one value. */}
       <ContactCard profile={draft} />
-
 
       {/* 2. Job search status — the required section, so it comes first and,
                while it is unanswered, wears `missingData` and carries the strip

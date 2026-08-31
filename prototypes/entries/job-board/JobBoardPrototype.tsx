@@ -228,6 +228,7 @@ import {
   profileForViewer,
   FILLED_PROFILE,
   type BoardViewer,
+  isJobAspirant as viewerIsJobAspirant,
   hasCriteria,
   isProfileComplete,
   roleMatches,
@@ -289,12 +290,16 @@ const SAMPLE_APPLICATION_EMAIL: ApplicationEmailInput = {
 /** The entry states the apply flow branches into — see `BoardViewer`. */
 const VIEWER_OPTIONS: Array<{ value: BoardViewer; label: string }> = [
   { value: 'logged-out', label: 'Logged out' },
-  /* Second, because it is the next thing that happens to the same person: they
-     took the header door instead of the Apply one. Still signed out as far as
-     the flow is concerned — what it changes is that step 2 opens already
-     answered, which is the only state where the completeness tick appears. */
-  { value: 'signed-up-modal', label: 'Signed up through modal' },
+  /* (`Signed up through modal` stood here — a second signed-out state whose
+      account step opened pre-filled. Removed: signing up through the header door
+      produces an account, and an account waiting on the PL team is the tab
+      below. The completeness tick it existed to show went with it, to there. */
   { value: 'pending-approval', label: 'Signed up, pending approval' },
+  /* Beside `pending-approval`, not after it. These two are the two things
+     "signed up" can mean on this board — join a team, or come looking for work —
+     and only one of them waits on anyone. Putting the aspirant third would read
+     as the approval coming through, which is the one thing it is not. */
+  { value: 'job-aspirant', label: 'Signed up as job aspirant' },
   { value: 'profile-incomplete', label: 'Signed in, profile empty' },
   { value: 'profile-ready', label: 'Signed in, profile ready' },
   /* Last, because the row reads as a sequence: no account → waiting → signed in
@@ -306,10 +311,10 @@ const VIEWER_OPTIONS: Array<{ value: BoardViewer; label: string }> = [
 const VIEWER_NOTE: Record<BoardViewer, string> = {
   'logged-out':
     'No account, and no separate sign-up. Apply opens the flow and step 2 becomes “Your details” — the form that opens the account. That is where a first visit ends: an application can’t be sent from an account under review, so they come back to apply once the PL team approves it.',
-  'signed-up-modal':
-    'Signed up through the modal in the header or the banner, then pressed Apply. The account form on step 2 opens already filled in — these are the answers they just gave — so the only thing left is the “My profile is complete” tick beside the button, which is the one state that shows it. Everything else about the flow is the logged-out flow.',
   'pending-approval':
-    'Signed up, waiting on the PL team. Browsing and the profile work exactly as they do for an approved member; applying is the one thing that waits, and every surface that mentions it says the same thing — the banner, the flow footer and the profile step.',
+    'Signed up — through the modal or the flow — and waiting on the PL team. Browsing and the profile work exactly as they do for an approved member; applying is the one thing that waits, and the flow sends them to the team’s own site instead. The profile step is the only place in the board that shows the “My profile is complete” tick, because that press is the one that leaves.',
+  'job-aspirant':
+    'Signed up to find work, not to join a team — so there is nothing for the PL team to approve and nothing to wait for. Applying is live from the first minute, and the sign-up already answered both required questions, so the profile step opens with no gaps marked on it. What that step is for instead is reading it: the CV card stays at the top because an aspirant’s CV is part of the profile rather than a way of filling one in, and the footer asks them to tick that they have looked before the press goes on to the letter.',
   'profile-incomplete':
     'Signed in with nothing filled in. The ask moves from “sign in” to “update your profile”, and Apply opens the drawer on the job search status, which is the one required answer.',
   'profile-ready':
@@ -528,6 +533,7 @@ export default function JobBoardPrototype() {
 
   /** Signed up, waiting on the PL team. Browsing is fine; applying is not. */
   const isPendingApproval = viewer === 'pending-approval';
+  const isJobAspirant = viewerIsJobAspirant(viewer);
 
   /* DELETE WITH: the `design-canvas/` folder. Held rather than applied and
      dropped, because two of its fields describe how the sign-up form should
@@ -792,7 +798,12 @@ export default function JobBoardPrototype() {
      do seed the profile, because a sign-up that asked for a role and then showed
      an empty profile would be asking twice. */
   const onSignUpSubmit = (details: JobSignUpDetails) => {
-    setViewer('pending-approval');
+    /* Same test as `onCreateAccount`'s, and deliberately not a second opinion:
+       the two doors ask one question with one field, so they must not disagree
+       about what the answer produced. What differs is only what follows — this
+       door is pressed with no role in hand, so there is no flow to carry on
+       into either way. */
+    setViewer(details.atPlTeam ? 'pending-approval' : 'job-aspirant');
     setIsLoggedIn(true);
     /* `linkedin` comes along now. The modal has always asked for it and the
        answer was dropped here — seeding only `role` meant the one optional
@@ -804,7 +815,11 @@ export default function JobBoardPrototype() {
        holds, which is the clause that came back with the gate. This door is
        pressed with no role in hand, so there is nothing to promise them
        afterwards beyond the board itself. */
-    toast.success(`Account created for ${details.email}. The PL team reviews it before applications can be sent.`);
+    toast.success(
+      details.atPlTeam
+        ? `Account created for ${details.email}. The PL team reviews it before applications can be sent.`
+        : `Account created for ${details.email}. You can apply to anything on the board.`,
+    );
   };
 
   /* The escape for people who already have an account. Straight to the signed-in
@@ -914,34 +929,66 @@ export default function JobBoardPrototype() {
   };
 
   /**
-   * The end of the flow for a visitor who arrived without an account.
+   * What signing up from inside the apply flow produces — and, for most people,
+   * it is no longer the end of the run.
    *
-   * **No application is filed here**, and that is the change. This used to be a
-   * branch inside `onSubmitApplication` — one press opened the account and sent
-   * the letter together, so the flow either completed or cost nothing. An
-   * application may not be sent from an account under review, and a brand-new
-   * account is under review from the moment it exists, so the two acts had to
-   * come apart. What is left is the half that can happen now.
+   * **The form already asks which of the two accounts this is.** "I'm already a
+   * member of a PL Network team" is a field on the account step, and it is the
+   * whole question: joining a team is a claim the PL team has to check, so that
+   * account waits; coming to the board to find work is not a claim about
+   * anybody, so there is nothing to approve.
+   *
+   * **The tick, not the team.** This first read the answer off `company`, on the
+   * reasoning that a team name is non-empty exactly when the box is ticked. It
+   * isn't: the select is optional, so ticking the box and leaving it alone
+   * produced an empty `company` and filed a self-declared PL team member as a
+   * job aspirant — approved on the spot, past the one review this board runs.
+   * `atPlTeam` travels for this (see `AccountDetails`) precisely because the
+   * claim and the team are different facts.
+   *
+   * **Unticked, the flow carries on.** The account exists, applying is live from
+   * this minute, and the drawer stays open and steps to the profile: the rail
+   * has said all along that step 3 is the application, and closing the drawer
+   * here would have been the flow announcing a destination and then dropping the
+   * person on the board short of it. Step 2 simply stops being an account form
+   * and becomes their profile — same step, same position, which is what
+   * `stepTitle` already switches between.
+   *
+   * **Ticked, it still ends here**, and for the reason it always did: an
+   * application cannot be sent from an account under review, so there is no step
+   * 3 to walk to. The role they came for is not held for them; naming it in the
+   * toast is the most this can honestly do.
    *
    * The profile is the flow's own draft, seeded rather than rebuilt: it already
    * holds the role and LinkedIn from the form *and* the job search status, which
-   * is a profile answer the account form has no field for.
-   *
-   * The role they came for is not held for them. Naming it in the toast is the
-   * most this can honestly do — a queued application would be the other answer,
-   * and it is not the one this board gives.
+   * is a profile answer the account form has no field for. That is both of the
+   * required answers, which is why the profile step opens with no amber strip on
+   * it — see `JOB_ASPIRANT_PROFILE`, which seeds the same two for the tab.
    */
   const onCreateAccount = ({ details, profile: seeded }: { details: JobSignUpDetails; profile: MemberProfile }) => {
     const roleTitle = flowJob?.role.roleTitle;
-    setViewer('pending-approval');
+    const joiningTeam = details.atPlTeam;
     setIsLoggedIn(true);
     setProfile(seeded);
-    onCloseFlow();
-    toast.success(
-      roleTitle
-        ? `Account created for ${details.email}. We'll email you when it's approved — then you can apply to ${roleTitle}.`
-        : `Account created for ${details.email}. The PL team reviews new accounts before applications can be sent.`,
-    );
+
+    if (joiningTeam) {
+      setViewer('pending-approval');
+      onCloseFlow();
+      toast.success(
+        roleTitle
+          ? `Account created for ${details.email}. We'll email you when it's approved — then you can apply to ${roleTitle}.`
+          : `Account created for ${details.email}. The PL team reviews new accounts before applications can be sent.`,
+      );
+      return;
+    }
+
+    setViewer('job-aspirant');
+    setFlowStep('profile');
+    /* One clause, and it is the one the next screen does not carry. The screen
+       itself reports the rest — the rail moves, the pane becomes a profile — so
+       a toast narrating that would be describing what the person is looking at.
+       No approval sentence: there is nothing to approve. */
+    toast.success(`Account created for ${details.email}.`);
   };
 
   /* PL Infra is a signed-in-only slot, so choosing that viewer has to sign the
@@ -955,8 +1002,8 @@ export default function JobBoardPrototype() {
     setViewer(next);
     setIsLoggedIn(isViewerSignedIn(next));
     /* `applied` is `profile-ready` plus a history: same finished profile, because
-       you cannot have applied without one; `signed-up-modal` gets the answers the
-       modal collected. All three splits live in `profileForViewer`. */
+       you cannot have applied without one. Both splits live in
+       `profileForViewer`. */
     setProfile(profileForViewer(next));
     onCloseFlow();
     setApplications(next === 'applied' ? seededApplications() : new Map());
@@ -1245,9 +1292,9 @@ export default function JobBoardPrototype() {
         onSubmitApplication={onSubmitApplication}
         onCreateAccount={onCreateAccount}
         loggedIn={isLoggedIn}
-        accountPrefilled={viewer === 'signed-up-modal'}
         onSignIn={onFlowSignIn}
         pendingApproval={isPendingApproval}
+        jobAspirant={isJobAspirant}
         applied={flowJob ? appliedRoleUids.has(flowJob.role.uid) : false}
         appliedAt={flowJob ? appliedAtByRole.get(flowJob.role.uid) : undefined}
         /* DELETE WITH: the `design-canvas/` folder. The importer's beats live in

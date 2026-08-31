@@ -57,3 +57,33 @@
 .card [aria-haspopup='menu'][aria-expanded='false'] {
   color: var(--foreground-neutral-secondary, #455468);
 }
+
+// Protocol Labs' card, outlined edge to edge in the PL brand gradient. Doubled
+// class so it outranks the production `.card` it sits on top of.
+//
+// The ring replaces the card's own hairline rather than sitting inside it: the
+// border stays 1px of transparent so the geometry is untouched, and a masked
+// pseudo at `inset: -1px` paints exactly that 1px band. (Production's own recipe
+// — `app/globals.scss .asks__tooltip::before` — and the same one the newsfeed's
+// PL card uses.) The stops are the app-wide PL brand gradient, copied literally:
+// it is hardcoded everywhere in production and has no token.
+.card.plCard {
+  position: relative;
+  border-color: transparent;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    z-index: 1;
+    border-radius: inherit;
+    border: 1px solid transparent;
+    background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%) border-box;
+    -webkit-mask:
+      linear-gradient(#fff 0 0) padding-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+}

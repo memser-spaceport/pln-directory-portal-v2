@@ -2,10 +2,10 @@
 
 /*
   z-index 9 puts the button above MobileBottomNav (1) and below everything that
-  is meant to cover a floating control: the tooltip's own positioner (11, which
-  has to paint over its trigger), UpdatesPanel (100/101), the bottom nav's More
-  menu (1000), the Modal overlay (9999). A floating affordance belongs at the
-  bottom of the overlay stack, which is what makes those numbers agree.
+  is meant to cover a floating control: UpdatesPanel (100/101), the bottom
+  nav's More menu (1000), the Modal overlay (9999). A floating affordance
+  belongs at the bottom of the overlay stack, which is what makes those
+  numbers agree.
 
   The bottom inset clears MobileBottomNav, which is visible below the
   tablet-landscape breakpoint. 72px is not a new number — ToastContainer already
@@ -39,9 +39,10 @@
 }
 
 /*
-  Opens saying its name, then settles to the glyph. The height is fixed at 48px
-  so collapsing is a width-only move with no vertical jump, and nothing here
-  sets an explicit width: the label animates its own max-width and margin, the
+  Opens saying its name, then settles to the glyph. After that, hover (and
+  keyboard focus) can expand the label again. The height is fixed at 48px so
+  collapsing is a width-only move with no vertical jump, and nothing here sets
+  an explicit width: the label animates its own max-width and margin, the
   padding goes to 0, and `min-width` is what makes the settled state a 48px
   disc. Animating `width: auto` to a pixel value would jump instead.
 
@@ -70,13 +71,15 @@
     box-shadow 0.15s,
     transform 0.15s;
 
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 24px rgba(27, 77, 255, 0.38);
-  }
-
   svg {
     flex-shrink: 0;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(27, 77, 255, 0.38);
+    }
   }
 }
 
@@ -94,6 +97,16 @@
     opacity 0.18s ease;
 }
 
+@mixin expanded-label {
+  padding: 0 18px 0 16px;
+
+  .label {
+    max-width: 160px;
+    margin-left: 8px;
+    opacity: 1;
+  }
+}
+
 .wrap[data-collapsed='true'] {
   .button {
     padding: 0;
@@ -106,8 +119,16 @@
   }
 }
 
-/* The introduction is information, so it still happens — it just stops being a
-   move. */
+@media (hover: hover) {
+  .wrap[data-collapsed='true']:hover .button {
+    @include expanded-label;
+  }
+}
+
+.wrap[data-collapsed='true'] .button:focus-visible {
+  @include expanded-label;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .wrap {
     animation: none;

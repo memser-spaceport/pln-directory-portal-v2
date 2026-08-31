@@ -5,7 +5,6 @@ import { usePermissions } from '@/services/rbac/hooks/usePermissions';
 import { canViewAiApps } from '@/services/rbac/utils/aiApps/canViewAiApps';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { CommentIcon } from '@/components/icons';
-import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
 import { GiveAiAppFeedbackDialog } from '../GiveAiAppFeedbackDialog';
 
 import s from './FloatingFeedbackButton.module.scss';
@@ -21,15 +20,14 @@ interface Props {
 
 /**
  * Floating "Give feedback" door for the AI Apps surfaces. It opens saying its
- * name and then settles into a 48px glyph in the bottom-right corner.
+ * name, then settles into a 48px glyph in the bottom-right corner. After that,
+ * a hover-capable pointer can expand the label again; on touch it stays the
+ * glyph. The accessible name is always on the button.
  *
  * Why the label is temporary: on the detail page everything the control covers
  * belongs to the embedded app underneath, so the *resting* state has to be the
- * smallest mark that can still be found. But a bare glyph in a corner has to be
- * guessed at once, by everyone, and the cheapest place to answer that is on
- * arrival — the name is spent once, at the moment the page is new, and then the
- * space goes back to the app. After that the tooltip and the accessible name
- * carry it; nothing is ever hidden behind a press.
+ * smallest mark that can still be found. The name is spent once on arrival,
+ * then hover (and keyboard focus) can bring it back.
  */
 export function FloatingFeedbackButton(props: Props) {
   // The introduction is a mount-time story, but the detail route is one client
@@ -66,36 +64,22 @@ function FeedbackFab({ appUid, appName }: Props) {
 
   return (
     <>
-      {/* The ref and the fixed positioning both belong on this wrapper, outside
-          CustomTooltip: it clones its trigger with a ref of its own (overwriting
-          any we passed, which would silently unanchor the panel) and nests an
-          unstyled div of its own between here and the button. */}
       <div ref={wrapRef} className={s.wrap} data-collapsed={isCollapsed}>
-        <CustomTooltip
-          // CustomTooltip otherwise only speaks for truncated text, and a
-          // 48px disc is never truncated. It stays mounted across the collapse
-          // rather than switching on afterwards: flipping this prop swaps the
-          // whole trigger tree, remounting the button mid-transition.
-          forceTooltip
-          content="Give feedback"
-          trigger={
-            <button
-              type="button"
-              className={s.button}
-              aria-label="Give feedback"
-              onClick={() => {
-                analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
-                setIsOpen(true);
-              }}
-            >
-              {/* CommentIcon hardcodes its own 16px box and ignores props. */}
-              <CommentIcon />
-              <span className={s.label} aria-hidden>
-                Give feedback
-              </span>
-            </button>
-          }
-        />
+        <button
+          type="button"
+          className={s.button}
+          aria-label="Give feedback"
+          onClick={() => {
+            analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
+            setIsOpen(true);
+          }}
+        >
+          {/* CommentIcon hardcodes its own 16px box and ignores props. */}
+          <CommentIcon />
+          <span className={s.label} aria-hidden>
+            Give feedback
+          </span>
+        </button>
       </div>
 
       <GiveAiAppFeedbackDialog

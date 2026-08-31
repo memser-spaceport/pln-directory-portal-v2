@@ -245,12 +245,14 @@ export default function AiAppsPrototype() {
         has both an identity block and a filter rail: title + description on the
         left, the list control and the page action on the right.
 
-        "Give feedback" sits here rather than as dev's floating pill. Two
-        reasons beyond the ask: a FAB and a header button are two doors into one
-        dialog once both exist, and a control pinned to the viewport corner is
-        the only thing on the page that isn't part of the page. Same button as
-        the detail bar — bordered/neutral, comment glyph, same label — one size
-        up, because a 24px control beside a 28px title reads as an afterthought.
+        "Give feedback" joins this row rather than floating: the grid is a page
+        you scan, it already has a row of page actions, and a control pinned to
+        the viewport corner would be the only thing here that isn't part of the
+        page. The detail view has no such row and is an app you use, so its door
+        floats there as an icon — one door per surface, one shared dialog.
+        Bordered/neutral with the comment glyph, one size up from the detail
+        bar's, because a 24px control beside a 28px title reads as an
+        afterthought.
 
         The count rides the title at 14px/400, which is exactly how Teams and
         Members pair theirs (their .title is the same 28px/700/40 as this one).

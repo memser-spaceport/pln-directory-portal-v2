@@ -4,11 +4,11 @@ import { Button } from '@/components/common/Button';
 import { DocumentIcon } from '@/components/icons';
 // Reuse the Forum post's Back button styling (chevron + "Back") verbatim.
 import bb from '@/components/ui/BackButton/BackButton.module.scss';
-// Dev's own top-bar action class, so the two buttons here measure like the
+// Dev's own top-bar action class, so this bar's controls measure like the
 // real detail page's.
 import dev from '@/components/page/ai-apps/AiAppDetailPage/AiAppDetailPage.module.scss';
 
-import { GiveFeedbackButton } from './GiveFeedbackButton';
+import { FeedbackFab } from './FeedbackFab';
 import type { AiAppWithDoc } from './mocks';
 import { AppActionsMenu } from './AppActionsMenu';
 
@@ -61,25 +61,16 @@ export function AiAppDetail(props: Props) {
               strokeLinecap="round"
               strokeLinejoin="round"
             />
+
           </svg>
           Back
         </button>
 
-        {/* Right-side actions in dev's order: give feedback, view the 1-pager,
-            then the creator's ⋯ manage menu. Feedback leads because it's the
-            one action every viewer has — the other two are conditional. It
-            preselects this app in the dialog's picker, so the person who just
-            used the app doesn't have to name it. */}
+        {/* Utility actions only: the 1-pager, then the creator's ⋯ manage menu.
+            Giving feedback left this strip for the floating pill in the corner
+            — you write it while using the app, not from a bar you scroll past —
+            and one surface keeps one door, so it isn't in both places. */}
         <div className={s.topBarActions}>
-          <GiveFeedbackButton
-            apps={apps}
-            appUid={app.uid}
-            appName={app.name}
-            onSubmit={onSubmitFeedback}
-            size="xxs"
-            className={dev.topBarBtn}
-          />
-
           {hasOnePager && (
             <Button
               style="border"
@@ -113,6 +104,12 @@ export function AiAppDetail(props: Props) {
           <iframe className={s.iframe} srcDoc={previewSrcDoc} title={app.name} allow="fullscreen" />
         </div>
       </div>
+
+      {/* Pinned bottom-right, over the app: it says its name on arrival and
+          then settles to a glyph, because what it covers is the app. Preselects
+          this app in the picker, so the person who just used it doesn't have to
+          name it. */}
+      <FeedbackFab apps={apps} appUid={app.uid} appName={app.name} onSubmit={onSubmitFeedback} />
     </div>
   );
 }

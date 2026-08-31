@@ -27,11 +27,10 @@ export const VIEWER_EMAIL = 'polina@lattice.computer';
 /**
  * The two answers the sign-up form was filled in with.
  *
- * They live here for the same reason the address does: the filled sign-up
- * form, the `signed-up-modal` viewer's pre-filled account step and the
- * profile behind it all have to describe one person. Typed separately they
- * would be one careless edit away from a visitor whose role changes as they
- * move between two steps of the same flow.
+ * They live here for the same reason the address does: the filled sign-up form
+ * and the profile behind it have to describe one person. Typed separately they
+ * would be one careless edit away from a visitor whose role changes as they move
+ * between two steps of the same flow.
  */
 export const VIEWER_ROLE = 'Senior Protocol Engineer';
 export const VIEWER_LINKEDIN = 'polina-bublii';

@@ -31,7 +31,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   apps: AiAppWithDoc[];
-  /** Preselects this app in the picker (the detail page always passes one). */
+  /** Preselects this app in the picker (the detail view's fab always passes one). */
   appUid?: string;
   appName?: string;
   onSubmit: (appUid: string, appName: string, text: string) => void;

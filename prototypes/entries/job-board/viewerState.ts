@@ -3,7 +3,7 @@ import { seniorityDisplayLabel, workplaceTypeDisplayLabel } from '@/utils/jobs.u
 
 // The account's address, so the profile's contact card and the account fact are
 // one address rather than two that drift. See `FILLED_PROFILE.email`.
-import { VIEWER_EMAIL, VIEWER_ROLE, VIEWER_LINKEDIN } from './profile/viewerIdentity';
+import { VIEWER_EMAIL, VIEWER_ROLE } from './profile/viewerIdentity';
 
 /**
  * Who is looking at the board, and whether they can apply from it.
@@ -320,35 +320,44 @@ export const FILLED_PROFILE: MemberProfile = {
  *                         roles first — three modals each — which is exactly the
  *                         friction that stops a state from being reviewed.
  */
-/**
- * What the `signed-up-modal` viewer arrives holding: the two profile facts the
- * sign-up form collected, plus an answered job search status.
- *
- * The status is seeded deliberately, and it is the one judgement call in this
- * fixture. The modal does not ask for it — it is a profile field, collected in
- * the flow — so a literal reading would leave it blank. Seeded, the account
- * step opens with every answer given and exactly one thing outstanding: the
- * completeness tick. That is the state this tab exists to show. Blank it out if
- * the tab should instead demonstrate a half-filled step.
- */
-export const SIGNED_UP_PROFILE: MemberProfile = {
-  ...EMPTY_PROFILE,
-  role: VIEWER_ROLE,
-  linkedin: VIEWER_LINKEDIN,
-  jobSearchStatus: 'actively-looking',
-};
+/* (`SIGNED_UP_PROFILE` stood here, with a `signed-up-modal` viewer beside it:
+    someone who took the header/banner sign-up door and then pressed Apply, whose
+    account step opened pre-filled so the only thing left was a completeness
+    tick. Removed — it was a *second* signed-out state, and the flow's own
+    account step already covers the one that matters. The tick it existed to show
+    survives; it now belongs to `pending-approval`, which is where a real person
+    signing up through the modal lands the moment the account exists. */
 
+/**
+ * **`job-aspirant` is the second thing "signed up" can mean, not the next thing
+ * that happens after `pending-approval`.** The two are siblings: both are
+ * accounts that exist, and the split is what the account is *for*. Someone
+ * joining a PL Network team is vouched for by the PL team, so their account
+ * waits; someone who came to the board to find work is not joining anything, so
+ * there is nothing to approve and nothing to wait for. Applying is live from the
+ * first minute.
+ *
+ * What that costs them instead is a document and a permission — the CV they
+ * apply with, and consent to let hiring teams read it — which is why this viewer
+ * exists as its own entry state rather than as `profile-incomplete` with a flag.
+ * The profile step is a different ask for them.
+ */
 export type BoardViewer =
   | 'logged-out'
-  /* Signed up through the modal — the header/banner door rather than the flow.
-     Still not signed in for the flow's purposes: step 2 is the account pane,
-     not the member profile. What changed is that its answers are already
-     given, so the step opens filled and the only thing left is to say so. */
-  | 'signed-up-modal'
   | 'pending-approval'
+  | 'job-aspirant'
   | 'profile-incomplete'
   | 'profile-ready'
   | 'applied';
+
+/**
+ * Signed up to look for work rather than to join a team — see `BoardViewer`.
+ *
+ * A function for the same reason `isViewerSignedIn` is one: the profile step,
+ * the drawer and the board each need the test, and a literal written out three
+ * times is three places to teach when a second aspirant state appears.
+ */
+export const isJobAspirant = (viewer: BoardViewer): boolean => viewer === 'job-aspirant';
 
 /**
  * Whether this viewer is signed in *for the flow* — i.e. whether step 2 shows
@@ -356,19 +365,51 @@ export type BoardViewer =
  *
  * A function rather than `viewer !== 'logged-out'` written out at each call
  * site. It was written out at three (the query-string entry, the canvas pin
- * and the switcher), and adding a second signed-out state meant all three had
- * to learn the same exception on the same day. The next state only has to
- * teach it here.
+ * and the switcher), and when a second signed-out state existed all three had
+ * to learn the same exception on the same day. That state is gone and the test
+ * is one clause again — the function stays, so the next one only has to be
+ * taught here.
  */
-export const isViewerSignedIn = (viewer: BoardViewer): boolean =>
-  viewer !== 'logged-out' && viewer !== 'signed-up-modal';
+export const isViewerSignedIn = (viewer: BoardViewer): boolean => viewer !== 'logged-out';
 
-/** The profile each viewer arrives holding. Same three-way split, one copy. */
+/**
+ * A job aspirant's starting profile: both required answers already given, and
+ * nothing else.
+ *
+ * **Neither of these is an assumption — the sign-up collected them.**
+ * `actively-looking` is what signing up as a job aspirant *means*, and the
+ * current role is a field on the account form itself (see `accountFields`). A
+ * step that opens by asking someone to re-enter what they typed two presses ago
+ * is the product not listening, and an amber `required` strip over an answer
+ * the account already holds is the step pointing at a gap that isn't there.
+ *
+ * `VIEWER_ROLE`, not a fourth literal of the same string. `viewerIdentity` is
+ * explicit that the sign-up form and the profile behind it have to describe one
+ * person, which is exactly what this fixture stands between.
+ *
+ * Both stay ordinary editable answers, not locked ones: the header card and the
+ * status card render as they do for anyone else, with these filled in.
+ *
+ * **What this makes true, and what it must not.** With both required answers in,
+ * `isProfileComplete` passes — so nothing on the board nags this viewer, which
+ * is right. It would also make the profile step *skippable* on the usual rule
+ * (complete → straight to the letter), which is wrong: for an aspirant that step
+ * was never a form to finish. It is the profile a stranger is about to be judged
+ * on, opened so they can put a CV on it and say they have read it. See
+ * `onApplyPressed`.
+ */
+export const JOB_ASPIRANT_PROFILE: MemberProfile = {
+  ...EMPTY_PROFILE,
+  role: VIEWER_ROLE,
+  jobSearchStatus: 'actively-looking',
+};
+
+/** The profile each viewer arrives holding. */
 export const profileForViewer = (viewer: BoardViewer): MemberProfile =>
   viewer === 'profile-ready' || viewer === 'applied'
     ? FILLED_PROFILE
-    : viewer === 'signed-up-modal'
-      ? SIGNED_UP_PROFILE
+    : viewer === 'job-aspirant'
+      ? JOB_ASPIRANT_PROFILE
       : EMPTY_PROFILE;
 
 /**

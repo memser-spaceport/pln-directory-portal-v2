@@ -1,6 +1,7 @@
 'use client';
 
 import { type CSSProperties, type RefObject, useCallback, useLayoutEffect, useState } from 'react';
+import clsx from 'clsx';
 import { useForm, FormProvider } from 'react-hook-form';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
@@ -41,26 +42,42 @@ type FeedbackDraft = {
 
 const POPOVER_GAP = 8;
 
+type Placement = 'below' | 'above';
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   /** When provided (app detail page), preselects this app in the picker. */
   appUid?: string;
   appName?: string;
-  /** Positions the popover below this element (header Give feedback button). */
+  /** Positions the popover relative to this element. */
   anchorRef?: RefObject<HTMLElement | null>;
+  /**
+   * Which side of the anchor the panel opens on. 'above' is the floating
+   * feedback button, which sits in the bottom-right corner — measuring down
+   * from `rect.bottom` there would put the panel below the fold.
+   */
+  placement?: Placement;
 }
 
-function getAnchorOverlayStyle(anchor: HTMLElement | null): CSSProperties | undefined {
+function getAnchorOverlayStyle(anchor: HTMLElement | null, placement: Placement): CSSProperties | undefined {
   if (!anchor) {
     return undefined;
   }
 
   const rect = anchor.getBoundingClientRect();
+  const right = `${Math.max(12, window.innerWidth - rect.right)}px`;
+
+  if (placement === 'above') {
+    return {
+      '--feedback-popover-bottom': `${window.innerHeight - rect.top + POPOVER_GAP}px`,
+      '--feedback-popover-right': right,
+    } as CSSProperties;
+  }
 
   return {
     '--feedback-popover-top': `${rect.bottom + POPOVER_GAP}px`,
-    '--feedback-popover-right': `${Math.max(12, window.innerWidth - rect.right)}px`,
+    '--feedback-popover-right': right,
   } as CSSProperties;
 }
 
@@ -72,7 +89,7 @@ function getDefaultApp(appUid?: string, appName?: string): Option | null {
   return { label: appName, value: appUid };
 }
 
-export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anchorRef }: Props) {
+export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anchorRef, placement = 'below' }: Props) {
   const { currentUser } = useCurrentUserStore();
   const [overlayStyle, setOverlayStyle] = useState<CSSProperties>();
   const { apps, isLoading: isAppsLoading } = useAiApps();
@@ -111,7 +128,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
       return;
     }
 
-    const update = () => setOverlayStyle(getAnchorOverlayStyle(anchorRef?.current ?? null));
+    const update = () => setOverlayStyle(getAnchorOverlayStyle(anchorRef?.current ?? null, placement));
     update();
     window.addEventListener('resize', update);
     window.addEventListener('scroll', update, true);
@@ -119,7 +136,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
       window.removeEventListener('resize', update);
       window.removeEventListener('scroll', update, true);
     };
-  }, [isOpen, anchorRef]);
+  }, [isOpen, anchorRef, placement]);
 
   const onDialogClose = () => {
     setSubmitAttempted(false);
@@ -190,7 +207,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
       isOpen={isOpen}
       onClose={onDialogClose}
       closeOnBackdropClick={false}
-      overlayClassname={s.overlay}
+      overlayClassname={clsx(s.overlay, placement === 'above' && s.overlayAbove)}
       overlayStyle={overlayStyle}
       className={s.modalContainer}
     >
@@ -212,6 +229,13 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
                 options={appOptions}
                 disabled={isAppsLoading}
                 isRequired
+                // FormSelect defaults menuPlacement to 'auto'. Anchored above the
+                // floating button the panel sits at the bottom of the viewport, so
+                // react-select finds no room below and flips the menu upward —
+                // straight into `.root`'s `overflow: hidden`, which clips it.
+                // Portalling lifts it out of that mask (and switches the menu to
+                // fixed positioning, which the fixed overlay needs).
+                menuPortalTarget={typeof document === 'undefined' ? null : document.body}
               />
               {submitAttempted && !watch('app') && <p className={s.fieldError}>Please select an app</p>}
 

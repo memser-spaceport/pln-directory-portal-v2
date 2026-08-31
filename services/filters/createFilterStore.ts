@@ -81,5 +81,9 @@ export function createFilterStore(config: FilterStoreConfig) {
     analyticsCallback = callback;
   };
 
+  // The declared URL-tracked keys, exposed so `FilterStoreUrlSync` can default to
+  // them instead of every page repeating the list. Config-only until now.
+  (store as any).trackedParams = config.trackedParams;
+
   return store;
 }

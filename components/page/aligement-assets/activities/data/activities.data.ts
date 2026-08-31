@@ -172,7 +172,7 @@ export const activitiesData: ActivitiesData = {
       cta: 'confirm',
       popupContent: {
         title: 'Give Excellent Survey Feedback',
-        overview: 'Your monthly survey feedback went above and beyond. The insights you provided helped identify new issues or drive real improvements to the Alignment Asset program.',
+        overview: 'Your survey feedback went above and beyond. The insights you provided helped identify new issues or drive real improvements to the Alignment Asset program.',
         networkBenefits: 'Rewards feedback that identifies meaningful issues or improvement opportunities, not just completed forms.',
         rules: [
           'Your feedback created meaningful impact, as determined by the PLAA working group',

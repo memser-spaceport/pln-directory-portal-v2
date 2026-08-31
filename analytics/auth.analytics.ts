@@ -30,6 +30,14 @@ export const useAuthAnalytics = () => {
     captureEvent(AUTH_ANALYTICS.AUTH_SIGN_UP_BTN_CLICKED);
   };
 
+  const onInvalidUserModalShown = (params: { reason: string }) => {
+    captureEvent(AUTH_ANALYTICS.AUTH_INVALID_USER_MODAL_SHOWN, params);
+  };
+
+  const onInvalidUserSignUpClicked = (params: { reason: string }) => {
+    captureEvent(AUTH_ANALYTICS.AUTH_INVALID_USER_SIGNUP_CLICKED, params);
+  };
+
   const onProceedToLogin = () => {
     captureEvent(AUTH_ANALYTICS.AUTH_PROCEED_TO_LOGIN_CLICKED);
   };
@@ -127,6 +135,8 @@ export const useAuthAnalytics = () => {
     onUpdateEmailFailure,
     onUpdateSameEmailProvided,
     onSignUpBtnClicked,
+    onInvalidUserModalShown,
+    onInvalidUserSignUpClicked,
     onLinkAccountSubmitClicked,
     onLinkAccountCancelClicked,
     onSessionExpiredModalShown,

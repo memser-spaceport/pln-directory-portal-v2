@@ -18,7 +18,6 @@ import { useCreateJobReferral, useJobReferralDraft } from '@/services/jobs/hooks
 
 import { DirectoryMember, RecipientOption } from './types';
 
-import { toRecipientOption } from './utils/toRecipientOption';
 import { toReferralRecipient } from './utils/toReferralRecipient';
 import { getRecipientSummary } from './utils/getRecipientSummary';
 
@@ -85,7 +84,6 @@ type ReferFormData = {
 export function ReferModal({ open, onClose, role, teamId, teamName, source, jobReferEmail }: ReferModalProps) {
   const [sent, setSent] = useState(false);
   const [messageEdited, setMessageEdited] = useState(false);
-  const [recipientsSeeded, setRecipientsSeeded] = useState(false);
   const noteEditedTracked = useRef(false);
   const analytics = useJobsAnalytics();
   const usesTeamReferEmail = Boolean(jobReferEmail?.trim());
@@ -115,17 +113,9 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
 
   // Only fetched while the modal is open — a job board page holds one of these per role.
   // A team-configured inbox skips the hiring-team lookup: nobody is being picked.
-  const {
-    members: hiringTeam,
-    defaultRecipients,
-    isLoading: isTeamLoading,
-  } = useTeamMembers(teamName, open && !usesTeamReferEmail);
+  const { members: hiringTeam, isLoading: isTeamLoading } = useTeamMembers(teamName, open && !usesTeamReferEmail);
 
-  const {
-    data: draft,
-    isFetching: isDrafting,
-    isError: isDraftError,
-  } = useJobReferralDraft({
+  const { data: draft, isFetching: isDrafting } = useJobReferralDraft({
     jobUid: role.uid,
     referredMemberUid: selectedMember?.uid,
     enabled: open,
@@ -147,32 +137,10 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
     reset({ referee: null, recipients: [], message: '' });
     setMessageEdited(false);
     setSent(false);
-    setRecipientsSeeded(false);
     noteEditedTracked.current = false;
     analytics.onJobReferModalOpened(referBase);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, reset]);
-
-  // Default recipients: the hiring team's leads (see `useTeamMembers`). Seeded in its
-  // own pass because the team is fetched — it can land after the modal is already on
-  // screen — and only ever once per open, so it can't wipe an edit made in the
-  // meantime. Teams the directory has no members for seed nothing, which is the
-  // "type an email address" case.
-  //
-  // `omitTeam` on the mapping: every one of these is a member of the team the modal
-  // is already titled for. The field shows them as rows carrying a role, and the
-  // role is what makes the prefill checkable — a "· Protocol Labs" tail on each of
-  // them would spend that line on a word the card has already said twice.
-  useEffect(() => {
-    if (!open || usesTeamReferEmail || recipientsSeeded || isTeamLoading) return;
-    if (defaultRecipients.length) {
-      setValue(
-        'recipients',
-        defaultRecipients.map((member) => toRecipientOption(member, { omitTeam: true })),
-      );
-    }
-    setRecipientsSeeded(true);
-  }, [open, usesTeamReferEmail, recipientsSeeded, isTeamLoading, defaultRecipients, setValue]);
 
   // Picking someone as the candidate drops them from the recipient list.
   useEffect(() => {
@@ -230,7 +198,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
 
   const handleRecipientsChange = (next: RecipientOption[]) => {
     setValue('recipients', next, { shouldDirty: true });
-    if (!recipientsSeeded || usesTeamReferEmail) return;
+    if (usesTeamReferEmail) return;
     analytics.onJobReferRecipientsChanged({
       ...referBase,
       recipient_count: next.length,
@@ -300,13 +268,6 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
     );
   };
 
-  // Is any of the prefilled hiring team still in the field? Drives the caption
-  // under "Send to", which explains rows that are there — not an event that happened.
-  const prefillVisible = useMemo(
-    () => recipients.some((option) => defaultRecipients.some((member) => member.uid === option.value)),
-    [recipients, defaultRecipients],
-  );
-
   const canSend = !!selectedMember && !!message?.trim() && !isSending && (usesTeamReferEmail || recipients.length > 0);
   const firstName = selectedMember?.name.split(' ')[0] ?? '';
   const sentTo = usesTeamReferEmail ? 'the team' : getRecipientSummary(recipients);
@@ -314,15 +275,6 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
   const composingDesc = usesTeamReferEmail
     ? 'Referral email will be sent to the address this team set up, and you’ll be copied.'
     : 'Referral email will be sent to everyone listed including you.';
-
-  const privacyNote = isDraftError
-    ? 'We couldn’t draft a note for that member — write your own, or pick someone else.'
-    : usesTeamReferEmail
-      ? `${teamName} sees your name alongside the referral.` + (selectedMember ? ` ${firstName} is notified too.` : '')
-      : recipients.length === 0
-        ? 'Add at least one recipient — a network member or an email address.'
-        : `${sentTo} ${recipients.length === 1 ? 'sees' : 'see'} your name alongside the referral.` +
-          (selectedMember ? ` ${firstName} is notified too.` : '');
 
   return (
     <Modal isOpen={open} onClose={handleClose} closeOnBackdropClick={false} lockScroll>
@@ -396,16 +348,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                       excludeUids={referee?.value ? [referee.value] : undefined}
                       value={recipients}
                       onChange={handleRecipientsChange}
-                      /* Where the rows came from — the one thing the field itself
-                         can't show. It lists four names and their roles; it cannot
-                         say that nobody typed them, or why these four.
-                         Conditioned on the prefill still being *in* the field
-                         rather than on it having happened: a team the directory has
-                         no roster for opens empty, and someone who clears the list
-                         and types an address is no longer looking at anything this
-                         sentence explains. Both cases leave the modal's other
-                         caption ("Add at least one recipient…") to speak. */
-                      description={prefillVisible ? `Prefilled with the ${teamName} hiring team.` : undefined}
+                      description={`Search and select who from the ${teamName} should receive this referral`}
                       menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
                     />
                   </div>
@@ -438,8 +381,6 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                   />
                 </div>
               </div>
-
-              <p className={s.privacyNote}>{privacyNote}</p>
 
               <div className={s.actions}>
                 <Button style="border" variant="primary" className={s.actionButton} onClick={handleClose}>

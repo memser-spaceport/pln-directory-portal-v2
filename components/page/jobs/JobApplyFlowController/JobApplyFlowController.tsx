@@ -13,13 +13,12 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 import { useRoleApplication } from '@/services/jobs/hooks/useJobApplications';
-import { withPendingApply } from '@/services/jobs/job-apply-resume';
+import { withPendingApply, withPendingProfile } from '@/services/jobs/job-apply-resume';
 import type { IUserInfo } from '@/types/shared.types';
 
-import type { useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
+import { shouldApplyGoExternal, type useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
 import type { JobBoardViewerResult } from '@/components/page/jobs/hooks/useJobBoardViewer';
 import { canSeeOriginalPosting } from '@/services/jobs/job-board-viewer';
-import { isProtocolLabsTeam } from '@/services/jobs/protocol-labs-team';
 import type { JobSignUpDetails, JobSignUpResult } from '@/components/page/jobs/JobSignUpModal/JobSignUpModal';
 
 /* Most visitors never press Apply, and logged-out visitors can only ever reach
@@ -102,14 +101,19 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
    * The rest of the search string rides along, so the rail the person narrowed
    * before signing up is still narrowed when they land back on the board.
    */
-  const pushLogin = (opts?: { prefillEmail?: string; pendingRoleUid?: string }) => {
+  const pushLogin = (opts?: { prefillEmail?: string; pendingRoleUid?: string; completeProfile?: boolean }) => {
     const search = new URLSearchParams(window.location.search);
     if (opts?.prefillEmail) {
       search.set('prefillEmail', opts.prefillEmail);
     }
-    // The role rides the same channel, so signing in lands them back on the
-    // application instead of on a board they have to re-navigate.
-    const qs = withPendingApply(search.toString(), opts?.pendingRoleUid);
+    const withEmail = search.toString();
+    // A job in the drawer resumes on that role's profile step. A banner / modal
+    // sign-up has no job, so they land in the standalone profile drawer instead.
+    const qs = opts?.pendingRoleUid
+      ? withPendingApply(withEmail, opts.pendingRoleUid)
+      : opts?.completeProfile
+        ? withPendingProfile(withEmail)
+        : withPendingApply(withEmail, undefined);
     goToLogin({ returnTo: `${window.location.pathname}${qs}` });
   };
 
@@ -122,7 +126,11 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
    * failed request leaves nothing behind.
    */
   const handleSignUp = async (details: JobSignUpDetails): Promise<JobSignUpResult> => {
-    const target = state.step === 'sign-up' ? state.target : null;
+    /* Two doors reach this now: the modal (`sign-up`, role-less) and the flow's
+       step 2 (`flow`, always carrying a role). Reading the target from whichever
+       is open keeps one handler — and one place where the analytics for a
+       sign-up are fired — rather than a second copy that could drift. */
+    const target = state.step === 'sign-up' ? state.target : state.step === 'flow' ? state.target : null;
     const analyticsBase = {
       job_id: target?.role.uid ?? null,
       team_id: target?.teamId ?? null,
@@ -134,11 +142,9 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
       await signUpMutation.mutateAsync({
         name: details.name,
         email: details.email,
-        role: details.role,
-        // Omitted when blank rather than sent empty: the endpoint's rule is an
-        // address or nothing, and `''` fails its `.email()` on both sides.
-        ...(details.teamEmail ? { teamEmail: details.teamEmail } : {}),
-        ...(details.linkedin ? { linkedinHandler: details.linkedin } : {}),
+        jobSearchStatus: details.jobSearchStatus,
+        linkedinHandler: details.linkedin,
+        ...(details.role ? { role: details.role } : {}),
         // The company select offers existing network teams only, so this is
         // always an affiliation rather than a new team. Omitted entirely when
         // they skipped it — the endpoint reads that as no affiliation.
@@ -154,13 +160,21 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
 
     analytics.onJobApplySignUpSubmitted({
       ...analyticsBase,
-      trigger: target ? 'row' : 'banner',
-      has_team_email: !!details.teamEmail,
+      /* Three doors, three values, all of them already in `JobApplyTrigger`.
+         `detail` is the flow's own step 2 — the pane reached by pressing Apply
+         on a job — and it is the path that matters most now, so it must not be
+         counted as a row press. */
+      trigger: state.step === 'flow' ? 'detail' : target ? 'row' : 'banner',
+      has_team_email: false,
     });
-    flow.closeSignUp();
+    flow.closeSignUp({ completed: true });
     // They just typed this email into the form the line above submitted —
     // asking for it again in the login modal is asking twice for one fact.
-    pushLogin({ prefillEmail: details.email, pendingRoleUid: target?.role.uid });
+    pushLogin({
+      prefillEmail: details.email,
+      pendingRoleUid: target?.role.uid,
+      completeProfile: !target?.role.uid,
+    });
     return { success: true };
   };
 
@@ -182,7 +196,7 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
      the visit and the toast is the receipt. */
   const handleProfileOnlySaved = ({ profileComplete }: { profileComplete: boolean }) => {
     flow.onProfileSaved({ profileComplete });
-    flow.close();
+    flow.close({ completed: true });
     toast.success('Profile saved.');
   };
 
@@ -193,7 +207,8 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
      rule is `useJobApplyFlow`'s and the footer that has to say it is the
      drawer's — see `onApply`. */
   const applyGoesExternal =
-    state.step === 'flow' && viewer.verdict === 'pending' && !isProtocolLabsTeam(state.target.team);
+    state.step === 'flow' &&
+    shouldApplyGoExternal({ viewer: viewer.viewer, verdict: viewer.verdict, team: state.target.team });
 
   const flowRole = state.step === 'flow' ? state.target.role : null;
   const flowApplication = useRoleApplication(flowRole?.uid ?? '', {
@@ -224,14 +239,17 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
              do not, because both came here to apply through this board.
 
              The second overrides it for one case — when Apply *is* that link.
-             An unapproved account applying to a non-PL role is sent to the
-             employer's site, and hiding the way there from the one person whose
-             only way it is would be the board withholding its own answer. */
+             A signed-out visitor, or an unapproved account, applying to a
+             non-PL role is sent to the employer's site, and hiding the way
+             there from the one person whose only way it is would be the board
+             withholding its own answer. */
           showOriginalPosting={canSeeOriginalPosting({ isLoggedIn, userInfo }) || applyGoesExternal}
           applyGoesExternal={applyGoesExternal}
           /* Straight through to the one gate. `onApply` replaces or advances the
              step itself, so the drawer needs no close of its own here. */
           onApply={() => flow.onApply({ ...state.target }, 'detail')}
+          onSignUp={handleSignUp}
+          onSignIn={handleModalSignIn}
           onProfileSaved={flow.onProfileSaved}
           onSubmitted={flow.onSubmitted}
           viewerState={viewer.viewer}

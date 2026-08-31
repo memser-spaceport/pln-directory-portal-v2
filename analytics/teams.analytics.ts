@@ -446,6 +446,15 @@ export const useTeamAnalytics = () => {
     captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_CONTACT_SAVE_CLICKED, params);
   }
 
+  /** Fired only when the referral-email field actually changed, not on every contact save. */
+  function onTeamDetailJobReferEmailSaved(params: { teamUid: string; action: 'set' | 'changed' | 'cleared' }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_JOB_REFER_EMAIL_SAVED, params);
+  }
+
+  function onTeamsStatusFilterSelected(params: { status: 'ACTIVE' | 'INACTIVE' | 'ALL' }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_STATUS_FILTER_SELECTED, params);
+  }
+
   function onTeamDetailEnrichmentReviewed(params: { teamUid: string }) {
     captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_ENRICHMENT_REVIEWED, params);
   }
@@ -524,6 +533,8 @@ export const useTeamAnalytics = () => {
     onFollowersModalOpened,
     onTeamDetailOpenRolesViewAllClicked,
     onTeamDetailContactSaveClicked,
+    onTeamDetailJobReferEmailSaved,
+    onTeamsStatusFilterSelected,
     onTeamDetailEnrichmentReviewed,
     onTeamDetailStatusChanged,
   };

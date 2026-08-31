@@ -16,6 +16,8 @@ let mockPathname = '/members';
 let mockDemoDayState: { status?: string; slugURL?: string; title?: string } | undefined;
 
 const mockOnSignUpBtnClicked = jest.fn();
+const mockOnInvalidUserModalShown = jest.fn();
+const mockOnInvalidUserSignUpClicked = jest.fn();
 const mockOpenModal = jest.fn();
 
 jest.mock('next/navigation', () => ({
@@ -28,6 +30,8 @@ jest.mock('next/navigation', () => ({
 jest.mock('@/analytics/auth.analytics', () => ({
   useAuthAnalytics: () => ({
     onSignUpBtnClicked: mockOnSignUpBtnClicked,
+    onInvalidUserModalShown: mockOnInvalidUserModalShown,
+    onInvalidUserSignUpClicked: mockOnInvalidUserSignUpClicked,
   }),
 }));
 
@@ -84,6 +88,7 @@ describe('AuthInvalidUser', () => {
 
     expect(screen.getByText('Email Not Found')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Contact Support' })).toBeInTheDocument();
+    expect(mockOnInvalidUserModalShown).toHaveBeenCalledWith({ reason: 'email_not_found' });
   });
 
   it('takes Sign up to the existing sign-up flow with returnTo', async () => {
@@ -98,6 +103,7 @@ describe('AuthInvalidUser', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Sign up' }));
 
     expect(mockOnSignUpBtnClicked).toHaveBeenCalledTimes(1);
+    expect(mockOnInvalidUserSignUpClicked).toHaveBeenCalledWith({ reason: 'email_not_found' });
     expect(mockRouter.replace).toHaveBeenCalledWith(`/sign-up?returnTo=${encodeURIComponent('/members?tab=all')}`);
   });
 

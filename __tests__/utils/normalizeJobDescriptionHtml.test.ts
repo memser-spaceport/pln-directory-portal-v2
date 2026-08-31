@@ -44,6 +44,26 @@ describe('normalizeJobDescriptionHtml', () => {
     });
   });
 
+  describe('entity-encoded bodies (Greenhouse content)', () => {
+    it('unwraps a fully encoded posting into real tags', () => {
+      expect(
+        normalizeJobDescriptionHtml(
+          '&lt;div class=&quot;content-intro&quot;&gt;&lt;p&gt;We are on a mission&lt;/p&gt;&lt;/div&gt;',
+        ),
+      ).toBe('<div class="content-intro"><p>We are on a mission</p></div>');
+    });
+
+    it('unwraps the stored shape, whose quotes are already real', () => {
+      expect(normalizeJobDescriptionHtml('&lt;div class="content-intro"&gt;&lt;p&gt;Hi&lt;/p&gt;&lt;/div&gt;')).toBe(
+        '<div class="content-intro"><p>Hi</p></div>',
+      );
+    });
+
+    it('does not turn &lt; into a tag inside a well-formed body', () => {
+      expect(normalizeJobDescriptionHtml('<p>use x &lt; 5</p>')).toBe('<p>use x &lt; 5</p>');
+    });
+  });
+
   describe('markdown links the converter left as text', () => {
     it('turns them into anchors that open away from the drawer', () => {
       expect(normalizeJobDescriptionHtml('<p>[Protocol Labs](https://protocol.ai/) is a network</p>')).toBe(
@@ -196,6 +216,14 @@ describe('normalizeJobDescriptionHtml', () => {
 
     it('still drops everything the allowlist drops', () => {
       expect(render('<p onclick="alert(1)">hi</p><script>alert(1)</script>')).toBe('<p>hi</p>');
+    });
+
+    it('unwraps a Greenhouse-encoded body and then drops the chrome the allowlist drops', () => {
+      expect(
+        render(
+          '&lt;div class="content-intro"&gt;&lt;div class="c-virtual_list__item"&gt;&lt;p&gt;We are on a mission&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;',
+        ),
+      ).toBe('<p>We are on a mission</p>');
     });
 
     it('produces an anchor the sanitizer is willing to keep', () => {

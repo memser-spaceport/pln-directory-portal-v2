@@ -1,5 +1,9 @@
 import type { ForumPostUid, IFeedForumPost } from '@/types/feed.types';
-import { feedWindowCutoffIso, withinFeedWindow } from '@/components/page/home/TeamNews/utils/feedForumPostWindow';
+import {
+  feedWindowCutoffIso,
+  withinFeedWindow,
+  createdWithinWindow,
+} from '@/components/page/home/TeamNews/utils/feedForumPostWindow';
 
 const NOW = Date.parse('2026-07-31T12:00:00.000Z');
 const DAY = 24 * 60 * 60 * 1000;
@@ -74,5 +78,27 @@ describe('withinFeedWindow', () => {
   // "loaded, and there are none", which drives a different empty state.
   it('passes undefined through rather than returning an empty list', () => {
     expect(withinFeedWindow(undefined, cutoff)).toBeUndefined();
+  });
+});
+
+describe('createdWithinWindow', () => {
+  const cutoff = feedWindowCutoffIso(7, NOW);
+
+  it('keeps a post created inside the window', () => {
+    expect(createdWithinWindow([post('fp_1', daysAgo(2))], cutoff)).toHaveLength(1);
+  });
+
+  it('drops a post created before the window even if it was replied to inside it', () => {
+    const revived = post('fp_1', daysAgo(10), daysAgo(1));
+
+    expect(createdWithinWindow([revived], cutoff)).toEqual([]);
+  });
+
+  it('includes a post sitting exactly on the boundary', () => {
+    expect(createdWithinWindow([post('fp_1', cutoff)], cutoff)).toHaveLength(1);
+  });
+
+  it('passes undefined through rather than returning an empty list', () => {
+    expect(createdWithinWindow(undefined, cutoff)).toBeUndefined();
   });
 });

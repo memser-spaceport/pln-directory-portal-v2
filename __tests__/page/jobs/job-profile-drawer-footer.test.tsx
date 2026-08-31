@@ -21,6 +21,12 @@ jest.mock('@/components/page/member-details/ProfileDetails', () => ({ ProfileDet
 jest.mock('@/components/page/member-details/ExperienceDetails', () => ({ ExperienceDetails: () => null }));
 jest.mock('@/components/page/member-details/ContributionsDetails', () => ({ ContributionsDetails: () => null }));
 jest.mock('@/components/page/member-details/RepositoriesDetails', () => ({ RepositoriesDetails: () => null }));
+jest.mock('@/components/page/member-details/ContactDetails', () => ({
+  ContactDetails: () => <div>Contact details</div>,
+}));
+jest.mock('@/components/page/jobs/JobProfileDrawer/CvFirstCard', () => ({
+  CvFirstCard: () => null,
+}));
 
 jest.mock('@/services/auth/store', () => ({
   useCurrentUserStore: () => ({ currentUser: { uid: 'm1', name: 'Polina' } }),
@@ -93,18 +99,32 @@ describe('the standalone profile drawer footer', () => {
   });
 
   it('enables once the role and status are answered', () => {
-    renderDrawer(COMPLETE);
+    const { container } = renderDrawer(COMPLETE);
 
     expect(footerButton()).toBeEnabled();
+    /* And says what is still optional. This is also the positive control for the
+       `toBeNull` in the silence test below — a selector matching nothing would
+       make that one pass while the sentence was still rendering. */
+    expect(screen.getByText(/Experience, skills and bio are optional/)).toBeInTheDocument();
+    expect(container.querySelector('p[class*="footerHint"]')).not.toBeNull();
   });
 
-  /* The hint and the button have to describe one act. The hint ends
-     "…to continue", which is still true of the requirement even though the
-     destination changed. */
-  it('names what is still owed', () => {
-    renderDrawer(INCOMPLETE);
+  /* This used to assert the footer named what was still owed — "Add your current
+     role and choose a job search status to continue. Everything else is
+     optional." That sentence is gone: the requirement is stated on the card
+     whose answer is missing (`DataIncomplete`'s strip on the header card, the
+     `Required to continue` mark on the status section), which is where someone
+     can act on it, and the footer was restating it from the bottom of a
+     scrolling drawer.
 
-    expect(screen.getByText(/to continue\. Everything else is optional\./i)).toBeInTheDocument();
+     The incomplete state is not now untested — `stays disabled until the profile
+     is ready` above is its sentinel, and it is the one that matters, because the
+     dead button is the thing the sentence existed to explain. */
+  it('stays silent about what is missing — the cards say it where the answers are', () => {
+    const { container } = renderDrawer(INCOMPLETE);
+
+    expect(screen.queryByText(/Everything else is optional/i)).not.toBeInTheDocument();
+    expect(container.querySelector('p[class*="footerHint"]')).toBeNull();
   });
 
   /* The completeness the footer reads is the pane's own, reported up — the
@@ -137,5 +157,41 @@ describe('the profile pane lede', () => {
     );
 
     expect(screen.getByText(/isn't holding up your application to Senior Engineer/i)).toBeInTheDocument();
+  });
+
+  /* And says nothing to everyone else. "This is what hiring teams see when you
+     apply." stood here for them — a sentence describing the step rather than
+     saying anything about it, on a pane headed "Your profile" reached by pressing
+     Apply. The pending line above is the only one left, because it is the only
+     one carrying a fact nothing else on the screen shows. */
+  it('opens on the profile itself for everyone else', () => {
+    mockMember.mockReturnValue({ data: COMPLETE, isLoading: false });
+    render(
+      <JobProfilePane
+        memberUid="m1"
+        isLoggedIn
+        pendingRoleTitle="Senior Engineer"
+        pendingApproval={false}
+        onProfileState={jest.fn()}
+      />,
+    );
+
+    expect(screen.queryByText(/what hiring teams see/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/isn't holding up your application/i)).not.toBeInTheDocument();
+  });
+
+  it('offers contact details alongside the rest of the profile', () => {
+    mockMember.mockReturnValue({ data: COMPLETE, isLoading: false });
+    render(
+      <JobProfilePane
+        memberUid="m1"
+        isLoggedIn
+        pendingRoleTitle={null}
+        pendingApproval={false}
+        onProfileState={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Contact details')).toBeInTheDocument();
   });
 });

@@ -1,4 +1,10 @@
-import { PENDING_APPLY_PARAM, stripPendingApplyFromUrl, withPendingApply } from '@/services/jobs/job-apply-resume';
+import {
+  PENDING_APPLY_PARAM,
+  PENDING_PROFILE_PARAM,
+  stripPendingApplyFromUrl,
+  withPendingApply,
+  withPendingProfile,
+} from '@/services/jobs/job-apply-resume';
 
 describe('withPendingApply', () => {
   it('adds the role to an empty search string', () => {
@@ -24,6 +30,7 @@ describe('withPendingApply', () => {
     expect(withPendingApply(`?roleCategory=Engineering&${PENDING_APPLY_PARAM}=abandoned-role`, undefined)).toBe(
       '?roleCategory=Engineering',
     );
+    expect(withPendingApply(`?${PENDING_PROFILE_PARAM}=1`, undefined)).toBe('');
   });
 
   it('replaces a stale role rather than appending a second one', () => {
@@ -35,6 +42,36 @@ describe('withPendingApply', () => {
   it('encodes a uid safely', () => {
     const result = withPendingApply('', 'role/with space&amp');
     expect(new URLSearchParams(result).get(PENDING_APPLY_PARAM)).toBe('role/with space&amp');
+  });
+
+  it('clears a pending profile resume — the two instructions are mutually exclusive', () => {
+    const result = withPendingApply(`?${PENDING_PROFILE_PARAM}=1`, 'role-1');
+    const params = new URLSearchParams(result);
+
+    expect(params.get(PENDING_APPLY_PARAM)).toBe('role-1');
+    expect(params.get(PENDING_PROFILE_PARAM)).toBeNull();
+  });
+});
+
+describe('withPendingProfile', () => {
+  it('adds the profile resume to an empty search string', () => {
+    expect(withPendingProfile('')).toBe(`?${PENDING_PROFILE_PARAM}=1`);
+  });
+
+  it('keeps the filters someone narrowed before signing up', () => {
+    const result = withPendingProfile('?roleCategory=Engineering');
+    const params = new URLSearchParams(result);
+
+    expect(params.get('roleCategory')).toBe('Engineering');
+    expect(params.get(PENDING_PROFILE_PARAM)).toBe('1');
+  });
+
+  it('clears a pending apply — the two instructions are mutually exclusive', () => {
+    const result = withPendingProfile(`?${PENDING_APPLY_PARAM}=role-1`);
+    const params = new URLSearchParams(result);
+
+    expect(params.get(PENDING_PROFILE_PARAM)).toBe('1');
+    expect(params.get(PENDING_APPLY_PARAM)).toBeNull();
   });
 });
 
@@ -59,6 +96,16 @@ describe('stripPendingApplyFromUrl', () => {
 
     expect(window.location.search).toBe('');
     expect(window.location.pathname).toBe('/jobs');
+  });
+
+  it('also removes a pending profile resume', () => {
+    setUrl(`/jobs?roleCategory=Engineering&${PENDING_PROFILE_PARAM}=1`);
+
+    stripPendingApplyFromUrl();
+
+    const params = new URLSearchParams(window.location.search);
+    expect(params.get(PENDING_PROFILE_PARAM)).toBeNull();
+    expect(params.get('roleCategory')).toBe('Engineering');
   });
 
   it('is a no-op when the parameter was never there', () => {

@@ -14,11 +14,13 @@ import { ProfileDetails } from '@/components/page/member-details/ProfileDetails'
 import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
 import { ContributionsDetails } from '@/components/page/member-details/ContributionsDetails';
 import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
+import { ContactDetails } from '@/components/page/member-details/ContactDetails';
 import { getMember } from '@/services/members.service';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { useMemberExperience } from '@/services/members/hooks/useMemberExperience';
 import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
-import { isJobSearchStatus, JOB_SEARCH_STATUS_OPTIONS, JobSearchStatus } from '@/services/jobs/job-board-viewer';
+import { isJobSearchStatus, JobSearchStatus } from '@/services/jobs/job-board-viewer';
+import { JobSearchStatusInput } from '@/components/page/jobs/JobSearchStatusInput/JobSearchStatusInput';
 import { SHOW_CV_IMPORT } from '@/services/members/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
@@ -167,18 +169,22 @@ export function JobProfilePane(props: JobProfilePaneProps) {
             so a stepper counting down to approval described a wait that holds
             nothing up. Deleted rather than hidden: it had one caller and one
             reason to exist.) */}
-      <p className={d.lede}>
-        {/* The pending line no longer defers the application — it says the
-              review isn't in the way. Same fact, opposite consequence.
+      {/* One lede, and only for the one person who needs telling something.
+          The pending line says the review isn't in the way — a fact nothing else
+          on the screen carries.
 
-              Everyone else reads the generic line, INCLUDING mid-application.
-              ("We send your profile with your application to <role>." stood in
-              that slot — a promise the letter step's own lede already makes, one
-              step before it can be acted on. Said once, where it is true.) */}
-        {pendingApproval && pendingRoleTitle
-          ? `Your account is under review — we'll email you when it's approved. It isn't holding up your application to ${pendingRoleTitle}, which goes as soon as you send it.`
-          : 'This is what hiring teams see when you apply.'}
-      </p>
+          Everyone else opens on the profile itself. ("This is what hiring teams
+          see when you apply." stood in that slot for them, and before it "We
+          send your profile with your application to <role>." Both described the
+          step rather than saying anything about it: a pane headed "Your profile",
+          reached by pressing Apply, does not need a sentence explaining that the
+          profile goes with the application. The step name, the rail and the
+          footer's own control already say so three times over.) */}
+      {pendingApproval && pendingRoleTitle && (
+        <p className={d.lede}>
+          {`Your account is under review — we'll email you when it's approved. It isn't holding up your application to ${pendingRoleTitle}, which goes as soon as you send it.`}
+        </p>
+      )}
 
       {isLoading && <div className={d.loading}>Loading profile…</div>}
 
@@ -220,7 +226,13 @@ export function JobProfilePane(props: JobProfilePaneProps) {
               and carries it in the lede two lines above, so the strip spent a
               full-width amber band restating what the screen already said, and
               it sat *outside* the card it was about. `Required to continue` says
-              the same thing where the answer is, in the words the footer uses.
+              the same thing where the answer is.
+
+              It is now the *only* place that says it. The footer used to carry a
+              second telling ("…to continue. Everything else is optional."); that
+              went, so this mark and the header card's strip are what a short
+              profile has to go on. Do not remove either without putting the
+              requirement somewhere a person can act on it.
 
               The amber card treatment stays: `missingData` is what marks the
               section, and that is the part the strip was only decorating. */}
@@ -265,6 +277,8 @@ export function JobProfilePane(props: JobProfilePaneProps) {
               />
             </div>
           </DetailsSection>
+
+          <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="drawer" />
 
           {/* 3–5. Optional sections — what a hiring team actually reads.
                    Real components: they edit in place and save themselves.
@@ -324,7 +338,10 @@ export function JobProfileDrawer({
   /** The footer press. Completeness comes from the pane's own (freshest) read. */
   onFooterAction: (args: { profileComplete: boolean }) => void;
 }) {
-  const [{ complete, hasRole, hasStatus }, setProfileState] = React.useState<ProfileState>({
+  /* Only `complete` is read here now — `hasRole`/`hasStatus` were what the
+     footer's missing-answer sentence was built from, and that sentence is gone.
+     The pane still reports all three; see `ProfileState`. */
+  const [{ complete }, setProfileState] = React.useState<ProfileState>({
     complete: false,
     hasRole: false,
     hasStatus: false,
@@ -350,11 +367,14 @@ export function JobProfileDrawer({
           back to the board, because nothing was waiting on it. */}
       <div className={d.footer}>
         <div className={d.footerInner}>
-          <p className={d.footerHint}>
-            {!complete
-              ? `${sentenceCase(missingHint(hasRole, hasStatus))} to continue. Everything else is optional.`
-              : 'Experience, skills and bio are optional — you can add them any time.'}
-          </p>
+          {/* Silent while the profile is short — what is missing is named on the
+              card that is missing it, and the footer restating it from down here
+              was the same complaint at the greater distance. Absent rather than
+              empty: `.footerInner` is a 12px-gap column on a phone, and a
+              zero-height paragraph still earns its gap. */}
+          {complete && (
+            <p className={d.footerHint}>Experience, skills and bio are optional — you can add them any time.</p>
+          )}
           <Button
             variant="primary"
             style="fill"
@@ -371,51 +391,21 @@ export function JobProfileDrawer({
   );
 }
 
-/** What's still owed, as a verb phrase the footer drops into its sentence. */
-export function missingHint(hasRole: boolean, hasStatus: boolean): string {
-  if (!hasRole && !hasStatus) return 'add your current role and choose a job search status';
-  if (!hasRole) return 'add your current role';
-  return 'choose a job search status';
-}
+/* (`missingHint` and `sentenceCase` stood here. They existed to build one
+    sentence — "Add your current role and choose a job search status to continue.
+    Everything else is optional." — for the two footers that showed it, and both
+    footers stopped showing it. The requirement they described is unchanged and
+    is still stated where it is actionable: `DataIncomplete`'s amber strip on the
+    card whose answer is missing.) */
 
-export const sentenceCase = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
-
-/* No `disabled` prop any more: the only thing that ever set it was "a save is in
-   flight", and an optimistic save has nothing to wait for. */
-function JobSearchStatusInput({
-  value,
-  onChange,
-}: {
-  value: JobSearchStatus | null;
-  onChange: (next: JobSearchStatus) => void;
-}) {
-  return (
-    <div className={d.statusRoot}>
-      {/* The pill carries the audience; this line carries the purpose. */}
-      <p className={d.statusPrivacyNote}>Used to decide whether to surface your profile to founders who are hiring.</p>
-
-      <div className={d.statusOptions} role="radiogroup" aria-label="Job search status">
-        {JOB_SEARCH_STATUS_OPTIONS.map((option) => (
-          <label key={option.value} className={clsx(d.statusOption, { [d.statusOptionOn]: value === option.value })}>
-            <input
-              type="radio"
-              name="job-search-status"
-              className={d.statusInput}
-              value={option.value}
-              checked={value === option.value}
-              onChange={() => onChange(option.value)}
-            />
-            <span className={d.statusIndicator} aria-hidden="true" />
-            <span className={d.statusText}>
-              <span className={d.statusLabel}>{option.label}</span>
-              <span className={d.statusHint}>{option.hint}</span>
-            </span>
-          </label>
-        ))}
-      </div>
-    </div>
-  );
-}
+/* (`JobSearchStatusInput` stood here, with its ~12 rules in this file's
+    stylesheet. It moved to `components/page/jobs/JobSearchStatusInput/` when the
+    sign-up form started asking the same question: that form is a light chunk on
+    purpose — the controller defers *this* module through `dynamic({ssr:false})`
+    so a logged-out visitor never downloads the member-editing stack — and
+    importing the input from here would have dragged all of it back. Same reason
+    `JobSignUpModal` copies the back glyph instead of importing it. The component
+    is unchanged but for a `name` prop; see its own header.) */
 
 // EditInvestorProfileDrawer's own glyph, copied so the Back control it sits in
 // is the same control, not a lookalike.

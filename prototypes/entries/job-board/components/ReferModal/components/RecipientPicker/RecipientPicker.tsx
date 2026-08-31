@@ -55,12 +55,10 @@ interface RecipientPickerProps {
  * (so it can't offer "Add ‹address›"). The chrome is transcribed from it rather than
  * reinvented — see `selectStyles`.
  *
- * **The value is a list of rows, not a wrap of chips**, because this field arrives
- * pre-filled: the modal seeds it with the hiring team, so the referrer's first job
- * here is to check a set someone else assembled. A name-only chip can't answer
- * "should Priya be on this?" — the role can, and it was already on the menu row
- * they picked from. `selectStyles.valueContainer` / `.multiValue` carry the layout;
- * `.row*` in the SCSS carries the contents.
+ * **The value is a list of rows, not a wrap of chips.** A name-only chip can't
+ * answer "should Priya be on this?" — the role can, and it was already on the
+ * menu row they picked from. `selectStyles.valueContainer` / `.multiValue` carry
+ * the layout; `.row*` in the SCSS carries the contents.
  */
 export function RecipientPicker(props: RecipientPickerProps) {
   const { label, teamMembers, isTeamLoading, teamName, excludeUids, value, onChange, menuPortalTarget, description } =

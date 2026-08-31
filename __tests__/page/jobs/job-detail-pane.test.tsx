@@ -144,6 +144,22 @@ describe('the job detail pane', () => {
       expect(link).toHaveAttribute('rel', 'noopener noreferrer');
     });
 
+    it('renders a Greenhouse-encoded body as copy, not as tags', () => {
+      renderPane({
+        role: role({
+          descriptionHtml:
+            '&lt;div class="content-intro"&gt;&lt;div class="c-virtual_list__item"&gt;' +
+            '&lt;p&gt;We are on a mission to responsibly accelerate the value of information.&lt;/p&gt;' +
+            '&lt;/div&gt;&lt;/div&gt;',
+        }),
+      });
+
+      expect(
+        screen.getByText(/We are on a mission to responsibly accelerate the value of information/),
+      ).toBeInTheDocument();
+      expect(screen.queryByText(/content-intro|c-virtual_list|&lt;div/i)).not.toBeInTheDocument();
+    });
+
     /**
      * One ingest — Protocol Labs' own board — ships bodies whose markdown
      * converter half ran. The pane repairs those before sanitizing, so all

@@ -48,7 +48,7 @@ export function TeamContactInfoView(props: Props) {
         {isTlOrAdmin && jobReferEmail && (
           <>
             <div className={s.jobReferEmail}>
-              <span className={s.jobReferEmailLabel}>Job referral email</span>
+              <span className={s.jobReferEmailLabel}>Job Referral/Application Contact</span>
               <a href={`mailto:${jobReferEmail}`} className={s.jobReferEmailValue}>
                 {jobReferEmail}
               </a>

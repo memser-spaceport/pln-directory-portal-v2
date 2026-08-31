@@ -246,10 +246,8 @@ export const useJobsAnalytics = () => {
   };
 
   /**
-   * `has_team_email` is the number that says whether the optional Team email
-   * field earned its place. Without it we ship a field, nobody can tell whether
-   * anyone fills it, and it survives on the strength of the argument for adding
-   * it rather than on evidence.
+   * Kept on the payload so existing dashboards do not break. The Team email
+   * field is gone from sign-up, so this is always false.
    */
   const onJobApplySignUpSubmitted = (
     args: JobApplyBaseParams & { trigger: JobApplyTrigger; has_team_email: boolean },
@@ -287,6 +285,38 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_FAILED, { ...args });
   };
 
+  /**
+   * A named step of the unified flow became visible. `job-detail-opened` and
+   * `job-apply-drawer-opened` still fire for review and profile; this one is
+   * the funnel that also covers application and the role-less sign-up modal.
+   */
+  const onJobApplyStepViewed = (
+    args: JobApplyBaseParams & { step: 'review' | 'profile' | 'application' | 'sign-up' },
+  ) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_STEP_VIEWED, { ...args });
+  };
+
+  /**
+   * Closed without submitting. `step` is where they left; skip this when the
+   * close is the success path (sign-up posted, profile-only saved).
+   */
+  const onJobApplyFlowClosed = (
+    args: JobApplyBaseParams & {
+      step: 'review' | 'profile' | 'application' | 'sign-up';
+      cover_letter_started: boolean;
+    },
+  ) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_FLOW_CLOSED, { ...args });
+  };
+
+  /**
+   * Pending applicant sent to the team's own posting. Without this, apply-clicked
+   * with no submit cannot be told apart from abandoning the in-app flow.
+   */
+  const onJobApplyExternalRedirected = (args: JobApplyBaseParams) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_EXTERNAL_REDIRECTED, { ...args });
+  };
+
   return {
     onJobsPageViewed,
     onJobsFiltersApplied,
@@ -322,5 +352,8 @@ export const useJobsAnalytics = () => {
     onJobApplyDrawerSaved,
     onJobApplySubmitted,
     onJobApplyFailed,
+    onJobApplyStepViewed,
+    onJobApplyFlowClosed,
+    onJobApplyExternalRedirected,
   };
 };

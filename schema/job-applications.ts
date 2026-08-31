@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { JOB_SEARCH_STATUS_VALUES } from '@/services/jobs/job-board-viewer';
+
 /**
  * The wire contract for in-app job applications, mirroring
  * `libs/contracts/src/schema/job-application.ts` on the backend.
@@ -64,7 +66,19 @@ export const jobBoardSignUpInputSchema = z
        reverse gap is silent: it would drop the field rather than reject it. Keep
        the two in step. */
     teamEmail: z.string().trim().email().max(200).optional(),
-    role: z.string().trim().min(1).max(200),
+    /* Where they are with job hunting — the other half of `isProfileComplete`,
+       so an account created here comes back from sign-in ready to apply.
+
+       Optional on the wire though the form requires it: this schema describes
+       what the endpoint accepts, and the endpoint accepts a sign-up without one
+       (it predates the field). Making it required here would mean this client
+       could not express a request the server is happy to serve. The form is
+       where "always ask" belongs, and `accountSchema` is where it is enforced. */
+    jobSearchStatus: z.enum(JOB_SEARCH_STATUS_VALUES).optional(),
+    /* Optional on the wire though the form requires LinkedIn and treats role as
+       free. Same reason as `jobSearchStatus`: this schema describes what the
+       endpoint accepts. The form is where "always ask LinkedIn" belongs. */
+    role: z.string().trim().min(1).max(200).optional(),
     linkedinHandler: z.string().trim().min(1).max(200).optional(),
     isTeamNew: z.boolean().optional(),
     team: z

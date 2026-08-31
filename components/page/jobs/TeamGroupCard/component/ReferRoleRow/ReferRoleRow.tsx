@@ -80,21 +80,17 @@ interface ReferRoleRowProps {
  *
  * With `apply` present (the in-app apply flow), the trailing slot becomes a real
  * Apply button — rendered regardless of `applyUrl`, which makes link-less roles
- * appliable for the first time — the external arrow stays as the link out to the
- * posting, and Refer drops to the quiet text button (Apply is what the row is
- * for; Refer is the sideline). A row already applied to reports "Applied" in the
- * same geometry instead of offering again.
+ * appliable for the first time — and Refer drops to the quiet text button (Apply
+ * is what the row is for; Refer is the sideline). When the row opens the job
+ * drawer, the external arrow is gone: the drawer is the way to read the posting.
+ * A row already applied to reports "Applied" in the same geometry instead of
+ * offering again.
  */
 export function ReferRoleRow(props: ReferRoleRowProps) {
   const { role, teamId, teamName, currentUser, source, onClick, apply, team } = props;
 
   const goToLogin = useLoginRedirect();
 
-  /* Refer is for members. It used to render for everyone and bounce a
-     logged-out press to Privy, which is an offer that turns into a login wall —
-     the board already asks for an account in the banner and again at Apply, and
-     this was the third ask, on the control nobody came for. */
-  const canRefer = Boolean(currentUser);
   /* The way out to the company's own posting — withheld from the two people who
      came here to apply through this board. See `canSeeOriginalPosting`. */
   const showPosting = canSeeOriginalPosting({ isLoggedIn: Boolean(currentUser), userInfo: currentUser });
@@ -197,27 +193,24 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
         )}
 
         <div className={s.actionButtons}>
-          {canRefer &&
-            (inAppApply ? (
-              /* Quiet text button: with a filled Apply in the row, the two are not
+          {inAppApply ? (
+            /* Quiet text button: with a filled Apply in the row, the two are not
                peers — Apply is what the row is for, Refer is the sideline. */
-              <Button size="s" style="link" variant="secondary" className={ap.referTone} onClick={onRefer}>
-                Refer
-              </Button>
-            ) : (
-              <Button size="s" style="border" variant="neutral" className={s.referButton} onClick={onRefer}>
-                Refer
-              </Button>
-            ))}
+            <Button size="s" style="link" variant="secondary" className={ap.referTone} onClick={onRefer}>
+              Refer
+            </Button>
+          ) : (
+            <Button size="s" style="border" variant="neutral" className={s.referButton} onClick={onRefer}>
+              Refer
+            </Button>
+          )}
 
           <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />
 
           {showPosting &&
             hasApplyUrl &&
-            (inAppApply || viewJob ? (
-              /* The arrow's job changes when Apply moves in-app: it stays as the
-                 link out to the posting — reading the ad and applying are
-                 different acts — and survives the applied state. */
+            !viewJob &&
+            (inAppApply ? (
               <a
                 className={`${s.applyArrow} ${ap.arrowTone}`}
                 aria-label={`Open the ${roleTitle} posting`}

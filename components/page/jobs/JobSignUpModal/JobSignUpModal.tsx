@@ -1,21 +1,26 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { FormProvider, useForm, useWatch, type Resolver } from 'react-hook-form';
+import { useEffect, useState } from 'react';
+import { FormProvider, useForm, type Resolver } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 
 import type { IJobRole } from '@/types/jobs.types';
 
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
-import { FormField } from '@/components/form/FormField';
-import { FormSelect } from '@/components/form/FormSelect';
 import { CloseIcon } from '@/components/icons';
-import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
-// `FormField`'s own label pair, for the two labels this form places by hand
-// because they carry a mark and the `label` prop only takes a string.
-import ff from '@/components/form/FormField/FormField.module.scss';
+import {
+  AccountFields,
+  JobSearchStatusField,
+  SignUpReviewNote,
+  accountSchema,
+  toAccountDetails,
+  signUpFailureMessage,
+  EMPTY_ACCOUNT_FORM,
+  type AccountDetails,
+  type AccountFormData,
+  type JobSignUpResult as AccountSignUpResult,
+} from './accountFields';
 // Demo Day's profile-drawer chrome, for the mobile page's `← Back` header — the
 // same stylesheet `JobProfileDrawer` wears one step later in this flow, so a
 // phone user meets one header rather than two designs of one.
@@ -37,38 +42,33 @@ const BackIcon = () => (
   </svg>
 );
 
-export interface JobSignUpDetails {
-  name: string;
-  email: string;
-  /**
-   * The address at the team they named — optional, and deliberately NOT a
-   * second identity.
-   *
-   * A member has exactly one email in this product and it is who they are:
-   * Privy signs them in on it, and Settings presents it as a verified address
-   * you *change*, never one of several you add. This one is evidence for the
-   * company they claim, for the PL team reviewing the account. Nothing
-   * verifies it.
-   */
-  teamEmail: string;
-  linkedin: string;
-  role: string;
-  /** The network team they picked as their current company, if any. */
-  teamUid: string | null;
-}
+/**
+ * What this form yields. Defined by `accountFields`, which owns the fields that
+ * produce it; the name is kept here because this is where the flow's caller
+ * (`JobApplyFlowController`) has always imported it from.
+ */
+export type JobSignUpDetails = AccountDetails;
 
-export type JobSignUpResult = { success: true } | { success: false; emailTaken?: boolean };
+/** Also `accountFields`', for the same reason and re-exported from the same
+ *  place the caller has always imported it. */
+export type JobSignUpResult = AccountSignUpResult;
 
 interface JobSignUpModalProps {
   open: boolean;
   onClose: () => void;
   /**
-   * The role they pressed Apply on, when that's how they got here — the modal
-   * names it, because the form is the continuation of that click. Null when
-   * opened by a plain Sign up press (header/banner); the header goes generic.
+   * The role they pressed Apply on, when that's how they got here. Null when
+   * opened by a plain Sign up press (header/banner).
+   *
+   * **Nothing reads this today** — the header stopped forking on it (see the
+   * note above `.text` in the render). Kept, and deliberately: dropping the role
+   * from a form opened by pressing Apply on that role is a copy call that could
+   * reasonably be made the other way after someone looks at it, and the prop is
+   * what keeps that a one-file change. Delete both of these once the heading has
+   * survived a release.
    */
   role: IJobRole | null;
-  /** The hiring team, when `role` is set. Empty otherwise. */
+  /** The hiring team, when `role` is set. Empty otherwise. Unused; see `role`. */
   teamName: string;
   /**
    * Filling this in IS the sign-up (the Demo Day shape: a plain form that
@@ -81,189 +81,45 @@ interface JobSignUpModalProps {
   onSignIn: () => void;
 }
 
-/** `company` is a react-select Option — `FormSelect` writes the whole option
- *  object into form state — flattened to its value (team uid) on the way out. */
-type SignUpFormData = {
-  email: string;
-  teamEmail: string;
-  name: string;
-  linkedin: string;
-  role: string;
-  company?: { label: string; value: string } | null;
-};
-
-const EMPTY_FORM: SignUpFormData = {
-  email: '',
-  teamEmail: '',
-  name: '',
-  linkedin: '',
-  role: '',
-  company: null,
-};
-
-// Transcribed from ApplyForDemoDayModal's `applySchema` — same email domain-dot
-// test, same LinkedIn handle-or-URL pair of patterns. `role` is plainly
-// required here, because there is no branch in which it isn't.
-const signUpSchema = yup.object({
-  email: yup
-    .string()
-    .email('Must be a valid email')
-    .test('domain-has-dot', 'Email domain must contain a dot (e.g., example.com)', (value) => {
-      if (!value) return true; // Let required() handle empty values
-      const emailParts = value.split('@');
-      if (emailParts.length !== 2) return false;
-      return emailParts[1].includes('.');
-    })
-    .required('Email is required'),
-  /* The same shape tests as `email`, minus `required()` — an optional field must
-     validate what it is given and stay silent when it is given nothing. Written
-     out rather than factored into a shared rule with `email`: yup schemas are
-     objects, not compositions, and the one thing that differs between these two
-     is the thing a reader most needs to see side by side. */
-  teamEmail: yup
-    .string()
-    .defined()
-    .test('team-email-shape', 'Must be a valid email', (value) => {
-      if (!value || value.trim() === '') return true;
-      return yup.string().email().isValidSync(value.trim());
-    })
-    .test('team-email-domain-has-dot', 'Email domain must contain a dot (e.g., example.com)', (value) => {
-      if (!value || value.trim() === '') return true;
-      const parts = value.trim().split('@');
-      if (parts.length !== 2) return false;
-      return parts[1].includes('.');
-    }),
-  name: yup.string().required('Name is required'),
-  linkedin: yup
-    .string()
-    .defined()
-    .test('linkedin-url', 'Please enter a valid LinkedIn handle or URL', (value) => {
-      if (!value || value.trim() === '') return true; // Allow empty values
-
-      const trimmedValue = value.trim();
-      const linkedinUrlPattern = /^(https?:\/\/)?(www\.)?linkedin\.com\/(in|pub|profile)\/[\w-]+\/?$/i;
-      const linkedinHandlePattern = /^[\w-]{3,100}$/;
-
-      return linkedinUrlPattern.test(trimmedValue) || linkedinHandlePattern.test(trimmedValue);
-    }),
-  role: yup.string().required('Role is required'),
-  company: yup.mixed<{ label: string; value: string }>().nullable(),
-});
-
-/**
- * `(Optional)`, hugging the label it qualifies.
- *
- * Production's own idiom, not a new one: `SignupWizard` marks its free-text
- * field this way — a span set immediately after the label text at weight 400 in
- * the muted tone, against the label's own 500 — and that is the only other
- * place in the product that marks a field optional at all. Local to this file
- * because two adjacent usages in one form don't earn a shared module; promote
- * it if a third site appears.
- */
-const OptionalMark = () => <span className={s.optionalMark}>(Optional)</span>;
-
-/**
- * Addresses a person has because they are a person, rather than because of
- * where they work. Deliberately a *closed list of the obvious ones* and not a
- * rule: it is used only to change a sentence, never to refuse a value, so a
- * domain it has never heard of costs nothing. The inverse test — "does this
- * domain look corporate?" — is unanswerable, which is why nothing here tries it.
- */
-const PERSONAL_EMAIL_DOMAINS = new Set([
-  'gmail.com',
-  'googlemail.com',
-  'yahoo.com',
-  'yahoo.co.uk',
-  'ymail.com',
-  'hotmail.com',
-  'hotmail.co.uk',
-  'outlook.com',
-  'live.com',
-  'msn.com',
-  'icloud.com',
-  'me.com',
-  'mac.com',
-  'aol.com',
-  'proton.me',
-  'protonmail.com',
-  'pm.me',
-  'gmx.com',
-  'gmx.de',
-  'web.de',
-  'mail.com',
-  'mail.ru',
-  'yandex.ru',
-  'zoho.com',
-  'fastmail.com',
-  'hey.com',
-  'duck.com',
-  'qq.com',
-  '163.com',
-]);
-
-const isPersonalEmailDomain = (email: string): boolean => {
-  const domain = email.trim().toLowerCase().split('@')[1];
-  return !!domain && PERSONAL_EMAIL_DOMAINS.has(domain);
-};
-
-/**
- * What the email field says when the address given is a personal one.
- *
- * **Why anything is said at all.** The copy below the form already tells the
- * person the PL team reviews new accounts. A work address is what makes that
- * review answerable without a conversation — evidence for the claim the same
- * form makes two fields down, where they name their current company. That is
- * the one thing here the interface cannot show for itself.
- *
- * **Why it is a preference and not a rule.** Contractors, people between roles,
- * researchers and anyone at a company that hasn't got as far as email all belong
- * on this network, and a domain check would turn a preference into a wall in
- * front of exactly them. The schema is unchanged and every address still
- * submits.
- *
- * **Why there is no standing version of this line.** A line that is always there
- * spends its height explaining a preference to the people already complying with
- * it, and at a short window pushes "Already have an account? Sign in" under the
- * fold — the exact regression the copy block below was cut down to fix. It is
- * also read only by the people who read lines, and someone typing their personal
- * address on autopilot is by definition not one of them. The ask is made where
- * everyone meets it — the placeholder — and the sentence kept for the one moment
- * it is news.
- */
-const PERSONAL_EMAIL_NOTE = 'Add your team email below and the PL team can see you’re at the company you name.';
+/* (The form type, `EMPTY_FORM`, the yup schema, `OptionalMark`, the
+    personal-domain list and its note all lived here. They moved to
+    `./accountFields`, which now owns the fields themselves — see its header for
+    why, and note that everything below this line is chrome: the dialog, its
+    copy, its mobile page and its two doors.) */
 
 /**
  * Sign up by applying: the form that creates the account is the application
  * form. Promoted from the job-board prototype; see its header for the full
- * design rationale (why filling in details IS the sign-up, why the modal names
- * the role, why the sign-in escape is a link below the footer).
+ * design rationale (why filling in details IS the sign-up, why the sign-in
+ * escape is a link below the footer). The prototype's third argument — that the
+ * modal should name the role it was opened from — no longer holds; see the note
+ * above `.text` in the render, and `role` on the props interface for why the
+ * prop outlived it.
  *
- * One deliberate copy change from the prototype: nothing here claims details
- * are sent to the hiring team or that an application happens — the request
- * goes to PL admins for review and no application exists yet. The button
- * always reads "Create account", and the body names the wait. Claiming
- * otherwise would violate the flow's own pending-never-claims-applied rule at
- * the exact moment trust is being asked for.
+ * One deliberate copy change from the prototype: nothing here claims details are
+ * sent to the hiring team or that an application happens — no application exists
+ * yet, and the button always reads "Create account". Claiming otherwise would
+ * violate the flow's own pending-never-claims-applied rule at the exact moment
+ * trust is being asked for.
+ *
+ * What the body no longer does is *name a wait*. It used to, for every reader,
+ * on the premise that the request "goes to PL admins for review". That is true
+ * only of a sign-up naming a network team; without one the account is a Job
+ * Aspirant, which no admin reviews. `SignUpReviewNote` splits the sentence on
+ * that tick — see its note.
  */
-export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSignIn }: JobSignUpModalProps) {
-  const methods = useForm<SignUpFormData>({
-    defaultValues: EMPTY_FORM,
-    resolver: yupResolver(signUpSchema) as Resolver<SignUpFormData>,
+export function JobSignUpModal({ open, onClose, onSignUp, onSignIn }: JobSignUpModalProps) {
+  const methods = useForm<AccountFormData>({
+    defaultValues: EMPTY_ACCOUNT_FORM,
+    resolver: yupResolver(accountSchema) as Resolver<AccountFormData>,
     mode: 'onBlur',
   });
 
   const {
     handleSubmit,
     reset,
-    control,
     formState: { isSubmitting },
   } = methods;
-
-  /* Watched here rather than inside `FormField`, which watches its own value
-     only to drive a character counter — the *description* is the host's to
-     compose, and this is the host. `useWatch` re-renders on the keystroke that
-     completes a domain, which is when the note has something to say. */
-  const email = useWatch({ control, name: 'email' }) ?? '';
 
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -272,7 +128,7 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
   // close (below) rather than here — setState in an effect body cascades.
   useEffect(() => {
     if (open) {
-      reset(EMPTY_FORM);
+      reset(EMPTY_ACCOUNT_FORM);
     }
   }, [open, reset]);
 
@@ -281,39 +137,11 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
     onClose();
   };
 
-  // The same teams source production's sign-up wizard uses, minus projects —
-  // the field asks for a current company, not a contribution.
-  const { data: formOptions } = useMemberFormOptions();
-  const companyOptions = useMemo(
-    () =>
-      (formOptions?.teams ?? [])
-        .map((item: { teamUid: string; teamTitle: string }) => ({ value: item.teamUid, label: item.teamTitle }))
-        .sort((a: { label: string }, b: { label: string }) => a.label.localeCompare(b.label)),
-    [formOptions],
-  );
-
-  const onSubmit = async (data: SignUpFormData) => {
+  const onSubmit = async (data: AccountFormData) => {
     setServerError(null);
-    const result = await onSignUp({
-      name: data.name.trim(),
-      email: data.email.trim(),
-      teamEmail: (data.teamEmail ?? '').trim(),
-      linkedin: (data.linkedin ?? '').trim(),
-      role: data.role.trim(),
-      teamUid: data.company?.value ?? null,
-    });
+    const result = await onSignUp(toAccountDetails(data));
     if (!result.success) {
-      /* Named rather than vague. The earlier version deliberately blurred
-         "email exists" into a generic message to avoid an account-enumeration
-         oracle — but the endpoint answers 409 either way, so anyone probing
-         reads it off the status code and the vagueness only confuses the
-         person who genuinely forgot they had an account. (The oracle is worth
-         raising about the endpoint itself, not papering over here.) */
-      setServerError(
-        result.emailTaken
-          ? 'This email already has an account. Sign in instead — your application picks up from there.'
-          : 'We couldn’t create your account just now. Please try again.',
-      );
+      setServerError(signUpFailureMessage(result));
     }
   };
 
@@ -347,148 +175,50 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
       </div>
 
       <div className={`${s.content} ${s.pageBody}`}>
+        {/* One header, both doors in.
+            This used to fork on `role`: "Apply for {roleTitle}" when the modal
+            was opened from a posting, a generic line otherwise. The argument was
+            that the form is the continuation of that click and should say so.
+
+            What it also said was "Apply for …" at the top of a form that applies
+            for nothing — this press creates an account and files no application,
+            which is the one thing the rest of this file goes out of its way not
+            to claim. The heading was making the promise the button refuses.
+
+            So it names what the press actually produces, and the role keeps
+            being named where it bears on a decision: the drawer's step 1
+            masthead behind this, and the application step's footer after it.
+            The same pair as `JobAccountPane`'s, to the character — see the note
+            there on keeping the two doors indistinguishable. */}
         <div className={s.text}>
-          <h2 className={s.title}>{role ? `Apply for ${role.roleTitle}` : 'Sign up to apply'}</h2>
-          <div className={s.subtitle}>
-            {role
-              ? `${teamName} · Creating your LabOS account is the first step.`
-              : 'One profile applies to every open role across the Protocol Labs network.'}
-          </div>
+          <h2 className={s.title}>Create LabOS Job profile</h2>
+          <div className={s.subtitle}>Discover open roles across the network — and let founders reach out.</div>
         </div>
 
         <FormProvider {...methods}>
           <form className={s.form} noValidate onSubmit={handleSubmit(onSubmit)}>
-            {/* Email leads: it is the field the account is created on, and the
-                one thing being asked for that the person may hesitate over.
-
-                **The label stays "Email address".** "Work email" would be a rule
-                the form does not keep — every address is accepted — and a label
-                that needs a sentence underneath explaining when it doesn't apply
-                is the label being wrong. The preference lives in the two places
-                a preference can: the shape shown in the box, and the reason
-                given under it.
-
-                **The placeholder is an exemplar, not an instruction.** It read
-                "Enter your email", which is this group's usual voice but also
-                the one placeholder here doing no work, since nobody needs
-                telling what an email field wants. `you@company.com` is seen by
-                everyone, including the people who never read a description. The
-                precedent is one field down: LinkedIn's placeholder is a worked
-                example for exactly the same reason.
-
-                **The note is `undefined` rather than a standing line** — see
-                `PERSONAL_EMAIL_NOTE`. `description` also yields to the error
-                slot in `FormField`, which is the right precedence: a malformed
-                address is a problem, a personal one is a preference, and only
-                one of them should be talking at a time. */}
-            <FormField
-              name="email"
-              label="Email address"
-              placeholder="you@company.com"
-              isRequired
-              description={isPersonalEmailDomain(email) ? PERSONAL_EMAIL_NOTE : undefined}
-            />
-
-            <FormField name="name" label="Full name" placeholder="Enter your full name" isRequired />
-
-            {/* Marked, and it has to be. Adding `(Optional)` to Team email gave
-                this form a *system* — required carries `*`, optional carries the
-                mark — and a system with one member is just an exception.
-                LinkedIn is the only other field here that can be left blank, so
-                leaving it unmarked would make it the one input whose state you
-                work out by noticing an absent asterisk.
-
-                The label is hand-rolled because `FormField` types `label` as a
-                `string`, so a styled `(Optional)` can't go through it — and
-                `SignupWizard`, the one other place in the product that marks a
-                field optional, does exactly this. One improvement on that
-                source: it uses a `<div>`, so its label is decoration and clicking
-                it focuses nothing. `FormField` renders its input with
-                `id={name}`, so a real `<label htmlFor>` associates properly.
-
-                The description says what the field is *for*: an optional field
-                with no stated payoff is one people skip. */}
-            <div className={s.column}>
-              <div className={ff.labelWrapper}>
-                <label className={ff.label} htmlFor="linkedin">
-                  LinkedIn profile
-                  <OptionalMark />
-                </label>
-              </div>
-              <FormField
-                name="linkedin"
-                placeholder="eg., johndoe or https://linkedin.com/in/johndoe"
-                description="Shown on your profile, alongside your other links."
-              />
-            </div>
-
-            <div className={s.column}>
-              <div className={s.inputsLabel}>Current role &amp; company</div>
-              <div className={s.inputsWrapper}>
-                <FormField name="role" placeholder="Enter your current role" />
-                <span className={s.separator}>@</span>
-                <FormSelect name="company" placeholder="Select a company" isClearable options={companyOptions} />
-              </div>
-            </div>
-
-            {/* Last, and directly under the company — not beside `Email
-                address`. It is not a second inbox and certainly not a second
-                login: it is *evidence for the answer above it*, which is why it
-                sits with that answer rather than with the address the account is
-                created on. Putting the two email fields side by side would make
-                them look like a choice, and the person would have to work out
-                which one signs them in.
-
-                The description doesn't open with "Optional." — the mark on the
-                label says that, and a field announcing its own optionality twice
-                in two lines spends the description's first word on something
-                already visible. What is left is the payoff, which is the part
-                that earns the field. `PERSONAL_EMAIL_NOTE` points down here when
-                it fires.
-
-                Nothing is verified. No code is sent and no domain is checked
-                against the selected team — whether an unverified claim is worth
-                anything is a question about the review process, not about the
-                field. */}
-            <div className={s.column}>
-              <div className={ff.labelWrapper}>
-                <label className={ff.label} htmlFor="teamEmail">
-                  Team email
-                  <OptionalMark />
-                </label>
-              </div>
-              <FormField
-                name="teamEmail"
-                placeholder="you@yourteam.xyz"
-                description="Your address at the company above, so the PL team can see where you work."
-              />
-            </div>
+            <AccountFields />
+            {/* Below the account questions and framed as one more of them: this
+                form is a flat column in a 440px dialog, so a card of its own
+                would be the only card on it. The pane frames it differently. */}
+            <JobSearchStatusField />
 
             <div className={s.bottomText}>
-              {/* One line, and only the part nothing else on the card says.
-                  Nothing is sent to any team by this press, and no application
-                  exists yet — approval is what unlocks applying, and the
-                  sentence says so.
+              {/* One line, and only the part nothing else on the card says: this
+                  press sends nothing to a hiring team.
 
-                  This ran to two sentences and four rendered lines, which pushed
-                  "Already have an account? Sign in" off the bottom of any window
-                  shorter than ~730px — hiding the escape from precisely the
-                  people who need it, since someone who already has an account
-                  has no use for the form above it. What it lost was duplication:
-                  "Submitting this creates your LabOS account" was the third
-                  telling, after the subtitle and the submit button.
+                  It lives in `accountFields` rather than here because it follows
+                  the PL-team tick — a sign-up that names a network team is
+                  reviewed, one that doesn't is not, and one sentence cannot be
+                  true of both. See its own note for what the single line used to
+                  claim and why both of its clauses were false.
 
-                  **Deliberately not the prototype's line.** The prototype says
-                  "you can browse and apply while that runs", which is true only
-                  after the flow change that lets a new account apply the moment
-                  it exists. Here approval still gates applying — that is what
-                  the 403 in `job-applications.service.ts` is for — so copy
-                  promising otherwise would describe a wall the board has not
-                  removed. */}
-              <p className={s.body}>
-                The PL team reviews new accounts first — you can browse every role while you wait, and applying opens up
-                once you&apos;re approved.
-              </p>
+                  The length constraint is still live and is recorded there: this
+                  ran to four rendered lines once and pushed "Already have an
+                  account? Sign in" off the bottom of any window shorter than
+                  ~730px, hiding the escape from the only people with no use for
+                  the form above it. */}
+              <SignUpReviewNote />
               <p className={s.bodySecondary}>
                 By submitting this form, you agree to our{' '}
                 <a

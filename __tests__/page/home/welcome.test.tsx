@@ -4,58 +4,81 @@ import { render, screen } from '@testing-library/react';
 import { Welcome } from '@/components/page/home/Welcome/Welcome';
 
 const mockOnLoginBtnClicked = jest.fn();
-const mockOnSignUpBtnClicked = jest.fn();
 
 jest.mock('@/components/core/navbar/components/LoginBtn', () => {
   return {
     __esModule: true,
-    LoginBtn: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-      <button type="button" className={className} onClick={() => mockOnLoginBtnClicked()}>
+    LoginBtn: ({
+      children,
+      className,
+      onClick,
+    }: {
+      children: React.ReactNode;
+      className?: string;
+      onClick?: () => void;
+    }) => (
+      <button
+        type="button"
+        className={className}
+        onClick={() => {
+          onClick?.();
+          mockOnLoginBtnClicked();
+        }}
+      >
         {children}
       </button>
     ),
   };
 });
 
-jest.mock('@/components/page/home/Welcome/components/SignUpBtn', () => {
-  return {
-    __esModule: true,
-    SignUpBtn: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-      <button type="button" className={className} onClick={() => mockOnSignUpBtnClicked()}>
-        {children}
-      </button>
-    ),
-  };
-});
+const mockOnWelcomeSignInClicked = jest.fn();
+jest.mock('@/analytics/home.analytics', () => ({
+  useHomeAnalytics: () => ({
+    onWelcomeSignInClicked: () => mockOnWelcomeSignInClicked(),
+  }),
+}));
 
 describe('Welcome', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('leads with the personalization offer and the team count', () => {
-    render(<Welcome teamCount={1019} />);
-    expect(screen.getByText(/Personalize your updates from/i)).toBeInTheDocument();
-    expect(screen.getByText(/1,019\s+PL network teams/i)).toBeInTheDocument();
+  it('leads with the team count and the ordering offer', () => {
+    render(<Welcome teamCount={1185} />);
+    expect(screen.getByText(/Updates from/i)).toHaveTextContent('Updates from 1,185 teams, ordered around your work');
   });
 
-  it('renders the mechanism line and both doors', () => {
-    render(<Welcome teamCount={1019} />);
+  it('highlights only the count', () => {
+    const { container } = render(<Welcome teamCount={1185} />);
+    const highlights = container.querySelectorAll('[class*="titleHighlight"]');
+    expect(highlights).toHaveLength(1);
+    expect(highlights[0]).toHaveTextContent('1,185');
+  });
+
+  it('renders the mechanism line and the sign-in door', () => {
+    render(<Welcome teamCount={1185} />);
     expect(
-      screen.getByText(/reorders around your skills, your focus areas, and the teams you follow/i),
+      screen.getByText(
+        /Sign in and the updates matching your skills, your team's work, and the teams you follow show first/i,
+      ),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Sign In/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Create account/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Create account/i })).not.toBeInTheDocument();
   });
 
   it('singularizes the count', () => {
     render(<Welcome teamCount={1} />);
-    expect(screen.getByText(/1\s+PL network team$/i)).toBeInTheDocument();
+    expect(screen.getByText(/Updates from/i)).toHaveTextContent('Updates from 1 team, ordered around your work');
   });
 
   it('drops the count when it is unavailable', () => {
     render(<Welcome />);
-    expect(screen.getByText(/Personalize your updates from/i)).toBeInTheDocument();
-    expect(screen.getByText(/^PL network teams$/i)).toBeInTheDocument();
+    expect(screen.getByText(/Updates from/i)).toHaveTextContent('Updates from teams, ordered around your work');
+  });
+
+  it('fires the welcome sign-in event from the CTA', () => {
+    render(<Welcome teamCount={1185} />);
+    screen.getByRole('button', { name: /Sign In/i }).click();
+    expect(mockOnWelcomeSignInClicked).toHaveBeenCalledTimes(1);
   });
 });

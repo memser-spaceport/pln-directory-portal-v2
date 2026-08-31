@@ -58,7 +58,7 @@
 // The page's header, below 960 only — `EditInvestorProfileDrawer`'s own bar,
 // which is the same sticky 64px white row with `← Back` that the profile drawer
 // shows one step later in this flow. Above 960 the floating ✕ takes over.
-.mobileHeader {
+.mobileHeader.mobileHeader {
   @include media.tablet-landscape {
     display: none;
   }
@@ -163,6 +163,89 @@
   gap: 24px;
 }
 
+// `AccountFields layout="stack"` — the modal's arrangement, and the default.
+.fieldStack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+// `AccountFields layout="grid"` — email and full name on one line.
+//
+// **Only the apply flow's details step asks for this**, and only because that
+// pane is two cards tall inside a drawer; the modal keeps the stack, where the
+// fields sit in a 440px dialog with no height to save. Lives here rather than in
+// the pane's own sheet for the reason `accountFields.tsx` gives about its other
+// classes: the group's layout belongs to the group, and a caller reaching in to
+// re-space fields it does not own is how two hosts start disagreeing.
+//
+// One column until tablet-landscape: two 50% inputs on a phone are two inputs
+// too narrow to read the placeholder in.
+.fieldPair {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+
+  @include media.tablet-landscape {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+}
+
+// The "I'm already a member of a PL Network team" row.
+//
+// **The text is `FormField`'s label, not a voice of its own.** It began at
+// `--foreground-neutral-primary` (#0a0c11) on the reasoning that a claim you make
+// about yourself is not a field label. On screen it just read as heavier than
+// everything around it: this line sits between "LinkedIn profile" and "Current
+// role", both of which are label-weight slate, and the near-black jumped out of
+// the stack like an error. The size and weight were already `FormField`'s — only
+// the colour was arguing, so only the colour changed.
+//
+// Matched to `FormField.module.scss`'s `.label`: 14px / 500 / #475569, plus the
+// same `liga`/`clig` pair every label in this group carries. The colour goes
+// through the PL secondary token, exactly as `.inputsLabel` below does and for
+// the reason given there — #475569 is a Tailwind slate, and #455468 is the same
+// colour with a name that is true.
+//
+// `line-height: 20px` is the one number NOT taken from `.label` (which ships 18).
+// The box beside it is 20px, and matching them is what puts the text on the
+// checkbox's centre line without a nudge.
+//
+// `align-items: flex-start` rather than `center`: at drawer width the label can
+// wrap, and centring a 20px box against two lines of text floats it into the
+// gutter between them. Against a single line the two are indistinguishable, so
+// the rule that also survives wrapping is the one to ship.
+//
+// `width: fit-content` keeps the hit area to the words. A full-width label would
+// make the whole row clickable, including the empty space to its right, which is
+// a tick nobody meant to make.
+.checkboxRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: fit-content;
+  cursor: pointer;
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+// The paired row sits directly under its checkbox, so it gets a tighter gap than
+// the group's 24px rhythm: at 24 the switch and the thing it switches on read as
+// two unrelated fields.
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .column {
   display: flex;
   flex-direction: column;
@@ -199,6 +282,24 @@
   margin-left: 4px;
   font-weight: 400;
   color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// The other half of the pair: what this row wears once the PL-team tick makes
+// its two fields required. Same three declarations `FormField.module.scss` gives
+// `.label.required:after` — `content: '*'`, `color: red`, `margin-left: 0.25rem`
+// — so the mark is the product's own, not a second dialect of "required".
+//
+// A span with the character in the markup rather than that `:after`, because the
+// pseudo-element hangs off `.label`, which this row does not wear. The literal
+// `red` is copied deliberately: the required asterisk is one colour everywhere
+// in this product, and picking a nearer token here would make this the one label
+// that disagrees.
+//
+// Size, line-height and letter-spacing unset for the same reason as above —
+// inherited from the label, so the mark sits on the words' own baseline.
+.requiredMark {
+  margin-left: 0.25rem;
+  color: red;
 }
 
 .inputsWrapper {

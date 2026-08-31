@@ -106,10 +106,8 @@ export function ForYouBanner({ onUpdateProfile }: ForYouBannerProps) {
         local.noteRow,
       )}
     >
-      {/* The second half of this sentence is verbatim the second half of
-          `SignedOutBanner`'s, so the promise made to a visitor and the label
-          shown to a member cannot drift into two different claims. Only the
-          opening differs, because only one of them has a feed yet. */}
+      {/* Same three inputs `SignedOutBanner` names for a visitor. The wording
+          differs because this is a label on a feed you already have. */}
       <span>Your feed is based on your skills, your focus areas, and the teams you follow.</span>
       <Button
         size="s"

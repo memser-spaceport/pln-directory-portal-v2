@@ -38,3 +38,9 @@ export const FEED_COMMENTS_STALE_TIME = 60_000;
 // Client-side because it cannot be pushed down: NodeBB's /api/recent only
 // accepts ?term=daily|weekly|monthly — there is no 14-day term.
 export const FEED_FORUM_POST_WINDOW_DAYS = 14;
+
+// For You is a tighter cut of the same list: every post *created* in the last
+// 7 days, not every thread that saw activity. All / Discussions keep measuring
+// lastActivityAt over FEED_FORUM_POST_WINDOW_DAYS so an older thread that got a
+// reply this week still shows there — it just isn't "posted this week".
+export const FEED_FOR_YOU_FORUM_POST_WINDOW_DAYS = 7;

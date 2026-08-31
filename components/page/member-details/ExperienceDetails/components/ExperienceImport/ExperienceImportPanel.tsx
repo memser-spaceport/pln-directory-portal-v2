@@ -121,19 +121,30 @@ const DROPZONE_COPY = {
  *
  * **Prose, not a control.** Nothing here is pressable, so there is nothing to
  * choose between it and Upload, and the last sentence sends the person back to
- * the box that is already open. One sentence rather than three steps, because
- * the two clicks are one menu.
+ * the box that is already open. Two short sentences behind a question, rather
+ * than three numbered steps, because the two clicks are one menu.
  *
  * A three-step "open LinkedIn → More → Save to PDF" block used to sit *above*
  * the box, behind a second door labelled "No CV? Your LinkedIn profile works
  * too". Both went: the block existed to explain why the thing the label promised
  * wasn't what the door did, which is a sentence no door should need. The facts
  * are the same, said once, under the box they are about.
+ *
+ * The opening question is that door's one good idea, kept without the door. "No
+ * CV?" was the right thing to ask and the wrong thing to make pressable — asking
+ * it in the prose costs nothing and still lets a reader who has a CV stop at the
+ * question mark.
  */
 const LINKEDIN_HINT = {
   /* Split so the menu path can carry a little weight — it is the part someone
-     scans back to while looking at LinkedIn rather than at this page. */
-  before: 'On LinkedIn, open your profile and choose ',
+     scans back to while looking at LinkedIn rather than at this page.
+
+     It opens on the question rather than the instruction. Under a box that says
+     "Drag & drop your CV", a line beginning "On LinkedIn…" is a step in a recipe
+     whose first ingredient the reader may not have; naming the condition first
+     lets everyone who does have a CV stop reading at the question mark, and
+     tells everyone who doesn't that the rest of the sentence is for them. */
+  before: 'Don’t have a CV handy? On LinkedIn, open your profile and choose ',
   path: 'More → Save to PDF',
   after: '. Drop that file here.',
 };

@@ -147,6 +147,10 @@ export const useHomeAnalytics = () => {
     captureEvent(HOME_ANALYTICS_EVENTS.FEATURED_FILTER_CLICKED, params);
   }
 
+  function onWelcomeSignInClicked() {
+    captureEvent(HOME_ANALYTICS_EVENTS.WELCOME_SIGNIN_CLICKED);
+  }
+
   return {
     featuredSubmitRequestClicked,
     onMemberCardClicked,
@@ -163,5 +167,6 @@ export const useHomeAnalytics = () => {
     onFocusAreaProtocolLabsVisionUrlClicked,
     onIrlLocationClicked,
     onFeaturedFilterClicked,
+    onWelcomeSignInClicked,
   };
 };

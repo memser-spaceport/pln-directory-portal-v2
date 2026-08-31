@@ -32,6 +32,36 @@ export function useDigestEmailLinkEventCapture() {
   }, [isCorrectSource, onDigestEmailPostLinkClicked, searchParams]);
 }
 
+export function useDigestEmailHomeLinkEventCapture() {
+  const reportedRef = useRef(false);
+  const searchParams = useSearchParams();
+  const utmSource = searchParams.get('utm_source');
+  const { onDigestEmailNewsLinkClicked, onDigestEmailSeeAllNewsLinkClicked } = useForumAnalytics();
+
+  useEffect(() => {
+    if (reportedRef.current) return;
+    if (utmSource !== 'digest_email_news_link' && utmSource !== 'digest_email_see_all_news_link') return;
+
+    reportedRef.current = true;
+
+    const params = {
+      utmSource,
+      utmMedium: searchParams.get('utm_medium'),
+      utmCode: searchParams.get('utm_code'),
+      targetUid: searchParams.get('target_uid'),
+      targetEmail: searchParams.get('target_email'),
+      news_id: searchParams.get('news'),
+      position: searchParams.get('position'),
+    };
+
+    if (utmSource === 'digest_email_news_link') {
+      onDigestEmailNewsLinkClicked(params);
+    } else {
+      onDigestEmailSeeAllNewsLinkClicked(params);
+    }
+  }, [utmSource, onDigestEmailNewsLinkClicked, onDigestEmailSeeAllNewsLinkClicked, searchParams]);
+}
+
 export function useCommentNotificationEmailLinkEventCapture() {
   const reportedRef = useRef(false);
   const searchParams = useSearchParams();

@@ -38,6 +38,21 @@ export const APPLY_FLOW_STEPS = ['review', 'profile', 'application'] as const;
 export type ApplyFlowStepId = (typeof APPLY_FLOW_STEPS)[number];
 
 /**
+ * Whether Apply leaves the site for this viewer and this role.
+ *
+ * Protocol Labs takes applications in-app for everyone who can still reach
+ * Apply. Every other employer gets their own posting when there is no approved
+ * account yet — a signed-out visitor, or one still awaiting review — because
+ * handing them a stranger the PL team has not vetted is the board applying
+ * *for* a team that did not ask it to.
+ */
+export const shouldApplyGoExternal = (args: {
+  viewer: BoardViewerState;
+  verdict: JobsAccessVerdict;
+  team: IJobTeam | null | undefined;
+}): boolean => !isProtocolLabsTeam(args.team) && (args.viewer === 'logged-out' || args.verdict === 'pending');
+
+/**
  * The flow's whole state as ONE discriminated union: illegal combinations (two
  * overlays open, a cover letter with no flow in progress) are unrepresentable.
  *
@@ -107,7 +122,13 @@ export function applyFlowReducer(state: ApplyFlowState, action: ApplyFlowAction)
 export interface JobApplyFlowArgs {
   viewer: BoardViewerState;
   verdict: JobsAccessVerdict;
-  profileComplete: boolean;
+  /* (`profileComplete` stood here. It had one reader — the branch in `onApply`
+      that skipped the profile step for a member who had already filled one in —
+      and went when that branch did. The routing no longer consults the profile
+      at all: every in-app application stops at step 2, because that step now asks
+      for a confirmation as well as collecting answers. The drawer still takes a
+      `profileComplete` prop, from `useJobBoardViewer` directly; it seeds what the
+      footer gates on, which is a different question from where Apply lands.) */
   refreshVerdict: () => Promise<JobsAccessVerdict>;
   source: JobSurface;
 }
@@ -120,7 +141,7 @@ export interface JobApplyFlowArgs {
  * The dispatch handlers are also the analytics choke point — every funnel edge
  * is exactly one handler, so instrumentation cannot drift from behavior.
  */
-export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdict, source }: JobApplyFlowArgs) {
+export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: JobApplyFlowArgs) {
   const [state, dispatch] = useReducer(applyFlowReducer, IDLE);
   const analytics = useJobsAnalytics();
   const applyPressInFlight = useRef(false);
@@ -133,6 +154,13 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
       source,
     }),
     [viewer, source],
+  );
+
+  const viewStep = useCallback(
+    (step: ApplyFlowStepId | 'sign-up', target: ApplyTarget | null) => {
+      analytics.onJobApplyStepViewed({ ...applyBase(target), step });
+    },
+    [analytics, applyBase],
   );
 
   /**
@@ -151,9 +179,10 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
   const onViewJob = useCallback(
     (target: JobDetailTarget) => {
       analytics.onJobDetailOpened(applyBase(target));
+      viewStep('review', target);
       dispatch({ type: 'OPEN_FLOW', target, at: 'review' });
     },
-    [analytics, applyBase],
+    [analytics, applyBase, viewStep],
   );
 
   /**
@@ -168,9 +197,30 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
       analytics.onJobApplyClicked({ ...applyBase(target), trigger });
 
       if (viewer === 'logged-out') {
-        // Not a sign-in prompt: the sign-up form IS the ask at the moment of
-        // intent, and it carries the role so the flow can resume on it.
-        dispatch({ type: 'OPEN_SIGN_UP', target });
+        /* Non-PL roles leave the site even without an account — the footer
+           already says "Apply on their site", and sending them through sign-up
+           first would make that label a lie. Protocol Labs still collects the
+           account: it is the one employer whose hiring this board runs. */
+        if (shouldApplyGoExternal({ viewer, verdict, team: target.team })) {
+          analytics.onJobApplyExternalRedirected(applyBase(target));
+          openExternalApply(target.role.applyUrl, source);
+          return;
+        }
+
+        /* Not a sign-in prompt: the sign-up form IS the ask at the moment of
+           intent, and it carries the role so the flow can resume on it.
+
+           It is now the flow's own step 2 rather than a modal over the top —
+           the account takes the position a member's profile occupies, so the
+           rail stays visible and keeps saying how much further there is. Landing
+           ON the step rather than opening at `review` is deliberate: pressing
+           Apply is a decision already made, and Back still goes to the posting.
+
+           A press from a row (no drawer open yet) takes the same path, which is
+           why this is one branch and not two — `OPEN_FLOW` starts the flow and
+           is idempotent on the target either way. */
+        dispatch({ type: 'OPEN_FLOW', target, at: 'profile' });
+        viewStep('profile', target);
         return;
       }
 
@@ -208,7 +258,8 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
 
       /**
        * An account still awaiting approval applies on the employer's own site —
-       * except to Protocol Labs, which takes it through the wizard.
+       * except to Protocol Labs, which takes it through the wizard. Same rule as
+       * the logged-out branch above; the helper is what keeps them from drifting.
        *
        * **This is the board's original rule with one carve-out.** It was removed
        * outright when approval stopped gating applying; the carve-out is what
@@ -218,34 +269,43 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
        * being handed a stranger the PL team has not vetted, and their own posting
        * is the honest place for that.
        *
-       * Note what is *not* consulted: the viewer state. A Job Aspirant derives as
-       * `profile-ready` even while unapproved (see `deriveBoardViewer`, which
-       * keeps the pending banner away from people who are not in that review) —
-       * so reading the banner state here would let them apply anywhere. The
-       * verdict is the access answer; the viewer state is a presentation one.
+       * Note what is *not* consulted for a signed-in member: the viewer state. A
+       * Job Aspirant derives as `profile-ready` even while unapproved (see
+       * `deriveBoardViewer`, which keeps the pending banner away from people who
+       * are not in that review) — so reading the banner state here would let
+       * them apply anywhere. The verdict is the access answer; the viewer state
+       * is a presentation one. Logged-out is the exception, because there is no
+       * verdict yet and the visitor still has to leave for a non-PL role.
        */
-      if (access === 'pending' && !isProtocolLabsTeam(target.team)) {
+      if (shouldApplyGoExternal({ viewer, verdict: access, team: target.team })) {
+        analytics.onJobApplyExternalRedirected(applyBase(target));
         openExternalApply(target.role.applyUrl, source);
         return;
       }
 
-      /* Past that, the only question left is the one that was always the real
-         one: is there enough profile to send? If not, the middle step collects
-         it. Either way the answer is "here is what's needed", never a different
-         dialog and never a no.
+      /* Past that, everyone lands on the profile step — including a member whose
+         profile is already complete.
+
+         **This used to skip straight to the application for them** (`if
+         (profileComplete) … at: 'application'`), on the reasoning that a step
+         with nothing left to collect is a step worth saving. That reasoning was
+         about *collecting*, and the step is no longer only for that: it now asks
+         for "I've reviewed my profile", and what the hiring team reads is the
+         profile rather than the letter alone. A confirmation nobody is shown is
+         not a confirmation, and the people most likely to be sending something
+         stale are exactly the ones the skip was routing around.
+
+         So the rail is three stops for every in-app application, and its middle
+         one is a read rather than a form for anyone who has already filled it in.
 
          `OPEN_FLOW` rather than `GO_TO_STEP` even when the flow is already open
          on the review step: it is idempotent on the target and it is the one
          action that can also start the flow from a row that never opened one. */
-      if (profileComplete) {
-        dispatch({ type: 'OPEN_FLOW', target, at: 'application' });
-        return;
-      }
-
       dispatch({ type: 'OPEN_FLOW', target, at: 'profile' });
       analytics.onJobApplyDrawerOpened(applyBase(target));
+      viewStep('profile', target);
     },
-    [analytics, applyBase, profileComplete, refreshVerdict, source, verdict, viewer],
+    [analytics, applyBase, refreshVerdict, source, verdict, viewer, viewStep],
   );
 
   /** Moving along the rail, or the header's Back. Analytics for arriving at the
@@ -253,12 +313,15 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
    *  was reached rather than only when Apply routed someone there. */
   const goToStep = useCallback(
     (at: ApplyFlowStepId) => {
-      if (state.step === 'flow' && at === 'profile' && state.at !== 'profile') {
-        analytics.onJobApplyDrawerOpened(applyBase(state.target));
+      if (state.step === 'flow' && at !== state.at) {
+        if (at === 'profile') {
+          analytics.onJobApplyDrawerOpened(applyBase(state.target));
+        }
+        viewStep(at, state.target);
       }
       dispatch({ type: 'GO_TO_STEP', at });
     },
-    [analytics, applyBase, state],
+    [analytics, applyBase, state, viewStep],
   );
 
   /** The letter, lifted out of the pane that collects it — see `ApplyFlowState`. */
@@ -271,9 +334,10 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
   const onSignUp = useCallback(
     (trigger: Exclude<JobApplyTrigger, 'row'>) => {
       analytics.onJobApplyClicked({ ...applyBase(null), trigger });
+      viewStep('sign-up', null);
       dispatch({ type: 'OPEN_SIGN_UP', target: null });
     },
-    [analytics, applyBase],
+    [analytics, applyBase, viewStep],
   );
 
   /** The banner's update/complete-profile CTA, and the resume fallback. */
@@ -282,8 +346,20 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
     analytics.onJobApplyDrawerOpened(applyBase(null));
   }, [analytics, applyBase]);
 
-  const closeSignUp = useCallback(() => dispatch({ type: 'CLOSE' }), []);
-  const close = useCallback(() => dispatch({ type: 'CLOSE' }), []);
+  const close = useCallback(
+    (opts?: { completed?: boolean }) => {
+      if (!opts?.completed && (state.step === 'flow' || state.step === 'sign-up')) {
+        analytics.onJobApplyFlowClosed({
+          ...applyBase(state.target),
+          step: state.step === 'sign-up' ? 'sign-up' : state.at,
+          cover_letter_started: state.step === 'flow' && state.coverLetterDraft.trim().length > 0,
+        });
+      }
+      dispatch({ type: 'CLOSE' });
+    },
+    [analytics, applyBase, state],
+  );
+  const closeSignUp = close;
 
   /** A profile save reported from whichever surface collected it. */
   const onProfileSaved = useCallback(
@@ -296,6 +372,20 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
 
   const onSubmitted = useCallback(() => dispatch({ type: 'SUBMITTED' }), []);
 
+  /**
+   * After sign-up + Privy, land on the profile step of the job they started
+   * from — even if the form already answered enough to skip it. The rest of
+   * the profile (contact details, role if they skipped it) is still to fill.
+   */
+  const onResumeAfterSignUp = useCallback(
+    (target: JobDetailTarget) => {
+      dispatch({ type: 'OPEN_FLOW', target, at: 'profile' });
+      analytics.onJobApplyDrawerOpened(applyBase(target));
+      viewStep('profile', target);
+    },
+    [analytics, applyBase, viewStep],
+  );
+
   return {
     state,
     onApply,
@@ -304,6 +394,7 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
     setCoverLetter,
     onSignUp,
     onUpdateProfile,
+    onResumeAfterSignUp,
     closeSignUp,
     close,
     onProfileSaved,

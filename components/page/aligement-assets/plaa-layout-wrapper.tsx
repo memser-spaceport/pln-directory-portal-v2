@@ -141,8 +141,8 @@ export default function PlaaLayoutWrapper({ children, isLoggedIn }: PlaaLayoutWr
 
               <PlaaMenu
                 activeItem={activeItem}
-                totalRounds={18}
-                currentRound={18}
+                totalRounds={currentRoundNumber}
+                currentRound={currentRoundNumber}
                 viewingRound={viewingRound}
                 onMenuItemClick={handleCloseMenu}
                 isLoggedIn={isLoggedIn}

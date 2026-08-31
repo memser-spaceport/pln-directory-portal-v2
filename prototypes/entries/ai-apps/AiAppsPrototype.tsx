@@ -250,9 +250,9 @@ export default function AiAppsPrototype() {
         the viewport corner would be the only thing here that isn't part of the
         page. The detail view has no such row and is an app you use, so its door
         floats there as an icon — one door per surface, one shared dialog.
-        Bordered/neutral with the comment glyph, one size up from the detail
-        bar's, because a 24px control beside a 28px title reads as an
-        afterthought.
+        Filled brand with the comment glyph — production's own treatment for it,
+        and the same voice the detail view's fab speaks in — at `size="s"`,
+        because a 24px control beside a 28px title reads as an afterthought.
 
         The count rides the title at 14px/400, which is exactly how Teams and
         Members pair theirs (their .title is the same 28px/700/40 as this one).

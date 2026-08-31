@@ -26,8 +26,12 @@ interface Props {
  * and settles into a glyph: see `FeedbackFab`. One door per surface either way;
  * both mount the same `GiveFeedbackDialog`.
  *
- * `s` rather than the detail bar's `xxs`: a 24px control beside a 28px title
- * reads as an afterthought.
+ * Filled brand, which is production's own treatment for this button
+ * (`FloatingFeedbackButton` renders `fill`/`primary`) and the only loud control
+ * on the grid at rest — every other primary here lives in a modal footer. It
+ * also puts the two doors in one voice: the detail view's fab is already brand.
+ *
+ * `size="s"`: a 24px control beside a 28px title reads as an afterthought.
  *
  * The rbac gate (`canViewAiApps`) and analytics are dropped; anyone who can see
  * the prototype can open the dialog.
@@ -37,7 +41,7 @@ export function GiveFeedbackButton({ apps, onSubmit }: Props) {
 
   return (
     <>
-      <Button size="s" style="border" variant="neutral" className={fb.button} onClick={() => setIsOpen(true)}>
+      <Button size="s" style="fill" variant="primary" className={fb.button} onClick={() => setIsOpen(true)}>
         <CommentIcon />
         Give feedback
       </Button>

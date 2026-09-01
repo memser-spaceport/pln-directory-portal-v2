@@ -340,11 +340,29 @@ export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: Job
     [analytics, applyBase, viewStep],
   );
 
+  /**
+   * A rejected account has no apply path, and this feature's answer to that is
+   * plain browsing: no banner, because the pending copy would promise an
+   * approval that will not come (`job-board-viewer.ts:16-18`,
+   * `JobBoardBanner.tsx:47-48`). `onApply` has always refused them; rows never
+   * offer the slot, since the host withholds `applyProps` for this viewer.
+   *
+   * The two callbacks below are the doors that do not go through a row — the
+   * banner CTA and the resume — so they are where the same refusal has to be
+   * said again.
+   */
+  const applyRejected = viewer === 'rejected' || verdict === 'rejected';
+
   /** The banner's update/complete-profile CTA, and the resume fallback. */
   const onUpdateProfile = useCallback(() => {
+    /* "Update your profile to apply" is the one sentence this drawer is for, and
+       for a rejected account it is not true. Unreachable from the banner, which
+       renders nothing for them — reachable from the resume, which is why it is
+       guarded here rather than at the caller. */
+    if (applyRejected) return;
     dispatch({ type: 'OPEN_PROFILE_ONLY' });
     analytics.onJobApplyDrawerOpened(applyBase(null));
-  }, [analytics, applyBase]);
+  }, [analytics, applyBase, applyRejected]);
 
   const close = useCallback(
     (opts?: { completed?: boolean }) => {
@@ -394,6 +412,12 @@ export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: Job
    */
   const onResumeAfterSignUp = useCallback(
     (target: JobDetailTarget) => {
+      /* `onApply`'s guard, said again on the path that does not go through it.
+         Nothing downstream would stop them: the drawer's `canApply` asks about
+         login, completeness and the review tick, not access, so a resumed
+         rejected account could reach the letter and press send. */
+      if (applyRejected) return;
+
       const at: ApplyFlowStepId = shouldApplyGoExternal({ viewer, verdict, team: target.team })
         ? 'review'
         : 'profile';
@@ -401,7 +425,7 @@ export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: Job
       analytics.onJobApplyDrawerOpened(applyBase(target));
       viewStep(at, target);
     },
-    [analytics, applyBase, verdict, viewer, viewStep],
+    [analytics, applyBase, applyRejected, verdict, viewer, viewStep],
   );
 
   return {

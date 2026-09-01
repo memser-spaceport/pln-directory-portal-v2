@@ -50,7 +50,7 @@ const OTHER = teamNamed('t2', 'Bluesky');
 const setup = (
   verdict: 'approved' | 'pending' | 'rejected',
   _profileComplete = true,
-  viewer: 'profile-ready' | 'logged-out' = 'profile-ready',
+  viewer: 'profile-ready' | 'logged-out' | 'rejected' = 'profile-ready',
 ) =>
   renderHook(() =>
     useJobApplyFlow({
@@ -265,6 +265,64 @@ describe('Apply routing while unapproved', () => {
       });
 
       expect(mockOnJobApplyStepViewed).toHaveBeenCalledWith(expect.objectContaining({ step: 'review', job_id: 'r1' }));
+    });
+
+    /**
+     * A rejected account gets plain browsing — no banner, because the pending
+     * copy would promise an approval that will not come. `onApply` has always
+     * refused them and rows never offer the slot, but resume reaches the flow
+     * without passing either. Nothing downstream would catch it: the drawer's
+     * `canApply` asks about login, completeness and the review tick, not access,
+     * so they could reach the letter and press send.
+     *
+     * Both systems are asserted because either can carry the rejection —
+     * `getJobsAccessVerdict` reads RBAC and access level, and `deriveBoardViewer`
+     * has a `rejected` state of its own.
+     */
+    it('refuses a rejected verdict', () => {
+      const { result } = setup('rejected');
+
+      act(() => {
+        result.current.onResumeAfterSignUp(target(PL));
+      });
+
+      expect(result.current.state.step).toBe('idle');
+      expect(mockOnJobApplyDrawerOpened).not.toHaveBeenCalled();
+      expect(mockOnJobApplyStepViewed).not.toHaveBeenCalled();
+    });
+
+    it('refuses a rejected viewer even when the verdict says otherwise', () => {
+      const { result } = setup('approved', true, 'rejected');
+
+      act(() => {
+        result.current.onResumeAfterSignUp(target(PL));
+      });
+
+      expect(result.current.state.step).toBe('idle');
+    });
+
+    /* The resume's own fallback, for a role that closed while they were away.
+       "Update your profile to apply" is the one thing that drawer says, and for
+       a rejected account it is not true. */
+    it('does not offer the profile drawer to a rejected account either', () => {
+      const { result } = setup('rejected');
+
+      act(() => {
+        result.current.onUpdateProfile();
+      });
+
+      expect(result.current.state.step).toBe('idle');
+      expect(mockOnJobApplyDrawerOpened).not.toHaveBeenCalled();
+    });
+
+    it('still offers it to everyone else', () => {
+      const { result } = setup('pending');
+
+      act(() => {
+        result.current.onUpdateProfile();
+      });
+
+      expect(result.current.state.step).toBe('profile-only');
     });
   });
 

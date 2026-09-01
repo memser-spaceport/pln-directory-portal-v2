@@ -28,6 +28,16 @@
 export const PENDING_APPLY_PARAM = 'applyTo';
 export const PENDING_PROFILE_PARAM = 'completeProfile';
 
+/**
+ * Not ours to define — several flows write it — but it rides along with the two
+ * above on the jobs round trip, and nobody removes it: `AuthInfo` copies it into
+ * localStorage and leaves it, and `clearPrivyParams` only strips `privy_*`. So
+ * it is ours to clean up when we clean up after ourselves. It matters more since
+ * the flow reached team profiles: `/teams/<uid>?prefillEmail=someone%40x.com` is
+ * the kind of URL people paste into Slack.
+ */
+const PREFILL_EMAIL_PARAM = 'prefillEmail';
+
 const toSearch = (params: URLSearchParams): string => {
   const next = params.toString();
   return next ? `?${next}` : '';
@@ -76,16 +86,19 @@ export function withPendingProfile(search: string): string {
 /**
  * Drop the resume parameters from the address bar once they have been acted
  * on, without a navigation — a one-time instruction must not replay on every
- * reload. `replaceState` rather than `router.replace` so the board underneath
+ * reload. `replaceState` rather than `router.replace` so the page underneath
  * doesn't re-render mid-flow.
+ *
+ * `prefillEmail` goes with them: it is written by the same round trip and read
+ * before this runs, so leaving it behind only publishes an address.
  */
 export function stripPendingApplyFromUrl(): void {
   if (typeof window === 'undefined') return;
   try {
     const url = new URL(window.location.href);
-    if (!url.searchParams.has(PENDING_APPLY_PARAM) && !url.searchParams.has(PENDING_PROFILE_PARAM)) return;
-    url.searchParams.delete(PENDING_APPLY_PARAM);
-    url.searchParams.delete(PENDING_PROFILE_PARAM);
+    const carried = [PENDING_APPLY_PARAM, PENDING_PROFILE_PARAM, PREFILL_EMAIL_PARAM];
+    if (!carried.some((param) => url.searchParams.has(param))) return;
+    carried.forEach((param) => url.searchParams.delete(param));
     const search = url.searchParams.toString();
     window.history.replaceState(window.history.state, '', `${url.pathname}${search ? `?${search}` : ''}${url.hash}`);
   } catch {

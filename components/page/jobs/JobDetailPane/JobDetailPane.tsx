@@ -151,13 +151,22 @@ export function JobDetailPane(props: JobDetailPaneProps) {
                 )}
               </div>
               <div className={d.teamMain}>
-                <Link
-                  prefetch={false}
-                  href={`${PAGE_ROUTES.TEAMS}/${team.uid}?backTo=${encodeURIComponent(PAGE_ROUTES.JOBS)}`}
-                  className={d.teamName}
-                >
-                  {team.name}
-                </Link>
+                {/* Opened from that team's own profile, this link goes where the
+                    reader already is — a same-route navigation the drawer
+                    survives, so it looks inert. Its side effect is not inert:
+                    `backTo` would repoint the profile's Back button at the job
+                    board, a page they never came from. Plain text there. */}
+                {source === 'team-profile' ? (
+                  <span className={d.teamName}>{team.name}</span>
+                ) : (
+                  <Link
+                    prefetch={false}
+                    href={`${PAGE_ROUTES.TEAMS}/${team.uid}?backTo=${encodeURIComponent(PAGE_ROUTES.JOBS)}`}
+                    className={d.teamName}
+                  >
+                    {team.name}
+                  </Link>
+                )}
                 {focusTags.length > 0 && (
                   <TagsList tags={focusTags} tagsToShow={100} classes={{ root: tc.focusRow, tag: tc.focusTag }} />
                 )}

@@ -266,4 +266,36 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     anchor.remove();
   });
+
+  it('raises the popover above the trigger when placement is "above"', () => {
+    mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+
+    const anchor = document.createElement('button');
+    document.body.appendChild(anchor);
+    jest.spyOn(anchor, 'getBoundingClientRect').mockReturnValue({
+      x: 900,
+      y: 700,
+      top: 700,
+      bottom: 748,
+      left: 900,
+      right: 960,
+      width: 48,
+      height: 48,
+      toJSON: () => ({}),
+    } as DOMRect);
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1000 });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} anchorRef={{ current: anchor }} placement="above" />);
+
+    const overlay = document.body.querySelector('[style*="--feedback-popover-bottom"]');
+    expect(overlay).toBeTruthy();
+    // 800 - 700 + 8 — measured up from the trigger's top edge, not down from
+    // its bottom, which for a corner button would be below the fold.
+    expect(overlay?.getAttribute('style')).toContain('--feedback-popover-bottom: 108px');
+    expect(overlay?.getAttribute('style')).toContain('--feedback-popover-right: 40px');
+    expect(overlay?.getAttribute('style')).not.toContain('--feedback-popover-top');
+
+    anchor.remove();
+  });
 });

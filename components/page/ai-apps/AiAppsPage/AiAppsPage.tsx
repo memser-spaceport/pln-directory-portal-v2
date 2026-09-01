@@ -45,25 +45,29 @@ export function AiAppsPage() {
   };
 
   return (
-    <div className={s.pageFrame}>
-      <div className={s.content}>
-        <div className={s.header}>
-          <div className={s.titleBlock}>
-            <h1 className={s.title}>AI Apps</h1>
-            <p className={s.description}>
-              A sandbox to deploy your AI apps on LabOS infra and explore what PL Infra team members are building.
-            </p>
+    <>
+      <div className={s.pageFrame}>
+        <div className={s.content}>
+          <div className={s.header}>
+            <div className={s.titleBlock}>
+              <h1 className={s.title}>AI Apps</h1>
+              <p className={s.description}>
+                A sandbox to deploy your AI apps on LabOS infra and explore what PL Infra team members are building.
+              </p>
+            </div>
+            <div className={s.headerActions}>
+              <ViewFeedbackEntryPoint />
+            </div>
           </div>
-          <div className={s.headerActions}>
-            <ViewFeedbackEntryPoint />
-            <FloatingFeedbackButton />
-          </div>
+
+          <AiAppsGrid onOpenCreateModal={handleOpenCreateModal} />
+
+          <CreateAiAppModal isOpen={isModalOpen} onClose={handleCloseCreateModal} />
         </div>
-
-        <AiAppsGrid onOpenCreateModal={handleOpenCreateModal} />
-
-        <CreateAiAppModal isOpen={isModalOpen} onClose={handleCloseCreateModal} />
       </div>
-    </div>
+
+      {/* Outside the page frame: it's fixed to the viewport, not to the column. */}
+      <FloatingFeedbackButton />
+    </>
   );
 }

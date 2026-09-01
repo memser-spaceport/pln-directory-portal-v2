@@ -17,11 +17,47 @@
   }
 }
 
-/* The secondary door under the pitch — a line of its own so it doesn't
-   compete with Get started, and a little air above so it doesn't sit on the
-   founders sentence. */
-.signInLine.signInLine {
-  margin-top: 4px;
+/* Own card chrome — `Welcome`'s `.welcome` paints `#ffffff`, and CSS-module
+   order can let that white beat `.brandSurface`, so the pitch and footer
+   split. One background here; children stay transparent. */
+.signedOut {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
+}
+
+.pitch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 20px;
+  min-width: 0;
+
+  .ctaGroup {
+    align-self: center;
+  }
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+}
+
+.footer.footer {
+  margin: 0;
+  max-width: none;
+  padding: 10px 20px;
+  border-top: 1px solid var(--border-brand-subtle, #aebfff);
+
+  background-color: #eef0fd;
 }
 
 /* --- the slot's surface, shared by all four states --------------------------
@@ -87,10 +123,8 @@
   }
 }
 
-/* The action slot, for the two signed-in states that still have one. The
-   logged-out banner no longer uses this — its doors are text inside the first
-   bullet — so what lands here is a single `welcome.cta`; the 8px gap is kept
-   because it costs nothing and this is still a row. `flex-shrink: 0` because
+/* The action slot. A single `welcome.cta`; the 8px gap is kept because it
+   costs nothing and this is still a row. `flex-shrink: 0` because
    `welcome.cta` sets it on itself and the group stands where that button used
    to. */
 .ctaGroup {
@@ -115,16 +149,11 @@
   }
 }
 
-/* The two doors, now that they live inside the first bullet's sentence rather
-   than in a button pair beside it.
+/* Sign in in the signed-out footer — a text button so it reads as part of
+   the sentence, not a second object beside it.
 
-   A boxed control inside a sentence reads as a second object beside the text
-   rather than as part of it, so both are text buttons: brand colour, underline
-   on hover, no box. The doors did not disappear, they stopped being furniture.
-
-   `font: inherit` matters more than usual here. The bullet is 16px on desktop
-   and 14px on mobile and 14px under `.bannerSub`, and a door that kept its own
-   size would break the line it sits in at two of those three. */
+   `font: inherit` matters more than usual here. The footer wears `.bannerSub`
+   (14px), and a door that kept its own size would break the line it sits in. */
 .inlineDoor {
   appearance: none;
   background: none;
@@ -144,8 +173,12 @@
 /* The pinned (rail-narrowed) state: only the height comes down — pinned, the
    strip rides over the list it belongs to, so it spends as little of the
    viewport as the ask and its one supporting line need. */
-.condensed.condensed {
+.condensed .pitch {
   padding: 12px 20px;
+}
+
+.condensed .footer {
+  padding: 8px 20px;
 }
 
 @include media.breakpoint-1024 {

@@ -84,8 +84,8 @@ const ArrowGlyph = () => (
 
 /**
  * The logged-out banner: how many teams are hiring, what a profile buys you,
- * Get started (sign-up) as the door, and Sign in as the secondary for people
- * already on a network team.
+ * Sign up as the door, and Sign in in the footer for people already on a
+ * network team.
  *
  * Narrowing the rail pins it — the standing offer stays in view without
  * blocking anything. The team count is the filtered one, so the headline
@@ -96,36 +96,38 @@ function SignInBanner({ filterState, teamCount, onSignIn, onSignUp }: JobBoardBa
 
   return (
     <div className={clsx(s.slot, filtersApplied && s.pinned)}>
-      <section className={clsx(welcome.welcome, s.brandSurface, filtersApplied && s.condensed)}>
-        <div className={welcome.text}>
-          <p className={clsx(welcome.title, s.bannerTitle, filtersApplied && s.oneLine)}>
-            {teamCount > 0 ? (
-              <>
-                <span className={welcome.titleHighlight}>{teamCount}</span> PL network{' '}
-                {teamCount === 1 ? 'team is' : 'teams are'} hiring. Let them find you.
-              </>
-            ) : (
-              /* Zero is a filter result, not a smaller board — the count drops
-                 out and the standing claim stays. */
-              <>PL network teams are hiring. Let them find you.</>
-            )}
-          </p>
-          <p className={clsx(welcome.sub, s.bannerSub, filtersApplied && s.oneLine)}>
-            Founders reach out when your profile matches an open role.
-          </p>
-          <p className={clsx(welcome.sub, s.bannerSub, s.signInLine)}>
-            Already at a PL network team?{' '}
-            <button type="button" className={s.inlineDoor} onClick={onSignIn}>
-              Sign in
+      <section className={clsx(s.signedOut, filtersApplied && s.condensed)}>
+        <div className={s.pitch}>
+          <div className={welcome.text}>
+            <p className={clsx(welcome.title, s.bannerTitle, filtersApplied && s.oneLine)}>
+              {teamCount > 0 ? (
+                <>
+                  <span className={welcome.titleHighlight}>{teamCount}</span> PL network{' '}
+                  {teamCount === 1 ? 'team is' : 'teams are'} hiring. Let them find you.
+                </>
+              ) : (
+                /* Zero is a filter result, not a smaller board — the count drops
+                   out and the standing claim stays. */
+                <>PL network teams are hiring. Let them find you.</>
+              )}
+            </p>
+            <p className={clsx(welcome.sub, s.bannerSub, filtersApplied && s.oneLine)}>
+              Founders reach out when your profile matches an open role.
+            </p>
+          </div>
+          <div className={s.ctaGroup}>
+            <button type="button" className={welcome.cta} onClick={onSignUp}>
+              Sign up
+              <ArrowGlyph />
             </button>
-          </p>
+          </div>
         </div>
-        <div className={s.ctaGroup}>
-          <button type="button" className={welcome.cta} onClick={onSignUp}>
-            Get started
-            <ArrowGlyph />
+        <p className={clsx(welcome.sub, s.bannerSub, s.footer)}>
+          Already at a PL network team?{' '}
+          <button type="button" className={s.inlineDoor} onClick={onSignIn}>
+            Sign in
           </button>
-        </div>
+        </p>
       </section>
     </div>
   );

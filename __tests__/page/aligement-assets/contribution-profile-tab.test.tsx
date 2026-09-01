@@ -5,9 +5,9 @@ import ContributionProfileTab from '@/components/page/aligement-assets/profile/c
 import type { ContributionHistoryEntry } from '@/services/plaa/hooks/useProfileData';
 
 const entries: ContributionHistoryEntry[] = [
-  { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: 0, cum: 35 },
-  { period: 'Jun 2026', points: 220, plaa: 22, infra: 30, redeemed: 0, cum: 87 },
-  { period: 'Jul 2026', points: 450, plaa: 45, infra: 30, redeemed: 50, cum: 112 },
+  { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: 0, isPending: false, cum: 35 },
+  { period: 'Jun 2026', points: 220, plaa: 22, infra: 30, redeemed: 0, isPending: false, cum: 87 },
+  { period: 'Jul 2026', points: 450, plaa: 45, infra: 30, redeemed: 50, isPending: false, cum: 112 },
 ];
 
 describe('ContributionProfileTab', () => {
@@ -140,9 +140,9 @@ describe('ContributionProfileTab', () => {
 
   describe('a period with no points data (still loading or settled empty)', () => {
     const realEntries: ContributionHistoryEntry[] = [
-      { period: 'May 2026', points: null, plaa: 100, infra: 900, redeemed: null, cum: 1000 },
-      { period: 'Jun 2026', points: null, plaa: 0, infra: 0, redeemed: null, cum: 1000 },
-      { period: 'Jul 2026', points: null, plaa: 50, infra: 0, redeemed: null, cum: 1050 },
+      { period: 'May 2026', points: null, plaa: 100, infra: 900, redeemed: null, isPending: false, cum: 1000 },
+      { period: 'Jun 2026', points: null, plaa: 0, infra: 0, redeemed: null, isPending: false, cum: 1000 },
+      { period: 'Jul 2026', points: null, plaa: 50, infra: 0, redeemed: null, isPending: false, cum: 1050 },
     ];
 
     it('hides the points bars and left axis, keeps the real PLAA balance line and right axis', () => {
@@ -194,6 +194,7 @@ describe('ContributionProfileTab', () => {
       plaa: 10,
       infra: 0,
       redeemed: 0,
+      isPending: false,
       cum: (i + 1) * 10,
     }));
     const { container } = render(<ContributionProfileTab entries={manyEntries} currentBalance={170} totalRedeemed={0} />);
@@ -213,5 +214,55 @@ describe('ContributionProfileTab', () => {
     for (let i = 1; i < xs.length; i++) {
       expect(xs[i] - xs[i - 1]).toBeGreaterThanOrEqual(slotWidth - 1);
     }
+  });
+
+  describe('an open snapshot (not yet closed)', () => {
+    const withPending: ContributionHistoryEntry[] = [
+      { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: null, isPending: false, cum: 35 },
+      { period: 'Jun 2026', points: 220, plaa: 22, infra: 30, redeemed: null, isPending: true, cum: 87 },
+    ];
+
+    it('shows Pending in place of the snapshot\'s own points and PLAA figures', () => {
+      const { container } = render(
+        <ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />
+      );
+
+      const pendingRow = (screen.getAllByText('Jun 2026')[1].closest('[class*="dataRow"]')) as HTMLElement;
+      expect(within(pendingRow).getAllByText('Pending')).toHaveLength(3);
+      expect(within(pendingRow).queryByText('220')).not.toBeInTheDocument();
+      expect(within(pendingRow).queryByText('22')).not.toBeInTheDocument();
+    });
+
+    it('leaves a closed snapshot\'s own figures untouched', () => {
+      render(<ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />);
+
+      const closedRow = (screen.getAllByText('May 2026')[1].closest('[class*="dataRow"]')) as HTMLElement;
+      expect(within(closedRow).queryByText('Pending')).not.toBeInTheDocument();
+      expect(within(closedRow).getByText('350')).toBeInTheDocument();
+    });
+
+    it('does not mark the footer balance pending — it only ever reflects closed snapshots', () => {
+      render(<ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />);
+
+      const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
+      expect(within(totalRow).queryByText('Pending')).not.toBeInTheDocument();
+    });
+  });
+
+  it('renders a per-period redeemed figure when one is attributed to that month', () => {
+    const redeemed: ContributionHistoryEntry[] = [
+      { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: null, isPending: false, cum: 35 },
+      { period: 'Jun 2026', points: 220, plaa: 22, infra: 30, redeemed: 640, isPending: false, cum: 87 },
+    ];
+    render(<ContributionProfileTab entries={redeemed} currentBalance={35} totalRedeemed={640} />);
+
+    const row = (screen.getAllByText('Jun 2026')[1].closest('[class*="dataRow"]')) as HTMLElement;
+    expect(within(row).getByText('640')).toBeInTheDocument();
+  });
+
+  it('renders an empty state without crashing when there are no entries', () => {
+    render(<ContributionProfileTab entries={[]} currentBalance={null} totalRedeemed={null} />);
+
+    expect(screen.getByText('No snapshot history yet.')).toBeInTheDocument();
   });
 });

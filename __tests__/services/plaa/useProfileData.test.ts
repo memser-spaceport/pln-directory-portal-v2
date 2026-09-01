@@ -25,6 +25,16 @@ jest.mock('@/services/plaa/hooks/useSnapshotPointsHistory', () => ({
   useSnapshotPointsHistory: (periods: string[]) => mockUseSnapshotPointsHistory(periods),
 }));
 
+const mockUseRedemptionHistory = jest.fn();
+jest.mock('@/services/plaa/hooks/useRedemptionHistory', () => ({
+  useRedemptionHistory: () => mockUseRedemptionHistory(),
+}));
+
+const mockUseSnapshotLifecycle = jest.fn();
+jest.mock('@/services/plaa/hooks/useSnapshotLifecycle', () => ({
+  useSnapshotLifecycle: () => mockUseSnapshotLifecycle(),
+}));
+
 import { useProfileData as useProfileDataDefault } from '@/services/plaa/hooks/useProfileData';
 
 const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
@@ -48,6 +58,8 @@ describe('useProfileData', () => {
     mockUseProfileBalance.mockReturnValue({ data: undefined, isLoading: false });
     mockUseProfilePlaaHistory.mockReturnValue({ data: undefined, isLoading: false });
     mockUseSnapshotPointsHistory.mockReturnValue({});
+    mockUseRedemptionHistory.mockReturnValue({ data: undefined });
+    mockUseSnapshotLifecycle.mockReturnValue({ data: undefined });
   });
 
   afterEach(() => {
@@ -205,9 +217,9 @@ describe('useProfileData', () => {
       const { result } = renderHook(() => useProfileDataDefault());
 
       expect(result.current.contributionHistory).toEqual([
-        { period: 'May 2026', points: null, plaa: 100, infra: 900, redeemed: null, cum: 1000 },
-        { period: 'Jun 2026', points: null, plaa: 0, infra: 0, redeemed: null, cum: 1000 },
-        { period: 'Jul 2026', points: null, plaa: 50, infra: 0, redeemed: null, cum: 1050 },
+        { period: 'May 2026', points: null, plaa: 100, infra: 900, redeemed: null, isPending: false, cum: 1000 },
+        { period: 'Jun 2026', points: null, plaa: 0, infra: 0, redeemed: null, isPending: false, cum: 1000 },
+        { period: 'Jul 2026', points: null, plaa: 50, infra: 0, redeemed: null, isPending: false, cum: 1050 },
       ]);
     });
   });
@@ -333,6 +345,79 @@ describe('useProfileData', () => {
       const { result } = renderHook(() => useProfileDataDefault());
 
       expect(result.current.identity.memberSince).toBeNull();
+    });
+  });
+
+  describe('redemptions and snapshot lifecycle', () => {
+    const REAL_HISTORY = [
+      { period: '2026-05-26', iaPlaa: 100, irPlaa: 900, plaaTotal: 1000 },
+      { period: '2026-06-26', iaPlaa: 0, irPlaa: 0, plaaTotal: 0 },
+      { period: '2026-07-26', iaPlaa: 50, irPlaa: 0, plaaTotal: 50 },
+    ];
+
+    beforeEach(() => {
+      mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+      mockUseProfilePlaaHistory.mockReturnValue({ data: REAL_HISTORY, isLoading: false });
+    });
+
+    it('attributes a redemption to the snapshot month its auction closed in', () => {
+      mockUseRedemptionHistory.mockReturnValue({
+        data: [{ auctionNumber: 2, plaaRedeemed: 640, roundNumber: 9, period: '2026-06-01' }],
+      });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      const byPeriod = Object.fromEntries(
+        result.current.contributionHistory.map((e) => [e.period, e.redeemed]),
+      );
+      expect(byPeriod['Jun 2026']).toBe(640);
+      expect(byPeriod['May 2026']).toBeNull();
+      expect(byPeriod['Jul 2026']).toBeNull();
+    });
+
+    it('sums several redemptions landing in the same month', () => {
+      mockUseRedemptionHistory.mockReturnValue({
+        data: [
+          { auctionNumber: 1, plaaRedeemed: 100, roundNumber: 9, period: '2026-06-01' },
+          { auctionNumber: 2, plaaRedeemed: 40, roundNumber: 9, period: '2026-06-01' },
+        ],
+      });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      const jun = result.current.contributionHistory.find((e) => e.period === 'Jun 2026');
+      expect(jun?.redeemed).toBe(140);
+    });
+
+    it('ignores a redemption whose period could not be resolved, rather than placing it arbitrarily', () => {
+      mockUseRedemptionHistory.mockReturnValue({
+        data: [{ auctionNumber: 9, plaaRedeemed: 500, roundNumber: null, period: null }],
+      });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      expect(result.current.contributionHistory.every((e) => e.redeemed === null)).toBe(true);
+    });
+
+    it('marks a snapshot pending when its round is not closed', () => {
+      mockUseSnapshotLifecycle.mockReturnValue({
+        data: [
+          { roundNumber: 1, period: '2026-05-01', status: 'Snapshot Closed', plaaLocked: true, isClosed: true },
+          { roundNumber: 2, period: '2026-06-01', status: 'Snapshot Closed', plaaLocked: true, isClosed: true },
+          { roundNumber: 3, period: '2026-07-01', status: 'Appeal Window', plaaLocked: false, isClosed: false },
+        ],
+      });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      const byPeriod = Object.fromEntries(
+        result.current.contributionHistory.map((e) => [e.period, e.isPending]),
+      );
+      expect(byPeriod['May 2026']).toBe(false);
+      expect(byPeriod['Jul 2026']).toBe(true);
+    });
+
+    it('marks nothing pending while the lifecycle request has not resolved', () => {
+      mockUseSnapshotLifecycle.mockReturnValue({ data: undefined });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      expect(result.current.contributionHistory.every((e) => e.isPending === false)).toBe(true);
     });
   });
 });

@@ -21,6 +21,9 @@ const PLOT_BOTTOM = 210;
 const BAR_WIDTH = 40;
 const GRID_LINES = 5;
 
+// Matches the wording the rounds dashboard already uses for an open snapshot.
+const PENDING_LABEL = 'Pending';
+
 function dashOr(value: number | null): string {
   return value === null ? '—' : value.toLocaleString();
 }
@@ -262,9 +265,15 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
           {entries.map((entry) => (
             <div key={entry.period} className={styles.dataRow}>
               <span className={styles.period}>{entry.period}</span>
-              <span className={`${styles.right} ${styles.points}`}>{dashOr(entry.points)}</span>
-              <span className={`${styles.right} ${styles.secondary}`}>{entry.plaa.toLocaleString()}</span>
-              <span className={`${styles.right} ${styles.secondary}`}>{entry.infra.toLocaleString()}</span>
+              <span className={`${styles.right} ${styles.points}`}>
+                {entry.isPending ? PENDING_LABEL : dashOr(entry.points)}
+              </span>
+              <span className={`${styles.right} ${styles.secondary}`}>
+                {entry.isPending ? PENDING_LABEL : entry.plaa.toLocaleString()}
+              </span>
+              <span className={`${styles.right} ${styles.secondary}`}>
+                {entry.isPending ? PENDING_LABEL : entry.infra.toLocaleString()}
+              </span>
               <span className={`${styles.right} ${styles.tertiary}`}>{dashOr(entry.redeemed)}</span>
               <span className={styles.balanceChip}>{entry.cum.toLocaleString()}</span>
             </div>

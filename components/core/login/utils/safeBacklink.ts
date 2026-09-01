@@ -8,13 +8,12 @@
  * into an open redirect.
  */
 export function getSafeBacklinkTarget(raw: string): string | null {
-  if (raw.startsWith('/')) {
-    return raw;
-  }
-
   try {
-    const target = new URL(raw);
     const base = new URL(process.env.APPLICATION_BASE_URL || 'http://localhost');
+    // Resolve relative to base rather than special-casing a leading '/' —
+    // a bare startsWith('/') check also matches protocol-relative strings
+    // like '//evil.com', which browsers navigate as https://evil.com.
+    const target = new URL(raw, base);
 
     if (target.protocol !== base.protocol) return null;
     if (target.hostname === base.hostname || target.hostname.endsWith(`.${base.hostname}`)) {

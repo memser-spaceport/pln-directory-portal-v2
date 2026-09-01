@@ -13,10 +13,6 @@ jest.mock('@/components/core/navbar/nav-bar', () => ({
   default: () => <div data-testid="navbar" />,
 }));
 
-jest.mock('@/components/core/navbar/components/PlaaSnapshotBar', () => ({
-  PlaaSnapshotBar: () => <div data-testid="plaa-snapshot-bar" />,
-}));
-
 jest.mock('@/components/core/navbar/components/CompleteYourProfile', () => ({
   CompleteYourProfile: () => <div data-testid="complete-your-profile" />,
 }));
@@ -29,9 +25,6 @@ describe('SiteHeader', () => {
     render(<SiteHeader {...props} />);
 
     expect(screen.getByTestId('navbar')).toBeInTheDocument();
-    // PlaaSnapshotBar mounts on every route; it self-hides off alignment-asset paths
-    // internally (not exercised by this mock), so SiteHeader always renders it into the tree.
-    expect(screen.getByTestId('plaa-snapshot-bar')).toBeInTheDocument();
     expect(screen.getByTestId('complete-your-profile')).toBeInTheDocument();
   });
 

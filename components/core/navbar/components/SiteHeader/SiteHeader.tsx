@@ -3,7 +3,6 @@
 import { usePathname } from 'next/navigation';
 
 import Navbar from '@/components/core/navbar/nav-bar';
-import { PlaaSnapshotBar } from '@/components/core/navbar/components/PlaaSnapshotBar';
 import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
 import { IUserInfo } from '@/types/shared.types';
 import { isBareRoute } from '@/utils/isBareRoute';
@@ -22,7 +21,7 @@ export function SiteHeader({ userInfo, isLoggedIn, authToken }: Props) {
   return (
     <header className="layout__header">
       {/* <DemoDayBanner /> */}
-      <PlaaSnapshotBar />
+      {/* <PlaaSnapshotBar /> */}
       {/*<SubscribeToRecoomendations userInfo={userInfo} />*/}
       <CompleteYourProfile />
       <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />

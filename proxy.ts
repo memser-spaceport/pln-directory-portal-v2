@@ -8,6 +8,13 @@ import { calculateExpiry, decodeToken } from './utils/auth.utils';
  */
 const PROTECTED_ROUTES = ['/deals/', '/founder-guides', '/investors'];
 
+/**
+ * AI Apps sub-paths that deliberately show their own signed-out state
+ * instead of being gated here (the connect flow needs to work for a guest
+ * mid-approval, and feedback submission has its own access messaging).
+ */
+const AI_APPS_PUBLIC_ROUTES = ['/pl-infra/ai-apps/connect', '/pl-infra/ai-apps/feedback'];
+
 export const config = {
   matcher: [
     /*
@@ -40,6 +47,9 @@ export const config = {
  * @returns true if the route is protected, false otherwise
  */
 function isProtectedRoute(pathname: string): boolean {
+  if (pathname === '/pl-infra/ai-apps' || pathname.startsWith('/pl-infra/ai-apps/')) {
+    return !AI_APPS_PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+  }
   return PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
 }
 

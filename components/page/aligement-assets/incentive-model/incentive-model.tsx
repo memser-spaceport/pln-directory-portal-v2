@@ -552,7 +552,7 @@ export default function IncentiveModel({ categoryDataByRound, allRounds, current
             {/* Tip Card */}
             <div className="incentive-model__tip-card">
               <p className="incentive-model__tip-title">
-                Top category this snapshot:{' '}
+                Most contributed-to category this snapshot:{' '}
                 <span className="incentive-model__tip-category">{getMostActiveCategory(currentData)}</span>.
               </p>
               <p className="incentive-model__tip-text">

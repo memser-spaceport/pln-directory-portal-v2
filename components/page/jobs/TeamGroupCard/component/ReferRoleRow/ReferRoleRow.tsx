@@ -30,9 +30,10 @@ import { useLoginRedirect } from '@/components/core/login/utils';
 
 /**
  * In-app Apply, switched on by prop PRESENCE — the row imports no feature flag.
- * The host (`JobsContent`) passes this only when `SHOW_JOB_BOARD_APPLY` is on
- * and the viewer may apply, which makes flag-off byte-identity structural
- * rather than test-enforced.
+ * A host (`JobsContent`, `TeamOpenRolesSection`) passes this only when
+ * `SHOW_JOB_BOARD_APPLY` is on and the viewer may apply, which makes flag-off
+ * byte-identity structural rather than test-enforced. Both hosts build it from
+ * the same `useJobApplySurface`.
  */
 export interface RowApplyProps {
   onApply: (target: JobDetailTarget) => void;
@@ -46,9 +47,9 @@ export interface RowApplyProps {
    * a title, a seniority and a location, which is not enough to decide with, so
    * pressing Apply from it was pressing send on a job you had not read.
    *
-   * Optional for the same reason `apply` is: the host decides. The board passes
-   * it with every apply slot now that reading is step 1 of the flow; the team
-   * profile does not, and keeps its direct Apply.
+   * Optional for the same reason `apply` is: the host decides. Both the board
+   * and the team profile pass it with every apply slot, now that reading is
+   * step 1 of the flow. A surface that omits it keeps the direct Apply.
    */
   onViewJob?: (target: { role: IJobRole; teamId: string; teamName: string; team: IJobTeam }) => void;
 }
@@ -63,7 +64,7 @@ interface ReferRoleRowProps {
   /**
    * The full team record, for surfaces that can open the in-app description —
    * its masthead needs the logo and focus areas that `teamId`/`teamName` cannot
-   * carry. Only the board passes it; the team profile has no detail drawer.
+   * carry. Both surfaces pass it.
    *
    * View job is offered only when this AND `apply.onViewJob` are present, so a
    * drawer can never be opened without the masthead it renders.

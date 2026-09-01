@@ -21,6 +21,12 @@ import type { IJobTeamGroup } from '@/types/jobs.types';
  * `JobApplyFlowDrawer` now, so "is the description showing" is
  * `step === 'flow' && at === 'review'` rather than a step of its own, and the
  * flow's single `close` replaces `closeDetail`.
+ *
+ * **`enabled: false` is a true passthrough.** It used to gate only the
+ * open-from-URL effect while the wrapped callbacks wrote `?job=` regardless —
+ * which meant a surface that wanted the flow *without* the param (the team
+ * profile, whose share links point at `/jobs`) would have stamped one on its own
+ * URL anyway. Disabled, this hook now returns the flow untouched.
  */
 export function useJobDetailDeepLink({
   enabled,
@@ -39,18 +45,18 @@ export function useJobDetailDeepLink({
 
   const onViewJob = useCallback(
     (target: JobDetailTarget) => {
-      writeJobDetailParam(target.role.uid);
+      if (enabled) writeJobDetailParam(target.role.uid);
       openDetail(target);
     },
-    [openDetail],
+    [enabled, openDetail],
   );
 
   const close = useCallback(
     (opts?: { completed?: boolean }) => {
-      writeJobDetailParam(null);
+      if (enabled) writeJobDetailParam(null);
       closeFlow(opts);
     },
-    [closeFlow],
+    [enabled, closeFlow],
   );
 
   /* The param tracks the *reading step*, not the flow.
@@ -62,9 +68,10 @@ export function useJobDetailDeepLink({
   const step = flow.state.step;
   const at = flow.state.step === 'flow' ? flow.state.at : null;
   useEffect(() => {
+    if (!enabled) return;
     if (step === 'idle' || (step === 'flow' && at === 'review')) return;
     writeJobDetailParam(null);
-  }, [step, at]);
+  }, [enabled, step, at]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -107,5 +114,8 @@ export function useJobDetailDeepLink({
     // Claimed before the fetch, so a later groups change must not re-open.
   }, [enabled, isLoading, groups, searchParams, openDetail]);
 
-  return useMemo(() => ({ ...flow, onViewJob, close }), [flow, onViewJob, close]);
+  return useMemo(
+    () => (enabled ? { ...flow, onViewJob, close } : flow),
+    [enabled, flow, onViewJob, close],
+  );
 }

@@ -16,19 +16,10 @@ import { filterStateFromURL } from '@/utils/jobs.utils';
 import { jobAlertFilterStateFromURL, hasActiveFilters, filterStateToURLSearchParams } from '@/utils/job-alerts.utils';
 import { SortDropdown } from '@/components/common/filters/SortDropdown/SortDropdown';
 import { JOBS_SORT_OPTIONS, SHOW_JOB_BOARD_APPLY } from '@/services/jobs/constants';
-import {
-  PENDING_APPLY_PARAM,
-  PENDING_PROFILE_PARAM,
-  stripPendingApplyFromUrl,
-  withPendingApply,
-} from '@/services/jobs/job-apply-resume';
+import { withPendingApply } from '@/services/jobs/job-apply-resume';
 import { JOB_DETAIL_PARAM } from '@/services/jobs/job-detail-link';
-import { useJobBoardViewer } from '@/components/page/jobs/hooks/useJobBoardViewer';
-import { useJobApplyFlow, type JobDetailTarget } from '@/components/page/jobs/hooks/useJobApplyFlow';
-import { useJobDetailDeepLink } from '@/components/page/jobs/hooks/useJobDetailDeepLink';
+import { useJobApplySurface } from '@/components/page/jobs/hooks/useJobApplySurface';
 import { JobBoardBanner } from '@/components/page/jobs/JobBoardBanner/JobBoardBanner';
-import { JobApplyFlowController } from '@/components/page/jobs/JobApplyFlowController/JobApplyFlowController';
-import type { RowApplyProps } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow';
 import { CardsLoader } from '@/components/core/loaders/CardsLoader';
 import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout/ContentPanelSkeletonLoader';
 import { toast } from '@/components/core/ToastContainer';
@@ -92,44 +83,25 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
   useTeamNewsCounts({ uids: newsTeamUids, enabled: SHOW_TEAM_NEWS_COUNT_CHIP });
 
   /* In-app Apply. `SHOW_JOB_BOARD_APPLY` is imported ONLY here on this page —
-     it reaches the hooks as `enabled` (flag off ⇒ zero requests, zero storage
-     touches) and the leaf components as prop absence (flag off ⇒ rows render
-     byte-identical to production today). */
-  const boardViewer = useJobBoardViewer({ isLoggedIn, userInfo, enabled: SHOW_JOB_BOARD_APPLY });
-  const applyFlow = useJobApplyFlow({
-    viewer: boardViewer.viewer,
-    verdict: boardViewer.verdict,
-    refreshVerdict: boardViewer.refreshVerdict,
-    source: 'job-board',
-  });
-  const flow = useJobDetailDeepLink({
+     it reaches the shared surface hook as `enabled` (flag off ⇒ zero requests,
+     zero storage touches) and the leaf components as prop absence (flag off ⇒
+     rows render byte-identical to production today).
+
+     The wiring itself lives in `useJobApplySurface` so the team profile runs the
+     same pipeline rather than a second copy of it. What stays here is what is
+     genuinely the board's: the alert effects below, `onRoleClick`, the banner. */
+  const surface = useJobApplySurface({
     enabled: SHOW_JOB_BOARD_APPLY,
+    source: 'job-board',
+    isLoggedIn,
+    userInfo,
     groups,
     isLoading,
-    flow: applyFlow,
+    /* The board's share links are `/jobs?job=<uid>`, so a description someone
+       opened is a description they can send. */
+    deepLink: true,
   });
-  const applyProps: RowApplyProps | undefined = useMemo(
-    () =>
-      SHOW_JOB_BOARD_APPLY && boardViewer.viewer !== 'rejected'
-        ? {
-            onApply: flow.onApply,
-            memberUid: boardViewer.memberUid,
-            /* Reading the job is step 1 of the flow now, so every row that gets
-               an apply slot gets `onViewJob` with it — no longer behind
-               `SHOW_JOB_DETAIL`, which description coverage answered. It is the
-               *wrapped* callback: `useJobDetailDeepLink` writes `?job=<uid>` on
-               the way in, so a description someone opened is a description they
-               can share. */
-            onViewJob: flow.onViewJob,
-          }
-        : undefined,
-    /* `flow` is `useJobDetailDeepLink`'s wrapper around `applyFlow` — the rows
-       must call the wrapped `onViewJob` so opening a description writes `?job=`.
-       The narrowing is ours: `isLoggedIn` and `boardViewer.verdict` left this
-       list when the approval gate did, since they were only ever read to compute
-       `externalApply`, which no longer exists. */
-    [boardViewer.viewer, boardViewer.memberUid, flow.onApply, flow.onViewJob],
-  );
+  const { viewer: boardViewer, flow, applyProps } = surface;
   /* The banner's "Sign in". Signing in never resumes an application — only
      signing up does — so any `applyTo` left in the URL by an abandoned
      sign-up is dropped here rather than inherited through the round trip. */
@@ -137,61 +109,6 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
     const search = withPendingApply(window.location.search, undefined);
     goToLogin({ returnTo: `${window.location.pathname}${search}` });
   }, [goToLogin]);
-
-  /* Coming back from the Privy round trip: pick the application back up where
-     it was interrupted. The role uid travels in the URL (see
-     `job-apply-resume`) because the login path clears localStorage on its way
-     through and sessionStorage did not reliably survive it.
-
-     Gated on the viewer having actually settled — resuming against a
-     half-derived state would open the drawer at someone with nothing to fill
-     in — and on the list having loaded, since the uid has to be re-resolved
-     against what the board is showing now. */
-  const applyResumeHandled = useRef(false);
-  useEffect(() => {
-    if (!SHOW_JOB_BOARD_APPLY) return;
-    if (applyResumeHandled.current) return;
-
-    const roleUid = searchParams.get(PENDING_APPLY_PARAM);
-    const completeProfile = searchParams.get(PENDING_PROFILE_PARAM) === '1';
-    if (!roleUid && !completeProfile) return;
-    if (!isLoggedIn || boardViewer.viewer === 'resolving') return;
-    if (isLoading) return;
-
-    // Claimed before anything async runs, so a StrictMode double-invoke or a
-    // re-render mid-resume can't run the flow twice. The parameter goes with
-    // it: a one-time instruction must not replay on reload.
-    applyResumeHandled.current = true;
-    stripPendingApplyFromUrl();
-
-    if (completeProfile && !roleUid) {
-      flow.onUpdateProfile();
-      return;
-    }
-
-    /* The team travels with it now: reading is step 1 of the flow, so a resumed
-       run has to be able to render the review step it may step back to. It was
-       always in hand here — the loop is over the groups — it just wasn't
-       captured. */
-    let resumed: JobDetailTarget | null = null;
-    for (const group of groups) {
-      const role = group.roles.find((r) => r.uid === roleUid);
-      if (role) {
-        resumed = { role, teamId: group.team.uid, teamName: group.team.name, team: group.team };
-        break;
-      }
-    }
-
-    if (resumed) {
-      flow.onResumeAfterSignUp(resumed);
-    } else {
-      /* The role closed, or the filters no longer show it. The profile is
-         still the thing standing between them and applying, so the drawer
-         opens without naming a role rather than resuming nothing at all. */
-      flow.onUpdateProfile();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn, boardViewer.viewer, isLoading, groups]);
 
   /* ONE stable callback for every card — `TeamGroupCard` is memoized, and a
      closure minted per group re-renders every scrolled-in card on each host
@@ -394,15 +311,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
       {/* The apply-flow modal/drawer stack — outside the groups.length branch
           for the same reason the news modal is: a filter change mid-application
           must not yank an open modal. */}
-      {SHOW_JOB_BOARD_APPLY && (
-        <JobApplyFlowController
-          flow={flow}
-          viewer={boardViewer}
-          isLoggedIn={isLoggedIn}
-          userInfo={userInfo}
-          source="job-board"
-        />
-      )}
+      {surface.controller}
 
       {/* Rendered outside the groups.length branch so an open modal survives the
           list emptying underneath it — a filter change while reading a team's

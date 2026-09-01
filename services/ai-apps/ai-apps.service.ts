@@ -170,7 +170,11 @@ export async function fetchAiApps(): Promise<AiApp[]> {
  */
 export async function recordAiAppView(uid: string): Promise<void> {
   try {
-    await customFetch(`${AI_APPS_API_URL}/${encodeURIComponent(uid)}/views`, { method: 'POST' }, true);
+    await customFetch(
+      `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/views`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' } },
+      true,
+    );
   } catch {
     // Tile counts are best-effort; never surface this to the member.
   }

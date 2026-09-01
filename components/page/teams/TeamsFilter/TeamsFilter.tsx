@@ -24,6 +24,7 @@ import { getPriorityLabel } from '@/utils/team.utils';
 import { isTierUser } from '@/utils/user/isTierUser';
 
 import { processCommunityAffiliationsFilterOptions } from './utils/processCommunityAffiliationsFilterOptions';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 export interface TeamsFilterProps {
   filterValues: ITeamFilterSelectedItems | undefined;
@@ -40,14 +41,15 @@ export interface TeamsFilterProps {
  */
 export function TeamsFilter(props: TeamsFilterProps) {
   const { filterValues, userInfo, searchParams, onClose } = props;
-
+  const { currentUser } = useCurrentUserStore();
   const { clearParams, params } = useTeamFilterStore();
   const appliedFiltersCount = useTeamFilterCount();
   const analytics = useTeamAnalytics();
-  const canSearch = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'team.search.read');
-  const canSeeSource = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'membership.source.read');
-  const isDirectoryAdmin = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'directory.admin.full'); // isAdminUser(userInfo);
-  const canSeePriority = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'team.priority.read');
+
+  const canSearch = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'team.search.read');
+  const canSeeSource = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'membership.source.read');
+  const isDirectoryAdmin = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'directory.admin.full'); // isAdminUser(userInfo);
+  const canSeePriority = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'team.priority.read');
   const isTierViewer = isDirectoryAdmin || canSearch || isTierUser(userInfo) || canSeePriority;
 
   // Create data hooks at the top level (not conditionally)

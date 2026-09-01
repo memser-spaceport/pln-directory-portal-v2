@@ -1,7 +1,13 @@
 'use client';
 
 import { clsx } from 'clsx';
+import type { BoostReadonlyReason } from '@/services/gantry/boost';
 import s from './Shared.module.scss';
+
+const READONLY_TITLE: Record<Exclude<BoostReadonlyReason, false>, string> = {
+  frozen: 'Boosts (frozen)',
+  author: "Boosts — you can't boost your own item",
+};
 
 function ArrowUpIcon() {
   return (
@@ -21,14 +27,15 @@ interface Props {
   readonly count: number;
   readonly hasPinned: boolean;
   readonly disabled?: boolean;
-  readonly readonly?: boolean;
+  /** Static count instead of a button — see `boostReadonlyReason`. */
+  readonly readonly?: BoostReadonlyReason;
   readonly onToggle: (nextHasPinned: boolean, el: HTMLButtonElement) => void;
 }
 
 export function BoostButton({ count, hasPinned, disabled, readonly, onToggle }: Props) {
   if (readonly) {
     return (
-      <span className={s.readStat} title="Boosts (frozen)">
+      <span className={s.readStat} title={READONLY_TITLE[readonly]}>
         <ArrowUpIcon />
         <span>{count ?? 0}</span>
       </span>

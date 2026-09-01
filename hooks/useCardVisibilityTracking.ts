@@ -5,6 +5,8 @@ interface UseCardVisibilityTrackingOptions {
   threshold?: number;
   rootMargin?: string;
   trackOnce?: boolean;
+  /** Skip observing entirely — for cards whose caller opted out of tracking. */
+  enabled?: boolean;
 }
 
 /**
@@ -13,6 +15,7 @@ interface UseCardVisibilityTrackingOptions {
  * @param threshold - Percentage of the card that must be visible (0-1). Default: 0.5 (50%)
  * @param rootMargin - Margin around the root. Default: '0px'
  * @param trackOnce - Whether to track only once per session. Default: true
+ * @param enabled - Whether to observe at all. Default: true
  * @returns ref - Ref to attach to the element you want to track
  */
 export function useCardVisibilityTracking<T extends HTMLElement>({
@@ -20,11 +23,14 @@ export function useCardVisibilityTracking<T extends HTMLElement>({
   threshold = 0.5,
   rootMargin = '0px',
   trackOnce = true,
+  enabled = true,
 }: UseCardVisibilityTrackingOptions) {
   const elementRef = useRef<T>(null);
   const hasBeenTrackedRef = useRef(false);
 
   useEffect(() => {
+    if (!enabled) return;
+
     const element = elementRef.current;
     if (!element) return;
 
@@ -63,8 +69,7 @@ export function useCardVisibilityTracking<T extends HTMLElement>({
     return () => {
       observer.disconnect();
     };
-  }, [onVisible, threshold, rootMargin, trackOnce]);
+  }, [onVisible, threshold, rootMargin, trackOnce, enabled]);
 
   return elementRef;
 }
-

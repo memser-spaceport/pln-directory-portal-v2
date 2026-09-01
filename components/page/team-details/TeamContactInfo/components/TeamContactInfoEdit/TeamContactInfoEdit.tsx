@@ -5,6 +5,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 
 import { ITeam } from '@/types/teams.types';
 import { getProfileFromURL } from '@/utils/common.utils';
+import { toSocialFieldInputValue } from '@/utils/profile/toSocialFieldInputValue';
 
 import { useOnSubmit } from '@/components/page/team-details/hooks/useOnSubmit';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
@@ -28,14 +29,16 @@ export function TeamContactInfoEdit(props: Props) {
   const { team, toggleIsEditMode } = props;
 
   const methods = useForm<EditTeamContactForm>({
+    // Handles are stored bare, but the X / Telegram / Bluesky fields require a leading "@", so
+    // seed those with it — otherwise re-saving an untouched team fails validation.
     defaultValues: {
       blog: team?.blog,
-      twitter: team?.twitter,
+      twitter: toSocialFieldInputValue('twitter', team?.twitter),
       website: team?.website ?? '',
       linkedin: team?.linkedinHandle,
-      telegram: team?.telegramHandler,
+      telegram: toSocialFieldInputValue('telegram', team?.telegramHandler),
       contactMethod: team?.contactMethod ?? '',
-      bluesky: team?.blueskyHandler,
+      bluesky: toSocialFieldInputValue('bluesky', team?.blueskyHandler),
       crunchbase: team?.crunchbaseHandler,
     },
     resolver: yupResolver(teamContactInfoSchema),
@@ -93,7 +96,7 @@ export function TeamContactInfoEdit(props: Props) {
           <FormField
             name="bluesky"
             label="Bluesky"
-            placeholder="eg., @protocol.ai or https://bsky.app/profile/protocol.ai"
+            placeholder="eg., @protocol.ai, protocol.ai or https://bsky.app/profile/protocol.ai"
           />
 
           <FormField

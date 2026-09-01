@@ -190,26 +190,28 @@ export function PrivyModals() {
 
       loggingIn = false;
 
-      // Handle errors
-      if (response.status === 500 || response.status === 401) {
-        triggerLoader(false);
-        authEvents.emit('auth:invalid-email', 'unexpected_error');
-        setLinkAccountKey('');
-        await logout();
-        return;
-      }
-
+      // Handle known client errors with dedicated messages
       if (response.status === 403) {
         triggerLoader(false);
         authEvents.emit('auth:invalid-email', 'rejected_access_level');
         setLinkAccountKey('');
-        // await logout();
         return;
       }
 
       if (response.status === 404) {
         triggerLoader(false);
         authEvents.emit('auth:invalid-email', 'email_not_found');
+        setLinkAccountKey('');
+        await logout();
+        return;
+      }
+
+      // Generic fallback for every other unsuccessful token exchange.
+      // This prevents the login flow from getting stuck for unhandled
+      // statuses such as 400, 401, 409, 422 or 5xx responses.
+      if (!response.ok) {
+        triggerLoader(false);
+        authEvents.emit('auth:invalid-email', 'unexpected_error');
         setLinkAccountKey('');
         await logout();
         return;

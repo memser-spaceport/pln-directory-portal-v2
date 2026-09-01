@@ -30,8 +30,14 @@
 
      On `.applyButton` rather than `.appliedButton` deliberately: it is worn by
      all three states (the in-app button, the external anchor and Applied), which
-     is the only way they can be guaranteed to match. */
-  min-width: 90px;
+     is the only way they can be guaranteed to match.
+
+     104px, not the 90 it started at. 90 was the measured width of the longest
+     label ("Applied"), so the button was exactly as wide as its own text and
+     read tight against a 35px "Refer" beside it. This is a chosen size rather
+     than a measured floor — comfortably clear of every label the slot takes, and
+     still one number for all three states. */
+  min-width: 104px;
 
   text-decoration: none;
 
@@ -138,4 +144,22 @@
   &:hover {
     color: var(--foreground-brand-primary, #1b4dff);
   }
+}
+
+/* The title as a <button> when it opens the in-app description instead of the
+   external posting. It keeps production's `.title` + `.titleLink` — same size,
+   weight, colour and hover underline — so nothing about the row's appearance
+   changes with the destination. This only takes off what a <button> brings and
+   an <a> does not: the UA's background, border, padding, font inheritance and
+   centred text. */
+.titleButton {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
 }

@@ -458,6 +458,12 @@ export interface TopStory {
    * first and in depth second. The opening section carries no heading: a reader
    * should get the story before they get its structure.
    */
+  /**
+   * The curator's written body. Unread by the feed since the one-pick shape of
+   * the top-stories block was removed — kept because the Monday email is the
+   * thing that ships before the feed UI, and it is the surface this length of
+   * copy belongs on.
+   */
   longSummary: Array<{ heading?: string; paragraphs: string[] }>;
   /** How many candidates the pick was made from — sizes the judgement. */
   consideredCount: number;
@@ -560,3 +566,29 @@ export const CURATED_SUGGESTED_TEAMS: CuratedSuggestedTeam[] = [
     reason: 'Same focus area as Lattice Compute',
   },
 ];
+
+// ---------- 5. For You: who the reader is, as far as the feed is concerned ----------
+
+/* VIEWER_FOCUS_AREAS lived here — the viewer's two focus areas, printed in the
+   For You note. The note now names its inputs as profile fields ("your focus
+   areas, skills and teams") rather than listing values, so nothing reads it.
+   The fact its comment carried is kept where it is still load-bearing, in
+   ForYouBanner: focus areas are a team field a member inherits, not a control
+   on the settings page that button opens. */
+
+
+/**
+ * The three sources, one team each so the pill's contents can be read back
+ * against the banner's claim:
+ *
+ *   libp2p ........... a membership (Networking)
+ *   drand ............ Infrastructure — matched to the viewer's skills
+ *   lattice-compute .. Infrastructure — matched to the viewer's skills
+ *   prime-intellect .. a Teams-to-follow match, the first row of
+ *                      `CURATED_SUGGESTED_TEAMS` ("works with 2 teams you follow")
+ *
+ * Protocol Labs is deliberately *out*: it carries five of the week's stories, so
+ * including it would make For You most of the feed and the pill would stop
+ * meaning anything.
+ */
+export const FOR_YOU_TEAM_UIDS: readonly string[] = ['libp2p', 'drand', 'lattice-compute', 'prime-intellect'];

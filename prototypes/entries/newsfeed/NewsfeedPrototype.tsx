@@ -13,8 +13,9 @@
  *   SortDropdown, SearchInput ....... @/components/common/filters
  *   Button .......................... @/components/common/Button
  *   FollowButton .................... @/components/ui/FollowButton (rail size)
+ *   JobAlertShell + JobAlertBanner.module.scss .. the aside slab (ForYouBanner)
  *   getTeamLogoFallback, formatTimeAgo, dedupeByUid, sortAllTabItemsByEventDate,
- *   hasExistingDiscussion, CATEGORIES / ALL_CAT / ACTIVE_DISCUSSIONS_*
+ *   hasExistingDiscussion, CATEGORIES / ALL_CAT / FOR_YOU_* / ACTIVE_DISCUSSIONS_*
  *
  * Sibling prototypes (shared, not forked):
  *   ../newsfeed-v0 .................. V0FeedCard, ForumPostCard, FeedDetailModal,
@@ -23,7 +24,8 @@
  *                                     FeedActions, eventMeta, QuickActions, mocks
  *   ../follow-shared ................ FollowButton (xs/tertiary), FollowToast
  *
- * New here (and only here): TopStoryCard, HiringCard, PerkCard, CuratedRail.
+ * New here (and only here): TopStoryCard, HiringCard, PerkCard, CuratedRail,
+ * ForYouBanner.
  *
  * EmailDigest.tsx is still in this folder but is no longer mounted — the digest
  * view was removed from this prototype. Kept because the Monday email is the
@@ -31,6 +33,7 @@
  */
 
 import clsx from 'clsx';
+import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FocusEvent, PropsWithChildren, ReactNode } from 'react';
 
@@ -45,6 +48,8 @@ import {
   DISCUSSIONS_CATEGORY,
   ALL_TAB,
   ALL_CAT,
+  FOR_YOU_CAT,
+  FOR_YOU_CATEGORY,
   CATEGORIES,
   type TeamNewsCategoryId,
 } from '@/components/page/home/TeamNews/constants';
@@ -91,10 +96,11 @@ import {
   type FeedComment,
 } from '../newsfeed-v0/mocks';
 
-import { TopStoriesBlock, type TopBlockVariant } from './TopStoriesBlock';
+import { TopStoriesBlock } from './TopStoriesBlock';
 import { HiringCard } from './HiringCard';
 import { PerkCard } from './PerkCard';
 
+import { ForYouBanner } from './ForYouBanner';
 import { FollowTeamsScroller } from './FollowTeamsScroller';
 import { PopularScroller } from './PopularScroller';
 import { SubscribeBanner } from './SubscribeBanner';
@@ -103,6 +109,7 @@ import type { Subscription } from './subscription';
 import {
   ALL_CURATED_ITEMS,
   FOCUS_BY_UID,
+  FOR_YOU_TEAM_UIDS,
   HIRING_SIGNALS,
   PERK_SIGNALS,
   SUPERSEDED_BY_HIRING,
@@ -113,6 +120,31 @@ import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
 import local from './Newsfeed.module.scss';
 
 const PAGE_SIZE = 6;
+
+/**
+ * Set back to true to re-enable the week's editorial top-stories block.
+ *
+ * Same shape production uses for `SHOW_POPULAR_THIS_WEEK` / `SHOW_HIRING_NEWS`
+ * in `TeamNews/constants` — a named switch rather than a deletion, because this
+ * is "not right now", not "never". Everything it feeds stays wired: with the
+ * flag off the three picks are not extracted from the stream, so the lead and
+ * its two runners-up come back as ordinary feed cards instead of vanishing from
+ * the week (`feedPool` already handles that — it only subtracts `blockUids`
+ * while the block is showing).
+ *
+ * Note the knock-on, which is correct rather than a bug: the For You pill reads
+ * one higher with the block off, because the pick it used to own is a card in
+ * the feed again and every pill counts what is under it.
+ */
+const SHOW_TOP_STORIES = false;
+
+/**
+ * Whether the For You slice has anything at all this week — production's
+ * `hasForYouNews`, computed over the whole stream rather than the active tab so
+ * the landing view can't depend on which tab the reader is standing in. Static,
+ * because the mock corpus is.
+ */
+const HAS_FOR_YOU_NEWS = ALL_CURATED_ITEMS.some((i) => FOR_YOU_TEAM_UIDS.includes(i.teamUid));
 
 type Sort = 'latest' | 'popular' | 'following';
 
@@ -146,18 +178,6 @@ const SORT_OPTIONS = [
  *                cut from the eyebrow. `CURATION_ATTRIBUTION` stays in the mock
  *                for the email digest, which still states who picked.
  */
-
-const TOP_VARIANT_OPTIONS: Array<{ value: TopBlockVariant; label: string }> = [
-  { value: 'three', label: '3 stories' },
-  { value: 'single', label: '1 story' },
-];
-
-const TOP_VARIANT_NOTE: Record<TopBlockVariant, string> = {
-  three:
-    'One lead plus two runner-up rows. Three chances to land on a weekly reader, at the cost of a clamped teaser on each.',
-  single:
-    'One pick, with the space the two rows used to take spent on a written body instead. Higher conviction — and if the reader does not want that story, the block gives them nothing this week. The other two return to the feed as ordinary cards.',
-};
 
 const HIRING_CAT = 'hiring' as const;
 const DEALS_CAT = 'deals' as const;
@@ -273,17 +293,20 @@ function NetworkUpdatesBase({ headerDetails, children }: PropsWithChildren<{ hea
 }
 
 export default function NewsfeedPrototype() {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
-
-  /**
-   * Prototype chrome, not product UI — the two shapes for the top slot, side by
-   * side so the choice can be looked at rather than described.
-   */
-  const [topVariant, setTopVariant] = useState<TopBlockVariant>('three');
 
   // Feed state.
   const [activeFocus, setActiveFocus] = useState<string>(ALL_TAB);
-  const [activeCategory, setActiveCategory] = useState<string>(ALL_CAT);
+  /**
+   * For You is where you land, production's rule (`TeamNews.tsx` opens on
+   * `FOR_YOU_CAT` whenever that slice has anything in it). The pill was worth
+   * little as an opt-in: a reader who has never pressed it cannot know the feed
+   * could be about them, so the personalization only pays off for people who
+   * already went looking. Falls back to All on a week with no matches, so the
+   * landing view is never an empty one.
+   */
+  const [activeCategory, setActiveCategory] = useState<string>(HAS_FOR_YOU_NEWS ? FOR_YOU_CAT : ALL_CAT);
   const [sort, setSort] = useState<Sort>('following');
   const [query, setQuery] = useState('');
   /**
@@ -297,6 +320,19 @@ export default function NewsfeedPrototype() {
 
   const desktopFieldRef = useRef<HTMLDivElement>(null);
   const [followedTeams, setFollowedTeams] = useState<Set<string>>(new Set());
+
+  /**
+   * The teams behind the For You pill — production's `forYouTeamUids`, seeded
+   * from the mock and then grown by whatever you follow while you're here.
+   *
+   * Production snapshots the set once at mount (`initialForYouTeamUids`) so the
+   * pill's contents can't reshuffle under the reader. This keeps the no-reshuffle
+   * half — the set only ever *grows*, so unfollowing never yanks a card out from
+   * under the cursor — while still letting a follow show up in For You, which is
+   * the one input of the three the banner claims that a reader can exercise on
+   * this page. A claim you can't watch happen is a claim a prototype can't test.
+   */
+  const [forYouTeams, setForYouTeams] = useState<Set<string>>(() => new Set(FOR_YOU_TEAM_UIDS));
   const [toast, setToast] = useState<string | null>(null);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [commentsByUid, setCommentsByUid] = useState<Record<string, FeedComment[]>>(() => ({ ...COMMENTS_BY_UID }));
@@ -341,6 +377,9 @@ export default function NewsfeedPrototype() {
       } else {
         next.add(teamUid);
         setToast(teamName);
+        // Follows are one of the three things For You is made of, so a follow
+        // joins it. Add-only — see `forYouTeams`.
+        setForYouTeams((teams) => (teams.has(teamUid) ? teams : new Set(teams).add(teamUid)));
       }
       return next;
     });
@@ -408,7 +447,14 @@ export default function NewsfeedPrototype() {
 
     const team = params.get('team');
     const known = team && (ALL_CURATED_ITEMS.some((i) => i.teamUid === team) || getTeamNews(team).length > 0);
-    if (known && team) setTeamFilter(team);
+    // The team scope drops the For You pill (you have already said which team
+    // you want), so a reader arriving on the default For You view would land in
+    // a category with no control left to leave it — and, most weeks, no stories
+    // either. A scope always arrives on All.
+    if (known && team) {
+      setTeamFilter(team);
+      setActiveCategory(ALL_CAT);
+    }
 
     const newsUid = params.get('news');
     const story = newsUid ? ALL_CURATED_ITEMS.find((i) => i.uid === newsUid) : undefined;
@@ -447,6 +493,12 @@ export default function NewsfeedPrototype() {
      */
     const focusTeam = params.get('focus');
     if (focusTeam) {
+      // On All, not the default For You: this link asks for one team's card in
+      // the middle of the feed, and For You holds the teams that match *you* —
+      // which most of the teams anyone deep-links to are not. Arriving in a view
+      // that doesn't contain the card would send the scroll below into its
+      // scope-to-the-team fallback for a team the feed can render perfectly well.
+      setActiveCategory(ALL_CAT);
       setExpanded(true);
       let tries = 0;
       const find = () => {
@@ -469,6 +521,7 @@ export default function NewsfeedPrototype() {
         // to has a cluster, so this should never fire. It's here so a future
         // fixture-only team degrades to something legible.
         setTeamFilter(focusTeam);
+        setActiveCategory(ALL_CAT);
       };
       requestAnimationFrame(find);
     }
@@ -556,19 +609,24 @@ export default function NewsfeedPrototype() {
    * offer takes over. Gating on `isNarrowed` rather than on the focus tab alone
    * also fixes the case where a category pill ("Funding") left a global pick
    * sitting on top of a filtered view.
+   *
+   * **For You counts as "asked for nothing".** `isNarrowed` reads it as a filter
+   * — correct for the subscribe offer, which is about a cut you *chose* — but it
+   * is now the view you arrive in, and a resting state cannot also be the
+   * evidence that you filtered. Left as-is, making For You the default deleted
+   * the week's pick from the landing page, which is the one thing this entry
+   * exists to argue for. So the hero asks its own question: is anything narrowed
+   * *other than* the category, and is the category one of the two resting ones.
    */
-  const showTopStory = topStoryItem !== null && !narrowed;
+  const isRestingCategory = activeCategory === ALL_CAT || activeCategory === FOR_YOU_CAT;
+  const showTopStory =
+    SHOW_TOP_STORIES &&
+    topStoryItem !== null &&
+    isRestingCategory &&
+    !isNarrowed({ ...view, category: ALL_CAT as FeedView['category'] });
 
-  /**
-   * Every uid the block owns, so none of them can also appear as a feed card.
-   * On the single-story version the block owns only the lead — the two runner-ups
-   * are not in it, so they go back to being ordinary feed cards rather than
-   * disappearing from the week entirely.
-   */
-  const blockUids = useMemo(
-    () => new Set(topVariant === 'single' ? [TOP_STORY.uid] : [TOP_STORY.uid, ...alsoItems.map((i) => i.uid)]),
-    [alsoItems, topVariant],
-  );
+  /** Every uid the block owns, so none of them can also appear as a feed card. */
+  const blockUids = useMemo(() => new Set([TOP_STORY.uid, ...alsoItems.map((i) => i.uid)]), [alsoItems]);
 
   /**
    * The block owns its stories only where the block renders. Keyed on
@@ -607,6 +665,32 @@ export default function NewsfeedPrototype() {
     [sourceItems],
   );
 
+  /**
+   * The For You slice, computed inside the active focus tab the same way every
+   * other pill's count is — production does the same (`forYouItemsForActiveTab`),
+   * so a pill never reports a number from outside the tab you're standing in.
+   *
+   * One divergence from production, and it's the clustering. `selectForYouItems`
+   * keeps only the *latest story per team*, because production's For You renders
+   * a flat list and without that cap one busy team would fill it. This feed
+   * clusters by team before it renders — a team's other stories are already
+   * folded behind "+N more" on its one card — so the cap would only delete
+   * stories from inside a card that was never going to fan out. Filtering by team
+   * is what For You means; the one-per-team rule is how production's shape pays
+   * for not having clusters.
+   */
+  const forYouItems = useMemo(
+    // Off `scopedItems`, so the top-story block's picks are already out of it.
+    // Two things ride on that. The block now renders on For You as well as All
+    // (it treats both as resting views), so counting the stream would put the
+    // week's pick in the band *and* in a card below it. And because the block
+    // stands or falls identically on those two views, the count no longer moves
+    // when you cross between them — which is the failure this used to have when
+    // pressing For You was what made the block stand down.
+    () => scopedItems.filter((i) => forYouTeams.has(i.teamUid)),
+    [scopedItems, forYouTeams],
+  );
+
   const categoriesWithCounts = useMemo(() => {
     const activeDiscussionsCount = scopedItems.filter((i) => hasExistingDiscussion(i.discussion)).length;
     const base = CATEGORIES.map((c) => ({
@@ -615,6 +699,12 @@ export default function NewsfeedPrototype() {
     }));
 
     const out: Array<{ id: string; label: string; count: number }> = [];
+    // First in the row, ahead of "All categories" — production's order, and the
+    // right one: this is the narrowest, most personal read of the week, so it is
+    // what a returning reader reaches for. Under a team scope it is dropped
+    // entirely: you have already said which team you want, and "the teams that
+    // match you" is not a further cut of one team.
+    if (!teamFilter) out.push({ ...FOR_YOU_CATEGORY, count: forYouItems.length });
     for (const c of base) {
       out.push(c);
       if (c.id === ALL_CAT && activeDiscussionsCount > 0) {
@@ -633,7 +723,7 @@ export default function NewsfeedPrototype() {
     if (showHiring && hiringCount > 0) out.push({ id: HIRING_CAT, label: 'Hiring', count: hiringCount });
     if (showPerks && !teamFilter) out.push({ id: DEALS_CAT, label: 'Deals', count: PERK_SIGNALS.length });
     return out;
-  }, [scopedItems, showHiring, showPerks, teamFilter]);
+  }, [scopedItems, forYouItems, showHiring, showPerks, teamFilter]);
 
   /**
    * The same list the pills rendered, shaped for a dropdown.
@@ -647,19 +737,23 @@ export default function NewsfeedPrototype() {
   const categoryOptions = useMemo(
     () =>
       categoriesWithCounts
-        .filter((c) => c.id === ALL_CAT || c.count > 0)
+        // For You survives an empty week for the same reason All does: both are
+        // *views* of the feed rather than cuts of it, and a reader whose profile
+        // matched nothing this week needs to be able to get there and read why.
+        .filter((c) => c.id === ALL_CAT || c.id === FOR_YOU_CAT || c.count > 0)
         .map((c) => ({ value: c.id, label: c.id === ALL_CAT ? c.label : `${c.label} (${c.count})` })),
     [categoriesWithCounts],
   );
 
   const filteredItems = useMemo(() => {
     if (activeCategory === ALL_CAT) return scopedItems;
+    if (activeCategory === FOR_YOU_CAT) return forYouItems;
     if (activeCategory === HIRING_CAT || activeCategory === DEALS_CAT) return [];
     if (activeCategory === DISCUSSIONS_CAT) {
       return scopedItems.filter((i) => hasExistingDiscussion(i.discussion));
     }
     return scopedItems.filter((i) => i.eventType === activeCategory);
-  }, [activeCategory, scopedItems]);
+  }, [activeCategory, scopedItems, forYouItems]);
 
   const searchedItems = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -808,9 +902,20 @@ export default function NewsfeedPrototype() {
   // has to drop you back to All rather than into a pill that now holds nothing.
   const handleFocus = (next: string) => {
     setActiveFocus(next);
-    setActiveCategory(ALL_CAT);
+    // For You survives the move, every event-type pill doesn't — production's
+    // rule, and the distinction it draws is right: an event type is a cut of one
+    // tab's contents, while For You is a *view* that every tab has a version of.
+    if (activeCategory !== FOR_YOU_CAT) setActiveCategory(ALL_CAT);
     resetPaging();
   };
+
+  /**
+   * Where the two profile fields behind For You actually live: the settings
+   * prototype's "Team & skills" section. Named for that destination rather than
+   * for this feed — it is the page that owns the question, not a feed setting,
+   * and there is no "topics" control anywhere to send someone to instead.
+   */
+  const openProfileSettings = () => router.push('/prototypes/profile-settings');
 
   const handleFieldBlur = (e: FocusEvent<HTMLDivElement>) => {
     if (e.currentTarget.contains(e.relatedTarget as Node)) return;
@@ -966,7 +1071,9 @@ export default function NewsfeedPrototype() {
                 <div className={clsx(s.catRow, local.catRowDesktop)}>
                   {categoriesWithCounts.map((c) => {
                     const isActive = activeCategory === c.id;
-                    const isDisabled = c.count === 0 && c.id !== ALL_CAT;
+                    // For You is exempt with All: an empty week is a thing to go
+                    // read the explanation of, not a dead pill.
+                    const isDisabled = c.count === 0 && c.id !== ALL_CAT && c.id !== FOR_YOU_CAT;
                     return (
                       <button
                         key={c.id}
@@ -1044,7 +1151,18 @@ export default function NewsfeedPrototype() {
                 </div>
               </div>
 
-              {narrowed && !subscription && !subscribeDismissed && (
+              {/* What the view is made of, in one line — the same note the Deals
+                pill gets below, for the same reason. See `ForYouBanner`. */}
+              {activeCategory === FOR_YOU_CAT && (
+                <ForYouBanner onUpdateProfile={openProfileSettings} />
+              )}
+
+              {/* For You is narrowed, so the subscribe offer would otherwise fire
+                under the note above — two asides stacked between the pills and
+                the first story. It also has nothing to offer here: a weekly email
+                of "whatever currently matches my profile" is a different object
+                from a saved filter. */}
+              {narrowed && activeCategory !== FOR_YOU_CAT && !subscription && !subscribeDismissed && (
                 <div className={clsx(v0.tabsConstrain, v0.tabsConstrainBanner, local.railGutterConstrain)}>
                   <SubscribeBanner
                     label={summarizeView(view, teamFilterName)}
@@ -1086,34 +1204,10 @@ export default function NewsfeedPrototype() {
                         rail, so the rail runs as one continuous column: Teams to
                         follow, then Popular this week, digest — no gap where the
                         block used to sit in a grid of its own. */}
-                      {/* Prototype chrome. Reuses the same switch this entry used for
-                        its earlier version toggles, rather than inventing a tab
-                        control that would then compete with the focus tabs above. */}
-                      {showTopStory && topStoryItem && (
-                        <div className={v0.versionRow}>
-                          <div className={v0.switch} role="tablist" aria-label="Top stories version">
-                            {TOP_VARIANT_OPTIONS.map((opt) => (
-                              <button
-                                key={opt.value}
-                                type="button"
-                                role="tab"
-                                aria-selected={topVariant === opt.value}
-                                className={clsx(v0.switchBtn, topVariant === opt.value && v0.switchBtnActive)}
-                                onClick={() => setTopVariant(opt.value)}
-                              >
-                                {opt.label}
-                              </button>
-                            ))}
-                          </div>
-                          <span className={v0.switchNote}>{TOP_VARIANT_NOTE[topVariant]}</span>
-                        </div>
-                      )}
-
                       {showTopStory && topStoryItem && (
                         <TopStoriesBlock
                           lead={topStoryItem}
                           also={alsoItems}
-                          variant={topVariant}
                           top={TOP_STORY}
                           followedTeams={followedTeams}
                           onToggleFollow={toggleFollow}

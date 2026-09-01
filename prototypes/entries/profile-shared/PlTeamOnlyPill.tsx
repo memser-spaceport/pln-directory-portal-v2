@@ -3,25 +3,32 @@
 import s from './PlTeamOnlyPill.module.scss';
 
 /**
- * The "VISIBLE TO YOU AND LABOS ADMINS" pill — the prototypes' established mark
- * for a field the member can see and edit but nobody else in the network can.
+ * The lock pill — the prototypes' mark for data that is not visible to the
+ * network. One shape, one lock, and an audience that the caller names.
  *
- * **It used to read "Visible to PL Team only".** Two things were wrong with it.
- * It named only the exclusion, leaving the member out of a sentence about their
- * own data — the first question anyone asks of a lock is "can *I* see it?", and
- * "PL Team only" answers no. And "PL Team" is not what this product calls its
- * administrators anywhere a member reads: the app is LabOS, so the people with
- * the keys are LabOS admins. Naming the member first and the admins second is
- * the whole promise in the order it matters. (The file keeps its old name —
- * every importer already knows it, and the label is the part anyone reads.)
+ * **The audience is not the same in both places, and that is the whole point.**
+ * The default sentence is for a member's own private field — the job board's
+ * "Job search status", which they set, they can see, and only admins can read.
+ * There, leaving the member out of a sentence about their own data answers the
+ * first question anyone asks of a lock ("can *I* see it?") with a flat no. And
+ * "PL Team" is not what this product calls its administrators anywhere a member
+ * reads: the app is LabOS, so the people with the keys are LabOS admins.
+ *
+ * The member profile's Relationship card is a different fact. That card is
+ * Affinity CRM context — PL's own notes *about* the member, gated on
+ * `hasAffinityAccess`, which the member does not have. "Visible to you and
+ * LabOS admins" is not merely wordier there, it is wrong: "you" is a PL staffer
+ * and the member never sees the card at all. So that surface passes
+ * `label="PL team only"`, which is what it actually means.
+ *
+ * Hence a prop rather than two components. The mark, the lock and the geometry
+ * stay shared; only the sentence differs, and it differs because the promise
+ * does. (The file keeps its old name — every importer already knows it.)
  *
  * SHARED (prototypes/entries/profile-shared/, no registry entry — like
  * nav-shared/ and news-shared/). It started life inside the member-profile
  * entry, on the internal Relationship card; the job-board profile drawer needed
- * the same mark for its private "Job search status" section, so it moved here
- * rather than being copied. Two copies of a privacy marker is exactly the drift
- * worth avoiding: the day one of them changes shape, the product is telling
- * people two different things about the same promise.
+ * the same mark, so it moved here rather than being copied.
  *
  * **Why a pill and not a banner.** It qualifies the section it sits in — it is
  * a fact about the data, not something you can act on — so it belongs beside the
@@ -35,11 +42,19 @@ import s from './PlTeamOnlyPill.module.scss';
  * pill carries the audience in words: the lock is decoration on the label,
  * not the message itself. Never use the lock alone.
  */
-export function PlTeamOnlyPill({ className }: { className?: string }) {
+export function PlTeamOnlyPill({
+  className,
+  label = 'Visible to you and LabOS admins',
+}: {
+  className?: string;
+  /** Who can see it. Override only when the audience genuinely differs — the
+   *  sentence is the one thing this component exists to keep honest. */
+  label?: string;
+}) {
   return (
     <span className={className ? `${s.pill} ${className}` : s.pill}>
       <LockIcon />
-      Visible to you and LabOS admins
+      {label}
     </span>
   );
 }

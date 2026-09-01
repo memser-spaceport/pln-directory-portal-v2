@@ -2,6 +2,8 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useCurrentSnapshotStatus } from '@/services/plaa/hooks/useCurrentSnapshotStatus';
 import { useProfileBalance } from '@/services/plaa/hooks/useProfileBalance';
 import { useProfilePlaaHistory, type ProfilePlaaHistoryEntry } from '@/services/plaa/hooks/useProfilePlaaHistory';
+import { useRedemptionHistory } from '@/services/plaa/hooks/useRedemptionHistory';
+import { useSnapshotLifecycle } from '@/services/plaa/hooks/useSnapshotLifecycle';
 import { useSnapshotPointsHistory, type SnapshotPointsByPeriod } from '@/services/plaa/hooks/useSnapshotPointsHistory';
 import type { SnapshotPointsResponse } from '@/services/points/hooks/usePoints';
 
@@ -13,6 +15,8 @@ export interface ProfileActivityItem {
 
 export interface SnapshotHistoryEntry {
   period: string;
+  /** Raw ISO period, kept for matching against sources keyed by calendar month. */
+  periodIso: string;
   activities: number | null;
   categories: number | null;
   points: number | null;
@@ -21,6 +25,8 @@ export interface SnapshotHistoryEntry {
   infra: number;
   plaaTotal: number;
   items: ProfileActivityItem[] | null;
+  /** The snapshot is not closed yet, so its own figures are provisional. */
+  isPending: boolean;
 }
 
 export interface ContributionHistoryEntry {
@@ -29,6 +35,8 @@ export interface ContributionHistoryEntry {
   plaa: number;
   infra: number;
   redeemed: number | null;
+  /** The snapshot is not closed yet, so its own figures are provisional. */
+  isPending: boolean;
   cum: number;
 }
 
@@ -91,12 +99,17 @@ function findMemberSince(historyData: ProfilePlaaHistoryEntry[] | null | undefin
   return null;
 }
 
-function toSnapshotHistory(history: ProfilePlaaHistoryEntry[], pointsByPeriod: SnapshotPointsByPeriod): SnapshotHistoryEntry[] {
+function toSnapshotHistory(
+  history: ProfilePlaaHistoryEntry[],
+  pointsByPeriod: SnapshotPointsByPeriod,
+  closedByMonth: Record<string, boolean>,
+): SnapshotHistoryEntry[] {
   return [...history].reverse().map((entry) => {
     const pointsResponse = pointsByPeriod[entry.period];
     const items = pointsResponse ? activityItemsFrom(pointsResponse) : null;
     return {
       period: formatPeriodLabel(entry.period),
+      periodIso: entry.period,
       activities: items ? items.length : null,
       categories: items ? new Set(items.map((i) => i.category)).size : null,
       points: items ? items.reduce((sum, i) => sum + i.points, 0) : null,
@@ -105,21 +118,41 @@ function toSnapshotHistory(history: ProfilePlaaHistoryEntry[], pointsByPeriod: S
       infra: entry.irPlaa,
       plaaTotal: entry.plaaTotal,
       items,
+      isPending: isPendingMonth(entry.period, closedByMonth),
     };
   });
 }
 
-function buildContributionHistory(snapshotHistory: SnapshotHistoryEntry[]): ContributionHistoryEntry[] {
+/** Snapshot rows carry a day-of-month; auctions and lifecycle rows land on the first. */
+function monthKey(isoDate: string): string {
+  return isoDate.slice(0, 7);
+}
+
+// Absent lifecycle data means unknown, not provisional: without it the figures
+// are shown as they always were rather than every row marked pending.
+function isPendingMonth(isoDate: string, closedByMonth: Record<string, boolean>): boolean {
+  const closed = closedByMonth[monthKey(isoDate)];
+  return closed === undefined ? false : !closed;
+}
+
+export function buildContributionHistory(
+  snapshotHistory: SnapshotHistoryEntry[],
+  redeemedByMonth: Record<string, number>,
+  closedByMonth: Record<string, boolean>,
+): ContributionHistoryEntry[] {
   const oldestFirst = [...snapshotHistory].reverse();
   let cum = 0;
   return oldestFirst.map((entry) => {
     cum += entry.activityPlaa + entry.infra;
+    const month = monthKey(entry.periodIso);
+    const closed = closedByMonth[month];
     return {
       period: entry.period,
       points: entry.points,
       plaa: entry.activityPlaa,
       infra: entry.infra,
-      redeemed: null,
+      redeemed: redeemedByMonth[month] ?? null,
+      isPending: closed === undefined ? false : !closed,
       cum,
     };
   });
@@ -133,10 +166,25 @@ export function useProfileData(): ProfileData {
   const { data: historyData, isLoading: isHistoryLoading } = useProfilePlaaHistory();
   const historyStatus: ProfileHistoryStatus = isHistoryLoading ? 'loading' : historyData ? 'ready' : 'unavailable';
   const pointsByPeriod = useSnapshotPointsHistory(historyData?.map((e) => e.period) ?? []);
+  const { data: redemptionData } = useRedemptionHistory();
+  const { data: lifecycleData } = useSnapshotLifecycle();
 
   const name = currentUser?.name || 'Member';
-  const snapshotHistory = historyData ? toSnapshotHistory(historyData, pointsByPeriod) : [];
-  const contributionHistory = buildContributionHistory(snapshotHistory);
+  const redeemedByMonth: Record<string, number> = {};
+  for (const entry of redemptionData ?? []) {
+    if (entry.period === null || entry.plaaRedeemed === null) continue;
+    const month = monthKey(entry.period);
+    redeemedByMonth[month] = (redeemedByMonth[month] ?? 0) + entry.plaaRedeemed;
+  }
+
+  const closedByMonth: Record<string, boolean> = {};
+  for (const entry of lifecycleData ?? []) {
+    if (entry.period === null) continue;
+    closedByMonth[monthKey(entry.period)] = entry.isClosed;
+  }
+
+  const snapshotHistory = historyData ? toSnapshotHistory(historyData, pointsByPeriod, closedByMonth) : [];
+  const contributionHistory = buildContributionHistory(snapshotHistory, redeemedByMonth, closedByMonth);
 
   return {
     identity: {

@@ -7,6 +7,7 @@ import type { SnapshotHistoryEntry } from '@/services/plaa/hooks/useProfileData'
 const entries: SnapshotHistoryEntry[] = [
   {
     period: 'Jul 2026',
+    periodIso: '2026-07-26',
     activities: 3,
     categories: 3,
     points: 450,
@@ -15,9 +16,11 @@ const entries: SnapshotHistoryEntry[] = [
     infra: 30,
     plaaTotal: 75,
     items: [{ category: 'Category A', title: 'Activity 1', points: 300 }],
+    isPending: false,
   },
   {
     period: 'May 2026',
+    periodIso: '2026-05-26',
     activities: 2,
     categories: 2,
     points: 350,
@@ -26,6 +29,7 @@ const entries: SnapshotHistoryEntry[] = [
     infra: 0,
     plaaTotal: 35,
     items: [{ category: 'Category A', title: 'Activity 2', points: 50 }],
+    isPending: false,
   },
 ];
 
@@ -74,6 +78,7 @@ describe('SnapshotHistoryTab', () => {
     const realEntries: SnapshotHistoryEntry[] = [
       {
         period: 'Jul 2026',
+        periodIso: '2026-07-26',
         activities: null,
         categories: null,
         points: null,
@@ -82,9 +87,11 @@ describe('SnapshotHistoryTab', () => {
         infra: 0,
         plaaTotal: 50,
         items: null,
+        isPending: false,
       },
       {
         period: 'May 2026',
+        periodIso: '2026-05-26',
         activities: null,
         categories: null,
         points: null,
@@ -93,6 +100,7 @@ describe('SnapshotHistoryTab', () => {
         infra: 900,
         plaaTotal: 1000,
         items: null,
+        isPending: false,
       },
     ];
 
@@ -117,5 +125,17 @@ describe('SnapshotHistoryTab', () => {
       expect(screen.getByText('Total to date')).toBeInTheDocument();
       expect(screen.getByText('1,050')).toBeInTheDocument(); // 50 + 1000 PLAA total
     });
+  });
+
+  it('shows Pending in place of an open snapshot\'s own points and PLAA figures', () => {
+    const withPending: SnapshotHistoryEntry[] = [
+      { ...entries[0], isPending: true },
+      { ...entries[1], isPending: false },
+    ];
+    render(<SnapshotHistoryTab entries={withPending} />);
+
+    expect(screen.getAllByText('Pending')).toHaveLength(2);
+    expect(screen.queryByText('450 points')).not.toBeInTheDocument();
+    expect(screen.getByText('350 points')).toBeInTheDocument();
   });
 });

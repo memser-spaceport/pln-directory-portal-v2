@@ -11,6 +11,9 @@ interface SnapshotHistoryTabProps {
   entries: SnapshotHistoryEntry[];
 }
 
+// Matches the wording the rounds dashboard already uses for an open snapshot.
+const PENDING_LABEL = 'Pending';
+
 function dashOr(value: number | null, suffix = ''): string {
   return value === null ? '—' : `${value.toLocaleString()}${suffix}`;
 }
@@ -56,8 +59,12 @@ export default function SnapshotHistoryTab({ entries }: SnapshotHistoryTabProps)
               <span className={styles.period}>{entry.period}</span>
               <span className={styles.cell}>{entry.activities ?? '—'}</span>
               <span className={styles.cell}>{entry.categories ?? '—'}</span>
-              <span className={styles.pointsCell}>{dashOr(entry.points, ' points')}</span>
-              <span className={styles.plaaCell}>{entry.plaaTotal.toLocaleString()}</span>
+              <span className={styles.pointsCell}>
+                {entry.isPending ? PENDING_LABEL : dashOr(entry.points, ' points')}
+              </span>
+              <span className={styles.plaaCell}>
+                {entry.isPending ? PENDING_LABEL : entry.plaaTotal.toLocaleString()}
+              </span>
               <span className={styles.caretCell}>
                 <ChevronIcon expanded={isOpen} />
               </span>

@@ -118,6 +118,7 @@ const mockPush = jest.fn();
 let mockSearchParams = new URLSearchParams();
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush, replace: jest.fn(), prefetch: jest.fn() }),
+  usePathname: () => '/pl-infra/ai-apps/app-1',
   useSearchParams: () => mockSearchParams,
 }));
 

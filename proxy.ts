@@ -6,7 +6,7 @@ import { calculateExpiry, decodeToken } from './utils/auth.utils';
  * Protected routes that require authentication
  * Users accessing these routes without authentication will be redirected to login
  */
-const PROTECTED_ROUTES = ['/deals/', '/founder-guides', '/investors'];
+const PROTECTED_ROUTES = ['/deals/', '/founder-guides', '/investors', '/pl-infra-os'];
 
 export const config = {
   matcher: [

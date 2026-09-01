@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -59,6 +59,7 @@ export function AiAppDetailPage(props: Props) {
   const { currentUser } = useCurrentUserStore();
   const { canLikelyManage } = useAiAppManageAccess();
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const analytics = useAiAppsAnalytics();
   // Guards the one-shot deep-link open so closing the modal doesn't reopen it.
@@ -226,7 +227,7 @@ export function AiAppDetailPage(props: Props) {
       const params = new URLSearchParams(searchParams.toString());
       params.delete('settings');
       const qs = params.toString();
-      router.replace(qs ? `?${qs}` : `/pl-infra/ai-apps/${uid}`, { scroll: false });
+      router.replace(qs ? `?${qs}` : pathname, { scroll: false });
     }
   };
 

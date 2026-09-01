@@ -118,7 +118,9 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
         {/* Who the team is looking for, next to who's already there. Absent, not empty,
             when the team isn't hiring — but the host mounts either way, because the
             apply drawer it owns must outlive the list. See `TeamOpenRolesSection`. */}
-        <TeamOpenRolesSection group={openRoles ?? null} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+        {/* `!!` like the jobs page does: `isLoggedIn` comes from a parsed header
+            and is `any`, so logged out it is an empty string rather than false. */}
+        <TeamOpenRolesSection group={openRoles ?? null} isLoggedIn={!!isLoggedIn} userInfo={userInfo} />
 
         <TeamFocusAreas team={team} focusAreas={focusAreas || []} teamFocusAreas={team?.teamFocusAreas || []} />
 

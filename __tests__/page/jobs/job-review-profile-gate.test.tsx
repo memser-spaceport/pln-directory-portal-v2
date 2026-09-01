@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 /**
- * "My profile is complete" — the apply flow's step 2 consent.
+ * "I reviewed my profile" — the apply flow's step 2 consent.
  *
  * What goes to the hiring team is the profile, not the letter alone, so the
  * press that leaves this step is the press that decides what they read. The tick
@@ -90,7 +90,7 @@ const renderProfileStep = (props: Partial<React.ComponentProps<typeof JobApplyFl
     />,
   );
 
-const consent = () => screen.getByRole('checkbox', { name: /My profile is complete/i });
+const consent = () => screen.getByRole('checkbox', { name: /I reviewed my profile/i });
 const continueButton = () => screen.getByRole('button', { name: 'Continue to apply' });
 
 describe('the profile step’s review gate', () => {

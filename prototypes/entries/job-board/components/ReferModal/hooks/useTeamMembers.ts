@@ -10,13 +10,13 @@ import { DirectoryMember } from '../types';
 import { toDirectoryMember } from '../utils/toDirectoryMember';
 
 /**
- * The hiring team: the group the "Send to" menu opens on, and the leads it prefills.
+ * The hiring team: the group the "Send to" menu opens on, and the leads it suggests first.
  *
  * Two production calls, no new endpoint. `searchTeamsByName` turns the job board's team
  * name into a directory uid — the board's own uids are its own (`protocol-labs`), so
  * the name is all the two sides share — and `getMembersForProjectForm` takes that uid.
  * Only an exact name match counts: `name__icontains=Protocol Labs` also returns
- * "Protocol Labs Dev Guild", and mailing the wrong team is worse than prefilling
+ * "Protocol Labs Dev Guild", and suggesting the wrong team is worse than suggesting
  * nobody, which is already the supported "type an email address" case.
  */
 export function useTeamMembers(teamName: string, enabled: boolean) {
@@ -52,14 +52,22 @@ export function useTeamMembers(teamName: string, enabled: boolean) {
 
   const members = useMemo<DirectoryMember[]>(() => query.data ?? [], [query.data]);
 
-  // Who a referral is actually addressed to. Real teams run large — Filecoin
+  // Who a referral is usually addressed to. Real teams run large — Filecoin
   // Foundation has 64 members on record — and an intro email to all of them isn't an
-  // intro, so only the leads are prefilled. The rest of the team stays one keystroke
-  // away in the same menu. Teams with no lead marked fall back to the whole team,
-  // which is the behaviour every team had when this list was mocked at two people.
+  // intro, so the leads are the suggestion: sorted first in the picker's resting menu
+  // (nobody is preselected — the referrer picks), and named on the application
+  // pane's "Reviewed by" line. Teams with no lead marked fall back to the whole
+  // team, which is the behaviour every team had when this list was mocked at two
+  // people.
+  //
+  // Still exported as `defaultRecipients`: the name dates from when these were
+  // seeded into the refer modal's field, but production's
+  // `components/page/jobs/JobApplicationPane` imports this hook from this tree and
+  // destructures that key — renaming it here breaks a file prototypes must not
+  // edit. Rename both sides in a production pass.
   const defaultRecipients = useMemo<DirectoryMember[]>(() => {
-    const leads = members.filter((member) => member.isTeamLead);
-    return leads.length ? leads : members;
+    const marked = members.filter((member) => member.isTeamLead);
+    return marked.length ? marked : members;
   }, [members]);
 
   return { members, defaultRecipients, isLoading: query.isLoading, isError: query.isError };

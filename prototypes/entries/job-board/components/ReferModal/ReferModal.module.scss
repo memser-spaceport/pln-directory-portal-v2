@@ -37,12 +37,15 @@
   // and a full draft — adding people scrolls the field, it never moves the footer.
   // dvh (not vh) so mobile browser chrome collapsing doesn't clip the actions; the
   // subtraction covers the overlay's own padding at every breakpoint.
-  height: min(770px, calc(100dvh - 48px));
+  // 870, up from 770: the suggested-teammates chip rows added ~100px to the
+  // resting form, and at 770 the note's own caption and counter opened below the
+  // fields' scroll fold — a modal whose default state half-hides its last field.
+  height: min(870px, calc(100dvh - 48px));
   overflow: hidden;
 
   @include media.mobile-only {
     max-width: 100%;
-    height: min(770px, calc(100dvh - 32px));
+    height: min(870px, calc(100dvh - 32px));
   }
 }
 
@@ -184,9 +187,79 @@
   // label than to the field it describes. 20px re-attaches each caption upward.
   gap: 20px;
 
-  // Room for focus rings against the scroll edge.
-  padding: 2px;
-  margin: -2px;
+  // The track rides the *card's* edge, not the form's. `.fields` is pulled back
+  // out through `.modal`'s 20px padding and puts the same 20px back as its own,
+  // so the fields themselves don't move while the scroll region reaches the card
+  // border. The right padding is short by `--bar` because a classic scrollbar
+  // takes that strip out of the padding box — without the subtraction the fields
+  // would stop short of the footer buttons they sit above.
+  //
+  // Vertical 2px / -2px is unchanged: room for focus rings against the fold.
+  //
+  // `--bar` is the whole width the track takes, and it is doing two jobs at once:
+  // the fields stop `20px - --bar` short of the card, so the *gap between the form
+  // and the bar* is whatever is left of the gutter. At 10px that gap was 10px and
+  // the form crowded the bar; at 6px it is 14px, and 14 + 6 still lands the fields
+  // exactly on the footer buttons' edge. Narrowing the track is what buys the
+  // breathing room — widening the padding instead would push the fields out of
+  // line with the footer.
+  //
+  // (It only became a real lever once the standard `scrollbar-width` came out:
+  // while that was set, Chrome ignored the webkit width and drew its own 10px.)
+  --bar: 6px;
+  margin: -2px -20px;
+  padding: 2px calc(20px - var(--bar)) 2px 20px;
+  // Reserved whether or not it scrolls, so nothing reflows the moment the form
+  // grows past the fold.
+  scrollbar-gutter: stable;
+
+  // A form's fold has to announce itself (lesson 5b): what sits below it is a
+  // field's own caption and counter, so this bar stays visible rather than hidden
+  // like the prototypes' read-only scroll regions.
+  //
+  // Colour and geometry are the recipients list's (`RecipientPicker`'s
+  // `.valueContainer`) exactly — same token, thin bar, transparent track — so the
+  // modal's two scroll regions are one treatment with no exception to remember.
+  // This one briefly took `--border-brand-subtle` instead; a scrollbar is chrome,
+  // and chrome on this card is neutral, so the brand came back out. What a bar
+  // has to do is mark where the fold is, and grey does that without adding a
+  // second coloured thing for the eye to rule out beside the footer button.
+  //
+  // `--border-neutral-muted` (0.24), not `--border-neutral-subtle` (0.12): subtle
+  // is the resting *border* value and disappears at 6px wide, which would put the
+  // fold back out of sight — the one thing this bar exists to prevent.
+  //
+  // Drawn through the webkit pseudo-elements rather than the standard
+  // `scrollbar-width` / `scrollbar-color` pair, and that is the whole reason the
+  // pair is absent: setting either one makes Chrome ignore these rules and draw
+  // its own thin bar — which on Windows comes with a stepper arrow at each end,
+  // a stray native triangle on the edge of a 24px-radius card. Going through
+  // webkit keeps the thumb a pill (transparent border clipped to the content box,
+  // so the ink reads as a hairline inside a wider hit target) and lets the arrows
+  // be removed outright. Firefox has no equivalent hook and falls back to its
+  // native bar; this is reviewed in Chrome, so that trade is deliberate.
+
+  &::-webkit-scrollbar {
+    width: var(--bar);
+  }
+
+  &::-webkit-scrollbar-button {
+    display: none;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    border-radius: 9999px;
+    // 1px, down from 2px, so the ink stays a 4px hairline now that the track it
+    // sits in is 6px rather than 10px — the inset is a proportion of the track,
+    // not a fixed value to carry across when the track changes.
+    border: 1px solid transparent;
+    background-clip: content-box;
+  }
 }
 
 .teamReferDestination {
@@ -267,9 +340,19 @@
   width: 100%;
 }
 
-// FormTextArea has no disabled treatment of its own, so the whole block recedes
-// until someone is picked — the field is inert until then.
-.templateBlockIdle {
+// FormTextArea has no disabled treatment of its own — the component passes
+// `disabled` to the `<textarea>` and its stylesheet says nothing about it — so the
+// "inert" look has to be drawn here. It used to be `opacity: 0.55` on the whole
+// block, which took the label and the description down with the box: at 55% over
+// white the token #455468 renders about #99a4ac, so "Your note" and its
+// description sat visibly lighter than the two labels above them, and the
+// instructions were faintest in exactly the state where they are the only thing
+// worth reading.
+//
+// Now only the control recedes. Scoped through a wrapper rather than by position
+// (`> *:last-child`), because this block has grown a line under the box before
+// and would silently inherit the dimming if it did again.
+.templateBlockIdle .templateControl {
   opacity: 0.55;
 }
 

@@ -50,13 +50,15 @@ const toOption = (member: DirectoryMember): Option => ({
  * verbatim (see `selectStyles`), and `.field` / `.label` / `.option` / `.optionLabel` /
  * `.optionDesc` / `.notFound` / `.clearIndicator` imported from its stylesheet.
  *
- * Two deliberate departures, both consequences of searching server-side:
- * - FormSelect's mobile sheet (`MobileFormSelectView`) is gone. It exists to make a
- *   2.8k-row list usable on a phone by filtering it in a full-screen view; a 15-row
- *   answer to a query needs no such thing, and that view can only filter options it
- *   already holds.
- * - The menu stays shut until something is typed, matching FormSelect's
- *   `hideOptionsWhenEmpty`: with nothing typed there is nothing to show.
+ * One deliberate departure, a consequence of searching server-side: FormSelect's
+ * mobile sheet (`MobileFormSelectView`) is gone. It exists to make a 2.8k-row list
+ * usable on a phone by filtering it in a full-screen view; a 15-row answer to a
+ * query needs no such thing, and that view can only filter options it already holds.
+ *
+ * The menu opens on click with a browse page of network members before anything is
+ * typed (the mocked `useMemberSearch` serves it), so seeing the drafted note never
+ * requires knowing a name — the job-board copy keeps its type-first menu, because
+ * the live API cannot answer an empty query.
  *
  * If this graduates, the production change is an async variant of `FormSelect`.
  */
@@ -67,7 +69,7 @@ export function MemberSearchSelect(props: MemberSearchSelectProps) {
   const value = watch(name);
 
   const [query, setQuery] = useState('');
-  const { results, isSearching, hasQuery, isUnauthorized } = useMemberSearch(query);
+  const { results, isSearching, isUnauthorized } = useMemberSearch(query);
 
   const options = useMemo<Option[]>(() => results.map(toOption), [results]);
 
@@ -108,10 +110,9 @@ export function MemberSearchSelect(props: MemberSearchSelectProps) {
         menuPosition={menuPortalTarget ? 'fixed' : undefined}
         styles={selectStyles}
         components={{
-          // Nothing to drop down to before a query — same reasoning as the hidden menu.
+          // The field still reads as a search, not a dropdown — the browse page is
+          // what clicking in reveals, not a chevron's promise of a finite list.
           DropdownIndicator: () => null,
-          Menu: (menuProps) =>
-            hasQuery ? <components.Menu {...menuProps}>{menuProps.children}</components.Menu> : null,
           NoOptionsMessage: () => (
             <div className={fieldCss.notFound}>
               <span>{isUnauthorized ? 'Sign in to search members' : 'No members found'}</span>

@@ -152,7 +152,11 @@ describe('ReferModal', () => {
     await user.click(screen.getByRole('button', { name: 'Send referral' }));
 
     expect(mockSend).toHaveBeenCalledWith(
-      { referredMemberUid: 'm1', note: 'Here is a draft.', recipients: [] },
+      {
+        referredMemberUid: 'm1',
+        note: 'Here is a draft.\n\n[Add a line about how you know Ada.]',
+        recipients: [],
+      },
       expect.any(Object),
     );
     expect(await screen.findByText('Referral sent')).toBeInTheDocument();
@@ -163,7 +167,7 @@ describe('ReferModal', () => {
     renderModal(null);
 
     expect(screen.getByText('Send to')).toBeInTheDocument();
-    expect(screen.getByText('Search and select who from the Acme should receive this referral')).toBeInTheDocument();
+    expect(screen.queryByText(/Search and select who from the Acme/)).not.toBeInTheDocument();
     expect(mockUseTeamMembers).toHaveBeenCalledWith('Acme', true);
     expect(screen.getByTestId('recipient-count')).toHaveTextContent('0');
   });
@@ -179,7 +183,11 @@ describe('ReferModal', () => {
     renderModal(null);
 
     await user.click(screen.getByRole('button', { name: 'Pick referee' }));
-    await waitFor(() => expect(screen.getByLabelText('Your note')).toHaveValue('Here is a draft.'));
+    await waitFor(() =>
+      expect(screen.getByLabelText('Your note')).toHaveValue(
+        'Here is a draft.\n\n[Add a line about how you know Ada.]',
+      ),
+    );
     expect(screen.getByRole('button', { name: 'Send referral' })).toBeDisabled();
   });
 });

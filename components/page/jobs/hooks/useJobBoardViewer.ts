@@ -71,7 +71,14 @@ export function useJobBoardViewer(args: {
   const queryClient = useQueryClient();
   const memberUid = userInfo?.uid;
 
-  const active = enabled && isLoggedIn && !!memberUid;
+  /* `Boolean(...)`, not `&&`: this reaches react-query's `enabled`, which rejects
+     anything that is not a boolean. `isLoggedIn` is typed `boolean` here but
+     arrives from `getCookiesFromHeaders()`, which parses a header and is typed
+     `any` — logged out it is an empty string, and `'' && x` is `''`, not `false`.
+     `useMemberExperience` then defaults it with `??`, which passes `''` through
+     untouched, and the observer throws. Coerce once, here, so no caller can
+     poison it again. */
+  const active = Boolean(enabled && isLoggedIn && memberUid);
   const memberQuery = useMember(active ? memberUid : undefined);
 
   const member = memberQuery.data && 'memberInfo' in memberQuery.data ? memberQuery.data.memberInfo : null;

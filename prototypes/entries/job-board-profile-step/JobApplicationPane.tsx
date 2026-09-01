@@ -229,8 +229,8 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
      steps fire nothing. Empty on error or while loading, and the row simply
      isn't drawn: a name that isn't there yet is worse than no name, and nothing
      below it depends on the answer. */
-  const { defaultRecipients } = useTeamMembers(teamName, true);
-  const leads = defaultRecipients.slice(0, 3);
+  const { defaultRecipients: reviewers } = useTeamMembers(teamName, true);
+  const leads = reviewers.slice(0, 3);
 
   const methods = useForm<ApplyFormData>({
     defaultValues: { coverLetter },
@@ -304,7 +304,7 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
 
           Leads only, capped at three, with the rest counted. The full team can run
           to dozens; three faces read as people, thirty read as a directory. Same
-          rule ReferModal applies when it decides who an intro is addressed to. */}
+          rule ReferModal uses to pick whose names it suggests first. */}
       {leads.length > 0 && (
         <p className={s.leads}>
           {/* The faces link too, but silently: `aria-hidden` with `tabIndex={-1}`
@@ -329,7 +329,7 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
             ))}
           </span>
           <span>
-            Reviewed by <LeadNames shown={leads} total={defaultRecipients.length} />
+            Reviewed by <LeadNames shown={leads} total={reviewers.length} />
           </span>
         </p>
       )}

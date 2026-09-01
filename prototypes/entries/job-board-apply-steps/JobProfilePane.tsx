@@ -93,8 +93,8 @@ import r from '@/components/page/member-details/RepositoriesDetails/components/R
 import pc from '@/components/page/member-details/ProfileDetails/components/ProfileCollaborateInput/ProfileCollaborateInput.module.scss';
 
 import { SkillsTagsInput } from './SkillsTagsInput';
-/* `PendingApprovalSteps` — the vertical "signed up → complete your profile →
-    await approval" rail — is **back**, and now lives here in the prototype.
+/* `PendingApprovalSteps` — the "signed up → complete your profile →
+    await approval" stepper — is **back**, and now lives here in the prototype.
     It had been imported from components/page/jobs/JobProfileDrawer/, but develop
     deleted that copy in 2cb0615fa ("approval no longer gates applying"). The
     component is pure presentation — clsx and its own stylesheet, one optional
@@ -108,9 +108,12 @@ import { SkillsTagsInput } from './SkillsTagsInput';
     is the fact this rail exists to place. The first was that two position
     indicators in one column is worse than one, and it is answered rather than
     overruled: they are in different places answering different questions. The
-    flow rail is chrome, horizontal, in the sticky header, and says where you are
-    in applying to *this role*. This is content, vertical, in the scrolling
-    column, and says where you are in becoming able to apply at all. For this
+    flow rail is chrome, in the sticky header, and says where you are in applying
+    to *this role*. This is content, in the scrolling column, and says where you
+    are in becoming able to apply at all. (Both run horizontal now — the axis
+    used to be a third difference between them and is spent; what still tells
+    them apart is place and vocabulary, numbered circles against check-discs on
+    a wire.) For this
     viewer that pairing is the point — the flow rail is showing a third step they
     cannot reach, and this is the explanation of why.
 

@@ -30,7 +30,12 @@ const MOCK_GROUPS: MockGroup[] = [
       logoUrl: null,
       focusAreas: ['Infrastructure', 'Networking', 'Storage'],
       subFocusAreas: ['Networking'],
-      jobReferEmail: 'jobs@protocol.ai',
+      // null, not 'jobs@protocol.ai': a team-configured inbox hides the refer
+      // modal's whole "Send to" picker (the send skips recipients), so the one
+      // team every demo leads with was the one team that never showed the
+      // suggested-recipients design. The inbox branch still exists in the modal —
+      // put an address back here to demo it.
+      jobReferEmail: null,
     },
     roles: [
       {
@@ -269,6 +274,12 @@ export const MOCK_LOCATION_FACETS: IJobsFacetItem[] = [
 
 /**
  * Who reads an application, per hiring team.
+ *
+ * **Stranded in this folder.** The apply-steps and profile-step copies consume
+ * this through their mock-backed `useTeamMembers`; here the hook must stay on the
+ * live directory lookup, because production's jobs page imports it from this tree
+ * (`components/page/jobs/JobApplicationPane`) — so nothing in this folder reads
+ * this constant. Kept so the three folders' mocks stay diffable.
  *
  * **Why this is mocked rather than looked up.** It used to be neither: the apply
  * flow's facepile and the referral modal's prefill both came from

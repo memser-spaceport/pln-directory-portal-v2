@@ -6,6 +6,7 @@ import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import type { IJobRole } from '@/types/jobs.types';
 
 import { Button } from '@/components/common/Button';
+import { Checkbox } from '@/components/common/Checkbox';
 import { Modal } from '@/components/common/Modal';
 import { CloseIcon } from '@/components/icons';
 import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
@@ -13,12 +14,14 @@ import type { Option } from '@/components/form/FormSelect/types';
 import { toast } from '@/components/core/ToastContainer';
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 import fieldCss from '@/components/form/FormMultiSelect/FormMultiSelect.module.scss';
+// The note's own description sits above its box rather than in the component's
+// below-the-input slot, so its classes are borrowed straight from the component.
+import taCss from '@/components/form/FormTextArea/FormTextArea.module.scss';
 
-import { useCreateJobReferral, useJobReferralDraft } from '@/services/jobs/hooks/useJobReferral';
+import { useCreateJobReferral, useJobReferralDraft } from './hooks/useJobReferral';
 
 import { DirectoryMember, RecipientOption } from './types';
 
-import { toRecipientOption } from './utils/toRecipientOption';
 import { toReferralRecipient } from './utils/toReferralRecipient';
 import { getRecipientSummary } from './utils/getRecipientSummary';
 
@@ -34,6 +37,19 @@ import s from './ReferModal.module.scss';
 // The backend accepts up to 5000 (`CreateJobReferralSchema`); matching it rather than
 // picking a smaller number here, so the field never blocks a note the API would take.
 const MESSAGE_MAX_LENGTH = 5000;
+
+// The one line the backend can't draft. `GET .../referral-draft` composes the note
+// from both members' directory records, and how the referrer knows the person is in
+// nobody's record — so the template carries a bracketed slot for it, its own
+// paragraph right after the intro. The backend owns the draft's wording; amending
+// the note as it lands is the lever this folder has, and doubles as the proposal
+// for the backend template. Skipped if the draft ever starts prompting for it.
+function withHowYouKnowSlot(note: string, firstName: string): string {
+  if (/how you know/i.test(note)) return note;
+  const slot = `[Add a line about how you know ${firstName}.]`;
+  const firstBreak = note.indexOf('\n\n');
+  return firstBreak === -1 ? `${note}\n\n${slot}` : `${note.slice(0, firstBreak)}\n\n${slot}${note.slice(firstBreak)}`;
+}
 
 interface ReferModalProps {
   open: boolean;
@@ -57,20 +73,17 @@ type ReferFormData = {
  * Refer a network member for an open role: pick who you're referring, choose who hears
  * about it, and send an intro email.
  *
- * Lives here but is the component the production jobs page renders (see
- * `components/page/jobs/.../ReferRoleRow`), so it talks to the real API.
- * `GET /job-openings/:uid/referral-draft` composes the note from both members'
- * directory records and the role's apply link — no wording lives in this file, the
- * field just makes it editable — and `POST /job-openings/:uid/referrals` sends it.
+ * **This folder's copy is mocked end to end** — the pickers, the draft, and the
+ * send all run on this entry's mocked records (see `hooks/useMemberSearch`,
+ * `hooks/useTeamMembers`, `hooks/useJobReferral`), so any viewer of the demo can
+ * walk the whole flow without a session. The `job-board` folder holds the live
+ * copy — the one production's jobs page renders — where the draft comes from
+ * `GET /job-openings/:uid/referral-draft` and `POST .../referrals` sends it. The
+ * only wording either copy adds to the draft is the how-you-know slot (see
+ * `withHowYouKnowSlot`); the field makes the rest editable.
  * When the hiring team has a job-refer email the picker is hidden and recipients
  * are omitted; otherwise the first picked member is To and the rest are CCed,
  * plus the referrer and the referred member.
- *
- * Signed-in only: `ReferRoleRow` sends anonymous visitors to login rather than opening
- * this, and the backend resolves the referrer from the authenticated email. Both calls
- * need a real job-opening uid, so opening this from the mocked `/prototypes/job-board`
- * entry can only get as far as the draft error — that entry demonstrates the layout,
- * not the flow.
  *
  * Chrome is Demo Day's "Make an intro" modal (ReferCompanyModal) — the same job, an
  * intro email to a team, you, and someone you name — with its stylesheet transcribed
@@ -85,7 +98,12 @@ type ReferFormData = {
 export function ReferModal({ open, onClose, role, teamId, teamName, source, jobReferEmail }: ReferModalProps) {
   const [sent, setSent] = useState(false);
   const [messageEdited, setMessageEdited] = useState(false);
-  const [recipientsSeeded, setRecipientsSeeded] = useState(false);
+  /* Whether the person being referred is copied on the email.
+     Checked by default, because that is what the referral did before this was a
+     choice — the default keeps the behaviour, the tick makes it a decision
+     rather than something the product does to them behind their back. It is a
+     real one: a note is written differently when its subject is reading it. */
+  const [copyReferee, setCopyReferee] = useState(true);
   const noteEditedTracked = useRef(false);
   const analytics = useJobsAnalytics();
   const usesTeamReferEmail = Boolean(jobReferEmail?.trim());
@@ -115,19 +133,18 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
 
   // Only fetched while the modal is open — a job board page holds one of these per role.
   // A team-configured inbox skips the hiring-team lookup: nobody is being picked.
-  const {
-    members: hiringTeam,
-    defaultRecipients,
-    isLoading: isTeamLoading,
-  } = useTeamMembers(teamName, open && !usesTeamReferEmail);
+  const { members: hiringTeam, isLoading: isTeamLoading } = useTeamMembers(teamName, open && !usesTeamReferEmail);
 
   const {
     data: draft,
     isFetching: isDrafting,
     isError: isDraftError,
   } = useJobReferralDraft({
-    jobUid: role.uid,
-    referredMemberUid: selectedMember?.uid,
+    // The mock composes the note itself, so it takes the member record and the
+    // role's facts rather than the uids the live endpoint resolves server-side.
+    referredMember: selectedMember,
+    roleTitle: role.roleTitle,
+    teamName,
     enabled: open,
   });
 
@@ -147,32 +164,18 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
     reset({ referee: null, recipients: [], message: '' });
     setMessageEdited(false);
     setSent(false);
-    setRecipientsSeeded(false);
+    setCopyReferee(true);
     noteEditedTracked.current = false;
     analytics.onJobReferModalOpened(referBase);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, reset]);
 
-  // Default recipients: the hiring team's leads (see `useTeamMembers`). Seeded in its
-  // own pass because the team is fetched — it can land after the modal is already on
-  // screen — and only ever once per open, so it can't wipe an edit made in the
-  // meantime. Teams the directory has no members for seed nothing, which is the
-  // "type an email address" case.
-  //
-  // `omitTeam` on the mapping: every one of these is a member of the team the modal
-  // is already titled for. The field shows them as rows carrying a role, and the
-  // role is what makes the prefill checkable — a "· Protocol Labs" tail on each of
-  // them would spend that line on a word the card has already said twice.
-  useEffect(() => {
-    if (!open || usesTeamReferEmail || recipientsSeeded || isTeamLoading) return;
-    if (defaultRecipients.length) {
-      setValue(
-        'recipients',
-        defaultRecipients.map((member) => toRecipientOption(member, { omitTeam: true })),
-      );
-    }
-    setRecipientsSeeded(true);
-  }, [open, usesTeamReferEmail, recipientsSeeded, isTeamLoading, defaultRecipients, setValue]);
+  // Nobody is preselected as a recipient. The hiring team's leads used to be seeded
+  // into the field; now the team is offered instead — quick-add chips under the
+  // field and the head of its resting menu (see `RecipientPicker` /
+  // `useTeamMembers`) — a suggestion the referrer confirms with a press, not a To:
+  // line they have to audit. Opening empty also lets the caption by the actions
+  // ("Add at least one recipient…") say what the field needs.
 
   // Picking someone as the candidate drops them from the recipient list.
   useEffect(() => {
@@ -195,6 +198,11 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, selectedMember?.uid]);
 
+  const firstName = selectedMember?.name.split(' ')[0] ?? '';
+
+  // What "Reset to template" returns to: the backend's draft plus the how-you-know slot.
+  const templateNote = selectedMember && draft?.note ? withHowYouKnowSlot(draft.note, firstName) : undefined;
+
   // Show the drafted note as soon as it lands, and clear the field when the candidate is
   // removed. A hand-edited note is never overwritten — "Reset to template" is the way
   // back. The draft depends only on the role and the referred member, so changing
@@ -205,15 +213,15 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
       if (!messageEdited) setValue('message', '');
       return;
     }
-    if (messageEdited || !draft?.note) return;
-    setValue('message', draft.note);
+    if (messageEdited || !templateNote) return;
+    setValue('message', templateNote);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, selectedMember?.uid, draft?.note]);
+  }, [open, selectedMember?.uid, templateNote]);
 
   // Any keystroke that diverges from the drafted note counts as an edit.
   useEffect(() => {
-    if (!open || !selectedMember || messageEdited || !draft?.note) return;
-    if (message && message !== draft.note) {
+    if (!open || !selectedMember || messageEdited || !templateNote) return;
+    if (message && message !== templateNote) {
       setMessageEdited(true);
       if (!noteEditedTracked.current) {
         noteEditedTracked.current = true;
@@ -230,7 +238,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
 
   const handleRecipientsChange = (next: RecipientOption[]) => {
     setValue('recipients', next, { shouldDirty: true });
-    if (!recipientsSeeded || usesTeamReferEmail) return;
+    if (usesTeamReferEmail) return;
     analytics.onJobReferRecipientsChanged({
       ...referBase,
       recipient_count: next.length,
@@ -239,8 +247,8 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
   };
 
   const resetTemplate = () => {
-    if (!draft?.note || !selectedMember) return;
-    setValue('message', draft.note);
+    if (!templateNote || !selectedMember) return;
+    setValue('message', templateNote);
     setMessageEdited(false);
     noteEditedTracked.current = false;
     analytics.onJobReferNoteReset({
@@ -271,6 +279,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
       recipient_count: usesTeamReferEmail ? 0 : recipients.length,
       has_external_email: usesTeamReferEmail ? false : hasExternalEmail(recipients),
       note_was_edited: messageEdited,
+      copied_referred_member: copyReferee,
     };
 
     analytics.onJobReferSubmitted(submitParams);
@@ -280,6 +289,11 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
         referredMemberUid: selectedMember.uid,
         note: message.trim(),
         recipients: usesTeamReferEmail ? [] : recipients.map(toReferralRecipient),
+        /* The proposal for the backend. `POST /job-openings/:uid/referrals` has no
+           such field today — it copies the referrer and the referred member
+           unconditionally — so this is what the API would need before the tick
+           above can mean anything outside this mocked folder. */
+        includeReferredMember: copyReferee,
       },
       {
         onSuccess: (result) => {
@@ -300,29 +314,28 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
     );
   };
 
-  // Is any of the prefilled hiring team still in the field? Drives the caption
-  // under "Send to", which explains rows that are there — not an event that happened.
-  const prefillVisible = useMemo(
-    () => recipients.some((option) => defaultRecipients.some((member) => member.uid === option.value)),
-    [recipients, defaultRecipients],
-  );
-
   const canSend = !!selectedMember && !!message?.trim() && !isSending && (usesTeamReferEmail || recipients.length > 0);
-  const firstName = selectedMember?.name.split(' ')[0] ?? '';
   const sentTo = usesTeamReferEmail ? 'the team' : getRecipientSummary(recipients);
 
   const composingDesc = usesTeamReferEmail
     ? 'Referral email will be sent to the address this team set up, and you’ll be copied.'
     : 'Referral email will be sent to everyone listed including you.';
 
-  const privacyNote = isDraftError
+  /* What stops the send, when something does — nothing else. The two "X sees your
+     name alongside the referral, and <First> is notified too" arms are gone: they
+     narrated the send instead of letting anyone change it, and the half about the
+     referred member is now the tick below, which says the same fact as a decision.
+     What survives is a failed draft and the empty-recipients case, which is the
+     only thing standing between the person and a disabled Send button. */
+  const blockingNote = isDraftError
     ? 'We couldn’t draft a note for that member — write your own, or pick someone else.'
-    : usesTeamReferEmail
-      ? `${teamName} sees your name alongside the referral.` + (selectedMember ? ` ${firstName} is notified too.` : '')
-      : recipients.length === 0
-        ? 'Add at least one recipient — a network member or an email address.'
-        : `${sentTo} ${recipients.length === 1 ? 'sees' : 'see'} your name alongside the referral.` +
-          (selectedMember ? ` ${firstName} is notified too.` : '');
+    : !usesTeamReferEmail && recipients.length === 0
+      ? 'Add at least one recipient — a network member or an email address.'
+      : undefined;
+
+  /* Named while a member is picked, generic before — the same shape the note's own
+     description uses two fields up, so the form asks in one voice. */
+  const copyLabel = selectedMember ? `Send a copy to ${firstName}` : 'Send a copy to the person you’re referring';
 
   return (
     <Modal isOpen={open} onClose={handleClose} closeOnBackdropClick={false} lockScroll>
@@ -350,9 +363,14 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
           {sent ? 'Referral sent' : `Refer for ${role.roleTitle}`}
         </h2>
 
+        {/* The sent line has to follow the tick: it used to end "and <First> is
+            notified too", which is now the one thing the referrer got to decide.
+            Asserting it either way would make the receipt disagree with the form
+            they just filled in. */}
         <p className={`${s.desc} ${s.headerDesc} ${sent ? '' : s.headerLeft}`}>
           {sent
-            ? `Your note is on its way to ${sentTo}. They can reply to you directly, and ${firstName} is notified too.`
+            ? `Your note is on its way to ${sentTo}. They can reply to you directly.` +
+              (copyReferee ? ` ${firstName} has a copy too.` : '')
             : composingDesc}
         </p>
 
@@ -397,16 +415,10 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                       excludeUids={referee?.value ? [referee.value] : undefined}
                       value={recipients}
                       onChange={handleRecipientsChange}
-                      /* Where the rows came from — the one thing the field itself
-                         can't show. It lists four names and their roles; it cannot
-                         say that nobody typed them, or why these four.
-                         Conditioned on the prefill still being *in* the field
-                         rather than on it having happened: a team the directory has
-                         no roster for opens empty, and someone who clears the list
-                         and types an address is no longer looking at anything this
-                         sentence explains. Both cases leave the modal's other
-                         caption ("Add at least one recipient…") to speak. */
-                      description={prefillVisible ? `Prefilled with the ${teamName} hiring team.` : undefined}
+                      /* No caption. The field opens empty with the picker's own
+                         suggestion chips under it, and the caption by the actions
+                         ("Add at least one recipient…") already says what the field
+                         needs. */
                       menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
                     />
                   </div>
@@ -415,32 +427,89 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                 <div className={`${s.templateBlock} ${selectedMember ? '' : s.templateBlockIdle}`}>
                   <div className={s.templateLabelRow}>
                     <span className={s.templateLabel}>Your note</span>
-                    {messageEdited && !!draft?.note && (
+                    {messageEdited && !!templateNote && (
                       <button type="button" className={s.resetLink} onClick={resetTemplate}>
                         Reset to template
                       </button>
                     )}
                   </div>
-                  <FormTextArea
-                    name="message"
-                    placeholder={
-                      selectedMember
-                        ? isDrafting
-                          ? 'Drafting your note…'
-                          : 'Tell them why this is a fit...'
-                        : 'Pick someone above and we’ll draft the note for you.'
-                    }
-                    disabled={!selectedMember || isDrafting}
-                    // 6, not the 8 the wide gantry shell allowed — the reference card is
-                    // narrower, so an empty 8-row box read as a hole in the layout.
-                    rows={6}
-                    maxLength={MESSAGE_MAX_LENGTH}
-                    showCharCount
-                  />
+
+                  {/* Under the label, above the box — a description of what this
+                      field is for, which is read before writing, rather than a
+                      hint discovered under the box once the writing is done.
+
+                      Hand-rolled rather than `FormTextArea`'s `description` prop,
+                      which renders on the character-counter row *below* the input
+                      and has no "top" option. The classes are that component's own
+                      (`.fieldDescription` + its `.fieldDescriptionTop` modifier —
+                      margin-top 0, margin-bottom 8), which production's `FormField`
+                      already uses for exactly this position, so the treatment is
+                      the design system's and only the placement is ours. The
+                      counter keeps its right edge without the description beside
+                      it: `.counter` carries `margin-left: auto`.
+
+                      Standing, not conditional: the ask is the same before and
+                      after a draft lands, so the line stays put and only the name
+                      joins it — a caption that appears mid-flow reads as a new
+                      demand. It points at the bracketed slot the template leaves
+                      (see `withHowYouKnowSlot`) and says why it's the referrer's
+                      to fill — the one claim nothing else on screen makes. The
+                      how-you-know ask lives here alone; the placeholder keeps the
+                      general "why this is a fit" so no state says it twice.
+
+                      "Add" and "fill in", not "say" and "write for you": the thing
+                      being pointed at is a bracketed blank inside a drafted note,
+                      and the slot's own words are "Add a line about how you know
+                      <First>". A hint about a blank should use the blank's verb. */}
+                  <p id="message-description" className={`${taCss.fieldDescription} ${taCss.fieldDescriptionTop}`}>
+                    Add how you know {selectedMember ? firstName : 'the person you’re referring'} — that’s the one thing
+                    the draft can’t fill in.
+                  </p>
+
+                  {/* Wrapper so the inert state can dim the box alone — see
+                      `.templateControl` for why the label and description stay at
+                      full strength. */}
+                  <div className={s.templateControl}>
+                    <FormTextArea
+                      name="message"
+                      placeholder={
+                        selectedMember
+                          ? isDrafting
+                            ? 'Drafting your note…'
+                            : 'Tell them why this is a fit...'
+                          : 'Pick someone above and we’ll draft the note for you.'
+                      }
+                      disabled={!selectedMember || isDrafting}
+                      /* Moving the sentence out of the component's own slot would
+                         have dropped the association `Field.Description` gave it.
+                         `FormTextArea` spreads its rest props onto the `<textarea>`,
+                         so it is handed back by hand. */
+                      aria-describedby="message-description"
+                      // 6, not the 8 the wide gantry shell allowed — the reference card is
+                      // narrower, so an empty 8-row box read as a hole in the layout.
+                      rows={6}
+                      maxLength={MESSAGE_MAX_LENGTH}
+                      showCharCount
+                    />
+                  </div>
                 </div>
               </div>
 
-              <p className={s.privacyNote}>{privacyNote}</p>
+              {/* Only rendered when there is something to say, rather than an
+                  always-present slot resolving to an empty string — the note is
+                  now a blocker, and a blocker that is absent should take its
+                  line with it. */}
+              {blockingNote && <p className={s.privacyNote}>{blockingNote}</p>}
+
+              {/* Sits against the send, because that is what it changes: who the
+                  press mails. Structure and styles are the apply flow's own footer
+                  tick (`JobApplyFlowDrawer`'s `.footerCheck`) — a `<label>` owning
+                  the hit area around the DS `Checkbox` — minus its required
+                  asterisk, which belongs to a gate and this is an option. */}
+              <label className={s.footerCheck}>
+                <Checkbox checked={copyReferee} onChange={setCopyReferee} />
+                <span>{copyLabel}</span>
+              </label>
 
               <div className={s.actions}>
                 <Button style="border" variant="primary" className={s.actionButton} onClick={handleClose}>

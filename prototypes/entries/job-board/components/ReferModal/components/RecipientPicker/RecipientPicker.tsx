@@ -7,7 +7,7 @@ import { components, type GroupBase } from 'react-select';
 import { PAGE_ROUTES } from '@/utils/constants';
 
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { CloseIcon } from '@/components/icons';
+import { CloseIcon, PlusIcon } from '@/components/icons';
 
 // Field wrapper + label come from the production multi-select, so this reads as the
 // same field as the ones above and below it.
@@ -22,6 +22,7 @@ import { useMemberSearch } from '../../hooks/useMemberSearch';
 
 import { MailIcon } from '../../../../icons';
 
+import { MemberAvatar } from '../MemberAvatar';
 import { RecipientInput } from './components/RecipientInput';
 
 import { selectStyles } from './selectStyles';
@@ -69,13 +70,26 @@ export function RecipientPicker(props: RecipientPickerProps) {
 
   const teamUids = useMemo(() => new Set(teamMembers.map((member) => member.uid)), [teamMembers]);
 
+  // The hiring team with the referee and anyone already added dropped, leads first —
+  // with nobody preselected, this list *is* the suggestion, and the leads are who a
+  // referral is usually addressed to (see `useTeamMembers`). Stable sort, so within
+  // leads and non-leads the directory's own order holds. Feeds both offers: the
+  // resting menu (all of it) and the quick-add chips under the field (the first few).
+  const restingTeam = useMemo<DirectoryMember[]>(() => {
+    const excluded = new Set([...(excludeUids ?? []), ...value.map((option) => option.value)]);
+    return teamMembers
+      .filter((member) => !excluded.has(member.uid))
+      .sort((a, b) => Number(b.isTeamLead ?? false) - Number(a.isTeamLead ?? false));
+  }, [teamMembers, excludeUids, value]);
+
   const groups = useMemo<GroupBase<RecipientOption>[]>(() => {
     const excluded = new Set([...(excludeUids ?? []), ...value.map((option) => option.value)]);
     const pickable = (members: DirectoryMember[]) => members.filter((member) => !excluded.has(member.uid));
 
     // Nothing typed: the hiring team is the whole menu. Searching swaps in what the
-    // directory matched, split so the hiring team still reads first.
-    const team = hasQuery ? pickable(results.filter((member) => teamUids.has(member.uid))) : pickable(teamMembers);
+    // directory matched, in the directory's ranking, split so the hiring team still
+    // reads first.
+    const team = hasQuery ? pickable(results.filter((member) => teamUids.has(member.uid))) : restingTeam;
     const network = hasQuery ? pickable(results.filter((member) => !teamUids.has(member.uid))) : [];
 
     const result: GroupBase<RecipientOption>[] = [];
@@ -94,7 +108,13 @@ export function RecipientPicker(props: RecipientPickerProps) {
       result.push({ label: 'PL network', options: network.map((member) => toRecipientOption(member)) });
     }
     return result;
-  }, [teamMembers, teamUids, teamName, results, hasQuery, excludeUids, value]);
+  }, [restingTeam, teamUids, teamName, results, hasQuery, excludeUids, value]);
+
+  // Four, not the whole team: the chips are a shortcut for the names the referrer
+  // will recognise (the leads sort first), and a team of sixty as chips would bury
+  // the field under the control meant to feed it. The rest stay one press away in
+  // the same menu.
+  const suggested = restingTeam.slice(0, 4);
 
   return (
     <div className={fieldCss.field}>
@@ -299,6 +319,50 @@ export function RecipientPicker(props: RecipientPickerProps) {
           ),
         }}
       />
+
+      {/* The suggestion, made visible. The resting menu already opens on the hiring
+          team, but a suggestion that only exists inside an unopened menu is not
+          being made — so the first few of the same list sit under the field as
+          quick-add chips, drawn to the reviewed mock: avatar, name over role, and
+          a brand plus saying what a press does. The plus is the DS `PlusIcon` —
+          the same circled glyph the field's own "Add someone else" line wears, so
+          one mark means "adds a recipient" everywhere on this field. Name and
+          role carry the menu row's own type values (`.optionName` /
+          `.optionDescription`), so the chip and the row it shortcuts read as the
+          same person. One press adds the row; an added member leaves
+          `restingTeam`, so their chip disappears and the next member steps up
+          until the team runs out.
+
+          **The label claims no relationship.** It read "Suggested teammates" — a
+          possessive with no owner on screen, which a reader takes as *their*
+          teammates; the referrer is usually an outsider to the hiring team,
+          which is the whole reason they are referring into it. It briefly read
+          "Suggested from <team>" instead, to name the one fact this card never
+          states; the reviewed mock cut it back to a bare "Suggested", which
+          answers the possessive just as well and is short enough to share the
+          first chip's line. The team is named again the moment the menu opens,
+          under its "<TEAM> TEAM" group heading. */}
+      {suggested.length > 0 && (
+        <div className={s.suggestBlock}>
+          <span className={s.suggestLabel}>Suggested</span>
+          {suggested.map((member) => (
+            <button
+              key={member.uid}
+              type="button"
+              className={s.suggestChip}
+              aria-label={`Add ${member.name}`}
+              onClick={() => onChange([...value, toRecipientOption(member, { omitTeam: true })])}
+            >
+              <MemberAvatar name={member.name} image={member.image} size={24} className={s.suggestAvatar} />
+              <span className={s.suggestText}>
+                <span className={s.suggestName}>{member.name}</span>
+                {member.title && <span className={s.suggestRole}>{member.title}</span>}
+              </span>
+              <PlusIcon width={16} height={16} className={s.suggestPlus} />
+            </button>
+          ))}
+        </div>
+      )}
 
       {description && <span className={s.description}>{description}</span>}
     </div>

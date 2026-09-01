@@ -13,6 +13,9 @@ import type { Option } from '@/components/form/FormSelect/types';
 import { toast } from '@/components/core/ToastContainer';
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 import fieldCss from '@/components/form/FormMultiSelect/FormMultiSelect.module.scss';
+// The note's own description sits above its box rather than in the component's
+// below-the-input slot, so its classes are borrowed straight from the component.
+import taCss from '@/components/form/FormTextArea/FormTextArea.module.scss';
 
 import { useCreateJobReferral, useJobReferralDraft } from '@/services/jobs/hooks/useJobReferral';
 
@@ -33,6 +36,19 @@ import s from './ReferModal.module.scss';
 // The backend accepts up to 5000 (`CreateJobReferralSchema`); matching it rather than
 // picking a smaller number here, so the field never blocks a note the API would take.
 const MESSAGE_MAX_LENGTH = 5000;
+
+// The one line the backend can't draft. `GET .../referral-draft` composes the note
+// from both members' directory records, and how the referrer knows the person is in
+// nobody's record — so the template carries a bracketed slot for it, its own
+// paragraph right after the intro. The backend owns the draft's wording; amending
+// the note as it lands is the lever this folder has, and doubles as the proposal
+// for the backend template. Skipped if the draft ever starts prompting for it.
+function withHowYouKnowSlot(note: string, firstName: string): string {
+  if (/how you know/i.test(note)) return note;
+  const slot = `[Add a line about how you know ${firstName}.]`;
+  const firstBreak = note.indexOf('\n\n');
+  return firstBreak === -1 ? `${note}\n\n${slot}` : `${note.slice(0, firstBreak)}\n\n${slot}${note.slice(firstBreak)}`;
+}
 
 interface ReferModalProps {
   open: boolean;
@@ -59,8 +75,9 @@ type ReferFormData = {
  * Lives here but is the component the production jobs page renders (see
  * `components/page/jobs/.../ReferRoleRow`), so it talks to the real API.
  * `GET /job-openings/:uid/referral-draft` composes the note from both members'
- * directory records and the role's apply link — no wording lives in this file, the
- * field just makes it editable — and `POST /job-openings/:uid/referrals` sends it.
+ * directory records and the role's apply link — the only wording this file adds is
+ * the how-you-know slot (see `withHowYouKnowSlot`), the field makes the rest
+ * editable — and `POST /job-openings/:uid/referrals` sends it.
  * When the hiring team has a job-refer email the picker is hidden and recipients
  * are omitted; otherwise the first picked member is To and the rest are CCed,
  * plus the referrer and the referred member.
@@ -163,6 +180,11 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, selectedMember?.uid]);
 
+  const firstName = selectedMember?.name.split(' ')[0] ?? '';
+
+  // What "Reset to template" returns to: the backend's draft plus the how-you-know slot.
+  const templateNote = selectedMember && draft?.note ? withHowYouKnowSlot(draft.note, firstName) : undefined;
+
   // Show the drafted note as soon as it lands, and clear the field when the candidate is
   // removed. A hand-edited note is never overwritten — "Reset to template" is the way
   // back. The draft depends only on the role and the referred member, so changing
@@ -173,15 +195,15 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
       if (!messageEdited) setValue('message', '');
       return;
     }
-    if (messageEdited || !draft?.note) return;
-    setValue('message', draft.note);
+    if (messageEdited || !templateNote) return;
+    setValue('message', templateNote);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, selectedMember?.uid, draft?.note]);
+  }, [open, selectedMember?.uid, templateNote]);
 
   // Any keystroke that diverges from the drafted note counts as an edit.
   useEffect(() => {
-    if (!open || !selectedMember || messageEdited || !draft?.note) return;
-    if (message && message !== draft.note) {
+    if (!open || !selectedMember || messageEdited || !templateNote) return;
+    if (message && message !== templateNote) {
       setMessageEdited(true);
       if (!noteEditedTracked.current) {
         noteEditedTracked.current = true;
@@ -207,8 +229,8 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
   };
 
   const resetTemplate = () => {
-    if (!draft?.note || !selectedMember) return;
-    setValue('message', draft.note);
+    if (!templateNote || !selectedMember) return;
+    setValue('message', templateNote);
     setMessageEdited(false);
     noteEditedTracked.current = false;
     analytics.onJobReferNoteReset({
@@ -269,7 +291,6 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
   };
 
   const canSend = !!selectedMember && !!message?.trim() && !isSending && (usesTeamReferEmail || recipients.length > 0);
-  const firstName = selectedMember?.name.split(' ')[0] ?? '';
   const sentTo = usesTeamReferEmail ? 'the team' : getRecipientSummary(recipients);
 
   const composingDesc = usesTeamReferEmail
@@ -348,7 +369,10 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                       excludeUids={referee?.value ? [referee.value] : undefined}
                       value={recipients}
                       onChange={handleRecipientsChange}
-                      description={`Search and select who from the ${teamName} should receive this referral`}
+                      /* No caption. It used to read "Search and select who from the
+                         ${teamName} should receive this referral" — the label, the
+                         placeholder and the picker's own suggestion chips now say
+                         all of that between them. */
                       menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
                     />
                   </div>
@@ -357,28 +381,71 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                 <div className={`${s.templateBlock} ${selectedMember ? '' : s.templateBlockIdle}`}>
                   <div className={s.templateLabelRow}>
                     <span className={s.templateLabel}>Your note</span>
-                    {messageEdited && !!draft?.note && (
+                    {messageEdited && !!templateNote && (
                       <button type="button" className={s.resetLink} onClick={resetTemplate}>
                         Reset to template
                       </button>
                     )}
                   </div>
-                  <FormTextArea
-                    name="message"
-                    placeholder={
-                      selectedMember
-                        ? isDrafting
-                          ? 'Drafting your note…'
-                          : 'Tell them why this is a fit...'
-                        : 'Pick someone above and we’ll draft the note for you.'
-                    }
-                    disabled={!selectedMember || isDrafting}
-                    // 6, not the 8 the wide gantry shell allowed — the reference card is
-                    // narrower, so an empty 8-row box read as a hole in the layout.
-                    rows={6}
-                    maxLength={MESSAGE_MAX_LENGTH}
-                    showCharCount
-                  />
+
+                  {/* Under the label, above the box — a description of what this
+                      field is for, which is read before writing, rather than a
+                      hint discovered under the box once the writing is done.
+
+                      Hand-rolled rather than `FormTextArea`'s `description` prop,
+                      which renders on the character-counter row *below* the input
+                      and has no "top" option. The classes are that component's own
+                      (`.fieldDescription` + its `.fieldDescriptionTop` modifier —
+                      margin-top 0, margin-bottom 8), which production's `FormField`
+                      already uses for exactly this position, so the treatment is
+                      the design system's and only the placement is ours. The
+                      counter keeps its right edge without the description beside
+                      it: `.counter` carries `margin-left: auto`.
+
+                      Standing, not conditional: the ask is the same before and
+                      after a draft lands, so the line stays put and only the name
+                      joins it — a caption that appears mid-flow reads as a new
+                      demand. It points at the bracketed slot the template leaves
+                      (see `withHowYouKnowSlot`) and says why it's the referrer's
+                      to fill — the one claim nothing else on screen makes. The
+                      how-you-know ask lives here alone; the placeholder keeps the
+                      general "why this is a fit" so no state says it twice.
+
+                      "Add" and "fill in", not "say" and "write for you": the thing
+                      being pointed at is a bracketed blank inside a drafted note,
+                      and the slot's own words are "Add a line about how you know
+                      <First>". A hint about a blank should use the blank's verb. */}
+                  <p id="message-description" className={`${taCss.fieldDescription} ${taCss.fieldDescriptionTop}`}>
+                    Add how you know {selectedMember ? firstName : 'the person you’re referring'} — that’s the one thing
+                    the draft can’t fill in.
+                  </p>
+
+                  {/* Wrapper so the inert state can dim the box alone — see
+                      `.templateControl` for why the label and description stay at
+                      full strength. */}
+                  <div className={s.templateControl}>
+                    <FormTextArea
+                      name="message"
+                      placeholder={
+                        selectedMember
+                          ? isDrafting
+                            ? 'Drafting your note…'
+                            : 'Tell them why this is a fit...'
+                          : 'Pick someone above and we’ll draft the note for you.'
+                      }
+                      disabled={!selectedMember || isDrafting}
+                      /* Moving the sentence out of the component's own slot would
+                         have dropped the association `Field.Description` gave it.
+                         `FormTextArea` spreads its rest props onto the `<textarea>`,
+                         so it is handed back by hand. */
+                      aria-describedby="message-description"
+                      // 6, not the 8 the wide gantry shell allowed — the reference card is
+                      // narrower, so an empty 8-row box read as a hole in the layout.
+                      rows={6}
+                      maxLength={MESSAGE_MAX_LENGTH}
+                      showCharCount
+                    />
+                  </div>
                 </div>
               </div>
 

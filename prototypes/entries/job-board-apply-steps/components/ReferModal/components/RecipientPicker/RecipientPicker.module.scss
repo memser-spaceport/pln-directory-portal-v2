@@ -246,3 +246,107 @@
     color: var(--foreground-neutral-secondary, #455468);
   }
 }
+
+// The quick-add offer under the field, drawn to the reviewed mock: one wrapping
+// row that opens with a quiet "Suggested" and then flows single-line person
+// chips, wrapping to the container's left edge rather than indenting under the
+// label. The label is an item in that flow, not a heading above it — which is
+// what lets the first chip share its line and saves the block a whole row in a
+// card that is already fighting its own fold.
+//
+// The chip's name and role are the *picked row's* treatment (`.rowText` /
+// `.rowName` / `.rowRole` below), not the menu row's two-line stack — and that
+// rule's own comment already made this argument: a menu row is a target you are
+// scanning, a chip is a fact you confirm at a glance, and stacking wastes the
+// height. A chip becomes one of those rows when pressed, so they now match.
+.suggestBlock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  // On top of the field wrapper's own 4px gap — the chips govern the field above
+  // them, so they sit closer to it than to whatever follows (see lesson 11:
+  // equidistant reads as unrelated).
+  margin-top: 4px;
+  // And 12px on top of `.fields`' own 20px below, so the boundary to the next
+  // field reads as 32px against the 4px above. Two rows of pills are a lot of
+  // busy edge, and at a flat 20px the last chip sat as close to "Your note" as
+  // it did to the field it belongs to. Carried by the chips rather than by the
+  // wrapper, so it disappears with them once the whole team has been added.
+  margin-bottom: 12px;
+}
+
+// Sentence case at caption size, not the menu's uppercase group heading: this one
+// sits *in* the row it introduces, and a tracked-out uppercase label reads as a
+// section rule when it has chips beside it rather than under it.
+.suggestLabel {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// Transparent, not painted: the chip sits on the modal card and the border alone
+// carries the shape — resting on subtle, hover one step up to muted, per the
+// house border table.
+.suggestChip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 5px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+// Baseline, not centre — 14px name and 12px role sitting on one line, the same
+// pairing `.rowText` makes for a picked row.
+.suggestText {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.suggestName {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  white-space: nowrap;
+}
+
+.suggestRole {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  // A chip is sized to its contents and wraps as a unit, so the role truncates
+  // rather than letting one long title push a chip past the card's width.
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+// 24px, down from 32: the same slot `.rowAvatar` gives this person once they are
+// picked, so pressing a chip does not resize their face.
+.suggestAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: block;
+}
+
+.suggestPlus {
+  flex-shrink: 0;
+  color: var(--foreground-brand-primary, #1b4dff);
+}

@@ -107,14 +107,13 @@
  *                                            contributions, skills, bio and location refine a read
  *                                            that is already possible without them. Teams was cut —
  *                                            it duplicates an Experience entry's "Team or
- *                                            Organization" field. `PendingApprovalSteps`, the vertical
- *                                            account stepper, has been **deleted**: first it stopped
- *                                            being rendered (two steppers answering two different
- *                                            "where am I" questions in one column is worse than one),
- *                                            then a second argument was piled on — approval had
- *                                            stopped gating applying, so it described a wait holding
- *                                            nothing up. That second one has expired (approval gates
- *                                            applying again); the first stands on its own. The board
+ *                                            Organization" field. `PendingApprovalSteps`, the account
+ *                                            stepper, is **rendered again** for a pending member — the
+ *                                            argument that retired it (approval had stopped gating
+ *                                            applying) expired when the gate came back. Horizontal
+ *                                            now, on the same axis as the flow rail; what keeps the
+ *                                            two apart is place and vocabulary — chrome vs content,
+ *                                            numbered circles vs check-discs on a wire. The board
  *                                            still shows the account story in `PendingApprovalBanner`.
  *  - JobApplicationPane   (was a modal)     step 3: who on the hiring team receives it (an overlapping
  *                                            facepile of the leads, each name linking to their

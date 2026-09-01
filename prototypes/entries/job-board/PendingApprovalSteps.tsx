@@ -20,11 +20,23 @@ import s from './PendingApprovalSteps.module.scss';
  * status or a CTA, but it cannot carry a position, because position is a
  * relation between at least three points — what happened, what's happening,
  * what's next. The stepper draws all three, and drawing them does the reassuring
- * work for free: seeing "await approval confirmation" sitting greyed *below*
+ * work for free: seeing "await approval confirmation" sitting greyed *beyond*
  * the current step is what tells someone the wait is a stage and not a wall.
  * Production reaches the same conclusion at the same fork — Demo Day's applied
- * investor gets `AppliedInvestorSteps`, a three-step vertical stepper, in
- * precisely this in-between.
+ * investor gets `AppliedInvestorSteps`, a three-step stepper, in precisely this
+ * in-between.
+ *
+ * **Horizontal, against the source's vertical.** The rotation costs the
+ * transcription its line-for-line diffability with `AppliedInvestorSteps`: the
+ * atoms are still the source's — the 20px dot, the check disc, the brand ring,
+ * both shadows, the type ranks — but the frame around them is this file's own.
+ * What it deliberately does *not* become is a second `ApplyFlowSteps`. The
+ * drawer already carries the DS's numbered position rail in its sticky header,
+ * and two rails in one viewport wearing the same circles would read as one
+ * journey drawn twice. The dot-and-check vocabulary is what says "status of a
+ * process on someone else's clock", against the rail's "steps you walk" —
+ * the axis used to help tell them apart and no longer does, so the vocabulary
+ * carries the difference alone.
  *
  * **The profile is editable while review is pending, and step 2 says so.** There
  * was an interlude where it wasn't: the profile was locked until approval, so
@@ -45,18 +57,14 @@ import s from './PendingApprovalSteps.module.scss';
  * is for. (The board behind it does show a real CTA: see `PendingApprovalBanner`,
  * which is where someone who hasn't opened the drawer meets the same ask.)
  *
- * **Transcribed vs imported.** The stepper JSX is transcribed from
+ * **Transcribed vs imported.** The atoms come from
  * `components/page/demo-day/AppliedInvestorSteps/AppliedInvestorSteps.tsx`
- * (~L96–161) rather than imported, because that component is inseparable from
+ * rather than by import, because that component is inseparable from
  * `useCurrentUserStore`, the `useMember` react-query hook, `useDemoDayAnalytics`
- * and `useRouter` — none of which a mocked prototype has. Its stylesheet is
- * copied into `PendingApprovalSteps.module.scss` with only the colour layer
- * translated to token/fallback pairs; see that file's header. `CheckIcon` is
- * transcribed for the same reason (the job-board's `icons.tsx` has no check, and
- * this component may not touch it). The card chrome around the stepper —
- * `.stepperCard`, its circled checkbox icon, its heading — is dropped: the
- * profile drawer already provides a heading, and a second one would announce the
- * same news twice.
+ * and `useRouter` — none of which a mocked prototype has. `CheckIcon` is
+ * transcribed for the same reason. The card chrome around the source's stepper
+ * is dropped: the profile drawer already provides a heading, and a second one
+ * would announce the same news twice.
  */
 
 /** Transcribed from `AppliedInvestorSteps`. 16px box, drawn 10px by the sheet. */
@@ -91,34 +99,11 @@ export function PendingApprovalSteps({ needsIdentityVerification = false }: Pend
   const step2Status: StepStatus = 'current';
   const step3Status: StepStatus = 'pending';
 
-  /* Connector heights are per-step inline pixel values, the same mechanism
-     production uses (52 / 116 / 52 there). They are not decorative: the rail is
-     the only thing setting the gap between steps, since `.stepContent`'s
-     `padding-bottom` never applies (see the stylesheet).
-
-     Measured in the browser against this component's real content, at the
-     322px the stylesheet caps the column to — which leaves a 286px text column
-     after the 20px indicator and the 16px gap:
-
-       title 20 + gap 4 + description 18 + its 8px margin        = 50px
-       …+ gap 4 + the CTA (8 + 20 + 8, plus 1px borders = 38)    = 92px
-
-     Production runs its connector past the content it spans rather than flush
-     to it, and that overhang is the entire gap between steps (`.stepContent`'s
-     `padding-bottom` never lands — see the stylesheet). Step 1 keeps
-     production's 52 against a 50px step, i.e. 26px of overhang once the 20px
-     dot and the connector's own 4px top margin are counted; 94 gives step 2's
-     92px exactly the same 26. Production's equivalent step runs 30, because its
-     description wraps to two lines and its number was chosen for that content —
-     matching the overhang rather than the literal number is what keeps this
-     rail even.
-
-     Step 2's height has to follow its own CTA: when `profileComplete` the
-     button is gone and the step measures like step 1. */
-  const step1ConnectorHeight = 52;
-  /* No CTA left on step 2, so it measures like step 1 and takes the same 52. */
-  const step2ConnectorHeight = 52;
-
+  /* (The vertical version measured per-step connector heights inline — 52/94,
+      derived in a long comment from what each step's text happened to measure —
+      because its rail had to span content. Horizontal, the connector spans the
+      *column*, so it is pure CSS (`flex: 1` in the indicator row) and the whole
+      inline-height mechanism goes.) */
   const steps = [
     {
       id: 0,
@@ -127,8 +112,6 @@ export function PendingApprovalSteps({ needsIdentityVerification = false }: Pend
       description: needsIdentityVerification
         ? 'Verify your identity by signing in — verification is what starts the review.'
         : 'Our team will review your account shortly.',
-      height: step1ConnectorHeight,
-      children: undefined as React.ReactNode,
     },
     {
       id: 1,
@@ -140,26 +123,24 @@ export function PendingApprovalSteps({ needsIdentityVerification = false }: Pend
          profile finished before it lands is one that can apply the moment it
          does. */
       description: 'You can do this while you wait — everything you save here is kept.',
-      height: step2ConnectorHeight,
-      children: undefined as React.ReactNode,
     },
     {
       id: 2,
       status: step3Status,
       title: 'Await approval confirmation',
       description: "You'll receive an email once our team approves your account.",
-      /* Never read: the last step draws no connector. Kept so the three entries
-         stay the same shape, as production keeps its trailing 52. */
-      height: 52,
-      children: undefined as React.ReactNode,
     },
   ];
 
   return (
-    <div className={s.verticalStepper}>
+    <div className={s.stepper}>
       {steps.map((step, index) => (
         <div key={step.id} className={clsx(s.stepContainer, s[step.status])}>
-          <div className={s.stepIndicatorContainer}>
+          {/* The dot and, between columns, the wire to the next one. The wire
+              belongs to the ground between two steps, so it is drawn by the
+              step on its left and painted brand only when that step is done —
+              the same rule the flow rail states at its `connectorCompleted`. */}
+          <div className={s.indicatorRow}>
             <div className={clsx(s.stepIndicator, s[step.status])}>
               {step.status === 'completed' ? (
                 <div className={s.stepIconCompleted}>
@@ -170,16 +151,12 @@ export function PendingApprovalSteps({ needsIdentityVerification = false }: Pend
               )}
             </div>
             {index < steps.length - 1 && (
-              <div
-                className={clsx(s.stepConnector, step.status === 'completed' && s.completed)}
-                style={{ height: step.height }}
-              />
+              <div className={clsx(s.stepConnector, step.status === 'completed' && s.completed)} />
             )}
           </div>
           <div className={s.stepContent}>
             <div className={s.stepTitle}>{step.title}</div>
             <div className={s.stepDescription}>{step.description}</div>
-            {step.children}
           </div>
         </div>
       ))}

@@ -60,6 +60,19 @@ describe('the job detail pane', () => {
     expect(screen.getByRole('link', { name: 'Lattice Compute' })).toBeInTheDocument();
   });
 
+  /**
+   * Opened from that team's own profile the link goes where the reader already
+   * is, so it looks inert — but its `backTo` would quietly repoint the profile's
+   * Back button at the job board, a page they never came from.
+   */
+  it('stops linking to the team when it is already the page underneath', () => {
+    renderPane({ source: 'team-profile' });
+
+    expect(screen.queryByRole('link', { name: 'Lattice Compute' })).not.toBeInTheDocument();
+    expect(screen.getByText('Lattice Compute')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Protocol Engineer' })).toBeInTheDocument();
+  });
+
   /** The two facts the row had no room for — work mode, and the full location. */
   it('carries the meta the row could not fit', () => {
     renderPane();

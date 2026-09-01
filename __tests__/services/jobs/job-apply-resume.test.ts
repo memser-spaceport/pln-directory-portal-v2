@@ -116,6 +116,29 @@ describe('stripPendingApplyFromUrl', () => {
     expect(window.location.search).toBe('?roleCategory=Engineering');
   });
 
+  /* The round trip writes `prefillEmail` and nothing removes it: `AuthInfo`
+     copies it into localStorage and leaves it, and `clearPrivyParams` only
+     strips `privy_*`. It matters more now the flow reaches team profiles —
+     `/teams/<uid>?prefillEmail=…` is the kind of URL people paste around. */
+  it('takes the email prefill with it', () => {
+    setUrl(`/teams/team-1?prefillEmail=someone%40example.com&${PENDING_APPLY_PARAM}=role-1`);
+
+    stripPendingApplyFromUrl();
+
+    expect(window.location.search).toBe('');
+    expect(window.location.pathname).toBe('/teams/team-1');
+  });
+
+  it('cleans up a stranded prefill even with no resume left to act on', () => {
+    setUrl('/teams/team-1?prefillEmail=someone%40example.com&tab=roles');
+
+    stripPendingApplyFromUrl();
+
+    const params = new URLSearchParams(window.location.search);
+    expect(params.get('prefillEmail')).toBeNull();
+    expect(params.get('tab')).toBe('roles');
+  });
+
   it('does not navigate — the board underneath must not re-render mid-flow', () => {
     setUrl(`/jobs?${PENDING_APPLY_PARAM}=role-1`);
     const pushSpy = jest.spyOn(window.history, 'pushState');

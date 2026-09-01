@@ -3,10 +3,13 @@
 import clsx from 'clsx';
 
 // The same surface production's home page shows a signed-out visitor
-// (`components/page/home/Welcome`) — the board wears the same card, type and
-// blue CTA rather than inventing a second sign-in look. Three asks sit in this
-// slot (sign in, finish your profile, wait for approval) and they are one ask
-// at three stages, so they share one slot and mostly one card.
+// (`components/page/home/Welcome`) — the board wears the same card rather than
+// inventing a second sign-in look. Three asks sit in this slot (sign in, finish
+// your profile, wait for approval) and they are one ask at three stages, so they
+// share one slot and mostly one card. What this file overrides on top of it is
+// the slot's own surface and type scale (`.brandSurface`, `.bannerTitle`,
+// `.bannerSub`), applied to every state so the slot doesn't appear to change
+// component when the reader's situation changes.
 import welcome from '@/components/page/home/Welcome/Welcome.module.scss';
 // Demo Day's quiet info card, for the pending state that has no action in it.
 import alert from '@/components/page/demo-day/FounderPendingView/components/Alert/Alert.module.scss';
@@ -14,7 +17,6 @@ import alert from '@/components/page/demo-day/FounderPendingView/components/Aler
 import type { BoardViewerState } from '@/services/jobs/job-board-viewer';
 import type { IJobAlertFilterState } from '@/types/job-alerts.types';
 import { hasActiveFilters } from '@/utils/job-alerts.utils';
-import { seniorityDisplayLabel, workplaceTypeDisplayLabel } from '@/utils/jobs.utils';
 
 import s from './JobBoardBanner.module.scss';
 
@@ -26,6 +28,11 @@ interface JobBoardBannerProps {
   teamCount: number;
   filterState: IJobAlertFilterState;
   profileComplete: boolean;
+  /** Job Aspirant — signed up from the board, not already on a network team. */
+  isJobAspirant?: boolean;
+  /** Every fillable profile section has a value. The JA banner stays until this
+   *  is true; a member's banner still splits on `viewer` / Apply-completeness. */
+  allSectionsFilled?: boolean;
   onSignIn: () => void;
   onSignUp: () => void;
   onUpdateProfile: () => void;
@@ -38,53 +45,29 @@ interface JobBoardBannerProps {
  * Renders nothing for `resolving` (the sub-state queries haven't settled —
  * banner-absence is already the `profile-ready` presentation, so nothing can
  * flash wrong), nothing for `rejected` (the pending copy would promise an
- * approval that will not come), and nothing for `profile-ready`.
+ * approval that will not come), and nothing for `profile-ready` — except a
+ * Job Aspirant whose sections are still empty.
  */
 export function JobBoardBanner(props: JobBoardBannerProps) {
-  const { viewer } = props;
+  const { viewer, isJobAspirant = false, allSectionsFilled = false } = props;
 
   switch (viewer) {
     case 'logged-out':
       return <SignInBanner {...props} />;
     case 'profile-incomplete':
-      return <ProfileNudgeBanner onUpdateProfile={props.onUpdateProfile} />;
+      return (
+        <ProfileNudgeBanner variant={isJobAspirant ? 'aspirant' : 'member'} onUpdateProfile={props.onUpdateProfile} />
+      );
+    case 'profile-ready':
+      return isJobAspirant && !allSectionsFilled ? (
+        <ProfileNudgeBanner variant="aspirant" onUpdateProfile={props.onUpdateProfile} />
+      ) : null;
     case 'pending-approval':
       return <PendingApprovalBanner profileComplete={props.profileComplete} onUpdateProfile={props.onUpdateProfile} />;
     case 'resolving':
     case 'rejected':
-    case 'profile-ready':
       return null;
   }
-}
-
-/** "Engineering · Senior, Lead · Remote" — the person's own rail selection, in
- *  the words the rail used. */
-function summariseFilters(filterState: IJobAlertFilterState): string {
-  return [
-    ...filterState.roleCategory,
-    ...filterState.seniority.map(seniorityDisplayLabel),
-    ...filterState.workMode.map(workplaceTypeDisplayLabel),
-    ...filterState.focus,
-    ...filterState.location,
-  ].join(' · ');
-}
-
-/**
- * The two things a profile buys you, one line each — shared between the
- * logged-out banner and the signed-in nudge so the two states cannot end up
- * making different promises. Only the first bullet changes, because the door
- * behind it has.
- */
-function ApplyValueBullets({ signedOut = false }: { signedOut?: boolean }) {
-  return (
-    <ul className={`${welcome.sub} ${s.valueBullets}`}>
-      <li>
-        {signedOut ? 'Sign in and apply' : 'Apply'} to hundreds of startup teams across the network with a single
-        profile.
-      </li>
-      <li>Founders reach out when your profile matches the roles they&apos;re hiring for.</li>
-    </ul>
-  );
 }
 
 const ArrowGlyph = () => (
@@ -100,73 +83,72 @@ const ArrowGlyph = () => (
 );
 
 /**
- * The logged-out banner: the headline is the inventory (filtered counts), the
- * case for signing in is the two bullets, and the two doors sit in the
- * navbar's order and ranking. Narrowing the rail condenses and pins it — the
- * standing offer stays in view without blocking anything.
+ * The logged-out banner: how many teams are hiring, what a profile buys you,
+ * Sign up as the door, and Sign in in the footer for people already on a
+ * network team.
+ *
+ * Narrowing the rail pins it — the standing offer stays in view without
+ * blocking anything. The team count is the filtered one, so the headline
+ * stays true of the list under it.
  */
-function SignInBanner({ filterState, roleCount, teamCount, onSignIn, onSignUp }: JobBoardBannerProps) {
+function SignInBanner({ filterState, teamCount, onSignIn, onSignUp }: JobBoardBannerProps) {
   const filtersApplied = hasActiveFilters(filterState);
 
   return (
     <div className={clsx(s.slot, filtersApplied && s.pinned)}>
-      <section className={clsx(welcome.welcome, filtersApplied && s.condensed)}>
-        <div className={welcome.text}>
-          <p className={clsx(welcome.title, filtersApplied && s.oneLine)}>
-            {roleCount > 0 ? (
-              <>
-                Browse{' '}
-                <span className={welcome.titleHighlight}>
-                  {roleCount} open {roleCount === 1 ? 'role' : 'roles'}
-                </span>{' '}
-                across {teamCount} PL network {teamCount === 1 ? 'team' : 'teams'}
-              </>
-            ) : (
-              /* Zero is a filter result, not a smaller board — the counts drop
-                 out and the standing claim stays. */
-              <>Browse every open role across the PL network</>
-            )}
-          </p>
-          {filtersApplied || roleCount === 0 ? (
-            <p className={clsx(welcome.sub, filtersApplied && s.oneLine)}>
-              {roleCount === 0 ? (
+      <section className={clsx(s.signedOut, filtersApplied && s.condensed)}>
+        <div className={s.pitch}>
+          <div className={welcome.text}>
+            <p className={clsx(welcome.title, s.bannerTitle, filtersApplied && s.oneLine)}>
+              {teamCount > 0 ? (
                 <>
-                  Your profile goes with every application, so when a role does fit, applying is a cover letter and
-                  nothing else.
+                  <span className={welcome.titleHighlight}>{teamCount}</span> PL network{' '}
+                  {teamCount === 1 ? 'team is' : 'teams are'} hiring. Let them find you.
                 </>
               ) : (
-                <>
-                  Looking for <strong className={s.criteria}>{summariseFilters(filterState)}</strong>? Your profile
-                  goes with the application, so all you write is a cover letter.
-                </>
+                /* Zero is a filter result, not a smaller board — the count drops
+                   out and the standing claim stays. */
+                <>PL network teams are hiring. Let them find you.</>
               )}
             </p>
-          ) : (
-            <ApplyValueBullets signedOut />
-          )}
+            <p className={clsx(welcome.sub, s.bannerSub, filtersApplied && s.oneLine)}>
+              Founders reach out when your profile matches an open role.
+            </p>
+          </div>
+          <div className={s.ctaGroup}>
+            <button type="button" className={welcome.cta} onClick={onSignUp}>
+              Sign up
+              <ArrowGlyph />
+            </button>
+          </div>
         </div>
-        <div className={s.ctaGroup}>
-          <button type="button" className={s.ctaSecondary} onClick={onSignUp}>
-            Sign up
-          </button>
-          <button type="button" className={welcome.cta} onClick={onSignIn}>
+        <p className={clsx(welcome.sub, s.bannerSub, s.footer)}>
+          Already at a PL network team?{' '}
+          <button type="button" className={s.inlineDoor} onClick={onSignIn}>
             Sign in
-            <ArrowGlyph />
           </button>
-        </div>
+        </p>
       </section>
     </div>
   );
 }
 
-/** Signed in, profile empty: the ask moves from "sign in" to "update your profile". */
-function ProfileNudgeBanner({ onUpdateProfile }: { onUpdateProfile: () => void }) {
+function ProfileNudgeBanner({
+  variant,
+  onUpdateProfile,
+}: {
+  variant: 'member' | 'aspirant';
+  onUpdateProfile: () => void;
+}) {
   return (
     <div className={s.slot}>
-      <section className={welcome.welcome}>
+      <section className={clsx(welcome.welcome, s.brandSurface)}>
         <div className={welcome.text}>
-          <p className={welcome.title}>Update your profile to apply</p>
-          <ApplyValueBullets />
+          <p className={clsx(welcome.title, s.bannerTitle)}>
+            {variant === 'member'
+              ? 'Interested in a role here? Your profile is what the team sees when you reach out.'
+              : 'The more complete your profile, the better teams can find you.'}
+          </p>
         </div>
         <div className={s.ctaGroup}>
           <button type="button" className={welcome.cta} onClick={onUpdateProfile}>
@@ -196,12 +178,29 @@ function PendingApprovalBanner({
   if (!profileComplete) {
     return (
       <div className={s.slot}>
-        <section className={welcome.welcome}>
+        <section className={clsx(welcome.welcome, s.brandSurface)}>
           <div className={welcome.text}>
-            <p className={welcome.title}>Profile under review</p>
-            <p className={welcome.sub}>
-              We&apos;ll notify you once approved. Complete your profile in the meantime, so you can apply the moment it
-              is.
+            <p className={clsx(welcome.title, s.bannerTitle)}>Profile under review</p>
+            {/* Two sentences, two lines — and two different kinds of thing,
+                which is why they are separate `<p>`s rather than one broken with
+                a `<br />`. The first is a status: the review is running, we will
+                tell you. The second is the one move that is theirs, and it is
+                what the button beside it does. Run together they read as one
+                paragraph about waiting, and the instruction gets lost in the
+                middle of it.
+
+                No new CSS: `welcome.text` is already a 4px-gap column, so a
+                second `<p>` lands on the next line at the card's own rhythm.
+
+                The second line used to end "so you can apply the moment it is",
+                which was the reason to finish a profile while approval was the
+                thing standing in the way. It no longer is — applying works now —
+                so the reason had to change with it: a profile is what the
+                application carries, and that is true whether or not anyone is
+                reviewing the account. */}
+            <p className={clsx(welcome.sub, s.bannerSub)}>We&apos;ll notify you once approved.</p>
+            <p className={clsx(welcome.sub, s.bannerSub)}>
+              You can apply meanwhile — finish your profile so it goes with a full picture of you.
             </p>
           </div>
           <div className={s.ctaGroup}>
@@ -217,15 +216,27 @@ function PendingApprovalBanner({
 
   return (
     <div className={clsx(s.slot, s.pendingSlot)}>
-      <div className={alert.alert}>
+      <div className={clsx(alert.alert, s.alertBrand)}>
         <div className={alert.alertContent}>
           <div className={alert.alertIcon}>
             <InfoIcon />
           </div>
           <div className={alert.alertText}>
+            {/* The second sentence names what is and isn't available, because
+                "under review" alone leaves someone guessing whether the board
+                itself is half-working.
+
+                It used to end "applying unlocks as soon as your account is
+                approved" — the truth while approval gated applying. It doesn't
+                any more, and this is the state where getting that wrong would
+                cost the most: a finished profile with nothing left to do, being
+                told to wait for something that isn't holding them up. Now the
+                sentence says the board is entirely open and leaves the review as
+                what it is — a fact about the account, running in the
+                background. */}
             <p>
-              Profile under review — we&apos;ll notify you once approved. Your profile is ready and every role is open
-              to browse; applying unlocks as soon as your account is approved.
+              Profile under review — we&apos;ll notify you once approved. Nothing here is waiting on it: browse and
+              apply as normal.
             </p>
           </div>
         </div>

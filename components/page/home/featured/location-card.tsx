@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from '@/components/core/ToastContainer';
 import Modal from '@/components/core/modal';
 import Image from 'next/image';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 const LocationCard = (props: any) => {
   const location = props?.location;
@@ -61,6 +62,7 @@ const LocationCard = (props: any) => {
   });
 
   const router = useRouter();
+  const goToLogin = useLoginRedirect();
   const analytics = useIrlAnalytics();
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -114,7 +116,7 @@ const LocationCard = (props: any) => {
         triggerLoader(false);
       }
     } else {
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      goToLogin();
     }
   };
 

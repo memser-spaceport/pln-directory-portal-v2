@@ -13,9 +13,11 @@ import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ScrollToTop from '@/components/page/home/featured/scroll-to-top';
 import { getFeaturedData } from '@/services/featured.service';
+import { getTeamList } from '@/app/actions/teams.actions';
 import { formatFeaturedData } from '@/utils/home.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Welcome } from '@/components/page/home/Welcome';
+import { DigestEmailHomeLinkCapture } from '@/components/page/home/DigestEmailHomeLinkCapture';
 import { QuickActions } from '@/components/page/home/QuickActions';
 import { TeamNews, AutoMarkNewsNotification, MarkHomeVisited } from '@/components/page/home/TeamNews';
 import { getTeamNewsGroupedByFocusArea, getTeamNewsPopular } from '@/services/team-news/team-news.service';
@@ -41,6 +43,7 @@ export default async function Home() {
     initialDigestSettings,
     quickActionsState,
     quickActionsOhResolved,
+    teamsCount,
   } = await getPageData();
 
   if (isError) {
@@ -53,11 +56,12 @@ export default async function Home() {
         <div className={styles.home__cn}>
           {!isLoggedIn && (
             <div className={styles.home__cn__welcome}>
-              <Welcome />
+              <Welcome teamCount={teamsCount} />
             </div>
           )}
           {isLoggedIn && <QuickActions initial={quickActionsState} ohResolved={quickActionsOhResolved} />}
           <div className={styles.home__cn__teamnews}>
+            <DigestEmailHomeLinkCapture />
             <TeamNews
               groups={teamNewsGroups}
               allTabExtraItems={teamNewsAllTabExtraItems}
@@ -92,6 +96,8 @@ const getPageData = async () => {
   let teamNewsForYouTeamUids: string[] = [];
   let popularItems: ITeamNewsPopularItem[] = [];
   let initialDigestSettings: ForumDigestSettings | null = null;
+
+  let teamsCount = 0;
 
   // Quick Actions is resolved server-side so its card set is final on first
   // paint — deriving it client-side made the band render 2 cards, collapse to
@@ -129,6 +135,8 @@ const getPageData = async () => {
           .catch(() => null)
       : Promise.resolve(null);
 
+  const teamsCountPromise = isLoggedIn ? Promise.resolve(null) : getTeamList('', 1, 1).catch(() => null);
+
   try {
     const [
       teamFocusAreaResponse,
@@ -139,6 +147,7 @@ const getPageData = async () => {
       popularResponse,
       digestSettingsResponse,
       myAccessResponse,
+      teamsCountResponse,
     ] = await Promise.all([
       getFocusAreas('Team', {}),
       getFocusAreas('Project', {}),
@@ -148,6 +157,7 @@ const getPageData = async () => {
       getTeamNewsPopular(undefined, authToken),
       digestSettingsPromise,
       myAccessPromise,
+      teamsCountPromise,
     ]);
 
     teamNewsGroups = teamNewsResponse?.groups ?? [];
@@ -155,6 +165,7 @@ const getPageData = async () => {
     teamNewsForYouTeamUids = teamNewsResponse?.forYouTeamUids ?? [];
     popularItems = popularResponse?.items ?? [];
     initialDigestSettings = digestSettingsResponse;
+    teamsCount = teamsCountResponse?.totalItems ?? 0;
 
     if (isLoggedIn && myAccessResponse) {
       quickActionsState = resolveQuickActionsState(
@@ -190,6 +201,7 @@ const getPageData = async () => {
         initialDigestSettings,
         quickActionsState,
         quickActionsOhResolved,
+        teamsCount,
       };
     }
     teamFocusAreas = Array.isArray(teamFocusAreaResponse?.data)
@@ -217,6 +229,7 @@ const getPageData = async () => {
       initialDigestSettings,
       quickActionsState,
       quickActionsOhResolved,
+      teamsCount,
     };
   } catch (error) {
     console.error(error);
@@ -238,6 +251,7 @@ const getPageData = async () => {
       initialDigestSettings,
       quickActionsState,
       quickActionsOhResolved,
+      teamsCount,
     };
   }
 };

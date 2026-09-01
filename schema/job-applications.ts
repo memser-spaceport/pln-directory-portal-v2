@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { JOB_SEARCH_STATUS_VALUES } from '@/services/jobs/job-board-viewer';
+
 /**
  * The wire contract for in-app job applications, mirroring
  * `libs/contracts/src/schema/job-application.ts` on the backend.
@@ -53,7 +55,30 @@ export const jobBoardSignUpInputSchema = z
   .object({
     name: z.string().trim().min(1).max(200),
     email: z.string().trim().email(),
-    role: z.string().trim().min(1).max(200),
+    /* The address at the company named in `team` — evidence for that claim, so
+       the PL team reviewing the account can see where the person works. Never a
+       second identity: `email` above is the one address the account is created
+       on.
+
+       This object is `.strict()`, so this key has to exist here before anything
+       may send it — without it, `parse()` throws before the request goes out and
+       every sign-up fails. The backend's own schema is NOT strict, so the
+       reverse gap is silent: it would drop the field rather than reject it. Keep
+       the two in step. */
+    teamEmail: z.string().trim().email().max(200).optional(),
+    /* Where they are with job hunting — the other half of `isProfileComplete`,
+       so an account created here comes back from sign-in ready to apply.
+
+       Optional on the wire though the form requires it: this schema describes
+       what the endpoint accepts, and the endpoint accepts a sign-up without one
+       (it predates the field). Making it required here would mean this client
+       could not express a request the server is happy to serve. The form is
+       where "always ask" belongs, and `accountSchema` is where it is enforced. */
+    jobSearchStatus: z.enum(JOB_SEARCH_STATUS_VALUES).optional(),
+    /* Optional on the wire though the form requires LinkedIn and treats role as
+       free. Same reason as `jobSearchStatus`: this schema describes what the
+       endpoint accepts. The form is where "always ask LinkedIn" belongs. */
+    role: z.string().trim().min(1).max(200).optional(),
     linkedinHandler: z.string().trim().min(1).max(200).optional(),
     isTeamNew: z.boolean().optional(),
     team: z

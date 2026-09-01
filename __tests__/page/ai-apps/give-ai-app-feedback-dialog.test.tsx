@@ -238,4 +238,64 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(readFormDraft(AI_APP_FEEDBACK_DRAFT_KEY)).toBeNull();
     });
   });
+
+  it('anchors the popover below the trigger', () => {
+    mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+
+    const anchor = document.createElement('button');
+    document.body.appendChild(anchor);
+    jest.spyOn(anchor, 'getBoundingClientRect').mockReturnValue({
+      x: 800,
+      y: 80,
+      top: 80,
+      bottom: 120,
+      left: 800,
+      right: 960,
+      width: 160,
+      height: 40,
+      toJSON: () => ({}),
+    });
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1000 });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} anchorRef={{ current: anchor }} />);
+
+    const overlay = document.body.querySelector('[style*="--feedback-popover-top"]');
+    expect(overlay).toBeTruthy();
+    expect(overlay?.getAttribute('style')).toContain('--feedback-popover-top: 128px');
+    expect(overlay?.getAttribute('style')).toContain('--feedback-popover-right: 40px');
+
+    anchor.remove();
+  });
+
+  it('raises the popover above the trigger when placement is "above"', () => {
+    mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+
+    const anchor = document.createElement('button');
+    document.body.appendChild(anchor);
+    jest.spyOn(anchor, 'getBoundingClientRect').mockReturnValue({
+      x: 900,
+      y: 700,
+      top: 700,
+      bottom: 748,
+      left: 900,
+      right: 960,
+      width: 48,
+      height: 48,
+      toJSON: () => ({}),
+    } as DOMRect);
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1000 });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} anchorRef={{ current: anchor }} placement="above" />);
+
+    const overlay = document.body.querySelector('[style*="--feedback-popover-bottom"]');
+    expect(overlay).toBeTruthy();
+    // 800 - 700 + 8 — measured up from the trigger's top edge, not down from
+    // its bottom, which for a corner button would be below the fold.
+    expect(overlay?.getAttribute('style')).toContain('--feedback-popover-bottom: 108px');
+    expect(overlay?.getAttribute('style')).toContain('--feedback-popover-right: 40px');
+    expect(overlay?.getAttribute('style')).not.toContain('--feedback-popover-top');
+
+    anchor.remove();
+  });
 });

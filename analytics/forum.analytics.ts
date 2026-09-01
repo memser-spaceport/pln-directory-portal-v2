@@ -126,6 +126,14 @@ export const useForumAnalytics = () => {
     captureEvent(FORUM_ANALYTICS_EVENTS.DIGEST_EMAIL_POST_CLICKED, params);
   }
 
+  function onDigestEmailNewsLinkClicked(params: Record<string, string | null>) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.DIGEST_EMAIL_NEWS_CLICKED, params);
+  }
+
+  function onDigestEmailSeeAllNewsLinkClicked(params: Record<string, string | null>) {
+    captureEvent(FORUM_ANALYTICS_EVENTS.DIGEST_EMAIL_SEE_ALL_NEWS_CLICKED, params);
+  }
+
   function onCommentNotificationEmailLinkClicked(params: Record<string, string | null>) {
     captureEvent(FORUM_ANALYTICS_EVENTS.COMMENT_NOTIFICATION_EMAIL_LINK_CLICKED, params);
   }
@@ -263,6 +271,8 @@ export const useForumAnalytics = () => {
     onEditPostSubmit,
     onEditPostCancel,
     onDigestEmailPostLinkClicked,
+    onDigestEmailNewsLinkClicked,
+    onDigestEmailSeeAllNewsLinkClicked,
     onCommentNotificationEmailLinkClicked,
     onCommentNotificationEmailReplyClicked,
     onMentionInitiated,

@@ -9,24 +9,27 @@ import { toast } from '@/components/core/ToastContainer';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { useCurrentUserStore } from '@/services/auth/store';
 
-import { isDemoDayScopePage } from '../../../login/utils';
+import { isDemoDayScopePage, useLoginRedirect } from '../../../login/utils';
 
 import s from './LoginButton.module.scss';
 
 interface Props {
   className?: string;
+  onClick?: () => void;
 }
 
 export const LoginBtn = (props: PropsWithChildren<Props>) => {
-  const { className, children } = props;
+  const { className, children, onClick } = props;
 
   const authAnalytics = useAuthAnalytics();
   const demoDayAnalytics = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const router = useRouter();
   const pathname = usePathname();
+  const goToLogin = useLoginRedirect();
 
   const onLoginClickHandler = () => {
+    onClick?.();
     authAnalytics.onLoginBtnClicked();
 
     // Track demo day login button click if on demo day page
@@ -58,11 +61,7 @@ export const LoginBtn = (props: PropsWithChildren<Props>) => {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();
     } else {
-      if (window.location.pathname === '/sign-up') {
-        router.push(`/#login`);
-      } else {
-        router.push(`${window.location.pathname}${window.location.search}#login`);
-      }
+      goToLogin();
     }
   };
 

@@ -15,7 +15,14 @@ const role: IJobRole = {
 };
 
 const groupFor = (teamUid: string, roles: IJobRole[] = [role]): IJobTeamGroup => ({
-  team: { uid: teamUid, name: 'Acme', logoUrl: null, focusAreas: [], subFocusAreas: [] },
+  team: {
+    uid: teamUid,
+    name: 'Acme',
+    logoUrl: null,
+    focusAreas: [],
+    subFocusAreas: [],
+    jobReferEmail: null,
+  },
   totalRoles: roles.length,
   roles,
 });

@@ -1,0 +1,222 @@
+@use 'styles/media';
+
+/* Transcribed from `pl-design-system/components/Steps/Steps.module.scss`.
+ *
+ * That file has no dependencies at all — it would have lifted by import — but
+ * `tsconfig.json` puts `pl-design-system` in `exclude`, so nothing in this app
+ * can reach it. The rules below are copied verbatim in every dimension: the
+ * 32px circle, its 2px border and 200ms transition, the 1px connector with its
+ * 8px margins and `top: -12px` nudge, and the 12px/500 title are 1:1 with the
+ * source.
+ *
+ * NOT copied: `.root.vertical` and `.description`. The rail here is horizontal
+ * and its steps are three words each — a description under every circle would
+ * turn a position indicator into a third block of prose on a screen that already
+ * opens with a lede. Dropped rather than left unused, the same way
+ * production's own `PendingApprovalSteps` drops its source's `.stepperCard`
+ * and `.secondaryButton` (components/page/jobs/JobProfileDrawer/).
+ *
+ * Only the colour layer is translated — the source writes bare
+ * `var(--border-neutral-subtle)` with no fallback, and portal-v2 does not load
+ * the design-system variable sheet, so every one of those would resolve to
+ * nothing and the rail would render as a row of invisible circles. Each token
+ * keeps its name and gains the fallback verified in a neighbouring production
+ * sheet (prototypes/CLAUDE.md §3, §4).
+ *
+ * Two of the source's token names have no fallback anywhere in this codebase and
+ * are noted individually below.
+ *
+ * ONE RENDERED COLOUR IS OURS, not the source's, and it is the only place this
+ * file stops being a transcription: the **completed** state is grey here, where
+ * the DS paints it brand. It is argued in full at `.circle.completed`, and the
+ * connector follows it. Flagged up here because everything else claims verbatim
+ * fidelity, and a deviation nobody can find is a deviation that gets "corrected"
+ * back (prototypes/CLAUDE.md §6).
+ */
+
+.root {
+  display: flex;
+  width: 100%;
+}
+
+.root.horizontal {
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  flex: 1;
+
+  &:last-child {
+    flex: 0;
+  }
+}
+
+.stepContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+/* NOT in the source. A finished step is a real destination here — it is how
+   `Edit profile` returns to the profile and how someone re-reads the posting
+   without losing a letter — so those steps render as buttons. This strips the
+   <button> back to the <div> the source draws, and nothing more: the hover and
+   focus treatment below is what makes it read as pressable. */
+.stepButton {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  border-radius: 8px;
+
+  /* The circle is the affordance, so it is the thing that reacts — a background
+     on the whole button would put a grey slab behind a label that is meant to
+     sit on the header's white. `--border-neutral-muted` is the DS's own
+     one-step-darker border, i.e. the same move `.circle.upcoming` would make. */
+  &:hover .circle {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+
+  &:hover .title {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  /* Ring on the whole step rather than on the circle: a focus ring inside a
+     32px circle that already carries a 4px brand shadow in its `current` state
+     would be two rings saying two different things. */
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.connector {
+  flex: 1;
+  height: 1px;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  margin: 0 8px;
+  position: relative;
+  /* The source's own nudge: the connector is a flex sibling of a two-line
+     [circle, title] block and would otherwise centre against both. -12px lifts
+     it onto the circle's midline. */
+  top: -12px;
+}
+
+/* DELIBERATE DEVIATION from the DS sheet, which paints this
+   `--foreground-brand-primary`. See `.circle.completed` for the argument; the
+   short version is that the trail has to agree with the marks it joins, and a
+   bright blue line leaving a grey disc would be two answers to "is this done".
+
+   `--border-neutral-muted` is the design system's own one-step-darker border —
+   two notches up from the untravelled `--border-neutral-subtle` above, so the
+   walked stretch is still legible as walked, in grey. */
+.connector.completed {
+  background: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+}
+
+.circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+  transition: all 200ms;
+  border: 2px solid;
+}
+
+/* DELIBERATE DEVIATION from the DS sheet, which fills this
+   `--action-bg-brand-normal` — a solid brand disc. Everything else in this file
+   is transcribed verbatim; this is the one colour that is ours, and the reason
+   is a state the source does not have.
+
+   In an ordinary wizard every completed step is behind you, so a solid brand
+   disc is a reward and it sits nowhere near the step you are on. This rail
+   invented a step that is completed on the **opening frame** — the profile you
+   already finished — so a filled brand disc landed immediately beside a
+   *current* step drawn as a hollow ring, and won. The brightest thing in the
+   rail was the step you are not on, which inverts the one job a position
+   indicator has. "Don't make it blue, make it rather grey so it doesn't seem so
+   active/bright."
+
+   Grey for ALL completed steps, not just the pre-satisfied one. Two paints for
+   one state — brand for "you did this here", grey for "we already had it" —
+   would be a distinction nobody asked for and a second grey/blue boundary to
+   rule out; the check mark already says done, so hue was carrying nothing.
+   Colour now means exactly one thing in this rail: the current step.
+
+   `--background-neutral-muted, #8897ae` is production's own pairing for a filled
+   neutral step indicator with white content on it — `AccountCreatedSuccessModal`'s
+   `.stepIconPending`, same shape, same job. Filled-grey against `.upcoming`'s
+   outline keeps the source's two-tier read (done vs not) without the hue. */
+.circle.completed {
+  background: var(--background-neutral-muted, #8897ae);
+  border-color: var(--background-neutral-muted, #8897ae);
+  color: #fff;
+}
+
+/* `--transparent-brand-8` has no value anywhere in this codebase —
+   `--transparent-brand-16` is the one production pairs, at
+   `rgba(27, 77, 255, 0.16)` (the `.primaryButton` shadow in
+   components/page/jobs/JobProfileDrawer/PendingApprovalSteps.module.scss).
+   Half of it is the honest reading of the name, so the fallback is
+   `rgba(27, 77, 255, 0.08)`. */
+.circle.current {
+  background: transparent;
+  border-color: var(--foreground-brand-primary, #1b4dff);
+  color: var(--foreground-brand-primary, #1b4dff);
+  box-shadow: 0 0 0 4px var(--transparent-brand-8, rgba(27, 77, 255, 0.08));
+}
+
+.circle.upcoming {
+  background: transparent;
+  border-color: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.title {
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 8px;
+  text-align: center;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  white-space: nowrap;
+  transition: color 200ms;
+
+  /* NOT in the source, which is written for a rail with all the room it wants.
+     Three labels plus three 32px circles measure ~300px, and the flow is a
+     full-bleed page at 360px with 24px of padding either side — so the labels
+     are the part that gives. 11px matches the source's own `.description`
+     rather than inventing a size, and `letter-spacing: -0.2px` is the PL scale's
+     pairing for small type. */
+  @include media.mobile-only {
+    font-size: 11px;
+    letter-spacing: -0.2px;
+  }
+}
+
+.title.current {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* Production's own, copied from `NavBar.module.scss` where the unread dot's
+   accompanying text uses it. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

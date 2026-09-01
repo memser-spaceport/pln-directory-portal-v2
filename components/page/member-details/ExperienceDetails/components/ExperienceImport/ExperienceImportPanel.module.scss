@@ -1,0 +1,226 @@
+// Local extras only. Everything with a shape is imported: the empty row and its
+// connect-button slot come from production's `ExperiencesList.module.scss`, and
+// the drop area, its drag states, the file row and the error strip come from
+// `FileUploader.module.scss` (see `ResumeDropzone`). What's left here is the
+// glue those two sheets have no opinion about — how the door sits under the
+// sentence, the reading row and the two dead ends.
+//
+// Every custom property is written `var(--name, #fallback)`: this app doesn't
+// load the DS token sheet, so a bare token resolves to nothing.
+@use 'styles/media';
+
+// --- The empty row ----------------------------------------------------------
+
+// Production's `.emptyData` is `space-between`: a sentence on the left, one
+// `.connectButton` on the right. That was written for exactly one button, and
+// with the second door removed it would fit again — but the column stays,
+// because the 16px between the sentence and the button was tuned deliberately
+// and a row has no vertical gap to keep. Restoring production's layout here
+// would be undoing a decision rather than simplifying.
+//
+// Doubled selector because `.emptyData` is a single class in another CSS module:
+// matching its specificity would leave the winner to bundle order.
+//
+// The dead end below wears this class too and pulls the gap back to 8, because
+// there the title, its explanation and its actions are one block rather than a
+// statement followed by a choice.
+.emptyStack.emptyStack {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+// `.connectButton` sets no type at all in production — it was never rendered, so
+// nothing ever inherited into it. This is `FileUploader`'s `.uploadButton` face.
+// Only the dead ends use it now ("Try again" / "Try another file"); the pill it
+// was written for is gone.
+.doorLabel {
+  white-space: nowrap;
+  color: var(--action-foreground-neutral-normal, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+// --- The panel ---------------------------------------------------------------
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+// The LinkedIn note, under the box.
+//
+// `.howto`, `.howtoLead` and `.howtoSteps` used to live here — the brand-soft
+// panel behind the LinkedIn *door*'s three-step "open LinkedIn → More → Save to
+// PDF". The door is gone and is not coming back; what returned is the ground it
+// sat on, for one sentence in the place the fact is useful.
+//
+// The tint is what separates an instruction you might follow from the privacy
+// line under it, which is a fact you only read once. `margin-top: -4px` trims
+// the panel's own 12px gap to 8: the box above it and this note are one unit —
+// how to feed it, then what happens to what you feed it — where 12px reads as
+// three unrelated rows.
+.linkedinSteps {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+
+  padding: 8px 12px;
+  border-radius: var(--corner-radius-md, 8px);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+
+  margin: 0;
+  margin-top: -4px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// 2px down, because a 14px glyph beside an 18px line sits high on the cap
+// height otherwise and reads as floating rather than as leading the sentence.
+.linkedinStepsIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: currentColor;
+}
+
+// The menu path carries a little weight — it is the part someone scans back to
+// while looking at LinkedIn rather than at this page — and must not break
+// across the arrow.
+.linkedinPath {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+// --- Reading ------------------------------------------------------------------
+
+// Deliberately the same 16px row, radius and border as `FileUploader.container`,
+// which is what it replaces: the box shouldn't move when the file lands in it.
+.reading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: var(--corner-radius-lg, 10px);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+}
+
+.spinner {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  fill: var(--foreground-brand-primary, #1b4dff);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.readingText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.readingTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.readingMeta {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+}
+
+// The secondary verb throughout the panel — Cancel, Add manually. A text button,
+// because in both places it stands beside something more important.
+.quietButton {
+  flex-shrink: 0;
+  padding: 8px 4px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+// --- Nothing found ------------------------------------------------------------
+
+// The panel, the radius and the ground all come from production's `.emptyData`,
+// which this wears — see the note at the call site. Only the internal rhythm is
+// local: `.emptyStack` already turns the row into a column, and this tightens
+// the gap because a title, its explanation and its actions are one block rather
+// than three peers.
+.deadEnd.deadEnd {
+  gap: 8px;
+}
+
+.deadEndTitle {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0.14px;
+}
+
+.deadEndBody {
+  margin: 0;
+  color: var(--Neutral-Slate-600, #475569);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+}
+
+.deadEndActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+
+  > button:first-child {
+    width: auto;
+    min-width: 160px;
+  }
+}
+
+// --- The honesty line ---------------------------------------------------------
+
+.privacyNote {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

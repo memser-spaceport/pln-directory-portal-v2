@@ -72,8 +72,8 @@ const VISIBLE_HANDLES = ['email', 'linkedin', 'telegram', 'twitter', 'bluesky', 
  * The Relationship card's audience, written once so the pill (slate variant)
  * and the banner strip (blue variant) cannot drift apart — they are the same
  * promise in two shapes. Scoped to this page: the shared `PlTeamOnlyPill`
- * default still reads "Visible to you and LabOS admins" for the job-board
- * drawer, where the field really is the member's own.
+ * default reads "Only visible to you" for the job-board drawer, where the field
+ * really is the member's own and no one else reads it.
  */
 const PL_TEAM_ONLY = 'PL team only';
 

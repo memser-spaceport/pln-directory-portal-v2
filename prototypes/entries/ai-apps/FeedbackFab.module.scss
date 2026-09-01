@@ -1,0 +1,121 @@
+@use 'styles/media';
+
+/*
+  Floating "Give feedback" door for the app detail view.
+
+  Placement and stacking are the ai-apps-feedback prototype's `.fabWrap` — the
+  settled answer in this repo for a floating feedback door on this feature —
+  rather than a second set of numbers. z-index stays below the Modal / Drawer
+  overlay (10) so the feedback dialog and the 1-pager viewer cover it.
+
+  `.wrap` positions and carries the entrance; the paint is on the button,
+  because CustomTooltip inserts its own trigger <div> between the two.
+*/
+.wrap {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 9;
+  display: inline-flex;
+  animation: fabIn 280ms ease-out both;
+
+  @include media.mobile-only {
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
+/* It arrives rather than appearing: the page is an embedded app, so a control
+   that is simply *there* on the first frame reads as part of the app. */
+@keyframes fabIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+  Opens saying its name, then settles to the glyph — see the note in
+  FeedbackFab.tsx. The height is fixed at 48px so collapsing is a width-only
+  move with no vertical jump, and nothing here sets an explicit width: the label
+  animates its own max-width and margin, the padding goes to 0, and `min-width`
+  is what makes the settled state a 48px disc. Animating `width: auto` to a
+  pixel value would jump instead.
+
+  Brand fill and a shadow rather than the top bar's bordered-neutral — the
+  background underneath belongs to the app and isn't ours to assume, so the mark
+  has to read as an object above the page.
+*/
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 48px;
+  padding: 0 18px 0 16px;
+  border: none;
+  border-radius: 999px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(27, 77, 255, 0.3);
+  transition:
+    padding 0.28s ease,
+    box-shadow 0.15s,
+    transform 0.15s;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(27, 77, 255, 0.38);
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+/* The 8px between glyph and label is the label's own margin, not the row's
+   `gap`: a gap survives the label collapsing to zero width and would leave the
+   glyph 4px off the centre of the disc. */
+.label {
+  max-width: 160px;
+  margin-left: 8px;
+  overflow: hidden;
+  white-space: nowrap;
+  transition:
+    max-width 0.28s ease,
+    margin-left 0.28s ease,
+    opacity 0.18s ease;
+}
+
+.wrap[data-collapsed='true'] {
+  .button {
+    padding: 0;
+  }
+
+  .label {
+    max-width: 0;
+    margin-left: 0;
+    opacity: 0;
+  }
+}
+
+/* The introduction is information, so it still happens — it just stops being a
+   move. */
+@media (prefers-reduced-motion: reduce) {
+  .wrap {
+    animation: none;
+  }
+
+  .button,
+  .label {
+    transition: none;
+  }
+}

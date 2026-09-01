@@ -1654,7 +1654,14 @@ describe('TeamNews', () => {
 
     const hiringGroup = (uid: string, overrides: Partial<IJobTeamGroup> = {}): IJobTeamGroup =>
       ({
-        team: { uid, name: `Hiring ${uid}`, logoUrl: null, focusAreas: [], subFocusAreas: [] },
+        team: {
+          uid,
+          name: `Hiring ${uid}`,
+          logoUrl: null,
+          focusAreas: [],
+          subFocusAreas: [],
+          jobReferEmail: null,
+        },
         totalRoles: 5,
         roles: [jobRole(`${uid}-r1`), jobRole(`${uid}-r2`)],
         ...overrides,
@@ -1993,8 +2000,13 @@ describe('TeamNews', () => {
             { focusArea: FA_AI, total: items.length, items },
             { focusArea: FA_DHR, total: dhrItems.length, items: dhrItems },
           ]}
+          forYouTeamUids={['team-b-0']}
         />,
       );
+      // Lands on For You — same network-wide band as All categories.
+      expect(band()).toBeInTheDocument();
+
+      fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
       expect(band()).toBeInTheDocument();
 
       fireEvent.click(screen.getByRole('tab', { name: /Digital Human Rights/ }));
@@ -2003,7 +2015,7 @@ describe('TeamNews', () => {
       fireEvent.click(screen.getByRole('tab', { name: /^All/ }));
       expect(band()).toBeInTheDocument();
 
-      fireEvent.click(screen.getByRole('button', { name: /^Funding\b/ }));
+      fireEvent.click(within(catRow()).getByRole('button', { name: /^Funding\b/ }));
       expect(band()).not.toBeInTheDocument();
     });
 
@@ -2123,13 +2135,12 @@ describe('TeamNews', () => {
       { focusArea: FA_DHR, total: 1, items: [membershipDhr] },
     ];
 
-    it('defaults to For You, hides Top Stories, and shows one latest item per matching team', () => {
+    it('defaults to For You and shows one latest item per matching team', () => {
       renderTeamNews(<TeamNews groups={forYouGroups} forYouTeamUids={['team-mem', 'team-rec']} />);
 
       expect(within(catRow()).getByRole('button', { name: /For You/ })).toHaveClass(/catActive/);
-      expect(screen.queryByRole('region', { name: 'Top stories' })).not.toBeInTheDocument();
       expect(
-        screen.getByText(/For you: Curated based on your profile and primary team attributes/),
+        screen.getByText(/For you: Curated based on your profile, primary team attributes, and the teams you follow/),
       ).toBeInTheDocument();
       expect(screen.queryByRole('link', { name: /Update your profile/ })).not.toBeInTheDocument();
       expect(screen.getByText('Headline mem-1')).toBeInTheDocument();
@@ -2145,7 +2156,7 @@ describe('TeamNews', () => {
         renderTeamNews(<TeamNews groups={forYouGroups} forYouTeamUids={['team-mem', 'team-rec']} />);
 
         expect(
-          screen.getByText(/For you: Curated based on your profile and primary team attributes/),
+          screen.getByText(/For you: Curated based on your profile, primary team attributes, and the teams you follow/),
         ).toBeInTheDocument();
         const profileLink = screen.getByRole('link', { name: /Update your profile/ });
         expect(profileLink).toHaveAttribute('href', '/members/user-1?backTo=%2Fhome');
@@ -2154,7 +2165,9 @@ describe('TeamNews', () => {
         fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
 
         expect(
-          screen.queryByText(/For you: Curated based on your profile and primary team attributes/),
+          screen.queryByText(
+            /For you: Curated based on your profile, primary team attributes, and the teams you follow/,
+          ),
         ).not.toBeInTheDocument();
       } finally {
         useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
@@ -2184,7 +2197,8 @@ describe('TeamNews', () => {
         <TeamNews groups={[{ focusArea: FA_AI, total: items.length, items }]} forYouTeamUids={['team-mem']} />,
       );
 
-      expect(screen.queryByRole('region', { name: 'Top stories' })).not.toBeInTheDocument();
+      expect(within(catRow()).getByRole('button', { name: /For You/ })).toHaveClass(/catActive/);
+      expect(screen.getByRole('region', { name: 'Top stories' })).toBeInTheDocument();
 
       fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
 
@@ -2208,6 +2222,55 @@ describe('TeamNews', () => {
       expect(screen.getByText('Headline mem-dhr')).toBeInTheDocument();
       expect(screen.queryByText('Headline mem-1')).not.toBeInTheDocument();
       expect(screen.queryByText('Headline rec-1')).not.toBeInTheDocument();
+    });
+
+    it('mixes in forum posts created in the last 7 days and drops older ones from the same 14-day list', () => {
+      const day = 24 * 60 * 60 * 1000;
+      const makePost = (
+        uid: IFeedForumPost['uid'],
+        title: string,
+        createdDaysAgo: number,
+        activityDaysAgo: number,
+      ): IFeedForumPost => ({
+        uid,
+        tid: 96,
+        mainPid: 263,
+        title,
+        body: 'Hi Protocol Labs',
+        author: { memberUid: 'm-1', name: 'Matt Curran', avatarUrl: null, role: null },
+        focusAreas: [],
+        category: 'Intros',
+        createdAt: new Date(Date.now() - createdDaysAgo * day).toISOString(),
+        lastActivityAt: new Date(Date.now() - activityDaysAgo * day).toISOString(),
+        forumTopicUrl: `/forum/topics/5/${uid}`,
+        commentCount: 0,
+        likeCount: 0,
+        viewCount: 0,
+        viewerHasLiked: false,
+      });
+      mockUseFeedSocial.mockReturnValue(
+        feedSocial(
+          [
+            makePost('fp_recent', 'Posted this week', 2, 2),
+            // Created 10 days ago, replied to yesterday — still in All's 14-day
+            // activity window, but not "posted this week".
+            makePost('fp_older', 'Posted last fortnight', 10, 1),
+          ],
+          true,
+        ),
+      );
+
+      renderTeamNews(<TeamNews groups={forYouGroups} forYouTeamUids={['team-mem', 'team-rec']} />);
+
+      expect(screen.getByText('Posted this week')).toBeInTheDocument();
+      expect(screen.queryByText('Posted last fortnight')).not.toBeInTheDocument();
+      // 2 For You news items (one per matching team) + 1 L7D post.
+      expect(within(within(catRow()).getByRole('button', { name: /For You/ })).getByText('3')).toBeInTheDocument();
+
+      fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
+
+      expect(screen.getByText('Posted this week')).toBeInTheDocument();
+      expect(screen.getByText('Posted last fortnight')).toBeInTheDocument();
     });
   });
   describe('the Views count, without a reload', () => {

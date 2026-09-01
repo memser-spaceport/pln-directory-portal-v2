@@ -3,17 +3,29 @@
 import s from './PlTeamOnlyPill.module.scss';
 
 /**
- * The "VISIBLE TO YOU AND LABOS ADMINS" pill — the prototypes' established mark
- * for a field the member can see and edit but nobody else in the network can.
+ * The "ONLY VISIBLE TO YOU" pill — the prototypes' established mark for a field
+ * the member can see and edit but nobody else in the network can.
  *
- * **It used to read "Visible to PL Team only".** Two things were wrong with it.
- * It named only the exclusion, leaving the member out of a sentence about their
- * own data — the first question anyone asks of a lock is "can *I* see it?", and
- * "PL Team only" answers no. And "PL Team" is not what this product calls its
- * administrators anywhere a member reads: the app is LabOS, so the people with
- * the keys are LabOS admins. Naming the member first and the admins second is
- * the whole promise in the order it matters. (The file keeps its old name —
- * every importer already knows it, and the label is the part anyone reads.)
+ * **Two earlier labels, and the trail matters.** It began as "Visible to PL Team
+ * only", which named only the exclusion and left the member out of a sentence
+ * about their own data — the first question anyone asks of a lock is "can *I*
+ * see it?", and "PL Team only" answers no. That became "Visible to you and LabOS
+ * admins", which fixed the omission by naming both audiences in the order that
+ * matters.
+ *
+ * This is the third and shortest. Naming the admins was accurate but it spent
+ * the pill's whole width introducing a second party to a promise the reader
+ * wanted answered about themselves — and beside a *job search status*, a chip
+ * that lists who else can read it invites the question of what they do with it.
+ * The answer the field actually needs is the one it now gives. What is lost is
+ * real: the pill no longer says an administrator can see it. That fact belongs
+ * to the privacy policy, not to a 11px chip beside a radio group. (The file
+ * keeps its old name — every importer already knows it, and the label is the
+ * part anyone reads.)
+ *
+ * **No full stop.** `.pill` is `text-transform: uppercase`, so a trailing period
+ * renders as "ONLY VISIBLE TO YOU." — punctuation no other chip in the product
+ * carries, at a size where it reads as a smudge.
  *
  * SHARED (prototypes/entries/profile-shared/, no registry entry — like
  * nav-shared/ and news-shared/). It started life inside the member-profile
@@ -39,7 +51,7 @@ export function PlTeamOnlyPill({ className }: { className?: string }) {
   return (
     <span className={className ? `${s.pill} ${className}` : s.pill}>
       <LockIcon />
-      Visible to you and LabOS admins
+      Only visible to you
     </span>
   );
 }

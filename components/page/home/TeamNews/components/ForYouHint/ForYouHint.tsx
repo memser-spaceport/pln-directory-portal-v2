@@ -14,7 +14,7 @@ export function ForYouHint({ memberUid }: ForYouHintProps) {
 
   return (
     <p className={s.root}>
-      For you: Curated based on your profile and primary team attributes.
+      For you: Curated based on your profile, primary team attributes, and the teams you follow.
       {memberUid ? (
         <>
           {' '}

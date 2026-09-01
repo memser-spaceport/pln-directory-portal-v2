@@ -8,6 +8,7 @@ import { useRef, useState } from 'react';
 import { toast } from '@/components/core/ToastContainer';
 import Modal from '@/components/core/modal';
 import { EVENTS, FOLLOW_ENTITY_TYPES } from '@/utils/constants';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 interface FollowButtonProps {
   eventLocationSummary: any;
@@ -18,6 +19,7 @@ interface FollowButtonProps {
 
 const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand }: FollowButtonProps) => {
   const router = useRouter();
+  const goToLogin = useLoginRedirect();
   const analytics = useIrlAnalytics();
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -76,7 +78,7 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
         triggerLoader(false);
       }
     } else {
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      goToLogin();
     }
   };
 

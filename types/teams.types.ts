@@ -24,6 +24,8 @@ export interface ITeamsSearchParams {
   tiers?: string;
   communityAffiliations?: string;
   followingOnly?: 'true' | '';
+  /** Directory Admin only; non-admins are always scoped to ACTIVE regardless of this value. */
+  status?: 'ACTIVE' | 'INACTIVE' | 'ALL';
 }
 
 export interface CheckboxFilterOption {
@@ -67,6 +69,7 @@ export interface ITeamResponse {
   website?: string | null;
   twitter?: string | null;
   contactMethod?: string | null;
+  jobReferEmail?: string | null;
   fundingStage: { title: string };
   membershipSources: ITag[];
   industryTags: ITag[];
@@ -124,6 +127,7 @@ export interface ITeam {
   website?: string | null;
   twitter?: string | null;
   contactMethod?: string | null;
+  jobReferEmail?: string | null;
   fundingStage?: { title: string };
   membershipSources?: ITag[];
   communityAffiliations?: ITag[];

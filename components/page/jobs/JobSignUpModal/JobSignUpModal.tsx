@@ -1,42 +1,74 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm, type Resolver } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 
 import type { IJobRole } from '@/types/jobs.types';
 
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
-import { FormField } from '@/components/form/FormField';
-import { FormSelect } from '@/components/form/FormSelect';
 import { CloseIcon } from '@/components/icons';
-import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
+import {
+  AccountFields,
+  JobSearchStatusField,
+  SignUpReviewNote,
+  accountSchema,
+  toAccountDetails,
+  signUpFailureMessage,
+  EMPTY_ACCOUNT_FORM,
+  type AccountDetails,
+  type AccountFormData,
+  type JobSignUpResult as AccountSignUpResult,
+} from './accountFields';
+// Demo Day's profile-drawer chrome, for the mobile page's `← Back` header — the
+// same stylesheet `JobProfileDrawer` wears one step later in this flow, so a
+// phone user meets one header rather than two designs of one.
+import drawer from '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfileDrawer/EditInvestorProfileDrawer.module.scss';
 
 import s from './JobSignUpModal.module.scss';
 
-export interface JobSignUpDetails {
-  name: string;
-  email: string;
-  linkedin: string;
-  role: string;
-  /** The network team they picked as their current company, if any. */
-  teamUid: string | null;
-}
+// `EditInvestorProfileDrawer`'s own glyph, copied rather than imported from
+// `JobProfileDrawer` (which exports the same copy for the same reason). That
+// module is `dynamic({ ssr: false })` in the controller precisely so a
+// logged-out visitor never downloads it, and a static import from here would
+// pull it into the sign-up chunk and undo the split.
+const BackIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M17.5 9.99998C17.5 10.1657 17.4342 10.3247 17.3169 10.4419C17.1997 10.5591 17.0408 10.625 16.875 10.625H4.6336L9.19219 15.1828C9.25026 15.2409 9.29632 15.3098 9.32775 15.3857C9.35918 15.4615 9.37535 15.5429 9.37535 15.625C9.37535 15.7071 9.35918 15.7884 9.32775 15.8643C9.29632 15.9402 9.25026 16.0091 9.19219 16.0672C9.13412 16.1252 9.06518 16.1713 8.98931 16.2027C8.91344 16.2342 8.83213 16.2503 8.75 16.2503C8.66788 16.2503 8.58656 16.2342 8.51069 16.2027C8.43482 16.1713 8.36588 16.1252 8.30782 16.0672L2.68282 10.4422C2.62471 10.3841 2.57861 10.3152 2.54715 10.2393C2.5157 10.1634 2.49951 10.0821 2.49951 9.99998C2.49951 9.91785 2.5157 9.83652 2.54715 9.76064C2.57861 9.68477 2.62471 9.61584 2.68282 9.55779L8.30782 3.93279C8.42509 3.81552 8.58415 3.74963 8.75 3.74963C8.91586 3.74963 9.07492 3.81552 9.19219 3.93279C9.30947 4.05007 9.37535 4.20913 9.37535 4.37498C9.37535 4.54083 9.30947 4.69989 9.19219 4.81717L4.6336 9.37498H16.875C17.0408 9.37498 17.1997 9.44083 17.3169 9.55804C17.4342 9.67525 17.5 9.83422 17.5 9.99998Z"
+      fill="currentColor"
+    />
+  </svg>
+);
 
-export type JobSignUpResult = { success: true } | { success: false; emailTaken?: boolean };
+/**
+ * What this form yields. Defined by `accountFields`, which owns the fields that
+ * produce it; the name is kept here because this is where the flow's caller
+ * (`JobApplyFlowController`) has always imported it from.
+ */
+export type JobSignUpDetails = AccountDetails;
+
+/** Also `accountFields`', for the same reason and re-exported from the same
+ *  place the caller has always imported it. */
+export type JobSignUpResult = AccountSignUpResult;
 
 interface JobSignUpModalProps {
   open: boolean;
   onClose: () => void;
   /**
-   * The role they pressed Apply on, when that's how they got here — the modal
-   * names it, because the form is the continuation of that click. Null when
-   * opened by a plain Sign up press (header/banner); the header goes generic.
+   * The role they pressed Apply on, when that's how they got here. Null when
+   * opened by a plain Sign up press (header/banner).
+   *
+   * **Nothing reads this today** — the header stopped forking on it (see the
+   * note above `.text` in the render). Kept, and deliberately: dropping the role
+   * from a form opened by pressing Apply on that role is a copy call that could
+   * reasonably be made the other way after someone looks at it, and the prop is
+   * what keeps that a one-file change. Delete both of these once the heading has
+   * survived a release.
    */
   role: IJobRole | null;
-  /** The hiring team, when `role` is set. Empty otherwise. */
+  /** The hiring team, when `role` is set. Empty otherwise. Unused; see `role`. */
   teamName: string;
   /**
    * Filling this in IS the sign-up (the Demo Day shape: a plain form that
@@ -49,72 +81,37 @@ interface JobSignUpModalProps {
   onSignIn: () => void;
 }
 
-/** `company` is a react-select Option — `FormSelect` writes the whole option
- *  object into form state — flattened to its value (team uid) on the way out. */
-type SignUpFormData = {
-  email: string;
-  name: string;
-  linkedin: string;
-  role: string;
-  company?: { label: string; value: string } | null;
-};
-
-const EMPTY_FORM: SignUpFormData = {
-  email: '',
-  name: '',
-  linkedin: '',
-  role: '',
-  company: null,
-};
-
-// Transcribed from ApplyForDemoDayModal's `applySchema` — same email domain-dot
-// test, same LinkedIn handle-or-URL pair of patterns. `role` is plainly
-// required here, because there is no branch in which it isn't.
-const signUpSchema = yup.object({
-  email: yup
-    .string()
-    .email('Must be a valid email')
-    .test('domain-has-dot', 'Email domain must contain a dot (e.g., example.com)', (value) => {
-      if (!value) return true; // Let required() handle empty values
-      const emailParts = value.split('@');
-      if (emailParts.length !== 2) return false;
-      return emailParts[1].includes('.');
-    })
-    .required('Email is required'),
-  name: yup.string().required('Name is required'),
-  linkedin: yup
-    .string()
-    .defined()
-    .test('linkedin-url', 'Please enter a valid LinkedIn handle or URL', (value) => {
-      if (!value || value.trim() === '') return true; // Allow empty values
-
-      const trimmedValue = value.trim();
-      const linkedinUrlPattern = /^(https?:\/\/)?(www\.)?linkedin\.com\/(in|pub|profile)\/[\w-]+\/?$/i;
-      const linkedinHandlePattern = /^[\w-]{3,100}$/;
-
-      return linkedinUrlPattern.test(trimmedValue) || linkedinHandlePattern.test(trimmedValue);
-    }),
-  role: yup.string().required('Role is required'),
-  company: yup.mixed<{ label: string; value: string }>().nullable(),
-});
+/* (The form type, `EMPTY_FORM`, the yup schema, `OptionalMark`, the
+    personal-domain list and its note all lived here. They moved to
+    `./accountFields`, which now owns the fields themselves — see its header for
+    why, and note that everything below this line is chrome: the dialog, its
+    copy, its mobile page and its two doors.) */
 
 /**
  * Sign up by applying: the form that creates the account is the application
  * form. Promoted from the job-board prototype; see its header for the full
- * design rationale (why filling in details IS the sign-up, why the modal names
- * the role, why the sign-in escape is a link below the footer).
+ * design rationale (why filling in details IS the sign-up, why the sign-in
+ * escape is a link below the footer). The prototype's third argument — that the
+ * modal should name the role it was opened from — no longer holds; see the note
+ * above `.text` in the render, and `role` on the props interface for why the
+ * prop outlived it.
  *
- * One deliberate copy change from the prototype: nothing here claims details
- * are sent to the hiring team or that an application happens — the request
- * goes to PL admins for review and no application exists yet. The button
- * always reads "Create account", and the body names the wait. Claiming
- * otherwise would violate the flow's own pending-never-claims-applied rule at
- * the exact moment trust is being asked for.
+ * One deliberate copy change from the prototype: nothing here claims details are
+ * sent to the hiring team or that an application happens — no application exists
+ * yet, and the button always reads "Create account". Claiming otherwise would
+ * violate the flow's own pending-never-claims-applied rule at the exact moment
+ * trust is being asked for.
+ *
+ * What the body no longer does is *name a wait*. It used to, for every reader,
+ * on the premise that the request "goes to PL admins for review". That is true
+ * only of a sign-up naming a network team; without one the account is a Job
+ * Aspirant, which no admin reviews. `SignUpReviewNote` splits the sentence on
+ * that tick — see its note.
  */
-export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSignIn }: JobSignUpModalProps) {
-  const methods = useForm<SignUpFormData>({
-    defaultValues: EMPTY_FORM,
-    resolver: yupResolver(signUpSchema) as Resolver<SignUpFormData>,
+export function JobSignUpModal({ open, onClose, onSignUp, onSignIn }: JobSignUpModalProps) {
+  const methods = useForm<AccountFormData>({
+    defaultValues: EMPTY_ACCOUNT_FORM,
+    resolver: yupResolver(accountSchema) as Resolver<AccountFormData>,
     mode: 'onBlur',
   });
 
@@ -131,7 +128,7 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
   // close (below) rather than here — setState in an effect body cascades.
   useEffect(() => {
     if (open) {
-      reset(EMPTY_FORM);
+      reset(EMPTY_ACCOUNT_FORM);
     }
   }, [open, reset]);
 
@@ -140,95 +137,88 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
     onClose();
   };
 
-  // The same teams source production's sign-up wizard uses, minus projects —
-  // the field asks for a current company, not a contribution.
-  const { data: formOptions } = useMemberFormOptions();
-  const companyOptions = useMemo(
-    () =>
-      (formOptions?.teams ?? [])
-        .map((item: { teamUid: string; teamTitle: string }) => ({ value: item.teamUid, label: item.teamTitle }))
-        .sort((a: { label: string }, b: { label: string }) => a.label.localeCompare(b.label)),
-    [formOptions],
-  );
-
-  const onSubmit = async (data: SignUpFormData) => {
+  const onSubmit = async (data: AccountFormData) => {
     setServerError(null);
-    const result = await onSignUp({
-      name: data.name.trim(),
-      email: data.email.trim(),
-      linkedin: (data.linkedin ?? '').trim(),
-      role: data.role.trim(),
-      teamUid: data.company?.value ?? null,
-    });
+    const result = await onSignUp(toAccountDetails(data));
     if (!result.success) {
-      /* Named rather than vague. The earlier version deliberately blurred
-         "email exists" into a generic message to avoid an account-enumeration
-         oracle — but the endpoint answers 409 either way, so anyone probing
-         reads it off the status code and the vagueness only confuses the
-         person who genuinely forgot they had an account. (The oracle is worth
-         raising about the endpoint itself, not papering over here.) */
-      setServerError(
-        result.emailTaken
-          ? 'This email already has an account. Sign in instead — your application picks up from there.'
-          : 'We couldn’t create your account just now. Please try again.',
-      );
+      setServerError(signUpFailureMessage(result));
     }
   };
 
   return (
+    /* `lockScroll` never showed while this was a card — the overlay covered the
+       board and nobody scrolled past it — but a full-height page on a phone is a
+       scroll container inside another scroll container, and flicking past the
+       end of the form would drift the board underneath. */
     <Modal
       isOpen={open}
       onClose={handleClose}
       overlayClassname={s.overlay}
       closeOnBackdropClick={false}
       closeOnEscape
+      lockScroll
       className={s.modal}
     >
       <button type="button" className={s.closeButton} onClick={handleClose} aria-label="Close">
         <CloseIcon />
       </button>
 
-      <div className={s.content}>
+      {/* The page's header, below 960 only. Above it this is display:none and
+          the floating ✕ above takes over. */}
+      <div className={`${drawer.drawerHeader} ${s.mobileHeader}`}>
+        <div className={drawer.breadcrumbs}>
+          <button type="button" className={drawer.backButton} onClick={handleClose}>
+            <BackIcon />
+            <span>Back</span>
+          </button>
+        </div>
+      </div>
+
+      <div className={`${s.content} ${s.pageBody}`}>
+        {/* One header, both doors in.
+            This used to fork on `role`: "Apply for {roleTitle}" when the modal
+            was opened from a posting, a generic line otherwise. The argument was
+            that the form is the continuation of that click and should say so.
+
+            What it also said was "Apply for …" at the top of a form that applies
+            for nothing — this press creates an account and files no application,
+            which is the one thing the rest of this file goes out of its way not
+            to claim. The heading was making the promise the button refuses.
+
+            So it names what the press actually produces, and the role keeps
+            being named where it bears on a decision: the drawer's step 1
+            masthead behind this, and the application step's footer after it.
+            The same pair as `JobAccountPane`'s, to the character — see the note
+            there on keeping the two doors indistinguishable. */}
         <div className={s.text}>
-          <h2 className={s.title}>{role ? `Apply for ${role.roleTitle}` : 'Sign up to apply'}</h2>
-          <div className={s.subtitle}>
-            {role
-              ? `${teamName} · Creating your LabOS account is the first step.`
-              : 'One profile applies to every open role across the Protocol Labs network.'}
-          </div>
+          <h2 className={s.title}>Create LabOS Job profile</h2>
+          <div className={s.subtitle}>Discover open roles across the network — and let founders reach out.</div>
         </div>
 
         <FormProvider {...methods}>
           <form className={s.form} noValidate onSubmit={handleSubmit(onSubmit)}>
-            {/* Email leads: it is the field the account is created on. */}
-            <FormField name="email" label="Email address" placeholder="Enter your email" isRequired />
-
-            <FormField name="name" label="Full name" placeholder="Enter your full name" isRequired />
-
-            <FormField
-              name="linkedin"
-              label="LinkedIn profile"
-              placeholder="eg., johndoe or https://linkedin.com/in/johndoe"
-            />
-
-            <div className={s.column}>
-              <div className={s.inputsLabel}>Current role &amp; company</div>
-              <div className={s.inputsWrapper}>
-                <FormField name="role" placeholder="Enter your current role" />
-                <span className={s.separator}>@</span>
-                <FormSelect name="company" placeholder="Select a company" isClearable options={companyOptions} />
-              </div>
-            </div>
+            <AccountFields />
+            {/* Below the account questions and framed as one more of them: this
+                form is a flat column in a 440px dialog, so a card of its own
+                would be the only card on it. The pane frames it differently. */}
+            <JobSearchStatusField />
 
             <div className={s.bottomText}>
-              {/* Says what actually happens next, including the part nobody
-                  wants to read. Nothing is sent to any team by this press, and
-                  no application exists yet — approval is what unlocks applying,
-                  and the sentence says so. */}
-              <p className={s.body}>
-                Submitting this creates your LabOS account. The PL team reviews new accounts first — you can keep
-                browsing every role while you wait, and applying opens up once you&apos;re approved.
-              </p>
+              {/* One line, and only the part nothing else on the card says: this
+                  press sends nothing to a hiring team.
+
+                  It lives in `accountFields` rather than here because it follows
+                  the PL-team tick — a sign-up that names a network team is
+                  reviewed, one that doesn't is not, and one sentence cannot be
+                  true of both. See its own note for what the single line used to
+                  claim and why both of its clauses were false.
+
+                  The length constraint is still live and is recorded there: this
+                  ran to four rendered lines once and pushed "Already have an
+                  account? Sign in" off the bottom of any window shorter than
+                  ~730px, hiding the escape from the only people with no use for
+                  the form above it. */}
+              <SignUpReviewNote />
               <p className={s.bodySecondary}>
                 By submitting this form, you agree to our{' '}
                 <a
@@ -253,26 +243,41 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
               {serverError && <p className={s.serverError}>{serverError}</p>}
             </div>
 
-            <div className={s.footer}>
-              <Button type="button" size="m" variant="secondary" style="border" onClick={handleClose}>
-                Cancel
-              </Button>
-              {/* Disabled only while submitting, never on `!isValid` — with
-                  `mode: "onBlur"` a validity gate leaves a dead button in front
-                  of a completed form. Always "Create account": no application is
-                  filed by this press, and a button claiming "& apply" would
-                  promise one. */}
-              <Button type="submit" size="m" style="fill" variant="primary" disabled={isSubmitting}>
-                Create account
-              </Button>
-            </div>
+            {/* The dock: the actions and the sign-in escape, sticky together on
+                the mobile page. On the card it is `display: contents`, so both
+                go back to being direct children of the form and lay out exactly
+                as they did before this wrapper existed. See `.actionsDock`. */}
+            <div className={s.actionsDock}>
+              <div className={s.footer}>
+                {/* Card only — on the page the `← Back` header is the way out.
+                    See `.cancelButton`. */}
+                <Button
+                  type="button"
+                  size="m"
+                  variant="secondary"
+                  style="border"
+                  className={s.cancelButton}
+                  onClick={handleClose}
+                >
+                  Cancel
+                </Button>
+                {/* Disabled only while submitting, never on `!isValid` — with
+                    `mode: "onBlur"` a validity gate leaves a dead button in front
+                    of a completed form. Always "Create account": no application is
+                    filed by this press, and a button claiming "& apply" would
+                    promise one. */}
+                <Button type="submit" size="m" style="fill" variant="primary" disabled={isSubmitting}>
+                  Create account
+                </Button>
+              </div>
 
-            <p className={s.signInRow}>
-              Already have an account?{' '}
-              <button type="button" className={s.signInLink} onClick={onSignIn}>
-                Sign in
-              </button>
-            </p>
+              <p className={s.signInRow}>
+                Already have an account?{' '}
+                <button type="button" className={s.signInLink} onClick={onSignIn}>
+                  Sign in
+                </button>
+              </p>
+            </div>
           </form>
         </FormProvider>
       </div>

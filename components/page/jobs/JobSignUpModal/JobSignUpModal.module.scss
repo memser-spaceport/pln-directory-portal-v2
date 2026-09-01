@@ -3,35 +3,75 @@
 // structure are copied 1:1; the colour layer is token/fallback pairs.
 @use 'styles/media';
 
+// A page below 960, a card above it.
+//
+// The card was the only treatment, with `max-width: 100%` and a rounded top edge
+// standing in for a phone design. One step later in this same flow
+// `JobProfileDrawer` is a full-height page with a sticky `← Back` bar, so the
+// two halves of one sign-up looked like two products. Below 960 this is that
+// page; the card values move into the breakpoint unchanged.
 .modal {
   position: relative;
   background: var(--background-neutral-primary, #ffffff);
-  border-radius: 16px;
   width: 100%;
-  // 560, not the source's 680. Demo Day's form carries an accredited-investor
-  // checkbox with a paragraph of legalese, an add-a-team sub-form and a longer
-  // description — content that needs the measure. This one is five fields, and
-  // at 680 the single-column inputs run to a line length that makes a short form
-  // look like a long one. 560 still clears the `role @ company` two-up row, which
-  // is the only thing here with a real width floor, and brings the card closer to
-  // its neighbours in this flow (the apply modal is 440).
-  max-width: 560px;
-  padding: 20px;
-  box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: none;
+  min-height: 100dvh;
+  padding: 0;
 
-  @media (max-width: 768px) {
-    max-width: 100%;
-    border-radius: 16px 16px 0 0;
+  @include media.tablet-landscape {
+    // 560, not the source's 680. Demo Day's form carries an accredited-investor
+    // checkbox with a paragraph of legalese, an add-a-team sub-form and a longer
+    // description — content that needs the measure. This one is six fields, and
+    // at 680 the single-column inputs run to a line length that makes a short
+    // form look like a long one. 560 still clears the `role @ company` two-up
+    // row, which is the only thing here with a real width floor, and brings the
+    // card closer to its neighbours in this flow (the apply modal is 440).
+    max-width: 560px;
+    min-height: 0;
+    height: auto;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
   }
 }
 
 // Source's rule, doubled selector included: the form is taller than the
 // viewport on a phone, and a vertically centred card would push the first
-// field above the top edge.
+// field above the top edge. The doubled selector is also what lets the padding
+// reset below beat `Modal.module.scss`'s own `.overlay`.
+//
+// Padding goes to 0 on the page, so the modal reaches all four edges; the
+// overlay's own 24px comes back with the card. This overlay is the scroll
+// container (`overflow-y: auto`), which is what the sticky header and actions
+// dock below stick to.
 .overlay.overlay {
+  padding: 0;
   align-items: flex-start;
+
+  @include media.tablet-landscape {
+    padding: 24px;
+  }
+}
+
+// The page's header, below 960 only — `EditInvestorProfileDrawer`'s own bar,
+// which is the same sticky 64px white row with `← Back` that the profile drawer
+// shows one step later in this flow. Above 960 the floating ✕ takes over.
+.mobileHeader.mobileHeader {
+  @include media.tablet-landscape {
+    display: none;
+  }
+}
+
+// The body's own inset, since `.modal` no longer carries padding on the page.
+// Above 960 the card's 20px is back and this is a no-op.
+.pageBody {
+  padding: 16px;
+
+  @include media.tablet-landscape {
+    padding: 0;
+  }
 }
 
 // The house close button: a 16px glyph in a 24px grey disc.
@@ -50,13 +90,16 @@
 // `ReferCompanyModal`'s but written in token/fallback pairs rather than raw
 // rgba. The scale-up goes with it: at 4px padding inside 24px, the glyph is
 // 16px, which is the size `CloseIcon` ships at.
+//
+// Card only. On the page the `← Back` header is the way out, and a floating disc
+// over a full-bleed form has nothing to float above.
 .closeButton {
+  display: none;
   position: absolute;
   top: 12px;
   right: 12px;
   width: 24px;
   height: 24px;
-  display: flex;
   align-items: center;
   justify-content: center;
   background: var(--action-background-neutral-light_normal, rgba(14, 15, 17, 0.04));
@@ -67,6 +110,10 @@
   color: var(--foreground-neutral-secondary, #455468);
   transition: background 0.2s;
   z-index: 1;
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
 
   &:hover {
     background: rgba(14, 15, 17, 0.08);
@@ -116,6 +163,89 @@
   gap: 24px;
 }
 
+// `AccountFields layout="stack"` — the modal's arrangement, and the default.
+.fieldStack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+// `AccountFields layout="grid"` — email and full name on one line.
+//
+// **Only the apply flow's details step asks for this**, and only because that
+// pane is two cards tall inside a drawer; the modal keeps the stack, where the
+// fields sit in a 440px dialog with no height to save. Lives here rather than in
+// the pane's own sheet for the reason `accountFields.tsx` gives about its other
+// classes: the group's layout belongs to the group, and a caller reaching in to
+// re-space fields it does not own is how two hosts start disagreeing.
+//
+// One column until tablet-landscape: two 50% inputs on a phone are two inputs
+// too narrow to read the placeholder in.
+.fieldPair {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+
+  @include media.tablet-landscape {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+}
+
+// The "I'm already a member of a PL Network team" row.
+//
+// **The text is `FormField`'s label, not a voice of its own.** It began at
+// `--foreground-neutral-primary` (#0a0c11) on the reasoning that a claim you make
+// about yourself is not a field label. On screen it just read as heavier than
+// everything around it: this line sits between "LinkedIn profile" and "Current
+// role", both of which are label-weight slate, and the near-black jumped out of
+// the stack like an error. The size and weight were already `FormField`'s — only
+// the colour was arguing, so only the colour changed.
+//
+// Matched to `FormField.module.scss`'s `.label`: 14px / 500 / #475569, plus the
+// same `liga`/`clig` pair every label in this group carries. The colour goes
+// through the PL secondary token, exactly as `.inputsLabel` below does and for
+// the reason given there — #475569 is a Tailwind slate, and #455468 is the same
+// colour with a name that is true.
+//
+// `line-height: 20px` is the one number NOT taken from `.label` (which ships 18).
+// The box beside it is 20px, and matching them is what puts the text on the
+// checkbox's centre line without a nudge.
+//
+// `align-items: flex-start` rather than `center`: at drawer width the label can
+// wrap, and centring a 20px box against two lines of text floats it into the
+// gutter between them. Against a single line the two are indistinguishable, so
+// the rule that also survives wrapping is the one to ship.
+//
+// `width: fit-content` keeps the hit area to the words. A full-width label would
+// make the whole row clickable, including the empty space to its right, which is
+// a tick nobody meant to make.
+.checkboxRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: fit-content;
+  cursor: pointer;
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+// The paired row sits directly under its checkbox, so it gets a tighter gap than
+// the group's 24px rhythm: at 24 the switch and the thing it switches on read as
+// two unrelated fields.
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .column {
   display: flex;
   flex-direction: column;
@@ -136,6 +266,40 @@
   font-weight: 500;
   line-height: 20px; /* 166.667% */
   margin-bottom: 0.25rem;
+}
+
+// Transcribed from `SignupWizard.module.scss`'s `.aboutLabelOptional` — the
+// product's only other "this field is optional" mark. Source is
+// `font-weight: 400; color: #8897ae;` against a label at 500 / #455468, with the
+// gap coming from the parent's `gap: 4px`; here the label row is not a flex
+// container, so the gap becomes a margin.
+//
+// Size, line-height and letter-spacing are deliberately unset: inheriting them
+// from the label is what keeps the mark on the same baseline as the words it
+// qualifies. The weight and tone are the whole difference, which is the point —
+// it is a qualifier, not a second label.
+.optionalMark {
+  margin-left: 4px;
+  font-weight: 400;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// The other half of the pair: what this row wears once the PL-team tick makes
+// its two fields required. Same three declarations `FormField.module.scss` gives
+// `.label.required:after` — `content: '*'`, `color: red`, `margin-left: 0.25rem`
+// — so the mark is the product's own, not a second dialect of "required".
+//
+// A span with the character in the markup rather than that `:after`, because the
+// pseudo-element hangs off `.label`, which this row does not wear. The literal
+// `red` is copied deliberately: the required asterisk is one colour everywhere
+// in this product, and picking a nearer token here would make this the one label
+// that disagrees.
+//
+// Size, line-height and letter-spacing unset for the same reason as above —
+// inherited from the label, so the mark sits on the words' own baseline.
+.requiredMark {
+  margin-left: 0.25rem;
+  color: red;
 }
 
 .inputsWrapper {
@@ -170,7 +334,7 @@
 .bottomText {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .body {
@@ -222,8 +386,11 @@
   gap: 8px;
   padding-top: 4px;
 
-  @media (max-width: 768px) {
-    flex-direction: column-reverse;
+  // Was `column-reverse` at 768, to lift the primary above Cancel. Cancel is
+  // gone below 960 now, so there is nothing to reverse and the breakpoint moves
+  // to match everything else in this file.
+  @media (max-width: #{media.$breakpoint-md - 1}px) {
+    flex-direction: column;
 
     button {
       width: 100%;
@@ -249,7 +416,7 @@
 .signInLink {
   color: var(--action-foreground-brand-inverted_normal, #1b4dff);
   font-size: 14px;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 20px;
   letter-spacing: -0.2px;
 
@@ -262,15 +429,56 @@
   cursor: pointer;
 }
 
-// The server's answer when the request cannot be filed. One neutral sentence —
-// deliberately NOT distinguishing "existing member" from "pending request":
-// this is an unauthenticated endpoint, and the split would be an account-status
-// oracle for arbitrary emails. Privy disambiguates after the person proves
-// ownership by signing in.
+// The server's answer when the request cannot be filed.
+//
+// This comment used to argue for one neutral sentence, on the grounds that
+// naming "email already taken" would be an account-status oracle on an
+// unauthenticated endpoint. The component stopped doing that and the comment
+// didn't follow: `JobSignUpModal` branches on `emailTaken` and names it. The
+// argument for naming it is in the component — the endpoint answers 409 either
+// way, so anyone probing reads the oracle off the status code and the vagueness
+// only confused the person who genuinely forgot they had an account.
 .serverError {
   color: var(--foreground-error-primary, #cc0523);
   font-size: 12px;
   font-weight: 400;
   line-height: 18px;
   letter-spacing: -0.2px;
+}
+
+// The dock: the actions and the sign-in escape, sticky together on the page.
+//
+// One wrapper rather than two sticky elements, because two would each stick to
+// `bottom: 0` and land on top of each other.
+//
+// On the card it is `display: contents`, so `.footer` and `.signInRow` go back
+// to being direct children of the form and inherit its 24px gap — the desktop
+// layout is byte-for-byte what it was before this wrapper existed.
+.actionsDock {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  // Full-bleed: `.pageBody`'s 16px inset stops at the dock so its white ground
+  // reaches both edges, the way a bar welded to the viewport should.
+  margin: 0 -16px;
+  padding: 12px 16px;
+  background: var(--background-neutral-primary, #ffffff);
+  box-shadow: 0 -1px 4px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+
+  @include media.tablet-landscape {
+    display: contents;
+  }
+}
+
+// Card only. On the page the `← Back` header is the way out, and a second one
+// pinned above the primary would spend a third of the sticky bar on leaving.
+.cancelButton {
+  @media (max-width: #{media.$breakpoint-md - 1}px) {
+    display: none;
+  }
 }

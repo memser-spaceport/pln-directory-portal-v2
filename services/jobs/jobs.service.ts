@@ -5,6 +5,7 @@ import type {
   IJobReferralResult,
   IJobsFiltersResponse,
   IJobsListResponse,
+  IJobTeamGroup,
 } from '@/types/jobs.types';
 
 const jobOpeningsAPI = `${process.env.DIRECTORY_API_URL}/v1/job-openings`;
@@ -28,6 +29,15 @@ export async function fetchJobsList(params: URLSearchParams, page?: number): Pro
   return response.json();
 }
 
+/**
+ * Load one role (and the team that posted it) so a `?job=` deep link can open
+ * the drawer even when that role is not on the first page of the current rail.
+ */
+export async function fetchJobByUid(jobUid: string): Promise<IJobTeamGroup | null> {
+  const data = await fetchJobsList(new URLSearchParams({ jobUid }));
+  return data.groups[0] ?? null;
+}
+
 export async function fetchJobsFilters(params: URLSearchParams): Promise<IJobsFiltersResponse> {
   const qs = buildQuery(params);
   const response = await customFetch(`/api/jobs/filters${qs ? `?${qs}` : ''}`, {}, false);
@@ -40,7 +50,7 @@ export async function fetchJobsFilters(params: URLSearchParams): Promise<IJobsFi
 /**
  * The pre-filled "Your note" for the refer modal, composed server-side from the
  * referrer's and referred member's directory records (title/company, plus a blurb
- * derived from the referred member's bio) and the role's apply link.
+ * derived from the referred member's bio) and a link to the role on the board.
  *
  * Signed-in only: the backend resolves the referrer from the authenticated email
  * rather than trusting anything the client sends.
@@ -69,7 +79,7 @@ export async function fetchJobReferralDraft(jobUid: string, referredMemberUid: s
  */
 export async function createJobReferral(
   jobUid: string,
-  payload: { referredMemberUid: string; recipients: IJobReferralRecipient[]; note: string },
+  payload: { referredMemberUid: string; recipients?: IJobReferralRecipient[]; note: string },
 ): Promise<IJobReferralResult> {
   const response = await customFetch(
     `${jobOpeningsAPI}/${jobUid}/referrals`,

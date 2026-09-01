@@ -29,7 +29,7 @@ interface Props {
 
 export function TeamContactInfoView(props: Props) {
   const { team, userInfo, toggleIsEditMode } = props;
-  const { contactMethod } = team ?? {};
+  const { contactMethod, jobReferEmail } = team ?? {};
 
   const analytics = useTeamAnalytics();
 
@@ -45,6 +45,17 @@ export function TeamContactInfoView(props: Props) {
         {isTlOrAdmin && <EditButton onClick={toggleIsEditMode} />}
       </DetailsSectionHeader>
       <DetailsSectionGreyContentContainer className={s.contacts}>
+        {isTlOrAdmin && jobReferEmail && (
+          <>
+            <div className={s.jobReferEmail}>
+              <span className={s.jobReferEmailLabel}>Job Referral/Application Contact</span>
+              <a href={`mailto:${jobReferEmail}`} className={s.jobReferEmailValue}>
+                {jobReferEmail}
+              </a>
+            </div>
+            <Divider />
+          </>
+        )}
         {contactMethod && (
           <>
             <ContactMethod callback={callback} contactMethod={contactMethod} />

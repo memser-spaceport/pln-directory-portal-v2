@@ -26,3 +26,14 @@ export function feedWindowCutoffIso(days: number, nowMs: number): string {
 export function withinFeedWindow(posts: IFeedForumPost[] | undefined, cutoffIso: string): IFeedForumPost[] | undefined {
   return posts?.filter((post) => post.lastActivityAt >= cutoffIso);
 }
+
+/** Posts *created* at or after the cutoff. For You's L7D rule — "posted this
+ *  week" — not lastActivityAt. A 10-day-old thread with a reply yesterday stays
+ *  on All / Discussions and drops out of For You. Same undefined-passthrough as
+ *  withinFeedWindow. */
+export function createdWithinWindow(
+  posts: IFeedForumPost[] | undefined,
+  cutoffIso: string,
+): IFeedForumPost[] | undefined {
+  return posts?.filter((post) => post.createdAt >= cutoffIso);
+}

@@ -3,11 +3,12 @@
 import { useEffect, useRef, useState } from 'react';
 import IrlEditResponse from './events/irl-edit-response';
 import { IUserInfo } from '@/types/shared.types';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import useClickedOutside from '@/hooks/useClickedOutside';
 import { EVENTS, IAM_GOING_POPUP_MODES } from '@/utils/constants';
 import { useIrlAnalytics } from '@/analytics/irl.analytics';
 import FollowButton from './follow-gathering/follow-button';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 interface IIrlHeaderProps {
   searchParams: any;
@@ -32,7 +33,7 @@ const IrlMobileHeader = (props: IIrlHeaderProps) => {
   const type = searchParam.get('type');
   const [isEdit, seIsEdit] = useState(false);
   const [followProperties, setFollowProperties] = useState<any>({ followers: [], isFollowing: false });
-  const router = useRouter();
+  const goToLogin = useLoginRedirect();
 
   function getFollowProperties(followers: any) {
     return {
@@ -108,7 +109,7 @@ const IrlMobileHeader = (props: IIrlHeaderProps) => {
       guestDetails?.upcomingEvents?.length === 0;
   const inPastEventsAndHaveEvents = inPastEvents && guestDetails?.pastEvents && guestDetails?.pastEvents.length > 0;
   const onLoginClick = () => {
-    router.push(`${window.location.pathname}${window.location.search}#login`);
+    goToLogin();
   };
 
   useEffect(() => {

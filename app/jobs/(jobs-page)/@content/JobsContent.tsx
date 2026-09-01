@@ -16,12 +16,10 @@ import { filterStateFromURL } from '@/utils/jobs.utils';
 import { jobAlertFilterStateFromURL, hasActiveFilters, filterStateToURLSearchParams } from '@/utils/job-alerts.utils';
 import { SortDropdown } from '@/components/common/filters/SortDropdown/SortDropdown';
 import { JOBS_SORT_OPTIONS, SHOW_JOB_BOARD_APPLY } from '@/services/jobs/constants';
-import { PENDING_APPLY_PARAM, stripPendingApplyFromUrl, withPendingApply } from '@/services/jobs/job-apply-resume';
-import { useJobBoardViewer } from '@/components/page/jobs/hooks/useJobBoardViewer';
-import { useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
+import { withPendingApply } from '@/services/jobs/job-apply-resume';
+import { JOB_DETAIL_PARAM } from '@/services/jobs/job-detail-link';
+import { useJobApplySurface } from '@/components/page/jobs/hooks/useJobApplySurface';
 import { JobBoardBanner } from '@/components/page/jobs/JobBoardBanner/JobBoardBanner';
-import { JobApplyFlowController } from '@/components/page/jobs/JobApplyFlowController/JobApplyFlowController';
-import type { RowApplyProps } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow';
 import { CardsLoader } from '@/components/core/loaders/CardsLoader';
 import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout/ContentPanelSkeletonLoader';
 import { toast } from '@/components/core/ToastContainer';
@@ -37,6 +35,7 @@ import { useTeamNewsCounts } from '@/services/team-news/hooks/useTeamNewsCounts'
 import { SHOW_TEAM_NEWS_COUNT_CHIP } from '@/services/team-news/constants';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import s from './JobsContent.module.scss';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 // Flip to true to simulate a logged-in user with a saved alert during local dev
 const DEV_MOCK_ALERT = false;
@@ -62,6 +61,7 @@ interface JobsContentProps {
 export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const goToLogin = useLoginRedirect();
   const { setParam } = useJobsParamsUpdater();
   const analytics = useJobsAnalytics();
   const createMutation = useCreateJobAlert();
@@ -83,75 +83,32 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
   useTeamNewsCounts({ uids: newsTeamUids, enabled: SHOW_TEAM_NEWS_COUNT_CHIP });
 
   /* In-app Apply. `SHOW_JOB_BOARD_APPLY` is imported ONLY here on this page —
-     it reaches the hooks as `enabled` (flag off ⇒ zero requests, zero storage
-     touches) and the leaf components as prop absence (flag off ⇒ rows render
-     byte-identical to production today). */
-  const boardViewer = useJobBoardViewer({ isLoggedIn, userInfo, enabled: SHOW_JOB_BOARD_APPLY });
-  const applyFlow = useJobApplyFlow({
-    viewer: boardViewer.viewer,
-    profileComplete: boardViewer.profileComplete,
-    refreshVerdict: boardViewer.refreshVerdict,
+     it reaches the shared surface hook as `enabled` (flag off ⇒ zero requests,
+     zero storage touches) and the leaf components as prop absence (flag off ⇒
+     rows render byte-identical to production today).
+
+     The wiring itself lives in `useJobApplySurface` so the team profile runs the
+     same pipeline rather than a second copy of it. What stays here is what is
+     genuinely the board's: the alert effects below, `onRoleClick`, the banner. */
+  const surface = useJobApplySurface({
+    enabled: SHOW_JOB_BOARD_APPLY,
     source: 'job-board',
+    isLoggedIn,
+    userInfo,
+    groups,
+    isLoading,
+    /* The board's share links are `/jobs?job=<uid>`, so a description someone
+       opened is a description they can send. */
+    deepLink: true,
   });
-  const applyProps: RowApplyProps | undefined = useMemo(
-    () =>
-      SHOW_JOB_BOARD_APPLY && boardViewer.viewer !== 'rejected'
-        ? { onApply: applyFlow.onApply, memberUid: boardViewer.memberUid }
-        : undefined,
-    [boardViewer.viewer, boardViewer.memberUid, applyFlow.onApply],
-  );
+  const { viewer: boardViewer, flow, applyProps } = surface;
   /* The banner's "Sign in". Signing in never resumes an application — only
      signing up does — so any `applyTo` left in the URL by an abandoned
      sign-up is dropped here rather than inherited through the round trip. */
   const pushLogin = useCallback(() => {
     const search = withPendingApply(window.location.search, undefined);
-    router.push(`${window.location.pathname}${search}#login`);
-  }, [router]);
-
-  /* Coming back from the Privy round trip: pick the application back up where
-     it was interrupted. The role uid travels in the URL (see
-     `job-apply-resume`) because the login path clears localStorage on its way
-     through and sessionStorage did not reliably survive it.
-
-     Gated on the viewer having actually settled — resuming against a
-     half-derived state would open the drawer at someone with nothing to fill
-     in — and on the list having loaded, since the uid has to be re-resolved
-     against what the board is showing now. */
-  const applyResumeHandled = useRef(false);
-  useEffect(() => {
-    if (!SHOW_JOB_BOARD_APPLY) return;
-    if (applyResumeHandled.current) return;
-
-    const roleUid = searchParams.get(PENDING_APPLY_PARAM);
-    if (!roleUid) return;
-    if (!isLoggedIn || boardViewer.viewer === 'resolving') return;
-    if (isLoading) return;
-
-    // Claimed before anything async runs, so a StrictMode double-invoke or a
-    // re-render mid-resume can't run the flow twice. The parameter goes with
-    // it: a one-time instruction must not replay on reload.
-    applyResumeHandled.current = true;
-    stripPendingApplyFromUrl();
-
-    let resumed: { role: IJobRole; teamId: string; teamName: string } | null = null;
-    for (const group of groups) {
-      const role = group.roles.find((r) => r.uid === roleUid);
-      if (role) {
-        resumed = { role, teamId: group.team.uid, teamName: group.team.name };
-        break;
-      }
-    }
-
-    if (resumed) {
-      applyFlow.onApply(resumed, 'resume');
-    } else {
-      /* The role closed, or the filters no longer show it. The profile is
-         still the thing standing between them and applying, so the drawer
-         opens without naming a role rather than resuming nothing at all. */
-      applyFlow.onUpdateProfile();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn, boardViewer.viewer, isLoading, groups]);
+    goToLogin({ returnTo: `${window.location.pathname}${search}` });
+  }, [goToLogin]);
 
   /* ONE stable callback for every card — `TeamGroupCard` is memoized, and a
      closure minted per group re-renders every scrolled-in card on each host
@@ -190,12 +147,18 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
     if (autoApplyHandled.current) return;
     if (!isLoggedIn) return;
     if (hasFilters) return;
+    // A shared/emailed `?job=` is a destination. Applying saved filters here
+    // would replace the URL and drop the drawer the link was meant to open.
+    if (searchParams.get(JOB_DETAIL_PARAM)) {
+      autoApplyHandled.current = true;
+      return;
+    }
     if (!userAlert) return;
     autoApplyHandled.current = true;
     const qs = filterStateToURLSearchParams(userAlert.filterState).toString();
     if (qs) router.replace(`/jobs?${qs}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn, userAlert, hasFilters]);
+  }, [isLoggedIn, userAlert, hasFilters, searchParams]);
 
   // Anonymous "Set job alert" → login → land here. Replay the pending filterState as a create.
   useEffect(() => {
@@ -269,7 +232,8 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
     <div className={s.root}>
       {/* The board's one apply-flow banner slot — first block in the column,
           above the page's own content, the same slot the home page gives its
-          signed-out Welcome. Renders nothing for resolving/rejected/ready. */}
+          signed-out Welcome. Renders nothing for resolving/rejected/ready,
+          except a JA whose sections are still empty. */}
       {SHOW_JOB_BOARD_APPLY && (
         <JobBoardBanner
           viewer={boardViewer.viewer}
@@ -277,9 +241,11 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
           teamCount={totalGroups}
           filterState={alertFilterState}
           profileComplete={boardViewer.profileComplete}
+          isJobAspirant={boardViewer.jobAspirant}
+          allSectionsFilled={boardViewer.allSectionsFilled}
           onSignIn={pushLogin}
-          onSignUp={() => applyFlow.onSignUp('banner')}
-          onUpdateProfile={applyFlow.onUpdateProfile}
+          onSignUp={() => flow.onSignUp('banner')}
+          onUpdateProfile={flow.onUpdateProfile}
         />
       )}
       <div className={s.mobileHeader}>
@@ -345,15 +311,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
       {/* The apply-flow modal/drawer stack — outside the groups.length branch
           for the same reason the news modal is: a filter change mid-application
           must not yank an open modal. */}
-      {SHOW_JOB_BOARD_APPLY && (
-        <JobApplyFlowController
-          flow={applyFlow}
-          viewer={boardViewer}
-          isLoggedIn={isLoggedIn}
-          userInfo={userInfo}
-          source="job-board"
-        />
-      )}
+      {surface.controller}
 
       {/* Rendered outside the groups.length branch so an open modal survives the
           list emptying underneath it — a filter change while reading a team's

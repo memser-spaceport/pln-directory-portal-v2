@@ -17,10 +17,97 @@
   }
 }
 
-/* The criteria read-back. 600 rather than the browser's default 700 — emphasis
-   by weight alone, so it doesn't start reading as a link. */
-.criteria {
-  font-weight: 600;
+/* Own card chrome — `Welcome`'s `.welcome` paints `#ffffff`, and CSS-module
+   order can let that white beat `.brandSurface`, so the pitch and footer
+   split. One background here; children stay transparent. */
+.signedOut {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
+}
+
+.pitch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 20px;
+  min-width: 0;
+
+  .ctaGroup {
+    align-self: center;
+  }
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+}
+
+.footer.footer {
+  margin: 0;
+  max-width: none;
+  padding: 10px 20px;
+  border-top: 1px solid var(--border-brand-subtle, #aebfff);
+
+  background-color: #eef0fd;
+}
+
+/* --- the slot's surface, shared by all four states --------------------------
+
+   The soft brand tint, because this slot is an offer wherever it appears and
+   that is the one tint the palette has for one.
+
+   A real `border`, not an inset shadow: `app/globals.scss` sets
+   `* { box-sizing: border-box }`, so the 1px costs no width and the card stays
+   flush with the list under it. */
+.brandSurface.brandSurface {
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+}
+
+/* The approved-and-waiting state is Demo Day's `Alert`, not a `Welcome` card —
+   it is the one state with nothing to press. Same tint as its siblings so the
+   slot doesn't change colour with the reader's situation. Its own paragraph is
+   already 14/20, which is the banner sub size, so only the surface is set. */
+.alertBrand.alertBrand {
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border-color: var(--border-brand-subtle, #aebfff);
+}
+
+/* --- the banner type scale, shared by all four states -----------------------
+
+   20 over 14, against `Welcome`'s own 24/16.
+
+   These states would otherwise run at two sizes — the logged-out one at 24/16
+   because it argues for an account from nothing, the signed-in ones a step
+   quieter. One slot reading at two scales is a slot that looks like it changed
+   component when the reader's situation changed, and the reader has no way to
+   know the difference is meant. One scale for all of them; they differ in what
+   they *say* rather than in how loudly.
+
+   Both values are on the PL scale, and both are exactly what `Welcome` itself
+   drops to on mobile (20/27 and 14/22) — so this is the banner reading at its
+   phone size everywhere, not a size invented for it. That is also why there is
+   no `mobile-only` block here: production's own mobile rules land on the same
+   numbers, so there is nothing left to step down to. */
+.bannerTitle.bannerTitle {
+  font-size: 20px;
+  line-height: 28px;
+  letter-spacing: -0.3px;
+}
+
+.bannerSub.bannerSub {
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
 }
 
 /* The two claims a profile is worth making, as a list rather than a paragraph.
@@ -36,10 +123,10 @@
   }
 }
 
-/* The two doors. 8px, the same gap the navbar leaves between its own Sign up /
-   Sign in pills — close enough to read as one cluster, far enough not to look
-   like a split button. `flex-shrink: 0` because `welcome.cta` sets it on itself
-   and the group now stands where that button used to. */
+/* The action slot. A single `welcome.cta`; the 8px gap is kept because it
+   costs nothing and this is still a row. `flex-shrink: 0` because
+   `welcome.cta` sets it on itself and the group stands where that button used
+   to. */
 .ctaGroup {
   display: flex;
   align-items: center;
@@ -62,45 +149,36 @@
   }
 }
 
-/* Sign up: the quiet half of the pair. Geometry is `welcome.cta`'s, copied
-   literally, so the two buttons are the same object in two tones; only the
-   colour layer comes from the design system's own signup control. */
-.ctaSecondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 10px 16px;
-  border-radius: 8px;
+/* Sign in in the signed-out footer — a text button so it reads as part of
+   the sentence, not a second object beside it.
 
-  font-size: 14px;
+   `font: inherit` matters more than usual here. The footer wears `.bannerSub`
+   (14px), and a door that kept its own size would break the line it sits in. */
+.inlineDoor {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
   font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-  white-space: nowrap;
-  text-decoration: none;
+  color: var(--foreground-brand-primary, #1b4dff);
   cursor: pointer;
-  flex-shrink: 0;
-
-  color: var(--action-foreground-neutral-normal, #455468);
-  background: var(--Neutral-White, #fff);
-  border: 1px solid var(--Neutral-Slate-300, #cbd5e1);
-  box-shadow: 0 1px 1px 0 rgba(15, 23, 42, 0.08);
-  transition:
-    background 0.12s ease,
-    border-color 0.12s ease;
 
   &:hover {
-    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    text-decoration: underline;
   }
 }
 
 /* The pinned (rail-narrowed) state: only the height comes down — pinned, the
    strip rides over the list it belongs to, so it spends as little of the
    viewport as the ask and its one supporting line need. */
-.condensed.condensed {
+.condensed .pitch {
   padding: 12px 20px;
+}
+
+.condensed .footer {
+  padding: 8px 20px;
 }
 
 @include media.breakpoint-1024 {
@@ -124,8 +202,9 @@
     background: var(--background-neutral-subtle, #f1f5f9);
   }
 
-  /* Pinned, the strip is a white card holding still over white cards moving
-     underneath — just enough shadow to separate the layers. */
+  /* Pinned, the strip is a card holding still over the white cards moving
+     underneath — just enough shadow to separate the layers. The tint alone
+     wouldn't: it reads as a surface, not as a layer above one. */
   .pinned .condensed {
     box-shadow: 0 2px 8px rgba(14, 15, 17, 0.08);
   }

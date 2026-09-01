@@ -1,0 +1,419 @@
+// The apply flow's chrome: the header row, the step band under it, the shared
+// lede, and the footer all three steps end in.
+//
+// Everything with a shape is still imported — the sticky 64px header, its Back
+// affordance and the 720px centred column all come from
+// `EditInvestorProfileDrawer.module.scss`, and the panes bring their own
+// stylesheets. What is here is the layer none of those has an opinion about.
+//
+// `.lede`, `.drawerHeaderLift`, `.footer`, `.footerInner` and `.footerAction`
+// moved here verbatim from `JobProfilePane.module.scss` (then
+// `JobProfileDrawer.module.scss`) when the three surfaces became one drawer.
+// They were never about the profile: they described a header, a footer and a
+// column that every step renders. Their comments come with them, including the
+// history of what each number is protecting against.
+//
+// Every custom property is written `var(--name, #fallback)`: this app doesn't
+// load the DS token sheet, so a bare token resolves to nothing.
+@use 'styles/media';
+
+// --- Header ------------------------------------------------------------------
+
+// The sticky Back header, lifted above the scrolling column.
+//
+// `EditInvestorProfileDrawer`'s own header is `position: sticky; z-index: 1`,
+// which is enough for the content production puts under it — plain cards, none
+// of them positioned. This drawer's own step rail is positioned — the circles
+// carry a 4px ring and the connectors sit at `top: -12px` — and the same class
+// of content once scrolled *over* the header instead of under it: at the wrong
+// offset a blue ring sat exactly where the back arrow is and swallowed it, which
+// is how the drawer looked broken while nothing about its scrolling actually
+// was. (The bug was first found with the vertical account stepper, which has
+// since been deleted; the rule outlived it, because the rail that replaced it is
+// positioned too.)
+//
+// The rule the fix follows is the one the footer below already states: the
+// drawer's chrome outranks the column that scrolls beneath it. The footer says
+// so with a local `z-index: 2`; the header was the half that had never said it,
+// because until the stepper arrived nothing tested it. 3 rather than 2 only so
+// the two chrome pieces are ordered against each other as well — they never
+// meet, but a reader shouldn't have to check that.
+//
+// Doubled selector to beat production's single-class rule regardless of bundle
+// order.
+.drawerHeaderLift.drawerHeaderLift {
+  z-index: 3;
+
+  // Production's header is a fixed 64px `flex-direction: column` box built for
+  // one row. This one carries a second — the step band — so the height comes off
+  // and the padding does the spacing instead. Nothing else about it changes: the
+  // shadow, the white, the sticky and the `flex-shrink: 0` are all still
+  // production's.
+  height: auto;
+  padding-bottom: 12px;
+}
+
+// Back on the left, close on the right — `s.breadcrumbs`' 720px measure, with
+// the pair pushed to its two ends.
+//
+// Doubled to beat `.breadcrumbs`' own `justify-content: flex-start` regardless
+// of bundle order.
+.headerRow.headerRow {
+  justify-content: space-between;
+}
+
+// The way out, as distinct from the way back.
+//
+// **Why both exist.** Back moves one step up the flow — it is the rail's
+// keyboard-reachable twin, and from the last step it must not be the thing that
+// throws away a written letter. So closing needs its own control. On desktop the
+// overlay would do it; on mobile the drawer is the whole screen and there is no
+// overlay left to press, which is exactly where an application would become
+// inescapable without this.
+//
+// The DS close idiom, verified across the product: a 16px stroked glyph centred
+// in a 24px grey disc — `ReferCompanyModal`, the deals dialogs, the IRL gathering
+// modal and the AI-apps feedback dialog all draw it this way. `CloseIcon` takes
+// `currentColor`, so the tone is set here: tertiary at rest, secondary on hover,
+// the same two-step grey every dismissal in this product uses.
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+// --- The step band -----------------------------------------------------------
+
+// The rail lives in the header rather than above the footer, where production's
+// `OnboardingProgress` puts its own progress bar. Two reasons. That bar is a
+// *fraction* — "1 /2" — which belongs beside the control that advances it; this
+// is a *position among named places*, and position is the first thing you look
+// for when a screen opens, not the last. And the footer here is already a
+// sentence plus a button; a third object in it would make the busiest 40px of
+// the drawer busier still.
+//
+// Sticky by inheritance: it is inside the header, so it stays in view while a
+// long job description scrolls under it. That is the whole argument for putting
+// it there rather than at the top of the scrolling column — on the reading step
+// the column is thousands of pixels long, and a rail that scrolled away would
+// answer "where am I" only for as long as nobody had started reading.
+.stepBand {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  // 4px, against the 10px gap production's header column would otherwise apply.
+  // The rail belongs to the header it sits in, and a uniform gap would space it
+  // equally from the Back row above and the content below — which says it is
+  // related to neither. Controls sit closer to what they govern.
+  margin-top: -6px;
+  padding-top: 4px;
+}
+
+// --- The step's opening sentence ---------------------------------------------
+
+// One line at the top of a step, saying what the step is for — the profile
+// step's "we send your profile with your application to <role>", the application
+// step's "<team> receives your profile and this note". `.drawerContent` centres
+// its children, so prose has to claim the measure.
+//
+// The reading step has no lede: its first element is the role's own masthead,
+// which says everything a sentence would.
+.lede {
+  width: 100%;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// The step's opening block: a title, a `.lede` under it on the logged-out
+// details step, and the "Already a member? Sign in" escape under that. The
+// lede was cut for a while, on the grounds that the title had taken over what
+// it said; it is back, because the title names what is being made and the lede
+// names what it is for.
+//
+// **Why a wrapper and not two siblings.** `.drawerContent` has a uniform 16px
+// gap, so an escape dropped straight into it would sit equally far from the
+// title above and the card below — equidistant reads as belonging to neither,
+// and it belongs above: the title names the step, the escape names the one
+// person the step is not for. The wrapper keeps them together and keeps the
+// block's own 16px off the first card.
+//
+// No `gap` of its own, so the one distance inside it is stated where it applies:
+// `.signInEscape`'s 12 above. 12 against the column's 16 is what makes the pair
+// read as a pair rather than as two more items in the stack. `.lede` never got a
+// margin here and still shouldn't — it is shared with the steps that have
+// neither a title nor an escape.
+.stepIntro {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+// The step's own name.
+//
+// **Rank.** `JobSignUpModal.title` — 20/27/500 — is the title of *this same
+// account form* on the board's other door, so the two doors open with one
+// heading rank rather than two. It also lands a clear step under the flow's
+// biggest thing, step 1's 22/30/600 role title, which is right: the job is the
+// subject of the flow, a step is only a place in it.
+//
+// No bottom margin, even though a lede sits under it again on the logged-out
+// step — a heading and its own qualifying sentence are one unit, and that 6px
+// is real, but it belongs to the pair rather than to this class. `.stepTitle`
+// is also the member pane's heading, which has no lede beneath it, so a margin
+// here would be spacing one step for the sake of the other. The distance is
+// stated on `JobAccountPane`'s own `.stepLede`, the way the escape states its.
+.stepTitle {
+  width: 100%;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 27px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// --- The drawer's own action -------------------------------------------------
+
+// Sticky to the bottom of the drawer's scroll container (`Drawer`'s `.container`
+// is `overflow-y: auto`, and this is a direct child of it, so `bottom: 0` pins
+// it above the column without leaving the flow).
+.footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  width: 100%;
+  flex-shrink: 0;
+  background: var(--Neutral-White, #fff);
+  box-shadow: 0 -1px 4px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+.footerInner {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 12px;
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+    align-items: center;
+    /* `flex-end`, not `space-between`. This dated from when a hint sometimes
+       sat here and sometimes did not: `space-between` with a single item slides
+       that item to the left edge, so the button's position would have depended
+       on whether there happened to be a sentence beside it. The sentences are
+       gone and the rule is what keeps the button on the right end regardless —
+       on the steps that have no tick either, it is the only thing holding it
+       there. */
+    justify-content: flex-end;
+    gap: 16px;
+    padding: 12px 20px;
+  }
+}
+
+/* The completeness tick, sitting in the bar beside the button — and now the
+   only text in it.
+
+   `flex-shrink: 0` because a checkbox whose label wraps mid-bar reads as a
+   paragraph someone put a box in front of.
+
+   `--foreground-neutral-primary`, since this is a thing to do rather than a
+   thing to read — but at 13px, under the button label it stands next to. (Both
+   were once ranked against the footer's sentence, which sat a step quieter in
+   `--foreground-neutral-secondary`. The ranking is what it was; only the third
+   term is gone.) */
+.footerCheck {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  /* The DS Checkbox ships as a button; the `<label>` owns the hit area, so
+     the inner control must not swallow the press. Same guard the sign-up
+     form’s rows use. */
+  button {
+    pointer-events: none;
+  }
+
+  /* Holds the left end of the bar. This was written for the steps that had no
+     hint, back when the hint's `flex: 1` did the job on the ones that did; with
+     the sentences gone it is the only thing keeping the tick off the button's
+     shoulder. */
+  @include media.tablet-landscape {
+    margin-right: auto;
+  }
+}
+
+/* The required mark, transcribed from the DS's own `FormField` label rule
+   (`components/form/FormField/FormField.module.scss`, `.label.required`):
+   the same `*`, the same bare `red`, the same 0.25rem gap. Bare `red` is
+   not a token and would normally be wrong here — it is kept because this
+   asterisk stands on the same screen as the ones `FormField` draws for the
+   required text fields, and a near-miss red between two marks meaning the
+   same thing is worse than an untokenised one. If the DS tokenises that
+   rule, this follows it. */
+.footerCheckLabel:after {
+  content: '*';
+  color: red;
+  margin-left: 0.25rem;
+}
+
+/* The footer's button, in every step of the flow.
+
+   The row's `justify-content` (whatever it is — it has been both
+   `space-between` and `flex-end`) does not stop a flex item shrinking, and a
+   Button's `min-width` is a floor for a *bare* label — so "Continue to apply"
+   was being squeezed against a sentence that takes as much width as it is
+   given, wrapping to two lines and doubling the bar's height. The hint is the
+   part that should reflow; the control is a fixed object.
+
+   `nowrap` is unconditional, and not because the column layout needs it today —
+   there the button is full width and the label has room to spare. It is
+   unconditional because "a button's label may break onto a second line" is
+   never the right answer at any width: a control is an object you press, and an
+   object that changes height with its wording is a paragraph. Left to the row
+   layout alone, this rule would be one long label away from coming back.
+
+   `flex-shrink` is the row's half, and stays scoped to it — below
+   tablet-landscape the bar is a stretched column with nothing to shrink
+   against. */
+.footerAction {
+  white-space: nowrap;
+
+  @include media.tablet-landscape {
+    flex-shrink: 0;
+  }
+}
+
+/* The reading step's "Applied" report, which is the row's own control at the
+   footer's size — an `<a>`/`<button>` wearing the DS button rather than a
+   lookalike, exactly as the row does it. Button's `.root` is not a flex
+   container (it is a plain `<button>`), so `gap` alone does nothing and the
+   check lands against the A. */
+.appliedButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Doubled to outrank `.root:disabled`, which is the same specificity and would
+   otherwise win on stylesheet order. "Not allowed" is a refusal; this is a
+   report that you already did it. The disabled paint stays for the reason argued
+   in `JobReferRoleRow.module.scss`: at full contrast the control still looks
+   pressable. */
+.appliedButton.appliedButton:disabled {
+  cursor: default;
+}
+
+// (`.footerHint` stood here — the one sentence in the bar, changing with the
+//  step and with what the press would do. It went with the sentences: every arm
+//  of the footer had been cut back to `undefined` except two, and those two came
+//  out as well, so the bar is a tick and a button and nothing else. The rules it
+//  left behind are the interesting part, and both survive it: `.footerInner`
+//  right-aligns rather than spacing apart, and `.footerCheck` holds the left end
+//  with its own `margin-right: auto` — see both.)
+
+// A real edge on the flow cards, not just a shadow.
+//
+// Production's `DetailsSection` draws its card with
+// `box-shadow: 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04)`
+// and no border at all. A 1px, zero-spread shadow at 12% is close to nothing
+// on white: against the white drawer the cards read as floating text blocks
+// rather than as containers, and where two sit adjacent there is no telling
+// where one stops and the next begins.
+//
+// So the shadow stays — it still lifts the card off the ground — and this adds
+// the edge the shadow was standing in for.
+//
+// **The filter rail's border, copied — `--border-neutral-xsubtle` (0.06).**
+//
+// `FilterSection.module.scss` is the right answer and it was on screen the
+// whole time: the boxes in the job board’s own filter rail, one column left of
+// this drawer, are white cards on the same page carrying
+// `border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06))`
+// over a light shadow. Same job, same ground, same viewport — so a reader
+// sees one kind of container rather than two.
+//
+// It took two wrong values to get here, both worth recording because the
+// mistakes are opposite:
+//
+//   muted   0.24  — shipped first, came back as "too dark". It is the *hover*
+//                   value, so it also spent the step hover needs.
+//   subtle  0.12  — the house table’s generic card border. On-system, and
+//                   still a notch heavier than the cards beside it.
+//   xsubtle 0.06  — what the neighbouring cards on this page actually use.
+//
+// The defence written for muted is the part to remember: *subtle is the same
+// alpha as the shadow that was already failing to be seen, so it would
+// reproduce the problem*. Same alpha, completely different rendering — the
+// shadow is blurred over 1px and offset, so almost none of that 12% lands on
+// any one pixel, while a solid 1px border puts all of it on the boundary.
+// Reading two treatments as equivalent because they share a number is what
+// overruled the system in the first place.
+//
+// And the general form: a house table tells you the value for a *kind* of
+// thing, but the component already doing this job on this screen tells you
+// the value for *this* thing. Prefer the neighbour you can point at.
+//
+// `box-sizing: border-box` is global (`app/globals.scss`), so the 1px costs no
+// width and nothing beside it reflows.
+//
+// **Not applied to `missingData` cards.** Those already carry
+// `border: 1px solid var(--border-brand-subtle, #aebfff)` from 960 up, and two
+// single-class border rules on one element is one of them losing a bundle-order
+// coin toss. The callers gate on the same flag the variant does.
+.cardEdge {
+  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+}
+
+/* An icon beside a label in a DS `Button`, for the footer's action.
+
+   Values are `.appliedButton`'s above, not new ones — one icon-and-label spacing
+   in this footer whichever button carries it — and the reason is the one written
+   there: `Button.root` is a plain `<button>`, not a flex container, so `gap` does
+   nothing until the element is made one, and the arrow renders jammed against
+   the last letter.
+
+   Its own class rather than folded into `.footerAction`: most footer buttons are
+   a label and nothing else, and making every one of them a flex box to serve the
+   two that aren't would be paying for a layout nobody else uses. */
+.footerActionIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}

@@ -1,32 +1,141 @@
-.floatingButton {
+@use 'styles/media';
+
+/*
+  z-index 9 puts the button above MobileBottomNav (1) and below everything that
+  is meant to cover a floating control: UpdatesPanel (100/101), the bottom
+  nav's More menu (1000), the Modal overlay (9999). A floating affordance
+  belongs at the bottom of the overlay stack, which is what makes those
+  numbers agree.
+
+  The bottom inset clears MobileBottomNav, which is visible below the
+  tablet-landscape breakpoint. 72px is not a new number — ToastContainer already
+  uses it for exactly this, at exactly this breakpoint, so the two can't drift.
+*/
+.wrap {
   position: fixed;
   right: 24px;
-  bottom: 44px;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 9999px;
-  background: var(--foreground-brand-primary, #1b4dff);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  cursor: pointer;
-  box-shadow:
-    0px 10px 20px -5px rgba(14, 15, 17, 0.12),
-    0px 20px 65px -5px rgba(14, 15, 17, 0.12);
+  bottom: 72px;
+  z-index: 9;
+  display: inline-flex;
+  animation: fabIn 280ms ease-out both;
 
-  &:hover {
-    background: var(--foreground-brand-primary-hover, #1640d6);
+  @include media.tablet-landscape {
+    bottom: 24px;
   }
 }
 
-// Keeps the button flush with the right edge of AiAppsPage.module.scss's
-// max-width: 1480px content column on wide viewports, instead of drifting to
-// the browser edge; falls back to a plain 24px viewport inset below that width.
-.alignToContent {
-  right: max(24px, calc((100vw - 1480px) / 2 + 24px));
+/* It arrives rather than appearing: on the detail page the surface below is an
+   embedded app, so a control that is simply *there* on the first frame reads as
+   part of that app. */
+@keyframes fabIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+  Opens saying its name, then settles to the glyph. After that, hover (and
+  keyboard focus) can expand the label again. The height is fixed at 48px so
+  collapsing is a width-only move with no vertical jump, and nothing here sets
+  an explicit width: the label animates its own max-width and margin, the
+  padding goes to 0, and `min-width` is what makes the settled state a 48px
+  disc. Animating `width: auto` to a pixel value would jump instead.
+
+  Brand fill and a shadow rather than the top bar's bordered-neutral — the
+  background underneath belongs to the app and isn't ours to assume, so the mark
+  has to read as an object above the page.
+*/
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 48px;
+  padding: 0 18px 0 16px;
+  border: none;
+  border-radius: 999px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(27, 77, 255, 0.3);
+  transition:
+    padding 0.28s ease,
+    box-shadow 0.15s,
+    transform 0.15s;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(27, 77, 255, 0.38);
+    }
+  }
+}
+
+/* The 8px between glyph and label is the label's own margin, not the row's
+   `gap`: a gap survives the label collapsing to zero width and would leave the
+   glyph 4px off the centre of the disc. */
+.label {
+  max-width: 160px;
+  margin-left: 8px;
+  overflow: hidden;
+  white-space: nowrap;
+  transition:
+    max-width 0.28s ease,
+    margin-left 0.28s ease,
+    opacity 0.18s ease;
+}
+
+@mixin expanded-label {
+  padding: 0 18px 0 16px;
+
+  .label {
+    max-width: 160px;
+    margin-left: 8px;
+    opacity: 1;
+  }
+}
+
+.wrap[data-collapsed='true'] {
+  .button {
+    padding: 0;
+  }
+
+  .label {
+    max-width: 0;
+    margin-left: 0;
+    opacity: 0;
+  }
+}
+
+@media (hover: hover) {
+  .wrap[data-collapsed='true']:hover .button {
+    @include expanded-label;
+  }
+}
+
+.wrap[data-collapsed='true'] .button:focus-visible {
+  @include expanded-label;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrap {
+    animation: none;
+  }
+
+  .button,
+  .label {
+    transition: none;
+  }
 }

@@ -47,13 +47,14 @@ import proto from './AgentSessionChatPrototype.module.scss';
  *    ends of a page you scroll, and the banner was the third rendering of a status
  *    the sticky header badge and the outcome row already carried.
  *
- * 3. The outcome row renders only once the run is over.
+ * 3. The outcome row renders only once the run is over — and carries the run's
+ *    exits rather than a second copy of the sticky header's badge. See `RunOutcome`.
  *
  * 4. The textarea grows to fit instead of opening at 84px with a drag handle.
  *
  * 5. `markdown-to-jsx` instead of `react-markdown`. react-markdown does not parse
  *    GFM tables without `remark-gfm`, which is not a dependency of this app — so an
- *    agent reply containing a table rendered as a run of raw `|` pipes. This is the
+ *    agent reply containing a table rendered as a run of raw pipes. This is the
  *    engine `components/common/Markdown.tsx` already uses. The production fix is to
  *    add `remark-gfm`; that's a package.json change, which a prototype can't make.
  *
@@ -65,7 +66,9 @@ import proto from './AgentSessionChatPrototype.module.scss';
  *
  * 7. A failed run shows its diagnostics and offers a retry. `error_code`,
  *    `kubernetes_namespace` and `kubernetes_job_name` are all on the session and
- *    were rendered nowhere in the app.
+ *    were rendered nowhere in the app. Retry is a *secondary* control: the docked
+ *    Send button is this surface's one primary, and two filled blue buttons a thumb
+ *    apart is two primaries.
  *
  * 8. Accessibility, all verified in the browser: the thread is a polite live
  *    region (agent replies arrive by 5s polling and were announced never), the
@@ -73,6 +76,20 @@ import proto from './AgentSessionChatPrototype.module.scss';
  *    reader user had no way to learn that Send launches a Kubernetes job),
  *    timestamps are real `<time>` elements, and the panel has a heading — the
  *    visual design carries that with the tab, so it is screen-reader only.
+ *
+ * 9. The question alarm switches off once the question is answered. Production
+ *    paints every `message_type: 'question'` bubble amber and tags it, forever — so
+ *    a finished run's transcript still shouts about a decision taken twenty minutes
+ *    earlier, and amber stops meaning "this needs you". Amber is now spent on the
+ *    question the run is *actually* stopped on; answered ones keep the tag in the
+ *    neutral badge tone so the transcript still reads as Q -> A.
+ *
+ * 10. The cost warning left the placeholder. "Vague instructions cost a full agent
+ *    run" was placeholder-only, i.e. it disappeared at the exact moment someone
+ *    started writing a vague instruction. The persistent hint under the field makes
+ *    the same claim in stronger words ("Sending starts a new agent run on
+ *    <branch>"), so the placeholder is back to naming the field's job and the cost
+ *    stays on screen while you type.
  */
 
 const MARKDOWN_OPTIONS = {
@@ -95,6 +112,15 @@ function formatTime(value: string) {
   }
 }
 
+/** The human-readable full stamp, kept one hover away from every short time. */
+function fullStamp(value: string) {
+  try {
+    return new Date(value).toLocaleString();
+  } catch {
+    return value;
+  }
+}
+
 /** Anything with its own scroll region is exempt from the prose measure cap. */
 function hasWideContent(body: string) {
   return body.includes('```') || /^\s*\|.*\|/m.test(body);
@@ -105,7 +131,7 @@ function hasWideContent(body: string) {
  * as `instruction`, the same type as the original prompt, so typing off the type
  * would put the admin's own messages on the agent's side.
  */
-function MessageBubble({ message }: { message: AgentSessionMessage }) {
+function MessageBubble({ message, isLiveQuestion }: { message: AgentSessionMessage; isLiveQuestion: boolean }) {
   const isAdmin = message.sender === 'admin';
   const isQuestion = message.message_type === 'question';
   const wide = !isAdmin && hasWideContent(message.body);
@@ -118,21 +144,30 @@ function MessageBubble({ message }: { message: AgentSessionMessage }) {
           proto.bubble,
           wide ? proto.bubbleWide : '',
           isAdmin ? s.bubbleAdmin : s.bubbleAgent,
-          isQuestion ? s.bubbleQuestion : '',
+          // Amber is this page's "a person is needed" colour — the same one the
+          // `waiting_for_input` badge and the composer wear. It is spent on the one
+          // question the run is stopped on, and on nothing else.
+          isLiveQuestion ? s.bubbleQuestion : '',
         ]
           .filter(Boolean)
           .join(' ')}
       >
         <div className={s.bubbleMeta}>
           <span className={s.bubbleSender}>{isAdmin ? 'You' : 'Agent'}</span>
-          {isQuestion ? <span className={s.questionTag}>question</span> : null}
+          {isQuestion ? (
+            // The tag stays on answered questions — it is what makes a transcript
+            // readable as a decision point rather than a wall of replies. Only the
+            // alarm tone is spent down, to the neutral badge pair this feature
+            // already uses for "a state, but not one that needs you".
+            <span className={`${s.questionTag} ${isLiveQuestion ? '' : proto.questionTagAnswered}`}>question</span>
+          ) : null}
           {/* Time only, and a real `<time>`: the date repeated on every bubble is a
               constant and the seconds are precision nobody reads. `dateTime` keeps
               the machine-readable stamp; `title` keeps the human one on hover. */}
           <time
             className={`${s.bubbleTime} ${proto.bubbleTime} ${isAdmin ? proto.bubbleTimeOnBrand : ''}`}
             dateTime={message.created_at}
-            title={new Date(message.created_at).toLocaleString()}
+            title={fullStamp(message.created_at)}
           >
             {formatTime(message.created_at)}
           </time>
@@ -146,6 +181,67 @@ function MessageBubble({ message }: { message: AgentSessionMessage }) {
         )}
       </div>
     </li>
+  );
+}
+
+/**
+ * Closes the transcript when a run ends.
+ *
+ * Production ends the thread with a bare status badge, which is the *third* place
+ * that word appears and the only one that scrolls: the sticky header badge is
+ * pinned above it the whole time. A duplicate is not what the end of a run needs —
+ * what it needs is what the run produced. A finished agent session leaves behind a
+ * pull request and, when one was asked for, a live preview of it; both were an
+ * Overview-tab round trip away from the message announcing them.
+ *
+ * Every fact here is already on the session. `pull_request_number`, which nothing in
+ * the app rendered, is what turns a 62-character URL into "Pull request #2791".
+ */
+function RunOutcome({ session }: { session: AgentSession }) {
+  const endedAt = session.completed_at || session.updated_at;
+  const featureEnvUrl = session.feature_environment_url;
+
+  return (
+    <div className={`${s.outcome} ${proto.outcome}`}>
+      <div className={proto.outcomeHead}>
+        <SessionStatusBadge status={session.status} />
+        {endedAt ? (
+          <time className={proto.outcomeTime} dateTime={endedAt} title={fullStamp(endedAt)}>
+            Finished {formatTime(endedAt)}
+          </time>
+        ) : null}
+      </div>
+
+      {session.pull_request_url || featureEnvUrl ? (
+        // Named for where they land, not for the field they came out of — and both
+        // plain links, because the docked Send button is this surface's only
+        // primary and a run that just finished must not out-shout the composer.
+        <div className={proto.outcomeExits}>
+          {session.pull_request_url ? (
+            <a
+              className={proto.outcomeExit}
+              href={session.pull_request_url}
+              target="_blank"
+              rel="noreferrer"
+              title={session.pull_request_url}
+            >
+              {session.pull_request_number ? `Pull request #${session.pull_request_number}` : 'Pull request'}
+            </a>
+          ) : null}
+          {featureEnvUrl ? (
+            <a
+              className={proto.outcomeExit}
+              href={featureEnvUrl}
+              target="_blank"
+              rel="noreferrer"
+              title={featureEnvUrl}
+            >
+              Feature environment
+            </a>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -180,9 +276,10 @@ function FailureBlock({ session, onRetry }: { session: AgentSession; onRetry: ()
       ) : null}
 
       <div className={proto.failureActions}>
-        {/* Re-runs the agent from the same prompt on the same branch. Named for
-            what it does, not "Try again" — this costs a full agent run. */}
-        <button type="button" className={s.sendButton} onClick={onRetry}>
+        {/* Re-runs the agent from the same prompt on the same branch. Named for what
+            it does, not "Try again" — this costs a full agent run. Secondary,
+            because Send is already the filled blue button one thumb below it. */}
+        <button type="button" className={proto.retryButton} onClick={onRetry}>
           Retry run
         </button>
       </div>
@@ -217,6 +314,7 @@ export function AgentSessionChatMock({
   draftRestored,
 }: Props) {
   const threadEndRef = useRef<HTMLDivElement | null>(null);
+  const threadHeadingRef = useRef<HTMLHeadingElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const composerRef = useRef<HTMLFormElement | null>(null);
   const [composerHeight, setComposerHeight] = useState(0);
@@ -228,6 +326,17 @@ export function AgentSessionChatMock({
 
   const isWaitingForInput = session.status === WAITING_FOR_INPUT_STATUS;
   const isFailed = session.status === 'failed' || session.status === 'cancelled';
+
+  /**
+   * The one question the run is stopped on: the last thing in the thread, while the
+   * session says it is blocked. Anything earlier has been answered — the message
+   * under it is the answer — so it is history, not a request.
+   */
+  const liveQuestionId = useMemo(() => {
+    if (!isWaitingForInput) return null;
+    const last = messages[messages.length - 1];
+    return last && last.sender === 'agent' && last.message_type === 'question' ? last.id : null;
+  }, [isWaitingForInput, messages]);
 
   /**
    * `pr_created` isn't in `TERMINAL_SESSION_STATUSES` — the orchestrator keeps the
@@ -270,6 +379,19 @@ export function AgentSessionChatMock({
     threadEndRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'end' });
   };
 
+  /**
+   * Retry destroys the button that was pressed — the failure block unmounts the
+   * instant the status flips to `running` — which drops keyboard focus to `<body>`
+   * and strands a screen reader mid-page. Focus moves to the thread's own heading
+   * first, so the next thing announced is the region the reply will arrive in.
+   * `preventScroll` because that heading is visually hidden at the top of the panel
+   * and the reader is at the bottom of it.
+   */
+  const handleRetry = () => {
+    threadHeadingRef.current?.focus({ preventScroll: true });
+    onRetry();
+  };
+
   const hint = isWaitingForInput
     ? 'The run is stopped until you reply — the agent will not continue on its own.'
     : session.working_branch
@@ -279,19 +401,30 @@ export function AgentSessionChatMock({
   return (
     <>
       <div className={s.root}>
-        <h2 className={proto.srOnly}>Conversation</h2>
+        <h2 className={proto.srOnly} ref={threadHeadingRef} tabIndex={-1}>
+          Conversation
+        </h2>
 
         <div className={`${s.thread} ${proto.thread}`}>
-          {!messages.length ? <p className={s.state}>No messages yet.</p> : null}
+          {/* Reachable: a session that is still queued has no messages yet. Names
+              what the empty box is waiting for; the composer hint under it already
+              says what sending costs, so this doesn't repeat it. */}
+          {!messages.length ? <p className={s.state}>No messages yet — the agent posts here as it works.</p> : null}
 
           {messages.length ? (
             // Production polls every 5s, so agent replies appear with no user action
             // behind them. Without a live region they were announced never.
             // `role="log"` is the additions-only variant, so only the new message is
             // read out rather than the whole transcript.
-            <ul className={s.messages} role="log" aria-live="polite" aria-relevant="additions" aria-label="Conversation">
+            <ul
+              className={s.messages}
+              role="log"
+              aria-live="polite"
+              aria-relevant="additions"
+              aria-label="Conversation"
+            >
               {messages.map((message) => (
-                <MessageBubble key={message.id} message={message} />
+                <MessageBubble key={message.id} message={message} isLiveQuestion={message.id === liveQuestionId} />
               ))}
             </ul>
           ) : null}
@@ -300,11 +433,9 @@ export function AgentSessionChatMock({
               on the session. Only once it IS over: before that the sticky header
               badge is already saying this, in a place that stays on screen. */}
           {isFailed ? (
-            <FailureBlock session={session} onRetry={onRetry} />
+            <FailureBlock session={session} onRetry={handleRetry} />
           ) : isRunOver ? (
-            <div className={s.outcome}>
-              <SessionStatusBadge status={session.status} />
-            </div>
+            <RunOutcome session={session} />
           ) : null}
 
           <div ref={threadEndRef} />
@@ -337,7 +468,7 @@ export function AgentSessionChatMock({
             // reader user hears "Message the agent, edit text" and never learns that
             // the button below launches a Kubernetes job.
             aria-describedby={HINT_ID}
-            placeholder="Describe the change you want — vague instructions cost a full agent run."
+            placeholder="Describe the change you want."
             onChange={(event) => onDraftChange(event.target.value)}
             onKeyDown={(event) => {
               if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
@@ -350,10 +481,7 @@ export function AgentSessionChatMock({
               {/* Two different facts, and which one matters depends on the state.
                   Blocked: the run is stopped and only a reply restarts it. Otherwise:
                   sending is not a chat message, it launches a fresh agent run. */}
-              <span
-                id={HINT_ID}
-                className={`${s.composerHint} ${isWaitingForInput ? proto.composerHintWaiting : ''}`}
-              >
+              <span id={HINT_ID} className={`${s.composerHint} ${isWaitingForInput ? proto.composerHintWaiting : ''}`}>
                 {hint}
               </span>
               {/* Autosave a person can't see isn't a feature. */}
@@ -363,7 +491,11 @@ export function AgentSessionChatMock({
                 <span className={proto.draftState}>Draft saved</span>
               ) : null}
             </div>
-            <button type="submit" className={`${s.sendButton} ${proto.sendButton}`} disabled={!draft.trim() || isSending}>
+            <button
+              type="submit"
+              className={`${s.sendButton} ${proto.sendButton}`}
+              disabled={!draft.trim() || isSending}
+            >
               {isSending ? 'Sending…' : isWaitingForInput ? 'Reply' : 'Send'}
             </button>
           </div>

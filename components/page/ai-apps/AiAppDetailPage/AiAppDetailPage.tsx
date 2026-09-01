@@ -9,7 +9,8 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
 import { useAiAppManageAccess } from '@/services/ai-apps/hooks/useAiAppManageAccess';
 import { checkAiAppLive, deployFailureKind, hasPrd } from '@/services/ai-apps/ai-apps.service';
-import { ArrowBackIcon, DocumentIcon } from '@/components/icons';
+import { DocumentIcon } from '@/components/icons';
+import { Button } from '@/components/common/Button';
 import { AppActionsMenu } from '@/components/page/ai-apps/AiAppsPage/components/AppActionsMenu';
 import {
   EditAiAppModal,
@@ -369,17 +370,17 @@ export function AiAppDetailPage(props: Props) {
         </Link>
         <div className={s.topBarActions}>
           {hasPrd(app) && (
-            <button
-              type="button"
-              className={s.detailsButton}
+            <Button
+              style="border"
+              variant="neutral"
+              size="xxs"
+              className={s.topBarBtn}
               onClick={() => setShowDetails(true)}
               aria-label={`App details for ${app.name}`}
             >
-              <span className={s.detailsBadge}>
-                <DocumentIcon aria-hidden />
-                App Details
-              </span>
-            </button>
+              <DocumentIcon aria-hidden />
+              App Details
+            </Button>
           )}
           {canLikelyManage(app.member.uid) && (
             <AppActionsMenu
@@ -407,7 +408,6 @@ export function AiAppDetailPage(props: Props) {
         </div>
       )}
       {renderFrameArea()}
-      <FloatingFeedbackButton appUid={app.uid} appName={app.name} />
     </div>
   );
 
@@ -417,6 +417,11 @@ export function AiAppDetailPage(props: Props) {
   return (
     <>
       {showSetupCard ? setupCard : normalLayout}
+      {/* Floats over both branches, for the same reason the modals sit here: it
+          owns an open dialog, and a status flip must not unmount it mid-typing.
+          It also gives the setup / deploying / failed states a feedback door —
+          they had none, and a failed deploy is when people most want one. */}
+      <FloatingFeedbackButton appUid={app.uid} appName={app.name} />
       {showDetails && (
         <AiAppDetailsModal
           isOpen

@@ -4,3 +4,28 @@
   flex-wrap: wrap;
   align-items: center;
 }
+
+.jobReferEmail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 6px 12px;
+}
+
+.jobReferEmailLabel {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.jobReferEmailValue {
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  word-break: break-all;
+}

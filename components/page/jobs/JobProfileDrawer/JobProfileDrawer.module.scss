@@ -18,6 +18,19 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+// The "Start with your CV" card's one line of prose, between its header and the
+// drop area. Secondary 12px — the offer is the drop area; this only says what it
+// saves you. Deliberately quieter than `.lede`, so the card cannot out-shout the
+// amber "your current role is required" strip on the card below it.
+.cvFirstNote {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
 // The sticky Back header, lifted above the scrolling column: the pending
 // stepper's step indicators are positioned (the connector rail needs it) and
 // would otherwise scroll OVER the header and swallow the back arrow. Doubled
@@ -108,9 +121,35 @@
   }
 }
 
-// One sentence, and it changes: before the requirement is met it says what is
-// missing, after it says what is optional. A disabled button with no reason
-// next to it is a door with no sign.
+// The action, which must not wrap.
+//
+// The row is `space-between` with a hint that runs to two lines in its longest
+// state, and "Continue to apply" is wide enough that flex will break it across
+// two lines before it shrinks the paragraph beside it. A two-line label in a
+// pill reads as a layout accident. The hint is the flexible half — it already
+// wraps by design — so the button keeps its intrinsic width and the sentence
+// gives way.
+.footerAction {
+  flex-shrink: 0;
+  white-space: nowrap;
+
+  @include media.tablet-landscape {
+    /* Holds the right edge when the hint is not rendered — `space-between` on a
+       lone child behaves as `flex-start`, which would put this on the left. An
+       auto margin takes the free space before `justify-content` sees it, and
+       resolves to zero when the sentence is there to take it instead.
+
+       Scoped to the row, and that is not tidiness. Below this breakpoint the bar
+       is a `column` with `align-items: stretch`, where left/right is the *cross*
+       axis — an auto margin there beats `stretch` and would shrink the button off
+       full width on every phone. */
+    margin-left: auto;
+  }
+}
+
+// The sentence beside it, when there is one — an incomplete profile renders no
+// hint at all, because what is missing is named on the card that is missing it.
+// Once the requirement is met this says what remains optional.
 .footerHint {
   margin: 0;
   font-size: 12px;
@@ -121,135 +160,8 @@
 }
 
 // --- Job search status ------------------------------------------------------
-
-.statusRoot {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-}
-
-/* The consequence the pill can't carry, in the same 12px tertiary voice the
-   option hints use. */
-.statusPrivacyNote {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 18px;
-  letter-spacing: 0.12px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-}
-
-.statusOptions {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.statusOption {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px;
-  border-radius: var(--corner-radius-xl, 12px);
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease;
-
-  &:hover {
-    background: var(--background-neutral-soft-surface, #f9fafb);
-  }
-}
-
-// The chosen one keeps the brand tint the rest of the product uses for a
-// selected surface: a filled row is easier to find again than a filled dot.
-.statusOptionOn {
-  border-color: var(--border-brand-subtle, #aebfff);
-  background: var(--background-brand-soft-surface, #f2f5ff);
-
-  &:hover {
-    background: var(--background-brand-soft-surface, #f2f5ff);
-  }
-}
-
-// The native input stays in the DOM and keeps the keyboard behaviour — made
-// invisible rather than `display: none`, which would drop it from focus order.
-.statusInput {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
-
-// The DS Checkbox, rounded — the system has no radio, and the nearest thing it
-// has is the control that answers the same kind of question.
-.statusIndicator {
-  box-sizing: border-box;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  margin-top: 1px;
-  border-radius: 50%;
-  border: 1px solid var(--Neutral-Slate-300, #cbd5e1);
-  background: transparent;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease;
-
-  &::after {
-    content: '';
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    background: var(--Neutral-White, #fff);
-    transform: scale(0);
-    transition: transform 0.15s ease;
-  }
-}
-
-.statusInput:checked + .statusIndicator {
-  border-color: var(--action-background-brand-normal, #156ff7);
-  background: var(--action-background-brand-normal, #156ff7);
-
-  &::after {
-    transform: scale(1);
-  }
-}
-
-.statusInput:focus-visible + .statusIndicator {
-  outline: 2px solid var(--action-background-brand-normal, #156ff7);
-  outline-offset: 2px;
-}
-
-// The label-over-hint pair inside an option row (ProfileCollaborateInput's
-// shape, local so this component doesn't reach into that module).
-.statusText {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.statusLabel {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-primary, #0a0c11);
-}
-
-.statusHint {
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 18px;
-  letter-spacing: 0.12px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-}
+// (Moved to `components/page/jobs/JobSearchStatusInput/JobSearchStatusInput.module.scss`
+//  with the component that was their only consumer.)
 
 .loading {
   width: 100%;
@@ -257,4 +169,30 @@
   text-align: center;
   font-size: 14px;
   color: var(--foreground-neutral-secondary, #455468);
+}
+
+// Transcribed from `SignupWizard.module.scss`'s `.aboutLabelOptional` — the
+// product's idiom for "this field is optional", against a heading rather than a
+// label here. Weight and tone are the whole difference, and size is inherited so
+// the mark sits on the heading's own baseline.
+.optionalMark {
+  margin-left: 6px;
+  font-weight: 400;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// "Required to continue", on the Job search status title — the replacement for
+// the full-width strip that used to sit above the card.
+//
+// Amber, because it inherits the job the strip had: this is the one section on
+// the step that is refusing to let the footer through, and it has to read as a
+// requirement rather than as a caption. Weight 500 against the heading's own, so
+// it is legible at 12px without competing with the title it qualifies.
+.requiredMark {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-warning-secondary, #d97706);
 }

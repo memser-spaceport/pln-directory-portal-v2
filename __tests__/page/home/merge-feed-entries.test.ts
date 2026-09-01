@@ -1,7 +1,11 @@
 import { feedEntryKey, mergeFeedEntries, type FeedEntry } from '@/components/page/home/TeamNews/utils/mergeFeedEntries';
-import { filterFeedForumPosts, matchesFeedForumPost } from '@/components/page/home/TeamNews/utils/matchesFeedForumPost';
+import {
+  filterFeedForumPosts,
+  matchesFeedForumPost,
+  selectForYouForumPosts,
+} from '@/components/page/home/TeamNews/utils/matchesFeedForumPost';
 import { sortTeamNewsClusters, type TeamNewsSort } from '@/components/page/home/TeamNews/utils/sortTeamNewsClusters';
-import { ALL_CAT, ALL_TAB, DISCUSSIONS_CAT } from '@/components/page/home/TeamNews/constants';
+import { ALL_CAT, ALL_TAB, DISCUSSIONS_CAT, FOR_YOU_CAT } from '@/components/page/home/TeamNews/constants';
 import type { ITeamNewsItem, TeamCluster } from '@/types/team-news.types';
 import type { ForumPostUid, IFeedForumPost } from '@/types/feed.types';
 
@@ -267,8 +271,17 @@ describe('filterFeedForumPosts / matchesFeedForumPost', () => {
     expect(filterFeedForumPosts(POSTS, { tab: ALL_TAB, category: 'LAUNCH', query: '' })).toEqual([]);
   });
 
-  it('shows posts under Discussions — the pill that exists to filter to them', () => {
-    expect(filterFeedForumPosts(POSTS, { tab: ALL_TAB, category: DISCUSSIONS_CAT, query: '' })).toHaveLength(2);
+  it('shows posts under For You, the same way All and Discussions already do', () => {
+    expect(filterFeedForumPosts(POSTS, { tab: ALL_TAB, category: FOR_YOU_CAT, query: '' })).toHaveLength(2);
+  });
+
+  it('still narrows For You by tab and search', () => {
+    expect(
+      filterFeedForumPosts(POSTS, { tab: 'Networking', category: FOR_YOU_CAT, query: '' }).map((p) => p.uid),
+    ).toEqual(['fp_net']);
+    expect(
+      filterFeedForumPosts(POSTS, { tab: ALL_TAB, category: FOR_YOU_CAT, query: 'fp_infra' }).map((p) => p.uid),
+    ).toEqual(['fp_infra']);
   });
 
   it('still narrows by tab and search under Discussions', () => {
@@ -298,5 +311,25 @@ describe('filterFeedForumPosts / matchesFeedForumPost', () => {
 
   it('treats undefined posts as empty (pop-in not arrived)', () => {
     expect(filterFeedForumPosts(undefined, { tab: ALL_TAB, category: ALL_CAT, query: '' })).toEqual([]);
+  });
+});
+
+describe('selectForYouForumPosts', () => {
+  const cutoff = '2026-07-24T12:00:00.000Z';
+  const recent = post('fp_new', 1, '2026-07-28T12:00:00.000Z');
+  const oldWithReply = post('fp_old', 1, '2026-07-01T12:00:00.000Z');
+
+  it('keeps posts created inside the window', () => {
+    expect(selectForYouForumPosts([recent], cutoff, { tab: ALL_TAB, query: '' }).map((p) => p.uid)).toEqual(['fp_new']);
+  });
+
+  it('drops posts created before the window even when they are in the 14-day activity list', () => {
+    expect(
+      selectForYouForumPosts([recent, oldWithReply], cutoff, { tab: ALL_TAB, query: '' }).map((p) => p.uid),
+    ).toEqual(['fp_new']);
+  });
+
+  it('treats undefined posts as empty', () => {
+    expect(selectForYouForumPosts(undefined, cutoff, { tab: ALL_TAB, query: '' })).toEqual([]);
   });
 });

@@ -1,7 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
+import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
+import { FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED } from '@/constants/filters';
+import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
+import { SortDropdown } from '@/components/common/filters/SortDropdown';
 import { AddAiAppCard } from '@/components/page/ai-apps/AiAppsPage/components/AddAiAppCard';
 
 import page from '@/components/page/ai-apps/AiAppsPage/AiAppsPage.module.scss';
@@ -9,19 +13,38 @@ import grid from '@/components/page/ai-apps/AiAppsPage/components/AiAppsGrid/AiA
 
 import { AiAppCard } from './AiAppCard';
 import { AiAppDetail } from './AiAppDetail';
+import { AiAppsFilterView } from './AiAppsFilterView';
+import { AiAppsMobileFiltersView } from './AiAppsMobileFiltersView';
+import { GiveFeedbackButton } from './GiveFeedbackButton';
 import { CreateAiAppModal } from './CreateAiAppModal';
 import { ManageAppModal } from './ManageAppModal';
 import { DeploymentSettingsModal } from './DeploymentSettingsModal';
 import { DeploymentLogsModal } from './DeploymentLogsModal';
 import { DeleteAppDialog } from './DeleteAppDialog';
 import { OnePagerViewer } from './OnePagerViewer';
+import { AI_APPS_SORT, AI_APPS_SORT_OPTIONS, countAppliedFilters, useMockAiAppsFilterStore } from './mockAiAppsFilterStore';
 import { mockAiApps, mockAppPreviews, mockPageCopy, type AiAppWithDoc } from './mocks';
 
 import proto from './AiAppsPrototype.module.scss';
 
 type ActionType = 'edit' | 'deployment' | 'logs' | 'delete';
 
+/** Multi-value filter params arrive URL-encoded, the way the real store writes them. */
+function decodeMulti(raw: string | null): string[] {
+  if (!raw) return [];
+  return raw
+    .split(URL_QUERY_VALUE_SEPARATOR)
+    .map((r) => r.trim().replaceAll(FILTER_VALUE_SEPARATOR_ENCODED, FILTER_VALUE_SEPARATOR))
+    .filter(Boolean);
+}
+
 export default function AiAppsPrototype() {
+  // The reused filter components are base-ui / react-hook-form / react-select
+  // (client-only), the store is a useSyncExternalStore, and the update note
+  // renders a locale date — gate on mount so SSR === first client render.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const [apps, setApps] = useState<AiAppWithDoc[]>(mockAiApps);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
@@ -34,6 +57,8 @@ export default function AiAppsPrototype() {
   // admin). The toggle lets us demo the creator (editable) vs. visitor
   // (view-only) experience of the same app.
   const [viewAs, setViewAs] = useState<'creator' | 'visitor'>('creator');
+
+  const { params, setParam } = useMockAiAppsFilterStore();
 
   const selected = apps.find((a) => a.uid === selectedUid) ?? null;
   const actionApp = action ? apps.find((a) => a.uid === action.uid) ?? null : null;
@@ -55,8 +80,80 @@ export default function AiAppsPrototype() {
     closeAction();
   };
 
-  const roleToggle = (
-    <div className={proto.roleToggle}>
+  /**
+   * Submitting feedback bumps that app's counter, so the metric on the card is
+   * the same number the dialog just added to rather than a decorative constant.
+   * Feedback about the platform itself (the LabOS option) belongs to no app and
+   * is dropped — dev routes it to contact-support, which this prototype has no
+   * business faking.
+   */
+  const submitFeedback = (appUid: string) =>
+    setApps((prev) =>
+      prev.map((a) =>
+        a.uid === appUid && a.activity ? { ...a, activity: { ...a.activity, feedback: a.activity.feedback + 1 } } : a,
+      ),
+    );
+
+  const filterCount = countAppliedFilters(params);
+
+  const visibleApps = useMemo(() => {
+    const q = (params.get('search') || '').trim().toLowerCase();
+    const creators = decodeMulti(params.get('createdBy'));
+    const sort = params.get('sort') || AI_APPS_SORT.UPDATED;
+
+    const rows = apps.filter((app) => {
+      // Multi-select is OR within a facet, the way every rail in the product
+      // reads: ticking two creators widens the set, it doesn't empty it.
+      if (creators.length && !creators.includes(app.member.name)) return false;
+      if (
+        q &&
+        !(
+          app.name.toLowerCase().includes(q) ||
+          app.description.toLowerCase().includes(q) ||
+          app.member.name.toLowerCase().includes(q)
+        )
+      )
+        return false;
+      return true;
+    });
+
+    switch (sort) {
+      case AI_APPS_SORT.NAME:
+        rows.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case AI_APPS_SORT.CREATED:
+        rows.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        break;
+      case AI_APPS_SORT.VIEWS:
+        rows.sort((a, b) => (b.activity?.views ?? 0) - (a.activity?.views ?? 0));
+        break;
+      default:
+        // Apps that have never shipped carry no update, so they sort last
+        // rather than claiming the top of a "recently updated" list.
+        rows.sort((a, b) => (a.lastUpdate?.minutesAgo ?? Infinity) - (b.lastUpdate?.minutesAgo ?? Infinity));
+    }
+
+    return rows;
+  }, [apps, params]);
+
+  /**
+   * Prototype-only creator/visitor switch.
+   *
+   * It joins whatever action row the page already has instead of sitting in a
+   * band of its own above the layout. That band was costing 56px at the top of
+   * every page — and on the grid it was doing real damage: DashboardPagesLayout
+   * pins the rail with `top: var(--app-header-height)` and sizes it
+   * `calc(100vh - 80px)`, so starting it 24px lower than production pushed the
+   * bottom of the rail — the last facet at the time — off the viewport until
+   * you scrolled. (The panel's Clear filters / Apply footer was never in that
+   * picture: `FiltersSidePanel` hides it at ≥1024, it belongs to the mobile
+   * bottom sheet.)
+   *
+   * `standalone` keeps the old floating band for the detail view, which has no
+   * masthead to join and no rail to squash.
+   */
+  const renderRoleToggle = (standalone = false) => (
+    <div className={standalone ? `${proto.roleToggle} ${proto.roleToggleStandalone}` : proto.roleToggle}>
       <span className={proto.roleLabel}>View as</span>
       <div className={proto.segmented}>
         <button
@@ -117,10 +214,12 @@ export default function AiAppsPrototype() {
     </>
   );
 
+  if (!mounted) return <div className={proto.shell} />;
+
   if (selected) {
     return (
       <div className={proto.shell}>
-        {roleToggle}
+        {renderRoleToggle(true)}
         <AiAppDetail
           app={selected}
           previewSrcDoc={mockAppPreviews[selected.uid]}
@@ -131,46 +230,100 @@ export default function AiAppsPrototype() {
           onLogs={() => setAction({ uid: selected.uid, type: 'logs' })}
           onDelete={() => setAction({ uid: selected.uid, type: 'delete' })}
           onViewOnePager={() => setViewerUid(selected.uid)}
+          apps={apps}
+          onSubmitFeedback={submitFeedback}
         />
         {actionSurfaces}
       </div>
     );
   }
 
-  return (
-    <div className={proto.shell}>
-      {roleToggle}
-      <div className={`${page.pageFrame} ${proto.frameMobile}`}>
-        <div className={`${page.content} ${proto.contentMobile}`}>
-          <div className={page.header}>
-            <div className={page.titleBlock}>
-              <h1 className={page.title}>{mockPageCopy.title}</h1>
-              <p className={page.description}>{mockPageCopy.description}</p>
-            </div>
+  const content = (
+    <div className={`${page.content} ${proto.column}`}>
+      {/*
+        Masthead. Composed the way Deals does it — the one production page that
+        has both an identity block and a filter rail: title + description on the
+        left, the list control and the page action on the right.
+
+        "Give feedback" joins this row rather than floating: the grid is a page
+        you scan, it already has a row of page actions, and a control pinned to
+        the viewport corner would be the only thing here that isn't part of the
+        page. The detail view has no such row and is an app you use, so its door
+        floats there as an icon — one door per surface, one shared dialog.
+        Filled brand with the comment glyph — production's own treatment for it,
+        and the same voice the detail view's fab speaks in — at `size="s"`,
+        because a 24px control beside a 28px title reads as an afterthought.
+
+        The count rides the title at 14px/400, which is exactly how Teams and
+        Members pair theirs (their .title is the same 28px/700/40 as this one).
+      */}
+      <div className={page.header}>
+        <div className={page.titleBlock}>
+          <div className={proto.titleRow}>
+            <h1 className={page.title}>{mockPageCopy.title}</h1>
+            <span className={proto.count}>({visibleApps.length})</span>
           </div>
+          <p className={page.description}>{mockPageCopy.description}</p>
+        </div>
 
-          <div className={grid.grid}>
-            <AddAiAppCard onClick={() => setIsModalOpen(true)} />
-            {apps.map((app) => (
-              <AiAppCard
-                key={app.uid}
-                app={app}
-                canManage={isCreator}
-                onSelect={() => setSelectedUid(app.uid)}
-                onEdit={() => setAction({ uid: app.uid, type: 'edit' })}
-                onDeployment={() => setAction({ uid: app.uid, type: 'deployment' })}
-                onLogs={() => setAction({ uid: app.uid, type: 'logs' })}
-                onDelete={() => setAction({ uid: app.uid, type: 'delete' })}
-                onViewOnePager={() => setViewerUid(app.uid)}
-              />
-            ))}
+        <div className={proto.headerActions}>
+          {renderRoleToggle()}
+          {/* Wrapped rather than hidden through `className`: SortDropdown puts
+              that class on its trigger, so hiding the trigger on mobile leaves
+              a stranded "Sort by:" label behind it. */}
+          <div className={proto.sortSlot}>
+            <SortDropdown
+              sortByLabel="Sort by:"
+              options={AI_APPS_SORT_OPTIONS}
+              currentSort={params.get('sort') || AI_APPS_SORT.UPDATED}
+              onSortChange={(v) => setParam('sort', v)}
+            />
           </div>
-
-          <CreateAiAppModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-
-          {actionSurfaces}
+          <GiveFeedbackButton apps={apps} onSubmit={submitFeedback} />
         </div>
       </div>
+
+      {/* Mobile-only "⊕ Filters" pill + sort menu (the wrapper hides itself at ≥1024). */}
+      <div className={proto.mobileFilters}>
+        <AiAppsMobileFiltersView apps={apps} filterCount={filterCount} />
+      </div>
+
+      {visibleApps.length === 0 ? (
+        <div className={grid.state}>No apps match your filters. Try clearing some.</div>
+      ) : (
+        <div className={`${grid.grid} ${proto.gridEqual}`}>
+          {/* The "create" tile is part of the page, not part of a result set —
+              so it leads the grid at rest and steps out once the grid is
+              answering a filter. */}
+          {filterCount === 0 && <AddAiAppCard onClick={() => setIsModalOpen(true)} />}
+          {visibleApps.map((app) => (
+            <AiAppCard
+              key={app.uid}
+              app={app}
+              canManage={isCreator}
+              onSelect={() => setSelectedUid(app.uid)}
+              onEdit={() => setAction({ uid: app.uid, type: 'edit' })}
+              onDeployment={() => setAction({ uid: app.uid, type: 'deployment' })}
+              onLogs={() => setAction({ uid: app.uid, type: 'logs' })}
+              onDelete={() => setAction({ uid: app.uid, type: 'delete' })}
+              onViewOnePager={() => setViewerUid(app.uid)}
+            />
+          ))}
+        </div>
+      )}
+
+      <CreateAiAppModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+
+      {actionSurfaces}
+    </div>
+  );
+
+  return (
+    <div className={proto.shell}>
+      <DashboardPagesLayout
+        filters={<AiAppsFilterView apps={apps} />}
+        content={content}
+      />
     </div>
   );
 }

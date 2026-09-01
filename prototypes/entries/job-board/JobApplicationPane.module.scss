@@ -1,0 +1,343 @@
+@use 'styles/media';
+
+// The application step's own layer, carried over from `JobApplyModal.module.scss`
+// when that modal became the last pane of `JobApplyFlowDrawer`.
+//
+// NOT carried over, because they styled the modal this pane no longer is:
+// `.modal` (the 440px card and its `100dvh` cap), `.headerLeft` / `.headerDesc` /
+// `.headerTitle` (un-centring Demo Day's masthead and keeping a long role title
+// clear of the ✕), `.form` (the flex host that gave `.body` something to scroll
+// inside) and `.note` (the sentence above the modal's own footer actions). The
+// drawer owns the column, the scroll and the footer now; a pane that re-declared
+// any of them would be a second opinion about the same box.
+//
+// Everything below is the content layer, unchanged in every dimension.
+
+// --- Who receives it ---------------------------------------------------------
+
+// The hiring team's leads: overlapping faces, then the same people in words.
+//
+// TRANSCRIBED from production's `TeamFollowBlock.module.scss` (`.subStack`,
+// `.subAvatars`, `.subAvatar`, `.subCount`) — the team-details page's follower
+// facepile, which is this exact shape already: three round avatars at the head
+// of a line that says who they are. Values are its own, verbatim: 28px circles,
+// `& + & { margin-left: -10px }`, a 2px white ring, 8px to the text, 14px
+// secondary type.
+//
+// Production has no shared avatar-group *component* to import — there are six
+// hand-rolled stacks that disagree on size, ring and overlap direction, and the
+// one real `AvatarStack` lives in `pl-design-system`, which this app's tsconfig
+// excludes. `TeamFollowBlock` is the closest match by *job*: a facepile whose
+// point is to make a count of people feel like people. So its numbers are the
+// ones to copy rather than average.
+//
+// This replaced three stacked face/name/role rows, which spent ~90px and read as
+// a section of the form rather than a note on the sentence above them.
+//
+// Left, like everything else in the pane's content column.
+.leads {
+  display: flex;
+  // Top, not centre. With first names the line fitted on one and centring was
+  // invisible; with surnames it wraps to two, and a centred 28px stack then
+  // floats in the gap between the lines, tied to neither. Aligned to the top the
+  // faces sit against the first line, where the first name is.
+  align-items: flex-start;
+  gap: 8px;
+
+  // These faces are the lede's sentence made concrete — "<team> receives your
+  // profile" and here is who that means — so they hug it, and the larger space
+  // below is where the step actually changes subject from "who gets this" to
+  // "what you're sending". The negative top cancels part of `.drawerContent`'s
+  // uniform 16px gap for the same reason the lede does: a lede and the line
+  // qualifying it are one block, and a uniform gap would call them peers.
+  margin: -8px 0 4px;
+
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  // `.drawerContent` is a centring flex column, so a block that is narrower than
+  // the column gets pushed to the middle unless it says otherwise. Same rule the
+  // pending stepper's `align-self` states for the same reason.
+  align-self: stretch;
+}
+
+.leadAvatars {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+// Each face is a link to that member's profile.
+//
+// **The overlap lives here, not on the image.** `TeamFollowBlock` puts
+// `& + & { margin-left: -10px }` on the avatars themselves because there they
+// are siblings; wrapping each one in an anchor makes the anchors the siblings
+// and that rule stops matching entirely — the stack silently un-stacks. Same
+// trap as any wrapper component that becomes the flex item.
+//
+// `display: flex` so the anchor is exactly its image: an inline `<a>` adds a
+// descender's worth of line-box under the circle and pushes the row off centre.
+//
+// Hover is production's own treatment for a hoverable member avatar — the events
+// contributors grid (`members-list.tsx`) scales to 1.1 over 0.2s and lifts the
+// z-index so the enlarged face isn't clipped by the one stacked on top of it.
+// Deliberately not a ring-colour change: the ring is white because its job is to
+// cut each face out of the one behind it, so tinting it on hover breaks the
+// cut-out to say something the scale already says.
+.leadAvatarLink {
+  display: flex;
+  position: relative;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+
+  & + & {
+    margin-left: -10px;
+  }
+
+  &:hover {
+    transform: scale(1.1);
+    z-index: 2;
+  }
+}
+
+// `TeamFollowBlock .subAvatar`, unchanged. 28px is deliberately larger than the
+// 14px line beside it — the faces are the part that does the work here, and at
+// the 20–24px the denser stacks in this codebase use they read as favicons next
+// to the text rather than as people.
+.leadAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  // White, not the card's border token: the ring's job is to cut each face out
+  // of the one behind it, and it can only do that in the colour of the surface.
+  border: 2px solid #fff;
+
+  // The overlap that `TeamFollowBlock` puts here has moved up to
+  // `.leadAvatarLink` — see the note there. These images are no longer siblings.
+}
+
+// A name in the sentence, linking to that member's profile.
+//
+// **Not brand blue**, which is what every other link on this step is. Three blue
+// names in the line directly under the lede would out-shout `Edit profile` and
+// read as three calls to action, when the sentence is a statement of fact that
+// happens to be explorable. Primary tone at 500 instead — the same lift
+// `.profileSummary` uses to mark the content of a block against the secondary
+// prose around it — so the names read as the substance of the line and the
+// underline on hover proves they are links.
+//
+// `inherit` for size and leading rather than restating them: the names are the
+// sentence, and a link that sets its own type would break the line's rhythm the
+// moment `.leads` changed.
+.leadLink {
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
+}
+
+// --- What is being sent ------------------------------------------------------
+
+// The two labelled blocks. No scroll of its own any more: the drawer's content
+// column is the scroll region for all three steps, so a nested one here would
+// give the step a second scrollbar inside the page's.
+.body {
+  display: flex;
+  flex-direction: column;
+  // 16px, not the modal's reference 10px: each block carries its own label, and
+  // at 10px a label sat as close to the block above it as to the block it names.
+  gap: 16px;
+  width: 100%;
+}
+
+// A labelled block: header row, then the thing it names.
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// One label idiom for both blocks — ReferModal's `.templateLabelRow` /
+// `.templateLabel`, transcribed rather than imported so this file owns its own
+// classes. The profile panel and the cover letter are two halves of one
+// application; giving them different headings would make them look like a
+// summary and a form.
+.blockLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+// (`.blockLabel` lived here — 14px/500 at `--foreground-neutral-secondary,
+//  #455468`, transcribed from ReferModal's `.templateLabel`.
+//
+//  It is now production's `DetailsSectionHeader .title`, imported by the
+//  component. The old class was correct for this pane's old home: it was a
+//  centred modal standing beside ReferModal, so borrowing that modal's label
+//  idiom made the two dialogs read as one product. This is a drawer pane now,
+//  and its neighbours are `DetailsSection` cards — "Your account", "Job search
+//  status", "About the role", "Experience" — every one of them titled by
+//  `DetailsSectionHeader` at #64748b. Against those, #455468 read as a heavier
+//  kind of label for what is the same kind of thing. "Put this (your profile)
+//  in grey."
+//
+//  Imported rather than re-stated as a hex, because the token layer disagrees
+//  with itself on this exact colour: `--foreground-neutral-secondary` is paired
+//  with #455468 in most production sheets and with #64748b in the jobs ones
+//  (JobAlertEmptyState, JobRedirectClient, JobUnsubscribeClient). Picking either
+//  pair would be picking a side of a drift; using the class the neighbouring
+//  section titles already use cannot be wrong, and tracks production if it ever
+//  changes.)
+
+// The cover-letter block's invitation, standing where its label used to.
+//
+// 14px/22 secondary — the body voice, not the 14px/500 #64748b of
+// `DetailsSectionHeader .title` that the profile block above still wears. That
+// is deliberate and the two are not inconsistent: the panel above is *titled*
+// because it is a labelled thing you read back, and this is *addressed to you*.
+// A three-sentence invitation set in a section-title style would read as a
+// heading that ran on.
+//
+// Weight 400 against the profile summary's 500 for the same reason — this is the
+// quieter of the two, because the box under it is where the attention belongs.
+// Pair copied from `.profileDates` above, which is this file's existing
+// secondary-text pair; the size is the on-scale 14/22 rather than that note's 12.
+.blockNote {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// ReferModal's `.resetLink` — the established quiet-link idiom for a corrective
+// escape sitting in a label row. 12px so it stays under the 14px label it shares
+// the row with: it's a way out, not a second heading.
+.editLink {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Hairline only, no fill. Two reasons: a tinted panel would swallow the grey
+// skill chips inside it, and the step already contains one filled-and-shadowed
+// box — the textarea. Border-only at 0.12 against the field's 0.16 plus shadow is
+// what separates "this is what we'll send" from "type here".
+// The read-back panel, now a **grey fill** — production's
+// `DetailsSectionGreyContentContainer`, which the component imports for its
+// padding (16), radius (12) and `#f8fafc`. Only the flex column is ours.
+//
+// This reverses the note that used to sit here, and the note was wrong. It
+// argued for a hairline and no fill on two grounds: a tint would swallow the
+// grey skill chips, and the pane already contains one filled box (the textarea),
+// so border-weight alone could separate "what we'll send" from "type here".
+// Border weight cannot carry that — 0.12 against 0.16-plus-shadow is a
+// difference you can measure and not one you can see, so the read-back kept
+// reading as another input. A fill says *inert* in one move: the white box below
+// it is the only thing on the step that takes typing. "Put this (your profile)
+// in grey."
+//
+// The chips objection was real and is answered where it belongs, on `.skills`,
+// rather than by giving up the fill.
+//
+// Not invented: this is the panel production already uses for a read-only block
+// inside a `DetailsSection` — `RelationshipDetails`, `TeamContactInfoView`,
+// `TeamFocusAreasView` and four others.
+.profileCard {
+  display: flex;
+  flex-direction: column;
+  // 4px: the summary and its dates are one fact in two lines, so they hug. The
+  // chips restore the larger gap themselves — see `.skills`.
+  gap: 4px;
+}
+
+// The applicant's name, at the top of the read-back.
+//
+// Semibold against the role line's medium, the same one-step lift the profile's
+// own header card puts between the name and the role under it: on both surfaces
+// the name is who this is and the role is what they do, and reading them at the
+// same weight makes them one run-on label.
+//
+// (`.profileEmpty` used to live here, for a panel with nothing to quote. There is
+// no such panel any more — the current role is required and the name is always
+// known — so the class went with the apology it styled.)
+.profileName {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// Primary tone and medium weight: this is the sentence the hiring team reads, so
+// inside the card it outranks the labels around it.
+.profileSummary {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// Dates for the line above, in the 12px-secondary note idiom. Deliberately not
+// the summary's weight or tone: it qualifies that sentence, and a hiring team
+// reading the panel should land on the role first and the years second.
+.profileDates {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  // The card's own gap is tuned for the summary/dates pair, so the chips carry
+  // the break between "who this is" and "what they work in" themselves.
+  margin-top: 6px;
+
+  // (The chips are white here rather than the usual grey, because the panel
+  //  behind them is no longer white. That is set on the `Tag` itself via its
+  //  `color` prop — NOT here. Declaring `--tag-color` on this container looks
+  //  like it should work and silently does not: `Tag` defaults `color` to
+  //  '#f1f5f9' and writes it as an *inline* style on every `default` chip, so an
+  //  ancestor's value is always overridden. See the note at the `<Tag>` call.)
+}
+
+// Doubled selector to beat `Tag`'s own `.default`, which caps chips at 80px
+// (150px past 1024) because it was sized for a table cell. A read-back exists to
+// show exactly what is being sent, so "Distributed Sys…" is the one thing it must
+// never do; the cap comes off and long skills wrap instead.
+.skillTag.skillTag {
+  max-width: none;
+  white-space: normal;
+  text-align: left;
+}

@@ -1,13 +1,17 @@
 'use client';
 
+import { Button } from '@/components/common/Button';
+import { DocumentIcon } from '@/components/icons';
+// Reuse the Forum post's Back button styling (chevron + "Back") verbatim.
+import bb from '@/components/ui/BackButton/BackButton.module.scss';
+// Dev's own top-bar action class, so this bar's controls measure like the
+// real detail page's.
+import dev from '@/components/page/ai-apps/AiAppDetailPage/AiAppDetailPage.module.scss';
+
+import { FeedbackFab } from './FeedbackFab';
 import type { AiAppWithDoc } from './mocks';
 import { AppActionsMenu } from './AppActionsMenu';
 
-// Reuse the grid card's "App Details" pill (DS grey Badge + doc icon) verbatim.
-import tc from '@/components/common/LogosGrid/components/TeamCard/TeamCard.module.scss';
-// Reuse the Forum post's Back button styling (chevron + "Back") verbatim.
-import bb from '@/components/ui/BackButton/BackButton.module.scss';
-import card from './AiAppCard.module.scss';
 import s from './AiAppDetail.module.scss';
 
 interface Props {
@@ -22,10 +26,25 @@ interface Props {
   onDelete: () => void;
   /** Opens the 1-pager viewer — same action as the card's "App Details" button. */
   onViewOnePager: () => void;
+  /** Every app, so the feedback dialog's picker can offer the others too. */
+  apps: AiAppWithDoc[];
+  onSubmitFeedback: (appUid: string, appName: string, text: string) => void;
 }
 
 export function AiAppDetail(props: Props) {
-  const { app, previewSrcDoc, onBack, canManage, onEdit, onDeployment, onLogs, onDelete, onViewOnePager } = props;
+  const {
+    app,
+    previewSrcDoc,
+    onBack,
+    canManage,
+    onEdit,
+    onDeployment,
+    onLogs,
+    onDelete,
+    onViewOnePager,
+    apps,
+    onSubmitFeedback,
+  } = props;
 
   const hasOnePager = !!app.onePager;
 
@@ -42,33 +61,28 @@ export function AiAppDetail(props: Props) {
               strokeLinecap="round"
               strokeLinejoin="round"
             />
+
           </svg>
           Back
         </button>
 
-        {/* Right-side actions, mirroring the grid card: view the 1-pager, plus
-            the creator's ⋯ manage menu. */}
+        {/* Utility actions only: the 1-pager, then the creator's ⋯ manage menu.
+            Giving feedback left this strip for the floating pill in the corner
+            — you write it while using the app, not from a bar you scroll past —
+            and one surface keeps one door, so it isn't in both places. */}
         <div className={s.topBarActions}>
           {hasOnePager && (
-            <button
-              type="button"
-              className={card.detailsButton}
+            <Button
+              style="border"
+              variant="neutral"
+              size="xxs"
+              className={dev.topBarBtn}
               onClick={onViewOnePager}
               aria-label={`App details for ${app.name}`}
             >
-              <span className={`${tc.stage} ${card.detailsBadge}`}>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
-                  <path
-                    d="M4 1.5h5L13 5.5V13a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 3 13V3A1.5 1.5 0 0 1 4 1.5Z"
-                    stroke="currentColor"
-                    strokeWidth="1.2"
-                    strokeLinejoin="round"
-                  />
-                  <path d="M8.5 1.5V6h4.5" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
-                </svg>
-                App Details
-              </span>
-            </button>
+              <DocumentIcon aria-hidden />
+              App Details
+            </Button>
           )}
           {canManage && (
             <AppActionsMenu
@@ -90,6 +104,12 @@ export function AiAppDetail(props: Props) {
           <iframe className={s.iframe} srcDoc={previewSrcDoc} title={app.name} allow="fullscreen" />
         </div>
       </div>
+
+      {/* Pinned bottom-right, over the app: it says its name on arrival and
+          then settles to a glyph, because what it covers is the app. Preselects
+          this app in the picker, so the person who just used it doesn't have to
+          name it. */}
+      <FeedbackFab apps={apps} appUid={app.uid} appName={app.name} onSubmit={onSubmitFeedback} />
     </div>
   );
 }

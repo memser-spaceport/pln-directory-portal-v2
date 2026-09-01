@@ -1,5 +1,6 @@
 import { IUserInfo } from '@/types/shared.types';
 import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { isBlankHtml } from '@/utils/html';
 
 /**
  * Who is looking at the job board, and whether they can apply from it.
@@ -46,7 +47,10 @@ const ACCESS_LEVEL_VERDICTS: Record<AccessLevel, JobsAccessVerdict> = {
  * `useV2` is injectable so tests can exercise both branches — the env const is
  * baked at module load and can't be varied per test case.
  */
-export function getJobsAccessVerdict(userInfo: IUserInfo | null, useV2: boolean = USE_ACCESS_CONTROL_V2): JobsAccessVerdict {
+export function getJobsAccessVerdict(
+  userInfo: IUserInfo | null,
+  useV2: boolean = USE_ACCESS_CONTROL_V2,
+): JobsAccessVerdict {
   if (!userInfo) return 'pending';
   if (useV2) {
     const status = userInfo.rbac?.status;
@@ -58,6 +62,38 @@ export function getJobsAccessVerdict(userInfo: IUserInfo | null, useV2: boolean 
 
 export const canApplyToJobs = (userInfo: IUserInfo | null, useV2?: boolean): boolean =>
   getJobsAccessVerdict(userInfo, useV2) === 'approved';
+
+/** Marker assigned on Job Board sign-up, including unapproved members. */
+export const JOB_ASPIRANT_POLICY_CODE = 'job_aspirant';
+
+/** `signUpSource` written by Job Board sign-up. The login cookie carries this
+ *  even when `rbac.policies` is missing (auth's userInfo omits policies). */
+export const JOB_BOARD_SIGN_UP_SOURCE = 'job-board';
+
+export const isJobAspirant = (userInfo: IUserInfo | null): boolean =>
+  userInfo?.rbac?.policies?.some((policy) => policy.code === JOB_ASPIRANT_POLICY_CODE) ||
+  userInfo?.signUpSource === JOB_BOARD_SIGN_UP_SOURCE;
+
+/**
+ * Whether this viewer is offered the way out to the hiring team's own posting.
+ *
+ * Two people are not: someone with no account, and a **Job Aspirant** — a member
+ * who arrived through the job board itself. Both came here to apply, and this
+ * board can take an application in three steps without them leaving; a link to
+ * the company's careers page at that moment is an exit from the one flow that
+ * works for them, into a form that will ask for everything again.
+ *
+ * Everyone else keeps it. For an established member the posting is reference
+ * material next to an application they can make either way, and reading the ad
+ * has never been the same act as applying.
+ *
+ * Takes `isLoggedIn` separately rather than inferring it from `userInfo`,
+ * because the two disagree in both directions during first paint — the cookie
+ * can carry a user the store has not hydrated, and vice versa. The caller knows
+ * which is authoritative on its surface; this does not.
+ */
+export const canSeeOriginalPosting = (args: { isLoggedIn: boolean; userInfo: IUserInfo | null | undefined }): boolean =>
+  args.isLoggedIn && !isJobAspirant(args.userInfo ?? null);
 
 /**
  * Where someone is in their search.
@@ -89,6 +125,19 @@ export const JOB_SEARCH_STATUS_OPTIONS = [
 
 export type JobSearchStatus = (typeof JOB_SEARCH_STATUS_OPTIONS)[number]['value'];
 
+/**
+ * The same three values without their presentation, for the places that need a
+ * plain list — `z.enum` on the sign-up wire schema, principally.
+ *
+ * Derived rather than restated, so the list above stays the one place these
+ * change. The assertion says only that the array is non-empty, which `z.enum`
+ * requires and which is evident three lines up; the member type is inferred.
+ */
+export const JOB_SEARCH_STATUS_VALUES = JOB_SEARCH_STATUS_OPTIONS.map((option) => option.value) as [
+  JobSearchStatus,
+  ...JobSearchStatus[],
+];
+
 export const isJobSearchStatus = (v: unknown): v is JobSearchStatus =>
   JOB_SEARCH_STATUS_OPTIONS.some((o) => o.value === v);
 
@@ -110,9 +159,40 @@ export interface JobProfileFields {
  * `??` alone would not fall back past an empty-string `mainTeam.role`, and
  * empty-string roles exist in this data model.
  */
-export function isJobProfileComplete(member: JobProfileFields | null, jobSearchStatus: JobSearchStatus | null): boolean {
+export function isJobProfileComplete(
+  member: JobProfileFields | null,
+  jobSearchStatus: JobSearchStatus | null,
+): boolean {
   const role = (member?.mainTeam?.role ?? '').trim() || (member?.role ?? '').trim();
   return role !== '' && jobSearchStatus !== null;
+}
+
+/**
+ * The Job Aspirant banner stays up until each fillable profile section has
+ * something in it — stricter than `isJobProfileComplete`, which only gates
+ * Apply.
+ *
+ * Role + job search status are the two Apply answers. Skills, bio and
+ * experience are the optional set the profile drawer names ("Experience, skills
+ * and bio are optional"). A JA who can already apply still sees the nudge
+ * until those are filled too. Contact is skipped: sign-up always writes an
+ * email, so the card would never read empty.
+ */
+export interface JobProfileSectionFields extends JobProfileFields {
+  skills?: unknown[] | null;
+  bio?: string | null;
+}
+
+export function areAllJobProfileSectionsFilled(
+  member: JobProfileSectionFields | null,
+  jobSearchStatus: JobSearchStatus | null,
+  experienceCount: number,
+): boolean {
+  if (!isJobProfileComplete(member, jobSearchStatus)) return false;
+  if (!Array.isArray(member?.skills) || member.skills.length === 0) return false;
+  const bio = member?.bio ?? '';
+  if (!bio.trim() || (isBlankHtml(bio) && !/<img\b/i.test(bio))) return false;
+  return experienceCount >= 1;
 }
 
 export const BOARD_VIEWER_STATES = [
@@ -153,6 +233,12 @@ export function deriveBoardViewer(input: {
     case 'rejected':
       return 'rejected';
     case 'pending':
+      // Job Aspirants may stay unapproved; the pending-approval banner promises
+      // a review they are not in. They get the same banner split as approved
+      // members. Access itself stays pending — Apply still goes external.
+      if (isJobAspirant(input.userInfo)) {
+        return input.profileComplete ? 'profile-ready' : 'profile-incomplete';
+      }
       return 'pending-approval';
     case 'approved':
       return input.profileComplete ? 'profile-ready' : 'profile-incomplete';

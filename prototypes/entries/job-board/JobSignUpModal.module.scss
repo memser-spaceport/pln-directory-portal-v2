@@ -70,6 +70,31 @@
     max-width: 560px;
     min-height: 0;
     height: auto;
+
+    // **The card stays inside the viewport; the body scrolls, not the page.**
+    //
+    // It used to grow past the bottom of the window and let `Modal.overlay`
+    // scroll the whole thing — which is why `.overlay` is `align-items:
+    // flex-start` (a centred card taller than the viewport pushes its own first
+    // field off the top edge). That is a page pretending to be a dialog: the
+    // close button scrolls away with the card, the backdrop moves under the
+    // pointer, and on a short laptop window you scroll the *board* to reach
+    // Create account.
+    //
+    // 48px is the overlay's own 24px gutter, top and bottom, so the card stops
+    // exactly where the padding does rather than at an invented margin. `dvh`,
+    // not `vh`, for the same reason `min-height` above uses it.
+    max-height: calc(100dvh - 48px);
+
+    // The cap does nothing without this pair: a flex column here, and
+    // `min-height: 0` on the scrolling child (see `.pageBody`). A flex item's
+    // default `min-height: auto` refuses to shrink below its content, so the
+    // child would push the card back past the cap and `overflow` would never
+    // fire — the silent failure lesson 5 records for `overflow` inside a
+    // constrained flex parent.
+    display: flex;
+    flex-direction: column;
+
     border-radius: 16px;
     padding: 20px;
     box-shadow:
@@ -112,7 +137,7 @@
 // The page's own header: a sticky 64px bar with `← Back`.
 //
 // Production chrome, not a new one — `EditInvestorProfileDrawer.module.scss`'s
-// `.drawerHeader` / `.breadcrumbs` / `.backButton`, which `JobProfileDrawer`
+// `.drawerHeader` / `.breadcrumbs` / `.backButton`, which `JobProfilePane`
 // already renders two steps later in this same flow. A person who signs up on a
 // phone and then completes their profile meets the same bar twice.
 //
@@ -131,6 +156,27 @@
 
   @include media.tablet-landscape {
     padding: 0;
+
+    // The scroll region — card only. Below 960 this is a full-bleed *page*
+    // (`min-height: 100dvh` on `.modal`), where scrolling the document is the
+    // right behaviour and the sticky `.actionsDock` already keeps the primary
+    // action reachable; capping it there would reintroduce the bug the notes on
+    // `.overlay` describe, where 78px of form rendered outside the white.
+    //
+    // `min-height: 0` is the half that does the work — see the cap in `.modal`.
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+
+    // Scrollbar left visible, against the prototypes' usual
+    // `scrollbar-width: none` (the rails in newsfeed, gantry, v0). Those hide it
+    // because content clipped at a fold is its own affordance — you can see there
+    // is more. A form cannot borrow that argument: the thing below the fold is
+    // the button that submits it, and "is there more?" is the one question a
+    // person filling this in must not have to ask.
+    //
+    // Gutter reserved so the fields do not reflow the moment it appears.
+    scrollbar-gutter: stable;
   }
 }
 
@@ -223,6 +269,53 @@
   gap: 24px;
 }
 
+// The shared account group's own vertical rhythm — `AccountFields` wraps itself
+// in this, so the four fields are spaced by the component rather than by
+// whatever happens to contain it.
+//
+// They used to be bare siblings relying on `.form`'s gap above, which was fine
+// while this modal was the only host. It isn't: the apply flow's details step
+// mounts the same group inside a `DetailsSection`, and that ships with its own
+// `gap: 24px` **commented out** so every caller spaces its own contents. So the
+// fields landed with no gap at all and each field's error or hint sat closer to
+// the *next* field's label than to the input it belonged to — the message
+// pointing at the wrong control.
+//
+// Same 24px, so this modal renders identically: `.form` now has two children
+// (this stack and `.bottomText`) with 24 between them, and 24 inside.
+.fieldStack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+// `AccountFields layout="grid"` — email and full name on one line.
+//
+// **Only the apply flow's details step asks for this**, and only because that
+// pane is three cards tall; the modal keeps the stack, where four fields in a
+// 440px dialog have no height to save. Lives here rather than in the pane's own
+// sheet for the reason the header of `accountFields.tsx` gives: the group's
+// layout belongs to the group, and a caller reaching in to re-space fields it
+// doesn't own is how the two hosts start disagreeing about what this form is.
+//
+// One column below `tablet-landscape` — same line the import review card draws,
+// and for the same reason: two fields sharing the drawer's mobile width would
+// each be narrower than the placeholder inside them.
+//
+// 16px across against the stack's 24 down: the horizontal gap is the one people
+// read as "these two go together", and matching it to the vertical rhythm would
+// flatten the pair back into four equal boxes.
+.fieldPair {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+
+  @include media.tablet-landscape {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+}
+
 .column {
   display: flex;
   flex-direction: column;
@@ -260,6 +353,49 @@
       margin-top: 1rem;
     }
   }
+}
+
+// A labelled checkbox row, transcribed from `SignupWizard.module.scss`'s
+// `.Label` + `.primary` — the pair production wraps around its own two DS
+// `Checkbox` ticks (Subscribe to PL Newsletter, and the Terms agreement). That
+// form is already this group's source for field order and for `OptionalMark`,
+// so its checkbox row is the one to copy rather than a shape invented here.
+//
+// Used twice: the team gate in `accountFields`, and the apply flow's consent
+// tick on the logged-out details step (`JobAccountPane` imports this sheet
+// already, for `.signInLink`). One definition, so the board's two checkboxes
+// cannot drift.
+//
+// Transcribed 1:1 from the source: `flex`, `align-items: flex-start`, and the
+// `button { pointer-events: none }` — that last rule is load-bearing rather
+// than cosmetic. base-ui's `Checkbox.Root` renders a `<button>`, which is a
+// labelable element, so a wrapping `<label>` forwards its click to it; without
+// this the tick would fire twice on a press that lands on the box itself and
+// cancel itself out.
+//
+// **One deviation from the source, and one colour translation.** The gap is
+// 8px, not the source's `1rem`: `.Label` there is a `space-between` row on a
+// wider card, and at 16px against a 20px box the sentence stops reading as this
+// checkbox's own label. And `.primary`'s raw `#475569` becomes the PL secondary
+// pair — the same swap `.inputsLabel` above already makes, and for the same
+// reason (prototypes/CLAUDE.md #3).
+.checkRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+
+  button {
+    pointer-events: none;
+  }
+}
+
+.checkText {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 19px; /* 158.333% */
 }
 
 // Source's `.separator`, minus its padding-bottom: that value hangs the glyph
@@ -388,10 +524,26 @@
 
 // Landing.module.scss's `.link`, stripped back to a button element: a link, not
 // a second button, so it can't compete with Submit four pixels above it.
+//
+// **One deliberate deviation from that source: 500, not 400.** The colour, the
+// size, the underline and its 0.3em offset are transcribed; the weight is not,
+// and the reason is that 400 was never a decision anyone made about a *control*.
+// `Landing.link` is 14/400 and production's own `JobSignUpModal.signInLink` is a
+// copy of it, but neither is the design system — the DS's actual link control is
+// `Button` with `style="link"`, and `Button.root` sets `font-weight: 500` for
+// every style it has. Every other text button on these surfaces agrees with the
+// DS and not with `Landing`: `.headerCancel` 14/500, `.inlineDoor` 500,
+// `ExperienceImportPanel`'s `.doorLabel` 14/500, `.backLink` 12/500,
+// `.quietButton` 14/500. At 400 this was the only pressable text in the drawer
+// drawn lighter than the sentence it sits in, which is what reads as thin.
+//
+// It stays a link rather than becoming a button: brand colour and an underline
+// against the secondary grey around it are what rank it below the primary
+// action, and weight was never carrying that job.
 .signInLink {
   color: var(--action-foreground-brand-inverted_normal, #1b4dff);
   font-size: 14px;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 20px;
   letter-spacing: -0.2px;
 

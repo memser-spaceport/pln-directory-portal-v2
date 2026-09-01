@@ -30,7 +30,7 @@ import { getTeamNews, feedFocusHref } from '../news-shared/mockTeamNews';
 // share and metrics — rather than a job-board retelling of it.
 import { FeedDetailModal, type FeedDetail } from '../newsfeed-v0/FeedDetailModal';
 import { EVENT_TYPE_LABEL, EVENT_TYPE_HEX } from '../newsfeed-v0/eventMeta';
-import { BASE_LIKES } from '../newsfeed-v0/mocks';
+import { BASE_LIKES, PL_TEAM_UID } from '../newsfeed-v0/mocks';
 import fa from '../newsfeed-v0/FeedActions.module.scss';
 
 const INITIAL_ROLES_SHOWN = 3;
@@ -47,12 +47,17 @@ interface JobTeamGroupCardProps {
    * headline in that same slot instead; the other two put it below the roles.
    */
   newsVariant?: JobCardNewsVariant;
-  canRefer?: boolean;
-  onReferBlocked?: () => void;
-  /** Handed straight to the row: applying happens in-app, so the board owns the press. */
-  onApply?: (role: IJobRole) => void;
-  /** Same, for the reading step: the description opens in a drawer the board
-   *  owns, over the whole list rather than inside one card. */
+  /** Handed to the row: whether pressing **Refer** may open the referral modal.
+   *  The button itself is shown to everyone — this gates the modal, not the
+   *  offer. */
+  canOpenReferral?: boolean;
+  /** Handed to the row: where Refer goes without an account — the board's
+   *  sign-up door. */
+  onReferSignUp?: () => void;
+  /** Handed straight to the row: opening a role starts the apply flow, which
+   *  the board owns — one drawer over the whole list rather than one per card.
+   *  (`onApply` used to sit beside this, from when a row could apply directly.
+   *  The row has no such button any more; the flow footer has it.) */
   onViewJob?: (role: IJobRole) => void;
   /** Uids of roles already applied to. */
   appliedRoleUids?: Set<string>;
@@ -69,9 +74,8 @@ interface JobTeamGroupCardProps {
 export function JobTeamGroupCard({
   group,
   newsVariant = 'full',
-  canRefer = true,
-  onReferBlocked,
-  onApply,
+  canOpenReferral = true,
+  onReferSignUp,
   onViewJob,
   appliedRoleUids,
   appliedAtByRole,
@@ -84,6 +88,13 @@ export function JobTeamGroupCard({
      them by, and a team's list of openings has no second opinion to offer. */
   const visibleRoles = expanded ? roles : roles.slice(0, INITIAL_ROLES_SHOWN);
   const newCount = roles.filter((r) => isNew(getJobDate(r))).length;
+
+  /* Protocol Labs is the network's own org, and the board already pins its card
+     to the top — the gradient outline is what says so on the card itself, rather
+     than leaving the first position to be read as "newest". The same mark the
+     newsfeed gives PL's card, keyed off the same uid, so one org reads as one org
+     across the product. */
+  const isProtocolLabs = team.uid === PL_TEAM_UID;
 
   const focusTags = useGetFocusTags(team);
   const news = getTeamNews(team.uid, team.name);
@@ -145,7 +156,7 @@ export function JobTeamGroupCard({
   const newsOnNameRow = newsVariant === 'inline' || newsVariant === 'count';
 
   return (
-    <article className={`${s.card} ${js.card}`}>
+    <article className={`${s.card} ${js.card}${isProtocolLabs ? ` ${js.plCard}` : ''}`}>
       <header className={s.header}>
         <div className={`${s.avatar} ${js.avatar}`}>
           {team.logoUrl ? (
@@ -187,10 +198,10 @@ export function JobTeamGroupCard({
             <JobReferRoleRow
               role={role}
               teamName={team.name}
+              team={team}
               source="job-board"
-              canRefer={canRefer}
-              onReferBlocked={onReferBlocked}
-              onApply={onApply}
+              canOpenReferral={canOpenReferral}
+              onReferSignUp={onReferSignUp}
               onViewJob={onViewJob}
               applied={appliedRoleUids?.has(role.uid) ?? false}
               appliedAt={appliedAtByRole?.get(role.uid)}

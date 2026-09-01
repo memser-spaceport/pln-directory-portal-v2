@@ -465,6 +465,30 @@ export const activitiesData: ActivitiesData = {
           { text: 'https://directory.plnetwork.io/settings/email', url: 'https://directory.plnetwork.io/settings/email' }
         ]
       }
+    },
+    {
+      id: 'subscribe-pl-newsletter',
+      category: 'Brand',
+      activity: 'Subscribe to PL Newsletter',
+      networkValue: 'Subscribe to receive PL Network updates',
+      points: '50',
+      frequency: 'One-Time',
+      verificationType: 'Auto',
+      cta: 'confirm',
+      popupContent: {
+        title: 'Subscribe to PL Newsletter',
+        overview: 'Subscribe to the PL Newsletter to receive network news, opportunities, events, and other important updates directly in your inbox.',
+        networkBenefits: 'Keeps more members informed and connected to opportunities across the PL Network.',
+        rules: [
+          'Turn on the Subscribe to PL Newsletter toggle in Directory via https://directory.plnetwork.io/settings/email',
+          'The toggle must remain enabled when the subscription is verified',
+          'Points are awarded after Marketing confirms the subscription',
+          'This activity may only be completed once'
+        ],
+        links: [
+          { text: 'https://directory.plnetwork.io/settings/email', url: 'https://directory.plnetwork.io/settings/email' }
+        ]
+      }
     }
   ]
 };

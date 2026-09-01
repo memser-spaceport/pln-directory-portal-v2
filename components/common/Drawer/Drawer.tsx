@@ -13,10 +13,19 @@ export interface DrawerProps {
   width?: number;
   fullScreen?: boolean;
   noBlur?: boolean;
+  /**
+   * The scrolling element.
+   *
+   * This container is what overflows, not the content inside it — the sticky
+   * header and footer stick to it — so a caller that needs to reset the scroll
+   * position has no way to reach it from its own children. Optional and inert
+   * for everyone who doesn't ask.
+   */
+  containerRef?: React.Ref<HTMLDivElement>;
 }
 
 export function Drawer(props: PropsWithChildren<DrawerProps>) {
-  const { isOpen, onClose, children, width = 720, fullScreen, noBlur } = props;
+  const { isOpen, onClose, children, width = 720, fullScreen, noBlur, containerRef } = props;
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -54,6 +63,7 @@ export function Drawer(props: PropsWithChildren<DrawerProps>) {
           transition={{ duration: 0.3, ease: 'easeOut' }}
         >
           <motion.div
+            ref={containerRef}
             className={`${s.container} ${fullScreen ? s.fullScreen : ''}`}
             style={fullScreen ? undefined : { width }}
             initial={fullScreen ? { opacity: 0 } : { x: '100%' }}

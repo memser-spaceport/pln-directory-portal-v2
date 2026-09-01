@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { PAGE_ROUTES } from '@/utils/constants';
 
 import { Button } from '@/components/common/Button';
+import { useLoginRedirect } from '@/components/core/login/utils';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
 import { ActiveTab } from '@/components/page/member-details/ForumActivity/types';
 
@@ -17,6 +18,7 @@ interface AuthSectionProps {
 export function AuthSection(props: AuthSectionProps) {
   const { memberUid, memberName, activeTab } = props;
   const { onMemberProfileForumActivitySignInClicked, onMemberProfileForumActivitySignUpClicked } = useForumAnalytics();
+  const goToLogin = useLoginRedirect();
 
   const handleSignInClick = () => {
     if (memberUid && memberName && activeTab) {
@@ -26,6 +28,7 @@ export function AuthSection(props: AuthSectionProps) {
         activeTab,
       });
     }
+    goToLogin();
   };
 
   const handleSignUpClick = () => {
@@ -40,11 +43,11 @@ export function AuthSection(props: AuthSectionProps) {
 
   return (
     <div className={s.root}>
-      <Link href="#login" onClick={handleSignInClick}>
-        <Button style="border" className={s.signIn}>
-          Sign In
-        </Button>
-      </Link>
+      {/* A plain button, not a Link to #login: the anchor navigated natively, which
+          took the scroll position with it. The helper owns the navigation now. */}
+      <Button style="border" className={s.signIn} onClick={handleSignInClick}>
+        Sign In
+      </Button>
 
       <div className={s.signUpContainer}>
         Don&apos;t have an account?{' '}

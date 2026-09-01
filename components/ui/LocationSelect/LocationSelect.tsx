@@ -3,6 +3,7 @@ import Select, { ControlProps } from 'react-select';
 import { useQuery } from '@tanstack/react-query';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { useDebounce } from '@/hooks/useDebounce';
+import type { ResolvedLocation } from '@/services/location.service';
 
 import s from './LocationSelect.module.scss';
 
@@ -16,19 +17,28 @@ interface LocationSelectProps {
   resolvedCountry?: string;
   resolvedCity?: string;
   resolvedState?: string;
+  /**
+   * Seeds the search box, and runs the first lookup without anyone typing.
+   *
+   * For callers that already have a place as *text* and need it as a resolved
+   * record — the CV import, which gets "Berlin, Germany" off a document and
+   * cannot write that to the profile, because only `/v1/locations/{placeId}/details`
+   * produces the `{city, metroArea, country, region, continent}` the member
+   * record stores.
+   *
+   * Seeding the query, not the value: what the document said is a guess, and it
+   * still has to be picked from the list before it counts. react-select clears
+   * an uncontrolled input on blur, so a caller relying on this should say
+   * elsewhere what it seeded — the text vanishing is not the same as the caller
+   * having got it wrong.
+   */
+  defaultInputValue?: string;
 }
 
-interface ResolvedLocation {
-  city: string;
-  continent: string;
-  country: string;
-  latitude: number;
-  longitude: number;
-  metroArea: string | null;
-  placeId: string;
-  region: string;
-  regionAbbreviation: string;
-}
+/* Defined in `services/location.service` — it is what `/v1/locations/{placeId}/details`
+   returns, not a prop shape. Re-exported so existing reach-for-it-here callers
+   keep working. */
+export type { ResolvedLocation };
 
 interface ILocationSelect {
   resolvedCountry?: string;
@@ -47,8 +57,11 @@ export const LocationSelect: React.FC<LocationSelectProps> = ({
   resolvedCountry,
   resolvedState,
   resolvedCity,
+  defaultInputValue,
 }) => {
-  const [input, setInput] = useState('');
+  /* Seeded so the predictions query fires on mount rather than waiting for a
+     keystroke that, for a seeded field, may never come. */
+  const [input, setInput] = useState(defaultInputValue ?? '');
   const debouncedQuery = useDebounce(input, 300);
 
   const fetchPredictions = async (input: string): Promise<PlaceOption[]> => {
@@ -107,6 +120,7 @@ export const LocationSelect: React.FC<LocationSelectProps> = ({
         menuPlacement="auto"
         isLoading={isFetching}
         options={options}
+        defaultInputValue={defaultInputValue}
         onInputChange={(val) => setInput(val)}
         onChange={(val) => handleSelect(val as PlaceOption)}
         placeholder="Enter your location"

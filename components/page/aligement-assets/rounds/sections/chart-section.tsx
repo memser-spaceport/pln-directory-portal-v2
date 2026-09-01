@@ -52,13 +52,17 @@ export default function ChartSection({ data }: ChartSectionProps) {
                     stroke="#cbd5e1" 
                     vertical={false}
                   />
-                  <XAxis 
-                    dataKey="name" 
+                  <XAxis
+                    dataKey="name"
                     axisLine={{ stroke: '#64748b' }}
                     tickLine={false}
-                    tick={{ 
-                      fill: '#475569', 
-                      fontSize: 12, 
+                    // Without this, recharts silently drops a tick it thinks
+                    // would overlap instead of shrinking to fit — invisible
+                    // until a category count grows past what used to fit.
+                    interval={0}
+                    tick={{
+                      fill: '#475569',
+                      fontSize: 12,
                       fontWeight: 600
                     }}
                     dy={10}

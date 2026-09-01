@@ -1,0 +1,21 @@
+{
+  "contract": "sha256 of every file in design-canvas/core/ as the design-canvas skill shipped it. The canvas has one appearance in every project it is installed in; check-install.mjs fails if any of these files was edited here. Adapt the declaration in project/, never the core.",
+  "installedAt": "2026-08-20T11:46:46.423Z",
+  "files": {
+    "core/__tests__/comments-route.test.ts": "ca1b3cc16db255292ed29b75f12d308c4c24021fc38612188cd49c18c37b0b28",
+    "core/canvas-edges.tsx": "2ad789d2f73fdf983d424d6449987cd869a02db8a4a70bdc6594dd2149d84c53",
+    "core/canvas-frame.tsx": "1df0e9edfe72ed50fffb296569662fb32c0ba11d82e8bc9f7acfaf56e98bd550",
+    "core/canvas-motion.tsx": "34c577379bcb6486ab2f9ccfb9a163a8d620eec71de5860e415092532b4c7560",
+    "core/canvas-surface.tsx": "a34cac54289402f50dcb52b516654907787770a1e5b2df0671bd47d5d85978d4",
+    "core/canvas-tooltip.tsx": "d563fb39a1a1625b9a65f27b021d05c7bfd48da49aa95201d8b870130ab8bf28",
+    "core/canvas-view.tsx": "c0bd4eabad1e00ebe81f8c40320a1033a83251fa075157070f3e899aabf08046",
+    "core/cn.ts": "fc4a30a8d49d385aaa7a604249d9a9abf333b2852bec80b72b72305774698ab1",
+    "core/comments-client.ts": "4c23abd17a9fbb2f65beada03c751921599ddc22ca7efba2f96866586125ae39",
+    "core/comments-route.ts": "b0aa1432c829be2625c9f4c6997d4298ce67ac9c3ab0dff52fa3bb47f38a7530",
+    "core/design-tokens.md": "cd80378750ee61a1cf8eefa584c6255a5a27ad9cc9456bf3561f1cab58bff204",
+    "core/graph-layout.ts": "3b622b4d12bf390480dde7a02c2373dc7a732424ef7bc8822bf6e0b9d90e487f",
+    "core/icons.tsx": "88cff2d3151e9bff40f64248379765ee797b08f6462bf911149dff2d107b0d89",
+    "core/shots-route.ts": "cdb607d5f6723d453177c4e377849e3013cb966c55aaad5d66d59ebce3a348c3",
+    "core/types.ts": "b5a7b5fa7be5fdfa7cbe6d2e4d5bf051c8ad29470e3a4351e90f743e385d38c6"
+  }
+}

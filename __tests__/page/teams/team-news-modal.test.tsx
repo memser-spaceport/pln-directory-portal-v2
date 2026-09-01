@@ -50,7 +50,20 @@ jest.mock('@/services/feed/hooks/useFeedCommentCounts', () => ({
 }));
 
 jest.mock('@/services/auth/store', () => ({
-  useCurrentUserStore: () => ({ currentUser: null, isHydrated: true }),
+  useCurrentUserStore: () => ({ currentUser: mockCurrentUser(), isHydrated: true }),
+}));
+
+const mockCurrentUser = jest.fn<{ uid: string } | null, []>(() => null);
+
+// The page-load-scoped view queue. Mocked so the assertions are about which
+// rows this box reports as read, not about batching (its own suite covers that).
+const mockRecordVisible = jest.fn();
+jest.mock('@/services/team-news/hooks/useTeamNewsImpressions', () => ({
+  // `viewedUids` is what the hook reports back for the optimistic +1. This box
+  // doesn't merge it (its rows come from their own query), but the mock has to
+  // supply it — a jest factory is untyped, so an omission surfaces as a runtime
+  // crash in whatever renders next rather than as a type error here.
+  useTeamNewsImpressions: () => ({ recordVisible: mockRecordVisible, viewedUids: new Set<string>() }),
 }));
 
 jest.mock('@/utils/formatTimeAgo', () => ({
@@ -134,6 +147,21 @@ const loading = (): QueryState => ({
 
 const scrollToMock = jest.fn();
 
+interface ObservedSet {
+  callback: (entries: { target: Element; isIntersecting: boolean }[]) => void;
+  elements: Element[];
+}
+
+const observed: ObservedSet[] = [];
+
+/** Every card currently observed reports itself as half on screen. */
+function scrollCardsIntoView() {
+  observed.forEach(({ callback, elements }) => {
+    const cards = elements.filter((el) => el.hasAttribute('data-story-uid'));
+    if (cards.length > 0) callback(cards.map((target) => ({ target, isIntersecting: true })));
+  });
+}
+
 const renderModal = (props: Partial<React.ComponentProps<typeof TeamNewsModal>> = {}) =>
   render(
     <TeamNewsModal
@@ -164,10 +192,25 @@ const rerenderModal = (
   );
 
 beforeAll(() => {
+  // jsdom has no layout, so nothing ever "becomes visible" on its own. This
+  // stub keeps what each observer is watching, and `scrollCardsIntoView()`
+  // below plays the intersection back for the cards.
   class IO {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
+    private readonly entry: ObservedSet;
+
+    constructor(callback: ObservedSet['callback']) {
+      this.entry = { callback, elements: [] };
+      observed.push(this.entry);
+    }
+    observe(element: Element) {
+      this.entry.elements.push(element);
+    }
+    unobserve(element: Element) {
+      this.entry.elements = this.entry.elements.filter((el) => el !== element);
+    }
+    disconnect() {
+      this.entry.elements = [];
+    }
   }
   (global as unknown as { IntersectionObserver: unknown }).IntersectionObserver = IO;
   if (typeof CSS === 'undefined' || typeof CSS.escape !== 'function') {
@@ -463,5 +506,87 @@ describe('TeamNewsModal drill', () => {
       fireEvent.click(screen.getByRole('link', { name: /All network updates/i }));
       expect(mockOnAllNetworkUpdatesClicked).toHaveBeenCalledWith('team-1', 'Protocol Labs', 'teams-listing-modal');
     });
+  });
+});
+
+// Opened from a listing card's chip (the teams grid, the job board), this box is
+// the whole reading surface — there is no rail behind it holding vote state and
+// no feed underneath it counting views. Both have to work here on their own.
+describe('TeamNewsModal opened without rail-owned state', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    observed.length = 0;
+    mockCurrentUser.mockReturnValue({ uid: 'member-1' });
+    queryState = loaded([makeItem('news-1'), makeItem('news-2'), makeItem('news-3')]);
+  });
+
+  const renderStandalone = (props: Partial<React.ComponentProps<typeof TeamNewsModal>> = {}) =>
+    render(
+      <TeamNewsModal
+        isOpen
+        focusUid={null}
+        onClose={jest.fn()}
+        teamUid="team-1"
+        teamName="Protocol Labs"
+        source="job-board-modal"
+        {...props}
+      />,
+    );
+
+  it('offers a Like on every row, with no vote state handed in', () => {
+    renderStandalone();
+
+    // Reading a story and being able to like it are the same act; a caller that
+    // has no second view to sync must not lose the button for it.
+    expect(screen.getAllByRole('button', { name: /^Like \(0\)$/ })).toHaveLength(3);
+  });
+
+  it('holds the vote itself when nobody else is holding it', () => {
+    renderStandalone();
+
+    fireEvent.click(screen.getAllByRole('button', { name: /^Like \(0\)$/ })[1]);
+
+    expect(screen.getByRole('button', { name: 'Remove like (1)' })).toHaveAttribute('aria-pressed', 'true');
+    // Only the row that was clicked.
+    expect(screen.getAllByRole('button', { name: /^Like \(0\)$/ })).toHaveLength(2);
+  });
+
+  it('defers to the caller when it has its own handler, rather than voting twice', () => {
+    const onUpvoteToggle = jest.fn();
+    renderStandalone({ onUpvoteToggle, upvoteOverlay: new Map() });
+
+    fireEvent.click(screen.getAllByRole('button', { name: /^Like \(0\)$/ })[0]);
+
+    expect(onUpvoteToggle).toHaveBeenCalledWith(expect.objectContaining({ uid: 'news-1' }), 0, 'job-board-modal');
+    // The caller owns the overlay, so this box must not also move the count.
+    expect(screen.getAllByRole('button', { name: /^Like \(0\)$/ })).toHaveLength(3);
+  });
+
+  it('counts a row as read once it is on screen', () => {
+    renderStandalone();
+
+    scrollCardsIntoView();
+
+    // The number these rows display is the one they now contribute to.
+    expect(mockRecordVisible.mock.calls.map(([uid]) => uid)).toEqual(['news-1', 'news-2', 'news-3']);
+  });
+
+  it('reports nothing for rows nobody scrolled to', () => {
+    renderStandalone();
+
+    expect(mockRecordVisible).not.toHaveBeenCalled();
+  });
+
+  it('defers to the caller’s recorder, rather than counting into a second set', () => {
+    const recordVisible = jest.fn();
+    renderStandalone({ recordVisible });
+
+    scrollCardsIntoView();
+
+    expect(recordVisible.mock.calls.map(([uid]) => uid)).toEqual(['news-1', 'news-2', 'news-3']);
+    // Its own instance stays silent. Both firing is how a story read in the
+    // team-profile rail and again in here would count twice for one sitting —
+    // the dedup set lives per instance, so two instances cannot agree.
+    expect(mockRecordVisible).not.toHaveBeenCalled();
   });
 });

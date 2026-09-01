@@ -909,7 +909,13 @@
    than borrowing .gapNote's warning colour. */
 .pillNote {
   margin-bottom: 16px;
-  padding: 12px 14px;
+  /* 12px/14px originally. Dialled down once the For You note became a single
+     line: at that height the padding was most of the box, so the note read as a
+     slab rather than as a line of framing. Changed on the shared class, not on a
+     For You override — the Deals note is the same object doing the same job in
+     the same row, and two explanatory notes that differ by 4px of padding is the
+     kind of drift nobody can see and everybody inherits. */
+  padding: 8px 12px;
   border-radius: 10px;
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
@@ -1423,4 +1429,47 @@
   @include mobile-only {
     padding: 18px;
   }
+}
+
+/* The link-style Button that ends the For You note. `.link` already zeroes the
+   padding and the min-width, so all that's left is sitting it on the sentence's
+   baseline — a <button> aligns to the line box's bottom by default, which drops
+   it a couple of pixels below the text it is part of. */
+.noteAction.noteAction {
+  vertical-align: baseline;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+
+  /* The label and its arrow are one control, so the button lays them out itself.
+     inline-flex rather than flex so the button still sits on the sentence's
+     baseline in .noteRow; 4px is the gap ProfileNudgeBanner puts between the
+     same two things. */
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  /* Takes the link's colour through currentColor, and must not be squeezed when
+     the row wraps. */
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+/* The For You note is a sentence plus its one way out. Flex rather than an
+   inline link at the end of the prose because the sentence very nearly fills the
+   feed column: inline, the link lost its race for the last 60px and orphaned
+   itself on a line of its own. Here it sits at the end of the row while there is
+   room and drops to the content edge below it when there isn't — and the note
+   still reads as one object either way. */
+.noteRow.noteRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  /* Not space-between: on a wide enough column the two would fit one line and
+     the link would fly to the far right, so where the action sits would depend
+     on the reader's monitor. Following the sentence — or starting the next line
+     at the same content edge — is one placement, not two. */
+  justify-content: flex-start;
+  gap: 2px 8px;
 }

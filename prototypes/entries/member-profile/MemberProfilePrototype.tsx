@@ -37,6 +37,10 @@ import contact from '@/components/page/member-details/contact-details/ContactDet
 import repo from '@/components/page/member-details/RepositoriesDetails/components/RepositoriesList/RepositoriesList.module.scss';
 import book from '@/components/page/member-details/BookWithOther/BookWithOther.module.scss';
 
+import { MemberActivity } from './MemberActivity';
+import { BlueskyRailCard } from './BlueskyRailCard';
+import { ACTIVITY_SCENARIOS } from './activityMocks';
+
 import { PlTeamOnlyPill } from '../profile-shared/PlTeamOnlyPill';
 import s from './MemberProfile.module.scss';
 import {
@@ -60,8 +64,18 @@ const SOCIAL_TO_HANDLE_MAP: Record<string, keyof typeof MOCK_MEMBER> = {
   email: 'email',
   discord: 'discordHandle',
   telegram: 'telegramHandle',
+  bluesky: 'blueskyHandle',
 };
-const VISIBLE_HANDLES = ['email', 'linkedin', 'telegram', 'twitter', 'discord', 'github'];
+const VISIBLE_HANDLES = ['email', 'linkedin', 'telegram', 'twitter', 'bluesky', 'discord', 'github'];
+
+/**
+ * The Relationship card's audience, written once so the pill (slate variant)
+ * and the banner strip (blue variant) cannot drift apart — they are the same
+ * promise in two shapes. Scoped to this page: the shared `PlTeamOnlyPill`
+ * default still reads "Visible to you and LabOS admins" for the job-board
+ * drawer, where the field really is the member's own.
+ */
+const PL_TEAM_ONLY = 'PL team only';
 
 type CardAccent = 'slate' | 'blue';
 const CARD_ACCENTS: { key: CardAccent; label: string }[] = [
@@ -75,10 +89,15 @@ export default function MemberProfilePrototype() {
   const [mounted, setMounted] = useState(false);
   const [scenarioKey, setScenarioKey] = useState(RELATIONSHIP_SCENARIOS[0].key);
   const [cardAccent, setCardAccent] = useState<CardAccent>('slate');
+  const [activityKey, setActivityKey] = useState(ACTIVITY_SCENARIOS[0].key);
 
   useEffect(() => setMounted(true), []);
 
   const scenario = RELATIONSHIP_SCENARIOS.find((sc) => sc.key === scenarioKey) ?? RELATIONSHIP_SCENARIOS[0];
+  const activity = ACTIVITY_SCENARIOS.find((sc) => sc.key === activityKey) ?? ACTIVITY_SCENARIOS[0];
+  // The card decides for itself whether it has anything to render — posts, the
+  // connect prompt, or nothing — so the two mounts below can't disagree.
+  const hasBlueskyCard = activity.showsBluesky || (activity.isOwner && activity.notConnected);
 
   if (!mounted) {
     return <div className={s.pageBackdrop} />;
@@ -87,31 +106,58 @@ export default function MemberProfilePrototype() {
   return (
     <div className={s.pageBackdrop}>
       <div className={s.demoSwitch}>
-        <span className={s.demoSwitchLabel}>Affinity demo — switch the relationship state</span>
-        <div className={s.demoSwitchRow}>
-          {RELATIONSHIP_SCENARIOS.map((sc) => (
-            <button
-              key={sc.key}
-              type="button"
-              className={clsx(s.demoSwitchBtn, { [s.active]: sc.key === scenario.key })}
-              onClick={() => setScenarioKey(sc.key)}
-            >
-              {sc.label}
-            </button>
-          ))}
+        {/* Both Affinity controls govern the same card, so they share a row. */}
+        <div className={s.demoSwitchGroupRow}>
+          <div className={s.demoSwitchGroup}>
+            <span className={s.demoSwitchLabel}>Affinity — relationship state</span>
+            <div className={s.demoSwitchRow}>
+              {RELATIONSHIP_SCENARIOS.map((sc) => (
+                <button
+                  key={sc.key}
+                  type="button"
+                  className={clsx(s.demoSwitchBtn, { [s.active]: sc.key === scenario.key })}
+                  onClick={() => setScenarioKey(sc.key)}
+                >
+                  {sc.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className={s.demoSwitchGroup}>
+            <span className={s.demoSwitchLabel}>Affinity — card accent</span>
+            <div className={s.demoSwitchRow}>
+              {CARD_ACCENTS.map((a) => (
+                <button
+                  key={a.key}
+                  type="button"
+                  className={clsx(s.demoSwitchBtn, { [s.active]: a.key === cardAccent })}
+                  onClick={() => setCardAccent(a.key)}
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-        <span className={s.demoSwitchLabel}>Card accent</span>
-        <div className={s.demoSwitchRow}>
-          {CARD_ACCENTS.map((a) => (
-            <button
-              key={a.key}
-              type="button"
-              className={clsx(s.demoSwitchBtn, { [s.active]: a.key === cardAccent })}
-              onClick={() => setCardAccent(a.key)}
-            >
-              {a.label}
-            </button>
-          ))}
+
+        {/* The four states the rail card has to survive. Note the last two are
+            the same fact seen from two sides: with no account connected, the
+            owner is offered the prompt and a visitor gets nothing at all. */}
+        <div className={s.demoSwitchGroup}>
+          <span className={s.demoSwitchLabel}>Bluesky posts — state</span>
+          <div className={s.demoSwitchRow}>
+            {ACTIVITY_SCENARIOS.map((sc) => (
+              <button
+                key={sc.key}
+                type="button"
+                className={clsx(s.demoSwitchBtn, { [s.active]: sc.key === activityKey })}
+                onClick={() => setActivityKey(sc.key)}
+              >
+                {sc.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -127,6 +173,22 @@ export default function MemberProfilePrototype() {
               </div>
               <OfficeHoursCard />
               <ContactCard />
+              {/* Production's slot for this section: after Contact details,
+                  before Teams. Reproduced so the rail card is judged against a
+                  profile of the length this page actually has. */}
+              <MemberActivity />
+              {/* Mobile home for the Bluesky card. Below tablet-landscape the
+                  rail is hidden, so it falls in here — the same split
+                  .affinityMobile and .updatesMobile make. */}
+              {hasBlueskyCard && (
+                <div className={s.blueskyMobile}>
+                  <BlueskyRailCard
+                    showsBluesky={activity.showsBluesky}
+                    isOwner={activity.isOwner}
+                    notConnected={activity.notConnected}
+                  />
+                </div>
+              )}
               <TeamsCard />
               {/* Below tablet-landscape the rail is hidden, so the updates card
                   falls in here — directly under the teams it describes. */}
@@ -146,7 +208,30 @@ export default function MemberProfilePrototype() {
             </div>
             <div className={s.rail}>
               <AffinityCard relationship={scenario.relationship} empty={scenario.empty} accent={cardAccent} />
+              {/* Team updates above Bluesky. An earlier pass had these the other
+                  way round, on the grounds that a person's own posting is
+                  "closer to the person" than their teams' news — a taxonomy
+                  argument, which lost to three about the reader:
+
+                  Signal. "Lattice Compute raises $4.2M" is a consequential fact
+                  about the person's situation; "spent the week benchmarking" is
+                  texture. The updates card is also admitted and capped, where a
+                  timeline is unfiltered self-publishing.
+
+                  Fill rate. Every member on a team has updates; Bluesky is
+                  opt-in and often absent. A card that disappears for most people
+                  should not own the slot that sets the rail's shape.
+
+                  Weight. The Bluesky card carries images and the updates card is
+                  text rows, so this order also runs the rail's visual weight
+                  downwards instead of pulling the eye past Relationship — which
+                  is what an internal reader opened this column for. */}
               <MemberTeamUpdates teams={MOCK_MEMBER.teams} />
+              <BlueskyRailCard
+                showsBluesky={activity.showsBluesky}
+                isOwner={activity.isOwner}
+                notConnected={activity.notConnected}
+              />
               <BookWithOtherCard />
             </div>
           </div>
@@ -269,7 +354,9 @@ function OfficeHoursCard() {
 function ContactCard() {
   return (
     <DetailsSection>
-      <div className={contact.contentRoot}>
+      {/* Anchor target for the Activity section's owner note — the Bluesky
+          handle and its visibility both live in this section. */}
+      <div id="contact-details" className={contact.contentRoot}>
         <DetailsSectionHeader title="Contact Details" />
         <div className={contact.container}>
           <div className={contact.social}>
@@ -479,16 +566,15 @@ function AffinityCard({
 
   // Blue variant mirrors the Investor Details card: brand-subtle outline,
   // light-blue banner strip attached to the top carrying the same privacy
-  // sentence `PlTeamOnlyPill` shows in the other variant, white body with the
-  // grey icon blocks. The wording tracks the pill deliberately — the two are the
-  // same promise in two shapes, and one of them saying something different is
-  // the drift that moving the pill to profile-shared/ was meant to end.
+  // sentence the pill shows in the other variant, white body with the grey icon
+  // blocks. The two must keep saying the same thing — they are one promise in
+  // two shapes, and the audience on this card is the PL team, not the member.
   if (isBlue) {
     return (
       <DetailsSection classes={{ root: s.internalCardBlue }}>
         <div className={s.plBanner}>
           <LockIcon />
-          <span>Visible to you and LabOS admins</span>
+          <span>{PL_TEAM_ONLY}</span>
         </div>
         <div className={s.blueBody}>
           <DetailsSectionHeader title="Relationship" />
@@ -501,11 +587,13 @@ function AffinityCard({
   return (
     <DetailsSection classes={{ root: s.internalCard }}>
       <DetailsSectionHeader title="Relationship">
-        {/* Moved to profile-shared/ when the job-board profile drawer needed the
-            same mark for its private "Job search status" section. Same pill,
-            same values — one component now, so the two surfaces can't drift into
-            telling people two different things about the same promise. */}
-        <PlTeamOnlyPill />
+        {/* The shared mark from profile-shared/, with this card's own audience.
+            The job-board drawer's default sentence ("Visible to you and LabOS
+            admins") describes a member's own private field; this card is PL's
+            CRM notes *about* the member, gated on Affinity access they don't
+            have — so "you" would be a PL staffer and the member never sees it
+            at all. Same pill, same lock, different promise. */}
+        <PlTeamOnlyPill label={PL_TEAM_ONLY} />
       </DetailsSectionHeader>
       {blocks}
     </DetailsSection>

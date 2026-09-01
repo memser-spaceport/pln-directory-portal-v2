@@ -80,6 +80,28 @@ export const activitiesData: ActivitiesData = {
       }
     },
     {
+      id: 'comment-on-network-news',
+      category: 'Knowledge Sharing',
+      activity: 'Comment on News from the Network',
+      networkValue: 'Upvote useful network news',
+      points: '100',
+      frequency: 'Repeatable',
+      verificationType: 'Auto',
+      cta: 'confirm',
+      popupContent: {
+        title: 'Comment on News from the Network',
+        overview: 'Comment on useful, timely, or relevant news on the LabOS homepage to share your perspective and contribute to the network conversation.',
+        networkBenefits: 'Introduces members to a LabOS feature while encouraging thoughtful discussion, knowledge sharing, and additional context around news that matters to the network.',
+        rules: [
+          'Comment on an existing news post on the LabOS homepage',
+          'The comment must add relevant context, perspective, insight, or a thoughtful response to the news post',
+          'The comment must remain visible when completion is checked',
+          'Each post may qualify only once per participant',
+          'Participants may earn points once per month for completing this activity'
+        ]
+      }
+    },
+    {
       id: 'network-introduction',
       category: 'Programs',
       activity: 'Make a Network Introduction',
@@ -140,25 +162,6 @@ export const activitiesData: ActivitiesData = {
       }
     },
     {
-      id: 'monthly-feedback-survey',
-      category: 'Projects',
-      activity: 'Complete a PLAA Survey',
-      networkValue: 'Complete a survey distributed by PLAA to help us learn more about how to improve products, processes, and serve the network better',
-      points: '50',
-      frequency: 'Repeatable',
-      verificationType: 'Auto',
-      cta: 'confirm',
-      popupContent: {
-        title: 'Complete a PLAA Survey',
-        overview: 'Complete a PLAA Survey. You can find surveys in the emails we send mid-month and on an ad hoc basis.',
-        networkBenefits: 'Gives PLAA a reliable feedback signal for improving the program, products, and participant experience.',
-        rules: [
-          `Surveys must be completed before the end of the month in which they're sent`,
-          'Bot or Spam responses may result in the forfeiture of points'
-        ]
-      }
-    },
-    {
       id: 'give-excellent-survey-feedback',
       category: 'Projects',
       activity: 'Give Excellent Survey Feedback',
@@ -169,7 +172,7 @@ export const activitiesData: ActivitiesData = {
       cta: 'confirm',
       popupContent: {
         title: 'Give Excellent Survey Feedback',
-        overview: 'Your monthly survey feedback went above and beyond. The insights you provided helped identify new issues or drive real improvements to the Alignment Asset program.',
+        overview: 'Your survey feedback went above and beyond. The insights you provided helped identify new issues or drive real improvements to the Alignment Asset program.',
         networkBenefits: 'Rewards feedback that identifies meaningful issues or improvement opportunities, not just completed forms.',
         rules: [
           'Your feedback created meaningful impact, as determined by the PLAA working group',
@@ -181,18 +184,20 @@ export const activitiesData: ActivitiesData = {
       id: 'complete-a-survey',
       category: 'Projects',
       activity: 'Complete a Survey',
-      networkValue: `Complete a PL Network member's survey to help them gather data for their organization`,
+      networkValue: `Complete a survey distributed by PLAA — whether from a PL Network member or PLAA itself — to help gather useful data`,
       points: '50',
       frequency: 'Repeatable',
       verificationType: 'Auto',
       cta: 'confirm',
       popupContent: {
         title: 'Complete a Survey',
-        overview: 'Giving good feedback is one way we can help PL Network members improve their products, organization, research or mission. It might feel like a small thing, but data is valuable.',
-        networkBenefits: 'Helps member organizations gather useful data from outside their own teams.',
+        overview: 'Giving good feedback is one way we can help PL Network members improve their products, organization, research or mission. It might feel like a small thing, but data is valuable. This also includes surveys distributed directly by PLAA, which you can find in emails we send on an ad hoc basis.',
+        networkBenefits: 'Helps member organizations gather useful data from outside their own teams, and gives PLAA a reliable feedback signal for improving the program, products, and participant experience.',
         rules: [
-          'You completed a PL Network member survey that was distributed by the PLAA program',
-          'You are not a member of the organization that submitted the survey for distribution'
+          'You completed a survey distributed by PLAA — either from a PL Network member or from the PLAA program itself',
+          'If completing a PL Network member survey, you are not a member of the organization that submitted it for distribution',
+          `Surveys must be completed before the end of the month in which they're sent`,
+          'Bot or Spam responses may result in the forfeiture of points'
         ]
       }
     },
@@ -283,27 +288,6 @@ export const activitiesData: ActivitiesData = {
       }
     },
     {
-      id: 'construct-alignment-asset-case-study',
-      category: 'Knowledge Sharing',
-      activity: 'Write and publish a case study about the Alignment Asset',
-      networkValue: 'Write a case study about your participation in the PL Network, how the Alignment Asset program drove a meaningful outcome for you or your project, and how that strengthened the network as a whole',
-      points: '500',
-      frequency: 'Recurring',
-      verificationType: 'Submission',
-      cta: 'submit',
-      popupContent: {
-        title: 'Write and publish a case study about the Alignment Asset',
-        overview: 'Write a case study highlighting how your participation in PLAA drove meaningful outcomes for you and the Protocol Labs network. Describe the incentivized activity, your actions, and why it mattered. Focus on the real, measurable impacts. Your case study should clearly show how PLAA participation translates into measurable value for the network, not just individual contributions. Any case study that is later published in future posts or formats beyond the internal library may even collect additional points. Only approved case studies that are opted into the internal content library are eligible to receive rewards.',
-        networkBenefits: 'Creates concrete evidence of how PLAA participation produces measurable value for contributors and the network.',
-        rules: [
-          'To submit an idea for a case study, start by proposing your case study via the activity bot',
-          'You must draft your case study and work with a designated member of the PLAA Working Group to incorporate feedback until final approval',
-          'After approval, you must opt in for the case study to be included in the internal content library',
-          '**Only approved case studies that are opted into the internal content library are eligible to receive rewards'
-        ]
-      }
-    },
-    {
       id: 'refer-team-member',
       category: 'People/Talent',
       activity: 'Refer a Potential Team Member to a PL Network Org',
@@ -373,27 +357,6 @@ export const activitiesData: ActivitiesData = {
       }
     },
     {
-      id: 'highlight-contribution',
-      category: 'Projects',
-      activity: 'Highlight an Outstanding Network Contribution',
-      networkValue: 'Submit or recognize significant work by someone that advanced the network',
-      points: '250',
-      frequency: 'Recurring',
-      verificationType: 'Submission',
-      cta: 'submit',
-      popupContent: {
-        title: 'Highlight an Outstanding Network Contribution',
-        overview: 'Nominate individuals or teams whose exceptional contributions have made a measurable, long-term impact across the Protocol Labs network — such as groundbreaking research, governance improvements, or projects that transform network operations.',
-        networkBenefits: 'Surfaces important work that might otherwise be invisible and creates a channel for peer recognition.',
-        rules: [
-          'You cannot submit yourself or your own organization',
-          'Your submission must be accepted by the PLAA working group after a quality review',
-          'All submissions must contain enough detail to understand the impact on the network',
-          `**If eligible, the person or team you're recognizing will receive up to 2500 PLAA pts`
-        ]
-      }
-    },
-    {
       id: 'share-ai-resource',
       category: 'Network Tooling',
       activity: 'Share an AI Resource or Tool You Built',
@@ -410,24 +373,6 @@ export const activitiesData: ActivitiesData = {
           'You must make a forum post of at least 100 words about the tool or resource on the LabOS forum',
           'The resource must be hosted on a public Github repository',
           'The GitHub resource must include clear documentation or usage instructions'
-        ]
-      }
-    },
-    {
-      id: 'contribute-alignment-program',
-      category: 'Projects',
-      activity: 'Contribute to the Alignment Asset Program',
-      networkValue: 'Support the ongoing design and development of the experiment itself.',
-      points: '250+',
-      frequency: 'Recurring',
-      verificationType: 'Submission',
-      cta: 'submit',
-      popupContent: {
-        title: 'Contribute to the Alignment Asset Program',
-        overview: 'Contribute documentation, analysis, or tooling improvements that support the growth and optimization of the Alignment Asset program.\n\nContributions are recognized by size: Small Contribution — 250 points (e.g., review or comment on ideas); Medium Contribution — 500 points (e.g., write documentation, analyze system efficiency, develop minor tools); Significant Contribution — 1,000 points (e.g., develop major tooling, design innovative incentive structures, implement systemic improvements).',
-        networkBenefits: 'Support the ongoing design and development of the experiment itself.',
-        rules: [
-          'Activities that involve advising the Trust on asset management or investment decisions are ineligible'
         ]
       }
     },
@@ -498,21 +443,26 @@ export const activitiesData: ActivitiesData = {
       }
     },
     {
-      id: 'design-incentive-experiment',
-      category: 'Network Tooling',
-      activity: 'Design a Custom Incentive Experiment',
-      networkValue: 'Share expertise and insights across the network.',
-      points: '1000',
+      id: 'subscribe-pl-newsletter',
+      category: 'Brand',
+      activity: 'Subscribe to PL Newsletter',
+      networkValue: 'Subscribe to receive PL Network updates',
+      points: '50',
       frequency: 'One-Time',
-      verificationType: 'Submission',
-      cta: 'submit',
+      verificationType: 'Auto',
+      cta: 'confirm',
       popupContent: {
-        title: 'Design a Custom Incentive Experiment',
-        overview: 'Propose a short-term incentivized initiative—such as a research study, contributor challenge, pilot test, or community-based campaign—with clear goals, measurable outcomes, and a defined participant group.',
-        networkBenefits: 'Share expertise and insights across the network.',
+        title: 'Subscribe to PL Newsletter',
+        overview: 'Subscribe to the PL Newsletter to receive network news, opportunities, events, and other important updates directly in your inbox.',
+        networkBenefits: 'Keeps more members informed and connected to opportunities across the PL Network.',
         rules: [
-          'Must be reviewed and approved by AAWG before launch',
-          'Include a project description, target audience, success criteria, timeline, point budget, distribution method, point validity period, and program manager'
+          'Turn on the Subscribe to PL Newsletter toggle in Directory via https://directory.plnetwork.io/settings/email',
+          'The toggle must remain enabled when the subscription is verified',
+          'Points are awarded after Marketing confirms the subscription',
+          'This activity may only be completed once'
+        ],
+        links: [
+          { text: 'https://directory.plnetwork.io/settings/email', url: 'https://directory.plnetwork.io/settings/email' }
         ]
       }
     }

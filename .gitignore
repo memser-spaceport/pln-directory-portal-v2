@@ -52,3 +52,15 @@ approve-pr.sh
 .graphifyignore
 graphify-out
 openspec
+
+# design feedback from the review canvas, with its annotated pictures. One reviewer's working notes:
+# consumed and then dead. The CAPTURED SCREENS in design-canvas/shots/ are committed on purpose, so a
+# fresh checkout opens the canvas on real frames.
+# DELETE WITH: the design-canvas/ folder.
+design-canvas/comments/
+design-canvas/comments.json
+design-canvas/comments.json.*
+
+# The capture's own build folder, kept apart from .next so a capture cannot take down the dev server.
+# DELETE WITH: the design-canvas/ folder.
+.next-canvas/

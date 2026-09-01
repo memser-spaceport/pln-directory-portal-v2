@@ -15,6 +15,9 @@ import {
   DIRECTORY_LINKS,
   DEMO_DAY_ANALYTICS_LINK,
   FORUM_LINK,
+  JOBS_LINK,
+  DEALS_LINK,
+  FOUNDER_GUIDES_LINK,
 } from '@/components/core/navbar/constants/navLinks';
 import { HomeIcon, MoreIcon, StarFourIcon } from '@/components/core/navbar/components/icons';
 import { useHasNewNews } from '@/services/team-news/hooks/useHasNewNews';
@@ -32,6 +35,19 @@ import { MobileNavItemWithMenu } from './components/MobileMenuItem';
 import { DemoDayIcon, DirectoryIcon, EventsIcon } from './components/icons';
 
 import s from './MobileBottomNav.module.scss';
+
+/** More is one flat list on mobile — no sub-menus — so it sets its own order
+ *  instead of inheriting the desktop menu's. Matched by href prefix so the
+ *  three Events links rank together as one block. */
+const MORE_ORDER = [JOBS_LINK.href, DEALS_LINK.href, FORUM_LINK.href, '/events'];
+
+function moreRank({ href }: ISubItem) {
+  // Founder Guides sits last by request, below anything this list doesn't name.
+  if (href.startsWith(FOUNDER_GUIDES_LINK.href)) return MORE_ORDER.length + 1;
+
+  const rank = MORE_ORDER.findIndex((prefix) => href.startsWith(prefix));
+  return rank === -1 ? MORE_ORDER.length : rank;
+}
 
 export function MobileBottomNav() {
   const pathname = usePathname();
@@ -70,10 +86,12 @@ export function MobileBottomNav() {
   // gives up the bar for them and moves into More. Everyone else keeps Events
   // where it is. EVENT_LINKS spreads flat because More is a flat list.
   const hasPlInfra = plInfraItems.length > 0;
-  const moreItems = useMemo(
-    () => (hasPlInfra ? [FORUM_LINK, ...EVENT_LINKS, ...baseMoreItems] : [FORUM_LINK, ...baseMoreItems]),
-    [hasPlInfra, baseMoreItems],
-  );
+  const moreItems = useMemo(() => {
+    const items = hasPlInfra ? [FORUM_LINK, ...EVENT_LINKS, ...baseMoreItems] : [FORUM_LINK, ...baseMoreItems];
+
+    // Stable sort, so the Events links keep their own relative order.
+    return [...items].sort((a, b) => moreRank(a) - moreRank(b));
+  }, [hasPlInfra, baseMoreItems]);
 
   if (isBareRoute(pathname)) return null;
 

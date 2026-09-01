@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import { MobileBottomNav } from '@/components/core/MobileBottomNav';
-import { EVENT_LINKS } from '@/components/core/navbar/constants/navLinks';
+import { DEALS_LINK, EVENT_LINKS, FOUNDER_GUIDES_LINK } from '@/components/core/navbar/constants/navLinks';
 import type { ISubItem } from '@/components/core/navbar/type';
 
 const mockUsePathname = jest.fn<string, []>();
@@ -114,6 +114,38 @@ describe('MobileBottomNav', () => {
     render(<MobileBottomNav />);
 
     EVENT_LINKS.forEach((link) => expect(moreItems()).not.toContain(link.title));
+  });
+
+  // The menu it comes from is ordered for the desktop dropdown; More is a flat
+  // list, so mobile re-orders it rather than inheriting that.
+  describe('More ordering', () => {
+    it('leads with Job Board, then Deals, then Forum', () => {
+      mockPlInfraItems.mockReturnValue([]);
+      mockMoreItems.mockReturnValue([DEALS_LINK, jobs]);
+
+      render(<MobileBottomNav />);
+
+      expect(moreItems()).toEqual(['Job Board', 'Deals', 'Forum']);
+    });
+
+    it('slots the Events links in after Forum, still in their own order', () => {
+      mockPlInfraItems.mockReturnValue([gantry]);
+      mockMoreItems.mockReturnValue([DEALS_LINK, jobs]);
+
+      render(<MobileBottomNav />);
+
+      expect(moreItems()).toEqual(['Job Board', 'Deals', 'Forum', ...EVENT_LINKS.map((link) => link.title)]);
+    });
+
+    it('pins Founder Guides last', () => {
+      mockPlInfraItems.mockReturnValue([gantry]);
+      // The hook hands it over in the middle — mobile still puts it at the end.
+      mockMoreItems.mockReturnValue([DEALS_LINK, FOUNDER_GUIDES_LINK, jobs]);
+
+      render(<MobileBottomNav />);
+
+      expect(moreItems().at(-1)).toBe('Founder Guides');
+    });
   });
 
   it('keeps Home in the bar for everyone, dot or no dot', () => {

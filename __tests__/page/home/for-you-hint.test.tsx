@@ -14,15 +14,15 @@ describe('ForYouHint', () => {
     jest.clearAllMocks();
   });
 
-  it('does not offer Update profile when there is no member to send', () => {
+  it('does not offer Update your profile when there is no member to send', () => {
     render(<ForYouHint />);
-    expect(screen.queryByRole('link', { name: /Update profile/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Update your profile/ })).not.toBeInTheDocument();
   });
 
-  it('reports the Update profile click', () => {
+  it('reports the Update your profile click', () => {
     render(<ForYouHint memberUid="user-1" />);
 
-    fireEvent.click(screen.getByRole('link', { name: /Update profile/ }));
+    fireEvent.click(screen.getByRole('link', { name: /Update your profile/ }));
 
     expect(onTeamNewsForYouUpdateProfileClicked).toHaveBeenCalledWith('user-1');
   });

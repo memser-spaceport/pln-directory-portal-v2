@@ -12,19 +12,16 @@ export const DEFAULT_VALUES = {
   twitter: 'mayaokonkwo',
   telegram: 'mayaok',
   discord: 'maya#4417',
-  /* Experience — production's `TEditExperienceForm` field-for-field (title,
-     company, description, startDate, endDate, isCurrent, location), flattened
-     because `FormSwitch` and `FormTagsInput` read `values[name]` and would miss a
-     dotted path. The job board's step-2 modal writes `experienceTitle`,
-     `experienceCompany` and `skills`; the rest is only editable here, which is
-     what that modal means when it says "update it in Settings → Profile". */
-  experienceTitle: 'Co-founder & CEO',
-  experienceCompany: 'Lattice Compute',
-  experienceDescription: 'Building verifiable compute markets for AI training.',
-  experienceStartDate: '2022-03-01T00:00:00.000Z',
-  experienceEndDate: null as string | null,
-  experienceIsCurrent: true,
-  experienceLocation: 'Berlin, Germany',
+  /* Experience used to be seven flattened fields here — one entry, on the
+     reasoning that "an add/remove list editor is a bigger surface than this
+     prototype is asking a question about". That was written when the job board
+     wrote this record through a two-step modal that only ever captured a current
+     role. That modal is gone, production's Experience is a list, and the CV
+     importer returns several positions at once — so a single flat entry stopped
+     being a simplification and became a different feature. The list now lives in
+     component state (`SEED_EXPERIENCES` below) rather than in the form, because
+     RHF is carrying scalar fields here and a list needs add / edit / delete
+     rather than `register`. */
   openToCollaborate: true,
   officeHours: true,
 };
@@ -59,3 +56,24 @@ export const PREFERENCES: SettingsNavItem[] = [
 ];
 
 export const MOCK_AVATAR = 'https://i.pravatar.cc/160?img=47';
+
+/**
+ * The work history the settings page opens with.
+ *
+ * Shaped as the job board's `ExperienceEntry` because it *is* that record —
+ * production keeps one Experience list per member and this page and the apply
+ * drawer are two windows onto it. One entry, so the page opens showing the list
+ * doing something; the empty state is reachable by deleting it.
+ */
+export const SEED_EXPERIENCES = [
+  {
+    uid: 'settings-exp-1',
+    title: 'Co-founder & CEO',
+    company: 'Lattice Compute',
+    description: '<p>Building verifiable compute markets for AI training.</p>',
+    startDate: '2022-03',
+    endDate: null as string | null,
+    isCurrent: true,
+    location: 'Berlin, Germany',
+  },
+];

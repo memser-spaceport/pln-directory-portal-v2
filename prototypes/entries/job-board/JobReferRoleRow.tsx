@@ -37,6 +37,11 @@ interface JobReferRoleRowProps {
    *  the parent handles the press. Omitted on the team profile, where Apply is
    *  still a plain link out to the posting. */
   onApply?: (role: IJobRole) => void;
+  /** Job board: opens the role's description in a drawer over the list. When it
+   *  is present the row's button becomes **View job** and Apply moves inside
+   *  that drawer — see the note above the actions. Omitted on the team profile,
+   *  which has no in-app description to open. */
+  onViewJob?: (role: IJobRole) => void;
   /** Already applied from this session — the row reports it instead of offering again. */
   applied?: boolean;
   /** ISO stamp of when the application went. Present only when `applied`; the
@@ -87,6 +92,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
     canRefer = true,
     onReferBlocked,
     onApply,
+    onViewJob,
     applied = false,
     appliedAt,
   } = props;
@@ -122,13 +128,26 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
       <div className={`${s.root} ${s.row}`}>
         <div className={s.body}>
           <div className={s.titleRow}>
-            {/* The title stays a link to the posting on every surface and in
-                every Apply state. Applying in-app and reading the posting are
-                different acts, and the second one must not disappear because the
-                first one became easier. */}
-            <a className={`${s.title} ${s.titleLink}`} {...linkProps}>
-              {roleTitle}
-            </a>
+            {/* The title opens whatever the surface's canonical reading of the
+                job is. On the board that is now the in-app description, so the
+                title and the **View job** button are one door with two handles —
+                the alternative was a title that went somewhere else than the
+                button beside it, which is the confusion the arrow already sits
+                close to. Everywhere without an in-app description (the team
+                profile) the title is still the link out, unchanged. */}
+            {onViewJob ? (
+              <button
+                type="button"
+                className={`${s.title} ${s.titleLink} ${js.titleButton}`}
+                onClick={() => onViewJob(role)}
+              >
+                {roleTitle}
+              </button>
+            ) : (
+              <a className={`${s.title} ${s.titleLink}`} {...linkProps}>
+                {roleTitle}
+              </a>
+            )}
             {/* Mobile-only: "New" aligned to the top-right, in line with the role name. */}
             {showNew && <span className={`${s.newBadge} ${s.newBadgeMobile}`}>● New</span>}
           </div>
@@ -170,18 +189,22 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
                 It used to BE Apply here: the board's action row ended in a bare
                 arrow linking to the external ad. Turning Apply into an in-app
                 button took that link with it and left the row with no visible
-                way to go read the job description — the title is still a link,
-                but a link that looks like a heading is not an affordance. So the
-                arrow comes back with the job it actually always did: open the
-                posting. Only the label changes, because "Apply to X" is no
-                longer what pressing it does.
+                way to go read the job description. So the arrow came back with
+                the job it actually always did: open the posting. Only the label
+                changed, because "Apply to X" is no longer what pressing it does.
+
+                It matters more now, not less. With an in-app description the
+                title opens *that*, so this is the row's only route to the team's
+                own ad — two different readings of one job, and the second one is
+                the authority. The drawer repeats the link at the top of the
+                panel for whoever gets that far.
 
                 Board only. On the team profile there is no `onApply`, so Apply
                 *is* the link out, and a second control to the same URL in the
                 same row would be the same door twice. It also survives the
                 applied state — having applied is no reason to stop being able to
                 read the ad. */}
-            {onApply && applyUrl && (
+            {(onApply || onViewJob) && applyUrl && (
               <a
                 className={`${s.applyArrow} ${js.arrowTone}`}
                 aria-label={`Open the ${roleTitle} posting`}
@@ -191,7 +214,34 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
               </a>
             )}
 
-            {applied ? (
+            {onViewJob ? (
+              /* The board's button, once the description moved in-app.
+
+                 Apply is no longer here. A row carries a title, a seniority and
+                 a location, which is not enough to decide with — pressing Apply
+                 from it was pressing send on a job you had not read. So the
+                 row's one action is now the reading step, and Apply sits at the
+                 bottom of what it applies to. It costs one press, and the press
+                 it costs is the one where the person learns what they are
+                 applying for.
+
+                 One button in both states, because the applied fact is already
+                 in this row: the clock to the left reads "Applied 3d ago"
+                 instead of the posting's age. A second report of the same fact,
+                 in the slot that used to hold the offer, would only be there to
+                 fill the space the offer left — and having applied is no reason
+                 to stop being able to reread the job. The drawer's own footer
+                 carries the Applied control, where the offer it replaces is. */
+              <Button
+                size="s"
+                style="fill"
+                variant="primary"
+                className={js.applyButton}
+                onClick={() => onViewJob(role)}
+              >
+                View job
+              </Button>
+            ) : applied ? (
               /* Same slot, same geometry: a row you've applied to must not
                  resize the list around it. Bordered neutral rather than filled
                  primary, because it has stopped being an offer and become a

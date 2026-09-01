@@ -11,6 +11,7 @@ import {
   // FOUNDER_DB_LINK,
   GANTRY_LINK,
   INVESTOR_DB_LINK,
+  PL_INFRA_OS_LINK,
 } from '@/components/core/navbar/constants/navLinks';
 import { useMemo } from 'react';
 
@@ -28,7 +29,7 @@ export function useGetPlInfraNavItems() {
       ...(hasGantryAccess ? [GANTRY_LINK] : []),
       ...(hasInvestorDbAccess ? [INVESTOR_DB_LINK] : []),
       // ...(hasFounderDbAccess ? [FOUNDER_DB_LINK] : []),
-      ...(hasAiAppsAccess ? [AI_APPS_LINK] : []),
+      ...(hasAiAppsAccess ? [PL_INFRA_OS_LINK, AI_APPS_LINK] : []),
       ...(hasAgentSessionsAccess ? [AGENT_SESSIONS_LINK] : []),
     ],
     [hasGantryAccess, hasAiAppsAccess, hasAgentSessionsAccess, hasInvestorDbAccess],

@@ -2,8 +2,8 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FilterState } from '@/services/filters/types';
 import { FilterOption } from '@/services/filters/commonTypes';
-import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
-import { FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED } from '@/constants/filters';
+import { decodeFilterValues } from '@/services/filters/decodeFilterValues';
+import { encodeFilterValues } from '@/services/filters/encodeFilterValues';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 
 import { SelectAll } from './components/SelectAll';
@@ -161,13 +161,10 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
       return [];
     }
 
-    return paramValue.split(URL_QUERY_VALUE_SEPARATOR).map((raw) => {
-      const value = raw.trim().replaceAll(FILTER_VALUE_SEPARATOR_ENCODED, FILTER_VALUE_SEPARATOR);
-      return {
-        value,
-        label: data?.find((item) => item.value === value)?.label || value,
-      };
-    });
+    return decodeFilterValues(paramValue).map((value) => ({
+      value,
+      label: data?.find((item) => item.value === value)?.label || value,
+    }));
   }, [params, paramKey, data]);
 
   // Merge backend data with selected values
@@ -195,9 +192,7 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
 
     if (filterValues && filterValues.length > 0) {
       const valuesArr = filterValues.map((item) => item.value);
-      const values = valuesArr
-        .map((v) => v.replaceAll(FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED))
-        .join(URL_QUERY_VALUE_SEPARATOR);
+      const values = encodeFilterValues(valuesArr);
 
       // Only update if the value actually changed
       const currentValue = params.get(paramKey);

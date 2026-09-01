@@ -8,10 +8,9 @@ import type { IJobAlertFilterState } from '@/types/job-alerts.types';
  * The board's one banner slot — logged-out, member, Job Aspirant, pending.
  *
  * The thing most worth guarding is the pair of doors on the logged-out card:
- * Get started (sign-up) and Sign in. They used to live inside a bullet
- * sentence; they are now a boxed CTA and a text link, and a move is exactly
- * the kind of change that silently drops a click handler while still looking
- * right.
+ * Sign up and Sign in. They used to live inside a bullet sentence; they are
+ * now a boxed CTA and a footer text link, and a move is exactly the kind of
+ * change that silently drops a click handler while still looking right.
  */
 
 const emptyFilters: IJobAlertFilterState = {
@@ -48,10 +47,10 @@ describe('the job board banner', () => {
       expect(screen.getByText(/Already at a PL network team\?/)).toBeInTheDocument();
     });
 
-    it('opens sign-up from Get started and sign-in from the team line', () => {
+    it('opens sign-up from Sign up and sign-in from the footer', () => {
       renderBanner();
 
-      fireEvent.click(screen.getByRole('button', { name: /get started/i }));
+      fireEvent.click(screen.getByRole('button', { name: 'Sign up' }));
       expect(baseProps.onSignUp).toHaveBeenCalled();
 
       fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
@@ -87,7 +86,7 @@ describe('the job board banner', () => {
       ).toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: /update profile/i }));
       expect(baseProps.onUpdateProfile).toHaveBeenCalled();
-      expect(screen.queryByRole('button', { name: /get started/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Sign up' })).not.toBeInTheDocument();
     });
 
     it('nudges a Job Aspirant to fill the profile so teams can find them', () => {

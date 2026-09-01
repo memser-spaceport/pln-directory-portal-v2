@@ -191,7 +191,7 @@ export function JobSignUpModal({ open, onClose, onSignUp, onSignIn }: JobSignUpM
             The same pair as `JobAccountPane`'s, to the character — see the note
             there on keeping the two doors indistinguishable. */}
         <div className={s.text}>
-          <h2 className={s.title}>Create LabOS Job profile</h2>
+          <h2 className={s.title}>Create PL network Job profile</h2>
           <div className={s.subtitle}>Discover open roles across the network — and let founders reach out.</div>
         </div>
 

@@ -3,7 +3,7 @@ import { getJobProfileReviewed, setJobProfileReviewed } from '@/services/jobs/jo
 const STORAGE_KEY = 'directory:jobProfileReviewed';
 
 /**
- * The store behind "I've reviewed my profile".
+ * The store behind "My profile is complete".
  *
  * The tick is asked once and remembered, so what this file is really guarding is
  * that it is remembered *for the right person* and that nothing but a genuine

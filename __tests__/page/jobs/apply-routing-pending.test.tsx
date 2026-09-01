@@ -97,7 +97,7 @@ describe('Apply routing while unapproved', () => {
 
   /* These land on `profile` where they used to land on `application`.
      `onApply` no longer skips the middle step for a complete profile — that step
-     now asks for "I've reviewed my profile", and a confirmation nobody is shown
+     now asks for "My profile is complete", and a confirmation nobody is shown
      is not a confirmation. What each of these tests is *about* is unchanged:
      whether Apply keeps you in the wizard or sends you off-site. */
   it('keeps an unapproved applicant in the wizard for a Protocol Labs role', async () => {

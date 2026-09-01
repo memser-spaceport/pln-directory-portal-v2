@@ -30,7 +30,7 @@ import s from './JobSignUpModal.module.scss';
  * for the board to disagree with itself about what a valid handle is.
  *
  * **The stylesheet stays `JobSignUpModal.module.scss`.** `.column`,
- * `.inputsLabel`, `.inputsWrapper`, `.separator` and `.optionalMark` were
+ * `.inputsLabel`, `.inputsWrapper` and `.separator` were
  * written for exactly these rows and are already tuned to them; a second sheet
  * restating them here is the drift this file exists to prevent. Whatever mounts
  * this supplies its own surrounding chrome and nothing else.
@@ -191,16 +191,6 @@ export const accountSchema = yup.object({
 });
 
 /**
- * `(Optional)`, hugging the label it qualifies.
- *
- * Production's own idiom, not a new one: `SignupWizard` marks its free-text
- * field this way — a span set immediately after the label text at weight 400 in
- * the muted tone, against the label's own 500 — and that is the only other
- * place in the product that marks a field optional at all.
- */
-const OptionalMark = () => <span className={s.optionalMark}>(Optional)</span>;
-
-/**
  * The red `*` every required label in the product carries, as a span rather than
  * `FormField`'s class.
  *
@@ -211,8 +201,7 @@ const OptionalMark = () => <span className={s.optionalMark}>(Optional)</span>;
  * line-height and margin a second time on a row that already has `.inputsLabel`
  * saying all five — leaving which one wins to stylesheet order.
  *
- * So the mark is drawn the way `.optionalMark` beside it already is: locally,
- * and to the same three declarations `FormField` uses.
+ * So the mark is drawn locally, to the same three declarations `FormField` uses.
  */
 const RequiredMark = () => (
   <span className={s.requiredMark} aria-hidden="true">
@@ -356,21 +345,33 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
         </label>
 
         <div className={s.column}>
-          {/* The label names what is under it, and the mark says which rule the
-              two fields are under — both change with the tick. Ticking now
-              *does* create a requirement (see the schema's note on `company`),
-              so the `(Optional)` has to go with it: a form that refuses to
-              submit without a field it has marked optional is worse than one
-              with no marking system at all.
+          {/* The label is constant and the mark is what moves.
+              It used to grow a second noun with the tick ("Current role & PL
+              network team") so that one label could name both inputs under it.
+              The design marks the row `Current role` in both states, and that is
+              takeable now for a reason the old label could not supply: each input
+              carries its own accessible name below, so the visible label no
+              longer has to do the naming for two fields at once.
 
-              One mark for the row rather than one per field, because the label
-              is one label for both and the tick makes both required together. */}
+              What the label still does is carry the rule. Ticking *does* create a
+              requirement (see the schema's note on `company`), so the mark
+              appears with it — and there is no `(Optional)` in the other state,
+              per the design. That asymmetry is deliberate: unmarked-and-optional
+              costs nothing, while unmarked-and-required is a form refusing to
+              submit over a field it never flagged.
+
+              One mark for the row rather than one per field, because the tick
+              makes both required together. */}
           <div className={s.inputsLabel}>
-            {onPlTeam ? 'Current role & PL network team' : 'Current role'}
-            {onPlTeam ? <RequiredMark /> : <OptionalMark />}
+            Current role
+            {onPlTeam && <RequiredMark />}
           </div>
           <div className={s.inputsWrapper}>
-            <FormField name="role" placeholder="Enter your current role" />
+            {/* `aria-label` because this input has no `label` of its own and the
+                `.inputsLabel` above is a plain div associated with neither half
+                of the row. It was already unnamed to a screen reader; shortening
+                the visible label is what makes fixing it non-optional. */}
+            <FormField name="role" placeholder="Enter your current role" aria-label="Current role" />
             {/* The `@` and the select appear together or not at all. The
                 separator is punctuation *between* two fields; on its own beside a
                 single input it is a dangling preposition — a row that looks like
@@ -378,10 +379,17 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
             {onPlTeam && (
               <>
                 <span className={s.separator}>@</span>
-                {/* "Select a team", not "Select a company" — the label above now
-                    says PL network team, and this list is exactly that: network
-                    teams, not employers at large. */}
-                <FormSelect name="company" placeholder="Select a team" isClearable options={companyOptions} />
+                {/* "Select a team", not "Select a company": this list is network
+                    teams, not employers at large. The distinction used to be
+                    carried by the label above and now lives in the select's own
+                    accessible name, which is the only place left that says it. */}
+                <FormSelect
+                  name="company"
+                  placeholder="Select a team"
+                  isClearable
+                  options={companyOptions}
+                  aria-label="PL network team"
+                />
               </>
             )}
           </div>

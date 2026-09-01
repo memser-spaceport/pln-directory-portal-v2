@@ -9,7 +9,7 @@ import { toast } from '@/components/core/ToastContainer';
 import { Button } from '@/components/common/Button';
 import { Checkbox } from '@/components/common/Checkbox';
 import { Drawer } from '@/components/common/Drawer';
-import { CheckIcon, CloseIcon } from '@/components/icons';
+import { ArrowUpRightIcon, CheckIcon, CloseIcon } from '@/components/icons';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import type { IMember } from '@/types/members.types';
 
@@ -341,7 +341,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
      'profile'` — and dropped the middle step for a member who arrived with
      nothing left to fill in. It went with the routing rule it mirrored; see
      `useJobApplyFlow.onApply`. The short version: the step is no longer only for
-     collecting, because it now asks for "I've reviewed my profile", and a
+     collecting, because it now asks for "My profile is complete", and a
      confirmation nobody is shown is not a confirmation.
 
      Its own reasoning is worth keeping in view if a skip is ever reintroduced.
@@ -354,7 +354,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
 
   const complete = profileState.complete;
 
-  /* "I've reviewed my profile" — the profile step's consent, and the second half
+  /* "My profile is complete" — the profile step's consent, and the second half
      of what unlocks the application.
 
      **Remembered across visits, keyed by member uid.** Asked once, not once per
@@ -564,6 +564,14 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                applies. */
             <Button variant="primary" style="fill" size="m" className={d.footerAction} onClick={onApply}>
               Continue to apply
+              {/* The board's own external glyph — the same one the original
+                  posting links wear (`JobDetailPane`, `JobAlertBanner`). It is
+                  on this press and not the profile step's identically-worded one
+                  a stop later: that press advances the rail in-app, and an arrow
+                  there would claim a hand-off that does not happen. With the
+                  rail withheld in this state, the arrow is the only thing left
+                  on screen saying the flow ends somewhere else. */}
+              <ArrowUpRightIcon aria-hidden="true" />
             </Button>
           ),
         };
@@ -661,7 +669,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             <Checkbox checked={reviewed} onChange={setReviewed} />
             {/* The `*` is `.consentLabel`'s `:after`, exactly as `FormField`
                 draws it on a required label. */}
-            <span className={d.consentLabel}>I&apos;ve reviewed my profile</span>
+            <span className={d.consentLabel}>My profile is complete</span>
           </label>
         ),
         action: (

@@ -290,7 +290,7 @@ export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: Job
          (profileComplete) … at: 'application'`), on the reasoning that a step
          with nothing left to collect is a step worth saving. That reasoning was
          about *collecting*, and the step is no longer only for that: it now asks
-         for "I've reviewed my profile", and what the hiring team reads is the
+         for "My profile is complete", and what the hiring team reads is the
          profile rather than the letter alone. A confirmation nobody is shown is
          not a confirmation, and the people most likely to be sending something
          stale are exactly the ones the skip was routing around.

@@ -15,11 +15,17 @@ jest.mock('@/components/common/Modal', () => ({
  * of the tree there is no way to give the answer, so every ticked case would
  * test the gate instead of what it claims to check.
  *
- * Two behaviours have to survive the stand-in. It writes the whole option object
- * into form state, not the uid (`FormSelect` does this via `setValue`, and
+ * Three behaviours have to survive the stand-in. It writes the whole option
+ * object into form state, not the uid (`FormSelect` does this via `setValue`, and
  * `toAccountDetails` is what flattens it later) — and it renders its own field
  * error, which is the only way anyone learns the team is missing. A mock that
  * swallowed the message would let "the form refuses silently" pass as green.
+ *
+ * The third is newer: it takes its accessible name from `aria-label` and falls
+ * back to the placeholder, which is what the real component does. It used to
+ * hardcode the placeholder, and that was harmless only while no caller passed a
+ * name — this one now does, and a mock that ignored it would report an
+ * accessible name the real select does not have.
  *
  * `requireActual` inside the factory because `jest.mock` is hoisted above the
  * imports.
@@ -29,7 +35,17 @@ jest.mock('@/components/form/FormSelect', () => {
   type Option = { label: string; value: string };
 
   return {
-    FormSelect: ({ name, placeholder, options }: { name: string; placeholder: string; options: Option[] }) => {
+    FormSelect: ({
+      name,
+      placeholder,
+      options,
+      'aria-label': ariaLabel,
+    }: {
+      name: string;
+      placeholder: string;
+      options: Option[];
+      'aria-label'?: string;
+    }) => {
       const {
         setValue,
         watch,
@@ -41,7 +57,7 @@ jest.mock('@/components/form/FormSelect', () => {
       return (
         <>
           <select
-            aria-label={placeholder}
+            aria-label={ariaLabel ?? placeholder}
             value={selected?.value ?? ''}
             onChange={(e) =>
               setValue(name, options.find((o) => o.value === e.target.value) ?? null, {
@@ -74,12 +90,14 @@ import type { IJobRole } from '@/types/jobs.types';
 /**
  * The board's sign-up dialog — the one door a logged-out visitor has.
  *
- * Two things here are worth guarding above the rest. The optional fields carry
- * hand-rolled labels, because `FormField`'s `label` prop is a `string` and a
- * styled `(Optional)` can't go through it — which means the label/input
- * association is ours to get right rather than the component's, and it breaks
- * silently. And `serverError` is the one branch the prototype this was ported
- * from deleted outright, because a mock has no server to refuse it.
+ * Two things here are worth guarding above the rest. The role/team row carries a
+ * hand-rolled label, because `FormField`'s `label` prop is a `string` and the
+ * styled required mark can't go through it — so that `div` names neither input,
+ * and the two accessible names come from `aria-label` instead. That is ours to
+ * get right rather than the component's, and it breaks silently, which is why
+ * there is a test for the names themselves. And `serverError` is the one branch
+ * the prototype this was ported from deleted outright, because a mock has no
+ * server to refuse it.
  */
 
 const baseProps = {
@@ -125,13 +143,14 @@ const fillRequired = () => {
  */
 const claimPlTeam = () => {
   fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
-  /* By placeholder, not label: the role/team row's label is a hand-rolled `div`
-     (it carries a styled mark `FormField`'s string `label` prop can't take), so
-     it is associated with neither input. See the note at the top of this file. */
-  fireEvent.change(screen.getByPlaceholderText('Enter your current role'), {
+  /* By accessible name. The row's visible label is a hand-rolled `div` associated
+     with neither input, so each half carries its own `aria-label` — see the note
+     at the top of this file, and `the row's two inputs` below for the test that
+     guards the names these queries depend on. */
+  fireEvent.change(screen.getByLabelText('Current role'), {
     target: { value: 'Protocol Engineer' },
   });
-  fireEvent.change(screen.getByLabelText('Select a team'), { target: { value: 't1' } });
+  fireEvent.change(screen.getByLabelText('PL network team'), { target: { value: 't1' } });
 };
 
 describe('the job board sign-up modal', () => {
@@ -141,15 +160,47 @@ describe('the job board sign-up modal', () => {
   });
 
   describe('the fields', () => {
-    it('marks current role optional and leaves LinkedIn required', () => {
+    /**
+     * Nothing on this form is marked optional, and the role — the one field that
+     * *is* optional until the tick — is the reason that reads as a choice rather
+     * than an omission.
+     *
+     * The design marks the row `Current role` in both states. Unmarked-and-optional
+     * costs a reader nothing; unmarked-and-required is a form refusing to submit
+     * over a field it never flagged, which is why the asterisks below stay and
+     * why the tick still brings one (see the next two tests).
+     */
+    it('marks nothing optional, and leaves the required fields required', () => {
       renderModal();
 
-      expect(screen.getByText(/^Current role/).textContent).toContain('Optional');
+      expect(screen.getByText(/^Current role/).textContent).not.toContain('Optional');
 
       expect(screen.getByText('LinkedIn profile').textContent).not.toContain('Optional');
       expect(screen.getByText('Email address').textContent).not.toContain('Optional');
       expect(screen.getByText('Full name').textContent).not.toContain('Optional');
       expect(screen.queryByText('Team email')).not.toBeInTheDocument();
+    });
+
+    /**
+     * The row's two inputs each have a name of their own.
+     *
+     * Guarded because nothing else would notice it break. The visible label is a
+     * `div` associated with neither input, so without these `aria-label`s the
+     * role box and the team select are unnamed to a screen reader — and they were,
+     * until the label stopped naming both of them at once. `claimPlTeam` reaches
+     * for exactly these names, so a regression here also takes half this suite
+     * with it, which is the second reason to state it as its own assertion.
+     */
+    it('names the row’s two inputs, which its label does not', () => {
+      renderModal();
+
+      expect(screen.getByLabelText('Current role')).toBeInTheDocument();
+      expect(screen.queryByLabelText('PL network team')).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
+
+      expect(screen.getByLabelText('Current role')).toBeInTheDocument();
+      expect(screen.getByLabelText('PL network team')).toBeInTheDocument();
     });
 
     /**
@@ -162,29 +213,34 @@ describe('the job board sign-up modal', () => {
     it('asks for a team only once you say you are on one', () => {
       renderModal();
 
-      expect(screen.getByText(/^Current role/).textContent).not.toContain('PL network team');
+      /* On the select itself, not on the label. This used to key on the label
+         growing a second noun ("Current role & PL network team"), which was the
+         only readable difference between the two states at the time. The label is
+         constant now, so the discriminator is the thing that actually appears:
+         the select and the `@` that punctuates it. */
+      expect(screen.queryByLabelText('PL network team')).not.toBeInTheDocument();
       expect(screen.queryByText('@')).not.toBeInTheDocument();
 
       fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
 
-      expect(screen.getByText(/^Current role/).textContent).toContain('PL network team');
+      expect(screen.getByLabelText('PL network team')).toBeInTheDocument();
       expect(screen.getByText('@')).toBeInTheDocument();
     });
 
-    /* The mark has to move with the rule. A form that refuses to submit without
-       a field it has labelled optional is worse than one with no marking system
-       at all — which is the whole reason `JobSearchStatusField` carries the
-       asterisk `Email address` does. */
-    it('drops the optional mark for the required asterisk when the box is ticked', () => {
+    /* The mark has to arrive with the rule. A form that refuses to submit over a
+       field it never flagged is worse than one with no marking system at all —
+       which is the whole reason `JobSearchStatusField` carries the asterisk
+       `Email address` does. The label itself does not change; only the mark. */
+    it('marks the row required when the box is ticked', () => {
       renderModal();
 
-      expect(screen.getByText(/^Current role/).textContent).toContain('Optional');
+      expect(screen.getByText(/^Current role/).textContent).not.toContain('*');
 
       fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
 
       const label = screen.getByText(/^Current role/);
-      expect(label.textContent).not.toContain('Optional');
       expect(label.textContent).toContain('*');
+      expect(label.textContent).not.toContain('Optional');
     });
 
     /* Unticking clears the team rather than merely hiding it. A hidden select
@@ -232,10 +288,8 @@ describe('the job board sign-up modal', () => {
       renderModal();
       fillRequired();
       fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
-      /* By placeholder, not label: the role/team row's label is a hand-rolled `div`
-     (it carries a styled mark `FormField`'s string `label` prop can't take), so
-     it is associated with neither input. See the note at the top of this file. */
-      fireEvent.change(screen.getByPlaceholderText('Enter your current role'), {
+      /* The role only — the team is the answer this case withholds. */
+      fireEvent.change(screen.getByLabelText('Current role'), {
         target: { value: 'Protocol Engineer' },
       });
 
@@ -251,7 +305,7 @@ describe('the job board sign-up modal', () => {
       renderModal();
       fillRequired();
       fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
-      fireEvent.change(screen.getByLabelText('Select a team'), { target: { value: 't1' } });
+      fireEvent.change(screen.getByLabelText('PL network team'), { target: { value: 't1' } });
 
       fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
 
@@ -490,7 +544,7 @@ describe('the job board sign-up modal', () => {
     ])('names what the press creates, not the job — %s', (_label, overrides) => {
       renderModal(overrides);
 
-      expect(screen.getByText('Create LabOS Job profile')).toBeInTheDocument();
+      expect(screen.getByText('Create PL network Job profile')).toBeInTheDocument();
       expect(
         screen.getByText('Discover open roles across the network — and let founders reach out.'),
       ).toBeInTheDocument();

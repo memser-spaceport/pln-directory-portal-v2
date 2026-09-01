@@ -373,17 +373,35 @@ export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: Job
   const onSubmitted = useCallback(() => dispatch({ type: 'SUBMITTED' }), []);
 
   /**
-   * After sign-up + Privy, land on the profile step of the job they started
-   * from — even if the form already answered enough to skip it. The rest of
-   * the profile (contact details, role if they skipped it) is still to fill.
+   * After sign-up + Privy, land on the job they started from — even if the form
+   * already answered enough to skip the profile step. The rest of the profile
+   * (contact details, role if they skipped it) is still to fill.
+   *
+   * **Which step depends on where this application is actually going.** A new
+   * account's verdict is `pending`, so for any non-PL team `shouldApplyGoExternal`
+   * was already true when they pressed Apply — and the footer told them so:
+   * "Continue to apply", on the employer's own site. Resuming straight onto the
+   * profile step put the in-app letter in front of someone who had been promised
+   * the opposite, and let them finish it. The rule this consults is the one
+   * `onApply` consults; it was simply never asked here.
+   *
+   * It resumes on the *reading* step rather than redirecting, because a redirect
+   * here would be a `window.open` with no user gesture behind it — the browser
+   * blocks that, and a silently blocked redirect is worse than the wrong step.
+   * The review step already carries the external press as a button
+   * (`JobApplyFlowDrawer`'s footer, where the rail is hidden and the action is
+   * "Continue to apply"), so this hands them the promise instead of breaking it.
    */
   const onResumeAfterSignUp = useCallback(
     (target: JobDetailTarget) => {
-      dispatch({ type: 'OPEN_FLOW', target, at: 'profile' });
+      const at: ApplyFlowStepId = shouldApplyGoExternal({ viewer, verdict, team: target.team })
+        ? 'review'
+        : 'profile';
+      dispatch({ type: 'OPEN_FLOW', target, at });
       analytics.onJobApplyDrawerOpened(applyBase(target));
-      viewStep('profile', target);
+      viewStep(at, target);
     },
-    [analytics, applyBase, viewStep],
+    [analytics, applyBase, verdict, viewer, viewStep],
   );
 
   return {

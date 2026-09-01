@@ -202,6 +202,72 @@ describe('Apply routing while unapproved', () => {
     });
   });
 
+  /**
+   * Coming back from Privy, which is where the promise gets kept or broken.
+   *
+   * A brand-new account is `pending`, so for any non-PL team the press that
+   * started this was already routed off-site, and the footer said as much:
+   * "Continue to apply", on the employer's own site. Resume used to open the
+   * profile step unconditionally, handing that person the in-app letter instead
+   * — and letting them finish it. It consults the same rule `onApply` does now.
+   *
+   * It resumes on the reading step rather than redirecting: this runs from an
+   * effect on page load, and `window.open` without a user gesture is blocked.
+   * The review step's footer carries the external press as a real button.
+   */
+  describe('and resuming after sign-up', () => {
+    it('resumes a non-PL application on the reading step, where the off-site press lives', () => {
+      const { result } = setup('pending');
+
+      act(() => {
+        result.current.onResumeAfterSignUp(target(OTHER));
+      });
+
+      expect(result.current.state).toMatchObject({ step: 'flow', at: 'review' });
+    });
+
+    it('never opens a tab on the way back — nothing here is a user gesture', () => {
+      const { result } = setup('pending');
+
+      act(() => {
+        result.current.onResumeAfterSignUp(target(OTHER));
+      });
+
+      expect(mockOpenExternal).not.toHaveBeenCalled();
+      expect(mockOnJobApplyExternalRedirected).not.toHaveBeenCalled();
+    });
+
+    it('resumes a Protocol Labs application on the profile step, as before', () => {
+      const { result } = setup('pending');
+
+      act(() => {
+        result.current.onResumeAfterSignUp(target(PL));
+      });
+
+      expect(result.current.state).toMatchObject({ step: 'flow', at: 'profile' });
+    });
+
+    it('resumes an approved member on the profile step whoever posted the role', () => {
+      const { result } = setup('approved');
+
+      act(() => {
+        result.current.onResumeAfterSignUp(target(OTHER));
+      });
+
+      expect(result.current.state).toMatchObject({ step: 'flow', at: 'profile' });
+    });
+
+    it('reports the step it actually resumed on', () => {
+      const { result } = setup('pending');
+
+      act(() => {
+        result.current.onResumeAfterSignUp(target(OTHER));
+      });
+
+      expect(mockOnJobApplyStepViewed).toHaveBeenCalledWith(expect.objectContaining({ step: 'review', job_id: 'r1' }));
+    });
+  });
+
   /* Renamed with the routing it reports on: a complete profile used to land on
      the application and now lands on the profile step, so that is the step the
      view event names. The assertion is the same one — that `onApply` reports

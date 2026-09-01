@@ -92,6 +92,8 @@ function buildChart(entries: ContributionHistoryEntry[], hasPointsData: boolean)
 }
 
 export default function ContributionProfileTab({ entries, currentBalance, totalRedeemed }: ContributionProfileTabProps) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   if (entries.length === 0) {
     return (
       <div className={styles.card}>
@@ -102,7 +104,6 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
 
   const hasPointsData = entries.some((e) => e.points !== null);
   const chart = buildChart(entries, hasPointsData);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const totalPoints = sumOrNull(entries, (e) => e.points);
   const totalPlaa = entries.reduce((sum, p) => sum + p.plaa, 0);

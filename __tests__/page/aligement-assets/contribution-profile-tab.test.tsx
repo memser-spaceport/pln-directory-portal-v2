@@ -11,6 +11,26 @@ const entries: ContributionHistoryEntry[] = [
 ];
 
 describe('ContributionProfileTab', () => {
+  it('does not crash when entries arrives empty on first render and real data lands on a later one', () => {
+    const { rerender } = render(<ContributionProfileTab entries={[]} currentBalance={null} totalRedeemed={null} />);
+    expect(screen.getByText('No snapshot history yet.')).toBeInTheDocument();
+
+    expect(() =>
+      rerender(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />)
+    ).not.toThrow();
+    expect(screen.getByText('Contribution History')).toBeInTheDocument();
+  });
+
+  it('does not crash when entries goes from real data back to empty (e.g. a filter clears the history)', () => {
+    const { rerender } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+    expect(screen.getByText('Contribution History')).toBeInTheDocument();
+
+    expect(() =>
+      rerender(<ContributionProfileTab entries={[]} currentBalance={null} totalRedeemed={null} />)
+    ).not.toThrow();
+    expect(screen.getByText('No snapshot history yet.')).toBeInTheDocument();
+  });
+
   it('renders the chart axis labels and every period', () => {
     render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
 

@@ -8,7 +8,7 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
 import { useAiAppManageAccess } from '@/services/ai-apps/hooks/useAiAppManageAccess';
-import { checkAiAppLive, deployFailureKind, hasPrd } from '@/services/ai-apps/ai-apps.service';
+import { checkAiAppLive, deployFailureKind, hasPrd, recordAiAppView } from '@/services/ai-apps/ai-apps.service';
 import { DocumentIcon } from '@/components/icons';
 import { Button } from '@/components/common/Button';
 import { AppActionsMenu } from '@/components/page/ai-apps/AiAppsPage/components/AppActionsMenu';
@@ -191,6 +191,7 @@ export function AiAppDetailPage(props: Props) {
     if (!app || iframeTracked.current === app.uid) return;
     iframeTracked.current = app.uid;
     analytics.onIframeLoaded(app.uid, app.name);
+    void recordAiAppView(app.uid);
   };
 
   // Don't swap to a loading shell when cached app data is already present —

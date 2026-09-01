@@ -238,6 +238,13 @@
   text-overflow: ellipsis;
 }
 
+.metricsRow {
+  svg {
+    flex-shrink: 0;
+    align-self: center;
+  }
+}
+
 .footer {
   display: flex;
   align-items: flex-end;

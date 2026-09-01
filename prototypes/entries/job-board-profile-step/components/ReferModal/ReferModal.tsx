@@ -318,8 +318,8 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
   const sentTo = usesTeamReferEmail ? 'the team' : getRecipientSummary(recipients);
 
   const composingDesc = usesTeamReferEmail
-    ? 'Referral email will be sent to the address this team set up, and you’ll be copied.'
-    : 'Referral email will be sent to everyone listed including you.';
+    ? 'One email goes to the address this team set up, with you copied in.'
+    : 'One email goes to everyone you add below, with you copied in.';
 
   /* What stops the send, when something does — nothing else. The two "X sees your
      name alongside the referral, and <First> is notified too" arms are gone: they
@@ -329,13 +329,13 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
      only thing standing between the person and a disabled Send button. */
   const blockingNote = isDraftError
     ? 'We couldn’t draft a note for that member — write your own, or pick someone else.'
-    : !usesTeamReferEmail && recipients.length === 0
-      ? 'Add at least one recipient — a network member or an email address.'
-      : undefined;
+    : undefined;
 
   /* Named while a member is picked, generic before — the same shape the note's own
      description uses two fields up, so the form asks in one voice. */
-  const copyLabel = selectedMember ? `Send a copy to ${firstName}` : 'Send a copy to the person you’re referring';
+  const copyLabel = selectedMember
+    ? `Copy ${firstName} on this email`
+    : 'Copy the person you’re referring on this email';
 
   return (
     <Modal isOpen={open} onClose={handleClose} closeOnBackdropClick={false} lockScroll>
@@ -344,35 +344,29 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
           <CloseIcon />
         </Button>
 
-        {/* The masthead aligns to the state under it, which is why these three
-            carry a modifier rather than a fixed alignment.
+        {/* Envelope beside the headline, not stacked above it — one row, with the
+            title and its sentence as the column to its right. `.headerSent` puts
+            the same three back into a centred stack for the receipt. */}
+        <div className={`${s.header} ${sent ? s.headerSent : ''}`}>
+          <div className={s.iconWrapper}>
+            <EnvelopeIcon />
+          </div>
 
-            Composing, the card is a form — a recipient field, a message box,
-            twin footer actions — and a form has one left edge that every label
-            and field starts from; a centred icon and title over it put two
-            alignment axes in a 400px card. Sent, there is no form left: one
-            sentence and a `Done` button, which is an announcement, and an
-            announcement is the thing centring is actually for. Same rule the
-            apply modal follows (see `.headerLeft` there), applied to a dialog
-            that happens to be both kinds of card in turn. */}
-        <div className={`${s.iconWrapper} ${sent ? '' : s.headerIconLeft}`}>
-          <EnvelopeIcon />
+          <div className={s.headerText}>
+            <h2 className={s.title}>{sent ? 'Referral sent' : `Refer someone for ${role.roleTitle}`}</h2>
+
+            {/* The sent line has to follow the tick: it used to end "and <First> is
+                notified too", which is now the one thing the referrer got to decide.
+                Asserting it either way would make the receipt disagree with the form
+                they just filled in. */}
+            <p className={s.desc}>
+              {sent
+                ? `Your note is on its way to ${sentTo}. They can reply to you directly.` +
+                  (copyReferee ? ` ${firstName} was copied in too.` : '')
+                : composingDesc}
+            </p>
+          </div>
         </div>
-
-        <h2 className={`${s.title} ${sent ? '' : s.headerLeft}`}>
-          {sent ? 'Referral sent' : `Refer for ${role.roleTitle}`}
-        </h2>
-
-        {/* The sent line has to follow the tick: it used to end "and <First> is
-            notified too", which is now the one thing the referrer got to decide.
-            Asserting it either way would make the receipt disagree with the form
-            they just filled in. */}
-        <p className={`${s.desc} ${s.headerDesc} ${sent ? '' : s.headerLeft}`}>
-          {sent
-            ? `Your note is on its way to ${sentTo}. They can reply to you directly.` +
-              (copyReferee ? ` ${firstName} has a copy too.` : '')
-            : composingDesc}
-        </p>
 
         {sent ? (
           <div className={s.actions}>

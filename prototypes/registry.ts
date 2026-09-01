@@ -2,6 +2,13 @@ import type { PrototypeEntry, PrototypeGroup } from './types';
 
 export const prototypeRegistry: PrototypeEntry[] = [
   {
+    key: 'linkedin-verify-live',
+    title: 'LinkedIn verification (live production component)',
+    description: "Production's OneClickVerification block, imported and rendered with mocked props so its gated state can be seen.",
+    category: 'Getting started',
+    load: () => import('./entries/linkedin-verify-live/LinkedInVerifyLivePrototype'),
+  },
+  {
     key: 'template',
     title: 'Starter template',
     description: 'Copy this entry as a starting point — mock list, detail panel, and local state.',

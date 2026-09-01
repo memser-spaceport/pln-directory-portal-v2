@@ -21,7 +21,13 @@ import s from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/Refer
 import btn from '@/components/common/Button/Button.module.scss';
 import js from './JobReferRoleRow.module.scss';
 
-import { ReferModal } from './components/ReferModal';
+/* The mocked modal from the apply-steps entry, not this folder's own.
+   This folder's own copy is the one production renders, so its pickers, draft
+   and send all call the real API — on a prototype route those 401 or CORS-fail and
+   the dialog opens empty. The apply-steps copy is identical UI on mocked data, so
+   this board demos the same modal and it actually works. Production is untouched:
+   it imports that copy directly, never this row. */
+import { ReferModal } from '../job-board-apply-steps/components/ReferModal';
 
 interface JobReferRoleRowProps {
   role: IJobRole;

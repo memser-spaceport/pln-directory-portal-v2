@@ -39,8 +39,12 @@ describe('useGetPlInfraNavItems', () => {
   });
 
   it('shows only the area a member is permitted for', () => {
-    expect(titlesOf(plInfra(PERMISSIONS.AI_APPS.PERM_VIEW))).toEqual(['AI Apps']);
+    expect(titlesOf(plInfra(PERMISSIONS.AI_APPS.PERM_VIEW))).toEqual(['PL Infra OS / Factorio', 'AI Apps']);
     expect(titlesOf(plInfra(PERMISSIONS.INVESTOR_DB.PERM_VIEW))).toEqual(['Investor DB']);
+  });
+
+  it('does not show PL Infra OS without AI Apps access', () => {
+    expect(titlesOf(plInfra(PERMISSIONS.GANTRY.PERM_VIEW))).not.toContain('PL Infra OS / Factorio');
   });
 
   it('lets a roadmap admin in as well as a roadmap viewer', () => {
@@ -61,7 +65,7 @@ describe('useGetPlInfraNavItems', () => {
       PERMISSIONS.GANTRY.PERM_VIEW,
     );
 
-    expect(titlesOf(all)).toEqual(['Gantry', 'Investor DB', 'AI Apps', 'Agent Sessions']);
+    expect(titlesOf(all)).toEqual(['Gantry', 'Investor DB', 'PL Infra OS / Factorio', 'AI Apps', 'Agent Sessions']);
   });
 
   it('does not show Founder DB, which is behind a kill switch', () => {
@@ -79,6 +83,7 @@ describe('useGetPlInfraNavItems', () => {
     );
 
     all.forEach((item) => expect(item.href).toEqual(expect.stringMatching(/^\//)));
+    expect(all.find((item) => item.title === 'PL Infra OS / Factorio')?.href).toBe('/pl-infra-os');
   });
 
   it('keeps the same array while permissions are unchanged', () => {

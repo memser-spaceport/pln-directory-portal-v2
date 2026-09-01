@@ -1,8 +1,8 @@
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 import { AiAppDetailPage } from '@/components/page/ai-apps/AiAppDetailPage';
-import { AiApp } from '@/services/ai-apps/ai-apps.service';
+import { AiApp, recordAiAppView } from '@/services/ai-apps/ai-apps.service';
 
 const mockAnalytics = {
   onDetailPageViewed: jest.fn(),
@@ -25,6 +25,7 @@ jest.mock('@/services/auth/store', () => ({
 jest.mock('@/services/ai-apps/ai-apps.service', () => ({
   ...jest.requireActual('@/services/ai-apps/ai-apps.service'),
   checkAiAppLive: jest.fn().mockResolvedValue(true),
+  recordAiAppView: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('@/analytics/ai-apps.analytics', () => ({
@@ -409,6 +410,26 @@ describe('AiAppDetailPage', () => {
       mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
       render(<AiAppDetailPage uid="app-1" />);
       expect(screen.getByText('DeploymentSettingsModal')).toBeInTheDocument();
+    });
+  });
+
+  describe('iframe view recording', () => {
+    it('posts a view once when the iframe loads', async () => {
+      mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
+      render(<AiAppDetailPage uid="app-1" />);
+
+      const iframe = await waitFor(() => {
+        const el = document.querySelector('iframe');
+        if (!el) throw new Error('iframe not mounted');
+        return el;
+      });
+
+      fireEvent.load(iframe);
+      fireEvent.load(iframe);
+
+      expect(recordAiAppView).toHaveBeenCalledTimes(1);
+      expect(recordAiAppView).toHaveBeenCalledWith('app-1');
+      expect(mockAnalytics.onIframeLoaded).toHaveBeenCalledTimes(1);
     });
   });
 });

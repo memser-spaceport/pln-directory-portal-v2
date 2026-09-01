@@ -65,6 +65,10 @@ export interface AiApp {
     /** Profile photo URL; null when the member has no photo (UI falls back to a generated avatar). */
     image: string | null;
   };
+  /** All-time Directory iframe loads. Absent on older API versions — treat as 0. */
+  viewCount?: number;
+  /** Distinct signed-in members who loaded the iframe in the last 7 days. */
+  weeklyActiveUsers?: number;
 }
 
 export type AiAppFailureKind = 'warning' | 'danger' | 'legacy';
@@ -158,6 +162,18 @@ export async function fetchAiApps(): Promise<AiApp[]> {
   }
 
   return response.json();
+}
+
+/**
+ * Record a Directory iframe load for tile signals. Fire-and-forget — a failed
+ * POST must not affect the iframe. 204 on success.
+ */
+export async function recordAiAppView(uid: string): Promise<void> {
+  try {
+    await customFetch(`${AI_APPS_API_URL}/${encodeURIComponent(uid)}/views`, { method: 'POST' }, true);
+  } catch {
+    // Tile counts are best-effort; never surface this to the member.
+  }
 }
 
 /**

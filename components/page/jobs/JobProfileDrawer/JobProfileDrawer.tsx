@@ -212,10 +212,25 @@ export function JobProfilePane(props: JobProfilePaneProps) {
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="apply-flow" />
           </div>
 
-          {/* 2. Job search status — the required section, so it comes first
-                   after the header. PL-Team-only: the pill carries the
-                   audience, the note carries the purpose, and the value never
-                   appears on the public profile or in the apply read-back. */}
+          {/* 2. Contact details.
+                   Above the status rather than below it, per the design. This
+                   used to sit after, on the reasoning recorded below: the
+                   required answer should come first because it is the one thing
+                   holding the application up.
+
+                   What that missed is that the required answer is not hard to
+                   find — it is the only amber card on the screen, and it says
+                   `Required to continue` on its own title. Ordering by urgency
+                   bought nothing the colour was not already buying, and it cost
+                   the reading order: this is a profile, and a profile opens with
+                   who you are and how to reach you. The status is a question
+                   about *this* application and follows from that. */}
+          <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="drawer" />
+
+          {/* 3. Job search status — the required section. PL-Team-only: the pill
+                   carries the audience, the note carries the purpose, and the
+                   value never appears on the public profile or in the apply
+                   read-back. */}
           {/* The requirement is said once, on the title, instead of in a strip
               above the card.
 
@@ -278,9 +293,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
             </div>
           </DetailsSection>
 
-          <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="drawer" />
-
-          {/* 3–5. Optional sections — what a hiring team actually reads.
+          {/* 4–6. Optional sections — what a hiring team actually reads.
                    Real components: they edit in place and save themselves.
 
                    Experience is the one section with a shortcut: drop a CV and

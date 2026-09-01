@@ -195,3 +195,41 @@ describe('the profile pane lede', () => {
     expect(screen.getByText('Contact details')).toBeInTheDocument();
   });
 });
+
+/**
+ * The order of the pane's cards.
+ *
+ * Worth a test because the order it replaced had a written reason — "the
+ * required section, so it comes first" — and that reason is still readable in
+ * the file's history. Someone acting on it in good faith would put the status
+ * back on top, and nothing else in this suite would notice.
+ *
+ * The requirement is not carried by position: the status card is the only amber
+ * one on the screen and says `Required to continue` on its own title. What
+ * position carries is reading order, and a profile opens with who you are and
+ * how to reach you.
+ */
+describe('the profile pane’s section order', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('puts contact details above the job search status', () => {
+    renderDrawer(INCOMPLETE);
+
+    const contact = screen.getByText('Contact details');
+    const status = screen.getByText('Job search status');
+
+    /* `DOCUMENT_POSITION_FOLLOWING` — status comes after contact in document
+       order. Asserted on the nodes rather than on an array of headings, so it
+       stays true if either card grows another heading inside it. */
+    expect(contact.compareDocumentPosition(status) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  /* The amber treatment is what actually marks the requirement, so it has to
+     survive the move — otherwise the reordering quietly removes the only signal
+     that is left once position stops carrying it. */
+  it('still marks the status required when it is unanswered', () => {
+    renderDrawer(INCOMPLETE);
+
+    expect(screen.getByText('Required to continue')).toBeInTheDocument();
+  });
+});

@@ -240,3 +240,47 @@ describe('the profile step’s review gate', () => {
     expect(onStepChange).toHaveBeenCalledWith('application');
   });
 });
+
+/**
+ * Where the header's Back goes from the letter.
+ *
+ * Same harness, different step — the target is the drawer's, computed beside the
+ * consent this file's first suite is about, so a change to one is a change in
+ * the same twelve lines as the other.
+ */
+describe('the header’s Back, from the application step', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  /* Not `path[i - 1]`, which would be the profile. The letter's own pane carries
+     "Edit profile" beside the read-back and the rail offers the step a second
+     time, so the profile is the one destination Back cannot add — while the
+     posting is the one nothing else on this screen offers, and the one someone
+     writing a note reaches for. */
+  it('goes to the job, not to the step before it', () => {
+    renderProfileStep({ at: 'application' });
+
+    fireEvent.click(screen.getByRole('button', { name: /Back to the job/ }));
+
+    expect(onStepChange).toHaveBeenCalledWith('review');
+  });
+
+  /* The label is derived from the target rather than set beside it. This is what
+     would catch the two drifting apart — a Back that says one place and goes to
+     another is worse than either choice made consistently. */
+  it('says where it goes', () => {
+    renderProfileStep({ at: 'application' });
+
+    expect(screen.getByRole('button', { name: /Back to the job/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Back to your profile/ })).not.toBeInTheDocument();
+  });
+
+  /* The step before it keeps the ordinary rule, so the special case above is
+     genuinely special rather than a rewrite of `backTarget` for everyone. */
+  it('leaves the profile step’s own Back alone', () => {
+    renderProfileStep({ at: 'profile' });
+
+    fireEvent.click(screen.getByRole('button', { name: /Back to the job/ }));
+
+    expect(onStepChange).toHaveBeenCalledWith('review');
+  });
+});

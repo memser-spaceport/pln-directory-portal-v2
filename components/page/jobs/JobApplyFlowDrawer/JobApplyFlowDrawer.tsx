@@ -457,6 +457,18 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
    * the application you left. That is where the person actually was.
    */
   const backTarget: ApplyFlowStepId | null = (() => {
+    /* From the letter, Back is the posting — not the step before it.
+       The design puts "Back to the job" on this step, and it holds up here for a
+       reason the other steps do not share: the pane already carries its own
+       route to the profile ("Edit profile", beside the read-back), and the rail
+       above offers it a second time. So the only destination Back could add is
+       the one nothing else on the screen offers, and it is also the one someone
+       writing a note actually reaches for — re-reading what they are applying to.
+
+       Everywhere else this stays `path[i - 1]`. The label follows the target
+       rather than being set beside it, so `BACK_LABEL.review` already says the
+       right words and nothing here has to keep a second copy of them in sync. */
+    if (at === 'application') return 'review';
     if (path.includes(at)) return pathIndex === 0 ? null : path[pathIndex - 1];
     const after = APPLY_FLOW_STEPS.slice(APPLY_FLOW_STEPS.indexOf(at) + 1).find((id) => path.includes(id));
     return after ?? path[path.length - 1];

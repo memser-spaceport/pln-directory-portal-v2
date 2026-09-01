@@ -31,7 +31,7 @@ import { hasTeamNewsItems } from '@/services/team-news/team-news.utils';
 import type { ITeamNewsByTeamResponse } from '@/types/team-news.types';
 import { getTeamFollowers } from '@/services/follow/follow.service';
 import type { ITeamFollowersResponse } from '@/types/follow.types';
-import { TeamOpenRoles } from '@/components/page/team-details/TeamOpenRoles';
+import { TeamOpenRolesSection } from '@/components/page/team-details/TeamOpenRoles';
 import { selectTeamOpenRoles } from '@/components/page/team-details/TeamOpenRoles/selectTeamOpenRoles';
 import { getJobsList } from '@/app/actions/jobs.actions';
 import type { IJobTeamGroup } from '@/types/jobs.types';
@@ -116,8 +116,9 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
         </div>
 
         {/* Who the team is looking for, next to who's already there. Absent, not empty,
-            when the team isn't hiring. */}
-        {openRoles && <TeamOpenRoles group={openRoles} />}
+            when the team isn't hiring — but the host mounts either way, because the
+            apply drawer it owns must outlive the list. See `TeamOpenRolesSection`. */}
+        <TeamOpenRolesSection group={openRoles ?? null} isLoggedIn={isLoggedIn} userInfo={userInfo} />
 
         <TeamFocusAreas team={team} focusAreas={focusAreas || []} teamFocusAreas={team?.teamFocusAreas || []} />
 

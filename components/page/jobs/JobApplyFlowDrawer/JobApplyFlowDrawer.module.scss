@@ -269,10 +269,15 @@
 
 // The caption under the press.
 //
-// `--foreground-neutral-secondary`, not the design's tertiary `#8897ae`: 12px of
-// #8897ae on white is about 3.0:1 and fails AA. `.footerHint` made the same
-// substitution at the same size for the same reason, and a caption nobody can
-// read is worse than no caption.
+// The design's tertiary, and a known contrast tradeoff rather than an oversight:
+// 12px of #8897ae on white is about 3.0:1, under the 4.5:1 AA asks for. This
+// briefly shipped as `--foreground-neutral-secondary` (#455468) on that basis —
+// the substitution `.footerHint` makes at the same size — and was put back,
+// because the tone is the design's call and this caption repeats what the button
+// beside it already says rather than carrying anything alone.
+//
+// If AA becomes a hard gate, secondary is the swap, and `.footerHint` is the
+// precedent for making it.
 .footerActionNote {
   margin: 0;
   font-size: 12px;

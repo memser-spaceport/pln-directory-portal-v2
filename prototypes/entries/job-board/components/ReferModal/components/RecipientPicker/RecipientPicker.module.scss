@@ -248,11 +248,13 @@
 }
 
 // The quick-add offer under the field, drawn to the reviewed mock: one wrapping
-// row that opens with a quiet "Suggested" and then flows single-line person
-// chips, wrapping to the container's left edge rather than indenting under the
-// label. The label is an item in that flow, not a heading above it — which is
-// what lets the first chip share its line and saves the block a whole row in a
-// card that is already fighting its own fold.
+// row that opens with a quiet "Suggested from <team>" and then flows single-line
+// person chips, wrapping to the container's left edge rather than indenting under
+// the label. The label is an item in that flow, not a heading above it — which is
+// what lets a chip share its line and saves the block a whole row in a card that
+// is already fighting its own fold. `flex-wrap` is also what makes the label safe
+// to lengthen with a team name: a long one takes the first line to itself instead
+// of squeezing the chip beside it.
 //
 // The chip's name and role are the *picked row's* treatment (`.rowText` /
 // `.rowName` / `.rowRole` below), not the menu row's two-line stack — and that

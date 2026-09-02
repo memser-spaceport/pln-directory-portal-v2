@@ -79,6 +79,22 @@ export type JobsFilterKey = 'roleCategory' | 'seniority' | 'focus' | 'location' 
  *  `email`. */
 export type IJobReferralRecipient = { memberUid: string; name?: string } | { email: string; name?: string };
 
+export interface ICreateJobReferralPayload {
+  referredMemberUid: string;
+  /** Omitted entirely when the hiring team has a referral inbox — the backend addresses it. */
+  recipients?: IJobReferralRecipient[];
+  note: string;
+  /**
+   * Whether the referred member is copied on the email.
+   *
+   * The backend CCs them unconditionally today, and `CreateJobReferralSchema` is a
+   * plain `z.object` — non-strict — so this key is stripped rather than rejected. It
+   * is sent anyway so the referrer's choice starts working the day the API honours
+   * it, with no second frontend change.
+   */
+  includeReferredMember?: boolean;
+}
+
 export interface IJobReferralDraft {
   /** The complete note, ready to show in an editable field. */
   note: string;

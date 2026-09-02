@@ -5,13 +5,12 @@ jest.mock('@/services/plaa/hooks/useCurrentRoundStats', () => ({
   useCurrentRoundStats: () => mockUseCurrentRoundStats(),
 }));
 
-import {
-  useCurrentSnapshotStatus,
-  MOCK_ACTIVITIES,
-  MOCK_POINTS_COLLECTED,
-  MOCK_ACTIVITIES_COUNT,
-  MOCK_CATEGORIES_COUNT,
-} from '@/services/plaa/hooks/useCurrentSnapshotStatus';
+const mockUseSnapshotPoints = jest.fn();
+jest.mock('@/services/points/hooks/usePoints', () => ({
+  useSnapshotPoints: (snapshotPeriod: string) => mockUseSnapshotPoints(snapshotPeriod),
+}));
+
+import { useCurrentSnapshotStatus } from '@/services/plaa/hooks/useCurrentSnapshotStatus';
 
 describe('useCurrentSnapshotStatus', () => {
   const realDate = Date;
@@ -34,6 +33,7 @@ describe('useCurrentSnapshotStatus', () => {
     jest.clearAllMocks();
     // No real round-stats data by default — exercises the calendar-math fallback.
     mockUseCurrentRoundStats.mockReturnValue({ data: null });
+    mockUseSnapshotPoints.mockReturnValue({ data: null, isLoading: false });
   });
 
   afterEach(() => {
@@ -61,6 +61,13 @@ describe('useCurrentSnapshotStatus', () => {
 
       expect(result.current.daysLeft).toBe(1);
       expect(result.current.progressPct).toBe(100);
+    });
+
+    it('fetches snapshot points for the calendar-derived period ("YYYY-MM")', () => {
+      freeze('2026-08-16T00:00:00');
+      renderHook(() => useCurrentSnapshotStatus());
+
+      expect(mockUseSnapshotPoints).toHaveBeenCalledWith('2026-08');
     });
   });
 
@@ -92,25 +99,109 @@ describe('useCurrentSnapshotStatus', () => {
 
       expect(result.current.periodLabel).toBe('September 2026');
     });
+
+    it('fetches snapshot points for the round-stats period, not the calendar fallback, when both exist', () => {
+      freeze('2026-08-16T00:00:00');
+      mockUseCurrentRoundStats.mockReturnValue({
+        data: { period: '2026-09-01', month: 'September', year: 2026 },
+      });
+
+      renderHook(() => useCurrentSnapshotStatus());
+
+      expect(mockUseSnapshotPoints).toHaveBeenCalledWith('2026-09');
+    });
   });
 
-  it('exposes the mock points/activities/categories values pending backend integration', () => {
-    freeze('2026-08-16T00:00:00');
-    const { result } = renderHook(() => useCurrentSnapshotStatus());
+  describe('real snapshot points data', () => {
+    const records = [
+      { category: 'Knowledge Sharing', activityName: 'Host Office Hours', description: '', pointsCollectedPerSnapshot: 100 },
+      { category: 'Knowledge Sharing', activityName: 'Thoughtful Responder', description: '', pointsCollectedPerSnapshot: 250 },
+      { category: 'Programs', activityName: 'Make a Network Introduction', description: '', pointsCollectedPerSnapshot: 500 },
+    ];
 
-    expect(result.current.pointsCollected).toBe(MOCK_POINTS_COLLECTED);
-    expect(result.current.activitiesCount).toBe(MOCK_ACTIVITIES_COUNT);
-    expect(result.current.categoriesCount).toBe(MOCK_CATEGORIES_COUNT);
-    expect(result.current.activities).toBe(MOCK_ACTIVITIES);
+    beforeEach(() => {
+      freeze('2026-08-16T00:00:00');
+      mockUseSnapshotPoints.mockReturnValue({
+        data: { snapshotPeriod: '2026-08', records },
+        isLoading: false,
+      });
+    });
+
+    it('maps each PointsRecord onto a SnapshotActivityItem (category/activityName/pointsCollectedPerSnapshot -> category/title/points)', () => {
+      const { result } = renderHook(() => useCurrentSnapshotStatus());
+
+      expect(result.current.activities).toEqual([
+        { category: 'Knowledge Sharing', title: 'Host Office Hours', points: 100 },
+        { category: 'Knowledge Sharing', title: 'Thoughtful Responder', points: 250 },
+        { category: 'Programs', title: 'Make a Network Introduction', points: 500 },
+      ]);
+    });
+
+    it('sums pointsCollected across all records', () => {
+      const { result } = renderHook(() => useCurrentSnapshotStatus());
+      expect(result.current.pointsCollected).toBe(850);
+    });
+
+    it('counts activitiesCount as the record count', () => {
+      const { result } = renderHook(() => useCurrentSnapshotStatus());
+      expect(result.current.activitiesCount).toBe(3);
+    });
+
+    it('counts categoriesCount as the distinct category count, not the record count', () => {
+      const { result } = renderHook(() => useCurrentSnapshotStatus());
+      expect(result.current.categoriesCount).toBe(2); // Knowledge Sharing, Programs
+    });
+
+    it('coerces a string-typed pointsCollectedPerSnapshot to a number (Airtable-backed fields can arrive as text)', () => {
+      mockUseSnapshotPoints.mockReturnValue({
+        data: {
+          snapshotPeriod: '2026-08',
+          records: [{ category: 'Brand', activityName: 'X', description: '', pointsCollectedPerSnapshot: '75' as unknown as number }],
+        },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useCurrentSnapshotStatus());
+      expect(result.current.pointsCollected).toBe(75);
+      expect(result.current.activities[0].points).toBe(75);
+    });
   });
 
-  it('keeps pointsCollected/activitiesCount/categoriesCount consistent with the activity list', () => {
-    // Mirrors how the real values must be derived once connected — see the hook's TODO.
-    const summedPoints = MOCK_ACTIVITIES.reduce((sum, a) => sum + a.points, 0);
-    const distinctCategories = new Set(MOCK_ACTIVITIES.map((a) => a.category)).size;
+  describe('no real data yet (loading, unauthenticated, or not-yet-eligible)', () => {
+    it('reports zero points/activities/categories and an empty activity list when the query has no data', () => {
+      freeze('2026-08-16T00:00:00');
+      mockUseSnapshotPoints.mockReturnValue({ data: null, isLoading: false });
 
-    expect(MOCK_POINTS_COLLECTED).toBe(summedPoints);
-    expect(MOCK_ACTIVITIES_COUNT).toBe(MOCK_ACTIVITIES.length);
-    expect(MOCK_CATEGORIES_COUNT).toBe(distinctCategories);
+      const { result } = renderHook(() => useCurrentSnapshotStatus());
+
+      expect(result.current.pointsCollected).toBe(0);
+      expect(result.current.activitiesCount).toBe(0);
+      expect(result.current.categoriesCount).toBe(0);
+      expect(result.current.activities).toEqual([]);
+    });
+
+    it('reports the same empty state while the query is still loading', () => {
+      freeze('2026-08-16T00:00:00');
+      mockUseSnapshotPoints.mockReturnValue({ data: undefined, isLoading: true });
+
+      const { result } = renderHook(() => useCurrentSnapshotStatus());
+
+      expect(result.current.pointsCollected).toBe(0);
+      expect(result.current.activities).toEqual([]);
+    });
+
+    it('treats a response with an empty records array the same as no data', () => {
+      freeze('2026-08-16T00:00:00');
+      mockUseSnapshotPoints.mockReturnValue({
+        data: { snapshotPeriod: '2026-08', records: [] },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useCurrentSnapshotStatus());
+
+      expect(result.current.pointsCollected).toBe(0);
+      expect(result.current.activitiesCount).toBe(0);
+      expect(result.current.categoriesCount).toBe(0);
+    });
   });
 });

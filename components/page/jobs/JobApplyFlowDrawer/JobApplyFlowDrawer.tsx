@@ -666,7 +666,9 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
          * this offers to make. They keep the single outbound button.
          */
         const outbound = (
-          /* "Apply on team site", and the reasoning that used to sit here is
+          /* "Apply on the team's site" — the design's wording, where this read
+               "Apply on team site" until the copy was taken from the frame
+               wholesale. The reasoning that used to sit here is
                worth keeping because it is what changed. The old label was
                "Continue to apply", on the argument that the hint beside it
                already said whose site and that a label repeating the destination
@@ -700,7 +702,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             className={clsx(isLoggedIn ? d.footerAction : d.footerLeadDemoted, d.externalButton)}
             onClick={onApply}
           >
-            Apply on team site
+            Apply on the team&apos;s site
             {/* The board's own external glyph — the same one the original
                 posting links wear (`JobDetailPane`, `JobAlertBanner`). It is
                 on this press and not the profile step's identically-worded one
@@ -766,18 +768,20 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               aria-describedby={FOOTER_ACTION_NOTE_ID}
               onClick={() => goTo('profile')}
             >
-              {/* "Create your profile", not the design's "Create profile →
-                  signal interest". Nothing here signals interest in this role:
-                  the press opens an account and returns to this same screen,
-                  and the team learns nothing. A label promising otherwise would
-                  be found out one screen later. */}
-              Create your profile
+              {/* The design's label, verbatim, arrow included. A shorter
+                  "Create your profile" was tried and reverted: the copy in this
+                  frame is the design's to write, and paraphrasing it locally is
+                  how two surfaces end up describing the same press differently. */}
+              Create profile → signal interest
             </Button>
           ),
-          /* Two minutes is the form; the rest is what the two minutes buy, said
-             in the terms the banner above already set. Not "the team is
-             notified you are interested" — see the label. */
-          actionNote: '~2 min · teams across the network can find you',
+          /* Also verbatim (Figma node 631:23365). Worth knowing what it commits
+             to: the press opens an account and returns to this screen, and no
+             team is notified of anything on this branch — applying still happens
+             on the employer's own site. The sentence is the design's, so it
+             changes in the design; it is noted here so nobody reads it as a
+             description of the code and goes looking for the notification. */
+          actionNote: '~2 min · team is notified you are interested',
         };
       }
 
@@ -798,24 +802,15 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
              press signs you up, and applying is what it is for. A stranger
              pressing a button labelled "Apply" would be told the truth one
              screen too late. */
-          <Button
-            variant="primary"
-            style="fill"
-            size="m"
-            className={d.footerAction}
-            aria-describedby={isLoggedIn ? undefined : FOOTER_ACTION_NOTE_ID}
-            onClick={onApply}
-          >
+          <Button variant="primary" style="fill" size="m" className={d.footerAction} onClick={onApply}>
             {isLoggedIn ? 'Apply' : 'Sign up to Apply'}
           </Button>
         ),
-        /* Gated, and the gate is the point. This is not the logged-out branch —
-           it is every in-app apply there is, so an approved member pressing
-           "Apply" lands here too, as does a Job Aspirant and a member still
-           pending. Only the *label* has ever switched on `isLoggedIn`; a note
-           that did not would be this footer offering a sign-up to four states
-           that signed up months ago. */
-        actionNote: isLoggedIn ? undefined : '~2 min · your profile goes with your application',
+        /* No caption here, and the reason is that there is no frame for one.
+           The design covers the outbound footer (631:23360); the in-app one it
+           does not, and a caption written locally to match the other branch's
+           treatment would be exactly the invented copy this pass removed. If
+           this state should say something, it gets drawn first. */
       };
     }
 
@@ -972,7 +967,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
           </div>
           {/* Withheld when Apply leaves the site: there is nothing to walk.
               Every step of such a run, not just the reading one — a stranger who
-              presses "Create Job Profile" above lands on the account form, and
+              presses the profile button above lands on the account form, and
               the journey from there is back to this posting and then out to the
               employer. There is no third stop to draw, so a rail promising one
               would be the flow lying about itself in the one state where the

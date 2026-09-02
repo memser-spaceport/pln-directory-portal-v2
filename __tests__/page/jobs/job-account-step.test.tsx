@@ -235,7 +235,7 @@ describe('the apply flow’s account step', () => {
     it('hides the rail when Apply leaves the site, and says where it goes', () => {
       renderStep(OTHER, { applyGoesExternal: true, at: 'review' });
 
-      expect(screen.getByRole('button', { name: /Apply on team site/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Apply on the team's site/ })).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Continue to apply' })).not.toBeInTheDocument();
       expect(screen.queryByRole('list', { name: 'Application steps' })).not.toBeInTheDocument();
       expect(screen.queryByText('Review job')).not.toBeInTheDocument();
@@ -308,13 +308,13 @@ describe('the outbound review step’s two doors', () => {
   it('offers a stranger the profile as well as the employer’s site', () => {
     const { container } = outboundReview();
 
-    expect(screen.getByRole('button', { name: /Apply on team site/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Create your profile' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Apply on the team's site/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Create profile → signal interest' })).toBeInTheDocument();
     /* The case for a profile is no longer made here — it is a card in the body
        of the step. What the footer keeps is the caption on the press itself,
        which is a different kind of sentence: what this costs and what it buys,
        not why a profile is worth having. */
-    expect(within(footerOf(container)).getByText(/teams across the network can find you/)).toBeInTheDocument();
+    expect(within(footerOf(container)).getByText(/team is notified you are interested/)).toBeInTheDocument();
     expect(
       within(footerOf(container)).queryByText(/A profile lets recruiters across the network/),
     ).not.toBeInTheDocument();
@@ -326,8 +326,8 @@ describe('the outbound review step’s two doors', () => {
   it('names the caption as the press’s description', () => {
     const { container } = outboundReview();
 
-    const note = within(footerOf(container)).getByText(/teams across the network can find you/);
-    expect(screen.getByRole('button', { name: 'Create your profile' })).toHaveAttribute(
+    const note = within(footerOf(container)).getByText(/team is notified you are interested/);
+    expect(screen.getByRole('button', { name: 'Create profile → signal interest' })).toHaveAttribute(
       'aria-describedby',
       note.id,
     );
@@ -339,7 +339,7 @@ describe('the outbound review step’s two doors', () => {
     const onStepChange = jest.fn();
     outboundReview({ onStepChange });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create your profile' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Create profile → signal interest' }));
 
     expect(onStepChange).toHaveBeenCalledWith('profile');
   });
@@ -360,7 +360,7 @@ describe('the outbound review step’s two doors', () => {
       outboundReview({ isLoggedIn: true, memberUid: 'm1', justSignedUp: true });
 
       expect(acknowledgement()).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Apply on team site/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Apply on the team's site/ })).toBeInTheDocument();
     });
 
     /* The trap this guards. Logged in, non-PL role, review step is ALSO where a
@@ -377,9 +377,9 @@ describe('the outbound review step’s two doors', () => {
   it('does not offer a profile to someone who already has one', () => {
     outboundReview({ isLoggedIn: true, memberUid: 'm1', viewerState: 'pending-approval' });
 
-    expect(screen.getByRole('button', { name: /Apply on team site/ })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Create your profile' })).not.toBeInTheDocument();
-    expect(screen.queryByText(/teams across the network can find you/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Apply on the team's site/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Create profile → signal interest' })).not.toBeInTheDocument();
+    expect(screen.queryByText(/team is notified you are interested/)).not.toBeInTheDocument();
   });
 
   /* **DOM order is load-bearing here.** On phones the bar stacks and the design
@@ -401,13 +401,13 @@ describe('the outbound review step’s two doors', () => {
     const buttons = screen
       .getAllByRole('button')
       .map((b) => b.textContent?.trim())
-      .filter((label) => label === 'Create your profile' || label?.startsWith('Apply on team site'));
+      .filter((label) => label === 'Create profile → signal interest' || label?.startsWith("Apply on the team's site"));
 
-    expect(buttons).toEqual(['Apply on team site', 'Create your profile']);
+    expect(buttons).toEqual(["Apply on the team's site", 'Create profile → signal interest']);
   });
 
   /* The rail is withheld for every step of an outbound run, not just the reading
-     one. Someone who presses Create your profile lands on the account form, and
+     one. Someone who presses the profile button lands on the account form, and
      from there goes back to the posting and out — there is no third stop, so a
      rail drawing one would be the flow lying about itself. */
   it('keeps the rail off on the account step too, where there is no third stop', () => {
@@ -465,28 +465,19 @@ describe('the case for a profile', () => {
     expect(heading()).not.toBeInTheDocument();
   });
 
-  describe('the footer caption on an in-app role', () => {
-    const caption = () => screen.queryByText(/your profile goes with your application/);
+  /**
+   * The in-app footer stays bare.
+   *
+   * A caption was written for it, matching the outbound branch's treatment, and
+   * removed: the design covers the outbound footer and not this one, so that
+   * sentence was invented rather than transcribed. Pinned as an absence because
+   * "the other branch has one" is a persuasive reason to add it back, and the
+   * reason not to lives nowhere in the markup.
+   */
+  it('leaves the in-app footer without a caption the design never drew', () => {
+    const { container } = renderStep(PL, { at: 'review' });
 
-    it('tells a stranger what the press costs', () => {
-      renderStep(PL, { at: 'review' });
-
-      expect(caption()).toBeInTheDocument();
-    });
-
-    /**
-     * **The gate that is easy to lose.** This branch is not the logged-out one —
-     * it is every in-app apply there is, so an approved member, a Job Aspirant
-     * and a member still pending all press the same button. Only the *label* has
-     * ever switched on `isLoggedIn`; a caption that did not would be this footer
-     * offering a sign-up to three states that signed up months ago, in a state
-     * nobody exercises by hand because it looks identical until you read it.
-     */
-    it('says nothing to a member who already has one', () => {
-      renderStep(PL, { at: 'review', isLoggedIn: true, memberUid: 'm1', viewerState: 'ready' });
-
-      expect(screen.getByRole('button', { name: 'Apply' })).toBeInTheDocument();
-      expect(caption()).not.toBeInTheDocument();
-    });
+    expect(screen.getByRole('button', { name: 'Sign up to Apply' })).toBeInTheDocument();
+    expect(container.querySelector('p[class*="footerActionNote"]')).toBeNull();
   });
 });

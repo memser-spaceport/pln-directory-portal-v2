@@ -13,19 +13,22 @@ import s from './JobUnlockBanner.module.scss';
  * has. Here it gets to be two reasons instead of one clause, and the footer
  * goes back to being a footer.
  *
- * **The claims are not new.** Both sentences are the ones already argued
- * through in `prototypes/entries/job-board/SignInBanner.tsx` as
- * `ApplyValueBullets` — they never survived promotion into `JobBoardBanner`,
- * which renders a single line and a button, so the wording has been sitting
- * unused rather than untested. Reusing it keeps this component out of a fresh
- * copy debate, and more importantly keeps it out of the trap the whole apply
- * flow has been walking around: neither line promises a notification or a
- * ranking, because nothing in the code delivers either.
+ * **The copy is the design's, verbatim.** Every string below is transcribed
+ * from the Figma frame rather than written here, and that is deliberate: an
+ * earlier pass reworded both items on the grounds that the flow does not
+ * currently notify a team or rank a candidate, and the reword was reverted. The
+ * design owns this copy. If item 2's promise is to become true, it becomes true
+ * in the flow, not by softening the sentence — and if it is not going to, that
+ * is a conversation for the design, not a local edit.
  *
- * **Numbers, against a prior decision.** That prototype chose plain discs for
- * these two lines and said so — "two lines of the banner's own sub-copy is not
- * a feature grid". The design asks for numbered badges here, which is a fair
- * reversal for a standalone card rather than two lines inside a strip. The one
+ * So: do not "fix" these strings against what the code does today. Change them
+ * when the frame changes.
+ *
+ * **Numbers, against a prior decision.** `SignInBanner` in `prototypes/` makes
+ * a two-item case for a profile as plain discs and argues for it — "two lines of
+ * the banner's own sub-copy is not a feature grid". The design asks for numbered
+ * badges here, which is a fair reversal for a standalone card rather than two
+ * lines inside a strip. The one
  * place to watch it is a logged-out visitor on a Protocol Labs role, where the
  * three-step rail is *not* withheld and this list sits below it — see
  * `ApplyFlowSteps`, which argues that two circle-bearing rails in one viewport
@@ -38,14 +41,15 @@ import s from './JobUnlockBanner.module.scss';
 
 const TITLE_ID = 'job-unlock-banner-title';
 
+/* Transcribed from Figma node 631:23299. Not paraphrased, not shortened. */
 const ITEMS = [
   {
     head: 'Get discovered without applying',
-    body: "Founders reach out when they're hiring for what you do.",
+    body: 'We surface your profile to founders whose open roles match your background.',
   },
   {
-    head: 'Apply without starting over',
-    body: 'Apply to hundreds of open roles with a single profile.',
+    head: 'Signal interest in a specific role',
+    body: "Interested candidates who match go to the top of the team's review list.",
   },
 ];
 

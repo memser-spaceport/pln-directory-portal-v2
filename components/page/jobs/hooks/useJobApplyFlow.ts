@@ -424,7 +424,7 @@ export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: Job
    * **Which step depends on where this application is actually going.** A new
    * account's verdict is `pending`, so for any non-PL team `shouldApplyGoExternal`
    * was already true when they pressed Apply — and the footer told them so:
-   * "Apply on team site", on the employer's own site. Resuming straight onto the
+   * "Apply on the team's site", on the employer's own site. Resuming straight onto the
    * profile step put the in-app letter in front of someone who had been promised
    * the opposite, and let them finish it. The rule this consults is the one
    * `onApply` consults; it was simply never asked here.
@@ -434,7 +434,7 @@ export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: Job
    * blocks that, and a silently blocked redirect is worse than the wrong step.
    * The review step already carries the external press as a button
    * (`JobApplyFlowDrawer`'s footer, where the rail is hidden and the action is
-   * "Apply on team site"), so this hands them the promise instead of breaking it.
+   * "Apply on the team's site"), so this hands them the promise instead of breaking it.
    */
   const onResumeAfterSignUp = useCallback(
     (target: JobDetailTarget) => {

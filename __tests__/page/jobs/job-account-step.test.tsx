@@ -347,6 +347,33 @@ describe('the outbound review step’s two doors', () => {
   /* A signed-in member whose account is still pending reaches the same branch,
      and already has the profile this offers to make. Offering it to them would
      be the footer asking for something they have. */
+  /**
+   * Coming back from Privy lands here: the account exists, so the banner and the
+   * profile press are gone and this is the plain outbound footer. Saying nothing
+   * would leave the person who did what the board asked with strictly less on
+   * screen than the person who ignored it, and no sign the account was made.
+   */
+  describe('coming back with an account', () => {
+    const acknowledgement = () => screen.queryByText(/Profile created/);
+
+    it('confirms the account to whoever just made one', () => {
+      outboundReview({ isLoggedIn: true, memberUid: 'm1', justSignedUp: true });
+
+      expect(acknowledgement()).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Apply on team site/ })).toBeInTheDocument();
+    });
+
+    /* The trap this guards. Logged in, non-PL role, review step is ALSO where a
+       Job Aspirant and a member awaiting approval sit — both with accounts months
+       old. Keyed on `isLoggedIn` instead of the resume, this sentence would greet
+       them by announcing something that did not just happen. */
+    it('says nothing to a member who did not just sign up', () => {
+      outboundReview({ isLoggedIn: true, memberUid: 'm1', viewerState: 'pending-approval' });
+
+      expect(acknowledgement()).not.toBeInTheDocument();
+    });
+  });
+
   it('does not offer a profile to someone who already has one', () => {
     outboundReview({ isLoggedIn: true, memberUid: 'm1', viewerState: 'pending-approval' });
 

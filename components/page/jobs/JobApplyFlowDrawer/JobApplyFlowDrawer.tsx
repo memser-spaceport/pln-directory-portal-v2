@@ -183,6 +183,16 @@ interface JobApplyFlowDrawerProps {
    * flow lying about itself.
    */
   applyGoesExternal: boolean;
+  /**
+   * This run resumed from the Privy round trip — the person pressed "Create your
+   * profile" here and came back with an account.
+   *
+   * Read by exactly one footer branch, and it exists because that branch cannot
+   * work the answer out. Logged in, on a non-PL role, at the review step is also
+   * where a Job Aspirant and a member still awaiting approval land, and both have
+   * had an account for months. Set by `onResumeAfterSignUp` and nothing else.
+   */
+  justSignedUp?: boolean;
   /** Pressing Apply on the review step, which the flow answers by routing. */
   onApply: () => void;
   /**
@@ -271,6 +281,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     appliedAt,
     showOriginalPosting,
     applyGoesExternal,
+    justSignedUp = false,
     onApply,
     onSignUp,
     onSignIn,
@@ -701,7 +712,31 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
           </Button>
         );
 
-        if (isLoggedIn) return { hint: null, action: outbound };
+        /**
+         * **The one screen that gets quieter for having converted.**
+         *
+         * Pressing "Create your profile" hands off to Privy and comes back
+         * here — a new account's verdict is `pending`, so this is still the
+         * outbound branch, only now on the logged-in side of it. Everything the
+         * previous screen offered is gone: the card making the case, the profile
+         * press, its caption. What is left is the button that leaves the site.
+         *
+         * Without a word here, the person who did the thing the board asked for
+         * gets strictly less than the person who ignored it, and no confirmation
+         * that the account they just made exists.
+         *
+         * `justSignedUp` and not `isLoggedIn` because this branch is shared: a
+         * Job Aspirant and a member awaiting approval reach the same code on the
+         * same role, and telling either of them their profile was just created
+         * would be a worse lie than saying nothing. It comes from the resume and
+         * from nowhere else, and `CLOSE` clears it, so it belongs to this run.
+         */
+        if (isLoggedIn) {
+          return {
+            hint: justSignedUp ? 'Profile created. You can finish it any time from the job board.' : null,
+            action: outbound,
+          };
+        }
 
         return {
           /* The outbound press in `lead`, which is what that slot is for — "the

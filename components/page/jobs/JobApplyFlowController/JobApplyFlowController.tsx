@@ -250,6 +250,11 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
              withholding its own answer. */
           showOriginalPosting={canSeeOriginalPosting({ isLoggedIn, userInfo }) || applyGoesExternal}
           applyGoesExternal={applyGoesExternal}
+          /* Only the resume sets this. It is what lets the footer tell the
+             person who just came back from Privy that the account exists —
+             a sentence that would be false for the Job Aspirant and the
+             pending member sitting in the same footer branch. */
+          justSignedUp={state.justSignedUp ?? false}
           /* Straight through to the one gate. `onApply` replaces or advances the
              step itself, so the drawer needs no close of its own here. */
           onApply={() => flow.onApply({ ...state.target }, 'detail')}

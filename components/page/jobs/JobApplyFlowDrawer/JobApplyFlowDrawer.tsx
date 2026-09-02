@@ -309,6 +309,9 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
    */
   const accountForm = useForm<AccountFormData>({
     defaultValues: EMPTY_ACCOUNT_FORM,
+    /* The variant that *does* ask for a job search status — this door is reached
+       by pressing Apply, so an application is waiting on the answer and asking
+       here is what saves a stop later. The banner's modal uses the other one. */
     resolver: yupResolver(accountSchema) as Resolver<AccountFormData>,
     mode: 'onBlur',
   });
@@ -566,16 +569,20 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
         return {
           hint: null, // `${target.teamName} takes applications on their own site — it opens in a new tab.`,
           action: (
-            /* "Continue to apply", not "Apply on their site" — the hint beside
-               it already says whose site and that it opens in a new tab, so a
-               label repeating the destination spent its width on the sentence's
-               job. What the label owes is the act, and the act is that applying
-               carries on somewhere else. It is also the same words the profile
-               step's press wears one stop along, which is right: both are the
-               button that moves you toward applying rather than the one that
-               applies. */
+            /* "Apply on team site", and the reasoning that used to sit here is
+               worth keeping because it is what changed. The old label was
+               "Continue to apply", on the argument that the hint beside it
+               already said whose site and that a label repeating the destination
+               spent its width on the sentence's job.
+
+               That hint is gone — `hint: null` above — so nothing beside this
+               button says where it goes any more, and the argument went with it.
+               The label is now the only thing that can carry the destination, so
+               it does. It also stops reading as the same press as the profile
+               step's "Continue to apply" one stop along, which it never was:
+               that one advances the rail, this one leaves. */
             <Button variant="primary" style="fill" size="m" className={d.footerAction} onClick={onApply}>
-              Continue to apply
+              Apply on team site
               {/* The board's own external glyph — the same one the original
                   posting links wear (`JobDetailPane`, `JobAlertBanner`). It is
                   on this press and not the profile step's identically-worded one

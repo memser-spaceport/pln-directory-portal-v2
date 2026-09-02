@@ -219,11 +219,13 @@ describe('the apply flow’s account step', () => {
     });
 
     /* The review step's own version of that honesty: Apply is an outbound link,
-       so the rail of three in-app steps comes off. */
-    it('hides the rail when Apply leaves the site', () => {
+       so the rail of three in-app steps comes off — and with the hint gone from
+       beside it, the label is the only thing left that can name the destination. */
+    it('hides the rail when Apply leaves the site, and says where it goes', () => {
       renderStep(OTHER, { applyGoesExternal: true, at: 'review' });
 
-      expect(screen.getByRole('button', { name: 'Continue to apply' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Apply on team site/ })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Continue to apply' })).not.toBeInTheDocument();
       expect(screen.queryByRole('list')).not.toBeInTheDocument();
       expect(screen.queryByText('Review job')).not.toBeInTheDocument();
       expect(screen.queryByText('Application')).not.toBeInTheDocument();

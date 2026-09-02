@@ -11,9 +11,8 @@ import { Button } from '@/components/common/Button';
 import { CloseIcon } from '@/components/icons';
 import {
   AccountFields,
-  JobSearchStatusField,
   SignUpReviewNote,
-  accountSchema,
+  accountSchemaWithoutJobSearchStatus,
   toAccountDetails,
   signUpFailureMessage,
   EMPTY_ACCOUNT_FORM,
@@ -111,7 +110,10 @@ interface JobSignUpModalProps {
 export function JobSignUpModal({ open, onClose, onSignUp, onSignIn }: JobSignUpModalProps) {
   const methods = useForm<AccountFormData>({
     defaultValues: EMPTY_ACCOUNT_FORM,
-    resolver: yupResolver(accountSchema) as Resolver<AccountFormData>,
+    /* The variant that does not ask for a job search status. This door is opened
+       from a banner that names no job, so nothing is waiting on the answer — see
+       the schema's own note for what the shorter form costs. */
+    resolver: yupResolver(accountSchemaWithoutJobSearchStatus) as Resolver<AccountFormData>,
     mode: 'onBlur',
   });
 
@@ -198,10 +200,11 @@ export function JobSignUpModal({ open, onClose, onSignUp, onSignIn }: JobSignUpM
         <FormProvider {...methods}>
           <form className={s.form} noValidate onSubmit={handleSubmit(onSubmit)}>
             <AccountFields />
-            {/* Below the account questions and framed as one more of them: this
-                form is a flat column in a 440px dialog, so a card of its own
-                would be the only card on it. The pane frames it differently. */}
-            <JobSearchStatusField />
+            {/* (`JobSearchStatusField` stood here, framed as one more labelled
+                question. The design does not ask it at this door — see
+                `accountSchemaWithoutJobSearchStatus`. It is still asked, and
+                still required, one press further in: the apply flow's step 2,
+                where an application is actually waiting on the answer.) */}
 
             <div className={s.bottomText}>
               {/* One line, and only the part nothing else on the card says: this

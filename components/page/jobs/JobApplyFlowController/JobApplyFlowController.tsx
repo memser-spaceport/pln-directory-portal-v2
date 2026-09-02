@@ -142,7 +142,11 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
       await signUpMutation.mutateAsync({
         name: details.name,
         email: details.email,
-        jobSearchStatus: details.jobSearchStatus,
+        /* Omitted, not defaulted, when the door that collected these did not ask
+           — the banner modal does not. The wire schema has it optional on both
+           sides, and an absent key is the honest way to say "not answered";
+           sending a guess would file a claim about their job hunt for them. */
+        ...(details.jobSearchStatus ? { jobSearchStatus: details.jobSearchStatus } : {}),
         linkedinHandler: details.linkedin,
         ...(details.role ? { role: details.role } : {}),
         // The company select offers existing network teams only, so this is

@@ -92,7 +92,13 @@ export interface AccountDetails {
   email: string;
   linkedin: string;
   role: string;
-  jobSearchStatus: JobSearchStatus;
+  /**
+   * Null when the door that collected these did not ask — see
+   * `accountSchemaWithoutJobSearchStatus`. Null and not a default: a fabricated
+   * status is a claim about someone's job hunt that they never made, and it is
+   * the one answer here the product later shows back to them as their own.
+   */
+  jobSearchStatus: JobSearchStatus | null;
   /** The network team they picked as their current company, if any. */
   teamUid: string | null;
 }
@@ -191,6 +197,29 @@ export const accountSchema = yup.object({
 });
 
 /**
+ * The same form, minus the status — the banner/navbar modal's variant.
+ *
+ * **Why one door asks and the other does not.** The drawer's step 2 is reached
+ * by pressing Apply on a role, so the status is the last thing between this
+ * person and an application, and asking it there saves them a stop. The modal is
+ * reached from a banner that names no job: nothing is waiting on the answer, and
+ * the design asks the shortest question it can at the moment someone is only
+ * curious.
+ *
+ * **What it costs, stated plainly.** `isJobProfileComplete` is `role &&
+ * jobSearchStatus`, so an account made here arrives incomplete and will meet the
+ * profile step when it does eventually apply. That is the trade the shorter form
+ * buys, and it is the right way round: the step is owed only by people who go on
+ * to apply, rather than by everyone who signs up.
+ *
+ * Derived with `.shape()` rather than a second literal, so the other seven rules
+ * cannot drift between the two doors — the whole reason this file exists.
+ */
+export const accountSchemaWithoutJobSearchStatus = accountSchema.shape({
+  jobSearchStatus: yup.string().defined(),
+});
+
+/**
  * The red `*` every required label in the product carries, as a span rather than
  * `FormField`'s class.
  *
@@ -236,11 +265,14 @@ export const toAccountDetails = (data: AccountFormData): AccountDetails => ({
   email: data.email.trim(),
   linkedin: (data.linkedin ?? '').trim(),
   role: data.role.trim(),
-  /* Narrowed rather than asserted. The schema makes this one of the offered
-     statuses before a submit can happen, so the fallback is unreachable in
-     practice — but a cast here would be the one place a bad value could reach
-     the wire silently, and this file is the boundary that exists to stop that. */
-  jobSearchStatus: isJobSearchStatus(data.jobSearchStatus) ? data.jobSearchStatus : 'open-to-right-role',
+  /* Narrowed rather than asserted, and `null` rather than a default.
+     On the door that asks, the schema makes this one of the offered statuses
+     before a submit can happen, so the branch below is unreachable there. On the
+     door that does not ask it is the only branch — and it must not invent an
+     answer. It used to fall back to `open-to-right-role`, which was harmless
+     while every door asked and would now file a claim about someone's job hunt
+     that they never made. The caller omits the key when this is null. */
+  jobSearchStatus: isJobSearchStatus(data.jobSearchStatus) ? data.jobSearchStatus : null,
   teamUid: data.company?.value ?? null,
 });
 

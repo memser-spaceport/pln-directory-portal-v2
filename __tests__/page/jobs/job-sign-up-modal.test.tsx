@@ -112,12 +112,6 @@ const baseProps = {
 const renderModal = (overrides: Partial<React.ComponentProps<typeof JobSignUpModal>> = {}) =>
   render(<JobSignUpModal {...baseProps} {...overrides} />);
 
-/** Picks one of the three job search statuses by its visible label. The
- *  accessible name comes from the wrapping `<label>`, so it carries the option's
- *  hint too — hence a substring match rather than an exact one. */
-const chooseStatus = (label: RegExp = /Actively looking/) =>
-  fireEvent.click(screen.getByRole('radio', { name: label }));
-
 /**
  * Fills the four fields the schema actually requires.
  *
@@ -131,7 +125,6 @@ const fillRequired = () => {
   fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@protocol.ai' } });
   fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Polina Bublii' } });
   fireEvent.change(screen.getByLabelText(/LinkedIn profile/), { target: { value: 'polina-bublii' } });
-  chooseStatus();
 };
 
 /**
@@ -372,52 +365,50 @@ describe('the job board sign-up modal', () => {
    * on this form, so they still land on the profile step after sign-in to finish
    * it — this gate is so the status is not also owed there.
    */
-  describe('the job search status', () => {
-    it('offers Actively looking and Open to the right role, not Not looking', () => {
+  /**
+   * This door does not ask where you are with job hunting.
+   *
+   * The drawer's step 2 does, and still refuses to submit without it — see
+   * `job-account-step.test.tsx`. The split is the point: that door is reached by
+   * pressing Apply, so an application is waiting on the answer; this one is
+   * reached from a banner naming no job, and asks the shortest question it can.
+   */
+  describe('the job search status it does not ask for', () => {
+    it('offers no status field at all', () => {
       renderModal();
 
-      const group = screen.getByRole('radiogroup', { name: 'Job search status' });
-      expect(group).toBeInTheDocument();
-      expect(screen.getAllByRole('radio')).toHaveLength(2);
-      expect(screen.getByRole('radio', { name: /Open to the right role/ })).toBeInTheDocument();
-      expect(screen.queryByRole('radio', { name: /Not looking/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole('radiogroup', { name: 'Job search status' })).not.toBeInTheDocument();
+      expect(screen.queryByText('Job search status')).not.toBeInTheDocument();
+      expect(screen.queryAllByRole('radio')).toHaveLength(0);
     });
 
-    /* Required in the same way `Email address` is, and marked the same way. A
-       form that refuses to submit without a field it has not marked required is
-       worse than one with no marking system at all. */
-    it('carries the required mark rather than the optional one', () => {
-      renderModal();
-
-      const label = screen.getByText('Job search status');
-      expect(label.textContent).not.toContain('Optional');
-      expect(label).toHaveClass('required');
-    });
-
-    it('refuses to submit until one is chosen, and says why', async () => {
-      renderModal();
-      // Everything except the status.
-      fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@protocol.ai' } });
-      fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Polina Bublii' } });
-      fireEvent.change(screen.getByLabelText(/LinkedIn profile/), { target: { value: 'polina-bublii' } });
-
-      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
-
-      await waitFor(() => expect(screen.getByText('Select where you are with job hunting')).toBeInTheDocument());
-      expect(baseProps.onSignUp).not.toHaveBeenCalled();
-    });
-
-    it('reports the chosen status on the way out', async () => {
+    /* The rule has to come off with the field. A required answer with nothing
+       on screen to give it is a Create account button that does nothing and
+       says nothing — the worst of the three outcomes, and exactly what removing
+       the field without the schema would have produced. */
+    it('does not hold the form shut over the answer it never requested', async () => {
       renderModal();
       fillRequired();
-      chooseStatus(/Open to the right role/);
 
       fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
 
       await waitFor(() => expect(baseProps.onSignUp).toHaveBeenCalled());
-      expect(baseProps.onSignUp).toHaveBeenCalledWith(
-        expect.objectContaining({ jobSearchStatus: 'open-to-right-role' }),
-      );
+      expect(screen.queryByText('Select where you are with job hunting')).not.toBeInTheDocument();
+    });
+
+    /* Null, not a guess. `toAccountDetails` used to fall back to
+       `open-to-right-role`, which was unreachable while every door asked and
+       would now file a claim about someone's job hunt that they never made —
+       and it is the one answer the product later shows back to them as theirs.
+       The controller omits the key entirely when this is null. */
+    it('reports no status rather than inventing one', async () => {
+      renderModal();
+      fillRequired();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+      await waitFor(() => expect(baseProps.onSignUp).toHaveBeenCalled());
+      expect(baseProps.onSignUp).toHaveBeenCalledWith(expect.objectContaining({ jobSearchStatus: null }));
     });
   });
 
@@ -438,7 +429,6 @@ describe('the job board sign-up modal', () => {
       renderModal();
       fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@protocol.ai' } });
       fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Polina Bublii' } });
-      chooseStatus();
 
       fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
 

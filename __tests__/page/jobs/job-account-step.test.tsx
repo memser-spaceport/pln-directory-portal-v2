@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 /**
@@ -290,12 +290,20 @@ describe('the outbound review step’s two doors', () => {
   const outboundReview = (props: Partial<React.ComponentProps<typeof JobApplyFlowDrawer>> = {}) =>
     renderStep(OTHER, { applyGoesExternal: true, at: 'review', ...props });
 
+  /* The note is asserted *within the footer*, not against the document.
+     A bare `getByText` here would keep passing if this sentence moved into the
+     body of the step — which is exactly where the case for a profile is headed —
+     and the assertion would then be guarding a different element than the one it
+     names. Scoped, it fails the moment the footer stops saying this. */
+  const footerOf = (container: HTMLElement) =>
+    container.querySelector('[class*="footerInner"]') as HTMLElement;
+
   it('offers a stranger the profile as well as the employer’s site', () => {
-    outboundReview();
+    const { container } = outboundReview();
 
     expect(screen.getByRole('button', { name: /Apply on team site/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create Job Profile' })).toBeInTheDocument();
-    expect(screen.getByText(/A profile lets recruiters across the network/)).toBeInTheDocument();
+    expect(within(footerOf(container)).getByText(/A profile lets recruiters across the network/)).toBeInTheDocument();
   });
 
   /* Into the drawer's own step 2 — the account form — so signing up from the job

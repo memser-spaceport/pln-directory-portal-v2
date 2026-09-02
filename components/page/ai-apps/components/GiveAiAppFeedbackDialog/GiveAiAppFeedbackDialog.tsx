@@ -11,7 +11,7 @@ import { CloseIcon, CommentIcon } from '@/components/icons';
 import { toast } from '@/components/core/ToastContainer';
 import { useContactSupport } from '@/components/ContactSupport/hooks/useContactSupport';
 import { useFormDraft } from '@/hooks/useFormDraft';
-import { isBlankHtml } from '@/utils/html';
+import { hostDataUriImages, isBlankHtml } from '@/utils/html';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApps } from '@/services/ai-apps/hooks/useAiApps';
 import { useSubmitAiAppFeedback } from '@/services/ai-app-feedback/hooks/useSubmitAiAppFeedback';
@@ -133,7 +133,8 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
   });
   const message = watch('message') ?? '';
   const isOverLimit = visibleFeedbackLength(message) > MAX_LENGTH;
-  const isPending = isAppFeedbackPending || isContactSupportPending;
+  const [isHostingImages, setIsHostingImages] = useState(false);
+  const isPending = isAppFeedbackPending || isContactSupportPending || isHostingImages;
   const [submitAttempted, setSubmitAttempted] = useState(false);
 
   useLayoutEffect(() => {
@@ -164,12 +165,22 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
     onClose();
   };
 
-  const onSubmit = handleSubmit(({ app, message: rawMessage }) => {
+  const onSubmit = handleSubmit(async ({ app, message: rawMessage }) => {
     setSubmitAttempted(true);
-    const trimmedMessage = (rawMessage ?? '').trim();
+    let trimmedMessage = (rawMessage ?? '').trim();
 
     if (!app?.value || !hasFeedbackContent(trimmedMessage)) {
       return;
+    }
+
+    try {
+      setIsHostingImages(true);
+      trimmedMessage = await hostDataUriImages(trimmedMessage);
+    } catch {
+      toast.error('Image upload failed. Please try again.');
+      return;
+    } finally {
+      setIsHostingImages(false);
     }
 
     if (app.value === LABOS_AI_APPS_OPTION.value) {

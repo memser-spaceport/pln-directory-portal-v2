@@ -6,6 +6,7 @@ import {
   GiveAiAppFeedbackDialog,
   LABOS_AI_APPS_OPTION,
 } from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog';
+import { toast } from '@/components/core/ToastContainer';
 import { clearFormDraft, readFormDraft, writeFormDraft } from '@/utils/formDraftStorage';
 
 const mockUseAiApps = jest.fn();
@@ -92,12 +93,18 @@ jest.mock('@/components/core/ToastContainer', () => ({
   toast: { success: jest.fn(), error: jest.fn() },
 }));
 
+const mockSaveRegistrationImage = jest.fn();
+jest.mock('@/services/registration.service', () => ({
+  saveRegistrationImage: (file: File) => mockSaveRegistrationImage(file),
+}));
+
 describe('GiveAiAppFeedbackDialog', () => {
   beforeEach(() => {
     window.localStorage.clear();
     mockUseCurrentUserStore.mockReturnValue({
       currentUser: { uid: 'member-1', name: 'Ada Lovelace', email: 'ada@example.com' },
     });
+    mockSaveRegistrationImage.mockResolvedValue({ image: { url: 'https://cdn.test/hosted.png' } });
   });
 
   afterEach(() => {
@@ -245,6 +252,51 @@ describe('GiveAiAppFeedbackDialog', () => {
     );
     expect(mockMutate).not.toHaveBeenCalled();
     expect(mockOnFeedbackSubmitted).not.toHaveBeenCalled();
+  });
+
+  it('uploads pasted data-URI images before submitting', async () => {
+    mockUseAiApps.mockReturnValue({
+      apps: [{ uid: 'app-1', name: 'My App' }],
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), {
+      target: {
+        value: '<p><img src="data:image/png;base64,AAAA"></p>',
+      },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+    await waitFor(() =>
+      expect(mockMutate).toHaveBeenCalledWith(
+        { appUid: 'app-1', text: '<p><img src="https://cdn.test/hosted.png"></p>' },
+        expect.any(Object),
+      ),
+    );
+    expect(mockSaveRegistrationImage).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not submit when a pasted image fails to upload', async () => {
+    mockSaveRegistrationImage.mockRejectedValue(new Error('upload failed'));
+    mockUseAiApps.mockReturnValue({
+      apps: [{ uid: 'app-1', name: 'My App' }],
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), {
+      target: { value: '<p><img src="data:image/png;base64,AAAA"></p>' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Image upload failed. Please try again.'));
+    expect(mockMutate).not.toHaveBeenCalled();
+    expect(mockContactSupportMutate).not.toHaveBeenCalled();
   });
 
   it('restores a typed draft when the dialog is reopened', async () => {

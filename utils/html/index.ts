@@ -6,3 +6,4 @@ export { sanitizeJobDescriptionHtml, JOB_DESCRIPTION_SANITIZE_CONFIG } from './s
 export { normalizeJobDescriptionHtml } from './normalizeJobDescriptionHtml';
 export { countMentions } from './countMentions';
 export { classifyAnchor, type AnchorTarget } from './classifyAnchor';
+export { hostDataUriImages } from './hostDataUriImages';

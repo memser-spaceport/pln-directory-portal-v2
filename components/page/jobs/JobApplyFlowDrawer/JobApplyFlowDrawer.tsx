@@ -789,17 +789,27 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
       };
     }
 
-    /* The step's one instruction, and the only place it appears — the pane used
-       to print a copy of this under the field. Three states, because "shorten
-       it" and "write something" are different problems and only one of them is
-       about what to say. */
+    /* Two states, down from three.
+       The one that went was the empty-field instruction — "Add what you did in
+       previous roles that makes you a good fit for this one." — and the design
+       leaves this footer silent in exactly that state. It was also the only one
+       of the three telling somebody what to write, which the pane above already
+       does at more length and closer to the field: "Start a conversation with the
+       team at {team}. Share something about you…". Two invitations to write the
+       same paragraph is one too many, and the footer's is the one further from
+       the box.
+
+       What survives says something the screen does not. Over the limit, the
+       button is dead and the only other signal is a number turning red, so the
+       reason has to be in words. Under it, "can reply to you directly" is a fact
+       about what happens next rather than an instruction about now. */
     const overLimit = remaining < 0;
     return {
       hint: overLimit
         ? `Shorten your note to ${COVER_LETTER_MAX_LENGTH} characters to send it.`
         : canSend
           ? `${target.teamName} can reply to you directly.`
-          : 'Add what you did in previous roles that makes you a good fit for this one.',
+          : null,
       action: (
         /* "Apply", and this is the press that applies — there is no fourth step
            and no confirmation pane. The rail's last stop is where it happens. */

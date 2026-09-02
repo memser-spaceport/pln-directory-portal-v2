@@ -312,11 +312,12 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
 
           {/* (A copy of the footer's sentence used to sit here, so the step
               showed "Add what you did in previous roles…" twice — once under the
-              field and once in the bar below it. The footer's is the one that
-              stays: it sits beside the button it is advice about, and it changes
-              with what that button will do. The over-limit case goes with it for
-              the same reason — the counter above already turns red, and the
-              instruction belongs next to the control it unblocks.) */}
+              field and once in the bar below it. The duplicate went first and the
+              footer's original has since gone too: the invitation two blocks up
+              already asks for the same paragraph, at more length and nearer the
+              box. What the footer still says is the over-limit reason, because
+              there the button is dead and a red number is the only other signal.)
+          */}
 
           {submitError && <p className={s.submitError}>{submitError}</p>}
         </form>

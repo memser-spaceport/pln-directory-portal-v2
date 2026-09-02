@@ -93,10 +93,10 @@ describe('RichTextEditor modules stability', () => {
   it("disables Quill's data-URI uploader when the toolbar has image", () => {
     render(<RichTextEditor value="<p></p>" onChange={() => undefined} toolbarConfig={[['image']]} />);
     const modules = capturedProps[0].modules as {
-      uploader?: { mimetypes: string[] };
+      uploader?: { handler?: () => void };
       imageUploader?: unknown;
     };
-    expect(modules.uploader).toEqual({ mimetypes: [] });
+    expect(typeof modules.uploader?.handler).toBe('function');
     expect(modules.imageUploader).toBeDefined();
   });
 

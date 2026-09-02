@@ -217,6 +217,24 @@
   flex-shrink: 0;
 }
 
+// The outbound press, which carries `ArrowUpRightIcon` after its label.
+//
+// Layout only — the tint is `Button`'s own `variant="light"`, because a colour
+// treatment the design system names belongs to the design system and a gap
+// between two children belongs to whoever put them there.
+//
+// `.root` sets no `display`, so without this the icon is an inline box butting
+// straight against the last word: JSX drops the whitespace between a text node
+// and an element on the next line, so there is not even a space to save it.
+// 4px, matching the design's own padding between the label and the glyph.
+.externalButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
 /* Doubled to outrank `.root:disabled`, which is the same specificity and would
    otherwise win on stylesheet order. "Not allowed" is a refusal; this is a
    report that you already did it. The disabled paint stays for the reason argued

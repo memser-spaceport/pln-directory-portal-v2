@@ -581,7 +581,17 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                it does. It also stops reading as the same press as the profile
                step's "Continue to apply" one stop along, which it never was:
                that one advances the rail, this one leaves. */
-            <Button variant="primary" style="fill" size="m" className={d.footerAction} onClick={onApply}>
+            <Button
+              /* The brand tint rather than the solid primary, per the design.
+                 It reads as the lower-emphasis press it is: this one hands the
+                 person to somebody else's site, where every other primary in
+                 this flow moves them along inside it. */
+              variant="light"
+              style="fill"
+              size="m"
+              className={clsx(d.footerAction, d.externalButton)}
+              onClick={onApply}
+            >
               Apply on team site
               {/* The board's own external glyph — the same one the original
                   posting links wear (`JobDetailPane`, `JobAlertBanner`). It is

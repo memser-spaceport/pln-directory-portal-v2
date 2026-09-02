@@ -28,12 +28,19 @@ jest.mock('@/services/members/hooks/useMemberFormOptions', () => ({
   useMemberFormOptions: () => ({ data: { teams: [{ teamUid: 't1', teamTitle: 'Acme' }] } }),
 }));
 
-/* The two panes this file is not about. Both are static imports of the drawer,
-   so they load whichever step is showing — and `JobApplicationPane` reaches
+/* The panes this file is not about. All are static imports of the drawer, so
+   they load whichever step is showing — and `JobApplicationPane` reaches
    `next/server` through the ReferModal hooks it borrows from `prototypes/`,
    which throws `Request is not defined` under jsdom. Stubbing them keeps this
-   suite about step 2. */
-jest.mock('@/components/page/jobs/JobDetailPane/JobDetailPane', () => ({ JobDetailPane: () => null }));
+   suite about the drawer.
+
+   `JobDetailPane` is stubbed down to its banner slot rather than to null. The
+   pane's own layout is `job-detail-pane.test.tsx`'s subject; what belongs here
+   is the one decision the drawer makes about it — who gets handed a banner —
+   and a stub returning null would hide that decision completely. */
+jest.mock('@/components/page/jobs/JobDetailPane/JobDetailPane', () => ({
+  JobDetailPane: ({ banner }: { banner?: React.ReactNode }) => <>{banner}</>,
+}));
 jest.mock('@/components/page/jobs/JobApplicationPane/JobApplicationPane', () => ({
   JobApplicationPane: () => null,
   COVER_LETTER_MAX_LENGTH: 2000,
@@ -230,7 +237,7 @@ describe('the apply flow’s account step', () => {
 
       expect(screen.getByRole('button', { name: /Apply on team site/ })).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Continue to apply' })).not.toBeInTheDocument();
-      expect(screen.queryByRole('list')).not.toBeInTheDocument();
+      expect(screen.queryByRole('list', { name: 'Application steps' })).not.toBeInTheDocument();
       expect(screen.queryByText('Review job')).not.toBeInTheDocument();
       expect(screen.queryByText('Application')).not.toBeInTheDocument();
     });
@@ -373,13 +380,86 @@ describe('the outbound review step’s two doors', () => {
   });
 
   /* The rail is withheld for every step of an outbound run, not just the reading
-     one. Someone who presses Create Job Profile lands on the account form, and
+     one. Someone who presses Create your profile lands on the account form, and
      from there goes back to the posting and out — there is no third stop, so a
      rail drawing one would be the flow lying about itself. */
   it('keeps the rail off on the account step too, where there is no third stop', () => {
     renderStep(OTHER, { applyGoesExternal: true, at: 'profile' });
 
-    expect(screen.queryByRole('list')).not.toBeInTheDocument();
+    expect(screen.queryByRole('list', { name: 'Application steps' })).not.toBeInTheDocument();
     expect(screen.queryByText('Application')).not.toBeInTheDocument();
+  });
+});
+
+/**
+ * Who is told what a profile is for.
+ *
+ * The banner is the drawer's decision, not the pane's — `JobDetailPane` takes it
+ * as a slot and has no idea who is reading. These are the two halves of that
+ * decision: the gate on the way in, and the caption in the footer, which is
+ * gated separately and on a branch shared with four signed-in states.
+ */
+describe('the case for a profile', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const heading = () => screen.queryByRole('heading', { name: 'What your profile unlocks' });
+
+  it('makes it to a stranger reading a role', () => {
+    renderStep(OTHER, { applyGoesExternal: true, at: 'review' });
+
+    expect(heading()).toBeInTheDocument();
+  });
+
+  /* The banner is gated on `isLoggedIn` alone, so it survives on a Protocol Labs
+     role — where applying happens in-app and the three-step rail is *not*
+     withheld. That is the busiest this screen gets, and it is deliberate: the
+     rail says which steps exist, the banner says why bother, and the state where
+     the flow actually completes in-app is the one where the argument is truest.
+     Pinned because the obvious "tidy-up" is to hide one of them. */
+  it('makes it on a role that applies in-app, alongside the rail', () => {
+    renderStep(PL, { at: 'review' });
+
+    expect(heading()).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Application steps' })).toBeInTheDocument();
+  });
+
+  it('is not made to someone who already has a profile', () => {
+    renderStep(OTHER, { applyGoesExternal: true, at: 'review', isLoggedIn: true, memberUid: 'm1' });
+
+    expect(heading()).not.toBeInTheDocument();
+  });
+
+  /* Only the reading step. On the account form the argument has been won — the
+     person is filling it in — and on the letter step it would be arguing for
+     something they are three fields from having. */
+  it('is not made again on the steps after it', () => {
+    renderStep(OTHER, { applyGoesExternal: true, at: 'profile' });
+
+    expect(heading()).not.toBeInTheDocument();
+  });
+
+  describe('the footer caption on an in-app role', () => {
+    const caption = () => screen.queryByText(/your profile goes with your application/);
+
+    it('tells a stranger what the press costs', () => {
+      renderStep(PL, { at: 'review' });
+
+      expect(caption()).toBeInTheDocument();
+    });
+
+    /**
+     * **The gate that is easy to lose.** This branch is not the logged-out one —
+     * it is every in-app apply there is, so an approved member, a Job Aspirant
+     * and a member still pending all press the same button. Only the *label* has
+     * ever switched on `isLoggedIn`; a caption that did not would be this footer
+     * offering a sign-up to three states that signed up months ago, in a state
+     * nobody exercises by hand because it looks identical until you read it.
+     */
+    it('says nothing to a member who already has one', () => {
+      renderStep(PL, { at: 'review', isLoggedIn: true, memberUid: 'm1', viewerState: 'ready' });
+
+      expect(screen.getByRole('button', { name: 'Apply' })).toBeInTheDocument();
+      expect(caption()).not.toBeInTheDocument();
+    });
   });
 });

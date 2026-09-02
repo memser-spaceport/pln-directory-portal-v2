@@ -147,7 +147,10 @@ interface JobApplyFlowDrawerProps {
   coverLetter: string;
   onCoverLetterChange: (value: string) => void;
   memberUid: string | undefined;
-  member: Pick<IMember, 'id' | 'name' | 'role' | 'mainTeam' | 'skills' | 'currentCompany'> | null;
+  /** `linkedinProfile` is read only to pick which receipt the send shows — see
+   *  the toast in `submit`. It rides on the record the read-back already
+   *  fetches, so this is a wider `Pick` rather than a second query. */
+  member: Pick<IMember, 'id' | 'name' | 'role' | 'mainTeam' | 'skills' | 'currentCompany' | 'linkedinProfile'> | null;
   isLoggedIn: boolean;
   /** Signed up, waiting on the PL team. Says so in the profile lede; gates nothing. */
   pendingApproval: boolean;
@@ -531,7 +534,26 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
       {
         onSuccess: () => {
           onSubmitted();
-          toast.success(`Applied to ${target.role.roleTitle} at ${target.teamName}. Your profile went with your note.`);
+          /**
+           * Two receipts, and which one you get is the answer to the question
+           * the profile step asked.
+           *
+           * A verified LinkedIn is what lets an application go straight to the
+           * hiring team; without one it is read by the PL team first. So the
+           * toast says which happened, in the words of the design's own pair
+           * ("Toast — LinkedIn verified" / "Toast — LinkedIn not verified").
+           *
+           * This is also what makes the verification card honest: it offers to
+           * "get your application reviewed faster", and this is the moment that
+           * promise is either kept or explained. One sentence for the verified
+           * — the thing is done — and two for the unverified, because the second
+           * one is news: the note has not reached anybody yet.
+           */
+          toast.success(
+            member?.linkedinProfile
+              ? `Applied to ${target.role.roleTitle} at ${target.teamName}. Your profile went with your note.`
+              : `Submitted for ${target.role.roleTitle} at ${target.teamName}. Your note went with your profile. Once we’ve reviewed it, we’ll send it to the recruiter.`,
+          );
         },
         onError: (error) => {
           if (isAlreadyAppliedError(error)) {

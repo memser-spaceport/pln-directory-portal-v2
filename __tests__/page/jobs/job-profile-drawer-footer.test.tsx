@@ -263,6 +263,11 @@ describe('the profile pane’s identity verification', () => {
 
     expect(screen.getByText('Please verify your identity')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /LinkedIn/ })).toBeInTheDocument();
+    /* The flow's sentence, not the member page's default. That one says the
+       verification is the point; here the point is what it unblocks, and only a
+       surface with an application behind it can say so. */
+    expect(screen.getByText('Verify your LinkedIn to get your application reviewed faster.')).toBeInTheDocument();
+    expect(screen.queryByText('Link your LinkedIn account to complete verification.')).not.toBeInTheDocument();
   });
 
   /* An approved member is in no review, and neither is a Job Aspirant —

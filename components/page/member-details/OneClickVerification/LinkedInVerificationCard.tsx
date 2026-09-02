@@ -36,15 +36,36 @@ export interface LinkedInVerificationCardProps {
    * this origin — a path would not survive it.
    */
   redirectUrl: string;
+  /**
+   * How the block is framed.
+   *
+   * `framed` is the member profile page's — a white card among cards, banner
+   * hung off its top edge. `plain` is the apply flow's, where the design drops
+   * the surface and lets the band and the row sit on the drawer.
+   */
+  variant?: 'framed' | 'plain';
+  /**
+   * The one sentence inside the grey row, because the reason to verify depends
+   * on where you are. On a profile page it is the verification itself; in the
+   * middle of an application it is what the verification unblocks — and a page
+   * with no application in it must not claim one.
+   */
+  description?: string;
   className?: string;
 }
 
-export function LinkedInVerificationCard({ memberUid, redirectUrl, className }: LinkedInVerificationCardProps) {
+export function LinkedInVerificationCard({
+  memberUid,
+  redirectUrl,
+  variant = 'framed',
+  description = 'Link your LinkedIn account to complete verification.',
+  className,
+}: LinkedInVerificationCardProps) {
   const { onConnectLinkedInClicked } = useMemberAnalytics();
   const { mutate, isPending } = useLinkedInVerification();
 
   return (
-    <div className={clsx(s.root, s.missingData, className)}>
+    <div className={clsx(s.root, s.missingData, variant === 'plain' && s.plain, className)}>
       <div className={s.missingDataHeader}>
         <WarningIcon />
         Please verify your identity
@@ -55,7 +76,7 @@ export function LinkedInVerificationCard({ memberUid, redirectUrl, className }: 
         </div>
         <div className={s.body}>
           <div className={s.row}>
-            <p>Link your LinkedIn account to complete verification.</p>
+            <p>{description}</p>
             <button
               type="button"
               className={s.btn}

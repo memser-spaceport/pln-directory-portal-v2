@@ -240,7 +240,18 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                    navigates the entire page to LinkedIn, so without a return
                    this would trade a shortcut for the flow they were in. */}
           {pendingApproval && !member.linkedinProfile && verifyReturnTo && (
-            <LinkedInVerificationCard memberUid={memberUid} redirectUrl={verifyReturnTo} />
+            <LinkedInVerificationCard
+              memberUid={memberUid}
+              redirectUrl={verifyReturnTo}
+              /* Unframed here — the design gives it a full-width band and lets
+                 the row sit on the drawer, rather than the white card it wears
+                 among the cards of a profile page. */
+              variant="plain"
+              /* Names what verifying unblocks, not the verifying. The member
+                 page's default sentence cannot say this: there is no
+                 application behind it to be reviewed faster. */
+              description="Verify your LinkedIn to get your application reviewed faster."
+            />
           )}
 
           {/* 3. Contact details.

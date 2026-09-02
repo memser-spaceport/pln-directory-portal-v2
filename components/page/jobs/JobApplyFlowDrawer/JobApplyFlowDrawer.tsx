@@ -9,7 +9,7 @@ import { toast } from '@/components/core/ToastContainer';
 import { Button } from '@/components/common/Button';
 import { Checkbox } from '@/components/common/Checkbox';
 import { Drawer } from '@/components/common/Drawer';
-import { CheckIcon, CloseIcon } from '@/components/icons';
+import { ArrowUpRightIcon, CheckIcon, CloseIcon, InfoCircleIconOutlined } from '@/components/icons';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import type { IMember } from '@/types/members.types';
 
@@ -37,8 +37,8 @@ import {
   type JobDetailTarget,
 } from '@/components/page/jobs/hooks/useJobApplyFlow';
 import { formatRelativeDays } from '@/utils/jobs.utils';
-import { isProtocolLabsTeam } from '@/services/jobs/protocol-labs-team';
 import { getJobProfileReviewed, setJobProfileReviewed } from '@/services/jobs/job-profile-reviewed';
+import { withPendingApply } from '@/services/jobs/job-apply-resume';
 import { JobAccountPane } from '@/components/page/jobs/JobAccountPane/JobAccountPane';
 import {
   accountSchema,
@@ -147,7 +147,10 @@ interface JobApplyFlowDrawerProps {
   coverLetter: string;
   onCoverLetterChange: (value: string) => void;
   memberUid: string | undefined;
-  member: Pick<IMember, 'id' | 'name' | 'role' | 'mainTeam' | 'skills' | 'currentCompany'> | null;
+  /** `linkedinProfile` is read only to pick which receipt the send shows — see
+   *  the toast in `submit`. It rides on the record the read-back already
+   *  fetches, so this is a wider `Pick` rather than a second query. */
+  member: Pick<IMember, 'id' | 'name' | 'role' | 'mainTeam' | 'skills' | 'currentCompany' | 'linkedinProfile'> | null;
   isLoggedIn: boolean;
   /** Signed up, waiting on the PL team. Says so in the profile lede; gates nothing. */
   pendingApproval: boolean;
@@ -309,6 +312,9 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
    */
   const accountForm = useForm<AccountFormData>({
     defaultValues: EMPTY_ACCOUNT_FORM,
+    /* The variant that *does* ask for a job search status — this door is reached
+       by pressing Apply, so an application is waiting on the answer and asking
+       here is what saves a stop later. The banner's modal uses the other one. */
     resolver: yupResolver(accountSchema) as Resolver<AccountFormData>,
     mode: 'onBlur',
   });
@@ -341,7 +347,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
      'profile'` — and dropped the middle step for a member who arrived with
      nothing left to fill in. It went with the routing rule it mirrored; see
      `useJobApplyFlow.onApply`. The short version: the step is no longer only for
-     collecting, because it now asks for "I've reviewed my profile", and a
+     collecting, because it now asks for "I reviewed my profile", and a
      confirmation nobody is shown is not a confirmation.
 
      Its own reasoning is worth keeping in view if a skip is ever reintroduced.
@@ -354,7 +360,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
 
   const complete = profileState.complete;
 
-  /* "I've reviewed my profile" — the profile step's consent, and the second half
+  /* "I reviewed my profile" — the profile step's consent, and the second half
      of what unlocks the application.
 
      **Remembered across visits, keyed by member uid.** Asked once, not once per
@@ -457,6 +463,18 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
    * the application you left. That is where the person actually was.
    */
   const backTarget: ApplyFlowStepId | null = (() => {
+    /* From the letter, Back is the posting — not the step before it.
+       The design puts "Back to the job" on this step, and it holds up here for a
+       reason the other steps do not share: the pane already carries its own
+       route to the profile ("Edit profile", beside the read-back), and the rail
+       above offers it a second time. So the only destination Back could add is
+       the one nothing else on the screen offers, and it is also the one someone
+       writing a note actually reaches for — re-reading what they are applying to.
+
+       Everywhere else this stays `path[i - 1]`. The label follows the target
+       rather than being set beside it, so `BACK_LABEL.review` already says the
+       right words and nothing here has to keep a second copy of them in sync. */
+    if (at === 'application') return 'review';
     if (path.includes(at)) return pathIndex === 0 ? null : path[pathIndex - 1];
     const after = APPLY_FLOW_STEPS.slice(APPLY_FLOW_STEPS.indexOf(at) + 1).find((id) => path.includes(id));
     return after ?? path[path.length - 1];
@@ -474,6 +492,25 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     }
     goTo(backTarget);
   };
+
+  /**
+   * Where LinkedIn's identity round trip comes back to — this role, on this
+   * surface.
+   *
+   * Built at render rather than passed in, because it is a fact about the
+   * browser (`origin`, `pathname`, the filters already in the query string) plus
+   * one the drawer holds (`target.role.uid`). `withPendingApply` is the same
+   * helper the sign-up round trip writes, so the resume that reads it is one
+   * implementation and not two.
+   *
+   * `window` is guarded for the server pass: this component is
+   * `dynamic({ ssr: false })` at its host, but the guard costs nothing and an
+   * undefined return simply withholds the card rather than throwing.
+   */
+  const verifyReturnTo =
+    typeof window === 'undefined'
+      ? undefined
+      : `${window.location.origin}${window.location.pathname}${withPendingApply(window.location.search, target.role.uid)}`;
 
   const remaining = COVER_LETTER_MAX_LENGTH - coverLetter.length;
   const canSend = coverLetter.trim().length > 0 && remaining >= 0;
@@ -497,7 +534,26 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
       {
         onSuccess: () => {
           onSubmitted();
-          toast.success(`Applied to ${target.role.roleTitle} at ${target.teamName}. Your profile went with your note.`);
+          /**
+           * Two receipts, and which one you get is the answer to the question
+           * the profile step asked.
+           *
+           * A verified LinkedIn is what lets an application go straight to the
+           * hiring team; without one it is read by the PL team first. So the
+           * toast says which happened, in the words of the design's own pair
+           * ("Toast — LinkedIn verified" / "Toast — LinkedIn not verified").
+           *
+           * This is also what makes the verification card honest: it offers to
+           * "get your application reviewed faster", and this is the moment that
+           * promise is either kept or explained. One sentence for the verified
+           * — the thing is done — and two for the unverified, because the second
+           * one is news: the note has not reached anybody yet.
+           */
+          toast.success(
+            member?.linkedinProfile
+              ? `Applied to ${target.role.roleTitle} at ${target.teamName}. Your profile went with your note.`
+              : `Submitted for ${target.role.roleTitle} at ${target.teamName}. Your note went with your profile. Once we’ve reviewed it, we’ll send it to the recruiter.`,
+          );
         },
         onError: (error) => {
           if (isAlreadyAppliedError(error)) {
@@ -551,20 +607,92 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
         };
       }
       if (applyGoesExternal) {
+        /**
+         * Applying leaves the site — and for a stranger, that used to be the
+         * only thing this footer offered.
+         *
+         * **The gap this closes.** `onApply` sends a logged-out visitor on a
+         * non-PL role straight to the employer's posting (`useJobApplyFlow`),
+         * so the one door out of this drawer was a door off the board entirely.
+         * A person reading a job here could not make an account from the screen
+         * they were reading it on, even though the board's whole proposition is
+         * that a profile is what gets founders to come to them.
+         *
+         * So the press is offered beside the outbound one rather than instead
+         * of it. The outbound stays primary in position and the profile is the
+         * filled button, because the design puts the emphasis on the thing the
+         * board wants and the tint on the thing the visitor came for — and both
+         * are honest, which is why neither is hidden behind the other.
+         *
+         * **Only for a stranger.** A signed-in member whose account is still
+         * pending reaches this same branch, and they already have the profile
+         * this offers to make. They keep the single outbound button.
+         */
+        const outbound = (
+          /* "Apply on team site", and the reasoning that used to sit here is
+               worth keeping because it is what changed. The old label was
+               "Continue to apply", on the argument that the hint beside it
+               already said whose site and that a label repeating the destination
+               spent its width on the sentence's job.
+
+               That hint is gone — `hint: null` above — so nothing beside this
+               button says where it goes any more, and the argument went with it.
+               The label is now the only thing that can carry the destination, so
+               it does. It also stops reading as the same press as the profile
+               step's "Continue to apply" one stop along, which it never was:
+               that one advances the rail, this one leaves. */
+          <Button
+            /* The brand tint rather than the solid primary, per the design.
+                 It reads as the lower-emphasis press it is: this one hands the
+                 person to somebody else's site, where every other primary in
+                 this flow moves them along inside it. */
+            variant="light"
+            style="fill"
+            size="m"
+            /* `.footerAction`'s auto-margin only when this button is alone in the
+               bar. Inside the pair below the group owns the alignment, and an
+               auto margin on the first child would shove the two apart. */
+            className={clsx(isLoggedIn && d.footerAction, d.externalButton)}
+            onClick={onApply}
+          >
+            Apply on team site
+            {/* The board's own external glyph — the same one the original
+                posting links wear (`JobDetailPane`, `JobAlertBanner`). It is
+                on this press and not the profile step's identically-worded one
+                a stop later: that press advances the rail in-app, and an arrow
+                there would claim a hand-off that does not happen. With the
+                rail withheld in this state, the arrow is the only thing left
+                on screen saying the flow ends somewhere else. */}
+            <ArrowUpRightIcon aria-hidden="true" />
+          </Button>
+        );
+
+        if (isLoggedIn) return { hint: null, action: outbound };
+
         return {
-          hint: null, // `${target.teamName} takes applications on their own site — it opens in a new tab.`,
+          /* The `lead` slot rather than `hint`, because this is a bordered note
+             and not the bare 12px sentence `hint` renders. Same position, same
+             precedence — see `FooterContent`. */
+          lead: (
+            <p className={d.footerNote}>
+              <InfoCircleIconOutlined width={14} height={14} className={d.footerNoteIcon} aria-hidden="true" />A profile
+              lets recruiters across the network reach you for this and future roles.
+            </p>
+          ),
+          hint: null,
           action: (
-            /* "Continue to apply", not "Apply on their site" — the hint beside
-               it already says whose site and that it opens in a new tab, so a
-               label repeating the destination spent its width on the sentence's
-               job. What the label owes is the act, and the act is that applying
-               carries on somewhere else. It is also the same words the profile
-               step's press wears one stop along, which is right: both are the
-               button that moves you toward applying rather than the one that
-               applies. */
-            <Button variant="primary" style="fill" size="m" className={d.footerAction} onClick={onApply}>
-              Continue to apply
-            </Button>
+            <div className={d.footerActions}>
+              {outbound}
+              {/* Into the drawer's own step 2, which is the account form — so
+                  "sign up from the job you are reading" is one press and no
+                  navigation. What happens after is already right: creating the
+                  account hands off to Privy, and the resume lands back on this
+                  role's review step, where the outbound button above is waiting.
+                  No step 3 is ever promised, which is why the rail stays off. */}
+              <Button variant="primary" style="fill" size="m" onClick={() => goTo('profile')}>
+                Create Job Profile
+              </Button>
+            </div>
           ),
         };
       }
@@ -595,34 +723,38 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     }
 
     if (at === 'profile' && !isLoggedIn) {
-      /**
-       * The one place this flow admits it may end early.
-       *
-       * `useJobApplyFlow.onApply` sends a **pending** account applying to a role
-       * Protocol Labs did not post to the employer's own site — and an account
-       * created by the press below is pending. So for a non-PL role the rail
-       * will have shown three steps and delivered two.
-       *
-       * That rule is not new. What is new is putting the account form *in* the
-       * rail, which turns an existing rule into a visible broken promise — so
-       * the promise gets made accurately here, at the press, rather than
-       * discovered on the way back. The review step's hint is left alone: it
-       * says the next step opens your account, which stays true.
-       */
       return {
-        /* Silent for a Protocol Labs role, and that asymmetry is the point.
-           The sentence that used to sit here promised a return to the
-           application — which is what the rail already promises, and the rail
-           is right about it. Only the non-PL case has something the rail is
-           wrong about, so only the non-PL case speaks. */
-        hint: isProtocolLabsTeam(target.team)
-          ? null
-          : `Creating your account signs you in, then ${target.teamName} takes your application on their own site.`,
+        /**
+         * Silent, per the design.
+         *
+         * **What stood here and why it can go.** A sentence for non-PL
+         * employers: "Creating your account signs you in, then {team} takes your
+         * application on their own site." It was written when the rail promised
+         * three steps to a stranger whose application would leave at step two,
+         * and its job was to make that promise accurately at the press rather
+         * than let it be discovered on the way back.
+         *
+         * The rail no longer makes that promise. It is withheld for every step
+         * of an outbound run, so there is no third stop drawn and nothing left
+         * for this sentence to correct. What it warned about is now said by the
+         * screen this person came from — the review step's own outbound button —
+         * and said again by the one they return to after signing up, which is
+         * that same review step with that same button waiting.
+         *
+         * A footer that repeats what the two screens either side of it already
+         * say is spending the only line it has on a third telling.
+         */
+        hint: null,
         action: (
           /* Disabled only while submitting, never on `!isValid` — with
              `mode: "onBlur"` a validity gate leaves a dead button in front of a
-             completed form. "Create account" and not "Continue", because this
-             press is the one that creates it; nothing about it is a step along. */
+             completed form.
+
+             "Create Profile", per the design, and it is also the label that
+             matches the door: a stranger reaches this step by pressing "Create
+             Job Profile" on the job, and a button that then said "Create
+             account" would be answering a question they did not ask. The drawer
+             title above it says profile too. */
           <Button
             variant="primary"
             style="fill"
@@ -631,7 +763,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             disabled={accountSubmitting}
             onClick={submitAccount}
           >
-            {accountSubmitting ? 'Creating…' : 'Create account'}
+            {accountSubmitting ? 'Creating…' : 'Create Profile'}
           </Button>
         ),
       };
@@ -661,7 +793,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             <Checkbox checked={reviewed} onChange={setReviewed} />
             {/* The `*` is `.consentLabel`'s `:after`, exactly as `FormField`
                 draws it on a required label. */}
-            <span className={d.consentLabel}>I&apos;ve reviewed my profile</span>
+            <span className={d.consentLabel}>I reviewed my profile</span>
           </label>
         ),
         action: (
@@ -679,17 +811,21 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
       };
     }
 
-    /* The step's one instruction, and the only place it appears — the pane used
-       to print a copy of this under the field. Three states, because "shorten
-       it" and "write something" are different problems and only one of them is
-       about what to say. */
+    /* Two states, down from three.
+       Both of the ones that went were narration. "Add what you did in previous
+       roles that makes you a good fit for this one." asked for the same
+       paragraph the pane already asks for, at more length and nearer the box.
+       "{team} can reply to you directly." described what happens after a press
+       nobody had made yet — and the receipt that follows the press now says what
+       actually happened, which is the honest place for it.
+
+       What is left is the only state where the screen cannot speak for itself:
+       over the limit the button is dead and a red number is the whole
+       explanation, so the reason has to be in words next to the control it is
+       about. */
     const overLimit = remaining < 0;
     return {
-      hint: overLimit
-        ? `Shorten your note to ${COVER_LETTER_MAX_LENGTH} characters to send it.`
-        : canSend
-          ? `${target.teamName} can reply to you directly.`
-          : 'Add what you did in previous roles that makes you a good fit for this one.',
+      hint: overLimit ? `Shorten your note to ${COVER_LETTER_MAX_LENGTH} characters to send it.` : null,
       action: (
         /* "Apply", and this is the press that applies — there is no fourth step
            and no confirmation pane. The rail's last stop is where it happens. */
@@ -737,8 +873,14 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               </button>
             )}
           </div>
-          {/* Withheld when Apply leaves the site: there is nothing to walk. */}
-          {!(applyGoesExternal && at === 'review') && (
+          {/* Withheld when Apply leaves the site: there is nothing to walk.
+              Every step of such a run, not just the reading one — a stranger who
+              presses "Create Job Profile" above lands on the account form, and
+              the journey from there is back to this posting and then out to the
+              employer. There is no third stop to draw, so a rail promising one
+              would be the flow lying about itself in the one state where the
+              person has least reason to trust it. */}
+          {!applyGoesExternal && (
             <div className={d.stepBand}>
               <ApplyFlowSteps steps={steps} onSelect={(id) => goTo(id as ApplyFlowStepId)} />
             </div>
@@ -765,6 +907,14 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               isLoggedIn={isLoggedIn}
               pendingRoleTitle={target.role.roleTitle}
               pendingApproval={pendingApproval}
+              /* Back to this role, not to the board. Verifying navigates the
+                 whole page to LinkedIn, so the return has to re-open what it
+                 interrupted — and the flow already knows how to be re-opened on
+                 a role: `applyTo` is the parameter the sign-up round trip
+                 resumes through, read by `useJobApplySurface` against the list
+                 as it loads back. The current path rather than a hard-coded
+                 `/jobs`, so a team profile resumes on the team profile. */
+              verifyReturnTo={verifyReturnTo}
               onProfileState={setProfileState}
             />
           )}

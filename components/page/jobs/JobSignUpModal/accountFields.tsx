@@ -30,7 +30,7 @@ import s from './JobSignUpModal.module.scss';
  * for the board to disagree with itself about what a valid handle is.
  *
  * **The stylesheet stays `JobSignUpModal.module.scss`.** `.column`,
- * `.inputsLabel`, `.inputsWrapper`, `.separator` and `.optionalMark` were
+ * `.inputsLabel`, `.inputsWrapper` and `.separator` were
  * written for exactly these rows and are already tuned to them; a second sheet
  * restating them here is the drift this file exists to prevent. Whatever mounts
  * this supplies its own surrounding chrome and nothing else.
@@ -56,7 +56,7 @@ export type AccountFormData = {
   linkedin: string;
   role: string;
   /**
-   * "I'm already a member of a PL Network team" — the switch that reveals the
+   * "I work at a PL network startup" — the switch that reveals the
    * team select beside the role input.
    *
    * Form state rather than component state because it is an *answer*: it decides
@@ -92,7 +92,13 @@ export interface AccountDetails {
   email: string;
   linkedin: string;
   role: string;
-  jobSearchStatus: JobSearchStatus;
+  /**
+   * Null when the door that collected these did not ask — see
+   * `accountSchemaWithoutJobSearchStatus`. Null and not a default: a fabricated
+   * status is a claim about someone's job hunt that they never made, and it is
+   * the one answer here the product later shows back to them as their own.
+   */
+  jobSearchStatus: JobSearchStatus | null;
   /** The network team they picked as their current company, if any. */
   teamUid: string | null;
 }
@@ -191,14 +197,27 @@ export const accountSchema = yup.object({
 });
 
 /**
- * `(Optional)`, hugging the label it qualifies.
+ * The same form, minus the status — the banner/navbar modal's variant.
  *
- * Production's own idiom, not a new one: `SignupWizard` marks its free-text
- * field this way — a span set immediately after the label text at weight 400 in
- * the muted tone, against the label's own 500 — and that is the only other
- * place in the product that marks a field optional at all.
+ * **Why one door asks and the other does not.** The drawer's step 2 is reached
+ * by pressing Apply on a role, so the status is the last thing between this
+ * person and an application, and asking it there saves them a stop. The modal is
+ * reached from a banner that names no job: nothing is waiting on the answer, and
+ * the design asks the shortest question it can at the moment someone is only
+ * curious.
+ *
+ * **What it costs, stated plainly.** `isJobProfileComplete` is `role &&
+ * jobSearchStatus`, so an account made here arrives incomplete and will meet the
+ * profile step when it does eventually apply. That is the trade the shorter form
+ * buys, and it is the right way round: the step is owed only by people who go on
+ * to apply, rather than by everyone who signs up.
+ *
+ * Derived with `.shape()` rather than a second literal, so the other seven rules
+ * cannot drift between the two doors — the whole reason this file exists.
  */
-const OptionalMark = () => <span className={s.optionalMark}>(Optional)</span>;
+export const accountSchemaWithoutJobSearchStatus = accountSchema.shape({
+  jobSearchStatus: yup.string().defined(),
+});
 
 /**
  * The red `*` every required label in the product carries, as a span rather than
@@ -211,8 +230,7 @@ const OptionalMark = () => <span className={s.optionalMark}>(Optional)</span>;
  * line-height and margin a second time on a row that already has `.inputsLabel`
  * saying all five — leaving which one wins to stylesheet order.
  *
- * So the mark is drawn the way `.optionalMark` beside it already is: locally,
- * and to the same three declarations `FormField` uses.
+ * So the mark is drawn locally, to the same three declarations `FormField` uses.
  */
 const RequiredMark = () => (
   <span className={s.requiredMark} aria-hidden="true">
@@ -247,11 +265,14 @@ export const toAccountDetails = (data: AccountFormData): AccountDetails => ({
   email: data.email.trim(),
   linkedin: (data.linkedin ?? '').trim(),
   role: data.role.trim(),
-  /* Narrowed rather than asserted. The schema makes this one of the offered
-     statuses before a submit can happen, so the fallback is unreachable in
-     practice — but a cast here would be the one place a bad value could reach
-     the wire silently, and this file is the boundary that exists to stop that. */
-  jobSearchStatus: isJobSearchStatus(data.jobSearchStatus) ? data.jobSearchStatus : 'open-to-right-role',
+  /* Narrowed rather than asserted, and `null` rather than a default.
+     On the door that asks, the schema makes this one of the offered statuses
+     before a submit can happen, so the branch below is unreachable there. On the
+     door that does not ask it is the only branch — and it must not invent an
+     answer. It used to fall back to `open-to-right-role`, which was harmless
+     while every door asked and would now file a claim about someone's job hunt
+     that they never made. The caller omits the key when this is null. */
+  jobSearchStatus: isJobSearchStatus(data.jobSearchStatus) ? data.jobSearchStatus : null,
   teamUid: data.company?.value ?? null,
 });
 
@@ -341,7 +362,7 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
           else. Ticking the box is what asks for the select, which turns "leave it
           blank if this isn't you" into "say so, and we'll ask".
 
-          First person ("I'm already a member…") rather than the form's usual
+          First person ("I work at…") rather than the form's usual
           noun-phrase labels, and deliberately: every other line in this group
           names a thing to fill in, and this one is a claim the person is making
           about themselves. Same voice the design system uses for its other
@@ -351,26 +372,37 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
           is a small target and the words beside it are the obvious one. */}
       <div className={s.checkboxGroup}>
         <label className={s.checkboxRow}>
-          <Checkbox checked={onPlTeam} onChange={toggleOnPlTeam} />
-          I&apos;m already a member of a PL Network team
+          <Checkbox checked={onPlTeam} onChange={toggleOnPlTeam} />I work at a PL network startup
         </label>
 
         <div className={s.column}>
-          {/* The label names what is under it, and the mark says which rule the
-              two fields are under — both change with the tick. Ticking now
-              *does* create a requirement (see the schema's note on `company`),
-              so the `(Optional)` has to go with it: a form that refuses to
-              submit without a field it has marked optional is worse than one
-              with no marking system at all.
+          {/* The label is constant and the mark is what moves.
+              It used to grow a second noun with the tick ("Current role & PL
+              network team") so that one label could name both inputs under it.
+              The design marks the row `Current role` in both states, and that is
+              takeable now for a reason the old label could not supply: each input
+              carries its own accessible name below, so the visible label no
+              longer has to do the naming for two fields at once.
 
-              One mark for the row rather than one per field, because the label
-              is one label for both and the tick makes both required together. */}
+              What the label still does is carry the rule. Ticking *does* create a
+              requirement (see the schema's note on `company`), so the mark
+              appears with it — and there is no `(Optional)` in the other state,
+              per the design. That asymmetry is deliberate: unmarked-and-optional
+              costs nothing, while unmarked-and-required is a form refusing to
+              submit over a field it never flagged.
+
+              One mark for the row rather than one per field, because the tick
+              makes both required together. */}
           <div className={s.inputsLabel}>
-            {onPlTeam ? 'Current role & PL network team' : 'Current role'}
-            {onPlTeam ? <RequiredMark /> : <OptionalMark />}
+            Current role
+            {onPlTeam && <RequiredMark />}
           </div>
           <div className={s.inputsWrapper}>
-            <FormField name="role" placeholder="Enter your current role" />
+            {/* `aria-label` because this input has no `label` of its own and the
+                `.inputsLabel` above is a plain div associated with neither half
+                of the row. It was already unnamed to a screen reader; shortening
+                the visible label is what makes fixing it non-optional. */}
+            <FormField name="role" placeholder="Enter your current role" aria-label="Current role" />
             {/* The `@` and the select appear together or not at all. The
                 separator is punctuation *between* two fields; on its own beside a
                 single input it is a dangling preposition — a row that looks like
@@ -378,10 +410,17 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
             {onPlTeam && (
               <>
                 <span className={s.separator}>@</span>
-                {/* "Select a team", not "Select a company" — the label above now
-                    says PL network team, and this list is exactly that: network
-                    teams, not employers at large. */}
-                <FormSelect name="company" placeholder="Select a team" isClearable options={companyOptions} />
+                {/* "Select a team", not "Select a company": this list is network
+                    teams, not employers at large. The distinction used to be
+                    carried by the label above and now lives in the select's own
+                    accessible name, which is the only place left that says it. */}
+                <FormSelect
+                  name="company"
+                  placeholder="Select a team"
+                  isClearable
+                  options={companyOptions}
+                  aria-label="PL network team"
+                />
               </>
             )}
           </div>

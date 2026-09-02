@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import type { IUserInfo } from '@/types/shared.types';
 import type { IJobTeamGroup } from '@/types/jobs.types';
 import type { JobSurface } from '@/analytics/jobs.analytics';
-import { PENDING_APPLY_PARAM, PENDING_PROFILE_PARAM, stripPendingApplyFromUrl } from '@/services/jobs/job-apply-resume';
+import { PENDING_APPLY_PARAM, stripPendingApplyFromUrl } from '@/services/jobs/job-apply-resume';
 import { JobApplyFlowController } from '@/components/page/jobs/JobApplyFlowController/JobApplyFlowController';
 import type { RowApplyProps } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow';
 
@@ -119,8 +119,7 @@ export function useJobApplySurface({
     if (applyResumeHandled.current) return;
 
     const roleUid = searchParams.get(PENDING_APPLY_PARAM);
-    const completeProfile = searchParams.get(PENDING_PROFILE_PARAM) === '1';
-    if (!roleUid && !completeProfile) return;
+    if (!roleUid) return;
     if (!isLoggedIn || viewer.viewer === 'resolving') return;
     if (isLoading) return;
 
@@ -129,11 +128,6 @@ export function useJobApplySurface({
     // it: a one-time instruction must not replay on reload.
     applyResumeHandled.current = true;
     stripPendingApplyFromUrl();
-
-    if (completeProfile && !roleUid) {
-      flow.onUpdateProfile();
-      return;
-    }
 
     /* The team travels with it: reading is step 1 of the flow, so a resumed run
        has to be able to render the review step it may step back to. */

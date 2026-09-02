@@ -263,18 +263,18 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
               </DetailsSectionGreyContentContainer>
             </div>
 
-            <div className={s.block}>
-              {/* A `label`, not a `span` like the profile block's — this one
-                  names a field. `FormTextArea` puts `id={name}` on the textarea
-                  and only sets `aria-label` when it is passed a `label` prop,
-                  which this call site deliberately isn't (its own label markup
-                  would not match the profile block's). So without `htmlFor` the
-                  letter had no accessible name at all. */}
-              <div className={s.blockLabelRow}>
-                <label className={s.blockLabel} htmlFor="coverLetter">
-                  Message for the team
-                </label>
-              </div>
+            <div className={clsx(s.block, s.messageBlock)}>
+              {/* Named for screen readers, drawn for nobody.
+                  The design has no heading here — the profile card is ruled off
+                  and the invitation below speaks for the field. But the field
+                  still needs a name: `FormTextArea` puts `id={name}` on the
+                  textarea and only sets `aria-label` when passed a `label` prop,
+                  which would render its own visible heading and put the deleted
+                  one back. So the `label` stays and is hidden, which is the one
+                  arrangement that satisfies both. */}
+              <label className={s.visuallyHidden} htmlFor="coverLetter">
+                Message for the team
+              </label>
               {/* The invitation, and the argument for writing it yourself.
                   ("Cover letter (message for the team)" was the whole heading.
                   The parenthesis was already translating the genre away from a
@@ -312,11 +312,12 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
 
           {/* (A copy of the footer's sentence used to sit here, so the step
               showed "Add what you did in previous roles…" twice — once under the
-              field and once in the bar below it. The footer's is the one that
-              stays: it sits beside the button it is advice about, and it changes
-              with what that button will do. The over-limit case goes with it for
-              the same reason — the counter above already turns red, and the
-              instruction belongs next to the control it unblocks.) */}
+              field and once in the bar below it. The duplicate went first and the
+              footer's original has since gone too: the invitation two blocks up
+              already asks for the same paragraph, at more length and nearer the
+              box. What the footer still says is the over-limit reason, because
+              there the button is dead and a red number is the only other signal.)
+          */}
 
           {submitError && <p className={s.submitError}>{submitError}</p>}
         </form>

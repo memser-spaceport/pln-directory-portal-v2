@@ -20,16 +20,22 @@
  * board, so a role that closed mid-signup simply doesn't resume rather than
  * resuming as stale data.
  *
- * Banner / modal sign-up has no job. That path uses `completeProfile` instead,
- * so they land in the standalone profile drawer — the same one the
- * "Update your profile to apply" banner opens.
+ * **Banner / modal sign-up has no job, and now carries no instruction either.**
+ * It used to set `completeProfile`, landing the person in the standalone profile
+ * drawer. Two different landings were tried there — that one, and the newest open
+ * role — and both were wrong in the same way: nothing was interrupted, so there
+ * is nothing to resume. Someone who pressed Sign up on a banner asked to have an
+ * account, not to be handed a screen. They land on the board, signed in, and pick
+ * their own way in.
+ *
+ * This file is for picking up a thread that *was* dropped. A door with no job
+ * behind it never had one.
  */
 
 export const PENDING_APPLY_PARAM = 'applyTo';
-export const PENDING_PROFILE_PARAM = 'completeProfile';
 
 /**
- * Not ours to define — several flows write it — but it rides along with the two
+ * Not ours to define — several flows write it — but it rides along with the one
  * above on the jobs round trip, and nobody removes it: `AuthInfo` copies it into
  * localStorage and leaves it, and `clearPrivyParams` only strips `privy_*`. So
  * it is ours to clean up when we clean up after ourselves. It matters more since
@@ -55,31 +61,16 @@ const toSearch = (params: URLSearchParams): string => {
  * role the person didn't just act on. Passing no uid says "nothing is pending"
  * and makes that true.
  *
- * Also clears `completeProfile`: the two instructions are mutually exclusive,
- * and a sign-in must not inherit either.
- *
  * Everything else on the search string is preserved: the filters someone
  * narrowed before signing up should still be narrowed when they land back.
  */
 export function withPendingApply(search: string, roleUid: string | undefined): string {
   const params = new URLSearchParams(search);
-  params.delete(PENDING_PROFILE_PARAM);
   if (roleUid) {
     params.set(PENDING_APPLY_PARAM, roleUid);
   } else {
     params.delete(PENDING_APPLY_PARAM);
   }
-  return toSearch(params);
-}
-
-/**
- * After a job-less sign-up (the banner / header modal), land on the
- * standalone profile drawer instead of a plain board.
- */
-export function withPendingProfile(search: string): string {
-  const params = new URLSearchParams(search);
-  params.delete(PENDING_APPLY_PARAM);
-  params.set(PENDING_PROFILE_PARAM, '1');
   return toSearch(params);
 }
 
@@ -96,7 +87,7 @@ export function stripPendingApplyFromUrl(): void {
   if (typeof window === 'undefined') return;
   try {
     const url = new URL(window.location.href);
-    const carried = [PENDING_APPLY_PARAM, PENDING_PROFILE_PARAM, PREFILL_EMAIL_PARAM];
+    const carried = [PENDING_APPLY_PARAM, PREFILL_EMAIL_PARAM];
     if (!carried.some((param) => url.searchParams.has(param))) return;
     carried.forEach((param) => url.searchParams.delete(param));
     const search = url.searchParams.toString();

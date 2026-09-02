@@ -290,7 +290,7 @@ export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: Job
          (profileComplete) … at: 'application'`), on the reasoning that a step
          with nothing left to collect is a step worth saving. That reasoning was
          about *collecting*, and the step is no longer only for that: it now asks
-         for "I've reviewed my profile", and what the hiring team reads is the
+         for "I reviewed my profile", and what the hiring team reads is the
          profile rather than the letter alone. A confirmation nobody is shown is
          not a confirmation, and the people most likely to be sending something
          stale are exactly the ones the skip was routing around.
@@ -398,7 +398,7 @@ export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: Job
    * **Which step depends on where this application is actually going.** A new
    * account's verdict is `pending`, so for any non-PL team `shouldApplyGoExternal`
    * was already true when they pressed Apply — and the footer told them so:
-   * "Continue to apply", on the employer's own site. Resuming straight onto the
+   * "Apply on team site", on the employer's own site. Resuming straight onto the
    * profile step put the in-app letter in front of someone who had been promised
    * the opposite, and let them finish it. The rule this consults is the one
    * `onApply` consults; it was simply never asked here.
@@ -408,7 +408,7 @@ export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: Job
    * blocks that, and a silently blocked redirect is worse than the wrong step.
    * The review step already carries the external press as a button
    * (`JobApplyFlowDrawer`'s footer, where the rail is hidden and the action is
-   * "Continue to apply"), so this hands them the promise instead of breaking it.
+   * "Apply on team site"), so this hands them the promise instead of breaking it.
    */
   const onResumeAfterSignUp = useCallback(
     (target: JobDetailTarget) => {

@@ -13,7 +13,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 import { useRoleApplication } from '@/services/jobs/hooks/useJobApplications';
-import { withPendingApply, withPendingProfile } from '@/services/jobs/job-apply-resume';
+import { withPendingApply } from '@/services/jobs/job-apply-resume';
 import type { IUserInfo } from '@/types/shared.types';
 
 import { shouldApplyGoExternal, type useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
@@ -101,19 +101,17 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
    * The rest of the search string rides along, so the rail the person narrowed
    * before signing up is still narrowed when they land back on the board.
    */
-  const pushLogin = (opts?: { prefillEmail?: string; pendingRoleUid?: string; completeProfile?: boolean }) => {
+  const pushLogin = (opts?: { prefillEmail?: string; pendingRoleUid?: string }) => {
     const search = new URLSearchParams(window.location.search);
     if (opts?.prefillEmail) {
       search.set('prefillEmail', opts.prefillEmail);
     }
     const withEmail = search.toString();
-    // A job in the drawer resumes on that role's profile step. A banner / modal
-    // sign-up has no job, so they land in the standalone profile drawer instead.
-    const qs = opts?.pendingRoleUid
-      ? withPendingApply(withEmail, opts.pendingRoleUid)
-      : opts?.completeProfile
-        ? withPendingProfile(withEmail)
-        : withPendingApply(withEmail, undefined);
+    /* A job in the drawer resumes on that role's profile step. A banner / modal
+       sign-up has no job and gets no instruction — passing no uid also CLEARS a
+       stale one, so an abandoned sign-up can't resume here. See
+       `job-apply-resume` for why that door lands on the plain board. */
+    const qs = withPendingApply(withEmail, opts?.pendingRoleUid);
     goToLogin({ returnTo: `${window.location.pathname}${qs}` });
   };
 
@@ -142,7 +140,11 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
       await signUpMutation.mutateAsync({
         name: details.name,
         email: details.email,
-        jobSearchStatus: details.jobSearchStatus,
+        /* Omitted, not defaulted, when the door that collected these did not ask
+           — the banner modal does not. The wire schema has it optional on both
+           sides, and an absent key is the honest way to say "not answered";
+           sending a guess would file a claim about their job hunt for them. */
+        ...(details.jobSearchStatus ? { jobSearchStatus: details.jobSearchStatus } : {}),
         linkedinHandler: details.linkedin,
         ...(details.role ? { role: details.role } : {}),
         // The company select offers existing network teams only, so this is
@@ -173,7 +175,6 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
     pushLogin({
       prefillEmail: details.email,
       pendingRoleUid: target?.role.uid,
-      completeProfile: !target?.role.uid,
     });
     return { success: true };
   };

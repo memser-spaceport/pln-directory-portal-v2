@@ -344,8 +344,10 @@ export function RecipientPicker(props: RecipientPickerProps) {
 
           Note this labels the *suggestions*, not the field: "Send to" itself
           accepts any network member or a typed email address, and deliberately.
-          `.suggestBlock` wraps, so a long team name reflows rather than
-          crowding the first chip off its line. */}
+          It heads a column rather than opening a wrapping row — a team with one
+          suggestion left used to put the label and that chip on a single line
+          with only a gap between them, which reads as one phrase rather than a
+          heading and the thing it heads. */}
       {suggested.length > 0 && (
         <div className={s.suggestBlock}>
           <span className={s.suggestLabel}>Suggested from {teamName}</span>

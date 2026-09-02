@@ -297,7 +297,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     expect(overlay?.getAttribute('style')).toContain('--feedback-popover-bottom: 108px');
     expect(overlay?.getAttribute('style')).toContain('--feedback-popover-right: 40px');
     expect(overlay?.getAttribute('style')).not.toContain('--feedback-popover-top');
-    expect(screen.getByTestId('selected-app').parentElement).toHaveAttribute('data-menu-placement', 'top');
+    expect(screen.getByTestId('selected-app').parentElement).toHaveAttribute('data-menu-placement', 'auto');
 
     anchor.remove();
   });

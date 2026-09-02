@@ -229,13 +229,10 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
                 options={appOptions}
                 disabled={isAppsLoading}
                 isRequired
-                // Anchored above the floating button the panel sits at the
-                // bottom of the viewport, so `auto` finds no room below and
-                // either flips the menu into `.root`'s `overflow: hidden` or
-                // shrinks it to a sliver that can't scroll. Force it up, and
-                // portal it out of that mask (which also switches the menu to
-                // fixed positioning — what the fixed overlay needs).
-                menuPlacement={placement === 'above' ? 'top' : 'auto'}
+                // Portalled + fixed so the menu escapes `.root`'s overflow mask and
+                // `auto` can measure viewport space below the control. Forcing
+                // `top` made the list open upward over the nav even though the
+                // field sits at the top of this panel.
                 menuPortalTarget={typeof document === 'undefined' ? null : document.body}
               />
               {submitAttempted && !watch('app') && <p className={s.fieldError}>Please select an app</p>}

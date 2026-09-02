@@ -240,6 +240,16 @@
   overflow-wrap: anywhere;
 }
 
+.richMessage {
+  padding: 0;
+  overflow-wrap: anywhere;
+
+  :global(img) {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
 .dateCell {
   color: var(--foreground-neutral-secondary, #455468);
   white-space: nowrap;

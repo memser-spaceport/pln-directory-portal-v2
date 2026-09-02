@@ -294,8 +294,8 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
   const sentTo = usesTeamReferEmail ? 'the team' : getRecipientSummary(recipients);
 
   const composingDesc = usesTeamReferEmail
-    ? 'One email goes to the address this team set up, with you copied in.'
-    : 'One email goes to everyone you add below, with you copied in.';
+    ? 'Referral email will be sent to the address this team set up, and you’ll be copied.'
+    : 'Referral email will be sent to everyone listed including you.';
 
   return (
     <Modal isOpen={open} onClose={handleClose} closeOnBackdropClick={false} lockScroll>
@@ -315,24 +315,19 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
             announcement is the thing centring is actually for. Same rule the
             apply modal follows (see `.headerLeft` there), applied to a dialog
             that happens to be both kinds of card in turn. */}
-        {/* Envelope beside the headline, not stacked above it — one row, with the
-            title and its sentence as the column to its right. `.headerSent` puts
-            the same three back into a centred stack for the receipt. */}
-        <div className={`${s.header} ${sent ? s.headerSent : ''}`}>
-          <div className={s.iconWrapper}>
-            <EnvelopeIcon />
-          </div>
-
-          <div className={s.headerText}>
-            <h2 className={s.title}>{sent ? 'Referral sent' : `Refer someone for ${role.roleTitle}`}</h2>
-
-            <p className={s.desc}>
-              {sent
-                ? `Your note is on its way to ${sentTo}. They can reply to you directly, and ${firstName} is notified too.`
-                : composingDesc}
-            </p>
-          </div>
+        <div className={`${s.iconWrapper} ${sent ? '' : s.headerIconLeft}`}>
+          <EnvelopeIcon />
         </div>
+
+        <h2 className={`${s.title} ${sent ? '' : s.headerLeft}`}>
+          {sent ? 'Referral sent' : `Refer for ${role.roleTitle}`}
+        </h2>
+
+        <p className={`${s.desc} ${s.headerDesc} ${sent ? '' : s.headerLeft}`}>
+          {sent
+            ? `Your note is on its way to ${sentTo}. They can reply to you directly, and ${firstName} is notified too.`
+            : composingDesc}
+        </p>
 
         {sent ? (
           <div className={s.actions}>

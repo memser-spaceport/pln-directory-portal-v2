@@ -812,26 +812,20 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     }
 
     /* Two states, down from three.
-       The one that went was the empty-field instruction — "Add what you did in
-       previous roles that makes you a good fit for this one." — and the design
-       leaves this footer silent in exactly that state. It was also the only one
-       of the three telling somebody what to write, which the pane above already
-       does at more length and closer to the field: "Start a conversation with the
-       team at {team}. Share something about you…". Two invitations to write the
-       same paragraph is one too many, and the footer's is the one further from
-       the box.
+       Both of the ones that went were narration. "Add what you did in previous
+       roles that makes you a good fit for this one." asked for the same
+       paragraph the pane already asks for, at more length and nearer the box.
+       "{team} can reply to you directly." described what happens after a press
+       nobody had made yet — and the receipt that follows the press now says what
+       actually happened, which is the honest place for it.
 
-       What survives says something the screen does not. Over the limit, the
-       button is dead and the only other signal is a number turning red, so the
-       reason has to be in words. Under it, "can reply to you directly" is a fact
-       about what happens next rather than an instruction about now. */
+       What is left is the only state where the screen cannot speak for itself:
+       over the limit the button is dead and a red number is the whole
+       explanation, so the reason has to be in words next to the control it is
+       about. */
     const overLimit = remaining < 0;
     return {
-      hint: overLimit
-        ? `Shorten your note to ${COVER_LETTER_MAX_LENGTH} characters to send it.`
-        : canSend
-          ? `${target.teamName} can reply to you directly.`
-          : null,
+      hint: overLimit ? `Shorten your note to ${COVER_LETTER_MAX_LENGTH} characters to send it.` : null,
       action: (
         /* "Apply", and this is the press that applies — there is no fourth step
            and no confirmation pane. The rail's last stop is where it happens. */

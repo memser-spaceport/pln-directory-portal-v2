@@ -120,6 +120,20 @@
     }
   }
 
+  /* `position: relative` lifts this above .bg1's backdrop-filter, exactly as
+     .loginButton does. Without it the explanation renders blurred and reads as
+     part of the teaser rather than the reason for it. */
+  .deniedNote {
+    position: relative;
+    text-align: right;
+    max-width: 220px;
+
+    @include media.mobile-only {
+      max-width: none;
+      text-align: left;
+    }
+  }
+
   .control {
     &.tablet {
       display: none;

@@ -185,6 +185,12 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
               },
             },
       ...(hasImage && {
+        // Quill 2's built-in uploader reads dropped/pasted files as data URIs.
+        // imageUploader already owns that path and inserts a hosted URL; leaving
+        // both active pastes the image twice.
+        uploader: {
+          mimetypes: [],
+        },
         imageUploader: {
           upload: (file: File) => {
             return new Promise((resolve, reject) => {

@@ -113,36 +113,54 @@ const renderModal = (overrides: Partial<React.ComponentProps<typeof JobSignUpMod
   render(<JobSignUpModal {...baseProps} {...overrides} />);
 
 /**
- * Fills the four fields the schema actually requires.
+ * Fills the five fields the schema actually requires.
  *
- * The status belongs in here rather than in the tests that care about it: it
- * gates submission, so leaving it out would turn every `submitting` case below
- * into a test of the gate instead of a test of what it claims to check — green
- * for the wrong reason if the assertion is on `onSignUp` *not* firing, and a
- * confusing failure otherwise.
+ * Role and the status belong in here rather than in the tests that care about
+ * them: both gate submission, so leaving either out would turn every
+ * `submitting` case below into a test of the gate instead of a test of what it
+ * claims to check — green for the wrong reason if the assertion is on `onSignUp`
+ * *not* firing, and a confusing failure otherwise.
+ *
+ * This is the single point the "role is now required on both doors" change lands
+ * on. It has eleven call sites; every one of them would otherwise fail, and all
+ * of them for the same uninteresting reason.
  */
-const fillRequired = () => {
+/** Everything `fillRequired` does except pick a status — so the one test that
+ *  needs the status *missing* and nothing else missing can say exactly that,
+ *  rather than re-listing four fields and drifting from this one. */
+const fillRequiredExceptStatus = () => {
   fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@protocol.ai' } });
   fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Polina Bublii' } });
   fireEvent.change(screen.getByLabelText(/LinkedIn profile/), { target: { value: 'polina-bublii' } });
-};
-
-/**
- * Ticks the PL-team box and answers both fields it makes required.
- *
- * Separate from `fillRequired` because the tick is not part of the baseline
- * form — most of this suite signs up as someone with no network team, which is
- * the commoner case and the one the short form is shaped for.
- */
-const claimPlTeam = () => {
-  fireEvent.click(screen.getByRole('checkbox', { name: /I work at a PL network startup/i }));
   /* By accessible name. The row's visible label is a hand-rolled `div` associated
      with neither input, so each half carries its own `aria-label` — see the note
      at the top of this file, and `the row's two inputs` below for the test that
      guards the names these queries depend on. */
-  fireEvent.change(screen.getByLabelText('Current role'), {
-    target: { value: 'Protocol Engineer' },
-  });
+  fireEvent.change(screen.getByLabelText('Current role'), { target: { value: 'Protocol Engineer' } });
+};
+
+const fillRequired = () => {
+  fillRequiredExceptStatus();
+  /* Matched on the label alone, not the whole accessible name. Each option's
+     name is its label *plus* its hint sentence, and the hints carry typographic
+     apostrophes — a full-string matcher would be comparing against characters
+     that print identically to the ones you would type. */
+  fireEvent.click(screen.getByRole('radio', { name: /Actively looking/ }));
+};
+
+/**
+ * Ticks the PL-team box and answers the one extra field it makes required.
+ *
+ * Separate from `fillRequired` because the tick is not part of the baseline
+ * form — most of this suite signs up as someone with no network team, which is
+ * the commoner case.
+ *
+ * It used to set the role too. That moved to `fillRequired` when role stopped
+ * being conditional on the tick: leaving it here would have said the tick is
+ * what makes a role necessary, which is the exact belief this change removes.
+ */
+const claimPlTeam = () => {
+  fireEvent.click(screen.getByRole('checkbox', { name: /I work at a PL network startup/i }));
   fireEvent.change(screen.getByLabelText('PL network team'), { target: { value: 't1' } });
 };
 
@@ -154,14 +172,12 @@ describe('the job board sign-up modal', () => {
 
   describe('the fields', () => {
     /**
-     * Nothing on this form is marked optional, and the role — the one field that
-     * *is* optional until the tick — is the reason that reads as a choice rather
-     * than an omission.
+     * Nothing on this form is optional, and nothing is marked optional.
      *
-     * The design marks the row `Current role` in both states. Unmarked-and-optional
-     * costs a reader nothing; unmarked-and-required is a form refusing to submit
-     * over a field it never flagged, which is why the asterisks below stay and
-     * why the tick still brings one (see the next two tests).
+     * That is a simpler claim than it used to be: role was the one field that
+     * was optional until the tick, so "unmarked" had to be read as a choice
+     * rather than an omission. It is required in both states now, so every
+     * field here is required and every one carries the mark.
      */
     it('marks nothing optional, and leaves the required fields required', () => {
       renderModal();
@@ -171,6 +187,7 @@ describe('the job board sign-up modal', () => {
       expect(screen.getByText('LinkedIn profile').textContent).not.toContain('Optional');
       expect(screen.getByText('Email address').textContent).not.toContain('Optional');
       expect(screen.getByText('Full name').textContent).not.toContain('Optional');
+      expect(screen.getByText('Job search status').textContent).not.toContain('Optional');
       expect(screen.queryByText('Team email')).not.toBeInTheDocument();
     });
 
@@ -220,20 +237,60 @@ describe('the job board sign-up modal', () => {
       expect(screen.getByText('@')).toBeInTheDocument();
     });
 
-    /* The mark has to arrive with the rule. A form that refuses to submit over a
-       field it never flagged is worse than one with no marking system at all —
-       which is the whole reason `JobSearchStatusField` carries the asterisk
-       `Email address` does. The label itself does not change; only the mark. */
-    it('marks the row required when the box is ticked', () => {
+    /* The mark has to match the rule, and the rule no longer moves.
+       This used to assert the opposite in the unticked state — no `*` until the
+       box was ticked — which was right while the requirement itself was
+       conditional. Role is required either way now, so a mark that came and went
+       would be describing a rule that does not exist. A form refusing to submit
+       over a field it never flagged is worse than one with no marking system at
+       all, and the unticked state is where nearly everyone meets this row. */
+    it('marks the role row required in both states of the tick', () => {
       renderModal();
 
-      expect(screen.getByText(/^Current role/).textContent).not.toContain('*');
+      expect(screen.getByText(/^Current role/).textContent).toContain('*');
 
       fireEvent.click(screen.getByRole('checkbox', { name: /I work at a PL network startup/i }));
 
       const label = screen.getByText(/^Current role/);
       expect(label.textContent).toContain('*');
       expect(label.textContent).not.toContain('Optional');
+    });
+
+    /* The rule behind the mark above, on the door where it is new. No tick, no
+       team, nothing else missing — just an empty role. */
+    it('refuses to submit without a role, with no PL-team claim', async () => {
+      renderModal();
+      fillRequired();
+      fireEvent.change(screen.getByLabelText('Current role'), { target: { value: '   ' } });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+      expect(await screen.findByText('Current role is required')).toBeInTheDocument();
+      expect(baseProps.onSignUp).not.toHaveBeenCalled();
+    });
+
+    /**
+     * A role past the wire schema's cap fails as a field error, not as a server one.
+     *
+     * `jobBoardSignUpInputSchema` caps role at 200 and `signUpToJobBoard` runs
+     * `parse()` synchronously, so without a matching yup rule an over-long role
+     * throws inside the mutation and returns through the controller's generic
+     * catch — "We couldn't create your account just now. Please try again."
+     * That message names no field and invites a retry that cannot work.
+     *
+     * The cap has always been there; it only became reachable from this door
+     * when role stopped being optional here, which is why the guard arrives with
+     * that change.
+     */
+    it('refuses a role longer than the wire schema accepts', async () => {
+      renderModal();
+      fillRequired();
+      fireEvent.change(screen.getByLabelText('Current role'), { target: { value: 'a'.repeat(201) } });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+      expect(await screen.findByText('Current role must be 200 characters or fewer')).toBeInTheDocument();
+      expect(baseProps.onSignUp).not.toHaveBeenCalled();
     });
 
     /* Unticking clears the team rather than merely hiding it. A hidden select
@@ -292,13 +349,20 @@ describe('the job board sign-up modal', () => {
       expect(baseProps.onSignUp).not.toHaveBeenCalled();
     });
 
-    /* The other half of the same rule. Both fields sit under one label and the
-       tick makes them required together, so the role is guarded here too. */
+    /* The role, under the same label, on the ticked side.
+       This used to be the *only* place role was required, so it read as the
+       other half of the tick's rule. Role is unconditional now — see
+       `refuses to submit without a role, with no PL-team claim` for the state
+       nearly everyone is in — and this stays because the two inputs share a
+       label and a mark, which makes "does the row still guard both halves?" a
+       question worth keeping an answer to. The role is blanked explicitly,
+       since `fillRequired` supplies one. */
     it('refuses a PL-team claim with no current role', async () => {
       renderModal();
       fillRequired();
       fireEvent.click(screen.getByRole('checkbox', { name: /I work at a PL network startup/i }));
       fireEvent.change(screen.getByLabelText('PL network team'), { target: { value: 't1' } });
+      fireEvent.change(screen.getByLabelText('Current role'), { target: { value: '' } });
 
       fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
 
@@ -323,16 +387,47 @@ describe('the job board sign-up modal', () => {
     });
 
     /**
-     * Unticking has to take the verdict with it.
+     * Unticking has to take the team verdict with it.
      *
-     * `mode: 'onBlur'` plus a failed submit leaves a live error on `role`, and
+     * `mode: 'onBlur'` plus a failed submit leaves a live error on `company`, and
      * the rule that produced it is gone the moment the box is cleared. Without
      * the re-run in `toggleOnPlTeam` the message outlives its requirement and
-     * the form reads as broken — an error on a field that is now optional.
+     * the form reads as broken — an error on a field that is no longer even on
+     * screen.
+     *
+     * This used to assert the same of `role`, back when the tick was what made a
+     * role required. It isn't any more, so `trigger` was narrowed to `company`
+     * alone — and the test narrowed with it. See the sibling below for the other
+     * half of that change, which is the more important one: the role error must
+     * now *survive* the untick.
      */
-    it('clears the required errors when the claim is withdrawn', async () => {
+    it('clears the team error when the claim is withdrawn', async () => {
       renderModal();
       fillRequired();
+      const box = screen.getByRole('checkbox', { name: /I work at a PL network startup/i });
+
+      fireEvent.click(box);
+      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+      expect(await screen.findByText('Select your PL network team')).toBeInTheDocument();
+
+      fireEvent.click(box);
+
+      await waitFor(() => expect(screen.queryByText('Select your PL network team')).not.toBeInTheDocument());
+    });
+
+    /**
+     * ...and the role error has to outlive it.
+     *
+     * The mirror of the test above, and the one that would catch a lazy revert.
+     * Unticking used to make a blank role legal, so clearing its error was
+     * correct. It doesn't any more: the field is still required, still blank,
+     * and still the reason the button will not move. An error that vanished here
+     * would be the form quietly dropping a rule it is about to enforce again.
+     */
+    it('keeps the role error when the claim is withdrawn', async () => {
+      renderModal();
+      fillRequired();
+      fireEvent.change(screen.getByLabelText('Current role'), { target: { value: '' } });
       const box = screen.getByRole('checkbox', { name: /I work at a PL network startup/i });
 
       fireEvent.click(box);
@@ -341,8 +436,12 @@ describe('the job board sign-up modal', () => {
 
       fireEvent.click(box);
 
-      await waitFor(() => expect(screen.queryByText('Current role is required')).not.toBeInTheDocument());
-      expect(screen.queryByText('Select your PL network team')).not.toBeInTheDocument();
+      /* Still there, and still blocking — asserted by pressing again rather than
+         only by the message, so this cannot pass on a stale node. */
+      expect(screen.getByText('Current role is required')).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+      await waitFor(() => expect(screen.getByText('Current role is required')).toBeInTheDocument());
+      expect(baseProps.onSignUp).not.toHaveBeenCalled();
     });
 
     it('associates LinkedIn with its input', () => {
@@ -361,59 +460,93 @@ describe('the job board sign-up modal', () => {
   /**
    * The one question on this form that is not about the account.
    *
-   * Asked here so the account arrives with a job-search answer. Role is optional
-   * on this form, so they still land on the profile step after sign-in to finish
-   * it — this gate is so the status is not also owed there.
-   */
-  /**
-   * This door does not ask where you are with job hunting.
+   * This door spent a while not asking it, on the argument that a banner naming
+   * no job has nothing waiting on the answer. The design reversed that, and the
+   * reversal is what these tests now guard: the answer is part of the *profile*,
+   * not of a particular press, so it is collected once at the door rather than
+   * owed later at the moment someone is trying to apply.
    *
-   * The drawer's step 2 does, and still refuses to submit without it — see
-   * `job-account-step.test.tsx`. The split is the point: that door is reached by
-   * pressing Apply, so an application is waiting on the answer; this one is
-   * reached from a banner naming no job, and asks the shortest question it can.
+   * What it does not buy is skipping the apply flow's profile step — that skip
+   * was removed on purpose (`useJobApplyFlow`), because the step also asks "I
+   * reviewed my profile". It buys a step with nothing blocking on it.
    */
-  describe('the job search status it does not ask for', () => {
-    it('offers no status field at all', () => {
+  describe('the job search status', () => {
+    it('offers the field, with only the two statuses this door allows', () => {
       renderModal();
 
-      expect(screen.queryByRole('radiogroup', { name: 'Job search status' })).not.toBeInTheDocument();
-      expect(screen.queryByText('Job search status')).not.toBeInTheDocument();
-      expect(screen.queryAllByRole('radio')).toHaveLength(0);
+      expect(screen.getByRole('radiogroup', { name: 'Job search status' })).toBeInTheDocument();
+      expect(screen.getByText('Job search status')).toBeInTheDocument();
+
+      /* Two, not three. `not-looking` is hidden here and on the apply flow's
+         step 2 — "don't tell me about roles" is not an answer anyone gives while
+         signing up for a job board — but it stays offered on the member
+         profile-edit surface, where it is a real thing to want to say. */
+      expect(screen.getAllByRole('radio')).toHaveLength(2);
+      expect(screen.getByRole('radio', { name: /Actively looking/ })).toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: /Open to the right role/ })).toBeInTheDocument();
+      expect(screen.queryByRole('radio', { name: /Not looking/ })).not.toBeInTheDocument();
     });
 
-    /* The rule has to come off with the field. A required answer with nothing
-       on screen to give it is a Create account button that does nothing and
-       says nothing — the worst of the three outcomes, and exactly what removing
-       the field without the schema would have produced. */
-    it('does not hold the form shut over the answer it never requested', async () => {
+    /**
+     * The privacy pill, beside the label rather than under it.
+     *
+     * It answers the first question anyone asks of a field about their own job
+     * hunt, and it has to be answered next to the question: read as a footnote,
+     * it arrives after the decision whether to answer honestly is already made.
+     * The apply flow's step 2 puts the same mark on the same question, so a
+     * stranger and a member are shown one promise rather than two.
+     */
+    it('marks the field as private, beside its label', () => {
+      renderModal();
+
+      expect(screen.getByText(/Only visible to you/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Used to decide whether to surface your profile to founders who are hiring/i),
+      ).toBeInTheDocument();
+    });
+
+    /* The rule arrives with the field. A required answer with nothing on screen
+       to give it is a Create account button that does nothing and says nothing;
+       a field on screen with no rule behind it is a question nobody has to
+       answer. This is the third state, and the only correct one. */
+    it('holds the form shut until the question is answered', async () => {
+      renderModal();
+      /* Every other required answer given, so the only thing standing between
+         this and a submit is the status — which is what makes the failure below
+         attributable to the status gate rather than to whatever else was blank. */
+      fillRequiredExceptStatus();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+      expect(await screen.findByText('Select where you are with job hunting')).toBeInTheDocument();
+      expect(baseProps.onSignUp).not.toHaveBeenCalled();
+    });
+
+    /* The chosen answer reaches the caller as itself. `toAccountDetails`
+       narrows rather than asserts, and its `null` branch is unreachable from
+       both doors now — a fabricated status is a claim about someone's job hunt
+       that they never made, and it is the one answer the product later shows
+       back to them as theirs. */
+    it('reports the status that was chosen', async () => {
       renderModal();
       fillRequired();
+      fireEvent.click(screen.getByRole('radio', { name: /Open to the right role/ }));
 
       fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
 
       await waitFor(() => expect(baseProps.onSignUp).toHaveBeenCalled());
-      expect(screen.queryByText('Select where you are with job hunting')).not.toBeInTheDocument();
-    });
-
-    /* Null, not a guess. `toAccountDetails` used to fall back to
-       `open-to-right-role`, which was unreachable while every door asked and
-       would now file a claim about someone's job hunt that they never made —
-       and it is the one answer the product later shows back to them as theirs.
-       The controller omits the key entirely when this is null. */
-    it('reports no status rather than inventing one', async () => {
-      renderModal();
-      fillRequired();
-
-      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
-
-      await waitFor(() => expect(baseProps.onSignUp).toHaveBeenCalled());
-      expect(baseProps.onSignUp).toHaveBeenCalledWith(expect.objectContaining({ jobSearchStatus: null }));
+      expect(baseProps.onSignUp).toHaveBeenCalledWith(
+        expect.objectContaining({ jobSearchStatus: 'open-to-right-role' }),
+      );
     });
   });
 
   describe('submitting', () => {
-    it('submits with every optional field blank', async () => {
+    /* The shortest journey through this form: every required answer given, the
+       PL-team box left alone. `role` used to come through as `''` here, which is
+       what "every optional field blank" meant when role was one of them — it is
+       required now, so the blank one left is the team. */
+    it('submits with the only optional field blank', async () => {
       renderModal();
       fillRequired();
 
@@ -421,7 +554,12 @@ describe('the job board sign-up modal', () => {
 
       await waitFor(() => expect(baseProps.onSignUp).toHaveBeenCalled());
       expect(baseProps.onSignUp).toHaveBeenCalledWith(
-        expect.objectContaining({ linkedin: 'polina-bublii', role: '', teamUid: null }),
+        expect.objectContaining({
+          linkedin: 'polina-bublii',
+          role: 'Protocol Engineer',
+          jobSearchStatus: 'actively-looking',
+          teamUid: null,
+        }),
       );
     });
 

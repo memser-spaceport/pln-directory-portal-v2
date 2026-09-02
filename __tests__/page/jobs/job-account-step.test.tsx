@@ -105,10 +105,20 @@ const renderStep = (team: IJobTeam = PL, props: Partial<React.ComponentProps<typ
     />,
   );
 
+/**
+ * Every answer `accountSchema` requires — which now includes the role.
+ *
+ * The role arrived here as a consequence rather than as this step's own change.
+ * Both doors share one schema, and role stopped being conditional on the
+ * PL-team tick, so this host requires it for the same reason the modal does.
+ * That is the right way round: `isJobProfileComplete` is `role &&
+ * jobSearchStatus`, and this step exists to make an account that can apply.
+ */
 const fillAccount = () => {
   fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@protocol.ai' } });
   fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Polina Bublii' } });
   fireEvent.change(screen.getByLabelText(/LinkedIn profile/), { target: { value: 'polina-bublii' } });
+  fireEvent.change(screen.getByLabelText('Current role'), { target: { value: 'Protocol Engineer' } });
   fireEvent.click(screen.getByRole('radio', { name: /Actively looking/ }));
 };
 

@@ -1,10 +1,12 @@
 import {
   PENDING_APPLY_PARAM,
-  PENDING_PROFILE_PARAM,
+  PENDING_NEWEST_PARAM,
+  pickNewestRole,
   stripPendingApplyFromUrl,
   withPendingApply,
-  withPendingProfile,
+  withPendingNewestRole,
 } from '@/services/jobs/job-apply-resume';
+import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
 
 describe('withPendingApply', () => {
   it('adds the role to an empty search string', () => {
@@ -30,7 +32,7 @@ describe('withPendingApply', () => {
     expect(withPendingApply(`?roleCategory=Engineering&${PENDING_APPLY_PARAM}=abandoned-role`, undefined)).toBe(
       '?roleCategory=Engineering',
     );
-    expect(withPendingApply(`?${PENDING_PROFILE_PARAM}=1`, undefined)).toBe('');
+    expect(withPendingApply(`?${PENDING_NEWEST_PARAM}=1`, undefined)).toBe('');
   });
 
   it('replaces a stale role rather than appending a second one', () => {
@@ -44,33 +46,33 @@ describe('withPendingApply', () => {
     expect(new URLSearchParams(result).get(PENDING_APPLY_PARAM)).toBe('role/with space&amp');
   });
 
-  it('clears a pending profile resume — the two instructions are mutually exclusive', () => {
-    const result = withPendingApply(`?${PENDING_PROFILE_PARAM}=1`, 'role-1');
+  it('clears a pending newest-role resume — the two instructions are mutually exclusive', () => {
+    const result = withPendingApply(`?${PENDING_NEWEST_PARAM}=1`, 'role-1');
     const params = new URLSearchParams(result);
 
     expect(params.get(PENDING_APPLY_PARAM)).toBe('role-1');
-    expect(params.get(PENDING_PROFILE_PARAM)).toBeNull();
+    expect(params.get(PENDING_NEWEST_PARAM)).toBeNull();
   });
 });
 
-describe('withPendingProfile', () => {
-  it('adds the profile resume to an empty search string', () => {
-    expect(withPendingProfile('')).toBe(`?${PENDING_PROFILE_PARAM}=1`);
+describe('withPendingNewestRole', () => {
+  it('adds the newest-role resume to an empty search string', () => {
+    expect(withPendingNewestRole('')).toBe(`?${PENDING_NEWEST_PARAM}=1`);
   });
 
   it('keeps the filters someone narrowed before signing up', () => {
-    const result = withPendingProfile('?roleCategory=Engineering');
+    const result = withPendingNewestRole('?roleCategory=Engineering');
     const params = new URLSearchParams(result);
 
     expect(params.get('roleCategory')).toBe('Engineering');
-    expect(params.get(PENDING_PROFILE_PARAM)).toBe('1');
+    expect(params.get(PENDING_NEWEST_PARAM)).toBe('1');
   });
 
   it('clears a pending apply — the two instructions are mutually exclusive', () => {
-    const result = withPendingProfile(`?${PENDING_APPLY_PARAM}=role-1`);
+    const result = withPendingNewestRole(`?${PENDING_APPLY_PARAM}=role-1`);
     const params = new URLSearchParams(result);
 
-    expect(params.get(PENDING_PROFILE_PARAM)).toBe('1');
+    expect(params.get(PENDING_NEWEST_PARAM)).toBe('1');
     expect(params.get(PENDING_APPLY_PARAM)).toBeNull();
   });
 });
@@ -99,12 +101,12 @@ describe('stripPendingApplyFromUrl', () => {
   });
 
   it('also removes a pending profile resume', () => {
-    setUrl(`/jobs?roleCategory=Engineering&${PENDING_PROFILE_PARAM}=1`);
+    setUrl(`/jobs?roleCategory=Engineering&${PENDING_NEWEST_PARAM}=1`);
 
     stripPendingApplyFromUrl();
 
     const params = new URLSearchParams(window.location.search);
-    expect(params.get(PENDING_PROFILE_PARAM)).toBeNull();
+    expect(params.get(PENDING_NEWEST_PARAM)).toBeNull();
     expect(params.get('roleCategory')).toBe('Engineering');
   });
 
@@ -147,5 +149,66 @@ describe('stripPendingApplyFromUrl', () => {
 
     expect(pushSpy).not.toHaveBeenCalled();
     pushSpy.mockRestore();
+  });
+});
+
+/**
+ * Which role a job-less sign-up lands on.
+ *
+ * Resolved against the board as it loads back, not as it was when the form was
+ * submitted — a fresher posting can arrive while Privy is on screen, which is
+ * why the URL carries a flag rather than a uid.
+ */
+describe('pickNewestRole', () => {
+  const role = (uid: string, dates: Partial<IJobRole>): IJobRole =>
+    ({ uid, roleTitle: uid, postedDate: null, detectionDate: null, lastUpdated: '', ...dates }) as IJobRole;
+
+  const group = (teamUid: string, roles: IJobRole[]): IJobTeamGroup =>
+    ({ team: { uid: teamUid, name: teamUid }, totalRoles: roles.length, roles }) as unknown as IJobTeamGroup;
+
+  it('returns null for an empty board', () => {
+    expect(pickNewestRole([])).toBeNull();
+    expect(pickNewestRole([group('t1', [])])).toBeNull();
+  });
+
+  it('picks the newest role across every team, not within one', () => {
+    const older = role('older', { postedDate: '2026-01-01T00:00:00.000Z' });
+    const newest = role('newest', { postedDate: '2026-08-01T00:00:00.000Z' });
+
+    const picked = pickNewestRole([group('t1', [older]), group('t2', [newest])]);
+
+    expect(picked?.role.uid).toBe('newest');
+    expect(picked?.team.uid).toBe('t2');
+  });
+
+  /* `getJobDate`'s own fallback order. A role with only a detection date is
+     still comparable against one with a posted date. */
+  it('falls back through postedDate → detectionDate → lastUpdated', () => {
+    const detected = role('detected', { detectionDate: '2026-08-02T00:00:00.000Z' });
+    const posted = role('posted', { postedDate: '2026-08-01T00:00:00.000Z' });
+
+    expect(pickNewestRole([group('t1', [posted, detected])])?.role.uid).toBe('detected');
+  });
+
+  /* Parsed, not string-compared. These two sort one way as strings and the other
+     way as dates, so this is the assertion that fails if the comparator ever
+     goes back to `>` on the raw values. */
+  it('compares dates rather than the strings they are written as', () => {
+    const older = role('older', { postedDate: '2026-01-09T00:00:00.000Z' });
+    const newer = role('newer', { postedDate: 'Fri, 10 Jan 2026 00:00:00 GMT' });
+
+    expect(pickNewestRole([group('t1', [older, newer])])?.role.uid).toBe('newer');
+  });
+
+  /* A broken date must never beat a good one — but a board of nothing but broken
+     dates still has to yield a role, because the alternative is sending someone
+     who just signed up to an empty screen. */
+  it('never lets an unparseable date win, and still returns something when all of them are', () => {
+    const broken = role('broken', { postedDate: 'not a date' });
+    const good = role('good', { postedDate: '2026-01-01T00:00:00.000Z' });
+
+    expect(pickNewestRole([group('t1', [broken, good])])?.role.uid).toBe('good');
+    expect(pickNewestRole([group('t1', [good, broken])])?.role.uid).toBe('good');
+    expect(pickNewestRole([group('t1', [broken])])?.role.uid).toBe('broken');
   });
 });

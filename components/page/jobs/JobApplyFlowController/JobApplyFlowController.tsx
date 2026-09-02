@@ -13,7 +13,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 import { useRoleApplication } from '@/services/jobs/hooks/useJobApplications';
-import { withPendingApply, withPendingProfile } from '@/services/jobs/job-apply-resume';
+import { withPendingApply, withPendingNewestRole } from '@/services/jobs/job-apply-resume';
 import type { IUserInfo } from '@/types/shared.types';
 
 import { shouldApplyGoExternal, type useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
@@ -101,18 +101,18 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
    * The rest of the search string rides along, so the rail the person narrowed
    * before signing up is still narrowed when they land back on the board.
    */
-  const pushLogin = (opts?: { prefillEmail?: string; pendingRoleUid?: string; completeProfile?: boolean }) => {
+  const pushLogin = (opts?: { prefillEmail?: string; pendingRoleUid?: string; viewNewestRole?: boolean }) => {
     const search = new URLSearchParams(window.location.search);
     if (opts?.prefillEmail) {
       search.set('prefillEmail', opts.prefillEmail);
     }
     const withEmail = search.toString();
     // A job in the drawer resumes on that role's profile step. A banner / modal
-    // sign-up has no job, so they land in the standalone profile drawer instead.
+    // sign-up has no job, so it lands on the newest one the board is showing.
     const qs = opts?.pendingRoleUid
       ? withPendingApply(withEmail, opts.pendingRoleUid)
-      : opts?.completeProfile
-        ? withPendingProfile(withEmail)
+      : opts?.viewNewestRole
+        ? withPendingNewestRole(withEmail)
         : withPendingApply(withEmail, undefined);
     goToLogin({ returnTo: `${window.location.pathname}${qs}` });
   };
@@ -177,7 +177,7 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
     pushLogin({
       prefillEmail: details.email,
       pendingRoleUid: target?.role.uid,
-      completeProfile: !target?.role.uid,
+      viewNewestRole: !target?.role.uid,
     });
     return { success: true };
   };

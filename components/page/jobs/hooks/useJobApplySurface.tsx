@@ -6,7 +6,12 @@ import { useSearchParams } from 'next/navigation';
 import type { IUserInfo } from '@/types/shared.types';
 import type { IJobTeamGroup } from '@/types/jobs.types';
 import type { JobSurface } from '@/analytics/jobs.analytics';
-import { PENDING_APPLY_PARAM, PENDING_PROFILE_PARAM, stripPendingApplyFromUrl } from '@/services/jobs/job-apply-resume';
+import {
+  PENDING_APPLY_PARAM,
+  PENDING_NEWEST_PARAM,
+  pickNewestRole,
+  stripPendingApplyFromUrl,
+} from '@/services/jobs/job-apply-resume';
 import { JobApplyFlowController } from '@/components/page/jobs/JobApplyFlowController/JobApplyFlowController';
 import type { RowApplyProps } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow';
 
@@ -119,8 +124,8 @@ export function useJobApplySurface({
     if (applyResumeHandled.current) return;
 
     const roleUid = searchParams.get(PENDING_APPLY_PARAM);
-    const completeProfile = searchParams.get(PENDING_PROFILE_PARAM) === '1';
-    if (!roleUid && !completeProfile) return;
+    const viewNewest = searchParams.get(PENDING_NEWEST_PARAM) === '1';
+    if (!roleUid && !viewNewest) return;
     if (!isLoggedIn || viewer.viewer === 'resolving') return;
     if (isLoading) return;
 
@@ -130,8 +135,30 @@ export function useJobApplySurface({
     applyResumeHandled.current = true;
     stripPendingApplyFromUrl();
 
-    if (completeProfile && !roleUid) {
-      flow.onUpdateProfile();
+    /* The job-less sign-up's landing: the newest role the board is showing.
+       Resolved here rather than at sign-up time because "newest" is a question
+       about the list as it loads now — a fresher posting can arrive while Privy
+       is on screen, and naming a uid up front would land on the wrong one.
+
+       `getJobDate` is the board's own notion of a role's date
+       (`postedDate ?? detectionDate ?? lastUpdated`), so this opens the same role
+       the Newest sort puts at the top rather than a second definition of new. */
+    if (viewNewest && !roleUid) {
+      const newest = pickNewestRole(groups);
+
+      /* An empty board — every role filtered out, or none live. There is no job
+         to open, so fall back to the profile, which is the other thing a fresh
+         account has to do and the landing this replaced. */
+      if (newest) {
+        flow.onViewJob({
+          role: newest.role,
+          teamId: newest.team.uid,
+          teamName: newest.team.name,
+          team: newest.team,
+        });
+      } else {
+        flow.onUpdateProfile();
+      }
       return;
     }
 

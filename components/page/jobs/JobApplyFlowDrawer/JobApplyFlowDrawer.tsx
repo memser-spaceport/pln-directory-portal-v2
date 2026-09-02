@@ -9,7 +9,7 @@ import { toast } from '@/components/core/ToastContainer';
 import { Button } from '@/components/common/Button';
 import { Checkbox } from '@/components/common/Checkbox';
 import { Drawer } from '@/components/common/Drawer';
-import { ArrowUpRightIcon, CheckIcon, CloseIcon } from '@/components/icons';
+import { ArrowUpRightIcon, CheckIcon, CloseIcon, InfoCircleIconOutlined } from '@/components/icons';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import type { IMember } from '@/types/members.types';
 
@@ -566,10 +566,29 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
         };
       }
       if (applyGoesExternal) {
-        return {
-          hint: null, // `${target.teamName} takes applications on their own site — it opens in a new tab.`,
-          action: (
-            /* "Apply on team site", and the reasoning that used to sit here is
+        /**
+         * Applying leaves the site — and for a stranger, that used to be the
+         * only thing this footer offered.
+         *
+         * **The gap this closes.** `onApply` sends a logged-out visitor on a
+         * non-PL role straight to the employer's posting (`useJobApplyFlow`),
+         * so the one door out of this drawer was a door off the board entirely.
+         * A person reading a job here could not make an account from the screen
+         * they were reading it on, even though the board's whole proposition is
+         * that a profile is what gets founders to come to them.
+         *
+         * So the press is offered beside the outbound one rather than instead
+         * of it. The outbound stays primary in position and the profile is the
+         * filled button, because the design puts the emphasis on the thing the
+         * board wants and the tint on the thing the visitor came for — and both
+         * are honest, which is why neither is hidden behind the other.
+         *
+         * **Only for a stranger.** A signed-in member whose account is still
+         * pending reaches this same branch, and they already have the profile
+         * this offers to make. They keep the single outbound button.
+         */
+        const outbound = (
+          /* "Apply on team site", and the reasoning that used to sit here is
                worth keeping because it is what changed. The old label was
                "Continue to apply", on the argument that the hint beside it
                already said whose site and that a label repeating the destination
@@ -581,27 +600,58 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                it does. It also stops reading as the same press as the profile
                step's "Continue to apply" one stop along, which it never was:
                that one advances the rail, this one leaves. */
-            <Button
-              /* The brand tint rather than the solid primary, per the design.
+          <Button
+            /* The brand tint rather than the solid primary, per the design.
                  It reads as the lower-emphasis press it is: this one hands the
                  person to somebody else's site, where every other primary in
                  this flow moves them along inside it. */
-              variant="light"
-              style="fill"
-              size="m"
-              className={clsx(d.footerAction, d.externalButton)}
-              onClick={onApply}
-            >
-              Apply on team site
-              {/* The board's own external glyph — the same one the original
-                  posting links wear (`JobDetailPane`, `JobAlertBanner`). It is
-                  on this press and not the profile step's identically-worded one
-                  a stop later: that press advances the rail in-app, and an arrow
-                  there would claim a hand-off that does not happen. With the
-                  rail withheld in this state, the arrow is the only thing left
-                  on screen saying the flow ends somewhere else. */}
-              <ArrowUpRightIcon aria-hidden="true" />
-            </Button>
+            variant="light"
+            style="fill"
+            size="m"
+            /* `.footerAction`'s auto-margin only when this button is alone in the
+               bar. Inside the pair below the group owns the alignment, and an
+               auto margin on the first child would shove the two apart. */
+            className={clsx(isLoggedIn && d.footerAction, d.externalButton)}
+            onClick={onApply}
+          >
+            Apply on team site
+            {/* The board's own external glyph — the same one the original
+                posting links wear (`JobDetailPane`, `JobAlertBanner`). It is
+                on this press and not the profile step's identically-worded one
+                a stop later: that press advances the rail in-app, and an arrow
+                there would claim a hand-off that does not happen. With the
+                rail withheld in this state, the arrow is the only thing left
+                on screen saying the flow ends somewhere else. */}
+            <ArrowUpRightIcon aria-hidden="true" />
+          </Button>
+        );
+
+        if (isLoggedIn) return { hint: null, action: outbound };
+
+        return {
+          /* The `lead` slot rather than `hint`, because this is a bordered note
+             and not the bare 12px sentence `hint` renders. Same position, same
+             precedence — see `FooterContent`. */
+          lead: (
+            <p className={d.footerNote}>
+              <InfoCircleIconOutlined width={14} height={14} className={d.footerNoteIcon} aria-hidden="true" />A profile
+              lets recruiters across the network reach you for this and future roles.
+            </p>
+          ),
+          hint: null,
+          action: (
+            <div className={d.footerActions}>
+              {outbound}
+              {/* Into the drawer's own step 2, which is the account form — so
+                  "sign up from the job you are reading" is one press and no
+                  navigation. What happens after is already right: creating the
+                  account hands off to Privy, and the resume lands back on this
+                  role's review step, where the outbound button above is waiting.
+                  No step 3 is ever promised, which is why the rail stays off. */}
+              <Button variant="primary" style="fill" size="m" onClick={() => goTo('profile')}>
+                Create Job Profile
+              </Button>
+            </div>
           ),
         };
       }
@@ -774,8 +824,14 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               </button>
             )}
           </div>
-          {/* Withheld when Apply leaves the site: there is nothing to walk. */}
-          {!(applyGoesExternal && at === 'review') && (
+          {/* Withheld when Apply leaves the site: there is nothing to walk.
+              Every step of such a run, not just the reading one — a stranger who
+              presses "Create Job Profile" above lands on the account form, and
+              the journey from there is back to this posting and then out to the
+              employer. There is no third stop to draw, so a rail promising one
+              would be the flow lying about itself in the one state where the
+              person has least reason to trust it. */}
+          {!applyGoesExternal && (
             <div className={d.stepBand}>
               <ApplyFlowSteps steps={steps} onSelect={(id) => goTo(id as ApplyFlowStepId)} />
             </div>

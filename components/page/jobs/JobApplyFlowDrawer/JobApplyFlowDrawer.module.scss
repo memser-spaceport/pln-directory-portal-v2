@@ -235,6 +235,61 @@
   flex-shrink: 0;
 }
 
+// The two presses a logged-out reader gets: leave for the employer's site, or
+// make a profile here. A group rather than two loose children because the bar is
+// `space-between` and they belong together on the right — and because
+// `.footerAction`'s own auto margin, left on the first of them, would push the
+// pair apart instead of pushing the pair over.
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+
+  > * {
+    white-space: nowrap;
+  }
+
+  @include media.tablet-landscape {
+    margin-left: auto;
+  }
+}
+
+// The note beside them, which is the reason the second button is worth a press.
+// Bordered and tinted rather than `.footerHint`'s bare sentence: this one is
+// making a case rather than annotating a control, and it is the only thing in
+// the bar that is neither a button nor a caption for one.
+.footerNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+
+  font-size: 12px;
+  font-weight: 400;
+  // 14px, tighter than `.footerHint`'s 18px: this wraps to two lines inside a
+  // 65px bar, and the looser leading is what would push it out of one.
+  line-height: 14px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  /* Same reason `.footerHint` carries it: a flex item's default `min-width:auto`
+     refuses to shrink below its longest word, which is how a sentence shoves a
+     nowrap button off the end of the row. */
+  min-width: 0;
+}
+
+.footerNoteIcon {
+  flex-shrink: 0;
+  // Optically centred on the first line rather than the box: `align-items:
+  // flex-start` puts it at the cap line, and 14px of icon against 14px of
+  // leading needs no nudge.
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
 /* Doubled to outrank `.root:disabled`, which is the same specificity and would
    otherwise win on stylesheet order. "Not allowed" is a refusal; this is a
    report that you already did it. The disabled paint stays for the reason argued

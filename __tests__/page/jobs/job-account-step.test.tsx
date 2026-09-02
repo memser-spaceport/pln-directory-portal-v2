@@ -271,3 +271,59 @@ describe('the apply flow’s account step', () => {
     });
   });
 });
+
+/**
+ * The review step for a stranger whose Apply would leave the site.
+ *
+ * `onApply` sends a logged-out visitor on a non-PL role straight to the
+ * employer's posting, so before this the only door out of the drawer was a door
+ * off the board. The profile press is offered *beside* the outbound one rather
+ * than instead of it — both are honest, so neither hides behind the other.
+ */
+describe('the outbound review step’s two doors', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const outboundReview = (props: Partial<React.ComponentProps<typeof JobApplyFlowDrawer>> = {}) =>
+    renderStep(OTHER, { applyGoesExternal: true, at: 'review', ...props });
+
+  it('offers a stranger the profile as well as the employer’s site', () => {
+    outboundReview();
+
+    expect(screen.getByRole('button', { name: /Apply on team site/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Create Job Profile' })).toBeInTheDocument();
+    expect(screen.getByText(/A profile lets recruiters across the network/)).toBeInTheDocument();
+  });
+
+  /* Into the drawer's own step 2 — the account form — so signing up from the job
+     you are reading is one press and no navigation. */
+  it('sends the profile press to the account step', () => {
+    const onStepChange = jest.fn();
+    outboundReview({ onStepChange });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create Job Profile' }));
+
+    expect(onStepChange).toHaveBeenCalledWith('profile');
+  });
+
+  /* A signed-in member whose account is still pending reaches the same branch,
+     and already has the profile this offers to make. Offering it to them would
+     be the footer asking for something they have. */
+  it('does not offer a profile to someone who already has one', () => {
+    outboundReview({ isLoggedIn: true, memberUid: 'm1', viewerState: 'pending-approval' });
+
+    expect(screen.getByRole('button', { name: /Apply on team site/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Create Job Profile' })).not.toBeInTheDocument();
+    expect(screen.queryByText(/A profile lets recruiters across the network/)).not.toBeInTheDocument();
+  });
+
+  /* The rail is withheld for every step of an outbound run, not just the reading
+     one. Someone who presses Create Job Profile lands on the account form, and
+     from there goes back to the posting and out — there is no third stop, so a
+     rail drawing one would be the flow lying about itself. */
+  it('keeps the rail off on the account step too, where there is no third stop', () => {
+    renderStep(OTHER, { applyGoesExternal: true, at: 'profile' });
+
+    expect(screen.queryByRole('list')).not.toBeInTheDocument();
+    expect(screen.queryByText('Application')).not.toBeInTheDocument();
+  });
+});

@@ -76,10 +76,24 @@
 // zeroes the card's padding so the strip can sit flush against the top edge,
 // which means the content below has to supply its own — dropping this 16px
 // when promoting is what left the status title jammed under its strip.
+// The white interior of a `DetailsSection` in its `missingData` state, which
+// paints itself blue-tinted with a blue hairline and expects a `DataIncomplete`
+// strip to cap it. Square at the top because the strip is what rounds that edge.
 .missingBody {
   padding: 16px;
   background: var(--Neutral-White, #fff);
   border-radius: 0 0 8px 8px;
+}
+
+// The same interior with no strip above it — the profile step, which says
+// "Required to continue" on the section title instead of in a band.
+//
+// Without this the square top corners paint over the rounded blue border
+// beneath them, so the top edge reads as a stray line stopping short of the
+// corners rather than as a border. Nothing else changes: the hairline is still
+// what marks the section, and the amber words on the title still say why.
+.missingBodyUncapped {
+  border-radius: 8px;
 }
 
 // `DataIncomplete` is neutral by default; amber here, matching PitchDeckView and

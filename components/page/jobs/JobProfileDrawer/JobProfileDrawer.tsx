@@ -294,7 +294,11 @@ export function JobProfilePane(props: JobProfilePaneProps) {
               The amber card treatment stays: `missingData` is what marks the
               section, and that is the part the strip was only decorating. */}
           <DetailsSection missingData={!hasStatus}>
-            <div className={clsx({ [d.missingBody]: !hasStatus })}>
+            {/* `Uncapped` because this step has no `DataIncomplete` strip above
+                the body — the requirement is on the title instead. See the
+                stylesheet: without it the body's square top corners paint over
+                the rounded border under them. */}
+            <div className={clsx({ [d.missingBody]: !hasStatus, [d.missingBodyUncapped]: !hasStatus })}>
               <DetailsSectionHeader
                 title={
                   <>

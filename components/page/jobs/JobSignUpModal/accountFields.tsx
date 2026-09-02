@@ -56,7 +56,7 @@ export type AccountFormData = {
   linkedin: string;
   role: string;
   /**
-   * "I'm already a member of a PL Network team" — the switch that reveals the
+   * "I work at a PL network startup" — the switch that reveals the
    * team select beside the role input.
    *
    * Form state rather than component state because it is an *answer*: it decides
@@ -362,7 +362,7 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
           else. Ticking the box is what asks for the select, which turns "leave it
           blank if this isn't you" into "say so, and we'll ask".
 
-          First person ("I'm already a member…") rather than the form's usual
+          First person ("I work at…") rather than the form's usual
           noun-phrase labels, and deliberately: every other line in this group
           names a thing to fill in, and this one is a claim the person is making
           about themselves. Same voice the design system uses for its other
@@ -372,8 +372,7 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
           is a small target and the words beside it are the obvious one. */}
       <div className={s.checkboxGroup}>
         <label className={s.checkboxRow}>
-          <Checkbox checked={onPlTeam} onChange={toggleOnPlTeam} />
-          I&apos;m already a member of a PL Network team
+          <Checkbox checked={onPlTeam} onChange={toggleOnPlTeam} />I work at a PL network startup
         </label>
 
         <div className={s.column}>

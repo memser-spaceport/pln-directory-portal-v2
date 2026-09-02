@@ -135,7 +135,7 @@ const fillRequired = () => {
  * the commoner case and the one the short form is shaped for.
  */
 const claimPlTeam = () => {
-  fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
+  fireEvent.click(screen.getByRole('checkbox', { name: /I work at a PL network startup/i }));
   /* By accessible name. The row's visible label is a hand-rolled `div` associated
      with neither input, so each half carries its own `aria-label` — see the note
      at the top of this file, and `the row's two inputs` below for the test that
@@ -190,7 +190,7 @@ describe('the job board sign-up modal', () => {
       expect(screen.getByLabelText('Current role')).toBeInTheDocument();
       expect(screen.queryByLabelText('PL network team')).not.toBeInTheDocument();
 
-      fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
+      fireEvent.click(screen.getByRole('checkbox', { name: /I work at a PL network startup/i }));
 
       expect(screen.getByLabelText('Current role')).toBeInTheDocument();
       expect(screen.getByLabelText('PL network team')).toBeInTheDocument();
@@ -214,7 +214,7 @@ describe('the job board sign-up modal', () => {
       expect(screen.queryByLabelText('PL network team')).not.toBeInTheDocument();
       expect(screen.queryByText('@')).not.toBeInTheDocument();
 
-      fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
+      fireEvent.click(screen.getByRole('checkbox', { name: /I work at a PL network startup/i }));
 
       expect(screen.getByLabelText('PL network team')).toBeInTheDocument();
       expect(screen.getByText('@')).toBeInTheDocument();
@@ -229,7 +229,7 @@ describe('the job board sign-up modal', () => {
 
       expect(screen.getByText(/^Current role/).textContent).not.toContain('*');
 
-      fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
+      fireEvent.click(screen.getByRole('checkbox', { name: /I work at a PL network startup/i }));
 
       const label = screen.getByText(/^Current role/);
       expect(label.textContent).toContain('*');
@@ -243,7 +243,7 @@ describe('the job board sign-up modal', () => {
       renderModal();
       fillRequired();
 
-      const box = screen.getByRole('checkbox', { name: /already a member of a PL Network team/i });
+      const box = screen.getByRole('checkbox', { name: /I work at a PL network startup/i });
       fireEvent.click(box);
       fireEvent.click(box);
 
@@ -280,7 +280,7 @@ describe('the job board sign-up modal', () => {
     it('refuses a PL-team claim with no team behind it', async () => {
       renderModal();
       fillRequired();
-      fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
+      fireEvent.click(screen.getByRole('checkbox', { name: /I work at a PL network startup/i }));
       /* The role only — the team is the answer this case withholds. */
       fireEvent.change(screen.getByLabelText('Current role'), {
         target: { value: 'Protocol Engineer' },
@@ -297,7 +297,7 @@ describe('the job board sign-up modal', () => {
     it('refuses a PL-team claim with no current role', async () => {
       renderModal();
       fillRequired();
-      fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
+      fireEvent.click(screen.getByRole('checkbox', { name: /I work at a PL network startup/i }));
       fireEvent.change(screen.getByLabelText('PL network team'), { target: { value: 't1' } });
 
       fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
@@ -333,7 +333,7 @@ describe('the job board sign-up modal', () => {
     it('clears the required errors when the claim is withdrawn', async () => {
       renderModal();
       fillRequired();
-      const box = screen.getByRole('checkbox', { name: /already a member of a PL Network team/i });
+      const box = screen.getByRole('checkbox', { name: /I work at a PL network startup/i });
 
       fireEvent.click(box);
       fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
@@ -489,7 +489,7 @@ describe('the job board sign-up modal', () => {
        surfaces agree about what the review holds up: nothing. */
     it('names the review once the sign-up claims a network team', () => {
       renderModal();
-      fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
+      fireEvent.click(screen.getByRole('checkbox', { name: /I work at a PL network startup/i }));
 
       expect(screen.getByText(/The PL team reviews network-team accounts/)).toBeInTheDocument();
       expect(screen.getByText(/applying never waits on that/)).toBeInTheDocument();
@@ -502,7 +502,7 @@ describe('the job board sign-up modal', () => {
       renderModal();
       expect(screen.getByText(/sends nothing to a hiring team/)).toBeInTheDocument();
 
-      fireEvent.click(screen.getByRole('checkbox', { name: /already a member of a PL Network team/i }));
+      fireEvent.click(screen.getByRole('checkbox', { name: /I work at a PL network startup/i }));
       expect(screen.getByText(/sends nothing to a hiring team/)).toBeInTheDocument();
     });
 

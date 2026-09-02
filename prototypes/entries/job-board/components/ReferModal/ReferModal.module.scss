@@ -388,11 +388,22 @@
 
 // FormTextArea's own label is dropped here so the label line can carry the
 // "Reset to template" affordance on its right.
+//
+// The note takes whatever height the fields above it didn't use. How much that is
+// depends on the branch: a hiring team with a referral inbox draws two lines of
+// text where the picker, its suggestion chips and its scroll cap would have been,
+// which freed ~200px that simply sat empty under a six-row box — the one field the
+// referrer actually works in, sized as though the picker were still there.
+//
+// `flex: 1 0 auto`, not `flex: 1`: grow into free space, but never shrink. With a
+// full recipient list there is no free space and the box must keep its own height
+// while `.fields` scrolls, rather than being squeezed by the list above it.
 .templateBlock {
   display: flex;
   flex-direction: column;
   gap: 6px;
   width: 100%;
+  flex: 1 0 auto;
 }
 
 // FormTextArea has no disabled treatment of its own — the component passes
@@ -409,6 +420,42 @@
 // and would silently inherit the dimming if it did again.
 .templateBlockIdle .templateControl {
   opacity: 0.55;
+}
+
+// Passing the block's height down to the <textarea>.
+//
+// `FormTextArea` ships a column that has a width and no height, and every box
+// inside it sizes to its content, so a taller wrapper on its own changes nothing —
+// the border would move and the writing area would not. Each level has to be told
+// to fill, down to the control itself.
+//
+// Structural selectors rather than class names: those are CSS-Module-hashed and
+// belong to a production component this folder must not edit. `:has(textarea)`
+// picks out the boxes on the path to the control — the field root, the bordered
+// box, and the flex row inside it — and leaves the counter row, which is a sibling
+// of that path and should keep sitting under the box at its own height.
+//
+// `align-items: stretch` overrides the component's own `flex-start`. Without it the
+// row inside the border stays at the text's height while the border grows past it,
+// which is the same dead space one level further in.
+.templateControl {
+  flex: 1 0 auto;
+  display: flex;
+  width: 100%;
+  min-height: 0;
+
+  div:has(textarea) {
+    flex: 1;
+    min-height: 0;
+    align-items: stretch;
+  }
+
+  // `rows` still sets the floor: where there is no spare height (a full recipient
+  // list) the parents fall back to auto and this resolves to the six rows the
+  // attribute asks for.
+  textarea {
+    height: 100%;
+  }
 }
 
 .templateLabelRow {

@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AiAppFeedbackPage } from '@/components/page/ai-apps/AiAppFeedbackPage';
 
 const mockUseAiAppFeedbackList = jest.fn();
@@ -213,6 +213,41 @@ describe('AiAppFeedbackPage', () => {
     expect(screen.getByRole('heading', { name: 'Broken screenshot' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'docs' })).toHaveAttribute('href', 'https://example.com/docs');
     expect(screen.getByAltText('shot')).toHaveAttribute('src', 'https://cdn.test/shot.png');
+  });
+
+  it('opens a feedback image fullscreen and closes on Escape or overlay click', async () => {
+    mockUseAiAppFeedbackList.mockReturnValue({
+      feedback: [
+        {
+          uid: 'fb-html',
+          appUid: 'app-1',
+          appName: 'Alpha',
+          text: '<p><img src="https://cdn.test/shot.png" alt="shot"></p>',
+          status: 'NEW' as const,
+          member: { uid: 'm-1', name: 'Ada Lovelace' },
+          createdAt: '2026-07-01T00:00:00.000Z',
+        },
+      ],
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<AiAppFeedbackPage />);
+
+    fireEvent.click(screen.getByAltText('shot'));
+    expect(screen.getByRole('dialog', { name: 'Full size image' })).toBeInTheDocument();
+    expect(screen.getAllByAltText('shot')).toHaveLength(2);
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Full size image' })).not.toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByAltText('shot'));
+    fireEvent.click(screen.getByRole('dialog', { name: 'Full size image' }).parentElement!);
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Full size image' })).not.toBeInTheDocument();
+    });
   });
 
   it('renders legacy plain-text feedback as text, not HTML', () => {

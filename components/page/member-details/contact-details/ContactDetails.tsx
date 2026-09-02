@@ -18,7 +18,6 @@ import React, { Fragment } from 'react';
 import { clsx } from 'clsx';
 import { EditButton } from '@/components/common/profile/EditButton';
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
-import { NoDataBlock } from '@/components/common/profile/DetailsSection/components/NoDataBlock';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Divider } from '@/components/common/profile/Divider';
@@ -59,17 +58,6 @@ export const ContactDetails = ({ member, isLoggedIn, onEdit, variant = 'default'
   const goToLogin = useLoginRedirect();
   const isDrawer = variant === 'drawer';
   const showIncomplete = hasMissingRequiredData && isOwner;
-  /* Deliberately not gated on `member.contacts.read`, and deliberately no
-     explicit Job Aspirant check either.
-
-     A Job Aspirant is never APPROVED — `member.profile.visible` exists precisely
-     so they are directory-visible without approval — so this line already denies
-     them, synchronously, on first paint. Adding the permission would be strictly
-     worse: `fetchMyAccess` returns EMPTY_ACCESS when the request cannot be made,
-     and react-query stores that as a *success*, so "denied" and "never asked"
-     are the same value. That false negative would strip contacts from genuinely
-     approved members, to guard a case — an APPROVED Job Aspirant — that cannot
-     exist. */
   const canViewContacts = currentUser?.rbac?.status === 'APPROVED';
 
   const onLoginClickHandler = () => {
@@ -90,20 +78,6 @@ export const ContactDetails = ({ member, isLoggedIn, onEdit, variant = 'default'
       url,
     );
   };
-
-  /* One node, rendered into both control slots — they are mutually exclusive by
-     breakpoint (`.tablet` is really "not mobile"), so only ever one is shown.
-     Logged out, the way in is the login button. Logged in and still denied, there
-     is no action to offer: a Job Aspirant has no self-serve route to approval, so
-     an explanation beats a button that goes nowhere. Leaving it empty — which is
-     what this slot did before — read as a rendering bug. */
-  const deniedControl = !isLoggedIn ? (
-    <button className={s.loginButton} onClick={onLoginClickHandler}>
-      Login for access
-    </button>
-  ) : (
-    <NoDataBlock className={s.deniedNote}>Available to approved network members.</NoDataBlock>
-  );
 
   return (
     <div
@@ -195,9 +169,21 @@ export const ContactDetails = ({ member, isLoggedIn, onEdit, variant = 'default'
                     );
                   })}
                 </div>
-                <div className={clsx(s.control, s.tablet)}>{deniedControl}</div>
+                <div className={clsx(s.control, s.tablet)}>
+                  {!isLoggedIn && (
+                    <button className={s.loginButton} onClick={onLoginClickHandler}>
+                      Login for access
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className={clsx(s.control, s.mobileOnly)}>{deniedControl}</div>
+              <div className={clsx(s.control, s.mobileOnly)}>
+                {!isLoggedIn && (
+                  <button className={s.loginButton} onClick={onLoginClickHandler}>
+                    Login for access
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>

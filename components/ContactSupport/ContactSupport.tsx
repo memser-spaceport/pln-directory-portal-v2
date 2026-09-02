@@ -2,7 +2,7 @@
 
 import * as yup from 'yup';
 import isEmpty from 'lodash/isEmpty';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useForm, type Resolver } from 'react-hook-form';
 import { useCallback, useEffect, useState } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 
@@ -31,11 +31,14 @@ function hasMessageContent(html: string): boolean {
   return !isBlankHtml(html) || /<img\b/i.test(html);
 }
 
-const contactSupportSchema = yup.object().shape({
+const contactSupportSchema = yup.object({
   topic: yup.string().required('Topic is required'),
   email: yup.string().email('Must be a valid email').required('Email is required'),
   name: yup.string().required('Name is required'),
-  message: yup.string().test('has-content', 'Description is required', (value) => hasMessageContent(value ?? '')),
+  message: yup
+    .string()
+    .required('Description is required')
+    .test('has-content', 'Description is required', (value) => hasMessageContent(value ?? '')),
 });
 
 type ContactSupportFormData = yup.InferType<typeof contactSupportSchema>;
@@ -109,7 +112,7 @@ export function ContactSupport(props: Props) {
   }, [userInfo, contextTopic, prefillMessage]);
 
   const methods = useForm<ContactSupportFormData>({
-    resolver: yupResolver(contactSupportSchema),
+    resolver: yupResolver(contactSupportSchema) as Resolver<ContactSupportFormData>,
     defaultValues: getDefaultValues(),
     mode: 'onChange',
   });

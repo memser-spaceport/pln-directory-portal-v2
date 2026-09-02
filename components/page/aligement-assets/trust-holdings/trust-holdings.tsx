@@ -48,6 +48,10 @@ const SERIES_COLORS = {
 // Maroon, outside the series palette — reads against every bar and the green total.
 const BUYBACK_COLOR = '#800000';
 
+// Single source for the chart's margin — used by the ComposedChart itself
+// and by perPlaaPixelY below, so the two can never drift apart.
+const CHART_MARGIN = { top: 48, right: 16, left: 16, bottom: 8 };
+
 const digitalTotal = (p: { btc: number; eth: number; fil: number }) => p.btc + p.eth + p.fil;
 
 const KEY_ITEMS = [
@@ -90,15 +94,107 @@ const renderNavLabel = (props: any) => {
   );
 };
 
-// The final (PLVH-bearing) bar's total is highlighted in green.
+// Collision clearance between a bar-total label's own text band and any
+// NAV/PLAA pill or buyback chip band it might overlap — smaller than
+// MARKER_CLEARANCE since this is text vs. a pill/chip, not marker vs.
+// marker. Approximates the 13px bold label's own vertical footprint around
+// its baseline (ascent above, descent below) so the two can be compared
+// without measuring the live DOM. MIN_TOTAL_LABEL_Y stops the label being
+// pushed high enough to clip the chart's own top edge on extreme data.
+const TOTAL_LABEL_CLEARANCE = 6;
+const TOTAL_LABEL_ASCENT = 13;
+const TOTAL_LABEL_DESCENT = 4;
+const MIN_TOTAL_LABEL_Y = CHART_MARGIN.top / 2;
+
+// Read at rows[index]; not typed on NavPoint because it's synthesized by
+// NavChart's chartData map (buyback/buybackLabel), not part of the API shape.
+type ChartRow = NavPoint & { buyback: number | null };
+
+// Half-height of the thin band a bar-total label must clear around the
+// buyback track where it's just a dashed stroke, not a chip.
+const INTERPOLATED_LINE_HALF_BAND = 4;
+
+// The buyback dashed track connects across a gap with no auction via
+// connectNulls (Line's own prop, unrelated to this file) — recharts
+// straight-line-interpolates between the nearest two known points, by
+// category position, not by calendar date. A long gap (e.g. one auction
+// several months after the last) can put that interpolated stretch right
+// through a bar-total label even though no chip renders there. Mirrors
+// recharts' own interpolation so the label collision math matches what's
+// actually drawn. Returns null where nothing renders (no known point on one
+// or both sides — same as connectNulls drawing nothing past the last point).
+function interpolatedBuybackY(rows: ChartRow[], index: number): number | null {
+  if (rows[index]?.buyback != null) return null; // real chip already covers this index
+  let before = -1;
+  for (let i = index - 1; i >= 0; i--) {
+    if (rows[i]?.buyback != null) { before = i; break; }
+  }
+  let after = -1;
+  for (let i = index + 1; i < rows.length; i++) {
+    if (rows[i]?.buyback != null) { after = i; break; }
+  }
+  if (before === -1 || after === -1) return null;
+  const t = (index - before) / (after - before);
+  return rows[before].buyback! + (rows[after].buyback! - rows[before].buyback!) * t;
+}
+
+// The final (PLVH-bearing) bar's total is highlighted in green. Stays
+// above its bar by `offset` unless that would collide with the NAV/PLAA
+// pill and/or buyback chip plotted at the same index (independent perPlaa
+// scale, so the two can land at the same screen height purely by
+// coincidence) — in which case it's pushed just far enough above whichever
+// of those sits closest to clear both. The pill/chip themselves never move:
+// they're anchored to real data points (Figma design; the buyback chip
+// already has its own established nudge against the NAV line elsewhere in
+// this file), so the smallest, most localized fix is to move the one label
+// here that has no such anchoring — its position was already an offset
+// above the bar, not a plotted value.
 const renderTotalLabel = (rows: NavPoint[], offset: number = 10) => (props: any) => {
   const { x, y, width, value, index } = props;
   if (!value) return null;
-  const highlight = rows[index] && rows[index].plvh > 0;
+  const row = rows[index] as ChartRow | undefined;
+  const highlight = row && row.plvh > 0;
+  const defaultBaseline = y - offset;
+
+  // [top, bottom] of each price-series band this label might overlap. Both
+  // edges matter — a label sitting well *below* a band (its own bar is
+  // short, the price series is a long way up) is not a collision just
+  // because its bottom edge is numerically greater than the band's top; it
+  // also has to not have already cleared the band's bottom.
+  const bands: Array<[number, number]> = [];
+  if (row?.navPerPlaa != null) {
+    const cy = perPlaaPixelY(row.navPerPlaa);
+    bands.push([cy - PILL_HEIGHT / 2, cy + PILL_HEIGHT / 2]);
+  }
+  if (row?.buyback != null) {
+    const cy = perPlaaPixelY(row.buyback);
+    bands.push([cy - BUYBACK_CHIP_HEIGHT / 2, cy + BUYBACK_CHIP_HEIGHT / 2]);
+  } else {
+    const interpolated = interpolatedBuybackY(rows as ChartRow[], index);
+    if (interpolated != null) {
+      const cy = perPlaaPixelY(interpolated);
+      bands.push([cy - INTERPOLATED_LINE_HALF_BAND, cy + INTERPOLATED_LINE_HALF_BAND]);
+    }
+  }
+
+  const defaultLabelTop = defaultBaseline - TOTAL_LABEL_ASCENT;
+  const defaultLabelBottom = defaultBaseline + TOTAL_LABEL_DESCENT;
+  const collidingTops = bands
+    .filter(([bandTop, bandBottom]) => defaultLabelTop - TOTAL_LABEL_CLEARANCE < bandBottom && bandTop < defaultLabelBottom + TOTAL_LABEL_CLEARANCE)
+    .map(([bandTop]) => bandTop);
+  // Clearing the closest (smallest) genuinely-colliding band top clears
+  // every other band this label was also colliding with, since all of them
+  // sit at or below it. Bars/periods with nothing nearby keep their default,
+  // fixed "offset above the bar" position untouched — this is now a rare
+  // safety net (see the domain compression below), not the primary fix.
+  const baseline = collidingTops.length
+    ? Math.max(MIN_TOTAL_LABEL_Y + TOTAL_LABEL_ASCENT, Math.min(...collidingTops) - TOTAL_LABEL_CLEARANCE - TOTAL_LABEL_DESCENT)
+    : defaultBaseline;
+
   return (
     <text
       x={x + width / 2}
-      y={y - offset}
+      y={baseline}
       textAnchor="middle"
       fill={highlight ? SERIES_COLORS.plvh : '#475569'}
       fontSize={13}
@@ -133,13 +229,37 @@ const renderBuybackChip = (props: any) => {
   );
 };
 
-// Shared scale with the buyback track — plot area (420 chart, less 48/8
-// margins) spans the per-PLAA domain.
-const PER_PLAA_PLOT_HEIGHT = 364;
-const PER_PLAA_DOMAIN_MAX = 30;
+// Shared scale with the buyback track — plot area spans the per-PLAA
+// domain. Measured from the actual rendered chart (420 total height, plot
+// runs from y=48 to y=382): recharts reserves extra vertical space for the
+// XAxis band beyond the explicit CHART_MARGIN.bottom (8px), so the usable
+// plot height is 334, not 420 - 48 - 8 = 364. Verified against rendered
+// CartesianGrid line positions (48, 207.3, 294.65, 382 — evenly spaced).
+// Was hardcoded to 364 (unverified) prior to the total-label collision fix;
+// correcting it also makes the existing buyback-vs-NAV nudge
+// (plottedClearingPrice) match the real chart, not just the total label.
+const PER_PLAA_PLOT_HEIGHT = 334;
+// Domain headroom above the real NAV/PLAA + buyback price range (roughly
+// 13-21 today) so the whole price series maps into the LOWER portion of the
+// shared plot area, not the full 0-100% of it. One consistent value for the
+// entire chart (both views, every period) — not a per-point offset: a
+// low-NAV bar is short, so this naturally leaves the price series sitting
+// in the open space between the (fixed-position) Total NAV label and the
+// bar; a bar tall enough to reach into this same pixel band naturally has
+// the price line cross through its own upper area instead — same math
+// either way, no special-casing by month or by "before/after some date".
+const PER_PLAA_DOMAIN_MAX = 42;
 const perPlaaPixels = (units: number) => (units / PER_PLAA_DOMAIN_MAX) * PER_PLAA_PLOT_HEIGHT;
 const perPlaaUnits = (pixels: number) => (pixels / PER_PLAA_PLOT_HEIGHT) * PER_PLAA_DOMAIN_MAX;
 const MARKER_CLEARANCE = (PILL_HEIGHT + BUYBACK_CHIP_HEIGHT) / 2 + 3;
+
+// Absolute SVG y (origin top-left, same coordinate space recharts renders
+// into) of a value on the shared perPlaa axis. Same conversion
+// plottedClearingPrice already uses for the buyback track's pixel delta,
+// just returned as an absolute position — lets renderTotalLabel (below)
+// know where the NAV/PLAA pill and buyback chip actually land, without
+// waiting on recharts to render them first.
+const perPlaaPixelY = (units: number) => CHART_MARGIN.top + PER_PLAA_PLOT_HEIGHT - perPlaaPixels(units);
 
 // A price within MARKER_CLEARANCE of NAV/PLAA gets lifted or dropped by the
 // overlap so the chip and pill don't collide; the track still meets the
@@ -274,7 +394,7 @@ function NavChart({
     <div className={`th-chart ${dense ? 'th-chart--dense' : ''}`}>
       <div className="th-chart__inner">
       <ResponsiveContainer width="100%" height={420}>
-        <ComposedChart data={chartData} margin={{ top: 48, right: 16, left: 16, bottom: 8 }} barCategoryGap="42%">
+        <ComposedChart data={chartData} margin={CHART_MARGIN} barCategoryGap="42%">
           <CartesianGrid strokeDasharray="0" stroke="#e2e8f0" vertical={false} />
           <XAxis
             dataKey="label"
@@ -284,7 +404,7 @@ function NavChart({
             interval={0}
           />
           <YAxis yAxisId="nav" hide domain={[0, (max: number) => max * 1.15]} />
-          <YAxis yAxisId="perPlaa" hide domain={[0, 30]} />
+          <YAxis yAxisId="perPlaa" hide domain={[0, PER_PLAA_DOMAIN_MAX]} />
           <Bar yAxisId="nav" dataKey="treasuries" stackId="nav" fill={SERIES_COLORS.treasuries} barSize={barSize} />
           <Bar yAxisId="nav" dataKey="digital" stackId="nav" fill={SERIES_COLORS.digital} barSize={barSize} />
           <Bar yAxisId="nav" dataKey="plvh" stackId="nav" fill={SERIES_COLORS.plvh} barSize={barSize} radius={[4, 4, 0, 0]}>

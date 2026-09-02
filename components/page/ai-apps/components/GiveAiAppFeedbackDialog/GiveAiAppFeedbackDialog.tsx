@@ -131,10 +131,10 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
     const update = () => setOverlayStyle(getAnchorOverlayStyle(anchorRef?.current ?? null, placement));
     update();
     window.addEventListener('resize', update);
-    window.addEventListener('scroll', update, true);
+    window.addEventListener('scroll', update);
     return () => {
       window.removeEventListener('resize', update);
-      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('scroll', update);
     };
   }, [isOpen, anchorRef, placement]);
 
@@ -229,12 +229,13 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
                 options={appOptions}
                 disabled={isAppsLoading}
                 isRequired
-                // FormSelect defaults menuPlacement to 'auto'. Anchored above the
-                // floating button the panel sits at the bottom of the viewport, so
-                // react-select finds no room below and flips the menu upward —
-                // straight into `.root`'s `overflow: hidden`, which clips it.
-                // Portalling lifts it out of that mask (and switches the menu to
-                // fixed positioning, which the fixed overlay needs).
+                // Anchored above the floating button the panel sits at the
+                // bottom of the viewport, so `auto` finds no room below and
+                // either flips the menu into `.root`'s `overflow: hidden` or
+                // shrinks it to a sliver that can't scroll. Force it up, and
+                // portal it out of that mask (which also switches the menu to
+                // fixed positioning — what the fixed overlay needs).
+                menuPlacement={placement === 'above' ? 'top' : 'auto'}
                 menuPortalTarget={typeof document === 'undefined' ? null : document.body}
               />
               {submitAttempted && !watch('app') && <p className={s.fieldError}>Please select an app</p>}

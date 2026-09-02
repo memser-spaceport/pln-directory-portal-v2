@@ -24,14 +24,16 @@ jest.mock('react-select', () => ({
     onChange,
     inputId,
     placeholder,
+    menuPlacement,
   }: {
     options: Array<{ label: string; value: string }>;
     value: { label: string; value: string } | null;
     onChange: (value: { label: string; value: string } | null) => void;
     inputId?: string;
     placeholder?: string;
+    menuPlacement?: string;
   }) => (
-    <div>
+    <div data-menu-placement={menuPlacement}>
       <span data-testid="selected-app">{value?.label ?? placeholder}</span>
       {options.map((opt) => (
         <button key={opt.value} type="button" onClick={() => onChange(opt)}>
@@ -295,7 +297,47 @@ describe('GiveAiAppFeedbackDialog', () => {
     expect(overlay?.getAttribute('style')).toContain('--feedback-popover-bottom: 108px');
     expect(overlay?.getAttribute('style')).toContain('--feedback-popover-right: 40px');
     expect(overlay?.getAttribute('style')).not.toContain('--feedback-popover-top');
+    expect(screen.getByTestId('selected-app').parentElement).toHaveAttribute('data-menu-placement', 'top');
 
+    anchor.remove();
+  });
+
+  it('does not reposition the overlay when a nested scroller fires scroll', () => {
+    mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+
+    const anchor = document.createElement('button');
+    document.body.appendChild(anchor);
+    const rect = {
+      x: 900,
+      y: 700,
+      top: 700,
+      bottom: 748,
+      left: 900,
+      right: 960,
+      width: 48,
+      height: 48,
+      toJSON: () => ({}),
+    } as DOMRect;
+    const getRect = jest.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(rect);
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1000 });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} anchorRef={{ current: anchor }} placement="above" />);
+
+    const overlay = document.body.querySelector('[style*="--feedback-popover-bottom"]');
+    expect(overlay?.getAttribute('style')).toContain('--feedback-popover-bottom: 108px');
+
+    getRect.mockReturnValue({ ...rect, top: 500, bottom: 548, y: 500 });
+
+    const inner = document.createElement('div');
+    document.body.appendChild(inner);
+    inner.dispatchEvent(new Event('scroll', { bubbles: true }));
+
+    // Capture-phase listening would have rewritten bottom to 308px (800-500+8)
+    // and snapped the app picker menu back to the focused option.
+    expect(overlay?.getAttribute('style')).toContain('--feedback-popover-bottom: 108px');
+
+    inner.remove();
     anchor.remove();
   });
 });

@@ -142,5 +142,19 @@ describe('FloatingFeedbackButton', () => {
 
       expect(wrapOf(container)).toHaveAttribute('data-collapsed', 'false');
     });
+
+    it('does not collapse while the feedback dialog is open', () => {
+      withAccess();
+
+      const { container } = render(<FloatingFeedbackButton />);
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+      expect(wrapOf(container)).toHaveAttribute('data-collapsed', 'false');
+    });
   });
 });

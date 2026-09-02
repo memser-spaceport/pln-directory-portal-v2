@@ -1,0 +1,28 @@
+@use 'styles/media';
+
+.root {
+  width: inherit;
+}
+
+.web {
+  display: none;
+
+  @include media.breakpoint-1024 {
+    display: unset;
+    height: 150vh;
+    width: inherit;
+  }
+}
+
+.mob {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  height: 100%;
+  width: 100%;
+  background: #fff;
+
+  @include media.breakpoint-1024 {
+    display: none;
+  }
+}

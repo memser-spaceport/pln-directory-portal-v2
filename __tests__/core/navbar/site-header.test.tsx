@@ -13,10 +13,6 @@ jest.mock('@/components/core/navbar/nav-bar', () => ({
   default: () => <div data-testid="navbar" />,
 }));
 
-jest.mock('@/components/core/navbar/components/PlaaBanner', () => ({
-  PlaaBanner: () => <div data-testid="plaa-banner" />,
-}));
-
 jest.mock('@/components/core/navbar/components/CompleteYourProfile', () => ({
   CompleteYourProfile: () => <div data-testid="complete-your-profile" />,
 }));
@@ -29,8 +25,6 @@ describe('SiteHeader', () => {
     render(<SiteHeader {...props} />);
 
     expect(screen.getByTestId('navbar')).toBeInTheDocument();
-    // PlaaBanner is intentionally disabled on this release branch (#2667).
-    expect(screen.queryByTestId('plaa-banner')).not.toBeInTheDocument();
     expect(screen.getByTestId('complete-your-profile')).toBeInTheDocument();
   });
 

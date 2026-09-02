@@ -1,0 +1,225 @@
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow:
+    inset 0 0 0 1px rgba(27, 56, 96, 0.12),
+    0 1px 2px rgba(15, 23, 42, 0.06);
+  padding: 24px;
+}
+
+.chartHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.chartTitle {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 26px;
+  color: #0a0c11;
+}
+
+.chartSubtitle {
+  font-size: 14px;
+  line-height: 20px;
+  color: #8897ae;
+  margin-top: 4px;
+}
+
+.legend {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: #455468;
+}
+
+.legendSwatchBar {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: rgba(27, 77, 255, 0.22);
+}
+
+.legendSwatchLine {
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  background: #1b4dff;
+}
+
+.chart {
+  width: 100%;
+  height: auto;
+  margin-top: 18px;
+  overflow: visible;
+}
+
+.axisLabels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 6px;
+}
+
+.axisLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8897ae;
+}
+
+.axisLabel.brand {
+  color: #1b4dff;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(27, 56, 96, 0.06);
+  margin: 20px 0 18px;
+}
+
+.historyTitle {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  color: #0a0c11;
+  margin-bottom: 4px;
+}
+
+.historySubtitle {
+  font-size: 14px;
+  line-height: 20px;
+  color: #8897ae;
+  margin-bottom: 12px;
+}
+
+.tableWrap {
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(27, 56, 96, 0.12);
+  overflow: hidden;
+}
+
+.bracketRow {
+  display: grid;
+  grid-template-columns: 1.1fr 0.8fr 0.9fr 1fr 0.9fr 1.05fr;
+  gap: 10px;
+  padding: 9px 16px 0;
+  background: #f9fafb;
+}
+
+.bracketLabel {
+  grid-column: 3 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: #1b4dff;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.bracketLine {
+  width: 100%;
+  height: 5px;
+  border-top: 1px solid rgba(27, 77, 255, 0.32);
+  border-left: 1px solid rgba(27, 77, 255, 0.32);
+  border-right: 1px solid rgba(27, 77, 255, 0.32);
+  border-radius: 3px 3px 0 0;
+}
+
+.headerRow {
+  display: grid;
+  grid-template-columns: 1.1fr 0.8fr 0.9fr 1fr 0.9fr 1.05fr;
+  gap: 10px;
+  padding: 6px 16px 10px;
+  background: #f9fafb;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8897ae;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.headerRow span:not(:first-child) {
+  text-align: right;
+}
+
+.headerRow span.brand {
+  color: #1b4dff;
+}
+
+.dataRow {
+  display: grid;
+  grid-template-columns: 1.1fr 0.8fr 0.9fr 1fr 0.9fr 1.05fr;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(27, 56, 96, 0.06);
+  align-items: center;
+}
+
+.period {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0a0c11;
+}
+
+.right {
+  text-align: right;
+  font-size: 14px;
+}
+
+.points {
+  color: #4a72ff;
+}
+
+.secondary {
+  color: #455468;
+}
+
+.tertiary {
+  color: #8897ae;
+}
+
+.balanceChip {
+  text-align: right;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1b4dff;
+  background: rgba(27, 77, 255, 0.1);
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+
+.footerRow {
+  display: grid;
+  grid-template-columns: 1.1fr 0.8fr 0.9fr 1fr 0.9fr 1.05fr;
+  gap: 10px;
+  padding: 13px 16px;
+  border-top: 1px solid rgba(27, 56, 96, 0.12);
+  background: #f9fafb;
+  align-items: center;
+}
+
+.footerLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0a0c11;
+}
+
+.footerValue {
+  text-align: right;
+  font-size: 14px;
+  font-weight: 700;
+}

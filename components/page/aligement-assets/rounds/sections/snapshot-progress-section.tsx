@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { TipContent } from '../types';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
+import { getSnapshotProgress } from '@/utils/plaa-round.utils';
 
 interface SnapshotProgressSectionProps {
   startDate: Date;
@@ -33,55 +34,13 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    const formatDate = (date: Date) => {
-      return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-    };
-    const startMonth = start.toLocaleDateString('en-US', { month: 'long' });
-    const startDay = start.getDate();
-    const endDay = end.getDate();
-    const year = end.getFullYear();
-
-    const isSameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
-    const dateRangeLabel = isSameMonth
-      ? `${startMonth} ${startDay}-${endDay}, ${year}`
-      : `${formatDate(start)} - ${formatDate(end)}`;
-
     if (!now) {
+      const { dateRangeLabel } = getSnapshotProgress(start, end, start);
       return { progressPercentage: 0, timeRemaining: '', dateRangeLabel };
     }
 
-    const totalDuration = end.getTime() - start.getTime();
-    const elapsedTime = now.getTime() - start.getTime();
-
-    let percentage = 0;
-    if (now < start) {
-      percentage = 0;
-    } else if (now > end) {
-      percentage = 100;
-    } else {
-      percentage = Math.min(100, Math.max(0, (elapsedTime / totalDuration) * 100));
-    }
-
-    const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-    const remainingDays = Math.max(0, Math.floor((endDateOnly.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24)) + 1);
-
-    let remaining = '';
-    if (now > end) {
-      remaining = 'Snapshot period has ended';
-    } else if (now < start) {
-      remaining = 'Snapshot period has not started yet';
-    } else if (remainingDays === 1) {
-      remaining = '1 day remaining in current snapshot period';
-    } else {
-      remaining = `${remainingDays} days remaining in current snapshot period`;
-    }
-
-    return {
-      progressPercentage: Math.round(percentage * 100) / 100,
-      timeRemaining: remaining,
-      dateRangeLabel
-    };
+    const { progressPercentage, timeRemainingLabel, dateRangeLabel } = getSnapshotProgress(start, end, now);
+    return { progressPercentage, timeRemaining: timeRemainingLabel, dateRangeLabel };
   }, [startDate, endDate, now]);
 
   return (

@@ -13,12 +13,13 @@ import { KpiWeightEntry } from '@/services/plaa/kpi-weights.service';
 
 // Used only if the live fetch is unreachable or returns nothing.
 const KPI_WEIGHTS_FALLBACK: KpiWeightEntry[] = [
-  { category: 'Network Tooling', weight: 1.2, percentOfTotal: 19.35, emissionsPerSnapshot: 1935 },
-  { category: 'Knowledge', weight: 1.4, percentOfTotal: 22.58, emissionsPerSnapshot: 2258 },
-  { category: 'People/Talent', weight: 0.9, percentOfTotal: 14.52, emissionsPerSnapshot: 1452 },
-  { category: 'Programs', weight: 1.15, percentOfTotal: 18.55, emissionsPerSnapshot: 1855 },
-  { category: 'Brand', weight: 0.25, percentOfTotal: 4.03, emissionsPerSnapshot: 403 },
-  { category: 'Projects', weight: 1.3, percentOfTotal: 20.97, emissionsPerSnapshot: 2097 },
+  { category: 'Network Tooling', weight: 1.3, percentOfTotal: 18.57, emissionsPerSnapshot: 1857 },
+  { category: 'Knowledge Sharing', weight: 1.5, percentOfTotal: 21.43, emissionsPerSnapshot: 2143 },
+  { category: 'People/Talent', weight: 1.0, percentOfTotal: 14.29, emissionsPerSnapshot: 1429 },
+  { category: 'Programs', weight: 1.1, percentOfTotal: 15.71, emissionsPerSnapshot: 1571 },
+  { category: 'Brand', weight: 0.3, percentOfTotal: 4.29, emissionsPerSnapshot: 429 },
+  { category: 'Projects', weight: 1.4, percentOfTotal: 20.00, emissionsPerSnapshot: 2000 },
+  { category: 'Capital', weight: 0.4, percentOfTotal: 5.71, emissionsPerSnapshot: 571 },
 ];
 
 const sumOf = (rows: KpiWeightEntry[], key: keyof Omit<KpiWeightEntry, 'category'>) =>
@@ -224,10 +225,10 @@ function buildFaqCategories(kpiWeights: KpiWeightEntry[] | undefined): FAQCatego
             <div style={{ backgroundColor: '#f1f5f9', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
               <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>Example:</p>
               <ul style={{ paddingLeft: '20px', listStyleType: 'disc', marginBottom: '0' }}>
-                <li style={{ marginBottom: '4px' }}>Network Tooling gets 19.35% of 10,000 PLAA = 1,935 PLAA available for Network Tooling</li>
+                <li style={{ marginBottom: '4px' }}>Network Tooling gets 18.57% of 10,000 PLAA = 1,857 PLAA available for Network Tooling</li>
                 <li style={{ marginBottom: '4px' }}>You collected 100 points; everyone collected 1,000 points total</li>
                 <li style={{ marginBottom: '4px' }}>Your portion of points: 100 ÷ 1,000 = 10%</li>
-                <li>Your PLAA: 10% × 1,935 = ~194 PLAA</li>
+                <li>Your PLAA: 10% × 1,857 = ~186 PLAA</li>
               </ul>
             </div>
 

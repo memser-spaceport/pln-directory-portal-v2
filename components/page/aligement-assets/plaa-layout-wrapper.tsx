@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import PlaaMenu, { PlaaActiveItem } from './plaa-menu';
 import PlaaBackButton from './plaa-back-btn';
-import { PlaaBanner } from '@/components/core/navbar/components/PlaaBanner';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import styles from '@/app/alignment-asset/plaa.module.css';
 import { getCurrentRoundNumber } from '@/utils/plaa-round.utils';
@@ -43,6 +42,7 @@ const getPageInfo = (
   const pageMap: Record<string, { activeItem: PlaaActiveItem; title: string }> = {
     overview: { activeItem: 'overview', title: 'Overview' },
     activities: { activeItem: 'activities', title: 'Activities' },
+    profile: { activeItem: 'profile', title: 'Profile' },
     kudos: { activeItem: 'kudos', title: 'Kudos' },
     'incentive-model': { activeItem: 'incentive-model', title: 'Incentive Model' },
     'terms-of-use': { activeItem: 'terms-of-use', title: 'Terms of Use' },

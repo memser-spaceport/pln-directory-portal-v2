@@ -14,6 +14,7 @@
   padding-left: 16px;
   background: transparent !important;
   backdrop-filter: none !important;
+  overflow: visible;
 
   @include media.mobile-only {
     align-items: center;

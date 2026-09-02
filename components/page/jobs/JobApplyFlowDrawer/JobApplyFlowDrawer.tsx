@@ -37,7 +37,6 @@ import {
   type JobDetailTarget,
 } from '@/components/page/jobs/hooks/useJobApplyFlow';
 import { formatRelativeDays } from '@/utils/jobs.utils';
-import { isProtocolLabsTeam } from '@/services/jobs/protocol-labs-team';
 import { getJobProfileReviewed, setJobProfileReviewed } from '@/services/jobs/job-profile-reviewed';
 import { JobAccountPane } from '@/components/page/jobs/JobAccountPane/JobAccountPane';
 import {
@@ -682,34 +681,38 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     }
 
     if (at === 'profile' && !isLoggedIn) {
-      /**
-       * The one place this flow admits it may end early.
-       *
-       * `useJobApplyFlow.onApply` sends a **pending** account applying to a role
-       * Protocol Labs did not post to the employer's own site — and an account
-       * created by the press below is pending. So for a non-PL role the rail
-       * will have shown three steps and delivered two.
-       *
-       * That rule is not new. What is new is putting the account form *in* the
-       * rail, which turns an existing rule into a visible broken promise — so
-       * the promise gets made accurately here, at the press, rather than
-       * discovered on the way back. The review step's hint is left alone: it
-       * says the next step opens your account, which stays true.
-       */
       return {
-        /* Silent for a Protocol Labs role, and that asymmetry is the point.
-           The sentence that used to sit here promised a return to the
-           application — which is what the rail already promises, and the rail
-           is right about it. Only the non-PL case has something the rail is
-           wrong about, so only the non-PL case speaks. */
-        hint: isProtocolLabsTeam(target.team)
-          ? null
-          : `Creating your account signs you in, then ${target.teamName} takes your application on their own site.`,
+        /**
+         * Silent, per the design.
+         *
+         * **What stood here and why it can go.** A sentence for non-PL
+         * employers: "Creating your account signs you in, then {team} takes your
+         * application on their own site." It was written when the rail promised
+         * three steps to a stranger whose application would leave at step two,
+         * and its job was to make that promise accurately at the press rather
+         * than let it be discovered on the way back.
+         *
+         * The rail no longer makes that promise. It is withheld for every step
+         * of an outbound run, so there is no third stop drawn and nothing left
+         * for this sentence to correct. What it warned about is now said by the
+         * screen this person came from — the review step's own outbound button —
+         * and said again by the one they return to after signing up, which is
+         * that same review step with that same button waiting.
+         *
+         * A footer that repeats what the two screens either side of it already
+         * say is spending the only line it has on a third telling.
+         */
+        hint: null,
         action: (
           /* Disabled only while submitting, never on `!isValid` — with
              `mode: "onBlur"` a validity gate leaves a dead button in front of a
-             completed form. "Create account" and not "Continue", because this
-             press is the one that creates it; nothing about it is a step along. */
+             completed form.
+
+             "Create Profile", per the design, and it is also the label that
+             matches the door: a stranger reaches this step by pressing "Create
+             Job Profile" on the job, and a button that then said "Create
+             account" would be answering a question they did not ask. The drawer
+             title above it says profile too. */
           <Button
             variant="primary"
             style="fill"
@@ -718,7 +721,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             disabled={accountSubmitting}
             onClick={submitAccount}
           >
-            {accountSubmitting ? 'Creating…' : 'Create account'}
+            {accountSubmitting ? 'Creating…' : 'Create Profile'}
           </Button>
         ),
       };

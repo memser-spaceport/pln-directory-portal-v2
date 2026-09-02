@@ -172,7 +172,7 @@ describe('the apply flow’s account step', () => {
       fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Polina Bublii' } });
       fireEvent.change(screen.getByLabelText(/LinkedIn profile/), { target: { value: 'polina-bublii' } });
 
-      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Create Profile' }));
 
       await waitFor(() => expect(screen.getByText('Select where you are with job hunting')).toBeInTheDocument());
       expect(onSignUp).not.toHaveBeenCalled();
@@ -189,33 +189,27 @@ describe('the apply flow’s account step', () => {
   });
 
   describe('the footer', () => {
-    /* It used to promise a return to the application here — "you'll come back
-       here to finish your application" — which is what the rail directly above
-       already promises, and the rail is right about it. Silence is the assertion
-       now, and it is worth asserting: the branch still exists, it just resolves
-       to nothing, and a regression that put any sentence back would be invisible
-       to a test that only checked the non-PL case below. */
-    it('says nothing for a Protocol Labs role — the rail already promises the return', () => {
-      const { container } = renderStep(PL);
+    /* Silence for everyone now, and it is worth asserting for both employers
+       rather than only one.
 
-      expect(screen.queryByText(/come back here to finish your application/)).not.toBeInTheDocument();
+       A sentence used to run here for non-PL teams — "{team} takes your
+       application on their own site" — written when the rail promised a
+       stranger three steps and delivered two. The rail is withheld for the whole
+       of an outbound run now, so there is no promise left to correct, and the
+       warning is carried by the review step on either side of this one: the
+       button that sent them here, and the same button waiting when they return.
+
+       Absent, not empty. An always-rendered <p> would still cost 12px of column
+       gap above the button on a phone, so `toBeNull` is the assertion and not
+       an empty-string check. */
+    it('says nothing at all, for either kind of employer', () => {
+      const pl = renderStep(PL);
+      expect(pl.container.querySelector('p[class*="footerHint"]')).toBeNull();
+      pl.unmount();
+
+      const other = renderStep(OTHER);
       expect(screen.queryByText(/takes your application on their own site/)).not.toBeInTheDocument();
-      // Absent, not empty — an always-rendered <p> would still cost 12px of
-      // column gap above the button on a phone.
-      expect(container.querySelector('p[class*="footerHint"]')).toBeNull();
-    });
-
-    /* The honest version for every other employer. A new account is pending,
-       and `onApply` sends a pending applicant to a non-PL employer's own site —
-       so the rail's third step is not where this one ends. */
-    it('says where a non-PL application actually goes', () => {
-      const { container } = renderStep(OTHER);
-
-      expect(screen.getByText(/Bluesky takes your application on their own site/)).toBeInTheDocument();
-      /* The positive half of the PL test's `toBeNull`. Without this, a selector
-         that matched nothing — a renamed class, a CSS-module mapping change —
-         would let that assertion pass while the hint was still on screen. */
-      expect(container.querySelector('p[class*="footerHint"]')).not.toBeNull();
+      expect(other.container.querySelector('p[class*="footerHint"]')).toBeNull();
     });
 
     /* The review step's own version of that honesty: Apply is an outbound link,
@@ -235,7 +229,7 @@ describe('the apply flow’s account step', () => {
       renderStep();
       fillAccount();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Create Profile' }));
 
       await waitFor(() => expect(onSignUp).toHaveBeenCalled());
       expect(onSignUp).toHaveBeenCalledWith(
@@ -252,7 +246,7 @@ describe('the apply flow’s account step', () => {
       renderStep();
       fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@protocol.ai' } });
 
-      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Create Profile' }));
 
       await waitFor(() => expect(screen.getByText('Name is required')).toBeInTheDocument());
       expect(onSignUp).not.toHaveBeenCalled();
@@ -265,7 +259,7 @@ describe('the apply flow’s account step', () => {
       renderStep();
       fillAccount();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Create Profile' }));
 
       await waitFor(() => expect(screen.getByText(/This email already has an account/)).toBeInTheDocument());
     });

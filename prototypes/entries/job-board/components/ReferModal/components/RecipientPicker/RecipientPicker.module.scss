@@ -247,12 +247,26 @@
   }
 }
 
-// The quick-add offer under the field, drawn to the reviewed mock: one wrapping
-// row that opens with a quiet "Suggested" and then flows single-line person
-// chips, wrapping to the container's left edge rather than indenting under the
-// label. The label is an item in that flow, not a heading above it — which is
-// what lets the first chip share its line and saves the block a whole row in a
-// card that is already fighting its own fold.
+// The quick-add offer under the field: a quiet "Suggested from <team>" heading and
+// a column of person chips beneath it.
+//
+// This was one wrapping row with the label as its first item, on the argument that
+// letting a chip share the label's line saved a row in a card fighting its own
+// fold. Two things undid it. A wrapping row of variable-width pills leaves a ragged
+// right edge and puts each chip's ⊕ in a different place, so the one mark that says
+// what a press does never lands twice in the same spot — a column puts every name
+// on one left edge and every ⊕ on one axis. And with a single suggestion the label
+// and the chip sat on one line with nothing between them but a gap, which reads as
+// one run-on phrase ("Suggested from Parasail Vova Horin") rather than a heading
+// and the thing it heads.
+//
+// The row it stands in front of paid for the height: the note below now grows into
+// whatever is spare (see `ReferModal.module.scss`, `.templateBlock`), so a taller
+// block here is taken out of slack rather than out of the note.
+//
+// `align-items: flex-start` so the chips still hug their own names. Stretched to
+// the container they would read as list rows — which is what a *picked* recipient
+// is — and the two states have to stay tellable apart.
 //
 // The chip's name and role are the *picked row's* treatment (`.rowText` /
 // `.rowName` / `.rowRole` below), not the menu row's two-line stack — and that
@@ -261,24 +275,27 @@
 // height. A chip becomes one of those rows when pressed, so they now match.
 .suggestBlock {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 8px;
   // On top of the field wrapper's own 4px gap — the chips govern the field above
   // them, so they sit closer to it than to whatever follows (see lesson 11:
   // equidistant reads as unrelated).
   margin-top: 4px;
   // And 12px on top of `.fields`' own 20px below, so the boundary to the next
-  // field reads as 32px against the 4px above. Two rows of pills are a lot of
-  // busy edge, and at a flat 20px the last chip sat as close to "Your note" as
-  // it did to the field it belongs to. Carried by the chips rather than by the
-  // wrapper, so it disappears with them once the whole team has been added.
+  // field reads as 32px against the 4px above. A stack of pills is a lot of busy
+  // edge, and at a flat 20px the last chip sat as close to "Your note" as it did
+  // to the field it belongs to. Carried by the chips rather than by the wrapper,
+  // so it disappears with them once the whole team has been added.
   margin-bottom: 12px;
 }
 
-// Sentence case at caption size, not the menu's uppercase group heading: this one
-// sits *in* the row it introduces, and a tracked-out uppercase label reads as a
-// section rule when it has chips beside it rather than under it.
+// Sentence case at caption size, not the menu's uppercase group heading, even now
+// that it heads a column and could carry one. That treatment belongs to the menu,
+// where it separates two lists inside a popover; here the label sits in the form,
+// four lines under "Send to" and just above "Your note", and a tracked-out
+// uppercase rule between two sentence-case field labels would read as a section
+// break in a form that has no sections.
 .suggestLabel {
   font-size: 12px;
   font-weight: 400;

@@ -198,12 +198,17 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_NOTE_RESET, { ...args });
   };
 
+  /* `copied_referred_member` is the state of the refer modal's "Copy <First> on this
+     email" tick. Read it as *intent*, not delivery: until the backend honours
+     `includeReferredMember`, it copies the referred member on every referral
+     regardless of what this says. */
   const onJobReferSubmitted = (
     args: JobReferBaseParams & {
       referred_member_uid: string;
       recipient_count: number;
       has_external_email: boolean;
       note_was_edited: boolean;
+      copied_referred_member: boolean;
     },
   ) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_SUBMITTED, { ...args });
@@ -215,6 +220,7 @@ export const useJobsAnalytics = () => {
       recipient_count: number;
       has_external_email: boolean;
       note_was_edited: boolean;
+      copied_referred_member: boolean;
       referral_uid?: string;
     },
   ) => {
@@ -227,6 +233,7 @@ export const useJobsAnalytics = () => {
       recipient_count: number;
       has_external_email: boolean;
       note_was_edited: boolean;
+      copied_referred_member: boolean;
       error_type?: string;
     },
   ) => {

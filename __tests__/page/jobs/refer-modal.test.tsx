@@ -8,6 +8,7 @@ import type { DirectoryMember } from '@/prototypes/entries/job-board/components/
 
 const mockSend = jest.fn();
 const mockUseTeamMembers = jest.fn();
+const mockUseDraft = jest.fn();
 
 jest.mock('@/analytics/jobs.analytics', () => ({
   useJobsAnalytics: () => ({
@@ -32,10 +33,13 @@ jest.mock('@/components/common/Modal', () => ({
     isOpen ? <div>{children}</div> : null,
 }));
 
+// `disabled` is carried through deliberately: the modal disables the box until a
+// draft lands, and a mock that swallowed the prop would let "still writable"
+// assertions pass without the component ever agreeing.
 jest.mock('@/components/form/FormTextArea/FormTextArea', () => ({
-  FormTextArea: ({ name }: { name: string }) => {
+  FormTextArea: ({ name, disabled }: { name: string; disabled?: boolean }) => {
     const { register } = useFormContext();
-    return <textarea aria-label="Your note" {...register(name)} />;
+    return <textarea aria-label="Your note" disabled={disabled} {...register(name)} />;
   },
 }));
 
@@ -74,7 +78,7 @@ jest.mock('@/prototypes/entries/job-board/components/ReferModal/components/Recip
 }));
 
 jest.mock('@/services/jobs/hooks/useJobReferral', () => ({
-  useJobReferralDraft: () => ({ data: { note: 'Here is a draft.' }, isFetching: false, isError: false }),
+  useJobReferralDraft: () => mockUseDraft(),
   useCreateJobReferral: () => ({ mutate: mockSend, isPending: false }),
 }));
 
@@ -102,6 +106,11 @@ const lead: DirectoryMember = {
   isTeamLead: true,
 };
 
+const DRAFTED_NOTE = 'Here is a draft.\n\n[Add a line about how you know Ada.]';
+
+/** The tick, however it is currently labelled. Named before a member is picked. */
+const copyTick = (name: RegExp = /Copy Ada on this email/i) => screen.getByRole('checkbox', { name });
+
 const renderModal = (jobReferEmail: string | null = null) =>
   render(
     <ReferModal
@@ -124,6 +133,7 @@ describe('ReferModal', () => {
       isLoading: false,
       isError: false,
     });
+    mockUseDraft.mockReturnValue({ data: { note: 'Here is a draft.' }, isFetching: false, isError: false });
     mockSend.mockImplementation((_payload, opts) => {
       opts?.onSuccess?.({ uid: 'ref-1' });
     });
@@ -135,11 +145,11 @@ describe('ReferModal', () => {
     expect(screen.queryByTestId('recipient-count')).not.toBeInTheDocument();
     expect(screen.getByText('Send to')).toBeInTheDocument();
     expect(
-      screen.getByText('This referral will be sent to the email this team set up for job referrals.'),
+      screen.getByText(
+        /This referral will be sent to the email this team set up for job referrals\. You can’t choose individual members\./,
+      ),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText('Referral email will be sent to the address this team set up, and you’ll be copied.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('One email goes to the address this team set up, with you copied in.')).toBeInTheDocument();
     expect(mockUseTeamMembers).toHaveBeenCalledWith('Acme', false);
   });
 
@@ -154,8 +164,9 @@ describe('ReferModal', () => {
     expect(mockSend).toHaveBeenCalledWith(
       {
         referredMemberUid: 'm1',
-        note: 'Here is a draft.\n\n[Add a line about how you know Ada.]',
+        note: DRAFTED_NOTE,
         recipients: [],
+        includeReferredMember: true,
       },
       expect.any(Object),
     );
@@ -183,11 +194,95 @@ describe('ReferModal', () => {
     renderModal(null);
 
     await user.click(screen.getByRole('button', { name: 'Pick referee' }));
-    await waitFor(() =>
-      expect(screen.getByLabelText('Your note')).toHaveValue(
-        'Here is a draft.\n\n[Add a line about how you know Ada.]',
-      ),
-    );
+    await waitFor(() => expect(screen.getByLabelText('Your note')).toHaveValue(DRAFTED_NOTE));
     expect(screen.getByRole('button', { name: 'Send referral' })).toBeDisabled();
+  });
+
+  it('titles the modal for the role and says one email goes to everyone added', () => {
+    renderModal(null);
+
+    expect(screen.getByRole('heading', { name: 'Refer someone for Protocol Engineer' })).toBeInTheDocument();
+    expect(screen.getByText('One email goes to everyone you add below, with you copied in.')).toBeInTheDocument();
+  });
+
+  describe('copying the referred member', () => {
+    it('offers the tick checked by default, and names the person once one is picked', async () => {
+      const user = userEvent.setup();
+      renderModal('jobs@acme.com');
+
+      // Before anyone is picked the ask is generic — there is no name to use yet.
+      expect(copyTick(/Copy the person you.re referring on this email/i)).toBeChecked();
+
+      await user.click(screen.getByRole('button', { name: 'Pick referee' }));
+
+      await waitFor(() => expect(copyTick()).toBeChecked());
+    });
+
+    it('sends includeReferredMember: false and drops the copied line from the receipt when cleared', async () => {
+      const user = userEvent.setup();
+      renderModal('jobs@acme.com');
+
+      await user.click(screen.getByRole('button', { name: 'Pick referee' }));
+      await waitFor(() => expect(copyTick()).toBeChecked());
+      await user.click(copyTick());
+      await waitFor(() => expect(copyTick()).not.toBeChecked());
+
+      await user.click(screen.getByRole('button', { name: 'Send referral' }));
+
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({ includeReferredMember: false }),
+        expect.any(Object),
+      );
+
+      /* The receipt only ever *adds* the copied sentence. Until the backend honours
+         `includeReferredMember` it copies them regardless, so saying "was not copied"
+         here would be a lie the product can't back — silence is the honest state. */
+      expect(
+        await screen.findByText('Your note is on its way to the team. They can reply to you directly.'),
+      ).toBeInTheDocument();
+      expect(screen.queryByText(/was copied in too/)).not.toBeInTheDocument();
+    });
+
+    it('adds the copied line to the receipt when the tick is left alone', async () => {
+      const user = userEvent.setup();
+      renderModal('jobs@acme.com');
+
+      await user.click(screen.getByRole('button', { name: 'Pick referee' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Send referral' })).toBeEnabled());
+      await user.click(screen.getByRole('button', { name: 'Send referral' }));
+
+      expect(
+        await screen.findByText(
+          'Your note is on its way to the team. They can reply to you directly. Ada was copied in too.',
+        ),
+      ).toBeInTheDocument();
+    });
+
+    /* No separate notification is ever claimed, ticked or not — the referred member is
+       CC'd on this one email and nothing else is sent. */
+    it('never claims a separate notification', async () => {
+      const user = userEvent.setup();
+      renderModal('jobs@acme.com');
+
+      await user.click(screen.getByRole('button', { name: 'Pick referee' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Send referral' })).toBeEnabled());
+      await user.click(screen.getByRole('button', { name: 'Send referral' }));
+
+      await screen.findByText('Referral sent');
+      expect(screen.queryByText(/is notified/)).not.toBeInTheDocument();
+    });
+  });
+
+  it('says the draft failed and leaves the note writable', async () => {
+    mockUseDraft.mockReturnValue({ data: undefined, isFetching: false, isError: true });
+    const user = userEvent.setup();
+    renderModal('jobs@acme.com');
+
+    await user.click(screen.getByRole('button', { name: 'Pick referee' }));
+
+    expect(
+      await screen.findByText('We couldn’t draft a note for that member — write your own, or pick someone else.'),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Your note')).toBeEnabled();
   });
 });

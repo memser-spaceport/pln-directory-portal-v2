@@ -1,7 +1,7 @@
 import { customFetch } from '@/utils/fetch-wrapper';
 import type {
+  ICreateJobReferralPayload,
   IJobReferralDraft,
-  IJobReferralRecipient,
   IJobReferralResult,
   IJobsFiltersResponse,
   IJobsListResponse,
@@ -79,7 +79,7 @@ export async function fetchJobReferralDraft(jobUid: string, referredMemberUid: s
  */
 export async function createJobReferral(
   jobUid: string,
-  payload: { referredMemberUid: string; recipients?: IJobReferralRecipient[]; note: string },
+  payload: ICreateJobReferralPayload,
 ): Promise<IJobReferralResult> {
   const response = await customFetch(
     `${jobOpeningsAPI}/${jobUid}/referrals`,

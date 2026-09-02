@@ -81,6 +81,49 @@
   }
 }
 
+// The masthead is a row while composing: envelope, then the title and its sentence
+// beside it in one column. Icon and headline used to stack, which cost a whole row
+// of a height-capped card and left a 52px circle centred over a form whose every
+// label starts at one left edge.
+//
+// `align-items: flex-start` so the icon sits against the *first* line of the title —
+// a long role wraps to two lines and centring would push the envelope down to
+// straddle them.
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+// The title and its description are one unit, 8px apart, and both start from the
+// same left edge — which is the text edge, not the card edge, so the sentence hangs
+// under the headline rather than under the icon.
+.headerText {
+  // The top space is the title's, not the card's. As card padding it moved the
+  // envelope down with the headline and bought nothing; carried here, the icon stays
+  // anchored at the card's own 20px and the title drops past it, which also lands the
+  // 52px circle nearer the middle of a two-line role.
+  padding-top: 8px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+// Sent is the other kind of card: one sentence and a Done button is an announcement,
+// and an announcement is what centring is for. So the same three elements stack and
+// centre again, driven from the one modifier rather than from three.
+.headerSent {
+  flex-direction: column;
+  align-items: center;
+
+  .title,
+  .desc {
+    text-align: center;
+  }
+}
+
 .iconWrapper {
   background: #f2f5ff;
   border-radius: 9999px;
@@ -90,58 +133,30 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto;
+  // Never squeezed by a long title beside it.
+  flex-shrink: 0;
 }
 
 .title {
   color: var(--foreground-neutral-primary, #0a0c11);
-  text-align: center;
-  font-size: 20px;
+  // 18/24, one step down from the reference 20/27: with the icon now beside the
+  // headline rather than above it, a 20px title on two lines was the loudest thing on
+  // a card whose subject is the form underneath. 24px leading and the -0.4px tracking
+  // are production's own pairing for 18px.
+  font-size: 18px;
   font-style: normal;
   font-weight: 500;
-  line-height: 27px; /* 135% */
+  line-height: 24px;
   letter-spacing: -0.4px;
 }
 
 .desc {
   color: var(--foreground-neutral-secondary, #455468);
-  text-align: center;
   font-size: 14px;
   font-style: normal;
   font-weight: 400;
   line-height: 22px; /* 157.143% */
   letter-spacing: -0.2px;
-}
-
-// The masthead while the form is open. `.title` and `.desc` above keep the Demo
-// Day chrome's centring because the *sent* state still wants it — one sentence
-// and a Done button is an announcement, and the whole card is one centred block.
-// Composing is the other kind of card: labels, fields and a character count all
-// starting from one left edge, which a centred icon and headline sit across.
-//
-// Modifier classes rather than an edit to the base rules, so the two states stay
-// visibly different decisions instead of one rule with an exception buried in it.
-.headerLeft {
-  text-align: left;
-}
-
-// The circle moves with the text. Left-aligning the headline while the icon
-// above it stayed centred would leave the one element that can't read as a
-// column heading floating over the column.
-.headerIconLeft {
-  margin: 0;
-}
-
-// The description belongs to the title. `.modal` is a flex column with a uniform
-// 24px gap, so icon → title → description → form all sat equally far apart,
-// which claims those four are peers; a title and the sentence qualifying it are
-// one header. 8px says so, and the untouched 24px elsewhere now marks a real
-// break. Applies in both states — the pairing is true of the sent card too.
-//
-// Negative margin against the parent's gap rather than a smaller `gap` on
-// `.modal`: that number is right for every other pair in the card.
-.headerDesc {
-  margin-top: -16px;
 }
 
 .form {
@@ -153,6 +168,46 @@
   // Takes the card's leftover height so `.fields` has something to scroll within.
   flex: 1;
   min-height: 0;
+}
+
+// --- Footer -------------------------------------------------------------------
+
+// Sits directly above the actions, where the reference has nothing — our version
+// emails people the referrer didn't type, so what stands between them and a
+// disabled Send has to be legible.
+.privacyNote {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// "Copy <First> on this email", directly above the actions. Transcribed from the
+// apply flow's own footer tick (`JobApplyFlowDrawer.module.scss`, `.footerCheck`) so
+// the two footers hold the same control: 13/18 primary text, 8px from the box, the
+// `<label>` owning the hit area.
+//
+// Two of that rule's declarations are deliberately absent. `margin-right: auto` and
+// `flex-shrink: 0` position it as one item in a row shared with buttons; this one has
+// a line to itself, above a pair of full-width actions. And its asterisk stays behind
+// with it — that mark says *required*, and this is an option whose default is already
+// the answer most people want.
+.footerCheck {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  // The DS Checkbox ships as a button; the `<label>` owns the hit area, so the inner
+  // control must not swallow the press. Same guard the apply flow uses.
+  button {
+    pointer-events: none;
+  }
 }
 
 // --- Actions ------------------------------------------------------------------
@@ -333,11 +388,22 @@
 
 // FormTextArea's own label is dropped here so the label line can carry the
 // "Reset to template" affordance on its right.
+//
+// The note takes whatever height the fields above it didn't use. How much that is
+// depends on the branch: a hiring team with a referral inbox draws two lines of
+// text where the picker, its suggestion chips and its scroll cap would have been,
+// which freed ~200px that simply sat empty under a six-row box — the one field the
+// referrer actually works in, sized as though the picker were still there.
+//
+// `flex: 1 0 auto`, not `flex: 1`: grow into free space, but never shrink. With a
+// full recipient list there is no free space and the box must keep its own height
+// while `.fields` scrolls, rather than being squeezed by the list above it.
 .templateBlock {
   display: flex;
   flex-direction: column;
   gap: 6px;
   width: 100%;
+  flex: 1 0 auto;
 }
 
 // FormTextArea has no disabled treatment of its own — the component passes
@@ -354,6 +420,42 @@
 // and would silently inherit the dimming if it did again.
 .templateBlockIdle .templateControl {
   opacity: 0.55;
+}
+
+// Passing the block's height down to the <textarea>.
+//
+// `FormTextArea` ships a column that has a width and no height, and every box
+// inside it sizes to its content, so a taller wrapper on its own changes nothing —
+// the border would move and the writing area would not. Each level has to be told
+// to fill, down to the control itself.
+//
+// Structural selectors rather than class names: those are CSS-Module-hashed and
+// belong to a production component this folder must not edit. `:has(textarea)`
+// picks out the boxes on the path to the control — the field root, the bordered
+// box, and the flex row inside it — and leaves the counter row, which is a sibling
+// of that path and should keep sitting under the box at its own height.
+//
+// `align-items: stretch` overrides the component's own `flex-start`. Without it the
+// row inside the border stays at the text's height while the border grows past it,
+// which is the same dead space one level further in.
+.templateControl {
+  flex: 1 0 auto;
+  display: flex;
+  width: 100%;
+  min-height: 0;
+
+  div:has(textarea) {
+    flex: 1;
+    min-height: 0;
+    align-items: stretch;
+  }
+
+  // `rows` still sets the floor: where there is no spare height (a full recipient
+  // list) the parents fall back to auto and this resolves to the six rows the
+  // attribute asks for.
+  textarea {
+    height: 100%;
+  }
 }
 
 .templateLabelRow {

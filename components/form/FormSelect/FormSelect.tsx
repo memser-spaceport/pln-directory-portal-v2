@@ -269,7 +269,9 @@ export const FormSelect = (props: Props) => {
               // auto` into a horizontal scrollbar (a non-visible value on one
               // axis computes the other away from `visible`).
               minWidth: 0,
+              minHeight: 0,
               overflowX: 'hidden' as const,
+              overflowY: 'auto' as const,
             }),
             menu: (baseStyles) => ({
               ...baseStyles,

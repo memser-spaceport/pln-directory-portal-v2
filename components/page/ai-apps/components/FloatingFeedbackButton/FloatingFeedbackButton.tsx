@@ -42,6 +42,7 @@ function FeedbackFab({ appUid, appName }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const introStartedAtRef = useRef<number | null>(null);
   const analytics = useAiAppsAnalytics();
   const { permsSet, isLoading } = usePermissions();
   const isVisible = !isLoading && canViewAiApps(permsSet);
@@ -51,12 +52,26 @@ function FeedbackFab({ appUid, appName }: Props) {
   // null and the label would never be seen.
   useEffect(() => {
     if (!isVisible) {
+      introStartedAtRef.current = null;
       return;
     }
 
-    const timer = setTimeout(() => setIsCollapsed(true), INTRO_MS);
-    return () => clearTimeout(timer);
+    introStartedAtRef.current = Date.now();
   }, [isVisible]);
+
+  // Paused while the feedback popover is open — collapsing the anchor mid-use
+  // repositions the panel and closes the app picker.
+  useEffect(() => {
+    if (!isVisible || isOpen || isCollapsed) {
+      return;
+    }
+
+    const elapsed = introStartedAtRef.current ? Date.now() - introStartedAtRef.current : 0;
+    const remaining = Math.max(0, INTRO_MS - elapsed);
+
+    const timer = setTimeout(() => setIsCollapsed(true), remaining);
+    return () => clearTimeout(timer);
+  }, [isVisible, isOpen, isCollapsed]);
 
   if (!isVisible) {
     return null;

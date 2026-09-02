@@ -1,25 +1,29 @@
 @use 'styles/media';
 
+/* `display: grid` so the layout inside stretches to fill a short page: it only
+   sets its own min-height at >=1024, and without this the background stops short
+   of the fold on mobile. */
 .pageFrame {
+  display: grid;
   width: 100%;
   min-height: calc(100vh - var(--app-header-height));
   background: #f1f5f9;
-  display: flex;
-  justify-content: center;
-  padding: 16px 16px 40px;
-
-  @media (min-width: 1024px) {
-    padding: 30px 0 40px;
-  }
 }
 
+/* Below 1024 the layout supplies no padding, so the column carries the inset the
+   old page frame and column summed to; at >=1024 the layout supplies
+   `30px 24px 40px` and the column adds none, or the content is inset twice. */
 .content {
   width: 100%;
+  max-width: 1480px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 0 24px;
-  max-width: 1480px;
+  padding: 16px 40px 40px;
+
+  @media (min-width: 1024px) {
+    padding: 0;
+  }
 }
 
 .header {
@@ -37,14 +41,43 @@
 .headerActions {
   display: flex;
   align-items: center;
+  /* Sort + the feedback link don't fit a 390px row. */
+  flex-wrap: wrap;
   gap: 10px;
   flex-shrink: 0;
+
+  @include media.mobile-only {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* Sort is carried by the mobile filter bar at this width. */
+.sortSlot {
+  display: flex;
+
+  @include media.mobile-only {
+    display: none;
+  }
 }
 
 .titleBlock {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.titleRow {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.count {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
 }
 
 .title {

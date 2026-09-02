@@ -100,5 +100,16 @@ export function useAiAppsAnalytics() {
       capture(AI_APPS_ANALYTICS.PRD_OPEN_IN_NEW_TAB_CLICKED, { appUid, appName }),
     onPrdPageViewed: (appUid: string, appName: string) =>
       capture(AI_APPS_ANALYTICS.PRD_PAGE_VIEWED, { appUid, appName }),
+    // List controls. Only the query LENGTH is sent, never the text: an app
+    // search box is free text a member typed, and the result count already
+    // answers "did search work" without carrying whatever they looked for.
+    onSearchApplied: (params: { queryLength: number; resultCount: number }) =>
+      capture(AI_APPS_ANALYTICS.SEARCH_APPLIED, params),
+    onCreatorFilterSelected: (params: { creatorCount: number; resultCount: number }) =>
+      capture(AI_APPS_ANALYTICS.CREATOR_FILTER_SELECTED, params),
+    onSortChanged: (params: { sort: string; source: 'masthead' | 'mobile'; resultCount: number }) =>
+      capture(AI_APPS_ANALYTICS.SORT_CHANGED, params),
+    onFiltersCleared: (params: { source: 'rail' | 'mobile' }) => capture(AI_APPS_ANALYTICS.FILTERS_CLEARED, params),
+    onEmptyResultsShown: (params: { filterCount: number }) => capture(AI_APPS_ANALYTICS.EMPTY_RESULTS_SHOWN, params),
   };
 }

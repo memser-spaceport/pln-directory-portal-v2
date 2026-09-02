@@ -2,10 +2,12 @@
 import { IUserInfo } from '@/types/shared.types';
 import { ITeamsSearchParams } from '@/types/teams.types';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { EVENTS } from '@/utils/constants';
 import { triggerLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
 import ProjectFilter from './project-filter';
+import s from './filter-wrapper.module.scss';
 
 interface IFilterwrapper {
   userInfo: IUserInfo;
@@ -18,69 +20,44 @@ interface IFilterwrapper {
 
 export default function FilterWrapper(props: IFilterwrapper) {
   const [isMobileFilter, setIsMobileFilter] = useState(false);
-  const selectedTeam = props?.selectedTeam;
   const router = useRouter();
 
   useEffect(() => {
-    document.addEventListener(EVENTS.SHOW_PROJECTS_FILTER, (e: any) => {
-      setIsMobileFilter(e.detail);
-    });
+    const handleShowFilter = (e: Event) => {
+      setIsMobileFilter((e as CustomEvent<boolean>).detail);
+    };
 
-    document.removeEventListener(EVENTS.SHOW_PROJECTS_FILTER, () => {});
+    document.addEventListener(EVENTS.SHOW_PROJECTS_FILTER, handleShowFilter);
+    return () => {
+      document.removeEventListener(EVENTS.SHOW_PROJECTS_FILTER, handleShowFilter);
+    };
   }, []);
 
   useEffect(() => {
     triggerLoader(false);
   }, [router, props?.searchParams]);
 
+  useEffect(() => {
+    if (!isMobileFilter) return;
+    const previousOverflow = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.documentElement.style.overflow = previousOverflow;
+    };
+  }, [isMobileFilter]);
+
   return (
-    <div className="fw">
-      {isMobileFilter && (
-        <div className="fw__mob">
-          <ProjectFilter {...props} />
-        </div>
-      )}
-      <div className="fw__web">
+    <div className={s.root}>
+      {isMobileFilter &&
+        createPortal(
+          <div className={s.mob} data-testid="projects-mobile-filter">
+            <ProjectFilter {...props} />
+          </div>,
+          document.body,
+        )}
+      <div className={s.web}>
         <ProjectFilter {...props} />
       </div>
-      <style jsx>
-        {`
-          .fw {
-            width: inherit;
-          }
-
-          .fw__web {
-            display: none;
-          }
-
-          .fw__mob {
-            position: fixed;
-            top: 0;
-            z-index: 6;
-            height: 100%;
-            width: 100%;
-          }
-
-          @media (min-width: 1024px) {
-            .fw__web {
-              display: unset;
-              height: 150vh;
-              width: inherit;
-            }
-            .fw__mob {
-              display: none;
-            }
-          }
-        `}
-      </style>
-
-      <style jsx global>
-        {`
-          html {
-            overflow: ${isMobileFilter ? 'hidden' : 'auto'};
-          }
-        `}
-      </style>
     </div>
   );
 }

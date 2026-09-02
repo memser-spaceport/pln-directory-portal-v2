@@ -333,18 +333,20 @@ export function RecipientPicker(props: RecipientPickerProps) {
           `restingTeam`, so their chip disappears and the next member steps up
           until the team runs out.
 
-          **The label claims no relationship.** It read "Suggested teammates" — a
-          possessive with no owner on screen, which a reader takes as *their*
-          teammates; the referrer is usually an outsider to the hiring team,
-          which is the whole reason they are referring into it. It briefly read
-          "Suggested from <team>" instead, to name the one fact this card never
-          states; the reviewed mock cut it back to a bare "Suggested", which
-          answers the possessive just as well and is short enough to share the
-          first chip's line. The team is named again the moment the menu opens,
-          under its "<TEAM> TEAM" group heading. */}
+          **The label names the team, and has to.** It read "Suggested teammates"
+          — a possessive with no owner on screen, which a reader takes as *their*
+          teammates, and the referrer is usually an outsider to the hiring team.
+          A bare "Suggested" fixed that but said nothing about where the names
+          come from, so the scope of the offer was invisible: these are the team
+          the role is tied to, not the network at large. Naming the team is the
+          only thing on the card that says so at rest — the title names the role,
+          not the team, and the menu's "<TEAM> TEAM" heading needs opening.
+
+          Note this labels the *suggestions*, not the field: "Send to" itself
+          accepts any network member or a typed email address, and deliberately. */}
       {suggested.length > 0 && (
         <div className={s.suggestBlock}>
-          <span className={s.suggestLabel}>Suggested</span>
+          <span className={s.suggestLabel}>Suggested from {teamName}</span>
           {suggested.map((member) => (
             <button
               key={member.uid}

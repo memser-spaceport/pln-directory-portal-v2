@@ -202,13 +202,6 @@ export function JobProfilePane(props: JobProfilePaneProps) {
 
       {member && (
         <>
-          {/* 0. Start with a document, while there is nothing to start from.
-                   Above the header card because a CV answers the required role
-                   sitting in it — a control that answers the question below it
-                   belongs above it. Disappears the moment the profile has
-                   anything in it, handing the offer to the Experience section. */}
-          {cvImportHost === 'top-card' && <CvFirstCard member={member} onHandOff={() => setHandedOff(true)} />}
-
           {/* 1. The header card — the first required answer (current role)
                    lives in its editor. While the role is missing the card wears
                    the required treatment: the strip names the consequence, the
@@ -224,7 +217,27 @@ export function JobProfilePane(props: JobProfilePaneProps) {
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="apply-flow" />
           </div>
 
-          {/* 2. Identity verification, for an account the PL team is reviewing.
+          {/* 2. Start with a document, while there is nothing to start from.
+                   Disappears the moment the profile has anything in it, handing
+                   the offer to the Experience section.
+
+                   **Below the header card, having been above it.** The old order
+                   argued that a CV *answers* the required role sitting in the
+                   card, and a control that answers the question below it belongs
+                   above it. That is true of what the upload does and wrong about
+                   what someone opening this drawer is looking at: the first
+                   thing on the screen was an offer to hand over a file, before
+                   anything had established whose profile this is or what was
+                   missing from it. The amber strip is the screen's own answer to
+                   "what do I have to do", and it was the second thing read.
+
+                   So the profile identifies itself first and the shortcut
+                   follows it. The shortcut loses nothing by the move — it is
+                   still above every section it fills, and someone who wants it
+                   has not been asked to do anything in between. */}
+          {cvImportHost === 'top-card' && <CvFirstCard member={member} onHandOff={() => setHandedOff(true)} />}
+
+          {/* 3. Identity verification, for an account the PL team is reviewing.
                    The same card the member profile page shows, in the position
                    the design gives it: under the header card, above everything a
                    hiring team reads.
@@ -254,7 +267,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
             />
           )}
 
-          {/* 3. Contact details.
+          {/* 4. Contact details.
                    Above the status rather than below it, per the design. This
                    used to sit after, on the reasoning recorded below: the
                    required answer should come first because it is the one thing
@@ -269,7 +282,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                    about *this* application and follows from that. */}
           <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="drawer" />
 
-          {/* 4. Job search status — the required section. PL-Team-only: the pill
+          {/* 5. Job search status — the required section. PL-Team-only: the pill
                    carries the audience, the note carries the purpose, and the
                    value never appears on the public profile or in the apply
                    read-back. */}

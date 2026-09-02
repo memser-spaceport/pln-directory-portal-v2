@@ -140,10 +140,14 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
       await signUpMutation.mutateAsync({
         name: details.name,
         email: details.email,
-        /* Omitted, not defaulted, when the door that collected these did not ask
-           — the banner modal does not. The wire schema has it optional on both
-           sides, and an absent key is the honest way to say "not answered";
-           sending a guess would file a claim about their job hunt for them. */
+        /* Both doors ask for these two now, so in practice both spreads always
+           fire. They stay conditional rather than becoming plain keys, and the
+           reason is the wire schema rather than this form: `jobSearchStatus` is
+           optional on both sides, and `role` is `min(1)` — so an empty string
+           here would be *rejected* by `parse()` where an absent key is accepted.
+           Omission is the honest way to say "not answered" and the only safe way
+           to say "empty", which is two reasons to keep the guard even now that
+           nothing should be able to reach it. */
         ...(details.jobSearchStatus ? { jobSearchStatus: details.jobSearchStatus } : {}),
         linkedinHandler: details.linkedin,
         ...(details.role ? { role: details.role } : {}),

@@ -10,6 +10,11 @@ import { FormSelect } from '@/components/form/FormSelect';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
 import { isJobSearchStatus, JOB_SEARCH_STATUS_OPTIONS, type JobSearchStatus } from '@/services/jobs/job-board-viewer';
 import { JobSearchStatusInput } from '@/components/page/jobs/JobSearchStatusInput/JobSearchStatusInput';
+// A leaf — its own stylesheet and an inline lock glyph, no member-editing
+// imports behind it. That matters here specifically: this module is on the
+// logged-out sign-up path, and `JobProfileDrawer` is loaded through
+// `dynamic({ ssr: false })` precisely so a visitor never downloads that stack.
+import { PlTeamOnlyPill } from '@/components/page/jobs/PlTeamOnlyPill/PlTeamOnlyPill';
 
 // `FormField`'s own label/error pair, for the labels and the one error this
 // group places by hand — `FormField` types `label` as a `string`, so neither a
@@ -45,6 +50,14 @@ import s from './JobSignUpModal.module.scss';
  * card with the amber required treatment the profile step uses. It is still a
  * field of `accountSchema` and still lives in the same form — only where it is
  * drawn is the host's business.
+ *
+ * **Both hosts ask everything, and share one schema.** The modal spent a while
+ * on a shorter form — role optional, no status — on the argument that a banner
+ * naming no job has nothing waiting on those answers. The design reversed it,
+ * and the reversal is the better trade: the two answers are what the *profile*
+ * is made of, not what a particular press needs, and collecting them once at the
+ * door is cheaper than owing them at the moment someone is trying to apply.
+ * There is no second schema now; see the note where the variant used to be.
  */
 
 /** What the form holds. `company` is a react-select Option, not a string —
@@ -75,9 +88,16 @@ export type AccountFormData = {
   /**
    * Where they are with job hunting.
    *
-   * Asked here so a new account arrives with one of the two answers
-   * `isProfileComplete` needs. Role is optional on this form, so they still
-   * land on the profile step after sign-in to finish it.
+   * Asked on both doors, so a new account arrives with both of the answers
+   * `isJobProfileComplete` needs — this one and `role`.
+   *
+   * What that buys is narrower than it sounds, and worth stating so nobody
+   * re-derives it: it does **not** skip the apply flow's profile step. That
+   * skip existed and was removed on purpose (`useJobApplyFlow.ts`) — the step
+   * asks "I reviewed my profile" now, which is a question a complete profile
+   * still has to answer. What it buys is that the step arrives with nothing
+   * blocking: both of its required cards are already filled, so it is a read
+   * rather than a form.
    *
    * `''` rather than `null` for the empty state, so it is a string field like
    * every other member of this type and `required()` can speak for it.
@@ -93,10 +113,16 @@ export interface AccountDetails {
   linkedin: string;
   role: string;
   /**
-   * Null when the door that collected these did not ask — see
-   * `accountSchemaWithoutJobSearchStatus`. Null and not a default: a fabricated
-   * status is a claim about someone's job hunt that they never made, and it is
-   * the one answer here the product later shows back to them as their own.
+   * Null when the door that collected these did not ask.
+   *
+   * No such door exists today — both require the answer — so this is the
+   * unreachable branch of `toAccountDetails`. Kept nullable anyway, because the
+   * alternative is a non-null type whose only enforcement is that every current
+   * caller happens to ask: a third door that skipped the question would then
+   * satisfy the type by inventing a value, which is precisely the failure the
+   * null is here to make impossible. A fabricated status is a claim about
+   * someone's job hunt that they never made, and it is the one answer here the
+   * product later shows back to them as their own.
    */
   jobSearchStatus: JobSearchStatus | null;
   /** The network team they picked as their current company, if any. */
@@ -143,17 +169,32 @@ export const accountSchema = yup.object({
 
       return linkedinUrlPattern.test(trimmedValue) || linkedinHandlePattern.test(trimmedValue);
     }),
-  /* Optional by default, required the moment the box is ticked — see `company`
-     below for what the tick is now taken to mean. A `test` rather than
-     `.trim().required()`, because yup's `trim()` is a transform in non-strict
-     mode and would quietly rewrite the submitted value; this only reads it. */
+  /* Required, in both states of the tick.
+     It used to be optional by default and required only once the box was
+     ticked, which made the rule a property of the *employer* question rather
+     than of the role itself. The design marks it in both states, and the reason
+     it can be marked in both is that the answer is worth the same either way:
+     `isJobProfileComplete` is `role && jobSearchStatus`, and a role is what the
+     application a Job Aspirant later sends is actually built out of. Someone
+     with no network team needs it as much as someone with one.
+
+     A `test` rather than `.trim().required()`, because yup's `trim()` is a
+     transform in non-strict mode and would quietly rewrite the submitted value;
+     this only reads it.
+
+     `.max(200)` mirrors the wire schema, and that mirroring is the whole point.
+     `jobBoardSignUpInputSchema` caps this at 200 (`schema/job-applications.ts`)
+     and `signUpToJobBoard` runs `parse()` synchronously, so an over-long role
+     throws inside the mutation and comes back through the controller's generic
+     catch as "We couldn't create your account just now. Please try again." —
+     naming no field, and never succeeding on the retry it asks for. The cap
+     only became reachable from this door when the field stopped being optional
+     here, which is why it arrives with that change. */
   role: yup
     .string()
     .defined()
-    .when('onPlTeam', {
-      is: true,
-      then: (schema) => schema.test('role-on-pl-team', 'Current role is required', (value) => !!value?.trim()),
-    }),
+    .max(200, 'Current role must be 200 characters or fewer')
+    .test('role-required', 'Current role is required', (value) => !!value?.trim()),
   /* Not sent anywhere, but no longer inert either: it is the condition on the
      two rules above and below. It is in the schema so `AccountFormData` and the
      resolver agree on the shape of the form — a key react-hook-form holds and
@@ -183,10 +224,12 @@ export const accountSchema = yup.object({
       is: true,
       then: (schema) => schema.required('Select your PL network team'),
     }),
-  /* Required, and that is the whole point of asking it — an optional version
-     buys a shorter form and pays for it with an apply-flow step. `oneOf` rather
-     than a bare `required()` so a stale value from anywhere can't pass: the
-     three strings have to match the backend's wire enum exactly. */
+  /* Required, on both doors, and that is the whole point of asking it.
+     `oneOf` rather than a bare `required()` so a stale value from anywhere
+     can't pass: the strings have to match the backend's wire enum exactly, and
+     `not-looking` is filtered out because neither door offers it — a status
+     that says "don't tell me about roles" is not an answer anyone gives while
+     signing up *for a job board*. */
   jobSearchStatus: yup
     .string()
     .oneOf(
@@ -196,28 +239,16 @@ export const accountSchema = yup.object({
     .required('Select where you are with job hunting'),
 });
 
-/**
- * The same form, minus the status — the banner/navbar modal's variant.
- *
- * **Why one door asks and the other does not.** The drawer's step 2 is reached
- * by pressing Apply on a role, so the status is the last thing between this
- * person and an application, and asking it there saves them a stop. The modal is
- * reached from a banner that names no job: nothing is waiting on the answer, and
- * the design asks the shortest question it can at the moment someone is only
- * curious.
- *
- * **What it costs, stated plainly.** `isJobProfileComplete` is `role &&
- * jobSearchStatus`, so an account made here arrives incomplete and will meet the
- * profile step when it does eventually apply. That is the trade the shorter form
- * buys, and it is the right way round: the step is owed only by people who go on
- * to apply, rather than by everyone who signs up.
- *
- * Derived with `.shape()` rather than a second literal, so the other seven rules
- * cannot drift between the two doors — the whole reason this file exists.
- */
-export const accountSchemaWithoutJobSearchStatus = accountSchema.shape({
-  jobSearchStatus: yup.string().defined(),
-});
+/* (`accountSchemaWithoutJobSearchStatus` stood here — `accountSchema.shape()`
+    with the status rule relaxed, for a modal that did not ask the question.
+    Both doors ask it now, so the variant had no callers.
+
+    Deleted rather than kept for a future third door. Two schemas for one form is
+    exactly the drift this file was extracted to prevent, and an uncalled variant
+    is the version of that drift nothing can catch: it cannot fail a test,
+    because nothing renders the form it describes. If a door that skips the
+    question ever arrives, `.shape()` is one line and this comment is the
+    instructions.) */
 
 /**
  * The red `*` every required label in the product carries, as a span rather than
@@ -266,12 +297,14 @@ export const toAccountDetails = (data: AccountFormData): AccountDetails => ({
   linkedin: (data.linkedin ?? '').trim(),
   role: data.role.trim(),
   /* Narrowed rather than asserted, and `null` rather than a default.
-     On the door that asks, the schema makes this one of the offered statuses
-     before a submit can happen, so the branch below is unreachable there. On the
-     door that does not ask it is the only branch — and it must not invent an
-     answer. It used to fall back to `open-to-right-role`, which was harmless
-     while every door asked and would now file a claim about someone's job hunt
-     that they never made. The caller omits the key when this is null. */
+     Every door asks now, and the schema makes this one of the offered statuses
+     before a submit can happen, so the null branch is unreachable from both.
+     It stays a narrowing rather than an assertion because the cost of the two
+     being wrong is not symmetric: a stray `as JobSearchStatus` would turn a
+     future unanswered form into a fabricated answer silently, whereas this turns
+     it into an omitted key. It used to fall back to `open-to-right-role`, which
+     would file a claim about someone's job hunt that they never made. The caller
+     omits the key when this is null. */
   jobSearchStatus: isJobSearchStatus(data.jobSearchStatus) ? data.jobSearchStatus : null,
   teamUid: data.company?.value ?? null,
 });
@@ -300,15 +333,20 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
     setValue('onPlTeam', next, { shouldDirty: true });
     if (!next) setValue('company', null, { shouldDirty: true });
 
-    /* The tick changes which rule `role` and `company` are judged by, so any
-       verdict already on screen is now about the wrong one — untick with an
-       empty required role and the error outlives the requirement.
+    /* The tick changes which rule `company` is judged by, so any verdict already
+       on screen is now about the wrong one — untick with an unanswered required
+       team and the error outlives the requirement.
+
+       `role` used to be in here too, and is deliberately no longer: its rule is
+       unconditional now, so the tick cannot change the verdict on it, and
+       re-running it would only surface an error about a field the person has not
+       reached yet.
 
        Guarded rather than unconditional, because the same call in the other
        direction would be a form that starts complaining the instant you tell it
        something true. Re-run only when there is a verdict to correct: after a
        submit attempt, or while an error from `mode: 'onBlur'` is showing. */
-    if (isSubmitted || errors.role || errors.company) void trigger(['role', 'company']);
+    if (isSubmitted || errors.company) void trigger('company');
   };
 
   // The same teams source production's sign-up wizard uses, minus projects —
@@ -376,26 +414,27 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
         </label>
 
         <div className={s.column}>
-          {/* The label is constant and the mark is what moves.
+          {/* The label is constant, and so is the mark now.
               It used to grow a second noun with the tick ("Current role & PL
               network team") so that one label could name both inputs under it.
               The design marks the row `Current role` in both states, and that is
-              takeable now for a reason the old label could not supply: each input
+              takeable for a reason the old label could not supply: each input
               carries its own accessible name below, so the visible label no
               longer has to do the naming for two fields at once.
 
-              What the label still does is carry the rule. Ticking *does* create a
-              requirement (see the schema's note on `company`), so the mark
-              appears with it — and there is no `(Optional)` in the other state,
-              per the design. That asymmetry is deliberate: unmarked-and-optional
-              costs nothing, while unmarked-and-required is a form refusing to
-              submit over a field it never flagged.
+              The mark used to arrive with the tick, because the requirement did.
+              It doesn't any more — role is required either way (see the schema)
+              — so a mark that came and went would be describing a rule that no
+              longer moves. It stays put, which is the only honest state: a form
+              refusing to submit over a field it never flagged is worse than one
+              with no marking system at all.
 
-              One mark for the row rather than one per field, because the tick
-              makes both required together. */}
+              One mark for the row rather than one per field. It reads as
+              covering both, and once ticked both *are* required — the team by
+              the schema's note on `company`, the role by its own rule. */}
           <div className={s.inputsLabel}>
             Current role
-            {onPlTeam && <RequiredMark />}
+            <RequiredMark />
           </div>
           <div className={s.inputsWrapper}>
             {/* `aria-label` because this input has no `label` of its own and the
@@ -512,8 +551,17 @@ export function JobSearchStatusField() {
 
   return (
     <div className={s.column}>
+      {/* `ff.labelWrapper` is already `flex` / `space-between` / full-width — it
+          exists so `FormField` can put a hint opposite a label — so the pill
+          needs no rule of its own. The pill answers the first question anyone
+          asks of a field about their own job hunt, and it has to be answered
+          *beside* the question rather than under it: by the time it is read as a
+          footnote, the decision whether to answer honestly is already made.
+          Same mark the apply flow's step 2 puts on this same question, so a
+          stranger and a member see one promise rather than two. */}
       <div className={ff.labelWrapper}>
         <span className={`${ff.label} ${ff.required}`}>Job search status</span>
+        <PlTeamOnlyPill />
       </div>
       <JobSearchStatusInput
         name="signup-job-search-status"

@@ -11,7 +11,8 @@ import { Button } from '@/components/common/Button';
 import { CloseIcon } from '@/components/icons';
 import {
   AccountFields,
-  accountSchemaWithoutJobSearchStatus,
+  accountSchema,
+  JobSearchStatusField,
   toAccountDetails,
   signUpFailureMessage,
   EMPTY_ACCOUNT_FORM,
@@ -109,10 +110,10 @@ interface JobSignUpModalProps {
 export function JobSignUpModal({ open, onClose, onSignUp, onSignIn }: JobSignUpModalProps) {
   const methods = useForm<AccountFormData>({
     defaultValues: EMPTY_ACCOUNT_FORM,
-    /* The variant that does not ask for a job search status. This door is opened
-       from a banner that names no job, so nothing is waiting on the answer — see
-       the schema's own note for what the shorter form costs. */
-    resolver: yupResolver(accountSchemaWithoutJobSearchStatus) as Resolver<AccountFormData>,
+    /* One schema, shared with the apply flow's step 2. This door briefly used a
+       shorter variant that skipped the job search status; it no longer exists —
+       see the note where it stood in `accountFields`. */
+    resolver: yupResolver(accountSchema) as Resolver<AccountFormData>,
     mode: 'onBlur',
   });
 
@@ -199,11 +200,18 @@ export function JobSignUpModal({ open, onClose, onSignUp, onSignIn }: JobSignUpM
         <FormProvider {...methods}>
           <form className={s.form} noValidate onSubmit={handleSubmit(onSubmit)}>
             <AccountFields />
-            {/* (`JobSearchStatusField` stood here, framed as one more labelled
-                question. The design does not ask it at this door — see
-                `accountSchemaWithoutJobSearchStatus`. It is still asked, and
-                still required, one press further in: the apply flow's step 2,
-                where an application is actually waiting on the answer.) */}
+            {/* The one question here that is not about the account, and the last
+                one, per the design: it sits under the account rows and above the
+                legal line.
+
+                Framed as one more labelled field rather than as the apply flow's
+                amber card. The pane wears the card because it is a step someone
+                has to get *past* — the strip is telling them why the button will
+                not move. Here the form is a flat column of questions and this is
+                the last of them, so a card would be announcing a blocker in a
+                place nothing is blocked yet. Same question, same schema rule,
+                same privacy pill; only the frame differs. */}
+            <JobSearchStatusField />
 
             <div className={s.bottomText}>
               {/* (`SignUpReviewNote` stood here — one line, branching on the

@@ -282,6 +282,28 @@
   }
 }
 
+/* Team-posted bodies also carry the editor's lists and links (the cited
+   markdown never does); same type as the paragraphs, same paragraph rhythm. */
+.summaryBody ul,
+.summaryBody ol {
+  margin: 0 0 12px;
+  padding-left: 22px;
+  font-size: 15px;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.summaryBody a {
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 /* Anchors the per-marker source popover; kept atomic so it never breaks a line,
    and vertically centered so the chip sits mid-line with the text. */
 .citeWrap {

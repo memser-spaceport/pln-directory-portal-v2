@@ -4,7 +4,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   {
     key: 'linkedin-verify-live',
     title: 'LinkedIn verification (live production component)',
-    description: "Production's OneClickVerification block, imported and rendered with mocked props so its gated state can be seen.",
+    description:
+      "Production's OneClickVerification block, imported and rendered with mocked props so its gated state can be seen.",
     category: 'Getting started',
     load: () => import('./entries/linkedin-verify-live/LinkedInVerifyLivePrototype'),
   },
@@ -65,7 +66,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'team-profile',
     title: 'Team profile',
     description:
-      'Mocked recreation of the team detail page: details, fund details, contact, membership / communities, members, focus areas, and projects — composed from real detail-page components. Public view shows a Follow pill (upvote-style, no count) in the header card\'s top-right corner; team view shows the follower avatar stack + count there, opening the full-list modal. The badges row also carries a "Demo Day F25" participation badge that deep-links to that demo day.',
+      'Mocked recreation of the team detail page: details, fund details, contact, membership / communities, members, focus areas, and projects — composed from real detail-page components. Public view shows a Follow pill (upvote-style, no count) in the header card\'s top-right corner; team view shows the follower avatar stack + count there, opening the full-list modal. The badges row also carries a "Demo Day F25" participation badge that deep-links to that demo day. Team view (members and admins) can post news: a small tertiary (text) "+ Post news" button in the rail header\'s corner, announced by a one-time brand-blue callout (the core Tooltip\'s highlight variant; shown on every page load in the prototype), or — when the team has none — an empty card with the invitation, which visitors never see (they get no rail at all). Compose is a modal in the standard shell: required headline, formatted body, required link (typed, no preview), with the link blocked at the field when it is already in this team\'s news. Posting lands the item at the top of the rail in the ordinary news-card treatment, attributed to the team. Inactive teams get no post control.',
     category: 'Teams',
     load: () => import('./entries/team-profile/TeamProfilePrototype'),
   },

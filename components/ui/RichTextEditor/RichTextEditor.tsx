@@ -58,6 +58,14 @@ const mentionIcon = `<svg viewBox="0 0 18 18">
 
 Quill.register('modules/imageUploader', ImageUploader);
 
+if (ImageUploader?.prototype) {
+  ImageUploader.prototype.insertBase64Image = function insertBase64Image() {
+    this.placeholderDelta = { ops: [] };
+  };
+}
+
+function ignoreQuillNativeUpload() {}
+
 // Register mention blot
 registerMentionBlot();
 
@@ -185,11 +193,8 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
               },
             },
       ...(hasImage && {
-        // Quill 2's built-in uploader reads dropped/pasted files as data URIs.
-        // imageUploader already owns that path and inserts a hosted URL; leaving
-        // both active pastes the image twice.
         uploader: {
-          mimetypes: [],
+          handler: ignoreQuillNativeUpload,
         },
         imageUploader: {
           upload: (file: File) => {
@@ -214,6 +219,16 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
       }),
       clipboard: {
         matchers: [
+          [
+            'IMG',
+            (node: HTMLImageElement, delta: unknown) => {
+              const src = node.getAttribute('src') ?? '';
+              if (src.startsWith('data:')) {
+                return new (Quill.import('delta'))();
+              }
+              return delta;
+            },
+          ],
           [
             Node.TEXT_NODE,
             (node: Text, delta: any) => {
@@ -301,7 +316,24 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
 
     // Use capture phase to run before the image uploader's bubble-phase listener
     root.addEventListener('paste', handlePaste, true);
-    return () => root.removeEventListener('paste', handlePaste, true);
+
+    const stripDataUriImages = () => {
+      const imgs = [...editor.root.querySelectorAll('img[src^="data:"]')];
+      imgs.forEach((img) => {
+        const blot = Quill.find(img);
+        if (blot && typeof (blot as { remove?: () => void }).remove === 'function') {
+          (blot as { remove: () => void }).remove();
+        } else {
+          img.remove();
+        }
+      });
+    };
+    editor.on('text-change', stripDataUriImages);
+
+    return () => {
+      root.removeEventListener('paste', handlePaste, true);
+      editor.off('text-change', stripDataUriImages);
+    };
   }, []);
 
   useEffect(() => {

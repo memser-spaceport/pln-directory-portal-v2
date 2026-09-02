@@ -93,4 +93,16 @@ describe('exportAiAppFeedbackCsv', () => {
     const [, dataLine] = capturedCsvText!.split('\r\n');
     expect(dataLine).toBe('Test App,Great app!,Unknown member,New,2026-07-08T00:00:00.000Z');
   });
+
+  it('strips HTML tags but keeps image URLs', () => {
+    exportAiAppFeedbackCsv(
+      [makeRow({ text: '<p>See this</p><p><img src="https://cdn.test/shot.png" alt="shot"></p>' })],
+      'feedback.csv',
+    );
+
+    const [, dataLine] = capturedCsvText!.split('\r\n');
+    expect(dataLine).toContain('See this https://cdn.test/shot.png');
+    expect(dataLine).not.toContain('<p>');
+    expect(dataLine).not.toContain('<img');
+  });
 });

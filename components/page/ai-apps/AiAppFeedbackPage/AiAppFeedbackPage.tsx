@@ -11,6 +11,8 @@ import { useAiAppFeedbackReviewAccess } from '@/services/ai-app-feedback/hooks/u
 import { useUpdateAiAppFeedbackStatus } from '@/services/ai-app-feedback/hooks/useUpdateAiAppFeedbackStatus';
 import type { AiAppFeedbackStatus } from '@/services/ai-app-feedback/constants';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
+import { QuillContent } from '@/components/ui/QuillContent/QuillContent';
+import { sanitizeForumPostHtml } from '@/utils/html';
 import { FeedbackStatusSelector } from './FeedbackStatusSelector/FeedbackStatusSelector';
 import { exportAiAppFeedbackCsv } from './utils/exportAiAppFeedbackCsv';
 import { getAvatarColor } from './utils/getAvatarColor';
@@ -18,6 +20,18 @@ import { getAvatarColor } from './utils/getAvatarColor';
 import s from './AiAppFeedbackPage.module.scss';
 
 const ALL_TAB = 'All apps';
+
+function looksLikeHtml(text: string): boolean {
+  return /^\s*</.test(text);
+}
+
+function FeedbackBody({ text }: { text: string }) {
+  if (looksLikeHtml(text)) {
+    return <QuillContent html={sanitizeForumPostHtml(text)} className={s.richMessage} />;
+  }
+
+  return <div className={s.messageText}>{text}</div>;
+}
 
 const DownloadIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -160,8 +174,8 @@ export function AiAppFeedbackPage() {
                           <td className={s.appNameCell} title={row.appName}>
                             {row.appName}
                           </td>
-                          <td title={row.text}>
-                            <div className={s.messageText}>{row.text}</div>
+                          <td title={looksLikeHtml(row.text) ? undefined : row.text}>
+                            <FeedbackBody text={row.text} />
                           </td>
                           <td>
                             <div className={s.submitter}>

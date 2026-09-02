@@ -190,4 +190,37 @@ describe('AiAppFeedbackPage', () => {
     expect(allAppsTab.querySelector('[class*="activeIndicator"]')).not.toBeInTheDocument();
     expect(alphaTab.querySelector('[class*="activeIndicator"]')).toBeInTheDocument();
   });
+
+  it('renders HTML headings, links, and images', () => {
+    mockUseAiAppFeedbackList.mockReturnValue({
+      feedback: [
+        {
+          uid: 'fb-html',
+          appUid: 'app-1',
+          appName: 'Alpha',
+          text: '<h2>Broken screenshot</h2><p><a href="https://example.com/docs">docs</a></p><p><img src="https://cdn.test/shot.png" alt="shot"></p>',
+          status: 'NEW' as const,
+          member: { uid: 'm-1', name: 'Ada Lovelace' },
+          createdAt: '2026-07-01T00:00:00.000Z',
+        },
+      ],
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<AiAppFeedbackPage />);
+
+    expect(screen.getByRole('heading', { name: 'Broken screenshot' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'docs' })).toHaveAttribute('href', 'https://example.com/docs');
+    expect(screen.getByAltText('shot')).toHaveAttribute('src', 'https://cdn.test/shot.png');
+  });
+
+  it('renders legacy plain-text feedback as text, not HTML', () => {
+    mockUseAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
+
+    render(<AiAppFeedbackPage />);
+
+    expect(screen.getByText('Loved it')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Loved it' })).not.toBeInTheDocument();
+  });
 });

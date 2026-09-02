@@ -475,36 +475,9 @@ describe('the job board sign-up modal', () => {
      * Asserted as the absence of the promise rather than the presence of one
      * phrasing, so a later reword can't quietly reintroduce it.
      */
-    it('promises no review and no approval gate to a sign-up with no team', () => {
-      renderModal();
-
-      expect(screen.getByText(/sends nothing to a hiring team/)).toBeInTheDocument();
-      expect(screen.queryByText(/approved/)).not.toBeInTheDocument();
-      expect(screen.queryByText(/review/i)).not.toBeInTheDocument();
-    });
-
-    /* Ticked, the review sentence is true — the backend files a sign-up naming a
-       network team as a regular member, and an admin does review it. The second
-       clause matches the pending banner they will meet on the board, so the two
-       surfaces agree about what the review holds up: nothing. */
-    it('names the review once the sign-up claims a network team', () => {
-      renderModal();
-      fireEvent.click(screen.getByRole('checkbox', { name: /I work at a PL network startup/i }));
-
-      expect(screen.getByText(/The PL team reviews network-team accounts/)).toBeInTheDocument();
-      expect(screen.getByText(/applying never waits on that/)).toBeInTheDocument();
-    });
-
-    /* The reassurance the note exists for survives both branches: this press
-       files no application. It is the flow's pending-never-claims-applied rule
-       at the moment trust is being asked for. */
-    it('says nothing is sent to a hiring team either way', () => {
-      renderModal();
-      expect(screen.getByText(/sends nothing to a hiring team/)).toBeInTheDocument();
-
-      fireEvent.click(screen.getByRole('checkbox', { name: /I work at a PL network startup/i }));
-      expect(screen.getByText(/sends nothing to a hiring team/)).toBeInTheDocument();
-    });
+    /* (Three tests stood here, on `SignUpReviewNote` — that the note promised no
+       review to an aspirant, named one for a network-team claim, and said either
+       way that nothing reaches a hiring team. The modal no longer renders it.) */
 
     it('offers the sign-in escape', () => {
       renderModal();

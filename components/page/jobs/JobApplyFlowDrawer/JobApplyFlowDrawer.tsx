@@ -38,6 +38,7 @@ import {
 } from '@/components/page/jobs/hooks/useJobApplyFlow';
 import { formatRelativeDays } from '@/utils/jobs.utils';
 import { getJobProfileReviewed, setJobProfileReviewed } from '@/services/jobs/job-profile-reviewed';
+import { withPendingApply } from '@/services/jobs/job-apply-resume';
 import { JobAccountPane } from '@/components/page/jobs/JobAccountPane/JobAccountPane';
 import {
   accountSchema,
@@ -489,6 +490,25 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     goTo(backTarget);
   };
 
+  /**
+   * Where LinkedIn's identity round trip comes back to — this role, on this
+   * surface.
+   *
+   * Built at render rather than passed in, because it is a fact about the
+   * browser (`origin`, `pathname`, the filters already in the query string) plus
+   * one the drawer holds (`target.role.uid`). `withPendingApply` is the same
+   * helper the sign-up round trip writes, so the resume that reads it is one
+   * implementation and not two.
+   *
+   * `window` is guarded for the server pass: this component is
+   * `dynamic({ ssr: false })` at its host, but the guard costs nothing and an
+   * undefined return simply withholds the card rather than throwing.
+   */
+  const verifyReturnTo =
+    typeof window === 'undefined'
+      ? undefined
+      : `${window.location.origin}${window.location.pathname}${withPendingApply(window.location.search, target.role.uid)}`;
+
   const remaining = COVER_LETTER_MAX_LENGTH - coverLetter.length;
   const canSend = coverLetter.trim().length > 0 && remaining >= 0;
 
@@ -861,6 +881,14 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               isLoggedIn={isLoggedIn}
               pendingRoleTitle={target.role.roleTitle}
               pendingApproval={pendingApproval}
+              /* Back to this role, not to the board. Verifying navigates the
+                 whole page to LinkedIn, so the return has to re-open what it
+                 interrupted — and the flow already knows how to be re-opened on
+                 a role: `applyTo` is the parameter the sign-up round trip
+                 resumes through, read by `useJobApplySurface` against the list
+                 as it loads back. The current path rather than a hard-coded
+                 `/jobs`, so a team profile resumes on the team profile. */
+              verifyReturnTo={verifyReturnTo}
               onProfileState={setProfileState}
             />
           )}

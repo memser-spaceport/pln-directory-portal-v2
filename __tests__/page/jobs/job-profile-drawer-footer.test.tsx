@@ -34,6 +34,16 @@ jest.mock('@/services/auth/store', () => ({
 jest.mock('@/services/members/hooks/useUpdateMemberParams', () => ({
   useUpdateMemberParams: () => ({ mutate: jest.fn(), isPending: false }),
 }));
+/* The verification card's own dependencies. The gate is what these tests are
+   about, not the round trip: `useLinkedInVerification` is a `useMutation` and
+   would need a QueryClientProvider this suite has no other reason to build. */
+jest.mock('@/services/members/hooks/useLinkedInVerification', () => ({
+  useLinkedInVerification: () => ({ mutate: jest.fn(), isPending: false }),
+}));
+jest.mock('@/analytics/members.analytics', () => ({
+  useMemberAnalytics: () => ({ onConnectLinkedInClicked: jest.fn() }),
+}));
+
 jest.mock('@/services/members/hooks/useMemberExperience', () => ({
   useMemberExperience: () => ({ data: [], isLoading: false }),
 }));
@@ -231,5 +241,56 @@ describe('the profile pane’s section order', () => {
     renderDrawer(INCOMPLETE);
 
     expect(screen.getByText('Required to continue')).toBeInTheDocument();
+  });
+});
+
+/**
+ * The identity-verification card, for an account the PL team is reviewing.
+ *
+ * The same card the member profile page shows. It is gated three ways and each
+ * gate excludes a different person, which is why all three are asserted rather
+ * than only the happy path — any one of them failing open puts a LinkedIn
+ * hand-off in front of someone it cannot help.
+ */
+describe('the profile pane’s identity verification', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const UNVERIFIED = { ...INCOMPLETE, linkedinProfile: null };
+  const RETURN_TO = 'https://directory.plnetwork.io/jobs?applyTo=r1';
+
+  it('offers verification to a member under review who has not linked LinkedIn', () => {
+    renderDrawer(UNVERIFIED, { pendingApproval: true, verifyReturnTo: RETURN_TO });
+
+    expect(screen.getByText('Please verify your identity')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /LinkedIn/ })).toBeInTheDocument();
+  });
+
+  /* An approved member is in no review, and neither is a Job Aspirant —
+     `deriveBoardViewer` never yields `pending-approval` for one, which is what
+     keeps this away from job-board sign-ups it would only confuse. */
+  it('withholds it from anyone who is not in a review', () => {
+    renderDrawer(UNVERIFIED, { pendingApproval: false, verifyReturnTo: RETURN_TO });
+
+    expect(screen.queryByText('Please verify your identity')).not.toBeInTheDocument();
+  });
+
+  /* The answer it asks for. Having one retires the card. */
+  it('withholds it once LinkedIn is linked', () => {
+    renderDrawer(
+      { ...INCOMPLETE, linkedinProfile: { id: 'li-1' } },
+      { pendingApproval: true, verifyReturnTo: RETURN_TO },
+    );
+
+    expect(screen.queryByText('Please verify your identity')).not.toBeInTheDocument();
+  });
+
+  /* **The gate that is not about the member.** Connecting navigates the whole
+     page to LinkedIn, so a host that cannot say where the round trip returns
+     cannot safely offer it — the standalone drawer would come back to a board
+     with the flow gone. Withheld rather than offered with nowhere to land. */
+  it('withholds it when the host names no way back', () => {
+    renderDrawer(UNVERIFIED, { pendingApproval: true });
+
+    expect(screen.queryByText('Please verify your identity')).not.toBeInTheDocument();
   });
 });

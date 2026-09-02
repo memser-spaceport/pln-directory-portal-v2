@@ -11,7 +11,6 @@ import { Button } from '@/components/common/Button';
 import { CloseIcon } from '@/components/icons';
 import {
   AccountFields,
-  SignUpReviewNote,
   accountSchemaWithoutJobSearchStatus,
   toAccountDetails,
   signUpFailureMessage,
@@ -207,21 +206,11 @@ export function JobSignUpModal({ open, onClose, onSignUp, onSignIn }: JobSignUpM
                 where an application is actually waiting on the answer.) */}
 
             <div className={s.bottomText}>
-              {/* One line, and only the part nothing else on the card says: this
-                  press sends nothing to a hiring team.
-
-                  It lives in `accountFields` rather than here because it follows
-                  the PL-team tick — a sign-up that names a network team is
-                  reviewed, one that doesn't is not, and one sentence cannot be
-                  true of both. See its own note for what the single line used to
-                  claim and why both of its clauses were false.
-
-                  The length constraint is still live and is recorded there: this
-                  ran to four rendered lines once and pushed "Already have an
-                  account? Sign in" off the bottom of any window shorter than
-                  ~730px, hiding the escape from the only people with no use for
-                  the form above it. */}
-              <SignUpReviewNote />
+              {/* (`SignUpReviewNote` stood here — one line, branching on the
+                  PL-team tick, saying that this press sends nothing to a hiring
+                  team and naming the review only for the people actually in one.
+                  Removed from this door; the component still lives in
+                  `accountFields` and nothing renders it.) */}
               <p className={s.bodySecondary}>
                 By submitting this form, you agree to our{' '}
                 <a

@@ -13,6 +13,7 @@ import { DataIncomplete } from '@/components/page/member-details/DataIncomplete/
 import { ProfileDetails } from '@/components/page/member-details/ProfileDetails';
 import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
 import { ContributionsDetails } from '@/components/page/member-details/ContributionsDetails';
+import { LinkedInVerificationCard } from '@/components/page/member-details/OneClickVerification/LinkedInVerificationCard';
 import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
 import { ContactDetails } from '@/components/page/member-details/ContactDetails';
 import { getMember } from '@/services/members.service';
@@ -70,6 +71,17 @@ export interface JobProfilePaneProps {
   pendingRoleTitle: string | null;
   /** Signed up but not yet approved. Says so in the lede; gates nothing. */
   pendingApproval: boolean;
+  /**
+   * Absolute URL LinkedIn returns to after the identity round trip, which
+   * navigates the whole page away and back.
+   *
+   * The host's to decide, because only the host knows what was interrupted: the
+   * apply flow sends them back to the role they were applying for, the
+   * standalone drawer back to the board. Omit it and the verification card is
+   * withheld rather than offered with nowhere to return to — a round trip that
+   * loses the flow is worse than not offering the shortcut.
+   */
+  verifyReturnTo?: string;
   /** Reported on every change — see the note in the component. */
   onProfileState: (state: ProfileState) => void;
 }
@@ -88,7 +100,7 @@ export interface JobProfilePaneProps {
  * need it and neither of their footers is inside this component.
  */
 export function JobProfilePane(props: JobProfilePaneProps) {
-  const { memberUid, isLoggedIn, pendingRoleTitle, pendingApproval, onProfileState } = props;
+  const { memberUid, isLoggedIn, pendingRoleTitle, pendingApproval, verifyReturnTo, onProfileState } = props;
 
   const { currentUser: userInfo } = useCurrentUserStore();
   const isAdmin = isAdminUser(userInfo);
@@ -212,7 +224,26 @@ export function JobProfilePane(props: JobProfilePaneProps) {
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="apply-flow" />
           </div>
 
-          {/* 2. Contact details.
+          {/* 2. Identity verification, for an account the PL team is reviewing.
+                   The same card the member profile page shows, in the position
+                   the design gives it: under the header card, above everything a
+                   hiring team reads.
+
+                   **Three conditions, and each excludes someone different.**
+                   `pendingApproval` is the review itself — an approved member has
+                   nothing to verify, and a Job Aspirant is never in a review at
+                   all (`deriveBoardViewer` never yields this state for one), so
+                   this is also what keeps the card away from the job-board
+                   sign-ups it would only confuse. `linkedinProfile` is the answer
+                   it asks for, so having one retires it. And `verifyReturnTo` is
+                   the host promising it can bring them back: connecting
+                   navigates the entire page to LinkedIn, so without a return
+                   this would trade a shortcut for the flow they were in. */}
+          {pendingApproval && !member.linkedinProfile && verifyReturnTo && (
+            <LinkedInVerificationCard memberUid={memberUid} redirectUrl={verifyReturnTo} />
+          )}
+
+          {/* 3. Contact details.
                    Above the status rather than below it, per the design. This
                    used to sit after, on the reasoning recorded below: the
                    required answer should come first because it is the one thing
@@ -227,7 +258,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                    about *this* application and follows from that. */}
           <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="drawer" />
 
-          {/* 3. Job search status — the required section. PL-Team-only: the pill
+          {/* 4. Job search status — the required section. PL-Team-only: the pill
                    carries the audience, the note carries the purpose, and the
                    value never appears on the public profile or in the apply
                    read-back. */}
@@ -293,7 +324,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
             </div>
           </DetailsSection>
 
-          {/* 4–6. Optional sections — what a hiring team actually reads.
+          {/* 5–7. Optional sections — what a hiring team actually reads.
                    Real components: they edit in place and save themselves.
 
                    Experience is the one section with a shortcut: drop a CV and

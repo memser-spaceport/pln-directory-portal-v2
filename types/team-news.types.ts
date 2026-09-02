@@ -66,10 +66,6 @@ export interface ISuggestedTeam {
   name: string;
   logo: string | null;
   reason: string;
-  /** One-line team blurb (same field the teams grid shows). `reason` takes
-      precedence in the UI — it says why this team is suggested to *you*,
-      which a tagline can't — so this is only the fallback when `reason` is
-      missing or blank. */
   shortDescription?: string | null;
 }
 

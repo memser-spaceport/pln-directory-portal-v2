@@ -118,9 +118,9 @@
   line-height: 16px;
   letter-spacing: -0.2px;
   color: #455468;
-  // Two lines, so a long reason can't make one card taller than its neighbours.
+  // Three lines, so a long description can't make one card taller than its neighbours.
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

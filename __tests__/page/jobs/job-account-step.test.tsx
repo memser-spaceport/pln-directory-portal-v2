@@ -302,8 +302,28 @@ describe('the outbound review step’s two doors', () => {
     const { container } = outboundReview();
 
     expect(screen.getByRole('button', { name: /Apply on team site/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Create Job Profile' })).toBeInTheDocument();
-    expect(within(footerOf(container)).getByText(/A profile lets recruiters across the network/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Create your profile' })).toBeInTheDocument();
+    /* The case for a profile is no longer made here — it is a card in the body
+       of the step. What the footer keeps is the caption on the press itself,
+       which is a different kind of sentence: what this costs and what it buys,
+       not why a profile is worth having. */
+    expect(within(footerOf(container)).getByText(/teams across the network can find you/)).toBeInTheDocument();
+    expect(
+      within(footerOf(container)).queryByText(/A profile lets recruiters across the network/),
+    ).not.toBeInTheDocument();
+  });
+
+  /* A caption floating near a button is not a caption for it. The footer draws
+     the note and the branch owns the button, so the association is the one thing
+     neither can do alone — which is exactly the kind of wiring that rots. */
+  it('names the caption as the press’s description', () => {
+    const { container } = outboundReview();
+
+    const note = within(footerOf(container)).getByText(/teams across the network can find you/);
+    expect(screen.getByRole('button', { name: 'Create your profile' })).toHaveAttribute(
+      'aria-describedby',
+      note.id,
+    );
   });
 
   /* Into the drawer's own step 2 — the account form — so signing up from the job
@@ -312,7 +332,7 @@ describe('the outbound review step’s two doors', () => {
     const onStepChange = jest.fn();
     outboundReview({ onStepChange });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create Job Profile' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Create your profile' }));
 
     expect(onStepChange).toHaveBeenCalledWith('profile');
   });
@@ -324,25 +344,32 @@ describe('the outbound review step’s two doors', () => {
     outboundReview({ isLoggedIn: true, memberUid: 'm1', viewerState: 'pending-approval' });
 
     expect(screen.getByRole('button', { name: /Apply on team site/ })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Create Job Profile' })).not.toBeInTheDocument();
-    expect(screen.queryByText(/A profile lets recruiters across the network/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Create your profile' })).not.toBeInTheDocument();
+    expect(screen.queryByText(/teams across the network can find you/)).not.toBeInTheDocument();
   });
 
   /* **DOM order is load-bearing here.** On phones the bar stacks and the design
-     puts the profile press on top, which the stylesheet gets with
-     `column-reverse` — so the order these two are written in is the order they
-     appear in reversed. Someone tidying the JSX by putting the primary button
-     first would silently flip the mobile layout, and no media query runs in
-     jsdom to catch it. This is what catches it. */
+     puts the profile press on top, which the stylesheet gets by demoting the
+     outbound press with `order: 1` (`.footerLeadDemoted`) — so the order these
+     two are written in is the order they appear in reversed. Someone tidying the
+     JSX by putting the primary button first would silently flip the mobile
+     layout, and no media query runs in jsdom to catch it. This is what catches
+     it.
+
+     The mechanism changed and the assertion did not: this used to be
+     `column-reverse` on a group holding both buttons, back when the bar's left
+     slot was a tinted note. The outbound press moved into that slot when the
+     note became a card in the body of the step, and `order` is how a lone child
+     of `.footerInner` does what a group could do for itself. */
   it('writes the outbound press first, which is what the mobile stack reverses', () => {
     outboundReview();
 
     const buttons = screen
       .getAllByRole('button')
       .map((b) => b.textContent?.trim())
-      .filter((label) => label === 'Create Job Profile' || label?.startsWith('Apply on team site'));
+      .filter((label) => label === 'Create your profile' || label?.startsWith('Apply on team site'));
 
-    expect(buttons).toEqual(['Apply on team site', 'Create Job Profile']);
+    expect(buttons).toEqual(['Apply on team site', 'Create your profile']);
   });
 
   /* The rail is withheld for every step of an outbound run, not just the reading

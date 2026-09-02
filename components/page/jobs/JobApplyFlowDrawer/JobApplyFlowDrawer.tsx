@@ -9,7 +9,7 @@ import { toast } from '@/components/core/ToastContainer';
 import { Button } from '@/components/common/Button';
 import { Checkbox } from '@/components/common/Checkbox';
 import { Drawer } from '@/components/common/Drawer';
-import { ArrowUpRightIcon, CheckIcon, CloseIcon, InfoCircleIconOutlined } from '@/components/icons';
+import { ArrowUpRightIcon, CheckIcon, CloseIcon } from '@/components/icons';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import type { IMember } from '@/types/members.types';
 
@@ -26,6 +26,7 @@ import type { BoardViewerState } from '@/services/jobs/job-board-viewer';
 
 import { ApplyFlowSteps, type ApplyFlowStep } from '@/components/page/jobs/ApplyFlowSteps/ApplyFlowSteps';
 import { JobDetailPane } from '@/components/page/jobs/JobDetailPane/JobDetailPane';
+import { JobUnlockBanner } from '@/components/page/jobs/JobUnlockBanner/JobUnlockBanner';
 import { JobProfilePane, BackIcon, type ProfileState } from '@/components/page/jobs/JobProfileDrawer/JobProfileDrawer';
 import {
   JobApplicationPane,
@@ -58,6 +59,14 @@ import btn from '@/components/common/Button/Button.module.scss';
 // so the flow opens the same way wherever you are in it.
 import s from '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfileDrawer/EditInvestorProfileDrawer.module.scss';
 import d from './JobApplyFlowDrawer.module.scss';
+
+/**
+ * The id the footer's `actionNote` is drawn with, so the button it describes can
+ * point at it. A fixed string rather than a generated one because exactly one
+ * drawer is mounted at a time — this is a drawer, not a list item — and a stable
+ * id is the difference between an assertion that reads and one that guesses.
+ */
+const FOOTER_ACTION_NOTE_ID = 'job-apply-footer-action-note';
 
 /**
  * The rail's labels. Three positions, and they do not move.
@@ -576,7 +585,24 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
      in 12px tertiary — and `lead` is for the one step that puts a control there
      instead, which needs neither that wrapper nor that voice. A step sets one or
      the other, never both. */
-  type FooterContent = { hint: string | null; lead?: React.ReactNode; action: React.ReactNode };
+  type FooterContent = {
+    hint: string | null;
+    lead?: React.ReactNode;
+    action: React.ReactNode;
+    /**
+     * A caption drawn *beneath* the action, where `hint` is drawn beside it.
+     *
+     * The distinction is not decoration. `hint` says something about the screen
+     * and sits in the screen's own reading order; this says something about the
+     * press, and a sentence about a button that is not next to that button is a
+     * sentence about nothing in particular.
+     *
+     * Any branch that sets this MUST put `aria-describedby={FOOTER_ACTION_NOTE_ID}`
+     * on the button it returns as `action` — the footer draws the note but has
+     * no way to reach inside `action` and associate it.
+     */
+    actionNote?: string;
+  };
 
   /* One footer, three steps: a button that names the act, and beside it a
      sentence only when there is something the screen does not already say.
@@ -649,10 +675,18 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             variant="light"
             style="fill"
             size="m"
-            /* `.footerAction`'s auto-margin only when this button is alone in the
-               bar. Inside the pair below the group owns the alignment, and an
-               auto margin on the first child would shove the two apart. */
-            className={clsx(isLoggedIn && d.footerAction, d.externalButton)}
+            /* `.footerAction`'s auto-margin only when this button is alone in
+               the bar. Logged out it occupies the bar's left slot, where the
+               row's own `space-between` does the work and an auto margin would
+               shove the two apart.
+
+               `.footerLeadDemoted` is the other half of that: below 960px the
+               bar is a plain column and this button is its first child, so
+               without an `order` flip it would draw *above* the profile press.
+               The stack used to get that from `column-reverse` on a group that
+               held both buttons; the group is gone, and the rule moved here
+               with it rather than being lost. */
+            className={clsx(isLoggedIn ? d.footerAction : d.footerLeadDemoted, d.externalButton)}
             onClick={onApply}
           >
             Apply on team site
@@ -670,55 +704,83 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
         if (isLoggedIn) return { hint: null, action: outbound };
 
         return {
-          /* The `lead` slot rather than `hint`, because this is a bordered note
-             and not the bare 12px sentence `hint` renders. Same position, same
-             precedence — see `FooterContent`. */
-          lead: (
-            <p className={d.footerNote}>
-              <InfoCircleIconOutlined width={14} height={14} className={d.footerNoteIcon} aria-hidden="true" />A profile
-              lets recruiters across the network reach you for this and future roles.
-            </p>
-          ),
+          /* The outbound press in `lead`, which is what that slot is for — "the
+             one step that puts a control there instead", as the type says, the
+             way the profile step puts its consent checkbox there.
+
+             What used to occupy it was a tinted note making the case for a
+             profile, and both buttons were crowded into `action` beside each
+             other. The case moved into the body of the step, where it is a card
+             with room for two reasons instead of one clause (`JobUnlockBanner`).
+             With the note gone, the two presses can take the ends of the bar the
+             design always wanted them at: `.footerInner` is already
+             `space-between`, so nothing new lays this out. */
+          lead: outbound,
           hint: null,
+          /* Into the drawer's own step 2, which is the account form — so
+             "sign up from the job you are reading" is one press and no
+             navigation. What happens after is already right: creating the
+             account hands off to Privy, and the resume lands back on this
+             role's review step, where the outbound button is waiting.
+             No step 3 is ever promised, which is why the rail stays off. */
           action: (
-            <div className={d.footerActions}>
-              {outbound}
-              {/* Into the drawer's own step 2, which is the account form — so
-                  "sign up from the job you are reading" is one press and no
-                  navigation. What happens after is already right: creating the
-                  account hands off to Privy, and the resume lands back on this
-                  role's review step, where the outbound button above is waiting.
-                  No step 3 is ever promised, which is why the rail stays off. */}
-              <Button variant="primary" style="fill" size="m" onClick={() => goTo('profile')}>
-                Create Job Profile
-              </Button>
-            </div>
+            <Button
+              variant="primary"
+              style="fill"
+              size="m"
+              aria-describedby={FOOTER_ACTION_NOTE_ID}
+              onClick={() => goTo('profile')}
+            >
+              {/* "Create your profile", not the design's "Create profile →
+                  signal interest". Nothing here signals interest in this role:
+                  the press opens an account and returns to this same screen,
+                  and the team learns nothing. A label promising otherwise would
+                  be found out one screen later. */}
+              Create your profile
+            </Button>
           ),
+          /* Two minutes is the form; the rest is what the two minutes buy, said
+             in the terms the banner above already set. Not "the team is
+             notified you are interested" — see the label. */
+          actionNote: '~2 min · teams across the network can find you',
         };
       }
 
       return {
-        /* One state left with something to say, down from three. The two that
-           went were narrating the rail — "the next step opens your account",
-           "the next step is finishing it" — which is what the rail two inches
-           above is drawn to say, and it says it without spending a sentence.
-           What survives is the only one making a claim the rail cannot: that
-           for a finished profile this press is the last one.
+        /* Nothing beside the button now, down from three sentences. Two were
+           narrating the rail — "the next step opens your account", "the next
+           step is finishing it" — which is what the rail two inches above is
+           drawn to say, and it says it without spending a sentence. The third
+           claimed that for a finished profile this press is the last one, and
+           went the same way.
 
-           `isLoggedIn &&` is belt-and-braces. `complete` is seeded from a prop
-           this component does not own, and the sentence says "your PL profile"
-           — a claim that must never reach someone who has no account, whatever
-           that prop is doing. */
-        hint: isLoggedIn && complete ? null : null,
+           What was left behind was `isLoggedIn && complete ? null : null` — a
+           ternary whose two arms were the same value, the shape of a condition
+           kept after the thing it guarded was deleted. It is `null`. */
+        hint: null,
         action: (
           /* Four words that carry what the deleted sentence was carrying: the
              press signs you up, and applying is what it is for. A stranger
              pressing a button labelled "Apply" would be told the truth one
              screen too late. */
-          <Button variant="primary" style="fill" size="m" className={d.footerAction} onClick={onApply}>
+          <Button
+            variant="primary"
+            style="fill"
+            size="m"
+            className={d.footerAction}
+            aria-describedby={isLoggedIn ? undefined : FOOTER_ACTION_NOTE_ID}
+            onClick={onApply}
+          >
             {isLoggedIn ? 'Apply' : 'Sign up to Apply'}
           </Button>
         ),
+        /* Gated, and the gate is the point. This is not the logged-out branch —
+           it is every in-app apply there is, so an approved member pressing
+           "Apply" lands here too, as does a Job Aspirant and a member still
+           pending. Only the *label* has ever switched on `isLoggedIn`; a note
+           that did not would be this footer offering a sign-up to four states
+           that signed up months ago. */
+        actionNote: isLoggedIn ? undefined : '~2 min · your profile goes with your application',
       };
     }
 
@@ -896,6 +958,18 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               appliedAt={appliedAt}
               source={source}
               showOriginalPosting={showOriginalPosting}
+              /* The case for a profile, made to the only people who can act on
+                 it. Not narrowed to `applyGoesExternal` as the footer below is:
+                 on a Protocol Labs role a stranger applies in-app, which is the
+                 state where the argument is most true, and withholding it there
+                 would leave it only on the roles the flow hands off anyway.
+
+                 The cost is that on those PL roles the rail is *not* withheld,
+                 so this sits under it — two objects about what happens next.
+                 They say different things (which steps exist; why bother) and
+                 the banner's numbers are half the size of the rail's, which is
+                 what keeps them from reading as one journey drawn twice. */
+              banner={!isLoggedIn ? <JobUnlockBanner /> : null}
             />
           )}
 
@@ -946,7 +1020,22 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                 would push the button down 12px on every phone screen where the
                 footer is now silent. */}
             {footer.lead ?? (footer.hint && <p className={d.footerHint}>{footer.hint}</p>)}
-            {footer.action}
+            {/* Wrapped only when there is a caption to wrap it with. An
+                always-rendered column would put a 4px-gap flex box around every
+                lone button in the flow for the sake of the two states that use
+                one, and `.footerAction`'s auto-margin — which is how a lone
+                button finds the right edge — would then be applying to a child
+                of the wrapper rather than to the row. */}
+            {footer.actionNote ? (
+              <div className={d.footerActionColumn}>
+                {footer.action}
+                <p id={FOOTER_ACTION_NOTE_ID} className={d.footerActionNote}>
+                  {footer.actionNote}
+                </p>
+              </div>
+            ) : (
+              footer.action
+            )}
           </div>
         </div>
       </FormProvider>

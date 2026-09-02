@@ -1,0 +1,100 @@
+/* Every custom property is written `var(--name, #fallback)`: this app doesn't
+   load the DS token sheet, so a bare token resolves to nothing and the fallback
+   is what actually paints. Same rule as `JobApplyFlowDrawer.module.scss`. */
+
+.root {
+  /* The drawer's content column is `align-items: center`, so a block child
+     shrink-wraps its text and floats to the middle of the 720px measure. This
+     is the third component in this drawer to need the line, and the first two
+     needed it after someone noticed the card was narrower than its neighbours. */
+  align-self: stretch;
+  width: 100%;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  padding: 16px;
+  border-radius: 8px;
+
+  /* The product's settled "this is a message, not content" surface — the same
+     pair as `DetailsSection.missingData` and `JobBoardBanner`'s `.brandSurface`.
+     1px, not the design's 0.8px: there is no sub-pixel border anywhere in this
+     codebase, and one would render differently on every device pixel ratio. */
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* A grid rather than a flex column with a hard indent on the body. The badge
+   column *is* the hanging indent, so the two cannot drift apart when the badge
+   changes size — which a `padding-left: 28px` on the sub-line silently would. */
+.item {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  column-gap: 8px;
+  row-gap: 4px;
+}
+
+.badge {
+  grid-column: 1;
+  grid-row: 1;
+
+  width: 20px;
+  height: 20px;
+  border-radius: 100px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--action-bg-brand-normal, #1b4dff);
+  color: var(--foreground-light-primary, #fff);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+}
+
+.itemHead {
+  grid-column: 2;
+  grid-row: 1;
+
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.itemBody {
+  grid-column: 2;
+  grid-row: 2;
+
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}

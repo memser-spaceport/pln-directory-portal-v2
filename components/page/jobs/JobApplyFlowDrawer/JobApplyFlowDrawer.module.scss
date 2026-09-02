@@ -235,89 +235,90 @@
   flex-shrink: 0;
 }
 
-// The two presses a logged-out reader gets: leave for the employer's site, or
-// make a profile here. A group rather than two loose children because the bar is
-// `space-between` and they belong together on the right — and because
-// `.footerAction`'s own auto margin, left on the first of them, would push the
-// pair apart instead of pushing the pair over.
-.footerActions {
+// The bar's right-hand end: the press, and the caption saying what it costs and
+// what it buys. Wrapped only when there is a caption — the footer picks between
+// this and a bare button, so no lone button in the flow grows a flex box for the
+// sake of the two states that need one.
+//
+// What stood here was a group holding BOTH buttons on the right, from when the
+// bar's left slot was taken by a tinted note making the case for a profile. That
+// case is a card in the body of the step now (`JobUnlockBanner`), which freed the
+// left slot for the outbound press and let the two take the ends of the bar the
+// design always wanted them at.
+.footerActionColumn {
   display: flex;
-  gap: 8px;
-
-  /* **Stacked, full width, and the profile press on top.**
-     The bar itself is already a column at this width (`.footerInner`), and the
-     design stacks these two inside it rather than leaving a pair of half-width
-     buttons on a 400px screen.
-
-     `column-reverse` and not a reordered DOM, because the two orders genuinely
-     differ: the design puts the outbound press on the LEFT on desktop, where
-     left is the lesser position, and on the BOTTOM here, where bottom is the
-     lesser position. Something has to reverse.
-
-     The cost is one tab stop out of visual order on phones — focus reaches
-     "Apply on team site" first while "Create Job Profile" is drawn above it.
-     Taken here rather than on desktop for two reasons: reversing the other way
-     would put the mismatch on the wider viewport, where a keyboard is far more
-     likely to be the input; and these are two adjacent buttons in a two-item
-     group, so the whole disagreement is a single position. Worth revisiting if a
-     third control ever lands in this bar — at three the cost stops being one
-     position and starts being an order nobody can predict. */
-  flex-direction: column-reverse;
+  flex-direction: column;
   align-items: stretch;
-
-  > * {
-    white-space: nowrap;
-  }
-
-  @include media.tablet-landscape {
-    flex-direction: row;
-    align-items: center;
-    flex-shrink: 0;
-    /* What keeps the pair on the right once the bar is a row — the same job
-       `.footerAction`'s own auto margin does when it is alone in there. */
-    margin-left: auto;
-
-    /* Back to hugging their labels. Stretch is what makes them full width in the
-       column above, and a row of two stretched buttons would split the bar. */
-    > * {
-      width: auto;
-    }
-  }
-}
-
-// The note beside them, which is the reason the second button is worth a press.
-// Bordered and tinted rather than `.footerHint`'s bare sentence: this one is
-// making a case rather than annotating a control, and it is the only thing in
-// the bar that is neither a button nor a caption for one.
-.footerNote {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin: 0;
-  padding: 6px 8px;
-  border-radius: 8px;
-  background: var(--background-brand-soft-surface, #f2f5ff);
-
-  font-size: 12px;
-  font-weight: 400;
-  // 14px, tighter than `.footerHint`'s 18px: this wraps to two lines inside a
-  // 65px bar, and the looser leading is what would push it out of one.
-  line-height: 14px;
-  letter-spacing: 0.12px;
-  color: var(--foreground-neutral-primary, #0a0c11);
+  gap: 4px;
 
   /* Same reason `.footerHint` carries it: a flex item's default `min-width:auto`
      refuses to shrink below its longest word, which is how a sentence shoves a
      nowrap button off the end of the row. */
   min-width: 0;
+
+  @include media.tablet-landscape {
+    align-items: flex-end;
+    flex-shrink: 0;
+    /* What puts this on the right when it is the bar's only child — the job
+       `.footerAction`'s auto margin does for a lone button, which it can no
+       longer do from inside this wrapper. With a lead beside it the bar's own
+       `space-between` has already done the work and this changes nothing. */
+    margin-left: auto;
+  }
 }
 
-.footerNoteIcon {
-  flex-shrink: 0;
-  // Optically centred on the first line rather than the box: `align-items:
-  // flex-start` puts it at the cap line, and 14px of icon against 14px of
-  // leading needs no nudge.
+// The caption under the press.
+//
+// `--foreground-neutral-secondary`, not the design's tertiary `#8897ae`: 12px of
+// #8897ae on white is about 3.0:1 and fails AA. `.footerHint` made the same
+// substitution at the same size for the same reason, and a caption nobody can
+// read is worse than no caption.
+.footerActionNote {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
   color: var(--foreground-neutral-secondary, #455468);
+
+  /* The group this replaced set `white-space: nowrap` on its children, which was
+     right for two buttons and is wrong for a sentence — at 400px this one wraps,
+     and nowrap would run it out of the bar. Said explicitly because it is
+     inheriting nothing now, and the next person to put something in this column
+     should see which way the decision went. */
+  white-space: normal;
+
+  @include media.tablet-landscape {
+    text-align: right;
+  }
+}
+
+// The outbound press while it occupies the bar's LEFT slot, which is only ever
+// while a logged-out reader has a profile press beside it.
+//
+/* **The profile press stays on top when the bar stacks.** Below 960px
+   `.footerInner` is a plain column and the lead slot is its first child, so
+   without this the outbound press draws above the primary — reversing a decision
+   that predates this rule.
+
+   That decision used to be `column-reverse` on a group holding both buttons. The
+   group is gone; the reasoning is not, and it is still the reasoning here: the
+   design puts the outbound press on the LEFT on desktop, where left is the
+   lesser position, and on the BOTTOM when stacked, where bottom is the lesser
+   position. Something has to reverse.
+
+   The cost is unchanged too — one tab stop out of visual order on phones, focus
+   reaching "Apply on team site" first while "Create your profile" is drawn above
+   it. Taken here rather than on desktop because reversing the other way would
+   put the mismatch on the wider viewport, where a keyboard is far more likely to
+   be the input, and because two adjacent controls make the whole disagreement a
+   single position. Worth revisiting if a third control ever lands in this bar. */
+.footerLeadDemoted {
+  order: 1;
+
+  @include media.tablet-landscape {
+    order: 0;
+  }
 }
 
 /* Doubled to outrank `.root:disabled`, which is the same specificity and would

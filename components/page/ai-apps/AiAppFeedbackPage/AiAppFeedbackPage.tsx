@@ -5,19 +5,50 @@ import { clsx } from 'clsx';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Button } from '@/components/common/Button/Button';
+import { Modal } from '@/components/common/Modal/Modal';
 import { ArrowBackIcon } from '@/components/icons';
 import { useAiAppFeedbackList } from '@/services/ai-app-feedback/hooks/useAiAppFeedbackList';
 import { useAiAppFeedbackReviewAccess } from '@/services/ai-app-feedback/hooks/useAiAppFeedbackReviewAccess';
 import { useUpdateAiAppFeedbackStatus } from '@/services/ai-app-feedback/hooks/useUpdateAiAppFeedbackStatus';
 import type { AiAppFeedbackStatus } from '@/services/ai-app-feedback/constants';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
+import { QuillContent } from '@/components/ui/QuillContent/QuillContent';
+import { sanitizeForumPostHtml } from '@/utils/html';
 import { FeedbackStatusSelector } from './FeedbackStatusSelector/FeedbackStatusSelector';
 import { exportAiAppFeedbackCsv } from './utils/exportAiAppFeedbackCsv';
 import { getAvatarColor } from './utils/getAvatarColor';
 
 import s from './AiAppFeedbackPage.module.scss';
-
+ 
 const ALL_TAB = 'All apps';
+
+function looksLikeHtml(text: string): boolean {
+  return /^\s*</.test(text);
+}
+
+function FeedbackBody({
+  text,
+  onImageClick,
+}: {
+  text: string;
+  onImageClick: (image: { src: string; alt: string }) => void;
+}) {
+  if (!looksLikeHtml(text)) {
+    return <div className={s.messageText}>{text}</div>;
+  }
+
+  return (
+    <div
+      onClick={(event) => {
+        const img = (event.target as HTMLElement).closest('img');
+        if (!img?.src) return;
+        onImageClick({ src: img.currentSrc || img.src, alt: img.alt });
+      }}
+    >
+      <QuillContent html={sanitizeForumPostHtml(text)} className={s.richMessage} />
+    </div>
+  );
+}
 
 const DownloadIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -38,6 +69,7 @@ export function AiAppFeedbackPage() {
   const analytics = useAiAppsAnalytics();
   const hasTrackedView = useRef(false);
   const [activeTab, setActiveTab] = useState(ALL_TAB);
+  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
 
   useEffect(() => {
     if (hasTrackedView.current) return;
@@ -160,8 +192,8 @@ export function AiAppFeedbackPage() {
                           <td className={s.appNameCell} title={row.appName}>
                             {row.appName}
                           </td>
-                          <td title={row.text}>
-                            <div className={s.messageText}>{row.text}</div>
+                          <td title={looksLikeHtml(row.text) ? undefined : row.text}>
+                            <FeedbackBody text={row.text} onImageClick={setLightbox} />
                           </td>
                           <td>
                             <div className={s.submitter}>
@@ -197,6 +229,19 @@ export function AiAppFeedbackPage() {
           </>
         )}
       </div>
+      <Modal
+        isOpen={Boolean(lightbox)}
+        onClose={() => setLightbox(null)}
+        lockScroll
+        overlayClassname={s.lightboxOverlay}
+        className={s.lightboxContent}
+        ariaLabelledBy="ai-app-feedback-lightbox-title"
+      >
+        <h2 id="ai-app-feedback-lightbox-title" className={s.visuallyHidden}>
+          Full size image
+        </h2>
+        {lightbox && <img src={lightbox.src} alt={lightbox.alt} />}
+      </Modal>
     </div>
   );
 }

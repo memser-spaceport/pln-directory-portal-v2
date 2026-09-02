@@ -2,9 +2,11 @@ import '@testing-library/jest-dom';
 import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
 import {
   AI_APP_FEEDBACK_DRAFT_KEY,
+  FEEDBACK_PLACEHOLDER,
   GiveAiAppFeedbackDialog,
   LABOS_AI_APPS_OPTION,
 } from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog';
+import { toast } from '@/components/core/ToastContainer';
 import { clearFormDraft, readFormDraft, writeFormDraft } from '@/utils/formDraftStorage';
 
 const mockUseAiApps = jest.fn();
@@ -14,7 +16,20 @@ const mockUseCurrentUserStore = jest.fn();
 const mockOnFeedbackSubmitted = jest.fn();
 const mockOnFeedbackSubmitFailed = jest.fn();
 
-const feedbackPlaceholder = 'What worked, what didn’t, and what would make this more useful?';
+jest.mock('@/components/form/FormEditor', () => ({
+  FormEditor: ({ name, placeholder }: { name: string; placeholder: string }) => {
+    const { useFormContext } = require('react-hook-form');
+    const { setValue, watch } = useFormContext();
+    return (
+      <textarea
+        aria-label="Your feedback"
+        placeholder={placeholder}
+        value={watch(name) ?? ''}
+        onChange={(e) => setValue(name, e.target.value, { shouldDirty: true })}
+      />
+    );
+  },
+}));
 
 jest.mock('react-select', () => ({
   __esModule: true,
@@ -78,12 +93,18 @@ jest.mock('@/components/core/ToastContainer', () => ({
   toast: { success: jest.fn(), error: jest.fn() },
 }));
 
+const mockSaveRegistrationImage = jest.fn();
+jest.mock('@/services/registration.service', () => ({
+  saveRegistrationImage: (file: File) => mockSaveRegistrationImage(file),
+}));
+
 describe('GiveAiAppFeedbackDialog', () => {
   beforeEach(() => {
     window.localStorage.clear();
     mockUseCurrentUserStore.mockReturnValue({
       currentUser: { uid: 'member-1', name: 'Ada Lovelace', email: 'ada@example.com' },
     });
+    mockSaveRegistrationImage.mockResolvedValue({ image: { url: 'https://cdn.test/hosted.png' } });
   });
 
   afterEach(() => {
@@ -115,7 +136,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     expect(screen.getByTestId('selected-app')).toHaveTextContent('My App');
     expect(screen.getByRole('button', { name: LABOS_AI_APPS_OPTION.label })).toBeInTheDocument();
 
-    fireEvent.change(screen.getByPlaceholderText(feedbackPlaceholder), {
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), {
       target: { value: 'Nice app!' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
@@ -126,6 +147,68 @@ describe('GiveAiAppFeedbackDialog', () => {
         expect.objectContaining({ onSuccess: expect.any(Function), onError: expect.any(Function) }),
       ),
     );
+    expect(mockContactSupportMutate).not.toHaveBeenCalled();
+  });
+
+  it('submits HTML feedback', async () => {
+    mockUseAiApps.mockReturnValue({
+      apps: [{ uid: 'app-1', name: 'My App' }],
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), {
+      target: { value: '<p><strong>Nice app!</strong></p>' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+    await waitFor(() =>
+      expect(mockMutate).toHaveBeenCalledWith(
+        { appUid: 'app-1', text: '<p><strong>Nice app!</strong></p>' },
+        expect.objectContaining({ onSuccess: expect.any(Function) }),
+      ),
+    );
+  });
+
+  it('allows image-only feedback', async () => {
+    mockUseAiApps.mockReturnValue({
+      apps: [{ uid: 'app-1', name: 'My App' }],
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), {
+      target: { value: '<p><img src="https://cdn.test/shot.png" alt="shot"></p>' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+    await waitFor(() =>
+      expect(mockMutate).toHaveBeenCalledWith(
+        { appUid: 'app-1', text: '<p><img src="https://cdn.test/shot.png" alt="shot"></p>' },
+        expect.any(Object),
+      ),
+    );
+  });
+
+  it('does not submit empty Quill markup', async () => {
+    mockUseAiApps.mockReturnValue({
+      apps: [{ uid: 'app-1', name: 'My App' }],
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), {
+      target: { value: '<p><br></p>' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+    expect(mockMutate).not.toHaveBeenCalled();
     expect(mockContactSupportMutate).not.toHaveBeenCalled();
   });
 
@@ -146,7 +229,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     render(<GiveAiAppFeedbackDialog isOpen onClose={onClose} />);
 
     fireEvent.click(screen.getByRole('button', { name: LABOS_AI_APPS_OPTION.label }));
-    fireEvent.change(screen.getByPlaceholderText(feedbackPlaceholder), {
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), {
       target: { value: 'Platform needs better docs' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
@@ -154,10 +237,10 @@ describe('GiveAiAppFeedbackDialog', () => {
     await waitFor(() =>
       expect(mockContactSupportMutate).toHaveBeenCalledWith(
         {
-          topic: 'Give feedback',
+          topic: 'AI Apps Feedback',
           email: 'ada@example.com',
           name: 'Ada Lovelace',
-          message: 'AI Apps Feedback: Platform needs better docs',
+          message: 'Platform needs better docs',
           metadata: {
             logged: true,
             uid: 'member-1',
@@ -169,6 +252,51 @@ describe('GiveAiAppFeedbackDialog', () => {
     );
     expect(mockMutate).not.toHaveBeenCalled();
     expect(mockOnFeedbackSubmitted).not.toHaveBeenCalled();
+  });
+
+  it('uploads pasted data-URI images before submitting', async () => {
+    mockUseAiApps.mockReturnValue({
+      apps: [{ uid: 'app-1', name: 'My App' }],
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), {
+      target: {
+        value: '<p><img src="data:image/png;base64,AAAA"></p>',
+      },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+    await waitFor(() =>
+      expect(mockMutate).toHaveBeenCalledWith(
+        { appUid: 'app-1', text: '<p><img src="https://cdn.test/hosted.png"></p>' },
+        expect.any(Object),
+      ),
+    );
+    expect(mockSaveRegistrationImage).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not submit when a pasted image fails to upload', async () => {
+    mockSaveRegistrationImage.mockRejectedValue(new Error('upload failed'));
+    mockUseAiApps.mockReturnValue({
+      apps: [{ uid: 'app-1', name: 'My App' }],
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), {
+      target: { value: '<p><img src="data:image/png;base64,AAAA"></p>' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Image upload failed. Please try again.'));
+    expect(mockMutate).not.toHaveBeenCalled();
+    expect(mockContactSupportMutate).not.toHaveBeenCalled();
   });
 
   it('restores a typed draft when the dialog is reopened', async () => {
@@ -186,7 +314,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     rerender(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText(feedbackPlaceholder)).toHaveValue('Draft feedback text');
+      expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('Draft feedback text');
     });
   });
 
@@ -205,7 +333,7 @@ describe('GiveAiAppFeedbackDialog', () => {
       jest.advanceTimersByTime(0);
     });
 
-    fireEvent.change(screen.getByPlaceholderText(feedbackPlaceholder), {
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), {
       target: { value: 'Draft feedback text' },
     });
 
@@ -230,7 +358,7 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
 
-    fireEvent.change(screen.getByPlaceholderText(feedbackPlaceholder), {
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), {
       target: { value: 'Final feedback' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));

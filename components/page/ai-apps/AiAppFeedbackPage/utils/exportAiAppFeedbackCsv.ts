@@ -14,9 +14,27 @@ function csvCell(value: unknown): string {
   return str;
 }
 
+/** Flatten stored Quill HTML for spreadsheets: keep image URLs, drop the rest of the markup. */
+export function htmlToPlainText(value: string): string {
+  if (!/^\s*</.test(value)) {
+    return value;
+  }
+
+  return value
+    .replace(/<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi, ' $1 ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 const COLUMNS: Array<{ header: string; getter: (row: AiAppFeedbackRow) => unknown }> = [
   { header: 'app_name', getter: (row) => row.appName },
-  { header: 'feedback', getter: (row) => row.text },
+  { header: 'feedback', getter: (row) => htmlToPlainText(row.text) },
   { header: 'submitter', getter: (row) => row.member?.name ?? 'Unknown member' },
   { header: 'status', getter: (row) => AI_APP_FEEDBACK_STATUS_LABELS[row.status] },
   { header: 'date', getter: (row) => row.createdAt },

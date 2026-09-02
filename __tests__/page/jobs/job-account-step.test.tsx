@@ -310,6 +310,23 @@ describe('the outbound review step’s two doors', () => {
     expect(screen.queryByText(/A profile lets recruiters across the network/)).not.toBeInTheDocument();
   });
 
+  /* **DOM order is load-bearing here.** On phones the bar stacks and the design
+     puts the profile press on top, which the stylesheet gets with
+     `column-reverse` — so the order these two are written in is the order they
+     appear in reversed. Someone tidying the JSX by putting the primary button
+     first would silently flip the mobile layout, and no media query runs in
+     jsdom to catch it. This is what catches it. */
+  it('writes the outbound press first, which is what the mobile stack reverses', () => {
+    outboundReview();
+
+    const buttons = screen
+      .getAllByRole('button')
+      .map((b) => b.textContent?.trim())
+      .filter((label) => label === 'Create Job Profile' || label?.startsWith('Apply on team site'));
+
+    expect(buttons).toEqual(['Apply on team site', 'Create Job Profile']);
+  });
+
   /* The rail is withheld for every step of an outbound run, not just the reading
      one. Someone who presses Create Job Profile lands on the account form, and
      from there goes back to the posting and out — there is no third stop, so a

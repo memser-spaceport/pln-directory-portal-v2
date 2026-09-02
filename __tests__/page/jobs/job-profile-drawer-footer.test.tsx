@@ -299,3 +299,35 @@ describe('the profile pane’s identity verification', () => {
     expect(screen.queryByText('Please verify your identity')).not.toBeInTheDocument();
   });
 });
+
+/**
+ * Which job search statuses the profile step offers.
+ *
+ * Two, per the design — someone reading a job is not giving "Not looking" as an
+ * answer. The exception is the reason this is not a one-liner: this drawer is
+ * the only place in the product that writes `jobSearchStatus`.
+ */
+describe('the profile step’s job search options', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('offers two, dropping the one this step is not asking about', () => {
+    renderDrawer(INCOMPLETE);
+
+    expect(screen.getAllByRole('radio')).toHaveLength(2);
+    expect(screen.getByRole('radio', { name: /Actively looking/ })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /Open to the right role/ })).toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: /Not looking/ })).not.toBeInTheDocument();
+  });
+
+  /* Hiding it unconditionally would strand anyone who wants to stop being
+     surfaced — and worse, would draw this card with nothing selected for someone
+     already on that value, while `hasStatus` reported the section answered. */
+  it('still shows it to someone whose answer it already is', () => {
+    renderDrawer({ ...INCOMPLETE, jobSearchStatus: 'not-looking' });
+
+    const notLooking = screen.getByRole('radio', { name: /Not looking/ });
+    expect(notLooking).toBeInTheDocument();
+    expect(notLooking).toBeChecked();
+    expect(screen.getAllByRole('radio')).toHaveLength(3);
+  });
+});

@@ -318,6 +318,18 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                     the right winner. */}
               <JobSearchStatusInput
                 value={jobSearchStatus}
+                /* Two options, per the design — "Not looking" is not an answer
+                   this step is asking for, and someone reading a job is by
+                   definition not giving it.
+
+                   **Unless it is already their answer.** This drawer is the only
+                   place in the product that writes `jobSearchStatus`, so hiding
+                   the value unconditionally would both strand anyone who wants
+                   to stop being surfaced and — worse — render this card with no
+                   option selected for someone who is already on it, while
+                   `hasStatus` quietly reports the section as answered. Shown
+                   when it is the current value, hidden otherwise. */
+                hiddenValues={jobSearchStatus === 'not-looking' ? undefined : ['not-looking']}
                 onChange={(value) =>
                   updateMember.mutate(
                     { uid: memberUid, payload: { jobSearchStatus: value } },

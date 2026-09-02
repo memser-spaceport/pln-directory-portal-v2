@@ -31,7 +31,11 @@
   gap: 12px;
   padding: 12px;
   border-radius: var(--corner-radius-xl, 12px);
-  border: 1px solid transparent;
+  /* Drawn, not transparent. The design boxes every option and tints the chosen
+     one; a hairline only on the selected row made the other choices read as
+     labels rather than as controls you could press — and on a card with no
+     answer yet, as nothing at all. */
+  border: 1px solid var(--border-neutral-subtle, #e2e8f0);
   cursor: pointer;
   transition:
     background-color 0.15s ease,

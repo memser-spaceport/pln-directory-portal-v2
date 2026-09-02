@@ -2,15 +2,18 @@
 
 import * as yup from 'yup';
 import isEmpty from 'lodash/isEmpty';
-import { useForm } from 'react-hook-form';
-import { useCallback, useEffect } from 'react';
+import { FormProvider, useForm, type Resolver } from 'react-hook-form';
+import { useCallback, useEffect, useState } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import { useContactSupportStore } from '@/services/contact-support/store';
 import { ModalBase } from '@/components/common/ModalBase';
 import { QuestionCircleIcon } from '@/components/icons';
 import { LabeledInput } from '@/components/common/form/LabeledInput';
+import { FormEditor } from '@/components/form/FormEditor';
 import { Dropdown } from '@/components/form/Dropdown';
+import { toast } from '@/components/core/ToastContainer';
+import { hostDataUriImages, isBlankHtml } from '@/utils/html';
 import { IUserInfo } from '@/types/shared.types';
 
 import { CONTACT_SUPPORT_TOPICS } from './constants';
@@ -19,11 +22,23 @@ import { useContactSupport } from './hooks/useContactSupport';
 
 import s from './ContactSupport.module.scss';
 
-const contactSupportSchema = yup.object().shape({
+const MESSAGE_TOOLBAR: (string | Record<string, unknown>)[][] = [
+  [{ header: [1, 2, 3, false] }],
+  ['bold', 'link', 'image'],
+];
+
+function hasMessageContent(html: string): boolean {
+  return !isBlankHtml(html) || /<img\b/i.test(html);
+}
+
+const contactSupportSchema = yup.object({
   topic: yup.string().required('Topic is required'),
   email: yup.string().email('Must be a valid email').required('Email is required'),
   name: yup.string().required('Name is required'),
-  message: yup.string().required('Description is required'),
+  message: yup
+    .string()
+    .required('Description is required')
+    .test('has-content', 'Description is required', (value) => hasMessageContent(value ?? '')),
 });
 
 type ContactSupportFormData = yup.InferType<typeof contactSupportSchema>;
@@ -97,7 +112,7 @@ export function ContactSupport(props: Props) {
   }, [userInfo, contextTopic, prefillMessage]);
 
   const methods = useForm<ContactSupportFormData>({
-    resolver: yupResolver(contactSupportSchema),
+    resolver: yupResolver(contactSupportSchema) as Resolver<ContactSupportFormData>,
     defaultValues: getDefaultValues(),
     mode: 'onChange',
   });
@@ -119,13 +134,26 @@ export function ContactSupport(props: Props) {
     }
   }, [open, reset, getDefaultValues]);
 
-  const onSubmit = (data: ContactSupportFormData) => {
+  const [isHostingImages, setIsHostingImages] = useState(false);
+
+  const onSubmit = async (data: ContactSupportFormData) => {
+    let message = data.message;
+    try {
+      setIsHostingImages(true);
+      message = await hostDataUriImages(message);
+    } catch {
+      toast.error('Image upload failed. Please try again.');
+      return;
+    } finally {
+      setIsHostingImages(false);
+    }
+
     contactSupportMutation.mutate(
       {
         topic: data.topic,
         email: data.email,
         name: data.name,
-        message: data.message,
+        message,
         metadata: {
           ...metadata,
           logged: !isEmpty(userInfo),
@@ -146,7 +174,7 @@ export function ContactSupport(props: Props) {
     );
   };
 
-  const isLoading = contactSupportMutation.isPending;
+  const isLoading = contactSupportMutation.isPending || isHostingImages;
 
   const isEmailPrefilled = !!userInfo?.email;
   const isNamePrefilled = !!userInfo?.name;
@@ -156,83 +184,83 @@ export function ContactSupport(props: Props) {
   const fieldPlaceholder = getFieldPlaceholderByTopic(selectedTopic);
 
   return (
-    <ModalBase
-      className={s.root}
-      title="Contact Support"
-      titleIcon={<QuestionCircleIcon />}
-      description={description}
-      open={open}
-      cancel={{
-        onClick: () => {
-          closeModal();
+    <FormProvider {...methods}>
+      <ModalBase
+        className={s.root}
+        title="Contact Support"
+        titleIcon={<QuestionCircleIcon />}
+        description={description}
+        open={open}
+        cancel={{
+          onClick: () => {
+            closeModal();
 
-          if (metadata?.onCancel && typeof metadata.onCancel === 'function') {
-            metadata.onCancel();
-          }
-        },
-      }}
-      submit={{
-        label: isLoading ? 'Sending...' : 'Submit',
-        onClick: handleSubmit(onSubmit),
-        disabled: !isValid || isLoading,
-      }}
-    >
-      <Dropdown
-        id="topic"
-        label="Please choose topic below"
-        options={CONTACT_SUPPORT_TOPICS}
-        onItemSelect={(option) => {
-          if (option) {
-            setValue('topic', option.value, { shouldValidate: true });
-            updateTopic(option.value);
-          }
+            if (metadata?.onCancel && typeof metadata.onCancel === 'function') {
+              metadata.onCancel();
+            }
+          },
         }}
-        uniqueKey="value"
-        displayKey="label"
-        selectedOption={CONTACT_SUPPORT_TOPICS.find((topic) => topic.value === selectedTopic)}
-        isMandatory
-        classes={{
-          label: s.ddLabel,
-          ddRoot: s.ddRoot,
-          option: s.option,
-          selectedOption: s.selectedOption,
+        submit={{
+          label: isLoading ? 'Sending...' : 'Submit',
+          onClick: handleSubmit(onSubmit),
+          disabled: !isValid || isLoading,
         }}
-        arrowImgUrl="/icons/arrow-down.svg"
-      />
+      >
+        <Dropdown
+          id="topic"
+          label="Please choose topic below"
+          options={CONTACT_SUPPORT_TOPICS}
+          onItemSelect={(option) => {
+            if (option) {
+              setValue('topic', option.value, { shouldValidate: true });
+              updateTopic(option.value);
+            }
+          }}
+          uniqueKey="value"
+          displayKey="label"
+          selectedOption={CONTACT_SUPPORT_TOPICS.find((topic) => topic.value === selectedTopic)}
+          isMandatory
+          classes={{
+            label: s.ddLabel,
+            ddRoot: s.ddRoot,
+            option: s.option,
+            selectedOption: s.selectedOption,
+          }}
+          arrowImgUrl="/icons/arrow-down.svg"
+        />
 
-      <LabeledInput
-        label={isEmailPrefilled ? 'Email Address (Prefilled)' : 'Email Address'}
-        error={errors.email?.message}
-        input={{
-          type: 'email',
-          placeholder: 'Enter your email',
-          readOnly: isEmailPrefilled,
-          disabled: isEmailPrefilled,
-          ...register('email'),
-        }}
-      />
+        <LabeledInput
+          label={isEmailPrefilled ? 'Email Address (Prefilled)' : 'Email Address'}
+          error={errors.email?.message}
+          input={{
+            type: 'email',
+            placeholder: 'Enter your email',
+            readOnly: isEmailPrefilled,
+            ...register('email'),
+          }}
+        />
 
-      <LabeledInput
-        label={isNamePrefilled ? 'Name (Prefilled)' : 'Name'}
-        error={errors.name?.message}
-        input={{
-          placeholder: 'Enter your name',
-          readOnly: isNamePrefilled,
-          disabled: isNamePrefilled,
-          ...register('name'),
-        }}
-      />
+        <LabeledInput
+          label={isNamePrefilled ? 'Name (Prefilled)' : 'Name'}
+          error={errors.name?.message}
+          input={{
+            placeholder: 'Enter your name',
+            readOnly: isNamePrefilled,
+            ...register('name'),
+          }}
+        />
 
-      <LabeledInput
-        label={fieldLabel}
-        error={errors.message?.message}
-        input={{
-          as: 'textarea',
-          placeholder: fieldPlaceholder,
-          rows: 4,
-          ...register('message'),
-        }}
-      />
-    </ModalBase>
+        <FormEditor
+          name="message"
+          label={fieldLabel}
+          placeholder={fieldPlaceholder}
+          simplified
+          toolbarConfig={MESSAGE_TOOLBAR}
+          isRequired
+          minHeight={120}
+          className={s.editor}
+        />
+      </ModalBase>
+    </FormProvider>
   );
 }

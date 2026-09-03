@@ -94,35 +94,22 @@ const renderNavLabel = (props: any) => {
   );
 };
 
-// Collision clearance between a bar-total label's own text band and any
-// NAV/PLAA pill or buyback chip band it might overlap — smaller than
-// MARKER_CLEARANCE since this is text vs. a pill/chip, not marker vs.
-// marker. Approximates the 13px bold label's own vertical footprint around
-// its baseline (ascent above, descent below) so the two can be compared
-// without measuring the live DOM. MIN_TOTAL_LABEL_Y stops the label being
-// pushed high enough to clip the chart's own top edge on extreme data.
+// Approximates the label's text footprint, no live DOM measurement.
 const TOTAL_LABEL_CLEARANCE = 6;
 const TOTAL_LABEL_ASCENT = 13;
 const TOTAL_LABEL_DESCENT = 4;
-const MIN_TOTAL_LABEL_Y = CHART_MARGIN.top / 2;
+const MIN_TOTAL_LABEL_Y = CHART_MARGIN.top / 2; // stays clear of the chart's top edge
 
-// Read at rows[index]; not typed on NavPoint because it's synthesized by
-// NavChart's chartData map (buyback/buybackLabel), not part of the API shape.
+// Synthesized by NavChart's chartData map, not part of the NavPoint API shape.
 type ChartRow = NavPoint & { buyback: number | null };
 
 // Half-height of the thin band a bar-total label must clear around the
 // buyback track where it's just a dashed stroke, not a chip.
 const INTERPOLATED_LINE_HALF_BAND = 4;
 
-// The buyback dashed track connects across a gap with no auction via
-// connectNulls (Line's own prop, unrelated to this file) — recharts
-// straight-line-interpolates between the nearest two known points, by
-// category position, not by calendar date. A long gap (e.g. one auction
-// several months after the last) can put that interpolated stretch right
-// through a bar-total label even though no chip renders there. Mirrors
-// recharts' own interpolation so the label collision math matches what's
-// actually drawn. Returns null where nothing renders (no known point on one
-// or both sides — same as connectNulls drawing nothing past the last point).
+// The buyback dashed track interpolates across gaps via connectNulls,
+// straight-line by category position, not by date — mirrored here so the
+// collision math matches what's actually drawn.
 function interpolatedBuybackY(rows: ChartRow[], index: number): number | null {
   if (rows[index]?.buyback != null) return null; // real chip already covers this index
   let before = -1;
@@ -138,17 +125,10 @@ function interpolatedBuybackY(rows: ChartRow[], index: number): number | null {
   return rows[before].buyback! + (rows[after].buyback! - rows[before].buyback!) * t;
 }
 
-// The final (PLVH-bearing) bar's total is highlighted in green. Stays
-// above its bar by `offset` unless that would collide with the NAV/PLAA
-// pill and/or buyback chip plotted at the same index (independent perPlaa
-// scale, so the two can land at the same screen height purely by
-// coincidence) — in which case it's pushed just far enough above whichever
-// of those sits closest to clear both. The pill/chip themselves never move:
-// they're anchored to real data points (Figma design; the buyback chip
-// already has its own established nudge against the NAV line elsewhere in
-// this file), so the smallest, most localized fix is to move the one label
-// here that has no such anchoring — its position was already an offset
-// above the bar, not a plotted value.
+// The final (PLVH) bar's total is highlighted in green, offset above its
+// bar unless that collides with the NAV/PLAA pill or buyback chip at the
+// same index — the label moves to clear it, since it's the only one of
+// the three not anchored to a real plotted value.
 const renderTotalLabel = (rows: NavPoint[], offset: number = 10) => (props: any) => {
   const { x, y, width, value, index } = props;
   if (!value) return null;
@@ -156,11 +136,7 @@ const renderTotalLabel = (rows: NavPoint[], offset: number = 10) => (props: any)
   const highlight = row && row.plvh > 0;
   const defaultBaseline = y - offset;
 
-  // [top, bottom] of each price-series band this label might overlap. Both
-  // edges matter — a label sitting well *below* a band (its own bar is
-  // short, the price series is a long way up) is not a collision just
-  // because its bottom edge is numerically greater than the band's top; it
-  // also has to not have already cleared the band's bottom.
+  // [top, bottom] of each price-series band this label might overlap.
   const bands: Array<[number, number]> = [];
   if (row?.navPerPlaa != null) {
     const cy = perPlaaPixelY(row.navPerPlaa);
@@ -182,11 +158,7 @@ const renderTotalLabel = (rows: NavPoint[], offset: number = 10) => (props: any)
   const collidingTops = bands
     .filter(([bandTop, bandBottom]) => defaultLabelTop - TOTAL_LABEL_CLEARANCE < bandBottom && bandTop < defaultLabelBottom + TOTAL_LABEL_CLEARANCE)
     .map(([bandTop]) => bandTop);
-  // Clearing the closest (smallest) genuinely-colliding band top clears
-  // every other band this label was also colliding with, since all of them
-  // sit at or below it. Bars/periods with nothing nearby keep their default,
-  // fixed "offset above the bar" position untouched — this is now a rare
-  // safety net (see the domain compression below), not the primary fix.
+  // Clearing the nearest colliding band clears every band, since the rest sit at or below it.
   const baseline = collidingTops.length
     ? Math.max(MIN_TOTAL_LABEL_Y + TOTAL_LABEL_ASCENT, Math.min(...collidingTops) - TOTAL_LABEL_CLEARANCE - TOTAL_LABEL_DESCENT)
     : defaultBaseline;
@@ -229,36 +201,18 @@ const renderBuybackChip = (props: any) => {
   );
 };
 
-// Shared scale with the buyback track — plot area spans the per-PLAA
-// domain. Measured from the actual rendered chart (420 total height, plot
-// runs from y=48 to y=382): recharts reserves extra vertical space for the
-// XAxis band beyond the explicit CHART_MARGIN.bottom (8px), so the usable
-// plot height is 334, not 420 - 48 - 8 = 364. Verified against rendered
-// CartesianGrid line positions (48, 207.3, 294.65, 382 — evenly spaced).
-// Was hardcoded to 364 (unverified) prior to the total-label collision fix;
-// correcting it also makes the existing buyback-vs-NAV nudge
-// (plottedClearingPrice) match the real chart, not just the total label.
+// Plot area is 334px, not 420 - 48 - 8 = 364: recharts reserves extra space
+// for the XAxis band beyond CHART_MARGIN.bottom. Verified against rendered
+// CartesianGrid line positions (48, 207.3, 294.65, 382).
 const PER_PLAA_PLOT_HEIGHT = 334;
-// Domain headroom above the real NAV/PLAA + buyback price range (roughly
-// 13-21 today) so the whole price series maps into the LOWER portion of the
-// shared plot area, not the full 0-100% of it. One consistent value for the
-// entire chart (both views, every period) — not a per-point offset: a
-// low-NAV bar is short, so this naturally leaves the price series sitting
-// in the open space between the (fixed-position) Total NAV label and the
-// bar; a bar tall enough to reach into this same pixel band naturally has
-// the price line cross through its own upper area instead — same math
-// either way, no special-casing by month or by "before/after some date".
+// Headroom above the real ~13-21 price range keeps the series in the plot's lower band.
 const PER_PLAA_DOMAIN_MAX = 42;
 const perPlaaPixels = (units: number) => (units / PER_PLAA_DOMAIN_MAX) * PER_PLAA_PLOT_HEIGHT;
 const perPlaaUnits = (pixels: number) => (pixels / PER_PLAA_PLOT_HEIGHT) * PER_PLAA_DOMAIN_MAX;
 const MARKER_CLEARANCE = (PILL_HEIGHT + BUYBACK_CHIP_HEIGHT) / 2 + 3;
 
-// Absolute SVG y (origin top-left, same coordinate space recharts renders
-// into) of a value on the shared perPlaa axis. Same conversion
-// plottedClearingPrice already uses for the buyback track's pixel delta,
-// just returned as an absolute position — lets renderTotalLabel (below)
-// know where the NAV/PLAA pill and buyback chip actually land, without
-// waiting on recharts to render them first.
+// Absolute SVG y for a perPlaa value — same conversion plottedClearingPrice
+// uses below, just returned as a position instead of a delta.
 const perPlaaPixelY = (units: number) => CHART_MARGIN.top + PER_PLAA_PLOT_HEIGHT - perPlaaPixels(units);
 
 // A price within MARKER_CLEARANCE of NAV/PLAA gets lifted or dropped by the

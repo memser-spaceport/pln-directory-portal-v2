@@ -11,8 +11,11 @@ import { NewsDetailModal } from '@/components/page/home/TeamNews/components/News
 import { useFeedCommentCounts } from '@/services/feed/hooks/useFeedCommentCounts';
 import { useTeamNewsImpressions } from '@/services/team-news/hooks/useTeamNewsImpressions';
 import { useCreateTeamNewsPost } from '@/services/team-news/hooks/useCreateTeamNewsPost';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { TEAM_NEWS_PREVIEW_LIMIT } from '@/services/team-news/constants';
 import type { ITeamNewsByTeamResponse, ITeamNewsItem } from '@/types/team-news.types';
+import type { TeamStatus } from '@/types/teams.types';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 import { TeamNewsCard } from './TeamNewsCard';
 import { TeamNewsFeedLink } from './TeamNewsFeedLink';
@@ -28,7 +31,10 @@ interface TeamNewsRailProps {
   teamUid: string;
   teamName: string;
   initialData: ITeamNewsByTeamResponse;
+  /** SSR hint — may be false when the login cookie has no rbac yet. */
   canPost?: boolean;
+  isCurrentUserTeamMember?: boolean;
+  teamStatus?: TeamStatus | null;
   memberUid?: string;
 }
 
@@ -37,7 +43,15 @@ export type { TeamNewsUpvoteOverlay };
 
 type NewsModalState = { kind: 'none' } | { kind: 'archive'; focusUid: string | null } | { kind: 'detail'; uid: string };
 
-export function TeamNewsRail({ teamUid, teamName, initialData, canPost = false, memberUid }: TeamNewsRailProps) {
+export function TeamNewsRail({
+  teamUid,
+  teamName,
+  initialData,
+  canPost = false,
+  isCurrentUserTeamMember = false,
+  teamStatus = 'ACTIVE',
+  memberUid,
+}: TeamNewsRailProps) {
   const [modalState, setModalState] = useState<NewsModalState>({ kind: 'none' });
   const [composeOpen, setComposeOpen] = useState(false);
   const [items, setItems] = useState<ITeamNewsItem[]>(initialData.items);
@@ -46,6 +60,7 @@ export function TeamNewsRail({ teamUid, teamName, initialData, canPost = false, 
   const railListRef = useRef<HTMLDivElement>(null);
 
   const isMobile = useIsMobile();
+  const { currentUser, isHydrated } = useCurrentUserStore();
   const { onTeamNewsCardClicked, onTeamNewsViewAllClicked, onTeamNewsShowMoreClicked } = useTeamNewsAnalytics();
   const createPost = useCreateTeamNewsPost(teamUid);
 
@@ -54,6 +69,13 @@ export function TeamNewsRail({ teamUid, teamName, initialData, canPost = false, 
 
   const { upvoteOverlay, handleUpvoteToggle } = useTeamNewsUpvoteOverlay();
   const { recordVisible } = useTeamNewsImpressions();
+
+  // Login cookies omit rbac; UserInfoChecker later fills the client store (same
+  // source TeamDetails uses for admin chrome). Recompute here so empty-card /
+  // Post news appear without relying on a stale SSR cookie.
+  const canPostNow =
+    teamStatus !== 'INACTIVE' &&
+    (canPost || (isHydrated && !!currentUser?.uid && (isAdminUser(currentUser) || isCurrentUserTeamMember)));
 
   useEffect(() => {
     setItems(initialData.items);
@@ -124,6 +146,11 @@ export function TeamNewsRail({ teamUid, teamName, initialData, canPost = false, 
     modalState.kind === 'detail' ? (previewItems.find((item) => item.uid === modalState.uid) ?? null) : null;
 
   const openCompose = () => setComposeOpen(true);
+  const posterUid = memberUid || currentUser?.uid;
+
+  if (!hasNews && !canPostNow) {
+    return null;
+  }
 
   return (
     <>
@@ -135,12 +162,12 @@ export function TeamNewsRail({ teamUid, teamName, initialData, canPost = false, 
           })}
         >
           <DetailsSectionHeader title={hasNews ? `${teamName} News (${total})` : `${teamName} News`}>
-            {canPost && hasNews && memberUid && (
-              <PostNewsButton teamName={teamName} memberUid={memberUid} onPost={openCompose} />
+            {canPostNow && hasNews && posterUid && (
+              <PostNewsButton teamName={teamName} memberUid={posterUid} onPost={openCompose} />
             )}
           </DetailsSectionHeader>
 
-          {canPost && !hasNews && <NewsEmptyCard onPost={openCompose} />}
+          {canPostNow && !hasNews && <NewsEmptyCard onPost={openCompose} />}
 
           {hasNews && (
             <div className={s.newsList} ref={railListRef}>
@@ -179,7 +206,7 @@ export function TeamNewsRail({ teamUid, teamName, initialData, canPost = false, 
         </div>
       </aside>
 
-      {canPost && (
+      {canPostNow && (
         <PostNewsModal
           open={composeOpen}
           onClose={() => setComposeOpen(false)}

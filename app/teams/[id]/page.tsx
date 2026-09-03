@@ -84,9 +84,10 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
 
   const isCurrentUserTeamMember = isLoggedIn && members?.some((m) => m.id === userInfo?.uid);
 
-  const showNewsRail = hasTeamNewsItems(teamNews) || canPostTeamNews(team, userInfo, isCurrentUserTeamMember);
-  const canPost =
-    canPostTeamNews(team, userInfo, isCurrentUserTeamMember) && team.status !== 'INACTIVE';
+  // Mount for logged-in viewers even when the SSR cookie lacks rbac yet —
+  // TeamNewsRail recomputes canPost from the client store (UserInfoChecker).
+  const canPost = canPostTeamNews(team, userInfo, isCurrentUserTeamMember);
+  const showNewsRail = hasTeamNewsItems(teamNews) || canPost || !!isLoggedIn;
 
   const teamDetailContent = (
     <>
@@ -156,6 +157,8 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
           teamName={team.name ?? railData.teamName}
           initialData={railData}
           canPost={canPost}
+          isCurrentUserTeamMember={!!isCurrentUserTeamMember}
+          teamStatus={team.status}
           memberUid={userInfo?.uid}
         />
       </div>

@@ -124,7 +124,10 @@ const makeItem = (uid: string): ITeamNewsItem => ({
 });
 
 describe('TeamNewsRail', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'm-1' }, isHydrated: true });
+  });
 
   it('renders preview items and header count', () => {
     render(
@@ -435,5 +438,34 @@ describe('TeamNewsRail', () => {
     expect(screen.getByText('No news yet')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Post news' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /All network updates/i })).toHaveAttribute('href', '/home');
+  });
+
+  it('shows the empty card for a directory admin once the client store is hydrated', () => {
+    mockUseCurrentUserStore.mockReturnValue({
+      currentUser: {
+        uid: 'admin-1',
+        rbac: { effectivePermissions: [{ code: 'directory.admin.full' }] },
+      },
+      isHydrated: true,
+    });
+
+    render(
+      <TeamNewsRail
+        teamUid="team-1"
+        teamName="Protocol Labs"
+        canPost={false}
+        initialData={{
+          teamUid: 'team-1',
+          teamName: 'Protocol Labs',
+          page: 1,
+          limit: 3,
+          total: 0,
+          items: [],
+        }}
+      />,
+    );
+
+    expect(screen.getByText('No news yet')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Post news' })).toBeInTheDocument();
   });
 });

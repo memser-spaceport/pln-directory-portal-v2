@@ -223,9 +223,10 @@ describe('when the drawer offers it', () => {
     expect(bannerTitle()).toBeInTheDocument();
   });
 
-  /* Prop-absence is the feature flag. Off, the drawer holds no reference to the
-     feature at all — the same convention `RowApplyProps` uses on the row. */
-  it('is absent entirely when the feature is off', () => {
+  /* The app always supplies the signal now. This covers the several suites that
+     render this drawer to test something else and wire no `interest` — they must
+     keep rendering a drawer, not crash on a missing prop. */
+  it('renders the rest of the step when a host wires no signal', () => {
     renderDrawer({ interest: undefined });
     expect(bannerTitle()).not.toBeInTheDocument();
   });

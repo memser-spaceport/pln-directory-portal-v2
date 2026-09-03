@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 
 import type { IJobTeamGroup } from '@/types/jobs.types';
 import type { IUserInfo } from '@/types/shared.types';
-import { SHOW_JOB_BOARD_APPLY, SHOW_JOB_BOARD_INTEREST } from '@/services/jobs/constants';
+import { SHOW_JOB_BOARD_APPLY } from '@/services/jobs/constants';
 import { useJobApplySurface } from '@/components/page/jobs/hooks/useJobApplySurface';
 
 import { TeamOpenRoles } from './TeamOpenRoles';
@@ -47,10 +47,6 @@ export function TeamOpenRolesSection({ group, isLoggedIn, userInfo }: TeamOpenRo
        and for a member it is one `[GET_MEMBER, uid]` query the rest of the app
        already shares. */
     enabled: SHOW_JOB_BOARD_APPLY,
-    /* Same drawer, same banner — this host renders the identical controller, so
-       withholding the flag here would make the feature exist on one surface and
-       not the other for no reason a reader could name. */
-    interestEnabled: SHOW_JOB_BOARD_INTEREST,
     source: 'team-profile',
     isLoggedIn,
     userInfo,

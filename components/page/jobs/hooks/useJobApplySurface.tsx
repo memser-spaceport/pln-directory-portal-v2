@@ -27,16 +27,6 @@ export interface JobApplySurfaceArgs {
    * hook and never by a leaf.
    */
   enabled: boolean;
-  /**
-   * `SHOW_JOB_BOARD_INTEREST`, resolved by the host — the "I'm interested"
-   * banner and the round trip that records a logged-out press.
-   *
-   * Nested inside `enabled` in practice: the banner lives in the drawer, and the
-   * drawer only opens when the apply surface is on. Kept as its own argument
-   * anyway, because the two features are at different stages and one flag that
-   * means two things cannot be turned on by halves.
-   */
-  interestEnabled?: boolean;
   source: JobSurface;
   isLoggedIn: boolean;
   userInfo: IUserInfo | undefined;
@@ -79,7 +69,6 @@ export interface JobApplySurface {
  */
 export function useJobApplySurface({
   enabled,
-  interestEnabled = false,
   source,
   isLoggedIn,
   userInfo,
@@ -190,7 +179,7 @@ export function useJobApplySurface({
   const toggleInterest = useToggleJobInterest(viewer.memberUid);
   const interestResumeHandled = useRef(false);
   useEffect(() => {
-    if (!enabled || !interestEnabled) return;
+    if (!enabled) return;
     if (interestResumeHandled.current) return;
 
     const roleUid = searchParams.get(PENDING_INTEREST_PARAM);
@@ -227,7 +216,7 @@ export function useJobApplySurface({
       flow.onViewJob(resumed);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, interestEnabled, isLoggedIn, viewer.viewer, viewer.memberUid, isLoading, groups]);
+  }, [enabled, isLoggedIn, viewer.viewer, viewer.memberUid, isLoading, groups]);
 
   const controller = enabled ? (
     <JobApplyFlowController
@@ -236,7 +225,6 @@ export function useJobApplySurface({
       isLoggedIn={isLoggedIn}
       userInfo={userInfo}
       source={source}
-      interestEnabled={interestEnabled}
     />
   ) : null;
 

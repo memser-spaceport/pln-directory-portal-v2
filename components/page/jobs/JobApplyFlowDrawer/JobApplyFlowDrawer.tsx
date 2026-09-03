@@ -204,12 +204,13 @@ interface JobApplyFlowDrawerProps {
   onProfileSaved: (args: { profileComplete: boolean }) => void;
   onSubmitted: () => void;
   /**
-   * The "I'm interested" signal, or `undefined` when the feature is off.
+   * The "I'm interested" signal.
    *
-   * Prop-absence is the flag gate — the same convention `RowApplyProps` uses on
-   * the row, and the reason `SHOW_JOB_BOARD_INTEREST` is imported by the board
-   * hosts and by nothing else. Off, this component contains no reference to the
-   * feature and no query is ever enabled.
+   * Always supplied in the app — the flag that used to gate it is gone, and the
+   * banner now shows wherever this drawer opens. Optional only so that the
+   * several suites which render this drawer to test something else do not have
+   * to wire a signal they never press. If the banner ever needs withdrawing
+   * again, withholding this prop at the controller is the whole change.
    *
    * `isSettled` is not a loading flag to render a spinner from: it says whether
    * the answer is known, and until it is the banner does not draw. An

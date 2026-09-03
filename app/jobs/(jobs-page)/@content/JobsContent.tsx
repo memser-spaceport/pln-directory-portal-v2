@@ -15,7 +15,7 @@ import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
 import { filterStateFromURL } from '@/utils/jobs.utils';
 import { jobAlertFilterStateFromURL, hasActiveFilters, filterStateToURLSearchParams } from '@/utils/job-alerts.utils';
 import { SortDropdown } from '@/components/common/filters/SortDropdown/SortDropdown';
-import { JOBS_SORT_OPTIONS, SHOW_JOB_BOARD_APPLY, SHOW_JOB_BOARD_INTEREST } from '@/services/jobs/constants';
+import { JOBS_SORT_OPTIONS, SHOW_JOB_BOARD_APPLY } from '@/services/jobs/constants';
 import { withPendingApply } from '@/services/jobs/job-apply-resume';
 import { JOB_DETAIL_PARAM } from '@/services/jobs/job-detail-link';
 import { useJobApplySurface } from '@/components/page/jobs/hooks/useJobApplySurface';
@@ -92,9 +92,6 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
      genuinely the board's: the alert effects below, `onRoleClick`, the banner. */
   const surface = useJobApplySurface({
     enabled: SHOW_JOB_BOARD_APPLY,
-    /* Its own flag, on its own schedule: the interest endpoints are still being
-       written and the logged-out layout it introduces is not design-reviewed. */
-    interestEnabled: SHOW_JOB_BOARD_INTEREST,
     source: 'job-board',
     isLoggedIn,
     userInfo,

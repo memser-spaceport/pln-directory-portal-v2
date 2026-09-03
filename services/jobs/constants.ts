@@ -39,29 +39,19 @@ export enum JobsQueryKey {
  */
 export const SHOW_JOB_BOARD_APPLY: boolean = process.env.NEXT_PUBLIC_SHOW_JOB_BOARD_APPLY === 'true';
 
-/**
- * The "I'm interested" banner in the job detail drawer — a light signal
- * alongside Apply, not a replacement for it.
- *
- * The endpoints exist now — `POST`/`DELETE /v1/job-openings/:uid/interest` and
- * `GET /v1/job-openings/interests` — and `schema/job-interests` is written
- * against the real contract rather than a guess. What still keeps this dark is
- * the second gate below, plus the usual per-environment rollout: a 404 from a
- * hook the drawer renders unconditionally would degrade the drawer for
- * everyone, so nothing requests anything until an environment says so.
- *
- * Separate from `SHOW_JOB_BOARD_APPLY` rather than folded into it: the apply
- * flow is live and this is not, and one flag that means two things cannot be
- * turned on by halves.
- *
- * The second gate is not technical: the logged-out composition this introduces
- * (the banner stacked above `JobUnlockBanner`) is not drawn in any Figma frame.
- * See the plan's D1. That review is now the only thing left before the flip.
- *
- * Same convention as above: imported ONLY by the board hosts, passed down as
- * `interestEnabled`, and written literal-first in `&&` so the bundler folds it.
- */
-export const SHOW_JOB_BOARD_INTEREST: boolean = process.env.NEXT_PUBLIC_SHOW_JOB_BOARD_INTEREST === 'true';
+/* (`SHOW_JOB_BOARD_INTEREST` lived here. It gated the "I'm interested" banner
+    for two reasons and outlived both: the endpoints did not exist yet, and the
+    logged-out layout was unreviewed. The endpoints landed and were verified
+    against dev, so the signal is simply part of the apply surface now — it
+    shows wherever the drawer opens, which is what `SHOW_JOB_BOARD_APPLY` above
+    already decides.
+
+    What that means in practice: there is no separate switch for the banner. If
+    it ever needs to come off on its own, the gate to restore is the `interest`
+    prop on `JobApplyFlowDrawer` — it is still optional, so withholding it is a
+    one-line change at the controller rather than a new flag threaded through
+    four layers. */
+
 
 /* (`SHOW_CV_IMPORT` lived here, "because there is exactly one host today". The
     member profile page is the second, so it moved somewhere neutral —

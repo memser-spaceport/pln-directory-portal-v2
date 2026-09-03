@@ -50,8 +50,6 @@ interface JobApplyFlowControllerProps {
   isLoggedIn: boolean;
   userInfo: IUserInfo | undefined;
   source: JobSurface;
-  /** `SHOW_JOB_BOARD_INTEREST`, resolved by the host. Off ⇒ no query, no banner. */
-  interestEnabled: boolean;
 }
 
 /**
@@ -63,7 +61,7 @@ interface JobApplyFlowControllerProps {
  * feature's phase 2 by rendering this same controller beside its own list.
  */
 export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
-  const { flow, viewer, isLoggedIn, userInfo, source, interestEnabled } = props;
+  const { flow, viewer, isLoggedIn, userInfo, source } = props;
   const { state } = flow;
 
   const goToLogin = useLoginRedirect();
@@ -235,7 +233,7 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
      role" from two caches with one shape rather than two idioms. */
   const { isInterested, isSettled: interestSettled } = useRoleInterest(flowRole?.uid ?? '', {
     memberUid: viewer.memberUid,
-    enabled: interestEnabled && state.step === 'flow' && !!viewer.memberUid,
+    enabled: state.step === 'flow' && !!viewer.memberUid,
   });
   const toggleInterest = useToggleJobInterest(viewer.memberUid);
   /* A refusal belongs to the role it was refused for, so it is STORED with that
@@ -342,18 +340,12 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
           onSubmitted={flow.onSubmitted}
           viewerState={viewer.viewer}
           source={source}
-          /* Absent, not false, when the flag is off — the drawer then holds no
-             reference to the feature at all. Same convention as `RowApplyProps`. */
-          interest={
-            interestEnabled
-              ? {
-                  isInterested,
-                  isSettled: interestSettled,
-                  error: interestErrorForRole,
-                  onToggle: handleToggleInterest,
-                }
-              : undefined
-          }
+          interest={{
+            isInterested,
+            isSettled: interestSettled,
+            error: interestErrorForRole,
+            onToggle: handleToggleInterest,
+          }}
         />
       )}
 

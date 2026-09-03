@@ -1,4 +1,10 @@
-import { PENDING_APPLY_PARAM, stripResumeParamsFromUrl, withPendingApply } from '@/services/jobs/job-apply-resume';
+import {
+  PENDING_APPLY_PARAM,
+  PENDING_INTEREST_PARAM,
+  stripResumeParamsFromUrl,
+  withPendingApply,
+  withPendingInterest,
+} from '@/services/jobs/job-apply-resume';
 
 describe('withPendingApply', () => {
   it('adds the role to an empty search string', () => {
@@ -35,6 +41,50 @@ describe('withPendingApply', () => {
   it('encodes a uid safely', () => {
     const result = withPendingApply('', 'role/with space&amp');
     expect(new URLSearchParams(result).get(PENDING_APPLY_PARAM)).toBe('role/with space&amp');
+  });
+});
+
+describe('withPendingInterest', () => {
+  it('adds the role to an empty search string', () => {
+    expect(withPendingInterest('', 'role-1')).toBe(`?${PENDING_INTEREST_PARAM}=role-1`);
+  });
+
+  /* The removal half matters more here than it does for `applyTo`. A stale
+     `applyTo` reopens a drawer; a stale `interestIn` WRITES — it would signal
+     interest in a role the person walked away from an hour earlier. */
+  it('CLEARS a stale intent when none is given', () => {
+    expect(withPendingInterest(`?${PENDING_INTEREST_PARAM}=abandoned-role`, undefined)).toBe('');
+    expect(withPendingInterest(`?roleCategory=Engineering&${PENDING_INTEREST_PARAM}=x`, undefined)).toBe(
+      '?roleCategory=Engineering',
+    );
+  });
+
+  it('replaces a stale intent rather than appending a second one', () => {
+    const result = withPendingInterest(`?${PENDING_INTEREST_PARAM}=old-role`, 'new-role');
+
+    expect(new URLSearchParams(result).getAll(PENDING_INTEREST_PARAM)).toEqual(['new-role']);
+  });
+
+  /* The two intents are independent, and composing them is exactly what
+     `pushLogin` does on every trip: one is set, the other is cleared. A door
+     that meant "apply" must not leave an interest behind, and vice versa. */
+  it('composes with withPendingApply so each door clears the other intent', () => {
+    const fromApplyDoor = withPendingInterest(withPendingApply(`?${PENDING_INTEREST_PARAM}=stale`, 'role-1'), undefined);
+    expect(new URLSearchParams(fromApplyDoor).get(PENDING_APPLY_PARAM)).toBe('role-1');
+    expect(new URLSearchParams(fromApplyDoor).get(PENDING_INTEREST_PARAM)).toBeNull();
+
+    const fromInterestDoor = withPendingInterest(
+      withPendingApply(`?${PENDING_APPLY_PARAM}=stale`, undefined),
+      'role-2',
+    );
+    expect(new URLSearchParams(fromInterestDoor).get(PENDING_INTEREST_PARAM)).toBe('role-2');
+    expect(new URLSearchParams(fromInterestDoor).get(PENDING_APPLY_PARAM)).toBeNull();
+  });
+
+  it('keeps the filters someone narrowed before pressing', () => {
+    const result = withPendingInterest('?roleCategory=Engineering', 'role-1');
+
+    expect(new URLSearchParams(result).get('roleCategory')).toBe('Engineering');
   });
 });
 
@@ -110,5 +160,16 @@ describe('stripResumeParamsFromUrl', () => {
 
     expect(pushSpy).not.toHaveBeenCalled();
     pushSpy.mockRestore();
+  });
+
+  it('carries the interest intent out with the rest — a one-time write must not replay', () => {
+    setUrl(`/jobs?${PENDING_INTEREST_PARAM}=role-1&${PENDING_APPLY_PARAM}=role-2&sort=newest`);
+
+    stripResumeParamsFromUrl();
+
+    const params = new URLSearchParams(window.location.search);
+    expect(params.get(PENDING_INTEREST_PARAM)).toBeNull();
+    expect(params.get(PENDING_APPLY_PARAM)).toBeNull();
+    expect(params.get('sort')).toBe('newest');
   });
 });

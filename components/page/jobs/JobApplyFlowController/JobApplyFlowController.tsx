@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useLoginRedirect } from '@/components/core/login/utils';
 import { useQuery } from '@tanstack/react-query';
 
@@ -238,14 +238,15 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
     enabled: interestEnabled && state.step === 'flow' && !!viewer.memberUid,
   });
   const toggleInterest = useToggleJobInterest(viewer.memberUid);
-  const [interestError, setInterestError] = useState<string | null>(null);
-
-  /* A refusal belongs to the role it was refused for. Without this, closing the
-     drawer on a failed toggle and opening another role carries the red line
+  /* A refusal belongs to the role it was refused for, so it is STORED with that
+     role rather than cleared by an effect when the role changes. Same outcome,
+     no cascading render — and it survives the drawer closing and reopening on
+     the same role, which a reset-on-change would have thrown away. Without
+     either, opening a second role after a failed toggle carries the red line
      across to a banner that never failed at anything. */
-  useEffect(() => {
-    setInterestError(null);
-  }, [flowRole?.uid]);
+  const [interestError, setInterestError] = useState<{ roleUid: string; message: string } | null>(null);
+  const interestErrorForRole =
+    interestError && interestError.roleUid === flowRole?.uid ? interestError.message : null;
 
   const handleToggleInterest = (nextInterested: boolean) => {
     if (state.step !== 'flow') return;
@@ -289,7 +290,10 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
             analytics.onJobInterestMarked({ ...analyticsBase, resumed: false });
             return;
           }
-          setInterestError(error instanceof Error ? error.message : 'Something went wrong. Try again.');
+          setInterestError({
+            roleUid: target.role.uid,
+            message: error instanceof Error ? error.message : 'Something went wrong. Try again.',
+          });
           analytics.onJobInterestFailed({
             ...analyticsBase,
             action: nextInterested ? 'mark' : 'undo',
@@ -350,7 +354,7 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
               ? {
                   isInterested,
                   isSettled: interestSettled,
-                  error: interestError,
+                  error: interestErrorForRole,
                   onToggle: handleToggleInterest,
                 }
               : undefined

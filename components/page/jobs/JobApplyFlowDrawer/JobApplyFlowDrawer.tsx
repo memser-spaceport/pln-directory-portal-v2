@@ -26,6 +26,7 @@ import type { BoardViewerState } from '@/services/jobs/job-board-viewer';
 
 import { ApplyFlowSteps, type ApplyFlowStep } from '@/components/page/jobs/ApplyFlowSteps/ApplyFlowSteps';
 import { JobDetailPane } from '@/components/page/jobs/JobDetailPane/JobDetailPane';
+import { JobInterestBanner } from '@/components/page/jobs/JobInterestBanner/JobInterestBanner';
 import { JobUnlockBanner } from '@/components/page/jobs/JobUnlockBanner/JobUnlockBanner';
 import { JobUnlockDisclosure } from '@/components/page/jobs/JobUnlockDisclosure/JobUnlockDisclosure';
 import { JobProfilePane, BackIcon, type ProfileState } from '@/components/page/jobs/JobProfileDrawer/JobProfileDrawer';
@@ -202,6 +203,26 @@ interface JobApplyFlowDrawerProps {
   onSignIn: () => void;
   onProfileSaved: (args: { profileComplete: boolean }) => void;
   onSubmitted: () => void;
+  /**
+   * The "I'm interested" signal.
+   *
+   * Always supplied in the app — the flag that used to gate it is gone, and the
+   * banner now shows wherever this drawer opens. Optional only so that the
+   * several suites which render this drawer to test something else do not have
+   * to wire a signal they never press. If the banner ever needs withdrawing
+   * again, withholding this prop at the controller is the whole change.
+   *
+   * `isSettled` is not a loading flag to render a spinner from: it says whether
+   * the answer is known, and until it is the banner does not draw. An
+   * already-interested member seeing the blue CTA flip to green a beat after
+   * paint is the same flash `deriveBoardViewer` grew a `resolving` state for.
+   */
+  interest?: {
+    isInterested: boolean;
+    isSettled: boolean;
+    error: string | null;
+    onToggle: (nextInterested: boolean) => void;
+  };
   viewerState: BoardViewerState;
   source: JobSurface;
 }
@@ -280,6 +301,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     onSignIn,
     onProfileSaved,
     onSubmitted,
+    interest,
     viewerState,
     source,
   } = props;
@@ -1010,7 +1032,33 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                  They say different things (which steps exist; why bother) and
                  the banner's numbers are half the size of the rail's, which is
                  what keeps them from reading as one journey drawn twice. */
-              banner={!isLoggedIn ? <JobUnlockBanner /> : null}
+              banner={
+                <>
+                  {/* Above the unlocks card, not instead of it.
+                      The Figma draws this banner only in the "Signed up" frames
+                      — logged out, this slot holds `JobUnlockBanner` and nothing
+                      else. The ticket asks for the CTA logged out too, so both
+                      render, and the composition below is the one thing here
+                      that no frame shows. It is deliberate, it is reviewable,
+                      and it is one clause to undo if the review goes the other
+                      way: see the plan's D1.
+
+                      Withheld once an application exists. "Let them know you're
+                      interested" above a footer reading `Applied` is the drawer
+                      arguing with itself — applying is the stronger signal and
+                      it has already been sent. */}
+                  {interest && !applied && interest.isSettled && (
+                    <JobInterestBanner
+                      teamName={target.teamName}
+                      isInterested={interest.isInterested}
+                      isLoggedIn={isLoggedIn}
+                      error={interest.error}
+                      onToggle={interest.onToggle}
+                    />
+                  )}
+                  {!isLoggedIn && <JobUnlockBanner />}
+                </>
+              }
             />
           )}
 

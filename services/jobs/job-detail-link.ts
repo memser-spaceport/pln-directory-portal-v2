@@ -35,7 +35,7 @@ export function findJobInGroups(groups: IJobTeamGroup[], jobUid: string): { role
  * Write or clear `?job=` on the current URL without a navigation.
  *
  * `replaceState` rather than `router.replace` so the board underneath does not
- * refetch — same idiom as `stripPendingApplyFromUrl` and `useNewsDeepLink`.
+ * refetch — same idiom as `stripResumeParamsFromUrl` and `useNewsDeepLink`.
  * Other params (filters, UTMs) are preserved so opening a role does not undo
  * a narrowed rail.
  */

@@ -111,6 +111,18 @@ describe('isJobAspirant', () => {
     expect(isJobAspirant({ uid: 'm1', signUpSource: 'job-board' })).toBe(true);
     expect(isJobAspirant({ uid: 'm1', signUpSource: 'website' })).toBe(false);
   });
+
+  it('is false for a Job Board sign-up who selected a team', () => {
+    expect(isJobAspirant({ uid: 'm1', signUpSource: 'job-board', mainTeamName: 'Acme' })).toBe(false);
+    expect(
+      isJobAspirant({
+        uid: 'm1',
+        signUpSource: 'job-board',
+        mainTeamName: 'Acme',
+        rbac: { status: 'PENDING', policies: [], effectivePermissions: [], roles: [] },
+      }),
+    ).toBe(false);
+  });
 });
 
 describe('JobSearchStatus', () => {

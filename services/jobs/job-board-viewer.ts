@@ -67,12 +67,14 @@ export const canApplyToJobs = (userInfo: IUserInfo | null, useV2?: boolean): boo
 export const JOB_ASPIRANT_POLICY_CODE = 'job_aspirant';
 
 /** `signUpSource` written by Job Board sign-up. The login cookie carries this
- *  even when `rbac.policies` is missing (auth's userInfo omits policies). */
+ *  even when `rbac.policies` is missing (auth's userInfo omits policies).
+ *  Team Job Board sign-ups share this source, so it only counts as Job Aspirant
+ *  when there is no main team. */
 export const JOB_BOARD_SIGN_UP_SOURCE = 'job-board';
 
 export const isJobAspirant = (userInfo: IUserInfo | null): boolean =>
-  userInfo?.rbac?.policies?.some((policy) => policy.code === JOB_ASPIRANT_POLICY_CODE) ||
-  userInfo?.signUpSource === JOB_BOARD_SIGN_UP_SOURCE;
+  Boolean(userInfo?.rbac?.policies?.some((policy) => policy.code === JOB_ASPIRANT_POLICY_CODE)) ||
+  (userInfo?.signUpSource === JOB_BOARD_SIGN_UP_SOURCE && !userInfo?.mainTeamName);
 
 /**
  * Whether this viewer is offered the way out to the hiring team's own posting.

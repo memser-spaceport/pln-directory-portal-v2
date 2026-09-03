@@ -8,6 +8,26 @@ import { customFetch } from '@/utils/fetch-wrapper';
 
 const JOB_OPENINGS_API_URL = `${process.env.DIRECTORY_API_URL}/v1/job-openings`;
 
+/**
+ * Both writes carry a JSON content type and an empty JSON body, even though
+ * neither endpoint takes a payload.
+ *
+ * This is not ceremony — it is the fix for a real 415. `customFetch` adds
+ * `Authorization` and nothing else, so a bodyless `{ method: 'POST' }` goes out
+ * with no `Content-Type` at all, and the API's validation layer answers
+ * "Unsupported Content Type" before the handler ever runs. `submitJobApplication`
+ * has always sent both; this pair was written without copying that part.
+ *
+ * The empty object rather than no body: the header is the half that matters, and
+ * a declared JSON content type with an absent body is the combination servers
+ * disagree most about. `{}` makes the request self-consistent for both verbs.
+ */
+const JSON_WRITE = (method: 'POST' | 'DELETE') => ({
+  method,
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({}),
+});
+
 export type { JobInterest, JobInterestToggle };
 
 /**
@@ -86,7 +106,7 @@ export async function fetchJobInterests(): Promise<JobInterest[]> {
  * That asymmetry is the server's; do not "correct" either one.
  */
 export async function markJobInterest(roleUid: string): Promise<JobInterestToggle> {
-  const response = await customFetch(`${JOB_OPENINGS_API_URL}/${roleUid}/interest`, { method: 'POST' }, true);
+  const response = await customFetch(`${JOB_OPENINGS_API_URL}/${roleUid}/interest`, JSON_WRITE('POST'), true);
 
   if (!response?.ok) {
     throw await errorFrom(response, 'Could not save your interest');
@@ -97,7 +117,7 @@ export async function markJobInterest(roleUid: string): Promise<JobInterestToggl
 
 /** Withdraw it. Idempotent and same response shape as marking. */
 export async function clearJobInterest(roleUid: string): Promise<JobInterestToggle> {
-  const response = await customFetch(`${JOB_OPENINGS_API_URL}/${roleUid}/interest`, { method: 'DELETE' }, true);
+  const response = await customFetch(`${JOB_OPENINGS_API_URL}/${roleUid}/interest`, JSON_WRITE('DELETE'), true);
 
   if (!response?.ok) {
     throw await errorFrom(response, 'Could not undo your interest');

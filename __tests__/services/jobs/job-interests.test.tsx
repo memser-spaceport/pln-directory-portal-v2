@@ -94,6 +94,23 @@ describe('the calls', () => {
     expect(fetchMock.mock.calls[1][1].method).toBe('DELETE');
   });
 
+  /* Regression: both writes shipped without a content type and the API answered
+     415 "Unsupported Content Type" before the handler ran. `customFetch` adds
+     `Authorization` and nothing else, so a bodyless `{ method: 'POST' }` sends no
+     `Content-Type` at all — invisible in every unit test that only checked the
+     path and the verb, which is exactly what the two assertions above were. */
+  it('sends a JSON content type on both writes, even with nothing to say', async () => {
+    fetchMock.mockResolvedValue(ok(toggled(true)));
+    await markJobInterest('r1');
+    await clearJobInterest('r1');
+
+    for (const call of fetchMock.mock.calls) {
+      expect(call[1].headers).toEqual({ 'Content-Type': 'application/json' });
+      expect(call[1].body).toBe('{}');
+      expect(call[2]).toBe(true); // authenticated
+    }
+  });
+
   it('carries the server’s own message when it sent one', async () => {
     fetchMock.mockResolvedValue(fail(400, { message: 'This role is no longer accepting interest' }));
 

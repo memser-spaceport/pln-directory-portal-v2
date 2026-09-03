@@ -324,6 +324,22 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_EXTERNAL_REDIRECTED, { ...args });
   };
 
+  /**
+   * A stranger opened "What your profile unlocks?" under the drawer's footer.
+   *
+   * The only signal that the case for a profile was read at all. The card in the
+   * body of the step is rendered whether or not anyone looks at it; this one
+   * takes a deliberate hover or press, which is why it is worth an event where
+   * the card is not.
+   *
+   * `surface` because the popover and the modal are the same content behind very
+   * different amounts of intent — hovering a caption on the way to a button is
+   * not the same act as tapping it and dismissing a modal to get back.
+   */
+  const onJobUnlockInfoOpened = (args: JobApplyBaseParams & { surface: 'popover' | 'modal' }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_UNLOCK_INFO_OPENED, { ...args });
+  };
+
   return {
     onJobsPageViewed,
     onJobsFiltersApplied,
@@ -362,5 +378,6 @@ export const useJobsAnalytics = () => {
     onJobApplyStepViewed,
     onJobApplyFlowClosed,
     onJobApplyExternalRedirected,
+    onJobUnlockInfoOpened,
   };
 };

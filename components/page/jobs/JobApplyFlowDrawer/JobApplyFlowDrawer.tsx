@@ -27,6 +27,7 @@ import type { BoardViewerState } from '@/services/jobs/job-board-viewer';
 import { ApplyFlowSteps, type ApplyFlowStep } from '@/components/page/jobs/ApplyFlowSteps/ApplyFlowSteps';
 import { JobDetailPane } from '@/components/page/jobs/JobDetailPane/JobDetailPane';
 import { JobUnlockBanner } from '@/components/page/jobs/JobUnlockBanner/JobUnlockBanner';
+import { JobUnlockDisclosure } from '@/components/page/jobs/JobUnlockDisclosure/JobUnlockDisclosure';
 import { JobProfilePane, BackIcon, type ProfileState } from '@/components/page/jobs/JobProfileDrawer/JobProfileDrawer';
 import {
   JobApplicationPane,
@@ -59,14 +60,6 @@ import btn from '@/components/common/Button/Button.module.scss';
 // so the flow opens the same way wherever you are in it.
 import s from '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfileDrawer/EditInvestorProfileDrawer.module.scss';
 import d from './JobApplyFlowDrawer.module.scss';
-
-/**
- * The id the footer's `actionNote` is drawn with, so the button it describes can
- * point at it. A fixed string rather than a generated one because exactly one
- * drawer is mounted at a time — this is a drawer, not a list item — and a stable
- * id is the difference between an assertion that reads and one that guesses.
- */
-const FOOTER_ACTION_NOTE_ID = 'job-apply-footer-action-note';
 
 /**
  * The rail's labels. Three positions, and they do not move.
@@ -601,18 +594,24 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     lead?: React.ReactNode;
     action: React.ReactNode;
     /**
-     * A caption drawn *beneath* the action, where `hint` is drawn beside it.
+     * Drawn *beneath* the action, where `hint` is drawn beside it.
      *
      * The distinction is not decoration. `hint` says something about the screen
-     * and sits in the screen's own reading order; this says something about the
-     * press, and a sentence about a button that is not next to that button is a
-     * sentence about nothing in particular.
+     * and sits in the screen's own reading order; this belongs to the press, and
+     * a line about a button that is not next to that button is a line about
+     * nothing in particular.
      *
-     * Any branch that sets this MUST put `aria-describedby={FOOTER_ACTION_NOTE_ID}`
-     * on the button it returns as `action` — the footer draws the note but has
-     * no way to reach inside `action` and associate it.
+     * **It was a `string` and is now a node**, because what goes here stopped
+     * being a caption. The one branch that uses it puts a control there —
+     * "What your profile unlocks?", which opens the case for a profile on demand
+     * (`JobUnlockDisclosure`). A previous version of this comment required every
+     * branch setting this to also put `aria-describedby` on its button, so the
+     * caption would be read as the button's description. That is exactly wrong
+     * for a control: a button is not described by another button, and announcing
+     * a focusable thing as a description is how a screen reader user hears about
+     * something they are then never offered. The wiring is gone with it.
      */
-    actionNote?: string;
+    actionNote?: React.ReactNode;
   };
 
   /* One footer, three steps: a button that names the act, and beside it a
@@ -761,27 +760,39 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
              role's review step, where the outbound button is waiting.
              No step 3 is ever promised, which is why the rail stays off. */
           action: (
-            <Button
-              variant="primary"
-              style="fill"
-              size="m"
-              aria-describedby={FOOTER_ACTION_NOTE_ID}
-              onClick={() => goTo('profile')}
-            >
-              {/* The design's label, verbatim, arrow included. A shorter
-                  "Create your profile" was tried and reverted: the copy in this
-                  frame is the design's to write, and paraphrasing it locally is
-                  how two surfaces end up describing the same press differently. */}
-              Create profile → signal interest
+            <Button variant="primary" style="fill" size="m" onClick={() => goTo('profile')}>
+              {/* The design's label, verbatim (Figma node 682:10579). It read
+                  "Create profile → signal interest" until the frame below it
+                  grew a control that makes the "signal interest" case in two
+                  sentences — at which point the arrow and the second clause were
+                  a label doing the popover's job in a quarter of the words.
+                  Shortening it locally would still be wrong; the frame shortened
+                  it. */}
+              Create profile
             </Button>
           ),
-          /* Also verbatim (Figma node 631:23365). Worth knowing what it commits
-             to: the press opens an account and returns to this screen, and no
-             team is notified of anything on this branch — applying still happens
-             on the employer's own site. The sentence is the design's, so it
-             changes in the design; it is noted here so nobody reads it as a
-             description of the code and goes looking for the notification. */
-          actionNote: '~2 min · team is notified you are interested',
+          /* Where "~2 min · team is notified you are interested" used to sit.
+             That sentence promised a notification this branch does not send —
+             the press opens an account and comes back here, and applying still
+             happens on the employer's own site — and it spent the slot on a
+             claim rather than on the argument the board actually has. The design
+             replaced it with a control: the same two reasons the card upstairs
+             makes, on demand, for someone who has scrolled past the card to get
+             here. */
+          actionNote: (
+            <JobUnlockDisclosure
+              className={d.footerNoteTrigger}
+              onOpened={(surface) =>
+                analytics.onJobUnlockInfoOpened({
+                  job_id: target.role.uid,
+                  team_id: target.teamId,
+                  viewer_state: viewerState,
+                  source,
+                  surface,
+                })
+              }
+            />
+          ),
         };
       }
 
@@ -1050,18 +1061,16 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                 would push the button down 12px on every phone screen where the
                 footer is now silent. */}
             {footer.lead ?? (footer.hint && <p className={d.footerHint}>{footer.hint}</p>)}
-            {/* Wrapped only when there is a caption to wrap it with. An
+            {/* Wrapped only when there is something to wrap it with. An
                 always-rendered column would put a 4px-gap flex box around every
-                lone button in the flow for the sake of the two states that use
+                lone button in the flow for the sake of the one state that uses
                 one, and `.footerAction`'s auto-margin — which is how a lone
                 button finds the right edge — would then be applying to a child
                 of the wrapper rather than to the row. */}
             {footer.actionNote ? (
               <div className={d.footerActionColumn}>
                 {footer.action}
-                <p id={FOOTER_ACTION_NOTE_ID} className={d.footerActionNote}>
-                  {footer.actionNote}
-                </p>
+                {footer.actionNote}
               </div>
             ) : (
               footer.action

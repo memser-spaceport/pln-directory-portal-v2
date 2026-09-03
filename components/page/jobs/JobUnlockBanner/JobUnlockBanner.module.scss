@@ -1,6 +1,10 @@
 /* Every custom property is written `var(--name, #fallback)`: this app doesn't
    load the DS token sheet, so a bare token resolves to nothing and the fallback
-   is what actually paints. Same rule as `JobApplyFlowDrawer.module.scss`. */
+   is what actually paints. Same rule as `JobApplyFlowDrawer.module.scss`.
+
+   The list itself lives in `JobUnlock/UnlockItems.module.scss` now — it is shared
+   with the footer's popover and that popover's mobile modal. What is left here is
+   the card. */
 
 .root {
   /* The drawer's content column is `align-items: center`, so a block child
@@ -33,68 +37,4 @@
   line-height: 24px;
   letter-spacing: -0.4px;
   color: var(--foreground-neutral-primary, #0a0c11);
-}
-
-.list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* A grid rather than a flex column with a hard indent on the body. The badge
-   column *is* the hanging indent, so the two cannot drift apart when the badge
-   changes size — which a `padding-left: 28px` on the sub-line silently would. */
-.item {
-  display: grid;
-  grid-template-columns: 20px 1fr;
-  column-gap: 8px;
-  row-gap: 4px;
-}
-
-.badge {
-  grid-column: 1;
-  grid-row: 1;
-
-  width: 20px;
-  height: 20px;
-  border-radius: 100px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  background: var(--action-bg-brand-normal, #1b4dff);
-  color: var(--foreground-light-primary, #fff);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 18px;
-  letter-spacing: -0.2px;
-}
-
-.itemHead {
-  grid-column: 2;
-  grid-row: 1;
-
-  margin: 0;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-primary, #0a0c11);
-}
-
-.itemBody {
-  grid-column: 2;
-  grid-row: 2;
-
-  margin: 0;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-secondary, #455468);
 }

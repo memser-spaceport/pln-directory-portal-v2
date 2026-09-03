@@ -267,30 +267,23 @@
   }
 }
 
-// The caption under the press.
+// Layout for whatever the column's second row holds. Today that is
+// `JobUnlockDisclosure` — "What your profile unlocks?" — which owns its own type
+// and colour; this only says where it sits.
 //
-// The design's tertiary, and a known contrast tradeoff rather than an oversight:
-// 12px of #8897ae on white is about 3.0:1, under the 4.5:1 AA asks for. This
-// briefly shipped as `--foreground-neutral-secondary` (#455468) on that basis —
-// the substitution `.footerHint` makes at the same size — and was put back,
-// because the tone is the design's call and this caption repeats what the button
-// beside it already says rather than carrying anything alone.
-//
-// If AA becomes a hard gate, secondary is the swap, and `.footerHint` is the
-// precedent for making it.
-.footerActionNote {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-tertiary, #8897AE);
-
-  /* The group this replaced set `white-space: nowrap` on its children, which was
-     right for two buttons and is wrong for a sentence — at 400px this one wraps,
-     and nowrap would run it out of the bar. Said explicitly because it is
-     inheriting nothing now, and the next person to put something in this column
-     should see which way the decision went. */
+// What stood here was `.footerActionNote`, a 12px caption in the design's
+// tertiary, carrying a long note about a known contrast tradeoff: 12px of #8897ae
+// on white is about 3.0:1, under the 4.5:1 AA asks for. It had briefly shipped as
+// `--foreground-neutral-secondary` (#455468) on that basis and been put back,
+// because the tone was the design's call. The design has since made the same swap
+// itself — the replacement is 14px #455468, about 8.5:1 — so the tradeoff is
+// closed rather than still open, and the note describing it would now be
+// describing nothing.
+.footerNoteTrigger {
+  /* The group this column replaced set `white-space: nowrap` on its children,
+     which was right for two buttons and is wrong for a label that wraps at 400px.
+     Said explicitly because it is inheriting nothing now, and the next person to
+     put something in this column should see which way the decision went. */
   white-space: normal;
 
   @include media.tablet-landscape {

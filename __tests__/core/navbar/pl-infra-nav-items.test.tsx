@@ -114,6 +114,39 @@ describe('useMoreNavItems', () => {
     expect(titlesOf(more(PERMISSIONS.AI_APPS.PERM_VIEW, PERMISSIONS.GANTRY.PERM_VIEW))).toEqual(['Deals', 'Job Board']);
   });
 
+  it('shows PLAA only to a member holding plaa.access', () => {
+    expect(titlesOf(more())).not.toContain('PLAA');
+    expect(titlesOf(more(PERMISSIONS.PLAA.PERM_ACCESS))).toContain('PLAA');
+  });
+
+  it('sends PLAA to /alignment-asset in the same tab — no target, so NavLink renders a plain next/link', () => {
+    const plaa = more(PERMISSIONS.PLAA.PERM_ACCESS).find((item) => item.title === 'PLAA');
+
+    expect(plaa?.href).toBe('/alignment-asset');
+    expect(plaa).not.toHaveProperty('target');
+  });
+
+  it("does not let another area's permission open PLAA", () => {
+    expect(titlesOf(more(PERMISSIONS.AI_APPS.PERM_VIEW, PERMISSIONS.FOUNDER_GUIDE.PERM_VIEW))).not.toContain('PLAA');
+  });
+
+  it('does not accept a scoped plaa permission — the code is matched exactly', () => {
+    expect(titlesOf(more(`${PERMISSIONS.PLAA.PERM_ACCESS}.admin`))).not.toContain('PLAA');
+  });
+
+  /** A logged-out visitor never reaches the access endpoint (`usePermissions`
+   *  gates the query on `currentUser`), so their permission list is empty —
+   *  the same state this asserts. */
+  it('shows a logged-out visitor no permission-gated item at all', () => {
+    expect(titlesOf(more())).toEqual(['Deals', 'Job Board']);
+  });
+
+  it('appends PLAA below the items that were already there, so the menu does not reshuffle', () => {
+    const all = more(PERMISSIONS.FOUNDER_GUIDE.PERM_VIEW, PERMISSIONS.PLAA.PERM_ACCESS);
+
+    expect(titlesOf(all)).toEqual(['Deals', 'Founder Guides', 'Job Board', 'PLAA']);
+  });
+
   it('keeps the same array while permissions are unchanged', () => {
     mockPermissions.mockReturnValue([]);
     const { result, rerender } = renderHook(() => useMoreNavItems());

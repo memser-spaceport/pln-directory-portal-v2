@@ -39,18 +39,18 @@ describe('useGetPlInfraNavItems', () => {
   });
 
   it('shows only the area a member is permitted for', () => {
-    expect(titlesOf(plInfra(PERMISSIONS.AI_APPS.PERM_VIEW))).toEqual(['AI Apps']);
-    expect(titlesOf(plInfra(PERMISSIONS.INVESTOR_DB.PERM_VIEW))).toEqual(['Investor DB']);
+    expect(titlesOf(plInfra(PERMISSIONS.AI_APPS.PERM_VIEW))).toEqual(['AI Apps', 'Network Intelligence Dash']);
+    expect(titlesOf(plInfra(PERMISSIONS.INVESTOR_DB.PERM_VIEW))).toEqual(['Network Intelligence Dash', 'Investor DB']);
   });
 
   it('lets a roadmap admin in as well as a roadmap viewer', () => {
-    expect(plInfra(PERMISSIONS.GANTRY.PERM_ADMIN)).toHaveLength(1);
-    expect(plInfra(PERMISSIONS.GANTRY.PERM_VIEW)).toHaveLength(1);
+    expect(plInfra(PERMISSIONS.GANTRY.PERM_ADMIN)).toHaveLength(2);
+    expect(plInfra(PERMISSIONS.GANTRY.PERM_VIEW)).toHaveLength(2);
   });
 
   it('lets an agent-sessions admin in as well as a viewer', () => {
-    expect(plInfra(PERMISSIONS.AGENT_SESSIONS.PERM_ADMIN)).toHaveLength(1);
-    expect(plInfra(PERMISSIONS.AGENT_SESSIONS.PERM_VIEW)).toHaveLength(1);
+    expect(plInfra(PERMISSIONS.AGENT_SESSIONS.PERM_ADMIN)).toHaveLength(2);
+    expect(plInfra(PERMISSIONS.AGENT_SESSIONS.PERM_VIEW)).toHaveLength(2);
   });
 
   it('keeps a stable order as permissions accumulate, so the nav does not reshuffle', () => {
@@ -61,7 +61,13 @@ describe('useGetPlInfraNavItems', () => {
       PERMISSIONS.GANTRY.PERM_VIEW,
     );
 
-    expect(titlesOf(all)).toEqual(['Gantry', 'Investor DB', 'AI Apps', 'Agent Sessions']);
+    expect(titlesOf(all)).toEqual([
+      'AI Apps',
+      'Gantry',
+      'Network Intelligence Dash',
+      'Investor DB',
+      'Agent Sessions',
+    ]);
   });
 
   it('does not show Founder DB, which is behind a kill switch', () => {
@@ -70,7 +76,7 @@ describe('useGetPlInfraNavItems', () => {
     expect(titlesOf(all)).not.toContain('Founder DB');
   });
 
-  it('gives every item a route, so no entry renders as a dead link', () => {
+  it('gives every internal item a route, so no entry renders as a dead link', () => {
     const all = plInfra(
       PERMISSIONS.GANTRY.PERM_VIEW,
       PERMISSIONS.INVESTOR_DB.PERM_VIEW,
@@ -78,7 +84,16 @@ describe('useGetPlInfraNavItems', () => {
       PERMISSIONS.AGENT_SESSIONS.PERM_VIEW,
     );
 
-    all.forEach((item) => expect(item.href).toEqual(expect.stringMatching(/^\//)));
+    all
+      .filter((item) => !('external' in item && item.external))
+      .forEach((item) => expect(item.href).toEqual(expect.stringMatching(/^\//)));
+  });
+
+  it('sends Network Intelligence Dash to the external reports site, marked to open in a new tab', () => {
+    const link = plInfra(PERMISSIONS.INVESTOR_DB.PERM_VIEW).find((item) => item.title === 'Network Intelligence Dash');
+
+    expect(link?.href).toBe('https://intelligence-reports.plnetwork.io/');
+    expect(link).toMatchObject({ external: true });
   });
 
   it('keeps the same array while permissions are unchanged', () => {

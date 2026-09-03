@@ -1,4 +1,4 @@
-import { PENDING_APPLY_PARAM, stripPendingApplyFromUrl, withPendingApply } from '@/services/jobs/job-apply-resume';
+import { PENDING_APPLY_PARAM, stripResumeParamsFromUrl, withPendingApply } from '@/services/jobs/job-apply-resume';
 
 describe('withPendingApply', () => {
   it('adds the role to an empty search string', () => {
@@ -38,13 +38,13 @@ describe('withPendingApply', () => {
   });
 });
 
-describe('stripPendingApplyFromUrl', () => {
+describe('stripResumeParamsFromUrl', () => {
   const setUrl = (url: string) => window.history.replaceState({}, '', url);
 
   it('removes the parameter without touching the rest of the query', () => {
     setUrl(`/jobs?roleCategory=Engineering&${PENDING_APPLY_PARAM}=role-1&sort=newest`);
 
-    stripPendingApplyFromUrl();
+    stripResumeParamsFromUrl();
 
     const params = new URLSearchParams(window.location.search);
     expect(params.get(PENDING_APPLY_PARAM)).toBeNull();
@@ -55,7 +55,7 @@ describe('stripPendingApplyFromUrl', () => {
   it('leaves a bare path bare rather than trailing a "?"', () => {
     setUrl(`/jobs?${PENDING_APPLY_PARAM}=role-1`);
 
-    stripPendingApplyFromUrl();
+    stripResumeParamsFromUrl();
 
     expect(window.location.search).toBe('');
     expect(window.location.pathname).toBe('/jobs');
@@ -64,7 +64,7 @@ describe('stripPendingApplyFromUrl', () => {
   it('also removes a pending profile resume', () => {
     setUrl(`/jobs?roleCategory=Engineering&${PENDING_APPLY_PARAM}=role-1`);
 
-    stripPendingApplyFromUrl();
+    stripResumeParamsFromUrl();
 
     const params = new URLSearchParams(window.location.search);
     expect(params.get(PENDING_APPLY_PARAM)).toBeNull();
@@ -74,7 +74,7 @@ describe('stripPendingApplyFromUrl', () => {
   it('is a no-op when the parameter was never there', () => {
     setUrl('/jobs?roleCategory=Engineering');
 
-    stripPendingApplyFromUrl();
+    stripResumeParamsFromUrl();
 
     expect(window.location.search).toBe('?roleCategory=Engineering');
   });
@@ -86,7 +86,7 @@ describe('stripPendingApplyFromUrl', () => {
   it('takes the email prefill with it', () => {
     setUrl(`/teams/team-1?prefillEmail=someone%40example.com&${PENDING_APPLY_PARAM}=role-1`);
 
-    stripPendingApplyFromUrl();
+    stripResumeParamsFromUrl();
 
     expect(window.location.search).toBe('');
     expect(window.location.pathname).toBe('/teams/team-1');
@@ -95,7 +95,7 @@ describe('stripPendingApplyFromUrl', () => {
   it('cleans up a stranded prefill even with no resume left to act on', () => {
     setUrl('/teams/team-1?prefillEmail=someone%40example.com&tab=roles');
 
-    stripPendingApplyFromUrl();
+    stripResumeParamsFromUrl();
 
     const params = new URLSearchParams(window.location.search);
     expect(params.get('prefillEmail')).toBeNull();
@@ -106,7 +106,7 @@ describe('stripPendingApplyFromUrl', () => {
     setUrl(`/jobs?${PENDING_APPLY_PARAM}=role-1`);
     const pushSpy = jest.spyOn(window.history, 'pushState');
 
-    stripPendingApplyFromUrl();
+    stripResumeParamsFromUrl();
 
     expect(pushSpy).not.toHaveBeenCalled();
     pushSpy.mockRestore();

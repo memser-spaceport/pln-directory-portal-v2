@@ -11,6 +11,9 @@ export enum JobsQueryKey {
   ApplicationStatuses = 'job-application-statuses',
   /** The viewer's own (PL-Team-only) job search status. */
   JobSearchStatus = 'job-search-status',
+  /** The viewer's complete interested-roles list. Same whole-map shape as
+   *  `ApplicationStatuses`, scoped by member uid for the same reason. */
+  InterestStatuses = 'job-interest-statuses',
 }
 
 /**
@@ -35,6 +38,30 @@ export enum JobsQueryKey {
  * bundler folds the branch.
  */
 export const SHOW_JOB_BOARD_APPLY: boolean = process.env.NEXT_PUBLIC_SHOW_JOB_BOARD_APPLY === 'true';
+
+/**
+ * The "I'm interested" banner in the job detail drawer — a light signal
+ * alongside Apply, not a replacement for it.
+ *
+ * Dark for one reason: the endpoints behind it (`POST`/`DELETE
+ * /v1/job-openings/:uid/interests`, `GET /v1/job-openings/interests`) are being
+ * written as this ships, and the wire shapes in `schema/job-interests` are a
+ * proposal rather than a transcript. A 404 from a hook the drawer renders
+ * unconditionally would degrade the drawer for everyone, so nothing requests
+ * anything until an environment says so.
+ *
+ * Separate from `SHOW_JOB_BOARD_APPLY` rather than folded into it: the apply
+ * flow is live and this is not, and one flag that means two things cannot be
+ * turned on by halves.
+ *
+ * It also has a second gate that is not technical — the logged-out composition
+ * this introduces (the banner stacked above `JobUnlockBanner`) is not drawn in
+ * any Figma frame. See the plan's D1. Flip on the endpoint AND the review.
+ *
+ * Same convention as above: imported ONLY by the board hosts, passed down as
+ * `interestEnabled`, and written literal-first in `&&` so the bundler folds it.
+ */
+export const SHOW_JOB_BOARD_INTEREST: boolean = process.env.NEXT_PUBLIC_SHOW_JOB_BOARD_INTEREST === 'true';
 
 /* (`SHOW_CV_IMPORT` lived here, "because there is exactly one host today". The
     member profile page is the second, so it moved somewhere neutral —

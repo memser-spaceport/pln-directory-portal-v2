@@ -2590,8 +2590,11 @@ export const AI_APPS_ANALYTICS = {
   DEPLOYMENT_LOGS_EXPORTED: 'ai_apps_deployment_logs_exported',
   SEARCH_APPLIED: 'ai_apps_search_applied',
   CREATOR_FILTER_SELECTED: 'ai_apps_creator_filter_selected',
+  CREATOR_FILTER_SEARCHED: 'ai_apps_creator_filter_searched',
   SORT_CHANGED: 'ai_apps_sort_changed',
   FILTERS_CLEARED: 'ai_apps_filters_cleared',
+  FILTERS_APPLIED: 'ai_apps_filters_applied',
+  FILTERS_PANEL_DISMISSED: 'ai_apps_filters_panel_dismissed',
   EMPTY_RESULTS_SHOWN: 'ai_apps_empty_results_shown',
 };
 

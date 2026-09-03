@@ -28,6 +28,12 @@ export function AiAppsMobileFilters() {
     clearParams();
   };
 
+  // The wrapper routes only X and swipe-down here — "Apply filters" closes via
+  // the render prop instead, so a dismiss can never land as an apply.
+  const handleFilterClose = () => {
+    analytics.onFiltersPanelDismissed({ filterCount });
+  };
+
   return (
     <MobileFilterWrapper
       filterCount={filterCount}
@@ -36,6 +42,7 @@ export function AiAppsMobileFilters() {
       sortByLabel="Sort by:"
       onSortChange={handleSortChange}
       onClearFilters={handleClearFilters}
+      onFilterClose={handleFilterClose}
       renderFilter={(onClose) => <AiAppsFilter onClose={onClose} source="mobile" />}
     />
   );

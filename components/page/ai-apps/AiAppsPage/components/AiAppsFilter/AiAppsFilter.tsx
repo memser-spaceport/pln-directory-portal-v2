@@ -37,21 +37,38 @@ export function AiAppsFilter(props: Props) {
     lastTrackedSearch.current = searchParam;
 
     if (searchParam) {
-      analytics.onSearchApplied({ queryLength: searchParam.length, resultCount: visibleApps.length });
+      analytics.onSearchApplied({ queryLength: searchParam.length, resultCount: visibleApps.length, source });
     }
     // visibleApps changes as a *result* of the search; depending on it would double-count every query.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParam, analytics]);
+  }, [searchParam, analytics, source]);
 
   const getCreators = createFilterGetter(creators);
+
+  // The creator box is a DebouncedInput (700ms), so this already arrives once
+  // per settled query rather than once per keystroke — no debounce of our own.
+  const handleCreatorSearch = (query: string) => {
+    // Clearing the box flushes an immediate onChange(''); a reset is not a lookup,
+    // and the app search above keeps the same silence.
+    if (!query) return;
+
+    analytics.onCreatorFilterSearched({ queryLength: query.length, source });
+  };
 
   const handleClearParams = () => {
     analytics.onFiltersCleared({ source });
     clearParams();
   };
 
+  // The rail has nothing to close, so the press is the whole signal there;
+  // in the sheet it also commits. Fire before closing so the event survives unmount.
+  const handleApplyFilters = () => {
+    analytics.onFiltersApplied({ source, filterCount, resultCount: visibleApps.length });
+    onClose?.();
+  };
+
   return (
-    <FiltersSidePanel onClose={onClose} clearParams={handleClearParams} appliedFiltersCount={filterCount}>
+    <FiltersSidePanel onClose={handleApplyFilters} clearParams={handleClearParams} appliedFiltersCount={filterCount}>
       <FilterSection>
         <FilterSearchInput
           filterStore={useAiAppsFilterStore}
@@ -71,8 +88,9 @@ export function AiAppsFilter(props: Props) {
           useGetDataHook={getCreators}
           defaultItemsToShow={5}
           onChange={(_key, values) =>
-            analytics.onCreatorFilterSelected({ creatorCount: values.length, resultCount: visibleApps.length })
+            analytics.onCreatorFilterSelected({ creatorCount: values.length, resultCount: visibleApps.length, source })
           }
+          onSearch={handleCreatorSearch}
         />
       </FilterSection>
     </FiltersSidePanel>

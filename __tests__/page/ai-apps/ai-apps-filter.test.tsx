@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { AiAppsFilter } from '@/components/page/ai-apps/AiAppsPage/components/AiAppsFilter';
@@ -14,11 +14,15 @@ jest.mock('@/services/ai-apps/hooks/useAiApps', () => ({
 const mockFiltersCleared = jest.fn();
 const mockCreatorSelected = jest.fn();
 const mockSearchApplied = jest.fn();
+const mockCreatorSearched = jest.fn();
+const mockFiltersApplied = jest.fn();
 jest.mock('@/analytics/ai-apps.analytics', () => ({
   useAiAppsAnalytics: () => ({
     onFiltersCleared: mockFiltersCleared,
     onCreatorFilterSelected: mockCreatorSelected,
     onSearchApplied: mockSearchApplied,
+    onCreatorFilterSearched: mockCreatorSearched,
+    onFiltersApplied: mockFiltersApplied,
   }),
 }));
 
@@ -117,5 +121,94 @@ describe('AiAppsFilter', () => {
     await user.click(screen.getByRole('button', { name: /clear all/i }));
 
     expect(mockFiltersCleared).toHaveBeenCalledWith({ source: 'mobile' });
+  });
+
+  it('stamps the surface on the creator facet, so rail and sheet stay separable', async () => {
+    const user = userEvent.setup();
+    render(<AiAppsFilter source="mobile" onClose={jest.fn()} />);
+
+    await user.click(screen.getByText('Nina Chen'));
+
+    // resultCount is the count the tick *before* the facet narrows the list (3, not 2):
+    // onChange runs alongside the param write, so the derived list has yet to recompute.
+    expect(mockCreatorSelected).toHaveBeenCalledWith({ creatorCount: 1, resultCount: 3, source: 'mobile' });
+  });
+
+  it('stamps the surface on the search event', () => {
+    render(<AiAppsFilter />);
+    // Set after mount: the effect reports a *change* of query, so a param that was
+    // already there when the panel opened is deliberately silent.
+    act(() => useAiAppsFilterStore.getState().setAllParams(new URLSearchParams({ search: 'matcher' })));
+
+    expect(mockSearchApplied).toHaveBeenCalledWith({ queryLength: 7, resultCount: 0, source: 'rail' });
+  });
+
+  describe('Apply filters', () => {
+    it('reports the press and closes the sheet', async () => {
+      const user = userEvent.setup();
+      const onClose = jest.fn();
+      act(() => useAiAppsFilterStore.getState().setAllParams(new URLSearchParams({ createdBy: 'Nina Chen' })));
+      render(<AiAppsFilter source="mobile" onClose={onClose} />);
+
+      await user.click(screen.getByRole('button', { name: /apply filters/i }));
+
+      expect(mockFiltersApplied).toHaveBeenCalledWith({ source: 'mobile', filterCount: 1, resultCount: 2 });
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it('still reports on the rail, where the press closes nothing', async () => {
+      const user = userEvent.setup();
+      render(<AiAppsFilter />);
+
+      await user.click(screen.getByRole('button', { name: /apply filters/i }));
+
+      expect(mockFiltersApplied).toHaveBeenCalledWith({ source: 'rail', filterCount: 0, resultCount: 3 });
+    });
+  });
+
+  describe('creator lookup', () => {
+    // Fake timers only here: the other cases drive userEvent, which stalls on them.
+    beforeEach(() => jest.useFakeTimers());
+    afterEach(() => jest.useRealTimers());
+
+    /** The box behind the facet list; the app-search field is a separate input. */
+    const creatorBox = () => screen.getByPlaceholderText('E.g. Nina Chen');
+
+    it('reports the query length and the surface, never the text', () => {
+      render(<AiAppsFilter />);
+
+      fireEvent.change(creatorBox(), { target: { value: 'Nina' } });
+      act(() => jest.advanceTimersByTime(700));
+
+      expect(mockCreatorSearched).toHaveBeenCalledWith({ queryLength: 4, source: 'rail' });
+      // A creator query is a member's name: the payload must not carry it.
+      const [[payload]] = mockCreatorSearched.mock.calls;
+      expect(JSON.stringify(payload)).not.toContain('Nina');
+    });
+
+    it('lands one event per settled query, not one per keystroke', () => {
+      render(<AiAppsFilter />);
+
+      fireEvent.change(creatorBox(), { target: { value: 'N' } });
+      fireEvent.change(creatorBox(), { target: { value: 'Ni' } });
+      fireEvent.change(creatorBox(), { target: { value: 'Nina' } });
+      act(() => jest.advanceTimersByTime(700));
+
+      expect(mockCreatorSearched).toHaveBeenCalledTimes(1);
+      expect(mockCreatorSearched).toHaveBeenCalledWith({ queryLength: 4, source: 'rail' });
+    });
+
+    it('stays silent when the box is emptied — a reset is not a lookup', () => {
+      render(<AiAppsFilter />);
+
+      fireEvent.change(creatorBox(), { target: { value: 'Nina' } });
+      act(() => jest.advanceTimersByTime(700));
+      mockCreatorSearched.mockClear();
+
+      fireEvent.change(creatorBox(), { target: { value: '' } });
+      act(() => jest.advanceTimersByTime(700));
+
+      expect(mockCreatorSearched).not.toHaveBeenCalled();
+    });
   });
 });

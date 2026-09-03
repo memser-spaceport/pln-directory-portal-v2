@@ -103,13 +103,27 @@ export function useAiAppsAnalytics() {
     // List controls. Only the query LENGTH is sent, never the text: an app
     // search box is free text a member typed, and the result count already
     // answers "did search work" without carrying whatever they looked for.
-    onSearchApplied: (params: { queryLength: number; resultCount: number }) =>
+    // Every control carries `source`, so rail and mobile-sheet usage stay
+    // separable — the sheet is the only surface with a dismiss gesture.
+    onSearchApplied: (params: { queryLength: number; resultCount: number; source: 'rail' | 'mobile' }) =>
       capture(AI_APPS_ANALYTICS.SEARCH_APPLIED, params),
-    onCreatorFilterSelected: (params: { creatorCount: number; resultCount: number }) =>
+    onCreatorFilterSelected: (params: { creatorCount: number; resultCount: number; source: 'rail' | 'mobile' }) =>
       capture(AI_APPS_ANALYTICS.CREATOR_FILTER_SELECTED, params),
+    // Length only, same rule as the app search: a creator query is a member's name.
+    onCreatorFilterSearched: (params: { queryLength: number; source: 'rail' | 'mobile' }) =>
+      capture(AI_APPS_ANALYTICS.CREATOR_FILTER_SEARCHED, params),
     onSortChanged: (params: { sort: string; source: 'masthead' | 'mobile'; resultCount: number }) =>
       capture(AI_APPS_ANALYTICS.SORT_CHANGED, params),
     onFiltersCleared: (params: { source: 'rail' | 'mobile' }) => capture(AI_APPS_ANALYTICS.FILTERS_CLEARED, params),
+    /**
+     * The panel's "Apply filters" press. Filters already apply live, so this is
+     * an intent signal, not a state change — on the rail it closes nothing.
+     */
+    onFiltersApplied: (params: { source: 'rail' | 'mobile'; filterCount: number; resultCount: number }) =>
+      capture(AI_APPS_ANALYTICS.FILTERS_APPLIED, params),
+    /** Mobile sheet closed via X or swipe-down — abandonment, as against Apply. */
+    onFiltersPanelDismissed: (params: { filterCount: number }) =>
+      capture(AI_APPS_ANALYTICS.FILTERS_PANEL_DISMISSED, params),
     onEmptyResultsShown: (params: { filterCount: number }) => capture(AI_APPS_ANALYTICS.EMPTY_RESULTS_SHOWN, params),
   };
 }

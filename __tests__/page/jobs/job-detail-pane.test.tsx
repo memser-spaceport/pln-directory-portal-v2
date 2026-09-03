@@ -280,4 +280,46 @@ describe('the job detail pane', () => {
       expect(screen.getByRole('heading', { name: 'Protocol Engineer' })).toBeInTheDocument();
     });
   });
+
+  /**
+   * The slot between the masthead and the description.
+   *
+   * A slot and not a flag, because what belongs there depends on who is looking
+   * and this pane has never known that. What it owns is the position, and the
+   * position is the whole point: these sections are siblings in a fragment, so
+   * the drawer's content column spaces them, and anything landing in the wrong
+   * place here lands in the wrong place with the right gap around it.
+   */
+  describe('the banner slot', () => {
+    it('draws nothing when nobody passes one', () => {
+      const { container } = renderPane();
+
+      expect(container.querySelector('[data-testid="slotted"]')).toBeNull();
+    });
+
+    it('puts it after the masthead and before the description', () => {
+      const { container } = renderPane({ banner: <div data-testid="slotted">a banner</div> });
+
+      const slotted = screen.getByTestId('slotted');
+      const heading = screen.getByRole('heading', { name: 'Protocol Engineer' });
+      const about = screen.getByText('About the role');
+
+      /* `compareDocumentPosition` rather than an index into `container.children`:
+         the sections are the drawer's children, not this pane's, so any test
+         that counts positions in a list would be counting a list that only
+         exists because the fragment is being rendered bare here. */
+      expect(heading.compareDocumentPosition(slotted) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(about.compareDocumentPosition(slotted) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
+      expect(container).toContainElement(slotted);
+    });
+
+    /* The whole pane is behind a `role && team` guard, and the slot is inside
+       it. Worth pinning: a banner rendered beside an absent role would be a
+       conversion pitch floating over nothing while the drawer waits for data. */
+    it('stays inside the role guard', () => {
+      renderPane({ role: null, banner: <div data-testid="slotted">a banner</div> });
+
+      expect(screen.queryByTestId('slotted')).not.toBeInTheDocument();
+    });
+  });
 });

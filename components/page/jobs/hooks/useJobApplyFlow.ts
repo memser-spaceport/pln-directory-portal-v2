@@ -78,7 +78,27 @@ export type ApplyFlowState =
    * to re-read the posting unmounts that pane and a letter that died on a step
    * change would make the rail a trap.
    */
-  | { step: 'flow'; target: JobDetailTarget; at: ApplyFlowStepId; coverLetterDraft: string }
+  | {
+      step: 'flow';
+      target: JobDetailTarget;
+      at: ApplyFlowStepId;
+      coverLetterDraft: string;
+      /**
+       * This run began by coming back from Privy, not by pressing a row.
+       *
+       * The one thing that reads it is the footer's acknowledgement, and the
+       * reason it needs asking at all is that the state it would otherwise key
+       * off — logged in, non-PL role, review step — is also where a Job Aspirant
+       * and a member still pending approval sit. Both have had an account for
+       * months. "Profile created" is only true for the person who just made one,
+       * and nothing else on screen distinguishes them.
+       *
+       * Lives on the flow rather than in a ref because `CLOSE` clears it, which
+       * is the scope wanted: the acknowledgement belongs to this run, and
+       * reopening the drawer later is a different one.
+       */
+      justSignedUp?: boolean;
+    }
   /**
    * The profile stack with no application behind it — the banner's "Update
    * profile", and where a post-login resume lands when the role it was holding
@@ -89,7 +109,7 @@ export type ApplyFlowState =
 
 type ApplyFlowAction =
   | { type: 'OPEN_SIGN_UP'; target: ApplyTarget | null }
-  | { type: 'OPEN_FLOW'; target: JobDetailTarget; at: ApplyFlowStepId }
+  | { type: 'OPEN_FLOW'; target: JobDetailTarget; at: ApplyFlowStepId; justSignedUp?: boolean }
   | { type: 'GO_TO_STEP'; at: ApplyFlowStepId }
   | { type: 'SET_COVER_LETTER'; coverLetterDraft: string }
   | { type: 'OPEN_PROFILE_ONLY' }
@@ -103,7 +123,13 @@ export function applyFlowReducer(state: ApplyFlowState, action: ApplyFlowAction)
     case 'OPEN_SIGN_UP':
       return { step: 'sign-up', target: action.target };
     case 'OPEN_FLOW':
-      return { step: 'flow', target: action.target, at: action.at, coverLetterDraft: '' };
+      return {
+        step: 'flow',
+        target: action.target,
+        at: action.at,
+        coverLetterDraft: '',
+        justSignedUp: action.justSignedUp,
+      };
     case 'GO_TO_STEP':
       /* Only from inside the flow. A stray step change arriving after something
          replaced the flow must not resurrect it around a target that is gone. */
@@ -398,7 +424,7 @@ export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: Job
    * **Which step depends on where this application is actually going.** A new
    * account's verdict is `pending`, so for any non-PL team `shouldApplyGoExternal`
    * was already true when they pressed Apply — and the footer told them so:
-   * "Apply on team site", on the employer's own site. Resuming straight onto the
+   * "Apply on the team's site", on the employer's own site. Resuming straight onto the
    * profile step put the in-app letter in front of someone who had been promised
    * the opposite, and let them finish it. The rule this consults is the one
    * `onApply` consults; it was simply never asked here.
@@ -408,7 +434,7 @@ export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: Job
    * blocks that, and a silently blocked redirect is worse than the wrong step.
    * The review step already carries the external press as a button
    * (`JobApplyFlowDrawer`'s footer, where the rail is hidden and the action is
-   * "Apply on team site"), so this hands them the promise instead of breaking it.
+   * "Apply on the team's site"), so this hands them the promise instead of breaking it.
    */
   const onResumeAfterSignUp = useCallback(
     (target: JobDetailTarget) => {
@@ -421,7 +447,10 @@ export function useJobApplyFlow({ viewer, verdict, refreshVerdict, source }: Job
       const at: ApplyFlowStepId = shouldApplyGoExternal({ viewer, verdict, team: target.team })
         ? 'review'
         : 'profile';
-      dispatch({ type: 'OPEN_FLOW', target, at });
+      /* The only dispatch that sets it. Everything else opening this flow is a
+         press on a row, a deep link or a step change — none of which just made
+         an account. */
+      dispatch({ type: 'OPEN_FLOW', target, at, justSignedUp: true });
       analytics.onJobApplyDrawerOpened(applyBase(target));
       viewStep(at, target);
     },

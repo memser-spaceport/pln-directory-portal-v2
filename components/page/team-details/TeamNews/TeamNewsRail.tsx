@@ -143,40 +143,39 @@ export function TeamNewsRail({ teamUid, teamName, initialData, canPost = false, 
           {canPost && !hasNews && <NewsEmptyCard onPost={openCompose} />}
 
           {hasNews && (
-            <>
-              <div className={s.newsList} ref={railListRef}>
-                {previewItems.map((item, index) => (
-                  <TeamNewsCard
-                    key={item.uid}
-                    item={item}
-                    position={index}
-                    variant="flat"
-                    analyticsSource="team-profile-rail"
-                    onClick={(clicked) => handleCardClick(clicked, index)}
-                    onUpvoteToggle={(toggled: ITeamNewsItem) => handleUpvoteToggle(toggled, index, 'team-profile-rail')}
-                    onShowMore={(clicked) => handleShowMore(clicked, index)}
-                    onOpenDetail={(clicked, via) => handleOpenDetail(clicked, index, via)}
-                    onVisible={recordVisible}
-                  />
-                ))}
-              </div>
-              <div className={s.newsFooter}>
-                {hasMore && (
-                  <button
-                    type="button"
-                    className={s.viewAll}
-                    onClick={() => {
-                      onTeamNewsViewAllClicked(teamUid, teamName, total);
-                      setModalState({ kind: 'archive', focusUid: null });
-                    }}
-                  >
-                    View all news ({total})
-                  </button>
-                )}
-                <TeamNewsFeedLink teamUid={teamUid} teamName={teamName} source="team-profile-rail" />
-              </div>
-            </>
+            <div className={s.newsList} ref={railListRef}>
+              {previewItems.map((item, index) => (
+                <TeamNewsCard
+                  key={item.uid}
+                  item={item}
+                  position={index}
+                  variant="flat"
+                  analyticsSource="team-profile-rail"
+                  onClick={(clicked) => handleCardClick(clicked, index)}
+                  onUpvoteToggle={(toggled: ITeamNewsItem) => handleUpvoteToggle(toggled, index, 'team-profile-rail')}
+                  onShowMore={(clicked) => handleShowMore(clicked, index)}
+                  onOpenDetail={(clicked, via) => handleOpenDetail(clicked, index, via)}
+                  onVisible={recordVisible}
+                />
+              ))}
+            </div>
           )}
+
+          <div className={s.newsFooter}>
+            {hasMore && (
+              <button
+                type="button"
+                className={s.viewAll}
+                onClick={() => {
+                  onTeamNewsViewAllClicked(teamUid, teamName, total);
+                  setModalState({ kind: 'archive', focusUid: null });
+                }}
+              >
+                View all news ({total})
+              </button>
+            )}
+            <TeamNewsFeedLink teamUid={teamUid} teamName={teamName} source="team-profile-rail" />
+          </div>
         </div>
       </aside>
 

@@ -434,5 +434,6 @@ describe('TeamNewsRail', () => {
 
     expect(screen.getByText('No news yet')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Post news' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /All network updates/i })).toHaveAttribute('href', '/home');
   });
 });

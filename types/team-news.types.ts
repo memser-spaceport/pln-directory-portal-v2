@@ -49,6 +49,8 @@ export interface ITeamNewsItem {
   /** Raw feed-card impression count, not deduplicated by user/session/repeat
    *  viewing. Incremented via POST /v1/team-news/impressions. */
   viewCount?: number;
+  /** True when posted from the team profile by a member or directory admin. */
+  isTeamPosted?: boolean;
 }
 
 /** Returned by POST/DELETE /v1/team-news/:uid/upvote and carried on every news item. */

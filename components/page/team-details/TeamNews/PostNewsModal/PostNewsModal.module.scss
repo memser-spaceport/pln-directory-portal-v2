@@ -1,0 +1,81 @@
+.postTrigger {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.postAction.postAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.postTip.postTip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 250px;
+  overflow: visible;
+}
+
+.postTipText {
+  margin: 0;
+  color: var(--Neutral-White, #fff);
+}
+
+.postTipDismiss {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--Neutral-White, #fff);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.newsEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 16px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--Neutral-White, #fff);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.newsEmptyText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.newsEmptyTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+@keyframes newsPostedWash {
+  0% {
+    background-color: var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.newsPosted {
+  animation: newsPostedWash 1.5s ease-out;
+  border-radius: 8px;
+}

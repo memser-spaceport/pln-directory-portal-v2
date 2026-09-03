@@ -81,6 +81,19 @@ jest.mock('@/hooks/useIsMobile', () => ({
   useIsMobile: jest.fn(() => false),
 }));
 
+jest.mock('@/services/team-news/hooks/useTeamNewsImpressions', () => ({
+  useTeamNewsImpressions: () => ({ recordVisible: jest.fn() }),
+}));
+
+jest.mock('@/services/team-news/hooks/useCreateTeamNewsPost', () => ({
+  useCreateTeamNewsPost: () => ({ mutateAsync: jest.fn(), isPending: false }),
+}));
+
+jest.mock('@/utils/uiFlags', () => ({
+  getUiFlag: jest.fn().mockResolvedValue(true),
+  setUiFlag: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock('@/components/page/team-details/TeamNews/TeamNewsModal', () => ({
   TeamNewsModal: (props: { isOpen: boolean; fullscreen?: boolean }) => {
     lastModalProps = props;
@@ -399,5 +412,27 @@ describe('TeamNewsRail', () => {
     renderRailWithSummaries(2);
     expect(screen.queryByRole('button', { name: /View all news/i })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: /All network updates/i })).toBeInTheDocument();
+  });
+
+  it('shows empty post prompt when the member can post and there is no news yet', () => {
+    render(
+      <TeamNewsRail
+        teamUid="team-1"
+        teamName="Protocol Labs"
+        canPost
+        memberUid="member-1"
+        initialData={{
+          teamUid: 'team-1',
+          teamName: 'Protocol Labs',
+          page: 1,
+          limit: 3,
+          total: 0,
+          items: [],
+        }}
+      />,
+    );
+
+    expect(screen.getByText('No news yet')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Post news' })).toBeInTheDocument();
   });
 });

@@ -17,11 +17,10 @@ jest.mock('@tanstack/react-query', () => jest.requireActual('@tanstack/react-que
 jest.mock('@/utils/fetch-wrapper', () => ({ customFetch: jest.fn() }));
 
 import { customFetch } from '@/utils/fetch-wrapper';
-import { jobInterestListResponseSchema } from '@/schema/job-interests';
+import { jobInterestListResponseSchema, jobInterestToggleResponseSchema } from '@/schema/job-interests';
 import {
   clearJobInterest,
   fetchJobInterests,
-  isAlreadyInterestedError,
   isJobGoneError,
   JobInterestError,
   markJobInterest,
@@ -33,7 +32,12 @@ const fetchMock = customFetch as jest.Mock;
 const ok = (body: unknown) => ({ ok: true, status: 200, json: async () => body });
 const fail = (status: number, body: unknown = {}) => ({ ok: false, status, json: async () => body });
 
-const ROW = { uid: 'i1', jobUid: 'r1', createdAt: '2026-09-03T00:00:00.000Z' };
+const ROW = { uid: 'i1', jobUid: 'r1', interestedAt: '2026-09-03T00:00:00.000Z' };
+const toggled = (viewerIsInterested: boolean, interestedCount = 3) => ({
+  jobUid: 'r1',
+  interestedCount,
+  viewerIsInterested,
+});
 
 beforeEach(() => jest.clearAllMocks());
 
@@ -51,6 +55,18 @@ describe('the wire shape', () => {
     expect(() => jobInterestListResponseSchema.parse({ interests: [{ ...ROW, memberUid: 'm1' }] })).toThrow();
     expect(() => jobInterestListResponseSchema.parse({ interests: [{ uid: 'i1' }] })).toThrow();
   });
+
+  /* The write response carries the role's total alongside the viewer's own
+     state. Nothing renders the count today; it is parsed so that adding a UI
+     for it later is not a `.strict()` surprise. */
+  it('accepts the toggle response, count and all', () => {
+    expect(jobInterestToggleResponseSchema.parse(toggled(true))).toEqual({
+      jobUid: 'r1',
+      interestedCount: 3,
+      viewerIsInterested: true,
+    });
+    expect(() => jobInterestToggleResponseSchema.parse({ jobUid: 'r1', viewerIsInterested: true })).toThrow();
+  });
 });
 
 describe('the calls', () => {
@@ -62,14 +78,19 @@ describe('the calls', () => {
     expect(fetchMock.mock.calls[0][1]).toEqual({ method: 'GET' });
   });
 
-  it('marks and clears the same path with different verbs', async () => {
-    fetchMock.mockResolvedValue(ok(ROW));
-    await markJobInterest('r1');
-    expect(fetchMock.mock.calls[0][0]).toMatch(/\/v1\/job-openings\/r1\/interests$/);
+  /* Writing is `/interest`, reading the viewer's list is `/interests`. The
+     asymmetry is the server's, and getting either wrong is a 404 that only
+     shows up once the flag is on — so it is pinned here rather than discovered
+     at cutover. */
+  it('writes to the singular path with both verbs, and reads from the plural one', async () => {
+    fetchMock.mockResolvedValue(ok(toggled(true)));
+    await expect(markJobInterest('r1')).resolves.toEqual(toggled(true));
+    expect(fetchMock.mock.calls[0][0]).toMatch(/\/v1\/job-openings\/r1\/interest$/);
     expect(fetchMock.mock.calls[0][1].method).toBe('POST');
 
-    fetchMock.mockResolvedValue({ ok: true, status: 204, json: async () => undefined });
-    await expect(clearJobInterest('r1')).resolves.toBeUndefined();
+    fetchMock.mockResolvedValue(ok(toggled(false, 2)));
+    await expect(clearJobInterest('r1')).resolves.toEqual(toggled(false, 2));
+    expect(fetchMock.mock.calls[1][0]).toMatch(/\/v1\/job-openings\/r1\/interest$/);
     expect(fetchMock.mock.calls[1][1].method).toBe('DELETE');
   });
 
@@ -88,11 +109,10 @@ describe('the calls', () => {
     await expect(markJobInterest('r1')).rejects.toMatchObject({ status: 401 });
   });
 
-  it('separates the refusals that mean different things', () => {
-    expect(isAlreadyInterestedError(new JobInterestError(409, 'Already interested'))).toBe(true);
+  it('recognises the one refusal worth telling apart', () => {
     expect(isJobGoneError(new JobInterestError(404, 'Not found'))).toBe(true);
-    expect(isAlreadyInterestedError(new JobInterestError(404, 'Not found'))).toBe(false);
-    expect(isAlreadyInterestedError(new Error('not ours'))).toBe(false);
+    expect(isJobGoneError(new JobInterestError(500, 'boom'))).toBe(false);
+    expect(isJobGoneError(new Error('not ours'))).toBe(false);
   });
 });
 
@@ -124,7 +144,7 @@ describe('the optimistic toggle', () => {
     await waitFor(() => expect(rows(client)).toHaveLength(1));
     expect(rows(client)?.[0].jobUid).toBe('r1');
 
-    release(ok(ROW));
+    release(ok(toggled(true)));
   });
 
   it('puts the screen back when the server refuses', async () => {
@@ -137,17 +157,32 @@ describe('the optimistic toggle', () => {
     expect(rows(client)).toHaveLength(0);
   });
 
-  /* A 409 says the server already holds what we just wrote. The state the person
-     asked for is the state that exists, so rolling back would undo a correct
-     screen to report a problem that isn't one. */
-  it('keeps the signal on a 409, because the server agrees with the screen', async () => {
-    fetchMock.mockResolvedValue(fail(409, { message: 'Already interested' }));
+  /* Both writes are idempotent, so pressing an already-marked role is a 200
+     saying "still true" rather than a 409. There is no error path to take here
+     and no rollback to do — the screen simply stays right. */
+  it('treats a repeat press as the no-op the server says it is', async () => {
+    fetchMock.mockResolvedValue(ok(toggled(true)));
+
+    const { client, result } = harness();
+    client.setQueryData(KEY, [ROW]);
+
+    result.current.mutate({ roleUid: 'r1', nextInterested: true });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(rows(client)).toHaveLength(1);
+  });
+
+  /* The server is the authority, not the press. If something raced us and the
+     write came back saying the viewer is NOT interested, the screen follows the
+     answer rather than the click that provoked it. */
+  it('follows the server when its answer contradicts the press', async () => {
+    fetchMock.mockResolvedValue(ok(toggled(false)));
 
     const { client, result } = harness();
     result.current.mutate({ roleUid: 'r1', nextInterested: true });
 
-    await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(rows(client)).toHaveLength(1);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(rows(client)).toHaveLength(0);
   });
 
   it('removes the row on undo, and restores it if the undo fails', async () => {
@@ -172,6 +207,6 @@ describe('the optimistic toggle', () => {
     result.current.mutate({ roleUid: 'r1', nextInterested: true });
 
     await waitFor(() => expect(rows(client)).toHaveLength(1));
-    release(ok(ROW));
+    release(ok(toggled(true)));
   });
 });

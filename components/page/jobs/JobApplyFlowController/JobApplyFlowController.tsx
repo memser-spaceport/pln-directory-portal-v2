@@ -15,7 +15,7 @@ import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 import { useRoleApplication } from '@/services/jobs/hooks/useJobApplications';
 import { useRoleInterest, useToggleJobInterest } from '@/services/jobs/hooks/useJobInterests';
-import { isAlreadyInterestedError, isJobGoneError } from '@/services/jobs/job-interests.service';
+import { isJobGoneError } from '@/services/jobs/job-interests.service';
 import { withPendingApply, withPendingInterest } from '@/services/jobs/job-apply-resume';
 import type { IUserInfo } from '@/types/shared.types';
 
@@ -274,22 +274,17 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
     toggleInterest.mutate(
       { roleUid: target.role.uid, nextInterested },
       {
-        onSuccess: () => {
-          if (nextInterested) {
+        /* Reported from the server's answer rather than from the press, so a
+           press that turned out to be a no-op (both writes are idempotent) is
+           not counted as a state change that never happened. */
+        onSuccess: (result) => {
+          if (result.viewerIsInterested) {
             analytics.onJobInterestMarked({ ...analyticsBase, resumed: false });
           } else {
             analytics.onJobInterestUndone(analyticsBase);
           }
         },
         onError: (error) => {
-          /* The server already holds it. The screen the person asked for is the
-             screen that exists, so this is a success with an unusual status
-             code — the hook has already declined to roll back for the same
-             reason. */
-          if (isAlreadyInterestedError(error)) {
-            analytics.onJobInterestMarked({ ...analyticsBase, resumed: false });
-            return;
-          }
           setInterestError({
             roleUid: target.role.uid,
             message: error instanceof Error ? error.message : 'Something went wrong. Try again.',

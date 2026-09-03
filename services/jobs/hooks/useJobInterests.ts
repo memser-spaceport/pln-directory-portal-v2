@@ -6,7 +6,6 @@ import { JobsQueryKey } from '@/services/jobs/constants';
 import {
   clearJobInterest,
   fetchJobInterests,
-  isAlreadyInterestedError,
   JobInterest,
   markJobInterest,
 } from '@/services/jobs/job-interests.service';
@@ -90,17 +89,11 @@ export function useToggleJobInterest(memberUid: string | undefined) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    /* Returns nothing on purpose. The POST answers with the created row, but
-       reading it here would make the two arms of this toggle differently
-       shaped for no gain: `onSettled` refetches the authoritative list either
-       way, and the optimistic patch is what the screen is actually drawn from. */
-    mutationFn: async ({ roleUid, nextInterested }: { roleUid: string; nextInterested: boolean }): Promise<void> => {
-      if (nextInterested) {
-        await markJobInterest(roleUid);
-        return;
-      }
-      await clearJobInterest(roleUid);
-    },
+    /* Both verbs answer with the same shape — the authoritative post-write
+       state — which is what lets `onSuccess` below correct the screen from the
+       server's answer rather than from what we assumed the press meant. */
+    mutationFn: ({ roleUid, nextInterested }: { roleUid: string; nextInterested: boolean }) =>
+      nextInterested ? markJobInterest(roleUid) : clearJobInterest(roleUid),
 
     onMutate: async ({ roleUid, nextInterested }): Promise<{ previous?: JobInterest[] }> => {
       if (!memberUid) return {};
@@ -116,23 +109,41 @@ export function useToggleJobInterest(memberUid: string | undefined) {
            read from it before `onSettled` replaces the list wholesale; the uid
            is marked so a row that somehow outlives the refetch is obvious in a
            devtools cache dump rather than passing for real. */
-        return [...old, { uid: `optimistic:${roleUid}`, jobUid: roleUid, createdAt: new Date().toISOString() }];
+        return [...old, { uid: `optimistic:${roleUid}`, jobUid: roleUid, interestedAt: new Date().toISOString() }];
       });
 
       return { previous };
     },
 
-    onError: (error, _variables, context) => {
+    /* The server's answer, not our assumption. Both writes are idempotent, so
+       in practice `viewerIsInterested` agrees with the press that caused it —
+       but it is the only thing here that actually knows, and taking it costs
+       one branch. A disagreement means something raced us, and the screen
+       should follow the server rather than the click. */
+    onSuccess: (result) => {
       if (!memberUid) return;
-      /* A 409 says the server already holds what we just optimistically wrote —
-         the state is the one the person asked for, so rolling back would undo a
-         correct screen. Let `onSettled` refetch instead. */
-      if (isAlreadyInterestedError(error)) return;
+      queryClient.setQueryData<JobInterest[]>(jobInterestsQueryKey(memberUid), (old = []) => {
+        const without = old.filter((interest) => interest.jobUid !== result.jobUid);
+        if (!result.viewerIsInterested) return without;
+        const existing = old.find((interest) => interest.jobUid === result.jobUid);
+        return [
+          ...without,
+          existing ?? { uid: `pending:${result.jobUid}`, jobUid: result.jobUid, interestedAt: new Date().toISOString() },
+        ];
+      });
+    },
+
+    onError: (_error, _variables, context) => {
+      if (!memberUid) return;
       if (context?.previous !== undefined) {
         queryClient.setQueryData(jobInterestsQueryKey(memberUid), context.previous);
       }
     },
 
+    /* The row this hook synthesises above carries a placeholder `uid` and a
+       client clock. Nothing reads either — the map is only ever asked "is this
+       jobUid in here" — but the refetch replaces them with the real row, so the
+       cache does not keep a fiction around longer than one round trip. */
     onSettled: () => {
       if (!memberUid) return;
       queryClient.invalidateQueries({ queryKey: jobInterestsQueryKey(memberUid) });

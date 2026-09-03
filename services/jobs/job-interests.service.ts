@@ -1,9 +1,14 @@
-import { JobInterest, jobInterestListResponseSchema, jobInterestSchema } from '@/schema/job-interests';
+import {
+  JobInterest,
+  jobInterestListResponseSchema,
+  JobInterestToggle,
+  jobInterestToggleResponseSchema,
+} from '@/schema/job-interests';
 import { customFetch } from '@/utils/fetch-wrapper';
 
 const JOB_OPENINGS_API_URL = `${process.env.DIRECTORY_API_URL}/v1/job-openings`;
 
-export type { JobInterest };
+export type { JobInterest, JobInterestToggle };
 
 /**
  * A refusal from the interest endpoints.
@@ -69,38 +74,44 @@ export async function fetchJobInterests(): Promise<JobInterest[]> {
   return interests;
 }
 
-/** Signal interest in one role. Idempotent server-side — see `isAlreadyInterestedError`. */
-export async function markJobInterest(roleUid: string): Promise<JobInterest> {
-  const response = await customFetch(`${JOB_OPENINGS_API_URL}/${roleUid}/interests`, { method: 'POST' }, true);
+/**
+ * Signal interest in one role.
+ *
+ * **Idempotent**, which is the whole reason there is no "already interested"
+ * refusal to classify below: a second press answers 200 with
+ * `viewerIsInterested: true` rather than a 409, so the caller never has to treat
+ * an error as a success.
+ *
+ * Note the singular `/interest` on the write. The read below is `/interests`.
+ * That asymmetry is the server's; do not "correct" either one.
+ */
+export async function markJobInterest(roleUid: string): Promise<JobInterestToggle> {
+  const response = await customFetch(`${JOB_OPENINGS_API_URL}/${roleUid}/interest`, { method: 'POST' }, true);
 
   if (!response?.ok) {
     throw await errorFrom(response, 'Could not save your interest');
   }
 
-  return jobInterestSchema.parse(await response.json());
+  return jobInterestToggleResponseSchema.parse(await response.json());
 }
 
-/**
- * Withdraw it. Returns nothing — a 204 and a "there was nothing there" are the
- * same outcome from the person's side, which is why this does not parse a body.
- */
-export async function clearJobInterest(roleUid: string): Promise<void> {
-  const response = await customFetch(`${JOB_OPENINGS_API_URL}/${roleUid}/interests`, { method: 'DELETE' }, true);
+/** Withdraw it. Idempotent and same response shape as marking. */
+export async function clearJobInterest(roleUid: string): Promise<JobInterestToggle> {
+  const response = await customFetch(`${JOB_OPENINGS_API_URL}/${roleUid}/interest`, { method: 'DELETE' }, true);
 
   if (!response?.ok) {
     throw await errorFrom(response, 'Could not undo your interest');
   }
+
+  return jobInterestToggleResponseSchema.parse(await response.json());
 }
 
 const statusIs = (error: unknown, status: number): boolean =>
   error instanceof JobInterestError && error.status === status;
 
-/**
- * The server already holds this interest. Not an error the person should ever
- * read: the state they asked for is the state that exists, so callers treat it
- * as success and refetch rather than rolling back.
- */
-export const isAlreadyInterestedError = (error: unknown): boolean => statusIs(error, 409);
+/* (An `isAlreadyInterestedError` lived here, for a 409 that cannot happen: both
+    writes are idempotent, so pressing an already-marked role answers 200. A
+    predicate for an impossible status is a branch nobody can ever test.) */
 
 /** The job was hidden or removed while the drawer was open. */
 export const isJobGoneError = (error: unknown): boolean => statusIs(error, 404);

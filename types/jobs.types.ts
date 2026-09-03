@@ -25,6 +25,28 @@ export interface IJobRole {
   lastUpdated: string;
   postedDate: string | null;
   detectionDate: string | null;
+  /**
+   * How many members have signalled interest in this role. Nothing renders it —
+   * the banner says the team will be notified, not how many others got there
+   * first — but it is on the wire, so it is typed.
+   */
+  interestedCount?: number;
+  /**
+   * Whether THIS viewer has signalled interest.
+   *
+   * **Do not read this.** It is on the wire and it is always `false` here.
+   * `getJobsList` fetches the board with `getHeader('')` — no token — and the
+   * endpoint documents this field as false whenever the request is
+   * unauthenticated. So it would report "not interested" for a member who is,
+   * on every role, with no error to notice.
+   *
+   * The banner reads `GET /v1/job-openings/interests` instead
+   * (`useJobInterests`), which is authenticated. Making this field usable means
+   * threading the member's token through `getJobsList` and the `/api/jobs/list`
+   * route first — a change to the board's hot path, and a separate piece of
+   * work. Typed here so the field is documented rather than rediscovered.
+   */
+  viewerIsInterested?: boolean;
 }
 
 export interface IJobTeam {

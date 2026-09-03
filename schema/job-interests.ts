@@ -3,15 +3,17 @@ import { z } from 'zod';
 /**
  * The wire contract for "I'm interested" on a job opening.
  *
- * Written to mirror `jobApplicationSchema` next door, because the two answer
- * the same question about the same pair of ids — "has this member acted on this
+ * Mirrors `schema/job-applications.ts` next door, because the two answer the
+ * same question about the same pair of ids — "has this member acted on this
  * role" — and a reader who knows one should not have to learn the other.
  *
- * **Provisional.** The endpoint is being written as this ships; nothing here has
- * been checked against a live response. That is exactly why it is `.strict()`:
- * a field the server sends and this schema does not know about fails loudly on
- * dev, behind the flag, instead of arriving as `undefined` three components
- * later. Same reasoning the applications schema records for itself.
+ * `.strict()` on both, same reason the applications schemas give: a field the
+ * server sends and this schema has never heard of fails loudly here rather than
+ * arriving as `undefined` three components later.
+ *
+ * **Note the path asymmetry, which is the server's and not a typo here.**
+ * Writing is `/:uid/interest` (singular); reading the viewer's own list is
+ * `/interests` (plural). See `job-interests.service.ts`.
  */
 
 export const jobInterestSchema = z
@@ -21,8 +23,9 @@ export const jobInterestSchema = z
     /** The job opening. Named `jobUid` server-side; the board calls the same
      *  identifier a role uid. */
     jobUid: z.string().min(1),
-    /** ISO timestamp. */
-    createdAt: z.string().min(1),
+    /** ISO timestamp. Named for the act, not the row — `interestedAt`, where the
+     *  application's equivalent is `appliedAt`. */
+    interestedAt: z.string().min(1),
   })
   .strict();
 
@@ -33,4 +36,27 @@ export const jobInterestListResponseSchema = z
   })
   .strict();
 
+/**
+ * What marking or unmarking answers with — the same shape for both verbs.
+ *
+ * It is the authoritative post-write state, which is what makes it worth
+ * parsing rather than discarding: both endpoints are idempotent, so this is how
+ * a second press on an already-marked role reports that nothing changed instead
+ * of erroring about it.
+ *
+ * `interestedCount` is the role's total across all members. Nothing in the
+ * design shows it — the banner says "the team will be notified", not "you and
+ * eleven others" — so it is parsed and deliberately not rendered. Typed anyway,
+ * because a field that exists on the wire and is absent from the schema is a
+ * `.strict()` failure waiting for whoever adds the UI.
+ */
+export const jobInterestToggleResponseSchema = z
+  .object({
+    jobUid: z.string().min(1),
+    interestedCount: z.number(),
+    viewerIsInterested: z.boolean(),
+  })
+  .strict();
+
 export type JobInterest = z.infer<typeof jobInterestSchema>;
+export type JobInterestToggle = z.infer<typeof jobInterestToggleResponseSchema>;

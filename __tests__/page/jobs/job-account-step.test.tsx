@@ -63,6 +63,7 @@ jest.mock('@/analytics/jobs.analytics', () => ({
     onJobApplyStepViewed: jest.fn(),
     onJobApplyFlowClosed: jest.fn(),
     onJobApplyExternalRedirected: jest.fn(),
+    onJobUnlockInfoOpened: jest.fn(),
   }),
 }));
 
@@ -297,40 +298,41 @@ describe('the outbound review step’s two doors', () => {
   const outboundReview = (props: Partial<React.ComponentProps<typeof JobApplyFlowDrawer>> = {}) =>
     renderStep(OTHER, { applyGoesExternal: true, at: 'review', ...props });
 
-  /* The note is asserted *within the footer*, not against the document.
-     A bare `getByText` here would keep passing if this sentence moved into the
-     body of the step — which is exactly where the case for a profile is headed —
-     and the assertion would then be guarding a different element than the one it
-     names. Scoped, it fails the moment the footer stops saying this. */
-  const footerOf = (container: HTMLElement) =>
-    container.querySelector('[class*="footerInner"]') as HTMLElement;
+  /* The footer's second row is asserted *within the footer*, not against the
+     document. A bare `getByRole` here would keep passing if the control moved
+     into the body of the step — which is where the card making the same case
+     already lives — and the assertion would then be guarding a different element
+     than the one it names. Scoped, it fails the moment the footer stops offering
+     this. */
+  const footerOf = (container: HTMLElement) => container.querySelector('[class*="footerInner"]') as HTMLElement;
 
   it('offers a stranger the profile as well as the employer’s site', () => {
     const { container } = outboundReview();
 
     expect(screen.getByRole('button', { name: /Apply on the team's site/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Create profile → signal interest' })).toBeInTheDocument();
-    /* The case for a profile is no longer made here — it is a card in the body
-       of the step. What the footer keeps is the caption on the press itself,
-       which is a different kind of sentence: what this costs and what it buys,
-       not why a profile is worth having. */
-    expect(within(footerOf(container)).getByText(/team is notified you are interested/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Create profile' })).toBeInTheDocument();
+    /* The case for a profile is not *made* here — it is a card in the body of
+       the step. What the footer keeps is a way to ask for it, for the reader who
+       has scrolled a thousand pixels past that card to reach these buttons. */
+    expect(within(footerOf(container)).getByRole('button', { name: 'What your profile unlocks?' })).toBeInTheDocument();
+    /* And what it no longer does is argue. The slot held a sentence promising
+       "team is notified you are interested" — a notification this branch does not
+       send — and before that a longer pitch. Both are pinned gone: a future pass
+       reaching for the footer to say something is reaching for the wrong surface. */
+    expect(within(footerOf(container)).queryByText(/team is notified you are interested/)).not.toBeInTheDocument();
     expect(
       within(footerOf(container)).queryByText(/A profile lets recruiters across the network/),
     ).not.toBeInTheDocument();
   });
 
-  /* A caption floating near a button is not a caption for it. The footer draws
-     the note and the branch owns the button, so the association is the one thing
-     neither can do alone — which is exactly the kind of wiring that rots. */
-  it('names the caption as the press’s description', () => {
-    const { container } = outboundReview();
+  /* The control is a control, not a caption wearing one. Nothing in the footer
+     may describe the primary press: `aria-describedby` pointing at a focusable
+     element is how a screen reader user hears about something they are then never
+     offered, which is precisely what the old string→node change removed. */
+  it('does not describe the primary press with the disclosure', () => {
+    outboundReview();
 
-    const note = within(footerOf(container)).getByText(/team is notified you are interested/);
-    expect(screen.getByRole('button', { name: 'Create profile → signal interest' })).toHaveAttribute(
-      'aria-describedby',
-      note.id,
-    );
+    expect(screen.getByRole('button', { name: 'Create profile' })).not.toHaveAttribute('aria-describedby');
   });
 
   /* Into the drawer's own step 2 — the account form — so signing up from the job
@@ -339,7 +341,7 @@ describe('the outbound review step’s two doors', () => {
     const onStepChange = jest.fn();
     outboundReview({ onStepChange });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create profile → signal interest' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Create profile' }));
 
     expect(onStepChange).toHaveBeenCalledWith('profile');
   });
@@ -378,8 +380,10 @@ describe('the outbound review step’s two doors', () => {
     outboundReview({ isLoggedIn: true, memberUid: 'm1', viewerState: 'pending-approval' });
 
     expect(screen.getByRole('button', { name: /Apply on the team's site/ })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Create profile → signal interest' })).not.toBeInTheDocument();
-    expect(screen.queryByText(/team is notified you are interested/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Create profile' })).not.toBeInTheDocument();
+    /* The disclosure goes with the press it belongs to. Someone with a profile
+       does not need to be told what one unlocks. */
+    expect(screen.queryByRole('button', { name: 'What your profile unlocks?' })).not.toBeInTheDocument();
   });
 
   /* **DOM order is load-bearing here.** On phones the bar stacks and the design
@@ -401,9 +405,12 @@ describe('the outbound review step’s two doors', () => {
     const buttons = screen
       .getAllByRole('button')
       .map((b) => b.textContent?.trim())
-      .filter((label) => label === 'Create profile → signal interest' || label?.startsWith("Apply on the team's site"));
+      /* Filtered rather than taken whole: the footer's second row is a button
+         too now ("What your profile unlocks?"), and it sits *below* the primary
+         press in both layouts, so it has nothing to say about this ordering. */
+      .filter((label) => label === 'Create profile' || label?.startsWith("Apply on the team's site"));
 
-    expect(buttons).toEqual(["Apply on the team's site", 'Create profile → signal interest']);
+    expect(buttons).toEqual(["Apply on the team's site", 'Create profile']);
   });
 
   /* The rail is withheld for every step of an outbound run, not just the reading
@@ -435,6 +442,27 @@ describe('the case for a profile', () => {
     renderStep(OTHER, { applyGoesExternal: true, at: 'review' });
 
     expect(heading()).toBeInTheDocument();
+  });
+
+  /**
+   * **The card and the footer control are both meant to be here.**
+   *
+   * The design draws this card *and* a "What your profile unlocks?" control under
+   * the footer's primary button, in the same viewport (Figma 682:10187), showing
+   * the same two reasons. It reads as one thing rendered twice and is not: the
+   * card is for someone at the top of a long role description, and the control is
+   * for someone who has scrolled a thousand pixels past it to reach the buttons.
+   * Confirmed with the design.
+   *
+   * Pinned because the obvious tidy-up is to delete one of them, and whichever
+   * one goes, a real reader loses the argument at the moment they were making the
+   * decision.
+   */
+  it('is made twice on purpose — in the body and under the footer', () => {
+    renderStep(OTHER, { applyGoesExternal: true, at: 'review' });
+
+    expect(heading()).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'What your profile unlocks?' })).toBeInTheDocument();
   });
 
   /* The banner is gated on `isLoggedIn` alone, so it survives on a Protocol Labs

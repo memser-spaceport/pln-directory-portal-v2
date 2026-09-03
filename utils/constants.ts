@@ -97,6 +97,7 @@ export const JOBS_ANALYTICS = {
   ON_JOB_APPLY_STEP_VIEWED: 'job-apply-step-viewed',
   ON_JOB_APPLY_FLOW_CLOSED: 'job-apply-flow-closed',
   ON_JOB_APPLY_EXTERNAL_REDIRECTED: 'job-apply-external-redirected',
+  ON_JOB_UNLOCK_INFO_OPENED: 'job-unlock-info-opened',
 };
 
 export const EVENTS = {

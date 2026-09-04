@@ -424,6 +424,35 @@ export const activitiesData: ActivitiesData = {
       }
     },
     {
+      // NOTE: pending Legal approval before this activity launches — do not
+      // merge until confirmed.
+      id: 'contribute-reusable-prompt-or-skill',
+      category: 'Network Tooling',
+      activity: 'Contribute a Reusable Prompt or Skill',
+      networkValue: 'Contribute a reusable prompt, AI resource, or skill to the PLAAbook or PL Infra Toolkit',
+      points: '350',
+      frequency: 'Limited Time',
+      endDateLabel: 'Ends Oct 31, 2026',
+      verificationType: 'Manual Review',
+      cta: 'confirm',
+      popupContent: {
+        title: 'Contribute a Reusable Prompt or Skill',
+        overview: 'Contribute a reusable resource, prompt or AI skill to the PLAAbook or PL Infra Toolkit for PL Infra users. Receive 100 points for an approved resource or prompt and also 250 points for an approved skill, up to 350 points total.',
+        networkBenefits: 'Builds a library of useful, reusable AI resources while encouraging PL Infra members to share proven knowledge resources, workflows and tools with the broader network.',
+        rules: [
+          '100 points are awarded for an approved reusable resource or prompt; 250 points are awarded for an approved skill (up to 350 points total)',
+          'Available to current PLAA participants with verified PL Infra membership and Toolkit access',
+          'Open September 9–October 31, 2026',
+          'Submit up to one prompt or AI-related resource and one AI skill',
+          'Contributions must be publication-verified, useful, reproducible, safe, and non-duplicative'
+        ],
+        links: [
+          { text: 'PLAAbook', url: 'https://directory.plnetwork.io/pl-infra/ai-apps/cmthpnpeo059vnz4g9kf55xrv' },
+          { text: 'PL Infra Toolkit', url: 'https://directory.plnetwork.io/pl-infra/ai-apps/cmr2wll3y0a07ot4gjdy8ma6b' }
+        ]
+      }
+    },
+    {
       id: 'share-compensation-data',
       category: 'People/Talent',
       activity: 'Share Compensation Data',
@@ -464,6 +493,43 @@ export const activitiesData: ActivitiesData = {
         links: [
           { text: 'https://directory.plnetwork.io/settings/email', url: 'https://directory.plnetwork.io/settings/email' }
         ]
+      }
+    },
+    {
+      // NOTE: pending Legal/Privacy/Product approval before this activity's
+      // permanent launch, per its own rules below — do not remove that gate
+      // from the copy even once the intake link lands.
+      id: 'network-mapping-pl-capital',
+      category: 'Capital',
+      activity: 'Network Mapping for PL Capital',
+      networkValue: 'Help PL Capital identify relevant relationships in your professional network',
+      points: '250',
+      frequency: 'Limited Time',
+      endDateLabel: 'Ends Oct 31, 2026',
+      verificationType: 'Submission',
+      cta: 'submit',
+      popupContent: {
+        title: 'Network Mapping for PL Capital',
+        overview: 'Help the PL Capital team identify potentially relevant relationships in your professional network. Through a private, controlled workflow, you can identify selected possible matches from your LinkedIn network—or, only if specifically approved, use a secure Connections-file intake—then review a shortlist and decide whether any relationship is appropriate for an introduction. You remain in control, and no contact will be approached solely because they appeared in your export.',
+        networkBenefits: 'Improves the quality outreach by replacing cold approaches with participant-validated relationship paths through a repeatable, privacy-conscious network-mapping workflow.',
+        rules: [
+          '50 points are awarded for completing the secure intake submission; the remaining 200 points are awarded upon completing the full relationship mapping and validation review (250 points total)',
+          'Opt in and complete the approved secure-data intake',
+          'Review and label the returned shortlist within the stated request-cycle deadline',
+          'Do not share message history or sensitive personal information',
+          'You may decline any match or introduction',
+          'If Legal approves an award, points recognize completion of the mapping and validation task only',
+          'No additional points are awarded for outreach, introductions, meetings, investment interest, commitments, or capital raised',
+          'Only persons designated by PLC may conduct substantive fundraising discussions',
+          'Legal, Privacy, and Product approval is required before the permanent activity launches and before any material change to its task, award, data flow, or outreach boundary',
+          'This is a strictly administrative task for relationship mapping — no participant is authorized to act as an agent, broker, or fundraiser',
+          'Tracked via participant submission, AI-assisted review, and the points ledger'
+        ],
+        // TODO(Bill): replace with the real secure intake form URL before this
+        // activity ships. Left as an obviously-fake placeholder on purpose —
+        // if it slips through untouched, clicking it 404s instead of silently
+        // sending participants somewhere wrong.
+        submissionLink: { text: 'secure intake form', url: 'TODO-BILL-SECURE-INTAKE-FORM-URL' }
       }
     }
   ]

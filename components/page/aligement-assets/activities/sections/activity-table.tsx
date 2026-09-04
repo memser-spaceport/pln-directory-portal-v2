@@ -30,6 +30,12 @@ const SECTION_METADATA = [
     title: 'One-Time',
     badge: 'Foundational',
     description: 'Typically completed once — set yourself up for success.'
+  },
+  {
+    id: 'Limited Time',
+    title: 'Limited Time',
+    badge: 'Time-Bound',
+    description: 'Available for a set period — participate before the activity window ends.'
   }
 ];
 
@@ -51,6 +57,7 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
     'Repeatable': true,
     'Recurring': true,
     'One-Time': true,
+    'Limited Time': true,
   });
 
   const [mobileActiveTab, setMobileActiveTab] = useState<string>(SECTION_METADATA[0].id);
@@ -170,6 +177,10 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
                         {activity.networkValue}
                       </p>
                     </div>
+
+                    {activity.endDateLabel && (
+                      <span className="activity-card__end-date">{activity.endDateLabel}</span>
+                    )}
 
                     <div className="activity-card__footer">
                       <div className="activity-card__tracking">
@@ -332,6 +343,19 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
           padding: 6px 12px;
           border-radius: 999px;
           white-space: normal;
+        }
+
+        .activity-card__end-date {
+          display: inline-block;
+          align-self: flex-end;
+          color: #b45309;
+          font-size: 12px;
+          font-weight: 600;
+          background: #fffbeb;
+          padding: 6px 12px;
+          border-radius: 999px;
+          white-space: nowrap;
+          margin-bottom: 16px;
         }
 
         .activity-card__points {

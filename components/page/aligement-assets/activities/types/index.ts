@@ -80,7 +80,7 @@ export interface Activity {
   activity: string;
   networkValue: string;
   points: string;
-  frequency?: 'Repeatable' | 'Recurring' | 'One-Time';
+  frequency?: 'Repeatable' | 'Recurring' | 'One-Time' | 'Limited Time';
   verificationType?: 'Auto' | 'Submission' | 'Manual Review';
   /**
    * CTA behavior: `submit` opens the PLAA form in a new tab;
@@ -89,6 +89,11 @@ export interface Activity {
   cta?: 'submit' | 'confirm';
   isAutoTracked?: boolean;
   hasFormLink?: boolean;
+  /**
+   * Short label shown as a badge on the activity card for time-bound
+   * activities, e.g. "Ends Oct 31, 2026".
+   */
+  endDateLabel?: string;
   popupContent: ActivityPopupContent;
 }
 

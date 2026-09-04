@@ -144,6 +144,16 @@
    board, so the class went with it rather than staying as a rule nothing
    selects. The grey it was fixing is one fewer to reconcile.) */
 
+/* The origin line under a managed listing's meta — "Submitted by you", "From
+   fil.org/careers". Ambient, so it takes the clock's tone and the row's small
+   size; it is read to answer a question, never pressed. */
+.origin {
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
 /* The title as a <button> when it opens the in-app description instead of the
    external posting. It keeps production's `.title` + `.titleLink` — same size,
    weight, colour and hover underline — so nothing about the row's appearance

@@ -42,6 +42,7 @@ import {
 } from './accountFields';
 import type { ParsedProfile } from '../profile-shared/ExperienceImport/types';
 import { isProfileComplete, type MemberProfile } from './viewerState';
+import type { ListingStatus } from './listings';
 import d from './JobApplyFlowDrawer.module.scss';
 
 /**
@@ -110,15 +111,33 @@ const backLabelFor = (id: ApplyFlowStepId, loggedIn: boolean): string => {
 /* `missingHint` and `sentenceCase` stood here. They existed to compose a
    single footer sentence out of the three ways the profile step can be
    incomplete — naming the missing answer, then reassuring that the rest was
-   optional. That sentence is gone: each required card already carries its own
-   amber strip naming what it wants, in the place where it can be given, and
-   every optional section is labelled as one. */
+   optional. That sentence is gone: the one required card carries its own amber
+   strip naming what it wants, in the place where it can be given, and every
+   optional section is labelled as one. */
 
 interface JobApplyFlowDrawerProps {
   open: boolean;
   onClose: () => void;
   role: IJobRole | null;
   team: IJobTeam | null;
+  /**
+   * Present when the reader manages this listing — a lead of the team that
+   * posted it, or an admin.
+   *
+   * The drawer is then the listing, not an application: no rail, because there
+   * is no journey to walk, and the footer's one slot holds the same switch the
+   * Manage listings row carries — `Mark inactive` on a live listing, `Bring
+   * back` on an inactive one, and an `In review` report (the row's own
+   * "Applied" shape) on one the PL team has not looked at yet. Pressing it
+   * flips the listing in place and leaves the drawer open: the masthead pill
+   * and the footer change together, which is the undo sitting where the action
+   * was.
+   *
+   * Offering `Apply` here instead was the alternative, and it is wrong twice —
+   * a lead does not apply to their own opening, and the one thing they came to
+   * this drawer to do would have been somewhere else.
+   */
+  managed?: { status: ListingStatus; onSetStatus: (status: ListingStatus) => void };
   /** Which step is showing. Held by the board rather than here, because the board
    *  is what resumes the flow after a sign-up and what pins a step for the design
    *  canvas — two things that happen while this component is closed. */
@@ -198,6 +217,7 @@ interface JobApplyFlowDrawerProps {
   canvasImport?: {
     parsed?: ParsedProfile;
     panel?: { open?: boolean; status?: 'idle' | 'reading' | 'nothing-found'; fileName?: string };
+    removeCv?: boolean;
   };
   /**
    * DELETE WITH: the `design-canvas/` folder.
@@ -282,6 +302,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     appliedAt,
     canvasImport,
     canvasCoverLetter,
+    managed,
   } = props;
 
   const isMobile = useIsMobile();
@@ -374,10 +395,11 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   }, [open]);
 
   const complete = isProfileComplete(draft);
-  /* The two halves of that rule. Read off the draft with the same tests
-     `isProfileComplete` uses — deliberately not a second definition of
-     "required", just a finer-grained look at the one that exists. */
-  const hasRole = draft.role.trim() !== '';
+  /* The rule, read off the draft with the same test `isProfileComplete` uses —
+     deliberately not a second definition of "required", just a live view of the
+     one that exists. It was a pair (`hasRole` beside this) while the current role
+     gated too; the role is optional now, and nothing in this drawer asked the
+     question except the line that declared it. */
   const hasStatus = draft.jobSearchStatus !== '';
 
   /* What the logged-out step 2 waits on: the one answer the account form has no
@@ -606,6 +628,39 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
      "one click" to someone with no account would be describing a different
      person's experience of the same button. */
   const footer = (() => {
+    /* The listing's own switch, for the person who owns it. See `managed`. */
+    if (managed) {
+      if (managed.status === 'in-review') {
+        return (
+          <button
+            type="button"
+            disabled
+            className={clsx(btn.root, btn.medium, btn.border, btn.neutral, d.appliedButton, d.footerAction)}
+          >
+            In review
+          </button>
+        );
+      }
+      if (managed.status === 'live') {
+        return (
+          <Button
+            variant="neutral"
+            style="border"
+            size="m"
+            className={d.footerAction}
+            onClick={() => managed.onSetStatus('inactive')}
+          >
+            Mark inactive
+          </Button>
+        );
+      }
+      return (
+        <Button variant="primary" style="fill" size="m" className={d.footerAction} onClick={() => managed.onSetStatus('live')}>
+          Bring back
+        </Button>
+      );
+    }
+
     if (step === 'review') {
       if (applied) {
         return (
@@ -826,14 +881,25 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             </button>
           )}
         </div>
-        <div className={d.stepBand}>
-          <ApplyFlowSteps steps={steps} onSelect={(id) => goTo(id as ApplyFlowStepId)} />
-        </div>
+        {/* No rail for a listing's owner: a position indicator for a journey
+            nobody is on would be inventing a flow to justify a component. */}
+        {!managed && (
+          <div className={d.stepBand}>
+            <ApplyFlowSteps steps={steps} onSelect={(id) => goTo(id as ApplyFlowStepId)} />
+          </div>
+        )}
       </div>
 
       <div className={s.drawerContent}>
         {step === 'review' && (
-          <JobDetailPane role={role} team={team} applied={applied} appliedAt={appliedAt} loggedIn={loggedIn} />
+          <JobDetailPane
+            role={role}
+            team={team}
+            applied={applied}
+            appliedAt={appliedAt}
+            loggedIn={loggedIn}
+            status={managed?.status}
+          />
         )}
 
         {/* One position, two panes. A visitor with no account fills in the

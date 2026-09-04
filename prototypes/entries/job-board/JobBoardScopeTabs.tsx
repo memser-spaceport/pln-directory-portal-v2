@@ -8,14 +8,25 @@ import { useMockJobsFilterStore } from './mockJobsFilterStore';
 
 export const SCOPE_PARAM = 'scope';
 export const SCOPE_APPLIED = 'applied';
+export const SCOPE_MANAGE = 'manage';
 
 const ALL_TAB = 'All';
 const APPLIED_TAB = 'Applied';
+const MANAGE_TAB = 'Manage listings';
 
 interface Props {
   /** How many roles the viewer has applied to this session. Drives the count and,
    *  at zero, whether the tab is worth offering at all. */
   appliedCount: number;
+  /**
+   * How many listings the viewer manages, in every state — or `undefined` for
+   * a viewer who manages none, which leaves the tab out entirely.
+   *
+   * Absent rather than disabled: a member who is not a lead is not "not yet"
+   * allowed to manage listings, they are not the person this tab is for, and a
+   * greyed tab would be a locked door with their name off it.
+   */
+  manageCount?: number;
 }
 
 /**
@@ -35,6 +46,18 @@ interface Props {
  * without reading all thirteen rows, and that is precisely the question someone
  * returning to a job board asks first.
  *
+ * **The third scope — Manage listings — is the team Asks pattern.** Production's
+ * Asks section shows "Open Asks" to everyone and adds an "Archived Asks" tab for
+ * the people who can edit (`AsksSection.tsx`, gated on `canEdit`). Same move
+ * here: **All** stays the public board, identical for a lead and for a
+ * stranger, and the lead gets one more tab holding their team's listings in
+ * every state — the one waiting on the PL team, the ones up, the ones they took
+ * down. It answers the two questions the public board cannot: *is my submission
+ * up yet?* and *where did the one I took down go?* Putting those rows on All
+ * instead would have made a lead's board silently different from the board
+ * everyone else sees, which is the one thing a lead most needs to be able to
+ * trust.
+ *
  * **The scope lives in the filter store**, like `followingOnly` does on teams,
  * so Clear All puts you back on the whole board along with everything else you
  * had narrowed rather than leaving one narrowing behind that nothing undoes.
@@ -50,10 +73,11 @@ interface Props {
  * applied to anything, so the tab could only ever open an empty list — an offer
  * with nothing behind it.
  */
-export function JobBoardScopeTabs({ appliedCount }: Props) {
+export function JobBoardScopeTabs({ appliedCount, manageCount }: Props) {
   const { params, setParam } = useMockJobsFilterStore();
 
-  const activeTab = params.get(SCOPE_PARAM) === SCOPE_APPLIED ? APPLIED_TAB : ALL_TAB;
+  const scope = params.get(SCOPE_PARAM);
+  const activeTab = scope === SCOPE_APPLIED ? APPLIED_TAB : scope === SCOPE_MANAGE ? MANAGE_TAB : ALL_TAB;
 
   useEffect(() => {
     // Avoid a jarring near-empty view when switching into a shorter tab mid-scroll.
@@ -62,7 +86,7 @@ export function JobBoardScopeTabs({ appliedCount }: Props) {
 
   const onTabClick = (tab: string) => {
     if (tab === activeTab) return;
-    setParam(SCOPE_PARAM, tab === APPLIED_TAB ? SCOPE_APPLIED : undefined);
+    setParam(SCOPE_PARAM, tab === APPLIED_TAB ? SCOPE_APPLIED : tab === MANAGE_TAB ? SCOPE_MANAGE : undefined);
   };
 
   return (
@@ -80,6 +104,12 @@ export function JobBoardScopeTabs({ appliedCount }: Props) {
            applying, and one that appeared the moment you first applied would
            move the toolbar under the reader at the least welcome time. */
         { name: APPLIED_TAB, count: appliedCount > 0 ? appliedCount : undefined },
+        /* Last, and only for a manager. The count is every listing the tab
+           holds, whatever its state — the same reading as Applied's — so a
+           submission ticks it up the moment it is sent, which is the one
+           visible receipt on a board where the new row is not on the tab you
+           are standing on. */
+        ...(manageCount !== undefined ? [{ name: MANAGE_TAB, count: manageCount > 0 ? manageCount : undefined }] : []),
       ]}
     />
   );

@@ -188,15 +188,20 @@ type ApplyFormData = {
  * skills — because that is the part a hiring team reads first and the part
  * someone would want to correct before sending.
  *
- * The name and the role are always there: both are required
- * (`isProfileComplete`), so this panel has no empty state and shouldn't pretend
- * to one. It briefly had an apology — "No experience added yet" — from the window
- * when the role wasn't required and the line was quoted off an optional
- * Experience entry. Quoting the *entry* was the mistake underneath: the profile's
+ * The name is always there. The role line is not: the role stopped being
+ * required (`isProfileComplete` is the job search status alone), so someone can
+ * reach this pane with no role, no experience entry and nothing for
+ * `summariseProfile` to quote. The line is then simply not rendered — the same
+ * treatment the skills row has always had, and deliberately *not* the apology
+ * this panel once carried ("No experience added yet"). An empty state here would
+ * be the flow telling someone their profile is lacking on the screen where they
+ * are about to send it, over a field nothing asked them for.
+ *
+ * Quoting the *entry* was the older mistake, and it stays fixed: the profile's
  * own header card leads with `role`, so a read-back sourced from somewhere else
  * could show a different headline than the profile it claims to be reading back.
- * It now reads the role, and the entry supplies only the company and the dates it
- * is the authority for.
+ * It reads the role, and the entry supplies only the company and the dates it is
+ * the authority for.
  *
  * `profile.bio` is considered and rejected. It is a paragraph, it sits directly
  * above a paragraph the person is being asked to write, and two blocks of prose
@@ -364,10 +369,13 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
               <p className={s.profileName}>{applicantName || VIEWER_NAME}</p>
 
               {/* Then the role line — `role` alone, or "role at company" when an
-                  experience entry supplies the company. This panel used to
-                  apologise here, which was an empty state for a card that is never
-                  empty; see the note at the top of this file. */}
-              <p className={s.profileSummary}>{summary}</p>
+                  experience entry supplies the company. Rendered only when there
+                  is something to quote: the role is optional, so this can be
+                  empty, and an empty `<p>` would leave the name and the dates
+                  20px apart with nothing between them. This panel used to
+                  apologise in that gap instead; see the note at the top of this
+                  file for why it doesn't. */}
+              {summary && <p className={s.profileSummary}>{summary}</p>}
 
               {/* The dates of that same entry, one quiet line under it — the
                   experience arrives dated, so a read-back that showed only the

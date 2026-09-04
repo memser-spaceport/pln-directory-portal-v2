@@ -33,6 +33,8 @@ import { EVENT_TYPE_LABEL, EVENT_TYPE_HEX } from '../newsfeed-v0/eventMeta';
 import { BASE_LIKES, PL_TEAM_UID } from '../newsfeed-v0/mocks';
 import fa from '../newsfeed-v0/FeedActions.module.scss';
 
+import type { ListingMeta, ListingStatus } from './listings';
+
 const INITIAL_ROLES_SHOWN = 3;
 const MAX_FOCUS_CHIPS = 100;
 
@@ -64,6 +66,15 @@ interface JobTeamGroupCardProps {
   /** Role uid → when the application went, so an applied row can report its own
    *  date instead of the posting age. Same map the board keys applications by. */
   appliedAtByRole?: Map<string, string>;
+  /**
+   * Present on the Manage listings tab: the card is this team's own list, in
+   * every state. The count block then counts what is *up* and says how many
+   * are waiting, and each row gets its status and its control — see the row.
+   */
+  manage?: {
+    metaFor: (roleUid: string) => ListingMeta | undefined;
+    onSetStatus: (roleUid: string, status: ListingStatus) => void;
+  };
 }
 
 /**
@@ -79,6 +90,7 @@ export function JobTeamGroupCard({
   onViewJob,
   appliedRoleUids,
   appliedAtByRole,
+  manage,
 }: JobTeamGroupCardProps) {
   const [expanded, toggleExpanded] = useToggle(false);
   const { team, roles, totalRoles } = group;
@@ -87,7 +99,12 @@ export function JobTeamGroupCard({
      to float matches to the top; with matching gone there is nothing to rank
      them by, and a team's list of openings has no second opinion to offer. */
   const visibleRoles = expanded ? roles : roles.slice(0, INITIAL_ROLES_SHOWN);
-  const newCount = roles.filter((r) => isNew(getJobDate(r))).length;
+  /* Managed: "+N new" is an applicant's signal and this reader posted them. The
+     slot reports the review queue instead — the one number on this card that
+     changes when a submission goes in, and the one a collapsed card (three of
+     four rows shown) would otherwise hide below the expander. */
+  const newCount = manage ? 0 : roles.filter((r) => isNew(getJobDate(r))).length;
+  const inReviewCount = manage ? roles.filter((r) => manage.metaFor(r.uid)?.status === 'in-review').length : 0;
 
   /* Protocol Labs is the network's own org, and the board already pins its card
      to the top — the gradient outline is what says so on the card itself, rather
@@ -189,26 +206,37 @@ export function JobTeamGroupCard({
           <div className={s.countNumber}>{totalRoles}</div>
           <div className={s.countLabel}>{totalRoles === 1 ? 'open role' : 'open roles'}</div>
           {newCount > 0 && <div className={s.newCount}>+{newCount} new</div>}
+          {inReviewCount > 0 && (
+            <div className={`${s.newCount} ${js.reviewCount}`}>
+              {inReviewCount} in review
+            </div>
+          )}
         </div>
       </header>
 
       <ul className={s.roleList}>
-        {visibleRoles.map((role) => (
-          <li key={role.uid}>
-            <JobReferRoleRow
-              role={role}
-              teamName={team.name}
-              team={team}
-              source="job-board"
-              canOpenReferral={canOpenReferral}
-              onReferSignUp={onReferSignUp}
-              onViewJob={onViewJob}
-              applied={appliedRoleUids?.has(role.uid) ?? false}
-              appliedAt={appliedAtByRole?.get(role.uid)}
-              teamId={team.uid}
-            />
-          </li>
-        ))}
+        {visibleRoles.map((role) => {
+          const meta = manage?.metaFor(role.uid);
+          return (
+            <li key={role.uid}>
+              <JobReferRoleRow
+                role={role}
+                teamName={team.name}
+                team={team}
+                source="job-board"
+                canOpenReferral={canOpenReferral}
+                onReferSignUp={onReferSignUp}
+                onViewJob={onViewJob}
+                applied={appliedRoleUids?.has(role.uid) ?? false}
+                appliedAt={appliedAtByRole?.get(role.uid)}
+                teamId={team.uid}
+                manage={
+                  manage && meta ? { meta, onSetStatus: (status) => manage.onSetStatus(role.uid, status) } : undefined
+                }
+              />
+            </li>
+          );
+        })}
       </ul>
 
       {roles.length > INITIAL_ROLES_SHOWN && (

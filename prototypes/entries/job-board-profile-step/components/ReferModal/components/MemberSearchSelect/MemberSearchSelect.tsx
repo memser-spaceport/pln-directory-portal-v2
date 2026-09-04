@@ -1,12 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import Select, { ClearIndicatorProps, components, SingleValueProps } from 'react-select';
+import Select, { ClearIndicatorProps, components, MenuProps, SingleValueProps } from 'react-select';
 
 import { Field } from '@base-ui-components/react/field';
 
-import { CloseIcon } from '@/components/icons';
+import { CloseIcon, PlusIcon } from '@/components/icons';
 import type { Option } from '@/components/form/FormSelect/types';
 
 // Field wrapper, label, option row and no-results treatment come from the production
@@ -30,6 +30,9 @@ interface MemberSearchSelectProps {
   label: string;
   placeholder: string;
   menuPortalTarget?: HTMLElement | null;
+  /** The menu's way out for a person the directory doesn't hold. Called with
+   *  whatever was typed, so a name that found nobody isn't typed twice. */
+  onReferOutside?: (typed: string) => void;
 }
 
 const toOption = (member: DirectoryMember): Option => ({
@@ -60,10 +63,19 @@ const toOption = (member: DirectoryMember): Option => ({
  * requires knowing a name — the job-board copy keeps its type-first menu, because
  * the live API cannot answer an empty query.
  *
+ * The menu ends in one standing row, **Refer someone outside the network**, in
+ * every state — the browse page, a result list, an empty one. It is the same
+ * question this field asks, answered for a person the directory can't return, so
+ * it lives in this field rather than beside it (a second door next to the search
+ * would be two controls for one question). Standing rather than shown only on
+ * "no results": someone who already knows their friend isn't a member shouldn't
+ * have to type a name to find out they can still refer them. Pressing it hands
+ * the field's job to three inputs in the modal — see `ReferModal`.
+ *
  * If this graduates, the production change is an async variant of `FormSelect`.
  */
 export function MemberSearchSelect(props: MemberSearchSelectProps) {
-  const { name, label, placeholder, menuPortalTarget } = props;
+  const { name, label, placeholder, menuPortalTarget, onReferOutside } = props;
 
   const { watch, setValue } = useFormContext();
   const value = watch(name);
@@ -72,6 +84,47 @@ export function MemberSearchSelect(props: MemberSearchSelectProps) {
   const { results, isSearching, isUnauthorized } = useMemberSearch(query);
 
   const options = useMemo<Option[]>(() => results.map(toOption), [results]);
+
+  // Read through refs so the Menu override below can be created once. An inline
+  // component in `components` remounts the menu on every render — every keystroke
+  // here, since the query is state — which drops the list's scroll position and
+  // flickers the row. The other overrides in this file get away with being inline
+  // because remounting an option row costs nothing anyone can see.
+  const queryRef = useRef(query);
+  queryRef.current = query;
+  const onReferOutsideRef = useRef(onReferOutside);
+  onReferOutsideRef.current = onReferOutside;
+
+  const MenuWithOutsideRow = useMemo(
+    () =>
+      function MenuWithOutsideRow(menuProps: MenuProps<Option, false>) {
+        return (
+          <components.Menu {...menuProps}>
+            {menuProps.children}
+            {onReferOutsideRef.current && (
+              <button
+                type="button"
+                className={s.outsideRow}
+                // mousedown, not click: react-select closes the menu when its input
+                // blurs, and a click's mousedown is what blurs it — by the time the
+                // click would fire, this row has been unmounted with the menu.
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onReferOutsideRef.current?.(queryRef.current.trim());
+                }}
+              >
+                <span className={s.outsideGlyph}>
+                  <PlusIcon width={16} height={16} />
+                </span>
+                Refer someone outside the network
+              </button>
+            )}
+          </components.Menu>
+        );
+      },
+    [],
+  );
 
   const renderMemberRow = (option: Option, size: number) => (
     <div className={s.optionRow}>
@@ -113,16 +166,17 @@ export function MemberSearchSelect(props: MemberSearchSelectProps) {
           // The field still reads as a search, not a dropdown — the browse page is
           // what clicking in reveals, not a chevron's promise of a finite list.
           DropdownIndicator: () => null,
+          // The empty state used to end "Only members in the directory can be
+          // referred." That stopped being true the day the row under it went in,
+          // and the row is the way out — a sentence pointing at a visible control
+          // restates it (lesson 15), so the second line is gone.
           NoOptionsMessage: () => (
             <div className={fieldCss.notFound}>
               <span>{isUnauthorized ? 'Sign in to search members' : 'No members found'}</span>
-              <span>
-                {isUnauthorized
-                  ? 'Member search needs a signed-in session.'
-                  : 'Only members in the directory can be referred.'}
-              </span>
+              {isUnauthorized && <span>Member search needs a signed-in session.</span>}
             </div>
           ),
+          Menu: MenuWithOutsideRow,
           // react-select shows this in place of the no-results message while a request
           // is out, and its default is a centred "Loading..." — the field's own
           // `.notFound` column keeps the menu from jumping between the two states.

@@ -268,12 +268,12 @@ export const FILLED_PROFILE: MemberProfile = {
 export type BoardViewer = 'logged-out' | 'pending-approval' | 'profile-incomplete' | 'profile-ready' | 'applied';
 
 /**
- * The gate on Apply: **your current role, and an answered job search status.**
+ * The gate on Apply: **an answered job search status, and nothing else.**
  *
- * Narrowed twice. The first version asked for a role, a team and a
+ * Narrowed three times. The first version asked for a role, a team and a
  * years-of-experience band as three separate top-level fields; those collapsed
- * into a single Experience entry, which answers all three at once. This version
- * drops even that.
+ * into a single Experience entry, which answers all three at once. Then the
+ * entry went too. The current role stood here last and is now gone as well.
  *
  * **Why the status and not the experience.** They are not the same kind of
  * question. An experience entry is a thing a member either has written down or
@@ -286,29 +286,29 @@ export type BoardViewer = 'logged-out' | 'pending-approval' | 'profile-incomplet
  * changes what the product does next — is a better gate than requiring the
  * paragraph they may have written elsewhere already.
  *
- * **And the current role, added second.** The status says whether to surface
- * someone; the role says *as what*, and it is the one line a hiring team reads
- * before anything else — an application from "someone, status: actively
- * looking" is not an application. It also costs a single field, and it is the
- * field the header card is already asking for in production's own amber
- * `+ Your Role` affordance, so requiring it adds a rule rather than a form.
+ * **And the current role, which stood here and no longer does.** The argument
+ * for it was that the status says whether to surface someone and the role says
+ * *as what* — the one line a hiring team reads first. That is still true about
+ * how a profile *reads*; it was never true that the board should refuse the
+ * application without it. It is the same class of answer as an Experience entry:
+ * a fact about the person that they may have written down elsewhere, that a CV
+ * fills in, and that a hiring team can ask for. Gating on it bought a tidier
+ * read-back at the price of stopping people at the door, which is the trade the
+ * experience gate had already lost.
  *
- * Deliberately not the same as an Experience entry's title. A member may have
- * no work history written down and still hold a job today; asking for the
- * current role directly gets the answer in one field instead of making them
- * file a dated entry to say it. The two coexist — the entry is the record, this
- * is the headline — and only this one gates.
+ * So the role is asked for in the two places it belongs — the account form and
+ * the profile's header card, both in production's own words — and neither of
+ * them stops anybody. Only the status does.
  *
- * Both live in the first two cards of the drawer, in that order: the required
- * things are the first things asked for, not the things three cards down.
+ * The status still lives in the first card of the drawer's profile step: the
+ * required thing is the first thing asked for, not the thing three cards down.
  *
- * Everything else is optional on purpose — experience, contributions, skills,
- * bio, location, repositories all refine a read rather than making one
+ * Everything else is optional on purpose — the role, experience, contributions,
+ * skills, bio, location, repositories all refine a read rather than making one
  * possible. Adding a section to the drawer never adds a requirement; this line
  * is the only place a requirement can be written.
  */
-export const isProfileComplete = (profile: MemberProfile): boolean =>
-  profile.role.trim() !== '' && profile.jobSearchStatus !== '';
+export const isProfileComplete = (profile: MemberProfile): boolean => profile.jobSearchStatus !== '';
 
 /** The entry a summary should speak for: the current role, else the most recent. */
 export function primaryExperience(profile: MemberProfile): ExperienceEntry | null {
@@ -323,18 +323,22 @@ export function primaryExperience(profile: MemberProfile): ExperienceEntry | nul
  * read back to the applicant before they send it. Reading back what will be sent
  * is the whole reason the apply modal isn't one button.
  *
- * **The title comes from `profile.role`, not from the experience entry.** It
- * used to be the entry's `title`, which meant this returned an empty string for
- * anyone who hadn't filled in a work history — and the apply modal then had to
- * apologise for having nothing to quote. That was backwards twice over: the
- * current role is a *required* field, so there is always a title; and the header
- * card of the profile shows `role` as the headline, so quoting the entry instead
- * could read the profile back differently from how the profile displays itself.
+ * **The title comes from `profile.role` first, then from the experience entry.**
+ * It used to be the entry's `title` alone, which meant this returned an empty
+ * string for anyone who hadn't filled in a work history while the header card
+ * of the profile was showing `role` as the headline — a read-back sourced
+ * differently from the thing it reads back, which will eventually disagree with
+ * it.
  *
  * The entry still supplies the company, because "at <somewhere>" is the half a
  * standalone role can't state. Entry-less profiles get the role alone, which is
- * a complete sentence and a true one. The entry's own `title` survives only as a
- * fallback for the impossible case of a blank role.
+ * a complete sentence and a true one.
+ *
+ * **This can now return an empty string, and callers have to expect it.** The
+ * role stopped being required (see `isProfileComplete`), so a profile with no
+ * role, no entry and no company has nothing to quote. That is not a state to
+ * apologise for in copy — the application pane simply omits the line, the way it
+ * already omits the skills row when there are no skills.
  */
 export function summariseProfile(profile: MemberProfile): string {
   const entry = primaryExperience(profile);

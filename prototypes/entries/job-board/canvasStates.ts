@@ -25,6 +25,7 @@
 
 import type { ParseScenario } from '../profile-shared/ExperienceImport/parseMocks';
 import type { BoardViewer } from './viewerState';
+import type { ListingStatus } from './listings';
 
 /** The query key the canvas appends. Fixed by `design-canvas/core` — see its `types.ts`. */
 export const CANVAS_STATE_PARAM = 'canvas';
@@ -68,6 +69,19 @@ export interface CanvasStateSpec {
   flow?: 'review' | 'profile' | 'application';
   /** Seeds the cover letter, for the difference between an empty letter and a written one. */
   coverLetter?: string;
+  /** Opens the "Remove CV" confirmation over the profile step's resting CV card. */
+  removeCv?: boolean;
+  /** Opens the **Submit a job** form — the toolbar door a lead or admin has. */
+  submitJob?: boolean;
+  /** Fills that form in, so the frame shows answers rather than placeholders. */
+  submitJobFilled?: boolean;
+  /**
+   * With `flow: 'review'`: opens the drawer on the lead's own listing in the
+   * named state rather than on the sample role — the frames that show what the
+   * footer holds for a listing's owner. The three states are three different
+   * Filecoin roles, so this picks the role as well as the pill.
+   */
+  manageJob?: ListingStatus;
   /**
    * Opens the Experience card's importer, and pins which beat of it to show.
    *
@@ -176,6 +190,36 @@ export const CANVAS_STATES: Record<string, CanvasStateSpec> = {
     flow: 'profile',
     import: { scenario: 'missing-date' },
   },
+
+  /* --- The kept CV ---------------------------------------------------------
+     The returning member's profile carries a file (`FILLED_PROFILE.cv`), so its
+     profile step opens on the resting card: the file row, Replace and Remove in
+     the header. The flow normally skips that step for a finished profile;
+     `flow: 'profile'` opens it the way "Edit profile" on the letter does. */
+  'cv-resting': { viewer: 'profile-ready', flow: 'profile' },
+  /* Replace pressed and a file chosen: the section is the reading row, with
+     Cancel beside the title as the way back to the file. */
+  'cv-replace-reading': {
+    viewer: 'profile-ready',
+    flow: 'profile',
+    import: { open: true, status: 'reading', fileName: 'polina-bublii-cv-2026.pdf' },
+  },
+  /* Remove pressed: the confirmation, over the card it is about. */
+  'cv-remove-confirm': { viewer: 'profile-ready', flow: 'profile', removeCv: true },
+
+  /* --- Posting a job ---------------------------------------------------------
+     The lead's door and what is behind it. The board states these sit between
+     (`?viewer=team-lead`, `&scope=manage`, `?viewer=directory-admin`) are plain
+     parameters and are declared as such; only the overlays need a pin. */
+  'submit-job-empty': { viewer: 'team-lead', submitJob: true },
+  'submit-job-filled': { viewer: 'team-lead', submitJob: true, submitJobFilled: true },
+  /* The admin's form: one more field, the team, because an admin posts for any. */
+  'submit-job-admin': { viewer: 'directory-admin', submitJob: true },
+  /* The drawer on the lead's own listings, one per state — what the footer holds
+     when the reader owns the job rather than applies to it. */
+  'manage-drawer-in-review': { viewer: 'team-lead', flow: 'review', manageJob: 'in-review' },
+  'manage-drawer-live': { viewer: 'team-lead', flow: 'review', manageJob: 'live' },
+  'manage-drawer-inactive': { viewer: 'team-lead', flow: 'review', manageJob: 'inactive' },
 };
 
 /** Reads the pinned state off a query string. Unknown or absent → nothing pinned. */

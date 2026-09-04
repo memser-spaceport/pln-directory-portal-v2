@@ -30,6 +30,17 @@ import cd from '@/components/page/member-details/contact-details/ContactDetails.
 
 import { ExperienceImportPanel } from '../profile-shared/ExperienceImport/ExperienceImportPanel';
 import { OptionalMark } from '../profile-shared/OptionalMark';
+// The kept CV at rest — shared with the apply flow's profile step, so the two
+// surfaces cannot drift on what "your CV" looks like. See the folder's notes.
+import {
+  CvFileCard,
+  CvHeaderActions,
+  RemoveCvDialog,
+  storedCvFromFile,
+  withSampleUrl,
+  MOCK_STORED_CV,
+  type StoredCv,
+} from '../profile-shared/StoredCv';
 import { ExperienceImportReview } from '../profile-shared/ExperienceImport/ExperienceImportReview';
 import type { ImportSelection, ParsedProfile } from '../profile-shared/ExperienceImport/types';
 import { ExperienceList } from '../job-board/JobProfilePane';
@@ -76,13 +87,23 @@ import o from './Onboarding.module.scss';
  * briefly swapped for the blank placeholder; it is what dev shows, so it stays.
  */
 
-type EditTarget = { kind: 'import' } | null;
+/* `host` remembers which card an import is happening in — see the job board's
+   `EditTarget` for why: the file becomes the CV the moment it is read, and the
+   CV section must not appear over a review the Experience card is showing. */
+type EditTarget = { kind: 'import'; host?: 'experience' } | null;
 
 export default function OnboardingPrototype() {
   const [editing, setEditing] = useState<EditTarget>(null);
   const [parsed, setParsed] = useState<ParsedProfile | null>(null);
   const [pickedFile, setPickedFile] = useState<File | null>(null);
   const cvInput = useRef<HTMLInputElement>(null);
+  /* The profile's kept CV — the file, as distinct from the fields read out of
+     it. Null on a new profile; set the moment a document has been read. */
+  const [cv, setCv] = useState<StoredCv | null>(null);
+  const [confirmRemoveCv, setConfirmRemoveCv] = useState(false);
+  /* Keeps the CV section mounted, in its offer state, after a removal — see the
+     job board's `cvRemoved` for the reasoning. */
+  const [cvRemoved, setCvRemoved] = useState(false);
 
   /* Seeded from the account, which is where production gets it: sign-up runs
      before this page exists. `MOCK_USER.email` is empty and the name isn't —
@@ -129,11 +150,30 @@ export default function OnboardingPrototype() {
    * removed LinkedIn door was.
    */
   const importAtTop = profileIsBlank;
+  /* Which card hosts an import in progress, and whether the CV section is drawn
+     — the job board's `importHost` / `showCvSection`, same rules. While the
+     section is drawn it is the importer's only host: the Experience header's
+     "Update from CV" stands down and Replace on the section takes its job. */
+  const importHost: 'cv' | 'experience' | null = importing ? (editing?.host ?? 'cv') : null;
+  const showCvSection = importAtTop || cvRemoved || (!!cv && importHost !== 'experience');
 
   const closeImport = () => {
     setEditing(null);
     setParsed(null);
     setPickedFile(null);
+  };
+
+  /* "The upload is the store" — see `ExperienceImportPanel.onFileRead`. */
+  const keepFile = (file: File) => {
+    setCvRemoved(false);
+    setCv(storedCvFromFile(file));
+  };
+
+  /* The file goes; every field it filled in stays. See `RemoveCvDialog`. */
+  const removeCv = () => {
+    setCv(null);
+    setConfirmRemoveCv(false);
+    setCvRemoved(true);
   };
 
   /* The same three merge rules every surface mounting this importer applies:
@@ -188,6 +228,10 @@ export default function OnboardingPrototype() {
       setParsed(state.review);
       setEditing({ kind: 'import' });
     }
+    if (state?.cv) setCv(withSampleUrl(MOCK_STORED_CV));
+    if (state?.removeCv) setConfirmRemoveCv(true);
+    /* A pinned reading beat over a kept file is Replace in progress. */
+    if (state?.cv && state?.panel?.status) setEditing({ kind: 'import' });
     setCanvas(state);
     setMounted(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -199,71 +243,6 @@ export default function OnboardingPrototype() {
     <div className={o.page}>
       <div className={o.column}>
         <BackButton to="/prototypes" />
-
-        {/* 0. Start with a document, while there is nothing to start from.
-
-               Not part of dev's page — this is the one addition the entry is
-               for, and it sits above the transcription rather than inside it so
-               what is copied stays legible as a copy. It is a plain
-               `DetailsSection` like every card under it, and it disappears the
-               moment the profile has anything in it. */}
-        {importAtTop && (
-          <DetailsSection editView={importing}>
-            {importing && parsed ? (
-              <ExperienceImportReview
-                parsed={parsed}
-                /* The account has a name from sign-up and no email yet, so this
-                   is the one surface where the review shows a contact field — an
-                   Email, and only an Email. Nothing is special-cased inside the
-                   card: it asks for the blank one and skips the filled one, the
-                   same rule it has always applied to role and location. */
-                currentName={MOCK_USER.name}
-                currentEmail={email}
-                currentRole={role}
-                currentLocation={location}
-                currentSkills={skills}
-                currentExperiences={experiences}
-                formatDates={formatExperienceDates}
-                onClose={closeImport}
-                onSubmit={applyImport}
-              />
-            ) : (
-              <>
-                {/* Same offer, same mark, same words as the two job-board
-                    surfaces that make it — see `OptionalMark`. */}
-                <DetailsSectionHeader
-                  title={
-                    <>
-                      You can upload your CV
-                      <OptionalMark />
-                    </>
-                  }
-                />
-                {/* Word for word the apply drawer's line. One sentence for one
-                    offer across every surface that makes it — a cross-surface
-                    promise that reads differently per page is drift. */}
-                <p className={o.cvFirstNote}>
-                  We&apos;ll fill in your role, skills and experience from it, so you don&apos;t have to type it all in.
-                </p>
-                {/* Both, not just `setParsed`: the review renders on
-                    `importing && parsed`, so handing over the result without
-                    also opening the card left the parse in state with nothing
-                    showing it. */}
-                <ExperienceImportPanel
-                  entry="direct"
-                  onParsed={(result) => {
-                    setParsed(result);
-                    setEditing({ kind: 'import' });
-                  }}
-                  onAddManually={() => undefined}
-                  // DELETE WITH: the `design-canvas/` folder.
-                  canvasStatus={canvas?.panel?.status}
-                  canvasFileName={canvas?.panel?.fileName}
-                />
-              </>
-            )}
-          </DetailsSection>
-        )}
 
         {/* 1. The header card. `ProfileDetails` is a plain div in production, so
                this is one too, and every placeholder in it is production's own:
@@ -320,6 +299,117 @@ export default function OnboardingPrototype() {
             </div>
           </div>
         </div>
+
+        {/* Below the header card, like the apply step (production's order for
+            the drawer, `JobProfileDrawer`): the page says whose profile this is
+            first, and the CV — offer or kept file — follows, above the sections
+            it fills. */}
+        {/* 0. Start with a document, while there is nothing to start from.
+
+               Not part of dev's page — this is the one addition the entry is
+               for, and it sits above the transcription rather than inside it so
+               what is copied stays legible as a copy. It is a plain
+               `DetailsSection` like every card under it, and it disappears the
+               moment the profile has anything in it. */}
+        {showCvSection && (
+          <DetailsSection editView={importing}>
+            {importing && parsed ? (
+              <ExperienceImportReview
+                parsed={parsed}
+                /* The account has a name from sign-up and no email yet, so this
+                   is the one surface where the review shows a contact field — an
+                   Email, and only an Email. Nothing is special-cased inside the
+                   card: it asks for the blank one and skips the filled one, the
+                   same rule it has always applied to role and location. */
+                currentName={MOCK_USER.name}
+                currentEmail={email}
+                currentRole={role}
+                currentLocation={location}
+                currentSkills={skills}
+                currentExperiences={experiences}
+                formatDates={formatExperienceDates}
+                onClose={closeImport}
+                onSubmit={applyImport}
+              />
+            ) : cv && !importing ? (
+              /* **The resting state: a kept file.** The same card the apply
+                 flow's profile step shows — title, header pair, file row — from
+                 the same shared components. See the job board's copy of this
+                 branch for the reasoning; nothing here is decided differently. */
+              <>
+                <DetailsSectionHeader title="Your CV">
+                  <CvHeaderActions
+                    onReplace={(file) => {
+                      setPickedFile(file);
+                      setEditing({ kind: 'import' });
+                    }}
+                    onRemove={() => setConfirmRemoveCv(true)}
+                  />
+                </DetailsSectionHeader>
+                <CvFileCard cv={cv} />
+                <RemoveCvDialog
+                  isOpen={confirmRemoveCv}
+                  onClose={() => setConfirmRemoveCv(false)}
+                  onConfirm={removeCv}
+                />
+              </>
+            ) : (
+              <>
+                {/* Same offer, same mark, same words as the two job-board
+                    surfaces that make it — see `OptionalMark`. Over a kept file
+                    being replaced, the resting title and a Cancel back to it. */}
+                <DetailsSectionHeader
+                  title={
+                    cv ? (
+                      'Your CV'
+                    ) : (
+                      <>
+                        You can upload your CV
+                        <OptionalMark />
+                      </>
+                    )
+                  }
+                >
+                  {importing && (
+                    <button type="button" className={o.headerAction} onClick={closeImport}>
+                      Cancel
+                    </button>
+                  )}
+                </DetailsSectionHeader>
+                {/* Word for word the apply drawer's line. One sentence for one
+                    offer across every surface that makes it — a cross-surface
+                    promise that reads differently per page is drift. Only under
+                    the offer; a replace in progress says what it is doing in
+                    the reading row. */}
+                {!cv && (
+                  <p className={o.cvFirstNote}>
+                    We&apos;ll fill in your role, skills and experience from it — and it goes with your applications,
+                    so teams read the document you wrote as well as the profile.
+                  </p>
+                )}
+                {/* Both, not just `setParsed`: the review renders on
+                    `importing && parsed`, so handing over the result without
+                    also opening the card left the parse in state with nothing
+                    showing it. */}
+                <ExperienceImportPanel
+                  entry="direct"
+                  privacyNote="Kept on your profile and sent with your applications. You can replace or remove it any time."
+                  initialFile={pickedFile}
+                  onFileRead={keepFile}
+                  onCancelRead={cv ? closeImport : undefined}
+                  onParsed={(result) => {
+                    setParsed(result);
+                    setEditing({ kind: 'import' });
+                  }}
+                  onAddManually={() => undefined}
+                  // DELETE WITH: the `design-canvas/` folder.
+                  canvasStatus={canvas?.panel?.status}
+                  canvasFileName={canvas?.panel?.fileName}
+                />
+              </>
+            )}
+          </DetailsSection>
+        )}
 
         {/* 2. Investor Details, behind its prompt. This is the interactive
                variant `InvestorPromptBanner` renders while `isInvestor === null`
@@ -445,8 +535,8 @@ export default function OnboardingPrototype() {
         </DetailsSection>
 
         {/* 5. Experience — and the CV. */}
-        <DetailsSection editView={importing && !importAtTop}>
-          {importing && !importAtTop ? (
+        <DetailsSection editView={importing && importHost === 'experience'}>
+          {importing && importHost === 'experience' ? (
             parsed ? (
               <ExperienceImportReview
                 parsed={parsed}
@@ -475,6 +565,7 @@ export default function OnboardingPrototype() {
                 <ExperienceImportPanel
                   entry="direct"
                   initialFile={pickedFile}
+                  onFileRead={keepFile}
                   onParsed={setParsed}
                   onAddManually={closeImport}
                 />
@@ -484,7 +575,9 @@ export default function OnboardingPrototype() {
             <>
               <DetailsSectionHeader title={`Experience ${experiences.length ? `(${experiences.length})` : ''}`}>
                 <div className={o.headerActions}>
-                  {experiences.length > 0 && (
+                  {/* Off while the CV section is drawn — Replace there is this
+                      control's job, and one mechanism gets one door. */}
+                  {experiences.length > 0 && !showCvSection && (
                     <>
                       <button type="button" className={o.headerAction} onClick={() => cvInput.current?.click()}>
                         Update from CV
@@ -499,7 +592,7 @@ export default function OnboardingPrototype() {
                           ev.target.value = '';
                           if (!chosen) return;
                           setPickedFile(chosen);
-                          setEditing({ kind: 'import' });
+                          setEditing({ kind: 'import', host: 'experience' });
                         }}
                       />
                     </>
@@ -507,12 +600,14 @@ export default function OnboardingPrototype() {
                   <AddButton onClick={() => undefined} />
                 </div>
               </DetailsSectionHeader>
-              {experiences.length === 0 && !importAtTop ? (
+              {experiences.length === 0 && !showCvSection ? (
                 <ExperienceImportPanel
                   emptyLabel="Share your work history and skills. This shows what you know and what you can do."
+                  privacyNote="Kept on your profile and sent with your applications. You can replace or remove it any time."
+                  onFileRead={keepFile}
                   onParsed={(result) => {
                     setParsed(result);
-                    setEditing({ kind: 'import' });
+                    setEditing({ kind: 'import', host: 'experience' });
                   }}
                   onAddManually={() => undefined}
                 />

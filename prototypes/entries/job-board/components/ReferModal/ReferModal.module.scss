@@ -58,25 +58,20 @@
   }
 }
 
-// Sent, the card holds an envelope, one sentence and a `Done` button — and the
-// fixed height above was sized for a form that is no longer rendered, so it left
-// most of an 870px card empty under three lines of announcement.
-//
-// The doubled selector is not decoration. What it has to beat is `.modal`'s own
-// `height` — including the one inside `@include media.mobile-only`, which is a
-// single class too, because a media query adds no specificity. At 0-1-0 against
-// 0-1-0 the winner would be whichever rule the CSS bundle happened to emit last.
-// Same idiom `.closeButton.closeButton` uses below, for the same reason.
-//
-// `overflow: hidden` stays: with nothing left to clip it costs nothing, and it is
-// still what keeps the 24px radius on the card's corners.
-.modal.modalSent {
+// The fixed height above is a promise to the *form*: adding recipients scrolls the
+// field instead of moving the footer. The receipt has no list to stabilise — it is a
+// tick, two lines and one button — so holding it at 870px leaves ~1000px of white
+// under the button, and centring that content would only split the emptiness in two
+// while stranding the close X a screen away from Done. The card sizes to the receipt
+// and keeps the same cap as a ceiling, so nothing here can outgrow the viewport.
+.modalSent {
   height: auto;
+  max-height: min(870px, calc(100dvh - 48px));
 
-  // `.actions`' 14px exists to hold the buttons off the *fields* while composing.
-  // There are no fields here, so it lands on top of the card's own 24px gap and
-  // reads as 38px of nothing above the only control on screen — the exact dead
-  // space fitting the card to its content is meant to remove.
+  @include media.mobile-only {
+    max-height: min(870px, calc(100dvh - 32px));
+  }
+
   .actions {
     margin-top: 0;
   }

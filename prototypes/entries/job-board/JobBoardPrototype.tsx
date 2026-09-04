@@ -42,12 +42,15 @@
  *                                            (`ExperienceEntry`, field-for-field production's
  *                                            `TEditExperienceForm`), plus skills, bio and location.
  *                                            `isProfileComplete` is the one rule that gates Apply —
- *                                            **your current role and an answered job search status**
- *                                            — stated once and read from everywhere. It was one
+ *                                            **an answered job search status, and nothing else** —
+ *                                            stated once and read from everywhere. It was one
  *                                            experience entry until review: an entry is something
  *                                            most real profiles already carry, while the status is
  *                                            the one answer only this flow can collect and the one
  *                                            that decides whether founders see the profile at all.
+ *                                            The current role was the second half until it was
+ *                                            dropped too — it is the same class of answer as an
+ *                                            entry, so the same argument retired it.
  *                                            The role joined it because an application has to say
  *                                            what you do now, and it is one field the header card
  *                                            was already asking for.
@@ -100,12 +103,12 @@
  *                                            the masthead — and only for a signed-in reader, since it
  *                                            is the one door out of the account this flow is for.
  *  - JobProfilePane       (was a drawer)    step 2: the member profile itself, card for card, on
- *                                            production's `DetailsSection` chrome. **Your current role
- *                                            and the private job-search status are the whole
- *                                            requirement**, so they are the first two cards and each
- *                                            marks itself while it is unanswered; experience, project
- *                                            contributions, skills, bio and location refine a read
- *                                            that is already possible without them. Teams was cut —
+ *                                            production's `DetailsSection` chrome. **The private
+ *                                            job-search status is the whole requirement**, so its card
+ *                                            is first and marks itself while it is unanswered; the
+ *                                            current role, experience, project contributions, skills,
+ *                                            bio and location refine a read that is already possible
+ *                                            without them. Teams was cut —
  *                                            it duplicates an Experience entry's "Team or
  *                                            Organization" field. `PendingApprovalSteps`, the account
  *                                            stepper, is **rendered again** for a pending member — the
@@ -128,9 +131,10 @@
  *                                            There is no fourth step confirming the send: the board
  *                                            behind it flips the row to "Applied".
  * GATED: **sending an application**, and only that. Two rules stand in front of it.
- *  1. An application has to carry a complete profile (a current role and an answered job search
- *     status), because a one-click application sends the team your profile instead of a form. This
- *     one is never a refusal — a stranger satisfies it in one pane, a member in a card stack, and
+ *  1. An application has to carry a complete profile (an answered job search status — the current
+ *     role stood here too and no longer does), because a one-click application sends the team your
+ *     profile instead of a form. This one is never a refusal — a stranger satisfies it in one pane,
+ *     a member on one card, and
  *     the middle step exists to finish it.
  *  2. The account has to be approved. A PL review stands in front of the first application, which
  *     means a visitor who arrives on a role opens an account here and comes back to apply once the
@@ -197,6 +201,10 @@ import type { IJobRole, IJobTeam, IJobTeamGroup, JobsSortKey } from '@/types/job
 
 // Reuse the production content shell styling 1:1 (root / toolbar / title / list).
 import contentCss from '@/app/jobs/(jobs-page)/@content/JobsContent.module.scss';
+// Submit a Deal's toolbar door, verbatim: the filled 8px button with the plus
+// glyph that `DealsToolbar` draws beside its sort. The job board's "Submit a
+// job" is that control with a different label, so it wears that stylesheet.
+import deals from '@/components/page/deals/DealsToolbar/DealsToolbar.module.scss';
 
 import { PrototypeNavBar } from '../nav-shared/PrototypeNavBar';
 import { PrototypeMobileNav } from '../nav-shared/PrototypeMobileNav';
@@ -211,7 +219,18 @@ import { useMockJobsFilterStore } from './mockJobsFilterStore';
 import { JobBoardFilterView } from './JobBoardFilterView';
 import { JobBoardMobileFilters } from './JobBoardMobileFilters';
 import { JobTeamGroupCard, type JobCardNewsVariant } from './JobTeamGroupCard';
-import { JobBoardScopeTabs, SCOPE_APPLIED, SCOPE_PARAM } from './JobBoardScopeTabs';
+import { JobBoardScopeTabs, SCOPE_APPLIED, SCOPE_MANAGE, SCOPE_PARAM } from './JobBoardScopeTabs';
+import { SubmitJobModal, type SubmittedJob } from './SubmitJobModal';
+import {
+  canManageTeam,
+  canSubmitJobs,
+  LEAD_TEAM_UID,
+  MOCK_UNLISTED_ROLES,
+  seedListingMeta,
+  type ListingMeta,
+  type ListingStatus,
+} from './listings';
+import { VIEWER_NAME } from './profile/viewerIdentity';
 import { SignInBanner } from './SignInBanner';
 import { ProfileNudgeBanner, PendingApprovalBanner } from './BoardBanners';
 import { JobApplyFlowDrawer, type ApplyFlowStepId } from './JobApplyFlowDrawer';
@@ -305,6 +324,11 @@ const VIEWER_OPTIONS: Array<{ value: BoardViewer; label: string }> = [
      with nothing → signed in and ready → been and applied. Each tab is the next
      thing that happens to the same person. */
   { value: 'applied', label: 'Already applied' },
+  /* After the sequence, not in it: these two are not later moments of the same
+     person, they are the board seen by someone who owns listings on it. See
+     `BoardViewer`. */
+  { value: 'team-lead', label: 'Team lead' },
+  { value: 'directory-admin', label: 'Directory admin' },
 ];
 
 const VIEWER_NOTE: Record<BoardViewer, string> = {
@@ -313,13 +337,17 @@ const VIEWER_NOTE: Record<BoardViewer, string> = {
   'pending-approval':
     'Signed up — through the modal or the flow — and waiting on the PL team. Browsing and the profile work exactly as they do for an approved member; applying is the one thing that waits, and the flow sends them to the team’s own site instead. The profile step is the only place in the board that shows the “My profile is complete” tick, because that press is the one that leaves.',
   'job-aspirant':
-    'Signed up to find work, not to join a team — so there is nothing for the PL team to approve and nothing to wait for. Applying is live from the first minute, and the sign-up already answered both required questions, so the profile step opens with no gaps marked on it. What that step is for instead is reading it: the CV card stays at the top because an aspirant’s CV is part of the profile rather than a way of filling one in, and the footer asks them to tick that they have looked before the press goes on to the letter.',
+    'Signed up to find work, not to join a team — so there is nothing for the PL team to approve and nothing to wait for. Applying is live from the first minute, and the sign-up already answered the one required question, so the profile step opens with no gaps marked on it. What that step is for instead is reading it: the CV card stays at the top because an aspirant’s CV is part of the profile rather than a way of filling one in, and the footer asks them to tick that they have looked before the press goes on to the letter.',
   'profile-incomplete':
     'Signed in with nothing filled in. The ask moves from “sign in” to “update your profile”, and Apply opens the drawer on the job search status, which is the one required answer.',
   'profile-ready':
     'Signed in, profile already good. Apply goes straight to the cover letter — the modal reads the profile back, so a drawer in front of it would be showing the same thing twice.',
   applied:
     'The returning member: two applications already sent. The Applied tab has a count and a list, those rows show “Applied” instead of an offer, and the rest of the board carries on as normal — having applied to two roles is no reason to change what the other eleven look like.',
+  'team-lead':
+    'Leads Filecoin Foundation. Two things change and nothing else: “Submit a job” in the toolbar (the Submit a Deal door — a modal, then review by the PL team before it goes live), and a “Manage listings” tab holding the team’s listings in every state — one in review, the live ones, one taken down. All is still the public board, identical to what an applicant sees; the controls to mark a listing inactive and bring it back live on the Manage rows and in the drawer’s footer when a lead opens their own listing.',
+  'directory-admin':
+    'The same two doors, for every team. The form gains one field — which team — and Manage listings groups the whole review queue by team, so the admin sees libp2p’s pending submission beside Filecoin’s. Open question kept open: whether an admin’s own submission still waits on review, or goes live on submit.',
 };
 
 /**
@@ -366,7 +394,7 @@ function seededApplications(): Map<string, JobApplication> {
   return new Map(
     SEEDED_APPLICATION_ROLES.map((role, i) => [
       role.uid,
-      { coverLetter: SEEDED_APPLICATION_LETTERS[i] ?? '', appliedAt: daysAgo(offsets[i] ?? 1) },
+      { coverLetter: SEEDED_APPLICATION_LETTERS[i] ?? '', appliedAt: daysAgo(offsets[i] ?? 1), withCv: true },
     ]),
   );
 }
@@ -400,12 +428,43 @@ interface ApplyTarget {
   teamName: string;
 }
 
+/**
+ * Every listing's state and origin at the start of a session, and the roles the
+ * public board does not carry. Functions, not constants: the seeds' dates are
+ * relative to now, and picking a viewer rebuilds the board from scratch.
+ */
+const initialListings = (): Map<string, ListingMeta> =>
+  seedListingMeta(MOCK_JOB_GROUPS.map((g) => ({ teamUid: g.team.uid, roles: g.roles })));
+const initialUnlisted = (): Map<string, IJobRole[]> => new Map(Object.entries(MOCK_UNLISTED_ROLES));
+
+/**
+ * The lead's own listing in a given state, for the canvas frames of the drawer
+ * as its owner sees it. Read off the seeds so the three frames name the three
+ * roles the Manage tab actually shows.
+ */
+function managedSampleRole(status: ListingStatus): IJobRole | null {
+  const meta = initialListings();
+  const pool = [
+    ...(MOCK_JOB_GROUPS.find((g) => g.team.uid === LEAD_TEAM_UID)?.roles ?? []),
+    ...(MOCK_UNLISTED_ROLES[LEAD_TEAM_UID] ?? []),
+  ];
+  return pool.find((r) => meta.get(r.uid)?.status === status) ?? null;
+}
+
 /** One sent application. The letter is what went; `appliedAt` is what the Applied
  *  tab reads to say how long ago it went. ISO, like every other date on the board,
  *  so `getJobDate`'s own formatting helpers can read it. */
 interface JobApplication {
   coverLetter: string;
   appliedAt: string;
+  /**
+   * Whether a CV went with it. A boolean, not a copy of the file: the team
+   * sees the profile's *current* CV, so a record here that froze the file name
+   * would say something the email no longer does once the member replaces or
+   * removes it. (Whether applications should snapshot instead is a backend
+   * question this prototype names rather than answers — see the design note.)
+   */
+  withCv: boolean;
 }
 
 export default function JobBoardPrototype() {
@@ -489,9 +548,13 @@ export default function JobBoardPrototype() {
         }
         /* One role for every pinned frame, so the sign-up form and every step
            of the flow name the same job — frames of one application rather than
-           unrelated ones. */
-        const job = { role: SAMPLE_ROLE_GROUP.roles[0], team: SAMPLE_ROLE_GROUP.team };
+           unrelated ones. The manager's frames are the exception by design:
+           they open the lead's own listing in the named state, which is a
+           different Filecoin role per state. */
+        const managedRole = pinned.manageJob ? managedSampleRole(pinned.manageJob) : null;
+        const job = { role: managedRole ?? SAMPLE_ROLE_GROUP.roles[0], team: SAMPLE_ROLE_GROUP.team };
         if (pinned.signUp) setSignUp(true);
+        if (pinned.submitJob) setSubmitOpen(true);
         if (pinned.flow) {
           setFlow({ job });
           setFlowStep(pinned.flow);
@@ -548,6 +611,17 @@ export default function JobBoardPrototype() {
    * modal is the role-less one — and a nullable object whose only field is always
    * null is just a boolean with a place for a bug to live. */
   const [signUp, setSignUp] = useState(false);
+
+  /* **Submit a job**, and what it produces.
+   *
+   * `unlisted` holds the roles the public board does not show — the review
+   * queue and the taken-down — plus whatever this session submits, keyed by
+   * team. `listings` is every role's state and origin, public ones included,
+   * because a live listing can be taken down and needs a state to move to.
+   * Session-only, like the applications: a mock. */
+  const [submitOpen, setSubmitOpen] = useState(false);
+  const [unlisted, setUnlisted] = useState<Map<string, IJobRole[]>>(initialUnlisted);
+  const [listings, setListings] = useState<Map<string, ListingMeta>>(initialListings);
 
   /* The apply flow: which job, and where in it.
    *
@@ -609,6 +683,26 @@ export default function JobBoardPrototype() {
   /** Which scope tab is open. A filter-store param like every other narrowing on
    *  this board, so Clear All takes it off with the rest. */
   const appliedScope = params.get(SCOPE_PARAM) === SCOPE_APPLIED;
+  /** The manager's tab. Guarded on the viewer as well as the param, so a stale
+   *  `scope=manage` left by switching viewer cannot empty the board for someone
+   *  who has no such tab. */
+  const manageScope = params.get(SCOPE_PARAM) === SCOPE_MANAGE && canSubmitJobs(viewer);
+
+  /**
+   * Every team with every role it has, listed or not — the public groups with
+   * the unlisted ones merged in. The status filter below is what keeps the
+   * unlisted off the public board; this is the one place both live.
+   */
+  const allGroups = useMemo<IJobTeamGroup[]>(
+    () =>
+      MOCK_JOB_GROUPS.map((g) => {
+        const extra = unlisted.get(g.team.uid) ?? [];
+        return extra.length ? { ...g, roles: [...extra, ...g.roles] } : g;
+      }),
+    [unlisted],
+  );
+
+  const statusOf = (role: IJobRole): ListingStatus => listings.get(role.uid)?.status ?? 'live';
 
   /** What the rail is currently narrowed to — the intent the visitor has already expressed. */
   const criteria = useMemo<RoleCriteria>(
@@ -627,9 +721,15 @@ export default function JobBoardPrototype() {
     const q = (params.get('q') || '').trim().toLowerCase();
 
     const groups: IJobTeamGroup[] = [];
-    for (const group of MOCK_JOB_GROUPS) {
+    for (const group of allGroups) {
+      /* The Manage tab is this viewer's own teams and nothing else. */
+      if (manageScope && !canManageTeam(viewer, group.team.uid)) continue;
       const teamMatchesQ = !q || group.team.name.toLowerCase().includes(q);
       const roles = group.roles.filter((role) => {
+        /* Status first. The public board is the live listings — for everyone,
+           including the lead who posted the rest. Only the Manage tab shows a
+           team's listings in every state, and it is the only place they are. */
+        if (!manageScope && statusOf(role) !== 'live') return false;
         /* The Applied scope narrows first, and narrows like every other filter:
            it is one more predicate in this list rather than a separate list. So
            the rail, the search box and the sort all keep working inside it — you
@@ -644,10 +744,15 @@ export default function JobBoardPrototype() {
         if (q && !teamMatchesQ && !role.roleTitle.toLowerCase().includes(q)) return false;
         return true;
       });
-      if (roles.length) groups.push({ team: group.team, roles, totalRoles: roles.length });
+      /* `totalRoles` stays what the card's count block says it is — open roles —
+         so on the Manage tab a team with two live listings, one in review and
+         one taken down still reads "2 open roles". */
+      if (roles.length)
+        groups.push({ team: group.team, roles, totalRoles: roles.filter((r) => statusOf(r) === 'live').length });
     }
     return groups;
-  }, [params, criteria, appliedScope, appliedRoleUids]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params, criteria, appliedScope, appliedRoleUids, allGroups, listings, manageScope, viewer]);
 
   const visibleGroups = useMemo<IJobTeamGroup[]>(() => {
     // A copy: the sorts below mutate, and `railGroups` is the memo's own value.
@@ -673,6 +778,19 @@ export default function JobBoardPrototype() {
 
   const totalRoles = visibleGroups.reduce((sum, g) => sum + g.totalRoles, 0);
   const totalGroups = visibleGroups.length;
+  /** Every row on screen, whatever its state — what the Manage tab's title counts. */
+  const totalListings = visibleGroups.reduce((sum, g) => sum + g.roles.length, 0);
+  /** How many listings this viewer manages, in every state, for the tab's count. */
+  const managedCount = canSubmitJobs(viewer)
+    ? allGroups
+        .filter((g) => canManageTeam(viewer, g.team.uid))
+        .reduce((sum, g) => sum + g.roles.length, 0)
+    : undefined;
+  /** The teams this viewer may post for — one for a lead, all for an admin. */
+  const submittableTeams = useMemo<IJobTeam[]>(
+    () => allGroups.filter((g) => canManageTeam(viewer, g.team.uid)).map((g) => g.team),
+    [allGroups, viewer],
+  );
 
   /* Sign in. Production stashes the filter state and pushes `#login`, then replays
      it on return (JobAlertBanner → JobsContent). Pushing `#login` here would hand
@@ -732,7 +850,59 @@ export default function JobBoardPrototype() {
    *  is recovered here rather than threaded through two components that have no
    *  other use for it. */
   const teamForRole = (role: IJobRole): IJobTeam | null =>
-    MOCK_JOB_GROUPS.find((g) => g.roles.some((r) => r.uid === role.uid))?.team ?? null;
+    allGroups.find((g) => g.roles.some((r) => r.uid === role.uid))?.team ?? null;
+
+  /**
+   * **Submit for review**, pressed. The listing exists from this moment — in
+   * review, under the submitter's name, on the team it was posted for — and it
+   * is not on the board: `statusOf` keeps it off until the PL team's approval,
+   * which this mock has no one to perform. Flip it on the Manage tab to see the
+   * live state; there is deliberately no "approve" control on the board,
+   * because approving is not the lead's press.
+   */
+  const onSubmitJob = (job: SubmittedJob) => {
+    const iso = new Date().toISOString();
+    const role: IJobRole = {
+      uid: `submitted-${Date.now()}`,
+      roleTitle: job.roleTitle,
+      roleCategory: job.roleCategory,
+      seniority: job.seniority,
+      location: job.location,
+      workMode: job.workMode,
+      applyUrl: job.applyUrl,
+      descriptionHtml: job.descriptionHtml,
+      lastUpdated: iso,
+      postedDate: iso,
+      detectionDate: iso,
+    };
+    setUnlisted((prev) => {
+      const next = new Map(prev);
+      next.set(job.teamUid, [role, ...(next.get(job.teamUid) ?? [])]);
+      return next;
+    });
+    setListings((prev) => new Map(prev).set(role.uid, { status: 'in-review', origin: { kind: 'submitted', by: VIEWER_NAME } }));
+    /* The receipt names the one thing the screen does not show: where the
+       listing went. The person is standing on the All tab, and the new row is
+       not on it — by design — so the toast says which tab it is on, and that
+       tab's count has just ticked up beside it. */
+    toast.success(`${job.roleTitle} is submitted for review. It's under Manage listings until the PL team approves it.`);
+  };
+
+  /**
+   * The switch on a listing the viewer owns — from its row on the Manage tab,
+   * or from the drawer's footer. Reversible by the same control it turns into,
+   * so it asks no confirmation: the undo is the button that replaces it.
+   */
+  const setListingStatus = (roleUid: string, status: ListingStatus) => {
+    setListings((prev) => {
+      const meta = prev.get(roleUid);
+      return meta ? new Map(prev).set(roleUid, { ...meta, status }) : prev;
+    });
+    const title = allGroups.flatMap((g) => g.roles).find((r) => r.uid === roleUid)?.roleTitle ?? 'The listing';
+    /* Says the part that is not on screen: what the public board now does. The
+       row already shows the new state and the new control. */
+    toast.success(status === 'inactive' ? `${title} is off the board.` : `${title} is back on the board.`);
+  };
 
   /**
    * Pressing **View job**, or the role title — which is now the board's only
@@ -917,7 +1087,9 @@ export default function JobBoardPrototype() {
     if (!flowJob) return;
     const { role, team } = flowJob;
 
-    setApplications((prev) => new Map(prev).set(role.uid, { coverLetter, appliedAt: new Date().toISOString() }));
+    setApplications((prev) =>
+      new Map(prev).set(role.uid, { coverLetter, appliedAt: new Date().toISOString(), withCv: !!profile.cv }),
+    );
     onCloseFlow();
 
     /* The board behind the flow already flips this role's button to "Applied",
@@ -1006,6 +1178,13 @@ export default function JobBoardPrototype() {
     setProfile(profileForViewer(next));
     onCloseFlow();
     setApplications(next === 'applied' ? seededApplications() : new Map());
+    /* The listings too, and the form: a submission made as the lead must not
+       turn up under the admin, and a viewer with no Manage tab must not be left
+       standing on it. */
+    setSubmitOpen(false);
+    setUnlisted(initialUnlisted());
+    setListings(initialListings());
+    if (!canSubmitJobs(next) && params.get(SCOPE_PARAM) === SCOPE_MANAGE) setParam(SCOPE_PARAM, undefined);
   };
 
   /**
@@ -1082,13 +1261,34 @@ export default function JobBoardPrototype() {
         <span className={contentCss.titleCount}>
           (
           <strong className={s.titleCountRoles}>
-            {totalRoles} {totalRoles === 1 ? 'role' : 'roles'}
+            {/* On the Manage tab the rows are listings in every state, so the
+                count says so — "4 listings" over a list where two are open
+                roles would be a title disagreeing with its own card. */}
+            {manageScope
+              ? `${totalListings} ${totalListings === 1 ? 'listing' : 'listings'}`
+              : `${totalRoles} ${totalRoles === 1 ? 'role' : 'roles'}`}
           </strong>{' '}
           across {totalGroups} {totalGroups === 1 ? 'team' : 'teams'})
         </span>
       </h1>
     </>
   );
+
+  /* The lead's and admin's door — Submit a Deal's toolbar button, label
+     changed. Page-level rather than on the team's card, for the reason the
+     deal door is: a lead whose team has nothing on the board yet has no card
+     to find it on. Once, in the toolbar's action group beside the sort; on
+     phones, where that toolbar is hidden, on the title row instead — the two
+     slots `DealsToolbar` uses. */
+  const submitJobButton = canSubmitJobs(viewer) ? (
+    <button type="button" className={deals.submitButton} onClick={() => setSubmitOpen(true)}>
+      <svg className={deals.submitIcon} viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M9 3.75V14.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M3.75 9H14.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      Submit a job
+    </button>
+  ) : null;
 
   /* The scope strip, rendered ONCE and on its own row.
    *
@@ -1110,7 +1310,7 @@ export default function JobBoardPrototype() {
    * nothing. */
   const scopeTabs = isLoggedIn ? (
     <div className={s.scopeTabs}>
-      <JobBoardScopeTabs appliedCount={appliedRoleUids.size} />
+      <JobBoardScopeTabs appliedCount={appliedRoleUids.size} manageCount={managedCount} />
     </div>
   ) : null;
 
@@ -1155,23 +1355,29 @@ export default function JobBoardPrototype() {
       {/* `mobileHeader` is a baseline row with no wrap, so the match line would
           sit alongside the title and overflow on a narrow screen. The local class
           only adds wrapping. */}
-      <div className={`${contentCss.mobileHeader} ${s.mobileHeaderWrap}`}>{titleBlock}</div>
+      <div className={`${contentCss.mobileHeader} ${s.mobileHeaderWrap}`}>
+        {titleBlock}
+        {submitJobButton && <div className={s.mobileSubmit}>{submitJobButton}</div>}
+      </div>
       <div className={contentCss.mobileFilters}>
         <JobBoardMobileFilters />
       </div>
 
       <div className={contentCss.toolbar}>
         <div className={contentCss.titleGroup}>{titleBlock}</div>
-        {/* Production's own three options, unextended. The board used to carry a
-            fourth, "Best match for me", which is gone with the rest of the match
-            flow — sorting is now only sorting, and there is no locked item to
-            explain. */}
-        <SortDropdown
-          options={JOBS_SORT_OPTIONS}
-          currentSort={sort}
-          onSortChange={(value) => setParam('sort', value === 'newest' ? undefined : value)}
-          sortByLabel="Sort by:"
-        />
+        <div className={s.toolbarActions}>
+          {/* Production's own three options, unextended. The board used to carry a
+              fourth, "Best match for me", which is gone with the rest of the match
+              flow — sorting is now only sorting, and there is no locked item to
+              explain. */}
+          <SortDropdown
+            options={JOBS_SORT_OPTIONS}
+            currentSort={sort}
+            onSortChange={(value) => setParam('sort', value === 'newest' ? undefined : value)}
+            sortByLabel="Sort by:"
+          />
+          {submitJobButton}
+        </div>
       </div>
 
       {scopeTabs}
@@ -1189,7 +1395,17 @@ export default function JobBoardPrototype() {
            this rail", which is why the filtered case still gets the original
            line. */
         <div className={s.empty}>
-          {appliedScope && appliedRoleUids.size === 0 ? (
+          {manageScope && managedCount === 0 ? (
+            /* A lead whose team has nothing on the board at all. The toolbar's
+               door is the answer, so the sentence ends in it. */
+            <>
+              Nothing listed for your team yet.{' '}
+              <button type="button" className={s.emptyLink} onClick={() => setSubmitOpen(true)}>
+                Submit a job
+              </button>{' '}
+              and it appears here while the PL team reviews it.
+            </>
+          ) : appliedScope && appliedRoleUids.size === 0 ? (
             <>
               You haven&apos;t applied to anything yet. Roles you apply to collect here, so you can see what you&apos;ve
               already gone for.{' '}
@@ -1217,6 +1433,11 @@ export default function JobBoardPrototype() {
               onViewJob={onViewJob}
               appliedRoleUids={appliedRoleUids}
               appliedAtByRole={appliedAtByRole}
+              /* Only on the Manage tab. On All a lead's own card is everyone's
+                 card — see the note on the row's `manage` prop. */
+              manage={
+                manageScope ? { metaFor: (uid) => listings.get(uid), onSetStatus: setListingStatus } : undefined
+              }
             />
           ))}
         </div>
@@ -1296,19 +1517,31 @@ export default function JobBoardPrototype() {
         jobAspirant={isJobAspirant}
         applied={flowJob ? appliedRoleUids.has(flowJob.role.uid) : false}
         appliedAt={flowJob ? appliedAtByRole.get(flowJob.role.uid) : undefined}
+        /* The owner's drawer: from the Manage tab, or from All when a lead
+           opens one of their own live roles — either way the footer is the
+           listing's switch, not Apply. */
+        managed={
+          flowJob && canManageTeam(viewer, flowJob.team.uid) && listings.has(flowJob.role.uid)
+            ? {
+                status: listings.get(flowJob.role.uid)!.status,
+                onSetStatus: (status) => setListingStatus(flowJob.role.uid, status),
+              }
+            : undefined
+        }
         /* DELETE WITH: the `design-canvas/` folder. The importer's beats live in
            component state; see `canvasStates.ts`. A `scenario` is turned into the
            parse it names here, so the profile step receives the same record the
            real reader would have resolved to. */
         canvasImport={
-          canvasPin?.import
+          canvasPin?.import || canvasPin?.removeCv
             ? {
-                parsed: canvasPin.import.scenario ? parseResultFor(canvasPin.import.scenario) : undefined,
+                parsed: canvasPin.import?.scenario ? parseResultFor(canvasPin.import.scenario) : undefined,
                 panel: {
-                  open: canvasPin.import.open,
-                  status: canvasPin.import.status,
-                  fileName: canvasPin.import.fileName,
+                  open: canvasPin.import?.open,
+                  status: canvasPin.import?.status,
+                  fileName: canvasPin.import?.fileName,
                 },
+                removeCv: canvasPin.removeCv,
               }
             : undefined
         }
@@ -1333,6 +1566,20 @@ export default function JobBoardPrototype() {
         canvasFilled={canvasPin?.signUpFilled}
         canvasRefused={canvasPin?.signUpRefused}
       />
+
+      {/* Submit a job — the lead's and admin's form, reached from the toolbar
+          door and from the empty Manage tab. Mounted only for someone who has
+          the door, so nobody else pays for the editor it carries. */}
+      {canSubmitJobs(viewer) && (
+        <SubmitJobModal
+          open={submitOpen}
+          onClose={() => setSubmitOpen(false)}
+          teams={submittableTeams}
+          onSubmit={onSubmitJob}
+          // DELETE WITH: the `design-canvas/` folder. See `canvasStates.ts`.
+          canvasFilled={canvasPin?.submitJobFilled}
+        />
+      )}
     </>
   );
 }

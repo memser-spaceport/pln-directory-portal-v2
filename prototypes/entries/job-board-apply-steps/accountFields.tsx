@@ -134,8 +134,10 @@ export const FILLED_ACCOUNT_FORM: AccountFormData = {
 // Transcribed from ApplyForDemoDayModal's `applySchema` — same email domain-dot
 // test, same LinkedIn handle-or-URL pair of patterns. Dropped: `isInvestor`,
 // `teamName`/`websiteAddress` (the add-a-team branch) and the conditional `role`
-// rule that only fired while adding a team. Here `role` is plainly required,
-// because there is no branch in which it isn't.
+// rule that only fired while adding a team. `role` is not required here either:
+// applying no longer waits on it (see `isProfileComplete`), and a schema that
+// refuses the form for it would make it required in the one place it matters
+// most — the step a stranger has to get through to apply at all.
 export const accountSchema = yup.object({
   email: yup
     .string()
@@ -180,7 +182,11 @@ export const accountSchema = yup.object({
       return linkedinUrlPattern.test(trimmedValue) || linkedinHandlePattern.test(trimmedValue);
     })
     .required('LinkedIn profile is required'),
-  role: yup.string().required('Role is required'),
+  /* `defined()` rather than `required()`: applying no longer waits on the
+     current role (see `isProfileComplete`), so `''` is a valid answer — and
+     `required()` on a string rejects it. `defined()` keeps the inferred type a
+     plain `string` so the form state and `AccountFormData` cannot drift. */
+  role: yup.string().defined(),
   /* No rule of its own: it is a switch, not an answer to validate, and both of
      its states are valid. It is in the schema so `AccountFormData` and the
      resolver agree on the shape of the form — a key react-hook-form holds and
@@ -427,9 +433,10 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
           email had one, required fields carry `*`, so the one other skippable
           field had to be marked or it would be the input whose state you work
           out from an absent asterisk. Team email is long gone and LinkedIn is
-          required, so the system has no optional members left — there is nothing
-          for a mark to distinguish, and the only honest state left on this form
-          is `*`.
+          required, so the system has no optional members left to mark. The
+          convention that survives is one mark on the fields that stop you: Email,
+          Full name and LinkedIn carry `*`, and the role and the team select — now
+          both optional — carry nothing.
 
           Which means the hand-rolled label goes too. It existed solely because
           `FormField`'s `label` prop takes a string and a mark is a node; with no
@@ -470,8 +477,10 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
           pair because there was no other way to say that only the second half
           was optional. It could not be written as the question itself ("Are you
           already at a PL network team?") for exactly that reason: a
-          question-shaped label over a required `role` would make the required
-          half read as skippable.
+          question-shaped label over a `role` that was then required would make
+          the required half read as skippable. (The role is optional now, so the
+          pair is no longer mixed and that objection has lapsed — the checkbox is
+          still the better home for the question.)
 
           The checkbox above takes the question, which frees the label to name
           what is under it. Most people on a public job board are not on a PL

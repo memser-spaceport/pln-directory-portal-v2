@@ -43,15 +43,16 @@ export function PostNewsButton({ teamName, memberUid, onPost }: Props) {
         <TooltipPrimitive.Trigger asChild>
           <span className={local.postTrigger}>
             <Button
-              size="xs"
-              style="link"
+              size="xxs"
+              style="fill"
+              variant="primary"
               className={local.postAction}
               onClick={() => {
                 dismiss();
                 onPost();
               }}
             >
-              <PlusIcon width={14} height={14} aria-hidden="true" />
+              <PlusIcon width={12} height={12} aria-hidden="true" />
               Post news
             </Button>
           </span>

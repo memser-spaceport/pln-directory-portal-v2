@@ -253,10 +253,16 @@ export function getJobDetail(role: IJobRole, team: IJobTeam): JobDetail {
  * is exactly where "is this actually remote" gets answered.
  */
 export function jobMetaParts(role: IJobRole): string[] {
+  const workMode = role.workMode ? workplaceTypeDisplayLabel(role.workMode) : null;
+  /* A remote role's location is "Remote" and its work mode is "Remote" — the
+     ingest writes both, and so does the submit form — so the line read
+     "Remote · Remote". The work mode only earns its place when it says
+     something the location did not. */
+  const workModeSaysMore = workMode && !role.location.some((l) => l.trim().toLowerCase() === workMode.toLowerCase());
   return [
     role.seniority ? seniorityDisplayLabel(role.seniority) : null,
     role.roleCategory,
     role.location.length ? role.location.join(', ') : null,
-    role.workMode ? workplaceTypeDisplayLabel(role.workMode) : null,
+    workModeSaysMore ? workMode : null,
   ].filter(Boolean) as string[];
 }

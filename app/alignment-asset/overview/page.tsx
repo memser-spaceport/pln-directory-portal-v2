@@ -41,12 +41,21 @@ async function getRoundHistory(totalRounds: number): Promise<RoundHistoryEntry[]
     .sort((a, b) => b.roundNumber - a.roundNumber);
 }
 
-export default async function OverviewRoutePage() {
-  const [{ data: kpiWeights }, { data: roundStats }, { data: trustHoldings }] = await Promise.all([
+export default async function OverviewRoutePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>;
+}) {
+  const [{ data: kpiWeights }, { data: roundStats }, { data: trustHoldings }, resolvedSearchParams] = await Promise.all([
     getKpiWeights(),
     getCurrentRoundStats(),
     getTrustHoldings(),
+    searchParams,
   ]);
+
+  // Query-param preview only (?persona=prospect) until a real RBAC role
+  // signal exists — see the comment in overview-page.tsx.
+  const isProspectiveVisitor = resolvedSearchParams.persona === 'prospect';
 
   const roundHistory = roundStats ? await getRoundHistory(roundStats.roundNumber) : [];
 
@@ -56,6 +65,7 @@ export default async function OverviewRoutePage() {
       roundStats={roundStats}
       trustHoldings={trustHoldings}
       roundHistory={roundHistory}
+      isProspectiveVisitor={isProspectiveVisitor}
     />
   );
 }

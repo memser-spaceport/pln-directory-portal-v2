@@ -46,9 +46,8 @@ export const useAlignmentAssetsAnalytics = () => {
     BANNER_BUTTON_CLICKED: 'alignment-assets-banner-button-clicked',
 
     // Overview Page
-    OVERVIEW_CREATE_ACCOUNT_CLICKED: 'alignment-assets-overview-create-account-clicked',
-    OVERVIEW_WAITLIST_FORM_CLICKED: 'alignment-assets-overview-waitlist-form-clicked',
-    OVERVIEW_LEARN_MORE_CLICKED: 'alignment-assets-overview-learn-more-clicked',
+    OVERVIEW_PORTFOLIO_LINK_CLICKED: 'alignment-assets-overview-portfolio-link-clicked',
+    OVERVIEW_ACTIVITIES_LINK_CLICKED: 'alignment-assets-overview-activities-link-clicked',
     OVERVIEW_FAQ_LINK_CLICKED: 'alignment-assets-overview-faq-link-clicked',
 
     // Incentive Model Page
@@ -159,16 +158,12 @@ export const useAlignmentAssetsAnalytics = () => {
   // ==========================================
   // Overview Page Analytics
   // ==========================================
-  function onOverviewCreateAccountClicked(buttonPosition: 'start' | 'floating' | 'end') {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_CREATE_ACCOUNT_CLICKED, { buttonPosition });
+  function onOverviewPortfolioLinkClicked(url: string) {
+    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_PORTFOLIO_LINK_CLICKED, { url });
   }
 
-  function onOverviewWaitlistFormClicked(url: string) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_WAITLIST_FORM_CLICKED, { url });
-  }
-
-  function onOverviewLearnMoreClicked(url: string) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_LEARN_MORE_CLICKED, { url });
+  function onOverviewActivitiesLinkClicked(url: string, source: 'how-it-works' | 'cta-banner') {
+    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_ACTIVITIES_LINK_CLICKED, { url, source });
   }
 
   function onOverviewFaqLinkClicked(url: string) {
@@ -321,7 +316,12 @@ export const useAlignmentAssetsAnalytics = () => {
   }
 
   function onFaqsQuestionToggled(categoryId: string, questionId: string, questionText: string, isExpanded: boolean) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.FAQS_QUESTION_TOGGLED, { categoryId, questionId, questionText, isExpanded });
+    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.FAQS_QUESTION_TOGGLED, {
+      categoryId,
+      questionId,
+      questionText,
+      isExpanded,
+    });
   }
 
   function onFaqsClearSearchClicked(previousSearchQuery: string) {
@@ -368,9 +368,8 @@ export const useAlignmentAssetsAnalytics = () => {
     onBannerButtonClicked,
 
     // Overview Page
-    onOverviewCreateAccountClicked,
-    onOverviewWaitlistFormClicked,
-    onOverviewLearnMoreClicked,
+    onOverviewPortfolioLinkClicked,
+    onOverviewActivitiesLinkClicked,
     onOverviewFaqLinkClicked,
 
     // Incentive Model Page

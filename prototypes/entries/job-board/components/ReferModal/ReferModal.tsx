@@ -492,17 +492,19 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                       and this caption pointed at that blank. The blank is gone —
                       it made the referrer clear text before writing, to be told
                       the same thing the caption already tells them — so the
-                      sentence now carries the ask on its own. It still says why
-                      it's theirs to fill, which is the one claim nothing else on
-                      screen makes, and the placeholder still keeps the general
-                      "why this is a fit" so no state says it twice.
+                      sentence carries the ask on its own. The placeholder keeps
+                      the general "why this is a fit" so no state says it twice.
 
-                      "Add" and "fill in", not "say" and "write for you": what is
-                      being asked for is a line the draft leaves out, and the verb
-                      should match the act. */}
+                      **Just the ask now.** It used to close with "— that's the one
+                      thing the draft can't fill in", explaining why the line was
+                      the referrer's to write. Beside a note that has already
+                      drafted itself, the reason was doing less work than its
+                      length suggested: the box is visibly full and the caption
+                      visibly asks for one more thing, which is the whole argument
+                      the clause was spelling out. "Add" still carries it — the
+                      verb says the line is missing without a sentence about it. */}
                   <p id="message-description" className={`${taCss.fieldDescription} ${taCss.fieldDescriptionTop}`}>
-                    Add how you know {selectedMember ? firstName : 'the person you’re referring'} — that’s the one thing
-                    the draft can’t fill in.
+                    Add how you know {selectedMember ? firstName : 'the person you’re referring'}.
                   </p>
 
                   {/* Wrapper so the inert state can dim the box alone — see

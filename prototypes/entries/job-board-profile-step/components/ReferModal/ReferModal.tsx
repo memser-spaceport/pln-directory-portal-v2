@@ -606,18 +606,21 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                       after a draft lands, so the line stays put and only the name
                       joins it — a caption that appears mid-flow reads as a new
                       demand. It points at the bracketed slot the template leaves
-                      (see `withHowYouKnowSlot`) and says why it's the referrer's
-                      to fill — the one claim nothing else on screen makes. The
-                      how-you-know ask lives here alone; the placeholder keeps the
-                      general "why this is a fit" so no state says it twice.
+                      (see `withHowYouKnowSlot`). The how-you-know ask lives here
+                      alone; the placeholder keeps the general "why this is a fit"
+                      so no state says it twice.
+
+                      The caption used to close with "— that's the one thing the
+                      draft can't fill in". Dropped: beside a box that has already
+                      filled itself, "Add" carries the same point without a
+                      sentence explaining it.
 
                       "Add" and "fill in", not "say" and "write for you": the thing
                       being pointed at is a bracketed blank inside a drafted note,
                       and the slot's own words are "Add a line about how you know
                       <First>". A hint about a blank should use the blank's verb. */}
                   <p id="message-description" className={`${taCss.fieldDescription} ${taCss.fieldDescriptionTop}`}>
-                    Add how you know {refereeName ? firstName : 'the person you’re referring'} — that’s the one thing
-                    the draft can’t fill in.
+                    Add how you know {refereeName ? firstName : 'the person you’re referring'}.
                   </p>
 
                   {/* Wrapper so the inert state can dim the box alone — see

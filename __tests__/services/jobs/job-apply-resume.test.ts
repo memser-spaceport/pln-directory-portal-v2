@@ -1,9 +1,9 @@
 import {
   PENDING_APPLY_PARAM,
-  PENDING_PROFILE_PARAM,
-  stripPendingApplyFromUrl,
+  PENDING_INTEREST_PARAM,
+  stripResumeParamsFromUrl,
   withPendingApply,
-  withPendingProfile,
+  withPendingInterest,
 } from '@/services/jobs/job-apply-resume';
 
 describe('withPendingApply', () => {
@@ -30,7 +30,6 @@ describe('withPendingApply', () => {
     expect(withPendingApply(`?roleCategory=Engineering&${PENDING_APPLY_PARAM}=abandoned-role`, undefined)).toBe(
       '?roleCategory=Engineering',
     );
-    expect(withPendingApply(`?${PENDING_PROFILE_PARAM}=1`, undefined)).toBe('');
   });
 
   it('replaces a stale role rather than appending a second one', () => {
@@ -43,45 +42,59 @@ describe('withPendingApply', () => {
     const result = withPendingApply('', 'role/with space&amp');
     expect(new URLSearchParams(result).get(PENDING_APPLY_PARAM)).toBe('role/with space&amp');
   });
+});
 
-  it('clears a pending profile resume — the two instructions are mutually exclusive', () => {
-    const result = withPendingApply(`?${PENDING_PROFILE_PARAM}=1`, 'role-1');
-    const params = new URLSearchParams(result);
+describe('withPendingInterest', () => {
+  it('adds the role to an empty search string', () => {
+    expect(withPendingInterest('', 'role-1')).toBe(`?${PENDING_INTEREST_PARAM}=role-1`);
+  });
 
-    expect(params.get(PENDING_APPLY_PARAM)).toBe('role-1');
-    expect(params.get(PENDING_PROFILE_PARAM)).toBeNull();
+  /* The removal half matters more here than it does for `applyTo`. A stale
+     `applyTo` reopens a drawer; a stale `interestIn` WRITES — it would signal
+     interest in a role the person walked away from an hour earlier. */
+  it('CLEARS a stale intent when none is given', () => {
+    expect(withPendingInterest(`?${PENDING_INTEREST_PARAM}=abandoned-role`, undefined)).toBe('');
+    expect(withPendingInterest(`?roleCategory=Engineering&${PENDING_INTEREST_PARAM}=x`, undefined)).toBe(
+      '?roleCategory=Engineering',
+    );
+  });
+
+  it('replaces a stale intent rather than appending a second one', () => {
+    const result = withPendingInterest(`?${PENDING_INTEREST_PARAM}=old-role`, 'new-role');
+
+    expect(new URLSearchParams(result).getAll(PENDING_INTEREST_PARAM)).toEqual(['new-role']);
+  });
+
+  /* The two intents are independent, and composing them is exactly what
+     `pushLogin` does on every trip: one is set, the other is cleared. A door
+     that meant "apply" must not leave an interest behind, and vice versa. */
+  it('composes with withPendingApply so each door clears the other intent', () => {
+    const fromApplyDoor = withPendingInterest(withPendingApply(`?${PENDING_INTEREST_PARAM}=stale`, 'role-1'), undefined);
+    expect(new URLSearchParams(fromApplyDoor).get(PENDING_APPLY_PARAM)).toBe('role-1');
+    expect(new URLSearchParams(fromApplyDoor).get(PENDING_INTEREST_PARAM)).toBeNull();
+
+    const fromInterestDoor = withPendingInterest(
+      withPendingApply(`?${PENDING_APPLY_PARAM}=stale`, undefined),
+      'role-2',
+    );
+    expect(new URLSearchParams(fromInterestDoor).get(PENDING_INTEREST_PARAM)).toBe('role-2');
+    expect(new URLSearchParams(fromInterestDoor).get(PENDING_APPLY_PARAM)).toBeNull();
+  });
+
+  it('keeps the filters someone narrowed before pressing', () => {
+    const result = withPendingInterest('?roleCategory=Engineering', 'role-1');
+
+    expect(new URLSearchParams(result).get('roleCategory')).toBe('Engineering');
   });
 });
 
-describe('withPendingProfile', () => {
-  it('adds the profile resume to an empty search string', () => {
-    expect(withPendingProfile('')).toBe(`?${PENDING_PROFILE_PARAM}=1`);
-  });
-
-  it('keeps the filters someone narrowed before signing up', () => {
-    const result = withPendingProfile('?roleCategory=Engineering');
-    const params = new URLSearchParams(result);
-
-    expect(params.get('roleCategory')).toBe('Engineering');
-    expect(params.get(PENDING_PROFILE_PARAM)).toBe('1');
-  });
-
-  it('clears a pending apply — the two instructions are mutually exclusive', () => {
-    const result = withPendingProfile(`?${PENDING_APPLY_PARAM}=role-1`);
-    const params = new URLSearchParams(result);
-
-    expect(params.get(PENDING_PROFILE_PARAM)).toBe('1');
-    expect(params.get(PENDING_APPLY_PARAM)).toBeNull();
-  });
-});
-
-describe('stripPendingApplyFromUrl', () => {
+describe('stripResumeParamsFromUrl', () => {
   const setUrl = (url: string) => window.history.replaceState({}, '', url);
 
   it('removes the parameter without touching the rest of the query', () => {
     setUrl(`/jobs?roleCategory=Engineering&${PENDING_APPLY_PARAM}=role-1&sort=newest`);
 
-    stripPendingApplyFromUrl();
+    stripResumeParamsFromUrl();
 
     const params = new URLSearchParams(window.location.search);
     expect(params.get(PENDING_APPLY_PARAM)).toBeNull();
@@ -92,26 +105,26 @@ describe('stripPendingApplyFromUrl', () => {
   it('leaves a bare path bare rather than trailing a "?"', () => {
     setUrl(`/jobs?${PENDING_APPLY_PARAM}=role-1`);
 
-    stripPendingApplyFromUrl();
+    stripResumeParamsFromUrl();
 
     expect(window.location.search).toBe('');
     expect(window.location.pathname).toBe('/jobs');
   });
 
   it('also removes a pending profile resume', () => {
-    setUrl(`/jobs?roleCategory=Engineering&${PENDING_PROFILE_PARAM}=1`);
+    setUrl(`/jobs?roleCategory=Engineering&${PENDING_APPLY_PARAM}=role-1`);
 
-    stripPendingApplyFromUrl();
+    stripResumeParamsFromUrl();
 
     const params = new URLSearchParams(window.location.search);
-    expect(params.get(PENDING_PROFILE_PARAM)).toBeNull();
+    expect(params.get(PENDING_APPLY_PARAM)).toBeNull();
     expect(params.get('roleCategory')).toBe('Engineering');
   });
 
   it('is a no-op when the parameter was never there', () => {
     setUrl('/jobs?roleCategory=Engineering');
 
-    stripPendingApplyFromUrl();
+    stripResumeParamsFromUrl();
 
     expect(window.location.search).toBe('?roleCategory=Engineering');
   });
@@ -123,7 +136,7 @@ describe('stripPendingApplyFromUrl', () => {
   it('takes the email prefill with it', () => {
     setUrl(`/teams/team-1?prefillEmail=someone%40example.com&${PENDING_APPLY_PARAM}=role-1`);
 
-    stripPendingApplyFromUrl();
+    stripResumeParamsFromUrl();
 
     expect(window.location.search).toBe('');
     expect(window.location.pathname).toBe('/teams/team-1');
@@ -132,7 +145,7 @@ describe('stripPendingApplyFromUrl', () => {
   it('cleans up a stranded prefill even with no resume left to act on', () => {
     setUrl('/teams/team-1?prefillEmail=someone%40example.com&tab=roles');
 
-    stripPendingApplyFromUrl();
+    stripResumeParamsFromUrl();
 
     const params = new URLSearchParams(window.location.search);
     expect(params.get('prefillEmail')).toBeNull();
@@ -143,9 +156,20 @@ describe('stripPendingApplyFromUrl', () => {
     setUrl(`/jobs?${PENDING_APPLY_PARAM}=role-1`);
     const pushSpy = jest.spyOn(window.history, 'pushState');
 
-    stripPendingApplyFromUrl();
+    stripResumeParamsFromUrl();
 
     expect(pushSpy).not.toHaveBeenCalled();
     pushSpy.mockRestore();
+  });
+
+  it('carries the interest intent out with the rest — a one-time write must not replay', () => {
+    setUrl(`/jobs?${PENDING_INTEREST_PARAM}=role-1&${PENDING_APPLY_PARAM}=role-2&sort=newest`);
+
+    stripResumeParamsFromUrl();
+
+    const params = new URLSearchParams(window.location.search);
+    expect(params.get(PENDING_INTEREST_PARAM)).toBeNull();
+    expect(params.get(PENDING_APPLY_PARAM)).toBeNull();
+    expect(params.get('sort')).toBe('newest');
   });
 });

@@ -34,6 +34,16 @@ jest.mock('@/services/auth/store', () => ({
 jest.mock('@/services/members/hooks/useUpdateMemberParams', () => ({
   useUpdateMemberParams: () => ({ mutate: jest.fn(), isPending: false }),
 }));
+/* The verification card's own dependencies. The gate is what these tests are
+   about, not the round trip: `useLinkedInVerification` is a `useMutation` and
+   would need a QueryClientProvider this suite has no other reason to build. */
+jest.mock('@/services/members/hooks/useLinkedInVerification', () => ({
+  useLinkedInVerification: () => ({ mutate: jest.fn(), isPending: false }),
+}));
+jest.mock('@/analytics/members.analytics', () => ({
+  useMemberAnalytics: () => ({ onConnectLinkedInClicked: jest.fn() }),
+}));
+
 jest.mock('@/services/members/hooks/useMemberExperience', () => ({
   useMemberExperience: () => ({ data: [], isLoading: false }),
 }));
@@ -193,5 +203,131 @@ describe('the profile pane lede', () => {
     );
 
     expect(screen.getByText('Contact details')).toBeInTheDocument();
+  });
+});
+
+/**
+ * The order of the pane's cards.
+ *
+ * Worth a test because the order it replaced had a written reason — "the
+ * required section, so it comes first" — and that reason is still readable in
+ * the file's history. Someone acting on it in good faith would put the status
+ * back on top, and nothing else in this suite would notice.
+ *
+ * The requirement is not carried by position: the status card is the only amber
+ * one on the screen and says `Required to continue` on its own title. What
+ * position carries is reading order, and a profile opens with who you are and
+ * how to reach you.
+ */
+describe('the profile pane’s section order', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('puts contact details above the job search status', () => {
+    renderDrawer(INCOMPLETE);
+
+    const contact = screen.getByText('Contact details');
+    const status = screen.getByText('Job search status');
+
+    /* `DOCUMENT_POSITION_FOLLOWING` — status comes after contact in document
+       order. Asserted on the nodes rather than on an array of headings, so it
+       stays true if either card grows another heading inside it. */
+    expect(contact.compareDocumentPosition(status) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  /* The amber treatment is what actually marks the requirement, so it has to
+     survive the move — otherwise the reordering quietly removes the only signal
+     that is left once position stops carrying it. */
+  it('still marks the status required when it is unanswered', () => {
+    renderDrawer(INCOMPLETE);
+
+    expect(screen.getByText('Required to continue')).toBeInTheDocument();
+  });
+});
+
+/**
+ * The identity-verification card, for an account the PL team is reviewing.
+ *
+ * The same card the member profile page shows. It is gated three ways and each
+ * gate excludes a different person, which is why all three are asserted rather
+ * than only the happy path — any one of them failing open puts a LinkedIn
+ * hand-off in front of someone it cannot help.
+ */
+describe('the profile pane’s identity verification', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const UNVERIFIED = { ...INCOMPLETE, linkedinProfile: null };
+  const RETURN_TO = 'https://directory.plnetwork.io/jobs?applyTo=r1';
+
+  it('offers verification to a member under review who has not linked LinkedIn', () => {
+    renderDrawer(UNVERIFIED, { pendingApproval: true, verifyReturnTo: RETURN_TO });
+
+    expect(screen.getByText('Please verify your identity')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /LinkedIn/ })).toBeInTheDocument();
+    /* The flow's sentence, not the member page's default. That one says the
+       verification is the point; here the point is what it unblocks, and only a
+       surface with an application behind it can say so. */
+    expect(screen.getByText('Verify your LinkedIn to get your application reviewed faster.')).toBeInTheDocument();
+    expect(screen.queryByText('Link your LinkedIn account to complete verification.')).not.toBeInTheDocument();
+  });
+
+  /* An approved member is in no review, and neither is a Job Aspirant —
+     `deriveBoardViewer` never yields `pending-approval` for one, which is what
+     keeps this away from job-board sign-ups it would only confuse. */
+  it('withholds it from anyone who is not in a review', () => {
+    renderDrawer(UNVERIFIED, { pendingApproval: false, verifyReturnTo: RETURN_TO });
+
+    expect(screen.queryByText('Please verify your identity')).not.toBeInTheDocument();
+  });
+
+  /* The answer it asks for. Having one retires the card. */
+  it('withholds it once LinkedIn is linked', () => {
+    renderDrawer(
+      { ...INCOMPLETE, linkedinProfile: { id: 'li-1' } },
+      { pendingApproval: true, verifyReturnTo: RETURN_TO },
+    );
+
+    expect(screen.queryByText('Please verify your identity')).not.toBeInTheDocument();
+  });
+
+  /* **The gate that is not about the member.** Connecting navigates the whole
+     page to LinkedIn, so a host that cannot say where the round trip returns
+     cannot safely offer it — the standalone drawer would come back to a board
+     with the flow gone. Withheld rather than offered with nowhere to land. */
+  it('withholds it when the host names no way back', () => {
+    renderDrawer(UNVERIFIED, { pendingApproval: true });
+
+    expect(screen.queryByText('Please verify your identity')).not.toBeInTheDocument();
+  });
+});
+
+/**
+ * Which job search statuses the profile step offers.
+ *
+ * Two, per the design — someone reading a job is not giving "Not looking" as an
+ * answer. The exception is the reason this is not a one-liner: this drawer is
+ * the only place in the product that writes `jobSearchStatus`.
+ */
+describe('the profile step’s job search options', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('offers two, dropping the one this step is not asking about', () => {
+    renderDrawer(INCOMPLETE);
+
+    expect(screen.getAllByRole('radio')).toHaveLength(2);
+    expect(screen.getByRole('radio', { name: /Actively looking/ })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /Open to the right role/ })).toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: /Not looking/ })).not.toBeInTheDocument();
+  });
+
+  /* Hiding it unconditionally would strand anyone who wants to stop being
+     surfaced — and worse, would draw this card with nothing selected for someone
+     already on that value, while `hasStatus` reported the section answered. */
+  it('still shows it to someone whose answer it already is', () => {
+    renderDrawer({ ...INCOMPLETE, jobSearchStatus: 'not-looking' });
+
+    const notLooking = screen.getByRole('radio', { name: /Not looking/ });
+    expect(notLooking).toBeInTheDocument();
+    expect(notLooking).toBeChecked();
+    expect(screen.getAllByRole('radio')).toHaveLength(3);
   });
 });

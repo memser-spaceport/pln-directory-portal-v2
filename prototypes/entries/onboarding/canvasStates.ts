@@ -36,6 +36,10 @@ export interface OnboardingCanvasState {
    * rules a real one is.
    */
   seed?: ParsedProfile;
+  /** The profile keeps a CV — the resting card, with the mock file. */
+  cv?: boolean;
+  /** Opens the "Remove CV" confirmation over that card. */
+  removeCv?: boolean;
   /** The review card, open and holding this parse. */
   review?: ParsedProfile;
   /**
@@ -97,6 +101,13 @@ export const CANVAS_STATES: Record<string, OnboardingCanvasState> = {
      the top, because the top card is gone the moment anything is filled in. */
   'update-review': { seed: FIRST_CV, review: SECOND_CV },
   'update-merged': { seed: AFTER_BOTH },
+  /* --- The kept CV. A profile filled from a document, and the document still
+     on it: the resting card at the top, Replace and Remove in its header. */
+  'cv-resting': { seed: FIRST_CV, cv: true },
+  /* Replace pressed and a newer file chosen: the reading row in the card's place. */
+  'cv-replace-reading': { seed: FIRST_CV, cv: true, panel: { status: 'reading', fileName: 'polina-bublii-cv-2026.pdf' } },
+  /* Remove pressed: the confirmation over the card. */
+  'cv-remove-confirm': { seed: FIRST_CV, cv: true, removeCv: true },
 };
 
 /** Reads the pinned state off a query string. Unknown or absent → nothing pinned. */

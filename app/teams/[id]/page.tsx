@@ -28,6 +28,7 @@ import { TeamNewsRail } from '@/components/page/team-details/TeamNews';
 import { fetchTeamNewsByTeam } from '@/services/team-news/team-news.service';
 import { TEAM_NEWS_PREVIEW_LIMIT } from '@/services/team-news/constants';
 import { hasTeamNewsItems } from '@/services/team-news/team-news.utils';
+import { canPostTeamNews } from '@/components/page/team-details/TeamNews/canPostTeamNews';
 import type { ITeamNewsByTeamResponse } from '@/types/team-news.types';
 import { getTeamFollowers } from '@/services/follow/follow.service';
 import type { ITeamFollowersResponse } from '@/types/follow.types';
@@ -81,8 +82,12 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
     !!team?.dataEnrichment?.isAIGenerated &&
     team?.dataEnrichment?.status !== 'Reviewed';
 
-  const showNewsRail = hasTeamNewsItems(teamNews);
   const isCurrentUserTeamMember = isLoggedIn && members?.some((m) => m.id === userInfo?.uid);
+
+  // Mount for logged-in viewers even when the SSR cookie lacks rbac yet —
+  // TeamNewsRail recomputes canPost from the client store (UserInfoChecker).
+  const canPost = canPostTeamNews(team, userInfo, isCurrentUserTeamMember);
+  const showNewsRail = hasTeamNewsItems(teamNews) || canPost || !!isLoggedIn;
 
   const teamDetailContent = (
     <>
@@ -134,11 +139,28 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
     </>
   );
 
-  if (showNewsRail && teamNews) {
+  if (showNewsRail) {
+    const railData: ITeamNewsByTeamResponse = teamNews ?? {
+      teamUid: teamId,
+      teamName: team.name ?? 'This team',
+      page: 1,
+      limit: TEAM_NEWS_PREVIEW_LIMIT,
+      total: 0,
+      items: [],
+    };
+
     return (
       <div className={layoutStyles.layout}>
         <div className={`${styles?.teamDetail} ${layoutStyles.mainCol}`}>{teamDetailContent}</div>
-        <TeamNewsRail teamUid={teamId} teamName={team.name ?? teamNews.teamName} initialData={teamNews} />
+        <TeamNewsRail
+          teamUid={teamId}
+          teamName={team.name ?? railData.teamName}
+          initialData={railData}
+          canPost={canPost}
+          isCurrentUserTeamMember={!!isCurrentUserTeamMember}
+          teamStatus={team.status}
+          memberUid={userInfo?.uid}
+        />
       </div>
     );
   }

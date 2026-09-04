@@ -118,6 +118,19 @@ describe('NewsDetailModal', () => {
     expect(screen.queryByText('Source')).not.toBeInTheDocument();
   });
 
+  it('shows Posted by team disclaimer for team-posted news', () => {
+    render(
+      <NewsDetailModal
+        item={makeItem({ isTeamPosted: true, contentHtml: '<p>We shipped today.</p>' })}
+        onClose={jest.fn()}
+        onUpvoteToggle={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText(/Posted by Lattice Compute/)).toBeInTheDocument();
+    expect(screen.queryByText(/written by AI/)).not.toBeInTheDocument();
+  });
+
   it('locks root scroll while open and restores the previous value on unmount', () => {
     const root = document.documentElement;
     root.style.overflow = 'auto';

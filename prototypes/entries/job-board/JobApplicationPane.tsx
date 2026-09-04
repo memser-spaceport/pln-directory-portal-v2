@@ -7,6 +7,7 @@ import type { IJobRole } from '@/types/jobs.types';
 
 import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import { Tag } from '@/components/ui/Tag';
+import { CvAttachmentLine } from '../profile-shared/StoredCv';
 // Production's grey read-only panel for a block inside a `DetailsSection` — the
 // same one `RelationshipDetails` and the team-details read views wear. Imported
 // rather than re-tinted by hand: it supplies the fill, the 16px padding and the
@@ -188,15 +189,20 @@ type ApplyFormData = {
  * skills — because that is the part a hiring team reads first and the part
  * someone would want to correct before sending.
  *
- * The name and the role are always there: both are required
- * (`isProfileComplete`), so this panel has no empty state and shouldn't pretend
- * to one. It briefly had an apology — "No experience added yet" — from the window
- * when the role wasn't required and the line was quoted off an optional
- * Experience entry. Quoting the *entry* was the mistake underneath: the profile's
+ * The name is always there. The role line is not: the role stopped being
+ * required (`isProfileComplete` is the job search status alone), so someone can
+ * reach this pane with no role, no experience entry and nothing for
+ * `summariseProfile` to quote. The line is then simply not rendered — the same
+ * treatment the skills row has always had, and deliberately *not* the apology
+ * this panel once carried ("No experience added yet"). An empty state here would
+ * be the flow telling someone their profile is lacking on the screen where they
+ * are about to send it, over a field nothing asked them for.
+ *
+ * Quoting the *entry* was the older mistake, and it stays fixed: the profile's
  * own header card leads with `role`, so a read-back sourced from somewhere else
  * could show a different headline than the profile it claims to be reading back.
- * It now reads the role, and the entry supplies only the company and the dates it
- * is the authority for.
+ * It reads the role, and the entry supplies only the company and the dates it is
+ * the authority for.
  *
  * `profile.bio` is considered and rejected. It is a paragraph, it sits directly
  * above a paragraph the person is being asked to write, and two blocks of prose
@@ -230,8 +236,8 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
      steps fire nothing. Empty on error or while loading, and the row simply
      isn't drawn: a name that isn't there yet is worse than no name, and nothing
      below it depends on the answer. */
-  const { defaultRecipients } = useTeamMembers(teamName, true);
-  const leads = defaultRecipients.slice(0, 3);
+  const { defaultRecipients: reviewers } = useTeamMembers(teamName, true);
+  const leads = reviewers.slice(0, 3);
 
   const methods = useForm<ApplyFormData>({
     defaultValues: { coverLetter },
@@ -305,7 +311,7 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
 
           Leads only, capped at three, with the rest counted. The full team can run
           to dozens; three faces read as people, thirty read as a directory. Same
-          rule ReferModal applies when it decides who an intro is addressed to. */}
+          rule ReferModal uses to pick whose names it suggests first. */}
       {leads.length > 0 && (
         <p className={s.leads}>
           {/* The faces link too, but silently: `aria-hidden` with `tabIndex={-1}`
@@ -330,7 +336,7 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
             ))}
           </span>
           <span>
-            Reviewed by <LeadNames shown={leads} total={defaultRecipients.length} />
+            Reviewed by <LeadNames shown={leads} total={reviewers.length} />
           </span>
         </p>
       )}
@@ -365,10 +371,13 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
               <p className={s.profileName}>{applicantName || VIEWER_NAME}</p>
 
               {/* Then the role line — `role` alone, or "role at company" when an
-                  experience entry supplies the company. This panel used to
-                  apologise here, which was an empty state for a card that is never
-                  empty; see the note at the top of this file. */}
-              <p className={s.profileSummary}>{summary}</p>
+                  experience entry supplies the company. Rendered only when there
+                  is something to quote: the role is optional, so this can be
+                  empty, and an empty `<p>` here would leave the name and the
+                  dates 20px further apart with nothing between them. This panel
+                  used to apologise in that gap instead; see the note at the top
+                  of this file for why it doesn't. */}
+              {summary && <p className={s.profileSummary}>{summary}</p>}
 
               {/* The dates of that same entry, one quiet line under it — the
                   experience arrives dated, so a read-back that showed only the
@@ -416,6 +425,13 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
                   ))}
                 </div>
               )}
+
+              {/* The CV goes with the application, so the read-back quotes it —
+                  by name, under the skills, in the dates' rank. Nothing when
+                  there is none: the CV is optional on every surface that offers
+                  it, and an empty line here would be the read-back apologising
+                  for a gap that isn't one. See `CvAttachmentLine`. */}
+              {profile.cv && <CvAttachmentLine cv={profile.cv} className={s.cvLine} />}
             </DetailsSectionGreyContentContainer>
           </div>
 

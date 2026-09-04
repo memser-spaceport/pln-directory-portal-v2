@@ -217,6 +217,108 @@
   flex-shrink: 0;
 }
 
+// The outbound press, which carries `ArrowUpRightIcon` after its label.
+//
+// Layout only — the tint is `Button`'s own `variant="light"`, because a colour
+// treatment the design system names belongs to the design system and a gap
+// between two children belongs to whoever put them there.
+//
+// `.root` sets no `display`, so without this the icon is an inline box butting
+// straight against the last word: JSX drops the whitespace between a text node
+// and an element on the next line, so there is not even a space to save it.
+// 4px, matching the design's own padding between the label and the glyph.
+.externalButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+// The bar's right-hand end: the press, and the caption saying what it costs and
+// what it buys. Wrapped only when there is a caption — the footer picks between
+// this and a bare button, so no lone button in the flow grows a flex box for the
+// sake of the two states that need one.
+//
+// What stood here was a group holding BOTH buttons on the right, from when the
+// bar's left slot was taken by a tinted note making the case for a profile. That
+// case is a card in the body of the step now (`JobUnlockBanner`), which freed the
+// left slot for the outbound press and let the two take the ends of the bar the
+// design always wanted them at.
+.footerActionColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+
+  /* Same reason `.footerHint` carries it: a flex item's default `min-width:auto`
+     refuses to shrink below its longest word, which is how a sentence shoves a
+     nowrap button off the end of the row. */
+  min-width: 0;
+
+  @include media.tablet-landscape {
+    align-items: flex-end;
+    flex-shrink: 0;
+    /* What puts this on the right when it is the bar's only child — the job
+       `.footerAction`'s auto margin does for a lone button, which it can no
+       longer do from inside this wrapper. With a lead beside it the bar's own
+       `space-between` has already done the work and this changes nothing. */
+    margin-left: auto;
+  }
+}
+
+// Layout for whatever the column's second row holds. Today that is
+// `JobUnlockDisclosure` — "What your profile unlocks?" — which owns its own type
+// and colour; this only says where it sits.
+//
+// What stood here was `.footerActionNote`, a 12px caption in the design's
+// tertiary, carrying a long note about a known contrast tradeoff: 12px of #8897ae
+// on white is about 3.0:1, under the 4.5:1 AA asks for. It had briefly shipped as
+// `--foreground-neutral-secondary` (#455468) on that basis and been put back,
+// because the tone was the design's call. The design has since made the same swap
+// itself — the replacement is 14px #455468, about 8.5:1 — so the tradeoff is
+// closed rather than still open, and the note describing it would now be
+// describing nothing.
+.footerNoteTrigger {
+  /* The group this column replaced set `white-space: nowrap` on its children,
+     which was right for two buttons and is wrong for a label that wraps at 400px.
+     Said explicitly because it is inheriting nothing now, and the next person to
+     put something in this column should see which way the decision went. */
+  white-space: normal;
+
+  @include media.tablet-landscape {
+    text-align: right;
+  }
+}
+
+// The outbound press while it occupies the bar's LEFT slot, which is only ever
+// while a logged-out reader has a profile press beside it.
+//
+/* **The profile press stays on top when the bar stacks.** Below 960px
+   `.footerInner` is a plain column and the lead slot is its first child, so
+   without this the outbound press draws above the primary — reversing a decision
+   that predates this rule.
+
+   That decision used to be `column-reverse` on a group holding both buttons. The
+   group is gone; the reasoning is not, and it is still the reasoning here: the
+   design puts the outbound press on the LEFT on desktop, where left is the
+   lesser position, and on the BOTTOM when stacked, where bottom is the lesser
+   position. Something has to reverse.
+
+   The cost is unchanged too — one tab stop out of visual order on phones, focus
+   reaching "Apply on the team's site" first while the profile press is drawn above
+   it. Taken here rather than on desktop because reversing the other way would
+   put the mismatch on the wider viewport, where a keyboard is far more likely to
+   be the input, and because two adjacent controls make the whole disagreement a
+   single position. Worth revisiting if a third control ever lands in this bar. */
+.footerLeadDemoted {
+  order: 1;
+
+  @include media.tablet-landscape {
+    order: 0;
+  }
+}
+
 /* Doubled to outrank `.root:disabled`, which is the same specificity and would
    otherwise win on stylesheet order. "Not allowed" is a refusal; this is a
    report that you already did it. The disabled paint stays for the reason argued

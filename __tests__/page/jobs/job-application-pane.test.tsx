@@ -16,13 +16,20 @@ jest.mock('@/services/members/hooks/useMemberExperience', () => ({
   useMemberExperience: () => ({ data: [] }),
 }));
 
-/* The stub carries an `aria-label` the real one does not: production names the
-   field with a `<label htmlFor="coverLetter">` in the pane, and this mock has no
-   `id` for that label to reach. Same accessible name either way. */
+/* The stub carries the `id` and nothing else, which is the point.
+
+   It used to hardcode `aria-label="Message for the team"` on the reasoning that
+   the accessible name came out the same either way. It does not: production
+   names this field with a `<label htmlFor="coverLetter">` in the pane, and that
+   label is now invisible, so it is the *only* thing naming it. A mock supplying
+   its own name would report a working association whether or not one existed —
+   which is exactly the regression worth catching, since deleting a label nobody
+   can see costs nothing visible. `id={name}` is what the real `FormTextArea`
+   puts on its control, so the label reaches this the same way. */
 jest.mock('@/components/form/FormTextArea/FormTextArea', () => ({
   FormTextArea: ({ name }: { name: string }) => {
     const { register } = useFormContext();
-    return <textarea aria-label="Message for the team" {...register(name)} />;
+    return <textarea id={name} {...register(name)} />;
   },
 }));
 
@@ -107,9 +114,22 @@ describe('JobApplicationPane hiring leads', () => {
   it('invites a message to the team it names', () => {
     renderPane('team-1', 'Airship');
 
-    expect(screen.getByText('Message for the team')).toBeInTheDocument();
     expect(screen.getByText(/Start a conversation with the team at Airship\./)).toBeInTheDocument();
     expect(screen.getByText(/why Airship interests you/)).toBeInTheDocument();
+  });
+
+  /* The heading came off — the design rules the profile card off and lets the
+     invitation speak for the field — but the field still has to have a name, so
+     the `label` stayed and went invisible.
+
+     Asserted through the accessible name rather than `getByText`, which is what
+     this used to do and would have gone on passing unchanged: `.visuallyHidden`
+     clips rather than removes, so the words are still findable by text while
+     being on screen for nobody. */
+  it('names the message field for anyone who cannot see the invitation', () => {
+    renderPane('team-1', 'Airship');
+
+    expect(screen.getByRole('textbox', { name: 'Message for the team' })).toBeInTheDocument();
   });
 
   it('hides the hiring-lead line for Protocol Labs', () => {

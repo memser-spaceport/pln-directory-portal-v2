@@ -22,7 +22,14 @@ import tc from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.scss';
 // The row's own `New` badge and its clock line, for the same reason.
 import rr from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow.module.scss';
 
+// Production's read-only renderer for editor HTML — the same one the forum and
+// the profile bio use — so a description typed into the submit form's editor
+// reads back with the editor's own list and link styling.
+import { QuillContent } from '@/components/ui/QuillContent/QuillContent';
+
 import { getJobDetail, jobMetaParts } from './jobDetails';
+import { ListingStatusBadge } from './ListingStatusBadge';
+import type { ListingStatus } from './listings';
 import fd from './JobApplyFlowDrawer.module.scss';
 import d from './JobDetailPane.module.scss';
 
@@ -45,6 +52,13 @@ interface JobDetailPaneProps {
    * app, with the way out to the team's own ad in its masthead.
    */
   loggedIn?: boolean;
+  /**
+   * The listing's state, for a reader who manages it. Worn in the stamp row as
+   * the same pill the Manage listings row wears, so a lead opening their own
+   * in-review or inactive posting is told so where they look first. Absent for
+   * everyone else: an applicant only ever opens a live one.
+   */
+  status?: ListingStatus;
 }
 
 /**
@@ -72,7 +86,7 @@ interface JobDetailPaneProps {
  * signed-in reader, and no longer on the row at all. See `postingHref`.
  */
 export function JobDetailPane(props: JobDetailPaneProps) {
-  const { role, team, applied = false, appliedAt, loggedIn = true } = props;
+  const { role, team, applied = false, appliedAt, loggedIn = true, status } = props;
 
   const focusTags = useGetFocusTags(team ?? NO_TEAM);
 
@@ -141,7 +155,8 @@ export function JobDetailPane(props: JobDetailPaneProps) {
         {meta.length > 0 && <p className={d.meta}>{meta.join(' · ')}</p>}
 
         <div className={d.stampRow}>
-          {date && isNew(date) && !applied && <span className={rr.newBadge}>● New</span>}
+          {status && <ListingStatusBadge status={status} />}
+          {date && isNew(date) && !applied && !status && <span className={rr.newBadge}>● New</span>}
           {date && (
             <span className={clsx(rr.relative, d.stampTone)}>
               <ClockIcon />
@@ -157,6 +172,19 @@ export function JobDetailPane(props: JobDetailPaneProps) {
         </div>
       </DetailsSection>
 
+      {/* A body the listing actually carries wins over the invented sections.
+          Production's `IJobRole.descriptionHtml` is one blob, not a structure —
+          the ingest scrapes it, and a submitted job types it — so it renders as
+          one section, in the editor's own read-only styling. The four sectioned
+          cards below are the mock for roles that carry none, which today is
+          every scraped role on this board. */}
+      {role.descriptionHtml ? (
+        <DetailsSection classes={{ root: fd.cardEdge }}>
+          <DetailsSectionHeader title="About the role" />
+          <QuillContent html={role.descriptionHtml} className={d.rich} />
+        </DetailsSection>
+      ) : (
+        <>
       <DetailsSection classes={{ root: fd.cardEdge }}>
         <DetailsSectionHeader title="About the role" />
         {detail.summary.map((para) => (
@@ -206,6 +234,8 @@ export function JobDetailPane(props: JobDetailPaneProps) {
           <dd>{detail.process}</dd>
         </dl>
       </DetailsSection>
+        </>
+      )}
     </>
   );
 }

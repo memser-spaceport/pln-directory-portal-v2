@@ -1,7 +1,10 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
 
+import { act } from '@testing-library/react';
+
 import { AiAppsGrid } from '@/components/page/ai-apps/AiAppsPage/components/AiAppsGrid';
+import { useAiAppsFilterStore } from '@/services/ai-apps/store';
 import {
   getAddCardVariants,
   getCardVariants,
@@ -15,11 +18,13 @@ jest.mock('@/services/ai-apps/hooks/useAiApps', () => ({
 }));
 
 const mockLogsOpened = jest.fn();
+const mockEmptyResultsShown = jest.fn();
 jest.mock('@/analytics/ai-apps.analytics', () => ({
   useAiAppsAnalytics: () => ({
     onCardClicked: jest.fn(),
     onAuthorClicked: jest.fn(),
     onDeploymentLogsOpened: mockLogsOpened,
+    onEmptyResultsShown: mockEmptyResultsShown,
   }),
 }));
 
@@ -70,10 +75,14 @@ const app = (partial: Partial<AiApp> & Pick<AiApp, 'uid'>): AiApp => ({
 describe('AiAppsGrid', () => {
   const onOpenCreateModal = jest.fn();
 
+  const setFilters = (init: Record<string, string>) =>
+    act(() => useAiAppsFilterStore.getState().setAllParams(new URLSearchParams(init)));
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseReducedMotion.mockReturnValue(false);
     mockCanLikelyManage.mockReturnValue(false);
+    setFilters({});
   });
 
   it('shows a loading state and no cards while loading', () => {
@@ -163,6 +172,92 @@ describe('AiAppsGrid', () => {
     const secondNode = container.querySelector('h3');
 
     expect(secondNode).toBe(firstNode);
+  });
+
+  it('renders only the apps matching the search', () => {
+    mockUseAiApps.mockReturnValue({
+      apps: [app({ uid: 'a1', name: 'Alpha' }), app({ uid: 'a2', name: 'Beta' })],
+      isLoading: false,
+      isError: false,
+    });
+    setFilters({ search: 'beta' });
+    render(<AiAppsGrid onOpenCreateModal={onOpenCreateModal} />);
+
+    expect(screen.getAllByRole('heading', { level: 3 }).map((el) => el.textContent)).toEqual(['Beta']);
+  });
+
+  it('renders only the apps belonging to the selected creators', () => {
+    mockUseAiApps.mockReturnValue({
+      apps: [
+        app({ uid: 'a1', name: 'Alpha', member: { uid: 'm-1', name: 'Ada Lovelace', image: null } }),
+        app({ uid: 'a2', name: 'Beta', member: { uid: 'm-2', name: 'Nina Chen', image: null } }),
+      ],
+      isLoading: false,
+      isError: false,
+    });
+    setFilters({ createdBy: 'Nina Chen' });
+    render(<AiAppsGrid onOpenCreateModal={onOpenCreateModal} />);
+
+    expect(screen.getAllByRole('heading', { level: 3 }).map((el) => el.textContent)).toEqual(['Beta']);
+  });
+
+  it('reorders the cards when the sort changes', () => {
+    mockUseAiApps.mockReturnValue({
+      apps: [
+        app({ uid: 'a1', name: 'Zeta', updatedAt: '2026-08-01T00:00:00.000Z' }),
+        app({ uid: 'a2', name: 'Alpha', updatedAt: '2026-06-01T00:00:00.000Z' }),
+      ],
+      isLoading: false,
+      isError: false,
+    });
+    const { rerender } = render(<AiAppsGrid onOpenCreateModal={onOpenCreateModal} />);
+    expect(screen.getAllByRole('heading', { level: 3 }).map((el) => el.textContent)).toEqual(['Zeta', 'Alpha']);
+
+    setFilters({ sort: 'name' });
+    rerender(<AiAppsGrid onOpenCreateModal={onOpenCreateModal} />);
+
+    expect(screen.getAllByRole('heading', { level: 3 }).map((el) => el.textContent)).toEqual(['Alpha', 'Zeta']);
+  });
+
+  it('hides AddAiAppCard once a filter is applied, and restores it when cleared', () => {
+    mockUseAiApps.mockReturnValue({ apps: [app({ uid: 'a1', name: 'Alpha' })], isLoading: false, isError: false });
+    setFilters({ search: 'alpha' });
+    const { rerender } = render(<AiAppsGrid onOpenCreateModal={onOpenCreateModal} />);
+
+    expect(screen.queryByText('Create AI App')).not.toBeInTheDocument();
+    expect(screen.getByText('Alpha')).toBeInTheDocument();
+
+    setFilters({});
+    rerender(<AiAppsGrid onOpenCreateModal={onOpenCreateModal} />);
+
+    expect(screen.getByText('Create AI App')).toBeInTheDocument();
+  });
+
+  it('keeps AddAiAppCard visible when only the sort is set — sorting is not filtering', () => {
+    mockUseAiApps.mockReturnValue({ apps: [app({ uid: 'a1', name: 'Alpha' })], isLoading: false, isError: false });
+    setFilters({ sort: 'name' });
+    render(<AiAppsGrid onOpenCreateModal={onOpenCreateModal} />);
+
+    expect(screen.getByText('Create AI App')).toBeInTheDocument();
+  });
+
+  it('shows the empty state, and no create card, when a filter matches nothing', () => {
+    mockUseAiApps.mockReturnValue({ apps: [app({ uid: 'a1', name: 'Alpha' })], isLoading: false, isError: false });
+    setFilters({ search: 'nothing matches this' });
+    render(<AiAppsGrid onOpenCreateModal={onOpenCreateModal} />);
+
+    expect(screen.getByText(/no apps match your filters/i)).toBeInTheDocument();
+    expect(screen.queryByText('Create AI App')).not.toBeInTheDocument();
+    expect(mockEmptyResultsShown).toHaveBeenCalledWith({ filterCount: 1 });
+  });
+
+  it('shows AddAiAppCard rather than the empty state when the account simply has no apps yet', () => {
+    mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+    render(<AiAppsGrid onOpenCreateModal={onOpenCreateModal} />);
+
+    expect(screen.getByText('Create AI App')).toBeInTheDocument();
+    expect(screen.queryByText(/no apps match your filters/i)).not.toBeInTheDocument();
+    expect(mockEmptyResultsShown).not.toHaveBeenCalled();
   });
 });
 

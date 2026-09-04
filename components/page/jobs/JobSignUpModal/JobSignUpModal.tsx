@@ -11,9 +11,8 @@ import { Button } from '@/components/common/Button';
 import { CloseIcon } from '@/components/icons';
 import {
   AccountFields,
-  JobSearchStatusField,
-  SignUpReviewNote,
   accountSchema,
+  JobSearchStatusField,
   toAccountDetails,
   signUpFailureMessage,
   EMPTY_ACCOUNT_FORM,
@@ -111,6 +110,9 @@ interface JobSignUpModalProps {
 export function JobSignUpModal({ open, onClose, onSignUp, onSignIn }: JobSignUpModalProps) {
   const methods = useForm<AccountFormData>({
     defaultValues: EMPTY_ACCOUNT_FORM,
+    /* One schema, shared with the apply flow's step 2. This door briefly used a
+       shorter variant that skipped the job search status; it no longer exists —
+       see the note where it stood in `accountFields`. */
     resolver: yupResolver(accountSchema) as Resolver<AccountFormData>,
     mode: 'onBlur',
   });
@@ -191,34 +193,32 @@ export function JobSignUpModal({ open, onClose, onSignUp, onSignIn }: JobSignUpM
             The same pair as `JobAccountPane`'s, to the character — see the note
             there on keeping the two doors indistinguishable. */}
         <div className={s.text}>
-          <h2 className={s.title}>Create LabOS Job profile</h2>
+          <h2 className={s.title}>Create PL network Job profile</h2>
           <div className={s.subtitle}>Discover open roles across the network — and let founders reach out.</div>
         </div>
 
         <FormProvider {...methods}>
           <form className={s.form} noValidate onSubmit={handleSubmit(onSubmit)}>
             <AccountFields />
-            {/* Below the account questions and framed as one more of them: this
-                form is a flat column in a 440px dialog, so a card of its own
-                would be the only card on it. The pane frames it differently. */}
+            {/* The one question here that is not about the account, and the last
+                one, per the design: it sits under the account rows and above the
+                legal line.
+
+                Framed as one more labelled field rather than as the apply flow's
+                amber card. The pane wears the card because it is a step someone
+                has to get *past* — the strip is telling them why the button will
+                not move. Here the form is a flat column of questions and this is
+                the last of them, so a card would be announcing a blocker in a
+                place nothing is blocked yet. Same question, same schema rule,
+                same privacy pill; only the frame differs. */}
             <JobSearchStatusField />
 
             <div className={s.bottomText}>
-              {/* One line, and only the part nothing else on the card says: this
-                  press sends nothing to a hiring team.
-
-                  It lives in `accountFields` rather than here because it follows
-                  the PL-team tick — a sign-up that names a network team is
-                  reviewed, one that doesn't is not, and one sentence cannot be
-                  true of both. See its own note for what the single line used to
-                  claim and why both of its clauses were false.
-
-                  The length constraint is still live and is recorded there: this
-                  ran to four rendered lines once and pushed "Already have an
-                  account? Sign in" off the bottom of any window shorter than
-                  ~730px, hiding the escape from the only people with no use for
-                  the form above it. */}
-              <SignUpReviewNote />
+              {/* (`SignUpReviewNote` stood here — one line, branching on the
+                  PL-team tick, saying that this press sends nothing to a hiring
+                  team and naming the review only for the people actually in one.
+                  Removed from this door; the component still lives in
+                  `accountFields` and nothing renders it.) */}
               <p className={s.bodySecondary}>
                 By submitting this form, you agree to our{' '}
                 <a

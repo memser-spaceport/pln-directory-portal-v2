@@ -22,8 +22,14 @@ export function useAiAppsAnalytics() {
     onCardClicked: (appUid: string, appName: string) => capture(AI_APPS_ANALYTICS.CARD_CLICKED, { appUid, appName }),
     onAuthorClicked: (appUid: string, memberUid: string, memberName: string) =>
       capture(AI_APPS_ANALYTICS.AUTHOR_CLICKED, { appUid, memberUid, memberName }),
-    onDetailPageViewed: (appUid: string, appName: string) =>
-      capture(AI_APPS_ANALYTICS.DETAIL_PAGE_VIEWED, { appUid, appName, path: `/pl-infra/ai-apps/${appUid}` }),
+    onDetailPageViewed: (appUid: string, appName: string, deepLinkPath: string | null) =>
+      capture(AI_APPS_ANALYTICS.DETAIL_PAGE_VIEWED, {
+        appUid,
+        appName,
+        path: `/pl-infra/ai-apps/${appUid}`,
+        // Set only when the page was opened via a ?path= deep link into an app subpage.
+        deepLinkPath: deepLinkPath ?? undefined,
+      }),
     onOpenInNewTabClicked: (appUid: string, appName: string, appUrl: string) =>
       capture(AI_APPS_ANALYTICS.OPEN_IN_NEW_TAB_CLICKED, { appUid, appName, appUrl }),
     onConnectPageViewed: (params: { sessionId: string; view: string; clientName?: string | null }) =>
@@ -100,5 +106,16 @@ export function useAiAppsAnalytics() {
       capture(AI_APPS_ANALYTICS.PRD_OPEN_IN_NEW_TAB_CLICKED, { appUid, appName }),
     onPrdPageViewed: (appUid: string, appName: string) =>
       capture(AI_APPS_ANALYTICS.PRD_PAGE_VIEWED, { appUid, appName }),
+    // List controls. Only the query LENGTH is sent, never the text: an app
+    // search box is free text a member typed, and the result count already
+    // answers "did search work" without carrying whatever they looked for.
+    onSearchApplied: (params: { queryLength: number; resultCount: number }) =>
+      capture(AI_APPS_ANALYTICS.SEARCH_APPLIED, params),
+    onCreatorFilterSelected: (params: { creatorCount: number; resultCount: number }) =>
+      capture(AI_APPS_ANALYTICS.CREATOR_FILTER_SELECTED, params),
+    onSortChanged: (params: { sort: string; source: 'masthead' | 'mobile'; resultCount: number }) =>
+      capture(AI_APPS_ANALYTICS.SORT_CHANGED, params),
+    onFiltersCleared: (params: { source: 'rail' | 'mobile' }) => capture(AI_APPS_ANALYTICS.FILTERS_CLEARED, params),
+    onEmptyResultsShown: (params: { filterCount: number }) => capture(AI_APPS_ANALYTICS.EMPTY_RESULTS_SHOWN, params),
   };
 }

@@ -1,0 +1,40 @@
+/* Every custom property is written `var(--name, #fallback)`: this app doesn't
+   load the DS token sheet, so a bare token resolves to nothing and the fallback
+   is what actually paints. Same rule as `JobApplyFlowDrawer.module.scss`.
+
+   The list itself lives in `JobUnlock/UnlockItems.module.scss` now — it is shared
+   with the footer's popover and that popover's mobile modal. What is left here is
+   the card. */
+
+.root {
+  /* The drawer's content column is `align-items: center`, so a block child
+     shrink-wraps its text and floats to the middle of the 720px measure. This
+     is the third component in this drawer to need the line, and the first two
+     needed it after someone noticed the card was narrower than its neighbours. */
+  align-self: stretch;
+  width: 100%;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  padding: 16px;
+  border-radius: 8px;
+
+  /* The product's settled "this is a message, not content" surface — the same
+     pair as `DetailsSection.missingData` and `JobBoardBanner`'s `.brandSurface`.
+     1px, not the design's 0.8px: there is no sub-pixel border anywhere in this
+     codebase, and one would render differently on every device pixel ratio. */
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}

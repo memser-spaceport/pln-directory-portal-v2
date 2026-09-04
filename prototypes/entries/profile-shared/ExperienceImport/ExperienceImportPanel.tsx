@@ -101,6 +101,26 @@ interface ExperienceImportPanelProps {
   /** A file the host already collected — see `ResumeDropzone.externalFile`. */
   initialFile?: File | null;
   /**
+   * The document has been read — whatever it said.
+   *
+   * "The upload is the store": production posts the file before it parses it,
+   * so by the time a review or a dead end is on screen the file already exists
+   * on the server. Hosts that keep the CV (`StoredCv`) set it here, on this
+   * event, rather than on the review's Save — Cancel on the review cancels the
+   * fill-in, not the upload, and the resting card shows the new file either
+   * way. Fires for a successful read *and* for "nothing found": a document the
+   * parser could not read is still the person's CV.
+   */
+  onFileRead?: (file: File) => void;
+  /**
+   * The reading row's Cancel was pressed. Production's panel has the same
+   * prop. Without it the press only resets the panel to its drop area — right
+   * for a first upload, wrong over a kept CV, where the person cancelling a
+   * replacement wants their file back, not an empty box. The host that has a
+   * file to go back to closes the import here.
+   */
+  onCancelRead?: () => void;
+  /**
    * What the person is told before handing over a document.
    *
    * A prop because the honest sentence is not the same on every surface. The
@@ -212,6 +232,8 @@ export function ExperienceImportPanel({
   onAddManually,
   entry = 'door',
   initialFile,
+  onFileRead,
+  onCancelRead,
   privacyNote = 'We read the file to fill in your profile. The file itself is not kept.',
   canvasOpen,
   canvasStatus,
@@ -248,6 +270,7 @@ export function ExperienceImportPanel({
     result
       .then((parsed) => {
         cancelRef.current = null;
+        onFileRead?.(picked);
         if (isEmptyParse(parsed)) {
           setStatus('nothing-found');
           return;
@@ -326,7 +349,14 @@ export function ExperienceImportPanel({
             <div className={p.readingTitle}>Reading {file?.name ?? canvasFileName ?? 'your file'}…</div>
             {file && <div className={p.readingMeta}>{formatFileSize(file.size)}</div>}
           </div>
-          <button type="button" className={p.quietButton} onClick={reset}>
+          <button
+            type="button"
+            className={p.quietButton}
+            onClick={() => {
+              reset();
+              onCancelRead?.();
+            }}
+          >
             Cancel
           </button>
         </div>

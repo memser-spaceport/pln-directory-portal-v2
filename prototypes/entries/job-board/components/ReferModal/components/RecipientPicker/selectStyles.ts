@@ -46,9 +46,15 @@ export const selectStyles: StylesConfig<RecipientOption, true, GroupBase<Recipie
    * on this?"; a row with the role on it can.
    *
    * It is also what the field was already doing badly: at this card's width a chip
-   * carrying `name + role` runs ~276px against ~422px of usable field, so every
+   * carrying `name + role` runs ~276px against ~502px of usable field, so every
    * chip takes a line of its own anyway. Drawing them as pills only made the list
    * ragged and put the ✕ in a different place on every line.
+   *
+   * The field was ~422px wide when that was measured, and the card has since gone
+   * 480 → 560. Two chips still don't fit on a line (2 × 276 = 552 > 502), so the
+   * argument holds — but with 50px of margin rather than 150, and a third widening
+   * would end it. The numbers are here so the next person can check rather than
+   * assume.
    *
    * The column layout is applied *only* when there's a value, because react-select
    * switches this box to `display: grid` when empty in order to overlap the

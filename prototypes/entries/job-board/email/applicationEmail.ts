@@ -22,6 +22,7 @@
 import { fillTemplate, firstName, type FilledTemplate } from '../../email-shared/fillTemplate';
 import { summariseProfile, type MemberProfile } from '../viewerState';
 import { VIEWER_NAME } from '../profile/viewerIdentity';
+import type { StoredCv } from '../../profile-shared/StoredCv';
 
 /** Matches the digest's `Protocol Labs Network <digest@protocol.ai>` — one sender
  *  identity, one domain, a different mailbox per kind of mail. */
@@ -71,6 +72,13 @@ export const SUBJECT_TEMPLATE = `{{applicant_name}} applied for {{role_title}}`;
  *   before pressing Submit. Both sides read the same string, so neither can be
  *   surprised by what the other saw. Location and skills sit under it in the same
  *   order the modal's profile card shows them.
+ *
+ *   All three lines are conditional, and the summary's `{{#if}}` is load-bearing
+ *   rather than tidy: the current role stopped being required, so the summary can
+ *   be empty — and `fillTemplate` drops any *paragraph* still holding an
+ *   unresolved placeholder. Unguarded, one missing role would have taken the
+ *   applicant's location and skills out of the email with it, silently, because
+ *   they share this paragraph.
  * - *"What they wrote" is unconditional.* The cover letter is required — Submit
  *   stays dead until it holds non-whitespace — so there is no empty-letter branch
  *   to write. This is the whole payoff of requiring it: every one of these emails
@@ -95,7 +103,7 @@ export const BODY_TEMPLATE = `Hi {{recipient_first_name}},
 
 {{applicant_name}} applied for {{role_title}}.
 
-{{applicant_summary}}
+{{#if applicant_summary}}{{applicant_summary}}{{/if}}
 {{#if applicant_location}}{{applicant_location}}{{/if}}
 {{#if applicant_skills}}{{applicant_skills}}{{/if}}
 
@@ -106,7 +114,9 @@ What they wrote:
 Their full profile — experience, projects and links:
 {{applicant_profile_url}}
 
-Reply to this email and it goes straight to {{applicant_first_name}}.`;
+{{#if applicant_cv}}Their CV is attached ({{applicant_cv}}).
+
+{{/if}}Reply to this email and it goes straight to {{applicant_first_name}}.`;
 
 /**
  * The footer, in the digest's own shape: why you got this, then how to stop
@@ -129,11 +139,12 @@ export const TEMPLATE_VARIABLES: { key: string; source: string }[] = [
   { key: 'applicant_first_name', source: 'the same name, first word' },
   { key: 'role_title', source: 'the role they pressed Apply on' },
   { key: 'team_name', source: 'the team that posted the role' },
-  { key: 'applicant_summary', source: 'their profile’s current-role line, as they approved it' },
+  { key: 'applicant_summary', source: 'their profile’s current-role line, as they approved it (optional)' },
   { key: 'applicant_location', source: 'profile → Location (optional)' },
   { key: 'applicant_skills', source: 'profile → Skills (optional)' },
   { key: 'cover_letter', source: 'the note they wrote for this role' },
   { key: 'applicant_profile_url', source: 'their member page' },
+  { key: 'applicant_cv', source: 'the CV on their profile, by file name (optional — the sentence and the attachment go together)' },
 ];
 
 export interface ApplicationEmailInput {
@@ -154,6 +165,13 @@ export interface ApplicationEmail {
   footerReason: FilledTemplate;
   /** What an inbox shows under the subject: the first sentence of the body. */
   preview: string;
+  /**
+   * The CV, as an attachment on the mail — the profile's kept file at the
+   * moment of sending, or nothing. A real attachment rather than a link into
+   * the directory: a hiring lead forwards applications, and a link needs a
+   * login the person it is forwarded to may not have.
+   */
+  attachment: StoredCv | null;
 }
 
 /**
@@ -180,6 +198,7 @@ export function buildApplicationEmail(input: ApplicationEmailInput): Application
     applicant_skills: profile.skills.join(' · '),
     cover_letter: coverLetter.trim(),
     applicant_profile_url: profileUrl,
+    applicant_cv: profile.cv?.fileName ?? '',
   };
 
   const subject = fillTemplate(SUBJECT_TEMPLATE, values, { singleLine: true });
@@ -193,5 +212,5 @@ export function buildApplicationEmail(input: ApplicationEmailInput): Application
      names the applicant and the role, which is exactly what belongs there. */
   const preview = body.text.split('\n\n')[1] ?? '';
 
-  return { from: FROM_LINE, subject, body, footerReason, preview };
+  return { from: FROM_LINE, subject, body, footerReason, preview, attachment: profile.cv };
 }

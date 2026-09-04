@@ -12,10 +12,13 @@ import {
   AnalyticsIcon,
   JobsIcon,
   StarFourIcon,
+  PlInfraOsIcon,
   ForumIcon,
+  PlaaIcon,
   NetworkIntelligenceDashIcon,
 } from '../components/icons';
 import { MagicSparklesIcon } from '@/components/icons';
+import { PL_INFRA_OS_PATH } from '@/services/ai-apps/constants';
 
 export const INVESTOR_DB_LINK: ISubItem = {
   icon: <AnalyticsIcon />,
@@ -102,6 +105,13 @@ export const FOUNDER_GUIDES_LINK: ISubItem = {
   description: 'Structured, expert-driven guides for startup founders',
 };
 
+export const PLAA_LINK: ISubItem = {
+  icon: <PlaaIcon />,
+  href: '/alignment-asset',
+  title: 'PLAA',
+  description: 'Earn and track rewards for your contributions across the network',
+};
+
 export const GANTRY_LINK: ISubItem = {
   icon: <GantryIcon />,
   href: '/gantry/dashboard',
@@ -121,6 +131,13 @@ export const DEMO_DAY_ANALYTICS_LINK: ISubItem = {
   href: '/demo-day-analytics',
   title: 'Demo Day Analytics',
   description: 'Track Demo Day activity across teams, events, and interactions',
+};
+
+export const PL_INFRA_OS_LINK: ISubItem = {
+  icon: <PlInfraOsIcon />,
+  href: PL_INFRA_OS_PATH,
+  title: 'PL Infra OS / Factorio',
+  description: 'How PL Infra runs — goals, numbers, work, and weekly updates',
 };
 
 export const AI_APPS_LINK: ISubItem = {

@@ -326,10 +326,12 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   }, [open]);
 
   const complete = isProfileComplete(draft);
-  /* The two halves of that rule, for the footer's hint. Read off the draft with
-     the same tests `isProfileComplete` uses — deliberately not a second
-     definition of "required", just a finer-grained look at the one that exists. */
-  const hasRole = draft.role.trim() !== '';
+  /* The rule, for the footer's hint. Read off the draft with the same test
+     `isProfileComplete` uses — deliberately not a second definition of
+     "required", just a live view of the one that exists. It was a pair
+     (`hasRole` beside this) while the current role gated too; the role is
+     optional now, and nothing in this drawer asked the question except the line
+     that declared it. */
   const hasStatus = draft.jobSearchStatus !== '';
 
   /**

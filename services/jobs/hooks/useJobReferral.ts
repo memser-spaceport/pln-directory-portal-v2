@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from '@tanstack/react-query';
 
-import type { IJobReferralRecipient } from '@/types/jobs.types';
+import type { ICreateJobReferralPayload } from '@/types/jobs.types';
 
 import { JobsQueryKey } from '../constants';
 import { createJobReferral, fetchJobReferralDraft } from '../jobs.service';
@@ -38,7 +38,6 @@ export function useJobReferralDraft(input: UseJobReferralDraftInput) {
 
 export function useCreateJobReferral(jobUid: string) {
   return useMutation({
-    mutationFn: (payload: { referredMemberUid: string; recipients?: IJobReferralRecipient[]; note: string }) =>
-      createJobReferral(jobUid, payload),
+    mutationFn: (payload: ICreateJobReferralPayload) => createJobReferral(jobUid, payload),
   });
 }

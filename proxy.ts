@@ -6,7 +6,14 @@ import { calculateExpiry, decodeToken } from './utils/auth.utils';
  * Protected routes that require authentication
  * Users accessing these routes without authentication will be redirected to login
  */
-const PROTECTED_ROUTES = ['/deals/', '/founder-guides', '/investors'];
+const PROTECTED_ROUTES = ['/deals/', '/founder-guides', '/investors', '/pl-infra-os'];
+
+/**
+ * AI Apps sub-paths that deliberately show their own signed-out state
+ * instead of being gated here (the connect flow needs to work for a guest
+ * mid-approval, and feedback submission has its own access messaging).
+ */
+const AI_APPS_PUBLIC_ROUTES = ['/pl-infra/ai-apps/connect', '/pl-infra/ai-apps/feedback'];
 
 export const config = {
   matcher: [
@@ -39,7 +46,16 @@ export const config = {
  * @param pathname - The request pathname to check
  * @returns true if the route is protected, false otherwise
  */
+function isAiAppsRoute(pathname: string): boolean {
+  return (
+    pathname === '/pl-infra/ai-apps' || pathname.startsWith('/pl-infra/ai-apps/') || pathname.startsWith('/pl-infra-os')
+  );
+}
+
 function isProtectedRoute(pathname: string): boolean {
+  if (pathname === '/pl-infra/ai-apps' || pathname.startsWith('/pl-infra/ai-apps/')) {
+    return !AI_APPS_PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+  }
   return PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
 }
 
@@ -50,7 +66,9 @@ function isProtectedRoute(pathname: string): boolean {
  * @returns NextResponse redirect to /members with backlink and #login hash
  */
 function createLoginRedirect(req: NextRequest, pathname: string): NextResponse {
-  const backlink = encodeURIComponent(pathname);
+  // AI App links carry the open subpage in `?path=`, so keep the query for them.
+  const target = isAiAppsRoute(pathname) ? `${pathname}${req.nextUrl.search}` : pathname;
+  const backlink = encodeURIComponent(target);
   const redirectUrl = new URL(`/members?backlink=${backlink}#login`, req.url);
   return NextResponse.redirect(redirectUrl);
 }

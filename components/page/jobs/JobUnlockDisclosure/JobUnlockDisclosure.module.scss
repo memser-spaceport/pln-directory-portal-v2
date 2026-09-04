@@ -1,0 +1,143 @@
+/* Every custom property is written `var(--name, #fallback)`: this app doesn't
+   load the DS token sheet, so a bare token resolves to nothing and the fallback
+   is what actually paints. Same rule as `JobApplyFlowDrawer.module.scss`. */
+
+// Figma's "Link button" (582:9193) at the footer's size.
+//
+// Not the DS `Button` with `style="link"`: that carries the brand tone and its
+// own padding, and this is a neutral caption that happens to be pressable. The
+// element is a real `<button>` all the same, which is what makes the popover
+// reachable by keyboard and by tap.
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  /* `center`, not `flex-start`, because below tablet-landscape
+     `.footerActionColumn` is `align-items: stretch` and this goes full width —
+     the mobile frame centres it under the button. Above that breakpoint the
+     column's `align-items: flex-end` shrink-wraps this and centring is a no-op. */
+  justify-content: center;
+  gap: 4px;
+
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--action-foreground-neutral-normal, #455468);
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+// `Drawer.module.scss` puts the drawer at `z-index: 10`, and this portals to
+// <body> with `z-index: auto` — which paints *below* it, so without this the
+// popover opens invisibly behind the drawer it belongs to. 30 is what
+// `SaveViewPopover.module.scss` uses, for the same reason.
+.positioner {
+  z-index: 30;
+}
+
+.popup {
+  box-sizing: border-box;
+  width: 404px;
+  /* 404px does not fit beside a 720px drawer on a 768px viewport, which is the
+     narrowest width that still gets the popover rather than the modal. */
+  max-width: calc(100vw - 32px);
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  padding: 16px;
+  border-radius: 8px;
+
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  /* `--border-neutral-subtle` where the body card uses `--border-brand-subtle`.
+     That difference is the design's (682:11192 against 631:23299), not a
+     transcription slip. 1px, not the frame's 0.8px — no sub-pixel borders here. */
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  box-shadow: 0 4px 16px rgba(13, 15, 18, 0.08);
+}
+
+// 16px/24px, where the body card's heading is 18px/24px. The card is a section of
+// the page; this is the top line of a popup, and the design sizes it accordingly.
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// The mobile modal. Above the drawer, which goes full-screen at this width.
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1101;
+
+  box-sizing: border-box;
+  width: calc(100vw - 32px);
+  max-width: 400px;
+  /* A phone in landscape is ~375px tall. The list is short enough to fit at any
+     realistic size, but a modal that can't be scrolled out of is worse than one
+     with a scrollbar nobody sees. */
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  padding: 16px;
+  border-radius: 8px;
+
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  box-shadow: 0 8px 24px rgba(13, 15, 18, 0.12);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  /* 24px of press for a 16px glyph. The frame draws the icon; the target is
+     ours, and 16px is under every touch-target minimum there is. */
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}

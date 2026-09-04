@@ -1,0 +1,22 @@
+// Local layer on top of the reused Submit-a-Deal chrome. Everything the eye
+// reads as "the modal" — the 600px card, header, scrolling content, footer — is
+// `SubmitDealModal.module.scss`, imported verbatim. This file only lays out the
+// two rows where two short fields share a line.
+@use 'styles/media';
+
+// Two short answers on one line: Category | Seniority, then Work mode | Location.
+// The deal form is a single column because every one of its fields is a
+// sentence; four of these are one-word picks, and stacking four selects one
+// per line makes a 600px card scroll for answers that fit side by side.
+// Collapses to the deal form's own single column on a phone.
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+
+  @include media.mobile-only {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}

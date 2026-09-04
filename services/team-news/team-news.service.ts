@@ -2,6 +2,7 @@ import { customFetch } from '@/utils/fetch-wrapper';
 import type {
   ITeamNewsByTeamResponse,
   ITeamNewsGroupedResponse,
+  ITeamNewsItem,
   ITeamNewsPopularResponse,
   ITeamNewsUpvoteStatus,
 } from '@/types/team-news.types';
@@ -212,4 +213,34 @@ async function fetchTeamNewsCountBatch(teamUids: string[]): Promise<Record<strin
 
   const { counts } = (await response.json()) as { counts: Record<string, number> };
   return counts ?? {};
+}
+
+export interface CreateTeamNewsPostPayload {
+  title: string;
+  body?: string;
+  url: string;
+}
+
+export async function createTeamNewsPost(teamUid: string, payload: CreateTeamNewsPostPayload): Promise<ITeamNewsItem> {
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/teams/${encodeURIComponent(teamUid)}/team-news`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    },
+    true,
+  );
+
+  if (response?.status === 409) {
+    const body = (await response.json()) as { message?: string; existingTitle?: string; existingEventDate?: string };
+    const title = body.existingTitle ?? 'an existing story';
+    const when = body.existingEventDate
+      ? new Date(body.existingEventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      : '';
+    throw new Error(`Already in team news: "${title}"${when ? ` (${when})` : ''}`);
+  }
+
+  if (!response?.ok) throw new Error('Failed to post team news');
+  return (await response.json()) as ITeamNewsItem;
 }

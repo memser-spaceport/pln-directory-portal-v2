@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 /**
@@ -28,12 +28,19 @@ jest.mock('@/services/members/hooks/useMemberFormOptions', () => ({
   useMemberFormOptions: () => ({ data: { teams: [{ teamUid: 't1', teamTitle: 'Acme' }] } }),
 }));
 
-/* The two panes this file is not about. Both are static imports of the drawer,
-   so they load whichever step is showing — and `JobApplicationPane` reaches
+/* The panes this file is not about. All are static imports of the drawer, so
+   they load whichever step is showing — and `JobApplicationPane` reaches
    `next/server` through the ReferModal hooks it borrows from `prototypes/`,
    which throws `Request is not defined` under jsdom. Stubbing them keeps this
-   suite about step 2. */
-jest.mock('@/components/page/jobs/JobDetailPane/JobDetailPane', () => ({ JobDetailPane: () => null }));
+   suite about the drawer.
+
+   `JobDetailPane` is stubbed down to its banner slot rather than to null. The
+   pane's own layout is `job-detail-pane.test.tsx`'s subject; what belongs here
+   is the one decision the drawer makes about it — who gets handed a banner —
+   and a stub returning null would hide that decision completely. */
+jest.mock('@/components/page/jobs/JobDetailPane/JobDetailPane', () => ({
+  JobDetailPane: ({ banner }: { banner?: React.ReactNode }) => <>{banner}</>,
+}));
 jest.mock('@/components/page/jobs/JobApplicationPane/JobApplicationPane', () => ({
   JobApplicationPane: () => null,
   COVER_LETTER_MAX_LENGTH: 2000,
@@ -56,6 +63,7 @@ jest.mock('@/analytics/jobs.analytics', () => ({
     onJobApplyStepViewed: jest.fn(),
     onJobApplyFlowClosed: jest.fn(),
     onJobApplyExternalRedirected: jest.fn(),
+    onJobUnlockInfoOpened: jest.fn(),
   }),
 }));
 
@@ -105,10 +113,20 @@ const renderStep = (team: IJobTeam = PL, props: Partial<React.ComponentProps<typ
     />,
   );
 
+/**
+ * Every answer `accountSchema` requires, plus the role.
+ *
+ * The role is not one of them unless the PL-team box is ticked — both doors
+ * share one schema, and that rule rides on the tick. It is filled here anyway,
+ * for the same reason as in the modal's suite: the cases below assert on what
+ * gets submitted, and a payload carrying a role is the one the product actually
+ * sends.
+ */
 const fillAccount = () => {
   fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@protocol.ai' } });
   fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Polina Bublii' } });
   fireEvent.change(screen.getByLabelText(/LinkedIn profile/), { target: { value: 'polina-bublii' } });
+  fireEvent.change(screen.getByLabelText('Current role'), { target: { value: 'Protocol Engineer' } });
   fireEvent.click(screen.getByRole('radio', { name: /Actively looking/ }));
 };
 
@@ -172,7 +190,7 @@ describe('the apply flow’s account step', () => {
       fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Polina Bublii' } });
       fireEvent.change(screen.getByLabelText(/LinkedIn profile/), { target: { value: 'polina-bublii' } });
 
-      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Create Profile' }));
 
       await waitFor(() => expect(screen.getByText('Select where you are with job hunting')).toBeInTheDocument());
       expect(onSignUp).not.toHaveBeenCalled();
@@ -189,42 +207,38 @@ describe('the apply flow’s account step', () => {
   });
 
   describe('the footer', () => {
-    /* It used to promise a return to the application here — "you'll come back
-       here to finish your application" — which is what the rail directly above
-       already promises, and the rail is right about it. Silence is the assertion
-       now, and it is worth asserting: the branch still exists, it just resolves
-       to nothing, and a regression that put any sentence back would be invisible
-       to a test that only checked the non-PL case below. */
-    it('says nothing for a Protocol Labs role — the rail already promises the return', () => {
-      const { container } = renderStep(PL);
+    /* Silence for everyone now, and it is worth asserting for both employers
+       rather than only one.
 
-      expect(screen.queryByText(/come back here to finish your application/)).not.toBeInTheDocument();
+       A sentence used to run here for non-PL teams — "{team} takes your
+       application on their own site" — written when the rail promised a
+       stranger three steps and delivered two. The rail is withheld for the whole
+       of an outbound run now, so there is no promise left to correct, and the
+       warning is carried by the review step on either side of this one: the
+       button that sent them here, and the same button waiting when they return.
+
+       Absent, not empty. An always-rendered <p> would still cost 12px of column
+       gap above the button on a phone, so `toBeNull` is the assertion and not
+       an empty-string check. */
+    it('says nothing at all, for either kind of employer', () => {
+      const pl = renderStep(PL);
+      expect(pl.container.querySelector('p[class*="footerHint"]')).toBeNull();
+      pl.unmount();
+
+      const other = renderStep(OTHER);
       expect(screen.queryByText(/takes your application on their own site/)).not.toBeInTheDocument();
-      // Absent, not empty — an always-rendered <p> would still cost 12px of
-      // column gap above the button on a phone.
-      expect(container.querySelector('p[class*="footerHint"]')).toBeNull();
-    });
-
-    /* The honest version for every other employer. A new account is pending,
-       and `onApply` sends a pending applicant to a non-PL employer's own site —
-       so the rail's third step is not where this one ends. */
-    it('says where a non-PL application actually goes', () => {
-      const { container } = renderStep(OTHER);
-
-      expect(screen.getByText(/Bluesky takes your application on their own site/)).toBeInTheDocument();
-      /* The positive half of the PL test's `toBeNull`. Without this, a selector
-         that matched nothing — a renamed class, a CSS-module mapping change —
-         would let that assertion pass while the hint was still on screen. */
-      expect(container.querySelector('p[class*="footerHint"]')).not.toBeNull();
+      expect(other.container.querySelector('p[class*="footerHint"]')).toBeNull();
     });
 
     /* The review step's own version of that honesty: Apply is an outbound link,
-       so the rail of three in-app steps comes off. */
-    it('hides the rail when Apply leaves the site', () => {
+       so the rail of three in-app steps comes off — and with the hint gone from
+       beside it, the label is the only thing left that can name the destination. */
+    it('hides the rail when Apply leaves the site, and says where it goes', () => {
       renderStep(OTHER, { applyGoesExternal: true, at: 'review' });
 
-      expect(screen.getByRole('button', { name: 'Continue to apply' })).toBeInTheDocument();
-      expect(screen.queryByRole('list')).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Apply on the team's site/ })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Continue to apply' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('list', { name: 'Application steps' })).not.toBeInTheDocument();
       expect(screen.queryByText('Review job')).not.toBeInTheDocument();
       expect(screen.queryByText('Application')).not.toBeInTheDocument();
     });
@@ -233,7 +247,7 @@ describe('the apply flow’s account step', () => {
       renderStep();
       fillAccount();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Create Profile' }));
 
       await waitFor(() => expect(onSignUp).toHaveBeenCalled());
       expect(onSignUp).toHaveBeenCalledWith(
@@ -250,7 +264,7 @@ describe('the apply flow’s account step', () => {
       renderStep();
       fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@protocol.ai' } });
 
-      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Create Profile' }));
 
       await waitFor(() => expect(screen.getByText('Name is required')).toBeInTheDocument());
       expect(onSignUp).not.toHaveBeenCalled();
@@ -263,9 +277,235 @@ describe('the apply flow’s account step', () => {
       renderStep();
       fillAccount();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Create Profile' }));
 
       await waitFor(() => expect(screen.getByText(/This email already has an account/)).toBeInTheDocument());
     });
+  });
+});
+
+/**
+ * The review step for a stranger whose Apply would leave the site.
+ *
+ * `onApply` sends a logged-out visitor on a non-PL role straight to the
+ * employer's posting, so before this the only door out of the drawer was a door
+ * off the board. The profile press is offered *beside* the outbound one rather
+ * than instead of it — both are honest, so neither hides behind the other.
+ */
+describe('the outbound review step’s two doors', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const outboundReview = (props: Partial<React.ComponentProps<typeof JobApplyFlowDrawer>> = {}) =>
+    renderStep(OTHER, { applyGoesExternal: true, at: 'review', ...props });
+
+  /* The footer's second row is asserted *within the footer*, not against the
+     document. A bare `getByRole` here would keep passing if the control moved
+     into the body of the step — which is where the card making the same case
+     already lives — and the assertion would then be guarding a different element
+     than the one it names. Scoped, it fails the moment the footer stops offering
+     this. */
+  const footerOf = (container: HTMLElement) => container.querySelector('[class*="footerInner"]') as HTMLElement;
+
+  it('offers a stranger the profile as well as the employer’s site', () => {
+    const { container } = outboundReview();
+
+    expect(screen.getByRole('button', { name: /Apply on the team's site/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Create profile' })).toBeInTheDocument();
+    /* The case for a profile is not *made* here — it is a card in the body of
+       the step. What the footer keeps is a way to ask for it, for the reader who
+       has scrolled a thousand pixels past that card to reach these buttons. */
+    expect(within(footerOf(container)).getByRole('button', { name: 'What your profile unlocks?' })).toBeInTheDocument();
+    /* And what it no longer does is argue. The slot held a sentence promising
+       "team is notified you are interested" — a notification this branch does not
+       send — and before that a longer pitch. Both are pinned gone: a future pass
+       reaching for the footer to say something is reaching for the wrong surface. */
+    expect(within(footerOf(container)).queryByText(/team is notified you are interested/)).not.toBeInTheDocument();
+    expect(
+      within(footerOf(container)).queryByText(/A profile lets recruiters across the network/),
+    ).not.toBeInTheDocument();
+  });
+
+  /* The control is a control, not a caption wearing one. Nothing in the footer
+     may describe the primary press: `aria-describedby` pointing at a focusable
+     element is how a screen reader user hears about something they are then never
+     offered, which is precisely what the old string→node change removed. */
+  it('does not describe the primary press with the disclosure', () => {
+    outboundReview();
+
+    expect(screen.getByRole('button', { name: 'Create profile' })).not.toHaveAttribute('aria-describedby');
+  });
+
+  /* Into the drawer's own step 2 — the account form — so signing up from the job
+     you are reading is one press and no navigation. */
+  it('sends the profile press to the account step', () => {
+    const onStepChange = jest.fn();
+    outboundReview({ onStepChange });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create profile' }));
+
+    expect(onStepChange).toHaveBeenCalledWith('profile');
+  });
+
+  /* A signed-in member whose account is still pending reaches the same branch,
+     and already has the profile this offers to make. Offering it to them would
+     be the footer asking for something they have. */
+  /**
+   * Coming back from Privy lands here: the account exists, so the banner and the
+   * profile press are gone and this is the plain outbound footer. Saying nothing
+   * would leave the person who did what the board asked with strictly less on
+   * screen than the person who ignored it, and no sign the account was made.
+   */
+  describe('coming back with an account', () => {
+    const acknowledgement = () => screen.queryByText(/Profile created/);
+
+    it('confirms the account to whoever just made one', () => {
+      outboundReview({ isLoggedIn: true, memberUid: 'm1', justSignedUp: true });
+
+      expect(acknowledgement()).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Apply on the team's site/ })).toBeInTheDocument();
+    });
+
+    /* The trap this guards. Logged in, non-PL role, review step is ALSO where a
+       Job Aspirant and a member awaiting approval sit — both with accounts months
+       old. Keyed on `isLoggedIn` instead of the resume, this sentence would greet
+       them by announcing something that did not just happen. */
+    it('says nothing to a member who did not just sign up', () => {
+      outboundReview({ isLoggedIn: true, memberUid: 'm1', viewerState: 'pending-approval' });
+
+      expect(acknowledgement()).not.toBeInTheDocument();
+    });
+  });
+
+  it('does not offer a profile to someone who already has one', () => {
+    outboundReview({ isLoggedIn: true, memberUid: 'm1', viewerState: 'pending-approval' });
+
+    expect(screen.getByRole('button', { name: /Apply on the team's site/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Create profile' })).not.toBeInTheDocument();
+    /* The disclosure goes with the press it belongs to. Someone with a profile
+       does not need to be told what one unlocks. */
+    expect(screen.queryByRole('button', { name: 'What your profile unlocks?' })).not.toBeInTheDocument();
+  });
+
+  /* **DOM order is load-bearing here.** On phones the bar stacks and the design
+     puts the profile press on top, which the stylesheet gets by demoting the
+     outbound press with `order: 1` (`.footerLeadDemoted`) — so the order these
+     two are written in is the order they appear in reversed. Someone tidying the
+     JSX by putting the primary button first would silently flip the mobile
+     layout, and no media query runs in jsdom to catch it. This is what catches
+     it.
+
+     The mechanism changed and the assertion did not: this used to be
+     `column-reverse` on a group holding both buttons, back when the bar's left
+     slot was a tinted note. The outbound press moved into that slot when the
+     note became a card in the body of the step, and `order` is how a lone child
+     of `.footerInner` does what a group could do for itself. */
+  it('writes the outbound press first, which is what the mobile stack reverses', () => {
+    outboundReview();
+
+    const buttons = screen
+      .getAllByRole('button')
+      .map((b) => b.textContent?.trim())
+      /* Filtered rather than taken whole: the footer's second row is a button
+         too now ("What your profile unlocks?"), and it sits *below* the primary
+         press in both layouts, so it has nothing to say about this ordering. */
+      .filter((label) => label === 'Create profile' || label?.startsWith("Apply on the team's site"));
+
+    expect(buttons).toEqual(["Apply on the team's site", 'Create profile']);
+  });
+
+  /* The rail is withheld for every step of an outbound run, not just the reading
+     one. Someone who presses the profile button lands on the account form, and
+     from there goes back to the posting and out — there is no third stop, so a
+     rail drawing one would be the flow lying about itself. */
+  it('keeps the rail off on the account step too, where there is no third stop', () => {
+    renderStep(OTHER, { applyGoesExternal: true, at: 'profile' });
+
+    expect(screen.queryByRole('list', { name: 'Application steps' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Application')).not.toBeInTheDocument();
+  });
+});
+
+/**
+ * Who is told what a profile is for.
+ *
+ * The banner is the drawer's decision, not the pane's — `JobDetailPane` takes it
+ * as a slot and has no idea who is reading. These are the two halves of that
+ * decision: the gate on the way in, and the caption in the footer, which is
+ * gated separately and on a branch shared with four signed-in states.
+ */
+describe('the case for a profile', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const heading = () => screen.queryByRole('heading', { name: 'What your profile unlocks' });
+
+  it('makes it to a stranger reading a role', () => {
+    renderStep(OTHER, { applyGoesExternal: true, at: 'review' });
+
+    expect(heading()).toBeInTheDocument();
+  });
+
+  /**
+   * **The card and the footer control are both meant to be here.**
+   *
+   * The design draws this card *and* a "What your profile unlocks?" control under
+   * the footer's primary button, in the same viewport (Figma 682:10187), showing
+   * the same two reasons. It reads as one thing rendered twice and is not: the
+   * card is for someone at the top of a long role description, and the control is
+   * for someone who has scrolled a thousand pixels past it to reach the buttons.
+   * Confirmed with the design.
+   *
+   * Pinned because the obvious tidy-up is to delete one of them, and whichever
+   * one goes, a real reader loses the argument at the moment they were making the
+   * decision.
+   */
+  it('is made twice on purpose — in the body and under the footer', () => {
+    renderStep(OTHER, { applyGoesExternal: true, at: 'review' });
+
+    expect(heading()).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'What your profile unlocks?' })).toBeInTheDocument();
+  });
+
+  /* The banner is gated on `isLoggedIn` alone, so it survives on a Protocol Labs
+     role — where applying happens in-app and the three-step rail is *not*
+     withheld. That is the busiest this screen gets, and it is deliberate: the
+     rail says which steps exist, the banner says why bother, and the state where
+     the flow actually completes in-app is the one where the argument is truest.
+     Pinned because the obvious "tidy-up" is to hide one of them. */
+  it('makes it on a role that applies in-app, alongside the rail', () => {
+    renderStep(PL, { at: 'review' });
+
+    expect(heading()).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Application steps' })).toBeInTheDocument();
+  });
+
+  it('is not made to someone who already has a profile', () => {
+    renderStep(OTHER, { applyGoesExternal: true, at: 'review', isLoggedIn: true, memberUid: 'm1' });
+
+    expect(heading()).not.toBeInTheDocument();
+  });
+
+  /* Only the reading step. On the account form the argument has been won — the
+     person is filling it in — and on the letter step it would be arguing for
+     something they are three fields from having. */
+  it('is not made again on the steps after it', () => {
+    renderStep(OTHER, { applyGoesExternal: true, at: 'profile' });
+
+    expect(heading()).not.toBeInTheDocument();
+  });
+
+  /**
+   * The in-app footer stays bare.
+   *
+   * A caption was written for it, matching the outbound branch's treatment, and
+   * removed: the design covers the outbound footer and not this one, so that
+   * sentence was invented rather than transcribed. Pinned as an absence because
+   * "the other branch has one" is a persuasive reason to add it back, and the
+   * reason not to lives nowhere in the markup.
+   */
+  it('leaves the in-app footer without a caption the design never drew', () => {
+    const { container } = renderStep(PL, { at: 'review' });
+
+    expect(screen.getByRole('button', { name: 'Sign up to Apply' })).toBeInTheDocument();
+    expect(container.querySelector('p[class*="footerActionNote"]')).toBeNull();
   });
 });

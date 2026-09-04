@@ -71,6 +71,13 @@ export const SUBJECT_TEMPLATE = `{{applicant_name}} applied for {{role_title}}`;
  *   before pressing Submit. Both sides read the same string, so neither can be
  *   surprised by what the other saw. Location and skills sit under it in the same
  *   order the modal's profile card shows them.
+ *
+ *   All three lines are conditional, and the summary's `{{#if}}` is load-bearing
+ *   rather than tidy: the current role stopped being required, so the summary can
+ *   be empty — and `fillTemplate` drops any *paragraph* still holding an
+ *   unresolved placeholder. Unguarded, one missing role would have taken the
+ *   applicant's location and skills out of the email with it, silently, because
+ *   they share this paragraph.
  * - *"What they wrote" is unconditional.* The cover letter is required — Submit
  *   stays dead until it holds non-whitespace — so there is no empty-letter branch
  *   to write. This is the whole payoff of requiring it: every one of these emails
@@ -92,7 +99,7 @@ export const BODY_TEMPLATE = `Hi {{recipient_first_name}},
 
 {{applicant_name}} applied for {{role_title}}.
 
-{{applicant_summary}}
+{{#if applicant_summary}}{{applicant_summary}}{{/if}}
 {{#if applicant_location}}{{applicant_location}}{{/if}}
 {{#if applicant_skills}}{{applicant_skills}}{{/if}}
 
@@ -126,7 +133,7 @@ export const TEMPLATE_VARIABLES: { key: string; source: string }[] = [
   { key: 'applicant_first_name', source: 'the same name, first word' },
   { key: 'role_title', source: 'the role they pressed Apply on' },
   { key: 'team_name', source: 'the team that posted the role' },
-  { key: 'applicant_summary', source: 'their profile’s current-role line, as they approved it' },
+  { key: 'applicant_summary', source: 'their profile’s current-role line, as they approved it (optional)' },
   { key: 'applicant_location', source: 'profile → Location (optional)' },
   { key: 'applicant_skills', source: 'profile → Skills (optional)' },
   { key: 'cover_letter', source: 'the note they wrote for this role' },

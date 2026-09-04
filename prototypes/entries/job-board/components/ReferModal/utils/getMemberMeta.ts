@@ -7,8 +7,8 @@ import { DirectoryMember } from '../types';
  *
  *  `omitTeam` drops the team name for hiring-team rows: the modal and the menu
  *  group already name the team, so repeating it on every row spends the width
- *  the role needs. Team Lead still shows — that is the fact the prefill is
- *  asking the referrer to check. */
+ *  the role needs. Team Lead still shows — that is the fact the suggestion is
+ *  asking the referrer to weigh. */
 export function getMemberMeta(member: DirectoryMember, options?: { omitTeam?: boolean }): string | undefined {
   return (
     [member.isTeamLead ? 'Team Lead' : null, member.title, options?.omitTeam ? null : member.team]

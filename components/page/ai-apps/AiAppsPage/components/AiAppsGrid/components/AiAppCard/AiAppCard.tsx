@@ -4,11 +4,13 @@ import Link from 'next/link';
 import { clsx } from 'clsx';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
-import { DocumentIcon } from '@/components/icons';
+import { DocumentIcon, EyeIcon, UsersThreeIcon } from '@/components/icons';
 import { Button } from '@/components/common/Button';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { AiApp, deployFailureKind, hasPrd } from '@/services/ai-apps/ai-apps.service';
-import { formatAiAppDate } from '@/utils/ai-apps.utils';
+import { formatAiAppDate, formatCount } from '@/utils/ai-apps.utils';
+import { DetailsItem } from '@/components/core/UpdatesPanel/NotificationItem/components/NotificationFooter/components/DetailsItem';
+import nf from '@/components/core/UpdatesPanel/NotificationItem/components/NotificationFooter/NotificationFooter.module.scss';
 
 import { AppActionsMenu } from '../../../AppActionsMenu';
 
@@ -60,6 +62,21 @@ export function AiAppCard(props: Props) {
   // Dimming is the danger treatment — manager-only too.
   const showDanger = failureKind === 'danger' && !!canManage;
 
+  const views = app.viewCount ?? 0;
+  const wau = app.weeklyActiveUsers ?? 0;
+  const metrics = [
+    ...(views > 0 ? [{ icon: <EyeIcon width={16} height={13} />, value: formatCount(views), label: 'views' }] : []),
+    ...(wau > 0
+      ? [
+          {
+            icon: <UsersThreeIcon width={14} height={14} />,
+            value: formatCount(wau),
+            label: 'weekly active users',
+          },
+        ]
+      : []),
+  ];
+
   const body = (
     <>
       {/* Reserve room for the ⋯ menu so long names ellipsize instead of sliding under it. */}
@@ -69,6 +86,15 @@ export function AiAppCard(props: Props) {
         {isDeploying && <span className={s.deployingBadge}>Deploying</span>}
       </div>
       <p className={s.description}>{app.description}</p>
+      {metrics.length > 0 ? (
+        <div className={`${nf.details} ${s.metricsRow}`}>
+          {metrics.map((m) => (
+            <DetailsItem key={m.label} data={m} showIcon showLabel />
+          ))}
+        </div>
+      ) : (
+        <p className={s.noMetrics}>No users yet. Be the first in.</p>
+      )}
     </>
   );
 

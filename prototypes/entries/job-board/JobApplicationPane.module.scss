@@ -315,6 +315,13 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+// The CV line, after the chips: the same break the chips take from the
+// summary, so the card reads as three groups — who, what they work in, what
+// they attached.
+.cvLine {
+  margin-top: 6px;
+}
+
 .skills {
   display: flex;
   flex-wrap: wrap;

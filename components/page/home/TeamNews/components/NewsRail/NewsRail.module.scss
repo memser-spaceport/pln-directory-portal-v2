@@ -211,9 +211,9 @@
   letter-spacing: -0.2px;
   color: #455468;
   /* Short descriptions can run longer than the old focus-area label — keep
-     rows tidy at two lines. */
+     rows tidy at three lines. */
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

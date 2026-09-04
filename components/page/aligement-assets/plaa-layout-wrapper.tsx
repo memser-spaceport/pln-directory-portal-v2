@@ -44,7 +44,6 @@ const getPageInfo = (
     activities: { activeItem: 'activities', title: 'Activities' },
     profile: { activeItem: 'profile', title: 'Profile' },
     kudos: { activeItem: 'kudos', title: 'Kudos' },
-    'incentive-model': { activeItem: 'incentive-model', title: 'Incentive Model' },
     'terms-of-use': { activeItem: 'terms-of-use', title: 'Terms of Use' },
     'privacy-policy': { activeItem: 'privacy-policy', title: 'Privacy Policy' },
     'product-versions': { activeItem: 'product-versions', title: 'Product Versions' },

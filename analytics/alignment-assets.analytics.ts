@@ -46,20 +46,10 @@ export const useAlignmentAssetsAnalytics = () => {
     BANNER_BUTTON_CLICKED: 'alignment-assets-banner-button-clicked',
 
     // Overview Page
-    OVERVIEW_CREATE_ACCOUNT_CLICKED: 'alignment-assets-overview-create-account-clicked',
-    OVERVIEW_WAITLIST_FORM_CLICKED: 'alignment-assets-overview-waitlist-form-clicked',
-    OVERVIEW_LEARN_MORE_CLICKED: 'alignment-assets-overview-learn-more-clicked',
+    OVERVIEW_PORTFOLIO_LINK_CLICKED: 'alignment-assets-overview-portfolio-link-clicked',
+    OVERVIEW_ACTIVITIES_LINK_CLICKED: 'alignment-assets-overview-activities-link-clicked',
     OVERVIEW_FAQ_LINK_CLICKED: 'alignment-assets-overview-faq-link-clicked',
-
-    // Incentive Model Page
-    INCENTIVE_MODEL_ACTIVITIES_LINK_CLICKED: 'alignment-assets-incentive-model-activities-link-clicked',
-    INCENTIVE_MODEL_ROUND_DROPDOWN_OPENED: 'alignment-assets-incentive-model-round-dropdown-opened',
-    INCENTIVE_MODEL_PREV_ROUND_CLICKED: 'alignment-assets-incentive-model-prev-round-clicked',
-    INCENTIVE_MODEL_NEXT_ROUND_CLICKED: 'alignment-assets-incentive-model-next-round-clicked',
-    INCENTIVE_MODEL_GO_TO_CURRENT_CLICKED: 'alignment-assets-incentive-model-go-to-current-clicked',
-    INCENTIVE_MODEL_ROUND_INPUT_CHANGED: 'alignment-assets-incentive-model-round-input-changed',
-    INCENTIVE_MODEL_TIP_VIEW_LINK_CLICKED: 'alignment-assets-incentive-model-tip-view-link-clicked',
-    INCENTIVE_MODEL_LEARN_MORE_CLICKED: 'alignment-assets-incentive-model-learn-more-clicked',
+    OVERVIEW_ONBOARDING_LINK_CLICKED: 'alignment-assets-overview-onboarding-link-clicked',
 
     // Activities Page
     ACTIVITIES_SUBMIT_BTN_CLICKED: 'alignment-assets-activities-submit-btn-clicked',
@@ -159,55 +149,20 @@ export const useAlignmentAssetsAnalytics = () => {
   // ==========================================
   // Overview Page Analytics
   // ==========================================
-  function onOverviewCreateAccountClicked(buttonPosition: 'start' | 'floating' | 'end') {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_CREATE_ACCOUNT_CLICKED, { buttonPosition });
+  function onOverviewPortfolioLinkClicked(url: string) {
+    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_PORTFOLIO_LINK_CLICKED, { url });
   }
 
-  function onOverviewWaitlistFormClicked(url: string) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_WAITLIST_FORM_CLICKED, { url });
-  }
-
-  function onOverviewLearnMoreClicked(url: string) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_LEARN_MORE_CLICKED, { url });
+  function onOverviewActivitiesLinkClicked(url: string, source: 'how-it-works' | 'cta-banner') {
+    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_ACTIVITIES_LINK_CLICKED, { url, source });
   }
 
   function onOverviewFaqLinkClicked(url: string) {
     captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_FAQ_LINK_CLICKED, { url });
   }
 
-  // ==========================================
-  // Incentive Model Page Analytics
-  // ==========================================
-  function onIncentiveModelActivitiesLinkClicked(url: string) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.INCENTIVE_MODEL_ACTIVITIES_LINK_CLICKED, { url });
-  }
-
-  function onIncentiveModelRoundDropdownOpened(currentRound: number) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.INCENTIVE_MODEL_ROUND_DROPDOWN_OPENED, { currentRound });
-  }
-
-  function onIncentiveModelPrevRoundClicked(fromRound: number, toRound: number) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.INCENTIVE_MODEL_PREV_ROUND_CLICKED, { fromRound, toRound });
-  }
-
-  function onIncentiveModelNextRoundClicked(fromRound: number, toRound: number) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.INCENTIVE_MODEL_NEXT_ROUND_CLICKED, { fromRound, toRound });
-  }
-
-  function onIncentiveModelGoToCurrentClicked(fromRound: number, currentRound: number) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.INCENTIVE_MODEL_GO_TO_CURRENT_CLICKED, { fromRound, currentRound });
-  }
-
-  function onIncentiveModelRoundInputChanged(newRound: number) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.INCENTIVE_MODEL_ROUND_INPUT_CHANGED, { newRound });
-  }
-
-  function onIncentiveModelTipViewLinkClicked(url: string) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.INCENTIVE_MODEL_TIP_VIEW_LINK_CLICKED, { url });
-  }
-
-  function onIncentiveModelLearnMoreClicked(url: string) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.INCENTIVE_MODEL_LEARN_MORE_CLICKED, { url });
+  function onOverviewOnboardingLinkClicked(url: string, source: 'hero' | 'cta-banner') {
+    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_ONBOARDING_LINK_CLICKED, { url, source });
   }
 
   // ==========================================
@@ -321,7 +276,12 @@ export const useAlignmentAssetsAnalytics = () => {
   }
 
   function onFaqsQuestionToggled(categoryId: string, questionId: string, questionText: string, isExpanded: boolean) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.FAQS_QUESTION_TOGGLED, { categoryId, questionId, questionText, isExpanded });
+    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.FAQS_QUESTION_TOGGLED, {
+      categoryId,
+      questionId,
+      questionText,
+      isExpanded,
+    });
   }
 
   function onFaqsClearSearchClicked(previousSearchQuery: string) {
@@ -368,20 +328,10 @@ export const useAlignmentAssetsAnalytics = () => {
     onBannerButtonClicked,
 
     // Overview Page
-    onOverviewCreateAccountClicked,
-    onOverviewWaitlistFormClicked,
-    onOverviewLearnMoreClicked,
+    onOverviewPortfolioLinkClicked,
+    onOverviewActivitiesLinkClicked,
     onOverviewFaqLinkClicked,
-
-    // Incentive Model Page
-    onIncentiveModelActivitiesLinkClicked,
-    onIncentiveModelRoundDropdownOpened,
-    onIncentiveModelPrevRoundClicked,
-    onIncentiveModelNextRoundClicked,
-    onIncentiveModelGoToCurrentClicked,
-    onIncentiveModelRoundInputChanged,
-    onIncentiveModelTipViewLinkClicked,
-    onIncentiveModelLearnMoreClicked,
+    onOverviewOnboardingLinkClicked,
 
     // Activities Page
     onActivitiesSubmitBtnClicked,

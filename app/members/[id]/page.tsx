@@ -6,6 +6,7 @@ import { getMember } from '@/services/members.service';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
 import { ProfileDetails } from '@/components/page/member-details/ProfileDetails';
 import { ContactDetails } from '@/components/page/member-details/ContactDetails';
+import { JobSearchStatusDetails } from '@/components/page/member-details/JobSearchStatusDetails';
 import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
 import { ContributionsDetails } from '@/components/page/member-details/ContributionsDetails';
 import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
@@ -186,6 +187,12 @@ const MemberDetails = (props: { params: Promise<any> }) => {
         )}
         <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
         <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+        {/* Private to the member, so it is mounted only on their own profile —
+            the API omits `jobSearchStatus` for every other viewer anyway, but
+            the pill inside promises "only visible to you" and that sentence has
+            to be true of the surface, not just of the payload. The card carries
+            the same check itself as a backstop. */}
+        {isOwner && <JobSearchStatusDetails member={member} />}
         <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
         <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
         {/* Below the two-column breakpoint the rail is hidden, so the card falls

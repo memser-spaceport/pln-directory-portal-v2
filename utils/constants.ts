@@ -528,6 +528,7 @@ export const MEMBER_ANALYTICS_EVENTS = {
   INLINE_PROFILE_EDITOR_PRIMARY_TEAM_CHANGED: 'inline-profile-editor-primary-team-changed',
   INLINE_PROFILE_EDITOR_CONTACT_DETAILS_EDIT_CLICKED: 'inline-profile-editor-contact-details-edit-clicked',
   INLINE_PROFILE_EDITOR_CONTACT_DETAILS_SAVE_CLICKED: 'inline-profile-editor-contact-details-save-clicked',
+  INLINE_PROFILE_EDITOR_JOB_SEARCH_STATUS_CHANGED: 'inline-profile-editor-job-search-status-changed',
 
   INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_ADD_CLICKED: 'inline-profile-editor-experience-details-add-clicked',
   INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_SAVE_CLICKED: 'inline-profile-editor-experience-details-save-clicked',

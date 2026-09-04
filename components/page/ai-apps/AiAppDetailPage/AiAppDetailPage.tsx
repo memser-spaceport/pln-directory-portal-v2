@@ -104,12 +104,6 @@ export function AiAppDetailPage(props: Props) {
   const [probeResult, setProbeResult] = useState<{ generation: string; status: 'live' | 'down' } | null>(null);
 
   useEffect(() => {
-    if (!app || trackedAppUid.current === app.uid) return;
-    trackedAppUid.current = app.uid;
-    analytics.onDetailPageViewed(app.uid, app.name);
-  }, [app, analytics]);
-
-  useEffect(() => {
     const name = app?.name?.trim();
     if (!name) return;
     const previous = document.title;
@@ -176,6 +170,13 @@ export function AiAppDetailPage(props: Props) {
       return null;
     }
   }, [appUrl]);
+
+  useEffect(() => {
+    if (!app || trackedAppUid.current === app.uid) return;
+    trackedAppUid.current = app.uid;
+    analytics.onDetailPageViewed(app.uid, app.name, appOrigin ? resolveAppPath(appOrigin, initialPath) : null);
+  }, [app, analytics, appOrigin, initialPath]);
+
   // "The running version changed" key for the probe generation and the iframe
   // remount. lastDeployedAt moves only on SUCCESSFUL deploys — keying on
   // updatedAt would remount a visitor's working previous version whenever a

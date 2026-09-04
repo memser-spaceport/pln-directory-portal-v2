@@ -464,6 +464,7 @@ describe('AiAppDetailPage', () => {
 
       const iframe = await mountIframe();
       expect(iframe.getAttribute('src')).toBe(`${APP_ORIGIN}/reports/42`);
+      expect(mockAnalytics.onDetailPageViewed).toHaveBeenCalledWith('app-1', 'News Summarizer', '/reports/42');
     });
 
     it.each(['//evil.com/x', 'https://evil.com', 'javascript:alert(1)'])(
@@ -474,6 +475,7 @@ describe('AiAppDetailPage', () => {
 
         const iframe = await mountIframe();
         expect(iframe.getAttribute('src')).toBe('https://sandbox.example.com/app-1');
+        expect(mockAnalytics.onDetailPageViewed).toHaveBeenCalledWith('app-1', 'News Summarizer', null);
       },
     );
 

@@ -1,6 +1,5 @@
 // Only the parts react-select's `styles` object can't express: the two-line option
 // row, the group heading, and the chip / "add email" contents.
-@use 'styles/media';
 
 // Production has two caption styles: the form primitives' own `.fieldDescription`
 // (10px/500 #878b94, used by FormSelect / FormMultiSelect / FormTextArea) and the
@@ -265,22 +264,29 @@
 // whatever is spare (see `ReferModal.module.scss`, `.templateBlock`), so a taller
 // block here is taken out of slack rather than out of the note.
 //
-// **Two columns, and the cells stretch.** The single column above is the argument
-// this grid has to keep, not overturn: what was wrong with the wrapping row was the
-// ragged right edge and the ⊕ landing somewhere new on every line. A grid of equal
-// cells keeps both fixes — every name on one of two left edges, every ⊕ on one of
-// two right ones — and only the column count changes. A row of pills that merely
-// happened to fit two-up would give the ragged edge straight back.
+// **Chips wrap; the label keeps its own line.** Two chips fit a row at this card's
+// width, three sometimes, one when a name and a title are long — the row decides,
+// which is what keeps the block honest at every width without a breakpoint.
 //
-// The cost is the one `align-items: flex-start` used to buy: a stretched chip is
-// closer in shape to a *picked* recipient row, and the two states have to stay
-// tellable apart. What keeps them apart is everything else about it — the 999px
-// capsule against the picked row's 8px, the transparent ground against its tint,
-// and the ⊕ where the row carries a ✕. No fill was added here for that reason.
+// This was briefly a two-column grid, and the grid is why it is not one now. A grid
+// container in this slot is shrink-to-fit, because the field wrapper around it is
+// `align-items: flex-start` (`FormMultiSelect.module.scss` `.field`), and `1fr` is
+// really `minmax(auto, 1fr)` — tracks that refuse to go below their content. Between
+// them the block sized itself to its longest chip twice over and pushed a horizontal
+// scrollbar into a card that should never have one. `width: 100%` and
+// `minmax(0, 1fr)` would have fixed the overflow, but not the look that came with
+// it: stretched cells make a chip the same shape as a *picked* recipient row, which
+// is the one thing these two states must not share.
 //
-// Below the mobile breakpoint the card is full-width and a cell is ~160px, which
-// cannot hold a name and a role at once, so it drops back to one column — the
-// layout this replaced, still correct at that width.
+// `width: 100%` stays anyway. A wrapping flex container is capped at the available
+// width by the shrink-to-fit rule, so it wraps correctly without it — but only by
+// side effect, and the next person to add a `flex-basis` here shouldn't have to know
+// that.
+//
+// What the single-column version was protecting is a real cost, paid knowingly: a
+// ragged right edge, and the ⊕ landing in a different place on every line. Against
+// it, four names now take two rows of a height-capped card instead of four, and the
+// mark that moves is the one every chip carries anyway.
 //
 // The chip's name and role are the *picked row's* treatment (`.rowText` /
 // `.rowName` / `.rowRole` below), not the menu row's two-line stack — and that
@@ -288,9 +294,12 @@
 // scanning, a chip is a fact you confirm at a glance, and stacking wastes the
 // height. A chip becomes one of those rows when pressed, so they now match.
 .suggestBlock {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-wrap: wrap;
+  // Chips hug their own names — stretched, they read as picked rows.
+  align-items: flex-start;
   gap: 8px;
+  width: 100%;
   // On top of the field wrapper's own 4px gap — the chips govern the field above
   // them, so they sit closer to it than to whatever follows (see lesson 11:
   // equidistant reads as unrelated).
@@ -301,12 +310,6 @@
   // to the field it belongs to. Carried by the chips rather than by the wrapper,
   // so it disappears with them once the whole team has been added.
   margin-bottom: 12px;
-
-  // Last in the block, not up beside `grid-template-columns`: Sass warns when a
-  // declaration follows a nested rule, and every margin below it would trip it.
-  @include media.mobile-only {
-    grid-template-columns: 1fr;
-  }
 }
 
 // Sentence case at caption size, not the menu's uppercase group heading, even now
@@ -316,10 +319,12 @@
 // uppercase rule between two sentence-case field labels would read as a section
 // break in a form that has no sections.
 .suggestLabel {
-  // It heads the block, so it takes the whole row rather than the first cell —
-  // without this the grid treats the heading as the first suggestion and the
-  // opening chip sits beside its own label.
-  grid-column: 1 / -1;
+  // Its own line, whatever else fits. This is the one fix worth keeping from the
+  // single-column version: with a single suggestion left, the label and that lone
+  // chip used to share a line with nothing between them but a gap, and read as one
+  // run-on phrase — "Suggested from Parasail Vova Horin" — rather than a heading and
+  // the thing it heads.
+  flex-basis: 100%;
 
   font-size: 12px;
   font-weight: 400;
@@ -341,6 +346,11 @@
   cursor: pointer;
   text-align: left;
   transition: border-color 0.2s ease;
+  // A chip is sized by its contents, so one very long name + title pair would
+  // otherwise be wider than the row it wraps into and take the card's whole width
+  // with it. Capped here; the name and role inside truncate to fit.
+  max-width: 100%;
+  min-width: 0;
 
   &:hover {
     border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
@@ -356,10 +366,10 @@
   min-width: 0;
 }
 
-// `min-width: 0` and the ellipsis are new with the grid, and they are not optional:
-// a chip used to be sized *by* this text, so `nowrap` alone was safe. In a fixed
-// cell the same rule makes a long name push the ⊕ out of the chip — the one mark
-// the two columns exist to line up.
+// `min-width: 0` and the ellipsis pair with the chip's `max-width: 100%`. A chip is
+// normally sized *by* this text, so `nowrap` alone was safe — but once the chip is
+// capped at the row's width, `nowrap` with nothing to clip it would spill the name
+// straight past the border instead of ending it.
 //
 // It shrinks last. `.suggestRole` carries a shrink factor of 100 against this one's
 // 1, so the role gives up its width almost entirely before the name loses a
@@ -384,10 +394,10 @@
   font-weight: 400;
   line-height: 16px;
   color: var(--foreground-neutral-tertiary, #8897ae);
-  // The role truncates rather than letting one long title push the chip past its
-  // cell. `flex-shrink: 100` against the name's 1 fixes the order in which the two
-  // give way — there is ~166px for both inside a 239px cell, and a "Senior
-  // Engineering Manager" should cost itself the room, not the person's name.
+  // The role truncates rather than letting one long title push the chip past the row.
+  // `flex-shrink: 100` against the name's 1 fixes the order in which the two give
+  // way: a "Senior Engineering Manager" should cost itself the room, not the
+  // person's name. On a chip that fits, neither shrinks and nothing is lost.
   min-width: 0;
   flex-shrink: 100;
   overflow: hidden;
@@ -405,11 +415,10 @@
   display: block;
 }
 
-// Pinned to the cell's right edge rather than sitting wherever the name ends. That
-// is the whole payoff of stretching the cells: press-here lands in one of two fixed
-// places instead of a new one on every line.
+// Sits where the name ends, not pinned right: the chip is a pill sized to its own
+// contents, and a ⊕ pushed to a far edge would stretch it into the shape of a picked
+// recipient row.
 .suggestPlus {
   flex-shrink: 0;
-  margin-left: auto;
   color: var(--foreground-brand-primary, #1b4dff);
 }

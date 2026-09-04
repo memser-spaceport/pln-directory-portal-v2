@@ -164,12 +164,7 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
                     onClick={() => handleCardClick(activity)}
                   >
                     <div className="activity-card__top">
-                      <div className="activity-card__tags">
-                        <span className="activity-card__category">{activity.category}</span>
-                        {activity.endDateLabel && (
-                          <span className="activity-card__end-date">{activity.endDateLabel}</span>
-                        )}
-                      </div>
+                      <span className="activity-card__category">{activity.category}</span>
                       <div className="activity-card__points">
                         <Image src="/icons/points-icon.svg" alt="points-icon" width={16} height={16} />
                         <span className="activity-card__points-val">{activity.points} points</span>
@@ -182,6 +177,10 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
                         {activity.networkValue}
                       </p>
                     </div>
+
+                    {activity.endDateLabel && (
+                      <span className="activity-card__end-date">{activity.endDateLabel}</span>
+                    )}
 
                     <div className="activity-card__footer">
                       <div className="activity-card__tracking">
@@ -336,13 +335,6 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
           gap: 12px;
         }
 
-        .activity-card__tags {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          gap: 8px;
-        }
-
         .activity-card__category {
           color: #2563eb;
           font-size: 12px;
@@ -354,6 +346,8 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
         }
 
         .activity-card__end-date {
+          display: inline-block;
+          align-self: flex-end;
           color: #b45309;
           font-size: 12px;
           font-weight: 600;
@@ -361,6 +355,7 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
           padding: 6px 12px;
           border-radius: 999px;
           white-space: nowrap;
+          margin-bottom: 16px;
         }
 
         .activity-card__points {

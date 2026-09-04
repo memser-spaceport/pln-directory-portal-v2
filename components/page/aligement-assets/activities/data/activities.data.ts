@@ -504,7 +504,8 @@ export const activitiesData: ActivitiesData = {
       activity: 'Network Mapping for PL Capital',
       networkValue: 'Help PL Capital identify relevant relationships in your professional network',
       points: '250',
-      frequency: 'One-Time',
+      frequency: 'Limited Time',
+      endDateLabel: 'Ends Oct 31, 2026',
       verificationType: 'Submission',
       cta: 'submit',
       popupContent: {

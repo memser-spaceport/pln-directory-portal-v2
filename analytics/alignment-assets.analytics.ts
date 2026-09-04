@@ -49,6 +49,7 @@ export const useAlignmentAssetsAnalytics = () => {
     OVERVIEW_PORTFOLIO_LINK_CLICKED: 'alignment-assets-overview-portfolio-link-clicked',
     OVERVIEW_ACTIVITIES_LINK_CLICKED: 'alignment-assets-overview-activities-link-clicked',
     OVERVIEW_FAQ_LINK_CLICKED: 'alignment-assets-overview-faq-link-clicked',
+    OVERVIEW_ONBOARDING_LINK_CLICKED: 'alignment-assets-overview-onboarding-link-clicked',
 
     // Activities Page
     ACTIVITIES_SUBMIT_BTN_CLICKED: 'alignment-assets-activities-submit-btn-clicked',
@@ -158,6 +159,10 @@ export const useAlignmentAssetsAnalytics = () => {
 
   function onOverviewFaqLinkClicked(url: string) {
     captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_FAQ_LINK_CLICKED, { url });
+  }
+
+  function onOverviewOnboardingLinkClicked(url: string, source: 'hero' | 'cta-banner') {
+    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_ONBOARDING_LINK_CLICKED, { url, source });
   }
 
   // ==========================================
@@ -326,6 +331,7 @@ export const useAlignmentAssetsAnalytics = () => {
     onOverviewPortfolioLinkClicked,
     onOverviewActivitiesLinkClicked,
     onOverviewFaqLinkClicked,
+    onOverviewOnboardingLinkClicked,
 
     // Activities Page
     onActivitiesSubmitBtnClicked,

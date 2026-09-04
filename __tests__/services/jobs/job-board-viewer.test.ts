@@ -1,6 +1,7 @@
 import {
   BOARD_VIEWER_STATES,
   canApplyToJobs,
+  canShowJobInterest,
   deriveBoardViewer,
   getJobsAccessVerdict,
   areAllJobProfileSectionsFilled,
@@ -122,6 +123,23 @@ describe('isJobAspirant', () => {
         rbac: { status: 'PENDING', policies: [], effectivePermissions: [], roles: [] },
       }),
     ).toBe(false);
+  });
+});
+
+describe('canShowJobInterest', () => {
+  it('is withheld from an established, signed-in member', () => {
+    expect(canShowJobInterest({ isLoggedIn: true, userInfo: rbacUser('APPROVED') })).toBe(false);
+    expect(canShowJobInterest({ isLoggedIn: true, userInfo: legacyUser('L4') })).toBe(false);
+  });
+
+  it('is shown to a signed-in Job Aspirant', () => {
+    expect(canShowJobInterest({ isLoggedIn: true, userInfo: rbacUser('PENDING', [JOB_ASPIRANT_POLICY]) })).toBe(true);
+    expect(canShowJobInterest({ isLoggedIn: true, userInfo: { uid: 'm1', signUpSource: 'job-board' } })).toBe(true);
+  });
+
+  it('is shown to a signed-out visitor regardless of any stale cookie userInfo', () => {
+    expect(canShowJobInterest({ isLoggedIn: false, userInfo: null })).toBe(true);
+    expect(canShowJobInterest({ isLoggedIn: false, userInfo: rbacUser('APPROVED') })).toBe(true);
   });
 });
 

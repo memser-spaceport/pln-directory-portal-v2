@@ -98,6 +98,19 @@ export const canSeeOriginalPosting = (args: { isLoggedIn: boolean; userInfo: IUs
   args.isLoggedIn && !isJobAspirant(args.userInfo ?? null);
 
 /**
+ * Whether this viewer is offered the "I'm interested" light signal.
+ *
+ * It exists to capture intent before someone has a real application in —
+ * a **Job Aspirant**'s problem, and a signed-out visitor's, who becomes one by
+ * pressing it (`pushLogin`). An established member already has full Apply
+ * available, with the profile it needs to be used right; the light signal has
+ * nothing to add on top of that, so it is withheld from them entirely rather
+ * than shown and disabled.
+ */
+export const canShowJobInterest = (args: { isLoggedIn: boolean; userInfo: IUserInfo | null | undefined }): boolean =>
+  !args.isLoggedIn || isJobAspirant(args.userInfo ?? null);
+
+/**
  * Where someone is in their search.
  *
  * **Private — PL Team only.** Never rendered on the public profile, never in the

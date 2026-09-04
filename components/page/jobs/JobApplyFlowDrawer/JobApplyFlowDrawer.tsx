@@ -206,11 +206,13 @@ interface JobApplyFlowDrawerProps {
   /**
    * The "I'm interested" signal.
    *
-   * Always supplied in the app — the flag that used to gate it is gone, and the
-   * banner now shows wherever this drawer opens. Optional only so that the
+   * Supplied by the controller only for a Job Aspirant or a signed-out visitor
+   * — the persona the light signal exists for, and the one who becomes it by
+   * pressing it. An established member is withheld this prop entirely, so the
+   * banner never renders for them; that withholding is the whole gate,
+   * documented at `JobApplyFlowController`. Optional here only so that the
    * several suites which render this drawer to test something else do not have
-   * to wire a signal they never press. If the banner ever needs withdrawing
-   * again, withholding this prop at the controller is the whole change.
+   * to wire a signal they never press.
    *
    * `isSettled` is not a loading flag to render a spinner from: it says whether
    * the answer is known, and until it is the banner does not draw. An

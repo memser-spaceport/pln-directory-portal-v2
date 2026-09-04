@@ -86,12 +86,14 @@ export function AiAppCard(props: Props) {
         {isDeploying && <span className={s.deployingBadge}>Deploying</span>}
       </div>
       <p className={s.description}>{app.description}</p>
-      {metrics.length > 0 && (
+      {metrics.length > 0 ? (
         <div className={`${nf.details} ${s.metricsRow}`}>
           {metrics.map((m) => (
             <DetailsItem key={m.label} data={m} showIcon showLabel />
           ))}
         </div>
+      ) : (
+        <p className={s.noMetrics}>No metrics yet. Be the first in.</p>
       )}
     </>
   );

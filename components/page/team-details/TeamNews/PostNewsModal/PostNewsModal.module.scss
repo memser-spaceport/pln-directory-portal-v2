@@ -1,6 +1,10 @@
 .postTrigger {
   display: inline-flex;
   flex-shrink: 0;
+  // Pins it to the row's right edge even when it wraps onto its own line (the
+  // member-profile card's fixed, narrower width can force that) — redundant
+  // with the team rail's space-between header, harmless there.
+  margin-left: auto;
 }
 
 .postAction.postAction {

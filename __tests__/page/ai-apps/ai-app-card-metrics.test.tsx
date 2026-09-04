@@ -46,13 +46,15 @@ describe('AiAppCard metrics', () => {
     expect(screen.queryByText(/weekly active users/)).not.toBeInTheDocument();
   });
 
-  it('hides the metrics row when both counts are 0 or absent', () => {
+  it('shows the empty-metrics fallback when both counts are 0 or absent', () => {
     const { rerender } = render(<AiAppCard app={buildApp({ viewCount: 0, weeklyActiveUsers: 0 })} />);
     expect(screen.queryByText('views')).not.toBeInTheDocument();
     expect(screen.queryByText('weekly active users')).not.toBeInTheDocument();
+    expect(screen.getByText('No metrics yet. Be the first in.')).toBeInTheDocument();
 
     rerender(<AiAppCard app={buildApp()} />);
     expect(screen.queryByText('views')).not.toBeInTheDocument();
     expect(screen.queryByText('weekly active users')).not.toBeInTheDocument();
+    expect(screen.getByText('No metrics yet. Be the first in.')).toBeInTheDocument();
   });
 });

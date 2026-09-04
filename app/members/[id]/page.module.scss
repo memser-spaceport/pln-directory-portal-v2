@@ -27,7 +27,7 @@
     justify-content: center;
     padding-bottom: 40px;
     width: 100%;
-    max-width: 1216px;
+    max-width: 1304px;
 
     &.singleColumn {
       max-width: 900px;
@@ -37,6 +37,14 @@
 
 .content {
   width: 100%;
+
+  // Fixed instead of shrinking: without this, a wide sidebar card (e.g. team
+  // news with a long title) squeezed this column's width along with it —
+  // mirrors TeamProfileLayout.module.scss `.mainCol`.
+  @include media.tablet-landscape {
+    width: auto;
+    flex-shrink: 0;
+  }
 }
 
 .desktopOnly {
@@ -44,6 +52,12 @@
 
   @include media.tablet-landscape {
     display: block !important;
+    // Wide enough that the news card's title and Post news button always fit
+    // on one line (measured: ~364px needed for a 3-digit count), so every
+    // sidebar card renders at the same width instead of the column following
+    // whichever card is widest.
+    width: 380px;
+    flex-shrink: 0;
   }
 }
 

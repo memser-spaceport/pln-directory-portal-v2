@@ -72,10 +72,12 @@ type ReferFormData = {
  * plus the referrer and the referred member.
  *
  * Whether the referred member is copied is the referrer's call — `includeReferredMember`
- * on the send. The backend does not read that field yet and CCs them either way, so
- * the tick is honest by construction rather than by luck: it defaults to checked (which
- * is today's behaviour) and the receipt only ever *adds* "was copied in too", never
- * claims the negative.
+ * on the send. The backend does not read that field yet and CCs them either way. The
+ * tick defaults to UNCHECKED, which is the copy people expect but NOT what the backend
+ * currently does, so the unticked box is a claim the product cannot yet back. The
+ * receipt stays honest regardless — it only ever *adds* "was copied in too" and never
+ * claims the negative — so the gap is confined to the checkbox until the backend reads
+ * the field.
  *
  * Signed-in only: `ReferRoleRow` sends anonymous visitors to login rather than opening
  * this, and the backend resolves the referrer from the authenticated email. Both calls
@@ -98,15 +100,25 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
   const [sent, setSent] = useState(false);
   const [messageEdited, setMessageEdited] = useState(false);
   /* Whether the person being referred is copied on the email.
-     Checked by default, because that is what the referral did before this was a
-     choice — the default keeps the behaviour, the tick makes it a decision rather
-     than something the product does to them behind their back. It is a real one: a
-     note is written differently when its subject is reading it.
+
+     **Unchecked by default.** Copying the subject of a referral onto the referral
+     is the surprising option, not the expected one — a note is written differently
+     when the person it is about is reading it, so the quiet default is the one
+     that leaves the referrer free to write plainly, and the tick is how they opt
+     into the other thing.
+
+     **A caveat that outlives this line.** The backend does not read
+     `includeReferredMember` yet and CCs the referred member either way. While that
+     is true an unticked box is the UI's only false note in this flow: it implies a
+     person will not be copied, and they will be. The receipt is still safe — it
+     only ever *adds* "was copied in too" and never asserts the negative — so the
+     exposure is the checkbox alone. Nothing here can fix that; the backend
+     honouring the field is what closes it.
 
      Not reset when the referee changes, only when the modal opens: the choice is
      about the act of sending, not about the person, and re-ticking a box because
      you corrected a name would be surprising. */
-  const [copyReferee, setCopyReferee] = useState(true);
+  const [copyReferee, setCopyReferee] = useState(false);
   const noteEditedTracked = useRef(false);
   const analytics = useJobsAnalytics();
   const usesTeamReferEmail = Boolean(jobReferEmail?.trim());
@@ -164,7 +176,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
     reset({ referee: null, recipients: [], message: '' });
     setMessageEdited(false);
     setSent(false);
-    setCopyReferee(true);
+    setCopyReferee(false);
     noteEditedTracked.current = false;
     analytics.onJobReferModalOpened(referBase);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -324,8 +336,8 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
   const sentTo = usesTeamReferEmail ? 'the team' : getRecipientSummary(recipients);
 
   const composingDesc = usesTeamReferEmail
-    ? 'One email goes to the address this team set up, with you copied in.'
-    : 'One email goes to everyone you add below, with you copied in.';
+    ? 'An email is sent to the address this team set up, including you.'
+    : 'An email is sent to everyone you add below, including you.';
 
   /* What stops the send, when something does. Only rendered when there is something
      to say, rather than an always-present slot resolving to an empty string — a
@@ -447,7 +459,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
 
                 <div className={`${s.templateBlock} ${selectedMember ? '' : s.templateBlockIdle}`}>
                   <div className={s.templateLabelRow}>
-                    <span className={s.templateLabel}>Your note</span>
+                    <span className={s.templateLabel}>Add context for the hiring team</span>
                     {messageEdited && !!templateNote && (
                       <button type="button" className={s.resetLink} onClick={resetTemplate}>
                         Reset to template
@@ -480,17 +492,27 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                       and this caption pointed at that blank. The blank is gone —
                       it made the referrer clear text before writing, to be told
                       the same thing the caption already tells them — so the
-                      sentence now carries the ask on its own. It still says why
-                      it's theirs to fill, which is the one claim nothing else on
-                      screen makes, and the placeholder still keeps the general
-                      "why this is a fit" so no state says it twice.
+                      sentence carries the ask on its own. The placeholder keeps
+                      the general "why this is a fit" so no state says it twice.
 
-                      "Add" and "fill in", not "say" and "write for you": what is
-                      being asked for is a line the draft leaves out, and the verb
-                      should match the act. */}
+                      **Just the ask now.** It used to close with "— that's the one
+                      thing the draft can't fill in", explaining why the line was
+                      the referrer's to write. Beside a note that has already
+                      drafted itself, the reason was doing less work than its
+                      length suggested: the box is visibly full and the caption
+                      visibly asks for one more thing, which is the whole argument
+                      the clause was spelling out.
+
+                      "Describe", not "Add": the label above now carries the add —
+                      "Add context for the hiring team" — and two lines both opening
+                      on the same verb read as one instruction stuttering. This one
+                      says what to write; the label says what the box is for.
+
+                      The name still substitutes in once someone is picked. The
+                      generic half is the pre-pick wording, not a decision to stop
+                      naming people. */}
                   <p id="message-description" className={`${taCss.fieldDescription} ${taCss.fieldDescriptionTop}`}>
-                    Add how you know {selectedMember ? firstName : 'the person you’re referring'} — that’s the one thing
-                    the draft can’t fill in.
+                    Describe how you know {selectedMember ? firstName : 'the person you’re referring'}
                   </p>
 
                   {/* Wrapper so the inert state can dim the box alone — see
@@ -528,7 +550,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                   press mails. Structure and styles are the apply flow's own footer
                   tick — a `<label>` owning the hit area around the DS `Checkbox` —
                   minus its required asterisk, which belongs to a gate and this is an
-                  option whose default is already the answer most people want. */}
+                  option, not a requirement. */}
               <label className={s.footerCheck}>
                 <Checkbox checked={copyReferee} onChange={setCopyReferee} />
                 <span>{copyLabel}</span>

@@ -26,6 +26,7 @@ import { toReferralRecipient } from './utils/toReferralRecipient';
 import { getRecipientSummary } from './utils/getRecipientSummary';
 
 import { useTeamMembers } from './hooks/useTeamMembers';
+import { useAutosizeTextarea } from './hooks/useAutosizeTextarea';
 
 import { MemberSearchSelect } from './components/MemberSearchSelect';
 import { RecipientPicker } from './components/RecipientPicker';
@@ -37,19 +38,6 @@ import s from './ReferModal.module.scss';
 // The backend accepts up to 5000 (`CreateJobReferralSchema`); matching it rather than
 // picking a smaller number here, so the field never blocks a note the API would take.
 const MESSAGE_MAX_LENGTH = 5000;
-
-// The one line the backend can't draft. `GET .../referral-draft` composes the note
-// from both members' directory records, and how the referrer knows the person is in
-// nobody's record — so the template carries a bracketed slot for it, its own
-// paragraph right after the intro. The backend owns the draft's wording; amending
-// the note as it lands is the lever this folder has, and doubles as the proposal
-// for the backend template. Skipped if the draft ever starts prompting for it.
-function withHowYouKnowSlot(note: string, firstName: string): string {
-  if (/how you know/i.test(note)) return note;
-  const slot = `[Add a line about how you know ${firstName}.]`;
-  const firstBreak = note.indexOf('\n\n');
-  return firstBreak === -1 ? `${note}\n\n${slot}` : `${note.slice(0, firstBreak)}\n\n${slot}${note.slice(firstBreak)}`;
-}
 
 interface ReferModalProps {
   open: boolean;
@@ -76,9 +64,9 @@ type ReferFormData = {
  * Lives here but is the component the production jobs page renders (see
  * `components/page/jobs/.../ReferRoleRow`), so it talks to the real API.
  * `GET /job-openings/:uid/referral-draft` composes the note from both members'
- * directory records and the role's apply link — the only wording this file adds is
- * the how-you-know slot (see `withHowYouKnowSlot`), the field makes the rest
- * editable — and `POST /job-openings/:uid/referrals` sends it.
+ * directory records and the role's apply link — every word of it is the backend's,
+ * this file adds none and the field makes it editable — and
+ * `POST /job-openings/:uid/referrals` sends it.
  * When the hiring team has a job-refer email the picker is hidden and recipients
  * are omitted; otherwise the first picked member is To and the rest are CCed,
  * plus the referrer and the referred member.
@@ -205,8 +193,13 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
 
   const firstName = selectedMember?.name.split(' ')[0] ?? '';
 
-  // What "Reset to template" returns to: the backend's draft plus the how-you-know slot.
-  const templateNote = selectedMember && draft?.note ? withHowYouKnowSlot(draft.note, firstName) : undefined;
+  /* What "Reset to template" returns to: the backend's draft, verbatim.
+     This used to splice a bracketed `[Add a line about how you know <First>.]` into
+     the note as it landed. It was the only wording the frontend added, and it made
+     the referrer delete text to write their own — in a field whose caption two lines
+     down already asks for exactly that, in words, without leaving anything behind to
+     clear. One ask, made once, in the place that costs the reader nothing. */
+  const templateNote = selectedMember ? draft?.note : undefined;
 
   // Show the drafted note as soon as it lands, and clear the field when the candidate is
   // removed. A hand-edited note is never overwritten — "Reset to template" is the way
@@ -238,6 +231,14 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [message]);
+
+  /* The note has no scrollbar of its own — it grows, and `.fields` does the
+     scrolling for the whole form. Two nested scroll regions in one card meant the
+     writer lost the shape of what they had written the moment it passed six rows.
+     `'message'` is the `id` FormTextArea puts on the textarea (it renders
+     `id={name}`); the value dependency is what catches the drafted note landing,
+     which no input event would. */
+  useAutosizeTextarea('message', message, open);
 
   const hasExternalEmail = (list: RecipientOption[]) => list.some((r) => Boolean(r.isEmail));
 
@@ -345,7 +346,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
 
   return (
     <Modal isOpen={open} onClose={handleClose} closeOnBackdropClick={false} lockScroll>
-      <div className={s.modal}>
+      <div className={`${s.modal} ${sent ? s.modalSent : ''}`}>
         <Button style="link" variant="neutral" className={s.closeButton} onClick={handleClose} aria-label="Close modal">
           <CloseIcon />
         </Button>
@@ -471,16 +472,22 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                       Standing, not conditional: the ask is the same before and
                       after a draft lands, so the line stays put and only the name
                       joins it — a caption that appears mid-flow reads as a new
-                      demand. It points at the bracketed slot the template leaves
-                      (see `withHowYouKnowSlot`) and says why it's the referrer's
-                      to fill — the one claim nothing else on screen makes. The
-                      how-you-know ask lives here alone; the placeholder keeps the
-                      general "why this is a fit" so no state says it twice.
+                      demand.
 
-                      "Add" and "fill in", not "say" and "write for you": the thing
-                      being pointed at is a bracketed blank inside a drafted note,
-                      and the slot's own words are "Add a line about how you know
-                      <First>". A hint about a blank should use the blank's verb. */}
+                      **This is now the only place the how-you-know line is asked
+                      for.** The drafted note used to arrive with a bracketed
+                      `[Add a line about how you know <First>.]` spliced into it,
+                      and this caption pointed at that blank. The blank is gone —
+                      it made the referrer clear text before writing, to be told
+                      the same thing the caption already tells them — so the
+                      sentence now carries the ask on its own. It still says why
+                      it's theirs to fill, which is the one claim nothing else on
+                      screen makes, and the placeholder still keeps the general
+                      "why this is a fit" so no state says it twice.
+
+                      "Add" and "fill in", not "say" and "write for you": what is
+                      being asked for is a line the draft leaves out, and the verb
+                      should match the act. */}
                   <p id="message-description" className={`${taCss.fieldDescription} ${taCss.fieldDescriptionTop}`}>
                     Add how you know {selectedMember ? firstName : 'the person you’re referring'} — that’s the one thing
                     the draft can’t fill in.

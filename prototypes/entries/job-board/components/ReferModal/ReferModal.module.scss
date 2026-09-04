@@ -29,9 +29,18 @@
 
   // The one deliberate deviation from the reference: it caps at 400px, which suits
   // its three plain inputs but squeezes a member picker with two-line rows and a
-  // drafted email down to ~35 characters a line. 480px keeps the same proportions
+  // drafted email down to ~35 characters a line. 480px kept the same proportions
   // and every other value untouched.
-  max-width: 480px;
+  //
+  // 560, up from 480: the suggested-teammates block now sits in two columns, which
+  // needs the width to hold a name and a role in each cell (~239px a cell here).
+  // The extra 80px also lengthens the drafted note's lines, so the note needs fewer
+  // of them.
+  //
+  // 560 and not more because `Modal`'s own `.modalContainer` caps at 600px
+  // (components/common/Modal/Modal.module.scss) — past that this card would have to
+  // pass a className into a shared primitive, and the change would leave this folder.
+  max-width: 560px;
 
   // Fixed height, so the card is the same size empty as it is with six recipients
   // and a full draft — adding people scrolls the field, it never moves the footer.
@@ -46,6 +55,30 @@
   @include media.mobile-only {
     max-width: 100%;
     height: min(870px, calc(100dvh - 32px));
+  }
+}
+
+// Sent, the card holds an envelope, one sentence and a `Done` button — and the
+// fixed height above was sized for a form that is no longer rendered, so it left
+// most of an 870px card empty under three lines of announcement.
+//
+// The doubled selector is not decoration. What it has to beat is `.modal`'s own
+// `height` — including the one inside `@include media.mobile-only`, which is a
+// single class too, because a media query adds no specificity. At 0-1-0 against
+// 0-1-0 the winner would be whichever rule the CSS bundle happened to emit last.
+// Same idiom `.closeButton.closeButton` uses below, for the same reason.
+//
+// `overflow: hidden` stays: with nothing left to clip it costs nothing, and it is
+// still what keeps the 24px radius on the card's corners.
+.modal.modalSent {
+  height: auto;
+
+  // `.actions`' 14px exists to hold the buttons off the *fields* while composing.
+  // There are no fields here, so it lands on top of the card's own 24px gap and
+  // reads as 38px of nothing above the only control on screen — the exact dead
+  // space fitting the card to its content is meant to remove.
+  .actions {
+    margin-top: 0;
   }
 }
 
@@ -422,7 +455,8 @@
   opacity: 0.55;
 }
 
-// Passing the block's height down to the <textarea>.
+// Passing the block's height down to the <textarea> — as a *floor*, since the note
+// now grows past it (see the `textarea` rule at the end of this block).
 //
 // `FormTextArea` ships a column that has a width and no height, and every box
 // inside it sizes to its content, so a taller wrapper on its own changes nothing —
@@ -450,11 +484,27 @@
     align-items: stretch;
   }
 
-  // `rows` still sets the floor: where there is no spare height (a full recipient
-  // list) the parents fall back to auto and this resolves to the six rows the
-  // attribute asks for.
+  // `min-height`, not `height` — the box fills the spare height and then grows past
+  // it, and the two halves of that are split between CSS and JS on purpose.
+  //
+  // `useAutosizeTextarea` measures with `scrollHeight`, which reports the greater of
+  // the content and the padding box. So a short note measures as *the filled height*
+  // and a long one measures as its own content: the floor is this rule's, the growth
+  // is the hook's, and neither has to know the other exists. Were this still
+  // `height: 100%`, the inline height the hook writes would simply override it and
+  // the fill would be gone.
+  //
+  // `rows` still sets the floor under the floor: where there is no spare height (a
+  // full recipient list) the parents fall back to auto and this resolves to the six
+  // rows the attribute asks for.
+  //
+  // `overflow-y: hidden` because `FormTextArea` sets no overflow of its own, so a
+  // box that stops growing scrolls internally — which is the thing being removed.
+  // With the height always equal to the content there is nothing to scroll, and
+  // hiding it means a frame mid-resize can never flash a bar.
   textarea {
-    height: 100%;
+    min-height: 100%;
+    overflow-y: hidden;
   }
 }
 

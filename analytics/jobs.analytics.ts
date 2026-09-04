@@ -369,6 +369,16 @@ export const useJobsAnalytics = () => {
   };
 
   /**
+   * The outbound review step's "Create profile" press — into the drawer's own
+   * account step, not a submit. Paired with `onJobUnlockInfoOpened`, which
+   * sits right above this button: together they answer whether reading "What
+   * your profile unlocks?" moves the click, or whether it's read and dropped.
+   */
+  const onJobCreateProfileClicked = (args: JobApplyBaseParams) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_CREATE_PROFILE_CLICKED, { ...args });
+  };
+
+  /**
    * The light signal beside Apply.
    *
    * `resumed` separates the two ways a mark happens: pressed and recorded on the
@@ -436,6 +446,7 @@ export const useJobsAnalytics = () => {
     onJobApplyFlowClosed,
     onJobApplyExternalRedirected,
     onJobUnlockInfoOpened,
+    onJobCreateProfileClicked,
     onJobInterestMarked,
     onJobInterestUndone,
     onJobInterestFailed,

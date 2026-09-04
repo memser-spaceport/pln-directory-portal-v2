@@ -784,7 +784,20 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
              role's review step, where the outbound button is waiting.
              No step 3 is ever promised, which is why the rail stays off. */
           action: (
-            <Button variant="primary" style="fill" size="m" onClick={() => goTo('profile')}>
+            <Button
+              variant="primary"
+              style="fill"
+              size="m"
+              onClick={() => {
+                analytics.onJobCreateProfileClicked({
+                  job_id: target.role.uid,
+                  team_id: target.teamId,
+                  viewer_state: viewerState,
+                  source,
+                });
+                goTo('profile');
+              }}
+            >
               {/* The design's label, verbatim (Figma node 682:10579). It read
                   "Create profile → signal interest" until the frame below it
                   grew a control that makes the "signal interest" case in two

@@ -414,8 +414,8 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
   const sentTo = usesTeamReferEmail ? 'the team' : getRecipientSummary(recipients);
 
   const composingDesc = usesTeamReferEmail
-    ? 'One email goes to the address this team set up, with you copied in.'
-    : 'One email goes to everyone you add below, with you copied in.';
+    ? 'An email is sent to the address this team set up, including you.'
+    : 'An email is sent to everyone you add below, including you.';
 
   /* What stops the send, when something does — nothing else. The two "X sees your
      name alongside the referral, and <First> is notified too" arms are gone: they

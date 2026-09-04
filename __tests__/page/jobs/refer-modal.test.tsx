@@ -154,7 +154,7 @@ describe('ReferModal', () => {
         /This referral will be sent to the email this team set up for job referrals\. You can’t choose individual members\./,
       ),
     ).toBeInTheDocument();
-    expect(screen.getByText('One email goes to the address this team set up, with you copied in.')).toBeInTheDocument();
+    expect(screen.getByText('An email is sent to the address this team set up, including you.')).toBeInTheDocument();
     expect(mockUseTeamMembers).toHaveBeenCalledWith('Acme', false);
   });
 
@@ -220,11 +220,11 @@ describe('ReferModal', () => {
     expect((note as HTMLTextAreaElement).value).not.toMatch(/how you know/i);
   });
 
-  it('titles the modal for the role and says one email goes to everyone added', () => {
+  it('titles the modal for the role and says an email is sent to everyone added', () => {
     renderModal(null);
 
     expect(screen.getByRole('heading', { name: 'Refer someone for Protocol Engineer' })).toBeInTheDocument();
-    expect(screen.getByText('One email goes to everyone you add below, with you copied in.')).toBeInTheDocument();
+    expect(screen.getByText('An email is sent to everyone you add below, including you.')).toBeInTheDocument();
   });
 
   describe('copying the referred member', () => {

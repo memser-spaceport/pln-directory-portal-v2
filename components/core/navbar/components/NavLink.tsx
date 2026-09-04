@@ -7,12 +7,12 @@ interface Props extends Omit<NavigationMenu.Link.Props, 'className'> {
 }
 
 export function NavLink(props: Props) {
-  const { href = '', className, onClick, children, ...rest } = props;
+  const { href = '', className, onClick, children, target, rel, ...rest } = props;
 
   return (
     <NavigationMenu.Link
       render={() => (
-        <NextLink href={href} className={className} onClick={onClick}>
+        <NextLink href={href} className={className} onClick={onClick} target={target} rel={rel}>
           {children}
         </NextLink>
       )}

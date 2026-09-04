@@ -264,9 +264,29 @@
 // whatever is spare (see `ReferModal.module.scss`, `.templateBlock`), so a taller
 // block here is taken out of slack rather than out of the note.
 //
-// `align-items: flex-start` so the chips still hug their own names. Stretched to
-// the container they would read as list rows — which is what a *picked* recipient
-// is — and the two states have to stay tellable apart.
+// **Chips wrap; the label keeps its own line.** Two chips fit a row at this card's
+// width, three sometimes, one when a name and a title are long — the row decides,
+// which is what keeps the block honest at every width without a breakpoint.
+//
+// This was briefly a two-column grid, and the grid is why it is not one now. A grid
+// container in this slot is shrink-to-fit, because the field wrapper around it is
+// `align-items: flex-start` (`FormMultiSelect.module.scss` `.field`), and `1fr` is
+// really `minmax(auto, 1fr)` — tracks that refuse to go below their content. Between
+// them the block sized itself to its longest chip twice over and pushed a horizontal
+// scrollbar into a card that should never have one. `width: 100%` and
+// `minmax(0, 1fr)` would have fixed the overflow, but not the look that came with
+// it: stretched cells make a chip the same shape as a *picked* recipient row, which
+// is the one thing these two states must not share.
+//
+// `width: 100%` stays anyway. A wrapping flex container is capped at the available
+// width by the shrink-to-fit rule, so it wraps correctly without it — but only by
+// side effect, and the next person to add a `flex-basis` here shouldn't have to know
+// that.
+//
+// What the single-column version was protecting is a real cost, paid knowingly: a
+// ragged right edge, and the ⊕ landing in a different place on every line. Against
+// it, four names now take two rows of a height-capped card instead of four, and the
+// mark that moves is the one every chip carries anyway.
 //
 // The chip's name and role are the *picked row's* treatment (`.rowText` /
 // `.rowName` / `.rowRole` below), not the menu row's two-line stack — and that
@@ -275,9 +295,11 @@
 // height. A chip becomes one of those rows when pressed, so they now match.
 .suggestBlock {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  // Chips hug their own names — stretched, they read as picked rows.
   align-items: flex-start;
   gap: 8px;
+  width: 100%;
   // On top of the field wrapper's own 4px gap — the chips govern the field above
   // them, so they sit closer to it than to whatever follows (see lesson 11:
   // equidistant reads as unrelated).
@@ -297,6 +319,13 @@
 // uppercase rule between two sentence-case field labels would read as a section
 // break in a form that has no sections.
 .suggestLabel {
+  // Its own line, whatever else fits. This is the one fix worth keeping from the
+  // single-column version: with a single suggestion left, the label and that lone
+  // chip used to share a line with nothing between them but a gap, and read as one
+  // run-on phrase — "Suggested from Parasail Vova Horin" — rather than a heading and
+  // the thing it heads.
+  flex-basis: 100%;
+
   font-size: 12px;
   font-weight: 400;
   line-height: 18px;
@@ -317,6 +346,11 @@
   cursor: pointer;
   text-align: left;
   transition: border-color 0.2s ease;
+  // A chip is sized by its contents, so one very long name + title pair would
+  // otherwise be wider than the row it wraps into and take the card's whole width
+  // with it. Capped here; the name and role inside truncate to fit.
+  max-width: 100%;
+  min-width: 0;
 
   &:hover {
     border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
@@ -332,6 +366,16 @@
   min-width: 0;
 }
 
+// `min-width: 0` and the ellipsis pair with the chip's `max-width: 100%`. A chip is
+// normally sized *by* this text, so `nowrap` alone was safe — but once the chip is
+// capped at the row's width, `nowrap` with nothing to clip it would spill the name
+// straight past the border instead of ending it.
+//
+// It shrinks last. `.suggestRole` carries a shrink factor of 100 against this one's
+// 1, so the role gives up its width almost entirely before the name loses a
+// character: the name is what the referrer is scanning for, and the role is context
+// they can do without. When even that is not enough, this truncates rather than
+// overflowing.
 .suggestName {
   font-size: 14px;
   font-weight: 500;
@@ -339,6 +383,10 @@
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-primary, #0a0c11);
   white-space: nowrap;
+  min-width: 0;
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .suggestRole {
@@ -346,8 +394,12 @@
   font-weight: 400;
   line-height: 16px;
   color: var(--foreground-neutral-tertiary, #8897ae);
-  // A chip is sized to its contents and wraps as a unit, so the role truncates
-  // rather than letting one long title push a chip past the card's width.
+  // The role truncates rather than letting one long title push the chip past the row.
+  // `flex-shrink: 100` against the name's 1 fixes the order in which the two give
+  // way: a "Senior Engineering Manager" should cost itself the room, not the
+  // person's name. On a chip that fits, neither shrinks and nothing is lost.
+  min-width: 0;
+  flex-shrink: 100;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -363,6 +415,9 @@
   display: block;
 }
 
+// Sits where the name ends, not pinned right: the chip is a pill sized to its own
+// contents, and a ⊕ pushed to a far edge would stretch it into the shape of a picked
+// recipient row.
 .suggestPlus {
   flex-shrink: 0;
   color: var(--foreground-brand-primary, #1b4dff);

@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useState } from 'react';
 import { useLoginRedirect } from '@/components/core/login/utils';
 import { useQuery } from '@tanstack/react-query';
 
@@ -13,7 +14,9 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 import { useRoleApplication } from '@/services/jobs/hooks/useJobApplications';
-import { withPendingApply } from '@/services/jobs/job-apply-resume';
+import { useRoleInterest, useToggleJobInterest } from '@/services/jobs/hooks/useJobInterests';
+import { isJobGoneError } from '@/services/jobs/job-interests.service';
+import { withPendingApply, withPendingInterest } from '@/services/jobs/job-apply-resume';
 import type { IUserInfo } from '@/types/shared.types';
 
 import { shouldApplyGoExternal, type useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
@@ -101,7 +104,7 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
    * The rest of the search string rides along, so the rail the person narrowed
    * before signing up is still narrowed when they land back on the board.
    */
-  const pushLogin = (opts?: { prefillEmail?: string; pendingRoleUid?: string }) => {
+  const pushLogin = (opts?: { prefillEmail?: string; pendingRoleUid?: string; pendingInterestUid?: string }) => {
     const search = new URLSearchParams(window.location.search);
     if (opts?.prefillEmail) {
       search.set('prefillEmail', opts.prefillEmail);
@@ -111,7 +114,11 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
        sign-up has no job and gets no instruction — passing no uid also CLEARS a
        stale one, so an abandoned sign-up can't resume here. See
        `job-apply-resume` for why that door lands on the plain board. */
-    const qs = withPendingApply(withEmail, opts?.pendingRoleUid);
+    /* Both intents are written on every trip, and both CLEAR when their uid is
+       absent. That symmetry is the whole safety property: a door that merely
+       declined to set a parameter would inherit whichever stale one was already
+       on the search string and resume something nobody just asked for. */
+    const qs = withPendingInterest(withPendingApply(withEmail, opts?.pendingRoleUid), opts?.pendingInterestUid);
     goToLogin({ returnTo: `${window.location.pathname}${qs}` });
   };
 
@@ -221,6 +228,75 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
     enabled: state.step === 'flow' && !!viewer.memberUid,
   });
 
+  /* The light signal beside Apply. Same member-scoped whole-map read as the
+     application above it, so the drawer answers "has this person acted on this
+     role" from two caches with one shape rather than two idioms. */
+  const { isInterested, isSettled: interestSettled } = useRoleInterest(flowRole?.uid ?? '', {
+    memberUid: viewer.memberUid,
+    enabled: state.step === 'flow' && !!viewer.memberUid,
+  });
+  const toggleInterest = useToggleJobInterest(viewer.memberUid);
+  /* A refusal belongs to the role it was refused for, so it is STORED with that
+     role rather than cleared by an effect when the role changes. Same outcome,
+     no cascading render — and it survives the drawer closing and reopening on
+     the same role, which a reset-on-change would have thrown away. Without
+     either, opening a second role after a failed toggle carries the red line
+     across to a banner that never failed at anything. */
+  const [interestError, setInterestError] = useState<{ roleUid: string; message: string } | null>(null);
+  const interestErrorForRole =
+    interestError && interestError.roleUid === flowRole?.uid ? interestError.message : null;
+
+  const handleToggleInterest = (nextInterested: boolean) => {
+    if (state.step !== 'flow') return;
+    const target = state.target;
+    const analyticsBase = {
+      job_id: target.role.uid,
+      team_id: target.teamId,
+      viewer_state: viewer.viewer,
+      source,
+    };
+
+    setInterestError(null);
+
+    /* No account, nothing to attach the signal to. The press is not discarded —
+       it rides to Privy as `interestIn` and is recorded on the way back, landing
+       the person on the confirmed banner rather than on the button they already
+       pressed. Deliberately fires no interest event here: nothing has been
+       signalled yet, and counting an intent as a signal would make the funnel
+       report a conversion that has not happened. */
+    if (!isLoggedIn) {
+      pushLogin({ pendingInterestUid: target.role.uid });
+      return;
+    }
+
+    toggleInterest.mutate(
+      { roleUid: target.role.uid, nextInterested },
+      {
+        /* Reported from the server's answer rather than from the press, so a
+           press that turned out to be a no-op (both writes are idempotent) is
+           not counted as a state change that never happened. */
+        onSuccess: (result) => {
+          if (result.viewerIsInterested) {
+            analytics.onJobInterestMarked({ ...analyticsBase, resumed: false });
+          } else {
+            analytics.onJobInterestUndone(analyticsBase);
+          }
+        },
+        onError: (error) => {
+          setInterestError({
+            roleUid: target.role.uid,
+            message: error instanceof Error ? error.message : 'Something went wrong. Try again.',
+          });
+          analytics.onJobInterestFailed({
+            ...analyticsBase,
+            action: nextInterested ? 'mark' : 'undo',
+            failure_category: isJobGoneError(error) ? 'gone' : 'request-failed',
+          });
+        },
+      },
+    );
+  };
+
   return (
     <>
       {state.step === 'flow' && (
@@ -264,6 +340,12 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
           onSubmitted={flow.onSubmitted}
           viewerState={viewer.viewer}
           source={source}
+          interest={{
+            isInterested,
+            isSettled: interestSettled,
+            error: interestErrorForRole,
+            onToggle: handleToggleInterest,
+          }}
         />
       )}
 

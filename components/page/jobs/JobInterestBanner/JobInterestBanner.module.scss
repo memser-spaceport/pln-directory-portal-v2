@@ -1,0 +1,139 @@
+/* Every custom property is written `var(--name, #fallback)`: this app doesn't
+   load the DS token sheet, so a bare token resolves to nothing and the fallback
+   is what actually paints. Same rule as `JobUnlockBanner.module.scss`.
+
+   The greens are not invented — `#0a9952` is the design system's own success
+   colour, taken from `Button.module.scss`'s `.success` variant, and the surface
+   and border are tints of it. Picking a fresh green here would have put a
+   second success hue in the product for the sake of one card. */
+
+@use 'styles/media';
+
+.root {
+  /* The drawer's content column is `align-items: center`, so a block child
+     shrink-wraps its text and floats to the middle of the 720px measure. Fourth
+     component in this drawer to need the line; every one of the first three
+     needed it after someone noticed the card was narrower than its neighbours. */
+  align-self: stretch;
+  width: 100%;
+  box-sizing: border-box;
+
+  /* Mobile first, because the drawer is `fullScreen` below tablet-landscape and
+     that is where the stacked layout the design draws (368x162) applies. The row
+     is the enhancement, not the default. */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+
+  padding: 12px;
+  border-radius: 8px;
+
+  background: var(--background-neutral-subtle, #f7f9fc);
+  /* 1px, not the design's sub-pixel value: there is no sub-pixel border
+     anywhere in this codebase, and one would render differently on every device
+     pixel ratio. Same call `JobUnlockBanner` made. */
+  border: 1px solid var(--border-neutral-subtle, #e2e8f5);
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 9px;
+  }
+}
+
+.confirmed {
+  background: var(--background-success-soft-surface, #effaf4);
+  border-color: var(--border-success-subtle, #a9e0c4);
+}
+
+.iconTile {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--background-brand-soft-surface, #e8edff);
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  .confirmed & {
+    /* The success alert draws the check as a filled glyph on the card's own
+       surface rather than in a tile — the tile is what makes the ⓘ read as an
+       affordance, and the check is a result. */
+    width: 24px;
+    height: 24px;
+    background: transparent;
+    color: var(--foreground-success-primary, #0a9952);
+  }
+}
+
+.text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  /* Wraps rather than truncates: the team's name is in here, and a name cut off
+     mid-word reads as a bug in a sentence addressed to that team. */
+  overflow-wrap: anywhere;
+
+  .confirmed & {
+    color: var(--foreground-success-primary, #0a9952);
+  }
+}
+
+.subtitle,
+.error {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+}
+
+.subtitle {
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.error {
+  color: var(--foreground-error-primary, #dc2626);
+}
+
+.action {
+  flex: 0 0 auto;
+  /* Full-width beneath the text on the stacked layout, per the mobile frame;
+     back to its natural 128px beside the text once there is room. */
+  width: 100%;
+  justify-content: center;
+
+  @include media.tablet-landscape {
+    width: auto;
+    min-width: 128px;
+
+    /* The confirmed state's Undo is a link: no border, no background, so the
+       128px box that makes the CTA the design's 128x40 has nothing to draw and
+       only pushes four centred characters inwards. The two states then end at
+       two different x, one under the other, as the card toggles.
+
+       Both properties are reset rather than left to `.link`'s own `padding: 0`
+       and `min-width: 0`, because those live in another CSS module and which of
+       two single-class rules wins is import order — not something this file
+       should be betting its alignment on. `.confirmed .action` outranks both. */
+    .confirmed & {
+      min-width: 0;
+      padding: 0;
+    }
+  }
+}

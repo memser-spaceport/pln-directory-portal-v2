@@ -1,0 +1,137 @@
+import {
+  JobInterest,
+  jobInterestListResponseSchema,
+  JobInterestToggle,
+  jobInterestToggleResponseSchema,
+} from '@/schema/job-interests';
+import { customFetch } from '@/utils/fetch-wrapper';
+
+const JOB_OPENINGS_API_URL = `${process.env.DIRECTORY_API_URL}/v1/job-openings`;
+
+/**
+ * Both writes carry a JSON content type and an empty JSON body, even though
+ * neither endpoint takes a payload.
+ *
+ * This is not ceremony — it is the fix for a real 415. `customFetch` adds
+ * `Authorization` and nothing else, so a bodyless `{ method: 'POST' }` goes out
+ * with no `Content-Type` at all, and the API's validation layer answers
+ * "Unsupported Content Type" before the handler ever runs. `submitJobApplication`
+ * has always sent both; this pair was written without copying that part.
+ *
+ * The empty object rather than no body: the header is the half that matters, and
+ * a declared JSON content type with an absent body is the combination servers
+ * disagree most about. `{}` makes the request self-consistent for both verbs.
+ */
+const JSON_WRITE = (method: 'POST' | 'DELETE') => ({
+  method,
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({}),
+});
+
+export type { JobInterest, JobInterestToggle };
+
+/**
+ * A refusal from the interest endpoints.
+ *
+ * Deliberately its own class rather than a reuse of `JobApplicationError`:
+ * callers tell the two apart with `instanceof`, and an interest that failed is
+ * a different situation from an application that failed — one is worth a silent
+ * retry, the other is not.
+ *
+ * The reading below is near-identical to `job-applications.service.ts`'s. Two
+ * copies is the right number; at a third, lift the body-reading into a shared
+ * `job-openings-error` module rather than growing this one.
+ */
+export class JobInterestError extends Error {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = 'JobInterestError';
+    this.status = status;
+  }
+}
+
+/**
+ * The server's own message, when it sent one worth reading.
+ *
+ * `customFetch` resolves to `undefined` when it gives up and logs the session
+ * out — there is no response to read, and the reload it triggers is already
+ * under way, so this only needs to not throw on the way there.
+ */
+async function errorFrom(response: Response | undefined, fallback: string): Promise<JobInterestError> {
+  if (!response) {
+    return new JobInterestError(401, 'Your session expired. Sign in and try again.');
+  }
+
+  let message = fallback;
+  try {
+    const body = await response.json();
+    const serverMessage = body?.message ?? body?.status?.message;
+    if (typeof serverMessage === 'string' && serverMessage.trim()) {
+      message = serverMessage;
+    }
+  } catch {
+    // A body we can't read is not worth failing differently over.
+  }
+  return new JobInterestError(response.status, message);
+}
+
+/**
+ * Every role this member has signalled interest in. One whole-list read: the
+ * universe is known server-side, so a uid absent from the response means not
+ * interested rather than not-yet-known — which is what lets every banner on the
+ * surface share one fetch and treat cache-absence as an answer.
+ */
+export async function fetchJobInterests(): Promise<JobInterest[]> {
+  const response = await customFetch(`${JOB_OPENINGS_API_URL}/interests`, { method: 'GET' }, true);
+
+  if (!response?.ok) {
+    throw await errorFrom(response, 'Could not load your interests');
+  }
+
+  const { interests } = jobInterestListResponseSchema.parse(await response.json());
+  return interests;
+}
+
+/**
+ * Signal interest in one role.
+ *
+ * **Idempotent**, which is the whole reason there is no "already interested"
+ * refusal to classify below: a second press answers 200 with
+ * `viewerIsInterested: true` rather than a 409, so the caller never has to treat
+ * an error as a success.
+ *
+ * Note the singular `/interest` on the write. The read below is `/interests`.
+ * That asymmetry is the server's; do not "correct" either one.
+ */
+export async function markJobInterest(roleUid: string): Promise<JobInterestToggle> {
+  const response = await customFetch(`${JOB_OPENINGS_API_URL}/${roleUid}/interest`, JSON_WRITE('POST'), true);
+
+  if (!response?.ok) {
+    throw await errorFrom(response, 'Could not save your interest');
+  }
+
+  return jobInterestToggleResponseSchema.parse(await response.json());
+}
+
+/** Withdraw it. Idempotent and same response shape as marking. */
+export async function clearJobInterest(roleUid: string): Promise<JobInterestToggle> {
+  const response = await customFetch(`${JOB_OPENINGS_API_URL}/${roleUid}/interest`, JSON_WRITE('DELETE'), true);
+
+  if (!response?.ok) {
+    throw await errorFrom(response, 'Could not undo your interest');
+  }
+
+  return jobInterestToggleResponseSchema.parse(await response.json());
+}
+
+const statusIs = (error: unknown, status: number): boolean =>
+  error instanceof JobInterestError && error.status === status;
+
+/* (An `isAlreadyInterestedError` lived here, for a 409 that cannot happen: both
+    writes are idempotent, so pressing an already-marked role answers 200. A
+    predicate for an impossible status is a branch nobody can ever test.) */
+
+/** The job was hidden or removed while the drawer was open. */
+export const isJobGoneError = (error: unknown): boolean => statusIs(error, 404);

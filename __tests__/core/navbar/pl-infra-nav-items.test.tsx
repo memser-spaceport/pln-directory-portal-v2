@@ -39,8 +39,12 @@ describe('useGetPlInfraNavItems', () => {
   });
 
   it('shows only the area a member is permitted for', () => {
-    expect(titlesOf(plInfra(PERMISSIONS.AI_APPS.PERM_VIEW))).toEqual(['PL Infra OS / Factorio', 'AI Apps']);
-    expect(titlesOf(plInfra(PERMISSIONS.INVESTOR_DB.PERM_VIEW))).toEqual(['Investor DB']);
+    expect(titlesOf(plInfra(PERMISSIONS.AI_APPS.PERM_VIEW))).toEqual([
+      'AI Apps',
+      'PL Infra OS / Factorio',
+      'Network Intelligence Dash',
+    ]);
+    expect(titlesOf(plInfra(PERMISSIONS.INVESTOR_DB.PERM_VIEW))).toEqual(['Network Intelligence Dash', 'Investor DB']);
   });
 
   it('does not show PL Infra OS without AI Apps access', () => {
@@ -48,13 +52,13 @@ describe('useGetPlInfraNavItems', () => {
   });
 
   it('lets a roadmap admin in as well as a roadmap viewer', () => {
-    expect(plInfra(PERMISSIONS.GANTRY.PERM_ADMIN)).toHaveLength(1);
-    expect(plInfra(PERMISSIONS.GANTRY.PERM_VIEW)).toHaveLength(1);
+    expect(plInfra(PERMISSIONS.GANTRY.PERM_ADMIN)).toHaveLength(2);
+    expect(plInfra(PERMISSIONS.GANTRY.PERM_VIEW)).toHaveLength(2);
   });
 
   it('lets an agent-sessions admin in as well as a viewer', () => {
-    expect(plInfra(PERMISSIONS.AGENT_SESSIONS.PERM_ADMIN)).toHaveLength(1);
-    expect(plInfra(PERMISSIONS.AGENT_SESSIONS.PERM_VIEW)).toHaveLength(1);
+    expect(plInfra(PERMISSIONS.AGENT_SESSIONS.PERM_ADMIN)).toHaveLength(2);
+    expect(plInfra(PERMISSIONS.AGENT_SESSIONS.PERM_VIEW)).toHaveLength(2);
   });
 
   it('keeps a stable order as permissions accumulate, so the nav does not reshuffle', () => {
@@ -65,7 +69,14 @@ describe('useGetPlInfraNavItems', () => {
       PERMISSIONS.GANTRY.PERM_VIEW,
     );
 
-    expect(titlesOf(all)).toEqual(['Gantry', 'Investor DB', 'PL Infra OS / Factorio', 'AI Apps', 'Agent Sessions']);
+    expect(titlesOf(all)).toEqual([
+      'AI Apps',
+      'Gantry',
+      'PL Infra OS / Factorio',
+      'Network Intelligence Dash',
+      'Investor DB',
+      'Agent Sessions',
+    ]);
   });
 
   it('does not show Founder DB, which is behind a kill switch', () => {
@@ -74,7 +85,7 @@ describe('useGetPlInfraNavItems', () => {
     expect(titlesOf(all)).not.toContain('Founder DB');
   });
 
-  it('gives every item a route, so no entry renders as a dead link', () => {
+  it('gives every internal item a route, so no entry renders as a dead link', () => {
     const all = plInfra(
       PERMISSIONS.GANTRY.PERM_VIEW,
       PERMISSIONS.INVESTOR_DB.PERM_VIEW,
@@ -82,8 +93,17 @@ describe('useGetPlInfraNavItems', () => {
       PERMISSIONS.AGENT_SESSIONS.PERM_VIEW,
     );
 
-    all.forEach((item) => expect(item.href).toEqual(expect.stringMatching(/^\//)));
+    all
+      .filter((item) => !('external' in item && item.external))
+      .forEach((item) => expect(item.href).toEqual(expect.stringMatching(/^\//)));
     expect(all.find((item) => item.title === 'PL Infra OS / Factorio')?.href).toBe('/pl-infra-os');
+  });
+
+  it('sends Network Intelligence Dash to the external reports site, marked to open in a new tab', () => {
+    const link = plInfra(PERMISSIONS.INVESTOR_DB.PERM_VIEW).find((item) => item.title === 'Network Intelligence Dash');
+
+    expect(link?.href).toBe('https://intelligence-reports.plnetwork.io/');
+    expect(link).toMatchObject({ external: true });
   });
 
   it('keeps the same array while permissions are unchanged', () => {
@@ -112,6 +132,39 @@ describe('useMoreNavItems', () => {
 
   it("does not let another area's permission open Founder Guides", () => {
     expect(titlesOf(more(PERMISSIONS.AI_APPS.PERM_VIEW, PERMISSIONS.GANTRY.PERM_VIEW))).toEqual(['Deals', 'Job Board']);
+  });
+
+  it('shows PLAA only to a member holding plaa.access', () => {
+    expect(titlesOf(more())).not.toContain('PLAA');
+    expect(titlesOf(more(PERMISSIONS.PLAA.PERM_ACCESS))).toContain('PLAA');
+  });
+
+  it('sends PLAA to /alignment-asset in the same tab — no target, so NavLink renders a plain next/link', () => {
+    const plaa = more(PERMISSIONS.PLAA.PERM_ACCESS).find((item) => item.title === 'PLAA');
+
+    expect(plaa?.href).toBe('/alignment-asset');
+    expect(plaa).not.toHaveProperty('target');
+  });
+
+  it("does not let another area's permission open PLAA", () => {
+    expect(titlesOf(more(PERMISSIONS.AI_APPS.PERM_VIEW, PERMISSIONS.FOUNDER_GUIDE.PERM_VIEW))).not.toContain('PLAA');
+  });
+
+  it('does not accept a scoped plaa permission — the code is matched exactly', () => {
+    expect(titlesOf(more(`${PERMISSIONS.PLAA.PERM_ACCESS}.admin`))).not.toContain('PLAA');
+  });
+
+  /** A logged-out visitor never reaches the access endpoint (`usePermissions`
+   *  gates the query on `currentUser`), so their permission list is empty —
+   *  the same state this asserts. */
+  it('shows a logged-out visitor no permission-gated item at all', () => {
+    expect(titlesOf(more())).toEqual(['Deals', 'Job Board']);
+  });
+
+  it('appends PLAA below the items that were already there, so the menu does not reshuffle', () => {
+    const all = more(PERMISSIONS.FOUNDER_GUIDE.PERM_VIEW, PERMISSIONS.PLAA.PERM_ACCESS);
+
+    expect(titlesOf(all)).toEqual(['Deals', 'Founder Guides', 'Job Board', 'PLAA']);
   });
 
   it('keeps the same array while permissions are unchanged', () => {

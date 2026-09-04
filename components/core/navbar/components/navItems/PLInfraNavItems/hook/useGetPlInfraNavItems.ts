@@ -12,6 +12,7 @@ import {
   GANTRY_LINK,
   INVESTOR_DB_LINK,
   PL_INFRA_OS_LINK,
+  NETWORK_INTELLIGENCE_DASH_LINK,
 } from '@/components/core/navbar/constants/navLinks';
 import { useMemo } from 'react';
 
@@ -24,14 +25,18 @@ export function useGetPlInfraNavItems() {
   // const hasFounderDbAccess = canViewFounderDb(permsSet);
   const hasInvestorDbAccess = canViewInvestorDb(permsSet);
 
+  const hasAnyPlInfraAccess = hasGantryAccess || hasInvestorDbAccess || hasAiAppsAccess || hasAgentSessionsAccess;
+
   return useMemo(
     () => [
+      ...(hasAiAppsAccess ? [AI_APPS_LINK] : []),
       ...(hasGantryAccess ? [GANTRY_LINK] : []),
+      ...(hasAiAppsAccess ? [PL_INFRA_OS_LINK] : []),
+      ...(hasAnyPlInfraAccess ? [NETWORK_INTELLIGENCE_DASH_LINK] : []),
       ...(hasInvestorDbAccess ? [INVESTOR_DB_LINK] : []),
       // ...(hasFounderDbAccess ? [FOUNDER_DB_LINK] : []),
-      ...(hasAiAppsAccess ? [PL_INFRA_OS_LINK, AI_APPS_LINK] : []),
       ...(hasAgentSessionsAccess ? [AGENT_SESSIONS_LINK] : []),
     ],
-    [hasGantryAccess, hasAiAppsAccess, hasAgentSessionsAccess, hasInvestorDbAccess],
+    [hasGantryAccess, hasAiAppsAccess, hasAgentSessionsAccess, hasInvestorDbAccess, hasAnyPlInfraAccess],
   );
 }

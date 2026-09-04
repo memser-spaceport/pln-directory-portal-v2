@@ -2,18 +2,35 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 import { ContactDetails } from '@/components/page/member-details/contact-details/ContactDetails';
+import { ContactDetails as ContactDetailsSection } from '@/components/page/member-details/ContactDetails/ContactDetails';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 
 jest.mock('@/analytics/members.analytics', () => ({
-  useMemberAnalytics: () => ({ onSocialProfileLinkClicked: jest.fn() }),
+  useMemberAnalytics: () => ({ onSocialProfileLinkClicked: jest.fn(), onEditContactDetailsClicked: jest.fn() }),
 }));
 jest.mock('@/analytics/auth.analytics', () => ({
   useAuthAnalytics: () => ({ onLoginBtnClicked: jest.fn() }),
 }));
 jest.mock('@/components/core/login/utils', () => ({
   useLoginRedirect: () => jest.fn(),
+}));
+
+/* The section's children are stubbed by their barrel paths. The view tests
+   below import the view by its own file path, so they still exercise the real
+   component — mocking the barrel does not reach them. */
+jest.mock('@/components/page/member-details/contact-details', () => ({
+  ContactDetails: () => <div data-testid="contact-details-view" />,
+}));
+jest.mock('@/components/page/member-details/member-details-login-strip', () => ({
+  MemberProfileLoginStrip: () => <div data-testid="login-strip" />,
+}));
+jest.mock('@/components/page/member-details/ContactDetails/components/EditContactForm', () => ({
+  EditContactForm: () => <div data-testid="edit-contact-form" />,
+}));
+jest.mock('@/hooks/useMobileNavVisibility', () => ({
+  useMobileNavVisibility: jest.fn(),
 }));
 
 const REAL_EMAIL = 'jobseeker@example.com';
@@ -102,5 +119,100 @@ describe('ContactDetails access', () => {
     const { container } = renderView(true);
 
     expect(previewLinks(container)).toHaveLength(0);
+  });
+});
+
+/*
+ * The section itself, one level above the view: a Job Aspirant gets no contact
+ * panel at all, header included. The teaser it used to get advertised handles
+ * that no approval of theirs will ever reveal — `job_aspirant` is the only
+ * policy without `member.contacts.read`.
+ */
+describe('ContactDetails section visibility', () => {
+  const renderSection = (variant?: 'default' | 'drawer') =>
+    render(
+      <ContactDetailsSection
+        member={member}
+        isLoggedIn
+        userInfo={{ uid: 'viewer-1' } as IUserInfo}
+        variant={variant}
+      />,
+    );
+
+  const aspirantByPolicy = () =>
+    useCurrentUserStore.setState({
+      currentUser: {
+        uid: 'viewer-1',
+        rbac: { status: 'PENDING', effectivePermissions: [], policies: [{ code: 'job_aspirant' }] },
+      } as unknown as IUserInfo,
+    });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    seedUser(null);
+  });
+
+  it('renders nothing for a Job Aspirant viewing someone else', () => {
+    aspirantByPolicy();
+
+    const { container } = renderSection();
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  /* The login cookie omits `rbac.policies`, so the common case is recognised by
+     signUpSource — and only when there is no main team, since a hiring team's
+     sign-up shares the source. */
+  it('recognises a Job Aspirant by signUpSource alone', () => {
+    useCurrentUserStore.setState({
+      currentUser: {
+        uid: 'viewer-1',
+        signUpSource: 'job-board',
+        rbac: { status: 'PENDING', effectivePermissions: [] },
+      } as unknown as IUserInfo,
+    });
+
+    const { container } = renderSection();
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('keeps the section on the aspirant own profile', () => {
+    useCurrentUserStore.setState({
+      currentUser: {
+        uid: member.id,
+        signUpSource: 'job-board',
+        rbac: { status: 'PENDING', effectivePermissions: [], policies: [{ code: 'job_aspirant' }] },
+      } as unknown as IUserInfo,
+    });
+
+    renderSection();
+
+    expect(screen.getByTestId('contact-details-view')).toBeInTheDocument();
+  });
+
+  /* The drawer is the job-board and investor flows showing the viewer their own
+     contacts; hiding it there would break the profile step of Apply. */
+  it('keeps the drawer variant for a Job Aspirant', () => {
+    aspirantByPolicy();
+
+    renderSection('drawer');
+
+    expect(screen.getByTestId('contact-details-view')).toBeInTheDocument();
+  });
+
+  it('keeps the teaser for a plain pending member', () => {
+    seedUser({ uid: 'viewer-1', status: 'PENDING' });
+
+    renderSection();
+
+    expect(screen.getByTestId('contact-details-view')).toBeInTheDocument();
+  });
+
+  it('keeps the teaser for a logged-out visitor', () => {
+    render(<ContactDetailsSection member={member} isLoggedIn={false} userInfo={null} />);
+
+    expect(screen.getByTestId('contact-details-view')).toBeInTheDocument();
+    expect(screen.getByTestId('login-strip')).toBeInTheDocument();
   });
 });

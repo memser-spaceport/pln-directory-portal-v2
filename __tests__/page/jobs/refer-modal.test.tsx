@@ -154,7 +154,7 @@ describe('ReferModal', () => {
         /This referral will be sent to the email this team set up for job referrals\. You can’t choose individual members\./,
       ),
     ).toBeInTheDocument();
-    expect(screen.getByText('One email goes to the address this team set up, with you copied in.')).toBeInTheDocument();
+    expect(screen.getByText('An email is sent to the address this team set up, including you.')).toBeInTheDocument();
     expect(mockUseTeamMembers).toHaveBeenCalledWith('Acme', false);
   });
 
@@ -171,7 +171,10 @@ describe('ReferModal', () => {
         referredMemberUid: 'm1',
         note: DRAFTED_NOTE,
         recipients: [],
-        includeReferredMember: true,
+        /* The default, untouched by this test — the copy tick ships unchecked.
+           Asserted here rather than loosened to `expect.any` so a change to that
+           default fails on the payload too, not only in the tick's own tests. */
+        includeReferredMember: false,
       },
       expect.any(Object),
     );
@@ -220,33 +223,33 @@ describe('ReferModal', () => {
     expect((note as HTMLTextAreaElement).value).not.toMatch(/how you know/i);
   });
 
-  it('titles the modal for the role and says one email goes to everyone added', () => {
+  it('titles the modal for the role and says an email is sent to everyone added', () => {
     renderModal(null);
 
     expect(screen.getByRole('heading', { name: 'Refer someone for Protocol Engineer' })).toBeInTheDocument();
-    expect(screen.getByText('One email goes to everyone you add below, with you copied in.')).toBeInTheDocument();
+    expect(screen.getByText('An email is sent to everyone you add below, including you.')).toBeInTheDocument();
   });
 
   describe('copying the referred member', () => {
-    it('offers the tick checked by default, and names the person once one is picked', async () => {
+    it('offers the tick unchecked by default, and names the person once one is picked', async () => {
       const user = userEvent.setup();
       renderModal('jobs@acme.com');
 
       // Before anyone is picked the ask is generic — there is no name to use yet.
-      expect(copyTick(/Copy the person you.re referring on this email/i)).toBeChecked();
+      expect(copyTick(/Copy the person you.re referring on this email/i)).not.toBeChecked();
 
       await user.click(screen.getByRole('button', { name: 'Pick referee' }));
 
-      await waitFor(() => expect(copyTick()).toBeChecked());
+      /* Picking someone renames the tick but must not arm it: the choice is about
+         the act of sending, not about who was chosen. */
+      await waitFor(() => expect(copyTick()).not.toBeChecked());
     });
 
-    it('sends includeReferredMember: false and drops the copied line from the receipt when cleared', async () => {
+    it('sends includeReferredMember: false and omits the copied line from the receipt when left alone', async () => {
       const user = userEvent.setup();
       renderModal('jobs@acme.com');
 
       await user.click(screen.getByRole('button', { name: 'Pick referee' }));
-      await waitFor(() => expect(copyTick()).toBeChecked());
-      await user.click(copyTick());
       await waitFor(() => expect(copyTick()).not.toBeChecked());
 
       await user.click(screen.getByRole('button', { name: 'Send referral' }));
@@ -265,13 +268,20 @@ describe('ReferModal', () => {
       expect(screen.queryByText(/was copied in too/)).not.toBeInTheDocument();
     });
 
-    it('adds the copied line to the receipt when the tick is left alone', async () => {
+    it('sends includeReferredMember: true and adds the copied line when the tick is set', async () => {
       const user = userEvent.setup();
       renderModal('jobs@acme.com');
 
       await user.click(screen.getByRole('button', { name: 'Pick referee' }));
       await waitFor(() => expect(screen.getByRole('button', { name: 'Send referral' })).toBeEnabled());
+      await user.click(copyTick());
+      await waitFor(() => expect(copyTick()).toBeChecked());
       await user.click(screen.getByRole('button', { name: 'Send referral' }));
+
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({ includeReferredMember: true }),
+        expect.any(Object),
+      );
 
       expect(
         await screen.findByText(

@@ -25,6 +25,11 @@
   padding-right: 4px;
 }
 
+.listExpanded {
+  max-height: none;
+  overflow: visible;
+}
+
 .toggleButton {
   width: 100%;
   background: transparent;

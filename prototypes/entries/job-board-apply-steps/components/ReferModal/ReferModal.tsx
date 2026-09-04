@@ -132,11 +132,17 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
   const [messageEdited, setMessageEdited] = useState(false);
   const [refereeMode, setRefereeMode] = useState<RefereeMode>('member');
   /* Whether the person being referred is copied on the email.
-     Checked by default, because that is what the referral did before this was a
-     choice — the default keeps the behaviour, the tick makes it a decision
-     rather than something the product does to them behind their back. It is a
-     real one: a note is written differently when its subject is reading it. */
-  const [copyReferee, setCopyReferee] = useState(true);
+
+     **Unchecked by default.** Copying the subject of a referral onto the
+     referral is the surprising option, not the expected one — a note is written
+     differently when the person it is about is reading it, so the quiet default
+     leaves the referrer free to write plainly and the tick is how they opt into
+     the other thing.
+
+     Caveat carried from production: the backend does not read
+     `includeReferredMember` yet and CCs them either way, so while that holds an
+     unticked box implies something the send does not honour. */
+  const [copyReferee, setCopyReferee] = useState(false);
   const noteEditedTracked = useRef(false);
   const analytics = useJobsAnalytics();
   const usesTeamReferEmail = Boolean(jobReferEmail?.trim());
@@ -249,7 +255,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
     setRefereeMode('member');
     setMessageEdited(false);
     setSent(false);
-    setCopyReferee(true);
+    setCopyReferee(false);
     noteEditedTracked.current = false;
     analytics.onJobReferModalOpened(referBase);
     // eslint-disable-next-line react-hooks/exhaustive-deps

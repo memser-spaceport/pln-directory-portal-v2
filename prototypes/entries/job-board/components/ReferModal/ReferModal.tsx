@@ -72,10 +72,12 @@ type ReferFormData = {
  * plus the referrer and the referred member.
  *
  * Whether the referred member is copied is the referrer's call — `includeReferredMember`
- * on the send. The backend does not read that field yet and CCs them either way, so
- * the tick is honest by construction rather than by luck: it defaults to checked (which
- * is today's behaviour) and the receipt only ever *adds* "was copied in too", never
- * claims the negative.
+ * on the send. The backend does not read that field yet and CCs them either way. The
+ * tick defaults to UNCHECKED, which is the copy people expect but NOT what the backend
+ * currently does, so the unticked box is a claim the product cannot yet back. The
+ * receipt stays honest regardless — it only ever *adds* "was copied in too" and never
+ * claims the negative — so the gap is confined to the checkbox until the backend reads
+ * the field.
  *
  * Signed-in only: `ReferRoleRow` sends anonymous visitors to login rather than opening
  * this, and the backend resolves the referrer from the authenticated email. Both calls
@@ -98,15 +100,25 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
   const [sent, setSent] = useState(false);
   const [messageEdited, setMessageEdited] = useState(false);
   /* Whether the person being referred is copied on the email.
-     Checked by default, because that is what the referral did before this was a
-     choice — the default keeps the behaviour, the tick makes it a decision rather
-     than something the product does to them behind their back. It is a real one: a
-     note is written differently when its subject is reading it.
+
+     **Unchecked by default.** Copying the subject of a referral onto the referral
+     is the surprising option, not the expected one — a note is written differently
+     when the person it is about is reading it, so the quiet default is the one
+     that leaves the referrer free to write plainly, and the tick is how they opt
+     into the other thing.
+
+     **A caveat that outlives this line.** The backend does not read
+     `includeReferredMember` yet and CCs the referred member either way. While that
+     is true an unticked box is the UI's only false note in this flow: it implies a
+     person will not be copied, and they will be. The receipt is still safe — it
+     only ever *adds* "was copied in too" and never asserts the negative — so the
+     exposure is the checkbox alone. Nothing here can fix that; the backend
+     honouring the field is what closes it.
 
      Not reset when the referee changes, only when the modal opens: the choice is
      about the act of sending, not about the person, and re-ticking a box because
      you corrected a name would be surprising. */
-  const [copyReferee, setCopyReferee] = useState(true);
+  const [copyReferee, setCopyReferee] = useState(false);
   const noteEditedTracked = useRef(false);
   const analytics = useJobsAnalytics();
   const usesTeamReferEmail = Boolean(jobReferEmail?.trim());
@@ -164,7 +176,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
     reset({ referee: null, recipients: [], message: '' });
     setMessageEdited(false);
     setSent(false);
-    setCopyReferee(true);
+    setCopyReferee(false);
     noteEditedTracked.current = false;
     analytics.onJobReferModalOpened(referBase);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -528,7 +540,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                   press mails. Structure and styles are the apply flow's own footer
                   tick — a `<label>` owning the hit area around the DS `Checkbox` —
                   minus its required asterisk, which belongs to a gate and this is an
-                  option whose default is already the answer most people want. */}
+                  option, not a requirement. */}
               <label className={s.footerCheck}>
                 <Checkbox checked={copyReferee} onChange={setCopyReferee} />
                 <span>{copyLabel}</span>

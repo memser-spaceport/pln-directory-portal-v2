@@ -101,10 +101,11 @@ describe('the banner itself', () => {
     expect(action()).toHaveAccessibleName(INTEREST_CTA_LABEL);
   });
 
-  /* The design's sentence is "We'll share your LabOS profile so they can reach
-     out", which describes a profile a signed-out visitor does not have. The
-     press really does open an account first, so the copy says so — the same
-     rewording this drawer has already applied to two other over-promises. */
+  /* The design's sentence names the LabOS profile, which a signed-out visitor
+     does not have. The press really does open an account first, so the visitor's
+     copy says so — the same rewording this drawer has already applied to two
+     other over-promises. Both states still carry the "if you're a match"
+     qualifier; only the profile half differs. */
   it('does not promise to share a profile the visitor has not got', () => {
     renderBanner({ isLoggedIn: false });
 

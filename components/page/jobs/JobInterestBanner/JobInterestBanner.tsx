@@ -44,17 +44,20 @@ import s from './JobInterestBanner.module.scss';
 
 export const INTEREST_CTA_LABEL = "I'm interested";
 export const INTEREST_UNDO_LABEL = 'Undo';
-export const INTEREST_CONFIRMED_TITLE = 'Team will be notified you are interested';
+export const INTEREST_CONFIRMED_TITLE = "The team will see it if you're a match";
 
 export const interestPromptTitle = (teamName: string) => `Let ${teamName} know you're interested`;
 
-/* Logged in, the profile exists and sharing it is the whole offer. Logged out it
-   does not, and the design's sentence ("We'll share your LabOS profile…") would
-   be describing something the person does not have — the same class of claim
-   this drawer has already reworded twice rather than ship. The press really does
-   open an account first, so the copy says so. */
-export const INTEREST_SUBTITLE_MEMBER = "We'll share your LabOS profile so they can reach out.";
-export const INTEREST_SUBTITLE_VISITOR = "Sign in and we'll share your profile so they can reach out.";
+/* Two sentences, one promise. Logged in, the LabOS profile exists and naming it
+   is the whole offer. Logged out it does not, so the visitor's line drops the
+   product name and leads with the step the press actually takes first — the
+   design's sentence would otherwise describe something the person has not got,
+   the same class of claim this drawer has already reworded twice rather than
+   ship. Keep the "if you're a match" clause in both: it is the qualifier the
+   design added, and dropping it from one state turns that state back into an
+   unconditional promise. */
+export const INTEREST_SUBTITLE_MEMBER = "We'll notify the team if you're a match and share your LabOS profile.";
+export const INTEREST_SUBTITLE_VISITOR = "Sign in and we'll notify the team if you're a match and share your profile.";
 
 interface JobInterestBannerProps {
   teamName: string;

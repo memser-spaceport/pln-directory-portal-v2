@@ -121,5 +121,19 @@
   @include media.tablet-landscape {
     width: auto;
     min-width: 128px;
+
+    /* The confirmed state's Undo is a link: no border, no background, so the
+       128px box that makes the CTA the design's 128x40 has nothing to draw and
+       only pushes four centred characters inwards. The two states then end at
+       two different x, one under the other, as the card toggles.
+
+       Both properties are reset rather than left to `.link`'s own `padding: 0`
+       and `min-width: 0`, because those live in another CSS module and which of
+       two single-class rules wins is import order — not something this file
+       should be betting its alignment on. `.confirmed .action` outranks both. */
+    .confirmed & {
+      min-width: 0;
+      padding: 0;
+    }
   }
 }

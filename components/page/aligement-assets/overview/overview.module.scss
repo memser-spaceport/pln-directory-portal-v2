@@ -1,0 +1,853 @@
+@import '../../../../styles/media.scss';
+
+// Scoped design tokens for the PLAA Overview page (Claude Design "Profile Page +
+// Overview" project — Active Member view). Kept local to this module rather than
+// added to the global palette so this rebrand doesn't leak into other PLAA pages
+// that haven't been redesigned yet.
+.wrapper {
+  --ov-blue-500: #1b4dff;
+  --ov-blue-600: #2c6aee;
+  --ov-blue-700: #0e6e9e;
+  --ov-teal-500: #12a594;
+  --ov-teal-600: #0b7a6d;
+  --ov-green-500: #0a9952;
+
+  --ov-text-primary: #0a0c11;
+  --ov-text-secondary: #45546c;
+  --ov-text-tertiary: #889aae;
+
+  --ov-surface-card: #ffffff;
+  --ov-surface-page: #f9fafb;
+  --ov-surface-hover: rgba(27, 56, 96, 0.04);
+
+  --ov-border-subtle: rgba(27, 56, 96, 0.12);
+  --ov-border-faint: rgba(27, 56, 96, 0.06);
+
+  --ov-radius-md: 8px;
+  --ov-radius-lg: 10px;
+  --ov-radius-2xl: 16px;
+
+  --ov-ring-hairline: inset 0 0 0 1px var(--ov-border-subtle);
+  --ov-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --ov-shadow-md: 0 2px 4px -2px rgba(15, 23, 42, 0.06), 0 4px 8px -2px rgba(15, 23, 42, 0.1);
+
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+  width: 100%;
+  color: var(--ov-text-primary);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+}
+
+.headerTitle {
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0;
+
+  @include tablet-portrait {
+    font-size: 32px;
+  }
+}
+
+.headerDesc {
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--ov-text-secondary);
+  margin-top: 6px;
+  max-width: 900px;
+}
+
+// ── Shared section primitives ──────────────────────────────────────────────
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 26px;
+  margin: 0;
+}
+
+.sectionIntro {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionDesc {
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--ov-text-secondary);
+  margin: 0;
+  max-width: 900px;
+}
+
+.card {
+  background: var(--ov-surface-card);
+  border-radius: var(--ov-radius-2xl);
+  box-shadow: var(--ov-ring-hairline), var(--ov-shadow-xs);
+  padding: 24px;
+
+  @include tablet-portrait {
+    padding: 32px;
+  }
+}
+
+// ── Topline stats ───────────────────────────────────────────────────────────
+.statGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+
+  @include tablet-portrait {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 56px;
+  }
+}
+
+.statCard {
+  padding-top: 14px;
+  border-top: 2px solid var(--ov-accent, var(--ov-blue-500));
+}
+
+.statValue {
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--ov-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.statValueUnit {
+  font-size: 20px;
+}
+
+.statDesc {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ov-text-secondary);
+  margin-top: 6px;
+}
+
+.link {
+  font-weight: 600;
+  color: var(--ov-blue-500);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// ── How It Works ─────────────────────────────────────────────────────────
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.howGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+
+  @include tablet-portrait {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include tablet-landscape {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.howCard {
+  background: var(--ov-surface-card);
+  border-radius: var(--ov-radius-2xl);
+  box-shadow: var(--ov-ring-hairline), var(--ov-shadow-xs);
+  border-top: 3px solid var(--ov-accent, var(--ov-blue-500));
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.howCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.howCardBadge {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--ov-accent, var(--ov-blue-500));
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.howCardTitle {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.howCardDesc {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ov-text-secondary);
+  flex: 1;
+}
+
+.howCardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.howCardIcon {
+  color: var(--ov-accent, var(--ov-blue-500));
+  opacity: 0.55;
+  display: inline-flex;
+}
+
+.howCardLink {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ov-blue-500);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// ── Who It's For ─────────────────────────────────────────────────────────
+.whoCard {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.whoTop {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.roleGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+
+  @include tablet-portrait {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.roleItem {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  padding: 14px;
+  border-radius: var(--ov-radius-lg);
+  background: var(--ov-surface-page);
+  box-shadow: var(--ov-ring-hairline);
+}
+
+.roleIcon {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: var(--ov-radius-md);
+  background: rgba(27, 77, 255, 0.08);
+  color: var(--ov-blue-500);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.roleName {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.roleDesc {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ov-text-secondary);
+  margin-top: 1px;
+}
+
+.benefitDivider {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 24px;
+  border-top: 1px solid var(--ov-border-subtle);
+}
+
+.benefitGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+
+  @include tablet-portrait {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 32px;
+  }
+}
+
+.benefitItem {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.benefitCheck {
+  color: var(--ov-blue-500);
+  margin-top: 3px;
+  flex: none;
+}
+
+.benefitText {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ov-text-secondary);
+}
+
+// ── Snapshots & Points ──────────────────────────────────────────────────
+.snapshotHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.snapshotHeaderTitle {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.snapshotHeaderDesc {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ov-text-secondary);
+  margin-top: 6px;
+}
+
+.legendRow {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ov-text-secondary);
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ov-dot, var(--ov-green-500));
+}
+
+.chartGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  align-items: center;
+  margin-top: 24px;
+
+  @include tablet-landscape {
+    grid-template-columns: 0.95fr 1.05fr;
+    gap: 36px;
+  }
+}
+
+.chartWrap {
+  width: 100%;
+  height: 320px;
+}
+
+.categoryList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.categoryListHead {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ov-text-tertiary);
+}
+
+.categoryRow {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.categoryRowHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.categoryName {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.categoryPlaaValue {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ov-text-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.categoryPlaaUnit {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ov-text-secondary);
+}
+
+.categoryBars {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.categoryBarTrack {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--ov-surface-page);
+  overflow: hidden;
+}
+
+.categoryBarFill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--ov-bar, var(--ov-green-500));
+}
+
+.categoryPoints {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--ov-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.callout {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 14px 18px;
+  border-radius: var(--ov-radius-lg);
+  background: rgba(27, 77, 255, 0.06);
+  margin-top: 24px;
+}
+
+.calloutIcon {
+  color: var(--ov-blue-500);
+  margin-top: 2px;
+  flex: none;
+}
+
+.calloutText {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ov-text-secondary);
+
+  strong {
+    font-weight: 600;
+    color: var(--ov-text-primary);
+  }
+}
+
+// ── KPI emissions table ─────────────────────────────────────────────────
+.kpiSection {
+  padding-top: 24px;
+  margin-top: 24px;
+  border-top: 1px solid var(--ov-border-subtle);
+}
+
+.kpiTableWrap {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.kpiTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 480px;
+}
+
+.kpiTableHeadCell {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ov-text-tertiary);
+  padding: 0 0 10px;
+  text-align: right;
+
+  &:first-child {
+    text-align: left;
+  }
+}
+
+.kpiTableCell {
+  font-size: 14px;
+  color: var(--ov-text-secondary);
+  padding: 11px 0;
+  border-top: 1px solid var(--ov-border-faint);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+
+  &:first-child {
+    text-align: left;
+    color: var(--ov-text-primary);
+    font-weight: 500;
+    font-variant-numeric: normal;
+  }
+}
+
+// ── Points → PLAA conversion ────────────────────────────────────────────
+.conversionLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ov-text-tertiary);
+}
+
+.conversionSubtext {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ov-text-secondary);
+  margin-top: 6px;
+}
+
+.conversionGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  align-items: stretch;
+  margin-top: 20px;
+
+  @include tablet-landscape {
+    grid-template-columns: 1fr 32px 1fr 32px 1fr;
+    gap: 0 12px;
+  }
+}
+
+.conversionStep {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.conversionStepHeader {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.conversionStepBadge {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--ov-accent, var(--ov-blue-500));
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.conversionStepTitle {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.conversionStepDesc {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ov-text-secondary);
+  flex: 1;
+}
+
+.formulaBox {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: var(--ov-formula-bg, rgba(27, 77, 255, 0.06));
+  border-radius: var(--ov-radius-md);
+  padding: 14px 16px;
+}
+
+.formulaRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--ov-text-secondary);
+}
+
+.formulaResult {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 7px;
+  border-top: 1px solid var(--ov-formula-border, rgba(27, 77, 255, 0.3));
+}
+
+.formulaResultValue {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ov-accent, var(--ov-blue-500));
+}
+
+.conversionArrow {
+  display: none;
+
+  @include tablet-landscape {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 4px;
+    color: var(--ov-text-tertiary);
+  }
+}
+
+.disclaimerSmall {
+  font-size: 12px;
+  line-height: 18px;
+  display: block;
+  margin-top: 12px;
+}
+
+// ── Redeeming PLAA ──────────────────────────────────────────────────────
+.redeemCard {
+  border-radius: var(--ov-radius-2xl);
+  background: linear-gradient(135deg, #eaf0ff 0%, #f6f9ff 46%, #eaf7f4 100%);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+
+  @include tablet-portrait {
+    padding: 32px;
+  }
+}
+
+.stepGridWrap {
+  position: relative;
+}
+
+.stepConnector {
+  display: none;
+
+  @include tablet-portrait {
+    display: block;
+    position: absolute;
+    left: 16.67%;
+    right: 16.67%;
+    top: 30px;
+    height: 2px;
+    background: rgba(27, 77, 255, 0.22);
+  }
+}
+
+.stepGrid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 28px;
+
+  @include tablet-portrait {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.stepItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.stepIcon {
+  width: 60px;
+  height: 60px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--ov-surface-card);
+  box-shadow: inset 0 0 0 1.5px rgba(27, 77, 255, 0.22);
+  color: var(--ov-blue-500);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepTitle {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.stepDesc {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ov-text-secondary);
+  max-width: 260px;
+}
+
+.redeemFaqRow {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding-top: 24px;
+  border-top: 1px solid rgba(27, 56, 96, 0.12);
+}
+
+.redeemFaqIcon {
+  color: var(--ov-blue-500);
+  margin-top: 2px;
+  flex: none;
+}
+
+.redeemFaqText {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ov-text-secondary);
+
+  a {
+    color: var(--ov-blue-500);
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// ── CTA banner ──────────────────────────────────────────────────────────
+.ctaBanner {
+  border-radius: var(--ov-radius-2xl);
+  background: linear-gradient(135deg, var(--ov-blue-500) 0%, var(--ov-teal-500) 100%);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+
+  @include tablet-portrait {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 40px 44px;
+    gap: 32px;
+  }
+}
+
+.ctaBannerText {
+  max-width: 560px;
+}
+
+.ctaBannerTitle {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 26px;
+  color: #fff;
+  margin: 0;
+}
+
+.ctaBannerDesc {
+  font-size: 16px;
+  line-height: 24px;
+  color: rgba(255, 255, 255, 0.88);
+  margin-top: 8px;
+}
+
+.ctaBannerButton {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  color: var(--ov-blue-500);
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 14px 24px;
+  border-radius: var(--ov-radius-lg);
+  cursor: pointer;
+  box-shadow: var(--ov-shadow-md);
+  text-decoration: none;
+
+  &:hover {
+    opacity: 0.92;
+  }
+}
+
+// ── Legal + footer ──────────────────────────────────────────────────────
+.legalDisclaimer {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--ov-text-secondary);
+  max-width: 900px;
+}
+
+.footerNote {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--ov-border-subtle);
+  font-size: 14px;
+  color: var(--ov-text-tertiary);
+
+  a {
+    color: var(--ov-blue-500);
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

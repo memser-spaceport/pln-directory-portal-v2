@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import {
   HandHeart,
@@ -21,6 +21,7 @@ import {
   Money,
   Question,
   Lifebuoy,
+  CaretDown,
 } from '@phosphor-icons/react';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
@@ -127,13 +128,26 @@ const CATEGORY_STATS_FALLBACK: CategoryStat[] = KPI_WEIGHTS_FALLBACK.map((row) =
   plaa: row.emissionsPerSnapshot ?? 0,
 }));
 
+export interface RoundHistoryEntry {
+  roundNumber: number;
+  label: string;
+  categories: CategoryStat[];
+}
+
 export interface ActiveMemberOverviewProps {
   kpiWeights?: KpiWeightEntry[];
   roundStats?: RoundStatsResponse;
   trustHoldings?: TrustHoldingsData;
+  roundHistory?: RoundHistoryEntry[];
 }
 
-export default function ActiveMemberOverview({ kpiWeights, roundStats, trustHoldings }: ActiveMemberOverviewProps) {
+export default function ActiveMemberOverview({
+  kpiWeights,
+  roundStats,
+  trustHoldings,
+  roundHistory = [],
+}: ActiveMemberOverviewProps) {
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const { onOverviewPortfolioLinkClicked, onOverviewActivitiesLinkClicked, onOverviewFaqLinkClicked } =
     useAlignmentAssetsAnalytics();
   useScrollDepthTracking('overview');
@@ -156,6 +170,12 @@ export default function ActiveMemberOverview({ kpiWeights, roundStats, trustHold
   const maxPlaa = Math.max(1, ...categoryStats.map((c) => c.plaa));
 
   const kpiRows = kpiWeights && kpiWeights.length > 0 ? kpiWeights : KPI_WEIGHTS_FALLBACK;
+
+  const historyCategoryNames = useMemo(() => {
+    const names = new Set<string>();
+    roundHistory.forEach((round) => round.categories.forEach((c) => names.add(c.name)));
+    return Array.from(names).sort();
+  }, [roundHistory]);
 
   const handlePortfolioClick = () => onOverviewPortfolioLinkClicked('/alignment-asset/trust-holdings');
   const handleActivitiesClick = (source: 'how-it-works' | 'cta-banner') =>
@@ -350,6 +370,64 @@ export default function ActiveMemberOverview({ kpiWeights, roundStats, trustHold
               When more people contribute in the same category, the PLAA pool is more widely distributed; when activity
               is lower in a category, more PLAA is available per contributor.
             </div>
+          </div>
+
+          <div className={styles.historySection}>
+            <button
+              type="button"
+              className={styles.historyToggle}
+              onClick={() => setIsHistoryOpen((open) => !open)}
+              aria-expanded={isHistoryOpen}
+            >
+              <span className={styles.snapshotHeaderTitle}>Snapshot history</span>
+              <CaretDown
+                size={16}
+                weight="bold"
+                className={isHistoryOpen ? styles.historyChevronOpen : styles.historyChevron}
+              />
+            </button>
+            {isHistoryOpen && (
+              <div className={styles.historyBody}>
+                {historyCategoryNames.length === 0 ? (
+                  <div className={styles.historyEmpty}>No snapshot history available yet.</div>
+                ) : (
+                  <div className={styles.historyTableWrap}>
+                    <table className={styles.historyTable}>
+                      <thead>
+                        <tr>
+                          <th className={styles.historySnapshotHeadCell}>Snapshot</th>
+                          {historyCategoryNames.map((name) => (
+                            <th key={name} className={styles.historyTableHeadCell}>
+                              {name}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {roundHistory.map((round) => (
+                          <tr key={round.roundNumber}>
+                            <td className={styles.historySnapshotCell}>{round.label}</td>
+                            {historyCategoryNames.map((name) => {
+                              const stat = round.categories.find((c) => c.name === name);
+                              return (
+                                <td key={name} className={styles.historyDataCell}>
+                                  <div className={styles.historyPlaaValue}>
+                                    {(stat?.plaa ?? 0).toLocaleString()} PLAA
+                                  </div>
+                                  <div className={styles.historyPointsValue}>
+                                    {(stat?.points ?? 0).toLocaleString()} pts
+                                  </div>
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className={styles.kpiSection}>

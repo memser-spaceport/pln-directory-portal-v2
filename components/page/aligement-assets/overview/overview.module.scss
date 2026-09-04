@@ -6,15 +6,15 @@
 // that haven't been redesigned yet.
 .wrapper {
   --ov-blue-500: #1b4dff;
-  --ov-blue-600: #2c6aee;
-  --ov-blue-700: #0e6e9e;
+  --ov-blue-subtle: #e8edff;
   --ov-teal-500: #12a594;
   --ov-teal-600: #0b7a6d;
   --ov-green-500: #0a9952;
+  --ov-green-600: #048746;
 
   --ov-text-primary: #0a0c11;
   --ov-text-secondary: #45546c;
-  --ov-text-tertiary: #889aae;
+  --ov-text-tertiary: #8897ae;
 
   --ov-surface-card: #ffffff;
   --ov-surface-page: #f9fafb;
@@ -29,6 +29,7 @@
 
   --ov-ring-hairline: inset 0 0 0 1px var(--ov-border-subtle);
   --ov-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --ov-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.1);
   --ov-shadow-md: 0 2px 4px -2px rgba(15, 23, 42, 0.06), 0 4px 8px -2px rgba(15, 23, 42, 0.1);
 
   display: flex;
@@ -186,7 +187,7 @@
   height: 34px;
   flex: none;
   border-radius: 50%;
-  background: var(--ov-accent, var(--ov-blue-500));
+  background: var(--ov-badge-accent, var(--ov-accent, var(--ov-blue-500)));
   color: #fff;
   display: inline-flex;
   align-items: center;
@@ -218,7 +219,7 @@
 
 .howCardIcon {
   color: var(--ov-accent, var(--ov-blue-500));
-  opacity: 0.55;
+  opacity: var(--ov-icon-opacity, 0.6);
   display: inline-flex;
 }
 
@@ -271,7 +272,7 @@
   height: 36px;
   flex: none;
   border-radius: var(--ov-radius-md);
-  background: rgba(27, 77, 255, 0.08);
+  background: var(--ov-blue-subtle);
   color: var(--ov-blue-500);
   display: inline-flex;
   align-items: center;
@@ -471,7 +472,7 @@
   align-items: flex-start;
   padding: 14px 18px;
   border-radius: var(--ov-radius-lg);
-  background: rgba(27, 77, 255, 0.06);
+  background: var(--ov-blue-subtle);
   margin-top: 24px;
 }
 
@@ -537,15 +538,34 @@
 
 .historyTableWrap {
   overflow-x: auto;
+  // Overlay scrollbars (macOS default) hide any indication that a wider
+  // table is scrollable, so an overflowed row just looks cut off. Force a
+  // slim, always-visible scrollbar instead.
+  scrollbar-width: thin;
+  scrollbar-color: var(--ov-border-subtle) transparent;
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--ov-border-subtle);
+    border-radius: 999px;
+  }
 }
 
 .historyTable {
   width: 100%;
   border-collapse: collapse;
   min-width: 760px;
+  // Fixed layout + an explicit width on the Snapshot column only means every
+  // KPI category column shares the remaining space equally, regardless of
+  // how long its name or values are.
+  table-layout: fixed;
 }
 
 .historySnapshotHeadCell {
+  width: 100px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -564,6 +584,7 @@
   color: var(--ov-text-tertiary);
   padding: 0 12px 10px;
   text-align: center;
+  overflow-wrap: break-word;
 }
 
 .historySnapshotCell {
@@ -579,22 +600,37 @@
   padding: 11px 12px;
   border-top: 1px solid var(--ov-border-faint);
   text-align: center;
-}
-
-.historyPlaaValue {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ov-text-primary);
-  font-variant-numeric: tabular-nums;
   white-space: nowrap;
-}
-
-.historyPointsValue {
   font-size: 11px;
-  color: var(--ov-text-secondary);
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  margin-top: 2px;
+}
+
+// Points stacked directly over the PLAA they convert to, connected by a
+// straight-down arrow — same idea as the profile page's Snapshot History
+// tab conversion row (components/page/aligement-assets/profile), adapted
+// to a compact per-cell footprint so a full category row still fits
+// without scrolling.
+.historyConversion {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.historyConversionPoints {
+  color: #4a72ff;
+  font-weight: 600;
+}
+
+.historyConversionArrow {
+  color: var(--ov-text-tertiary);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.historyConversionPlaa {
+  color: #1b4dff;
+  font-weight: 600;
 }
 
 .historyTable tbody tr:hover {
@@ -949,6 +985,295 @@
   border-top: 1px solid var(--ov-border-subtle);
   font-size: 14px;
   color: var(--ov-text-tertiary);
+
+  a {
+    color: var(--ov-blue-500);
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// ── Prospective Visitor: onboarding walkthrough ─────────────────────────
+.prospectHero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  align-items: center;
+
+  @include tablet-landscape {
+    grid-template-columns: 1.35fr 1fr;
+  }
+}
+
+.prospectHeroCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.prospectHeroActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.prospectHeroSecondaryLink {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ov-text-secondary);
+  text-decoration: none;
+  padding: 12px 8px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.prospectAtGlanceLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ov-text-tertiary);
+}
+
+.prospectAtGlanceStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 20px;
+}
+
+.prospectAtGlanceStat {
+  text-align: center;
+
+  &:not(:first-child):not(:last-child) {
+    border-left: 1px solid var(--ov-border-faint);
+    border-right: 1px solid var(--ov-border-faint);
+  }
+}
+
+.prospectAtGlanceValue {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--ov-blue-500) 0%, var(--ov-teal-500) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.prospectAtGlanceUnit {
+  font-size: 11px;
+  color: var(--ov-text-tertiary);
+  margin-top: 6px;
+}
+
+.prospectAtGlanceDivider {
+  height: 1px;
+  background: var(--ov-border-subtle);
+  margin: 20px 0;
+}
+
+.prospectAtGlanceChecklist {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.prospectAtGlanceCheckItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--ov-text-secondary);
+}
+
+.prospectAtGlanceCheckIcon {
+  color: var(--ov-green-600);
+  flex: none;
+}
+
+.onboardingStepGridWrap {
+  position: relative;
+  margin-top: 20px;
+}
+
+.onboardingStepConnector {
+  display: none;
+
+  @include tablet-landscape {
+    display: block;
+    position: absolute;
+    left: 12%;
+    right: 12%;
+    top: 34px;
+    height: 2px;
+    background: linear-gradient(135deg, var(--ov-blue-500) 0%, var(--ov-teal-500) 100%);
+    opacity: 0.35;
+  }
+}
+
+.onboardingStepGrid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+
+  @include tablet-landscape {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.onboardingStepCard {
+  position: relative;
+  background: linear-gradient(135deg, #eaf0ff 0%, #f6f9ff 46%, #eaf7f4 100%);
+  border-radius: var(--ov-radius-2xl);
+  box-shadow: inset 0 0 0 1px rgba(27, 77, 255, 0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.onboardingStepHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.onboardingStepBadge {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--ov-blue-500);
+  color: #fff;
+  box-shadow: 0 0 0 4px var(--ov-surface-card);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+// Step 3 (accreditation, skippable for non-US participants) renders as an
+// outline instead of the filled circle the other steps use.
+.onboardingStepBadgeOutlined {
+  background: var(--ov-surface-card);
+  color: var(--ov-blue-500);
+  box-shadow: inset 0 0 0 2px var(--ov-blue-500);
+}
+
+.onboardingStepIcon {
+  color: var(--ov-blue-500);
+}
+
+.onboardingStepTitle {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.onboardingStepDesc {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ov-text-secondary);
+  flex: 1;
+}
+
+.onboardingStepPill {
+  display: inline-flex;
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ov-blue-500);
+  background: var(--ov-blue-subtle);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.onboardingHighlight {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: var(--ov-radius-lg);
+  background: var(--ov-blue-subtle);
+  color: var(--ov-blue-500);
+  font-size: 14px;
+  margin-top: 20px;
+
+  strong {
+    font-weight: 600;
+  }
+}
+
+.detailsIconGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin-top: 20px;
+
+  @include tablet-portrait {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.detailsIconItem {
+  display: flex;
+  gap: 14px;
+}
+
+.detailsIconBadge {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: var(--ov-radius-lg);
+  background: var(--ov-blue-subtle);
+  color: var(--ov-blue-500);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detailsIconTitle {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.detailsIconDesc {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ov-text-secondary);
+  margin-top: 2px;
+}
+
+.geoNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: var(--ov-radius-lg);
+  background: var(--ov-blue-subtle);
+}
+
+.geoNoticeIcon {
+  color: var(--ov-blue-500);
+  margin-top: 2px;
+  flex: none;
+}
+
+.geoNoticeText {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ov-text-secondary);
 
   a {
     color: var(--ov-blue-500);

@@ -50,16 +50,6 @@ export const useAlignmentAssetsAnalytics = () => {
     OVERVIEW_ACTIVITIES_LINK_CLICKED: 'alignment-assets-overview-activities-link-clicked',
     OVERVIEW_FAQ_LINK_CLICKED: 'alignment-assets-overview-faq-link-clicked',
 
-    // Incentive Model Page
-    INCENTIVE_MODEL_ACTIVITIES_LINK_CLICKED: 'alignment-assets-incentive-model-activities-link-clicked',
-    INCENTIVE_MODEL_ROUND_DROPDOWN_OPENED: 'alignment-assets-incentive-model-round-dropdown-opened',
-    INCENTIVE_MODEL_PREV_ROUND_CLICKED: 'alignment-assets-incentive-model-prev-round-clicked',
-    INCENTIVE_MODEL_NEXT_ROUND_CLICKED: 'alignment-assets-incentive-model-next-round-clicked',
-    INCENTIVE_MODEL_GO_TO_CURRENT_CLICKED: 'alignment-assets-incentive-model-go-to-current-clicked',
-    INCENTIVE_MODEL_ROUND_INPUT_CHANGED: 'alignment-assets-incentive-model-round-input-changed',
-    INCENTIVE_MODEL_TIP_VIEW_LINK_CLICKED: 'alignment-assets-incentive-model-tip-view-link-clicked',
-    INCENTIVE_MODEL_LEARN_MORE_CLICKED: 'alignment-assets-incentive-model-learn-more-clicked',
-
     // Activities Page
     ACTIVITIES_SUBMIT_BTN_CLICKED: 'alignment-assets-activities-submit-btn-clicked',
     ACTIVITIES_SUGGEST_LINK_CLICKED: 'alignment-assets-activities-suggest-link-clicked',
@@ -168,41 +158,6 @@ export const useAlignmentAssetsAnalytics = () => {
 
   function onOverviewFaqLinkClicked(url: string) {
     captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.OVERVIEW_FAQ_LINK_CLICKED, { url });
-  }
-
-  // ==========================================
-  // Incentive Model Page Analytics
-  // ==========================================
-  function onIncentiveModelActivitiesLinkClicked(url: string) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.INCENTIVE_MODEL_ACTIVITIES_LINK_CLICKED, { url });
-  }
-
-  function onIncentiveModelRoundDropdownOpened(currentRound: number) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.INCENTIVE_MODEL_ROUND_DROPDOWN_OPENED, { currentRound });
-  }
-
-  function onIncentiveModelPrevRoundClicked(fromRound: number, toRound: number) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.INCENTIVE_MODEL_PREV_ROUND_CLICKED, { fromRound, toRound });
-  }
-
-  function onIncentiveModelNextRoundClicked(fromRound: number, toRound: number) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.INCENTIVE_MODEL_NEXT_ROUND_CLICKED, { fromRound, toRound });
-  }
-
-  function onIncentiveModelGoToCurrentClicked(fromRound: number, currentRound: number) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.INCENTIVE_MODEL_GO_TO_CURRENT_CLICKED, { fromRound, currentRound });
-  }
-
-  function onIncentiveModelRoundInputChanged(newRound: number) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.INCENTIVE_MODEL_ROUND_INPUT_CHANGED, { newRound });
-  }
-
-  function onIncentiveModelTipViewLinkClicked(url: string) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.INCENTIVE_MODEL_TIP_VIEW_LINK_CLICKED, { url });
-  }
-
-  function onIncentiveModelLearnMoreClicked(url: string) {
-    captureEvent(ALIGNMENT_ASSETS_ANALYTICS_EVENTS.INCENTIVE_MODEL_LEARN_MORE_CLICKED, { url });
   }
 
   // ==========================================
@@ -371,16 +326,6 @@ export const useAlignmentAssetsAnalytics = () => {
     onOverviewPortfolioLinkClicked,
     onOverviewActivitiesLinkClicked,
     onOverviewFaqLinkClicked,
-
-    // Incentive Model Page
-    onIncentiveModelActivitiesLinkClicked,
-    onIncentiveModelRoundDropdownOpened,
-    onIncentiveModelPrevRoundClicked,
-    onIncentiveModelNextRoundClicked,
-    onIncentiveModelGoToCurrentClicked,
-    onIncentiveModelRoundInputChanged,
-    onIncentiveModelTipViewLinkClicked,
-    onIncentiveModelLearnMoreClicked,
 
     // Activities Page
     onActivitiesSubmitBtnClicked,

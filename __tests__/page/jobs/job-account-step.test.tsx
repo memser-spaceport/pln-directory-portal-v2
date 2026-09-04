@@ -55,6 +55,7 @@ jest.mock('@/services/jobs/hooks/useJobApplications', () => ({
   useRoleApplication: () => null,
 }));
 
+const onJobCreateProfileClicked = jest.fn();
 jest.mock('@/analytics/jobs.analytics', () => ({
   useJobsAnalytics: () => ({
     onJobApplySubmitted: jest.fn(),
@@ -64,6 +65,7 @@ jest.mock('@/analytics/jobs.analytics', () => ({
     onJobApplyFlowClosed: jest.fn(),
     onJobApplyExternalRedirected: jest.fn(),
     onJobUnlockInfoOpened: jest.fn(),
+    onJobCreateProfileClicked,
   }),
 }));
 
@@ -344,6 +346,21 @@ describe('the outbound review step’s two doors', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Create profile' }));
 
     expect(onStepChange).toHaveBeenCalledWith('profile');
+  });
+
+  /* Sits beside `onJobUnlockInfoOpened`: together they're the pair a funnel
+     needs to tell "read the note, then clicked" from "read it and dropped". */
+  it('reports the press itself, not just the navigation it causes', () => {
+    outboundReview();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create profile' }));
+
+    expect(onJobCreateProfileClicked).toHaveBeenCalledWith({
+      job_id: role.uid,
+      team_id: OTHER.uid,
+      viewer_state: 'logged-out',
+      source: 'job-board',
+    });
   });
 
   /* A signed-in member whose account is still pending reaches the same branch,

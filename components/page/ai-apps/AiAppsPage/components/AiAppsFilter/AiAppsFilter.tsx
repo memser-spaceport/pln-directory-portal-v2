@@ -70,6 +70,7 @@ export function AiAppsFilter(props: Props) {
           filterStore={useAiAppsFilterStore}
           useGetDataHook={getCreators}
           defaultItemsToShow={5}
+          collapsible
           onChange={(_key, values) =>
             analytics.onCreatorFilterSelected({ creatorCount: values.length, resultCount: visibleApps.length })
           }

@@ -85,6 +85,13 @@ export interface GenericCheckboxListProps {
   hideSearch?: boolean;
 
   disableSorting?: boolean;
+
+  /**
+   * When true, all items are shown by default (ignoring `defaultItemsToShow`),
+   * with a "Show less" toggle to collapse down to `defaultItemsToShow` items
+   * and a "Show all" toggle to expand again.
+   */
+  collapsible?: boolean;
 }
 
 /**
@@ -136,9 +143,11 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
     className,
     hideSearch,
     disableSorting,
+    collapsible,
   } = props;
 
   const [searchValue, setSearchValue] = useState('');
+  const [isExpanded, setIsExpanded] = useState(!!collapsible);
 
   // Handle search change with optional callback
   const handleSearchChange = (value: string) => {
@@ -172,10 +181,12 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
     beData: data,
     selectedData: selectedValues,
     searchValue,
-    defaultItemsToShow,
+    defaultItemsToShow: collapsible && isExpanded ? undefined : defaultItemsToShow,
     disableSorting,
     searchResultsToShow,
   });
+
+  const showToggle = !!collapsible && !searchValue && !!defaultItemsToShow && data.length > defaultItemsToShow;
 
   // React Hook Form setup
   const methods = useForm<Record<string, FilterOption[]>>({
@@ -255,6 +266,11 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
             );
           })}
         </div>
+        {showToggle && (
+          <button type="button" className={s.toggleButton} onClick={() => setIsExpanded((prev) => !prev)}>
+            {isExpanded ? 'Show less' : `Show all (${data.length})`}
+          </button>
+        )}
       </div>
     </FormProvider>
   );

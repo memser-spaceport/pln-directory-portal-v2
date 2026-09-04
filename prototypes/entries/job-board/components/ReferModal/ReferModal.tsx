@@ -459,7 +459,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
 
                 <div className={`${s.templateBlock} ${selectedMember ? '' : s.templateBlockIdle}`}>
                   <div className={s.templateLabelRow}>
-                    <span className={s.templateLabel}>Your note</span>
+                    <span className={s.templateLabel}>Add context for the hiring team</span>
                     {messageEdited && !!templateNote && (
                       <button type="button" className={s.resetLink} onClick={resetTemplate}>
                         Reset to template
@@ -492,17 +492,27 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                       and this caption pointed at that blank. The blank is gone —
                       it made the referrer clear text before writing, to be told
                       the same thing the caption already tells them — so the
-                      sentence now carries the ask on its own. It still says why
-                      it's theirs to fill, which is the one claim nothing else on
-                      screen makes, and the placeholder still keeps the general
-                      "why this is a fit" so no state says it twice.
+                      sentence carries the ask on its own. The placeholder keeps
+                      the general "why this is a fit" so no state says it twice.
 
-                      "Add" and "fill in", not "say" and "write for you": what is
-                      being asked for is a line the draft leaves out, and the verb
-                      should match the act. */}
+                      **Just the ask now.** It used to close with "— that's the one
+                      thing the draft can't fill in", explaining why the line was
+                      the referrer's to write. Beside a note that has already
+                      drafted itself, the reason was doing less work than its
+                      length suggested: the box is visibly full and the caption
+                      visibly asks for one more thing, which is the whole argument
+                      the clause was spelling out.
+
+                      "Describe", not "Add": the label above now carries the add —
+                      "Add context for the hiring team" — and two lines both opening
+                      on the same verb read as one instruction stuttering. This one
+                      says what to write; the label says what the box is for.
+
+                      The name still substitutes in once someone is picked. The
+                      generic half is the pre-pick wording, not a decision to stop
+                      naming people. */}
                   <p id="message-description" className={`${taCss.fieldDescription} ${taCss.fieldDescriptionTop}`}>
-                    Add how you know {selectedMember ? firstName : 'the person you’re referring'} — that’s the one thing
-                    the draft can’t fill in.
+                    Describe how you know {selectedMember ? firstName : 'the person you’re referring'}
                   </p>
 
                   {/* Wrapper so the inert state can dim the box alone — see

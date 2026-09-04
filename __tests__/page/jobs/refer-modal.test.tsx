@@ -39,7 +39,11 @@ jest.mock('@/components/common/Modal', () => ({
 jest.mock('@/components/form/FormTextArea/FormTextArea', () => ({
   FormTextArea: ({ name, disabled }: { name: string; disabled?: boolean }) => {
     const { register } = useFormContext();
-    return <textarea aria-label="Your note" disabled={disabled} {...register(name)} />;
+    /* The name is the mock's own invention. In production the visible label is a
+       sibling `<span>` that nothing links to the textarea, so the real control has
+       no accessible name at all — only `aria-describedby`. Kept in step with that
+       visible label anyway, so grepping the copy leads somewhere true. */
+    return <textarea aria-label="Add context for the hiring team" disabled={disabled} {...register(name)} />;
   },
 }));
 
@@ -202,7 +206,7 @@ describe('ReferModal', () => {
     renderModal(null);
 
     await user.click(screen.getByRole('button', { name: 'Pick referee' }));
-    await waitFor(() => expect(screen.getByLabelText('Your note')).toHaveValue(DRAFTED_NOTE));
+    await waitFor(() => expect(screen.getByLabelText('Add context for the hiring team')).toHaveValue(DRAFTED_NOTE));
     expect(screen.getByRole('button', { name: 'Send referral' })).toBeDisabled();
   });
 
@@ -217,7 +221,7 @@ describe('ReferModal', () => {
 
     await user.click(screen.getByRole('button', { name: 'Pick referee' }));
 
-    const note = screen.getByLabelText('Your note');
+    const note = screen.getByLabelText('Add context for the hiring team');
     await waitFor(() => expect(note).toHaveValue(DRAFTED_NOTE));
     expect((note as HTMLTextAreaElement).value).not.toMatch(/\[Add a line/i);
     expect((note as HTMLTextAreaElement).value).not.toMatch(/how you know/i);
@@ -315,6 +319,6 @@ describe('ReferModal', () => {
     expect(
       await screen.findByText('We couldn’t draft a note for that member — write your own, or pick someone else.'),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText('Your note')).toBeEnabled();
+    expect(screen.getByLabelText('Add context for the hiring team')).toBeEnabled();
   });
 });

@@ -580,7 +580,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
 
                 <div className={`${s.templateBlock} ${hasReferee ? '' : s.templateBlockIdle}`}>
                   <div className={s.templateLabelRow}>
-                    <span className={s.templateLabel}>Your note</span>
+                    <span className={s.templateLabel}>Add context for the hiring team</span>
                     {messageEdited && !!templateNote && (
                       <button type="button" className={s.resetLink} onClick={resetTemplate}>
                         Reset to template
@@ -606,18 +606,23 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                       after a draft lands, so the line stays put and only the name
                       joins it — a caption that appears mid-flow reads as a new
                       demand. It points at the bracketed slot the template leaves
-                      (see `withHowYouKnowSlot`) and says why it's the referrer's
-                      to fill — the one claim nothing else on screen makes. The
-                      how-you-know ask lives here alone; the placeholder keeps the
-                      general "why this is a fit" so no state says it twice.
+                      (see `withHowYouKnowSlot`). The how-you-know ask lives here
+                      alone; the placeholder keeps the general "why this is a fit"
+                      so no state says it twice.
+
+                      The caption used to close with "— that's the one thing the
+                      draft can't fill in". Dropped: beside a box that has already
+                      filled itself, the verb carries the same point without a
+                      sentence explaining it. "Describe" rather than "Add", because
+                      the label above now opens on "Add context for the hiring
+                      team" and two lines sharing a verb read as one stutter.
 
                       "Add" and "fill in", not "say" and "write for you": the thing
                       being pointed at is a bracketed blank inside a drafted note,
                       and the slot's own words are "Add a line about how you know
                       <First>". A hint about a blank should use the blank's verb. */}
                   <p id="message-description" className={`${taCss.fieldDescription} ${taCss.fieldDescriptionTop}`}>
-                    Add how you know {refereeName ? firstName : 'the person you’re referring'} — that’s the one thing
-                    the draft can’t fill in.
+                    Describe how you know {refereeName ? firstName : 'the person you’re referring'}
                   </p>
 
                   {/* Wrapper so the inert state can dim the box alone — see

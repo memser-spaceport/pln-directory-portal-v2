@@ -465,6 +465,42 @@ export const activitiesData: ActivitiesData = {
           { text: 'https://directory.plnetwork.io/settings/email', url: 'https://directory.plnetwork.io/settings/email' }
         ]
       }
+    },
+    {
+      // NOTE: pending Legal/Privacy/Product approval before this activity's
+      // permanent launch, per its own rules below — do not remove that gate
+      // from the copy even once the intake link lands.
+      id: 'network-mapping-pl-capital',
+      category: 'Capital',
+      activity: 'Network Mapping for PL Capital',
+      networkValue: 'Help PL Capital identify relevant relationships in your professional network',
+      points: '250',
+      frequency: 'One-Time',
+      verificationType: 'Submission',
+      cta: 'submit',
+      popupContent: {
+        title: 'Network Mapping for PL Capital',
+        overview: 'Help the PL Capital team identify potentially relevant relationships in your professional network. Through a private, controlled workflow, you can identify selected possible matches from your LinkedIn network—or, only if specifically approved, use a secure Connections-file intake—then review a shortlist and decide whether any relationship is appropriate for an introduction. You remain in control, and no contact will be approached solely because they appeared in your export.',
+        networkBenefits: 'Improves the quality outreach by replacing cold approaches with participant-validated relationship paths through a repeatable, privacy-conscious network-mapping workflow.',
+        rules: [
+          '50 points are awarded for completing the secure intake submission; the remaining 200 points are awarded upon completing the full relationship mapping and validation review (250 points total)',
+          'Opt in and complete the approved secure-data intake',
+          'Review and label the returned shortlist within the stated request-cycle deadline',
+          'Do not share message history or sensitive personal information',
+          'You may decline any match or introduction',
+          'If Legal approves an award, points recognize completion of the mapping and validation task only',
+          'No additional points are awarded for outreach, introductions, meetings, investment interest, commitments, or capital raised',
+          'Only persons designated by PLC may conduct substantive fundraising discussions',
+          'Legal, Privacy, and Product approval is required before the permanent activity launches and before any material change to its task, award, data flow, or outreach boundary',
+          'This is a strictly administrative task for relationship mapping — no participant is authorized to act as an agent, broker, or fundraiser',
+          'Tracked via participant submission, AI-assisted review, and the points ledger'
+        ],
+        // TODO(Bill): replace with the real secure intake form URL before this
+        // activity ships. Left as an obviously-fake placeholder on purpose —
+        // if it slips through untouched, clicking it 404s instead of silently
+        // sending participants somewhere wrong.
+        submissionLink: { text: 'secure intake form', url: 'TODO-BILL-SECURE-INTAKE-FORM-URL' }
+      }
     }
   ]
 };

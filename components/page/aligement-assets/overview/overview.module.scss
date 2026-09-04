@@ -492,6 +492,115 @@
   }
 }
 
+// ── Snapshot history (accordion) ───────────────────────────────────────
+.historySection {
+  padding-top: 24px;
+  margin-top: 24px;
+  border-top: 1px solid var(--ov-border-subtle);
+}
+
+.historyToggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+
+.historyChevron,
+.historyChevronOpen {
+  flex: none;
+  color: var(--ov-text-tertiary);
+  transition: transform 0.15s ease;
+}
+
+.historyChevronOpen {
+  transform: rotate(180deg);
+}
+
+.historyBody {
+  margin-top: 16px;
+}
+
+.historyEmpty {
+  font-size: 14px;
+  color: var(--ov-text-secondary);
+  padding: 16px 0;
+}
+
+.historyTableWrap {
+  overflow-x: auto;
+}
+
+.historyTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.historySnapshotHeadCell {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ov-text-tertiary);
+  padding: 0 12px 10px 0;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.historyTableHeadCell {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ov-text-tertiary);
+  padding: 0 12px 10px;
+  text-align: center;
+}
+
+.historySnapshotCell {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ov-text-primary);
+  padding: 11px 12px 11px 0;
+  border-top: 1px solid var(--ov-border-faint);
+  white-space: nowrap;
+}
+
+.historyDataCell {
+  padding: 11px 12px;
+  border-top: 1px solid var(--ov-border-faint);
+  text-align: center;
+}
+
+.historyPlaaValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ov-text-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.historyPointsValue {
+  font-size: 11px;
+  color: var(--ov-text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+.historyTable tbody tr:hover {
+  background: var(--ov-surface-page);
+}
+
 // ── KPI emissions table ─────────────────────────────────────────────────
 .kpiSection {
   padding-top: 24px;

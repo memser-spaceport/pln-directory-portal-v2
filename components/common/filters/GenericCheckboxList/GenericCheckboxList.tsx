@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { clsx } from 'clsx';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FilterState } from '@/services/filters/types';
 import { FilterOption } from '@/services/filters/commonTypes';
@@ -244,7 +245,7 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
         {label && <div className={s.label}>{label}</div>}
         {hint && <div className={s.hint}>{hint}</div>}
         {!hideSearch && <SearchInput value={searchValue} onChange={handleSearchChange} placeholder={placeholder} />}
-        <div className={s.list}>
+        <div className={clsx(s.list, { [s.listExpanded]: collapsible && isExpanded })}>
           {!!searchValue && (
             <SelectAll
               data={data}

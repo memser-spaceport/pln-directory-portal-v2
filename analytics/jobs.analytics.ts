@@ -198,6 +198,27 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_NOTE_RESET, { ...args });
   };
 
+  /** The refer modal's suggested-leads list rendered. Suggestions are not
+   *  preselected, so this is the denominator `onJobReferSuggestedLeadSelected`
+   *  needs — without it, a low pick rate can't be told apart from a list nobody
+   *  saw. */
+  const onJobReferSuggestedLeadsShown = (args: JobReferBaseParams & { suggested_count: number }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_SUGGESTED_LEADS_SHOWN, { ...args });
+  };
+
+  /** A lead picked from the suggested list rather than found via search — kept
+   *  distinct from `onJobReferRefereeSelected` so suggestion adoption can be
+   *  read on its own. */
+  const onJobReferSuggestedLeadSelected = (args: JobReferBaseParams & { referred_member_uid: string }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_SUGGESTED_LEAD_SELECTED, { ...args });
+  };
+
+  const onJobReferCcReferredPersonToggled = (
+    args: JobReferBaseParams & { referred_member_uid: string; next_state: boolean },
+  ) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_CC_REFERRED_PERSON_TOGGLED, { ...args });
+  };
+
   /* `copied_referred_member` is the state of the refer modal's "Copy <First> on this
      email" tick. Read it as *intent*, not delivery: until the backend honours
      `includeReferredMember`, it copies the referred member on every referral
@@ -264,6 +285,13 @@ export const useJobsAnalytics = () => {
 
   const onJobApplySignUpFailed = (args: JobApplyBaseParams & { failure_category: 'duplicate' | 'request-failed' }) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_SIGNUP_FAILED, { ...args });
+  };
+
+  /** The dedicated Job Aspirant sign-up/create-profile path, kept apart from
+   *  `onJobApplySignUpSubmitted` so its funnel doesn't get pooled with the
+   *  standard member sign-up. */
+  const onJobAspirantSignUpSubmitted = (args: JobApplyBaseParams & { trigger: JobApplyTrigger }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_ASPIRANT_SIGNUP_SUBMITTED, { ...args });
   };
 
   /**
@@ -387,6 +415,9 @@ export const useJobsAnalytics = () => {
     onJobReferRecipientsChanged,
     onJobReferNoteEdited,
     onJobReferNoteReset,
+    onJobReferSuggestedLeadsShown,
+    onJobReferSuggestedLeadSelected,
+    onJobReferCcReferredPersonToggled,
     onJobReferSubmitted,
     onJobReferSucceeded,
     onJobReferFailed,
@@ -395,6 +426,7 @@ export const useJobsAnalytics = () => {
     onJobApplyClicked,
     onJobApplySignUpSubmitted,
     onJobApplySignUpFailed,
+    onJobAspirantSignUpSubmitted,
     onJobDetailOpened,
     onJobApplyDrawerOpened,
     onJobApplyDrawerSaved,

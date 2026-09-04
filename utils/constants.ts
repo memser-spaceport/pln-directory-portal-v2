@@ -81,6 +81,9 @@ export const JOBS_ANALYTICS = {
   ON_JOB_REFER_RECIPIENTS_CHANGED: 'job-refer-recipients-changed',
   ON_JOB_REFER_NOTE_EDITED: 'job-refer-note-edited',
   ON_JOB_REFER_NOTE_RESET: 'job-refer-note-reset',
+  ON_JOB_REFER_SUGGESTED_LEADS_SHOWN: 'job-refer-suggested-leads-shown',
+  ON_JOB_REFER_SUGGESTED_LEAD_SELECTED: 'job-refer-suggested-lead-selected',
+  ON_JOB_REFER_CC_REFERRED_PERSON_TOGGLED: 'job-refer-cc-referred-person-toggled',
   ON_JOB_REFER_SUBMITTED: 'job-refer-submitted',
   ON_JOB_REFER_SUCCEEDED: 'job-refer-succeeded',
   ON_JOB_REFER_FAILED: 'job-refer-failed',
@@ -89,6 +92,7 @@ export const JOBS_ANALYTICS = {
   ON_JOB_APPLY_CLICKED: 'job-apply-clicked',
   ON_JOB_APPLY_SIGNUP_SUBMITTED: 'job-apply-signup-submitted',
   ON_JOB_APPLY_SIGNUP_FAILED: 'job-apply-signup-failed',
+  ON_JOB_ASPIRANT_SIGNUP_SUBMITTED: 'job-aspirant-signup-submitted',
   ON_JOB_APPLY_DRAWER_OPENED: 'job-apply-drawer-opened',
   ON_JOB_DETAIL_OPENED: 'job-detail-opened',
   ON_JOB_APPLY_DRAWER_SAVED: 'job-apply-drawer-saved',
@@ -645,6 +649,8 @@ export const HOME_ANALYTICS_EVENTS = {
 };
 
 export const TEAM_NEWS_ANALYTICS_EVENTS = {
+  TEAM_NEWS_CREATE_CLICKED: 'team-news-create-clicked',
+  TEAM_NEWS_CREATE_POST_SUBMITTED: 'team-news-create-post-submitted',
   TEAM_NEWS_TAB_CLICKED: 'team-news-tab-clicked',
   TEAM_NEWS_CATEGORY_CLICKED: 'team-news-category-clicked',
   TEAM_NEWS_SORT_CHANGED: 'team-news-sort-changed',
@@ -893,6 +899,40 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.6.0 - Job Referrals, Team News & AI Apps',
+    tag: 'New Feature',
+    date: '4, Sep 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Suggested teams</span> - Suggested teams now show a short team description instead of focus area and tags.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Referral upgrades</span> - Choose from suggested hiring leads (nothing preselected), add a note on how you know the person you're referring, and optionally CC them on the intro email.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">I'm interested</span> - New button on job listings lets you signal interest to the hiring team without formally applying.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Post updates</span> - Team admins and members can post updates from the team page; they appear in Team News and the home feed.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">AI Apps</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Search & filters</span> - New sidebar lets you search and filter AI Apps by title, description, or creator.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">App metrics</span> - App tiles now show weekly active users and views.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Navigation</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">PL Infra OS</span> - Added a "PL Infra OS / Factorio" shortcut to the PL Infra menu, linking to a dashboard of PL Infra's goals, key numbers, current work, and weekly updates.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Account Settings</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">MCP search</span> - LabOS MCP now supports searching Directory members, teams, projects, and more directly from your MCP client.</li>
+        </ul>
+        </div>`,
+  },
   {
     title: 'Version 4.5.26 - In-app Apply, CV Import & For You',
     tag: 'New Feature',

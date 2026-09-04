@@ -431,7 +431,8 @@ export const activitiesData: ActivitiesData = {
       activity: 'Contribute a Reusable Prompt or Skill',
       networkValue: 'Contribute a reusable prompt, AI resource, or skill to the PLAAbook or PL Infra Toolkit',
       points: '350',
-      frequency: 'One-Time',
+      frequency: 'Limited Time',
+      endDateLabel: 'Ends Oct 31, 2026',
       verificationType: 'Manual Review',
       cta: 'confirm',
       popupContent: {
@@ -444,6 +445,10 @@ export const activitiesData: ActivitiesData = {
           'Open September 9–October 31, 2026',
           'Submit up to one prompt or AI-related resource and one AI skill',
           'Contributions must be publication-verified, useful, reproducible, safe, and non-duplicative'
+        ],
+        links: [
+          { text: 'PLAAbook', url: 'https://directory.plnetwork.io/pl-infra/ai-apps/cmthpnpeo059vnz4g9kf55xrv' },
+          { text: 'PL Infra Toolkit', url: 'https://directory.plnetwork.io/pl-infra/ai-apps/cmr2wll3y0a07ot4gjdy8ma6b' }
         ]
       }
     },

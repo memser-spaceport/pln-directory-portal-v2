@@ -23,6 +23,9 @@ import dynamic from 'next/dynamic';
 import { isPastDate } from '@/utils/irl.utils';
 import LocationCard from './location-card';
 import { getFeaturedData } from '@/services/featured.service';
+import { useMyLocationSubscriptions } from '@/services/irl/hooks/useMyLocationSubscriptions';
+import { useQueryClient } from '@tanstack/react-query';
+import { IrlQueryKeys } from '@/services/irl/constants';
 import { useRouter } from 'next/navigation';
 import { formatFeaturedData } from '@/utils/home.utils';
 import Cookies from 'js-cookie';
@@ -31,7 +34,7 @@ import { isAdminUser } from '@/utils/user/isAdminUser';
 
 const MemberBioModal = dynamic(() => import('./member-bio-modal'), { ssr: false });
 
-function RenderCard(item: any, isLoggedIn: boolean, userInfo: any, getFeaturedDataa: () => void) {
+function RenderCard(item: any, isLoggedIn: boolean, userInfo: any, getFeaturedDataa: () => void, mySubscriptions: any) {
   const { category } = item;
 
   const analytics = useHomeAnalytics();
@@ -108,7 +111,12 @@ function RenderCard(item: any, isLoggedIn: boolean, userInfo: any, getFeaturedDa
             if (e.defaultPrevented) return;
           }}
         >
-          <LocationCard {...item} userInfo={userInfo} getFeaturedDataa={getFeaturedDataa} />
+          <LocationCard
+            {...item}
+            userInfo={userInfo}
+            getFeaturedDataa={getFeaturedDataa}
+            mySubscriptions={mySubscriptions}
+          />
         </a>
       );
     default:
@@ -127,11 +135,17 @@ const Featured = (props: any) => {
   const router = useRouter();
   const [unfilteredFeaturedData, setUnfilteredFeaturedData] = useState(props.featuredData ?? []);
   const { activeFilter, onFilterClick: handleFilterSelected } = useFilter<string>('all');
+  /* One call covers every location card: the subscribers embedded in the
+     featured payload are the public, approval-filtered list and cannot say
+     whether *this* viewer follows a location. */
+  const mySubscriptions = useMyLocationSubscriptions(isLoggedIn);
+  const queryClient = useQueryClient();
 
   const getFeaturedDataa = async () => {
     const authToken = getParsedValue(Cookies.get('authToken'));
     const featData = await getFeaturedData(authToken, isLoggedIn, isAdmin);
     setUnfilteredFeaturedData(formatFeaturedData(featData.data));
+    await queryClient.invalidateQueries({ queryKey: [IrlQueryKeys.MY_LOCATION_SUBSCRIPTIONS] });
     router.refresh();
   };
 
@@ -156,10 +170,10 @@ const Featured = (props: any) => {
                 <Fragment key={`${item.category}-${index}`}>
                   {item?.category === 'location' ? (
                     item?.upcomingEvents?.length > 0 && (
-                      <div>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
+                      <div>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa, mySubscriptions)}</div>
                     )
                   ) : (
-                    <div>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa)}</div>
+                    <div>{RenderCard(item, isLoggedIn, userInfo, getFeaturedDataa, mySubscriptions)}</div>
                   )}
                 </Fragment>
               ))}

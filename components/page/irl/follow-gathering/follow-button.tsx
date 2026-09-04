@@ -9,19 +9,59 @@ import { toast } from '@/components/core/ToastContainer';
 import Modal from '@/components/core/modal';
 import { EVENTS, FOLLOW_ENTITY_TYPES } from '@/utils/constants';
 import { useLoginRedirect } from '@/components/core/login/utils';
+import { IMyLocationSubscriptions, useLocationFollowState } from '@/hooks/irl/use-location-follow-state';
 
 interface FollowButtonProps {
   eventLocationSummary: any;
   followProperties: any;
   userInfo: any;
   expand?: boolean;
+  /** The viewer's own subscriptions. See `useLocationFollowState`. */
+  mySubscriptions?: IMyLocationSubscriptions;
 }
 
-const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand }: FollowButtonProps) => {
+const FollowButton = ({
+  eventLocationSummary,
+  followProperties,
+  userInfo,
+  expand,
+  mySubscriptions,
+}: FollowButtonProps) => {
   const router = useRouter();
   const goToLogin = useLoginRedirect();
   const analytics = useIrlAnalytics();
   const dialogRef = useRef<HTMLDialogElement>(null);
+
+  const { isFollowing, activeUids, isSelfReadUnavailable, onFollowed, onUnfollowed } = useLocationFollowState({
+    locationUid: eventLocationSummary?.uid,
+    mySubscriptions,
+    isInPublicFollowerList: Boolean(followProperties?.isFollowing),
+  });
+
+  /* The subscription rows an unfollow has to deactivate. Normally the viewer's
+     own rows; the public list is consulted only when the self read is
+     unavailable, and it cannot see an unapproved member's row at all. */
+  const getSubscriptionUidsToCancel = (): string[] => {
+    if (activeUids.length > 0) {
+      return activeUids;
+    }
+    if (!isSelfReadUnavailable) {
+      return [];
+    }
+    const ownFollow = followProperties?.followers?.find((follower: any) => follower.memberUid === userInfo?.uid);
+    return ownFollow?.uid ? [ownFollow.uid] : [];
+  };
+
+  const refreshFollowers = async (locationId: string, authToken: string) => {
+    const followersResponse = await getFollowersByLocation(locationId, authToken ?? '');
+    if (!followersResponse?.isError) {
+      document.dispatchEvent(
+        new CustomEvent(EVENTS.UPDATE_IRL_LOCATION_FOLLOWERS, {
+          detail: followersResponse.data,
+        }),
+      );
+    }
+  };
 
   const onCloseModal = () => {
     if (dialogRef.current) {
@@ -61,16 +101,16 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
         );
 
         if (response?.ok) {
+          /* Keep the uid the API just returned. It is what makes the very next
+             unfollow work, without waiting for a refresh — and for a member the
+             public follower list omits, it is the only place that uid appears. */
+          const created = await response.json().catch(() => null);
+          onFollowed(created?.uid);
           toast.success(`Successfully following ${eventLocationSummary.name}`);
           analytics.irlLocationFollowBtnClicked({ userInfo, locationId: locationId });
-          const followersResponse = await getFollowersByLocation(locationId, authToken ?? '');
-          if (!followersResponse?.isError) {
-            document.dispatchEvent(
-              new CustomEvent(EVENTS.UPDATE_IRL_LOCATION_FOLLOWERS, {
-                detail: followersResponse.data,
-              }),
-            );
-          }
+          await refreshFollowers(locationId, authToken ?? '');
+        } else {
+          toast.error(`Something went wrong. Please try following ${eventLocationSummary.name} again.`);
         }
         triggerLoader(false);
         router.refresh();
@@ -83,49 +123,60 @@ const FollowButton = ({ eventLocationSummary, followProperties, userInfo, expand
   };
 
   const onUnFollowbtnClicked = async (locationId: string) => {
+    const subscriptionUids = getSubscriptionUidsToCancel();
+    if (subscriptionUids.length === 0) {
+      /* Previously this dereferenced an undefined row and threw into the catch
+         below, leaving the user with a spinner and no explanation. */
+      toast.error(`Something went wrong. Please try unfollowing ${eventLocationSummary.name} again.`);
+      return;
+    }
+
     try {
       triggerLoader(true);
       const { authToken } = getCookiesFromClient();
-      const memberFollowUp = followProperties?.followers.find((follower: any) => follower.memberUid === userInfo?.uid);
 
-      const response = await customFetch(
-        `${process.env.DIRECTORY_API_URL}/v1/member-subscriptions/${memberFollowUp.uid}`,
-        {
-          cache: 'no-store',
-          method: 'PUT',
-          body: JSON.stringify({
-            isActive: false,
-          }),
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${authToken}`,
-          },
-        },
-        true,
+      /* One request per row: repeat clicks could create duplicates before the
+         API became idempotent, and leaving one active re-flips the button. */
+      const responses = await Promise.all(
+        subscriptionUids.map((subscriptionUid) =>
+          customFetch(
+            `${process.env.DIRECTORY_API_URL}/v1/member-subscriptions/${subscriptionUid}`,
+            {
+              cache: 'no-store',
+              method: 'PUT',
+              body: JSON.stringify({
+                isActive: false,
+              }),
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${authToken}`,
+              },
+            },
+            true,
+          ),
+        ),
       );
-      if (response?.ok) {
+
+      if (responses.every((response) => response?.ok)) {
+        onUnfollowed();
         toast.success(`Successfully unfollowed ${eventLocationSummary.name}`);
         analytics.irlLocationUnFollowBtnClicked({ userInfo, locationId: locationId });
-        const followersResponse = await getFollowersByLocation(locationId, authToken ?? '');
-        if (!followersResponse?.isError) {
-          document.dispatchEvent(
-            new CustomEvent(EVENTS.UPDATE_IRL_LOCATION_FOLLOWERS, {
-              detail: followersResponse.data,
-            }),
-          );
-        }
+        await refreshFollowers(locationId, authToken ?? '');
+      } else {
+        toast.error(`Something went wrong. Please try unfollowing ${eventLocationSummary.name} again.`);
       }
       triggerLoader(false);
       router.refresh();
     } catch (e) {
       triggerLoader(false);
+      toast.error(`Something went wrong. Please try unfollowing ${eventLocationSummary.name} again.`);
     }
   };
 
   return (
     <>
       <div className="followRoot">
-        {followProperties?.isFollowing ? (
+        {isFollowing ? (
           <button
             className="followRoot__followingBtn"
             onClick={() => handleClickUnFollowPopUp(eventLocationSummary.uid)}

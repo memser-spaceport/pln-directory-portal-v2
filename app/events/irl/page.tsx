@@ -6,6 +6,7 @@ import IrlLocation from '@/components/page/irl/locations/irl-location';
 import {
   getAllLocations,
   getFollowersByLocation,
+  getMyLocationSubscriptions,
   getGuestEvents,
   getGuestsByLocation,
   getTopicsAndReasonForUser,
@@ -30,6 +31,7 @@ export default async function Page(props: any) {
     userInfo,
     isLoggedIn,
     followers,
+    mySubscriptions,
     locationDetails,
     eventDetails,
     showTelegram,
@@ -94,6 +96,7 @@ export default async function Page(props: any) {
             topicsAndReasonResponse={topicsAndReasonResponse}
             eventLocationSummary={eventLocationSummary}
             followers={followers ?? []}
+            mySubscriptions={mySubscriptions}
             userInfo={userInfo}
             isLoggedIn={isLoggedIn}
             searchParams={searchParams}
@@ -200,13 +203,17 @@ const getPageData = async (searchParams: any) => {
     const currentEventNames = currentEvents?.map((item: any) => item.name);
 
     // Proceed with API calls only after currentEventNames is set
-    const [events, currentGuestResponse, topics, loggedInUserEvents, followersResponse] = await Promise.all([
-      getGuestsByLocation(uid, parseSearchParams(searchParams, currentEvents), authToken, currentEventNames),
-      getGuestsByLocation(uid, { type: eventType }, authToken, currentEventNames, 1, 1),
-      getTopicsByLocation(uid, searchParams.type),
-      getGuestEvents(uid, authToken),
-      getFollowersByLocation(uid, authToken),
-    ]);
+    const [events, currentGuestResponse, topics, loggedInUserEvents, followersResponse, mySubscriptionsResponse] =
+      await Promise.all([
+        getGuestsByLocation(uid, parseSearchParams(searchParams, currentEvents), authToken, currentEventNames),
+        getGuestsByLocation(uid, { type: eventType }, authToken, currentEventNames, 1, 1),
+        getTopicsByLocation(uid, searchParams.type),
+        getGuestEvents(uid, authToken),
+        getFollowersByLocation(uid, authToken),
+        /* The viewer's own follow state. The followers list above is public and
+           approval-filtered, so it cannot answer this for every member. */
+        getMyLocationSubscriptions(authToken, uid),
+      ]);
     if (events?.isError) {
       return { isError: true };
     }
@@ -274,6 +281,7 @@ const getPageData = async (searchParams: any) => {
       locationDetails,
       currentEventNames,
       followers,
+      mySubscriptions: mySubscriptionsResponse,
       searchParams,
       topicsAndReasonResponse,
     };

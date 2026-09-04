@@ -67,7 +67,7 @@ describe('AiAppsFilter', () => {
 
     const creators = screen.getAllByText(/Nina Chen|Ada Lovelace/).map((el) => el.textContent);
     expect(creators).toEqual(['Ada Lovelace', 'Nina Chen']);
-    expect(screen.getByText('Created by')).toBeInTheDocument();
+    expect(screen.getByText('Built by')).toBeInTheDocument();
   });
 
   it('ticking a creator writes the facet param', async () => {

@@ -137,9 +137,9 @@ describe('canShowJobInterest', () => {
     expect(canShowJobInterest({ isLoggedIn: true, userInfo: { uid: 'm1', signUpSource: 'job-board' } })).toBe(true);
   });
 
-  it('is shown to a signed-out visitor regardless of any stale cookie userInfo', () => {
-    expect(canShowJobInterest({ isLoggedIn: false, userInfo: null })).toBe(true);
-    expect(canShowJobInterest({ isLoggedIn: false, userInfo: rbacUser('APPROVED') })).toBe(true);
+  it('is withheld from a signed-out visitor regardless of any stale cookie userInfo', () => {
+    expect(canShowJobInterest({ isLoggedIn: false, userInfo: null })).toBe(false);
+    expect(canShowJobInterest({ isLoggedIn: false, userInfo: { uid: 'm1', signUpSource: 'job-board' } })).toBe(false);
   });
 });
 

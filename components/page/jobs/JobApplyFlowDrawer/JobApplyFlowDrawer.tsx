@@ -206,13 +206,13 @@ interface JobApplyFlowDrawerProps {
   /**
    * The "I'm interested" signal.
    *
-   * Supplied by the controller only for a Job Aspirant or a signed-out visitor
-   * — the persona the light signal exists for, and the one who becomes it by
-   * pressing it. An established member is withheld this prop entirely, so the
-   * banner never renders for them; that withholding is the whole gate,
-   * documented at `JobApplyFlowController`. Optional here only so that the
-   * several suites which render this drawer to test something else do not have
-   * to wire a signal they never press.
+   * Supplied by the controller only for a signed-in Job Aspirant — the one
+   * persona the light signal exists for. A signed-out visitor and an
+   * established member are both withheld this prop entirely (see
+   * `canShowJobInterest` in `services/jobs/job-board-viewer`), so the banner
+   * never renders for either. Optional here only so that the several suites
+   * which render this drawer to test something else do not have to wire a
+   * signal they never press.
    *
    * `isSettled` is not a loading flag to render a spinner from: it says whether
    * the answer is known, and until it is the banner does not draw. An

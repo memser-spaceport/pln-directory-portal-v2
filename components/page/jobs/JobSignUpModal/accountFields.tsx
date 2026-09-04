@@ -51,13 +51,16 @@ import s from './JobSignUpModal.module.scss';
  * field of `accountSchema` and still lives in the same form — only where it is
  * drawn is the host's business.
  *
- * **Both hosts ask everything, and share one schema.** The modal spent a while
- * on a shorter form — role optional, no status — on the argument that a banner
- * naming no job has nothing waiting on those answers. The design reversed it,
- * and the reversal is the better trade: the two answers are what the *profile*
- * is made of, not what a particular press needs, and collecting them once at the
- * door is cheaper than owing them at the moment someone is trying to apply.
- * There is no second schema now; see the note where the variant used to be.
+ * **Both hosts ask everything, and share one schema.** Every question is on
+ * both doors and one schema judges them, so the two cannot disagree about what
+ * a valid answer is. What differs between them is only where a field is drawn.
+ *
+ * **One rule is conditional, and only one:** the current role is required when
+ * the PL-team box is ticked and optional otherwise, alongside the team select it
+ * shares a row with. See the schema's note on `role` — a claim about an employer
+ * that names no role is the half-answer that rule refuses, and someone with no
+ * network team finishes their profile at the apply flow's profile step instead
+ * of at the door.
  */
 
 /** What the form holds. `company` is a react-select Option, not a string —
@@ -88,16 +91,16 @@ export type AccountFormData = {
   /**
    * Where they are with job hunting.
    *
-   * Asked on both doors, so a new account arrives with both of the answers
-   * `isJobProfileComplete` needs — this one and `role`.
+   * Asked on both doors, so a new account arrives with one of the two answers
+   * `isJobProfileComplete` needs. The other is `role`, which is only required
+   * alongside a PL-team claim — so an account made without one still lands on
+   * the apply flow's profile step with something to fill in.
    *
-   * What that buys is narrower than it sounds, and worth stating so nobody
-   * re-derives it: it does **not** skip the apply flow's profile step. That
-   * skip existed and was removed on purpose (`useJobApplyFlow.ts`) — the step
-   * asks "I reviewed my profile" now, which is a question a complete profile
-   * still has to answer. What it buys is that the step arrives with nothing
-   * blocking: both of its required cards are already filled, so it is a read
-   * rather than a form.
+   * Worth stating so nobody re-derives it: answering here does **not** skip that
+   * step even for an account that arrives complete. The skip existed and was
+   * removed on purpose (`useJobApplyFlow.ts`) — the step asks "I reviewed my
+   * profile" now, which is a question a complete profile still has to answer.
+   * What the answer buys is that the step arrives with one less card blocking.
    *
    * `''` rather than `null` for the empty state, so it is a string field like
    * every other member of this type and `required()` can speak for it.
@@ -169,32 +172,37 @@ export const accountSchema = yup.object({
 
       return linkedinUrlPattern.test(trimmedValue) || linkedinHandlePattern.test(trimmedValue);
     }),
-  /* Required, in both states of the tick.
-     It used to be optional by default and required only once the box was
-     ticked, which made the rule a property of the *employer* question rather
-     than of the role itself. The design marks it in both states, and the reason
-     it can be marked in both is that the answer is worth the same either way:
-     `isJobProfileComplete` is `role && jobSearchStatus`, and a role is what the
-     application a Job Aspirant later sends is actually built out of. Someone
-     with no network team needs it as much as someone with one.
+  /* Optional by default, required the moment the box is ticked.
+     It was briefly required in both states, on the reasoning that the answer is
+     worth the same either way — `isJobProfileComplete` is `role &&
+     jobSearchStatus`, and a role is what an application is built out of. True,
+     and still not a reason to *block* the door on it: someone with no network
+     team is signing up to look around, and the profile step they meet when they
+     do apply is where an incomplete profile is supposed to be finished. Ticking
+     the box is a claim about an employer, and a claim about an employer that
+     names no role is the half-answer this rule exists to refuse — which is why
+     the requirement rides on the tick rather than on the field.
 
      A `test` rather than `.trim().required()`, because yup's `trim()` is a
      transform in non-strict mode and would quietly rewrite the submitted value;
      this only reads it.
 
-     `.max(200)` mirrors the wire schema, and that mirroring is the whole point.
-     `jobBoardSignUpInputSchema` caps this at 200 (`schema/job-applications.ts`)
-     and `signUpToJobBoard` runs `parse()` synchronously, so an over-long role
-     throws inside the mutation and comes back through the controller's generic
-     catch as "We couldn't create your account just now. Please try again." —
-     naming no field, and never succeeding on the retry it asks for. The cap
-     only became reachable from this door when the field stopped being optional
-     here, which is why it arrives with that change. */
+     `.max(200)` is unconditional, and stays that way. It mirrors the wire
+     schema: `jobBoardSignUpInputSchema` caps this at 200
+     (`schema/job-applications.ts`) and `signUpToJobBoard` runs `parse()`
+     synchronously, so an over-long role throws inside the mutation and comes
+     back through the controller's generic catch as "We couldn't create your
+     account just now. Please try again." — naming no field, and never
+     succeeding on the retry it asks for. The cap is reachable from both states
+     of the tick, because the input is on screen in both. */
   role: yup
     .string()
     .defined()
     .max(200, 'Current role must be 200 characters or fewer')
-    .test('role-required', 'Current role is required', (value) => !!value?.trim()),
+    .when('onPlTeam', {
+      is: true,
+      then: (schema) => schema.test('role-required', 'Current role is required', (value) => !!value?.trim()),
+    }),
   /* Not sent anywhere, but no longer inert either: it is the condition on the
      two rules above and below. It is in the schema so `AccountFormData` and the
      resolver agree on the shape of the form — a key react-hook-form holds and
@@ -333,20 +341,19 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
     setValue('onPlTeam', next, { shouldDirty: true });
     if (!next) setValue('company', null, { shouldDirty: true });
 
-    /* The tick changes which rule `company` is judged by, so any verdict already
-       on screen is now about the wrong one — untick with an unanswered required
-       team and the error outlives the requirement.
+    /* The tick changes which rule `role` and `company` are judged by, so any
+       verdict already on screen is now about the wrong one — untick with an
+       empty required role and the error outlives the requirement.
 
-       `role` used to be in here too, and is deliberately no longer: its rule is
-       unconditional now, so the tick cannot change the verdict on it, and
-       re-running it would only surface an error about a field the person has not
-       reached yet.
+       Both fields, not just the team: role's rule moves with the tick again, so
+       a "Current role is required" left over from the ticked state has to go the
+       moment the claim is withdrawn.
 
        Guarded rather than unconditional, because the same call in the other
        direction would be a form that starts complaining the instant you tell it
        something true. Re-run only when there is a verdict to correct: after a
        submit attempt, or while an error from `mode: 'onBlur'` is showing. */
-    if (isSubmitted || errors.company) void trigger('company');
+    if (isSubmitted || errors.role || errors.company) void trigger(['role', 'company']);
   };
 
   // The same teams source production's sign-up wizard uses, minus projects —
@@ -414,7 +421,7 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
         </label>
 
         <div className={s.column}>
-          {/* The label is constant, and so is the mark now.
+          {/* The label is constant and the mark is what moves.
               It used to grow a second noun with the tick ("Current role & PL
               network team") so that one label could name both inputs under it.
               The design marks the row `Current role` in both states, and that is
@@ -422,19 +429,19 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
               carries its own accessible name below, so the visible label no
               longer has to do the naming for two fields at once.
 
-              The mark used to arrive with the tick, because the requirement did.
-              It doesn't any more — role is required either way (see the schema)
-              — so a mark that came and went would be describing a rule that no
-              longer moves. It stays put, which is the only honest state: a form
-              refusing to submit over a field it never flagged is worse than one
-              with no marking system at all.
+              What the label carries is the rule, and the rule follows the tick
+              again (see the schema's note on `role`). The mark appears with the
+              requirement it describes — and there is no `(Optional)` in the
+              other state, per the design. That asymmetry is deliberate:
+              unmarked-and-optional costs nothing, while unmarked-and-required is
+              a form refusing to submit over a field it never flagged.
 
-              One mark for the row rather than one per field. It reads as
-              covering both, and once ticked both *are* required — the team by
-              the schema's note on `company`, the role by its own rule. */}
+              One mark for the row rather than one per field, because the tick
+              makes both required together — the team by the schema's note on
+              `company`, the role by its own. */}
           <div className={s.inputsLabel}>
             Current role
-            <RequiredMark />
+            {onPlTeam && <RequiredMark />}
           </div>
           <div className={s.inputsWrapper}>
             {/* `aria-label` because this input has no `label` of its own and the

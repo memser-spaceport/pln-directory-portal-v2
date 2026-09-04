@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
@@ -52,6 +52,27 @@ const LIVENESS_MAX_ATTEMPTS = 90;
  */
 type FrameStatus = 'checking' | 'live' | 'down';
 
+/**
+ * Sent by the embedded app (starter kit ≥1.10) on load and on every in-app
+ * navigation: `{ type, path, title }`. The frame is cross-origin, so this is
+ * the only way to learn which subpage is open.
+ */
+const APP_ROUTE_MESSAGE = 'pln-ai-app:route';
+const MAX_APP_PATH_LENGTH = 2048;
+const MAX_APP_TITLE_LENGTH = 200;
+
+// Accepts only a path on the app's own origin; the origin comparison rejects
+// `//host`, absolute URLs, backslashes and non-http schemes in one go.
+function resolveAppPath(appOrigin: string, raw: unknown): string | null {
+  if (typeof raw !== 'string' || !raw || raw.length > MAX_APP_PATH_LENGTH) return null;
+  try {
+    const url = new URL(raw, appOrigin);
+    return url.origin === appOrigin ? url.pathname + url.search + url.hash : null;
+  } catch {
+    return null;
+  }
+}
+
 export function AiAppDetailPage(props: Props) {
   const { uid } = props;
 
@@ -67,6 +88,11 @@ export function AiAppDetailPage(props: Props) {
   const trackedAppUid = useRef<string | null>(null);
   const trackedDraftSetupUid = useRef<string | null>(null);
   const iframeTracked = useRef<string | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  // Latest subpage reported by the app; seeds the frame src on a redeploy remount.
+  const appPathRef = useRef<string | null>(null);
+  const [initialPath] = useState(() => searchParams.get('path'));
+  const [appPageTitle, setAppPageTitle] = useState<string | null>(null);
   const [isRedeploying, setIsRedeploying] = useState(false);
   const [action, setAction] = useState<Action | null>(null);
   const [showDetails, setShowDetails] = useState(false);
@@ -87,11 +113,11 @@ export function AiAppDetailPage(props: Props) {
     const name = app?.name?.trim();
     if (!name) return;
     const previous = document.title;
-    document.title = name;
+    document.title = appPageTitle && appPageTitle !== name ? `${appPageTitle} · ${name}` : name;
     return () => {
       document.title = previous;
     };
-  }, [app?.name]);
+  }, [app?.name, appPageTitle]);
 
   // Deep link: `?settings=deployment` opens the Deployment settings modal
   // straight away (shared with members to edit stored secrets & redeploy).
@@ -142,6 +168,14 @@ export function AiAppDetailPage(props: Props) {
   }, [isError, uid, analytics]);
 
   const appUrl = app?.url ?? null;
+  const appOrigin = useMemo(() => {
+    if (!appUrl) return null;
+    try {
+      return new URL(appUrl).origin;
+    } catch {
+      return null;
+    }
+  }, [appUrl]);
   // "The running version changed" key for the probe generation and the iframe
   // remount. lastDeployedAt moves only on SUCCESSFUL deploys — keying on
   // updatedAt would remount a visitor's working previous version whenever a
@@ -153,6 +187,42 @@ export function AiAppDetailPage(props: Props) {
   // re-checks.
   const probeGeneration = `${deployGeneration}:${retryToken}`;
   const frameStatus: FrameStatus = probeResult?.generation === probeGeneration ? probeResult.status : 'checking';
+
+  // Recomputed only per deployed version: every route message re-renders this
+  // component through the synced search params, and a changed src would reload
+  // the frame. Reading the ref makes a redeploy remount reopen the same subpage.
+  const frameSrc = useMemo(() => {
+    const path = appOrigin ? resolveAppPath(appOrigin, appPathRef.current ?? initialPath) : null;
+    return path && appOrigin ? `${appOrigin}${path}` : (appUrl ?? undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appUrl, appOrigin, initialPath, deployGeneration]);
+
+  useEffect(() => {
+    if (!appOrigin) return;
+
+    const onMessage = (event: MessageEvent) => {
+      if (event.origin !== appOrigin || event.source !== iframeRef.current?.contentWindow) return;
+      if (event.data?.type !== APP_ROUTE_MESSAGE) return;
+
+      const title = typeof event.data.title === 'string' ? event.data.title.trim().slice(0, MAX_APP_TITLE_LENGTH) : '';
+      setAppPageTitle(title || null);
+
+      const path = resolveAppPath(appOrigin, event.data.path);
+      if (!path) return;
+      appPathRef.current = path;
+      const params = new URLSearchParams(window.location.search);
+      if (path === '/') {
+        params.delete('path');
+      } else {
+        params.set('path', path);
+      }
+      const qs = params.toString();
+      window.history.replaceState(null, '', `${pathname}${qs ? `?${qs}` : ''}`);
+    };
+
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [appOrigin, pathname]);
 
   // Poll the backend liveness probe until the app answers, then mount the
   // iframe. Runs on first load and again after every successful redeploy
@@ -346,8 +416,9 @@ export function AiAppDetailPage(props: Props) {
         // Remount after every deploy so the frame reloads instead of keeping
         // whatever it captured before the restart.
         key={deployGeneration}
+        ref={iframeRef}
         className={s.iframe}
-        src={app.url ?? undefined}
+        src={frameSrc}
         title={app.name}
         allow="fullscreen"
         onLoad={handleIframeLoad}

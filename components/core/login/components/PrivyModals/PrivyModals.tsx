@@ -147,10 +147,11 @@ export function PrivyModals() {
 
       // Check for backlink parameter (used for protected route redirects,
       // including a deployed AI App's own subdomain — see getSafeBacklinkTarget)
+      // searchParams.get already decodes; decoding again would corrupt an
+      // encoded `?path=` value inside an AI App backlink.
       const backlink = searchParams?.get('backlink');
       if (backlink) {
-        const decodedBacklink = decodeURIComponent(backlink);
-        const safeTarget = getSafeBacklinkTarget(decodedBacklink);
+        const safeTarget = getSafeBacklinkTarget(backlink);
         if (safeTarget) {
           window.location.href = safeTarget;
           return;

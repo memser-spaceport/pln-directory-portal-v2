@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 import { AiAppDetailPage } from '@/components/page/ai-apps/AiAppDetailPage';
 import { AiApp, recordAiAppView } from '@/services/ai-apps/ai-apps.service';
@@ -431,6 +431,98 @@ describe('AiAppDetailPage', () => {
       expect(recordAiAppView).toHaveBeenCalledTimes(1);
       expect(recordAiAppView).toHaveBeenCalledWith('app-1');
       expect(mockAnalytics.onIframeLoaded).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('app subpage deep link', () => {
+    const APP_ORIGIN = 'https://sandbox.example.com';
+
+    async function mountIframe() {
+      return waitFor(() => {
+        const el = document.querySelector('iframe');
+        if (!el) throw new Error('iframe not mounted');
+        return el;
+      });
+    }
+
+    function postRoute(iframe: HTMLIFrameElement, data: unknown, init: Partial<MessageEventInit> = {}) {
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', { data, origin: APP_ORIGIN, source: iframe.contentWindow, ...init }),
+        );
+      });
+    }
+
+    beforeEach(() => {
+      window.history.replaceState(null, '', '/pl-infra/ai-apps/app-1');
+      mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
+    });
+
+    it('opens the app at the ?path subpage', async () => {
+      mockSearchParams = new URLSearchParams('path=%2Freports%2F42');
+      render(<AiAppDetailPage uid="app-1" />);
+
+      const iframe = await mountIframe();
+      expect(iframe.getAttribute('src')).toBe(`${APP_ORIGIN}/reports/42`);
+    });
+
+    it.each(['//evil.com/x', 'https://evil.com', 'javascript:alert(1)'])(
+      'falls back to the app root for a ?path outside the app origin (%s)',
+      async (path) => {
+        mockSearchParams = new URLSearchParams({ path });
+        render(<AiAppDetailPage uid="app-1" />);
+
+        const iframe = await mountIframe();
+        expect(iframe.getAttribute('src')).toBe('https://sandbox.example.com/app-1');
+      },
+    );
+
+    it('mirrors the reported route and title into the URL and tab title without reloading the frame', async () => {
+      render(<AiAppDetailPage uid="app-1" />);
+      const iframe = await mountIframe();
+      const initialSrc = iframe.getAttribute('src');
+
+      postRoute(iframe, { type: 'pln-ai-app:route', path: '/reports/42?tab=a#x', title: 'Reports' });
+
+      expect(window.location.search).toBe(`?path=${encodeURIComponent('/reports/42?tab=a#x')}`);
+      expect(document.title).toBe('Reports · News Summarizer');
+      expect(iframe.getAttribute('src')).toBe(initialSrc);
+
+      postRoute(iframe, { type: 'pln-ai-app:route', path: '/', title: '' });
+
+      expect(window.location.search).toBe('');
+      expect(document.title).toBe('News Summarizer');
+      expect(document.querySelector('iframe')?.getAttribute('src')).toBe(initialSrc);
+    });
+
+    it('ignores messages from another origin, another window, or of another type', async () => {
+      render(<AiAppDetailPage uid="app-1" />);
+      const iframe = await mountIframe();
+
+      postRoute(iframe, { type: 'pln-ai-app:route', path: '/a', title: 'A' }, { origin: 'https://evil.com' });
+      postRoute(iframe, { type: 'pln-ai-app:route', path: '/b', title: 'B' }, { source: window });
+      postRoute(iframe, { type: 'other', path: '/c', title: 'C' });
+
+      expect(window.location.search).toBe('');
+      expect(document.title).toBe('News Summarizer');
+    });
+
+    it('reopens the last reported subpage when the frame remounts after a deploy', async () => {
+      const { rerender } = render(<AiAppDetailPage uid="app-1" />);
+      const iframe = await mountIframe();
+
+      postRoute(iframe, { type: 'pln-ai-app:route', path: '/reports/42', title: 'Reports' });
+
+      mockUseAiAppReturn = {
+        app: buildApp({ lastDeployedAt: '2026-08-01T00:00:00.000Z' }),
+        isLoading: false,
+        isError: false,
+      };
+      rerender(<AiAppDetailPage uid="app-1" />);
+
+      const remounted = await mountIframe();
+      expect(remounted).not.toBe(iframe);
+      expect(remounted.getAttribute('src')).toBe(`${APP_ORIGIN}/reports/42`);
     });
   });
 });

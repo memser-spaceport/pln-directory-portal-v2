@@ -93,7 +93,7 @@ export function AiAppCard(props: Props) {
           ))}
         </div>
       ) : (
-        <p className={s.noMetrics}>No metrics yet. Be the first in.</p>
+        <p className={s.noMetrics}>No users yet. Be the first in.</p>
       )}
     </>
   );

@@ -969,7 +969,14 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   })();
 
   return (
-    <Drawer isOpen={open} onClose={closeFlow} fullScreen={isMobile} noBlur={isMobile} containerRef={scrollRef}>
+    <Drawer
+      isOpen={open}
+      onClose={closeFlow}
+      fullScreen={isMobile}
+      noBlur={isMobile}
+      containerRef={scrollRef}
+      closeOnOverlayClick={false}
+    >
       {/* Wraps the whole drawer rather than just step 2, because the fields are
           in the pane and the button that submits them is in the sticky footer —
           two different children of this element. Inert for a signed-in member:

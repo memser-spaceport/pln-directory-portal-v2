@@ -29,6 +29,9 @@ import js from './JobReferRoleRow.module.scss';
    it imports that copy directly, never this row. */
 import { ReferModal } from '../job-board-apply-steps/components/ReferModal';
 
+import { ListingStatusBadge } from './ListingStatusBadge';
+import { describeOrigin, type ListingMeta, type ListingStatus } from './listings';
+
 interface JobReferRoleRowProps {
   role: IJobRole;
   teamId: string;
@@ -61,6 +64,23 @@ interface JobReferRoleRowProps {
   /** ISO stamp of when the application went. Present only when `applied`; the
    *  clock slot reports this instead of the posting age — see the note there. */
   appliedAt?: string;
+  /**
+   * Present on the **Manage listings** tab, for a viewer who owns this listing.
+   *
+   * The row then stops being an offer and becomes a record: under the meta line
+   * it says where the listing came from, the action cluster carries the status
+   * and the one control that changes it — `Mark inactive` on a live listing,
+   * `Bring back` on an inactive one, nothing on one still in review — and
+   * Refer and share are gone, because nobody refers someone to their own
+   * inactive posting. The title still opens the drawer, whose footer carries
+   * the same control at the same size, so the row and the drawer are two
+   * handles on one switch.
+   *
+   * **Never on the All tab.** There a lead's own live role renders exactly as it
+   * does for everyone — the public board is the one thing a lead must be able
+   * to trust reads the same for them as for an applicant.
+   */
+  manage?: { meta: ListingMeta; onSetStatus: (status: ListingStatus) => void };
 }
 
 /**
@@ -127,6 +147,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
     onViewJob,
     applied = false,
     appliedAt,
+    manage,
   } = props;
   const [referOpen, setReferOpen] = useState(false);
 
@@ -144,7 +165,10 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
   const relative = appliedAt ? `Applied ${formatRelativeDays(appliedAt)}` : formatRelativeDays(date);
   /* No "New" on a row you have applied to. The badge is an invitation to look at
      something before it goes stale, and that has already happened. */
-  const showNew = isNew(date) && !applied;
+  /* Nor on a listing you manage: "New" is an invitation to look before it goes
+     stale, and the person who posted it is not the one being invited. The status
+     pill takes that slot instead. */
+  const showNew = isNew(date) && !applied && !manage;
   const locationDisplay = isEmpty(location) ? null : location.join(', ');
 
   const metaParts = [seniority ? seniorityDisplayLabel(seniority) : null, roleCategory, locationDisplay].filter(
@@ -183,6 +207,10 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
             {showNew && <span className={`${s.newBadge} ${s.newBadgeMobile}`}>● New</span>}
           </div>
           {!isEmpty(metaParts) && <div className={s.meta}>{metaParts.join(' · ')}</div>}
+          {/* Where it came from — the one fact a manager needs that an applicant
+              never does, and the fact the open question about the inactive
+              control turns on (see `ListingOrigin`). */}
+          {manage && <div className={js.origin}>{describeOrigin(manage.meta.origin)}</div>}
         </div>
 
         <div className={`${s.right} ${s.actions}`}>
@@ -194,6 +222,45 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
             </span>
           )}
 
+          {manage ? (
+            /* The management cluster: the state, then the one press that
+               changes it. A pill for all three states rather than only for the
+               odd one out — on a list whose whole job is to say which listings
+               are up, a row with no label reads as unlabelled, not as live.
+
+               `Mark inactive` is the bordered neutral shape, the same one the
+               row uses for its "Applied" report: it takes the listing down but
+               destroys nothing, so it is not the red button and it asks no
+               confirmation — the undo is the button that replaces it. `Bring
+               back` is filled, because it is the only thing an inactive row is
+               for. A listing in review has nothing to press: it is the PL
+               team's move, and a dead button would only say so worse. */
+            <div className={s.actionButtons}>
+              <ListingStatusBadge status={manage.meta.status} />
+              {manage.meta.status === 'live' && (
+                <Button
+                  size="s"
+                  style="border"
+                  variant="neutral"
+                  className={js.applyButton}
+                  onClick={() => manage.onSetStatus('inactive')}
+                >
+                  Mark inactive
+                </Button>
+              )}
+              {manage.meta.status === 'inactive' && (
+                <Button
+                  size="s"
+                  style="fill"
+                  variant="primary"
+                  className={js.applyButton}
+                  onClick={() => manage.onSetStatus('live')}
+                >
+                  Bring back
+                </Button>
+              )}
+            </div>
+          ) : (
           <div className={s.actionButtons}>
             {/* Refer is the quiet text button on every surface. The two actions
                 aren't peers: Apply is what the row is for, Refer is the sideline
@@ -303,6 +370,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
               </a>
             )}
           </div>
+          )}
         </div>
       </div>
 

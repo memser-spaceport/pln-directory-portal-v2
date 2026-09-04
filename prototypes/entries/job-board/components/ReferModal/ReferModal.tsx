@@ -345,7 +345,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
 
   return (
     <Modal isOpen={open} onClose={handleClose} closeOnBackdropClick={false} lockScroll>
-      <div className={s.modal}>
+      <div className={`${s.modal} ${sent ? s.modalSent : ''}`}>
         <Button style="link" variant="neutral" className={s.closeButton} onClick={handleClose} aria-label="Close modal">
           <CloseIcon />
         </Button>

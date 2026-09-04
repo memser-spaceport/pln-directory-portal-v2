@@ -42,15 +42,16 @@
  *                                            (`ExperienceEntry`, field-for-field production's
  *                                            `TEditExperienceForm`), plus skills, bio and location.
  *                                            `isProfileComplete` is the one rule that gates Apply —
- *                                            **your current role and an answered job search status**
+ *                                            **an answered job search status, and nothing else**
  *                                            — stated once and read from everywhere. It was one
  *                                            experience entry until review: an entry is something
  *                                            most real profiles already carry, while the status is
  *                                            the one answer only this flow can collect and the one
  *                                            that decides whether founders see the profile at all.
- *                                            The role joined it because an application has to say
- *                                            what you do now, and it is one field the header card
- *                                            was already asking for.
+ *                                            The current role joined it and has now been dropped
+ *                                            too — same class of answer as an entry, so the same
+ *                                            argument retired it. It is still asked for on the
+ *                                            header card; it just doesn't stop anyone.
  *  - SignInBanner         (new)             the logged-out ask, wearing production's home banner
  *                                            (components/page/home/Welcome, SCSS imported verbatim)
  *                                            so signing in looks the same here as at /home. Its
@@ -128,8 +129,9 @@
  *                                            There is no fourth step confirming the send: the board
  *                                            behind it flips the row to "Applied".
  * GATED: **sending an application**, and only that. Two rules stand in front of it.
- *  1. An application has to carry a complete profile (a current role and an answered job search
- *     status), because a one-click application sends the team your profile instead of a form. This
+ *  1. An application has to carry a complete profile (an answered job search
+ *     status — the current role stood here too and no longer does), because a one-click
+ *     application sends the team your profile instead of a form. This
  *     one is never a refusal — a stranger satisfies it in one pane, a member in a card stack, and
  *     the middle step exists to finish it.
  *  2. The account has to be approved. A PL review stands in front of the first application, which

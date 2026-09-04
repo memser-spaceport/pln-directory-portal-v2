@@ -338,6 +338,19 @@
   margin-bottom: 0.25rem;
 }
 
+// The asterisk on `.inputsLabel`, which is a plain div and so cannot borrow
+// `FormField`'s `.label.required:after` — that rule only fires combined with
+// `.label`, which would restate colour, size, weight, line-height and margin
+// that `.inputsLabel` above already sets, leaving which wins to file order.
+//
+// Two declarations, matching `FormField`'s own mark exactly. Size, weight and
+// line-height are deliberately unset: inherited from the label, so the mark sits
+// on the words' baseline rather than on one of its own.
+.requiredMark {
+  margin-left: 0.25rem;
+  color: red;
+}
+
 .inputsWrapper {
   display: flex;
   flex-direction: column;

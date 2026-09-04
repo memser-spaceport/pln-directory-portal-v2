@@ -49,6 +49,27 @@
   }
 }
 
+// The fixed height above is a promise to the *form*: adding recipients scrolls the
+// field instead of moving the footer. The receipt has no list to stabilise — it is a
+// tick, two lines and one button — so holding it at 870px leaves ~1000px of white
+// under the button, and centring that content would only split the emptiness in two
+// while stranding the close X a screen away from Done. The card sizes to the receipt
+// and keeps the same cap as a ceiling, so nothing here can outgrow the viewport.
+.modalSent {
+  height: auto;
+  max-height: min(870px, calc(100dvh - 48px));
+
+  @include media.mobile-only {
+    max-height: min(870px, calc(100dvh - 32px));
+  }
+
+  // 14px is the form footer's separation from the fields above it. Here the card's
+  // own 24px gap is the only spacing between the sentence and the button.
+  .actions {
+    margin-top: 0;
+  }
+}
+
 // `Button` with `style="link"` is the component's chromeless base: it zeroes the
 // border, padding, min-width and background, and `.root` brings cursor, transition and
 // the disabled state — so those five declarations are gone from here, and nothing new

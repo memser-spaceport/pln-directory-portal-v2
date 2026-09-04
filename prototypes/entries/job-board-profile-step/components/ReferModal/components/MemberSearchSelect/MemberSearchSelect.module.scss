@@ -51,3 +51,53 @@
     display: none;
   }
 }
+
+// --- The menu's last line ------------------------------------------------------
+//
+// "Refer someone outside the network", under the rows in every menu state.
+// Transcribed from the recipients field's own last line — "Add someone else"
+// (`RecipientInput.module.scss`, `.addButton` / `.addGlyph`) — so the two people
+// fields on this card end in one kind of control: brand 14/500 text, the plus
+// riding in the avatars' slot. The slot is 32px here rather than 24 because that
+// is this menu's avatar size (`.option` rows above it), and the padding is the
+// option row's own 12px/8px, so the line sits on the list's rhythm.
+//
+// The hairline above it is the one thing the reference doesn't have. There the
+// line is the last *entry* in a list of people; here it is a way *out* of the
+// list, and it has to read as not-an-option — a member row is a pick, this is a
+// change of question.
+.outsideRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  margin-top: 4px;
+
+  padding: 12px 8px 4px;
+  border: 0;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    background: rgba(27, 56, 96, 0.04);
+  }
+}
+
+.outsideGlyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  width: 32px;
+  height: 32px;
+}

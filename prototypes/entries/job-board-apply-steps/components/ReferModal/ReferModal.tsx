@@ -9,10 +9,12 @@ import { Button } from '@/components/common/Button';
 import { Checkbox } from '@/components/common/Checkbox';
 import { Modal } from '@/components/common/Modal';
 import { CloseIcon } from '@/components/icons';
+import { FormField } from '@/components/form/FormField/FormField';
 import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import type { Option } from '@/components/form/FormSelect/types';
 import { toast } from '@/components/core/ToastContainer';
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
+import { validateSocialField } from '@/utils/profile/validateSocialField';
 import fieldCss from '@/components/form/FormMultiSelect/FormMultiSelect.module.scss';
 // The note's own description sits above its box rather than in the component's
 // below-the-input slot, so its classes are borrowed straight from the component.
@@ -20,10 +22,12 @@ import taCss from '@/components/form/FormTextArea/FormTextArea.module.scss';
 
 import { useCreateJobReferral, useJobReferralDraft } from './hooks/useJobReferral';
 
-import { DirectoryMember, RecipientOption } from './types';
+import { DirectoryMember, OutsidePerson, RecipientOption } from './types';
 
 import { toReferralRecipient } from './utils/toReferralRecipient';
 import { getRecipientSummary } from './utils/getRecipientSummary';
+import { isEmailAddress } from './utils/isEmailAddress';
+import { linkedinProfileUrl } from './utils/linkedinProfileUrl';
 
 import { useTeamMembers } from './hooks/useTeamMembers';
 
@@ -67,10 +71,27 @@ type ReferFormData = {
   referee: Option | null;
   recipients: RecipientOption[];
   message: string;
+  /* Flat, not `outside: { name, email, linkedin }`: production `FormField` reads
+     its error as `errors[name]`, which a dotted path can't reach. */
+  outsideName: string;
+  outsideEmail: string;
+  outsideLinkedin: string;
 };
 
+const EMPTY_FORM: ReferFormData = {
+  referee: null,
+  recipients: [],
+  message: '',
+  outsideName: '',
+  outsideEmail: '',
+  outsideLinkedin: '',
+};
+
+/** Which kind of person "Who are you referring?" is currently asking about. */
+type RefereeMode = 'member' | 'outside';
+
 /**
- * Refer a network member for an open role: pick who you're referring, choose who hears
+ * Refer someone for an open role: pick who you're referring, choose who hears
  * about it, and send an intro email.
  *
  * **This folder's copy is mocked end to end** — the pickers, the draft, and the
@@ -85,6 +106,17 @@ type ReferFormData = {
  * are omitted; otherwise the first picked member is To and the rest are CCed,
  * plus the referrer and the referred member.
  *
+ * **The person referred can be outside the network.** "Who are you referring?"
+ * has two states, and it is the same field in both: a directory search, whose
+ * menu ends in *Refer someone outside the network*; and, once that is pressed,
+ * three inputs in its place — full name, email address, LinkedIn profile — with
+ * the way back on the label line. All three are required, because together they
+ * are the whole record: without them a referral is a name in an email nobody can
+ * reach or check. The draft, the copy tick and the send all read whichever state
+ * has an answer; nothing else on the card knows which it was. The live copy
+ * doesn't have this yet — `POST .../referrals` takes only `referredMemberUid`,
+ * see `MockReferralPayload` for the shape it would need.
+ *
  * Chrome is Demo Day's "Make an intro" modal (ReferCompanyModal) — the same job, an
  * intro email to a team, you, and someone you name — with its stylesheet transcribed
  * into `ReferModal.module.scss`: centred envelope / title / desc, 24px card, twin
@@ -98,6 +130,7 @@ type ReferFormData = {
 export function ReferModal({ open, onClose, role, teamId, teamName, source, jobReferEmail }: ReferModalProps) {
   const [sent, setSent] = useState(false);
   const [messageEdited, setMessageEdited] = useState(false);
+  const [refereeMode, setRefereeMode] = useState<RefereeMode>('member');
   /* Whether the person being referred is copied on the email.
      Checked by default, because that is what the referral did before this was a
      choice — the default keeps the behaviour, the tick makes it a decision
@@ -109,16 +142,55 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
   const usesTeamReferEmail = Boolean(jobReferEmail?.trim());
 
   const methods = useForm<ReferFormData>({
-    defaultValues: { referee: null, recipients: [], message: '' },
-    mode: 'onChange',
+    defaultValues: EMPTY_FORM,
+    /* `onBlur`, not `onChange`: the only rules on this form are the three
+       outside-network inputs, and an email field that says "Enter a valid email
+       address" after the first three letters is arguing with someone mid-word.
+       Re-validation after the first blur is on change (the default), so a fixed
+       field clears its own error as it is fixed. Nothing else here validates —
+       the pickers and the note are gated by `canSend`, not by rules. */
+    mode: 'onBlur',
   });
   const { control, setValue, reset } = methods;
 
   const referee = useWatch({ control, name: 'referee' });
   const recipients = useWatch({ control, name: 'recipients' }) ?? [];
   const message = useWatch({ control, name: 'message' });
+  const outsideName = useWatch({ control, name: 'outsideName' }) ?? '';
+  const outsideEmail = useWatch({ control, name: 'outsideEmail' }) ?? '';
+  const outsideLinkedin = useWatch({ control, name: 'outsideLinkedin' }) ?? '';
 
-  const selectedMember: DirectoryMember | null = (referee as any)?.originalObject ?? null;
+  const selectedMember: DirectoryMember | null =
+    refereeMode === 'member' ? ((referee as any)?.originalObject ?? null) : null;
+
+  /* The outside person exists only once all three inputs hold a valid answer —
+     the same moment the drafted note has enough to say. Before that, the field
+     is being filled in and the form waits, exactly as it waits for a member to
+     be picked. The rules the inputs carry are the same three tests, so what the
+     field flags and what the form accepts cannot disagree. */
+  const outsidePerson: OutsidePerson | null = useMemo(() => {
+    if (refereeMode !== 'outside') return null;
+    const name = outsideName.trim();
+    const email = outsideEmail.trim();
+    const linkedin = outsideLinkedin.trim();
+    if (!name || !isEmailAddress(email) || !linkedin || validateSocialField('linkedin', linkedin)) return null;
+    return { name, email, linkedin };
+  }, [refereeMode, outsideName, outsideEmail, outsideLinkedin]);
+
+  const hasReferee = !!selectedMember || !!outsidePerson;
+  /* One key for "who the referral is about", whichever state answered it — what
+     the effects below watch instead of a member uid. */
+  const refereeKey = selectedMember
+    ? `member:${selectedMember.uid}`
+    : outsidePerson
+      ? `outside:${outsidePerson.email}`
+      : null;
+
+  /* The name the card speaks about, from whichever state has one. For an outside
+     person this is the typed name as soon as there is one — the note's description
+     and the copy tick can address them before the other two inputs are done. */
+  const refereeName = selectedMember?.name ?? (refereeMode === 'outside' ? outsideName.trim() : '');
+  const firstName = refereeName.split(' ')[0] ?? '';
 
   const referBase = {
     job_id: role.uid,
@@ -129,6 +201,17 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
     seniority: role.seniority,
     source,
     uses_team_refer_email: usesTeamReferEmail,
+  };
+
+  /* Every event about the referee. `referred_member_uid` is what the production
+     events are typed on and is empty for an outside person; `referee_type` is
+     the proposal for `JobReferBaseParams` — the one fact these events would need
+     to tell the two kinds of referral apart. Built as a variable so the extra key
+     passes the typed params structurally. */
+  const refereeParams = {
+    ...referBase,
+    referred_member_uid: selectedMember?.uid ?? '',
+    referee_type: selectedMember ? 'network_member' : 'outside_network',
   };
 
   // Only fetched while the modal is open — a job board page holds one of these per role.
@@ -143,6 +226,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
     // The mock composes the note itself, so it takes the member record and the
     // role's facts rather than the uids the live endpoint resolves server-side.
     referredMember: selectedMember,
+    referredPerson: outsidePerson,
     roleTitle: role.roleTitle,
     teamName,
     enabled: open,
@@ -161,7 +245,8 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
   // Fresh form every time the modal opens — a referral draft is per-role, not sticky.
   useEffect(() => {
     if (!open) return;
-    reset({ referee: null, recipients: [], message: '' });
+    reset(EMPTY_FORM);
+    setRefereeMode('member');
     setMessageEdited(false);
     setSent(false);
     setCopyReferee(true);
@@ -190,45 +275,49 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
   }, [referee?.value]);
 
   useEffect(() => {
-    if (!open || !selectedMember?.uid) return;
-    analytics.onJobReferRefereeSelected({
-      ...referBase,
-      referred_member_uid: selectedMember.uid,
-    });
+    if (!open || !refereeKey) return;
+    analytics.onJobReferRefereeSelected(refereeParams);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, selectedMember?.uid]);
+  }, [open, refereeKey]);
 
-  const firstName = selectedMember?.name.split(' ')[0] ?? '';
+  /* Leaving the search for the three inputs. The picked member is dropped — the
+     field can only be about one person — and a name that was typed into the
+     search and found nobody moves into the first input, so it isn't typed twice.
+     The inputs otherwise keep what they held: going back to the search and
+     returning costs nothing that was already filled in. */
+  const referOutside = (typed: string) => {
+    setValue('referee', null);
+    if (typed && !outsideName.trim()) setValue('outsideName', typed);
+    setRefereeMode('outside');
+  };
 
   // What "Reset to template" returns to: the backend's draft plus the how-you-know slot.
-  const templateNote = selectedMember && draft?.note ? withHowYouKnowSlot(draft.note, firstName) : undefined;
+  const templateNote = hasReferee && draft?.note ? withHowYouKnowSlot(draft.note, firstName) : undefined;
 
   // Show the drafted note as soon as it lands, and clear the field when the candidate is
   // removed. A hand-edited note is never overwritten — "Reset to template" is the way
-  // back. The draft depends only on the role and the referred member, so changing
-  // recipients no longer re-drafts anything.
+  // back. The draft depends only on the role and the referred person, so changing
+  // recipients no longer re-drafts anything. For an outside person the template
+  // follows their details: fixing a typo in the address re-drafts an untouched note.
   useEffect(() => {
     if (!open) return;
-    if (!selectedMember) {
+    if (!hasReferee) {
       if (!messageEdited) setValue('message', '');
       return;
     }
     if (messageEdited || !templateNote) return;
     setValue('message', templateNote);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, selectedMember?.uid, templateNote]);
+  }, [open, refereeKey, templateNote]);
 
   // Any keystroke that diverges from the drafted note counts as an edit.
   useEffect(() => {
-    if (!open || !selectedMember || messageEdited || !templateNote) return;
+    if (!open || !hasReferee || messageEdited || !templateNote) return;
     if (message && message !== templateNote) {
       setMessageEdited(true);
       if (!noteEditedTracked.current) {
         noteEditedTracked.current = true;
-        analytics.onJobReferNoteEdited({
-          ...referBase,
-          referred_member_uid: selectedMember.uid,
-        });
+        analytics.onJobReferNoteEdited(refereeParams);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -247,21 +336,18 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
   };
 
   const resetTemplate = () => {
-    if (!templateNote || !selectedMember) return;
+    if (!templateNote || !hasReferee) return;
     setValue('message', templateNote);
     setMessageEdited(false);
     noteEditedTracked.current = false;
-    analytics.onJobReferNoteReset({
-      ...referBase,
-      referred_member_uid: selectedMember.uid,
-    });
+    analytics.onJobReferNoteReset(refereeParams);
   };
 
   const handleClose = () => {
     if (!sent) {
       analytics.onJobReferModalCancelled({
         ...referBase,
-        had_referee: Boolean(selectedMember),
+        had_referee: hasReferee,
         recipient_count: recipients.length,
         note_was_edited: messageEdited,
       });
@@ -270,12 +356,11 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
   };
 
   const onSubmit = () => {
-    if (!selectedMember || !message?.trim()) return;
+    if (!hasReferee || !message?.trim()) return;
     if (!usesTeamReferEmail && !recipients.length) return;
 
     const submitParams = {
-      ...referBase,
-      referred_member_uid: selectedMember.uid,
+      ...refereeParams,
       recipient_count: usesTeamReferEmail ? 0 : recipients.length,
       has_external_email: usesTeamReferEmail ? false : hasExternalEmail(recipients),
       note_was_edited: messageEdited,
@@ -284,9 +369,20 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
 
     analytics.onJobReferSubmitted(submitParams);
 
+    /* One or the other. The outside person goes with their LinkedIn value already
+       a link, so the backend stores what the note says rather than a slug. */
+    const referred = selectedMember
+      ? { referredMemberUid: selectedMember.uid }
+      : {
+          referredPerson: {
+            ...(outsidePerson as OutsidePerson),
+            linkedin: linkedinProfileUrl((outsidePerson as OutsidePerson).linkedin),
+          },
+        };
+
     sendReferral(
       {
-        referredMemberUid: selectedMember.uid,
+        ...referred,
         note: message.trim(),
         recipients: usesTeamReferEmail ? [] : recipients.map(toReferralRecipient),
         /* The proposal for the backend. `POST /job-openings/:uid/referrals` has no
@@ -314,7 +410,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
     );
   };
 
-  const canSend = !!selectedMember && !!message?.trim() && !isSending && (usesTeamReferEmail || recipients.length > 0);
+  const canSend = hasReferee && !!message?.trim() && !isSending && (usesTeamReferEmail || recipients.length > 0);
   const sentTo = usesTeamReferEmail ? 'the team' : getRecipientSummary(recipients);
 
   const composingDesc = usesTeamReferEmail
@@ -331,15 +427,20 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
     ? 'We couldn’t draft a note for that member — write your own, or pick someone else.'
     : undefined;
 
-  /* Named while a member is picked, generic before — the same shape the note's own
+  /* Named while there is a name, generic before — the same shape the note's own
      description uses two fields up, so the form asks in one voice. */
-  const copyLabel = selectedMember
-    ? `Copy ${firstName} on this email`
-    : 'Copy the person you’re referring on this email';
+  const copyLabel = refereeName ? `Copy ${firstName} on this email` : 'Copy the person you’re referring on this email';
+
+  /* What the inert note box says while it waits, in the words of the state it is
+     waiting on: a pick from the search, or the three inputs. */
+  const idleNotePlaceholder =
+    refereeMode === 'outside'
+      ? 'Fill in their details above and we’ll draft the note for you.'
+      : 'Pick someone above and we’ll draft the note for you.';
 
   return (
     <Modal isOpen={open} onClose={handleClose} closeOnBackdropClick={false} lockScroll>
-      <div className={s.modal}>
+      <div className={`${s.modal} ${sent ? s.modalSent : ''}`}>
         <Button style="link" variant="neutral" className={s.closeButton} onClick={handleClose} aria-label="Close modal">
           <CloseIcon />
         </Button>
@@ -384,12 +485,65 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
               }}
             >
               <div className={s.fields}>
-                <MemberSearchSelect
-                  name="referee"
-                  label="Who are you referring?"
-                  placeholder="Search members by name..."
-                  menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
-                />
+                {refereeMode === 'member' ? (
+                  <MemberSearchSelect
+                    name="referee"
+                    label="Who are you referring?"
+                    placeholder="Search members by name..."
+                    menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                    onReferOutside={referOutside}
+                  />
+                ) : (
+                  /* The same field, in its other state: the label stays, the way
+                     back takes the label line's right — the modal's own quiet text
+                     action (`.resetLink`, "Reset to template") — and three
+                     production `FormField`s stand where the search was. Required
+                     marks are the component's own; the rules are the three tests
+                     `outsidePerson` runs, so the field flags exactly what the form
+                     waits for. The LinkedIn rule is the profile's own
+                     (`validateSocialField`), so a slug or a URL both pass here as
+                     they do on a member's contact card. */
+                  <div className={fieldCss.field}>
+                    <div className={s.outsideHeader}>
+                      <span className={fieldCss.label}>Who are you referring?</span>
+                      <button type="button" className={s.resetLink} onClick={() => setRefereeMode('member')}>
+                        Search the network instead
+                      </button>
+                    </div>
+                    <div className={s.outsideFields}>
+                      <FormField
+                        name="outsideName"
+                        label="Full name"
+                        placeholder="e.g. Sarah Cohen"
+                        isRequired
+                        rules={{ validate: (v: string) => !!v?.trim() || 'Enter their name' }}
+                      />
+                      <FormField
+                        name="outsideEmail"
+                        label="Email address"
+                        placeholder="e.g. sarah@mail.com"
+                        inputMode="email"
+                        isRequired
+                        rules={{
+                          validate: (v: string) => isEmailAddress((v ?? '').trim()) || 'Enter a valid email address',
+                        }}
+                      />
+                      <FormField
+                        name="outsideLinkedin"
+                        label="LinkedIn profile"
+                        placeholder="eg., johndoe or https://linkedin.com/in/johndoe"
+                        isRequired
+                        rules={{
+                          validate: (v: string) => {
+                            const trimmed = (v ?? '').trim();
+                            if (!trimmed) return 'Enter their LinkedIn profile';
+                            return validateSocialField('linkedin', trimmed) ?? true;
+                          },
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {usesTeamReferEmail ? (
                   <div className={fieldCss.field}>
@@ -418,7 +572,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                   </div>
                 )}
 
-                <div className={`${s.templateBlock} ${selectedMember ? '' : s.templateBlockIdle}`}>
+                <div className={`${s.templateBlock} ${hasReferee ? '' : s.templateBlockIdle}`}>
                   <div className={s.templateLabelRow}>
                     <span className={s.templateLabel}>Your note</span>
                     {messageEdited && !!templateNote && (
@@ -456,7 +610,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                       and the slot's own words are "Add a line about how you know
                       <First>". A hint about a blank should use the blank's verb. */}
                   <p id="message-description" className={`${taCss.fieldDescription} ${taCss.fieldDescriptionTop}`}>
-                    Add how you know {selectedMember ? firstName : 'the person you’re referring'} — that’s the one thing
+                    Add how you know {refereeName ? firstName : 'the person you’re referring'} — that’s the one thing
                     the draft can’t fill in.
                   </p>
 
@@ -467,13 +621,13 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                     <FormTextArea
                       name="message"
                       placeholder={
-                        selectedMember
+                        hasReferee
                           ? isDrafting
                             ? 'Drafting your note…'
                             : 'Tell them why this is a fit...'
-                          : 'Pick someone above and we’ll draft the note for you.'
+                          : idleNotePlaceholder
                       }
-                      disabled={!selectedMember || isDrafting}
+                      disabled={!hasReferee || isDrafting}
                       /* Moving the sentence out of the component's own slot would
                          have dropped the association `Field.Description` gave it.
                          `FormTextArea` spreads its rest props onto the `<textarea>`,

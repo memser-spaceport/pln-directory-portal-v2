@@ -23,14 +23,16 @@ interface Props {
  * news block, with a one-time callout announcing it.
  *
  * The button is the section's only action, so it takes the section's corner —
- * the slot every profile section keeps for one — and it's filled because a
- * link-style action there was invisible beside this panel's blue title, and a
- * bordered one crowded a 340px header. The DS tertiary — the text button, `style="link"`, the
- * same rank as every section's Edit — and it can afford to be, because the
- * callout below carries the noticing: primary was a step too loud for a side
- * rail, secondary (bordered) still argued with the page's own actions, and
- * once a feature is announced on arrival the control only has to be findable,
- * not loud. Note the DS has no filled secondary (that pair renders white on
+ * the slot every profile section keeps for one — and it is the DS primary:
+ * filled brand blue at the smallest size on the scale (`xxs`, 12/16 type in a
+ * 4x8 pad, ~24px tall). Rank and size are separate decisions here. Filled is
+ * what makes it read as a control beside this panel's blue title, where the
+ * text button was invisible (a link-style action and a 14px/500 blue section
+ * title are two labels of the same colour and weight) and a bordered one
+ * crowded the 340px header. `xxs` is what keeps a primary from claiming a side
+ * rail — the size, not the rank, is the part that has to yield to a secondary
+ * section. The plus is 12px so it sits inside the 16px line box rather than
+ * over it. Note the DS has no filled secondary (that pair renders white on
  * white); its secondary is `style="border"`.
  *
  * The callout is how a feature that is new gets found: it opens on arrival,
@@ -53,20 +55,21 @@ export function PostNewsButton({ teamName, onPost }: Props) {
       <TooltipPrimitive.Root open={tipOpen}>
         {/* The trigger is a span around the Button, not the Button itself via
             asChild: Radix's Slot merges the `style` prop as an object, and this
-            Button's `style` is a string ("border") — merged, it comes out as
+            Button's `style` is a string ("fill") — merged, it comes out as
             character-indexed garbage and the button loses its variant. */}
         <TooltipPrimitive.Trigger asChild>
           <span className={local.postTrigger}>
             <Button
-              size="xs"
-              style="link"
+              size="xxs"
+              style="fill"
+              variant="primary"
               className={local.postAction}
               onClick={() => {
                 dismiss();
                 onPost();
               }}
             >
-              <PlusIcon width={14} height={14} aria-hidden="true" />
+              <PlusIcon width={12} height={12} aria-hidden="true" />
               Post news
             </Button>
           </span>

@@ -81,9 +81,10 @@ interface JobAccountPaneProps {
  * you pressed its own submit, and then the role you came for was dropped.
  *
  * **Why the job search status is here and not left for later.** `isProfileComplete`
- * is `role && jobSearchStatus`, and step 3 must not send an application from an
- * incomplete profile — that is the whole reason the gate exists. A member passes
- * it across a stack of cards; a stranger passes it in one pane. It is also the
+ * is the status and nothing else — the current role was the other half of that
+ * rule and is not required any more — and step 3 must not send an application
+ * from an incomplete profile, which is the whole reason the gate exists. A
+ * member passes it on one card; a stranger passes it in this pane. It is also the
  * one answer nothing else in this flow collects, so deferring it would mean
  * asking for it after the application had already gone.
  *
@@ -189,7 +190,7 @@ export function JobAccountPane({ jobSearchStatus, onJobSearchStatusChange, onSig
         <AccountFields layout="grid" />
       </DetailsSection>
 
-      {/* The second required answer, wearing the exact treatment the profile
+      {/* The one required answer, wearing the exact treatment the profile
           step gives it: the amber strip when unanswered, the PL-team-only pill,
           the same radio group. A stranger and a member are answering one
           question, so they should be looking at one field.

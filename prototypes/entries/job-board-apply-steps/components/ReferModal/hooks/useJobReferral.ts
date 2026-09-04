@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-import { DirectoryMember } from '../types';
+import { DirectoryMember, OutsidePerson } from '../types';
+
+import { linkedinProfileUrl } from '../utils/linkedinProfileUrl';
 
 /**
  * The referral draft and send — **mock-backed in this folder**.
@@ -14,6 +16,10 @@ import { DirectoryMember } from '../types';
  * Here the note is composed from the same mocked records the pickers serve, and
  * the send resolves after a beat. Both keep the live hooks' shapes so the modal
  * body reads the same in both trees.
+ *
+ * Someone outside the network is drafted here too, from the three facts the
+ * referrer typed. The live endpoints have no such branch yet — see
+ * `MockReferralPayload` for the shape they would need.
  */
 
 const DRAFT_DELAY_MS = 450;
@@ -36,36 +42,79 @@ function composeReferralNote(member: DirectoryMember, roleTitle: string, teamNam
   ].join('\n\n');
 }
 
+/** The same note for someone with no directory record. There is no title, team or
+ *  skill list to draw a "why them" sentence from — the how-you-know slot the modal
+ *  adds is where that comes from — so the second paragraph carries the two facts
+ *  the hiring team can act on: how to reach them, and where to check who they are. */
+function composeOutsideReferralNote(person: OutsidePerson, roleTitle: string, teamName: string): string {
+  const name = person.name.trim();
+  const first = name.split(' ')[0];
+  return [
+    `Hi — I'd like to refer ${name} for the ${roleTitle} role at ${teamName}.`,
+    `${first} isn't in the PL network yet. You can reach them at ${person.email.trim()}, and their LinkedIn profile is ${linkedinProfileUrl(person.linkedin)}.`,
+    `Happy to make the intro.`,
+  ].join('\n\n');
+}
+
 interface UseJobReferralDraftInput {
   referredMember: DirectoryMember | null;
+  /** The other kind of referee. Only one of the two is ever set. */
+  referredPerson?: OutsidePerson | null;
   roleTitle: string;
   teamName: string;
   enabled: boolean;
 }
 
-export function useJobReferralDraft({ referredMember, roleTitle, teamName, enabled }: UseJobReferralDraftInput) {
+/** What a draft is about, as one string, so a re-picked member (or a re-typed
+ *  address) gets their note back instantly and any change re-drafts — the same
+ *  shape as the live hook's query key. */
+const draftKeyOf = (member: DirectoryMember | null, person: OutsidePerson | null | undefined): string | null => {
+  if (member) return `member:${member.uid}`;
+  if (person) return `outside:${person.name.trim()}|${person.email.trim().toLowerCase()}|${person.linkedin.trim()}`;
+  return null;
+};
+
+export function useJobReferralDraft(input: UseJobReferralDraftInput) {
+  const { referredMember, referredPerson, roleTitle, teamName, enabled } = input;
+  const draftKey = draftKeyOf(referredMember, referredPerson);
+
   // A beat of pretend latency, so "Drafting your note…" shows the way it would live.
-  // No resets: staleness is derived by comparing uids, so a re-picked member gets
-  // their note back instantly — the same shape as the live hook's query cache.
-  const [settledUid, setSettledUid] = useState<string | null>(null);
+  // No resets: staleness is derived by comparing keys.
+  const [settledKey, setSettledKey] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!enabled || !referredMember?.uid) return;
-    const timer = setTimeout(() => setSettledUid(referredMember.uid), DRAFT_DELAY_MS);
+    if (!enabled || !draftKey) return;
+    const timer = setTimeout(() => setSettledKey(draftKey), DRAFT_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [enabled, referredMember?.uid]);
+  }, [enabled, draftKey]);
 
   const data = useMemo(() => {
-    if (!referredMember || settledUid !== referredMember.uid) return undefined;
-    return { note: composeReferralNote(referredMember, roleTitle, teamName) };
-  }, [settledUid, referredMember, roleTitle, teamName]);
+    if (!draftKey || settledKey !== draftKey) return undefined;
+    if (referredMember) return { note: composeReferralNote(referredMember, roleTitle, teamName) };
+    if (referredPerson) return { note: composeOutsideReferralNote(referredPerson, roleTitle, teamName) };
+    return undefined;
+    // `draftKey` stands in for both records: it changes whenever either does.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settledKey, draftKey, roleTitle, teamName]);
 
   return {
     data,
-    isFetching: enabled && !!referredMember?.uid && settledUid !== referredMember.uid,
+    isFetching: enabled && !!draftKey && settledKey !== draftKey,
     isError: false,
   };
 }
+
+/**
+ * The proposal for `POST /job-openings/:uid/referrals`. Today it takes
+ * `referredMemberUid` and nothing else can be referred; a referee outside the
+ * network arrives as the three facts instead, with the LinkedIn value already
+ * turned into a link. One or the other, never both.
+ */
+export type MockReferralPayload = {
+  note: string;
+  recipients: unknown[];
+  includeReferredMember: boolean;
+} & ({ referredMemberUid: string } | { referredPerson: OutsidePerson });
 
 interface SendCallbacks {
   onSuccess?: (result: { uid: string }) => void;
@@ -75,7 +124,7 @@ interface SendCallbacks {
 export function useCreateJobReferral(_jobUid: string) {
   const [isPending, setIsPending] = useState(false);
 
-  const mutate = (_payload: unknown, callbacks?: SendCallbacks) => {
+  const mutate = (_payload: MockReferralPayload, callbacks?: SendCallbacks) => {
     setIsPending(true);
     setTimeout(() => {
       setIsPending(false);

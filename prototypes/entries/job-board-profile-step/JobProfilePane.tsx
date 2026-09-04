@@ -423,7 +423,9 @@ export function JobProfilePane(props: JobProfilePaneProps) {
    */
   const importAtTop = profileIsBlank;
 
-  const hasRole = draft.role.trim() !== '';
+  /* The rule, read off the draft with the same test `isProfileComplete` uses.
+     It was a pair (`hasRole` beside this) while the current role gated too; the
+     role is optional now, and the other name went with the strip it drove. */
   const hasStatus = draft.jobSearchStatus !== '';
 
   /* Editing is never withheld — not even while approval is pending.
@@ -463,8 +465,8 @@ export function JobProfilePane(props: JobProfilePaneProps) {
    * profile already has the shortest route through all three offered above it —
    * the CV card, which fills them from a document — so opening three empty
    * sections underneath would be showing the long way round and the short way at
-   * once, and the amber strips on the two required cards have to stay the
-   * loudest thing on the step.
+   * once, and the amber strip on the one required card has to stay the loudest
+   * thing on the step.
    */
   const [showOptional, setShowOptional] = useState(false);
 
@@ -666,20 +668,26 @@ export function JobProfilePane(props: JobProfilePaneProps) {
       </div>
 
       {/* 0. Start with a document, when there is nothing to start from.
-               **Why this is above the required cards.** The drawer's rule is that
-               required things are asked for first, and an earlier pass used that
-               rule to keep the importer *out* of this position — a third thing
-               above the two gates would bury them. That reasoning was written
-               when the importer only filled Experience, which is optional. It
-               now fills the required `role` too, so it is not a third thing
-               above the requirements: it is the shortest route through one of
-               them. A control that answers the question below it belongs above
-               it.
+               **Why this is above the status card, and the argument that has
+               lapsed.** The drawer's rule is that required things are asked for
+               first, and an earlier pass used that rule to keep the importer
+               *out* of this position — a third thing above the gates would bury
+               them. That was answered by saying the importer fills the required
+               `role`, so it was the shortest route through a requirement rather
+               than a third thing above one.
 
-               It is a quiet white card, not a tinted slab, for the same reason:
-               the amber "your current role is required" strip on the card
-               underneath has to stay the loudest thing here. This is an offer,
-               and the requirement is a requirement. */}
+               The role is not required any more, so that answer is gone: the
+               status is the only gate, and nothing a document contains can
+               answer it. What holds the position now is that the card only draws
+               for a blank profile at all, and for a blank profile the document is
+               the shortest route through everything else on the step. Whether the
+               status card should now move above it is a real question and not one
+               to settle in a pass about the role.
+
+               It is a quiet white card, not a tinted slab, for the same reason as
+               before: the amber strip on the status card below has to stay the
+               loudest thing here. This is an offer, and the requirement is a
+               requirement. */}
       {importAtTop && (
         <DetailsSection
           editView={editingImport}
@@ -776,41 +784,28 @@ export function JobProfilePane(props: JobProfilePaneProps) {
           the alternative is no longer "or", it is "or cancel this". */}
       {importAtTop && !parsed && <div className={d.orRule}>or fill it in yourself</div>}
 
-      {/* 1. The header card, and the first of the two required answers: your
-               current role. `ProfileDetails` is a plain div that swaps itself for
-               `EditProfileForm` in place, so this is a plain div too, and every
-               placeholder in it opens that one editor — the amber role and
-               location, both grey pills, and the blue Edit.
+      {/* 1. The header card: name, current role, location. `ProfileDetails` is a
+               plain div that swaps itself for `EditProfileForm` in place, so this
+               is a plain div too, and every placeholder in it opens that one
+               editor — the amber role and location, both grey pills, and the blue
+               Edit.
 
-               While the role is missing the card wears the same treatment the
-               status card does: `missingData`'s tint plus a strip naming the
-               consequence. The amber `+ Current Role` button inside it is
-               already production's "this is missing" affordance, but it says
-               *absent*, not *required*, and every other placeholder on the card
-               looks exactly the same while being optional. The strip is what
-               distinguishes the one that stops you from the four that don't. */}
-      <div
-        className={clsx(p.root, {
-          [p.editView]: editingProfile,
-          [d.editCard]: editingProfile,
-          [d.missingCard]: !editingProfile && !hasRole,
-        })}
-      >
+               **No amber strip and no tint here any more.** The card used to wear
+               the status card's `missingData` treatment while the role was empty,
+               plus a strip reading "Your current role is required to apply" —
+               because the role was the second half of `isProfileComplete` and
+               production's amber `+ Current Role` button says *absent*, not
+               *required*.
+
+               The role is not required any more, so there is nothing left to
+               distinguish: every placeholder on this card is optional and they
+               all look alike, which is the truth. What is left is production's
+               own affordance, inviting the answer without demanding it. */}
+      <div className={clsx(p.root, { [p.editView]: editingProfile, [d.editCard]: editingProfile })}>
         {editingProfile ? (
           <ProfileDetailsForm profile={draft} onClose={() => setEditing(null)} onSubmit={saveProfileDetails} />
         ) : (
-          <>
-            {!hasRole && (
-              <DataIncomplete className={d.incompleteStrip}>
-                {pendingRoleTitle
-                  ? `Your current role is required to apply to ${pendingRoleTitle}.`
-                  : 'Your current role is required to apply.'}
-              </DataIncomplete>
-            )}
-            <div className={clsx({ [d.missingBody]: !hasRole })}>
-              <ProfileHeaderCard profile={draft} onEdit={canEdit ? () => setEditing({ kind: 'profile' }) : undefined} />
-            </div>
-          </>
+          <ProfileHeaderCard profile={draft} onEdit={canEdit ? () => setEditing({ kind: 'profile' }) : undefined} />
         )}
       </div>
 

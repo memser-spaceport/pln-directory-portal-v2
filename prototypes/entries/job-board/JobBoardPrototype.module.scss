@@ -54,6 +54,23 @@
   flex-wrap: wrap;
 }
 
+// The desktop toolbar's right-hand group: the sort and, for a lead or admin,
+// the Submit a job door beside it — `DealsToolbar`'s own `.actions` row (flex,
+// 16px gap), written here because that class also hides itself on phones and
+// this board's toolbar already does that one level up.
+.toolbarActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+// The same door on the phone title row, pushed to the far end of the line the
+// title starts — where `DealsToolbar` puts its `.actionsMobile`.
+.mobileSubmit {
+  margin-left: auto;
+  align-self: center;
+}
+
 // The switch chrome itself is newsfeed-v0's (.switchBar / .switch / .switchBtn /
 // .switchNote); only the row is local, because v0's own .versionRow reserves a
 // 312px right rail this page doesn't have.

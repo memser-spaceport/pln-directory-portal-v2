@@ -35,6 +35,16 @@
   }
 }
 
+// "N in review" in the count block, on the Manage listings tab. Production's
+// `.newCount` pill — same geometry, same 12/600 — in the warning family instead
+// of the success one, because a listing waiting on someone is the Badge's
+// `warning` state and the row's pill already says so in those tones. Doubled
+// with the production class it rides on so the colour layer wins.
+.reviewCount.reviewCount {
+  color: var(--foreground-warning-secondary, #d97706);
+  background: var(--transparent-warning-8, rgba(245, 158, 11, 0.08));
+}
+
 .card .avatar {
   @include media.mobile-only {
     width: 44px;

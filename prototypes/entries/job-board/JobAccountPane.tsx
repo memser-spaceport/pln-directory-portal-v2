@@ -45,7 +45,7 @@ interface JobAccountPaneProps {
       lede is gone and the strip now says "Required to continue." — and the pane
       has no other line that mentions the role. The drawer's own footer names it,
       which is where a step's subject belongs when the step is a form.) */
-  /** The other half of `isProfileComplete`, and the one answer this pane holds
+  /** The whole of `isProfileComplete`, and the one answer this pane holds
    *  outside the account form: it belongs to the profile draft the flow already
    *  owns, not to the account record. */
   jobSearchStatus: JobSearchStatus | '';
@@ -86,11 +86,13 @@ interface JobAccountPaneProps {
  * you pressed its own submit, and then the role you came for was dropped.
  *
  * **Why the job search status is here and not left for later.** `isProfileComplete`
- * is `role && jobSearchStatus`, and step 3 must not send an application from an
+ * is the status and nothing else, and step 3 must not send an application from an
  * incomplete profile — that is the whole reason the gate exists. A member passes
- * it across a stack of cards; a stranger passes it in one pane. It is also the
- * one answer nothing else in this flow collects, so deferring it would mean
- * asking for it after the application had already gone.
+ * it on one card; a stranger passes it in this pane. It is also the one answer
+ * nothing else in this flow collects, so deferring it would mean asking for it
+ * after the application had already gone. (The current role was the other half
+ * of that rule and is not required any more — the account form still asks for
+ * it, and nothing here waits on the answer.)
  *
  * **Three stores, deliberately.** The text fields live in the flow drawer's
  * react-hook-form (lifted, so stepping to the letter and back doesn't cost what
@@ -245,10 +247,12 @@ export function JobAccountPane({
         <AccountFields layout="grid" />
       </DetailsSection>
 
-      {/* The second required answer, wearing the exact treatment the profile
+      {/* The one required answer, wearing the exact treatment the profile
           step gives it: the amber strip when unanswered, the PL-team-only pill,
           the same radio group. A stranger and a member are answering one
-          question, so they should be looking at one field.
+          question, so they should be looking at one field. (It was "the second"
+          while the current role gated as well. The role is still asked for, one
+          card up, and no longer marked in either step.)
 
           **The strip's sentence is the one thing that differs, and on purpose.**
           The member's step says "An answer here is required to apply to

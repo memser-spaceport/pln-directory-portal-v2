@@ -113,17 +113,21 @@ const renderModal = (overrides: Partial<React.ComponentProps<typeof JobSignUpMod
   render(<JobSignUpModal {...baseProps} {...overrides} />);
 
 /**
- * Fills the five fields the schema actually requires.
+ * Fills the four fields the schema requires of everyone, plus the role.
  *
- * Role and the status belong in here rather than in the tests that care about
- * them: both gate submission, so leaving either out would turn every
- * `submitting` case below into a test of the gate instead of a test of what it
- * claims to check — green for the wrong reason if the assertion is on `onSignUp`
- * *not* firing, and a confusing failure otherwise.
+ * The status belongs in here rather than in the tests that care about it: it
+ * gates submission, so leaving it out would turn every `submitting` case below
+ * into a test of the gate instead of a test of what it claims to check — green
+ * for the wrong reason if the assertion is on `onSignUp` *not* firing, and a
+ * confusing failure otherwise.
  *
- * This is the single point the "role is now required on both doors" change lands
- * on. It has eleven call sites; every one of them would otherwise fail, and all
- * of them for the same uninteresting reason.
+ * The role is here for a weaker reason and is worth naming as such: it is
+ * optional until the PL-team box is ticked, so filling it is not what makes
+ * these submits go through. It is filled because most cases below assert on the
+ * payload, and a payload carrying the role is the one the product actually
+ * sends. The two tests that turn on the rule itself set it themselves — see
+ * `submits with no role when no PL-team claim is made` and `refuses a PL-team
+ * claim with no current role`.
  */
 /** Everything `fillRequired` does except pick a status — so the one test that
  *  needs the status *missing* and nothing else missing can say exactly that,
@@ -155,9 +159,10 @@ const fillRequired = () => {
  * form — most of this suite signs up as someone with no network team, which is
  * the commoner case.
  *
- * It used to set the role too. That moved to `fillRequired` when role stopped
- * being conditional on the tick: leaving it here would have said the tick is
- * what makes a role necessary, which is the exact belief this change removes.
+ * The role it makes required is set by `fillRequired` rather than here, so the
+ * two tests that withhold one can do so by blanking a filled field — an
+ * explicit `''` reads as the answer being withheld, where an omission reads as
+ * the helper having forgotten it.
  */
 const claimPlTeam = () => {
   fireEvent.click(screen.getByRole('checkbox', { name: /I work at a PL network startup/i }));
@@ -172,12 +177,15 @@ describe('the job board sign-up modal', () => {
 
   describe('the fields', () => {
     /**
-     * Nothing on this form is optional, and nothing is marked optional.
+     * Nothing on this form is *marked* optional, the role included.
      *
-     * That is a simpler claim than it used to be: role was the one field that
-     * was optional until the tick, so "unmarked" had to be read as a choice
-     * rather than an omission. It is required in both states now, so every
-     * field here is required and every one carries the mark.
+     * The role is the one field whose requirement moves with the PL-team tick,
+     * and in the untied state it carries no mark of either kind — per the
+     * design, and see the note on the label in `accountFields`:
+     * unmarked-and-optional costs nothing, unmarked-and-required does not. So
+     * the absence of `(Optional)` here is a choice rather than an omission, and
+     * `marks the role row required only once the box is ticked` is the other
+     * half of it.
      */
     it('marks nothing optional, and leaves the required fields required', () => {
       renderModal();
@@ -237,17 +245,15 @@ describe('the job board sign-up modal', () => {
       expect(screen.getByText('@')).toBeInTheDocument();
     });
 
-    /* The mark has to match the rule, and the rule no longer moves.
-       This used to assert the opposite in the unticked state — no `*` until the
-       box was ticked — which was right while the requirement itself was
-       conditional. Role is required either way now, so a mark that came and went
-       would be describing a rule that does not exist. A form refusing to submit
-       over a field it never flagged is worse than one with no marking system at
-       all, and the unticked state is where nearly everyone meets this row. */
-    it('marks the role row required in both states of the tick', () => {
+    /* The mark has to match the rule, and the rule moves with the tick.
+       Ticking is what makes the role required (see the schema's note on `role`),
+       so the `*` arrives with it and is absent before — a mark on a field the
+       form will happily accept empty is the same lie as a missing mark on one it
+       won't, told the other way round. */
+    it('marks the role row required only once the box is ticked', () => {
       renderModal();
 
-      expect(screen.getByText(/^Current role/).textContent).toContain('*');
+      expect(screen.getByText(/^Current role/).textContent).not.toContain('*');
 
       fireEvent.click(screen.getByRole('checkbox', { name: /I work at a PL network startup/i }));
 
@@ -256,17 +262,24 @@ describe('the job board sign-up modal', () => {
       expect(label.textContent).not.toContain('Optional');
     });
 
-    /* The rule behind the mark above, on the door where it is new. No tick, no
-       team, nothing else missing — just an empty role. */
-    it('refuses to submit without a role, with no PL-team claim', async () => {
+    /* The rule behind the mark above, in the state nearly everyone is in. No
+       tick, no team, and a blank role — which is not a reason to refuse. The
+       profile step they meet when they eventually apply is where an unfinished
+       profile gets finished; the door does not hold them for it. */
+    it('submits with no role when no PL-team claim is made', async () => {
       renderModal();
       fillRequired();
       fireEvent.change(screen.getByLabelText('Current role'), { target: { value: '   ' } });
 
       fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
 
-      expect(await screen.findByText('Current role is required')).toBeInTheDocument();
-      expect(baseProps.onSignUp).not.toHaveBeenCalled();
+      await waitFor(() => expect(baseProps.onSignUp).toHaveBeenCalled());
+      expect(screen.queryByText('Current role is required')).not.toBeInTheDocument();
+      /* Trimmed to empty on the way out, which is what the controller's
+         `...(details.role ? …)` guard reads: the wire schema is `min(1)`, so an
+         empty string would be rejected by `parse()` where an absent key is
+         accepted. */
+      expect(baseProps.onSignUp).toHaveBeenCalledWith(expect.objectContaining({ role: '' }));
     });
 
     /**
@@ -278,9 +291,9 @@ describe('the job board sign-up modal', () => {
      * catch — "We couldn't create your account just now. Please try again."
      * That message names no field and invites a retry that cannot work.
      *
-     * The cap has always been there; it only became reachable from this door
-     * when role stopped being optional here, which is why the guard arrives with
-     * that change.
+     * The cap is unconditional, unlike the requirement above it: the input is on
+     * screen in both states of the tick, so an over-long value is reachable
+     * whether or not a role is being asked for.
      */
     it('refuses a role longer than the wire schema accepts', async () => {
       renderModal();
@@ -349,14 +362,12 @@ describe('the job board sign-up modal', () => {
       expect(baseProps.onSignUp).not.toHaveBeenCalled();
     });
 
-    /* The role, under the same label, on the ticked side.
-       This used to be the *only* place role was required, so it read as the
-       other half of the tick's rule. Role is unconditional now — see
-       `refuses to submit without a role, with no PL-team claim` for the state
-       nearly everyone is in — and this stays because the two inputs share a
-       label and a mark, which makes "does the row still guard both halves?" a
-       question worth keeping an answer to. The role is blanked explicitly,
-       since `fillRequired` supplies one. */
+    /* The role, under the same label, on the ticked side — the other half of the
+       tick's rule, and the half the mark is for. A claim about an employer that
+       names no role is the half-answer the requirement exists to refuse; see
+       `submits with no role when no PL-team claim is made` for the state nearly
+       everyone is in. The role is blanked explicitly, since `fillRequired`
+       supplies one. */
     it('refuses a PL-team claim with no current role', async () => {
       renderModal();
       fillRequired();
@@ -395,11 +406,9 @@ describe('the job board sign-up modal', () => {
      * the form reads as broken — an error on a field that is no longer even on
      * screen.
      *
-     * This used to assert the same of `role`, back when the tick was what made a
-     * role required. It isn't any more, so `trigger` was narrowed to `company`
-     * alone — and the test narrowed with it. See the sibling below for the other
-     * half of that change, which is the more important one: the role error must
-     * now *survive* the untick.
+     * The sibling below asserts the same of `role`, which the same `trigger` call
+     * covers: both rules move with the tick, so both verdicts have to be re-run
+     * when it changes.
      */
     it('clears the team error when the claim is withdrawn', async () => {
       renderModal();
@@ -416,15 +425,14 @@ describe('the job board sign-up modal', () => {
     });
 
     /**
-     * ...and the role error has to outlive it.
+     * ...and the role error has to go with it.
      *
-     * The mirror of the test above, and the one that would catch a lazy revert.
-     * Unticking used to make a blank role legal, so clearing its error was
-     * correct. It doesn't any more: the field is still required, still blank,
-     * and still the reason the button will not move. An error that vanished here
-     * would be the form quietly dropping a rule it is about to enforce again.
+     * The mirror of the test above. Unticking makes a blank role legal again, so
+     * an error left on screen would be describing a rule that no longer applies
+     * — and the button it appears to block would in fact submit, which is the
+     * worst version of a stale verdict.
      */
-    it('keeps the role error when the claim is withdrawn', async () => {
+    it('clears the role error when the claim is withdrawn', async () => {
       renderModal();
       fillRequired();
       fireEvent.change(screen.getByLabelText('Current role'), { target: { value: '' } });
@@ -436,12 +444,12 @@ describe('the job board sign-up modal', () => {
 
       fireEvent.click(box);
 
-      /* Still there, and still blocking — asserted by pressing again rather than
-         only by the message, so this cannot pass on a stale node. */
-      expect(screen.getByText('Current role is required')).toBeInTheDocument();
+      await waitFor(() => expect(screen.queryByText('Current role is required')).not.toBeInTheDocument());
+      /* Gone, and gone because the rule is gone — asserted by pressing again
+         rather than only by the message, so this cannot pass on a form that is
+         still refusing silently. */
       fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
-      await waitFor(() => expect(screen.getByText('Current role is required')).toBeInTheDocument());
-      expect(baseProps.onSignUp).not.toHaveBeenCalled();
+      await waitFor(() => expect(baseProps.onSignUp).toHaveBeenCalled());
     });
 
     it('associates LinkedIn with its input', () => {

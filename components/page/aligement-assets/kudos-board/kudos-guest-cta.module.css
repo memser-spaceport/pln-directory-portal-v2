@@ -1,0 +1,54 @@
+/* Mirrors the profile page's not-onboarded card so the two PLAA sign-in
+   prompts read as the same thing. */
+.guest {
+  display: flex;
+  justify-content: center;
+  padding-top: 24px;
+}
+
+.card {
+  width: 100%;
+  max-width: 480px;
+  background: #ffffff;
+  box-shadow:
+    inset 0 0 0 1px rgba(27, 56, 96, 0.12),
+    0 1px 2px rgba(15, 23, 42, 0.06);
+  border-radius: 16px;
+  padding: 40px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 18px;
+  color: #0a0c11;
+}
+
+.desc {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #455468;
+  max-width: 360px;
+}
+
+.btn {
+  margin-top: 22px;
+  height: 40px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 10px;
+  background: #1b4dff;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: #0f3cd9;
+}

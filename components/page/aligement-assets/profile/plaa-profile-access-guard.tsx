@@ -2,6 +2,7 @@
 
 import { ReactNode } from 'react';
 
+import { useCurrentUserStore } from '@/services/auth/store';
 import { usePlaaAccess } from '@/services/rbac/hooks/usePlaaAccess';
 
 import styles from './plaa-profile-access-guard.module.css';
@@ -15,14 +16,25 @@ interface PlaaProfileAccessGuardProps {
  * it's restricted to PLAA members (`plaa.access`) rather than every logged-in
  * LabOS member. Fails closed: a failed permission lookup denies rather than
  * renders.
+ *
+ * This gates page visibility, not the data — the underlying endpoints are
+ * authenticated and /me-scoped but don't check `plaa.access` server-side.
  */
 export function PlaaProfileAccessGuard({ children }: PlaaProfileAccessGuardProps) {
+  const { currentUser, isHydrated } = useCurrentUserStore();
   const { canView, isLoading, isError } = usePlaaAccess();
 
   // Rendering the refusal mid-fetch would flash a false negative at a member
   // who does have access.
   if (isLoading) {
     return null;
+  }
+
+  // A guest hasn't been denied, they just haven't identified themselves. Fall
+  // through to the page's own onboarding card, which carries the login link —
+  // the refusal below is a dead end with no way to sign in.
+  if (isHydrated && !currentUser) {
+    return <>{children}</>;
   }
 
   if (isError || !canView) {

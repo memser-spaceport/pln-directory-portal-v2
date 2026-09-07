@@ -106,7 +106,12 @@ const lead: DirectoryMember = {
   isTeamLead: true,
 };
 
-const DRAFTED_NOTE = 'Here is a draft.\n\n[Add a line about how you know Ada.]';
+/* The whole note, and the backend's own words for all of it. The modal used to
+   splice `[Add a line about how you know Ada.]` in on top of the draft, so this
+   constant and the `mockUseDraft` fixture below differed; they are now the same
+   string, sourced from here, because "hands the draft through untouched" is the
+   property under test and two literals could drift apart without failing. */
+const DRAFTED_NOTE = 'Here is a draft.';
 
 /** The tick, however it is currently labelled. Named before a member is picked. */
 const copyTick = (name: RegExp = /Copy Ada on this email/i) => screen.getByRole('checkbox', { name });
@@ -133,7 +138,7 @@ describe('ReferModal', () => {
       isLoading: false,
       isError: false,
     });
-    mockUseDraft.mockReturnValue({ data: { note: 'Here is a draft.' }, isFetching: false, isError: false });
+    mockUseDraft.mockReturnValue({ data: { note: DRAFTED_NOTE }, isFetching: false, isError: false });
     mockSend.mockImplementation((_payload, opts) => {
       opts?.onSuccess?.({ uid: 'ref-1' });
     });
@@ -196,6 +201,23 @@ describe('ReferModal', () => {
     await user.click(screen.getByRole('button', { name: 'Pick referee' }));
     await waitFor(() => expect(screen.getByLabelText('Your note')).toHaveValue(DRAFTED_NOTE));
     expect(screen.getByRole('button', { name: 'Send referral' })).toBeDisabled();
+  });
+
+  /* The frontend adds no wording to the note. It used to add exactly one line — a
+     bracketed how-you-know slot — and the ask now lives in the caption above the box
+     instead, where it costs the referrer nothing to clear. The negative assertion is
+     the one that matters: an equality check would still pass if the slot came back
+     under a different name, and this is the shape it took. */
+  it('hands the backend draft through verbatim, with no bracketed slot', async () => {
+    const user = userEvent.setup();
+    renderModal(null);
+
+    await user.click(screen.getByRole('button', { name: 'Pick referee' }));
+
+    const note = screen.getByLabelText('Your note');
+    await waitFor(() => expect(note).toHaveValue(DRAFTED_NOTE));
+    expect((note as HTMLTextAreaElement).value).not.toMatch(/\[Add a line/i);
+    expect((note as HTMLTextAreaElement).value).not.toMatch(/how you know/i);
   });
 
   it('titles the modal for the role and says one email goes to everyone added', () => {

@@ -8,16 +8,17 @@
  * change would have had to find all three, and the one it missed would have gone
  * on saying the old thing to whoever happened to open it.
  *
- * **The copy is the design's, verbatim.** Every string below is transcribed from
- * Figma node 682:11192 rather than written here, and that is deliberate: an
- * earlier pass reworded both items on the grounds that the flow does not
- * currently notify a team or rank a candidate, and the reword was reverted. The
- * design owns this copy. If item 2's promise is to become true, it becomes true
- * in the flow, not by softening the sentence — and if it is not going to, that is
- * a conversation for the design, not a local edit.
+ * **The design owns this copy.** Item 1 is transcribed from Figma node
+ * 682:11192; item 2 was rewritten to the wording below on 2026-09-04, on the
+ * design's instruction, and is no longer that node's sentence. Neither was
+ * written here. That distinction matters because an earlier pass reworded both
+ * items locally — on the grounds that the flow does not notify a team or rank a
+ * candidate — and the reword was reverted.
  *
- * So: do not "fix" these strings against what the code does today. Change them
- * when the frame changes.
+ * So: do not "fix" these strings against what the code does today. If item 2's
+ * promise is to become true it becomes true in the flow, not by softening the
+ * sentence, and if it is not going to, that is a conversation for the design.
+ * Change them when the design says so.
  */
 
 /** The card's heading, and the accessible name of the popover and the modal. */
@@ -39,7 +40,7 @@ export const UNLOCK_ITEMS = [
     body: 'We surface your profile to founders whose open roles match your background.',
   },
   {
-    head: 'Signal interest in a specific role',
-    body: 'Interested? The team sees you first. You can do this without applying on their site.',
+    head: 'Signal interest',
+    body: 'Signal interest in specific roles to multiply your visibility.',
   },
 ] as const;

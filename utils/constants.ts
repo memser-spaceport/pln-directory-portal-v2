@@ -98,6 +98,9 @@ export const JOBS_ANALYTICS = {
   ON_JOB_APPLY_FLOW_CLOSED: 'job-apply-flow-closed',
   ON_JOB_APPLY_EXTERNAL_REDIRECTED: 'job-apply-external-redirected',
   ON_JOB_UNLOCK_INFO_OPENED: 'job-unlock-info-opened',
+  ON_JOB_INTEREST_MARKED: 'job-interest-marked',
+  ON_JOB_INTEREST_UNDONE: 'job-interest-undone',
+  ON_JOB_INTEREST_FAILED: 'job-interest-failed',
 };
 
 export const EVENTS = {

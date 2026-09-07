@@ -165,8 +165,8 @@ describe('the footer disclosure', () => {
     const popup = within(await revealed());
     expect(popup.getByText('Get discovered')).toBeInTheDocument();
     expect(popup.getByText(/We surface your profile to founders/)).toBeInTheDocument();
-    expect(popup.getByText('Signal interest in a specific role')).toBeInTheDocument();
-    expect(popup.getByText(/The team sees you first/)).toBeInTheDocument();
+    expect(popup.getByText('Signal interest')).toBeInTheDocument();
+    expect(popup.getByText(/multiply your visibility/)).toBeInTheDocument();
   });
 
   /**

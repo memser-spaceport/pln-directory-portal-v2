@@ -432,7 +432,7 @@ export function JobProfileDrawer({
   });
 
   return (
-    <Drawer isOpen={open} onClose={onClose}>
+    <Drawer isOpen={open} onClose={onClose} closeOnOverlayClick={false}>
       <div className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
         <div className={s.breadcrumbs}>
           <button type="button" className={s.backButton} onClick={onClose}>

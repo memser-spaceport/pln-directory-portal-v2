@@ -340,6 +340,31 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_UNLOCK_INFO_OPENED, { ...args });
   };
 
+  /**
+   * The light signal beside Apply.
+   *
+   * `resumed` separates the two ways a mark happens: pressed and recorded on the
+   * spot, or pressed while logged out and recorded on the way back from Privy.
+   * They convert differently and the funnel is unreadable if they are one number.
+   *
+   * A logged-out press fires nothing here — it is a sign-up intent, and
+   * `onJobApplyClicked` already counts those with `trigger`. The mark event
+   * fires when the signal actually exists.
+   */
+  const onJobInterestMarked = (args: JobApplyBaseParams & { resumed: boolean }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_INTEREST_MARKED, { ...args });
+  };
+
+  const onJobInterestUndone = (args: JobApplyBaseParams) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_INTEREST_UNDONE, { ...args });
+  };
+
+  const onJobInterestFailed = (
+    args: JobApplyBaseParams & { action: 'mark' | 'undo'; failure_category: 'gone' | 'request-failed' },
+  ) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_INTEREST_FAILED, { ...args });
+  };
+
   return {
     onJobsPageViewed,
     onJobsFiltersApplied,
@@ -379,5 +404,8 @@ export const useJobsAnalytics = () => {
     onJobApplyFlowClosed,
     onJobApplyExternalRedirected,
     onJobUnlockInfoOpened,
+    onJobInterestMarked,
+    onJobInterestUndone,
+    onJobInterestFailed,
   };
 };

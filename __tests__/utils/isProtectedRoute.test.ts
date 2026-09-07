@@ -1,8 +1,5 @@
 import { isProtectedRoute } from '@/utils/isProtectedRoute';
 
-// PLAA-65: every /alignment-asset page requires LabOS login, no exceptions.
-// (Profile/Onboarding get an additional, narrower restriction on top of this
-// baseline — that's PLAA-66/67, not this ticket.)
 describe('isProtectedRoute', () => {
   describe('alignment-asset (PLAA-65)', () => {
     it('protects the section root', () => {

@@ -154,6 +154,47 @@
   letter-spacing: -0.2px;
 }
 
+// The parse reports no percentage — see `useReadingProgress` — so this bar is an
+// invented curve that only ever reaches 100% when the read actually came back.
+//
+// IT WEARS THE SPINNER'S OWN TWO COLOURS, ON PURPOSE. `.spinner` above is already
+// a track/fill pair in exactly these: `color` for the ring it leaves behind and
+// `fill` for the arc that moves. Since the two now sit in the same row, sharing
+// the palette is what makes them read as one indicator rather than two separate
+// claims to be busy.
+//
+// THE FALLBACKS ARE LOAD-BEARING, NOT DECORATION. Every token in this file is a
+// design-system name that this app never defines: `pl-design-system` is excluded
+// from tsconfig and its `tokens/colors.scss` is not loaded here, so the second
+// argument to `var()` is what actually paints. Dropping them as "redundant"
+// renders a bar with no colour at all — invisible next to a spinner that still
+// turns, which looks exactly like a feature that silently failed to ship.
+.progressTrack {
+  // `.readingText` sets a 2px gap for the title/size pair; the bar wants air.
+  margin-top: 6px;
+  height: 3px;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--foreground-brand-primary, #1b4dff);
+  // Linear, and longer than the 200ms sampling tick, so consecutive steps
+  // overlap into continuous movement instead of a visible stutter.
+  transition: width 300ms linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  // The position still has to be readable — it is the information. Only the
+  // travel between positions goes.
+  .progressFill {
+    transition: none;
+  }
+}
+
 // The secondary verb throughout the panel — Cancel, Add manually. A text button,
 // because in both places it stands beside something more important.
 .quietButton {

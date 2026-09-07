@@ -8,7 +8,7 @@ import clsx from 'clsx';
 // the same blue CTA rather than inventing a second sign-in look.
 import welcome from '@/components/page/home/Welcome/Welcome.module.scss';
 
-import { hasCriteria, summariseCriteria, type RoleCriteria } from './viewerState';
+import { hasCriteria, type RoleCriteria } from './viewerState';
 import s from './SignInBanner.module.scss';
 
 /** The two doors, when the banner is the one offering them. Absent on the
@@ -196,81 +196,72 @@ export function ApplyValueBullets({ className, doors }: { className?: string; do
   );
 }
 
+/**
+ * The logged-out banner, as the Figma "Logged out — Review job" frame draws it
+ * (631:22545): a white card on a brand border — the headline counts the teams
+ * hiring and says what the profile does for you, the sub-line says how, and
+ * `Sign up` is a real button on the right. Under it, on a brand-soft strip, the
+ * other door: "Already at a PL network team? Sign in".
+ *
+ * **Two doors, two ranks.** The pair used to sit inside the sentence as text
+ * buttons, so the card read as a note rather than an offer. The design puts
+ * Sign up back in a button and moves Sign in to its own strip — a stranger's
+ * door and a member's door are not the same size of ask, and the strip's
+ * question ("already at a team?") is what tells the two readers apart.
+ *
+ * The headline's count is the *filtered* team count, so narrowing the rail
+ * narrows the claim rather than making it a lie. Narrowing also pins the card
+ * under the header, as before — the strip holds its one line, the headline
+ * clamps to one — so the offer stays in view while the person decides.
+ *
+ * `welcome.cta` for the button: the same class the sibling banners' buttons
+ * wear (`ProfileNudgeBanner`, `PendingApprovalBanner`), so one slot has one
+ * button across its states.
+ */
 export function SignInBanner({ criteria, roleCount, teamCount, onSignIn, onSignUp }: SignInBannerProps) {
   const filtersApplied = hasCriteria(criteria);
 
   return (
     <div className={clsx(s.slot, filtersApplied && s.pinned)}>
-      <section className={clsx(welcome.welcome, s.brandSurface, filtersApplied && s.condensed)}>
-        <div className={welcome.text}>
-          {/* The headline is the inventory; the offer is the bullet under it.
-
-              It was briefly the offer instead — "Apply to 13 open roles with one
-              profile" — which stopped working the moment the first bullet became
-              "…and apply to hundreds of open roles with a single profile". Those
-              are the same sentence twice, forty pixels apart, at two different
-              counts. One of them had to stop being the offer, and the headline is
-              the one that can orient instead.
-
-              Both numbers are the *filtered* ones, so narrowing the rail narrows
-              the claim rather than making it a lie. The bullet's "hundreds" is a
-              claim about the network rather than about this list — deliberate,
-              and the reviewer's own copy. */}
-          <p className={clsx(welcome.title, s.bannerTitle, filtersApplied && s.oneLine)}>
-            {roleCount > 0 ? (
-              <>
-                Browse{' '}
-                <span className={welcome.titleHighlight}>
-                  {roleCount} open {roleCount === 1 ? 'role' : 'roles'}
-                </span>{' '}
-                across {teamCount} PL network {teamCount === 1 ? 'team' : 'teams'}
-              </>
-            ) : (
-              /* Zero is a filter result, not a smaller board — "browse 0 open
-                 roles" is an invitation to do nothing, and the empty state
-                 directly below already says there is nothing there. The counts
-                 drop out and the standing claim remains, so it is already in
-                 place when the person widens the rail again. */
-              <>Browse every open role across the PL network</>
-            )}
-          </p>
-          {filtersApplied || roleCount === 0 ? (
-            <p className={clsx(welcome.sub, s.bannerSub, filtersApplied && s.oneLine)}>
-              {roleCount === 0 ? (
-                /* No selection read-back at zero. Repeating a narrowing that
-                   returned nothing back at the person is rubbing it in, and the
-                   empty state owns that message. */
+      <section className={clsx(s.card, filtersApplied && s.cardCondensed)}>
+        <div className={s.cardBody}>
+          <div className={s.cardText}>
+            <p className={clsx(s.cardTitle, filtersApplied && s.oneLine)}>
+              {roleCount > 0 ? (
                 <>
-                  Your profile goes with every application, so when a role does fit, applying is a cover letter and
-                  nothing else.
+                  <span className={s.cardCount}>{teamCount}</span> PL network {teamCount === 1 ? 'team is' : 'teams are'}{' '}
+                  hiring. Let them find you.
                 </>
               ) : (
-                <>
-                  Looking for <strong className={s.criteria}>{summariseCriteria(criteria)}</strong>? Your profile goes
-                  with the application, so all you write is a cover letter.
-                </>
+                /* Zero is a filter result, not a smaller network — "0 teams are
+                   hiring" is false, and the empty state below already says the
+                   rail found nothing. The count drops out; the claim stays. */
+                <>PL network teams are hiring. Let them find you.</>
               )}
             </p>
-          ) : (
-            /* Unfiltered, the standing claim. Filtered, the read-back above
-               replaces it: pinned, both lines are clamped to one, and the
-               selection the person just made is the more specific thing to say
-               back to them. */
-            <ApplyValueBullets className={s.bannerSub} doors={{ onSignIn, onSignUp }} />
-          )}
+            <p className={clsx(s.cardSub, filtersApplied && s.oneLine)}>
+              Founders reach out when your profile matches an open role.
+            </p>
+          </div>
+          <button type="button" className={clsx(welcome.cta, s.cardCta)} onClick={onSignUp}>
+            Sign up
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M5 12h14M13 6l6 6-6 6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
         </div>
-        {/* No CTA slot. The banner used to end in a Sign up / Sign in pair
-            wearing `welcome.cta` — a boxed auth cluster, which made this an
-            *offer* card in the same viewport as two other copies of the same
-            offer: the navbar's own pair one row above, and the sign-up form that
-            Apply opens for a logged-out visitor at the moment of intent. Three
-            asks for one account, and this was the one nobody arrived for.
-
-            What is left is a note: it says what the board is worth to you and
-            names the two doors inline, in the sentence, as text buttons. That is
-            the treatment for an aside that carries an action — a boxed control
-            inside a sentence reads as a second object. The doors did not
-            disappear, they stopped being furniture. */}
+        <p className={s.cardStrip}>
+          Already at a PL network team?{' '}
+          <button type="button" className={s.stripDoor} onClick={onSignIn}>
+            Sign in
+          </button>
+        </p>
       </section>
     </div>
   );

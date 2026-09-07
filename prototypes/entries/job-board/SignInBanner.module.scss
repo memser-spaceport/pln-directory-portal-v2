@@ -233,3 +233,129 @@
 .pendingSlot {
   display: block;
 }
+
+/* --- the logged-out card, as the Figma frame draws it (631:22545) ------------
+
+   A white card on the brand border, 16px radius, the house xs shadow — and a
+   second row under the body on the brand-soft tint, top-ruled, holding the
+   member's door. The signed-in banners keep `Welcome`'s card; this one is the
+   only state with two rows, so it is drawn here rather than by adding a slot to
+   production's component. */
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  border-radius: 16px;
+  background: var(--background-base-white, #fff);
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+/* `Welcome`'s row: text on the left, the button on the right, 24/20 padding. */
+.cardBody {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 20px;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+}
+
+.cardText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* 20/28/600 — the slot's one title scale (see `.bannerTitle`). */
+.cardTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* The count, in brand — `Welcome.titleHighlight`'s colour swap. */
+.cardCount {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.cardSub {
+  margin: 0;
+  max-width: 800px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* `welcome.cta` bottom-aligns itself to the text block (`align-self: flex-end`)
+   for the three-line banners; this one is two lines and the frame centres the
+   button on them. */
+.cardCta.cardCta {
+  align-self: center;
+
+  @include media.mobile-only {
+    align-self: stretch;
+    justify-content: center;
+  }
+}
+
+/* The member's door, on its own strip. */
+.cardStrip {
+  margin: 0;
+  padding: 10px 20px;
+  border-top: 1px solid var(--border-brand-subtle, #aebfff);
+  background: var(--background-brand-soft-surface, #eef0fd);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Sign in, as a text button in the strip's sentence — `.inlineDoor`'s shape at
+   the strip's size. */
+.stripDoor {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Pinned under the header, the card spends less of the viewport: the body's
+   padding comes down and the strip stays as its one line. Same reason
+   `.condensed` exists for the `Welcome` card it replaced. */
+.cardCondensed .cardBody {
+  padding: 12px 20px;
+}
+
+.cardCondensed .cardStrip {
+  padding: 6px 20px;
+}
+
+@include media.breakpoint-1024 {
+  /* The same lift `.pinned .condensed` gives the old card — see it. */
+  .pinned .card {
+    box-shadow: 0 2px 8px rgba(14, 15, 17, 0.08);
+  }
+}

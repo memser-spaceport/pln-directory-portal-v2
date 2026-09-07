@@ -29,6 +29,8 @@ import { QuillContent } from '@/components/ui/QuillContent/QuillContent';
 
 import { getJobDetail, jobMetaParts } from './jobDetails';
 import { ListingStatusBadge } from './ListingStatusBadge';
+import { ProfileUnlocksCard } from './ProfileUnlocks';
+import { InterestStrip } from './InterestStrip';
 import type { ListingStatus } from './listings';
 import fd from './JobApplyFlowDrawer.module.scss';
 import d from './JobDetailPane.module.scss';
@@ -44,14 +46,17 @@ interface JobDetailPaneProps {
   applied?: boolean;
   appliedAt?: string;
   /**
-   * Whether there is an account behind the reader. Gates the `Original posting`
-   * link — see the stamp row.
-   *
-   * Defaults to `true` so the link is the norm and hiding it is the exception,
-   * which is the direction that matches what this pane is: the job, read in the
-   * app, with the way out to the team's own ad in its masthead.
+   * A visitor with no account. Draws the "What your profile unlocks" card
+   * between the masthead and the description — the reading step's own
+   * statement of what the footer's `Create profile` is for.
    */
-  loggedIn?: boolean;
+  showUnlocks?: boolean;
+  /**
+   * A signed-up job aspirant's one act on a role: the "I'm interested" strip in
+   * the same slot, with its confirmation and undo. Absent for everyone else —
+   * a member applies, a visitor has no profile to signal with yet.
+   */
+  interest?: { interested: boolean; onInterested: () => void; onUndo: () => void };
   /**
    * The listing's state, for a reader who manages it. Worn in the stamp row as
    * the same pill the Manage listings row wears, so a lead opening their own
@@ -86,7 +91,7 @@ interface JobDetailPaneProps {
  * signed-in reader, and no longer on the row at all. See `postingHref`.
  */
 export function JobDetailPane(props: JobDetailPaneProps) {
-  const { role, team, applied = false, appliedAt, loggedIn = true, status } = props;
+  const { role, team, applied = false, appliedAt, status, showUnlocks = false, interest } = props;
 
   const focusTags = useGetFocusTags(team ?? NO_TEAM);
 
@@ -95,29 +100,17 @@ export function JobDetailPane(props: JobDetailPaneProps) {
   const meta = role ? jobMetaParts(role) : [];
 
   /**
-   * **Members only.** The board's whole case for an account is the one this
-   * drawer is standing in the middle of — *apply to hundreds of open roles with
-   * a single profile* (`ApplyValueBullets`, said on the banner and again in the
-   * sign-up modal). A link straight to the team's own ad is the door out of
-   * that: a visitor who takes it applies on someone else's form, and the profile
-   * this flow exists to build never happens.
+   * For everyone, signed in or not.
    *
-   * It costs the logged-out reader little, which is the only reason this is
-   * defensible. This pane carries the description *in the app* — the whole
-   * argument for step 1 — so the ad is a second reading of a job they can
-   * already read, not the only copy of it. (Standing caveat, unchanged: that
-   * body is mocked here. Production's job records carry none, which is why the
-   * board has always linked out. If the real board ships without descriptions,
-   * this gate hides the only text there is and should not ship with it.)
-   *
-   * **Gated, not deleted** — the distinction that makes this a lock rather than
-   * a loss. Signing in restores the link, and signing in is one press from this
-   * same drawer. Nothing is said about the absence: a "sign in to see the
-   * original posting" line would advertise the leak and put a third sign-in ask
-   * in a drawer that already makes one, which is exactly the pile-up
-   * `SignInBanner` was cut back to fix.
+   * It was members-only for a while, on the argument that a link straight to the
+   * team's own ad was the door out of the profile this flow exists to build. The
+   * design settled the other way (Figma "Logged out — Review job"): the way out
+   * is offered openly — here in the masthead, and again as the footer's
+   * `Apply on the team's site` — and the profile is argued for beside it rather
+   * than by hiding the alternative. A visitor who reads the whole posting and
+   * still leaves was never going to make a profile because a link was missing.
    */
-  const postingHref = loggedIn && role?.applyUrl ? `${role.applyUrl}?${jobApplyQueryParams('job-board')}` : null;
+  const postingHref = role?.applyUrl ? `${role.applyUrl}?${jobApplyQueryParams('job-board')}` : null;
 
   if (!role || !team || !detail) return null;
 
@@ -171,6 +164,19 @@ export function JobDetailPane(props: JobDetailPaneProps) {
           )}
         </div>
       </DetailsSection>
+
+      {/* The slot between the role and its description: what a profile is for
+          (a visitor), or the one thing a profile lets you do here (an aspirant).
+          Never both — the card argues for a profile, the strip uses one. */}
+      {showUnlocks && <ProfileUnlocksCard />}
+      {interest && (
+        <InterestStrip
+          teamName={team.name}
+          interested={interest.interested}
+          onInterested={interest.onInterested}
+          onUndo={interest.onUndo}
+        />
+      )}
 
       {/* A body the listing actually carries wins over the invented sections.
           Production's `IJobRole.descriptionHtml` is one blob, not a structure —

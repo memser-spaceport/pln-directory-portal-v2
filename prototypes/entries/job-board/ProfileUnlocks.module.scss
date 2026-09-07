@@ -1,0 +1,179 @@
+// The "What your profile unlocks" card and its footer popover — the logged-out
+// reading step's two statements of what a profile is for.
+//
+// Values are the Figma frames' own (631:23299 for the card, 682:11192 for the
+// popover), translated to `var(--token, #fallback)` pairs: this app does not
+// load the design-system token sheet, so a bare token renders as nothing.
+@use 'styles/media';
+
+// --- the card -----------------------------------------------------------------
+
+// Brand-soft surface on a subtle border, 8px radius, 16px padding. The same tint
+// `DetailsSection.missingData` and the sign-in banner wear — the product's
+// "this is a message, not content" surface — so it reads as an aside in the
+// column of white description cards rather than as one of them.
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  padding: 16px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+}
+
+// Body/Large/strong.
+.cardTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// --- the list, shared -----------------------------------------------------------
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.itemHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+// A filled brand disc with the step's number in it — 20px in the card, 16px in
+// the popover (`.listCompact`).
+.number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--action-background-brand-normal, #1b4dff);
+  color: var(--foreground-light-primary, #fff);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+}
+
+// Label/Small/strong.
+.itemTitle {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// Label/Small/default, hung under the title rather than under the disc — the
+// 28px is the disc plus its gap.
+.itemBody {
+  padding-left: 28px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.listCompact {
+  .number {
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+    line-height: 14px;
+  }
+
+  // The popover keeps the same 28px hang: 16px disc + 8px gap leaves the body
+  // 4px proud of the title, which is what the frame draws.
+}
+
+// --- the popover ----------------------------------------------------------------
+
+// Floats above the footer link that opened it: rendered inside the footer bar,
+// so `bottom: 100%` is the top edge of the bar. 415px wide on desktop, right
+// aligned under the link; on a phone it spans the bar's width instead.
+.popover {
+  position: absolute;
+  right: 20px;
+  bottom: calc(100% - 4px);
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 415px;
+  max-width: calc(100vw - 32px);
+  padding: 16px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  box-shadow: 0 12px 16px 0 var(--transparent-dark-16, rgba(14, 15, 17, 0.16));
+
+  @media (max-width: 959px) {
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+}
+
+.popoverHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+// Body/Medium/strong.
+.popoverTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// The house close idiom (a 16px glyph in a 24px grey disc), drawn only where the
+// popover covers the body rather than floating beside it — on the desktop frame
+// the card has no ✕, and Escape or a press outside closes it.
+.popoverClose {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  @media (max-width: 959px) {
+    display: flex;
+  }
+}

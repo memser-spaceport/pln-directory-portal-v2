@@ -1,0 +1,141 @@
+// The aspirant's "I'm interested" strip and the confirmation that replaces it.
+//
+// Values are the Figma frames' own (658:10125 for the strip, 684:18216 for the
+// alert), translated to `var(--token, #fallback)` pairs: this app does not load
+// the design-system token sheet, so a bare token renders as nothing.
+@use 'styles/media';
+
+// --- the offer ------------------------------------------------------------------
+
+// A quiet neutral surface, 12px radius, 6/8 padding — a strip, not a card, so it
+// reads as a note on the role above it rather than as the next section.
+.strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  border-radius: 12px;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px;
+  }
+}
+
+.lead {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+// The info glyph in a 36px brand-soft tile.
+.iconTile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+// Label/Small/strong.
+.title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.sub {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 14px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// The DS outline primary, with the frame's own shadow under it.
+.button {
+  flex-shrink: 0;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px 0 var(--transparent-brand-24, rgba(27, 77, 255, 0.24));
+}
+
+// --- the confirmation -----------------------------------------------------------
+
+// Success soft-surface on a success border, same radius as the strip it replaces.
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 16px;
+  border: 1px solid var(--border-success-subtle, rgba(4, 135, 70, 0.32));
+  border-radius: 12px;
+  background: var(--background-success-soft-surface, rgba(10, 153, 82, 0.1));
+}
+
+.alertIcon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+// Label/Medium/strong.
+.alertText {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+// A text button underlined in the success tone — the DS "Link button" in its
+// success colour.
+.undo {
+  appearance: none;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--action-border-success-normal, #11a75c);
+  background: none;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: var(--action-foreground-success-normal, #0a9952);
+  cursor: pointer;
+}

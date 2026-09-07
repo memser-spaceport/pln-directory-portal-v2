@@ -30,8 +30,39 @@ export const PARSE_SCENARIOS: Array<{ value: ParseScenario; label: string }> = [
   { value: 'newer-cv', label: 'A newer CV' },
 ];
 
-/** How long the reading state is worth looking at. */
-const PARSE_DELAY_MS = 1800;
+/**
+ * How long the two beats *usually* take — what the panel's progress bar and its
+ * "usually takes…" line are drawn against. Two, because production's `parseCv`
+ * is two things in sequence: it posts the file (`uploadCv`), then polls the
+ * extraction every 2s until it settles. The upload is the short one — a few-MB
+ * document over an ordinary connection lands in about a second — and the
+ * extraction (an S3 write, a PDF text pass and an LLM call) is what keeps the
+ * person waiting. Production's ceiling on the whole thing is 60s.
+ *
+ * These are the prototype's guess at the typical case. The frontend should set
+ * them from what the import row actually measures, because every sentence and
+ * every pixel of the bar is derived from them: the bar reaches its hold point
+ * at exactly this elapsed time, and the hint turns to "taking longer than
+ * usual" the moment it passes.
+ */
+export const USUAL_UPLOAD_MS = 1_000;
+export const USUAL_READ_MS = 8_000;
+
+/**
+ * What the mock actually takes. A little under the usual, so the bar is seen
+ * doing its job and the review still opens before anyone reaches for Cancel.
+ *
+ * `?slow-cv` on the URL makes the read take three times the usual, which is
+ * the only way to look at the overdue state — the hint switching, the bar
+ * holding — without waiting on a real backend to have a bad day. Prototype
+ * scaffolding: DELETE WITH the mock.
+ */
+const MOCK_UPLOAD_MS = 900;
+const MOCK_READ_MS = 6_000;
+const mockReadMs = () =>
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('slow-cv')
+    ? USUAL_READ_MS * 3
+    : MOCK_READ_MS;
 
 const EMPTY_RESULT: ParsedProfile = { role: '', location: '', skills: [], experiences: [] };
 
@@ -229,8 +260,9 @@ const RESULTS: Record<ParseScenario, ParsedProfile> = {
 export const PARSE_CANCELLED = Symbol('parse-cancelled');
 
 /**
- * Resolves to what the document said, after a beat. A file that can't be read
- * resolves *empty* rather than throwing — "we couldn't read details from
+ * Resolves to what the document said, after two beats: `uploaded` settles when
+ * the file has landed, `result` when it has been read. A file that can't be
+ * read resolves *empty* rather than throwing — "we couldn't read details from
  * that file" is the same sentence either way, and the person can do the same
  * thing about it.
  *
@@ -239,27 +271,39 @@ export const PARSE_CANCELLED = Symbol('parse-cancelled');
  * the dead end, which is the panel's call to make (`isEmptyParse`), not this
  * function's.
  *
- * Returns a `cancel` alongside the promise, so the reading state can be backed
- * out of: someone who dropped the wrong file shouldn't have to wait for it.
+ * Returns a `cancel` alongside the promises, so either beat can be backed out
+ * of: someone who dropped the wrong file shouldn't have to wait for it. Only
+ * `result` rejects on cancel; `uploaded` simply never settles, so a caller
+ * waiting on it to advance the state has nothing to catch.
  */
 export function parseDocument(scenario: ParseScenario): {
+  uploaded: Promise<void>;
   result: Promise<ParsedProfile>;
   cancel: () => void;
 } {
-  let timer: ReturnType<typeof setTimeout> | undefined;
+  let uploadTimer: ReturnType<typeof setTimeout> | undefined;
+  let parseTimer: ReturnType<typeof setTimeout> | undefined;
   let rejectResult: ((reason: unknown) => void) | undefined;
 
+  const uploaded = new Promise<void>((resolve) => {
+    uploadTimer = setTimeout(resolve, MOCK_UPLOAD_MS);
+  });
+
   /* The executor runs synchronously, so `rejectResult` is always assigned
-     before anything can reach `cancel`. */
+     before anything can reach `cancel`. The read starts only once the upload
+     has landed, the way production's poll starts only once the post returns. */
   const result = new Promise<ParsedProfile>((resolve, reject) => {
     rejectResult = reject;
-    timer = setTimeout(() => resolve(RESULTS[scenario] ?? EMPTY_RESULT), PARSE_DELAY_MS);
+    uploaded.then(() => {
+      parseTimer = setTimeout(() => resolve(RESULTS[scenario] ?? EMPTY_RESULT), mockReadMs());
+    });
   });
 
   const cancel = () => {
-    if (timer) clearTimeout(timer);
+    if (uploadTimer) clearTimeout(uploadTimer);
+    if (parseTimer) clearTimeout(parseTimer);
     rejectResult?.(PARSE_CANCELLED);
   };
 
-  return { result, cancel };
+  return { uploaded, result, cancel };
 }

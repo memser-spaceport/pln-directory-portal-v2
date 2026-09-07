@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 
 import { InfoCircleIconOutlined, SpinnerIcon } from '@/components/icons';
@@ -13,7 +13,14 @@ import { formatFileSize } from '@/utils/file.utils';
 // drawn in.
 import e from '@/components/page/member-details/ExperienceDetails/components/ExperienceDetailsView/components/ExperiencesList/ExperiencesList.module.scss';
 
-import { PARSE_CANCELLED, PARSE_SCENARIOS, parseDocument, type ParseScenario } from './parseMocks';
+import {
+  PARSE_CANCELLED,
+  PARSE_SCENARIOS,
+  USUAL_READ_MS,
+  USUAL_UPLOAD_MS,
+  parseDocument,
+  type ParseScenario,
+} from './parseMocks';
 import { ResumeDropzone } from './ResumeDropzone';
 import type { ParsedProfile } from './types';
 import p from './ExperienceImportPanel.module.scss';
@@ -152,7 +159,50 @@ interface ExperienceImportPanelProps {
   canvasFileName?: string;
 }
 
-type Status = 'idle' | 'reading' | 'nothing-found';
+/**
+ * `uploading` and `reading` are the two halves of one wait, drawn as one row
+ * — see the row itself for why they are told apart at all.
+ */
+type Status = 'idle' | 'uploading' | 'reading' | 'nothing-found';
+
+/**
+ * The progress bar's shape. Where the upload's share ends, where the bar stops
+ * and waits for the result, and how often the row re-reads the clock.
+ *
+ * **An estimate, drawn against the usual case, and it says so.** Production's
+ * poll reports a status and nothing else — `PROCESSING` until it isn't — so
+ * there is no true percentage to show, and the product's other long wait (the
+ * AI Apps deploy) sweeps an indeterminate bar for exactly that reason. This
+ * row does something slightly different, on purpose: the wait is a few tens of
+ * seconds with a known typical length, and the thing the person actually
+ * wants to know is *roughly how much of that is left*. A bar that fills over
+ * the usual duration answers that; a sweep answers only "still going". The
+ * honesty is in the hold — the bar never reaches the end on the clock alone.
+ * It stops at `HOLD` and stays there until the result lands, and the hint
+ * under it changes to say the read is taking longer than usual. What the bar
+ * claims is "this far into a usual read", never "this far into yours".
+ *
+ * The upload's share is real: the post returning is a boundary the client
+ * observes, so the bar snaps to `UPLOAD_SHARE` the moment it does. Everything
+ * after is the clock.
+ */
+const UPLOAD_SHARE = 0.2;
+const HOLD = 0.92;
+const TICK_MS = 100;
+
+/** Front-loaded, like a real read: most of the movement early, then slowing. */
+const easeOut = (t: number) => 1 - (1 - Math.min(Math.max(t, 0), 1)) ** 2;
+
+/**
+ * "Usually takes about 10 seconds" — derived from the constants the bar is
+ * drawn against, so the sentence cannot drift from the bar once the frontend
+ * tunes the numbers to what the import row measures.
+ */
+function usuallyTakes(ms: number): string {
+  const seconds = Math.round(ms / 1000 / 5) * 5;
+  if (seconds >= 45) return 'Usually takes under a minute';
+  return `Usually takes about ${Math.max(seconds, 5)} seconds`;
+}
 
 /**
  * The formats the drop area takes, and what it says about them.
@@ -248,12 +298,42 @@ export function ExperienceImportPanel({
   const [scenario, setScenario] = useState<ParseScenario>('three-roles');
   const cancelRef = useRef<(() => void) | null>(null);
 
+  /* When the wait began and when the upload landed — what the bar and the
+     overdue hint are computed from. Both null for a frame the canvas pinned,
+     where no clock is running; the bar then paints a resting mid-read. */
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [uploadedAt, setUploadedAt] = useState<number | null>(null);
+  const [now, setNow] = useState(0);
+
+  const waiting = status === 'uploading' || status === 'reading';
+
+  /* The row re-reads the clock while it is waiting and not otherwise — ten
+     times a second is enough for a 6px bar to move smoothly and far too slow
+     to matter. */
+  useEffect(() => {
+    if (!waiting || startedAt === null) return;
+    setNow(Date.now());
+    const timer = setInterval(() => setNow(Date.now()), TICK_MS);
+    return () => clearInterval(timer);
+  }, [waiting, startedAt]);
+
   const reset = () => {
     cancelRef.current?.();
     cancelRef.current = null;
     setFile(null);
     setStatus('idle');
+    setStartedAt(null);
+    setUploadedAt(null);
   };
+
+  /* Where the bar is, 0–1, and whether the read has outrun the usual case. */
+  const readElapsed = uploadedAt === null ? 0 : now - uploadedAt;
+  const overdue = status === 'reading' && readElapsed > USUAL_READ_MS;
+  const progress = (() => {
+    if (startedAt === null) return status === 'reading' ? 0.55 : UPLOAD_SHARE / 2;
+    if (status === 'uploading') return UPLOAD_SHARE * 0.9 * easeOut((now - startedAt) / USUAL_UPLOAD_MS);
+    return UPLOAD_SHARE + (HOLD - UPLOAD_SHARE) * easeOut(readElapsed / USUAL_READ_MS);
+  })();
 
   const closeDoor = () => {
     reset();
@@ -262,10 +342,21 @@ export function ExperienceImportPanel({
 
   const startReading = (picked: File) => {
     setFile(picked);
-    setStatus('reading');
+    setStatus('uploading');
+    setStartedAt(Date.now());
+    setUploadedAt(null);
 
-    const { result, cancel } = parseDocument(scenario);
+    const { uploaded, result, cancel } = parseDocument(scenario);
     cancelRef.current = cancel;
+
+    /* The file has landed; the read begins. Guarded on the same cancel the
+       row's button calls, so a cancelled upload doesn't come back as a reading
+       row a moment later. */
+    uploaded.then(() => {
+      if (cancelRef.current !== cancel) return;
+      setStatus('reading');
+      setUploadedAt(Date.now());
+    });
 
     result
       .then((parsed) => {
@@ -340,14 +431,62 @@ export function ExperienceImportPanel({
           a press: see `LINKEDIN_HINT` and the disclosure below. Requested, not
           preached, is the whole difference. */}
 
-      {status === 'reading' ? (
+      {waiting ? (
+        /* One row, two sentences, three signals.
+
+           Production's `parseCv` posts the file first and only then polls the
+           extraction, and the two are different waits with different outcomes:
+           an upload that fails leaves nothing on the profile, a read that fails
+           still leaves the document there ("the upload is the store" — see
+           `onFileRead`). So the title says which of the two is happening, and
+           the box and the Cancel are the same for both — a second row for the
+           second beat would move the box the moment the file landed in it.
+
+           A spinner alone was not enough here, and the reason is the length of
+           the wait. A spinner answers "is something happening?", which is the
+           only question a one-second wait raises. This one runs ten, twenty,
+           sometimes sixty seconds, and by then the person is asking two more —
+           *how much longer?* and *is it still going, or stuck?* — and a
+           spinner looks identical at second two and second forty. So the row
+           answers each with its own signal: the bar under the name says how
+           far into a usual read this is (see `UPLOAD_SHARE`/`HOLD` for what it
+           does and doesn't claim), the line under the bar says how long a read
+           usually takes and then says when this one has passed it, and the
+           spinner stays for the one thing a held bar cannot show — that the
+           poll is still alive. Chrome from the product's other long wait, the
+           AI Apps deploy card: the 6px rounded track and a "usually takes…"
+           line under it, in this panel's own token pairs rather than that
+           page's slate greys. The track and the fill are the spinner's two
+           colours, so the bar reads as the spinner unrolled, not a third
+           loader. */
         <div className={p.reading}>
           <SpinnerIcon className={p.spinner} />
           <div className={p.readingText}>
             {/* `canvasFileName` only ever fills in for a frame the canvas pinned,
                 where no File was dropped. DELETE WITH: design-canvas/. */}
-            <div className={p.readingTitle}>Reading {file?.name ?? canvasFileName ?? 'your file'}…</div>
-            {file && <div className={p.readingMeta}>{formatFileSize(file.size)}</div>}
+            <div className={p.readingTitle}>
+              {status === 'uploading' ? 'Uploading' : 'Reading'} {file?.name ?? canvasFileName ?? 'your file'}…
+            </div>
+            <div
+              className={p.progressTrack}
+              role="progressbar"
+              aria-label={status === 'uploading' ? 'Uploading your CV' : 'Reading your CV'}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(progress * 100)}
+            >
+              <div className={p.progressFill} style={{ transform: `scaleX(${progress})` }} />
+            </div>
+            {/* The size stays — it was here before the bar and it is still the
+                one fact about the file the row can state. The second half is
+                the expectation, and it changes exactly once: when the clock
+                passes the usual case, so that a person looking at a bar that
+                has stopped moving is told why, in the same breath as being told
+                it hasn't died. */}
+            <div className={p.readingMeta}>
+              {file && <>{formatFileSize(file.size)} · </>}
+              {overdue ? 'Taking longer than usual — still reading' : usuallyTakes(USUAL_UPLOAD_MS + USUAL_READ_MS)}
+            </div>
           </div>
           <button
             type="button"

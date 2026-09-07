@@ -106,6 +106,23 @@ export const useTeamNewsAnalytics = () => {
     }
   };
 
+  /** The "Post an update" affordance on a team page opened the composer. */
+  const onTeamNewsCreateClicked = (teamUid: string, teamName: string, source: TeamNewsAnalyticsSource) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_CREATE_CLICKED, {
+      teamUid,
+      teamName,
+      source,
+    });
+  };
+
+  const onTeamNewsCreatePostSubmitted = (teamUid: string, teamName: string, source: TeamNewsAnalyticsSource) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_CREATE_POST_SUBMITTED, {
+      teamUid,
+      teamName,
+      source,
+    });
+  };
+
   const onTeamNewsTabClicked = (tab: string, itemCount: number, source: TeamNewsAnalyticsSource = 'home') => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TAB_CLICKED, {
       tab,
@@ -722,6 +739,8 @@ export const useTeamNewsAnalytics = () => {
   };
 
   return {
+    onTeamNewsCreateClicked,
+    onTeamNewsCreatePostSubmitted,
     onTeamNewsTabClicked,
     onTeamNewsCategoryClicked,
     onTeamNewsSortChanged,

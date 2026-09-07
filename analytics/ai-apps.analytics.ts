@@ -22,8 +22,14 @@ export function useAiAppsAnalytics() {
     onCardClicked: (appUid: string, appName: string) => capture(AI_APPS_ANALYTICS.CARD_CLICKED, { appUid, appName }),
     onAuthorClicked: (appUid: string, memberUid: string, memberName: string) =>
       capture(AI_APPS_ANALYTICS.AUTHOR_CLICKED, { appUid, memberUid, memberName }),
-    onDetailPageViewed: (appUid: string, appName: string) =>
-      capture(AI_APPS_ANALYTICS.DETAIL_PAGE_VIEWED, { appUid, appName, path: `/pl-infra/ai-apps/${appUid}` }),
+    onDetailPageViewed: (appUid: string, appName: string, deepLinkPath: string | null) =>
+      capture(AI_APPS_ANALYTICS.DETAIL_PAGE_VIEWED, {
+        appUid,
+        appName,
+        path: `/pl-infra/ai-apps/${appUid}`,
+        // Set only when the page was opened via a ?path= deep link into an app subpage.
+        deepLinkPath: deepLinkPath ?? undefined,
+      }),
     onOpenInNewTabClicked: (appUid: string, appName: string, appUrl: string) =>
       capture(AI_APPS_ANALYTICS.OPEN_IN_NEW_TAB_CLICKED, { appUid, appName, appUrl }),
     onConnectPageViewed: (params: { sessionId: string; view: string; clientName?: string | null }) =>

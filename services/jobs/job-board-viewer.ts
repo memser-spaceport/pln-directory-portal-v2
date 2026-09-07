@@ -98,11 +98,33 @@ export const canSeeOriginalPosting = (args: { isLoggedIn: boolean; userInfo: IUs
   args.isLoggedIn && !isJobAspirant(args.userInfo ?? null);
 
 /**
+ * Whether this viewer is offered the "I'm interested" light signal.
+ *
+ * It exists to capture intent before someone has a real application in — a
+ * **Job Aspirant**'s problem, and only theirs. An established member already
+ * has full Apply available, with the profile it needs to be used right, and a
+ * signed-out visitor has no account to attach the signal to; both are
+ * withheld it entirely rather than shown a control they cannot meaningfully
+ * use.
+ */
+export const canShowJobInterest = (args: { isLoggedIn: boolean; userInfo: IUserInfo | null | undefined }): boolean =>
+  args.isLoggedIn && isJobAspirant(args.userInfo ?? null);
+
+/**
  * Where someone is in their search.
  *
- * **Private — PL Team only.** Never rendered on the public profile, never in the
- * apply read-back, never in analytics payloads. Deliberately NOT
- * `member.openToWork`, which is public and means "open to collaborate".
+ * **Private.** Rendered on the member's OWN profile and nowhere else: the API
+ * omits the field for every other viewer, and the two surfaces that show it —
+ * `JobSearchStatusDetails` on /members/[id] and the job-board profile drawer —
+ * both gate on the viewer being the member. Never on anyone else's view of that
+ * profile, never in the apply read-back, and never as a *value* in an analytics
+ * payload (`onJobSearchStatusChanged` counts the act, not the answer).
+ * Deliberately NOT `member.openToWork`, which is public and means "open to
+ * collaborate".
+ *
+ * The two hosts deliberately offer different subsets. The drawer hides
+ * "Not looking" mid-application; the profile card offers all three, because it
+ * is the only place a member can turn themselves off.
  *
  * Wire values are unagreed with BE; the union is derived from this array so
  * there is exactly one place to change them.

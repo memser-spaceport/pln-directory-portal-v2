@@ -55,6 +55,7 @@ jest.mock('@/services/jobs/hooks/useJobApplications', () => ({
   useRoleApplication: () => null,
 }));
 
+const onJobCreateProfileClicked = jest.fn();
 jest.mock('@/analytics/jobs.analytics', () => ({
   useJobsAnalytics: () => ({
     onJobApplySubmitted: jest.fn(),
@@ -64,6 +65,7 @@ jest.mock('@/analytics/jobs.analytics', () => ({
     onJobApplyFlowClosed: jest.fn(),
     onJobApplyExternalRedirected: jest.fn(),
     onJobUnlockInfoOpened: jest.fn(),
+    onJobCreateProfileClicked,
   }),
 }));
 
@@ -114,13 +116,13 @@ const renderStep = (team: IJobTeam = PL, props: Partial<React.ComponentProps<typ
   );
 
 /**
- * Every answer `accountSchema` requires — which now includes the role.
+ * Every answer `accountSchema` requires, plus the role.
  *
- * The role arrived here as a consequence rather than as this step's own change.
- * Both doors share one schema, and role stopped being conditional on the
- * PL-team tick, so this host requires it for the same reason the modal does.
- * That is the right way round: `isJobProfileComplete` is `role &&
- * jobSearchStatus`, and this step exists to make an account that can apply.
+ * The role is not one of them unless the PL-team box is ticked — both doors
+ * share one schema, and that rule rides on the tick. It is filled here anyway,
+ * for the same reason as in the modal's suite: the cases below assert on what
+ * gets submitted, and a payload carrying a role is the one the product actually
+ * sends.
  */
 const fillAccount = () => {
   fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@protocol.ai' } });
@@ -344,6 +346,21 @@ describe('the outbound review step’s two doors', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Create profile' }));
 
     expect(onStepChange).toHaveBeenCalledWith('profile');
+  });
+
+  /* Sits beside `onJobUnlockInfoOpened`: together they're the pair a funnel
+     needs to tell "read the note, then clicked" from "read it and dropped". */
+  it('reports the press itself, not just the navigation it causes', () => {
+    outboundReview();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create profile' }));
+
+    expect(onJobCreateProfileClicked).toHaveBeenCalledWith({
+      job_id: role.uid,
+      team_id: OTHER.uid,
+      viewer_state: 'logged-out',
+      source: 'job-board',
+    });
   });
 
   /* A signed-in member whose account is still pending reaches the same branch,

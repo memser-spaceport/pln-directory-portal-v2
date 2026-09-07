@@ -56,7 +56,7 @@ describe('search', () => {
 });
 
 describe('getCreatorOptions', () => {
-  it('derives one alphabetical option per creator, counting their apps', () => {
+  it('derives one option per creator, counting their apps, alphabetical when WAU ties', () => {
     const options = getCreatorOptions([
       app({ uid: 'a1', member: { uid: 'm-2', name: 'Nina Chen', image: null } }),
       app({ uid: 'a2', member: { uid: 'm-1', name: 'Ada Lovelace', image: null } }),
@@ -67,6 +67,26 @@ describe('getCreatorOptions', () => {
       { value: 'Ada Lovelace', disabled: false, count: 1 },
       { value: 'Nina Chen', disabled: false, count: 2 },
     ]);
+  });
+
+  it('sorts creators by total weekly active users across their apps, most active first', () => {
+    const options = getCreatorOptions([
+      app({ uid: 'a1', member: { uid: 'm-1', name: 'Ada Lovelace', image: null }, weeklyActiveUsers: 1 }),
+      app({ uid: 'a2', member: { uid: 'm-2', name: 'Nina Chen', image: null }, weeklyActiveUsers: 3 }),
+      app({ uid: 'a3', member: { uid: 'm-2', name: 'Nina Chen', image: null }, weeklyActiveUsers: 4 }),
+      app({ uid: 'a4', member: { uid: 'm-3', name: 'Bo Xu', image: null }, weeklyActiveUsers: 2 }),
+    ]);
+
+    expect(options.map((o) => o.value)).toEqual(['Nina Chen', 'Bo Xu', 'Ada Lovelace']);
+  });
+
+  it('treats an absent weeklyActiveUsers as 0', () => {
+    const options = getCreatorOptions([
+      app({ uid: 'a1', member: { uid: 'm-1', name: 'Ada Lovelace', image: null } }),
+      app({ uid: 'a2', member: { uid: 'm-2', name: 'Nina Chen', image: null }, weeklyActiveUsers: 1 }),
+    ]);
+
+    expect(options.map((o) => o.value)).toEqual(['Nina Chen', 'Ada Lovelace']);
   });
 
   it('returns nothing for an empty list', () => {

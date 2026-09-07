@@ -21,7 +21,7 @@ import type { IUserInfo } from '@/types/shared.types';
 
 import { shouldApplyGoExternal, type useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
 import type { JobBoardViewerResult } from '@/components/page/jobs/hooks/useJobBoardViewer';
-import { canSeeOriginalPosting } from '@/services/jobs/job-board-viewer';
+import { canSeeOriginalPosting, canShowJobInterest } from '@/services/jobs/job-board-viewer';
 import type { JobSignUpDetails, JobSignUpResult } from '@/components/page/jobs/JobSignUpModal/JobSignUpModal';
 
 /* Most visitors never press Apply, and logged-out visitors can only ever reach
@@ -340,12 +340,16 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
           onSubmitted={flow.onSubmitted}
           viewerState={viewer.viewer}
           source={source}
-          interest={{
-            isInterested,
-            isSettled: interestSettled,
-            error: interestErrorForRole,
-            onToggle: handleToggleInterest,
-          }}
+          interest={
+            canShowJobInterest({ isLoggedIn, userInfo })
+              ? {
+                  isInterested,
+                  isSettled: interestSettled,
+                  error: interestErrorForRole,
+                  onToggle: handleToggleInterest,
+                }
+              : undefined
+          }
         />
       )}
 

@@ -19,6 +19,7 @@ interface IrlFollowGatheringProps {
   eventDetails: ILocationDetails;
   guestDetails: any;
   topicsAndReasonResponse: any;
+  mySubscriptions?: any;
 }
 
 const IrlFollowGathering = (props: IrlFollowGatheringProps) => {
@@ -53,6 +54,7 @@ const IrlFollowGathering = (props: IrlFollowGatheringProps) => {
           searchParams={props.searchParams}
           userInfo={props.userInfo}
           followers={props.followers}
+          mySubscriptions={props.mySubscriptions}
           eventLocationSummary={props.eventLocationSummary}
           locationEvents={eventDetails}
           eventDetails={eventDetails}

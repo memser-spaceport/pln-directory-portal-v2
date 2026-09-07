@@ -57,19 +57,20 @@ export function AiAppsFilter(props: Props) {
           filterStore={useAiAppsFilterStore}
           paramKey={AI_APPS_SEARCH_PARAM}
           label="Search for an app"
-          placeholder="E.g. Warm Intro Matcher"
+          placeholder="Search by title or description"
           debounceMs={300}
         />
       </FilterSection>
 
-      <FilterSection title="Created by">
+      <FilterSection title="Built by">
         <GenericCheckboxList
-          label="Search or select a creator"
+          label="Search or select a builder"
           paramKey={AI_APPS_CREATED_BY_PARAM}
           placeholder="E.g. Nina Chen"
           filterStore={useAiAppsFilterStore}
           useGetDataHook={getCreators}
           defaultItemsToShow={5}
+          collapsible
           onChange={(_key, values) =>
             analytics.onCreatorFilterSelected({ creatorCount: values.length, resultCount: visibleApps.length })
           }

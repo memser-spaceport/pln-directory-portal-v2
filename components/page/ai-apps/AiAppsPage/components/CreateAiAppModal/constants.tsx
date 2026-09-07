@@ -57,6 +57,13 @@ export const MODAL_INTRO =
 
 export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = [
   {
+    version: '1.10',
+    items: [
+      'The page address and browser tab title now follow where you are inside your app, so you can share or bookmark a link to a specific screen — it reopens right there, including after logging in',
+      'Apps built with earlier kits still open such links but won’t update the address or title as you navigate; redeploy with the new kit to get that',
+    ],
+  },
+  {
     version: '1.9',
     items: [
       'Every new app now automatically reports basic usage (opened, errors, roughly how long it was used) to help the PL team understand how AI Apps are used — nothing to configure',

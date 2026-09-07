@@ -21,10 +21,29 @@
 
 // book.header — secondary, 500, -0.3px. Deliberately NOT the primary/600 a
 // section title would use: this is a rail card, not a page section.
+// `.header` holds the title and, when the viewer can post, PostNewsButton —
+// space-between keeps the button pinned to the corner as on the team page.
+// wrap: the card's fixed sidebar width (page.module.scss `.desktopOnly`) isn't
+// always wide enough for both on one line, and cutting the title short reads
+// worse than the button dropping to its own row.
 .header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  row-gap: 4px;
+  width: 100%;
+}
+
+.headerTitle {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin: 0;
+  // The sidebar column is now a fixed width (page.module.scss `.desktopOnly`);
+  // truncate the title rather than letting it push PostNewsButton out of view.
+  min-width: 0;
 
   color: var(--foreground-neutral-secondary, #455468);
   font-size: 16px;
@@ -32,6 +51,13 @@
   font-weight: 500;
   line-height: 24px; /* 150% */
   letter-spacing: -0.3px;
+}
+
+.headerTitleText {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .icon {

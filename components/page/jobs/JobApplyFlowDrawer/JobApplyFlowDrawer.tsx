@@ -206,11 +206,13 @@ interface JobApplyFlowDrawerProps {
   /**
    * The "I'm interested" signal.
    *
-   * Always supplied in the app — the flag that used to gate it is gone, and the
-   * banner now shows wherever this drawer opens. Optional only so that the
-   * several suites which render this drawer to test something else do not have
-   * to wire a signal they never press. If the banner ever needs withdrawing
-   * again, withholding this prop at the controller is the whole change.
+   * Supplied by the controller only for a signed-in Job Aspirant — the one
+   * persona the light signal exists for. A signed-out visitor and an
+   * established member are both withheld this prop entirely (see
+   * `canShowJobInterest` in `services/jobs/job-board-viewer`), so the banner
+   * never renders for either. Optional here only so that the several suites
+   * which render this drawer to test something else do not have to wire a
+   * signal they never press.
    *
    * `isSettled` is not a loading flag to render a spinner from: it says whether
    * the answer is known, and until it is the banner does not draw. An
@@ -782,7 +784,20 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
              role's review step, where the outbound button is waiting.
              No step 3 is ever promised, which is why the rail stays off. */
           action: (
-            <Button variant="primary" style="fill" size="m" onClick={() => goTo('profile')}>
+            <Button
+              variant="primary"
+              style="fill"
+              size="m"
+              onClick={() => {
+                analytics.onJobCreateProfileClicked({
+                  job_id: target.role.uid,
+                  team_id: target.teamId,
+                  viewer_state: viewerState,
+                  source,
+                });
+                goTo('profile');
+              }}
+            >
               {/* The design's label, verbatim (Figma node 682:10579). It read
                   "Create profile → signal interest" until the frame below it
                   grew a control that makes the "signal interest" case in two

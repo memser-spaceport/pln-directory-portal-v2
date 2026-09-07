@@ -76,7 +76,7 @@
   justify-content: space-between;
   gap: 12px;
   height: 28px;
-  margin: -24px -24px 0;
+  margin: -20px -20px 0;
   padding: 0 24px;
   border-radius: 12px 12px 0 0;
   background: #fef2f2;
@@ -227,6 +227,7 @@
 
 .description {
   margin: 0;
+  min-height: 60px; // reserve 3 lines so the metrics row below lines up across cards regardless of description length
   color: #475569;
   font-size: 14px;
   font-weight: 400;
@@ -239,10 +240,26 @@
 }
 
 .metricsRow {
+  // DetailsItem reads --foreground-neutral-tertiary for its text/icon color; the
+  // default (#8897ae, ~2.96:1 on white) fails WCAG AA for 12px text, so scope it
+  // up to semantic-neutral-500 (#5e718d, ~5:1) for just this row.
+  --foreground-neutral-tertiary: var(--semantic-neutral-500, #5e718d);
+
   svg {
     flex-shrink: 0;
     align-self: center;
   }
+}
+
+.noMetrics {
+  margin: 0;
+  color: var(--semantic-neutral-500, #5e718d);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .footer {

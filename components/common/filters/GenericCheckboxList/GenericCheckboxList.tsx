@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { clsx } from 'clsx';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FilterState } from '@/services/filters/types';
 import { FilterOption } from '@/services/filters/commonTypes';
@@ -85,6 +86,13 @@ export interface GenericCheckboxListProps {
   hideSearch?: boolean;
 
   disableSorting?: boolean;
+
+  /**
+   * When true, all items are shown by default (ignoring `defaultItemsToShow`),
+   * with a "Show less" toggle to collapse down to `defaultItemsToShow` items
+   * and a "Show all" toggle to expand again.
+   */
+  collapsible?: boolean;
 }
 
 /**
@@ -136,9 +144,11 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
     className,
     hideSearch,
     disableSorting,
+    collapsible,
   } = props;
 
   const [searchValue, setSearchValue] = useState('');
+  const [isExpanded, setIsExpanded] = useState(!!collapsible);
 
   // Handle search change with optional callback
   const handleSearchChange = (value: string) => {
@@ -172,10 +182,12 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
     beData: data,
     selectedData: selectedValues,
     searchValue,
-    defaultItemsToShow,
+    defaultItemsToShow: collapsible && isExpanded ? undefined : defaultItemsToShow,
     disableSorting,
     searchResultsToShow,
   });
+
+  const showToggle = !!collapsible && !searchValue && !!defaultItemsToShow && data.length > defaultItemsToShow;
 
   // React Hook Form setup
   const methods = useForm<Record<string, FilterOption[]>>({
@@ -233,7 +245,7 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
         {label && <div className={s.label}>{label}</div>}
         {hint && <div className={s.hint}>{hint}</div>}
         {!hideSearch && <SearchInput value={searchValue} onChange={handleSearchChange} placeholder={placeholder} />}
-        <div className={s.list}>
+        <div className={clsx(s.list, { [s.listExpanded]: collapsible && isExpanded })}>
           {!!searchValue && (
             <SelectAll
               data={data}
@@ -255,6 +267,11 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
             );
           })}
         </div>
+        {showToggle && (
+          <button type="button" className={s.toggleButton} onClick={() => setIsExpanded((prev) => !prev)}>
+            {isExpanded ? 'Show less' : `Show all (${data.length})`}
+          </button>
+        )}
       </div>
     </FormProvider>
   );

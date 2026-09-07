@@ -9,6 +9,7 @@ import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/core/ToastContainer';
 import Modal from '@/components/core/modal';
+import { useLocationFollowState } from '@/hooks/irl/use-location-follow-state';
 import Image from 'next/image';
 import { useLoginRedirect } from '@/components/core/login/utils';
 
@@ -66,6 +67,25 @@ const LocationCard = (props: any) => {
   const analytics = useIrlAnalytics();
   const dialogRef = useRef<HTMLDialogElement>(null);
 
+  const { isFollowing, activeUids, isSelfReadUnavailable, onFollowed, onUnfollowed } = useLocationFollowState({
+    locationUid: uid,
+    mySubscriptions: props.mySubscriptions,
+    isInPublicFollowerList: Boolean(followProperties?.isFollowing),
+  });
+
+  /* See follow-button.tsx: the public follower list omits members who are not
+     yet approved, so it cannot supply the uid an unfollow needs. */
+  const getSubscriptionUidsToCancel = (): string[] => {
+    if (activeUids.length > 0) {
+      return activeUids;
+    }
+    if (!isSelfReadUnavailable) {
+      return [];
+    }
+    const ownFollow = followProperties?.followers?.find((follower: any) => follower.memberUid === userInfo?.uid);
+    return ownFollow?.uid ? [ownFollow.uid] : [];
+  };
+
   const onCloseModal = (e: any) => {
     if (dialogRef.current) {
       e.preventDefault();
@@ -106,6 +126,8 @@ const LocationCard = (props: any) => {
         );
 
         if (response?.ok) {
+          const created = await response.json().catch(() => null);
+          onFollowed(created?.uid);
           await getFeaturedData();
           toast.success(`Successfully following ${eventLocationSummary.name}`);
           analytics.irlLocationFollowBtnClicked({ userInfo, locationId: locationId });
@@ -121,35 +143,48 @@ const LocationCard = (props: any) => {
   };
 
   const onUnFollowbtnClicked = async (locationId: string) => {
+    const subscriptionUids = getSubscriptionUidsToCancel();
+    if (subscriptionUids.length === 0) {
+      toast.error(`Something went wrong. Please try unfollowing ${eventLocationSummary.name} again.`);
+      return;
+    }
+
     try {
       triggerLoader(true);
       const { authToken } = getCookiesFromClient();
-      const memberFollowUp = followProperties?.followers.find((follower: any) => follower.memberUid === userInfo?.uid);
 
-      const response = await customFetch(
-        `${process.env.DIRECTORY_API_URL}/v1/member-subscriptions/${memberFollowUp.uid}`,
-        {
-          cache: 'no-store',
-          method: 'PUT',
-          body: JSON.stringify({
-            isActive: false,
-          }),
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${authToken}`,
-          },
-        },
-        true,
+      const responses = await Promise.all(
+        subscriptionUids.map((subscriptionUid) =>
+          customFetch(
+            `${process.env.DIRECTORY_API_URL}/v1/member-subscriptions/${subscriptionUid}`,
+            {
+              cache: 'no-store',
+              method: 'PUT',
+              body: JSON.stringify({
+                isActive: false,
+              }),
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${authToken}`,
+              },
+            },
+            true,
+          ),
+        ),
       );
-      if (response?.ok) {
+      if (responses.every((response) => response?.ok)) {
+        onUnfollowed();
         await getFeaturedData();
         toast.success(`Successfully unfollowed ${eventLocationSummary.name}`);
         analytics.irlLocationUnFollowBtnClicked({ userInfo, locationId: locationId });
+      } else {
+        toast.error(`Something went wrong. Please try unfollowing ${eventLocationSummary.name} again.`);
       }
       triggerLoader(false);
       router.refresh();
     } catch (e) {
       triggerLoader(false);
+      toast.error(`Something went wrong. Please try unfollowing ${eventLocationSummary.name} again.`);
     }
   };
 
@@ -214,7 +249,7 @@ const LocationCard = (props: any) => {
           }}
         >
           <div className="followRoot">
-            {followProperties?.isFollowing ? (
+            {isFollowing ? (
               <>
                 <Tooltip
                   asChild
@@ -403,7 +438,7 @@ const LocationCard = (props: any) => {
           background-color: white;
           display: flex;
           flex-direction: column;
-          gap: ${followProperties.isFollowing ? '5px' : '5px'};
+          gap: ${isFollowing ? '5px' : '5px'};
         }
 
         .LocationCard:hover {
@@ -712,7 +747,7 @@ const LocationCard = (props: any) => {
         }
 
         .followRoot__followBtn:hover {
-          border: ${followProperties.isFollowing ? '' : '1px solid #156ff7 !important'};
+          border: ${isFollowing ? '' : '1px solid #156ff7 !important'};
           cursor: pointer;
         }
 

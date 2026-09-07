@@ -52,7 +52,10 @@ export function PostNewsButton({ teamName, memberUid, onPost }: Props) {
                 onPost();
               }}
             >
-              <PlusIcon width={12} height={12} aria-hidden="true" />
+              {/* Rendered at its native 16x16 viewBox — scaling this icon's thin
+                  circular ring down to 12px left it blurry from sub-pixel
+                  anti-aliasing. */}
+              <PlusIcon width={16} height={16} aria-hidden="true" />
               Post news
             </Button>
           </span>

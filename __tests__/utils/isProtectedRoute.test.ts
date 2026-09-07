@@ -1,29 +1,38 @@
-import { isProtectedRoute, PROTECTED_ROUTES } from '@/utils/isProtectedRoute';
+import { isProtectedRoute, PLAA_SECTION, PROTECTED_ROUTES } from '@/utils/isProtectedRoute';
 
 describe('isProtectedRoute', () => {
-  it('protects every configured route, and everything nested under it', () => {
-    for (const route of PROTECTED_ROUTES) {
-      expect(isProtectedRoute(`${route.replace(/\/$/, '')}/child`)).toBe(true);
-      expect(isProtectedRoute(`${route.replace(/\/$/, '')}/child/grandchild`)).toBe(true);
-    }
+  describe('the alignment-asset section', () => {
+    it('protects the section root', () => {
+      expect(isProtectedRoute(PLAA_SECTION)).toBe(true);
+    });
+
+    it('protects anything nested under it, at any depth', () => {
+      expect(isProtectedRoute(`${PLAA_SECTION}/faqs`)).toBe(true);
+      expect(isProtectedRoute(`${PLAA_SECTION}/rounds/19`)).toBe(true);
+    });
+
+    it('does not protect a sibling path that merely shares the prefix', () => {
+      expect(isProtectedRoute(`${PLAA_SECTION}-unrelated`)).toBe(false);
+    });
   });
 
-  it('protects a section root written without a trailing slash', () => {
-    expect(isProtectedRoute('/alignment-asset')).toBe(true);
-  });
+  describe('the other configured routes', () => {
+    it('protects each of them, and everything nested under them', () => {
+      for (const route of PROTECTED_ROUTES) {
+        expect(isProtectedRoute(`${route.replace(/\/$/, '')}/child`)).toBe(true);
+      }
+    });
 
-  it('does not protect a sibling path that merely shares the prefix', () => {
-    expect(isProtectedRoute('/alignment-asset-unrelated')).toBe(false);
-    expect(isProtectedRoute('/investors-club')).toBe(false);
+    it('matches them on a plain prefix, the long-standing behaviour', () => {
+      expect(isProtectedRoute('/investors')).toBe(true);
+      expect(isProtectedRoute('/founder-guides')).toBe(true);
+      expect(isProtectedRoute('/deals/123')).toBe(true);
+    });
   });
 
   it('leaves unconfigured sections open', () => {
     expect(isProtectedRoute('/members')).toBe(false);
     expect(isProtectedRoute('/teams')).toBe(false);
     expect(isProtectedRoute('/')).toBe(false);
-  });
-
-  it('covers the alignment-asset section, so no PLAA page can be reached without a login', () => {
-    expect(PROTECTED_ROUTES).toContain('/alignment-asset');
   });
 });

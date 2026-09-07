@@ -333,11 +333,11 @@ const VIEWER_OPTIONS: Array<{ value: BoardViewer; label: string }> = [
 
 const VIEWER_NOTE: Record<BoardViewer, string> = {
   'logged-out':
-    'No account, and no separate sign-up. Apply opens the flow and step 2 becomes “Your details” — the form that opens the account. That is where a first visit ends: an application can’t be sent from an account under review, so they come back to apply once the PL team approves it.',
+    'No account. View job opens the posting with no rail: the masthead, a “What your profile unlocks” card, and a footer offering both doors — the team’s own site, or Create profile. Create profile is one form (account details and job search status), and the press lands back on the same job as a job aspirant: an “I’m interested” strip under the masthead and Apply on team site in the footer. Ticking “I work at a PL network startup” still makes a pending account instead.',
   'pending-approval':
     'Signed up — through the modal or the flow — and waiting on the PL team. Browsing and the profile work exactly as they do for an approved member; applying is the one thing that waits, and the flow sends them to the team’s own site instead. The profile step is the only place in the board that shows the “My profile is complete” tick, because that press is the one that leaves.',
   'job-aspirant':
-    'Signed up to find work, not to join a team — so there is nothing for the PL team to approve and nothing to wait for. Applying is live from the first minute, and the sign-up already answered the one required question, so the profile step opens with no gaps marked on it. What that step is for instead is reading it: the CV card stays at the top because an aspirant’s CV is part of the profile rather than a way of filling one in, and the footer asks them to tick that they have looked before the press goes on to the letter.',
+    'Signed up to find work, not to join a team — so there is nothing for the PL team to approve. They do not apply through this board: the posting opens with no rail, an “I’m interested” strip under the masthead (the press flips it to “The team will see it if you’re a match”, with Undo), and one footer button to the team’s own site. The profile they made is what founders are shown when the two match.',
   'profile-incomplete':
     'Signed in with nothing filled in. The ask moves from “sign in” to “update your profile”, and Apply opens the drawer on the job search status, which is the one required answer.',
   'profile-ready':
@@ -670,6 +670,20 @@ export default function JobBoardPrototype() {
      before a click and the board only renders after mount. */
   const [applications, setApplications] = useState<Map<string, JobApplication>>(() => new Map());
   const appliedRoleUids = useMemo(() => new Set(applications.keys()), [applications]);
+
+  /* The job aspirant's signals: role uid → they pressed "I'm interested". Held
+     here rather than in the drawer for the reason the applications are — it
+     has to survive the drawer closing, and it is the board's fact about the
+     person, not the flow's. Session-only, like everything else. Undo is a
+     delete, which is the only way a signal can honestly be taken back. */
+  const [interested, setInterested] = useState<Set<string>>(() => new Set());
+  const setRoleInterest = (roleUid: string, on: boolean) =>
+    setInterested((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(roleUid);
+      else next.delete(roleUid);
+      return next;
+    });
   /** The same map, reduced to what the row needs: uid → when. Derived rather than
    *  passed whole, so the row never receives the cover letters — a list of roles
    *  has no business carrying the letters that went with them. */
@@ -984,10 +998,13 @@ export default function JobBoardPrototype() {
        holds, which is the clause that came back with the gate. This door is
        pressed with no role in hand, so there is nothing to promise them
        afterwards beyond the board itself. */
+    /* The aspirant's receipt is the Figma's own, the same one the flow's own
+       door gives (`onCreateAccount`), so both doors announce one event in one
+       sentence. */
     toast.success(
       details.atPlTeam
         ? `Account created for ${details.email}. The PL team reviews it before applications can be sent.`
-        : `Account created for ${details.email}. You can apply to anything on the board.`,
+        : 'Your Job Aspirant profile created',
     );
   };
 
@@ -1154,12 +1171,17 @@ export default function JobBoardPrototype() {
     }
 
     setViewer('job-aspirant');
-    setFlowStep('profile');
-    /* One clause, and it is the one the next screen does not carry. The screen
-       itself reports the rest — the rail moves, the pane becomes a profile — so
-       a toast narrating that would be describing what the person is looking at.
-       No approval sentence: there is nothing to approve. */
-    toast.success(`Account created for ${details.email}.`);
+    /* Back to the job, not on to a profile step. The aspirant's flow has no
+       letter at the end of it — see `showRail` in the drawer — so the press
+       that made the profile lands them where they pressed `Create profile`
+       from, on the role they were reading, with the "I'm interested" strip
+       now under its masthead and the team's own site in the footer (Figma
+       "Signed up — Review job"). The profile they just made is on the board
+       behind the drawer whenever they close it. */
+    setFlowStep('review');
+    /* The Figma's own receipt, verbatim. No email, no approval sentence: there
+       is nothing to approve and the screen already shows what changed. */
+    toast.success('Your Job Aspirant profile created');
   };
 
   /* PL Infra is a signed-in-only slot, so choosing that viewer has to sign the
@@ -1178,6 +1200,7 @@ export default function JobBoardPrototype() {
     setProfile(profileForViewer(next));
     onCloseFlow();
     setApplications(next === 'applied' ? seededApplications() : new Map());
+    setInterested(new Set());
     /* The listings too, and the form: a submission made as the lead must not
        turn up under the admin, and a viewer with no Manage tab must not be left
        standing on it. */
@@ -1517,6 +1540,8 @@ export default function JobBoardPrototype() {
         jobAspirant={isJobAspirant}
         applied={flowJob ? appliedRoleUids.has(flowJob.role.uid) : false}
         appliedAt={flowJob ? appliedAtByRole.get(flowJob.role.uid) : undefined}
+        interested={flowJob ? interested.has(flowJob.role.uid) : false}
+        onSetInterested={flowJob ? (on) => setRoleInterest(flowJob.role.uid, on) : undefined}
         /* The owner's drawer: from the Manage tab, or from All when a lead
            opens one of their own live roles — either way the footer is the
            listing's switch, not Apply. */

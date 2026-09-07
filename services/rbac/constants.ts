@@ -33,4 +33,7 @@ export const PERMISSIONS = {
   FOUNDER_GUIDE: {
     PERM_VIEW: 'founder_guides.view',
   },
+  PLAA: {
+    PERM_ACCESS: 'plaa.access',
+  },
 };

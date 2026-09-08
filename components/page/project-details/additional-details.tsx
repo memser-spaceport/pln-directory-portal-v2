@@ -8,6 +8,8 @@ import { PROJECT_README_DEFAULT } from '@/utils/constants';
 import 'md-editor-rt/lib/style.css';
 import dynamic from 'next/dynamic';
 import { useState } from 'react';
+
+import { useUnsavedEditRegistration } from '@/components/common/profile/UnsavedEdits';
 import { toast } from '@/components/core/ToastContainer';
 
 const MdEditor = dynamic(() => import('md-editor-rt').then((mod) => mod.MdEditor));
@@ -68,6 +70,26 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
   const [isEditorVisible, setIsEditorVisible] = useState(false);
   const [text, setText] = useState(initialReadme);
 
+  /**
+   * What the editor opened with — the baseline "unsaved" is measured against.
+   *
+   * Not `initialReadme`: `onEditAction` seeds an empty readme with a template,
+   * so comparing against the stored value would call this dirty the instant the
+   * editor opened, with nothing typed, and hold anyone trying to leave. Snapshot
+   * on open, exactly as the Description section does with
+   * `unChangedDescription`.
+   */
+  const [editingFrom, setEditingFrom] = useState<string | undefined>(undefined);
+
+  /**
+   * Tell the page there is an unsaved edit here, so leaving asks first.
+   *
+   * The profile sections get this from the controls component they all share;
+   * this one has its own Save and Cancel and its own state, so it says so
+   * itself. Inert without a provider above it.
+   */
+  const { rootRef } = useUnsavedEditRegistration(isEditorVisible && text !== editingFrom);
+
   function getIsTeamOfTheProject() {
     try {
       if (userInfo?.leadingTeams) {
@@ -79,7 +101,9 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
     }
   }
   const onEditAction = () => {
-    setText(!text ? PROJECT_README_DEFAULT : text);
+    const seeded = !text ? PROJECT_README_DEFAULT : text;
+    setText(seeded);
+    setEditingFrom(seeded);
     analytics.onProjectDetailEditReadMeClicked(getAnalyticsUserInfo(userInfo), project?.id, 'project-details');
     setIsEditorVisible(true);
   };
@@ -117,7 +141,7 @@ export const AdditionalDetails = (props: IAdditionalDetails) => {
 
   return (
     <>
-      <div className="addDetails">
+      <div className="addDetails" ref={rootRef}>
         <div className="addDetails__hdr">
           <h6 className="addDetails__hdr__title">Additional Details</h6>
           {!isDeleted && userHasEditRights && !isEditorVisible && initialReadme && (

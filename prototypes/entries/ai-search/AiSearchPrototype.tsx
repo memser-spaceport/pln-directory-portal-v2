@@ -25,7 +25,7 @@
  *  - AiChatPanel / chat.tsx                 both need auth + the streaming endpoint; replaced by a
  *                                            mocked stream in AnswerPanel
  *  - ChatFeedback (1–5 dialog)              replaced by inline thumbs + reasons — see AnswerPanel
- *  - NothingFound, TryAiSearch              both AI doors folded into one "Ask Husky" row
+ *  - NothingFound, TryAiSearch              both AI doors folded into one "Chat with AI Search" row
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
@@ -85,23 +85,24 @@ export default function AiSearchPrototype() {
       <main className={s.page}>
         <h1 className={s.title}>AI search — one list, one door</h1>
         <p className={s.lede}>
-          The header search with Husky as a row in the results and a state of the same dialog, instead of a second
-          column with its own input. Everything is mocked; the corpus is a dozen invented members, teams, projects and
-          events.
+          The header search with AI Search as a row above the results and a state of the same dialog, instead of a
+          second column with its own input. Everything is mocked; the corpus is a dozen invented members, teams,
+          projects and events.
         </p>
         <ol className={s.steps}>
           <li>
-            <strong>Open search</strong> from the header icon or ⌘K. The empty state offers recent searches and three
-            prompts phrased as things to find.
+            <strong>Open search</strong> from the header icon or ⌘K. The empty state offers recent searches, three
+            prompts phrased as things to find, and your AI Search history (a row reopens the thread).
           </li>
           <li>
             <strong>Type</strong> anything — <em>filecoin</em>, <em>zk berlin</em>, <em>lisbon</em>, or a question of
-            your own. Keyword results appear as you type; a pinned <em>Ask Husky about “…”</em> row sits under them,
-            also when nothing matches.
+            your own. A pinned <em>Chat with AI Search about “…”</em> row leads, with keyword results under it, also
+            when nothing matches.
           </li>
           <li>
             <strong>Press it</strong> for a streamed answer with sources, directory results and follow-ups. Rate it with
-            the thumbs; a thumbs-down asks why, inline. Back returns the list you came from.
+            the thumbs; a thumbs-down asks why, inline. Back returns the list you came from. Close and reopen: the chat
+            is kept under history.
           </li>
         </ol>
         <div className={s.cta}>

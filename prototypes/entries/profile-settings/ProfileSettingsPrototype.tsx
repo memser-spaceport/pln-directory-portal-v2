@@ -21,8 +21,12 @@ import { FormSwitch } from '@/components/form/FormSwitch';
 // and should move to `profile-shared/` — see the note on their export.
 import { ExperienceForm, ExperienceList } from '../job-board/JobProfilePane';
 import { formatExperienceDates, type ExperienceEntry } from '../job-board/viewerState';
-import { ExperienceImportPanel } from '../profile-shared/ExperienceImport/ExperienceImportPanel';
+import { ExperienceImportPanel, type ImportStatus } from '../profile-shared/ExperienceImport/ExperienceImportPanel';
 import { ExperienceImportReview } from '../profile-shared/ExperienceImport/ExperienceImportReview';
+// The CV-read lock: while the Experience section's importer is uploading or
+// reading, the two sections above it that the document fills (name, email,
+// role, skills) are muted and say when they come back. See `ImportLock`.
+import { ImportLockNote, importLockClass, isImportWaiting } from '../profile-shared/ExperienceImport/ImportLock';
 import type { ImportSelection, ParsedProfile } from '../profile-shared/ExperienceImport/types';
 
 // DELETE WITH: the `design-canvas/` folder.
@@ -67,6 +71,8 @@ export default function ProfileSettingsPrototype() {
 
   const importing = editing?.kind === 'import';
   const editingEntry = editing?.kind === 'experience';
+  const [importStatus, setImportStatus] = useState<ImportStatus>('idle');
+  const cvWaiting = isImportWaiting(importStatus);
   const entryBeingEdited = useMemo(
     () => (editingEntry && editing.uid ? (experiences.find((i) => i.uid === editing.uid) ?? null) : null),
     [editing, editingEntry, experiences],
@@ -174,8 +180,11 @@ export default function ProfileSettingsPrototype() {
                 button now. */}
             <div>
               {/* Basic info */}
-              <section className={s.section}>
-                <h2 className={s.sectionTitle}>Basic information</h2>
+              <section className={cvWaiting ? `${s.section} ${importLockClass}` : s.section} inert={cvWaiting}>
+                <div className={s.sectionHead}>
+                  <h2 className={s.sectionTitle}>Basic information</h2>
+                  {cvWaiting && <ImportLockNote status={importStatus} />}
+                </div>
                 <div className={s.avatarRow}>
                   <img className={s.avatar} src={MOCK_AVATAR} alt="" />
                   <div className={s.avatarActions}>
@@ -193,8 +202,11 @@ export default function ProfileSettingsPrototype() {
               </section>
 
               {/* Team & skills */}
-              <section className={s.section}>
-                <h2 className={s.sectionTitle}>Team &amp; skills</h2>
+              <section className={cvWaiting ? `${s.section} ${importLockClass}` : s.section} inert={cvWaiting}>
+                <div className={s.sectionHead}>
+                  <h2 className={s.sectionTitle}>Team &amp; skills</h2>
+                  {cvWaiting && <ImportLockNote status={importStatus} />}
+                </div>
                 <div className={s.grid2}>
                   <FormField name="team" label="Primary team" placeholder="Select a team" />
                   {/* "Role on the team", not "Role": this is the membership row, and
@@ -261,6 +273,7 @@ export default function ProfileSettingsPrototype() {
                       <ExperienceImportPanel
                         entry="direct"
                         initialFile={pickedFile}
+                        onStatusChange={setImportStatus}
                         onParsed={setParsed}
                         onAddManually={() => setEditing({ kind: 'experience', uid: null })}
                       />
@@ -319,6 +332,7 @@ export default function ProfileSettingsPrototype() {
                     {experiences.length === 0 ? (
                       <ExperienceImportPanel
                         emptyLabel="Share your work history and skills. This shows what you know and what you can do."
+                        onStatusChange={setImportStatus}
                         onParsed={(result) => {
                           setParsed(result);
                           setEditing({ kind: 'import' });

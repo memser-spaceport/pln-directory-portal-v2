@@ -3,8 +3,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import clsx from 'clsx';
+import { format, getYear, isToday, isYesterday, subDays, subMonths, subWeeks } from 'date-fns';
 
 import { Modal } from '@/components/common/Modal';
+// Production's own history chrome: the subheader that toggles the list in the
+// AI column (clock glyph, "Your AI Search History", Close) — import-safe, no
+// hooks — and the list's stylesheet (date-group label, 36px row).
+import { ChatSubheader } from '@/components/core/application-search/components/AiChatPanel/components/ChatSubheader/ChatSubheader';
+import ch from '@/components/core/application-search/components/AiChatPanel/components/ChatHistory/ChatHistory.module.scss';
+import sub from '@/components/core/application-search/components/AiChatPanel/components/ChatSubheader/ChatSubheader.module.scss';
 import { CloseIcon, ArrowUpRightIcon } from '@/components/icons';
 import { DebouncedInput } from '@/components/core/application-search/components/DebouncedInput';
 import { SearchCategories } from '@/components/core/application-search/components/SearchCategories';
@@ -21,7 +28,7 @@ import tt from '@/components/core/application-search/components/TryToSearch/TryT
 import rl from '@/components/core/application-search/components/SearchResultsSection/components/ResultsList/ResultsList.module.scss';
 
 import { AnswerPanel, makeTurn, type Turn } from './AnswerPanel';
-import { countResults, RECENT_SEARCHES, searchCorpus, SUGGESTED_PROMPTS } from './mocks';
+import { CHAT_HISTORY_SEED, countResults, RECENT_SEARCHES, searchCorpus, SUGGESTED_PROMPTS } from './mocks';
 import s from './AiSearchModal.module.scss';
 
 const INPUT_ID = 'ai-search-input';
@@ -33,6 +40,71 @@ interface AiSearchModalProps {
 
 const SECTION_ORDER: (keyof SearchResult)[] = ['top', 'members', 'teams', 'projects', 'forumThreads', 'events'];
 
+/** One AI Search conversation. Its title is its first question. */
+interface ChatThread {
+  id: number;
+  createdAt: Date;
+  turns: Turn[];
+}
+
+let nextThreadId = 1;
+
+/** Seeded history: canned questions already answered, newest first. */
+function seedThreads(): ChatThread[] {
+  return CHAT_HISTORY_SEED.map(({ questions, daysAgo }) => ({
+    id: nextThreadId++,
+    createdAt: subDays(new Date(), daysAgo),
+    turns: questions.map((q) => {
+      const t = makeTurn(q);
+      return { ...t, shown: t.answer, status: 'done' as const };
+    }),
+  }));
+}
+
+/** Production's history buckets (Today / Yesterday), then a date. */
+function whenLabel(d: Date) {
+  if (isToday(d)) return 'Today';
+  if (isYesterday(d)) return 'Yesterday';
+  return format(d, 'MMM d');
+}
+
+/** How many past threads the idle state lists; "Show all" opens the rest in place. */
+const HISTORY_ROWS = 5;
+
+/**
+ * Production's `ChatHistory` buckets for the full list: Today, Yesterday,
+ * Last 7 days, Last 30 days, then a year. One deviation, on purpose: production
+ * files a thread older than 30 days under its year only when that year is a
+ * *past* one, so a thread from two months ago this year lands in no group and
+ * is not drawn at all. Here it gets the current year's label — the least
+ * invented place for it, and the one production would give it in January.
+ */
+const HISTORY_FIXED_GROUPS = ['Today', 'Yesterday', 'Last 7 days', 'Last 30 days'];
+
+function historyGroup(d: Date, now: Date): string {
+  if (isToday(d)) return 'Today';
+  if (isYesterday(d)) return 'Yesterday';
+  if (d > subWeeks(now, 1)) return 'Last 7 days';
+  if (d > subMonths(now, 1)) return 'Last 30 days';
+  return String(getYear(d));
+}
+
+/** Threads by bucket, fixed buckets first, then years newest first. */
+function groupHistory(threads: ChatThread[]): Array<[string, ChatThread[]]> {
+  const now = new Date();
+  const groups = new Map<string, ChatThread[]>();
+  for (const thread of threads) {
+    const key = historyGroup(thread.createdAt, now);
+    groups.set(key, [...(groups.get(key) ?? []), thread]);
+  }
+  const years = [...groups.keys()]
+    .filter((k) => !HISTORY_FIXED_GROUPS.includes(k))
+    .sort((a, b) => Number(b) - Number(a));
+  return [...HISTORY_FIXED_GROUPS, ...years]
+    .filter((k) => groups.has(k))
+    .map((k) => [k, groups.get(k)!.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())]);
+}
+
 /**
  * The header search dialog with AI as a **row and a state**, not a column.
  *
@@ -43,16 +115,36 @@ const SECTION_ORDER: (keyof SearchResult)[] = ['top', 'members', 'teams', 'proje
  * row, and the answer takes the panel when pressed. That is what this is.
  *
  * Three states, one dialog:
- *  - **idle** — Recent + "Try asking or searching for" (the Husky page's own
- *    prompt block, with prompts phrased as directory finds) + the scope hint.
- *  - **results** — production's category chips and result rows over a mocked
- *    corpus, and one row pinned under the list: *Ask Husky about "<term>"*.
- *    That row replaces both of production's AI doors (the `NothingFound` card
- *    that only appears at zero results, and the `TryAiSearch` button that is
- *    commented out at every call site). At zero results the same row sits
- *    under the fact. The field's placeholder names both jobs — "Search or ask
- *    Husky a question" — because the row only exists once there is a term.
- *  - **answer** — `AnswerPanel`, with Back to results and Continue in Husky.
+ *  - **idle** — Recent, then "Try asking or searching for" (the Husky page's
+ *    own prompt block, with prompts phrased as directory finds), then **Your
+ *    AI Search History** (production's own label and row lineage, from
+ *    `ChatHistory` — but as one section of the one list rather than behind a
+ *    toggle in an AI column) + the scope hint. A history row reopens the
+ *    thread in place, follow-ups and all. Five rows; a **Show all (N)** door
+ *    on the label opens the rest.
+ *  - **history** — the whole record, in production's `ChatSubheader` +
+ *    `ChatHistory` grammar: the subheader with its Close, then the threads
+ *    under production's date groups (Today / Yesterday / Last 7 days / Last
+ *    30 days / year). In the dialog rather than out on the AI Search page,
+ *    because a past thread opens *here*, in place, and the page would cost
+ *    the person their search to reach a list they can already read.
+ *  - **results** — one row pinned **above** the list — *Chat with AI Search
+ *    about "<term>"* — then production's category chips and result rows over
+ *    a mocked corpus. That row replaces both of production's AI doors (the
+ *    `NothingFound` card that only appears at zero results, and the
+ *    `TryAiSearch` button that is commented out at every call site). At zero
+ *    results the same row sits above the fact. The field's placeholder names
+ *    both jobs — "Search or ask AI Search a question" — because the row only
+ *    exists once there is a term. The feature is named "AI Search" everywhere
+ *    a person reads it (production's own label in `ChatPanelHeader`,
+ *    `AppSearchMobile`, `NothingFound`, `TryAiSearch`); "Husky" stays a
+ *    component name.
+ *  - **answer** — `AnswerPanel`, with Back to results and Continue in AI Search.
+ *
+ * Threads are the source of truth for the answer state: the open thread's
+ * turns are what `AnswerPanel` edits, so closing the dialog keeps the chat —
+ * it is the newest row under history when the dialog opens again, and a
+ * thread closed mid-stream picks the stream back up when reopened.
  *
  * Chrome is the sibling `PrototypeSearchModal`'s stylesheet, imported, so the
  * two dialogs cannot drift. Everything is mocked; nothing is fetched.
@@ -65,11 +157,29 @@ const SECTION_ORDER: (keyof SearchResult)[] = ['top', 'members', 'teams', 'proje
 export function AiSearchModal({ open, onClose }: AiSearchModalProps) {
   const [term, setTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<keyof SearchResult | null>('top');
-  const [view, setView] = useState<'search' | 'answer'>('search');
-  const [turns, setTurns] = useState<Turn[]>([]);
+  const [view, setView] = useState<'search' | 'answer' | 'history'>('search');
+  const [threads, setThreads] = useState<ChatThread[]>(seedThreads);
+  const [activeThreadId, setActiveThreadId] = useState<number | null>(null);
   const [recent, setRecent] = useState(RECENT_SEARCHES);
-  /** Whether the answer was reached from a result list (so Back has somewhere to go). */
-  const [cameFromResults, setCameFromResults] = useState(false);
+
+  const turns = useMemo(() => threads.find((t) => t.id === activeThreadId)?.turns ?? [], [threads, activeThreadId]);
+
+  /* AnswerPanel edits the open thread's turns in place, so history is kept by
+     construction rather than copied out on close. */
+  const setTurns = useCallback(
+    (next: Turn[] | ((prev: Turn[]) => Turn[])) => {
+      setThreads((prev) =>
+        prev.map((t) =>
+          t.id === activeThreadId ? { ...t, turns: typeof next === 'function' ? next(t.turns) : next } : t,
+        ),
+      );
+    },
+    [activeThreadId],
+  );
+  /** Which list the answer was reached from, so Back has somewhere to go — and a name. */
+  const [origin, setOrigin] = useState<'results' | 'history' | null>(null);
+
+  const groupedHistory = useMemo(() => groupHistory(threads), [threads]);
 
   useEffect(() => {
     if (!open) return;
@@ -88,12 +198,14 @@ export function AiSearchModal({ open, onClose }: AiSearchModalProps) {
     if (next) setView('search');
   }, []);
 
+  /* Close leaves the threads alone: the chat you were in is the first history
+     row next time. Only the dialog's own position resets. */
   const reset = () => {
     setTerm('');
     setActiveCategory('top');
     setView('search');
-    setTurns([]);
-    setCameFromResults(false);
+    setActiveThreadId(null);
+    setOrigin(null);
   };
 
   const handleClose = () => {
@@ -101,20 +213,38 @@ export function AiSearchModal({ open, onClose }: AiSearchModalProps) {
     onClose();
   };
 
-  const ask = useCallback((question: string) => {
-    setTurns((prev) => [...prev, makeTurn(question)]);
-    setView('answer');
-  }, []);
+  /* A follow-up in the open thread. */
+  const ask = useCallback(
+    (question: string) => {
+      setTurns((prev) => [...prev, makeTurn(question)]);
+      setView('answer');
+    },
+    [setTurns],
+  );
 
-  const askFromResults = () => {
-    setCameFromResults(true);
-    setTurns([makeTurn(term)]);
+  /* A new thread, newest first in history. */
+  const startThread = (question: string) => {
+    const thread: ChatThread = { id: nextThreadId++, createdAt: new Date(), turns: [makeTurn(question)] };
+    setThreads((prev) => [thread, ...prev]);
+    setActiveThreadId(thread.id);
     setView('answer');
   };
 
+  const askFromResults = () => {
+    setOrigin('results');
+    startThread(term);
+  };
+
   const askFromIdle = (q: string) => {
-    setCameFromResults(false);
-    setTurns([makeTurn(q)]);
+    setOrigin(null);
+    startThread(q);
+  };
+
+  /* From the idle rows there is nothing to go back to but the idle state
+     itself; from the full list, Back returns to the list. */
+  const openThread = (thread: ChatThread, from: 'history' | null = null) => {
+    setOrigin(from);
+    setActiveThreadId(thread.id);
     setView('answer');
   };
 
@@ -123,7 +253,17 @@ export function AiSearchModal({ open, onClose }: AiSearchModalProps) {
   return (
     <Modal isOpen={open} onClose={handleClose} overlayClassname={shell.overlay} className={shell.container} lockScroll>
       <div className={shell.card} role="dialog" aria-modal="true" aria-label="Search">
-        <div className={shell.header}>
+        {/* The field is the top row of the card, not a form field inside a
+            padded header. Every palette in the reference set (ClickUp,
+            Magnific, Notion, Dovetail, Devin, Supabase, Ferndesk on Mobbin)
+            draws it this way: a borderless input with the search glyph on the
+            left, larger type, a hairline under it, and only the clear on the
+            right — the card is the box, so a second box inside it is chrome
+            on chrome. Production's `DebouncedInput` is still the component
+            (its debounce, Enter/Escape and clear behaviour), restyled through
+            its own `classes` hooks; the shared shell stays as it is for the
+            sibling dialog. */}
+        <div className={clsx(shell.header, s.headerBar)}>
           <div className={shell.field}>
             <DebouncedInput
               ids={{ root: `${INPUT_ID}-root`, input: INPUT_ID }}
@@ -133,14 +273,30 @@ export function AiSearchModal({ open, onClose }: AiSearchModalProps) {
                  that says so at rest: "Search" alone reads as keywords-only,
                  and the AI door then looks like it lives in the suggestions.
                  Evernote and Mintlify both label theirs "Search or ask". */
-              placeholder="Search or ask Husky a question"
+              placeholder="Search or ask AI Search a question"
               flushIcon={<Image src="/icons/search-right.svg" alt="Search" width={20} height={20} />}
+              classes={{ root: s.fieldRoot, input: s.fieldInput, flushBtn: s.fieldFlush, clearBtn: s.fieldClear }}
             />
           </div>
           <button type="button" className={shell.close} onClick={handleClose} aria-label="Close search">
             <CloseIcon />
           </button>
         </div>
+
+        {/* The one AI door, pinned above the list rather than at the end of
+            it. It was the last row of the results first — and results
+            overflow a 640px card at six hits, so the door was below the fold
+            exactly when there was something to ask about. Then a band under
+            the list — in view, but under the general answers, so the offer
+            read as a fallback. Now it leads: the first thing under the field
+            says you can chat with AI about the term, and the keyword hits
+            follow. A band that never scrolls is visible at every scroll
+            position and in the zero-results state alike. */}
+        {term && !showAnswer && (
+          <div className={s.askBar}>
+            <AskRow term={term} onClick={askFromResults} />
+          </div>
+        )}
 
         {showAnswer ? (
           /* The answer owns its own scroll region (thread scrolls, input stays),
@@ -150,12 +306,52 @@ export function AiSearchModal({ open, onClose }: AiSearchModalProps) {
               turns={turns}
               onTurnsChange={setTurns}
               onAsk={ask}
-              onBackToResults={cameFromResults && term ? () => setView('search') : undefined}
+              onBackToResults={
+                origin === 'results' && term
+                  ? () => setView('search')
+                  : origin === 'history'
+                    ? () => setView('history')
+                    : undefined
+              }
+              backLabel={origin === 'history' ? 'Back to history' : 'Back to results'}
             />
           </div>
         ) : (
           <div className={shell.body}>
-            {term && results ? (
+            {view === 'history' ? (
+              /* The full record. `ChatSubheader` in its history mode is
+                 production's own head for this list — glyph, label, Close —
+                 and the rows are `ChatHistory`'s 36px `.query`, as buttons.
+                 Groups are production's date buckets; see `historyGroup`. */
+              <>
+                <div className={s.historySubhead}>
+                  <ChatSubheader
+                    isShowHistory
+                    isEmpty
+                    isLoggedIn
+                    lastQuery=""
+                    onToggleHistory={() => setView('search')}
+                  />
+                </div>
+                <div className={ch.root}>
+                  {groupedHistory.map(([label, items]) => (
+                    <React.Fragment key={label}>
+                      <div className={ch.label}>{label}</div>
+                      {items.map((thread) => (
+                        <button
+                          type="button"
+                          key={thread.id}
+                          className={clsx(ch.query, s.historyRow)}
+                          onClick={() => openThread(thread, 'history')}
+                        >
+                          {thread.turns[0]?.question}
+                        </button>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </>
+            ) : term && results ? (
               <div className={fsr.root}>
                 {total > 0 && (
                   <>
@@ -228,7 +424,10 @@ export function AiSearchModal({ open, onClose }: AiSearchModalProps) {
                 )}
 
                 {/* The Husky page's own prompt block ("Try asking or searching
-                  for"), in the overlay's `TryToSearch` row style. */}
+                  for"), in the overlay's `TryToSearch` row style. It sits
+                  above history: the prompts are the offer (what this can do),
+                  history is the record (what you did), and the offer ranks
+                  first for whoever opens the dialog not knowing either. */}
                 <div className={tt.root}>
                   <div className={tt.label}>Try asking or searching for</div>
                   <ul className={tt.list}>
@@ -247,23 +446,57 @@ export function AiSearchModal({ open, onClose }: AiSearchModalProps) {
                   </ul>
                 </div>
 
+                {/* Past AI Search threads, in production's own words
+                    (`ChatSubheader` / `ChatHistory`: "Your AI Search
+                    History"). Same row as Recent so the two lists read as one;
+                    the glyph is what says a press opens a chat rather than
+                    filling the field. Capped at five; the door on the label
+                    opens the rest in place. The door is production's own
+                    label for exactly this count-and-expand move — the Husky
+                    answer's "Show all (N)" over its directory cards — and it
+                    only draws when there is something behind it. */}
+                {threads.length > 0 && (
+                  <>
+                    <div className={rs.divider} />
+                    <div className={rs.root}>
+                      <div className={s.historyHead}>
+                        <div className={rs.label}>Your AI Search History</div>
+                        {threads.length > HISTORY_ROWS && (
+                          <button
+                            type="button"
+                            className={clsx(sub.button, s.showAll)}
+                            onClick={() => setView('history')}
+                          >
+                            Show all ({threads.length})
+                          </button>
+                        )}
+                      </div>
+                      <ul className={rs.list}>
+                        {threads.slice(0, HISTORY_ROWS).map((thread) => (
+                          <li key={thread.id}>
+                            <button
+                              type="button"
+                              className={clsx(rs.searchItem, s.rowButton)}
+                              onClick={() => openThread(thread)}
+                            >
+                              <Image src="/icons/ai-search.svg" alt="" width={20} height={20} className={s.rowIcon} />
+                              <span className={clsx(rs.searchItemText, s.threadTitle)}>
+                                {thread.turns[0]?.question}
+                              </span>
+                              <span className={s.rowWhen}>{whenLabel(thread.createdAt)}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </>
+                )}
+
                 <p className={clsx(shell.hint, s.hintInset)}>
-                  Search members, teams, projects, events and forum posts, or ask Husky.
+                  Search members, teams, projects, events and forum posts, or chat with AI Search.
                 </p>
               </div>
             )}
-          </div>
-        )}
-
-        {/* The one AI door, pinned under the list rather than at the end of
-            it. It was the last row of the results first — and results
-            overflow a 640px card at six hits, so the door was below the fold
-            exactly when there was something to ask about. A band that never
-            scrolls is visible at every scroll position and in the zero-results
-            state alike. */}
-        {term && !showAnswer && (
-          <div className={s.askBar}>
-            <AskRow term={term} onClick={askFromResults} />
           </div>
         )}
 
@@ -291,12 +524,14 @@ function AskRow({ term, onClick }: { term: string; onClick: () => void }) {
     /* `rs.root` stays as the host because RecentSearch nests `.searchItem` and
        `.searchItemText` under it — outside the wrapper neither class applies.
        Its own margin/padding are zeroed so the band sets the inset.
-       No section label: the row names itself, and "Ask Husky" over
-       "Ask Husky about …" said it twice. */
+       No section label: the row names itself, and "AI Search" over
+       "Chat with AI Search about …" would say it twice. The verb is "chat",
+       not "ask": the row opens a thread you can keep talking in, and "ask"
+       under-promised that. */
     <div className={clsx(rs.root, s.askRowHost)}>
       <button type="button" className={clsx(rs.searchItem, s.rowButton)} onClick={onClick}>
         <Image src="/icons/ai-search.svg" alt="" width={20} height={20} className={s.rowIcon} />
-        <span className={rs.searchItemText}>Ask Husky about &ldquo;{term}&rdquo;</span>
+        <span className={rs.searchItemText}>Chat with AI Search about &ldquo;{term}&rdquo;</span>
         <span className={s.askArrow} aria-hidden="true">
           <ArrowUpRightIcon />
         </span>

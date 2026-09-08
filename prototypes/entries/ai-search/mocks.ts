@@ -363,6 +363,12 @@ export interface DirectoryHit {
   name: string;
   type: 'member' | 'team' | 'project' | 'event';
   source: string;
+  /**
+   * The one fact the card shows beside the type — a member's role, a team's or
+   * event's location, a project's tags. Read off the corpus field production's
+   * own result rows would list first for that index.
+   */
+  meta?: string;
 }
 
 export interface CannedAnswer {
@@ -373,6 +379,13 @@ export interface CannedAnswer {
 }
 
 const link = (item: CorpusItem) => `/${item.index}/${item.uid}`;
+const fieldOf = (item: CorpusItem, name: string) => item.fields.find((f) => f.field === name)?.content;
+const META_FIELD: Record<CorpusIndex, string> = {
+  members: 'teamMemberRoles.role',
+  teams: 'location',
+  projects: 'tags',
+  events: 'location',
+};
 const hit = (item: CorpusItem): DirectoryHit => ({
   name: item.name,
   type:
@@ -384,6 +397,7 @@ const hit = (item: CorpusItem): DirectoryHit => ({
           ? 'project'
           : 'event',
   source: item.eventUrl ?? link(item),
+  meta: fieldOf(item, META_FIELD[item.index]),
 });
 const byUid = (uid: string) => CORPUS.find((c) => c.uid === uid)!;
 
@@ -507,6 +521,34 @@ export function buildAnswer(query: string): CannedAnswer {
     followUpQuestions,
   };
 }
+
+/* ------------------------------------------------------------------------ */
+/* AI Search history                                                          */
+/* ------------------------------------------------------------------------ */
+
+/**
+ * Seeded threads for the idle state's "Your AI Search History" — what a
+ * returning member finds under Recent. Production keeps this list behind a
+ * toggle in the AI column (`ChatHistory`, grouped Today / Yesterday / Last 7
+ * days); here it is one section of the one list, and a thread reopens in
+ * place. Each entry is a canned question plus follow-ups, so a reopened
+ * thread has more than one turn in it. `daysAgo` is resolved at seed time so
+ * the Today / Yesterday markers are always true.
+ */
+/* Nine threads, spread so the full history has every one of production's date
+   groups to show (Today, Yesterday, Last 7 days, Last 30 days, a past year) and
+   so the idle state's five-row cap has something behind it. */
+export const CHAT_HISTORY_SEED: { questions: string[]; daysAgo: number }[] = [
+  { questions: ['Which events in Lisbon have PL members attending?'], daysAgo: 0 },
+  { questions: ['Find teams building on Filecoin in Berlin', 'Who at Lumen Storage offers office hours?'], daysAgo: 1 },
+  { questions: ['Who works on zero-knowledge proofs and offers office hours?'], daysAgo: 3 },
+  { questions: ['Which teams are hiring protocol engineers?'], daysAgo: 5 },
+  { questions: ['Show me projects using IPFS for scientific data'], daysAgo: 9 },
+  { questions: ['Who leads the PL Research Collective?'], daysAgo: 16 },
+  { questions: ['Investors in the network focused on AI infra'], daysAgo: 27 },
+  { questions: ['Forum threads about retrieval markets'], daysAgo: 52 },
+  { questions: ['Teams that attended LabWeek 2025'], daysAgo: 400 },
+];
 
 /** Reasons offered after a thumbs-down. Reddit Answers' set, re-worded for a directory. */
 export const FEEDBACK_REASONS = ['Wrong matches', 'Out of date', "Didn't answer", 'No sources'];

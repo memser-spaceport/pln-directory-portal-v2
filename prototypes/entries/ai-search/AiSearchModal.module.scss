@@ -1,10 +1,78 @@
 // Additions to the shared search-dialog chrome (nav-shared/PrototypeSearchModal
 // .module.scss, imported alongside this). Only the parts that are new here:
-// the Ask Husky row, the suggested-prompt rows, the zero-results line and the
+// the AI Search row, the suggested-prompt rows, the zero-results line and the
 // shortcut footer. Row geometry comes from production's RecentSearch /
 // TryToSearch stylesheets so the new rows sit in the same list as the old.
 
 @use 'styles/media';
+
+/* ------------------------------------------------------------------------ */
+/* The field                                                                  */
+/* ------------------------------------------------------------------------ */
+
+/* The header row IS the field: no inner padding, so the input's own inset
+   sets where the glyph and the text start (16px, the list rows' inset), and
+   the close button keeps a 12px gutter. Doubled to beat the shared shell's
+   `.header` at equal specificity regardless of sheet order. */
+.headerBar.headerBar {
+  gap: 0;
+  padding: 0 12px 0 0;
+}
+
+/* Production's `DebouncedInput .root` is a 40px grey-filled rounded box with
+   a 360px minimum. Here it is transparent and 56px tall — the card supplies
+   the edges. Every selector below is doubled for the same reason as above:
+   production's rules are `.root > input`, `.root .flushButton` etc. */
+.fieldRoot.fieldRoot {
+  height: 56px;
+  min-width: 0;
+  border-radius: 0;
+  background: transparent;
+
+  &:focus-within {
+    background: transparent;
+  }
+
+  > .fieldInput {
+    padding: 0 44px 0 48px;
+    border: 0;
+    border-radius: 0;
+    color: var(--foreground-neutral-primary, #0f172a);
+    font-size: 16px;
+    line-height: 24px;
+
+    &::placeholder {
+      color: var(--foreground-neutral-tertiary, #8897ae);
+    }
+
+    /* The card is the focus: the dialog opened with the caret already here,
+       and a ring inside a hairline-bounded row is a box inside a box. */
+    &:focus-visible {
+      border: 0;
+    }
+  }
+
+  /* The search glyph leads the row, as in every reference; it is still
+     production's flush button, so pressing it still flushes the debounce. */
+  .fieldFlush {
+    right: auto;
+    left: 16px;
+  }
+
+  /* With the glyph gone from the right, the clear takes its slot. A 24px
+     disc on hover so it reads as a control and not a stray mark. */
+  .fieldClear {
+    right: 12px;
+    height: 24px;
+    top: 16px;
+    padding: 2px;
+    border-radius: 50%;
+
+    &:hover {
+      background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    }
+  }
+}
 
 /* Resets a production row class (`RecentSearch .searchItem`, a <li>) for use
    on a <button>. */
@@ -23,6 +91,60 @@
   flex-shrink: 0;
   width: 20px;
   height: 20px;
+}
+
+/* A history row's title: one line, so the date on the right stays on the row. */
+.threadTitle {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* When the thread happened — production's history groups by Today /
+   Yesterday; here the bucket rides the row instead of heading a group. */
+.rowWhen {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* "Your AI Search History" with its door on the right. The label keeps
+   RecentSearch's own class; the door wears `ChatSubheader .button` — the
+   12px/500 brand text production uses for exactly this toggle — so the row
+   reads as production's subheader folded into the list. */
+.historyHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.showAll {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* The full-history state. Production's `ChatSubheader` has no horizontal
+   inset of its own (it sat inside a padded panel); the list's 16px is the
+   dialog's. */
+.historySubhead {
+  padding: 0 16px;
+}
+
+/* Production's `ChatHistory .query` is a <div>; on a <button> it needs the
+   button chrome off and a hover, the same one every row in this dialog has. */
+.historyRow {
+  width: 100%;
+  border: 0;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
 }
 
 /* Suggested-prompt glyph: the per-type Husky icon, cropped round like the
@@ -84,12 +206,13 @@
   line-height: 0;
 }
 
-/* The Ask Husky band: a real flex child under the scrolling body, so it is
-   in view at every scroll position. Same 16px inset as the list rows. */
+/* The AI Search band: a real flex child between the field and the scrolling
+   body, so it leads the results and is in view at every scroll position.
+   Same 16px inset as the list rows. */
 .askBar {
   flex-shrink: 0;
   padding: 8px 16px;
-  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   background: #fff;
 }
 

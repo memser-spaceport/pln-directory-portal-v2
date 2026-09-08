@@ -70,17 +70,9 @@
     margin-top: 16px;
   }
 
-  /* DirectoryResults draws three columns from 1024px — a viewport query,
-     written for the full Husky page. This dialog is 720px wide, where three
-     18px/600 names truncate at "Jonas We…"; two columns fit them. */
-  /* Two ancestors, not one: styled-jsx scopes its rule as
-     `.directory-results__cn.jsx-HASH` (0,2,0) and injects it after this
-     sheet, so a 0,2,0 selector here loses on order. */
-  :global(.directory-results .directory-results__cn) {
-    @include media.breakpoint-1024 {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
+  /* (A `:global(.directory-results …)` override lived here to pull production's
+     three-column grid down to two inside the 720px dialog. The grid is the
+     local `DirectoryResultsCards` now, which owns its own columns.) */
 }
 
 /* .preview-message__question-text, margin from __question-block */
@@ -144,31 +136,14 @@
   gap: 16px;
 }
 
+/* One treatment for all five actions: a 16px `currentColor` glyph centred in
+   a 24px disc, tertiary at rest, secondary + a 4% tint on hover — the pair
+   every DS icon control on this surface already uses. Production's row gave
+   its three image glyphs no hit area and the file's own #64748B; a bare glyph
+   beside a disc'd one reads as two kinds of control. (Production's
+   `margin-top: 4px` on the copy glyph was an optical fix for an image sitting
+   on a baseline; a centred flex box needs none.) */
 .iconBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-  line-height: 0;
-}
-
-/* .chat-message-actions__item--copy */
-.copyGlyph {
-  margin-top: 4px;
-}
-
-/* The pair reads as one control: tighter inside than the 16px between
-   unrelated actions. */
-.thumbs {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.thumb {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -180,11 +155,20 @@
   background: none;
   color: var(--foreground-neutral-tertiary, #8897ae);
   cursor: pointer;
+  line-height: 0;
 
   &:hover {
     color: var(--foreground-neutral-secondary, #455468);
     background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
   }
+}
+
+/* The pair reads as one control: tighter inside than the 16px between
+   unrelated actions. */
+.thumbs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .thumbDown svg {

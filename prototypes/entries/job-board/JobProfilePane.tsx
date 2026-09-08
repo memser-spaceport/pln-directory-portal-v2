@@ -1,6 +1,15 @@
 'use client';
 
-import { Fragment, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
+import {
+  Fragment,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+} from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import clsx from 'clsx';
@@ -138,7 +147,16 @@ import { OptionalMark } from '../profile-shared/OptionalMark';
 // section is the second surface that wants it, and one importer that both
 // mount cannot drift the way two copies would. See the component's own note for
 // why the LinkedIn door was removed rather than kept as a second signpost.
-import { ExperienceImportPanel } from '../profile-shared/ExperienceImport/ExperienceImportPanel';
+import { ExperienceImportPanel, type ImportStatus } from '../profile-shared/ExperienceImport/ExperienceImportPanel';
+// The CV-read lock: while a file is uploading or being read, the header card
+// and the Experience card — what the document writes to — are muted and say
+// when they come back. See `ImportLock`.
+import {
+  ImportLockNote,
+  importLockClass,
+  importLockWrapClass,
+  isImportWaiting,
+} from '../profile-shared/ExperienceImport/ImportLock';
 import { ExperienceImportReview } from '../profile-shared/ExperienceImport/ExperienceImportReview';
 import { isoToYm, ymToIso } from '../profile-shared/ExperienceImport/dateBridge';
 import type { ImportSelection, ParsedProfile } from '../profile-shared/ExperienceImport/types';
@@ -385,6 +403,12 @@ export function JobProfilePane(props: JobProfilePaneProps) {
   const [parsed, setParsed] = useState<ParsedProfile | null>(null);
   /* The "Remove CV" confirmation — see `RemoveCvDialog` for why a kept file asks. */
   const [confirmRemoveCv, setConfirmRemoveCv] = useState(false);
+  /* What the import panel is doing, from whichever mount is live. While it is
+     uploading or reading, the cards the document fills are locked — the header
+     card always, the Experience card unless it is the panel's own host. The
+     status card and Contact Details are not written to and stay live. */
+  const [importStatus, setImportStatus] = useState<ImportStatus>('idle');
+  const cvWaiting = isImportWaiting(importStatus);
   /**
    * A CV was removed on this visit.
    *
@@ -524,6 +548,12 @@ export function JobProfilePane(props: JobProfilePaneProps) {
   const editingContribution = editing?.kind === 'contribution';
   const editingGithub = editing?.kind === 'github';
   const editingImport = editing?.kind === 'import';
+  /* The Experience card's lock: through the read, and then through the review
+     the CV section shows once the read lands — the positions it found are on
+     no profile until that card's Save. Never while this card is the importer's
+     own host. See `importReviewLockCopy`. */
+  const reviewingFromCv = editingImport && !!parsed && importHost !== 'experience';
+  const experienceLocked = (cvWaiting && importHost !== 'experience') || reviewingFromCv;
 
   const experienceBeingEdited = useMemo(
     () => (editingExperience && editing.uid ? (draft.experiences.find((i) => i.uid === editing.uid) ?? null) : null),
@@ -758,11 +788,22 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                inviting the answer without demanding it. The strip's copy, the
                tint and `d.missingCard` went with the rule; the status card keeps
                all three, because it keeps the requirement. */}
-      <div className={clsx(p.root, { [p.editView]: editingProfile, [d.editCard]: editingProfile })}>
+      <div
+        className={clsx(p.root, {
+          [p.editView]: editingProfile,
+          [d.editCard]: editingProfile,
+          [importLockClass]: cvWaiting,
+        })}
+        inert={cvWaiting}
+      >
         {editingProfile ? (
           <ProfileDetailsForm profile={draft} onClose={() => setEditing(null)} onSubmit={saveProfileDetails} />
         ) : (
-          <ProfileHeaderCard profile={draft} onEdit={canEdit ? () => setEditing({ kind: 'profile' }) : undefined} />
+          <ProfileHeaderCard
+            profile={draft}
+            onEdit={canEdit ? () => setEditing({ kind: 'profile' }) : undefined}
+            lockNote={cvWaiting ? <ImportLockNote status={importStatus} /> : undefined}
+          />
         )}
       </div>
 
@@ -960,6 +1001,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                 privacyNote="Kept on your profile and sent with your applications. You can replace or remove it any time."
                 initialFile={pickedFile}
                 onFileRead={keepFile}
+                onStatusChange={setImportStatus}
                 /* Cancelling a replacement's read goes back to the file, not to
                    an empty drop area — see the panel's prop. */
                 onCancelRead={draft.cv ? closeImport : undefined}
@@ -1046,93 +1088,97 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                it is what a hiring team actually reads on an application, and the
                apply modal quotes its first entry; it just isn't held over
                anyone's head. */}
-      <DetailsSection
-        editView={editingExperience || editingImport}
-        classes={
-          editingExperience || editingImport
-            ? { root: c.root, editView: `${c.editView} ${d.editCard}` }
-            : { root: fd.cardEdge }
-        }
-      >
-        {editingImport && importHost === 'experience' ? (
-          /* The import owns the card the same way an editor does. Which half
+      {/* Locked with the header card while the CV section above is reading;
+          never while this card is the importer's own host. */}
+      <div className={clsx(importLockWrapClass, { [importLockClass]: experienceLocked })} inert={experienceLocked}>
+        <DetailsSection
+          editView={editingExperience || editingImport}
+          classes={
+            editingExperience || editingImport
+              ? { root: c.root, editView: `${c.editView} ${d.editCard}` }
+              : { root: fd.cardEdge }
+          }
+        >
+          {editingImport && importHost === 'experience' ? (
+            /* The import owns the card the same way an editor does. Which half
                shows depends on whether anything has been read yet — the panel
                is the doors and the drop area, the review is what came back.
                Reached two ways: from the Add form's "fill from a document" line
                (nothing read, so the panel), and from the inline doors below
                (something read, so the review). */
-          parsed ? (
-            <ExperienceImportReview
-              parsed={parsed}
-              /* See the note on the card at the top of the drawer: signed in,
+            parsed ? (
+              <ExperienceImportReview
+                parsed={parsed}
+                /* See the note on the card at the top of the drawer: signed in,
                    so neither is asked for. */
-              currentName={VIEWER_NAME}
-              currentEmail={VIEWER_EMAIL}
-              currentRole={draft.role}
-              currentLocation={draft.location}
-              currentSkills={draft.skills}
-              /* So a second import of the same CV doesn't append the same
+                currentName={VIEWER_NAME}
+                currentEmail={VIEWER_EMAIL}
+                currentRole={draft.role}
+                currentLocation={draft.location}
+                currentSkills={draft.skills}
+                /* So a second import of the same CV doesn't append the same
                    history twice — the rows already here arrive unticked and
                    say why. */
-              currentExperiences={draft.experiences}
-              /* The list's own formatter, so a found row reads exactly the way
+                currentExperiences={draft.experiences}
+                /* The list's own formatter, so a found row reads exactly the way
                    the rows it is about to join read. */
-              formatDates={formatExperienceDates}
-              bodyClassName={d.formBody}
-              onClose={closeImport}
-              onSubmit={applyImport}
-            />
-          ) : (
-            <>
-              {/* Leaving the importer is the *card's* action, so it goes in
+                formatDates={formatExperienceDates}
+                bodyClassName={d.formBody}
+                onClose={closeImport}
+                onSubmit={applyImport}
+              />
+            ) : (
+              <>
+                {/* Leaving the importer is the *card's* action, so it goes in
                     the header's right-hand slot — where Add, Edit and the Github
                     link go on every other section — rather than under the title
                     as a stray line. Without it this route was a dead end: the
                     panel's own "← Back" only steps back to the doors, and the
                     drawer's footer is disabled while any section is open, so the
                     only way out was closing the whole drawer. */}
-              <DetailsSectionHeader title="Add experience from a document">
-                <button type="button" className={d.headerCancel} onClick={closeImport}>
-                  Cancel
-                </button>
-              </DetailsSectionHeader>
-              {/* `direct`, like the card at the top. This route is reached by
+                <DetailsSectionHeader title="Add experience from a document">
+                  <button type="button" className={d.headerCancel} onClick={closeImport}>
+                    Cancel
+                  </button>
+                </DetailsSectionHeader>
+                {/* `direct`, like the card at the top. This route is reached by
                     pressing a control that already says "Update from CV", so a
                     landing screen offering an "Upload your CV" button was a
                     button revealing a button — the same redundancy the top card
                     was built to avoid, left behind on the other route. */}
-              <ExperienceImportPanel
-                entry="direct"
-                initialFile={pickedFile}
-                privacyNote="Kept on your profile and sent with your applications. You can replace or remove it any time."
-                onFileRead={keepFile}
-                onParsed={openImportReview}
-                onAddManually={() => setEditing({ kind: 'experience', uid: null })}
-                // DELETE WITH: the `design-canvas/` folder.
-                canvasOpen={canvasImport?.panel?.open}
-                canvasStatus={canvasImport?.panel?.status}
-                canvasFileName={canvasImport?.panel?.fileName}
-              />
-            </>
-          )
-        ) : editingExperience ? (
-          <ExperienceForm
-            initial={experienceBeingEdited}
-            onClose={() => setEditing(null)}
-            onSubmit={saveExperience}
-            onDelete={deleteExperience}
-          />
-        ) : (
-          <>
-            {/* No `missingBody` here any more. It was left behind from when
+                <ExperienceImportPanel
+                  entry="direct"
+                  initialFile={pickedFile}
+                  privacyNote="Kept on your profile and sent with your applications. You can replace or remove it any time."
+                  onFileRead={keepFile}
+                  onStatusChange={setImportStatus}
+                  onParsed={openImportReview}
+                  onAddManually={() => setEditing({ kind: 'experience', uid: null })}
+                  // DELETE WITH: the `design-canvas/` folder.
+                  canvasOpen={canvasImport?.panel?.open}
+                  canvasStatus={canvasImport?.panel?.status}
+                  canvasFileName={canvasImport?.panel?.fileName}
+                />
+              </>
+            )
+          ) : editingExperience ? (
+            <ExperienceForm
+              initial={experienceBeingEdited}
+              onClose={() => setEditing(null)}
+              onSubmit={saveExperience}
+              onDelete={deleteExperience}
+            />
+          ) : (
+            <>
+              {/* No `missingBody` here any more. It was left behind from when
                   Experience was the gate, and it tinted this card whenever
                   *anything* on the profile was missing — so an unanswered job
                   search status made the Experience card look like the thing
                   standing in the way. A card marks itself, or it misdirects. */}
-            <DetailsSectionHeader
-              title={`Experience ${draft.experiences.length ? `(${draft.experiences.length})` : ''}`}
-            >
-              {/* Two controls in the header slot, which `Repositories` below
+              <DetailsSectionHeader
+                title={`Experience ${draft.experiences.length ? `(${draft.experiences.length})` : ''}`}
+              >
+                {/* Two controls in the header slot, which `Repositories` below
                     already does — so the pattern is the section's, not an
                     invention. Its wrapper was called `repoHeaderActions` when
                     Repositories was the only section that needed one; it is
@@ -1152,75 +1198,82 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                     "Update from CV", not "Upload your CV". The empty state's
                     pill is a first move; this is a refresh of something that
                     already exists, and the verb is the difference. */}
-              <div className={d.headerActions}>
-                {/* Off while the CV section is drawn — Replace there is this
+                <div className={d.headerActions}>
+                  {/* Off while the CV section is drawn — Replace there is this
                     control's job, and one mechanism gets one door. */}
-                {canEdit && draft.experiences.length > 0 && !showCvSection && (
-                  <>
-                    {/* Straight to the file dialog. Pressing a control that
+                  {canEdit && !experienceLocked && draft.experiences.length > 0 && !showCvSection && (
+                    <>
+                      {/* Straight to the file dialog. Pressing a control that
                           says "Update from CV" and landing on a card asking you
                           to choose a file is the press not being taken at its
                           word — the card behind it still appears, so a cancelled
                           dialog leaves you on the drop area rather than nowhere. */}
-                    <button type="button" className={d.headerImport} onClick={() => headerFileInput.current?.click()}>
-                      Update from CV
-                    </button>
-                    <input
-                      ref={headerFileInput}
-                      type="file"
-                      className={d.visuallyHidden}
-                      accept=".pdf,.doc,.docx"
-                      onChange={(ev) => {
-                        const chosen = ev.target.files?.[0] ?? null;
-                        /* Cleared so picking the same file twice still fires a
+                      <button type="button" className={d.headerImport} onClick={() => headerFileInput.current?.click()}>
+                        Update from CV
+                      </button>
+                      <input
+                        ref={headerFileInput}
+                        type="file"
+                        className={d.visuallyHidden}
+                        accept=".pdf,.doc,.docx"
+                        onChange={(ev) => {
+                          const chosen = ev.target.files?.[0] ?? null;
+                          /* Cleared so picking the same file twice still fires a
                              change event. */
-                        ev.target.value = '';
-                        if (!chosen) return;
-                        setPickedFile(chosen);
-                        setEditing({ kind: 'import', host: 'experience' });
-                      }}
-                    />
-                  </>
-                )}
-                {canEdit && <AddButton onClick={() => setEditing({ kind: 'experience', uid: null })} />}
-              </div>
-            </DetailsSectionHeader>
-            {draft.experiences.length === 0 && canEdit && !showCvSection ? (
-              /* The offer, standing in the empty row rather than above it.
+                          ev.target.value = '';
+                          if (!chosen) return;
+                          setPickedFile(chosen);
+                          setEditing({ kind: 'import', host: 'experience' });
+                        }}
+                      />
+                    </>
+                  )}
+                  {canEdit &&
+                    (experienceLocked ? (
+                      <ImportLockNote status={importStatus} reviewing={reviewingFromCv} />
+                    ) : (
+                      <AddButton onClick={() => setEditing({ kind: 'experience', uid: null })} />
+                    ))}
+                </div>
+              </DetailsSectionHeader>
+              {draft.experiences.length === 0 && canEdit && !showCvSection ? (
+                /* The offer, standing in the empty row rather than above it.
                    Production drew a `.connectButton` slot inside `.emptyData`
                    for exactly this and never wired one up; this is that slot.
                    It shows only while the section is empty — an import offer
                    over a history someone has already written is nagging, and
                    the same doors stay reachable from the Add form. */
-              <div className={e.root}>
-                <ExperienceImportPanel
-                  emptyLabel="Share your work history and skills. This shows what you know and what you can do."
-                  /* The same promise the CV section makes — the file is kept
+                <div className={e.root}>
+                  <ExperienceImportPanel
+                    emptyLabel="Share your work history and skills. This shows what you know and what you can do."
+                    /* The same promise the CV section makes — the file is kept
                      wherever it was dropped. */
-                  privacyNote="Kept on your profile and sent with your applications. You can replace or remove it any time."
-                  onFileRead={keepFile}
-                  onParsed={(result) => {
-                    setParsed(result);
-                    setEditing({ kind: 'import', host: 'experience' });
-                  }}
-                  onAddManually={() => setEditing({ kind: 'experience', uid: null })}
-                  /* DELETE WITH: the `design-canvas/` folder. The canvas pins the
+                    privacyNote="Kept on your profile and sent with your applications. You can replace or remove it any time."
+                    onFileRead={keepFile}
+                    onStatusChange={setImportStatus}
+                    onParsed={(result) => {
+                      setParsed(result);
+                      setEditing({ kind: 'import', host: 'experience' });
+                    }}
+                    onAddManually={() => setEditing({ kind: 'experience', uid: null })}
+                    /* DELETE WITH: the `design-canvas/` folder. The canvas pins the
                        panel's beats HERE, in the inline host, because this is the
                        one a person reaches from an empty Experience section. */
-                  canvasOpen={canvasImport?.panel?.open}
-                  canvasStatus={canvasImport?.panel?.status}
-                  canvasFileName={canvasImport?.panel?.fileName}
+                    canvasOpen={canvasImport?.panel?.open}
+                    canvasStatus={canvasImport?.panel?.status}
+                    canvasFileName={canvasImport?.panel?.fileName}
+                  />
+                </div>
+              ) : (
+                <ExperienceList
+                  entries={draft.experiences}
+                  onEdit={canEdit ? (uid) => setEditing({ kind: 'experience', uid }) : undefined}
                 />
-              </div>
-            ) : (
-              <ExperienceList
-                entries={draft.experiences}
-                onEdit={canEdit ? (uid) => setEditing({ kind: 'experience', uid }) : undefined}
-              />
-            )}
-          </>
-        )}
-      </DetailsSection>
+              )}
+            </>
+          )}
+        </DetailsSection>
+      </div>
 
       {/* 4. Project Contributions. Optional — nothing here touches
                `isProfileComplete` — and kept, unlike Teams, because it answers a
@@ -1390,7 +1443,16 @@ function ContactCard({ profile }: { profile: MemberProfile }) {
   );
 }
 
-function ProfileHeaderCard({ profile, onEdit }: { profile: MemberProfile; onEdit?: () => void }) {
+function ProfileHeaderCard({
+  profile,
+  onEdit,
+  lockNote,
+}: {
+  profile: MemberProfile;
+  onEdit?: () => void;
+  /** Stands in Edit's slot while the CV is being read — see `ImportLock`. */
+  lockNote?: ReactNode;
+}) {
   const skillTags = useMemo(() => profile.skills.map((title) => ({ title })), [profile.skills]);
   /* Production's own emptiness test (`ProfileDetails` L34): an empty rich-text
      field is not an empty string, it is Quill's "<p><br></p>". Without the
@@ -1450,7 +1512,7 @@ function ProfileHeaderCard({ profile, onEdit }: { profile: MemberProfile; onEdit
             </div>
           </div>
 
-          <div>{onEdit && <EditButton onClick={onEdit} />}</div>
+          <div>{lockNote ?? (onEdit && <EditButton onClick={onEdit} />)}</div>
         </div>
 
         {/* The whole pill row goes when the profile is locked. `hidden` was the

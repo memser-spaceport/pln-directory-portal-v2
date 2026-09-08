@@ -7,7 +7,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Drawer } from '@/components/common/Drawer';
 import { Button } from '@/components/common/Button';
 import { toast } from '@/components/core/ToastContainer';
-import { UnsavedChangesPrompt } from '@/components/core/UnsavedChangesPrompt';
 import {
   UnsavedEditsProvider,
   blockIfUnsaved,
@@ -64,10 +63,9 @@ import d from './JobProfileDrawer.module.scss';
  * `closeOnOverlayClick={false}`, so a stray click on a long form cannot throw it
  * away. This line used to claim the overlay closed it too, which it never did.)
  *
- * That principle is why leaving with a half-edited section gets the discard
- * prompt rather than the in-flow "save your changes" popup: the popup offers no
- * way past, and one typed character would otherwise be enough to hold someone
- * here.
+ * Leaving with a half-edited section is held, though — the same "verify and
+ * save" popup every other way out of the step gets, rather than a second
+ * grammar invented for this press. The way past is the form's own Cancel.
  */
 
 /** What the flow's footer needs to know about a profile it cannot see. */
@@ -448,19 +446,11 @@ export function JobProfileDrawer({
      in the pane and the button that leaves them is in the footer. `Save and
      close` over a half-edited section loses it exactly as silently here. */
   const unsavedEdits = useUnsavedEditsRegistry();
-  const [confirmDiscard, setConfirmDiscard] = React.useState(false);
 
-  /** Back and Escape both land here — leaving, rather than moving on. */
+  /** Back and Escape both land here, and are held like every other way out —
+   *  see `closeFlow` in the flow drawer for why this is not a discard modal. */
   const requestClose = () => {
-    if (unsavedEdits.firstDirty()) {
-      setConfirmDiscard(true);
-      return;
-    }
-    onClose();
-  };
-
-  const discardAndClose = () => {
-    setConfirmDiscard(false);
+    if (blockIfUnsaved(unsavedEdits)) return;
     onClose();
   };
 
@@ -511,11 +501,6 @@ export function JobProfileDrawer({
           </div>
         </div>
       </Drawer>
-      <UnsavedChangesPrompt
-        show={confirmDiscard}
-        onConfirm={discardAndClose}
-        onCancel={() => setConfirmDiscard(false)}
-      />
     </UnsavedEditsProvider>
   );
 }

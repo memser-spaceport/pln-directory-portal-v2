@@ -256,31 +256,36 @@ describe('leaving the details step with unsaved section edits', () => {
   });
 
   /**
-   * The exit that is NOT a move between steps.
+   * Closing — the X, and Escape.
    *
-   * The drawer is deliberately escapable — "someone who pressed Apply and
-   * changed their mind about the role is not someone to hold" — so leaving gets
-   * a prompt with a way out, never the popup, which offers none.
+   * Held exactly like `Back to the job`, and deliberately not with a modal of
+   * its own. One screen answering "you have unsaved work" in two grammars, for
+   * two controls an inch apart, is two things to learn where the situation is
+   * identical. (The modal that briefly stood here also rendered *under* the
+   * drawer — both are `z-index: 10`.)
    */
   describe('closing the drawer', () => {
-    it('asks before discarding, rather than closing or holding', () => {
+    it('is held the same way Back is, not with a modal of its own', () => {
       renderProfileStep();
       dirty('Section A');
 
       fireEvent.click(screen.getByRole('button', { name: 'simulate-escape' }));
 
       expect(onClose).not.toHaveBeenCalled();
-      expect(screen.getByText(/discard changes\?/i)).toBeInTheDocument();
-      // Not the in-flow message: this exit has an escape and that one does not.
-      expect(popup()).not.toBeInTheDocument();
+      expect(popup()).toBeInTheDocument();
+      expect(screen.queryByText(/discard changes\?/i)).not.toBeInTheDocument();
     });
 
-    it('lets you out in one press once asked', () => {
+    /* The way out is the one the form already had. Nothing new was invented for
+       this press, and nothing holds anybody here permanently. */
+    it('lets you out once the section is cancelled', () => {
       renderProfileStep();
       dirty('Section A');
       fireEvent.click(screen.getByRole('button', { name: 'simulate-escape' }));
+      expect(onClose).not.toHaveBeenCalled();
 
-      fireEvent.click(screen.getByRole('button', { name: /discard changes/i }));
+      fireEvent.click(screen.getAllByRole('button', { name: 'Cancel' })[0]);
+      fireEvent.click(screen.getByRole('button', { name: 'simulate-escape' }));
 
       expect(onClose).toHaveBeenCalled();
     });
@@ -291,7 +296,7 @@ describe('leaving the details step with unsaved section edits', () => {
       fireEvent.click(screen.getByRole('button', { name: 'simulate-escape' }));
 
       expect(onClose).toHaveBeenCalled();
-      expect(screen.queryByText(/discard changes\?/i)).not.toBeInTheDocument();
+      expect(popup()).not.toBeInTheDocument();
     });
   });
 

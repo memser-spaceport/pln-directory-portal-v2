@@ -24,7 +24,6 @@ import {
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 import type { BoardViewerState } from '@/services/jobs/job-board-viewer';
 
-import { UnsavedChangesPrompt } from '@/components/core/UnsavedChangesPrompt';
 import {
   UnsavedEditsProvider,
   blockIfUnsaved,
@@ -494,9 +493,6 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
    */
   const unsavedEdits = useUnsavedEditsRegistry();
 
-  /** Escape pressed over a half-written section. See `closeFlow`. */
-  const [confirmDiscard, setConfirmDiscard] = useState(false);
-
   /**
    * Every move between steps, and the one place the unsaved guard has to sit.
    *
@@ -546,27 +542,24 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   })();
 
   /**
-   * Leaving altogether, which is a different ask from moving between steps.
+   * Closing the flow — the X, Escape, and Back from the first step.
    *
-   * The in-flow moves get held on the step, because the person is still in the
-   * flow they chose. This one is somebody going, and the drawer is deliberately
-   * escapable — "someone who pressed Apply and changed their mind about the role
-   * is not someone to hold". A popup with no discard path would make one typed
-   * character enough to hold them, so leaving gets a prompt that lets them out
-   * in a single press while still not losing the work silently.
+   * **The same answer as every other way out.** This briefly had its own: a
+   * "Discard changes?" modal, on the argument that somebody leaving should not
+   * be held by a popup that offers no way past. Two things sank it. It rendered
+   * *underneath* the drawer — `UnsavedChangesPrompt`'s overlay and `Drawer` are
+   * both `z-index: 10`, so the question arrived half-covered. And more to the
+   * point, one screen answering "you have unsaved work" in two different
+   * grammars — a popup by the Save for Back, a modal for the X an inch away —
+   * is two things to learn where the situation is identical.
+   *
+   * So closing is held exactly like `Back to the job`: refused, scrolled to,
+   * pointed at. The way out is the form's own Cancel, which is on screen and is
+   * where "throw this away" has always lived — rather than a second discard
+   * control invented for this one press.
    */
   const closeFlow = () => {
-    if (unsavedEdits.firstDirty()) {
-      setConfirmDiscard(true);
-      return;
-    }
-    leaveProfileStep();
-    onClose();
-  };
-
-  /** Confirmed at the prompt: the edits go, and so does the drawer. */
-  const discardAndClose = () => {
-    setConfirmDiscard(false);
+    if (blockIfUnsaved(unsavedEdits)) return;
     leaveProfileStep();
     onClose();
   };
@@ -1199,14 +1192,6 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
           </div>
         </FormProvider>
       </Drawer>
-      {/* Outside the drawer, because it is the answer to a press that wanted the
-          drawer gone. Only reachable with something dirty behind it — see
-          `closeFlow`. */}
-      <UnsavedChangesPrompt
-        show={confirmDiscard}
-        onConfirm={discardAndClose}
-        onCancel={() => setConfirmDiscard(false)}
-      />
     </UnsavedEditsProvider>
   );
 }

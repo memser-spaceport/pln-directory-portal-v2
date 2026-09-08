@@ -5,7 +5,6 @@ import Image from 'next/image';
 import s from './AppSearchDesktop.module.scss';
 import { useQueryClient } from '@tanstack/react-query';
 import { SearchQueryKeys } from '@/services/search/constants';
-import { TryToSearch } from '@/components/core/application-search/components/TryToSearch';
 import { RecentSearch } from '@/components/core/application-search/components/RecentSearch';
 import { ContentLoader } from '@/components/core/application-search/components/ContentLoader';
 import { NothingFound } from '@/components/core/application-search/components/NothingFound';
@@ -135,7 +134,6 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
     if (!searchTerm) {
       return (
         <>
-          <TryToSearch onSelect={handleChange} />
           {isLoggedIn && <RecentSearch onSelect={handleChange} />}
           {isLoggedIn && <AiConversationHistory onClick={handleFullSearchClose} isLoggedIn={isLoggedIn} />}
         </>

@@ -22,25 +22,35 @@ jest.mock('next/navigation', () => ({
 
 import { UnsavedEditsPageGuard } from '@/components/common/profile/UnsavedEdits';
 import { EditFormControls } from '@/components/common/profile/EditFormControls';
+import { EditOfficeHoursFormControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursFormControls';
 
-/** A section that opens on a press, like the real ones. */
-const Section = () => {
+/**
+ * A section that opens on a press, like the real ones.
+ *
+ * `header` picks between the app's two interchangeable controls components. Both
+ * have to register — a form chooses between them by variant, and covering only
+ * one is how the apply drawer came to guard Profile Details while ignoring
+ * Contact Details on the same screen. The team profile leans on the same pair.
+ */
+const Section = ({ label = 'section', header = 'plain' }: { label?: string; header?: 'plain' | 'officeHours' }) => {
   const [open, setOpen] = React.useState(false);
   const methods = useForm({ defaultValues: { value: '' } });
 
   if (!open) {
     return (
       <button type="button" onClick={() => setOpen(true)}>
-        Edit section
+        Edit {label}
       </button>
     );
   }
 
+  const Controls = header === 'officeHours' ? EditOfficeHoursFormControls : EditFormControls;
+
   return (
     <FormProvider {...methods}>
       <form onSubmit={methods.handleSubmit(() => {})}>
-        <EditFormControls onClose={() => methods.reset()} title="Edit Profile Details" />
-        <input aria-label="field" {...methods.register('value')} />
+        <Controls onClose={() => methods.reset()} title={`Edit ${label}`} />
+        <input aria-label={`${label} field`} {...methods.register('value')} />
       </form>
     </FormProvider>
   );
@@ -59,12 +69,13 @@ const renderPage = () =>
       <a href="https://example.com/elsewhere">Off-site</a>
       <a href="#bio">Same page, different hash</a>
       <Section />
+      <Section label="office-hours section" header="officeHours" />
     </UnsavedEditsPageGuard>,
   );
 
-const dirty = () => {
-  fireEvent.click(screen.getByRole('button', { name: 'Edit section' }));
-  fireEvent.change(screen.getByLabelText('field'), { target: { value: 'typed' } });
+const dirty = (label = 'section') => {
+  fireEvent.click(screen.getByRole('button', { name: `Edit ${label}` }));
+  fireEvent.change(screen.getByLabelText(`${label} field`), { target: { value: 'typed' } });
 };
 
 const prompt = () => screen.queryByText(/discard changes\?/i);
@@ -111,7 +122,7 @@ describe('leaving the member profile with unsaved sections', () => {
 
     expect(prompt()).not.toBeInTheDocument();
     expect(push).not.toHaveBeenCalled();
-    expect(screen.getByLabelText('field')).toHaveValue('typed');
+    expect(screen.getByLabelText('section field')).toHaveValue('typed');
   });
 
   /* Not leaving the page, so not a question worth asking. An in-page anchor
@@ -145,6 +156,20 @@ describe('leaving the member profile with unsaved sections', () => {
     fireEvent.click(screen.getByRole('link', { name: 'Directory' }), { metaKey: true });
 
     expect(prompt()).not.toBeInTheDocument();
+  });
+
+  /* The other controls component. Both are in use on the profile pages this
+     guards — the team profile's pitch-deck and video sections are built from
+     this one — and only one of them registering is a bug this codebase has
+     already had once. */
+  it('asks for a section built from the office-hours controls too', () => {
+    renderPage();
+    dirty('office-hours section');
+
+    fireEvent.click(screen.getByRole('link', { name: 'Directory' }));
+
+    expect(prompt()).toBeInTheDocument();
+    expect(push).not.toHaveBeenCalled();
   });
 
   describe('closing the tab', () => {

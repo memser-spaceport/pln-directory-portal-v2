@@ -309,6 +309,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
         teamName={teamName}
         source={source}
         jobReferEmail={team?.jobReferEmail}
+        teamLogoUrl={team?.logoUrl}
       />
     </>
   );

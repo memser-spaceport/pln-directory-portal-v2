@@ -93,16 +93,48 @@ export const LEAD_TEAM_UID = 'filecoin-foundation';
  * `'all'` for an admin, a uid list for a lead, empty for everyone else. A
  * function of the viewer alone, so the board, the card, the row and the drawer
  * all ask one question and cannot disagree about who is allowed to press what.
+ *
+ * `leadTeamUid` is which team the `team-lead` viewer leads. Filecoin Foundation
+ * by default (see `LEAD_TEAM_UID`); a lead arriving from *their own* team's
+ * profile — see `submitJobHref` — leads that team instead, so the form they
+ * land in names the team they just left.
  */
-export function managedTeamUids(viewer: BoardViewer): 'all' | string[] {
+export function managedTeamUids(viewer: BoardViewer, leadTeamUid: string = LEAD_TEAM_UID): 'all' | string[] {
   if (viewer === 'directory-admin') return 'all';
-  if (viewer === 'team-lead') return [LEAD_TEAM_UID];
+  if (viewer === 'team-lead') return [leadTeamUid];
   return [];
 }
 
-export function canManageTeam(viewer: BoardViewer, teamUid: string): boolean {
-  const managed = managedTeamUids(viewer);
+export function canManageTeam(viewer: BoardViewer, teamUid: string, leadTeamUid: string = LEAD_TEAM_UID): boolean {
+  const managed = managedTeamUids(viewer, leadTeamUid);
   return managed === 'all' || managed.includes(teamUid);
+}
+
+/**
+ * `?submit=<teamUid>` — open the board with the Submit a job form already up,
+ * for that team.
+ *
+ * **The second door.** The board's own door is the toolbar button, modelled on
+ * Submit a Deal. But a lead's home in this product is their team's profile —
+ * that is where they edit the team, post its news and file its Asks — and a
+ * lead who wants to hire goes there first, not to a board that lists every
+ * team's roles. So the team profile's Open roles section carries a button
+ * that leads *here*: one form, reached from two places, rather than a second
+ * form on the profile. (Wellfound puts "Post a job" on the company profile's
+ * own recruiting card; Braintrust's home lists the owner's open jobs with
+ * Create beside them — the owner's surface is where the door lives.)
+ *
+ * The team travels in the URL because the form has to name it: a lead's form
+ * says "Posted as <team>" and never asks, and an admin's opens on that team
+ * rather than on a select they then have to find it in.
+ *
+ * `viewer=team-lead` is prototype scaffolding — production has one signed-in
+ * account, and this parameter would only need to say which team.
+ */
+export const SUBMIT_PARAM = 'submit';
+
+export function submitJobHref(teamUid: string): string {
+  return `/prototypes/job-board?viewer=team-lead&${SUBMIT_PARAM}=${encodeURIComponent(teamUid)}`;
 }
 
 /** Whether the toolbar offers **Submit a job** at all — the same people who manage listings. */

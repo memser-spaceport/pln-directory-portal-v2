@@ -129,7 +129,7 @@ interface JobApplyFlowDrawerProps {
    *
    * The drawer is then the listing, not an application: no rail, because there
    * is no journey to walk, and the footer's one slot holds the same switch the
-   * Manage listings row carries — `Mark inactive` on a live listing, `Bring
+   * row's ⋯ menu carries — `Mark inactive` on a live listing, `Bring
    * back` on an inactive one, and an `In review` report (the row's own
    * "Applied" shape) on one the PL team has not looked at yet. Pressing it
    * flips the listing in place and leaves the drawer open: the masthead pill

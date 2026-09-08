@@ -29,6 +29,11 @@ export interface RecipientOption {
   image?: string | null;
   /** True for an address typed into the field rather than picked from the network. */
   isEmail?: boolean;
+  /** The hiring team addressed as a group, rather than anyone in it — the row for a
+   *  referrer who knows nobody there. It is an audience, so it is the one option that
+   *  is not 1:1 with an address: `toReferralRecipients` resolves it at send time.
+   *  See `toTeamRecipientOption`. */
+  isTeam?: boolean;
   /** Leads the hiring team. Suggested first in the picker's menu; shown as a chip mark. */
   isTeamLead?: boolean;
   /** Set by react-select's Creatable on the "Add ‹address›" row, before it's chosen. */

@@ -2,7 +2,8 @@ import { useState, type FocusEvent, type InputHTMLAttributes } from 'react';
 import clsx from 'clsx';
 import type { GroupBase, InputProps } from 'react-select';
 
-import { PlusIcon } from '@/components/icons';
+// The bare plus, not the DS circled one — see the icon's own note for the lineage.
+import { PlusIcon } from '../../../../../../icons';
 
 import { RecipientOption } from '../../../../types';
 
@@ -109,8 +110,10 @@ export function RecipientInput(props: InputProps<RecipientOption, true, GroupBas
         <button type="button" className={s.addButton} tabIndex={-1}>
           {/* The plus rides in the avatar's 24px slot, so the row lines up with the
               people above it and reads as the list's last entry rather than a
-              control parked under it. Production's own leading-glyph text control
-              (`MobileFilterButton`, "＋ Filters") is the same icon in the same job. */}
+              control parked under it. The bare glyph from this entry's `icons.tsx`,
+              which is what production puts inside a field (`FormTagsInput` and its
+              three siblings) — the DS `PlusIcon` is circled and belongs to the
+              mobile "＋ Filters" button, the one control that is a plus on its own. */}
           <span className={s.addGlyph}>
             <PlusIcon width={16} height={16} />
           </span>

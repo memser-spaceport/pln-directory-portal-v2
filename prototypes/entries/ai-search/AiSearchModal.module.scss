@@ -1,0 +1,135 @@
+// Additions to the shared search-dialog chrome (nav-shared/PrototypeSearchModal
+// .module.scss, imported alongside this). Only the parts that are new here:
+// the Ask Husky row, the suggested-prompt rows, the zero-results line and the
+// shortcut footer. Row geometry comes from production's RecentSearch /
+// TryToSearch stylesheets so the new rows sit in the same list as the old.
+
+@use 'styles/media';
+
+/* Resets a production row class (`RecentSearch .searchItem`, a <li>) for use
+   on a <button>. */
+.rowButton {
+  width: 100%;
+  border: 0;
+  font: inherit;
+  gap: 8px;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.rowIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+/* Suggested-prompt glyph: the per-type Husky icon, cropped round like the
+   answer's directory cards draw it. */
+.promptIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.promptButton {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: 0;
+  font: inherit;
+  gap: 8px;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+/* Doubled so it beats production's media-query `top: 40px` at equal
+   specificity regardless of stylesheet order (same trick as the sibling's
+   `.overlay.overlay`). */
+.stickyTop.stickyTop {
+  top: 0;
+  background: #fff;
+}
+
+/* The answer state replaces `shell.body`: same flex slot, but the scroll
+   region lives inside AnswerPanel so its input can be a real footer. */
+.answerBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Lines the scope hint up with the Recent / Try asking labels (16px inside
+   the body), instead of 16px short of them. */
+.hintInset {
+  padding: 0 16px;
+}
+
+/* "No results for …" — the fact, in the list's own label style, above the
+   one row that answers it. */
+.noResults {
+  padding: 8px 16px 0;
+}
+
+.askArrow {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  line-height: 0;
+}
+
+/* The Ask Husky band: a real flex child under the scrolling body, so it is
+   in view at every scroll position. Same 16px inset as the list rows. */
+.askBar {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+}
+
+/* RecentSearch's `.root` carries 12px top margin + 8/16 padding for its place
+   in a list; inside the band those are the band's job. Doubled to beat the
+   production `.root` at equal specificity regardless of sheet order. */
+.askRowHost.askRowHost {
+  margin-top: 0;
+  padding: 0;
+}
+
+/* Shortcut hint. Desktop only — the keys don't exist on a phone. */
+.footer {
+  display: none;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
+}
+
+.footerItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Same key-cap production's chat input draws for "Shift + Enter". */
+.kbd {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-secondary, #455468);
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 14px;
+}

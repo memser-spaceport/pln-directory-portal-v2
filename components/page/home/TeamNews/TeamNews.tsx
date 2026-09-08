@@ -108,6 +108,11 @@ interface TeamNewsProps {
   popularItems?: ITeamNewsPopularItem[];
   pageSize?: number;
   initialDigestSettings?: ForumDigestSettings | null;
+  /** Story named by ?news=<uid> that the feed window does not cover, resolved
+   *  server-side by uid. Feeds the detail modal only — never the rendered feed,
+   *  which must stay the 14-day corpus. Null when there is no deep link, or
+   *  when the story is already in `groups`. */
+  deepLinkedItem?: ITeamNewsItem | null;
 }
 
 export const TeamNews = ({
@@ -117,6 +122,7 @@ export const TeamNews = ({
   popularItems = [],
   pageSize = 6,
   initialDigestSettings = null,
+  deepLinkedItem = null,
 }: TeamNewsProps) => {
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [initialForYouTeamUids] = useState<ReadonlySet<string>>(() => new Set(forYouTeamUids));
@@ -169,6 +175,15 @@ export const TeamNews = ({
         viewedUids,
       ),
     [groups, allTabExtraItems, upvoteOverlay, viewedUids],
+  );
+
+  // Same overlay pipeline as allItems: without it an optimistic Like taken in
+  // the modal would leave the count frozen, since this item is not in the array
+  // those overlays are applied to.
+  const deepLinkedNewsItem = useMemo(
+    () =>
+      deepLinkedItem ? applyViewOverlay(applyUpvoteOverlay([deepLinkedItem], upvoteOverlay), viewedUids)[0] : null,
+    [deepLinkedItem, upvoteOverlay, viewedUids],
   );
 
   // Derived from `groups` (not allItems) so its identity never churns with the
@@ -446,14 +461,20 @@ export const TeamNews = ({
   // ?news=<uid> ↔ detail-modal sync (declared after the allItems memo — the
   // validator closes over it). All URL writes are history.replaceState; see
   // the hook for why router.replace is the wrong tool here.
-  const isValidNewsUid = useCallback((uid: string) => allItems.some((i) => i.uid === uid), [allItems]);
+  const isValidNewsUid = useCallback(
+    (uid: string) => allItems.some((i) => i.uid === uid) || deepLinkedNewsItem?.uid === uid,
+    [allItems, deepLinkedNewsItem],
+  );
   const { activeNewsUid, openNews, closeNews, openedViaDeepLink } = useNewsDeepLink({ isValidUid: isValidNewsUid });
 
   // Resolved fresh each render from overlay-merged allItems so the modal's Like
   // count can never disagree with the rows; null lookup (an item expired away)
   // renders nothing rather than a stale copy. Guarded — closed-modal renders
   // skip the scan; deliberately not memoized (O(hundreds), single-digit µs).
-  const activeNewsItem = activeNewsUid ? (allItems.find((i) => i.uid === activeNewsUid) ?? null) : null;
+  const activeNewsItem = activeNewsUid
+    ? (allItems.find((i) => i.uid === activeNewsUid) ??
+      (deepLinkedNewsItem?.uid === activeNewsUid ? deepLinkedNewsItem : null))
+    : null;
 
   // Deep-link opens have no click to ride on — report them once. Ref-guarded
   // effect with no dependency array, per this file's latest-ref idiom.

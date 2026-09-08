@@ -20,7 +20,12 @@ import { Welcome } from '@/components/page/home/Welcome';
 import { DigestEmailHomeLinkCapture } from '@/components/page/home/DigestEmailHomeLinkCapture';
 import { QuickActions } from '@/components/page/home/QuickActions';
 import { TeamNews, AutoMarkNewsNotification, MarkHomeVisited } from '@/components/page/home/TeamNews';
-import { getTeamNewsGroupedByFocusArea, getTeamNewsPopular } from '@/services/team-news/team-news.service';
+import {
+  getTeamNewsGroupedByFocusArea,
+  getTeamNewsItemByUid,
+  getTeamNewsPopular,
+} from '@/services/team-news/team-news.service';
+import { getNewsPreviewSnippet } from '@/services/team-news/newsPreviewSnippet';
 import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import type { MyAccessResponse } from '@/services/access-control/access-control.service';
@@ -30,7 +35,12 @@ import {
   codesFromCookiePermissions,
 } from '@/components/page/home/QuickActions/utils/resolveQuickActionsState';
 
-export default async function Home() {
+type HomeProps = {
+  searchParams: Promise<{ news?: string }>;
+};
+
+export default async function Home(props: HomeProps) {
+  const { news } = await props.searchParams;
   const {
     isLoggedIn,
     isError,
@@ -44,7 +54,8 @@ export default async function Home() {
     quickActionsState,
     quickActionsOhResolved,
     teamsCount,
-  } = await getPageData();
+    deepLinkedNewsItem,
+  } = await getPageData(news);
 
   if (isError) {
     return <Error />;
@@ -68,6 +79,7 @@ export default async function Home() {
               forYouTeamUids={teamNewsForYouTeamUids}
               popularItems={popularItems}
               initialDigestSettings={initialDigestSettings}
+              deepLinkedItem={deepLinkedNewsItem}
             />
           </div>
           <div className={styles.home__cn__focusarea}>
@@ -84,7 +96,7 @@ export default async function Home() {
   );
 }
 
-const getPageData = async () => {
+const getPageData = async (deepLinkedNewsUid?: string) => {
   const { isLoggedIn, userInfo, authToken } = await getCookiesFromHeaders();
   let isError = false;
   let featuredData = [] as any;
@@ -96,6 +108,7 @@ const getPageData = async () => {
   let teamNewsForYouTeamUids: string[] = [];
   let popularItems: ITeamNewsPopularItem[] = [];
   let initialDigestSettings: ForumDigestSettings | null = null;
+  let deepLinkedNewsItem: ITeamNewsItem | null = null;
 
   let teamsCount = 0;
 
@@ -135,6 +148,14 @@ const getPageData = async () => {
           .catch(() => null)
       : Promise.resolve(null);
 
+  // The feed only reaches back TEAM_NEWS_DEFAULT_WINDOW_DAYS and drops teams with
+  // no focus area, so a shared ?news= link can name a story `groups` will never
+  // contain. Resolved here by uid and handed to TeamNews as a lookup-only
+  // fallback, so the modal opens instead of the param being stripped.
+  const deepLinkedNewsPromise: Promise<ITeamNewsItem | null> = deepLinkedNewsUid
+    ? getTeamNewsItemByUid(deepLinkedNewsUid)
+    : Promise.resolve(null);
+
   const teamsCountPromise = isLoggedIn ? Promise.resolve(null) : getTeamList('', 1, 1).catch(() => null);
 
   try {
@@ -148,6 +169,7 @@ const getPageData = async () => {
       digestSettingsResponse,
       myAccessResponse,
       teamsCountResponse,
+      deepLinkedNewsResponse,
     ] = await Promise.all([
       getFocusAreas('Team', {}),
       getFocusAreas('Project', {}),
@@ -158,6 +180,7 @@ const getPageData = async () => {
       digestSettingsPromise,
       myAccessPromise,
       teamsCountPromise,
+      deepLinkedNewsPromise,
     ]);
 
     teamNewsGroups = teamNewsResponse?.groups ?? [];
@@ -166,6 +189,7 @@ const getPageData = async () => {
     popularItems = popularResponse?.items ?? [];
     initialDigestSettings = digestSettingsResponse;
     teamsCount = teamsCountResponse?.totalItems ?? 0;
+    deepLinkedNewsItem = deepLinkedNewsResponse;
 
     if (isLoggedIn && myAccessResponse) {
       quickActionsState = resolveQuickActionsState(
@@ -199,6 +223,7 @@ const getPageData = async () => {
         teamNewsForYouTeamUids,
         popularItems,
         initialDigestSettings,
+        deepLinkedNewsItem,
         quickActionsState,
         quickActionsOhResolved,
         teamsCount,
@@ -227,6 +252,7 @@ const getPageData = async () => {
       teamNewsForYouTeamUids,
       popularItems,
       initialDigestSettings,
+      deepLinkedNewsItem,
       quickActionsState,
       quickActionsOhResolved,
       teamsCount,
@@ -249,6 +275,7 @@ const getPageData = async () => {
       teamNewsForYouTeamUids,
       popularItems,
       initialDigestSettings,
+      deepLinkedNewsItem,
       quickActionsState,
       quickActionsOhResolved,
       teamsCount,
@@ -256,7 +283,7 @@ const getPageData = async () => {
   }
 };
 
-export const metadata: Metadata = {
+const HOME_METADATA: Metadata = {
   title: 'Home | Protocol Labs Directory',
   description: 'The Protocol Labs Directory drives breakthroughs in computing to push humanity forward.',
   openGraph: {
@@ -277,3 +304,57 @@ export const metadata: Metadata = {
     images: [SOCIAL_IMAGE_URL],
   },
 };
+
+/** A news permalink (`/home?news=<uid>`) previews as that article rather than
+ *  as the directory, so sharing one reads like sharing an HN item.
+ *
+ *  An unresolvable uid — malformed, or past the lookup's page bound — falls
+ *  back to the site card, which is what every non-news visit to /home gets
+ *  anyway. */
+export async function generateMetadata(props: HomeProps): Promise<Metadata> {
+  const { news } = await props.searchParams;
+
+  if (!news) {
+    return HOME_METADATA;
+  }
+
+  const item = await getTeamNewsItemByUid(news);
+
+  if (!item) {
+    return HOME_METADATA;
+  }
+
+  const baseUrl = (process.env.APPLICATION_BASE_URL ?? '').replace(/\/$/, '');
+  const pageUrl = `${baseUrl}/home?news=${encodeURIComponent(item.uid)}`;
+  const imageUrl = `${baseUrl}/api/og/team-news/${encodeURIComponent(item.uid)}`;
+  const description = getNewsPreviewSnippet(item);
+
+  return {
+    title: `${item.title} | Protocol Labs Directory`,
+    description,
+    alternates: { canonical: pageUrl },
+    openGraph: {
+      type: 'article',
+      url: pageUrl,
+      siteName: 'Protocol Labs Directory',
+      title: item.title,
+      description,
+      publishedTime: item.eventDate,
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: item.title,
+          type: 'image/png',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: item.title,
+      description,
+      images: [imageUrl],
+    },
+  };
+}

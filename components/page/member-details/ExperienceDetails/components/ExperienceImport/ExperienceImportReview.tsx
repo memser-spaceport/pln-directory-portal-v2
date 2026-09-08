@@ -1,13 +1,14 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useForm, useWatch } from 'react-hook-form';
 
 import { Checkbox } from '@/components/common/Checkbox';
 import { FormField } from '@/components/form/FormField';
 import { MonthYearSelect } from '@/components/form/MonthYearSelect';
 import { LocationSelect } from '@/components/ui/LocationSelect';
+import { UnsavedEditPopup, useUnsavedEdits, type UnsavedEntry } from '@/components/common/profile/UnsavedEdits';
 import { EditOfficeHoursFormControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursFormControls';
 import type { ResolvedLocation } from '@/services/location.service';
 // The white field panel and its row measure — the same sheet the profile card's
@@ -200,6 +201,55 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
   const included = rows.filter((row) => row.include);
   const missingDates = included.filter((row) => row.startDate === '');
 
+  /**
+   * Tell a surrounding drawer there is a parse here that leaving would throw
+   * away.
+   *
+   * This card does not use `EditFormControls`, so it registers on its own — and
+   * on different terms, deliberately. Everywhere else the rule is "open but
+   * untouched does not block", because an editor nobody typed into loses
+   * nothing. Here the card only exists *because* a document was read, and it
+   * opens with rows already ticked: leaving an untouched one still costs the
+   * whole parse and a re-upload. So what blocks is not "was it edited" but "is
+   * there anything in the proposal" — which is `submit`'s own `nothingToSave`,
+   * read reactively rather than restated.
+   */
+  /* `useWatch`, not `methods.watch`: the latter returns a function the React
+     Compiler cannot memoize around, so it bails out of optimising this whole
+     component. Same subscription, without that cost. */
+  const watchedRole = useWatch({ control: methods.control, name: 'role' });
+  const watchedSkills = useWatch({ control: methods.control, name: 'skills' });
+  const hasProposal =
+    included.length > 0 ||
+    (watchedSkills ?? []).length > 0 ||
+    (askRole && (watchedRole ?? '').trim() !== '') ||
+    Boolean(askLocation && location);
+
+  const unsaved = useUnsavedEdits();
+  const unsavedId = useId();
+  const headerRef = useRef<HTMLDivElement>(null);
+  const entryRef = useRef<UnsavedEntry>({
+    id: unsavedId,
+    isDirty: false,
+    /* The header, not the form: it carries Cancel and Save, so it is both the
+       right place to be sent and the right thing for the popup to hang under.
+       The form root is the height of the whole card. */
+    getElement: () => headerRef.current,
+  });
+
+  useEffect(() => {
+    entryRef.current.isDirty = hasProposal;
+  }, [hasProposal]);
+
+  useEffect(() => unsaved?.register(entryRef.current), [unsaved]);
+
+  const [popupAnchor, setPopupAnchor] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setPopupAnchor(headerRef.current);
+  }, []);
+
+  const showUnsavedPopup = Boolean(unsaved && unsaved.flaggedId === unsavedId && hasProposal);
+
   const submit = async (data: ReviewFormData) => {
     if (missingDates.length > 0) {
       setShowDateErrors(true);
@@ -261,7 +311,10 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
           if (ev.key === 'Enter') ev.preventDefault();
         }}
       >
-        <EditOfficeHoursFormControls onClose={onClose} title="Review your experience" alwaysEnabled />
+        <div ref={headerRef}>
+          <EditOfficeHoursFormControls onClose={onClose} title="Review your experience" alwaysEnabled />
+        </div>
+        {showUnsavedPopup && <UnsavedEditPopup anchor={popupAnchor} onDismiss={unsaved!.clearFlag} />}
 
         {/* No lede and no group caption above the fields.
             Both were cut, and both were explaining what the card

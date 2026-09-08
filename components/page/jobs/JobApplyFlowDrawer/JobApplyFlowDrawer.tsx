@@ -24,6 +24,12 @@ import {
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 import type { BoardViewerState } from '@/services/jobs/job-board-viewer';
 
+import { UnsavedChangesPrompt } from '@/components/core/UnsavedChangesPrompt';
+import {
+  UnsavedEditsProvider,
+  blockIfUnsaved,
+  useUnsavedEditsRegistry,
+} from '@/components/common/profile/UnsavedEdits';
 import { ApplyFlowSteps, type ApplyFlowStep } from '@/components/page/jobs/ApplyFlowSteps/ApplyFlowSteps';
 import { JobDetailPane } from '@/components/page/jobs/JobDetailPane/JobDetailPane';
 import { JobInterestBanner } from '@/components/page/jobs/JobInterestBanner/JobInterestBanner';
@@ -479,7 +485,29 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     if (at === 'profile' && isLoggedIn) onProfileSaved({ profileComplete: complete });
   };
 
+  /**
+   * What the profile step's open editors are saying about themselves.
+   *
+   * Held here rather than inside the pane because the fields are in the pane and
+   * every control that navigates away from them — the footer, the rail, Back,
+   * Escape — is not. See `UnsavedEditsContext`.
+   */
+  const unsavedEdits = useUnsavedEditsRegistry();
+
+  /** Escape pressed over a half-written section. See `closeFlow`. */
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+
+  /**
+   * Every move between steps, and the one place the unsaved guard has to sit.
+   *
+   * All three in-flow exits come through here — the footer's `Continue to
+   * apply`, the header's Back, and the rail — so refusing once covers them all,
+   * and none of them can drift on what "blocked" means.
+   */
   const goTo = (next: ApplyFlowStepId) => {
+    /* Refused, scrolled to, and pointed at. The person stays on the step,
+       looking at their own edit, with the button that keeps it. */
+    if (blockIfUnsaved(unsavedEdits)) return;
     leaveProfileStep();
     onStepChange(next);
   };
@@ -517,7 +545,28 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     return after ?? path[path.length - 1];
   })();
 
+  /**
+   * Leaving altogether, which is a different ask from moving between steps.
+   *
+   * The in-flow moves get held on the step, because the person is still in the
+   * flow they chose. This one is somebody going, and the drawer is deliberately
+   * escapable — "someone who pressed Apply and changed their mind about the role
+   * is not someone to hold". A popup with no discard path would make one typed
+   * character enough to hold them, so leaving gets a prompt that lets them out
+   * in a single press while still not losing the work silently.
+   */
   const closeFlow = () => {
+    if (unsavedEdits.firstDirty()) {
+      setConfirmDiscard(true);
+      return;
+    }
+    leaveProfileStep();
+    onClose();
+  };
+
+  /** Confirmed at the prompt: the edits go, and so does the drawer. */
+  const discardAndClose = () => {
+    setConfirmDiscard(false);
     leaveProfileStep();
     onClose();
   };
@@ -984,66 +1033,67 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   })();
 
   return (
-    <Drawer
-      isOpen={open}
-      onClose={closeFlow}
-      fullScreen={isMobile}
-      noBlur={isMobile}
-      containerRef={scrollRef}
-      closeOnOverlayClick={false}
-    >
-      {/* Wraps the whole drawer rather than just step 2, because the fields are
+    <UnsavedEditsProvider value={unsavedEdits}>
+      <Drawer
+        isOpen={open}
+        onClose={closeFlow}
+        fullScreen={isMobile}
+        noBlur={isMobile}
+        containerRef={scrollRef}
+        closeOnOverlayClick={false}
+      >
+        {/* Wraps the whole drawer rather than just step 2, because the fields are
           in the pane and the button that submits them is in the sticky footer —
           two different children of this element. Inert for a signed-in member:
           nothing under it reads the context. There is no `<form>` element, so
           the footer press goes through `handleSubmit` directly; a real form
           would have had to span the same two children and would put a submit
           button inside the letter step's textarea flow. */}
-      <FormProvider {...accountForm}>
-        {/* `d.drawerHeaderLift` is what this header adds to the source's: a
+        <FormProvider {...accountForm}>
+          {/* `d.drawerHeaderLift` is what this header adds to the source's: a
           stacking order that survives positioned content scrolling past it, and
           the room for a second row. */}
-        <div className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
-          <div className={clsx(s.breadcrumbs, d.headerRow)}>
-            <button type="button" className={s.backButton} onClick={onBack}>
-              <BackIcon />
-              <span>{backTarget ? backLabel(backTarget, isLoggedIn) : 'Back to roles'}</span>
-            </button>
-            {/* Shown exactly when Back does NOT leave the flow — anywhere Back
+          <div className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
+            <div className={clsx(s.breadcrumbs, d.headerRow)}>
+              <button type="button" className={s.backButton} onClick={onBack}>
+                <BackIcon />
+                <span>{backTarget ? backLabel(backTarget, isLoggedIn) : 'Back to roles'}</span>
+              </button>
+              {/* Shown exactly when Back does NOT leave the flow — anywhere Back
               goes to another step, there has to be a second control that goes
               out, or the flow has no exit on mobile where the overlay is gone.
               On the first step Back *is* the way out, and a ✕ beside it would be
               two controls doing one thing. */}
-            {backTarget && (
-              <button type="button" className={d.closeButton} onClick={closeFlow} aria-label="Close">
-                <CloseIcon />
-              </button>
-            )}
-          </div>
-          {/* Withheld when Apply leaves the site: there is nothing to walk.
+              {backTarget && (
+                <button type="button" className={d.closeButton} onClick={closeFlow} aria-label="Close">
+                  <CloseIcon />
+                </button>
+              )}
+            </div>
+            {/* Withheld when Apply leaves the site: there is nothing to walk.
               Every step of such a run, not just the reading one — a stranger who
               presses the profile button above lands on the account form, and
               the journey from there is back to this posting and then out to the
               employer. There is no third stop to draw, so a rail promising one
               would be the flow lying about itself in the one state where the
               person has least reason to trust it. */}
-          {!applyGoesExternal && (
-            <div className={d.stepBand}>
-              <ApplyFlowSteps steps={steps} onSelect={(id) => goTo(id as ApplyFlowStepId)} />
-            </div>
-          )}
-        </div>
+            {!applyGoesExternal && (
+              <div className={d.stepBand}>
+                <ApplyFlowSteps steps={steps} onSelect={(id) => goTo(id as ApplyFlowStepId)} />
+              </div>
+            )}
+          </div>
 
-        <div className={s.drawerContent}>
-          {at === 'review' && (
-            <JobDetailPane
-              role={target.role}
-              team={target.team}
-              applied={applied}
-              appliedAt={appliedAt}
-              source={source}
-              showOriginalPosting={showOriginalPosting}
-              /* The case for a profile, made to the only people who can act on
+          <div className={s.drawerContent}>
+            {at === 'review' && (
+              <JobDetailPane
+                role={target.role}
+                team={target.team}
+                applied={applied}
+                appliedAt={appliedAt}
+                source={source}
+                showOriginalPosting={showOriginalPosting}
+                /* The case for a profile, made to the only people who can act on
                  it. Not narrowed to `applyGoesExternal` as the footer below is:
                  on a Protocol Labs role a stranger applies in-app, which is the
                  state where the argument is most true, and withholding it there
@@ -1054,9 +1104,9 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                  They say different things (which steps exist; why bother) and
                  the banner's numbers are half the size of the rail's, which is
                  what keeps them from reading as one journey drawn twice. */
-              banner={
-                <>
-                  {/* Above the unlocks card, not instead of it.
+                banner={
+                  <>
+                    {/* Above the unlocks card, not instead of it.
                       The Figma draws this banner only in the "Signed up" frames
                       — logged out, this slot holds `JobUnlockBanner` and nothing
                       else. The ticket asks for the CTA logged out too, so both
@@ -1069,85 +1119,94 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                       interested" above a footer reading `Applied` is the drawer
                       arguing with itself — applying is the stronger signal and
                       it has already been sent. */}
-                  {interest && !applied && interest.isSettled && (
-                    <JobInterestBanner
-                      teamName={target.teamName}
-                      isInterested={interest.isInterested}
-                      isLoggedIn={isLoggedIn}
-                      error={interest.error}
-                      onToggle={interest.onToggle}
-                    />
-                  )}
-                  {!isLoggedIn && <JobUnlockBanner />}
-                </>
-              }
-            />
-          )}
+                    {interest && !applied && interest.isSettled && (
+                      <JobInterestBanner
+                        teamName={target.teamName}
+                        isInterested={interest.isInterested}
+                        isLoggedIn={isLoggedIn}
+                        error={interest.error}
+                        onToggle={interest.onToggle}
+                      />
+                    )}
+                    {!isLoggedIn && <JobUnlockBanner />}
+                  </>
+                }
+              />
+            )}
 
-          {at === 'profile' && !isLoggedIn && <JobAccountPane onSignIn={onSignIn} serverError={accountError} />}
+            {at === 'profile' && !isLoggedIn && <JobAccountPane onSignIn={onSignIn} serverError={accountError} />}
 
-          {at === 'profile' && isLoggedIn && memberUid && (
-            <JobProfilePane
-              memberUid={memberUid}
-              isLoggedIn={isLoggedIn}
-              pendingRoleTitle={target.role.roleTitle}
-              pendingApproval={pendingApproval}
-              /* Back to this role, not to the board. Verifying navigates the
+            {at === 'profile' && isLoggedIn && memberUid && (
+              <JobProfilePane
+                memberUid={memberUid}
+                isLoggedIn={isLoggedIn}
+                pendingRoleTitle={target.role.roleTitle}
+                pendingApproval={pendingApproval}
+                /* Back to this role, not to the board. Verifying navigates the
                  whole page to LinkedIn, so the return has to re-open what it
                  interrupted — and the flow already knows how to be re-opened on
                  a role: `applyTo` is the parameter the sign-up round trip
                  resumes through, read by `useJobApplySurface` against the list
                  as it loads back. The current path rather than a hard-coded
                  `/jobs`, so a team profile resumes on the team profile. */
-              verifyReturnTo={verifyReturnTo}
-              onProfileState={setProfileState}
-            />
-          )}
+                verifyReturnTo={verifyReturnTo}
+                onProfileState={setProfileState}
+              />
+            )}
 
-          {at === 'application' && (
-            <JobApplicationPane
-              role={target.role}
-              teamId={target.teamId}
-              teamName={target.teamName}
-              member={member}
-              memberUid={memberUid}
-              coverLetter={coverLetter}
-              onCoverLetterChange={onCoverLetterChange}
-              onEditProfile={() => onStepChange('profile')}
-              submitError={submitError}
-            />
-          )}
-        </div>
+            {at === 'application' && (
+              <JobApplicationPane
+                role={target.role}
+                teamId={target.teamId}
+                teamName={target.teamName}
+                member={member}
+                memberUid={memberUid}
+                coverLetter={coverLetter}
+                onCoverLetterChange={onCoverLetterChange}
+                onEditProfile={() => onStepChange('profile')}
+                submitError={submitError}
+              />
+            )}
+          </div>
 
-        {/* One bar, every step. Sticky, because a job description is long enough
+          {/* One bar, every step. Sticky, because a job description is long enough
           that an action at the end of it is an action most people never reach —
           and because the same bar in the same place on all three steps is what
           makes them read as one screen rather than three. */}
-        <div className={d.footer}>
-          <div className={d.footerInner}>
-            {/* Absent, not empty, when there is nothing to say. `.footerInner`
+          <div className={d.footer}>
+            <div className={d.footerInner}>
+              {/* Absent, not empty, when there is nothing to say. `.footerInner`
                 is a 12px-gap column below tablet-landscape, and a zero-height
                 paragraph still earns its gap — so an always-rendered `<p>`
                 would push the button down 12px on every phone screen where the
                 footer is now silent. */}
-            {footer.lead ?? (footer.hint && <p className={d.footerHint}>{footer.hint}</p>)}
-            {/* Wrapped only when there is something to wrap it with. An
+              {footer.lead ?? (footer.hint && <p className={d.footerHint}>{footer.hint}</p>)}
+              {/* Wrapped only when there is something to wrap it with. An
                 always-rendered column would put a 4px-gap flex box around every
                 lone button in the flow for the sake of the one state that uses
                 one, and `.footerAction`'s auto-margin — which is how a lone
                 button finds the right edge — would then be applying to a child
                 of the wrapper rather than to the row. */}
-            {footer.actionNote ? (
-              <div className={d.footerActionColumn}>
-                {footer.action}
-                {footer.actionNote}
-              </div>
-            ) : (
-              footer.action
-            )}
+              {footer.actionNote ? (
+                <div className={d.footerActionColumn}>
+                  {footer.action}
+                  {footer.actionNote}
+                </div>
+              ) : (
+                footer.action
+              )}
+            </div>
           </div>
-        </div>
-      </FormProvider>
-    </Drawer>
+        </FormProvider>
+      </Drawer>
+      {/* Outside the drawer, because it is the answer to a press that wanted the
+          drawer gone. Only reachable with something dirty behind it — see
+          `closeFlow`. */}
+      <UnsavedChangesPrompt
+        show={confirmDiscard}
+        onConfirm={discardAndClose}
+        onCancel={() => setConfirmDiscard(false)}
+      />
+    </UnsavedEditsProvider>
   );
 }

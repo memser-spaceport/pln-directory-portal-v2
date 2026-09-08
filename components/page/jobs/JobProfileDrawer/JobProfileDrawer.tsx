@@ -7,6 +7,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Drawer } from '@/components/common/Drawer';
 import { Button } from '@/components/common/Button';
 import { toast } from '@/components/core/ToastContainer';
+import { UnsavedChangesPrompt } from '@/components/core/UnsavedChangesPrompt';
+import {
+  UnsavedEditsProvider,
+  blockIfUnsaved,
+  useUnsavedEditsRegistry,
+} from '@/components/common/profile/UnsavedEdits';
 import { DetailsSection } from '@/components/common/profile/DetailsSection/DetailsSection';
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete/DataIncomplete';
@@ -52,9 +58,16 @@ import d from './JobProfileDrawer.module.scss';
  * (`isJobProfileComplete`). Their cards mark themselves while unanswered;
  * everything else refines a read rather than making one possible.
  *
- * Escapable (Escape and overlay both close), unlike the investor drawer, which
- * pins itself shut: someone who pressed Apply and changed their mind about the
- * role is not someone to hold.
+ * Escapable — Escape and the header's Back both close it — unlike the investor
+ * drawer, which pins itself shut: someone who pressed Apply and changed their
+ * mind about the role is not someone to hold. (The overlay does *not* close it;
+ * `closeOnOverlayClick={false}`, so a stray click on a long form cannot throw it
+ * away. This line used to claim the overlay closed it too, which it never did.)
+ *
+ * That principle is why leaving with a half-edited section gets the discard
+ * prompt rather than the in-flow "save your changes" popup: the popup offers no
+ * way past, and one typed character would otherwise be enough to hold someone
+ * here.
  */
 
 /** What the flow's footer needs to know about a profile it cannot see. */
@@ -431,47 +444,79 @@ export function JobProfileDrawer({
     hasStatus: false,
   });
 
+  /* The same guard the flow's step 2 gets, for the same reason: the fields are
+     in the pane and the button that leaves them is in the footer. `Save and
+     close` over a half-edited section loses it exactly as silently here. */
+  const unsavedEdits = useUnsavedEditsRegistry();
+  const [confirmDiscard, setConfirmDiscard] = React.useState(false);
+
+  /** Back and Escape both land here — leaving, rather than moving on. */
+  const requestClose = () => {
+    if (unsavedEdits.firstDirty()) {
+      setConfirmDiscard(true);
+      return;
+    }
+    onClose();
+  };
+
+  const discardAndClose = () => {
+    setConfirmDiscard(false);
+    onClose();
+  };
+
   return (
-    <Drawer isOpen={open} onClose={onClose} closeOnOverlayClick={false}>
-      <div className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
-        <div className={s.breadcrumbs}>
-          <button type="button" className={s.backButton} onClick={onClose}>
-            <BackIcon />
-            <span>Back</span>
-          </button>
+    <UnsavedEditsProvider value={unsavedEdits}>
+      <Drawer isOpen={open} onClose={requestClose} closeOnOverlayClick={false}>
+        <div className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
+          <div className={s.breadcrumbs}>
+            <button type="button" className={s.backButton} onClick={requestClose}>
+              <BackIcon />
+              <span>Back</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className={s.drawerContent}>
-        <JobProfilePane {...paneProps} onProfileState={setProfileState} />
-      </div>
+        <div className={s.drawerContent}>
+          <JobProfilePane {...paneProps} onProfileState={setProfileState} />
+        </div>
 
-      {/* One label for one act. The sections' own Saves commit one card each;
+        {/* One label for one act. The sections' own Saves commit one card each;
           this one says what happens NEXT — and for this surface that is going
           back to the board, because nothing was waiting on it. */}
-      <div className={d.footer}>
-        <div className={d.footerInner}>
-          {/* Silent while the profile is short — what is missing is named on the
+        <div className={d.footer}>
+          <div className={d.footerInner}>
+            {/* Silent while the profile is short — what is missing is named on the
               card that is missing it, and the footer restating it from down here
               was the same complaint at the greater distance. Absent rather than
               empty: `.footerInner` is a 12px-gap column on a phone, and a
               zero-height paragraph still earns its gap. */}
-          {complete && (
-            <p className={d.footerHint}>Experience, skills and bio are optional — you can add them any time.</p>
-          )}
-          <Button
-            variant="primary"
-            style="fill"
-            size="m"
-            className={d.footerAction}
-            disabled={!complete}
-            onClick={() => onFooterAction({ profileComplete: complete })}
-          >
-            Save and close
-          </Button>
+            {complete && (
+              <p className={d.footerHint}>Experience, skills and bio are optional — you can add them any time.</p>
+            )}
+            <Button
+              variant="primary"
+              style="fill"
+              size="m"
+              className={d.footerAction}
+              disabled={!complete}
+              onClick={() => {
+                /* Moving on, not leaving: held on the section with the popup, the
+                 same as the flow's `Continue to apply`. */
+                if (blockIfUnsaved(unsavedEdits)) return;
+                onFooterAction({ profileComplete: complete });
+              }}
+            >
+              Save and close
+            </Button>
+          </div>
         </div>
-      </div>
-    </Drawer>
+      </Drawer>
+      <UnsavedChangesPrompt
+        show={confirmDiscard}
+        onConfirm={discardAndClose}
+        onCancel={() => setConfirmDiscard(false)}
+      />
+    </UnsavedEditsProvider>
   );
 }
 

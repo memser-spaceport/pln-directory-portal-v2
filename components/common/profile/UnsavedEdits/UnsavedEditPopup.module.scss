@@ -1,0 +1,30 @@
+// Fallbacks are load-bearing: these are design-system token names, and
+// `pl-design-system` is excluded from tsconfig and never loaded by this app, so
+// the second argument to `var()` is what actually paints.
+.popup {
+  z-index: 1200; // above the drawer, which sits at 1000
+  max-width: 260px;
+  padding: 8px 12px;
+  border-radius: var(--corner-radius-md, 8px);
+  background: var(--background-neutral-inverted, #1d2939);
+  color: var(--foreground-neutral-inverted, #fff);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+  animation: unsavedEditPopupIn 140ms ease-out;
+}
+
+@keyframes unsavedEditPopupIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popup {
+    animation: none;
+  }
+}

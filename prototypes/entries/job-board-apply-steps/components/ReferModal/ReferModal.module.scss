@@ -29,9 +29,21 @@
 
   // The one deliberate deviation from the reference: it caps at 400px, which suits
   // its three plain inputs but squeezes a member picker with two-line rows and a
-  // drafted email down to ~35 characters a line. 480px keeps the same proportions
-  // and every other value untouched.
-  max-width: 480px;
+  // drafted email down to ~35 characters a line.
+  //
+  // 600 because the headline interpolates the role, and narrower than this the
+  // longest one on the board wrapped "Refer someone for Senior Distributed Systems
+  // Engineer" onto two lines. That title measures 458px, and the first line gets the
+  // card's width less 20px padding either side, the 52px envelope, its 16px gap, and
+  // the 36px the close button occupies at the top right — so it needs 582px, and 600
+  // clears it by 18. A longer role than any on this board still wraps, which is why
+  // `.header` keeps its `align-items: flex-start`.
+  //
+  // 600 is also the ceiling: `Modal`'s own `.modalContainer` caps there
+  // (components/common/Modal/Modal.module.scss) and carries no padding of its own, so
+  // the card reaches it exactly. Anything wider would mean passing a className into a
+  // shared primitive, and that change would leave this folder.
+  max-width: 600px;
 
   // Fixed height, so the card is the same size empty as it is with six recipients
   // and a full draft — adding people scrolls the field, it never moves the footer.

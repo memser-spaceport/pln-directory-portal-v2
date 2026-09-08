@@ -239,6 +239,78 @@
   }
 }
 
+/* The visitor's reading-step footer: the team's site on the left, the profile
+   on the right. `space-between` on this one bar only — every other footer is a
+   button (and sometimes a tick) held at the right end by `flex-end`, and this is
+   the one step whose two offers are peers standing at opposite ends.
+
+   Below tablet-landscape the row is already a stretched column, so the two
+   stack: the external door first, the profile under it, each full width —
+   the order the mobile frame (588:36463) draws. */
+.footerInnerSplit {
+  /* The popover is positioned against this bar — see `ProfileUnlocks.popover`. */
+  position: relative;
+}
+
+.footerSplit {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+}
+
+/* The primary and the link under it, right-aligned as a pair. 4px between
+   them: the link is a caption on the button, not a second row of the bar. */
+.footerStack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+
+  @include media.tablet-landscape {
+    align-items: flex-end;
+    gap: 4px;
+  }
+}
+
+/* "ⓘ What your profile unlocks?" — the DS link button in its neutral tone:
+   14/500 secondary, a 14px glyph in front, no box. Centred under the full-width
+   button on a phone, right-aligned under the primary on desktop. */
+.unlocksLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--action-foreground-neutral-normal, #455468);
+  cursor: pointer;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
 /* The completeness tick, sitting in the bar beside the button — and now the
    only text in it.
 

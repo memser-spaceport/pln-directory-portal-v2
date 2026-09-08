@@ -4,6 +4,7 @@ import Error from '@/components/core/error';
 import styles from './page.module.scss';
 import { getMember } from '@/services/members.service';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
+import { UnsavedEditsPageGuard } from '@/components/common/profile/UnsavedEdits';
 import { ProfileDetails } from '@/components/page/member-details/ProfileDetails';
 import { ContactDetails } from '@/components/page/member-details/ContactDetails';
 import { JobSearchStatusDetails } from '@/components/page/member-details/JobSearchStatusDetails';
@@ -246,7 +247,13 @@ const MemberDetails = (props: { params: Promise<any> }) => {
   }
 
   return (
-    <>
+    /* Leaving with a section still open and edited asks first — see
+       `UnsavedEditsPageGuard`. Wraps the whole page rather than the section
+       column, because the links that leave (the navbar) are outside it, and
+       because the guard's own prompt has to render somewhere. The sections need
+       no changes: the controls component each edit form is built from registers
+       itself. */
+    <UnsavedEditsPageGuard>
       <Head>
         <title>{`${member?.name} | Protocol Labs Directory`}</title>
       </Head>
@@ -287,7 +294,7 @@ const MemberDetails = (props: { params: Promise<any> }) => {
           </>
         )} */}
       </div>
-    </>
+    </UnsavedEditsPageGuard>
   );
 };
 

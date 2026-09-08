@@ -3,7 +3,10 @@ import { RecipientOption } from '../types';
 /** "Ana Ruiz", "Ana Ruiz and jobs@ff.org", "Ana Ruiz, Wei Chen, jobs@ff.org and 2 others".
  *  Names are cheaper to read than a count, so it only collapses past three. */
 export function getRecipientSummary(recipients: RecipientOption[]): string {
-  const labels = recipients.map((r) => r.label);
+  /* The team row's label is a noun phrase, not a name — "Filecoin hiring team"
+     needs its article to sit in the receipt's sentence ("on its way to the
+     Filecoin hiring team"), and the chip is the one place it must not have one. */
+  const labels = recipients.map((r) => (r.isTeam ? `the ${r.label}` : r.label));
   if (labels.length === 0) return '';
   if (labels.length === 1) return labels[0];
   if (labels.length <= 3) return `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`;

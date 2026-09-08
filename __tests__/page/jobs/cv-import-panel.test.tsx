@@ -160,4 +160,106 @@ describe('ExperienceImportPanel', () => {
     expect(screen.queryByRole('button', { name: /upload your cv/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /back/i })).not.toBeInTheDocument();
   });
+
+  /**
+   * The bar over a wait nobody can measure.
+   *
+   * The server reports a status and never a fraction, so the curve is invented.
+   * What is NOT invented is the one claim the bar makes by reaching the end, and
+   * these pin it from both sides: 100% appears only when a read actually came
+   * back, and a read that failed never gets there.
+   */
+  describe('the reading progress bar', () => {
+    /** Let promise continuations run WITHOUT letting any timer fire. */
+    const flushMicrotasks = async () => {
+      await act(async () => {});
+      await act(async () => {});
+    };
+
+    it('moves while reading, and does not reach the end on its own', async () => {
+      renderPanel({ onParse: jest.fn(() => new Promise<ParsedProfile>(() => {})) });
+
+      drop(file('polina-cv.pdf'));
+
+      const bar = await screen.findByRole('progressbar');
+      // It starts moving on its own — a bar that sat at 0 would say the wait
+      // hadn't begun.
+      await waitFor(() => expect(Number(bar.getAttribute('aria-valuenow'))).toBeGreaterThan(0));
+      // And it cannot arrive by itself. Only the resolved parse gets to 100, so
+      // a full bar is never a guess about a read still in flight.
+      expect(Number(bar.getAttribute('aria-valuenow'))).toBeLessThan(100);
+    });
+
+    it('is at 100% at the moment the result is handed up, not after', async () => {
+      let valueAtHandoff: string | null = null;
+      /* Read out of the DOM from inside the handler: this is the exact instant
+         the row gives way to the review, and the assertion is that the person
+         could have seen the bar finish before it did. Checking afterwards would
+         prove nothing — the row is gone by then. */
+      const onParsed = jest.fn(() => {
+        valueAtHandoff = screen.getByRole('progressbar').getAttribute('aria-valuenow');
+      });
+
+      renderPanel({ onParse: jest.fn().mockResolvedValue(parsedWith(3)), onParsed });
+      drop(file());
+
+      await waitFor(() => expect(onParsed).toHaveBeenCalledTimes(1));
+      expect(valueAtHandoff).toBe('100');
+    });
+
+    /**
+     * THE WINDOW THE OLD TESTS COULDN'T SEE.
+     *
+     * 'Cancel during a read aborts it' clicks Cancel *before* the promise
+     * resolves, so it never gets past the first token check. Holding the row so
+     * the finished bar can be seen opens a second window — after the result is
+     * in hand, before the review is opened — and Cancel lands squarely in it.
+     * Without the second token check the review opens anyway, over a parse whose
+     * request has already been aborted.
+     */
+    it('a Cancel while the bar is finishing still opens nothing', async () => {
+      const onParsed = jest.fn();
+      const onAbort = jest.fn();
+      let resolve!: (p: ParsedProfile) => void;
+      const onParse = jest.fn(() => new Promise<ParsedProfile>((r) => (resolve = r)));
+
+      renderPanel({ onParse, onParsed, onAbort });
+      drop(file());
+      await screen.findByRole('progressbar');
+
+      // The result lands; the row is now holding at 100% and has not given way.
+      await act(async () => {
+        resolve(parsedWith(3));
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+      expect(onAbort).toHaveBeenCalled();
+
+      // Past the hold, the handoff must not happen.
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 500));
+      });
+      expect(onParsed).not.toHaveBeenCalled();
+    });
+
+    /**
+     * A failure ends the wait; it does not complete it. Filling the bar and then
+     * saying "we couldn't read that file" would claim a success that never
+     * happened.
+     *
+     * Asserted by timing, which is what makes it precise: only microtasks are
+     * flushed here, no timer is allowed to fire. The dead end is on screen
+     * anyway — which it could not be if this path waited out the completion
+     * hold first.
+     */
+    it('does not complete the bar when the read failed', async () => {
+      renderPanel({ onParse: jest.fn().mockRejectedValue(new Error('boom')) });
+
+      drop(file());
+      await flushMicrotasks();
+
+      expect(screen.getByText(/couldn’t read that file just now/i)).toBeInTheDocument();
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    });
+  });
 });

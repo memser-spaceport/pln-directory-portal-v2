@@ -111,11 +111,7 @@ interface JobAccountPaneProps {
  * validated *by* the press rather than gating it; see the footer's note in the
  * drawer for why those two kinds of requirement are handled differently.
  */
-export function JobAccountPane({
-  jobSearchStatus,
-  onJobSearchStatusChange,
-  onSignIn,
-}: JobAccountPaneProps) {
+export function JobAccountPane({ jobSearchStatus, onJobSearchStatusChange, onSignIn }: JobAccountPaneProps) {
   const hasStatus = jobSearchStatus !== '';
 
   /* (`parsed`, `imported`, `showCvOffer` and `applyImport` stood here, along with
@@ -155,7 +151,10 @@ export function JobAccountPane({
             banner and nowhere since, and the top of the step that creates the
             account is the one place it bears on the decision. Every other line
             on this pane stays product-neutral; a title is enough. */}
-        <h2 className={fd.stepTitle}>Create Lab OS Job profile</h2>
+        {/* "PL network", as the sign-up modal already says on the board's other
+            door and as the Figma step-2 frame (495:3264) titles it — one name
+            for the thing being made, whichever door opens the form. */}
+        <h2 className={fd.stepTitle}>Create PL network Job profile</h2>
 
         {/* **The lede, back.** One stood here and was cut when the title took
             over what it was saying — but the title says what is being *made*,

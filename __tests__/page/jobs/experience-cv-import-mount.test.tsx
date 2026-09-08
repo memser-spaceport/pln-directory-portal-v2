@@ -228,7 +228,10 @@ describe('the whole way through: drop a file, review it, save it', () => {
       expect.objectContaining({ experiences_found: 1, has_role: true }),
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
+    /* The review card has two Saves — the header's, and the sticky bar that is the
+       only one at mobile widths. What a press does is identical for both, so these
+       press the header's; the bar has its own case in `cv-import-review`. */
+    fireEvent.click(screen.getAllByRole('button', { name: /^save$/i })[0]);
 
     await waitFor(() => expect(mockApply).toHaveBeenCalledTimes(1));
 

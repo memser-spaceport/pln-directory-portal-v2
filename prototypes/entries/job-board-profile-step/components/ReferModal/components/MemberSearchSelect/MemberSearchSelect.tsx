@@ -6,7 +6,7 @@ import Select, { ClearIndicatorProps, components, MenuProps, SingleValueProps } 
 
 import { Field } from '@base-ui-components/react/field';
 
-import { CloseIcon, PlusIcon } from '@/components/icons';
+import { CloseIcon } from '@/components/icons';
 import type { Option } from '@/components/form/FormSelect/types';
 
 // Field wrapper, label, option row and no-results treatment come from the production
@@ -18,6 +18,9 @@ import { DirectoryMember } from '../../types';
 import { getMemberMeta } from '../../utils/getMemberMeta';
 
 import { useMemberSearch } from '../../hooks/useMemberSearch';
+
+// The bare plus, not the DS circled one — see the icon's own note for the lineage.
+import { PlusIcon } from '../../../../icons';
 
 import { MemberAvatar } from '../MemberAvatar';
 

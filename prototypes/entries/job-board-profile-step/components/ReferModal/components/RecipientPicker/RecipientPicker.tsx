@@ -7,7 +7,7 @@ import { components, type GroupBase } from 'react-select';
 import { PAGE_ROUTES } from '@/utils/constants';
 
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { CloseIcon, PlusIcon } from '@/components/icons';
+import { CloseIcon } from '@/components/icons';
 
 // Field wrapper + label come from the production multi-select, so this reads as the
 // same field as the ones above and below it.
@@ -20,7 +20,7 @@ import { toRecipientOption } from '../../utils/toRecipientOption';
 
 import { useMemberSearch } from '../../hooks/useMemberSearch';
 
-import { MailIcon } from '../../../../icons';
+import { MailIcon, PlusIcon } from '../../../../icons';
 
 import { MemberAvatar } from '../MemberAvatar';
 import { RecipientInput } from './components/RecipientInput';

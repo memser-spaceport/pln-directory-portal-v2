@@ -28,8 +28,11 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { jobApplyQueryParams } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
 import { ArrowUpRightIcon } from '@/components/icons/ArrowUpRightIcon';
 
+import { InfoCircleIconOutlined } from '@/components/icons';
+
 import { ApplyFlowSteps, type ApplyFlowStep } from './ApplyFlowSteps';
 import { JobDetailPane } from './JobDetailPane';
+import { ProfileUnlocksPopover } from './ProfileUnlocks';
 import { JobProfilePane, BackIcon, type EditTarget } from './JobProfilePane';
 import { JobAccountPane } from './JobAccountPane';
 import { JobApplicationPane } from './JobApplicationPane';
@@ -126,7 +129,7 @@ interface JobApplyFlowDrawerProps {
    *
    * The drawer is then the listing, not an application: no rail, because there
    * is no journey to walk, and the footer's one slot holds the same switch the
-   * Manage listings row carries — `Mark inactive` on a live listing, `Bring
+   * row's ⋯ menu carries — `Mark inactive` on a live listing, `Bring
    * back` on an inactive one, and an `In review` report (the row's own
    * "Applied" shape) on one the PL team has not looked at yet. Pressing it
    * flips the listing in place and leaves the drawer open: the masthead pill
@@ -212,6 +215,13 @@ interface JobApplyFlowDrawerProps {
   /** Already sent from this session, and when. */
   applied: boolean;
   appliedAt?: string;
+  /**
+   * A job aspirant's signal on this role — "I'm interested", and its undo.
+   * Held by the board, like the applications, because the rows and the Applied
+   * tab may want it and because it has to outlive this drawer closing.
+   */
+  interested?: boolean;
+  onSetInterested?: (interested: boolean) => void;
   /** DELETE WITH: the `design-canvas/` folder. Passed through to the profile
    *  step; see `canvasStates.ts`. */
   canvasImport?: {
@@ -300,12 +310,19 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     jobAspirant = false,
     applied,
     appliedAt,
+    interested = false,
+    onSetInterested,
     canvasImport,
     canvasCoverLetter,
     managed,
   } = props;
 
   const isMobile = useIsMobile();
+
+  /* The footer's "What your profile unlocks?" popover, on the logged-out
+     reading step. Local: it is a glance at a card that is also in the body,
+     and nothing outside this drawer needs to know it was opened. */
+  const [unlocksOpen, setUnlocksOpen] = useState(false);
 
   /* The flow's working copy of the profile. Section Saves inside the profile
      pane write here; the footer is what hands it to the board. It lives at this
@@ -378,6 +395,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     setEditing(null);
     setCoverLetter(canvasCoverLetter ?? '');
     setConfirmedComplete(false);
+    setUnlocksOpen(false);
     accountMethods.reset(EMPTY_ACCOUNT_FORM);
     /* `loggedIn &&` is belt and braces — a logged-out viewer's profile is the
        empty one, so `isProfileComplete` is already false — but the step is about
@@ -533,6 +551,43 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   const backLabel = backTarget ? backLabelFor(backTarget, loggedIn) : 'Back to roles';
 
   /**
+   * Whether the rail is drawn at all.
+   *
+   * **Not for a visitor, and not for a job aspirant.** The rail promises three
+   * named places ending in an application sent from here, and neither of them
+   * is on that path any more (Figma "Logged out — Review job", "Signed up —
+   * Review job"). A visitor's run is two screens — read the job, make the
+   * profile — and ends on the board with a profile, not with a letter; an
+   * aspirant reads the job, signals interest, and applies on the team's own
+   * site. Drawing three stops over a flow that visits two of them, or one, is
+   * the rail lying about the future, which is the one thing it exists not to
+   * do. The header keeps its Back and ✕ and the panes keep their own titles,
+   * so nothing else changes shape when the rail goes.
+   *
+   * A listing's owner has no rail either — see `managed`.
+   */
+  const showRail = !managed && loggedIn && !jobAspirant;
+
+  /* The two ways a stranger and an aspirant leave for the team's own site,
+     with the board's tracking suffix — the same door `openExternalPosting`
+     opens for a pending member. Kept as a separate footer button rather than
+     folded into the masthead link, because on the reading step it is one of
+     the two things the footer offers, and a footer offer is a button. */
+  const externalApplyButton = (label: string) => (
+    <Button
+      variant="light"
+      style="fill"
+      size="m"
+      className={clsx(d.footerAction, d.footerActionIcon)}
+      disabled={!role?.applyUrl}
+      onClick={openExternalPosting}
+    >
+      {label}
+      <ArrowUpRightIcon aria-hidden="true" />
+    </Button>
+  );
+
+  /**
    * The footer on the reading step. Two outcomes now, where the board's old
    * `onApply` had four.
    *
@@ -610,7 +665,18 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
    * name and email stay on the account record, which is the only thing that
    * needs them.
    */
-  const submitAccount = accountMethods.handleSubmit((data) => {
+  const submitAccount = () => {
+    /* The schema now asks for the job search status as a form field (the
+       sign-up modal collects it that way), but on this step the answer lives on
+       the profile draft — the pane's radio group writes there, not into the
+       form. Without this the press validated a blank field nobody could see,
+       failed, and did nothing. Copied across at the press rather than on every
+       change: the draft stays the one store the answer is read from. */
+    accountMethods.setValue('jobSearchStatus', draft.jobSearchStatus, { shouldValidate: false });
+    return submitValidated();
+  };
+
+  const submitValidated = accountMethods.handleSubmit((data) => {
     const details = toAccountDetails(data);
     const profile = { ...draft, role: details.role, linkedin: details.linkedin };
     setDraft(profile);
@@ -662,6 +728,55 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     }
 
     if (step === 'review') {
+      /* **A visitor with no account: two doors, and neither of them is Apply.**
+         The team's own site on the left, in the light brand button — it is a
+         real way to apply and it is offered as one. The profile on the right,
+         in the primary, because it is what this board is for; under it, the
+         link that opens the same "What your profile unlocks" list the body
+         carries, for a reader who has scrolled past the card and is looking at
+         the button that asks for the profile. Traced from Figma 631:23360.
+
+         `Sign up to Apply` stood here. It named the toll and the act in one
+         label, and the act it named no longer happens: a new account does not
+         send an application from this board, it makes a profile and signals
+         interest. `Create profile` is what the press does, and the button
+         under the form on the next step says the same. */
+      if (!loggedIn) {
+        return (
+          <div className={d.footerSplit}>
+            {externalApplyButton("Apply on the team's site")}
+            <div className={d.footerStack}>
+              <Button
+                variant="primary"
+                style="fill"
+                size="m"
+                className={d.footerAction}
+                onClick={() => onStepChange('profile')}
+              >
+                Create profile
+              </Button>
+              <button
+                type="button"
+                className={d.unlocksLink}
+                aria-expanded={unlocksOpen}
+                onClick={() => setUnlocksOpen((v) => !v)}
+              >
+                <InfoCircleIconOutlined aria-hidden="true" />
+                What your profile unlocks?
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      /* **A job aspirant: the team's site, and nothing else.** Their act on the
+         role is the "I'm interested" strip up in the body; applying happens
+         where the team takes applications. One light button, right-aligned,
+         as the "Signed up — Review job" frame draws it. */
+      if (jobAspirant) {
+        return externalApplyButton('Apply on team site');
+      }
+
       if (applied) {
         return (
           /* The row's applied control, in the row's shell — a report, not an
@@ -701,22 +816,11 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               Continue to apply
               <ArrowUpRightIcon aria-hidden="true" />
             </>
-          ) : /* **Three labels, and the third is for a stranger.** A
-                   logged-out visitor pressing a button that says `Apply` would
-                   land in a sign-up form one press later, which is the flow
-                   taking a press under a promise it doesn't keep. `Sign up to
-                   Apply` names both halves in the order they happen, and it is
-                   the only place on this step that has to: the sentence that
-                   used to say it stood beside this button, and a labelled button
-                   says the thing that sentence was saying.
-
-                   It is still the primary button in the primary position —
-                   naming the toll does not demote the action, and Apply is
-                   still what the press is *for*. */
-          loggedIn ? (
-            'Apply'
           ) : (
-            'Sign up to Apply'
+            /* Members only reach this arm — the visitor's and the aspirant's
+               footers returned above. (`Sign up to Apply` was the third label
+               here; see the visitor's footer for where it went.) */
+            'Apply'
           )}
         </Button>
       );
@@ -881,9 +985,9 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             </button>
           )}
         </div>
-        {/* No rail for a listing's owner: a position indicator for a journey
-            nobody is on would be inventing a flow to justify a component. */}
-        {!managed && (
+        {/* No rail for a listing's owner, a visitor or an aspirant — see
+            `showRail`. */}
+        {showRail && (
           <div className={d.stepBand}>
             <ApplyFlowSteps steps={steps} onSelect={(id) => goTo(id as ApplyFlowStepId)} />
           </div>
@@ -897,8 +1001,20 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             team={team}
             applied={applied}
             appliedAt={appliedAt}
-            loggedIn={loggedIn}
             status={managed?.status}
+            /* The slot under the masthead: the profile's case to a visitor,
+               the profile's one use to an aspirant. See `showRail` for why
+               these two viewers walk a different flow. */
+            showUnlocks={!loggedIn && !managed}
+            interest={
+              jobAspirant && !managed && onSetInterested
+                ? {
+                    interested,
+                    onInterested: () => onSetInterested(true),
+                    onUndo: () => onSetInterested(false),
+                  }
+                : undefined
+            }
           />
         )}
 
@@ -963,7 +1079,13 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
           and because the same bar in the same place on all three steps is what
           makes them read as one screen rather than three. */}
       <div className={d.footer}>
-        <div className={d.footerInner}>
+        <div className={clsx(d.footerInner, step === 'review' && !loggedIn && !managed && d.footerInnerSplit)}>
+          {/* The "What your profile unlocks?" list, floated above the link that
+              opened it. Inside the bar so it is positioned against the bar's
+              own top edge, and only ever on the visitor's reading step. */}
+          {unlocksOpen && step === 'review' && !loggedIn && (
+            <ProfileUnlocksPopover onClose={() => setUnlocksOpen(false)} />
+          )}
           {/* The step's second gate, in the bar with the press it gates.
 
               It was a card up in the scroll, wearing the amber `missingData`

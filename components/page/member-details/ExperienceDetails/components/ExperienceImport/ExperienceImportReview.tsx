@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/common/Checkbox';
 import { FormField } from '@/components/form/FormField';
 import { MonthYearSelect } from '@/components/form/MonthYearSelect';
 import { LocationSelect } from '@/components/ui/LocationSelect';
+import { EditOfficeHoursMobileControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursMobileControls';
 import { EditOfficeHoursFormControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursFormControls';
 import type { ResolvedLocation } from '@/services/location.service';
 // The white field panel and its row measure — the same sheet the profile card's
@@ -261,6 +262,9 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
           if (ev.key === 'Enter') ev.preventDefault();
         }}
       >
+        {/* `alwaysEnabled` does double duty: it keeps Save pressable on a card
+            nobody needs to touch, and it is what tells the drawer's unsaved-edit
+            guard there is a parse here worth refusing to leave. */}
         <EditOfficeHoursFormControls onClose={onClose} title="Review your experience" alwaysEnabled />
 
         {/* No lede and no group caption above the fields.
@@ -424,6 +428,18 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
 
           <p className={r.footnote}>You can edit or delete any of these afterwards from the Experience card.</p>
         </div>
+        {/* THE ONLY SAVE THIS CARD HAS ON A PHONE.
+            `EditOfficeHoursFormControls` above hides its Cancel/Save pair below
+            1024px and leaves a close X — which resets the form — so without this
+            bar a CV could be uploaded and reviewed on a phone and then not kept.
+            Every other edit form in the app already ends with one of these
+            bars; this card was the one that did not. It takes the office-hours
+            one to match the header above it.
+
+            `alwaysEnabled` because the rows arrive already ticked: agreeing with
+            the parse means never touching the form, and the bar's default is to
+            appear only once something has changed. */}
+        <EditOfficeHoursMobileControls alwaysEnabled />
       </form>
     </FormProvider>
   );

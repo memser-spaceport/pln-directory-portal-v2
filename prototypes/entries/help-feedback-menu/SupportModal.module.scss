@@ -1,0 +1,23 @@
+/* The search-category pill row, re-hosted in a form. Production's `.root` is a
+   one-line scrolling strip with its own end padding; in a 440px form the row
+   wraps instead, and the FormLabel above supplies the spacing. */
+.pillRow {
+  flex-wrap: wrap;
+  padding: 0;
+  gap: 8px;
+  overflow: visible;
+}
+
+/* The production chip is a <div>; as a <button> it needs the browser's font
+   and margin taken off so the class's own 12/16/500 wins. Focus ring is the
+   row's own (SearchCategories has none — it is mouse-only in production, which
+   a form control cannot be). */
+.pill {
+  margin: 0;
+  font-family: inherit;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}

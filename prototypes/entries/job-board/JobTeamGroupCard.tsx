@@ -67,13 +67,17 @@ interface JobTeamGroupCardProps {
    *  date instead of the posting age. Same map the board keys applications by. */
   appliedAtByRole?: Map<string, string>;
   /**
-   * Present on the Manage listings tab: the card is this team's own list, in
-   * every state. The count block then counts what is *up* and says how many
-   * are waiting, and each row gets its status and its control — see the row.
+   * Present when the viewer owns this team: the card is then the team's own
+   * list, in every state. The count block still counts what is *up* and says
+   * how many are waiting, and each row gets its ⋯ menu — see the row.
    */
   manage?: {
     metaFor: (roleUid: string) => ListingMeta | undefined;
     onSetStatus: (roleUid: string, status: ListingStatus) => void;
+    onDelete: (roleUid: string) => void;
+    /** This is the viewer's *own* team (a lead), not one they manage by role
+     *  (an admin). Tints the card — see `.ownedCard`. */
+    yours?: boolean;
   };
 }
 
@@ -173,7 +177,9 @@ export function JobTeamGroupCard({
   const newsOnNameRow = newsVariant === 'inline' || newsVariant === 'count';
 
   return (
-    <article className={`${s.card} ${js.card}${isProtocolLabs ? ` ${js.plCard}` : ''}`}>
+    <article
+      className={`${s.card} ${js.card}${isProtocolLabs ? ` ${js.plCard}` : ''}${manage?.yours ? ` ${js.ownedCard}` : ''}`}
+    >
       <header className={s.header}>
         <div className={`${s.avatar} ${js.avatar}`}>
           {team.logoUrl ? (
@@ -231,7 +237,13 @@ export function JobTeamGroupCard({
                 appliedAt={appliedAtByRole?.get(role.uid)}
                 teamId={team.uid}
                 manage={
-                  manage && meta ? { meta, onSetStatus: (status) => manage.onSetStatus(role.uid, status) } : undefined
+                  manage && meta
+                    ? {
+                        meta,
+                        onSetStatus: (status) => manage.onSetStatus(role.uid, status),
+                        onDelete: () => manage.onDelete(role.uid),
+                      }
+                    : undefined
                 }
               />
             </li>

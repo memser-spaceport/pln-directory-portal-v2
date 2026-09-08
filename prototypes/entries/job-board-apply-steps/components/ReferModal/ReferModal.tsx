@@ -24,7 +24,8 @@ import { useCreateJobReferral, useJobReferralDraft } from './hooks/useJobReferra
 
 import { DirectoryMember, OutsidePerson, RecipientOption } from './types';
 
-import { toReferralRecipient } from './utils/toReferralRecipient';
+import { toReferralRecipients } from './utils/toReferralRecipients';
+import { toTeamRecipientOption } from './utils/toTeamRecipientOption';
 import { getRecipientSummary } from './utils/getRecipientSummary';
 import { isEmailAddress } from './utils/isEmailAddress';
 import { linkedinProfileUrl } from './utils/linkedinProfileUrl';
@@ -65,6 +66,8 @@ interface ReferModalProps {
   source: JobSurface;
   /** Team-configured inbox. When set, the member picker is hidden and the send skips recipients. */
   jobReferEmail?: string | null;
+  /** Drawn on the hiring-team recipient row; production's team fallback stands in when null. */
+  teamLogoUrl?: string | null;
 }
 
 type ReferFormData = {
@@ -106,6 +109,23 @@ type RefereeMode = 'member' | 'outside';
  * are omitted; otherwise the first picked member is To and the rest are CCed,
  * plus the referrer and the referred member.
  *
+ * **You can refer without knowing anyone at the team.** "Send to" carries the
+ * hiring team itself as a row — first in the resting menu and the first
+ * suggestion chip under the field — which resolves at send time to the team's
+ * inbox, or to its leads when it has none (`toTeamRecipientOption`,
+ * `toReferralRecipients`). Before it, the field assumed the referrer knew
+ * somebody: a name to recognise, or an address to type. Someone referring into a
+ * team they have no line into had neither, and Send stayed dead behind a list of
+ * strangers. It is a row rather than a mode, so the team and the one person you
+ * do know can go on the same email.
+ *
+ * That makes the `jobReferEmail` branch above the narrow case of this row rather
+ * than a separate mechanism — a team with an inbox could keep the picker and show
+ * that address as the team row's destination, which would delete the "you can't
+ * choose individual members" paragraph. Left alone for now: every team in
+ * `mocks.ts` has `jobReferEmail: null`, so that branch renders nowhere on this
+ * entry and the merge would ship unseen.
+ *
  * **The person referred can be outside the network.** "Who are you referring?"
  * has two states, and it is the same field in both: a directory search, whose
  * menu ends in *Refer someone outside the network*; and, once that is pressed,
@@ -127,7 +147,16 @@ type RefereeMode = 'member' | 'outside';
  * directory as you type, which no production select can drive — see
  * `MemberSearchSelect` and `RecipientPicker`.
  */
-export function ReferModal({ open, onClose, role, teamId, teamName, source, jobReferEmail }: ReferModalProps) {
+export function ReferModal({
+  open,
+  onClose,
+  role,
+  teamId,
+  teamName,
+  source,
+  jobReferEmail,
+  teamLogoUrl,
+}: ReferModalProps) {
   const [sent, setSent] = useState(false);
   const [messageEdited, setMessageEdited] = useState(false);
   const [refereeMode, setRefereeMode] = useState<RefereeMode>('member');
@@ -246,6 +275,23 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
   const teamMembers = useMemo(
     () => hiringTeam.filter((member) => member.uid !== referee?.value),
     [hiringTeam, referee?.value],
+  );
+
+  /* Who "the hiring team" resolves to when the team has configured no inbox: its
+     leads, minus the candidate — the same people the suggestions sort first, for
+     the same reason. Falls back to the whole roster where the directory flags
+     nobody as a lead, because the row still has to reach someone. */
+  const teamLeads = useMemo(() => {
+    const leads = teamMembers.filter((member) => member.isTeamLead);
+    return leads.length ? leads : teamMembers;
+  }, [teamMembers]);
+
+  /* The hiring team as a recipient — the row that makes this field answerable by
+     someone who knows nobody at the team. Held here rather than inside the picker
+     because the send needs the same facts to resolve it into addresses. */
+  const teamOption = useMemo(
+    () => toTeamRecipientOption({ teamId, teamName, logoUrl: teamLogoUrl, leads: teamLeads, jobReferEmail }),
+    [teamId, teamName, teamLogoUrl, teamLeads, jobReferEmail],
   );
 
   // Fresh form every time the modal opens — a referral draft is per-role, not sticky.
@@ -390,7 +436,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
       {
         ...referred,
         note: message.trim(),
-        recipients: usesTeamReferEmail ? [] : recipients.map(toReferralRecipient),
+        recipients: usesTeamReferEmail ? [] : toReferralRecipients(recipients, { leads: teamLeads, jobReferEmail }),
         /* The proposal for the backend. `POST /job-openings/:uid/referrals` has no
            such field today — it copies the referrer and the referred member
            unconditionally — so this is what the API would need before the tick
@@ -564,6 +610,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                     <RecipientPicker
                       label="Send to"
                       teamMembers={teamMembers}
+                      teamOption={teamOption}
                       isTeamLoading={isTeamLoading}
                       teamName={teamName}
                       excludeUids={referee?.value ? [referee.value] : undefined}

@@ -8,6 +8,7 @@ import Cookies from 'js-cookie';
 import { toast } from '@/components/core/ToastContainer';
 import { useProjectAnalytics } from '@/analytics/project.analytics';
 import RichTextEditor from '@/components/ui/RichTextEditor/RichTextEditor';
+import { useUnsavedEditRegistration } from '@/components/common/profile/UnsavedEdits';
 
 interface IDescription {
   description: string;
@@ -40,6 +41,19 @@ const Description = (props: IDescription) => {
    * @desc - This is the state to store the description content truncated.
    */
   const [desc, setDesc] = useState(getContent(description));
+
+  /**
+   * Tell the page there is an unsaved edit here, so leaving asks first.
+   *
+   * The profile sections get this for free from the controls component they all
+   * share; this one has its own Save and Cancel and its own state, so it says so
+   * itself. The comparison is the one `onCancelClickHandler` already treats as
+   * the truth — `unChangedDescription` is snapshotted when the editor opens.
+   *
+   * Inert without a provider above it; nothing changes where this renders
+   * outside the project page.
+   */
+  const { rootRef } = useUnsavedEditRegistration(showEditor && description !== unChangedDescription);
 
   const onShowMoreClickHandler = () => {
     analytics.onProjectDetailDescShowMoreClicked(getAnalyticsUserInfo(props?.user), project?.id);
@@ -102,7 +116,7 @@ const Description = (props: IDescription) => {
   return (
     <>
       {desc && (
-        <div className="desc">
+        <div className="desc" ref={rootRef}>
           <div className="desc__header">
             <h6 className="desc__header__title">Description</h6>
             {!showEditor && props?.userHasEditRights && !isDeleted && (

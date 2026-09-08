@@ -1,4 +1,5 @@
 import Error from '@/components/core/error';
+import { UnsavedEditsPageGuard } from '@/components/common/profile/UnsavedEdits';
 import { AdditionalDetails } from '@/components/page/project-details/additional-details';
 import ContactInfos from '@/components/page/project-details/contact-infos';
 import Contributors from '@/components/page/project-details/contributors';
@@ -34,87 +35,95 @@ export default async function ProjectDetails(props: any) {
   }
 
   return (
-    <div className={styles.project}>
-      <div className={styles.project__container}>
-        <div>
-          <BackButton to={`/projects`} />
-          <div className={styles.project__container__details}>
-            <div className={styles.project__container__details__primary}>
-              <Header
-                project={project}
-                userHasEditRights={hasEditAccess}
-                userHasDeleteRights={hasDeleteAccess}
-                user={userInfo}
-                authToken={authToken}
-              />
-              <Description
-                description={project?.description}
-                project={project}
-                userHasEditRights={hasEditAccess}
-                user={userInfo}
-              />
-            </div>
-
-            {project?.projectLinks?.length > 0 && (
-              <div className={styles.project__container__details__links}>
-                <Hyperlinks project={project} user={userInfo} />
+    /* Leaving with the Description or Additional Details editor open and edited
+       asks first. Unlike the member and team profiles, whose sections report
+       themselves through the shared controls component, those two have their own
+       Save and Cancel and register directly — see their `useUnsavedEditRegistration`
+       calls. Everything else on this page edits at `/projects/update/[id]`, which
+       is a page of its own and out of scope here. */
+    <UnsavedEditsPageGuard>
+      <div className={styles.project}>
+        <div className={styles.project__container}>
+          <div>
+            <BackButton to={`/projects`} />
+            <div className={styles.project__container__details}>
+              <div className={styles.project__container__details__primary}>
+                <Header
+                  project={project}
+                  userHasEditRights={hasEditAccess}
+                  userHasDeleteRights={hasDeleteAccess}
+                  user={userInfo}
+                  authToken={authToken}
+                />
+                <Description
+                  description={project?.description}
+                  project={project}
+                  userHasEditRights={hasEditAccess}
+                  user={userInfo}
+                />
               </div>
-            )}
 
-            {/* Focus Areas */}
-            {project?.projectFocusAreas &&
-              project?.projectFocusAreas?.length > 0 &&
-              focusAreas &&
-              focusAreas?.length > 0 && (
-                <div className={styles?.project__container__details__focusarea}>
-                  <SelectedFocusAreas focusAreas={focusAreas} selectedFocusAreas={project.projectFocusAreas} />
+              {project?.projectLinks?.length > 0 && (
+                <div className={styles.project__container__details__links}>
+                  <Hyperlinks project={project} user={userInfo} />
                 </div>
               )}
 
-            {project?.kpis.length > 0 && (
-              <div className={styles.project__container__details__kpis}>
-                <KPIs kpis={project?.kpis} />
-              </div>
-            )}
+              {/* Focus Areas */}
+              {project?.projectFocusAreas &&
+                project?.projectFocusAreas?.length > 0 &&
+                focusAreas &&
+                focusAreas?.length > 0 && (
+                  <div className={styles?.project__container__details__focusarea}>
+                    <SelectedFocusAreas focusAreas={focusAreas} selectedFocusAreas={project.projectFocusAreas} />
+                  </div>
+                )}
 
-            {showProjectStats && (
-              <div className={styles.project__container__details__stats}>
-                <ProjectStats stats={osoInfo} />
-              </div>
-            )}
+              {project?.kpis.length > 0 && (
+                <div className={styles.project__container__details__kpis}>
+                  <KPIs kpis={project?.kpis} />
+                </div>
+              )}
 
-            <div className={styles.project__container__details__additionalDetails}>
-              <AdditionalDetails
-                project={project}
-                userHasEditRights={hasEditAccess}
-                authToken={authToken}
-                user={userInfo}
-              />
+              {showProjectStats && (
+                <div className={styles.project__container__details__stats}>
+                  <ProjectStats stats={osoInfo} />
+                </div>
+              )}
+
+              <div className={styles.project__container__details__additionalDetails}>
+                <AdditionalDetails
+                  project={project}
+                  userHasEditRights={hasEditAccess}
+                  authToken={authToken}
+                  user={userInfo}
+                />
+              </div>
             </div>
           </div>
-        </div>
-        <div>
-          <div style={{ visibility: 'hidden' }}>
-            <BackButton to={`/projects`} />
-          </div>
-          <div className={styles.project__container__info}>
-            {project?.contributors?.length > 0 && (
-              <div className={styles.project__container__info__contributors}>
-                <Contributors project={project} contributors={project?.contributors} user={userInfo} />
-              </div>
-            )}
-            <div className={styles.project__container__info__teams}>
-              <TeamsInvolved project={project} user={userInfo} />
+          <div>
+            <div style={{ visibility: 'hidden' }}>
+              <BackButton to={`/projects`} />
             </div>
-            {project?.contactEmail && (
-              <div className={styles.project__container__info__contacts}>
-                <ContactInfos contactEmail={project?.contactEmail} />
+            <div className={styles.project__container__info}>
+              {project?.contributors?.length > 0 && (
+                <div className={styles.project__container__info__contributors}>
+                  <Contributors project={project} contributors={project?.contributors} user={userInfo} />
+                </div>
+              )}
+              <div className={styles.project__container__info__teams}>
+                <TeamsInvolved project={project} user={userInfo} />
               </div>
-            )}
+              {project?.contactEmail && (
+                <div className={styles.project__container__info__contacts}>
+                  <ContactInfos contactEmail={project?.contactEmail} />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </UnsavedEditsPageGuard>
   );
 }
 

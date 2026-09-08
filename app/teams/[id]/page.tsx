@@ -2,6 +2,7 @@ import Error from '@/components/core/error';
 import { TeamContactInfo } from '@/components/page/team-details/TeamContactInfo';
 import { TeamProjects } from '@/components/page/team-details/TeamProjects';
 import { AiGeneratedTeamProfileBanner } from '@/components/page/team-details/AiGeneratedTeamProfileBanner';
+import { UnsavedEditsPageGuard } from '@/components/common/profile/UnsavedEdits';
 import { TeamDetails } from '@/components/page/team-details/TeamDetails';
 import { TeamMembers } from '@/components/page/team-details/TeamMembers';
 import { getMembers } from '@/services/members.service';
@@ -90,7 +91,16 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
   const showNewsRail = hasTeamNewsItems(teamNews) || canPost || !!isLoggedIn;
 
   const teamDetailContent = (
-    <>
+    /* Leaving with a section still open and edited asks first — the same guard
+       the member profile uses, and it needs nothing from the sections: the two
+       controls components every edit form is built from register themselves.
+       A client boundary inside a server component, with these children passed
+       through as a slot.
+
+       Around the content rather than either return branch, because both render
+       it. The interception is a document-level listener, so what it covers does
+       not depend on where this sits. */
+    <UnsavedEditsPageGuard>
       <BackButton to={backTo} />
       <div className={styles?.teamDetail__container}>
         {/* Details */}
@@ -136,7 +146,7 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
           hasProjectsEditAccess={hasProjectsEditAccess}
         />
       </div>
-    </>
+    </UnsavedEditsPageGuard>
   );
 
   if (showNewsRail) {

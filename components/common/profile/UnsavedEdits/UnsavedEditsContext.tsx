@@ -44,6 +44,19 @@ export interface UnsavedEditsApi {
   /** Called by a form as it mounts. Returns its own removal. */
   register: (entry: UnsavedEntry) => () => void;
   /**
+   * Fires when the answer to "is anything dirty" may have *changed* — a form
+   * registering, unregistering, or crossing the dirty line. Not on every
+   * keystroke: `isDirty` only flips once.
+   *
+   * Exists for the page-level leave guard, which has to keep a history entry in
+   * step with dirtiness and so cannot simply ask at press time. Nothing else
+   * should subscribe: pulling with `firstDirty` is what keeps typing out of the
+   * render path.
+   */
+  subscribe: (listener: () => void) => () => void;
+  /** Called by registered forms when their dirtiness changes. */
+  notifyChanged: () => void;
+  /**
    * The dirty form nearest the top of the document, or `null` if none is.
    * Pulled at press time; see the note on `register`.
    */
@@ -84,17 +97,35 @@ export function useUnsavedEditsRegistry(): UnsavedEditsApi {
 
   const [flaggedId, setFlaggedId] = useState<string | null>(null);
 
-  const register = useCallback((entry: UnsavedEntry) => {
-    entries.current.set(entry.id, entry);
+  const listeners = useRef(new Set<() => void>());
+
+  const notifyChanged = useCallback(() => {
+    listeners.current.forEach((listener) => listener());
+  }, []);
+
+  const subscribe = useCallback((listener: () => void) => {
+    listeners.current.add(listener);
     return () => {
-      entries.current.delete(entry.id);
-      /* Deliberately does NOT clear `flaggedId`. A flag pointing at a form that
+      listeners.current.delete(listener);
+    };
+  }, []);
+
+  const register = useCallback(
+    (entry: UnsavedEntry) => {
+      entries.current.set(entry.id, entry);
+      notifyChanged();
+      return () => {
+        entries.current.delete(entry.id);
+        notifyChanged();
+        /* Deliberately does NOT clear `flaggedId`. A flag pointing at a form that
          has gone renders nothing — the popup is drawn by the form itself, and
          only while it is still dirty — so the stale id is inert and the next
          press overwrites it. Clearing here would mean a state update from an
          effect cleanup, bought for no visible difference. */
-    };
-  }, []);
+      };
+    },
+    [notifyChanged],
+  );
 
   const firstDirty = useCallback(() => {
     const dirty = [...entries.current.values()].filter((entry) => entry.isDirty);
@@ -117,8 +148,8 @@ export function useUnsavedEditsRegistry(): UnsavedEditsApi {
   const clearFlag = useCallback(() => setFlaggedId(null), []);
 
   return useMemo(
-    () => ({ register, firstDirty, flaggedId, flag, clearFlag }),
-    [register, firstDirty, flaggedId, flag, clearFlag],
+    () => ({ register, subscribe, notifyChanged, firstDirty, flaggedId, flag, clearFlag }),
+    [register, subscribe, notifyChanged, firstDirty, flaggedId, flag, clearFlag],
   );
 }
 
@@ -166,7 +197,10 @@ export function useUnsavedEditRegistration(isDirty: boolean) {
 
   useEffect(() => {
     entryRef.current.isDirty = isDirty;
-  }, [isDirty]);
+    /* Only on a *change* of dirtiness, not per keystroke — `isDirty` flips once
+       and then stays. The page-level leave guard is the only listener. */
+    unsaved?.notifyChanged();
+  }, [isDirty, unsaved]);
 
   useEffect(() => unsaved?.register(entryRef.current), [unsaved]);
 

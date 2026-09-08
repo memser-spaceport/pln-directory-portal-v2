@@ -4,7 +4,6 @@ import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar
 
 import s from './DomainMigrationBanner.module.scss';
 
-const OLD_DOMAIN = 'directory.plnetwork.io';
 const NEW_DOMAIN = 'os.pl.xyz';
 
 export function DomainMigrationBanner() {
@@ -15,11 +14,11 @@ export function DomainMigrationBanner() {
   return (
     <HighlightsBar>
       <div className={s.root}>
-        We&apos;re moving from {OLD_DOMAIN} to{' '}
+        We&apos;ve moved to{' '}
         <a href={`https://${NEW_DOMAIN}`} className={s.link}>
           {NEW_DOMAIN}
         </a>
-        . You may hit temporary login or access issues.
+        . Please update your bookmarks and saved links.
       </div>
     </HighlightsBar>
   );

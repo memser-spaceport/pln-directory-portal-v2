@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 
 import Navbar from '@/components/core/navbar/nav-bar';
 import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
+import { DomainMigrationBanner } from '@/components/core/navbar/components/DomainMigrationBanner';
 import { IUserInfo } from '@/types/shared.types';
 import { isBareRoute } from '@/utils/isBareRoute';
 
@@ -20,6 +21,7 @@ export function SiteHeader({ userInfo, isLoggedIn, authToken }: Props) {
 
   return (
     <header className="layout__header">
+      <DomainMigrationBanner />
       {/* <DemoDayBanner /> */}
       {/* <PlaaSnapshotBar /> */}
       {/*<SubscribeToRecoomendations userInfo={userInfo} />*/}

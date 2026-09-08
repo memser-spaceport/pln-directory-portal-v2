@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/common/Checkbox';
 import { FormField } from '@/components/form/FormField';
 import { MonthYearSelect } from '@/components/form/MonthYearSelect';
 import { LocationSelect } from '@/components/ui/LocationSelect';
+import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 import { UnsavedEditPopup, useUnsavedEdits, type UnsavedEntry } from '@/components/common/profile/UnsavedEdits';
 import { EditOfficeHoursFormControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursFormControls';
 import type { ResolvedLocation } from '@/services/location.service';
@@ -477,6 +478,17 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
 
           <p className={r.footnote}>You can edit or delete any of these afterwards from the Experience card.</p>
         </div>
+        {/* THE ONLY SAVE THIS CARD HAS ON A PHONE.
+            `EditOfficeHoursFormControls` above hides its Cancel/Save pair below
+            1024px and leaves a close X — which resets the form — so without this
+            bar a CV could be uploaded and reviewed on a phone and then not kept.
+            Every other edit form in the app already ends with this component;
+            this card was the one that did not.
+
+            `alwaysEnabled` because the rows arrive already ticked: agreeing with
+            the parse means never touching the form, and the bar's default is to
+            appear only once something has changed. */}
+        <EditFormMobileControls alwaysEnabled />
       </form>
     </FormProvider>
   );

@@ -82,7 +82,11 @@ const renderReview = (
     />,
   );
 
-const save = () => fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
+/* There are two Saves now — the header's, and the sticky bar that is the only
+   one on a phone. These cases are about what a press *does*, which is identical
+   for both, so they keep pressing the header's. The bar has its own case at the
+   bottom of this file. */
+const save = () => fireEvent.click(screen.getAllByRole('button', { name: /^save$/i })[0]);
 
 describe('ExperienceImportReview', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -242,5 +246,43 @@ describe('ExperienceImportReview', () => {
     // Still here, still ticked — a second press is one press.
     expect(screen.getByText('Experience (2 found)')).toBeInTheDocument();
     screen.getAllByRole('checkbox').forEach((box) => expect(box).toBeChecked());
+  });
+
+  /**
+   * The card has TWO Saves, and only one of them exists on a phone.
+   *
+   * `EditOfficeHoursFormControls` in the header hides its Cancel/Save pair below
+   * 1024px and leaves a close X — which resets the form. So without the sticky
+   * bar at the end of the card, a CV could be uploaded and reviewed on a phone
+   * and then not kept: the only control on screen would be the one that throws
+   * the parse away.
+   *
+   * jsdom cannot tell us which of the two is visible at a given width — that is
+   * a media query — so what this pins is that the second one is rendered at all,
+   * ready and submitting, and that it does not wait to be dirtied. Nothing has
+   * been touched here: the rows arrive already ticked, so agreeing with the
+   * parse never dirties the form.
+   */
+  it('offers a Save that survives the mobile breakpoint, without being touched first', async () => {
+    const onSubmit = jest.fn();
+    renderReview({}, onSubmit);
+
+    const saves = screen.getAllByRole('button', { name: 'Save' });
+    expect(saves).toHaveLength(2);
+
+    // The sticky bar's Save — pressable straight away, on an untouched card.
+    const mobileSave = saves[1];
+    expect(mobileSave).toBeEnabled();
+
+    /* And actually on screen. The bar is always in the DOM; what decides whether
+       it can be seen or touched is the `visible` class — without it the
+       stylesheet leaves it at `opacity: 0; pointer-events: none`. jsdom applies
+       no CSS, so nothing above would notice a bar that renders and is invisible;
+       this is the assertion that does. */
+    expect(mobileSave.closest('div')).toHaveClass('visible');
+
+    fireEvent.click(mobileSave);
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
   });
 });

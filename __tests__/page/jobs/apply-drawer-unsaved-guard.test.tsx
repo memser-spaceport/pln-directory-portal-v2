@@ -49,11 +49,19 @@ jest.mock('@/components/page/jobs/JobProfileDrawer/JobProfileDrawer', () => {
   const ReactLib = require('react');
   const { FormProvider, useForm } = require('react-hook-form');
   const { EditFormControls } = require('@/components/common/profile/EditFormControls');
+  const {
+    EditOfficeHoursFormControls,
+  } = require('@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursFormControls');
 
   /* Opens on a press, like the real sections — which is what makes registration
      order the order they were OPENED rather than the order they appear. The
-     document-order test below depends on the two being able to differ. */
-  const Section = ({ label }: { label: string }) => {
+     document-order test below depends on the two being able to differ.
+     
+     `header` picks between the app's TWO interchangeable controls components.
+     Real forms do this too — `EditContactForm` renders the office-hours one in
+     the drawer and the plain one everywhere else — which is exactly how Contact
+     Details came to be ignored while Profile Details was guarded. */
+  const Section = ({ label, header = 'plain' }: { label: string; header?: 'plain' | 'officeHours' }) => {
     const [open, setOpen] = ReactLib.useState(false);
     const methods = useForm({ defaultValues: { value: '' } });
 
@@ -65,10 +73,12 @@ jest.mock('@/components/page/jobs/JobProfileDrawer/JobProfileDrawer', () => {
       );
     }
 
+    const Controls = header === 'officeHours' ? EditOfficeHoursFormControls : EditFormControls;
+
     return (
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(() => {})}>
-          <EditFormControls onClose={() => methods.reset()} title={label} />
+          <Controls onClose={() => methods.reset()} title={label} />
           <input aria-label={`${label} field`} {...methods.register('value')} />
         </form>
       </FormProvider>
@@ -82,6 +92,7 @@ jest.mock('@/components/page/jobs/JobProfileDrawer/JobProfileDrawer', () => {
         null,
         ReactLib.createElement(Section, { label: 'Section A' }),
         ReactLib.createElement(Section, { label: 'Section B' }),
+        ReactLib.createElement(Section, { label: 'Section C', header: 'officeHours' }),
       ),
     BackIcon: () => null,
   };
@@ -298,6 +309,26 @@ describe('leaving the details step with unsaved section edits', () => {
       expect(onClose).toHaveBeenCalled();
       expect(popup()).not.toBeInTheDocument();
     });
+  });
+
+  /**
+   * THE BUG THIS SUITE MISSED FIRST TIME.
+   *
+   * There are two interchangeable controls components, and a form can render
+   * either — `EditContactForm` picks by variant. Only one of them registered, so
+   * the drawer scrolled to Profile Details and walked straight past Contact
+   * Details, on the same screen, with nothing on either to explain the
+   * difference.
+   */
+  it('guards a section built from the office-hours controls too', () => {
+    renderProfileStep();
+    tickConsent();
+    dirty('Section C');
+
+    fireEvent.click(continueButton());
+
+    expect(onStepChange).not.toHaveBeenCalled();
+    expect(popup()).toBeInTheDocument();
   });
 
   /**

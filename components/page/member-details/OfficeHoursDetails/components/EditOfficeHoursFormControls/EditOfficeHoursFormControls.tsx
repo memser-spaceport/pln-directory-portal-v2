@@ -1,6 +1,8 @@
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
 
+import { UnsavedEditPopup, useUnsavedEditRegistration } from '@/components/common/profile/UnsavedEdits';
+
 import s from './EditOfficeHoursFormControls.module.scss';
 
 interface Props {
@@ -17,8 +19,27 @@ export const EditOfficeHoursFormControls = ({ title, onClose, alwaysEnabled }: P
 
   const isDisabled = isSubmitting || isValidating || (!alwaysEnabled && !isDirty);
 
+  /**
+   * Tell a surrounding drawer this form is half-edited — the same registration
+   * `EditFormControls` makes, and it has to be here too.
+   *
+   * These two headers are interchangeable, and one form picks between them by
+   * variant: `EditContactForm` renders this one in the drawer and the other
+   * everywhere else. Registering in only one of them meant the apply flow's
+   * guard saw Profile Details and ignored Contact Details, on the same screen.
+   *
+   * `alwaysEnabled` is included because it means exactly "there is something to
+   * save here even though nothing has been touched" — which is what a card like
+   * the CV import review is: a parse with its rows already ticked, where
+   * agreeing with all of them never dirties the form but leaving still loses it.
+   *
+   * Inert without a provider; every use outside the two job drawers is
+   * unaffected.
+   */
+  const { rootRef, anchor, showPopup, dismissPopup } = useUnsavedEditRegistration(Boolean(alwaysEnabled || isDirty));
+
   return (
-    <div className={s.root}>
+    <div className={s.root} ref={rootRef}>
       <div className={s.title}>{title}</div>
       <div className={s.controls}>
         <button
@@ -45,6 +66,7 @@ export const EditOfficeHoursFormControls = ({ title, onClose, alwaysEnabled }: P
       >
         <CloseIcon />
       </button>
+      {showPopup && <UnsavedEditPopup anchor={anchor} onDismiss={dismissPopup} />}
     </div>
   );
 };

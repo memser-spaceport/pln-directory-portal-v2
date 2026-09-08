@@ -1,15 +1,14 @@
 'use client';
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import clsx from 'clsx';
-import { FormProvider, useForm, useWatch } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 
 import { Checkbox } from '@/components/common/Checkbox';
 import { FormField } from '@/components/form/FormField';
 import { MonthYearSelect } from '@/components/form/MonthYearSelect';
 import { LocationSelect } from '@/components/ui/LocationSelect';
-import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
-import { UnsavedEditPopup, useUnsavedEdits, type UnsavedEntry } from '@/components/common/profile/UnsavedEdits';
+import { EditOfficeHoursMobileControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursMobileControls';
 import { EditOfficeHoursFormControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursFormControls';
 import type { ResolvedLocation } from '@/services/location.service';
 // The white field panel and its row measure — the same sheet the profile card's
@@ -202,55 +201,6 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
   const included = rows.filter((row) => row.include);
   const missingDates = included.filter((row) => row.startDate === '');
 
-  /**
-   * Tell a surrounding drawer there is a parse here that leaving would throw
-   * away.
-   *
-   * This card does not use `EditFormControls`, so it registers on its own — and
-   * on different terms, deliberately. Everywhere else the rule is "open but
-   * untouched does not block", because an editor nobody typed into loses
-   * nothing. Here the card only exists *because* a document was read, and it
-   * opens with rows already ticked: leaving an untouched one still costs the
-   * whole parse and a re-upload. So what blocks is not "was it edited" but "is
-   * there anything in the proposal" — which is `submit`'s own `nothingToSave`,
-   * read reactively rather than restated.
-   */
-  /* `useWatch`, not `methods.watch`: the latter returns a function the React
-     Compiler cannot memoize around, so it bails out of optimising this whole
-     component. Same subscription, without that cost. */
-  const watchedRole = useWatch({ control: methods.control, name: 'role' });
-  const watchedSkills = useWatch({ control: methods.control, name: 'skills' });
-  const hasProposal =
-    included.length > 0 ||
-    (watchedSkills ?? []).length > 0 ||
-    (askRole && (watchedRole ?? '').trim() !== '') ||
-    Boolean(askLocation && location);
-
-  const unsaved = useUnsavedEdits();
-  const unsavedId = useId();
-  const headerRef = useRef<HTMLDivElement>(null);
-  const entryRef = useRef<UnsavedEntry>({
-    id: unsavedId,
-    isDirty: false,
-    /* The header, not the form: it carries Cancel and Save, so it is both the
-       right place to be sent and the right thing for the popup to hang under.
-       The form root is the height of the whole card. */
-    getElement: () => headerRef.current,
-  });
-
-  useEffect(() => {
-    entryRef.current.isDirty = hasProposal;
-  }, [hasProposal]);
-
-  useEffect(() => unsaved?.register(entryRef.current), [unsaved]);
-
-  const [popupAnchor, setPopupAnchor] = useState<HTMLElement | null>(null);
-  useEffect(() => {
-    setPopupAnchor(headerRef.current);
-  }, []);
-
-  const showUnsavedPopup = Boolean(unsaved && unsaved.flaggedId === unsavedId && hasProposal);
-
   const submit = async (data: ReviewFormData) => {
     if (missingDates.length > 0) {
       setShowDateErrors(true);
@@ -312,10 +262,10 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
           if (ev.key === 'Enter') ev.preventDefault();
         }}
       >
-        <div ref={headerRef}>
-          <EditOfficeHoursFormControls onClose={onClose} title="Review your experience" alwaysEnabled />
-        </div>
-        {showUnsavedPopup && <UnsavedEditPopup anchor={popupAnchor} onDismiss={unsaved!.clearFlag} />}
+        {/* `alwaysEnabled` does double duty: it keeps Save pressable on a card
+            nobody needs to touch, and it is what tells the drawer's unsaved-edit
+            guard there is a parse here worth refusing to leave. */}
+        <EditOfficeHoursFormControls onClose={onClose} title="Review your experience" alwaysEnabled />
 
         {/* No lede and no group caption above the fields.
             Both were cut, and both were explaining what the card
@@ -482,13 +432,14 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
             `EditOfficeHoursFormControls` above hides its Cancel/Save pair below
             1024px and leaves a close X — which resets the form — so without this
             bar a CV could be uploaded and reviewed on a phone and then not kept.
-            Every other edit form in the app already ends with this component;
-            this card was the one that did not.
+            Every other edit form in the app already ends with one of these
+            bars; this card was the one that did not. It takes the office-hours
+            one to match the header above it.
 
             `alwaysEnabled` because the rows arrive already ticked: agreeing with
             the parse means never touching the form, and the bar's default is to
             appear only once something has changed. */}
-        <EditFormMobileControls alwaysEnabled />
+        <EditOfficeHoursMobileControls alwaysEnabled />
       </form>
     </FormProvider>
   );

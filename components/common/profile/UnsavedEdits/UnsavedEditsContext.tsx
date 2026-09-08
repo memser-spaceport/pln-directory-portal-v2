@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 
 /**
  * "Is anything on this screen half-edited?" — asked at the moment somebody tries
@@ -136,4 +136,54 @@ export function blockIfUnsaved(api: UnsavedEditsApi | null): boolean {
   blocked.getElement()?.scrollIntoView({ block: 'center', behavior: 'smooth' });
   api?.flag(blocked.id);
   return true;
+}
+
+/**
+ * Sign one edit form into the registry, and say where its popup goes.
+ *
+ * A hook rather than something each form writes out, because there are **two**
+ * headers that every edit form in the app is built from — `EditFormControls` and
+ * `EditOfficeHoursFormControls` — and they are interchangeable enough that one
+ * form picks between them by variant. Registering in only one of them is exactly
+ * the bug this replaced: Contact Details renders the office-hours header in the
+ * drawer and the plain one everywhere else, so the guard saw Profile Details and
+ * ignored Contact Details, on the same screen, for no reason a reader could see.
+ *
+ * Anything that grows a third header has to call this too, and having it in one
+ * place is what makes that a line rather than a re-derivation.
+ */
+export function useUnsavedEditRegistration(isDirty: boolean) {
+  const unsaved = useUnsavedEdits();
+  const id = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  /* Mutated, never state — see `useUnsavedEditsRegistry`. */
+  const entryRef = useRef<UnsavedEntry>({
+    id,
+    isDirty: false,
+    getElement: () => rootRef.current,
+  });
+
+  useEffect(() => {
+    entryRef.current.isDirty = isDirty;
+  }, [isDirty]);
+
+  useEffect(() => unsaved?.register(entryRef.current), [unsaved]);
+
+  /* Captured into state rather than read off the ref at render time, which
+     `react-hooks/refs` forbids — and floating-ui needs a value to react to. */
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setAnchor(rootRef.current);
+  }, []);
+
+  return {
+    /** Put this on the controls row: the scroll target and the popup's anchor. */
+    rootRef,
+    anchor,
+    /* Derived, not stored, so saving or cancelling takes the popup away without
+       anything having to remember to. */
+    showPopup: Boolean(unsaved && unsaved.flaggedId === id && isDirty),
+    dismissPopup: unsaved?.clearFlag ?? (() => {}),
+  };
 }

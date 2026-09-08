@@ -1,9 +1,9 @@
-import React, { ReactNode, useEffect, useId, useRef, useState } from 'react';
+import React, { ReactNode } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { CloseIcon } from '@/components/icons';
 import { Button } from '@/components/common/Button';
-import { UnsavedEditPopup, useUnsavedEdits, type UnsavedEntry } from '@/components/common/profile/UnsavedEdits';
+import { UnsavedEditPopup, useUnsavedEditRegistration } from '@/components/common/profile/UnsavedEdits';
 
 import { getSaveBtnLabel } from './utils/getSaveBtnLabel';
 
@@ -25,49 +25,18 @@ export const EditFormControls = (props: Props) => {
    * Tell a surrounding drawer that this form is half-edited, so leaving can be
    * refused rather than silently throwing the edit away.
    *
-   * `null` everywhere without a provider, which is everywhere except the two job
-   * drawers — the other call sites across team-details and demo-day are
-   * unaffected.
+   * Inert without a provider, which is everywhere except the two job drawers.
+   * This component is one of the two places worth doing it from: it mounts only
+   * while an editor is open (every form is conditionally rendered), so being
+   * mounted already means being edited. `EditOfficeHoursFormControls` is the
+   * other, and must stay in step — one form picks between them by variant.
    *
-   * This component is the right place for it because it is the only thing every
-   * edit form in the app has in common, it already computes `isDirty`, and it
-   * **mounts only while an editor is open** (every form is conditionally
-   * rendered), so being mounted already means being edited.
+   * Note `isDirty` is read during *render* above. react-hook-form's `formState`
+   * is a Proxy that subscribes only to what was touched while rendering, so
+   * reading it for the first time inside the hook's effect would make it
+   * permanently `false` and the guard would never fire.
    */
-  const unsaved = useUnsavedEdits();
-  const id = useId();
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  /* The registry reads this by mutation, never through React, so that going
-     dirty does not re-render the drawer on a keystroke. Note `isDirty` is still
-     read during *render* above — react-hook-form's `formState` is a Proxy that
-     only subscribes to the fields something touched while rendering, so moving
-     that read into this effect would quietly make it always `false` and the
-     guard would never fire. */
-  const entryRef = useRef<UnsavedEntry>({
-    id,
-    isDirty: false,
-    getElement: () => rootRef.current,
-  });
-
-  useEffect(() => {
-    entryRef.current.isDirty = Boolean(isDirty);
-  }, [isDirty]);
-
-  useEffect(() => unsaved?.register(entryRef.current), [unsaved]);
-
-  /* The anchor is captured into state rather than read from the ref at render
-     time, because `react-hooks/refs` forbids the latter — and because the popup
-     needs a value floating-ui can react to. */
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  useEffect(() => {
-    setAnchor(rootRef.current);
-  }, []);
-
-  /* Derived, not stored. The popup is only ever on screen while this form is
-     BOTH the flagged one and still dirty, so saving or cancelling takes it away
-     without anything having to remember to. */
-  const showPopup = Boolean(unsaved && unsaved.flaggedId === id && isDirty);
+  const { rootRef, anchor, showPopup, dismissPopup } = useUnsavedEditRegistration(Boolean(isDirty));
 
   const cancel = () => {
     if (reset) {
@@ -92,7 +61,7 @@ export const EditFormControls = (props: Props) => {
       <button className={s.mobileCloseButton} onClick={cancel} type="button">
         <CloseIcon className={s.closeIcon} />
       </button>
-      {showPopup && <UnsavedEditPopup anchor={anchor} onDismiss={unsaved!.clearFlag} />}
+      {showPopup && <UnsavedEditPopup anchor={anchor} onDismiss={dismissPopup} />}
     </div>
   );
 };

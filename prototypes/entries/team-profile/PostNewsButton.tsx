@@ -5,7 +5,8 @@ import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import clsx from 'clsx';
 
 import { Button } from '@/components/common/Button';
-import { PlusIcon } from '@/components/icons';
+
+import { SubmitPlusIcon } from './icons';
 
 // The product's callout tooltip — the brand-blue `highlight` variant of the
 // core Tooltip (rights-tokens dashboard), reused by its stylesheet because that
@@ -69,7 +70,8 @@ export function PostNewsButton({ teamName, onPost }: Props) {
                 onPost();
               }}
             >
-              <PlusIcon width={12} height={12} aria-hidden="true" />
+              {/* The bare plus every creation door here wears — see `icons.tsx`. */}
+              <SubmitPlusIcon size={12} />
               Post news
             </Button>
           </span>

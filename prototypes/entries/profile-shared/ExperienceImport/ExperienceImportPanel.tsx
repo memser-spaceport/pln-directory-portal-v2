@@ -128,6 +128,20 @@ interface ExperienceImportPanelProps {
    */
   onCancelRead?: () => void;
   /**
+   * The panel's status, every time it changes — and `'idle'` once more when the
+   * panel unmounts, so a host never keeps a wait the panel has stopped having.
+   *
+   * What a host does with it: lock the fields the document is about to fill.
+   * While a file is uploading or being read, the role, location, skills,
+   * contact and experience cards under this panel are about to be written to;
+   * a person typing into one of them at that moment is racing the parser, and
+   * the merge rules ("fill only a blank") would then silently decline to fill
+   * what they just started. So the hosts mute those cards for the wait and say,
+   * in the slot their Edit normally sits in, when they come back. See
+   * `ImportLock`.
+   */
+  onStatusChange?: (status: ImportStatus) => void;
+  /**
    * What the person is told before handing over a document.
    *
    * A prop because the honest sentence is not the same on every surface. The
@@ -164,6 +178,8 @@ interface ExperienceImportPanelProps {
  * — see the row itself for why they are told apart at all.
  */
 type Status = 'idle' | 'uploading' | 'reading' | 'nothing-found';
+/** The panel's status, as hosts see it through `onStatusChange`. */
+export type ImportStatus = Status;
 
 /**
  * The progress bar's shape. Where the upload's share ends, where the bar stops
@@ -284,6 +300,7 @@ export function ExperienceImportPanel({
   initialFile,
   onFileRead,
   onCancelRead,
+  onStatusChange,
   privacyNote = 'We read the file to fill in your profile. The file itself is not kept.',
   canvasOpen,
   canvasStatus,
@@ -306,6 +323,14 @@ export function ExperienceImportPanel({
   const [now, setNow] = useState(0);
 
   const waiting = status === 'uploading' || status === 'reading';
+
+  /* Reports the status out, and `'idle'` on unmount — a review card replaces
+     this panel the moment a parse lands, so without the cleanup the host would
+     be left holding `'reading'` and its cards would stay locked forever. */
+  useEffect(() => {
+    onStatusChange?.(status);
+    return () => onStatusChange?.('idle');
+  }, [status, onStatusChange]);
 
   /* The row re-reads the clock while it is waiting and not otherwise — ten
      times a second is enough for a 6px bar to move smoothly and far too slow

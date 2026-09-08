@@ -105,7 +105,11 @@ export const CANVAS_STATES: Record<string, OnboardingCanvasState> = {
      on it: the resting card at the top, Replace and Remove in its header. */
   'cv-resting': { seed: FIRST_CV, cv: true },
   /* Replace pressed and a newer file chosen: the reading row in the card's place. */
-  'cv-replace-reading': { seed: FIRST_CV, cv: true, panel: { status: 'reading', fileName: 'polina-bublii-cv-2026.pdf' } },
+  'cv-replace-reading': {
+    seed: FIRST_CV,
+    cv: true,
+    panel: { status: 'reading', fileName: 'polina-bublii-cv-2026.pdf' },
+  },
   /* Remove pressed: the confirmation over the card. */
   'cv-remove-confirm': { seed: FIRST_CV, cv: true, removeCv: true },
 };

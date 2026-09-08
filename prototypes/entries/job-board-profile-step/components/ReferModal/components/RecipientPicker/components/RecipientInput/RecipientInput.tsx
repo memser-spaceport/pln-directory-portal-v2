@@ -2,7 +2,8 @@ import { useState, type FocusEvent, type InputHTMLAttributes } from 'react';
 import clsx from 'clsx';
 import type { GroupBase, InputProps } from 'react-select';
 
-import { PlusIcon } from '@/components/icons';
+// The bare plus, not the DS circled one — see the icon's own note for the lineage.
+import { PlusIcon } from '../../../../../../icons';
 
 import { RecipientOption } from '../../../../types';
 

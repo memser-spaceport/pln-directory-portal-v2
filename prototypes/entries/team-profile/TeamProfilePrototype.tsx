@@ -32,6 +32,7 @@ import { TeamMembersView } from './TeamMembersView';
 import { TeamContributionsView } from './TeamContributionsView';
 import { TeamProjectsView } from './TeamProjectsView';
 import { TeamOpenRolesView } from './TeamOpenRolesView';
+import { seedListingMeta, submitJobHref, type ListingMeta, type ListingStatus } from '../job-board/listings';
 import { NewsCardView } from './NewsCardView';
 import { NewsFullPageView } from './NewsFullPageView';
 import { TeamFollowBlock } from './TeamFollowBlock';
@@ -117,6 +118,59 @@ export default function TeamProfilePrototype() {
    * an inactive team is, by definition, not.
    */
   const canPost = view === 'team' && status === 'active';
+
+  /**
+   * WHO CAN POST A JOB. Narrower than news in production — `isTeamLeaderOrAdmin`,
+   * a lead of this team or a directory admin, not any member — and this
+   * prototype's "Team" view stands in for that pair as it does for `canPost`.
+   * Same second half: a team that has wound down is not hiring.
+   */
+  const canSubmitJobs = view === 'team' && status === 'active';
+  // Demo-only, same reason as the news seed: one mock team, so the only way to
+  // see the owner's empty Open roles section is to take its roles away.
+  const [rolesSeed, setRolesSeed] = useState<'some' | 'none'>('some');
+
+  /**
+   * The team's listings as the team manages them, from its own page — the
+   * board's `listings` and `deletedUids`, kept here for the length of a visit.
+   * Seeded the way the board seeds the public roles (live, from the careers
+   * page), so the origin line under each row reads the same on both surfaces.
+   * A listing marked inactive stays in the list with the pill and `Bring back`
+   * — the undo where the action was — and one deleted is gone from it.
+   */
+  const [roleListings, setRoleListings] = useState<Map<string, ListingMeta>>(() =>
+    seedListingMeta(MOCK_TEAM_ROLES ? [{ teamUid: MOCK_TEAM_ROLES.team.uid, roles: MOCK_TEAM_ROLES.roles }] : []),
+  );
+  const [deletedRoleUids, setDeletedRoleUids] = useState<Set<string>>(() => new Set());
+  const [listingToast, setListingToast] = useState<string | null>(null);
+  const listingToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showListingToast = (message: string) => {
+    setListingToast(message);
+    if (listingToastTimer.current) clearTimeout(listingToastTimer.current);
+    listingToastTimer.current = setTimeout(() => setListingToast(null), 4000);
+  };
+  const roleTitle = (uid: string) => MOCK_TEAM_ROLES?.roles.find((r) => r.uid === uid)?.roleTitle ?? 'The listing';
+  const setRoleStatus = (uid: string, status: ListingStatus) => {
+    setRoleListings((prev) => {
+      const meta = prev.get(uid);
+      return meta ? new Map(prev).set(uid, { ...meta, status }) : prev;
+    });
+    // The board's own receipts, word for word: the part not on screen is what
+    // the public board now does.
+    showListingToast(status === 'inactive' ? `${roleTitle(uid)} is off the board.` : `${roleTitle(uid)} is back on the board.`);
+  };
+  const deleteRole = (uid: string) => {
+    setDeletedRoleUids((prev) => new Set(prev).add(uid));
+    showListingToast(`${roleTitle(uid)} is deleted.`);
+  };
+  /** The section's group: the seed minus deletions, or nothing. */
+  const teamRoles =
+    rolesSeed === 'some' && MOCK_TEAM_ROLES
+      ? (() => {
+          const roles = MOCK_TEAM_ROLES.roles.filter((r) => !deletedRoleUids.has(r.uid));
+          return { ...MOCK_TEAM_ROLES, roles, totalRoles: roles.length };
+        })()
+      : null;
 
   /**
    * The team's news, in state because the team can now add to it. Seeded from
@@ -415,6 +469,26 @@ export default function TeamProfilePrototype() {
             </button>
           </div>
         </div>
+
+        <div className={local.demoGroup}>
+          <span className={local.demoLabel}>Roles</span>
+          <div className={local.demoSwitch}>
+            <button
+              type="button"
+              className={`${local.demoBtn} ${rolesSeed === 'some' ? local.demoBtnActive : ''}`}
+              onClick={() => setRolesSeed('some')}
+            >
+              Hiring
+            </button>
+            <button
+              type="button"
+              className={`${local.demoBtn} ${rolesSeed === 'none' ? local.demoBtnActive : ''}`}
+              onClick={() => setRolesSeed('none')}
+            >
+              None yet
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className={local.layout}>
@@ -499,8 +573,19 @@ export default function TeamProfilePrototype() {
             two tenses: who's here, and who the team is looking for. Not in the
             news rail (that's a cross-surface stream, and 340px can't hold a role
             row); not near the top, because roles are perishable and most teams
-            have none. Renders nothing when there are none. */}
-            <TeamOpenRolesView group={MOCK_TEAM_ROLES} />
+            have none. Renders nothing when there are none — unless the reader
+            can change that: a lead or admin gets the section in both states,
+            with **Submit a job** in its header leading to the board's form,
+            already on this team. */}
+            <TeamOpenRolesView
+              group={teamRoles}
+              submitHref={canSubmitJobs ? submitJobHref(MOCK_TEAM.id) : undefined}
+              manage={
+                canSubmitJobs
+                  ? { metaFor: (uid) => roleListings.get(uid), onSetStatus: setRoleStatus, onDelete: deleteRole }
+                  : undefined
+              }
+            />
 
             {/* Focus areas — import-safe production view. */}
             <DetailsSection>
@@ -671,6 +756,7 @@ export default function TeamProfilePrototype() {
           You&apos;re following <strong>{team.name}</strong> — you&apos;ll get its updates in your feed.
         </FollowToast>
       )}
+      {listingToast && <FollowToast>{listingToast}</FollowToast>}
 
       {/* Compose. Mounted only for someone who can post — the modal owns a
           draft, and a draft for a person with nowhere to post it is a leak. */}

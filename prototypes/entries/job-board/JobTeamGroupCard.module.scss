@@ -68,6 +68,19 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+// Your own team's card, for a lead: the product's "yours" surface — the blue
+// soft tint and subtle brand border the profile's editable panels, the job
+// board's own banner and the profile drawer all wear (`DetailsSection
+// .missingData`, `JobBoardBanner`, `JobProfileDrawer`) — so the one card on
+// the board you can act on is the one card that looks like the surfaces you
+// act on. Doubled class so it outranks the production `.card` beneath it.
+// Not for an admin: they manage every team by role, and a tint on every card
+// says nothing.
+.card.ownedCard {
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border-color: var(--border-brand-subtle, #aebfff);
+}
+
 // Protocol Labs' card, outlined edge to edge in the PL brand gradient. Doubled
 // class so it outranks the production `.card` it sits on top of.
 //

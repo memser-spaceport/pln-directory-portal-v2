@@ -1,0 +1,77 @@
+/* The (?) as a real button. Production's `.supportButton` (NavBar.module.scss)
+   is a 40px flex box on a <div>; the same class on a <button> needs the
+   browser chrome taken off. Hover and open states are the row's own —
+   `.navIconTrigger` (search) hovers on transparent-dark-4, and the left-hand
+   `.Trigger` items mark [data-popup-open] the same way. */
+.anchor {
+  display: inline-flex;
+}
+
+.trigger {
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    }
+  }
+
+  &[data-popup-open] {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -1px;
+  }
+}
+
+/* Hover-open hands focus to the popup with no pointer press to blame it on, so
+   Chrome paints a focus-visible ring round the whole card. The account menu
+   never meets this (click-open), which is why its `.Popup` has no reset while
+   its `.Positioner` does. Keyboard users still get the item highlight. */
+.popup {
+  outline: 0;
+}
+
+/* ---------- One-time callout ---------- */
+
+/* Verbatim from team-profile's `.postTip` / `.postTipText` / `.postTipDismiss`
+   — the product's one announcement pattern — so the two callouts read as one
+   thing. The tooltip stylesheet caps content at 220px with overflow:auto; one
+   sentence and a button never reach that. Doubled selector for the same
+   reason as there: it has to beat the imported `.tp`'s own display/overflow. */
+.calloutTip.calloutTip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 250px;
+  overflow: visible;
+  z-index: 7; /* above the header shell (5) and the menu positioner (6) */
+}
+
+.calloutText {
+  margin: 0;
+  color: var(--Neutral-White, #fff);
+}
+
+/* "Got it" — a text button in the callout's own white, underlined the way the
+   DS underlined link Button is (4px offset), so it reads as the one press here. */
+.calloutDismiss {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--Neutral-White, #fff);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}

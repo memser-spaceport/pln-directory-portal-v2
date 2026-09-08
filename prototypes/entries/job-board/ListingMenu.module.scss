@@ -1,0 +1,33 @@
+/* Local extras on top of the reused NewsShareMenu.module.scss. */
+
+/* The share menu's icon trigger, in the row's own grey at rest — the same
+   tone the share icon used to take — so the one mark left on the row reads
+   as the row's, not as a foreign control. */
+.trigger {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* The Share item opens sideways; its chevron sits at the far edge, in the
+   menu's tertiary grey, so it reads as "more" rather than as a second label. */
+.submenuTrigger {
+  justify-content: space-between;
+
+  svg {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+/* The rule between the reader's presses and the owner's — the popup's own
+   border colour, inset to its padding. */
+.separator {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+/* Delete, in the error tone: the DS `Button.error` link colour, on the menu's
+   own item shape. The trash inherits it. */
+.danger {
+  color: var(--foreground-error-primary, #dc2626);
+}

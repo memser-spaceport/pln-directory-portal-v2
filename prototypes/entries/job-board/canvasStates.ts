@@ -209,7 +209,7 @@ export const CANVAS_STATES: Record<string, CanvasStateSpec> = {
 
   /* --- Posting a job ---------------------------------------------------------
      The lead's door and what is behind it. The board states these sit between
-     (`?viewer=team-lead`, `&scope=manage`, `?viewer=directory-admin`) are plain
+     (`?viewer=team-lead`, `?viewer=directory-admin`) are plain
      parameters and are declared as such; only the overlays need a pin. */
   'submit-job-empty': { viewer: 'team-lead', submitJob: true },
   'submit-job-filled': { viewer: 'team-lead', submitJob: true, submitJobFilled: true },

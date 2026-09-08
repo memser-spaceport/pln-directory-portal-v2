@@ -350,3 +350,39 @@
   flex-shrink: 0;
   color: var(--foreground-brand-primary, #1b4dff);
 }
+
+/* The hiring-team row, in all three places it appears (menu option, picked row,
+   suggestion chip). Same slot, same size and the same circle as the person beside
+   it — so this modifier sets no radius at all and inherits each base class's.
+
+   It was a rounded square, argued from "a rounded square is how this product
+   draws a team". That is true of production (`TeamsList` 8px, `FundTeamCard` 8px,
+   `TeamDetails` 4px) and it was the wrong rule for this slot: those are cards
+   *about* a team, whereas this is one row in a list of recipients, where every
+   sibling is a circle and the reader is choosing who hears about a referral, not
+   what kind of thing each row is. The list's shape wins over the entity's usual
+   shape — one column of recipients, not two kinds of object.
+
+   What the modifier does still carry is the two things a logo needs and a face
+   doesn't: `contain`, not `cover`, because a logo cropped to fill is a logo with
+   its wordmark cut off; and a hairline border, because a white logo on a white
+   card has no edge of its own. */
+.optionAvatarTeam,
+.rowAvatarTeam,
+.suggestAvatarTeam {
+  object-fit: contain;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+}
+
+/* The team row takes the menu's two lines, against the one-line rule above.
+   That rule is priced on 4–6 people stacked; there is only ever one team row, so
+   the height it buys back is not at stake. And its second half is a destination
+   rather than a two-word role — the row was picked *because* the referrer could
+   not judge the names, so "Reaches Anneke, Tomas and 2 o…" cuts the only fact it
+   carries. Inline, the name lost its tail too. */
+.rowTextTeam {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}

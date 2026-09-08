@@ -59,7 +59,7 @@ interface JobDetailPaneProps {
   interest?: { interested: boolean; onInterested: () => void; onUndo: () => void };
   /**
    * The listing's state, for a reader who manages it. Worn in the stamp row as
-   * the same pill the Manage listings row wears, so a lead opening their own
+   * the same pill an owner's not-yet-live row wears, so a lead opening their own
    * in-review or inactive posting is told so where they look first. Absent for
    * everyone else: an applicant only ever opens a live one.
    */

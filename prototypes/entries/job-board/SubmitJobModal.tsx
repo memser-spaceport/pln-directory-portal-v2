@@ -158,6 +158,12 @@ interface Props {
    * team select. An admin is passed every team.
    */
   teams: IJobTeam[];
+  /**
+   * The team to open on, when the form was reached from that team's own
+   * profile (`?submit=<teamUid>`, see `submitJobHref`). Only an admin's form
+   * has a team select to preset; a lead's names its one team regardless.
+   */
+  initialTeamUid?: string;
   onSubmit: (job: SubmittedJob) => void;
   /** DELETE WITH: the `design-canvas/` folder. Opens the form already filled in. */
   canvasFilled?: boolean;
@@ -200,7 +206,7 @@ interface Props {
  * Discard step — Cancel and Escape keep the draft. A job description is the
  * longest thing anyone types on this board, and a stray click must not eat it.
  */
-export function SubmitJobModal({ open, onClose, teams, onSubmit, canvasFilled }: Props) {
+export function SubmitJobModal({ open, onClose, teams, initialTeamUid, onSubmit, canvasFilled }: Props) {
   const askTeam = teams.length > 1;
   const soleTeam = teams.length === 1 ? teams[0] : null;
 
@@ -216,6 +222,12 @@ export function SubmitJobModal({ open, onClose, teams, onSubmit, canvasFilled }:
   useEffect(() => setPortalTarget(document.body), []);
 
   const teamOptions = useMemo<Option[]>(() => teams.map((t) => ({ label: t.name, value: t.uid })), [teams]);
+  /* The team the person arrived from, as the select's option — or nothing, for
+     a lead (no select) and for the toolbar door (no team named). */
+  const initialTeam = useMemo<Option | null>(
+    () => (askTeam && initialTeamUid ? (teamOptions.find((o) => o.value === initialTeamUid) ?? null) : null),
+    [askTeam, initialTeamUid, teamOptions],
+  );
 
   const methods = useForm<SubmitJobFormData>({
     defaultValues: getDefaults(),
@@ -230,7 +242,12 @@ export function SubmitJobModal({ open, onClose, teams, onSubmit, canvasFilled }:
   } = methods;
 
   const values = useWatch({ control }) as SubmitJobFormData;
-  const hasDraft = !isDraftEmpty({ ...getDefaults(), ...values });
+  /* A team the door chose is not something the person wrote: on its own it is
+     neither a draft to mark "Saved" nor one worth keeping. Only a team they
+     changed counts. */
+  const isEmptyHere = (draft: SubmitJobFormData) =>
+    isDraftEmpty({ ...draft, team: draft.team?.value === initialTeam?.value ? null : draft.team });
+  const hasDraft = !isEmptyHere({ ...getDefaults(), ...values });
 
   const { clearDraft } = useFormDraft<SubmitJobFormData, SubmitJobFormData>({
     /* Keyed by team, so a lead of two teams does not open one team's half-written
@@ -241,7 +258,7 @@ export function SubmitJobModal({ open, onClose, teams, onSubmit, canvasFilled }:
     getDefaults,
     toDraft: (form) => form,
     fromDraft: (draft) => ({ ...getDefaults(), ...draft }),
-    isEmpty: isDraftEmpty,
+    isEmpty: isEmptyHere,
     onRestore: (draft) => setSaveStatus(draft ? 'saved' : 'idle'),
   });
 
@@ -249,6 +266,17 @@ export function SubmitJobModal({ open, onClose, teams, onSubmit, canvasFilled }:
   useEffect(() => {
     if (open && canvasFilled) reset(FILLED);
   }, [open, canvasFilled, reset]);
+
+  /* An admin who came from a team's profile finds that team already picked.
+     After the draft restore above, and only into an empty select: a
+     half-written listing for another team is the person's own choice and
+     outranks the door they happened to come through this time. `setValue`
+     rather than a default, because the modal is mounted before the URL has
+     been read and `defaultValues` is only ever read once. */
+  const { setValue, getValues } = methods;
+  useEffect(() => {
+    if (open && initialTeam && !getValues('team')) setValue('team', initialTeam, { shouldValidate: true });
+  }, [open, initialTeam, getValues, setValue]);
 
   // Mirrors the hook's own debounce so the mark flips when the write lands.
   const skipFirst = useRef(true);

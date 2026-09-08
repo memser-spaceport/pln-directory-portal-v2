@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import clsx from 'clsx';
 import { uniq } from 'lodash';
 
 import { BackButton } from '@/components/ui/BackButton';
@@ -28,7 +29,15 @@ import n from '@/components/page/member-details/ContributionsDetails/components/
 import rl from '@/components/page/member-details/RepositoriesDetails/components/RepositoriesList/RepositoriesList.module.scss';
 import cd from '@/components/page/member-details/contact-details/ContactDetails.module.scss';
 
-import { ExperienceImportPanel } from '../profile-shared/ExperienceImport/ExperienceImportPanel';
+import { ExperienceImportPanel, type ImportStatus } from '../profile-shared/ExperienceImport/ExperienceImportPanel';
+// The CV-read lock: while a file is uploading or being read, the cards it will
+// write to are muted and say when they come back. See `ImportLock`.
+import {
+  ImportLockNote,
+  importLockClass,
+  importLockWrapClass,
+  isImportWaiting,
+} from '../profile-shared/ExperienceImport/ImportLock';
 import { OptionalMark } from '../profile-shared/OptionalMark';
 // The kept CV at rest — shared with the apply flow's profile step, so the two
 // surfaces cannot drift on what "your CV" looks like. See the folder's notes.
@@ -156,6 +165,12 @@ export default function OnboardingPrototype() {
      it. Null on a new profile; set the moment a document has been read. */
   const [cv, setCv] = useState<StoredCv | null>(null);
   const [confirmRemoveCv, setConfirmRemoveCv] = useState(false);
+  /* What the import panel is doing, reported by whichever mount is live. While
+     it is uploading or reading, the cards the document fills — the header card
+     (role, location, skills), Contact Details (email) and Experience — are
+     locked; see `ImportLock`. The card hosting the panel is never locked. */
+  const [importStatus, setImportStatus] = useState<ImportStatus>('idle');
+  const cvWaiting = isImportWaiting(importStatus);
 
   /* Seeded from the account, which is where production gets it: sign-up runs
      before this page exists. `MOCK_USER.email` is empty and the name isn't —
@@ -217,6 +232,13 @@ export default function OnboardingPrototype() {
    */
   const importHost: 'cv' | 'experience' | null = importing ? (editing?.host ?? 'cv') : null;
   const showCvSection = importHost !== 'experience';
+
+  /* The Experience card's lock: through the read, and then through the review
+     the CV section shows once the read lands — the positions it found are on
+     no profile until that card's Save. Never while this card is the importer's
+     own host. See `importReviewLockCopy`. */
+  const reviewingFromCv = importing && !!parsed && importHost !== 'experience';
+  const experienceLocked = (cvWaiting && importHost !== 'experience') || reviewingFromCv;
 
   const closeImport = () => {
     setEditing(null);
@@ -362,7 +384,7 @@ export default function OnboardingPrototype() {
                this is one too, and every placeholder in it is production's own:
                the amber pair with its divider, the two grey pills, the blue
                Edit. */}
-        <div className={p.root}>
+        <div className={clsx(p.root, cvWaiting && importLockClass)} inert={cvWaiting}>
           <div className={h.header}>
             <div className={h.headerProfile}>
               <img className={h.headerProfileImg} src={getDefaultAvatar(MOCK_USER.name)} alt="" />
@@ -393,7 +415,7 @@ export default function OnboardingPrototype() {
                 </div>
               </div>
               <div>
-                <EditButton onClick={() => undefined} />
+                {cvWaiting ? <ImportLockNote status={importStatus} /> : <EditButton onClick={() => undefined} />}
               </div>
             </div>
             <div className={h.tags}>
@@ -506,8 +528,8 @@ export default function OnboardingPrototype() {
                     about — the card lets the privacy line carry it alone. */}
                 {!cv && profileIsBlank && (
                   <p className={o.cvFirstNote}>
-                    We&apos;ll fill in your role, skills and experience from it — and it goes with your applications,
-                    so teams read the document you wrote as well as the profile.
+                    We&apos;ll fill in your role, skills and experience from it — and it goes with your applications, so
+                    teams read the document you wrote as well as the profile.
                   </p>
                 )}
                 {/* Both, not just `setParsed`: the review renders on
@@ -519,6 +541,7 @@ export default function OnboardingPrototype() {
                   privacyNote="Kept on your profile and sent with your applications. You can replace or remove it any time."
                   initialFile={pickedFile}
                   onFileRead={keepFile}
+                  onStatusChange={setImportStatus}
                   onCancelRead={cv ? closeImport : undefined}
                   onParsed={(result) => {
                     setParsed(result);
@@ -622,40 +645,42 @@ export default function OnboardingPrototype() {
                The prompt strip stays either way. It asks for "contact details"
                plural — Telegram and the social links are still missing — and one
                filled row does not answer it. */}
-        <DetailsSection>
-          <DataIncomplete className={o.promptStrip}>
-            Complete your profile by adding contact details — make it easier for others to connect with you.
-          </DataIncomplete>
-          <div className={o.sectionBody}>
-            <DetailsSectionHeader title="Contact Details">
-              <EditButton onClick={() => undefined} />
-            </DetailsSectionHeader>
-            {email ? (
-              <div className={cd.social}>
-                <div className={cd.top}>
-                  <div className={cd.content}>
-                    <ProfileSocialLink
-                      type="email"
-                      profile={email}
-                      handle={email}
-                      logo={getContactLogoByProvider('email')}
-                      height={24}
-                      width={24}
-                      isPreview
-                      callback={() => undefined}
-                    />
+        <div className={clsx(importLockWrapClass, cvWaiting && importLockClass)} inert={cvWaiting}>
+          <DetailsSection>
+            <DataIncomplete className={o.promptStrip}>
+              Complete your profile by adding contact details — make it easier for others to connect with you.
+            </DataIncomplete>
+            <div className={o.sectionBody}>
+              <DetailsSectionHeader title="Contact Details">
+                {cvWaiting ? <ImportLockNote status={importStatus} /> : <EditButton onClick={() => undefined} />}
+              </DetailsSectionHeader>
+              {email ? (
+                <div className={cd.social}>
+                  <div className={cd.top}>
+                    <div className={cd.content}>
+                      <ProfileSocialLink
+                        type="email"
+                        profile={email}
+                        handle={email}
+                        logo={getContactLogoByProvider('email')}
+                        height={24}
+                        width={24}
+                        isPreview
+                        callback={() => undefined}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className={e.root}>
-                <div className={e.emptyData}>
-                  <span className={e.label}>Add your email, Telegram and social links so members can reach you.</span>
+              ) : (
+                <div className={e.root}>
+                  <div className={e.emptyData}>
+                    <span className={e.label}>Add your email, Telegram and social links so members can reach you.</span>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        </DetailsSection>
+              )}
+            </div>
+          </DetailsSection>
+        </div>
 
         {/* 5. Experience.
 
@@ -668,99 +693,109 @@ export default function OnboardingPrototype() {
                the gates were already there and already correct; if the CV ever
                stops being a kept profile object, this is the path that comes
                back. */}
-        <DetailsSection editView={importing && importHost === 'experience'}>
-          {importing && importHost === 'experience' ? (
-            parsed ? (
-              <ExperienceImportReview
-                parsed={parsed}
-                /* The account has a name from sign-up and no email yet, so this
+        {/* Locked with the rest while the CV section above is reading; never
+            while this card is the importer's own host. */}
+        <div className={clsx(importLockWrapClass, experienceLocked && importLockClass)} inert={experienceLocked}>
+          <DetailsSection editView={importing && importHost === 'experience'}>
+            {importing && importHost === 'experience' ? (
+              parsed ? (
+                <ExperienceImportReview
+                  parsed={parsed}
+                  /* The account has a name from sign-up and no email yet, so this
                    is the one surface where the review shows a contact field — an
                    Email, and only an Email. Nothing is special-cased inside the
                    card: it asks for the blank one and skips the filled one, the
                    same rule it has always applied to role and location. */
-                currentName={MOCK_USER.name}
-                currentEmail={email}
-                currentRole={role}
-                currentLocation={location}
-                currentSkills={skills}
-                currentExperiences={experiences}
-                formatDates={formatExperienceDates}
-                onClose={closeImport}
-                onSubmit={applyImport}
-              />
+                  currentName={MOCK_USER.name}
+                  currentEmail={email}
+                  currentRole={role}
+                  currentLocation={location}
+                  currentSkills={skills}
+                  currentExperiences={experiences}
+                  formatDates={formatExperienceDates}
+                  onClose={closeImport}
+                  onSubmit={applyImport}
+                />
+              ) : (
+                <>
+                  <DetailsSectionHeader title="Add experience from a document">
+                    <button type="button" className={o.headerAction} onClick={closeImport}>
+                      Cancel
+                    </button>
+                  </DetailsSectionHeader>
+                  <ExperienceImportPanel
+                    entry="direct"
+                    initialFile={pickedFile}
+                    onFileRead={keepFile}
+                    onStatusChange={setImportStatus}
+                    onParsed={setParsed}
+                    onAddManually={closeImport}
+                  />
+                </>
+              )
             ) : (
               <>
-                <DetailsSectionHeader title="Add experience from a document">
-                  <button type="button" className={o.headerAction} onClick={closeImport}>
-                    Cancel
-                  </button>
-                </DetailsSectionHeader>
-                <ExperienceImportPanel
-                  entry="direct"
-                  initialFile={pickedFile}
-                  onFileRead={keepFile}
-                  onParsed={setParsed}
-                  onAddManually={closeImport}
-                />
-              </>
-            )
-          ) : (
-            <>
-              <DetailsSectionHeader title={`Experience ${experiences.length ? `(${experiences.length})` : ''}`}>
-                <div className={o.headerActions}>
-                  {/* Off while the CV section is drawn — Replace there is this
+                <DetailsSectionHeader title={`Experience ${experiences.length ? `(${experiences.length})` : ''}`}>
+                  {experienceLocked ? (
+                    <ImportLockNote status={importStatus} reviewing={reviewingFromCv} />
+                  ) : (
+                    <div className={o.headerActions}>
+                      {/* Off while the CV section is drawn — Replace there is this
                       control's job, and one mechanism gets one door. */}
-                  {experiences.length > 0 && !showCvSection && (
-                    <>
-                      <button type="button" className={o.headerAction} onClick={() => cvInput.current?.click()}>
-                        Update from CV
-                      </button>
-                      <input
-                        ref={cvInput}
-                        type="file"
-                        className={o.visuallyHidden}
-                        accept=".pdf,.doc,.docx"
-                        onChange={(ev) => {
-                          const chosen = ev.target.files?.[0] ?? null;
-                          ev.target.value = '';
-                          if (!chosen) return;
-                          setPickedFile(chosen);
-                          setEditing({ kind: 'import', host: 'experience' });
-                        }}
-                      />
-                    </>
+                      {experiences.length > 0 && !showCvSection && (
+                        <>
+                          <button type="button" className={o.headerAction} onClick={() => cvInput.current?.click()}>
+                            Update from CV
+                          </button>
+                          <input
+                            ref={cvInput}
+                            type="file"
+                            className={o.visuallyHidden}
+                            accept=".pdf,.doc,.docx"
+                            onChange={(ev) => {
+                              const chosen = ev.target.files?.[0] ?? null;
+                              ev.target.value = '';
+                              if (!chosen) return;
+                              setPickedFile(chosen);
+                              setEditing({ kind: 'import', host: 'experience' });
+                            }}
+                          />
+                        </>
+                      )}
+                      <AddButton onClick={() => undefined} />
+                    </div>
                   )}
-                  <AddButton onClick={() => undefined} />
-                </div>
-              </DetailsSectionHeader>
-              {experiences.length === 0 && !showCvSection ? (
-                <ExperienceImportPanel
-                  emptyLabel="Share your work history and skills. This shows what you know and what you can do."
-                  privacyNote="Kept on your profile and sent with your applications. You can replace or remove it any time."
-                  onFileRead={keepFile}
-                  onParsed={(result) => {
-                    setParsed(result);
-                    setEditing({ kind: 'import', host: 'experience' });
-                  }}
-                  onAddManually={() => undefined}
-                />
-              ) : experiences.length === 0 ? (
-                /* Production's own empty row, unadorned. Reached only while the
+                </DetailsSectionHeader>
+                {experiences.length === 0 && !showCvSection ? (
+                  <ExperienceImportPanel
+                    emptyLabel="Share your work history and skills. This shows what you know and what you can do."
+                    privacyNote="Kept on your profile and sent with your applications. You can replace or remove it any time."
+                    onFileRead={keepFile}
+                    onStatusChange={setImportStatus}
+                    onParsed={(result) => {
+                      setParsed(result);
+                      setEditing({ kind: 'import', host: 'experience' });
+                    }}
+                    onAddManually={() => undefined}
+                  />
+                ) : experiences.length === 0 ? (
+                  /* Production's own empty row, unadorned. Reached only while the
                    card at the top is making the offer — this section should not
                    make it a second time. */
-                <div className={e.root}>
-                  <div className={e.emptyData}>
-                    <span className={e.label}>
-                      Share your work history and skills. This shows what you know and what you can do.
-                    </span>
+                  <div className={e.root}>
+                    <div className={e.emptyData}>
+                      <span className={e.label}>
+                        Share your work history and skills. This shows what you know and what you can do.
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <ExperienceList entries={experiences} />
-              )}
-            </>
-          )}
-        </DetailsSection>
+                ) : (
+                  <ExperienceList entries={experiences} />
+                )}
+              </>
+            )}
+          </DetailsSection>
+        </div>
 
         {/* 6 and 7. Production's own empty copy, word for word. */}
         <DetailsSection>

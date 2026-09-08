@@ -30,7 +30,10 @@ import js from './JobReferRoleRow.module.scss';
 import { ReferModal } from '../job-board-apply-steps/components/ReferModal';
 
 import { ListingStatusBadge } from './ListingStatusBadge';
-import { describeOrigin, type ListingMeta, type ListingStatus } from './listings';
+import { ListingMenu } from './ListingMenu';
+import type { ListingMeta, ListingStatus } from './listings';
+// Production's confirm — the one a team's Delete opens on the team profile.
+import { ConfirmDialog } from '@/components/core/ConfirmDialog/ConfirmDialog';
 
 interface JobReferRoleRowProps {
   role: IJobRole;
@@ -65,22 +68,30 @@ interface JobReferRoleRowProps {
    *  clock slot reports this instead of the posting age — see the note there. */
   appliedAt?: string;
   /**
-   * Present on the **Manage listings** tab, for a viewer who owns this listing.
+   * Present for a viewer who owns this listing — on the board, in their own
+   * team's card, and on the team profile's Open roles in the team's own view.
    *
-   * The row then stops being an offer and becomes a record: under the meta line
-   * it says where the listing came from, the action cluster carries the status
-   * and the one control that changes it — `Mark inactive` on a live listing,
-   * `Bring back` on an inactive one, nothing on one still in review — and
-   * Refer and share are gone, because nobody refers someone to their own
-   * inactive posting. The title still opens the drawer, whose footer carries
-   * the same control at the same size, so the row and the drawer are two
-   * handles on one switch.
+   * **The row keeps its title, meta and clock, and its actions all fold into
+   * one ⋯** (`ListingMenu`: View job / View posting, Refer, Share ▸, then
+   * `Mark inactive` / `Bring back` by state and `Delete`). On a listing that
+   * is not live it also wears a status pill — an owner's card is the one place
+   * the not-yet-live rows appear at all. Everything an owner does to a listing
+   * happens from the row: the title still opens the drawer, whose footer
+   * carries the same switch, but nothing has to be opened first.
    *
-   * **Never on the All tab.** There a lead's own live role renders exactly as it
-   * does for everyone — the public board is the one thing a lead must be able
-   * to trust reads the same for them as for an applicant.
+   * This went through three heavier shapes first — a *Manage listings* tab
+   * holding the owner's rows in every state, an inline pill + switch + Delete
+   * cluster in place of Apply and Refer, then the public cluster with a ⋯
+   * beside it. Each forked the surface, or crowded the row, for presses the
+   * owner makes rarely. One icon costs the row nothing.
+   *
+   * **Delete is the one press that asks.** The switch is reversible by the
+   * item it turns into, so it asks nothing; a deletion has no undo, so it
+   * takes production's own confirm — the dialog a team's Delete uses.
+   * Reversible is not the same as sufficient — a listing posted by mistake,
+   * or twice, is not something to keep "inactive" forever.
    */
-  manage?: { meta: ListingMeta; onSetStatus: (status: ListingStatus) => void };
+  manage?: { meta: ListingMeta; onSetStatus: (status: ListingStatus) => void; onDelete: () => void };
 }
 
 /**
@@ -150,6 +161,8 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
     manage,
   } = props;
   const [referOpen, setReferOpen] = useState(false);
+  /** The owner's Delete, awaiting its confirm. See `manage`. */
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const { location, seniority, roleTitle, applyUrl, roleCategory } = role;
 
@@ -210,7 +223,6 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
           {/* Where it came from — the one fact a manager needs that an applicant
               never does, and the fact the open question about the inactive
               control turns on (see `ListingOrigin`). */}
-          {manage && <div className={js.origin}>{describeOrigin(manage.meta.origin)}</div>}
         </div>
 
         <div className={`${s.right} ${s.actions}`}>
@@ -222,46 +234,14 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
             </span>
           )}
 
-          {manage ? (
-            /* The management cluster: the state, then the one press that
-               changes it. A pill for all three states rather than only for the
-               odd one out — on a list whose whole job is to say which listings
-               are up, a row with no label reads as unlabelled, not as live.
-
-               `Mark inactive` is the bordered neutral shape, the same one the
-               row uses for its "Applied" report: it takes the listing down but
-               destroys nothing, so it is not the red button and it asks no
-               confirmation — the undo is the button that replaces it. `Bring
-               back` is filled, because it is the only thing an inactive row is
-               for. A listing in review has nothing to press: it is the PL
-               team's move, and a dead button would only say so worse. */
-            <div className={s.actionButtons}>
-              <ListingStatusBadge status={manage.meta.status} />
-              {manage.meta.status === 'live' && (
-                <Button
-                  size="s"
-                  style="border"
-                  variant="neutral"
-                  className={js.applyButton}
-                  onClick={() => manage.onSetStatus('inactive')}
-                >
-                  Mark inactive
-                </Button>
-              )}
-              {manage.meta.status === 'inactive' && (
-                <Button
-                  size="s"
-                  style="fill"
-                  variant="primary"
-                  className={js.applyButton}
-                  onClick={() => manage.onSetStatus('live')}
-                >
-                  Bring back
-                </Button>
-              )}
-            </div>
-          ) : (
+          {/* The owner's row shows no actions at rest: a status pill when the
+              listing is not live (the only rows All shows an owner that it
+              shows no one else), and the ⋯ at the end, holding everything —
+              the reader's presses and the owner's. See `ListingMenu`. */}
+          {manage && manage.meta.status !== 'live' && <ListingStatusBadge status={manage.meta.status} />}
           <div className={s.actionButtons}>
+            {!manage && (
+            <>
             {/* Refer is the quiet text button on every surface. The two actions
                 aren't peers: Apply is what the row is for, Refer is the sideline
                 you take when the role is right for someone who isn't you.
@@ -369,8 +349,37 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
                 Apply
               </a>
             )}
+            </>
+            )}
+
+            {manage && (
+              <>
+                <ListingMenu
+                  meta={manage.meta}
+                  role={role}
+                  teamId={teamId}
+                  teamName={teamName}
+                  source={source}
+                  onViewJob={onViewJob ? () => onViewJob(role) : undefined}
+                  postingHref={typeof linkProps.href === 'string' ? linkProps.href : undefined}
+                  onRefer={() => (canOpenReferral ? setReferOpen(true) : onReferSignUp?.())}
+                  onSetStatus={manage.onSetStatus}
+                  onDelete={() => setConfirmDelete(true)}
+                />
+                <ConfirmDialog
+                  isOpen={confirmDelete}
+                  title="Confirm Delete"
+                  desc={`Are you sure you want to delete the job ${roleTitle}?`}
+                  onClose={() => setConfirmDelete(false)}
+                  onConfirm={() => {
+                    setConfirmDelete(false);
+                    manage.onDelete();
+                  }}
+                  confirmTitle="Delete"
+                />
+              </>
+            )}
           </div>
-          )}
         </div>
       </div>
 
@@ -382,6 +391,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
         teamName={teamName}
         source={source}
         jobReferEmail={team?.jobReferEmail}
+        teamLogoUrl={team?.logoUrl}
       />
     </>
   );

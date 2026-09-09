@@ -1,0 +1,223 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* One bar under the field: where you came from on the left, where the thread
+   gets a URL on the right. */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.barButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-brand-primary, #156ff7);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &[data-disabled] {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+    cursor: default;
+    pointer-events: none;
+  }
+}
+
+/* The thread scrolls; the input below it does not. */
+.thread {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.turn + .turn {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.question {
+  color: var(--foreground-neutral-primary, #0f172a);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.sources {
+  margin-top: 8px;
+}
+
+.answer {
+  margin-top: 8px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.error {
+  margin: 8px 0 0;
+  color: var(--foreground-error-primary, #b91c1c);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+/* 16px glyphs in a 24px target, tertiary at rest — the row should read as
+   available, not as a toolbar. */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  line-height: 0;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+
+  &[data-active] {
+    color: var(--foreground-brand-primary, #156ff7);
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.copyGlyph {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.receipt {
+  margin-left: 8px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.retry {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground-brand-primary, #156ff7);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Why it was wrong, under the answer it was wrong about. */
+.reasons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+}
+
+.reasonsTitle {
+  color: var(--foreground-neutral-primary, #0f172a);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.reasonsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.reason {
+  padding: 4px 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 999px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 18px;
+  cursor: pointer;
+
+  &[data-active] {
+    border-color: var(--foreground-brand-primary, #156ff7);
+    color: var(--foreground-brand-primary, #156ff7);
+  }
+}
+
+.commentBox {
+  min-height: 64px;
+  padding: 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 6px;
+  outline: none;
+  resize: vertical;
+  font: inherit;
+  font-size: 13px;
+}
+
+.send {
+  align-self: flex-start;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--foreground-brand-primary, #156ff7);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.footer {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}

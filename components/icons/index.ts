@@ -39,3 +39,4 @@ export * from './BookmarkIcon';
 export * from './ConfettiIcon';
 export * from './DocumentIcon';
 export * from './MagicSparklesIcon';
+export * from './ThumbsDownIcon';

@@ -6,8 +6,14 @@ export enum SearchQueryKeys {
   AUTHOR_SEARCH = 'AUTHOR_SEARCH',
 }
 
-export const AI_SEARCH_SUGGESTIONS = [
-  'What are the latest features in the Protocol Labs Directory',
-  'How does the Husky AI work within the Protocol Labs Directory',
-  'What types of AI projects are being funded by Protocol Labs',
+/**
+ * Prompts phrased as things to find in the directory, each with its per-type
+ * glyph. The old three asked the product about itself ("How does the Husky AI
+ * work") — which teaches that AI Search answers questions about the site
+ * rather than about the network the site is a directory of.
+ */
+export const AI_SEARCH_SUGGESTIONS: { text: string; icon: string }[] = [
+  { text: 'Find teams building on Filecoin in Berlin', icon: '/icons/husky/husky-team.svg' },
+  { text: 'Who works on zero-knowledge proofs and offers office hours?', icon: '/icons/husky/husky-member.svg' },
+  { text: 'Which events in Lisbon have PL members attending?', icon: '/icons/husky/husky-event.svg' },
 ];

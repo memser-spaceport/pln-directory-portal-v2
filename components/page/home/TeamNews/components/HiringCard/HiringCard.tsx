@@ -7,7 +7,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/common/Badge';
 import { FollowButton } from '@/components/ui/FollowButton';
-import { JOB_QUERY_PARAMS } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
+import { jobDetailPath } from '@/services/jobs/job-detail-link';
 import { ArrowIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
 import type { TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
@@ -95,30 +95,27 @@ export function HiringCard({
         </a>
       </h3>
 
-      {/* Each role links to its own posting — production's actionable unit too
-          (ReferRoleRow makes the title an anchor to applyUrl + JOB_QUERY_PARAMS).
-          Reusing the query params keeps a click from the feed attributed
-          exactly like a click from the board. */}
+      {/* Each role opens the board with its own detail drawer up
+          (`/jobs?job=<uid>`), in a new tab — the reader keeps the feed they were
+          scanning, and lands on the description plus the in-app apply flow
+          rather than on the company's careers page.
+          Deliberately not `applyUrl`: that left the site, and a role whose
+          source link is missing had no target at all. The drawer is keyed by
+          uid, so every role has one. */}
       <ul className={s.roleList}>
         {visibleRoles.map((role, index) => {
           const location = role.location.filter(Boolean).join(', ');
           return (
             <li key={role.uid} className={s.roleRow}>
-              {/* A role can come back without an apply link. Plain text then —
-                  never an anchor with nowhere to go. */}
-              {role.applyUrl ? (
-                <a
-                  href={`${role.applyUrl}?${JOB_QUERY_PARAMS}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={s.roleTitleLink}
-                  onClick={() => onRoleClick?.(group, role, index)}
-                >
-                  {role.roleTitle}
-                </a>
-              ) : (
-                <span className={s.roleTitle}>{role.roleTitle}</span>
-              )}
+              <a
+                href={jobDetailPath(role.uid)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={s.roleTitleLink}
+                onClick={() => onRoleClick?.(group, role, index)}
+              >
+                {role.roleTitle}
+              </a>
               <span className={s.roleRight}>
                 {location && <span className={s.roleLocation}>{location}</span>}
                 <span className={s.roleArrow} aria-hidden>

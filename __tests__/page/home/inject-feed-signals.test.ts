@@ -115,6 +115,30 @@ describe('injectFeedSignals', () => {
     expect(kinds(result).filter((k) => k === 'deal')).toHaveLength(MAX_DEAL_ENTRIES);
   });
 
+  // For You bounds its own roll-ups (MAX_FOR_YOU_JOB_ENTRIES) — a separate
+  // decision from the resting feed's cadence cap, so the caller can override it.
+  it('honours a caller-supplied hiring cap instead of the default', () => {
+    const result = injectFeedSignals({
+      entries: stream(40),
+      hiring: [group('a'), group('b'), group('c'), group('d')],
+      deals: undefined,
+      maxHiring: 3,
+    });
+
+    expect(kinds(result).filter((k) => k === 'hiring')).toHaveLength(3);
+  });
+
+  it('lets a caller-supplied cap of 0 withhold the hiring stream entirely', () => {
+    const result = injectFeedSignals({
+      entries: stream(40),
+      hiring: [group('a')],
+      deals: undefined,
+      maxHiring: 0,
+    });
+
+    expect(kinds(result)).not.toContain('hiring');
+  });
+
   it('keeps the ranked entries in their original order', () => {
     const entries = stream(12);
     const result = injectFeedSignals({ entries, hiring: [group('a')], deals: [deal('d1')] });

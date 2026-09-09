@@ -38,6 +38,7 @@ import {
   FOR_YOU_CAT,
   FOR_YOU_CATEGORY,
   SHOW_HIRING_NEWS,
+  MAX_FOR_YOU_JOB_ENTRIES,
   DISCUSSIONS_CATEGORY,
   SHOW_POPULAR_THIS_WEEK,
   type TeamNewsCategoryId,
@@ -75,6 +76,7 @@ import {
 import { useFeedDeals } from './hooks/useFeedDeals';
 import { useFeedSocial } from './hooks/useFeedSocial';
 import { useFeedHiring } from './hooks/useFeedHiring';
+import { useFeedForYouJobs } from './hooks/useFeedForYouJobs';
 import { useStoryReveal } from './hooks/useStoryReveal';
 import { useNewsDeepLink } from './hooks/useNewsDeepLink';
 import { useForumPostDeepLink } from './hooks/useForumPostDeepLink';
@@ -139,6 +141,9 @@ export const TeamNews = ({
   const { mutate: followMutate } = useFollowTeam();
   const { mutate: upvoteMutate } = useTeamNewsUpvoteToggle();
   const { mutate: postLikeMutate } = useFeedForumPostLikeToggle();
+  // Read here rather than beside the rail's suggestions, where it used to sit:
+  // the For You jobs query below needs it, and that is above the rail.
+  const { currentUser } = useCurrentUserStore();
   // One instance for the whole page: holds every rendered card's dedup/queue
   // state, regardless of tab/category remounts below it (see the hook's own
   // unmount-vs-page-load-scoped comments).
@@ -255,6 +260,31 @@ export const TeamNews = ({
     [allItems, initialForYouTeamUids],
   );
 
+  // Jobs matched to this member — the whole match (two-week window, team signal,
+  // skills/role/experience signal, ranking) is the server's; see
+  // `useFeedForYouJobs`. Fetched whenever the For You pill exists for a signed-in
+  // member rather than on the click: the pill's own count includes these, so
+  // deferring the request would show a number that then jumped.
+  const { forYouJobs } = useFeedForYouJobs(Boolean(currentUser?.uid) && hasForYouNews, currentUser?.uid);
+
+  /**
+   * The roll-ups For You actually shows, pre-sliced to `MAX_FOR_YOU_JOB_ENTRIES`.
+   *
+   * Pre-slicing HERE is what preserves the server's ranking: `injectFeedSignals`
+   * re-sorts what it is handed by recency, so cutting there would pick the
+   * freshest matches rather than the strongest. Selection stays match-rank; the
+   * order of the survivors is recency, like every other feed signal. The same
+   * cap goes to `injectFeedSignals` as `maxHiring` so the two cannot disagree.
+   *
+   * All tab only. A focus-area tab is a cut of the news corpus BY focus area and
+   * a job carries none of its own, so filtering these by tab would mean
+   * inventing one — they simply don't appear there.
+   */
+  const forYouJobEntries = useMemo(
+    () => (activeTab === ALL_TAB ? forYouJobs?.slice(0, MAX_FOR_YOU_JOB_ENTRIES) : undefined),
+    [activeTab, forYouJobs],
+  );
+
   // Forum posts joining the current tab (All / Discussions use this 14-day
   // activity list; For You is a further createdAt L7D cut below). Memoized so
   // its array identity can't re-run the merge on unrelated renders (e.g. upvote
@@ -279,7 +309,8 @@ export const TeamNews = ({
   // once already.
   const countForCategory = useCallback(
     (id: TeamNewsCategoryId) => {
-      if (id === FOR_YOU_CAT) return forYouItemsForActiveTab.length + forYouForumPosts.length;
+      if (id === FOR_YOU_CAT)
+        return forYouItemsForActiveTab.length + forYouForumPosts.length + (forYouJobEntries?.length ?? 0);
       const newsCount =
         id === ALL_CAT
           ? itemsForActiveTab.length
@@ -288,7 +319,7 @@ export const TeamNews = ({
       // own L7D list; All / Discussions share tabForumPosts.
       return newsCount + (categoryIncludesForumPosts(id) ? tabForumPosts.length : 0);
     },
-    [itemsForActiveTab, tabForumPosts, forYouItemsForActiveTab, forYouForumPosts],
+    [itemsForActiveTab, tabForumPosts, forYouItemsForActiveTab, forYouForumPosts, forYouJobEntries],
   );
 
   const categoriesWithCounts = useMemo(() => {
@@ -369,6 +400,10 @@ export const TeamNews = ({
   // band sit on For You without dragging hiring and deals into that slice.
   const isRestingCategory = activeCategory === ALL_CAT || activeCategory === FOR_YOU_CAT;
   const isNarrowedView = activeTab !== ALL_TAB || activeCategory !== ALL_CAT || Boolean(query.trim());
+  // For You is a narrowed view by the flag above, but it is the one narrowed view
+  // that carries signals of its own — personalized ones. Searching inside it
+  // narrows again, and drops them like every other search does.
+  const isForYouStream = activeCategory === FOR_YOU_CAT && !query.trim();
   const showTopStoriesBand = activeTab === ALL_TAB && isRestingCategory && !query.trim();
 
   // Ranked from editorialRank (LLM Top Stories picks), rendered from the live
@@ -429,24 +464,35 @@ export const TeamNews = ({
   // them past pageSize forever. See injectFeedSignals for the full rationale.
   //
   // Both are unfiltered by tab/category/search on purpose: neither carries a
-  // focus area or an event type, so every narrowed view drops them. That falls
-  // out of `isNarrowedView` below rather than being re-derived per stream.
+  // focus area or an event type, so every narrowed view drops them — For You
+  // excepted, which brings roll-ups of its own. That falls out of
+  // `isForYouStream` / `isNarrowedView` rather than being re-derived per stream.
   // SHOW_HIRING_NEWS gates the INJECTION, not the render. Gating only the card
   // (as #2775 did) still let the entry into `entries`, where it silently ate a
   // `pageSize` slot — a first page of six showed five — and shifted the
   // analytics `position` of every card after it. `undefined` is the same "leave
   // the feed alone" signal a failed request already sends.
-  const entries = useMemo(
-    () =>
-      isNarrowedView
-        ? rankedEntries
-        : injectFeedSignals({
-            entries: rankedEntries,
-            hiring: SHOW_HIRING_NEWS ? feedHiring : undefined,
-            deals: feedDeals,
-          }),
-    [rankedEntries, isNarrowedView, feedHiring, feedDeals],
-  );
+  const entries = useMemo(() => {
+    // For You gets the PERSONALIZED roll-ups and no deals: a perk is network-wide,
+    // so it belongs to the resting view rather than to a slice built about one
+    // member. `SHOW_HIRING_NEWS` is not consulted — it gates the unpersonalized
+    // roll-ups on All, which is a different question from this one.
+    if (isForYouStream) {
+      return injectFeedSignals({
+        entries: rankedEntries,
+        hiring: forYouJobEntries,
+        deals: undefined,
+        maxHiring: MAX_FOR_YOU_JOB_ENTRIES,
+      });
+    }
+    return isNarrowedView
+      ? rankedEntries
+      : injectFeedSignals({
+          entries: rankedEntries,
+          hiring: SHOW_HIRING_NEWS ? feedHiring : undefined,
+          deals: feedDeals,
+        });
+  }, [rankedEntries, isForYouStream, forYouJobEntries, isNarrowedView, feedHiring, feedDeals]);
 
   const visibleEntries = expanded ? entries : entries.slice(0, pageSize);
   const newCount = allItems.length + (forumPosts?.length ?? 0);
@@ -544,7 +590,6 @@ export const TeamNews = ({
     if (activePostUid && !hasAccess) closePost();
   }, [activePostUid, hasAccess, closePost]);
 
-  const { currentUser } = useCurrentUserStore();
   const { suggestions: suggestedTeams, isLoading: isLoadingSuggestedTeams } = useSuggestedTeamsToFollow({
     currentUserUid: currentUser?.uid ?? null,
   });

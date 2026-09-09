@@ -30,6 +30,26 @@ export async function fetchJobsList(params: URLSearchParams, page?: number): Pro
 }
 
 /**
+ * Hiring roll-ups matched to the signed-in member, for the newsfeed's For You.
+ *
+ * Authenticated and NOT proxied through `/api/jobs/list`: that route calls the
+ * board with no token, so the personalization would have nothing to key on.
+ * Straight to the API with `customFetch(..., true)`, the same way the interest
+ * endpoints go.
+ *
+ * The window (two weeks) and the ranking are the server's — this takes no
+ * params, so the feed cannot narrow or reorder what it was matched to.
+ */
+export async function fetchForYouJobs(): Promise<IJobTeamGroup[]> {
+  const response = await customFetch(`${jobOpeningsAPI}/for-you`, { method: 'GET' }, true);
+  if (!response?.ok) {
+    throw new Error('Failed to fetch personalized jobs');
+  }
+  const { groups } = (await response.json()) as { groups?: IJobTeamGroup[] };
+  return Array.isArray(groups) ? groups : [];
+}
+
+/**
  * Load one role (and the team that posted it) so a `?job=` deep link can open
  * the drawer even when that role is not on the first page of the current rail.
  */

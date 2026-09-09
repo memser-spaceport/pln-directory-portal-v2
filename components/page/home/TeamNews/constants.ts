@@ -52,3 +52,19 @@ export const TOP_STORIES_WINDOW_LABEL = `Last ${TEAM_NEWS_DEFAULT_WINDOW_DAYS} d
 export const SHOW_POPULAR_THIS_WEEK = true;
 
 export const SHOW_HIRING_NEWS = false;
+
+/**
+ * Personalized hiring roll-ups on the For You pill, per render.
+ *
+ * Its own knob rather than the cadence's `MAX_HIRING_ENTRIES`: that one bounds
+ * the *unpersonalized* roll-ups on All (the ones `SHOW_HIRING_NEWS` gates), and
+ * how many matched jobs a member should see is a different question from how
+ * many generic ones the resting feed can carry. Raising this does not widen
+ * that, and vice versa.
+ *
+ * Bounded above by the server: `GET /v1/job-openings/for-you` returns at most
+ * `FOR_YOU_GROUP_LIMIT` roll-ups (10 at the time of writing), so a value beyond
+ * that silently stops growing. Raise the server's limit first if this ever
+ * needs to go higher.
+ */
+export const MAX_FOR_YOU_JOB_ENTRIES = 2;

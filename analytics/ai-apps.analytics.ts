@@ -113,6 +113,8 @@ export function useAiAppsAnalytics() {
       capture(AI_APPS_ANALYTICS.SEARCH_APPLIED, params),
     onCreatorFilterSelected: (params: { creatorCount: number; resultCount: number }) =>
       capture(AI_APPS_ANALYTICS.CREATOR_FILTER_SELECTED, params),
+    onTagFilterSelected: (params: { tags: string[]; resultCount: number }) =>
+      capture(AI_APPS_ANALYTICS.TAG_FILTER_SELECTED, params),
     onSortChanged: (params: { sort: string; source: 'masthead' | 'mobile'; resultCount: number }) =>
       capture(AI_APPS_ANALYTICS.SORT_CHANGED, params),
     onFiltersCleared: (params: { source: 'rail' | 'mobile' }) => capture(AI_APPS_ANALYTICS.FILTERS_CLEARED, params),

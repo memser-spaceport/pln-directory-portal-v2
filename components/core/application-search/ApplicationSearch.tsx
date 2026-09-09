@@ -7,6 +7,9 @@ import { IUserInfo } from '@/types/shared.types';
 import { useIsBelowTabletLandscape } from '@/hooks/useIsBelowTabletLandscape';
 import { AppSearchDialog, type DialogView } from '@/components/core/application-search/components/AppSearchDialog';
 import { useDebouncedValue } from '@/components/core/application-search/hooks/useDebouncedValue';
+import { useHuskyChat } from '@/services/husky/hooks/useHuskyChat';
+import { getAiSearchThread } from '@/services/husky/getAiSearchThread';
+import { getUserCredentials } from '@/utils/auth.utils';
 
 import s from './ApplicationSearch.module.scss';
 
@@ -61,12 +64,40 @@ export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) =>
 
   const fullBleed = useIsBelowTabletLandscape();
 
+  /* Mounted here, once, and never inside the dialog: this component lives in
+     the root layout, so the thread outlives the sheet — which is the only way
+     "close it and come back" can work for a signed-out person, who has no
+     history list to recover the conversation from. Mounting it twice would be
+     worse than mounting it low: `useObject` keys its streamed object on a
+     shared SWR key but keeps `isLoading` and its abort controller local, so two
+     copies would half-share state. */
+  const chat = useHuskyChat({ isLoggedIn });
+
   const open = useCallback(() => {
     openerRef.current = document.activeElement;
+    /* The signed-out quota cookie expires at midnight, so a session that
+       outlives the day must not still be showing yesterday's exhausted state. */
+    chat.refreshLimit();
     setIsOpen(true);
-  }, []);
+  }, [chat]);
+
+  const closingRef = useRef(false);
 
   const close = useCallback(() => {
+    /* Two taps 120ms apart on a laggy phone would otherwise pop two history
+       entries and throw the person off the page entirely. */
+    if (closingRef.current) return;
+    closingRef.current = true;
+    setTimeout(() => (closingRef.current = false), 0);
+
+    /* Below the breakpoint the takeover owns a history entry, so closing it
+       walks back rather than leaving a dead entry behind for the back gesture
+       to land on. There is no API that says whether the previous entry is ours,
+       hence the sentinel written when we pushed it. */
+    if (typeof window !== 'undefined' && window.history.state?.__appSearchOpen) {
+      window.history.back();
+    }
+
     setIsOpen(false);
     setRawTerm('');
     setView('search');
@@ -77,6 +108,20 @@ export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) =>
     openerRef.current = null;
     if (opener instanceof HTMLElement) opener.focus();
   }, []);
+
+  /* A full-bleed takeover that the back gesture does not close is the one
+     thing every Android user will try first. The URL is unchanged — only an
+     entry is added — so the router has nothing to navigate to when it pops.
+     NOTE: verify on a real device before merging; Next owns `history.state`,
+     which is why this spreads it rather than replacing it. */
+  useEffect(() => {
+    if (!isOpen || !fullBleed) return;
+
+    window.history.pushState({ ...window.history.state, __appSearchOpen: true }, '');
+    const onPopState = () => setIsOpen(false);
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [isOpen, fullBleed]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -100,14 +145,38 @@ export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) =>
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, open]);
 
-  const handleAskAi = useCallback((question: string) => {
-    // TODO(phase-b): startThread(question) against the hoisted chat engine.
-    // Until then the answer state has nothing to render; the row and the
-    // suggested prompts are wired but inert. Landing in the same PR.
-    void question;
-    setOrigin('results');
-    setView('answer');
-  }, []);
+  /* Reopen a past conversation in place, rather than sending the person to
+     /husky/chat and costing them the search they were in the middle of.
+     Returns false so the row that failed can say so and offer a retry, instead
+     of transitioning to a blank answer the way the old handler did. */
+  const handleOpenThread = useCallback(
+    async (threadId: string): Promise<boolean> => {
+      const { authToken } = await getUserCredentials(isLoggedIn);
+      if (!authToken) return false;
+
+      const result = await getAiSearchThread(threadId, authToken);
+      if (!result.ok) return false;
+
+      chat.hydrate(result.turns, result.threadId);
+      setOrigin(view === 'history' ? 'history' : null);
+      setView('answer');
+      return true;
+    },
+    [chat, isLoggedIn, view],
+  );
+
+  /* Always a new conversation. A follow-up is what `ChatInput` inside the
+     answer is for — the row and the suggested prompts are new questions, and
+     with a session-lived engine an id reused "because turns exist" would file
+     a fresh search as turn 2 of the last one. */
+  const handleAskAi = useCallback(
+    (question: string) => {
+      setOrigin(rawTerm.trim() ? 'results' : null);
+      setView('answer');
+      chat.startThread(question);
+    },
+    [chat, rawTerm],
+  );
 
   return (
     <>
@@ -135,6 +204,9 @@ export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) =>
         origin={origin}
         onAskAi={handleAskAi}
         inputRef={inputRef}
+        isLoggedIn={isLoggedIn}
+        onOpenThread={handleOpenThread}
+        chat={chat}
       />
     </>
   );

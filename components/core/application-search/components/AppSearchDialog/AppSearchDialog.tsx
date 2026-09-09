@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import { clsx } from 'clsx';
 
 import { Modal } from '@/components/common/Modal';
@@ -14,6 +15,17 @@ import { SearchResultsSection } from '@/components/core/application-search/compo
 import { getGroupTitleByGroupName } from '@/components/core/application-search/components/SearchResultsSection/components/Top50Results/utils/getGroupTitleByGroupName';
 import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
 import { saveRecentSearch } from '@/services/search/hooks/useRecentSearch';
+/* The answer state pulls in Markdown, which pulls in react-syntax-highlighter.
+   This dialog lives in the navbar on every page, so a static import would put
+   that whole tree in the first bundle every visitor downloads — for a state
+   most of them never open. */
+const AnswerView = dynamic(
+  () => import('@/components/core/application-search/components/AnswerView').then((m) => m.AnswerView),
+  { ssr: false },
+);
+import type { HuskyTurn, StreamStatus } from '@/services/husky/hooks/useHuskyChat';
+import type { LimitLevel } from '@/services/husky/hooks/useDailyChatLimit';
+import { AiSearchHistorySection } from '@/components/core/application-search/components/AiSearchHistorySection';
 import { AI_SEARCH_SUGGESTIONS } from '@/services/search/constants';
 import type { SearchResult } from '@/services/search/types';
 
@@ -31,6 +43,69 @@ const SECTION_ORDER: (keyof SearchResult)[] = ['top', 'members', 'teams', 'proje
 
 /** Below this the AI row would offer to chat about a stray character. */
 const MIN_ASK_LENGTH = 2;
+
+interface ResultsBodyProps {
+  term: string;
+  rawTerm: string;
+  activeCategory: keyof SearchResult | null;
+  setActiveCategory: (next: keyof SearchResult | null) => void;
+  onSelect: () => void;
+}
+
+/**
+ * The results list, memoized and owning its own query.
+ *
+ * Both matter for the same reason: the chat engine lives above this dialog and
+ * re-renders its host on every streamed token. Typing while an answer streams
+ * is a supported flow, so without this boundary the whole result list would
+ * re-render dozens of times a second against a stream it has nothing to do
+ * with. Holding the query here also means the dialog above never subscribes to
+ * search data it does not render.
+ */
+const ResultsBody = React.memo(function ResultsBody({
+  term,
+  rawTerm,
+  activeCategory,
+  setActiveCategory,
+  onSelect,
+}: ResultsBodyProps) {
+  const { data, isLoading, isError } = useFullApplicationSearch(term);
+
+  const total = SECTION_ORDER.filter((key) => key !== 'top').reduce(
+    (sum, key) => sum + (data?.[key]?.length ?? 0),
+    0,
+  );
+
+  if (isLoading) return <ContentLoader />;
+
+  if (isError) {
+    return <div className={s.noResults}>Something went wrong. Please try again.</div>;
+  }
+
+  if (!total) {
+    return <div className={s.noResults}>No results for &ldquo;{rawTerm}&rdquo;</div>;
+  }
+
+  return (
+    <>
+      <div className={s.totalLabel}>Total results ({total})</div>
+      <div className={s.sticky}>
+        <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
+      </div>
+      {SECTION_ORDER.map((key) => {
+        const values = data?.[key];
+        if (!values?.length) return null;
+        if (activeCategory && key !== activeCategory) return null;
+        const label = key === 'top' ? 'Top Results' : getGroupTitleByGroupName(key);
+        return (
+          <CollapsibleSection key={key} title={`${label} (${values.length})`} initialOpen forceOpen hideControl>
+            <SearchResultsSection groupItems={key === 'top'} items={values} query={term} onSelect={onSelect} />
+          </CollapsibleSection>
+        );
+      })}
+    </>
+  );
+});
 
 export type DialogView = 'search' | 'answer' | 'history';
 
@@ -50,6 +125,20 @@ interface Props {
   origin: 'results' | 'history' | null;
   onAskAi: (question: string) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
+  isLoggedIn: boolean;
+  /** Resolves false when the thread could not be loaded. */
+  onOpenThread: (threadId: string) => Promise<boolean>;
+  chat: {
+    turns: HuskyTurn[];
+    status: StreamStatus;
+    isBusy: boolean;
+    threadId: string | null;
+    limitLevel: LimitLevel;
+    limitRemaining: number;
+    ask: (question: string) => void;
+    regenerate: (question: string) => void;
+    stop: () => void;
+  };
 }
 
 export const AppSearchDialog = ({
@@ -64,6 +153,9 @@ export const AppSearchDialog = ({
   origin,
   onAskAi,
   inputRef,
+  isLoggedIn,
+  onOpenThread,
+  chat,
 }: Props) => {
   const [activeCategory, setActiveCategory] = useState<keyof SearchResult | null>('top');
 
@@ -72,14 +164,6 @@ export const AppSearchDialog = ({
      once; only the fetch waits for the debounce. */
   const resolvedView: DialogView | 'idle' | 'results' =
     view === 'answer' || view === 'history' ? view : trimmed ? 'results' : 'idle';
-
-  const { data, isLoading, isError } = useFullApplicationSearch(term);
-
-  const total = useMemo(
-    () =>
-      SECTION_ORDER.filter((key) => key !== 'top').reduce((sum, key) => sum + (data?.[key]?.length ?? 0), 0),
-    [data],
-  );
 
   const handleInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -182,41 +266,15 @@ export const AppSearchDialog = ({
           ))}
         </ul>
       </div>
-      {/* Your AI Search History lands here — see Phase C. */}
+      <AiSearchHistorySection
+        mode="compact"
+        isLoggedIn={isLoggedIn}
+        onOpenThread={onOpenThread}
+        onShowAll={() => onViewChange('history')}
+        onCloseFull={() => onViewChange('search')}
+      />
     </div>
   );
-
-  const renderResults = () => {
-    if (isLoading) return <ContentLoader />;
-
-    if (isError) {
-      return <div className={s.noResults}>Something went wrong. Please try again.</div>;
-    }
-
-    if (!total) {
-      return <div className={s.noResults}>No results for &ldquo;{rawTerm}&rdquo;</div>;
-    }
-
-    return (
-      <>
-        <div className={s.totalLabel}>Total results ({total})</div>
-        <div className={s.sticky}>
-          <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
-        </div>
-        {SECTION_ORDER.map((key) => {
-          const values = data?.[key];
-          if (!values?.length) return null;
-          if (activeCategory && key !== activeCategory) return null;
-          const label = key === 'top' ? 'Top Results' : getGroupTitleByGroupName(key);
-          return (
-            <CollapsibleSection key={key} title={`${label} (${values.length})`} initialOpen forceOpen hideControl>
-              <SearchResultsSection groupItems={key === 'top'} items={values} query={term} onSelect={handleResultSelect} />
-            </CollapsibleSection>
-          );
-        })}
-      </>
-    );
-  };
 
   return (
     <Modal
@@ -283,7 +341,45 @@ export const AppSearchDialog = ({
           </div>
         )}
 
-        <div className={s.body}>{resolvedView === 'results' ? renderResults() : renderIdle()}</div>
+        {resolvedView === 'answer' ? (
+          <AnswerView
+            turns={chat.turns}
+            status={chat.status}
+            isBusy={chat.isBusy}
+            threadId={chat.threadId}
+            limitLevel={chat.limitLevel}
+            limitRemaining={chat.limitRemaining}
+            isLoggedIn={isLoggedIn}
+            onBack={origin ? () => onViewChange(origin === 'history' ? 'history' : 'search') : undefined}
+            backLabel={origin === 'history' ? 'Back to history' : 'Back to results'}
+            onAsk={chat.ask}
+            onRegenerate={chat.regenerate}
+            onStop={chat.stop}
+            onClose={onClose}
+          />
+        ) : (
+          <div className={s.body}>
+            {resolvedView === 'history' ? (
+              <AiSearchHistorySection
+                mode="full"
+                isLoggedIn={isLoggedIn}
+                onOpenThread={onOpenThread}
+                onShowAll={() => onViewChange('history')}
+                onCloseFull={() => onViewChange('search')}
+              />
+            ) : resolvedView === 'results' ? (
+              <ResultsBody
+                term={term}
+                rawTerm={rawTerm}
+                activeCategory={activeCategory}
+                setActiveCategory={setActiveCategory}
+                onSelect={handleResultSelect}
+              />
+            ) : (
+              renderIdle()
+            )}
+          </div>
+        )}
 
         <div className={s.footer}>
           <span className={s.footerItem}>

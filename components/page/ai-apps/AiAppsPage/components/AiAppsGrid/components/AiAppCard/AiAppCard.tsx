@@ -12,6 +12,8 @@ import { formatAiAppDate, formatCount } from '@/utils/ai-apps.utils';
 import { DetailsItem } from '@/components/core/UpdatesPanel/NotificationItem/components/NotificationFooter/components/DetailsItem';
 import nf from '@/components/core/UpdatesPanel/NotificationItem/components/NotificationFooter/NotificationFooter.module.scss';
 
+import { AiAppTagChips } from '@/components/page/ai-apps/components/AiAppTagChips';
+
 import { AppActionsMenu } from '../../../AppActionsMenu';
 
 import s from './AiAppCard.module.scss';
@@ -86,6 +88,7 @@ export function AiAppCard(props: Props) {
         {isDeploying && <span className={s.deployingBadge}>Deploying</span>}
       </div>
       <p className={s.description}>{app.description}</p>
+      <AiAppTagChips tags={app.tags} />
       {metrics.length > 0 ? (
         <div className={`${nf.details} ${s.metricsRow}`}>
           {metrics.map((m) => (

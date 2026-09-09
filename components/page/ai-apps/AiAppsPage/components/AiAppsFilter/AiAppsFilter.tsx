@@ -2,13 +2,14 @@
 
 import { useEffect, useRef } from 'react';
 
-import { AI_APPS_CREATED_BY_PARAM, AI_APPS_SEARCH_PARAM } from '@/services/ai-apps/constants';
+import { AI_APPS_CREATED_BY_PARAM, AI_APPS_SEARCH_PARAM, AI_APPS_TAGS_PARAM } from '@/services/ai-apps/constants';
 
 import { createFilterGetter } from '@/services/teams/utils/createFilterGetter';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useAiAppsFilterStore } from '@/services/ai-apps/store';
 import { useFilteredAiApps } from '@/services/ai-apps/hooks/useFilteredAiApps';
+import { useAiAppTags } from '@/services/ai-apps/hooks/useAiAppTags';
 
 import { FilterSection } from '@/components/common/filters/FilterSection';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
@@ -26,7 +27,8 @@ export function AiAppsFilter(props: Props) {
 
   const analytics = useAiAppsAnalytics();
   const { params, clearParams } = useAiAppsFilterStore();
-  const { creators, visibleApps, filterCount } = useFilteredAiApps();
+  const { creators, tagOptions, visibleApps, filterCount } = useFilteredAiApps();
+  const { getLabel } = useAiAppTags();
 
   const searchParam = params.get(AI_APPS_SEARCH_PARAM) ?? '';
   const lastTrackedSearch = useRef(searchParam);
@@ -44,6 +46,7 @@ export function AiAppsFilter(props: Props) {
   }, [searchParam, analytics]);
 
   const getCreators = createFilterGetter(creators);
+  const getTags = createFilterGetter(tagOptions, { formatLabel: (tag) => getLabel(tag.value) });
 
   const handleClearParams = () => {
     analytics.onFiltersCleared({ source });
@@ -61,6 +64,21 @@ export function AiAppsFilter(props: Props) {
           debounceMs={300}
         />
       </FilterSection>
+
+      {tagOptions.length > 0 && (
+        <FilterSection title="Tags">
+          <GenericCheckboxList
+            paramKey={AI_APPS_TAGS_PARAM}
+            filterStore={useAiAppsFilterStore}
+            useGetDataHook={getTags}
+            defaultItemsToShow={6}
+            collapsible
+            onChange={(_key, values) =>
+              analytics.onTagFilterSelected({ tags: values, resultCount: visibleApps.length })
+            }
+          />
+        </FilterSection>
+      )}
 
       <FilterSection title="Built by">
         <GenericCheckboxList

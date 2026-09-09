@@ -57,6 +57,8 @@ export interface AiApp {
   canManage?: boolean;
   /** URL to the stored one-pager file (Markdown or HTML) in S3 (LAB-2101). Null/absent = no one-pager. */
   prd?: string | null;
+  /** Slugs from the controlled vocabulary (see `fetchAiAppTags`). Absent on older API versions. */
+  tags?: string[];
   createdAt: string;
   updatedAt: string;
   member: {
@@ -152,6 +154,26 @@ export async function checkAiAppLive(uid: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+export interface AiAppTag {
+  slug: string;
+  label: string;
+  description: string;
+}
+
+export interface AiAppTagsVocabulary {
+  tags: AiAppTag[];
+  maxPerApp: number;
+}
+
+/** Controlled tag vocabulary + the per-app cap; public on the API. */
+export async function fetchAiAppTags(): Promise<AiAppTagsVocabulary> {
+  const response = await fetch(`${AI_APPS_API_URL}/tags`);
+  if (!response.ok) {
+    throw new Error(`Failed to load AI App tags: ${response.status}`);
+  }
+  return response.json();
 }
 
 export async function fetchAiApps(): Promise<AiApp[]> {
@@ -352,6 +374,8 @@ export interface UpdateAiAppPatch {
   description?: string;
   /** MD/HTML text; explicit null clears the stored one-pager. */
   prd?: string | null;
+  /** Replaces the whole tag list. */
+  tags?: string[];
 }
 
 export interface UpdateAiAppResult {
@@ -401,6 +425,7 @@ export async function updateAiApp(uid: string, patch: UpdateAiAppPatch): Promise
 export interface UpdateAiAppFileInput {
   name?: string;
   description?: string;
+  tags?: string[];
   /** The one-pager file itself — the backend derives `prd` from its contents. */
   file: File;
 }
@@ -415,6 +440,8 @@ export async function updateAiAppFile(uid: string, input: UpdateAiAppFileInput):
   const formData = new FormData();
   if (input.name !== undefined) formData.append('name', input.name);
   if (input.description !== undefined) formData.append('description', input.description);
+  // Multipart carries the list as a JSON string; the backend parses it back.
+  if (input.tags !== undefined) formData.append('tags', JSON.stringify(input.tags));
   formData.append('file', input.file);
 
   const response = await customFetch(

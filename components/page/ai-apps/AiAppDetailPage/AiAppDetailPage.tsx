@@ -20,6 +20,7 @@ import {
   AiAppDetailsModal,
 } from '@/components/page/ai-apps/dynamicActionModals';
 import { FloatingFeedbackButton } from '../components/FloatingFeedbackButton';
+import { AiAppTagChips } from '../components/AiAppTagChips';
 
 import { AppSecretsPanel } from './components/AppSecretsPanel';
 
@@ -324,6 +325,7 @@ export function AiAppDetailPage(props: Props) {
             </span>
           </div>
           {app.description && <p className={s.setupDescription}>{app.description}</p>}
+          <AiAppTagChips tags={app.tags} />
           {/* Failure notes are runner output (stack fragments, image names) — creator/admin only. */}
           {app.status === 'ERROR' && app.notes && isCreator && (
             <p className={s.setupError}>Last deploy failed: {app.notes}</p>

@@ -81,8 +81,10 @@
   line-height: 16px;
 }
 
+/* The dialog body has no top padding — see AppSearchDialog.module.scss — so
+   the first element of each view brings its own. */
 .subhead {
-  padding: 0 16px;
+  padding: 16px 16px 0;
 }
 
 .groupLabel {

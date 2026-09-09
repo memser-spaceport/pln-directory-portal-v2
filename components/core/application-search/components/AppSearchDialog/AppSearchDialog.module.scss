@@ -75,6 +75,7 @@
 .header {
   display: flex;
   align-items: center;
+  gap: 8px;
   padding: 0 12px 0 0;
   border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
@@ -111,10 +112,13 @@
   }
 }
 
-/* A 24px disc on hover so the clear reads as a control and not a stray mark. */
+/* A 24px disc on hover so the clear reads as a control and not a stray mark.
+   Smaller and lighter than the dialog's close, which sits just to its right:
+   two identical crosses side by side read as one control drawn twice. */
 .fieldClear {
   position: absolute;
-  right: 12px;
+  right: 8px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -152,11 +156,14 @@
 /* Body                                                                       */
 /* ------------------------------------------------------------------------ */
 
+/* No top padding: it lives inside the scroll box, so rows would slide up into
+   it and stay visible above the pinned category chips. Each view carries its
+   own 16px instead, which puts it above the sticky rather than behind it. */
 .body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 16px 0;
+  padding: 0 0 16px;
 }
 
 /* One rhythm for the whole idle list: 16px from the field's hairline to the
@@ -166,6 +173,7 @@
 .idle {
   display: flex;
   flex-direction: column;
+  padding-top: 16px;
 }
 
 .idle > * + * {
@@ -227,7 +235,7 @@
 }
 
 .totalLabel {
-  padding: 0 16px 8px;
+  padding: 16px 16px 8px;
   color: var(--foreground-neutral-tertiary, #8897ae);
   font-size: 12px;
   font-weight: 500;
@@ -245,8 +253,12 @@
   background: #fff;
 }
 
+.sections {
+  padding: 0 16px;
+}
+
 .noResults {
-  padding: 8px 16px;
+  padding: 16px 16px 8px;
   color: var(--foreground-neutral-secondary, #455468);
   font-size: 14px;
   line-height: 20px;

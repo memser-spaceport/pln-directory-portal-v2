@@ -92,17 +92,23 @@ const ResultsBody = React.memo(function ResultsBody({
       <div className={s.sticky}>
         <SearchCategories data={data} activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
       </div>
-      {SECTION_ORDER.map((key) => {
-        const values = data?.[key];
-        if (!values?.length) return null;
-        if (activeCategory && key !== activeCategory) return null;
-        const label = key === 'top' ? 'Top Results' : getGroupTitleByGroupName(key);
-        return (
-          <CollapsibleSection key={key} title={`${label} (${values.length})`} initialOpen forceOpen hideControl>
-            <SearchResultsSection groupItems={key === 'top'} items={values} query={term} onSelect={onSelect} />
-          </CollapsibleSection>
-        );
-      })}
+      {/* `ResultsList` and its rows carry no inset of their own — the container
+          they used to live in supplied it, so without this the rows and their
+          full-width dividers run to the card's edge while the labels and chips
+          above them sit at 16px. */}
+      <div className={s.sections}>
+        {SECTION_ORDER.map((key) => {
+          const values = data?.[key];
+          if (!values?.length) return null;
+          if (activeCategory && key !== activeCategory) return null;
+          const label = key === 'top' ? 'Top Results' : getGroupTitleByGroupName(key);
+          return (
+            <CollapsibleSection key={key} title={`${label} (${values.length})`} initialOpen forceOpen hideControl>
+              <SearchResultsSection groupItems={key === 'top'} items={values} query={term} onSelect={onSelect} />
+            </CollapsibleSection>
+          );
+        })}
+      </div>
     </>
   );
 });
@@ -318,7 +324,7 @@ export const AppSearchDialog = ({
             />
             {!!rawTerm && (
               <button type="button" className={s.fieldClear} onClick={clearTerm} aria-label="Clear search">
-                <Image src="/icons/close-gray.svg" alt="" width={20} height={20} />
+                <Image src="/icons/close-gray.svg" alt="" width={16} height={16} />
               </button>
             )}
           </div>

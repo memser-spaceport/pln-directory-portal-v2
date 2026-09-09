@@ -482,9 +482,15 @@ describe('ReferModal', () => {
     });
 
     /* The profile's own rule, so a slug and a URL both pass here as they do on a
-       member's contact card. */
+       member's contact card.
+
+       The three accepted shapes are also the three `normalizeExternalLinkedinUrl`
+       handles server-side. Listed here so the two ends can't drift apart quietly: a
+       shape the backend would take but this field rejects is a dead end the referrer
+       has no way to diagnose. */
     it.each([
       ['a bare slug', 'sarahcohen', true],
+      ['a domain without a scheme', 'linkedin.com/in/sarahcohen', true],
       ['a full URL', 'https://linkedin.com/in/sarahcohen', true],
       ['a non-LinkedIn URL', 'https://example.com/sarah', false],
     ])('accepts %s as a LinkedIn profile: %s', async (_label, value, valid) => {

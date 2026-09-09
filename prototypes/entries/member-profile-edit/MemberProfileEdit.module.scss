@@ -1,0 +1,7 @@
+// The page ground — `app/members/[id]/page.module.scss` paints `.memberDetail`
+// this colour; this only makes sure the ground runs to the bottom of a short
+// viewport, the same way `member-profile`'s `.pageBackdrop` does.
+.page {
+  min-height: 100vh;
+  background-color: #f1f5f9;
+}

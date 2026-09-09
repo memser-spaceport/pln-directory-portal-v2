@@ -245,11 +245,13 @@
 /* The chips pin to the top of the scrolling list. Production's `.sticky`
    offset 40px for an overlay header this dialog does not have, and painted an
    undefined custom property, so rows scrolled straight through them. */
+/* The white band has to extend past the chips, not stop at them: once the list
+   is scrolled, rows pass directly beneath, and 8px left them touching. */
 .sticky {
   position: sticky;
   top: 0;
   z-index: 1;
-  padding: 0 16px 8px;
+  padding: 0 16px 12px;
   background: #fff;
 }
 

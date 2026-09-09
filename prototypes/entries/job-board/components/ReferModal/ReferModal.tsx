@@ -99,9 +99,12 @@ type RefereeMode = 'member' | 'outside';
  * line. All three are required, because together they are the whole record: without
  * them a referral is a name in an email nobody can reach or check. The draft, the copy
  * tick and the send all read whichever state has an answer; nothing else on the card
- * knows which it was. `refereeMode` is what keeps the two apart — the backend takes
- * exactly one of `referredMemberUid` and `referredPerson` and 400s on any other
- * combination, and the mode gate is what guarantees only one is ever built.
+ * knows which it was. The backend takes exactly one of `referredMemberUid` and
+ * `referredPerson` and 400s on any other combination, so two things keep them apart:
+ * `refereeMode` gates both `selectedMember` and `outsidePerson`, so only one is ever
+ * non-null, and the send branches on `selectedMember` rather than merging the two. Each
+ * is sufficient on its own — deliberately, because the cost of getting it wrong is a
+ * failed send rather than a visible mistake.
  *
  * Whether the referred person is copied is the referrer's call — `includeReferredMember`
  * on the send, which the backend honours. The tick defaults to UNCHECKED: copying the

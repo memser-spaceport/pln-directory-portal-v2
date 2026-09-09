@@ -1,4 +1,5 @@
 import { useCurrentRoundStats } from '@/services/plaa/hooks/useCurrentRoundStats';
+import { useSnapshotPoints } from '@/services/points/hooks/usePoints';
 import {
   getCurrentRoundNumber,
   getRoundDateInfo,
@@ -24,40 +25,20 @@ export interface CurrentSnapshotStatus {
   activities: SnapshotActivityItem[];
 }
 
-/**
- * TODO(backend): mocked. Wire via useSnapshotPoints(snapshotPeriod) from
- * '@/services/points/hooks/usePoints' — map each PointsRecord's
- * category/activityName/pointsCollectedPerSnapshot onto SnapshotActivityItem, then
- * pointsCollected = sum of pointsCollectedPerSnapshot, activitiesCount = records.length,
- * categoriesCount = distinct categories. See points-dashboard.tsx for the same summation.
- *
- * No PLAA estimate here by design: an open snapshot only shows points collected so
- * far, PLAA is issued at close at whatever conversion rate is in effect then.
- */
-export const MOCK_ACTIVITIES: SnapshotActivityItem[] = [
-  { category: 'Knowledge Sharing', title: 'Thoughtful Responder', points: 60 },
-  { category: 'Knowledge Sharing', title: 'Host Office Hours', points: 100 },
-  { category: 'Programs', title: 'Make a Network Introduction', points: 50 },
-  { category: 'Programs', title: 'Complete a PLAA Survey', points: 50 },
-  { category: 'Projects', title: 'Give Excellent Survey Feedback', points: 60 },
-  { category: 'Projects', title: 'Complete a Survey', points: 50 },
-  { category: 'People/Talent', title: 'Refer New Alignment Asset Participants', points: 50 },
-];
-export const MOCK_POINTS_COLLECTED = MOCK_ACTIVITIES.reduce((sum, a) => sum + a.points, 0);
-export const MOCK_ACTIVITIES_COUNT = MOCK_ACTIVITIES.length;
-export const MOCK_CATEGORIES_COUNT = new Set(MOCK_ACTIVITIES.map((a) => a.category)).size;
-
 /** Falls back to calendar-math (round 1 = Feb 2025) while useCurrentRoundStats() is loading or unreachable. */
 function usePeriodStatus() {
   const { data: roundStats } = useCurrentRoundStats();
 
   if (roundStats) {
+    // roundStats.period is "YYYY-MM-DD"; useSnapshotPoints wants "YYYY-MM".
+    const snapshotPeriod = roundStats.period.slice(0, 7);
     const { startDate, endDate } = getSnapshotDatesFromPeriod(roundStats.period);
     const { progressPercentage, remainingDays } = getSnapshotProgress(startDate, endDate);
     return {
       periodLabel: `${roundStats.month} ${roundStats.year}`,
       daysLeft: remainingDays,
       progressPct: Math.round(progressPercentage),
+      snapshotPeriod,
     };
   }
 
@@ -69,19 +50,33 @@ function usePeriodStatus() {
     periodLabel: label,
     daysLeft: remainingDays,
     progressPct: Math.round(progressPercentage),
+    snapshotPeriod,
   };
 }
 
+/**
+ * No PLAA estimate here by design: an open snapshot only shows points collected so
+ * far, PLAA is issued at close at whatever conversion rate is in effect then.
+ */
 export function useCurrentSnapshotStatus(): CurrentSnapshotStatus {
-  const { periodLabel, daysLeft, progressPct } = usePeriodStatus();
+  const { periodLabel, daysLeft, progressPct, snapshotPeriod } = usePeriodStatus();
+  const { data: snapshotData } = useSnapshotPoints(snapshotPeriod);
+
+  const activities: SnapshotActivityItem[] = (snapshotData?.records ?? []).map((record) => ({
+    category: record.category,
+    title: record.activityName,
+    points: Number(record.pointsCollectedPerSnapshot) || 0,
+  }));
+  const pointsCollected = activities.reduce((sum, a) => sum + a.points, 0);
+  const categoriesCount = new Set(activities.map((a) => a.category)).size;
 
   return {
     periodLabel,
     daysLeft,
     progressPct,
-    pointsCollected: MOCK_POINTS_COLLECTED,
-    activitiesCount: MOCK_ACTIVITIES_COUNT,
-    categoriesCount: MOCK_CATEGORIES_COUNT,
-    activities: MOCK_ACTIVITIES,
+    pointsCollected,
+    activitiesCount: activities.length,
+    categoriesCount,
+    activities,
   };
 }

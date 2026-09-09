@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import Select, { ClearIndicatorProps, components, MenuProps, SingleValueProps } from 'react-select';
 
@@ -36,6 +36,52 @@ interface MemberSearchSelectProps {
    *  typed so a name that found nobody isn't typed twice. Omitted, the row is not
    *  rendered and the field is a member search and nothing else. */
   onReferOutside?: (typed: string) => void;
+}
+
+/** What `MenuWithOutsideRow` needs, handed down through react-select's own
+ *  `selectProps` rather than captured in a closure — see the component below. */
+interface OutsideRowProps {
+  onReferOutside?: (typed: string) => void;
+  /** The live query, so the row can carry it into the outside form. */
+  outsideQuery: string;
+  /** Whether any rows stand above the row, which is what its hairline separates it from. */
+  hasRowsAbove: boolean;
+}
+
+/* Module scope, not an inline arrow in `components`: an inline component has a new
+   identity on every render — every keystroke here, since the query is state — and
+   react-select remounts the menu, which drops the list's scroll position and flickers
+   the row. Its inputs arrive on `selectProps` for the same reason a closure won't do,
+   and refs can't: this component must not be rebuilt to see a new query, and reading a
+   ref during render is what `react-hooks/refs` forbids. The other overrides get away
+   with being inline because remounting an option row costs nothing anyone can see. */
+function MenuWithOutsideRow(menuProps: MenuProps<Option, false>) {
+  const { onReferOutside, outsideQuery, hasRowsAbove } = menuProps.selectProps as unknown as OutsideRowProps;
+
+  return (
+    <components.Menu {...menuProps}>
+      {menuProps.children}
+      {onReferOutside && (
+        <button
+          type="button"
+          className={`${s.outsideRow} ${hasRowsAbove ? '' : s.outsideRowAlone}`}
+          // mousedown, not click: react-select closes the menu when its input blurs, and
+          // a click's mousedown is what blurs it — by the time the click would fire,
+          // this row has been unmounted with the menu.
+          onMouseDown={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onReferOutside(outsideQuery.trim());
+          }}
+        >
+          <span className={s.outsideGlyph}>
+            <PlusIcon width={16} height={16} />
+          </span>
+          Refer someone outside the network
+        </button>
+      )}
+    </components.Menu>
+  );
 }
 
 const toOption = (member: DirectoryMember): Option => ({
@@ -93,51 +139,6 @@ export function MemberSearchSelect(props: MemberSearchSelectProps) {
 
   const options = useMemo<Option[]>(() => results.map(toOption), [results]);
 
-  // Read through refs so the Menu override below can be created once. An inline
-  // component in `components` remounts the menu on every render — every keystroke here,
-  // since the query is state — which drops the list's scroll position and flickers the
-  // row. The other overrides get away with being inline because remounting an option
-  // row costs nothing anyone can see.
-  const queryRef = useRef(query);
-  queryRef.current = query;
-  const onReferOutsideRef = useRef(onReferOutside);
-  onReferOutsideRef.current = onReferOutside;
-  // Whether anything stands above the row. Drives the hairline, which separates the row
-  // from a list and has nothing to separate when the row is the list.
-  const hasRowsAboveRef = useRef(hasQuery);
-  hasRowsAboveRef.current = hasQuery;
-
-  const MenuWithOutsideRow = useMemo(
-    () =>
-      function MenuWithOutsideRow(menuProps: MenuProps<Option, false>) {
-        return (
-          <components.Menu {...menuProps}>
-            {menuProps.children}
-            {onReferOutsideRef.current && (
-              <button
-                type="button"
-                className={`${s.outsideRow} ${hasRowsAboveRef.current ? '' : s.outsideRowAlone}`}
-                // mousedown, not click: react-select closes the menu when its input
-                // blurs, and a click's mousedown is what blurs it — by the time the
-                // click would fire, this row has been unmounted with the menu.
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  onReferOutsideRef.current?.(queryRef.current.trim());
-                }}
-              >
-                <span className={s.outsideGlyph}>
-                  <PlusIcon width={16} height={16} />
-                </span>
-                Refer someone outside the network
-              </button>
-            )}
-          </components.Menu>
-        );
-      },
-    [],
-  );
-
   const renderMemberRow = (option: Option, size: number) => (
     <div className={s.optionRow}>
       <MemberAvatar name={option.label} image={option.originalObject?.image} size={size} />
@@ -153,6 +154,9 @@ export function MemberSearchSelect(props: MemberSearchSelectProps) {
       <Field.Label className={fieldCss.label}>{label}</Field.Label>
 
       <Select<Option, false>
+        // Read off `selectProps` by the menu override above. Spread, because they are
+        // this file's props rather than react-select's.
+        {...({ onReferOutside, outsideQuery: query, hasRowsAbove: hasQuery } as object)}
         inputId={name}
         aria-label={label}
         placeholder={placeholder}

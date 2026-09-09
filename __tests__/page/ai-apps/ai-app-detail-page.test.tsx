@@ -484,9 +484,9 @@ describe('AiAppDetailPage', () => {
       const iframe = await mountIframe();
       const initialSrc = iframe.getAttribute('src');
 
-      postRoute(iframe, { type: 'pln-ai-app:route', path: '/reports/42?tab=a#x', title: 'Reports' });
+      postRoute(iframe, { type: 'pln-ai-app:route', path: '/reports/42', title: 'Reports' });
 
-      expect(window.location.search).toBe(`?path=${encodeURIComponent('/reports/42?tab=a#x')}`);
+      expect(window.location.search).toBe(`?path=${encodeURIComponent('/reports/42')}`);
       expect(document.title).toBe('Reports · News Summarizer');
       expect(iframe.getAttribute('src')).toBe(initialSrc);
 
@@ -495,6 +495,24 @@ describe('AiAppDetailPage', () => {
       expect(window.location.search).toBe('');
       expect(document.title).toBe('News Summarizer');
       expect(document.querySelector('iframe')?.getAttribute('src')).toBe(initialSrc);
+    });
+
+    it('never mirrors a reported query string or hash — an OAuth callback code must not reach this URL', async () => {
+      render(<AiAppDetailPage uid="app-1" />);
+      const iframe = await mountIframe();
+
+      // Kits 1.10–1.11 report pathname + search + hash; the app's query string
+      // is where a live authorization code lands.
+      postRoute(iframe, {
+        type: 'pln-ai-app:route',
+        path: '/oauth/gdrive/callback?code=live-auth-code&state=s#frag',
+        title: 'Connecting…',
+      });
+
+      expect(window.location.search).toBe(`?path=${encodeURIComponent('/oauth/gdrive/callback')}`);
+      expect(window.location.href).not.toContain('live-auth-code');
+      expect(window.location.hash).toBe('');
+      expect(document.title).toBe('Connecting… · News Summarizer');
     });
 
     it('ignores messages from another origin, another window, or of another type', async () => {

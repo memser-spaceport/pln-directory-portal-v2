@@ -1,3 +1,8 @@
+// Kept deliberately: the component this stylesheet belonged to was deleted when
+// the header search became one dialog (LAB-2477), but `prototypes/entries/ai-search`
+// still imports these classes so its rows sit in the same list as production's
+// used to. Orphan on purpose — do not delete without updating that entry.
+
 @use 'styles/media';
 
 .root {

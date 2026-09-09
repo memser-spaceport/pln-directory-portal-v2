@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, PropsWithChildren, Ref, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 
 import type { IMember } from '@/types/members.types';
@@ -8,13 +8,9 @@ import type { IUserInfo } from '@/types/shared.types';
 
 import { BackButton } from '@/components/ui/BackButton';
 import { DetailsSection, DetailsSectionHeader } from '@/components/common/profile/DetailsSection';
-import { Divider } from '@/components/common/profile/Divider';
 import { EditButton } from '@/components/common/profile/EditButton';
 import { TagsList } from '@/components/common/profile/TagsList';
 import { AddButton } from '@/components/page/member-details/components/AddButton/AddButton';
-import { ProfileSocialLink } from '@/components/page/member-details/profile-social-link';
-import { getProfileFromURL } from '@/utils/common.utils';
-import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
 
 // Import-safe production list components (they render from props — no fetching).
 import { TeamsList } from '@/components/page/member-details/TeamsDetails/components/TeamsList';
@@ -25,22 +21,34 @@ import { ContributionsList } from '@/components/page/member-details/Contribution
 import page from '@/app/members/[id]/page.module.scss';
 import h from '@/components/page/member-details/MemberDetailHeader/MemberDetailHeader.module.scss';
 import p from '@/components/page/member-details/ProfileDetails/ProfileDetails.module.scss';
-import office from '@/components/page/member-details/OfficeHoursDetails/components/OfficeHoursView/OfficeHoursView.module.scss';
 import contact from '@/components/page/member-details/contact-details/ContactDetails.module.scss';
 import repo from '@/components/page/member-details/RepositoriesDetails/components/RepositoriesList/RepositoriesList.module.scss';
-// `DetailsSection.editView` ships a gradient tint; ContactDetails overrides it to
-// the flat `#f2f5ff` + `#aebfff` pair the header card already wears, and that
-// override is passed back in through `classes` exactly as ContactDetails does.
-import c from '@/components/page/member-details/ContactDetails/ContactDetails.module.scss';
 
 import { ExperienceList } from '../job-board/JobProfilePane';
 import type { ExperienceEntry } from '../job-board/viewerState';
 import { MOCK_MEMBER } from '../member-profile/mocks';
 
-import { FloatingEditorControls } from './FloatingEditorControls';
-import { EditorDirtyContext } from './SectionEditor';
-import { ContactForm, ExperienceEditForm, OfficeHoursForm, ProfileDetailsForm } from './forms';
-import { SEED_PROFILE, type ContactHandles, type ProfileRecord } from './mocks';
+import { FloatingEditorControls } from '../profile-shared/FloatingEditorControls';
+// The section-editing pattern — worked out on this page, and shared with the
+// new-member page (`onboarding`) since it opens the same editors. See the
+// module's note for the parts that go together.
+import {
+  EditorDirtyContext,
+  Section,
+  editCardClass,
+  editKey,
+  editSectionClasses,
+  editorStatus,
+  type SectionEditTarget,
+} from '../profile-shared/SectionEditor/SectionEditor';
+import {
+  ContactForm,
+  ExperienceEditForm,
+  OfficeHoursForm,
+  ProfileDetailsForm,
+} from '../profile-shared/SectionEditor/forms';
+import { ContactHandlesList, OfficeHoursOwnerView } from '../profile-shared/SectionEditor/views';
+import { SEED_PROFILE, type ProfileRecord } from './mocks';
 import s from './MemberProfileEdit.module.scss';
 
 /**
@@ -61,11 +69,12 @@ import s from './MemberProfileEdit.module.scss';
  *
  *  3. **A way back if you scroll off.** With the rest of the page muted the only
  *     other thing to do is scroll, and a person who does — to check a date on
- *     another card, say — has left an open form behind. Once the editing card is
- *     wholly out of view a floating "Keep editing" appears and takes them back
- *     to it, first field focused. And once there are unsaved changes, a
- *     floating "Save changes" stands in for the Save row whenever that row is
- *     off screen — it submits the open form. See `FloatingEditorControls`.
+ *     another card, say — has left an open form behind. Once the card is mostly
+ *     out of view a status bar centred at the bottom of the viewport names the
+ *     card they left ("Editing Office Hours") and carries "Keep editing", which
+ *     takes them back, first field focused. Once there are unsaved changes the
+ *     bar says so and adds "Save changes", which submits the open form from
+ *     where they are. See `FloatingEditorControls`.
  *
  * Everything else is dev's page: the header card, Office Hours, Contact
  * Details, Teams, Experience, Project Contributions and Repositories, wearing
@@ -84,35 +93,15 @@ import s from './MemberProfileEdit.module.scss';
 /**
  * Which card, if any, has swapped itself for its editor. One at a time — a
  * second would put two Saves on one column, and muting the rest of the page is
- * how the rule is made visible. `uid: null` on Experience means a new entry.
+ * how the rule is made visible. The four kinds, their keys and their names in
+ * the status bar are the shared `SectionEditTarget`'s.
  */
-type EditTarget =
-  | { kind: 'profile' }
-  | { kind: 'office-hours' }
-  | { kind: 'contact' }
-  | { kind: 'experience'; uid: string | null }
-  | null;
-
-/** A string the floating control can re-attach on when one editor gives way to another. */
-const editKey = (target: EditTarget): string | null => {
-  if (!target) return null;
-  return target.kind === 'experience' ? `experience:${target.uid ?? 'new'}` : target.kind;
-};
+type EditTarget = SectionEditTarget | null;
 
 // Cast the mock to the production prop types — the real list components read only
 // the fields we populate, so this is safe for the prototype.
 const member = MOCK_MEMBER as unknown as IMember;
 const userInfo = { uid: MOCK_MEMBER.id, name: MOCK_MEMBER.name, email: MOCK_MEMBER.email } as unknown as IUserInfo;
-
-const VISIBLE_HANDLES: Array<keyof ContactHandles> = [
-  'email',
-  'linkedin',
-  'telegram',
-  'twitter',
-  'bluesky',
-  'discord',
-  'github',
-];
 
 export default function MemberProfileEditPrototype() {
   // Reused fields are base-ui / client-only — gate render to avoid hydration drift.
@@ -141,10 +130,6 @@ export default function MemberProfileEditPrototype() {
     muted: editing !== null && editing.kind !== kind,
     ref: editing?.kind === kind ? editCardRef : undefined,
   });
-  /* The flat brand tint plus the in-flow override, for a `DetailsSection` that
-     is open. `undefined` at rest so `c.root`'s zero padding never reaches a
-     resting card. */
-  const editClasses = (open: boolean) => (open ? { root: c.root, editView: clsx(c.editView, s.editCard) } : undefined);
 
   const entryBeingEdited: ExperienceEntry | null =
     editing?.kind === 'experience' && editing.uid
@@ -179,7 +164,7 @@ export default function MemberProfileEditPrototype() {
                 {/* 1. The header card. `ProfileDetails` is a plain div carrying
                      its own edit tint, so it is one here too. */}
                 <Section {...sectionProps('profile')}>
-                  <div className={clsx(p.root, is('profile') && [p.editView, s.editCard])}>
+                  <div className={clsx(p.root, is('profile') && [p.editView, editCardClass])}>
                     {is('profile') ? (
                       <ProfileDetailsForm
                         profile={draft}
@@ -254,7 +239,7 @@ export default function MemberProfileEditPrototype() {
                      (you do not book yourself). The "Learn more" link is left
                      out: it opens a production dialog. */}
                 <Section {...sectionProps('office-hours')}>
-                  <DetailsSection editView={is('office-hours')} classes={editClasses(is('office-hours'))}>
+                  <DetailsSection editView={is('office-hours')} classes={editSectionClasses(is('office-hours'))}>
                     {is('office-hours') ? (
                       <OfficeHoursForm
                         profile={draft}
@@ -265,44 +250,7 @@ export default function MemberProfileEditPrototype() {
                         }}
                       />
                     ) : (
-                      <div className={office.root}>
-                        <DetailsSectionHeader
-                          title={
-                            <>
-                              Office Hours{' '}
-                              {draft.officeHours && (
-                                <span className={office.titleHintLabel}>&#8226; Available to connect</span>
-                              )}
-                            </>
-                          }
-                        >
-                          <EditButton onClick={() => setEditing({ kind: 'office-hours' })} />
-                        </DetailsSectionHeader>
-                        <div className={office.content}>
-                          <div className={office.officeHoursSection}>
-                            <div className={office.col}>
-                              <div className={office.description}>
-                                <div>
-                                  <span>
-                                    {draft.name} is available for a short 1:1 call to connect or help — no introduction
-                                    needed.
-                                  </span>
-                                </div>
-                                <KeywordsRow
-                                  label="Topics of Interest:"
-                                  items={draft.ohInterest}
-                                  onAdd={() => setEditing({ kind: 'office-hours' })}
-                                />
-                                <KeywordsRow
-                                  label="I Can Help With:"
-                                  items={draft.ohHelpWith}
-                                  onAdd={() => setEditing({ kind: 'office-hours' })}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      <OfficeHoursOwnerView profile={draft} onEdit={() => setEditing({ kind: 'office-hours' })} />
                     )}
                   </DetailsSection>
                 </Section>
@@ -310,7 +258,7 @@ export default function MemberProfileEditPrototype() {
                 {/* 3. Contact Details — the owner's unlocked view, every handle a
                      `ProfileSocialLink`, Edit in the header. */}
                 <Section {...sectionProps('contact')}>
-                  <DetailsSection editView={is('contact')} classes={editClasses(is('contact'))}>
+                  <DetailsSection editView={is('contact')} classes={editSectionClasses(is('contact'))}>
                     {is('contact') ? (
                       <ContactForm
                         profile={draft}
@@ -326,29 +274,7 @@ export default function MemberProfileEditPrototype() {
                           <EditButton onClick={() => setEditing({ kind: 'contact' })} />
                         </DetailsSectionHeader>
                         <div className={contact.container}>
-                          <div className={contact.social}>
-                            <div className={contact.top}>
-                              <div className={contact.content}>
-                                {VISIBLE_HANDLES.filter((key) => draft.contacts[key]).map((key, i, arr) => {
-                                  const handle = draft.contacts[key];
-                                  return (
-                                    <Fragment key={key}>
-                                      <ProfileSocialLink
-                                        profile={getProfileFromURL(handle, key)}
-                                        height={24}
-                                        width={24}
-                                        callback={() => {}}
-                                        type={key}
-                                        handle={handle}
-                                        logo={getContactLogoByProvider(key)}
-                                      />
-                                      {i === arr.length - 1 ? null : <Divider />}
-                                    </Fragment>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          </div>
+                          <ContactHandlesList contacts={draft.contacts} />
                         </div>
                       </div>
                     )}
@@ -366,7 +292,7 @@ export default function MemberProfileEditPrototype() {
                 {/* 5. Experience — a list with Add in the header and a pencil per
                      row, each opening the same editor over the card. */}
                 <Section {...sectionProps('experience')}>
-                  <DetailsSection editView={is('experience')} classes={editClasses(is('experience'))}>
+                  <DetailsSection editView={is('experience')} classes={editSectionClasses(is('experience'))}>
                     {is('experience') ? (
                       <ExperienceEditForm
                         initial={entryBeingEdited}
@@ -445,51 +371,19 @@ export default function MemberProfileEditPrototype() {
           </div>
         </div>
 
-        <FloatingEditorControls target={editCardRef} activeKey={editKey(editing)} dirty={dirty} />
+        <FloatingEditorControls
+          target={editCardRef}
+          activeKey={editKey(editing)}
+          canSave={dirty}
+          status={editorStatus(editing, dirty)}
+        />
       </EditorDirtyContext.Provider>
     </div>
   );
 }
 
-/**
- * One card's wrapper. `inert` is the whole mechanism for "the other sections
- * are disabled": the browser drops every click, focus and tab stop inside it,
- * and assistive tech skips it. The class only paints what `inert` did. The ref
- * lands here rather than on the card because `DetailsSection` forwards none,
- * and the wrapper is the card's outline in every way that matters to the
- * observer.
- */
+/** Every card on the page — the four that open an editor and the three that only mute. */
 type SectionKind = NonNullable<EditTarget>['kind'] | 'teams' | 'contributions' | 'repositories';
-
-function Section({ muted, ref, children }: PropsWithChildren<{ muted: boolean; ref?: Ref<HTMLDivElement> }>) {
-  return (
-    <div ref={ref} className={clsx(s.section, muted && s.muted)} inert={muted} aria-disabled={muted || undefined}>
-      {children}
-    </div>
-  );
-}
-
-/** `OfficeHoursView`'s keyword row — badges, or the owner's "Add keywords" when empty. */
-function KeywordsRow({ label, items, onAdd }: { label: string; items: string[]; onAdd: () => void }) {
-  return (
-    <div className={office.keywordsWrapper}>
-      <span className={office.keywordsLabel}>{label}</span>
-      <span className={office.badgesWrapper}>
-        {items.length ? (
-          items.map((item) => (
-            <div key={item} className={office.badge}>
-              {item}
-            </div>
-          ))
-        ) : (
-          <button type="button" className={office.addKeywordsBadge} onClick={onAdd}>
-            <AddIcon /> Add keywords
-          </button>
-        )}
-      </span>
-    </div>
-  );
-}
 
 /* ---------- Inline icons, as `member-profile` carries them ---------- */
 
@@ -498,16 +392,6 @@ const LocationIcon = () => (
     <path
       d="M10 4.6875C9.32013 4.6875 8.65552 4.88911 8.09023 5.26682C7.52493 5.64454 7.08434 6.1814 6.82416 6.80953C6.56399 7.43765 6.49591 8.12881 6.62855 8.79562C6.76119 9.46243 7.08858 10.0749 7.56932 10.5557C8.05006 11.0364 8.66257 11.3638 9.32938 11.4964C9.99619 11.6291 10.6874 11.561 11.3155 11.3008C11.9436 11.0407 12.4805 10.6001 12.8582 10.0348C13.2359 9.46948 13.4375 8.80487 13.4375 8.125C13.4365 7.21363 13.074 6.33989 12.4295 5.69546C11.7851 5.05103 10.9114 4.68853 10 4.6875ZM10 9.6875C9.69097 9.6875 9.38887 9.59586 9.13192 9.42417C8.87497 9.25248 8.6747 9.00845 8.55644 8.72294C8.43818 8.43743 8.40723 8.12327 8.46752 7.82017C8.52781 7.51708 8.67663 7.23866 8.89515 7.02014C9.11367 6.80163 9.39208 6.65281 9.69517 6.59252C9.99827 6.53223 10.3124 6.56318 10.5979 6.68144C10.8835 6.7997 11.1275 6.99997 11.2992 7.25692C11.4709 7.51387 11.5625 7.81597 11.5625 8.125C11.5625 8.5394 11.3979 8.93683 11.1049 9.22985C10.8118 9.52288 10.4144 9.6875 10 9.6875ZM10 0.9375C8.09439 0.939568 6.26742 1.69748 4.91995 3.04495C3.57248 4.39242 2.81457 6.21939 2.8125 8.125C2.8125 14.1687 9.19063 18.7031 9.4625 18.893C9.62005 19.0032 9.8077 19.0624 10 19.0624C10.1923 19.0624 10.3799 19.0032 10.5375 18.893C11.7455 18.0027 12.8508 16.9808 13.8328 15.8461C16.0273 13.3258 17.1875 10.6539 17.1875 8.125C17.1854 6.21939 16.4275 4.39242 15.08 3.04495C13.7326 1.69748 11.9056 0.939568 10 0.9375ZM12.4453 14.5867C11.7004 15.4424 10.8822 16.2313 10 16.9445C9.1178 16.2313 8.29958 15.4424 7.55469 14.5867C6.25 13.0758 4.6875 10.7273 4.6875 8.125C4.6875 6.71604 5.24721 5.36478 6.2435 4.36849C7.23978 3.37221 8.59104 2.8125 10 2.8125C11.409 2.8125 12.7602 3.37221 13.7565 4.36849C14.7528 5.36478 15.3125 6.71604 15.3125 8.125C15.3125 10.7273 13.75 13.0758 12.4453 14.5867Z"
       fill="#455468"
-    />
-  </svg>
-);
-
-/** `OfficeHoursView`'s plus beside "Add keywords". */
-const AddIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M13.5 8C13.5 8.13261 13.4473 8.25979 13.3536 8.35355C13.2598 8.44732 13.1326 8.5 13 8.5H8.5V13C8.5 13.1326 8.44732 13.2598 8.35355 13.3536C8.25979 13.4473 8.13261 13.5 8 13.5C7.86739 13.5 7.74021 13.4473 7.64645 13.3536C7.55268 13.2598 7.5 13.1326 7.5 13V8.5H3C2.86739 8.5 2.74021 8.44732 2.64645 8.35355C2.55268 8.25979 2.5 8.13261 2.5 8C2.5 7.86739 2.55268 7.74021 2.64645 7.64645C2.74021 7.55268 2.86739 7.5 3 7.5H7.5V3C7.5 2.86739 7.55268 2.74021 7.64645 2.64645C7.74021 2.55268 7.86739 2.5 8 2.5C8.13261 2.5 8.25979 2.55268 8.35355 2.64645C8.44732 2.74021 8.5 2.86739 8.5 3V7.5H13C13.1326 7.5 13.2598 7.55268 13.3536 7.64645C13.4473 7.74021 13.5 7.86739 13.5 8Z"
-      fill="currentColor"
     />
   </svg>
 );

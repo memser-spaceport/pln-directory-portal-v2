@@ -1,0 +1,25 @@
+/* Lives inside the role's card (see `TeamOpenRoles.module.scss` `.roleBlock`),
+ * under the row, so the count reads as a fact about that role and not as a
+ * line floating between two cards. The row carries the card's 12px/16px
+ * padding on its own; this takes only the bottom and sides, and pulls up 4px
+ * so the facepile sits closer to the meta it belongs to than to the next card
+ * (lesson 11: equidistant means unrelated). */
+.root {
+  display: flex;
+  padding: 0 16px 12px;
+  margin-top: -4px;
+}
+
+/* The page's follower stack (`local.subStack`), left-aligned rather than
+ * centred — that class self-centres under the header button; here it is the
+ * first thing in a content column. The negative left margin swallows its own
+ * 6px hit padding so the first avatar lines up with the row's title. */
+.countLine {
+  align-self: flex-start;
+  margin-left: -6px;
+}
+
+/* `● 1 new` in the row's own green, one step in from the count. */
+.newCount {
+  margin-left: 4px;
+}

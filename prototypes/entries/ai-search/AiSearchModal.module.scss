@@ -187,6 +187,22 @@
   min-height: 0;
 }
 
+/* The idle sections (Recent, Try asking, History) reuse production's
+   RecentSearch / TryToSearch blocks, which carry their own 12px top margin
+   and 8px vertical padding for their place in the overlay's column. Here the
+   body's 16px padding, the stack's 12px gap and the divider's 8px margins
+   already do that job, so the blocks' own spacing stacked on top: 36px from
+   the field's hairline to "Recent" ("make less spacing"), and 28–42px around
+   each divider depending on which block sat under it. Zeroed, one rule for
+   all three: 16px under the hairline, 20px either side of a divider. Doubled
+   to beat the production `.root` at equal specificity regardless of sheet
+   order. */
+.idleSection.idleSection {
+  margin-top: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 /* Lines the scope hint up with the Recent / Try asking labels (16px inside
    the body), instead of 16px short of them. */
 .hintInset {

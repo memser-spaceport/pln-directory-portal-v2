@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm, type Resolver } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import clsx from 'clsx';
@@ -318,6 +318,12 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   } = props;
 
   const isMobile = useIsMobile();
+  /* The drawer's chrome, for the profile step's status row: the sticky header
+     the cards scroll under, and the slot in the footer the row renders into,
+     beside Continue. The slot is state rather than a ref so the step's portal
+     re-renders once the footer has mounted it. See `EditorStatusRow`. */
+  const drawerHeaderRef = useRef<HTMLDivElement | null>(null);
+  const [footerSlot, setFooterSlot] = useState<HTMLDivElement | null>(null);
 
   /* The footer's "What your profile unlocks?" popover, on the logged-out
      reading step. Local: it is a glance at a card that is also in the body,
@@ -721,7 +727,13 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
         );
       }
       return (
-        <Button variant="primary" style="fill" size="m" className={d.footerAction} onClick={() => managed.onSetStatus('live')}>
+        <Button
+          variant="primary"
+          style="fill"
+          size="m"
+          className={d.footerAction}
+          onClick={() => managed.onSetStatus('live')}
+        >
           Bring back
         </Button>
       );
@@ -960,7 +972,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
       {/* `d.drawerHeaderLift` is what this header adds to production's: a
           stacking order that survives positioned content scrolling past it, and
           the room for a second row. See the notes in the stylesheet. */}
-      <div className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
+      <div ref={drawerHeaderRef} className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
         <div className={clsx(s.breadcrumbs, d.headerRow)}>
           <button type="button" className={s.backButton} onClick={onBack}>
             <BackIcon />
@@ -1030,6 +1042,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               pendingRoleTitle={role?.roleTitle ?? null}
               pendingApproval={pendingApproval}
               jobAspirant={jobAspirant}
+              floatingChrome={{ top: drawerHeaderRef, slot: footerSlot }}
               canvasImport={canvasImport}
             />
           ) : (
@@ -1080,6 +1093,8 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
           makes them read as one screen rather than three. */}
       <div className={d.footer}>
         <div className={clsx(d.footerInner, step === 'review' && !loggedIn && !managed && d.footerInnerSplit)}>
+          {/* The open card's status, on the profile step — see `.footerStatus`. */}
+          <div ref={setFooterSlot} className={d.footerStatus} />
           {/* The "What your profile unlocks?" list, floated above the link that
               opened it. Inside the bar so it is positioned against the bar's
               own top edge, and only ever on the visitor's reading step. */}

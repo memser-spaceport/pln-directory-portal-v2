@@ -1,0 +1,70 @@
+@use 'styles/media';
+
+/* The Members row, unchanged, with one addition the page needs: a selected
+ * state. Production's row has no such thing (its press leaves the page), so
+ * the paint is the section's own resting-blue card — the tint the profile
+ * uses for the card you are editing — with the brand hairline the apply
+ * rail draws around the current step. */
+.row {
+  transition: background-color 120ms ease;
+}
+
+.selected {
+  background: var(--background-brand-subtle, #eef2ff);
+  box-shadow: inset 0 0 0 1px var(--border-brand-subtle, #aebfff);
+}
+
+/* The row as a <button>: takes off what the UA adds and keeps the stacked
+ * geometry `tmvc.root` gives an <a>. `text-align` because a button centres. */
+.selectable {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* The left column takes what the right cluster leaves: `mcb.left` only sets
+ * `min-width: 0`, which lets the name ellipsise but gives the note nothing to
+ * fill. */
+.left {
+  flex: 1;
+}
+
+/* Under the name and role, in the row's small size and the row's secondary
+ * tone. Two lines, clamped — enough to read the sentence they led with. */
+.note {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* The right cluster: the New mark, the clock, the document, the arrow — the
+ * row's own gap, kept from wrapping into the note on a narrow box. */
+.right {
+  gap: 12px;
+}
+
+/* `✓ Viewed` — the same size and weight as the row's `● New`, in the tertiary
+ * tone rather than the green: a fact about what the reader has done, not a
+ * call to look. The check is the design system's stroked glyph at the badge's
+ * own 12px, taking the text's colour. */
+.viewed {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

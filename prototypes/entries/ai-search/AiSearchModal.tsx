@@ -398,7 +398,7 @@ export function AiSearchModal({ open, onClose }: AiSearchModalProps) {
               <div className={shell.idle}>
                 {recent.length > 0 && (
                   <>
-                    <div className={rs.root}>
+                    <div className={clsx(rs.root, s.idleSection)}>
                       <div className={rs.label}>Recent</div>
                       <ul className={rs.list}>
                         {recent.map((item) => (
@@ -428,7 +428,7 @@ export function AiSearchModal({ open, onClose }: AiSearchModalProps) {
                   above history: the prompts are the offer (what this can do),
                   history is the record (what you did), and the offer ranks
                   first for whoever opens the dialog not knowing either. */}
-                <div className={tt.root}>
+                <div className={clsx(tt.root, s.idleSection)}>
                   <div className={tt.label}>Try asking or searching for</div>
                   <ul className={tt.list}>
                     {SUGGESTED_PROMPTS.map((p) => (
@@ -458,7 +458,7 @@ export function AiSearchModal({ open, onClose }: AiSearchModalProps) {
                 {threads.length > 0 && (
                   <>
                     <div className={rs.divider} />
-                    <div className={rs.root}>
+                    <div className={clsx(rs.root, s.idleSection)}>
                       <div className={s.historyHead}>
                         <div className={rs.label}>Your AI Search History</div>
                         {threads.length > HISTORY_ROWS && (

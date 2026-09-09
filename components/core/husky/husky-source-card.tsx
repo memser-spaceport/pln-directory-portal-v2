@@ -2,14 +2,11 @@
 
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 
+/* The wire shape is `sources: string[]` — see the husky chat response schema.
+   The old declaration promised objects while the body rendered the raw value,
+   so every caller either passed `any` or lied to the compiler. */
 interface HuskySourceCardProps {
-  sources: SourceProps[];
-}
-
-interface SourceProps {
-  title: string;
-  description: string;
-  link: string;
+  sources: string[];
 }
 function HuskySourceCard({ sources }: HuskySourceCardProps) {
   const { trackHuskySourceLinkClicked } = useHuskyAnalytics();
@@ -17,11 +14,11 @@ function HuskySourceCard({ sources }: HuskySourceCardProps) {
     <>
       <div className="sources">
         <h3 className="sources__title">Sources</h3>
-        {sources.map((source: any, index: number) => (
+        {sources.map((source: string, index: number) => (
           <a
             target="_blank"
             href={source}
-            onClick={() => trackHuskySourceLinkClicked(source.link)}
+            onClick={() => trackHuskySourceLinkClicked(source)}
             key={`husky-chat${index}`}
             className="sources__item"
           >

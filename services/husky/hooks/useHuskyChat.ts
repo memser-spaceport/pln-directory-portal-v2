@@ -269,8 +269,15 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
     async (question: string, { newThread }: { newThread: boolean }) => {
       const trimmed = question.trim();
       if (!trimmed) return;
-      if (inFlightRef.current) return; // M1 — closes the pre-await window
       if (!latest.current.isOwnThread) return;
+
+      /* Starting a new conversation supersedes whatever is running — that is
+         what the AI row does while an answer is on screen. A *follow-up* is
+         refused instead: two questions in one thread would fold into each
+         other, and the in-flight ref is what closes that window, because it
+         opens before React is involved. */
+      if (newThread) abandonStream();
+      else if (inFlightRef.current) return;
 
       /* Refuse before spending anything. The count used to be consumed first
          and the refusal returned after, which cost the user both their question
@@ -341,7 +348,7 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
         setStatus('errored');
       }
     },
-    [queryClient, rememberThreadId, submitChat],
+    [abandonStream, queryClient, rememberThreadId, submitChat],
   );
 
   /** A new conversation. Always a new thread — never a turn appended to the

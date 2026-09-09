@@ -64,6 +64,13 @@ export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) =>
 
   const fullBleed = useIsBelowTabletLandscape();
 
+  /* Snapshot on first render so SSR and hydration agree, and read `userAgent`
+     rather than the deprecated `platform`. The shortcut is Ctrl+K on Windows
+     and Linux, so naming it ⌘K everywhere would be wrong for most people. */
+  const [shortcutLabel] = useState(() =>
+    typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.userAgent) ? '⌘K' : 'Ctrl+K',
+  );
+
   /* Mounted here, once, and never inside the dialog: this component lives in
      the root layout, so the thread outlives the sheet — which is the only way
      "close it and come back" can work for a signed-out person, who has no
@@ -180,15 +187,19 @@ export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) =>
 
   return (
     <>
-      {/* Field-shaped, but a real button: focus restore on close targets it, and
-          a div would drop focus to <body> instead. */}
-      <button type="button" className={s.desktopTrigger} onClick={open}>
-        <Image src="/icons/search-right.svg" alt="" width={20} height={20} />
-        <span className={s.desktopTriggerText}>Search</span>
-        <kbd className={s.desktopTriggerKbd}>⌘K</kbd>
-      </button>
-
-      <button type="button" className={s.mobileTrigger} onClick={open} aria-label="Search">
+      {/* One glyph, at every width, sitting with the header's other icon
+          buttons. The inline field it replaces was a field you could not type
+          into — it opened a dialog whose first row is the real one, so two
+          fields appeared in sequence for one search. A real <button> rather
+          than a div, because focus restore on close targets it and a div
+          would drop focus to <body>. */}
+      <button
+        type="button"
+        className={s.trigger}
+        onClick={open}
+        aria-label="Search"
+        title={`Search (${shortcutLabel})`}
+      >
         <Image src="/icons/search-right.svg" alt="" width={20} height={20} />
       </button>
 
@@ -206,6 +217,7 @@ export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) =>
         inputRef={inputRef}
         isLoggedIn={isLoggedIn}
         onOpenThread={handleOpenThread}
+        shortcutLabel={shortcutLabel}
         chat={chat}
       />
     </>

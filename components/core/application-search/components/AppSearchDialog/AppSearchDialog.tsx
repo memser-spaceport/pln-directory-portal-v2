@@ -128,6 +128,8 @@ interface Props {
   isLoggedIn: boolean;
   /** Resolves false when the thread could not be loaded. */
   onOpenThread: (threadId: string) => Promise<boolean>;
+  /** "⌘K" or "Ctrl+K", decided once by the host so both hints agree. */
+  shortcutLabel: string;
   chat: {
     turns: HuskyTurn[];
     status: StreamStatus;
@@ -155,6 +157,7 @@ export const AppSearchDialog = ({
   inputRef,
   isLoggedIn,
   onOpenThread,
+  shortcutLabel,
   chat,
 }: Props) => {
   const [activeCategory, setActiveCategory] = useState<keyof SearchResult | null>('top');
@@ -383,7 +386,7 @@ export const AppSearchDialog = ({
 
         <div className={s.footer}>
           <span className={s.footerItem}>
-            <kbd className={s.kbd}>⌘K</kbd> to open
+            <kbd className={s.kbd}>{shortcutLabel}</kbd> to open
           </span>
           <span className={s.footerItem}>
             <kbd className={s.kbd}>Esc</kbd> to close

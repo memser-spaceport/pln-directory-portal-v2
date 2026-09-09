@@ -125,9 +125,7 @@ describe('AppSearchDialog', () => {
 
   it('returns focus to the trigger on close', async () => {
     renderSearch();
-    /* Both triggers are in the DOM — CSS decides which is visible, and jsdom
-       has no CSS. The desktop one comes first. */
-    const trigger = screen.getAllByRole('button', { name: /search/i })[0];
+    const trigger = screen.getByRole('button', { name: 'Search' });
     trigger.focus();
     fireEvent.keyDown(window, { key: 'k', metaKey: true });
     await waitFor(() => expect(field()).toHaveFocus());

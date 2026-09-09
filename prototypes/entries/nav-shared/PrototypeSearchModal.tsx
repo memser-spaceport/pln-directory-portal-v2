@@ -61,6 +61,7 @@ export function PrototypeSearchModal({ open, onClose }: PrototypeSearchModalProp
         chat.startThread(question);
       }}
       inputRef={inputRef}
+      shortcutLabel="⌘K"
       isLoggedIn={false}
       onOpenThread={async () => false}
       chat={chat}

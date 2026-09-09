@@ -1,61 +1,24 @@
-@use 'styles/media';
+/* The search trigger is a glyph in the header's icon cluster, sized to match
+   its siblings (`.supportButton` in NavBar.module.scss is 40px).
 
-/* The navbar field is a trigger, not a field. It looks like one because that is
-   what a person reaches for, but the only field is the dialog's — two inputs on
-   one surface was the whole problem with the overlay this replaces. */
-.desktopTrigger {
-  display: none;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  max-width: 600px;
-  min-width: 360px;
-  height: 40px;
-  padding: 0 12px;
-  border: 1px solid #c5ced9;
-  border-radius: 8px;
-  background: linear-gradient(0deg, #f1f5f9 0%, #f1f5f9 100%), #fff;
-  cursor: pointer;
-
-  &:hover {
-    background: #fff;
-  }
-
-  @include media.tablet-landscape {
-    display: flex;
-  }
-}
-
-.desktopTriggerText {
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  font-size: 14px;
-  line-height: 20px;
-}
-
-.desktopTriggerKbd {
-  margin-left: auto;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-  color: var(--foreground-neutral-secondary, #455468);
-  font-family: inherit;
-  font-size: 11px;
-  line-height: 14px;
-}
-
-.mobileTrigger {
+   It used to be an inline 360px field. That field could not be typed into —
+   clicking it opened a dialog whose top row is the real field — so one search
+   meant meeting two fields in a row. The keyboard route is named in the
+   dialog's own footer and in this button's tooltip, which is where a shortcut
+   hint belongs once there is no field to put it inside. */
+.trigger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   border: 0;
   border-radius: 8px;
   background: none;
   cursor: pointer;
 
-  @include media.tablet-landscape {
-    display: none;
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
   }
 }

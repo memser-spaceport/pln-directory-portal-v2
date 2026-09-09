@@ -47,20 +47,30 @@ export async function fetchJobsFilters(params: URLSearchParams): Promise<IJobsFi
   return response.json();
 }
 
+/** Who the draft is about. `JobReferralDraftQuerySchema` takes exactly one of
+ *  `referredMemberUid` or `referredName` and rejects both-or-neither with a 400, so the
+ *  two arms are a union rather than two optional fields. */
+export type JobReferralDraftFor = { memberUid: string } | { name: string };
+
 /**
- * The pre-filled "Your note" for the refer modal, composed server-side from the
- * referrer's and referred member's directory records (title/company, plus a blurb
- * derived from the referred member's bio) and a link to the role on the board.
+ * The pre-filled "Your note" for the refer modal, composed server-side and returned with
+ * the facts it was built from.
+ *
+ * For a member it draws on both directory records — title/company, plus a blurb derived
+ * from the referred member's bio — and closes with a link to the role on the board. For
+ * someone outside the network the server has only the name, so the note opens on it and
+ * the rest is the role and the referrer.
  *
  * Signed-in only: the backend resolves the referrer from the authenticated email
  * rather than trusting anything the client sends.
  */
-export async function fetchJobReferralDraft(jobUid: string, referredMemberUid: string): Promise<IJobReferralDraft> {
-  const response = await customFetch(
-    `${jobOpeningsAPI}/${jobUid}/referral-draft?referredMemberUid=${encodeURIComponent(referredMemberUid)}`,
-    { method: 'GET' },
-    true,
-  );
+export async function fetchJobReferralDraft(jobUid: string, referee: JobReferralDraftFor): Promise<IJobReferralDraft> {
+  const query =
+    'memberUid' in referee
+      ? `referredMemberUid=${encodeURIComponent(referee.memberUid)}`
+      : `referredName=${encodeURIComponent(referee.name)}`;
+
+  const response = await customFetch(`${jobOpeningsAPI}/${jobUid}/referral-draft?${query}`, { method: 'GET' }, true);
 
   if (!response?.ok) {
     throw new Error('Failed to fetch the referral draft');
@@ -73,9 +83,14 @@ export async function fetchJobReferralDraft(jobUid: string, referredMemberUid: s
  * Sends the referral email and records it for auditing.
  *
  * Recipient order is meaningful: the backend makes the first one the To and CCs the
- * rest, then appends the referrer and the referred member to the CC list. Members are
- * sent as `memberUid` so their addresses are resolved server-side — the browser never
- * needs to hold anyone's email — and typed addresses go as `email`.
+ * rest, then appends the referrer and (unless the tick says otherwise) the referred
+ * person to the CC list. Members are sent as `memberUid` so their addresses are resolved
+ * server-side — the browser never needs to hold anyone's email — and typed addresses go
+ * as `email`.
+ *
+ * The payload carries `referredMemberUid` for a member and `referredPerson` for someone
+ * outside the network; `ICreateJobReferralPayload` allows exactly one, because the
+ * backend rejects any other combination.
  */
 export async function createJobReferral(
   jobUid: string,

@@ -57,6 +57,14 @@ export const MODAL_INTRO =
 
 export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = [
   {
+    version: '1.12',
+    items: [
+      '(Via UI) You can now see logs from your previous deploy too — Deployment logs cover everything your app printed in the chosen time window, with a marker where the earlier deployment starts',
+      'Your agent now suggests tags for your app alongside its name and description — approve them before the first deploy',
+      'Your app’s page address is shared with LabOS only, and only the page path — nothing from a page’s URL parameters (like a sign-in callback) ends up in the LabOS address bar',
+    ],
+  },
+  {
     version: '1.11',
     items: [
       'LabOS moved to os.pl.xyz — the kit now points at the new addresses for deploying, logs, settings and your app’s own URL (https://<appId>.os.pl.xyz)',

@@ -237,6 +237,12 @@ export interface AiAppLogEvent {
   /** Epoch milliseconds per the contract; treated as unparseable-safe by the UI formatter. */
   timestamp: number;
   message: string;
+  /**
+   * Runner deployment the line came from. A window spans every deployment of
+   * the app (a redeploy never hides the previous pods' output), so the modal
+   * marks the boundary where consecutive lines change deployment.
+   */
+  deploymentId?: string;
 }
 
 /**

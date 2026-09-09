@@ -42,6 +42,29 @@ export const useCommonAnalytics = () => {
     captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_GET_HELP_ITEM_CLICKED, params);
   }
 
+  /** The header (?) menu was opened — the denominator for the topic clicks
+   *  above, which still report through `onNavGetHelpItemClicked`. Without it a
+   *  drop in topic clicks cannot be told apart from a drop in people opening
+   *  the menu at all. */
+  function onHelpMenuOpened(user: IAnalyticsUserInfo | null) {
+    captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_HELP_MENU_OPENED, { user });
+  }
+
+  /** The one-time callout on the (?) was rendered. Paired with the dismissal
+   *  the same way `onHomeNewNewsDotShown` is paired with its click. */
+  function onHelpCalloutShown(user: IAnalyticsUserInfo | null) {
+    captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_HELP_CALLOUT_SHOWN, { user });
+  }
+
+  /** `via` separates "read it and acknowledged" from "opened the menu, which
+   *  is what the callout was pointing at" — the second is the outcome the
+   *  callout exists for, and they should not be counted as one thing.
+   *  `escape` is neither: a keyboard dismissal that tells us nothing about
+   *  whether the sentence landed. */
+  function onHelpCalloutDismissed(via: 'got-it' | 'escape' | 'menu-opened', user: IAnalyticsUserInfo | null) {
+    captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_HELP_CALLOUT_DISMISSED, { via, user });
+  }
+
   function onNavAccountItemClicked(name: string, user: IAnalyticsUserInfo | null) {
     const params = {
       name,
@@ -134,6 +157,9 @@ export const useCommonAnalytics = () => {
     onHomeNewNewsDotShown,
     onNavItemClicked,
     onNavGetHelpItemClicked,
+    onHelpMenuOpened,
+    onHelpCalloutShown,
+    onHelpCalloutDismissed,
     onNavAccountItemClicked,
     onNavJoinNetworkClicked,
     onNavJoinNetworkOptionClicked,

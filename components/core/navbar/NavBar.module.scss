@@ -377,16 +377,6 @@ $text-color: #475569;
   }
 }
 
-.supportButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  cursor: pointer;
-  margin-left: 8px;
-}
-
 // "News arrived since you last opened /home". Sits on the Home item; the
 // accompanying .srOnly text is what carries the meaning for anyone who can't
 // see it.

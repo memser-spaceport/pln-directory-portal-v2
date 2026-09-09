@@ -1,23 +1,17 @@
 import { create } from 'zustand';
 import { Metadata } from '@/components/ContactSupport/types';
+import { CONTACT_SUPPORT_TOPICS, type ContactSupportDialogParam } from '@/components/ContactSupport/constants';
 
-type DialogParam = 'contactSupport' | 'askQuestion' | 'giveFeedback' | 'shareIdea' | 'reportBug';
+type DialogParam = ContactSupportDialogParam;
 
-const DIALOG_PARAM_VALUES = {
-  contactSupport: 'contactSupport',
-  askQuestion: 'askQuestion',
-  giveFeedback: 'giveFeedback',
-  shareIdea: 'shareIdea',
-  reportBug: 'reportBug',
-} as const;
-
-export const DIALOG_TO_TOPIC_MAP: Record<string, string> = {
-  [DIALOG_PARAM_VALUES.contactSupport]: 'Contact support',
-  [DIALOG_PARAM_VALUES.askQuestion]: 'Ask a question',
-  [DIALOG_PARAM_VALUES.giveFeedback]: 'Give feedback',
-  [DIALOG_PARAM_VALUES.shareIdea]: 'Share an idea',
-  [DIALOG_PARAM_VALUES.reportBug]: 'Report a bug',
-};
+/**
+ * Derived from the topic list rather than typed out beside it — the two used to
+ * be parallel lists of the same five things, and a topic added to one but not
+ * the other would have been a deep link with no door, or a door with no link.
+ */
+export const DIALOG_TO_TOPIC_MAP: Record<string, string> = Object.fromEntries(
+  CONTACT_SUPPORT_TOPICS.map((topic) => [topic.dialogParam, topic.value]),
+);
 
 interface ContactSupportState {
   readonly open: boolean;

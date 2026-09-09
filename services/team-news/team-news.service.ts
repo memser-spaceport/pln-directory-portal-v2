@@ -244,3 +244,23 @@ export async function createTeamNewsPost(teamUid: string, payload: CreateTeamNew
   if (!response?.ok) throw new Error('Failed to post team news');
   return (await response.json()) as ITeamNewsItem;
 }
+
+export async function getTeamNewsItemByUid(uid: string): Promise<ITeamNewsItem | null> {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/team-news/${encodeURIComponent(uid)}`;
+
+  try {
+    const response = await fetch(url, {
+      next: {
+        revalidate: 300,
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return (await response.json()) as ITeamNewsItem;
+  } catch {
+    return null;
+  }
+}

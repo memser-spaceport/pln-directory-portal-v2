@@ -11,7 +11,6 @@ import { clearAllAuthCookies } from '@/utils/third-party.helper';
 import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from '@/utils/constants';
 import { broadcastLogout } from '@/components/core/login/components/BroadcastChannel';
-import { useContactSupportStore } from '@/services/contact-support/store';
 import { authEvents } from '@/components/core/login/utils';
 import { usePostHog } from 'posthog-js/react';
 
@@ -19,7 +18,6 @@ import s from './AccountMenu.module.scss';
 import { useRouter } from 'next/navigation';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useMedia } from 'react-use';
-import { HelpIcon } from '../icons';
 
 interface Props {
   userInfo: IUserInfo;
@@ -36,7 +34,6 @@ export const AccountMenu = ({ userInfo }: Props) => {
   const postHogProps = usePostHog();
   const router = useRouter();
   const { currentUser } = useCurrentUserStore();
-  const { openModal } = useContactSupportStore((s) => s.actions);
 
   const handleLogout = useCallback(() => {
     clearAllAuthCookies();
@@ -74,19 +71,14 @@ export const AccountMenu = ({ userInfo }: Props) => {
               >
                 <UserIcon /> {userInfo?.name ?? userInfo?.email}{' '}
               </Menu.Item>
+              {/* "Get Support" used to sit here as well, opening the same modal
+                  from a second and less-labelled door — 5 clicks in 90 days.
+                  Now that the header's (?) is a labelled menu of every support
+                  topic, this one was noise. */}
               <div className={s.SeparatorWrapper}>
                 Support
                 <Menu.Separator className={s.Separator} />
               </div>
-              <Menu.Item
-                className={s.Item}
-                onClick={() => {
-                  openModal();
-                  analytics.onNavGetHelpItemClicked('Get Support', getAnalyticsUserInfo(userInfo));
-                }}
-              >
-                <HelpIcon className={s.HelpIcon} /> Get Support
-              </Menu.Item>
               <Link href="/changelog">
                 <Menu.Item
                   className={s.Item}

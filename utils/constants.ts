@@ -192,6 +192,9 @@ export const JOIN_NETWORK_MENUS = [
 export const COMMON_ANALYTICS_EVENTS = {
   NAVBAR_MENU_ITEM_CLICKED: 'navbar-menu-item-clicked',
   NAVBAR_GET_HELP_ITEM_CLICKED: 'navbar-get-help-item-clicked',
+  NAVBAR_HELP_MENU_OPENED: 'navbar-help-menu-opened',
+  NAVBAR_HELP_CALLOUT_SHOWN: 'navbar-help-callout-shown',
+  NAVBAR_HELP_CALLOUT_DISMISSED: 'navbar-help-callout-dismissed',
   NAVBAR_ACCOUNTMENU_ITEM_CLICKED: 'navbar-accountmenu-item-clicked',
   NAVBAR_JOIN_NETWORK_CLICKED: 'navbar-join-network-menu-clicked',
   NAVBAR_JOIN_NETWORK_OPTION_CLICKED: 'navbar-join-network-option-clicked',

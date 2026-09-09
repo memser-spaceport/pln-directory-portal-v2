@@ -9,7 +9,9 @@ import { EditIcon } from '@/components/icons';
 import { FormField } from '@/components/form/FormField';
 import { FormSwitch } from '@/components/form/FormSwitch';
 import { MonthYearSelect } from '@/components/form/MonthYearSelect';
-import { EditOfficeHoursFormControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursFormControls';
+// The section-editing grammar the profile's own editors wear: title above the
+// fields, Cancel/Save after them. See the note on the component.
+import { SectionEditorControls, SectionEditorTitle } from '../SectionEditor/SectionEditor';
 // Production's own dates group — the wrapper `EditExperienceForm` puts its two
 // month/year selects and the `Present` switch in. Imported for the same reason
 // the row and the field panel are: the corrected dates should sit exactly as
@@ -40,9 +42,21 @@ import r from './ExperienceImportReview.module.scss';
  * **Why this is a card and not a modal.** The drawer already has one grammar for
  * changing a section: the card swaps itself for an editor with a title, a
  * Cancel and a Save, and only one is open at a time. A parse result is a change
- * to that section, so it wears that grammar — `EditOfficeHoursFormControls` at
- * the top, the same white field panel underneath. A modal would be a second way
- * to do the same thing, one card apart.
+ * to that section, so it wears that grammar — the same white field panel, the
+ * same title and control pair. A modal would be a second way to do the same
+ * thing, one card apart.
+ *
+ * **Where the Cancel and Save sit.** They used to be production's
+ * `EditOfficeHoursFormControls` row, above the fields — a faithful copy of the
+ * Office Hours editor. Then the profile's section editors were rebuilt with
+ * their Cancel/Save *after* the fields (`SectionEditorControls`, the
+ * member-profile-edit rule: the pair sits at the end of the work, where the
+ * hand already is), and this card kept the old row. *"Why we have Save and
+ * Cancel buttons in different places for CV and Experiences?"* — no reason
+ * beyond two transcriptions from two dates. One grammar now: the shared title
+ * above, the shared pair below, `alwaysEnabled` because everything on a review
+ * is pending until its Save. The pencil in the floating bar and the DS-blue
+ * bordered Cancel come with it.
  *
  * **What can be corrected here, and what changed.** This card used to take
  * exactly one correction — a missing start date — and the note here argued that
@@ -263,11 +277,11 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
           if (ev.key === 'Enter') ev.preventDefault();
         }}
       >
-        <EditOfficeHoursFormControls onClose={onClose} title="Review your experience" alwaysEnabled />
+        <SectionEditorTitle title="Review your experience" />
 
         {/* No lede and no group caption above the fields.
             Both were removed on request, and both were explaining what the card
-            already shows: Cancel and Save sit in the header, so "nothing is
+            already shows: Cancel and Save are on the card, so "nothing is
             added until you press Save" is the button saying it twice, and two
             labelled fields prefilled with the document's answers do not need a
             sentence telling you they came from the document and can be edited.
@@ -525,6 +539,8 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
             <p className={r.footnote}>You can edit or delete any of these afterwards from the Experience card.</p>
           )}
         </div>
+
+        <SectionEditorControls onClose={onClose} alwaysEnabled />
       </form>
     </FormProvider>
   );

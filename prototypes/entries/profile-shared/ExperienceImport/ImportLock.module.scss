@@ -2,7 +2,7 @@
 // panel so the three surfaces mute the same way.
 
 // The same "not now" the profile page's section editing uses for every card
-// that is not the one being edited (`member-profile-edit/.muted`): `inert` on
+// that is not the one being edited (`profile-shared/SectionEditor/.muted`): `inert` on
 // the element does the disabling, this is only how it reads, and 0.6 is
 // production's own disabled-input measure (`FormField.module.scss`).
 .muted {

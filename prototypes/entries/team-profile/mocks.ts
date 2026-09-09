@@ -592,3 +592,7 @@ export const commentCountFor = (uid: string): number => NEWS_COMMENT_THREADS[uid
  */
 export const MOCK_TEAM_ROLES: IJobTeamGroup | null =
   MOCK_JOB_GROUPS.find((g) => g.team.uid === MOCK_TEAM.id) ?? null;
+
+
+// The applicants to this team's roles, in their own file — see the note there.
+export * from './applicantMocks';

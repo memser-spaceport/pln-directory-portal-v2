@@ -89,6 +89,13 @@
   }
 }
 
+// The wrapper the floating status bar observes and scrolls back to, around a
+// card whose component takes no ref. Width only: it must not change how the
+// card sits in the column.
+.sectionAnchor {
+  width: 100%;
+}
+
 // --- The header card ---------------------------------------------------------
 
 // The header card uses production`s own `MemberDetailHeader.header` grid

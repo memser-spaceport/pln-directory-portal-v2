@@ -1,12 +1,10 @@
 @use 'styles/media';
 
-// The page ground — `app/members/[id]/page.module.scss` paints `.memberDetail`
-// this colour; this only makes sure the ground runs to the bottom of a short
-// viewport, the same way `member-profile`'s `.pageBackdrop` does.
-.page {
-  min-height: 100vh;
-  background-color: #f1f5f9;
-}
+// The section-editing pattern's sheet — see `SectionEditor.tsx`. It was
+// `member-profile-edit/MemberProfileEdit.module.scss` until the new-member page
+// (`onboarding`) opened the same editors; the page ground stayed behind with
+// that page and everything about an open card moved here with the components
+// that wear it.
 
 // One wrapper per card, so the page can speak to a card as a unit — mute it,
 // point the floating control at it — without reaching into production markup.
@@ -96,38 +94,7 @@
   }
 }
 
-// The floating editor controls wear `FloatingFeedbackButton`'s pill — 48px,
-// brand fill, shadow, bottom-right — imported, not re-drawn. Labels are never
-// collapsed here: the pills exist only while someone has scrolled away from an
-// open editor, so they are always new when they appear and always say their
-// name. Two can stand together (Keep editing beside Save changes); 8px between,
-// the same gap the editor's own Cancel/Save row keeps.
-.floatingRow {
-  gap: 8px;
-}
-
-.floatingBtn {
-  svg {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-  }
-}
-
-// Keep editing when it stands beside Save changes: the quiet half of the pair.
-// Same pill, white ground, primary text, the card border and a neutral shadow
-// in place of the brand one — so there is one thing to press and one thing to
-// come back to, and they do not read as two equal asks.
-.floatingSecondary.floatingSecondary {
-  background: #fff;
-  color: var(--foreground-neutral-primary, #0a0c11);
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  box-shadow: 0 6px 18px rgba(14, 15, 17, 0.12);
-
-  @media (hover: hover) {
-    &:hover {
-      border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
-      box-shadow: 0 10px 24px rgba(14, 15, 17, 0.16);
-    }
-  }
-}
+// (The floating "Keep editing" / "Save changes" pills lived here; they moved to
+// `profile-shared/FloatingEditorControls` when the new-member page needed them
+// for its CV review card — and then the rest of this sheet followed, for the
+// same page and the same reason. One component, one sheet, two hosts.)

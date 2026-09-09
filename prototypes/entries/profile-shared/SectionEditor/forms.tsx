@@ -26,26 +26,31 @@ import di from '@/components/page/member-details/ExperienceDetails/components/Ex
 import ct from '@/components/page/member-details/ContactDetails/components/EditContactForm/EditContactForm.module.scss';
 import oh from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursForm/EditOfficeHoursForm.module.scss';
 // The job board's one-date-per-row fix for the dates block at desktop width.
-import jp from '../job-board/JobProfilePane.module.scss';
+import jp from '../../job-board/JobProfilePane.module.scss';
 
 // The tags input with the grey DS ✕ (lesson 8) — the same one every other
 // prototype editor uses for skills and keywords.
-import { SkillsTagsInput } from '../job-board/SkillsTagsInput';
-import type { ExperienceEntry } from '../job-board/viewerState';
-import { isoToYm, ymToIso } from '../profile-shared/ExperienceImport/dateBridge';
+import { SkillsTagsInput } from '../../job-board/SkillsTagsInput';
+import type { ExperienceEntry } from '../../job-board/viewerState';
+import { isoToYm, ymToIso } from '../ExperienceImport/dateBridge';
 
 import { SectionEditorControls, SectionEditorTitle } from './SectionEditor';
-import type { ContactHandles, ProfileRecord } from './mocks';
-import s from './MemberProfileEdit.module.scss';
+import type { ContactHandles, ProfileRecord } from './types';
+import s from './SectionEditor.module.scss';
 
 /**
- * The four editors this page opens, each production's form field for field with
- * two changes shared by all of them:
+ * The four editors a profile page opens over its cards — the header card,
+ * Office Hours, Contact Details, an Experience entry — each production's form
+ * field for field with two changes shared by all of them:
  *
  *  1. the controls row is split — title above the fields, Cancel/Save below
  *     them (`SectionEditor`);
- *  2. nothing posts anywhere — Save hands the trimmed values to the page, which
- *     writes them into the draft record.
+ *  2. nothing posts anywhere — Save hands the trimmed values to the host page,
+ *     which writes them into its record.
+ *
+ * Two hosts: the filled profile (`member-profile-edit`) and the brand-new one
+ * (`onboarding`). Both hand in a `ProfileRecord` and take a patch back; the
+ * forms do not know which page they are on.
  *
  * What is *not* transcribed is said at each form: production's location is a
  * country/region/city select trio and its primary team a select over the teams
@@ -61,8 +66,20 @@ const preventEnterSubmit = (ev: KeyboardEvent<HTMLFormElement>) => {
 
 /* This Quill build serializes every space as `&nbsp;`. Stored that way, a bio
    or a description can never wrap when the profile renders it — one unbroken
-   line running off the card. Spaces go back to spaces on the way out. */
-const fromQuill = (html: string) => html.replace(/&nbsp;/g, ' ');
+   line running off the card. Spaces go back to spaces on the way out.
+
+   And an empty field leaves as an empty string. Quill has more than one way
+   of saying nothing — `<p><br></p>` when a field is cleared, and `<p></p>`
+   when a field that mounted empty is submitted untouched, which is what the
+   new-member page's first Save does — and every read view tests for the first
+   and the bare string only (`ProfileDetails` L34, and the four `hasBio`s that
+   copy it). The second slipped past them and drew a titled, empty Bio block on
+   a header card whose "+ Add bio" pill had just vanished. Normalised here,
+   once, so no host has to learn a third spelling of empty. */
+const fromQuill = (html: string) => {
+  const clean = html.replace(/&nbsp;/g, ' ');
+  return /^(\s|<p>|<\/p>|<br\s*\/?>)*$/.test(clean) ? '' : clean;
+};
 
 /* --------------------------------------------------------- profile details --- */
 

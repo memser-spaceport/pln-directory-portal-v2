@@ -313,7 +313,9 @@ const VIEWER_OPTIONS: Array<{ value: BoardViewer; label: string }> = [
       account step opened pre-filled. Removed: signing up through the header door
       produces an account, and an account waiting on the PL team is the tab
       below. The completeness tick it existed to show went with it, to there. */
-  { value: 'pending-approval', label: 'Signed up, pending approval' },
+  /* (`Signed up, pending approval` stood here as a tab. Removed 2026-09-09: the
+     state survives — the account step's PL-team tick still lands on it — but as
+     a tab it was one more state to explain before the ones under review.) */
   /* Beside `pending-approval`, not after it. These two are the two things
      "signed up" can mean on this board — join a team, or come looking for work —
      and only one of them waits on anyone. Putting the aspirant third would read
@@ -607,10 +609,7 @@ export default function JobBoardPrototype() {
   /** Which team the `team-lead` viewer leads — the fixture's, unless they
    *  arrived from another team's profile. See `managedTeamUids`. */
   const [leadTeamUid, setLeadTeamUid] = useState(LEAD_TEAM_UID);
-  const manages = useCallback(
-    (teamUid: string) => canManageTeam(viewer, teamUid, leadTeamUid),
-    [viewer, leadTeamUid],
-  );
+  const manages = useCallback((teamUid: string) => canManageTeam(viewer, teamUid, leadTeamUid), [viewer, leadTeamUid]);
 
   /** Signed up, waiting on the PL team. Browsing is fine; applying is not. */
   const isPendingApproval = viewer === 'pending-approval';
@@ -908,12 +907,16 @@ export default function JobBoardPrototype() {
       next.set(job.teamUid, [role, ...(next.get(job.teamUid) ?? [])]);
       return next;
     });
-    setListings((prev) => new Map(prev).set(role.uid, { status: 'in-review', origin: { kind: 'submitted', by: VIEWER_NAME } }));
+    setListings((prev) =>
+      new Map(prev).set(role.uid, { status: 'in-review', origin: { kind: 'submitted', by: VIEWER_NAME } }),
+    );
     /* The receipt names the one thing the screen does not show: where the
        listing went. The person is standing on the All tab, and the new row is
        not on it — by design — so the toast says which tab it is on, and that
        tab's count has just ticked up beside it. */
-    toast.success(`${job.roleTitle} is submitted for review. It's in your team's card, marked In review, until the PL team approves it.`);
+    toast.success(
+      `${job.roleTitle} is submitted for review. It's in your team's card, marked In review, until the PL team approves it.`,
+    );
   };
 
   /**
@@ -1306,10 +1309,7 @@ export default function JobBoardPrototype() {
 
             Weight and tone only, no colour — see `.titleCountRoles`. */}
         <span className={contentCss.titleCount}>
-          (
-          <strong className={s.titleCountRoles}>
-            {`${totalRoles} ${totalRoles === 1 ? 'role' : 'roles'}`}
-          </strong>{' '}
+          (<strong className={s.titleCountRoles}>{`${totalRoles} ${totalRoles === 1 ? 'role' : 'roles'}`}</strong>{' '}
           across {totalGroups} {totalGroups === 1 ? 'team' : 'teams'})
         </span>
       </h1>
@@ -1324,7 +1324,13 @@ export default function JobBoardPrototype() {
      slots `DealsToolbar` uses. */
   const submitJobButton = canSubmitJobs(viewer) ? (
     <button type="button" className={deals.submitButton} onClick={() => setSubmitOpen(true)}>
-      <svg className={deals.submitIcon} viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <svg
+        className={deals.submitIcon}
+        viewBox="0 0 18 18"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
         <path d="M9 3.75V14.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         <path d="M3.75 9H14.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>

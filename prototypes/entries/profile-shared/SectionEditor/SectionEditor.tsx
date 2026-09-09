@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, ReactNode, useContext, useEffect } from 'react';
+import { createContext, PropsWithChildren, ReactNode, Ref, useContext, useEffect } from 'react';
 import clsx from 'clsx';
 import { useFormContext } from 'react-hook-form';
 
@@ -9,13 +9,39 @@ import { Button } from '@/components/common/Button';
 // `EditFormControls` is the row this splits in two, so it keeps that row's sheet.
 import ec from '@/components/common/profile/EditFormControls/EditFormControls.module.scss';
 import { getSaveBtnLabel } from '@/components/common/profile/EditFormControls/utils/getSaveBtnLabel';
+// `DetailsSection.editView` ships a gradient tint; ContactDetails overrides it to
+// the flat `#f2f5ff` + `#aebfff` pair the header card already wears, and that
+// override is passed back in through `classes` exactly as ContactDetails does.
+import c from '@/components/page/member-details/ContactDetails/ContactDetails.module.scss';
 
-import s from './MemberProfileEdit.module.scss';
+import s from './SectionEditor.module.scss';
 
 /**
+ * **How a card on the member profile swaps itself for its editor.**
+ *
+ * One pattern with several parts that go together, shared by the two pages
+ * that edit a profile section in place — the filled profile
+ * (`member-profile-edit`, where it was worked out) and the brand-new one
+ * (`onboarding`, which took it whole rather than copying its shell):
+ *
+ *  - `Section` — one card's wrapper: muted (`inert` + faded) while another
+ *    card is open, carrying the ref the floating status bar watches while
+ *    this one is;
+ *  - `SectionEditorTitle` above the fields and `SectionEditorControls`
+ *    (Cancel/Save) below them — production's `EditFormControls` row split in
+ *    two so the pair sits at the end of the work;
+ *  - `EditorDirtyContext`, how the page learns the open form has unsaved
+ *    changes, for the bar's Save;
+ *  - `editSectionClasses`, the flat brand tint plus the in-flow override for
+ *    an open `DetailsSection`;
+ *  - `SECTION_NAMES` / `editorStatus` / `editKey`, what the bar says and
+ *    what it re-attaches on.
+ *
+ * The forms themselves are in `forms.tsx` beside this file.
+ *
  * Production's `EditFormControls` is one row: the title on the left, Cancel and
- * Save on the right, *above* the fields. This entry splits that row into two
- * pieces so the controls can sit *after* the fields instead:
+ * Save on the right, *above* the fields. This splits that row into two pieces
+ * so the controls can sit *after* the fields instead:
  *
  *   form › SectionEditorTitle + .body(rows) + SectionEditorControls
  *
@@ -24,6 +50,72 @@ import s from './MemberProfileEdit.module.scss';
  * Two components rather than one with a slot, because the fields between them
  * belong to each form and there is nothing for a shared shell to own.
  */
+
+/**
+ * Which section editor a host has open. Each host keeps its own `EditTarget`
+ * union over this (the new-member page adds the CV import to it); this is the
+ * part the two share, and the part `editKey` and `editorStatus` read. `uid:
+ * null` on Experience means a new entry.
+ */
+export type SectionEditTarget =
+  | { kind: 'profile' }
+  | { kind: 'office-hours' }
+  | { kind: 'contact' }
+  | { kind: 'experience'; uid: string | null };
+
+export type SectionKind = SectionEditTarget['kind'];
+
+/** A string the floating status bar can re-attach on when one editor gives way to another. */
+export const editKey = (target: SectionEditTarget | null): string | null => {
+  if (!target) return null;
+  return target.kind === 'experience' ? `experience:${target.uid ?? 'new'}` : target.kind;
+};
+
+/** The open card's name as its own section header spells it — what the status bar says you left. */
+export const SECTION_NAMES: Record<SectionKind, string> = {
+  profile: 'Profile',
+  'office-hours': 'Office Hours',
+  contact: 'Contact Details',
+  experience: 'Experience',
+};
+
+/**
+ * What the status bar reports. Names the card, because that is the one thing
+ * the bar knows that its buttons do not — a person who scrolled away is told
+ * what they left open. Once there is something to save it says so, since the
+ * unsaved state is what the bar is asking about.
+ */
+export const editorStatus = (target: SectionEditTarget | null, dirty: boolean): string => {
+  const name = target ? SECTION_NAMES[target.kind] : '';
+  return dirty ? `Unsaved changes in ${name}` : `Editing ${name}`;
+};
+
+/**
+ * The flat brand tint plus the in-flow override, for a `DetailsSection` that
+ * is open. `undefined` at rest so `c.root`'s zero padding never reaches a
+ * resting card.
+ */
+export const editSectionClasses = (open: boolean) =>
+  open ? { root: c.root, editView: clsx(c.editView, s.editCard) } : undefined;
+
+/** The header card's classes while it is open — `ProfileDetails` carries its own edit tint. */
+export const editCardClass = s.editCard;
+
+/**
+ * One card's wrapper. `inert` is the whole mechanism for "the other sections
+ * are disabled": the browser drops every click, focus and tab stop inside it,
+ * and assistive tech skips it. The class only paints what `inert` did. The ref
+ * lands here rather than on the card because `DetailsSection` forwards none,
+ * and the wrapper is the card's outline in every way that matters to the
+ * observer.
+ */
+export function Section({ muted, ref, children }: PropsWithChildren<{ muted: boolean; ref?: Ref<HTMLDivElement> }>) {
+  return (
+    <div ref={ref} className={clsx(s.section, muted && s.muted)} inert={muted} aria-disabled={muted || undefined}>
+      {children}
+    </div>
+  );
+}
 
 /**
  * How the page learns whether the open editor has unsaved changes, without

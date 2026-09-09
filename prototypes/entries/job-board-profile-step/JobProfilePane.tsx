@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
+import { useEffect, useMemo, useRef, useState, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { uniq } from 'lodash';
-import { FormProvider, useForm, useWatch } from 'react-hook-form';
+import { createPortal } from 'react-dom';
+import { FormProvider, useForm, useWatch, type Path, type UseFormRegister } from 'react-hook-form';
 
 // (`Drawer` and `Button` are gone: this file used to BE the drawer and used to
 //  own the footer that ended it. `JobApplyFlowDrawer` renders both now — one
@@ -133,7 +134,9 @@ import { OptionalMark } from '../profile-shared/OptionalMark';
 import { ExperienceImportPanel } from '../profile-shared/ExperienceImport/ExperienceImportPanel';
 import { ExperienceImportReview } from '../profile-shared/ExperienceImport/ExperienceImportReview';
 import { isoToYm, ymToIso } from '../profile-shared/ExperienceImport/dateBridge';
+import type { ImportWait } from '../profile-shared/ExperienceImport/ImportWait';
 import type { ImportSelection, ParsedProfile } from '../profile-shared/ExperienceImport/types';
+import { EditorStatusRow, useCardAway } from '../profile-shared/FloatingEditorControls';
 import {
   EMPTY_PROFILE,
   JOB_SEARCH_STATUS_OPTIONS,
@@ -260,6 +263,21 @@ interface JobProfilePaneProps {
    */
   draft: MemberProfile;
   setDraft: Dispatch<SetStateAction<MemberProfile>>;
+  /** Which profile editing prototype is active: cards with local saves, or one inline drawer draft. */
+  editFlow?: ProfileEditFlow;
+  /**
+   * The drawer's chrome, for the open card's status row: the sticky header
+   * the card scrolls under (so "away" is measured from its bottom edge), and
+   * the slot in the drawer's footer the row is rendered into, beside Continue
+   * — *"put progress bar in the footer, next to Continue to apply."* The pane
+   * cannot reach either itself: they are the drawer's, and the pane is one
+   * step inside it. The slot is a node, not a ref, so the portal re-renders
+   * once the footer has mounted it.
+   */
+  floatingChrome?: {
+    top: RefObject<HTMLElement | null>;
+    slot: HTMLElement | null;
+  };
   /**
    * Which card, if any, has swapped itself for its editor — lifted for the same
    * reason as the draft, plus one the draft doesn't have: the drawer's footer
@@ -294,6 +312,8 @@ interface JobProfilePaneProps {
   };
 }
 
+export type ProfileEditFlow = 'sections' | 'whole';
+
 /**
  * Which card, if any, has swapped itself for its editor. One at a time — the
  * profile page allows exactly one open section too, and a second would put two
@@ -315,7 +335,17 @@ export type EditTarget =
   | null;
 
 export function JobProfilePane(props: JobProfilePaneProps) {
-  const { draft, setDraft, editing, setEditing, pendingRoleTitle, pendingApproval = false, canvasImport } = props;
+  const {
+    draft,
+    setDraft,
+    editFlow = 'sections',
+    floatingChrome,
+    editing,
+    setEditing,
+    pendingRoleTitle,
+    pendingApproval = false,
+    canvasImport,
+  } = props;
 
   /**
    * The file the header's "Update from CV" collected, on its way to the panel.
@@ -339,6 +369,9 @@ export function JobProfilePane(props: JobProfilePaneProps) {
      Which door it arrived through used to be held alongside it; nothing reads
      that any more, so it isn't kept. */
   const [parsed, setParsed] = useState<ParsedProfile | null>(null);
+  const [importWait, setImportWait] = useState<ImportWait | null>(null);
+  const [editorDirty, setEditorDirty] = useState(false);
+  const editorCardRef = useRef<HTMLDivElement | null>(null);
 
   /* Runs once per mount, and this pane mounts exactly when its step becomes
      current — so "on open" and "on mount" are now the same moment. Seeding the
@@ -383,6 +416,15 @@ export function JobProfilePane(props: JobProfilePaneProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    setEditorDirty(false);
+    if (editing?.kind === 'import' && parsed) setImportWait(null);
+  }, [editing, parsed]);
+
+  useEffect(() => {
+    if (editFlow === 'whole' && editing) setEditing(null);
+  }, [editFlow, editing, setEditing]);
 
   /* The two halves of that rule, named so each card can mark *itself* rather
      than every incomplete card lighting up whenever anything is missing. Read
@@ -611,6 +653,41 @@ export function JobProfilePane(props: JobProfilePaneProps) {
     setEditing(null);
   };
 
+  const importActive = editingImport || !!importWait;
+  const floatingActiveKey = importWait
+    ? `import:${importAtTop ? 'top' : 'experience'}`
+    : editKeyForProfileTarget(editing, importAtTop);
+  const floatingCanSave = editingImport ? !!parsed : editorDirty;
+  const floatingStatus = editingImport
+    ? 'Reviewing your experience'
+    : editorStatusForProfileTarget(editing, editorDirty);
+  const activeImportWait = editingImport && parsed ? null : importWait;
+  /* Above the whole-drawer return below: a hook, so it runs on every render. */
+  const cardAway = useCardAway(editorCardRef, floatingActiveKey, {
+    topOcclusion: floatingChrome?.top,
+    visibleRatioThreshold: 0.75,
+  });
+
+  if (editFlow === 'whole') {
+    return (
+      <WholeProfileDrawerEditor
+        draft={draft}
+        setDraft={setDraft}
+        pendingRoleTitle={pendingRoleTitle}
+        pendingApproval={pendingApproval}
+        profileIsBlank={profileIsBlank}
+        hasStatus={hasStatus}
+      />
+    );
+  }
+
+  /* The Experience card is an editor when its own form is open, or when it is
+     the import's host — not whenever an import is open somewhere. On a blank
+     profile the import lives in the CV card at the top, and this card marking
+     itself for it drew a tinted, chromeless "Experience" under a review it did
+     not contain. */
+  const experienceEditing = editingExperience || (editingImport && !importAtTop);
+
   /* (`submit` — the boundary check that used to guard this drawer's own Save —
       has moved with the footer to `JobApplyFlowDrawer`. The rule it enforced is
       unchanged and still `isProfileComplete`, read from the one place that
@@ -689,51 +766,52 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                loudest thing here. This is an offer, and the requirement is a
                requirement. */}
       {importAtTop && (
-        <DetailsSection
-          editView={editingImport}
-          classes={editingImport ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }}
-        >
-          {editingImport && parsed ? (
-            <ExperienceImportReview
-              parsed={parsed}
-              /* Both known — this drawer only opens for someone signed in — so
+        <div ref={importActive && importAtTop ? editorCardRef : undefined} className={d.sectionAnchor}>
+          <DetailsSection
+            editView={editingImport}
+            classes={editingImport ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }}
+          >
+            {editingImport && parsed ? (
+              <ExperienceImportReview
+                parsed={parsed}
+                /* Both known — this drawer only opens for someone signed in — so
                    the review never puts a Name or Email field on screen. The
                    card's contact group is for the surface that *doesn't* have
                    them yet. */
-              currentName={VIEWER_NAME}
-              currentEmail={VIEWER_EMAIL}
-              currentRole={draft.role}
-              currentLocation={draft.location}
-              currentSkills={draft.skills}
-              currentExperiences={draft.experiences}
-              formatDates={formatExperienceDates}
-              bodyClassName={d.formBody}
-              onClose={closeImport}
-              onSubmit={applyImport}
-            />
-          ) : (
-            <>
-              {/* Same offer, same mark, same words as the other two surfaces
+                currentName={VIEWER_NAME}
+                currentEmail={VIEWER_EMAIL}
+                currentRole={draft.role}
+                currentLocation={draft.location}
+                currentSkills={draft.skills}
+                currentExperiences={draft.experiences}
+                formatDates={formatExperienceDates}
+                bodyClassName={d.formBody}
+                onClose={closeImport}
+                onSubmit={applyImport}
+              />
+            ) : (
+              <>
+                {/* Same offer, same mark, same words as the other two surfaces
                   that make it — see `OptionalMark`. */}
-              <DetailsSectionHeader
-                title={
-                  <>
-                    You can upload your CV
-                    <OptionalMark />
-                  </>
-                }
-              >
-                {/* Only while the importer is a *section being edited* — i.e.
+                <DetailsSectionHeader
+                  title={
+                    <>
+                      You can upload your CV
+                      <OptionalMark />
+                    </>
+                  }
+                >
+                  {/* Only while the importer is a *section being edited* — i.e.
                       reached from the Add form. In its resting state this card
                       is not an editor and there is nothing to cancel; the
                       drawer's own footer is live and the stack is right below. */}
-                {editingImport && (
-                  <button type="button" className={d.headerCancel} onClick={closeImport}>
-                    Cancel
-                  </button>
-                )}
-              </DetailsSectionHeader>
-              {/* Names the work avoided, not just the work done.
+                  {editingImport && (
+                    <button type="button" className={d.headerCancel} onClick={closeImport}>
+                      Cancel
+                    </button>
+                  )}
+                </DetailsSectionHeader>
+                {/* Names the work avoided, not just the work done.
                     Mobbin's clearest example of this is Upwork's profile fork,
                     where the persuasive element is not the upload button but the
                     third option reading "Fill out manually (15 min)" — the cost
@@ -745,21 +823,23 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                     Cancel and Save, so the sentence was promising something two
                     visible buttons already promise — the second time that exact
                     reassurance has been cut from this flow. */}
-              <p className={d.cvFirstNote}>
-                We&apos;ll fill in your role, skills and experience from it, so you don&apos;t have to type it all in.
-              </p>
-              <ExperienceImportPanel
-                entry="direct"
-                privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
-                onParsed={openImportReview}
-                onAddManually={() => setEditing({ kind: 'experience', uid: null })}
-                // DELETE WITH: the `design-canvas/` folder.
-                canvasStatus={canvasImport?.panel?.status}
-                canvasFileName={canvasImport?.panel?.fileName}
-              />
-            </>
-          )}
-        </DetailsSection>
+                <p className={d.cvFirstNote}>
+                  We&apos;ll fill in your role, skills and experience from it, so you don&apos;t have to type it all in.
+                </p>
+                <ExperienceImportPanel
+                  entry="direct"
+                  privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
+                  onParsed={openImportReview}
+                  onWaitChange={setImportWait}
+                  onAddManually={() => setEditing({ kind: 'experience', uid: null })}
+                  // DELETE WITH: the `design-canvas/` folder.
+                  canvasStatus={canvasImport?.panel?.status}
+                  canvasFileName={canvasImport?.panel?.fileName}
+                />
+              </>
+            )}
+          </DetailsSection>
+        </div>
       )}
 
       {/* **The alternative, written down.**
@@ -801,9 +881,17 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                distinguish: every placeholder on this card is optional and they
                all look alike, which is the truth. What is left is production's
                own affordance, inviting the answer without demanding it. */}
-      <div className={clsx(p.root, { [p.editView]: editingProfile, [d.editCard]: editingProfile })}>
+      <div
+        ref={editingProfile ? editorCardRef : undefined}
+        className={clsx(p.root, { [p.editView]: editingProfile, [d.editCard]: editingProfile })}
+      >
         {editingProfile ? (
-          <ProfileDetailsForm profile={draft} onClose={() => setEditing(null)} onSubmit={saveProfileDetails} />
+          <ProfileDetailsForm
+            profile={draft}
+            onClose={() => setEditing(null)}
+            onSubmit={saveProfileDetails}
+            onDirtyChange={setEditorDirty}
+          />
         ) : (
           <ProfileHeaderCard profile={draft} onEdit={canEdit ? () => setEditing({ kind: 'profile' }) : undefined} />
         )}
@@ -893,96 +981,100 @@ export function JobProfilePane(props: JobProfilePaneProps) {
       </button>
 
       <div id="apply-optional-sections" className={clsx(d.optionalSections, !optionalOpen && d.optionalSectionsHidden)}>
-      {/* 3. Experience — optional now, and no longer the gate. It stays because
+        {/* 3. Experience — optional now, and no longer the gate. It stays because
                it is what a hiring team actually reads on an application, and the
                apply modal quotes its first entry; it just isn't held over
                anyone's head. */}
-      <DetailsSection
-        editView={editingExperience || editingImport}
-        classes={
-          editingExperience || editingImport
-            ? { root: c.root, editView: `${c.editView} ${d.editCard}` }
-            : { root: fd.cardEdge }
-        }
-      >
-        {editingImport && !importAtTop ? (
-          /* The import owns the card the same way an editor does. Which half
+        <div
+          ref={((editingExperience || importActive) && !importAtTop) || editingExperience ? editorCardRef : undefined}
+          className={d.sectionAnchor}
+        >
+          <DetailsSection
+            editView={experienceEditing}
+            classes={
+              experienceEditing ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }
+            }
+          >
+            {editingImport && !importAtTop ? (
+              /* The import owns the card the same way an editor does. Which half
                shows depends on whether anything has been read yet — the panel
                is the doors and the drop area, the review is what came back.
                Reached two ways: from the Add form's "fill from a document" line
                (nothing read, so the panel), and from the inline doors below
                (something read, so the review). */
-          parsed ? (
-            <ExperienceImportReview
-              parsed={parsed}
-              /* See the note on the card at the top of the drawer: signed in,
+              parsed ? (
+                <ExperienceImportReview
+                  parsed={parsed}
+                  /* See the note on the card at the top of the drawer: signed in,
                    so neither is asked for. */
-              currentName={VIEWER_NAME}
-              currentEmail={VIEWER_EMAIL}
-              currentRole={draft.role}
-              currentLocation={draft.location}
-              currentSkills={draft.skills}
-              /* So a second import of the same CV doesn't append the same
+                  currentName={VIEWER_NAME}
+                  currentEmail={VIEWER_EMAIL}
+                  currentRole={draft.role}
+                  currentLocation={draft.location}
+                  currentSkills={draft.skills}
+                  /* So a second import of the same CV doesn't append the same
                    history twice — the rows already here arrive unticked and
                    say why. */
-              currentExperiences={draft.experiences}
-              /* The list's own formatter, so a found row reads exactly the way
+                  currentExperiences={draft.experiences}
+                  /* The list's own formatter, so a found row reads exactly the way
                    the rows it is about to join read. */
-              formatDates={formatExperienceDates}
-              bodyClassName={d.formBody}
-              onClose={closeImport}
-              onSubmit={applyImport}
-            />
-          ) : (
-            <>
-              {/* Leaving the importer is the *card's* action, so it goes in
+                  formatDates={formatExperienceDates}
+                  bodyClassName={d.formBody}
+                  onClose={closeImport}
+                  onSubmit={applyImport}
+                />
+              ) : (
+                <>
+                  {/* Leaving the importer is the *card's* action, so it goes in
                     the header's right-hand slot — where Add, Edit and the Github
                     link go on every other section — rather than under the title
                     as a stray line. Without it this route was a dead end: the
                     panel's own "← Back" only steps back to the doors, and the
                     drawer's footer is disabled while any section is open, so the
                     only way out was closing the whole drawer. */}
-              <DetailsSectionHeader title="Add experience from a document">
-                <button type="button" className={d.headerCancel} onClick={closeImport}>
-                  Cancel
-                </button>
-              </DetailsSectionHeader>
-              {/* `direct`, like the card at the top. This route is reached by
+                  <DetailsSectionHeader title="Add experience from a document">
+                    <button type="button" className={d.headerCancel} onClick={closeImport}>
+                      Cancel
+                    </button>
+                  </DetailsSectionHeader>
+                  {/* `direct`, like the card at the top. This route is reached by
                     pressing a control that already says "Update from CV", so a
                     landing screen offering an "Upload your CV" button was a
                     button revealing a button — the same redundancy the top card
                     was built to avoid, left behind on the other route. */}
-              <ExperienceImportPanel
-                entry="direct"
-                initialFile={pickedFile}
-                privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
-                onParsed={openImportReview}
-                onAddManually={() => setEditing({ kind: 'experience', uid: null })}
-                // DELETE WITH: the `design-canvas/` folder.
-                canvasOpen={canvasImport?.panel?.open}
-                canvasStatus={canvasImport?.panel?.status}
-                canvasFileName={canvasImport?.panel?.fileName}
+                  <ExperienceImportPanel
+                    entry="direct"
+                    initialFile={pickedFile}
+                    privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
+                    onParsed={openImportReview}
+                    onWaitChange={setImportWait}
+                    onAddManually={() => setEditing({ kind: 'experience', uid: null })}
+                    // DELETE WITH: the `design-canvas/` folder.
+                    canvasOpen={canvasImport?.panel?.open}
+                    canvasStatus={canvasImport?.panel?.status}
+                    canvasFileName={canvasImport?.panel?.fileName}
+                  />
+                </>
+              )
+            ) : editingExperience ? (
+              <ExperienceForm
+                initial={experienceBeingEdited}
+                onClose={() => setEditing(null)}
+                onSubmit={saveExperience}
+                onDelete={deleteExperience}
+                onDirtyChange={setEditorDirty}
               />
-            </>
-          )
-        ) : editingExperience ? (
-          <ExperienceForm
-            initial={experienceBeingEdited}
-            onClose={() => setEditing(null)}
-            onSubmit={saveExperience}
-            onDelete={deleteExperience}
-          />
-        ) : (
-          <>
-            {/* No `missingBody` here any more. It was left behind from when
+            ) : (
+              <>
+                {/* No `missingBody` here any more. It was left behind from when
                   Experience was the gate, and it tinted this card whenever
                   *anything* on the profile was missing — so an unanswered job
                   search status made the Experience card look like the thing
                   standing in the way. A card marks itself, or it misdirects. */}
-            <DetailsSectionHeader
-              title={`Experience ${draft.experiences.length ? `(${draft.experiences.length})` : ''}`}
-            >
-              {/* Two controls in the header slot, which `Repositories` below
+                <DetailsSectionHeader
+                  title={`Experience ${draft.experiences.length ? `(${draft.experiences.length})` : ''}`}
+                >
+                  {/* Two controls in the header slot, which `Repositories` below
                     already does — so the pattern is the section's, not an
                     invention. Its wrapper was called `repoHeaderActions` when
                     Repositories was the only section that needed one; it is
@@ -1002,69 +1094,75 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                     "Update from CV", not "Upload your CV". The empty state's
                     pill is a first move; this is a refresh of something that
                     already exists, and the verb is the difference. */}
-              <div className={d.headerActions}>
-                {canEdit && draft.experiences.length > 0 && (
-                  <>
-                    {/* Straight to the file dialog. Pressing a control that
+                  <div className={d.headerActions}>
+                    {canEdit && draft.experiences.length > 0 && (
+                      <>
+                        {/* Straight to the file dialog. Pressing a control that
                           says "Update from CV" and landing on a card asking you
                           to choose a file is the press not being taken at its
                           word — the card behind it still appears, so a cancelled
                           dialog leaves you on the drop area rather than nowhere. */}
-                    <button type="button" className={d.headerImport} onClick={() => headerFileInput.current?.click()}>
-                      Update from CV
-                    </button>
-                    <input
-                      ref={headerFileInput}
-                      type="file"
-                      className={d.visuallyHidden}
-                      accept=".pdf,.doc,.docx"
-                      onChange={(ev) => {
-                        const chosen = ev.target.files?.[0] ?? null;
-                        /* Cleared so picking the same file twice still fires a
+                        <button
+                          type="button"
+                          className={d.headerImport}
+                          onClick={() => headerFileInput.current?.click()}
+                        >
+                          Update from CV
+                        </button>
+                        <input
+                          ref={headerFileInput}
+                          type="file"
+                          className={d.visuallyHidden}
+                          accept=".pdf,.doc,.docx"
+                          onChange={(ev) => {
+                            const chosen = ev.target.files?.[0] ?? null;
+                            /* Cleared so picking the same file twice still fires a
                              change event. */
-                        ev.target.value = '';
-                        if (!chosen) return;
-                        setPickedFile(chosen);
-                        setEditing({ kind: 'import' });
-                      }}
-                    />
-                  </>
-                )}
-                {canEdit && <AddButton onClick={() => setEditing({ kind: 'experience', uid: null })} />}
-              </div>
-            </DetailsSectionHeader>
-            {draft.experiences.length === 0 && canEdit && !importAtTop ? (
-              /* The offer, standing in the empty row rather than above it.
+                            ev.target.value = '';
+                            if (!chosen) return;
+                            setPickedFile(chosen);
+                            setEditing({ kind: 'import' });
+                          }}
+                        />
+                      </>
+                    )}
+                    {canEdit && <AddButton onClick={() => setEditing({ kind: 'experience', uid: null })} />}
+                  </div>
+                </DetailsSectionHeader>
+                {draft.experiences.length === 0 && canEdit && !importAtTop ? (
+                  /* The offer, standing in the empty row rather than above it.
                    Production drew a `.connectButton` slot inside `.emptyData`
                    for exactly this and never wired one up; this is that slot.
                    It shows only while the section is empty — an import offer
                    over a history someone has already written is nagging, and
                    the same doors stay reachable from the Add form. */
-              <div className={e.root}>
-                <ExperienceImportPanel
-                  emptyLabel="Share your work history and skills. This shows what you know and what you can do."
-                  privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
-                  onParsed={openImportReview}
-                  onAddManually={() => setEditing({ kind: 'experience', uid: null })}
-                  /* DELETE WITH: the `design-canvas/` folder. The canvas pins the
+                  <div className={e.root}>
+                    <ExperienceImportPanel
+                      emptyLabel="Share your work history and skills. This shows what you know and what you can do."
+                      privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
+                      onParsed={openImportReview}
+                      onWaitChange={setImportWait}
+                      onAddManually={() => setEditing({ kind: 'experience', uid: null })}
+                      /* DELETE WITH: the `design-canvas/` folder. The canvas pins the
                        panel's beats HERE, in the inline host, because this is the
                        one a person reaches from an empty Experience section. */
-                  canvasOpen={canvasImport?.panel?.open}
-                  canvasStatus={canvasImport?.panel?.status}
-                  canvasFileName={canvasImport?.panel?.fileName}
-                />
-              </div>
-            ) : (
-              <ExperienceList
-                entries={draft.experiences}
-                onEdit={canEdit ? (uid) => setEditing({ kind: 'experience', uid }) : undefined}
-              />
+                      canvasOpen={canvasImport?.panel?.open}
+                      canvasStatus={canvasImport?.panel?.status}
+                      canvasFileName={canvasImport?.panel?.fileName}
+                    />
+                  </div>
+                ) : (
+                  <ExperienceList
+                    entries={draft.experiences}
+                    onEdit={canEdit ? (uid) => setEditing({ kind: 'experience', uid }) : undefined}
+                  />
+                )}
+              </>
             )}
-          </>
-        )}
-      </DetailsSection>
+          </DetailsSection>
+        </div>
 
-      {/* 4. Project Contributions. Optional — nothing here touches
+        {/* 4. Project Contributions. Optional — nothing here touches
                `isProfileComplete` — and kept, unlike Teams, because it answers a
                different question from Experience: where you worked versus what
                you built. For this network in particular that's often the more
@@ -1074,53 +1172,63 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                Its empty copy is production's, word for word, because it is a
                true instruction in both places — the button that makes it true is
                right above it. */}
-      <DetailsSection
-        editView={editingContribution}
-        classes={
-          editingContribution ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }
-        }
-      >
-        {editingContribution ? (
-          <ContributionForm
-            initial={contributionBeingEdited}
-            onClose={() => setEditing(null)}
-            onSubmit={saveContribution}
-            onDelete={deleteContribution}
-          />
-        ) : (
-          <>
-            <DetailsSectionHeader
-              title={`Project Contributions ${draft.contributions.length ? `(${draft.contributions.length})` : ''}`}
-            >
-              {canEdit && <AddButton onClick={() => setEditing({ kind: 'contribution', uid: null })} />}
-            </DetailsSectionHeader>
-            <ContributionsList
-              entries={draft.contributions}
-              onEdit={canEdit ? (uid) => setEditing({ kind: 'contribution', uid }) : undefined}
-            />
-          </>
-        )}
-      </DetailsSection>
+        <div ref={editingContribution ? editorCardRef : undefined} className={d.sectionAnchor}>
+          <DetailsSection
+            editView={editingContribution}
+            classes={
+              editingContribution ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }
+            }
+          >
+            {editingContribution ? (
+              <ContributionForm
+                initial={contributionBeingEdited}
+                onClose={() => setEditing(null)}
+                onSubmit={saveContribution}
+                onDelete={deleteContribution}
+                onDirtyChange={setEditorDirty}
+              />
+            ) : (
+              <>
+                <DetailsSectionHeader
+                  title={`Project Contributions ${draft.contributions.length ? `(${draft.contributions.length})` : ''}`}
+                >
+                  {canEdit && <AddButton onClick={() => setEditing({ kind: 'contribution', uid: null })} />}
+                </DetailsSectionHeader>
+                <ContributionsList
+                  entries={draft.contributions}
+                  onEdit={canEdit ? (uid) => setEditing({ kind: 'contribution', uid }) : undefined}
+                />
+              </>
+            )}
+          </DetailsSection>
+        </div>
 
-      {/* 5. Repositories. Optional too.
+        {/* 5. Repositories. Optional too.
 
                Teams used to sit above this one and is gone: the card asked for
                the primary team that an Experience entry's "Team or Organization"
                field already collects, so a member filling both in answered the
                same question twice. */}
-      <DetailsSection
-        editView={editingGithub}
-        classes={editingGithub ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }}
-      >
-        {editingGithub ? (
-          <GithubHandleForm handle={draft.githubHandle} onClose={() => setEditing(null)} onSubmit={saveGithubHandle} />
-        ) : (
-          <RepositoriesSection
-            handle={draft.githubHandle}
-            onEdit={canEdit ? () => setEditing({ kind: 'github' }) : undefined}
-          />
-        )}
-      </DetailsSection>
+        <div ref={editingGithub ? editorCardRef : undefined} className={d.sectionAnchor}>
+          <DetailsSection
+            editView={editingGithub}
+            classes={editingGithub ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }}
+          >
+            {editingGithub ? (
+              <GithubHandleForm
+                handle={draft.githubHandle}
+                onClose={() => setEditing(null)}
+                onSubmit={saveGithubHandle}
+                onDirtyChange={setEditorDirty}
+              />
+            ) : (
+              <RepositoriesSection
+                handle={draft.githubHandle}
+                onEdit={canEdit ? () => setEditing({ kind: 'github' }) : undefined}
+              />
+            )}
+          </DetailsSection>
+        </div>
       </div>
 
       {/* (The footer that used to close this file — the persistent
@@ -1130,7 +1238,599 @@ export function JobProfilePane(props: JobProfilePaneProps) {
           the same things for the same reasons; it just says them for all three
           steps instead of only this one, which is what stops the flow ending in
           three differently-worded buttons.) */}
+      {/* The open card's status, in the drawer's footer beside Continue — the
+          read's progress for its whole length, then the way back and the Save
+          for a card that was scrolled away. See `EditorStatusRow`. */}
+      {floatingChrome?.slot &&
+        createPortal(
+          <EditorStatusRow
+            target={editorCardRef}
+            away={cardAway}
+            canSave={floatingCanSave}
+            status={floatingStatus}
+            saveLabel={editingImport ? 'Save CV results' : undefined}
+            importWait={activeImportWait}
+            topOcclusion={floatingChrome.top}
+          />,
+          floatingChrome.slot,
+        )}
     </>
+  );
+}
+
+function editKeyForProfileTarget(target: EditTarget, importAtTop: boolean): string | null {
+  if (!target) return null;
+  if (target.kind === 'import') return `import:${importAtTop ? 'top' : 'experience'}`;
+  if (target.kind === 'experience') return `experience:${target.uid ?? 'new'}`;
+  if (target.kind === 'contribution') return `contribution:${target.uid ?? 'new'}`;
+  return target.kind;
+}
+
+function labelForProfileTarget(target: EditTarget): string {
+  if (!target) return '';
+  if (target.kind === 'profile') return 'Profile details';
+  if (target.kind === 'experience') return 'Experience';
+  if (target.kind === 'contribution') return 'Project contributions';
+  if (target.kind === 'github') return 'Repositories';
+  return 'your experience';
+}
+
+function editorStatusForProfileTarget(target: EditTarget, dirty: boolean): string {
+  const label = labelForProfileTarget(target);
+  if (!label) return '';
+  return dirty ? `Unsaved changes in ${label}` : `Editing ${label}`;
+}
+
+function useDirtyChange(isDirty: boolean, onDirtyChange?: (dirty: boolean) => void) {
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
+}
+
+type WholeExperienceFormData = {
+  uid: string;
+  title: string;
+  company: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  isCurrent: boolean;
+  location: string;
+};
+
+type WholeContributionFormData = {
+  uid: string;
+  project: string;
+  role: string;
+  startDate: string;
+  endDate: string;
+  isCurrent: boolean;
+  description: string;
+};
+
+type WholeProfileFormData = {
+  role: string;
+  location: string;
+  skills: string[];
+  bio: string;
+  jobSearchStatus: JobSearchStatus | '';
+  experiences: WholeExperienceFormData[];
+  contributions: WholeContributionFormData[];
+  githubHandle: string;
+};
+
+interface WholeProfileDrawerEditorProps {
+  draft: MemberProfile;
+  setDraft: Dispatch<SetStateAction<MemberProfile>>;
+  pendingRoleTitle?: string | null;
+  pendingApproval: boolean;
+  profileIsBlank: boolean;
+  hasStatus: boolean;
+}
+
+const wholePath = (name: string) => name as Path<WholeProfileFormData>;
+
+const wholeExperienceHasContent = (entry: WholeExperienceFormData): boolean =>
+  [entry.title, entry.company, entry.description, entry.startDate, entry.endDate, entry.location].some((value) =>
+    value.trim(),
+  );
+
+const wholeContributionHasContent = (entry: WholeContributionFormData): boolean =>
+  [entry.project, entry.role, entry.description, entry.startDate, entry.endDate].some((value) => value.trim());
+
+function toWholeProfileForm(profile: MemberProfile): WholeProfileFormData {
+  return {
+    role: profile.role,
+    location: profile.location,
+    skills: [...profile.skills],
+    bio: profile.bio,
+    jobSearchStatus: profile.jobSearchStatus,
+    experiences: profile.experiences.map((entry) => ({ ...entry, endDate: entry.endDate ?? '' })),
+    contributions: profile.contributions.map((entry) => ({ ...entry, endDate: entry.endDate ?? '' })),
+    githubHandle: profile.githubHandle,
+  };
+}
+
+function wholeProfileFormToDraft(previous: MemberProfile, values: WholeProfileFormData): MemberProfile {
+  return {
+    ...previous,
+    role: values.role.trim(),
+    location: values.location.trim(),
+    skills: uniq((values.skills ?? []).map((skill) => skill.trim()).filter(Boolean)),
+    bio: values.bio.trim(),
+    jobSearchStatus: values.jobSearchStatus ?? '',
+    experiences: (values.experiences ?? []).filter(wholeExperienceHasContent).map((entry) => ({
+      uid: entry.uid || mintUid('exp'),
+      title: entry.title.trim(),
+      company: entry.company.trim(),
+      description: entry.description.trim(),
+      startDate: entry.startDate,
+      endDate: entry.isCurrent ? null : entry.endDate || null,
+      isCurrent: entry.isCurrent,
+      location: entry.location.trim(),
+    })),
+    contributions: (values.contributions ?? []).filter(wholeContributionHasContent).map((entry) => ({
+      uid: entry.uid || mintUid('con'),
+      project: entry.project.trim(),
+      role: entry.role.trim(),
+      startDate: entry.startDate,
+      endDate: entry.isCurrent ? null : entry.endDate || null,
+      isCurrent: entry.isCurrent,
+      description: entry.description.trim(),
+    })),
+    githubHandle: values.githubHandle.trim(),
+  };
+}
+
+const blankWholeExperience = (): WholeExperienceFormData => ({
+  uid: mintUid('exp'),
+  title: '',
+  company: '',
+  description: '',
+  startDate: '',
+  endDate: '',
+  isCurrent: false,
+  location: '',
+});
+
+const blankWholeContribution = (): WholeContributionFormData => ({
+  uid: mintUid('con'),
+  project: '',
+  role: '',
+  startDate: '',
+  endDate: '',
+  isCurrent: false,
+  description: '',
+});
+
+function WholeProfileDrawerEditor({
+  draft,
+  setDraft,
+  pendingRoleTitle,
+  pendingApproval,
+  profileIsBlank,
+  hasStatus,
+}: WholeProfileDrawerEditorProps) {
+  const methods = useForm<WholeProfileFormData>({
+    mode: 'onChange',
+    defaultValues: toWholeProfileForm(draft),
+  });
+  const { control, register, setValue, getValues, setFocus } = methods;
+  /* Subscribed to for its *change*, not its value: `useWatch` hands back a
+     deep-partial shape, so the draft is rebuilt from `getValues()` — the whole,
+     typed form — each time the watched object moves. */
+  const values = useWatch<WholeProfileFormData>({ control });
+  const statusValue = useWatch({ control, name: 'jobSearchStatus' }) ?? (hasStatus ? draft.jobSearchStatus : '');
+  const experienceRows = useWatch({ control, name: 'experiences' }) ?? [];
+  const contributionRows = useWatch({ control, name: 'contributions' }) ?? [];
+  const hasCurrentStatus = statusValue !== '';
+
+  useEffect(() => {
+    if (!values) return;
+    setDraft((prev) => wholeProfileFormToDraft(prev, getValues()));
+  }, [getValues, setDraft, values]);
+
+  /* **The CV door, in this flow too.** The section flow opens a blank profile
+     on "You can upload your CV" — the entry's whole thesis is that a document
+     is the shortest route through the step — and the first cut of this
+     variant dropped it with the cards it replaced, which made the comparison
+     one flow with the door and one without. It is taken once, at mount: the
+     section flow draws it while the profile is blank, and here every field is
+     live, so a rule read off the draft would remove the card at the first
+     typed letter. */
+  const [showCv] = useState(profileIsBlank);
+  const [parsed, setParsed] = useState<ParsedProfile | null>(null);
+
+  /* The section flow's three rules, written into the form instead of the
+     draft (which then follows through the watch above): role and location
+     fill only a blank, skills union, positions append. */
+  const applyImport = (selection: ImportSelection) => {
+    const current = getValues();
+    const write = { shouldDirty: true, shouldValidate: true };
+    if (current.role.trim() === '') setValue('role', selection.role.trim(), write);
+    if (current.location.trim() === '') setValue('location', selection.location.trim(), write);
+    setValue('skills', uniq([...(current.skills ?? []), ...selection.skills]), write);
+    setValue(
+      'experiences',
+      [
+        ...(current.experiences ?? []),
+        ...selection.experiences.map((entry) => ({
+          uid: mintUid('exp'),
+          title: entry.title,
+          company: entry.company,
+          description: entry.description,
+          startDate: entry.startDate,
+          endDate: entry.isCurrent ? '' : (entry.endDate ?? ''),
+          isCurrent: entry.isCurrent,
+          location: entry.location,
+        })),
+      ],
+      write,
+    );
+    setParsed(null);
+  };
+
+  const setExperienceRows = (next: WholeExperienceFormData[]) => {
+    setValue('experiences', next, { shouldDirty: true, shouldValidate: true });
+  };
+
+  const setContributionRows = (next: WholeContributionFormData[]) => {
+    setValue('contributions', next, { shouldDirty: true, shouldValidate: true });
+  };
+
+  return (
+    <FormProvider {...methods}>
+      <div className={d.wholeForm}>
+        <div className={fd.stepIntro}>
+          {profileIsBlank && <h2 className={clsx(fd.stepTitle, d.stepTitleWithLede)}>Fill in your profile</h2>}
+          {pendingApproval ? (
+            <PendingApprovalSteps />
+          ) : (
+            <p className={fd.lede}>
+              {pendingRoleTitle
+                ? `We send your profile with your application to ${pendingRoleTitle}.`
+                : 'This is what hiring teams see when you apply.'}
+            </p>
+          )}
+        </div>
+
+        {/* The section flow's CV card, same words, same mark, same review.
+            Outside the `<form>` below on purpose: the review carries a form
+            of its own, and a form inside a form is not HTML. */}
+        {showCv && (
+          <DetailsSection
+            editView={!!parsed}
+            classes={parsed ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }}
+          >
+            {parsed ? (
+              <ExperienceImportReview
+                parsed={parsed}
+                currentName={VIEWER_NAME}
+                currentEmail={VIEWER_EMAIL}
+                currentRole={getValues('role')}
+                currentLocation={getValues('location')}
+                currentSkills={getValues('skills') ?? []}
+                currentExperiences={experienceRows}
+                formatDates={formatExperienceDates}
+                bodyClassName={d.formBody}
+                onClose={() => setParsed(null)}
+                onSubmit={applyImport}
+              />
+            ) : (
+              <>
+                <DetailsSectionHeader
+                  title={
+                    <>
+                      You can upload your CV
+                      <OptionalMark />
+                    </>
+                  }
+                />
+                <p className={d.cvFirstNote}>
+                  We&apos;ll fill in your role, skills and experience from it, so you don&apos;t have to type it all in.
+                </p>
+                <ExperienceImportPanel
+                  entry="direct"
+                  privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
+                  onParsed={setParsed}
+                  /* "Add manually" in a flow where every field is already a
+                     field: the role box below is where typing starts. */
+                  onAddManually={() => setFocus('role')}
+                />
+              </>
+            )}
+          </DetailsSection>
+        )}
+        {showCv && !parsed && <div className={d.orRule}>or fill it in yourself</div>}
+
+        <form
+          className={d.wholeForm}
+          noValidate
+          onSubmit={(ev) => ev.preventDefault()}
+          onKeyDown={(ev) => {
+            const target = ev.target as HTMLElement;
+            if (ev.key === 'Enter' && target.tagName !== 'TEXTAREA' && !target.isContentEditable) ev.preventDefault();
+          }}
+        >
+          <DetailsSection
+            missingData={!hasCurrentStatus}
+            classes={{ root: hasCurrentStatus ? fd.cardEdge : undefined }}
+          >
+            {!hasCurrentStatus && (
+              <DataIncomplete className={d.incompleteStrip}>
+                {pendingRoleTitle
+                  ? `An answer here is required to apply to ${pendingRoleTitle}.`
+                  : 'An answer here is required to apply.'}
+              </DataIncomplete>
+            )}
+            <div className={clsx({ [d.missingBody]: !hasCurrentStatus })}>
+              <DetailsSectionHeader title="Job search status">
+                <PlTeamOnlyPill />
+              </DetailsSectionHeader>
+              <JobSearchStatusInput
+                value={statusValue}
+                onChange={(value) => setValue('jobSearchStatus', value, { shouldDirty: true, shouldValidate: true })}
+              />
+            </div>
+          </DetailsSection>
+
+          <DetailsSection classes={{ root: fd.cardEdge }}>
+            <DetailsSectionHeader title="Profile details" />
+            <div className={clsx(f.body, d.formBody, d.wholeBody)}>
+              <div className={f.row}>
+                <FormField name="role" label="Role" placeholder="e.g. Senior Protocol Engineer" />
+              </div>
+              <div className={f.row}>
+                <FormField name="location" label="Location" placeholder="e.g. Berlin, Germany" />
+              </div>
+              <div className={f.row}>
+                <SkillsTagsInput name="skills" selectLabel="Skills" placeholder="Add a skill" />
+              </div>
+              <div className={f.row}>
+                <FormEditor
+                  name="bio"
+                  label="Bio"
+                  simplified
+                  placeholder="What you work on, and what you're looking for next"
+                />
+              </div>
+            </div>
+          </DetailsSection>
+
+          <DetailsSection classes={{ root: fd.cardEdge }}>
+            <DetailsSectionHeader title={`Experience ${experienceRows.length ? `(${experienceRows.length})` : ''}`}>
+              <AddButton onClick={() => setExperienceRows([...experienceRows, blankWholeExperience()])} />
+            </DetailsSectionHeader>
+            {experienceRows.length === 0 ? (
+              <div className={e.root}>
+                <div className={e.emptyData}>
+                  <span className={e.label}>
+                    Share your work history and skills. This shows what you know and what you can do.
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className={d.wholeList}>
+                {experienceRows.map((entry, index) => (
+                  <div key={entry.uid || index} className={d.wholeEntry}>
+                    <div className={d.wholeEntryHeader}>
+                      <span className={d.wholeEntryTitle}>{entry.title.trim() || `Experience ${index + 1}`}</span>
+                      <button
+                        type="button"
+                        className={d.wholeRemove}
+                        onClick={() => setExperienceRows(experienceRows.filter((_, i) => i !== index))}
+                        aria-label={`Remove experience ${index + 1}`}
+                      >
+                        <DeleteIcon />
+                        Remove
+                      </button>
+                    </div>
+                    <div className={d.wholeGrid}>
+                      <div className={x.row}>
+                        <FormField
+                          name={wholePath(`experiences.${index}.title`)}
+                          label="Role"
+                          placeholder="Enter role"
+                        />
+                      </div>
+                      <div className={x.row}>
+                        <FormField
+                          name={wholePath(`experiences.${index}.company`)}
+                          label="Team or Organization"
+                          placeholder="Enter team or organization"
+                        />
+                      </div>
+                      <WholeMonthField
+                        register={register}
+                        name={wholePath(`experiences.${index}.startDate`)}
+                        label="Start Date"
+                      />
+                      <WholeMonthField
+                        register={register}
+                        name={wholePath(`experiences.${index}.endDate`)}
+                        label="End Date"
+                        disabled={!!entry.isCurrent}
+                      />
+                      <WholeCurrentToggle
+                        register={register}
+                        name={wholePath(`experiences.${index}.isCurrent`)}
+                        label="Present"
+                      />
+                      <div className={x.row}>
+                        <FormField
+                          name={wholePath(`experiences.${index}.location`)}
+                          label="Location"
+                          placeholder="Enter location"
+                        />
+                      </div>
+                    </div>
+                    <div className={x.row}>
+                      <FormEditor
+                        name={wholePath(`experiences.${index}.description`)}
+                        label="Impact or Work Description"
+                        simplified
+                        placeholder="What you worked on there, and what it changed"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </DetailsSection>
+
+          <DetailsSection classes={{ root: fd.cardEdge }}>
+            <DetailsSectionHeader
+              title={`Project Contributions ${contributionRows.length ? `(${contributionRows.length})` : ''}`}
+            >
+              <AddButton onClick={() => setContributionRows([...contributionRows, blankWholeContribution()])} />
+            </DetailsSectionHeader>
+            {contributionRows.length === 0 ? (
+              <div className={n.root}>
+                <div className={n.emptyData}>
+                  <span className={n.label}>Add project experience &amp; contribution details.</span>
+                </div>
+              </div>
+            ) : (
+              <div className={d.wholeList}>
+                {contributionRows.map((entry, index) => (
+                  <div key={entry.uid || index} className={d.wholeEntry}>
+                    <div className={d.wholeEntryHeader}>
+                      <span className={d.wholeEntryTitle}>
+                        {entry.project.trim() || `Project contribution ${index + 1}`}
+                      </span>
+                      <button
+                        type="button"
+                        className={d.wholeRemove}
+                        onClick={() => setContributionRows(contributionRows.filter((_, i) => i !== index))}
+                        aria-label={`Remove project contribution ${index + 1}`}
+                      >
+                        <DeleteIcon />
+                        Remove
+                      </button>
+                    </div>
+                    <div className={d.wholeGrid}>
+                      <WholeProjectSelect
+                        register={register}
+                        name={wholePath(`contributions.${index}.project`)}
+                        label="Project Name"
+                      />
+                      <div className={x.row}>
+                        <FormField
+                          name={wholePath(`contributions.${index}.role`)}
+                          label="Role"
+                          placeholder="Enter role"
+                        />
+                      </div>
+                      <WholeMonthField
+                        register={register}
+                        name={wholePath(`contributions.${index}.startDate`)}
+                        label="Start Date"
+                      />
+                      <WholeMonthField
+                        register={register}
+                        name={wholePath(`contributions.${index}.endDate`)}
+                        label="End Date"
+                        disabled={!!entry.isCurrent}
+                      />
+                      <WholeCurrentToggle
+                        register={register}
+                        name={wholePath(`contributions.${index}.isCurrent`)}
+                        label="Present"
+                      />
+                    </div>
+                    <div className={x.row}>
+                      <FormEditor
+                        name={wholePath(`contributions.${index}.description`)}
+                        label="Description"
+                        simplified
+                        placeholder="What you contributed to the project"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </DetailsSection>
+
+          <DetailsSection classes={{ root: fd.cardEdge }}>
+            <DetailsSectionHeader title="Repositories">
+              {draft.githubHandle && (
+                <Link href={`https://github.com/${draft.githubHandle}`} target="_blank" className={r.profileLink}>
+                  <Image src="/icons/contact/github-contact-logo.svg" alt="GitHub" height={24} width={24} />
+                  Github Profile
+                  <LinkIcon />
+                </Link>
+              )}
+            </DetailsSectionHeader>
+            <div className={clsx(x.body, d.formBody, d.wholeBody)}>
+              <div className={x.row}>
+                <FormField name="githubHandle" label="GitHub handle" placeholder="your-handle" />
+              </div>
+            </div>
+          </DetailsSection>
+        </form>
+      </div>
+    </FormProvider>
+  );
+}
+
+function WholeMonthField({
+  register,
+  name,
+  label,
+  disabled = false,
+}: {
+  register: UseFormRegister<WholeProfileFormData>;
+  name: Path<WholeProfileFormData>;
+  label: string;
+  disabled?: boolean;
+}) {
+  return (
+    <label className={d.wholeField}>
+      <span className={d.wholeLabel}>{label}</span>
+      <input type="month" className={d.wholeInput} disabled={disabled} {...register(name)} />
+    </label>
+  );
+}
+
+function WholeCurrentToggle({
+  register,
+  name,
+  label,
+}: {
+  register: UseFormRegister<WholeProfileFormData>;
+  name: Path<WholeProfileFormData>;
+  label: string;
+}) {
+  return (
+    <label className={d.wholeCheck}>
+      <input type="checkbox" className={d.wholeCheckbox} {...register(name)} />
+      <span>{label}</span>
+    </label>
+  );
+}
+
+function WholeProjectSelect({
+  register,
+  name,
+  label,
+}: {
+  register: UseFormRegister<WholeProfileFormData>;
+  name: Path<WholeProfileFormData>;
+  label: string;
+}) {
+  return (
+    <label className={d.wholeField}>
+      <span className={d.wholeLabel}>{label}</span>
+      <select className={d.wholeSelect} {...register(name)}>
+        <option value="">Project</option>
+        {MOCK_PROJECTS.map((project) => (
+          <option key={project} value={project}>
+            {project}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
@@ -1292,10 +1992,12 @@ function ProfileDetailsForm({
   profile,
   onClose,
   onSubmit,
+  onDirtyChange,
 }: {
   profile: MemberProfile;
   onClose: () => void;
   onSubmit: (patch: ProfileFormData) => void;
+  onDirtyChange?: (dirty: boolean) => void;
 }) {
   const methods = useForm<ProfileFormData>({
     mode: 'onSubmit',
@@ -1306,6 +2008,11 @@ function ProfileDetailsForm({
       bio: profile.bio || EMPTY_PROFILE.bio,
     },
   });
+  const {
+    formState: { isDirty },
+  } = methods;
+
+  useDirtyChange(isDirty, onDirtyChange);
 
   return (
     <FormProvider {...methods}>
@@ -1485,11 +2192,13 @@ export function ExperienceForm({
   onClose,
   onSubmit,
   onDelete,
+  onDirtyChange,
 }: {
   initial: ExperienceEntry | null;
   onClose: () => void;
   onSubmit: (entry: ExperienceEntry) => void;
   onDelete: (uid: string) => void;
+  onDirtyChange?: (dirty: boolean) => void;
 }) {
   const isNew = !initial;
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -1511,12 +2220,13 @@ export function ExperienceForm({
     register,
     setValue,
     trigger,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = methods;
 
   const startDate = useWatch({ control, name: 'startDate' });
   const endDate = useWatch({ control, name: 'endDate' });
   const isCurrent = useWatch({ control, name: 'isCurrent' });
+  useDirtyChange(isDirty, onDirtyChange);
 
   useEffect(() => {
     register('startDate', { required: 'Start date is required' });
@@ -1768,11 +2478,13 @@ function ContributionForm({
   onClose,
   onSubmit,
   onDelete,
+  onDirtyChange,
 }: {
   initial: ContributionEntry | null;
   onClose: () => void;
   onSubmit: (entry: ContributionEntry) => void;
   onDelete: (uid: string) => void;
+  onDirtyChange?: (dirty: boolean) => void;
 }) {
   const isNew = !initial;
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -1793,12 +2505,13 @@ function ContributionForm({
     register,
     setValue,
     trigger,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = methods;
 
   const startDate = useWatch({ control, name: 'startDate' });
   const endDate = useWatch({ control, name: 'endDate' });
   const isCurrent = useWatch({ control, name: 'isCurrent' });
+  useDirtyChange(isDirty, onDirtyChange);
 
   useEffect(() => {
     register('project', { required: 'Project is required' });
@@ -2021,15 +2734,22 @@ function GithubHandleForm({
   handle,
   onClose,
   onSubmit,
+  onDirtyChange,
 }: {
   handle: string;
   onClose: () => void;
   onSubmit: (handle: string) => void;
+  onDirtyChange?: (dirty: boolean) => void;
 }) {
   const isNew = !handle;
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const methods = useForm<GithubFormData>({ mode: 'onSubmit', defaultValues: { githubHandle: handle } });
+  const {
+    formState: { isDirty },
+  } = methods;
+
+  useDirtyChange(isDirty, onDirtyChange);
 
   return (
     <FormProvider {...methods}>

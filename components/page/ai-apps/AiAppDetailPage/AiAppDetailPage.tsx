@@ -55,7 +55,9 @@ type FrameStatus = 'checking' | 'live' | 'down';
 /**
  * Sent by the embedded app (starter kit ≥1.10) on load and on every in-app
  * navigation: `{ type, path, title }`. The frame is cross-origin, so this is
- * the only way to learn which subpage is open.
+ * the only way to learn which subpage is open. Kits ≥1.12 send the pathname
+ * only, addressed to this origin; kits 1.10–1.11 sent pathname + query + hash
+ * to `'*'`, so the listener keeps only the pathname regardless of sender.
  */
 const APP_ROUTE_MESSAGE = 'pln-ai-app:route';
 const MAX_APP_PATH_LENGTH = 2048;
@@ -63,11 +65,17 @@ const MAX_APP_TITLE_LENGTH = 200;
 
 // Accepts only a path on the app's own origin; the origin comparison rejects
 // `//host`, absolute URLs, backslashes and non-http schemes in one go.
-function resolveAppPath(appOrigin: string, raw: unknown): string | null {
+// `pathnameOnly` drops the query string and hash: routes REPORTED by the app
+// are mirrored into this page's address bar and tab title, and an app's query
+// string is where OAuth callbacks (`?code=…`), magic links and tokens land.
+// A `?path=` deep link someone opened deliberately keeps its query/hash — it
+// only ever becomes the frame's initial URL.
+function resolveAppPath(appOrigin: string, raw: unknown, { pathnameOnly = false } = {}): string | null {
   if (typeof raw !== 'string' || !raw || raw.length > MAX_APP_PATH_LENGTH) return null;
   try {
     const url = new URL(raw, appOrigin);
-    return url.origin === appOrigin ? url.pathname + url.search + url.hash : null;
+    if (url.origin !== appOrigin) return null;
+    return pathnameOnly ? url.pathname : url.pathname + url.search + url.hash;
   } catch {
     return null;
   }
@@ -208,7 +216,7 @@ export function AiAppDetailPage(props: Props) {
       const title = typeof event.data.title === 'string' ? event.data.title.trim().slice(0, MAX_APP_TITLE_LENGTH) : '';
       setAppPageTitle(title || null);
 
-      const path = resolveAppPath(appOrigin, event.data.path);
+      const path = resolveAppPath(appOrigin, event.data.path, { pathnameOnly: true });
       if (!path) return;
       appPathRef.current = path;
       const params = new URLSearchParams(window.location.search);

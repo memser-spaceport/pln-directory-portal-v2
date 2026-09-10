@@ -1,5 +1,3 @@
-@import '../../../../../../styles/media';
-
 // The card shell is production NewsCard's `.card`, applied alongside this
 // class — a hiring signal sits in the column as a peer of a news card, not as
 // a foreign object. Only the deltas live here.
@@ -37,73 +35,21 @@
   }
 }
 
+// Geometry only. Everything inside a row — the grey panel, the title, the
+// meta line, the action cluster — is the board's own `ReferRoleRow` styling,
+// which is the point: 8px is the gap `TeamGroupCard.roleList` uses, so a
+// stack of roles is spaced identically on both surfaces.
+//
+// (The hand-rolled `.roleRow` / `.roleTitle` / `.roleRight` / `.roleLocation`
+// / `.roleArrow` rules lived here. They styled a lookalike of the board's row
+// and died with it.)
 .roleList {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.roleRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 7px 8px;
-  margin: 0 -8px;
-  border-radius: 6px;
-
-  &:hover {
-    background: rgba(27, 56, 96, 0.04);
-  }
-}
-
-.roleTitle,
-.roleTitleLink {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-primary, #0a0c11);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.roleTitleLink {
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
-.roleRight {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.roleLocation {
-  font-size: 12px;
-  line-height: 18px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  white-space: nowrap;
-
-  @include mobile-only {
-    // The arrow is the affordance; on a narrow card the location is what gives.
-    display: none;
-  }
-}
-
-.roleArrow {
-  display: inline-flex;
-  flex-shrink: 0;
 }
 
 // Production Job Board's expander treatment, left-aligned here: the board

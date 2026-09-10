@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/common/Badge';
 import { FollowButton } from '@/components/ui/FollowButton';
 import { jobDetailPath } from '@/services/jobs/job-detail-link';
-import { ArrowIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
+import { ReferRoleRow } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow';
 import type { TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
 
@@ -20,6 +20,15 @@ import s from './HiringCard.module.scss';
 
 /** Roles named on the card; the rest roll into the expander. */
 const VISIBLE_ROLES = 3;
+
+/**
+ * Structurally unreachable, and passed anyway because `RowApplyProps` requires
+ * it: `ReferRoleRow` renders **View job** in place of Apply whenever
+ * `onViewJob` is present, so the Apply branch this would feed is never taken.
+ * Apply belongs at the bottom of the description it applies to — which here is
+ * on the board, in the tab View job opens.
+ */
+const NEVER_APPLIES_FROM_THE_FEED = () => {};
 
 interface HiringCardProps {
   group: IJobTeamGroup;
@@ -37,6 +46,12 @@ interface HiringCardProps {
  * jobs are searched — and /jobs already does the second one well. What belongs
  * in a feed is the derived fact: this team's hiring moved. One roll-up per team;
  * the click-through hands off to /jobs rather than reproducing it.
+ *
+ * The rows themselves ARE the board's rows — `ReferRoleRow`, the same component
+ * `TeamGroupCard` renders, so a role reads and behaves identically wherever it
+ * is met: seniority · function · location under the title, the posting's age,
+ * Refer, share, View job. A hand-rolled lookalike drifted from the board once
+ * already; this cannot.
  *
  * The prototype's trend line ("First open roles in 8 months") is deliberately
  * absent: a 14-day window cannot see eight months of history, so there is
@@ -67,6 +82,24 @@ export function HiringCard({
     onFollowToggle(team.uid, team.name, isFollowing);
   };
 
+  /**
+   * View job leaves for the board rather than opening a drawer here.
+   *
+   * The feed is a scanning surface and the flow behind that drawer is not — it
+   * runs a sign-in gate, a profile check and a cover letter, and `router.refresh()`
+   * from inside it would re-fetch the whole home page under the reader. A new
+   * tab keeps the feed they were scanning exactly where it was, and lands them
+   * on `/jobs?job=<uid>`, where the board opens the same drawer from the URL.
+   *
+   * `window.open` rather than an `<a>` because the row's View job is a
+   * `<button>` — see `ReferRoleRow`, where the title and the button are
+   * deliberately one door with two handles.
+   */
+  const openOnBoard = (role: IJobRole, position: number) => {
+    onRoleClick?.(group, role, position);
+    window.open(jobDetailPath(role.uid), '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div className={clsx(newsCardStyles.card, s.card)}>
       <div className={newsCardStyles.head}>
@@ -95,36 +128,30 @@ export function HiringCard({
         </a>
       </h3>
 
-      {/* Each role opens the board with its own detail drawer up
-          (`/jobs?job=<uid>`), in a new tab — the reader keeps the feed they were
-          scanning, and lands on the description plus the in-app apply flow
-          rather than on the company's careers page.
-          Deliberately not `applyUrl`: that left the site, and a role whose
-          source link is missing had no target at all. The drawer is keyed by
-          uid, so every role has one. */}
+      {/* `<li>` wrappers because `ReferRoleRow` renders a `<div>`: the board puts
+          those straight inside its own `<ul>`, which is invalid markup this card
+          does not need to inherit. The row stretches to fill the item, so the
+          wrapper costs no styling. */}
       <ul className={s.roleList}>
-        {visibleRoles.map((role, index) => {
-          const location = role.location.filter(Boolean).join(', ');
-          return (
-            <li key={role.uid} className={s.roleRow}>
-              <a
-                href={jobDetailPath(role.uid)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={s.roleTitleLink}
-                onClick={() => onRoleClick?.(group, role, index)}
-              >
-                {role.roleTitle}
-              </a>
-              <span className={s.roleRight}>
-                {location && <span className={s.roleLocation}>{location}</span>}
-                <span className={s.roleArrow} aria-hidden>
-                  <ArrowIcon />
-                </span>
-              </span>
-            </li>
-          );
-        })}
+        {visibleRoles.map((role, index) => (
+          <li key={role.uid}>
+            <ReferRoleRow
+              role={role}
+              teamId={team.uid}
+              teamName={team.name}
+              team={team}
+              currentUser={currentUser}
+              source="home-feed"
+              /* Built per row so the analytics position survives: `onViewJob`'s
+                 target carries the role but not its index in this card. */
+              apply={{
+                onApply: NEVER_APPLIES_FROM_THE_FEED,
+                memberUid: currentUser?.uid,
+                onViewJob: (target) => openOnBoard(target.role, index),
+              }}
+            />
+          </li>
+        ))}
       </ul>
 
       {hiddenCount > 0 && (

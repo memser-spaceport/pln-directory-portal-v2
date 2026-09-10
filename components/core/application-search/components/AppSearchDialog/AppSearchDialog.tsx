@@ -26,7 +26,7 @@ const AnswerView = dynamic(
 import type { HuskyTurn, StreamStatus } from '@/services/husky/hooks/useHuskyChat';
 import type { LimitLevel } from '@/services/husky/hooks/useDailyChatLimit';
 import { AiSearchHistorySection } from '@/components/core/application-search/components/AiSearchHistorySection';
-import { AI_SEARCH_SUGGESTIONS } from '@/services/search/constants';
+import { AI_SEARCH_SUGGESTIONS, MIN_ASK_LENGTH } from '@/services/search/constants';
 import type { SearchResult } from '@/services/search/types';
 
 import s from './AppSearchDialog.module.scss';
@@ -40,9 +40,6 @@ import s from './AppSearchDialog.module.scss';
  * order means the section you were reaching for is where you left it.
  */
 const SECTION_ORDER: (keyof SearchResult)[] = ['top', 'members', 'teams', 'projects', 'forumThreads', 'events'];
-
-/** Below this the AI row would offer to chat about a stray character. */
-const MIN_ASK_LENGTH = 2;
 
 interface ResultsBodyProps {
   term: string;

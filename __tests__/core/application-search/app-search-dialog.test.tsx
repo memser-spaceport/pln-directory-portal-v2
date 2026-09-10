@@ -110,7 +110,19 @@ jest.mock('@/services/search/hooks/useRemoveRecentSearch', () => ({
   useRemoveRecentSearch: () => ({ mutate: jest.fn() }),
 }));
 
+/* `ApplicationSearch` imports both header searches so it can choose between
+   them, and the legacy one reaches `react-syntax-highlighter`'s ESM build
+   through `AiChatPanel` → `Messages`, which jest does not transform. Its module
+   graph loads at import time — before any `describe` runs — so without this the
+   file fails to load rather than skipping, and skipping is the whole point
+   below. Nothing here renders the legacy search; it is the other branch of a
+   ternary. */
+jest.mock('@/components/core/application-search/LegacyApplicationSearch', () => ({
+  LegacyApplicationSearch: () => null,
+}));
+
 import { ApplicationSearch } from '@/components/core/application-search/ApplicationSearch';
+import { SHOW_AI_SEARCH_DIALOG } from '@/services/search/constants';
 
 const userInfo = { uid: 'u1', name: 'A', email: 'a@b.c' } as never;
 
@@ -131,7 +143,21 @@ const A_CONVERSATION = [{ chatId: 'c1', question: 'what is filecoin', answer: 'A
 const openWithShortcut = () => fireEvent.keyDown(window, { key: 'k', metaKey: true });
 const escape = () => fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
 
-describe('AppSearchDialog', () => {
+/*
+ * Runs only where the dialog is the header search that mounts.
+ *
+ * With NEXT_PUBLIC_SHOW_AI_SEARCH_DIALOG off — the default, and what ships —
+ * `ApplicationSearch` renders the legacy search instead, and every assertion
+ * here would be checking a UI it was not written for. Gated rather than
+ * hard-skipped so these come back on their own the day the flag flips.
+ *
+ * READ THIS BEFORE FLIPPING THE FLAG: that day is the first time this file will
+ * have run in CI since it was gated. Run it, and treat a pass as unverified
+ * until you have made one assertion fail on purpose.
+ */
+const describeDialog = SHOW_AI_SEARCH_DIALOG ? describe : describe.skip;
+
+describeDialog('AppSearchDialog', () => {
   it('opens on Cmd+K with the caret already in the field', async () => {
     renderSearch();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();

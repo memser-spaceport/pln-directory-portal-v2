@@ -40,6 +40,7 @@ import { useIsBelowTabletLandscape } from '@/hooks/useIsBelowTabletLandscape';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useAffinityAccess } from '@/services/access-control/hooks/useAffinityAccess';
 import { useAffinityMember } from '@/services/affinity/hooks/useAffinityMember';
+import { useJobEmailProfileLinkEventCapture } from '@/components/page/member-details/hooks';
 import { RelationshipDetails } from '@/components/page/member-details/RelationshipDetails';
 import { useLoginRedirect } from '@/components/core/login/utils';
 
@@ -65,6 +66,8 @@ const MemberDetails = (props: { params: Promise<any> }) => {
   const memberId = params?.id;
   const searchParams = useSearchParams();
   const goToLogin = useLoginRedirect();
+
+  useJobEmailProfileLinkEventCapture(memberId);
 
   const { currentUser: userInfo } = useCurrentUserStore();
   const isAdmin = isAdminUser(userInfo);

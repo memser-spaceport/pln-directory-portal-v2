@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
+import { useJobsAnalytics, type JobReferShareNetwork, type JobSurface } from '@/analytics/jobs.analytics';
 import { jobDetailShareUrl } from '@/services/jobs/job-detail-link';
 import type { IJobRole } from '@/types/jobs.types';
 
@@ -60,10 +60,10 @@ export function ReferMenu({ role, teamId, teamName, source }: ReferMenuProps) {
     };
   }, [open]);
 
-  const getJobLink = () => jobDetailShareUrl(role.uid);
+  const getJobLink = (channel: JobReferShareNetwork) => jobDetailShareUrl(role.uid, channel);
 
   const share = (network: 'linkedin' | 'x') => {
-    const url = getJobLink();
+    const url = getJobLink(network);
     const text = `Referring a great role - ${role.roleTitle} at ${teamName}. Know someone perfect for it?`;
 
     const encodedUrl = encodeURIComponent(url);
@@ -80,7 +80,7 @@ export function ReferMenu({ role, teamId, teamName, source }: ReferMenuProps) {
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(getJobLink());
+      await navigator.clipboard.writeText(getJobLink('copy_link'));
       analytics.onJobReferShared({ ...referBase, network: 'copy_link' });
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);

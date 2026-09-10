@@ -280,6 +280,40 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_SHARED, { ...args });
   };
 
+  /**
+   * A `/jobs?job=` link copied or shared from the refer menu was opened.
+   *
+   * Deliberately its own event rather than a field on `job-detail-opened`,
+   * which fires immediately after it: that event is the denominator of the
+   * apply funnel, and folding shared arrivals into it would silently change
+   * every dashboard already reading it. Join the two on `job_id` instead.
+   */
+  const onJobReferShareLinkOpened = (args: {
+    job_id: string;
+    utm_source: string;
+    /** The share channel, absent if the link was hand-edited on its way here. */
+    utm_medium: string | null;
+  }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_SHARE_LINK_OPENED, { ...args });
+  };
+
+  /**
+   * A profile link in a referral or application email was opened — the
+   * clickthrough that closes the loop on `onJobReferSucceeded` and
+   * `onJobApplySubmitted`, neither of which could see past the send.
+   *
+   * `utm_content` says whose card was pressed, because the referral email
+   * carries both the referrer's and the referred person's.
+   */
+  const onJobEmailProfileLinkClicked = (args: {
+    profile_member_uid: string;
+    job_id: string | null;
+    utm_source: string;
+    utm_content: string | null;
+  }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_EMAIL_PROFILE_LINK_CLICKED, { ...args });
+  };
+
   const onJobApplyClicked = (args: JobApplyBaseParams & { trigger: JobApplyTrigger }) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_CLICKED, { ...args });
   };
@@ -444,6 +478,8 @@ export const useJobsAnalytics = () => {
     onJobReferFailed,
     onJobReferShareMenuOpened,
     onJobReferShared,
+    onJobReferShareLinkOpened,
+    onJobEmailProfileLinkClicked,
     onJobApplyClicked,
     onJobApplySignUpSubmitted,
     onJobApplySignUpFailed,

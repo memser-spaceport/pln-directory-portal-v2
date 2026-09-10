@@ -89,6 +89,8 @@ export const JOBS_ANALYTICS = {
   ON_JOB_REFER_FAILED: 'job-refer-failed',
   ON_JOB_REFER_SHARE_MENU_OPENED: 'job-refer-share-menu-opened',
   ON_JOB_REFER_SHARED: 'job-refer-shared',
+  ON_JOB_REFER_SHARE_LINK_OPENED: 'job-refer-share-link-opened',
+  ON_JOB_EMAIL_PROFILE_LINK_CLICKED: 'job-email-profile-link-clicked',
   ON_JOB_APPLY_CLICKED: 'job-apply-clicked',
   ON_JOB_APPLY_SIGNUP_SUBMITTED: 'job-apply-signup-submitted',
   ON_JOB_APPLY_SIGNUP_FAILED: 'job-apply-signup-failed',

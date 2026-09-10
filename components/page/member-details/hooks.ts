@@ -1,6 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { useJobsAnalytics } from '@/analytics/jobs.analytics';
+
+/* `utm_source` values the job board's refer and apply emails stamp on the
+   profile links in their member cards — see `memberProfileEmailUrl` in the
+   API's job-openings module. */
+const JOB_EMAIL_UTM_SOURCES = ['job_referral_email', 'job_referral_notice_email', 'job_application_email'];
 
 export function useFixBrokenOfficeHoursLinkEventCapture() {
   const reportedRef = useRef(false);
@@ -58,4 +64,34 @@ export function useBrokenOfficeHoursLinkBookAttemptEventCapture() {
   return {
     forceEditMode: isCorrectSource,
   };
+}
+
+/**
+ * A profile opened from a referral or application email. Without this the
+ * referral funnel ends at `job-refer-succeeded` — the send — and a hiring lead
+ * reading the candidate looks like any other profile view.
+ */
+export function useJobEmailProfileLinkEventCapture(memberUid: string) {
+  const reportedRef = useRef(false);
+  const searchParams = useSearchParams();
+
+  const utmSource = searchParams.get('utm_source');
+  const isJobEmailSource = !!utmSource && JOB_EMAIL_UTM_SOURCES.includes(utmSource);
+
+  const { onJobEmailProfileLinkClicked } = useJobsAnalytics();
+
+  useEffect(() => {
+    if (reportedRef.current || !isJobEmailSource || !memberUid) {
+      return;
+    }
+
+    reportedRef.current = true;
+
+    onJobEmailProfileLinkClicked({
+      profile_member_uid: memberUid,
+      job_id: searchParams.get('job_uid'),
+      utm_source: utmSource as string,
+      utm_content: searchParams.get('utm_content'),
+    });
+  }, [isJobEmailSource, memberUid, utmSource, onJobEmailProfileLinkClicked, searchParams]);
 }

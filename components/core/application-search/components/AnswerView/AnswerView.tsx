@@ -10,7 +10,13 @@ import HuskyAnswerLoader from '@/components/core/husky/husky-answer-loader';
 import HuskyLimitStrip from '@/components/core/husky/husky-limit-strip';
 import FollowupQuestions from '@/components/page/husky/followup-questions';
 import ChatInput from '@/components/page/husky/chat-input';
-import { ArrowBackIcon, ArrowUpRightIcon, NotePencilIcon, ThumbsUpOutlinedIcon, ThumbsDownIcon } from '@/components/icons';
+import {
+  ArrowBackIcon,
+  ArrowUpRightIcon,
+  NotePencilIcon,
+  ThumbsUpOutlinedIcon,
+  ThumbsDownIcon,
+} from '@/components/icons';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { saveFeedback } from '@/services/husky.service';
 import { getUserCredentialsInfo } from '@/utils/fetch-wrapper';
@@ -35,6 +41,16 @@ interface Props {
   isLoggedIn: boolean;
   /** Only present when the answer was reached from a list there is a way back to. */
   onBack?: () => void;
+  /**
+   * Set when the dialog reopened straight into an existing thread.
+   *
+   * Puts the caret in the follow-up composer and pins the view to the newest
+   * turn, because "continue where I left off" is the whole reason the thread
+   * was kept. Deliberately not set for an answer reached by asking: moving
+   * focus while a reply streams is a different change, with its own
+   * screen-reader questions.
+   */
+  autoFocusComposer?: boolean;
   backLabel: string;
   onAsk: (question: string) => void;
   onRegenerate: (question: string) => void;
@@ -62,6 +78,7 @@ export const AnswerView = ({
   limitRemaining,
   isLoggedIn,
   onBack,
+  autoFocusComposer = false,
   backLabel,
   onAsk,
   onRegenerate,
@@ -84,6 +101,19 @@ export const AnswerView = ({
     if (isBusy) endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [turns, isBusy]);
 
+  /* Once, on entry, and only for a restored thread. `'auto'` rather than
+     `'smooth'`: this is where the view starts, not a movement to animate. The
+     effect above only fires while busy, so without this a finished conversation
+     would reopen scrolled to its first question. */
+  useEffect(() => {
+    if (!autoFocusComposer) return;
+    endRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
+    inputRef.current?.focus();
+    // Entry only. `turns` is deliberately absent: re-running as the
+    // conversation grows would yank focus back to the composer on every
+    // streamed token. Pinned by a test, not by a lint suppression.
+  }, [autoFocusComposer]);
+
   const submitInput = useCallback(() => {
     const value = inputRef.current?.value?.trim();
     if (!value) return;
@@ -94,28 +124,25 @@ export const AnswerView = ({
     }
   }, [onAsk]);
 
-  const send = useCallback(
-    async (turn: HuskyTurn, rating: 1 | 5, reasons: string[], freeText: string) => {
-      try {
-        const { newAuthToken } = await getUserCredentialsInfo();
-        /* The endpoint's `comment` is a required string, so a bare thumbs-up
+  const send = useCallback(async (turn: HuskyTurn, rating: 1 | 5, reasons: string[], freeText: string) => {
+    try {
+      const { newAuthToken } = await getUserCredentialsInfo();
+      /* The endpoint's `comment` is a required string, so a bare thumbs-up
            has to send an empty one rather than omitting it. The reasons ride
            in front of the free text under a stable prefix — there is no
            structured field for them yet. */
-        const prefix = reasons.length ? `[reasons: ${reasons.join(', ')}] ` : '';
-        const result = await saveFeedback(newAuthToken, {
-          rating,
-          comment: `${prefix}${freeText}`.trim(),
-          prompt: turn.question,
-          response: turn.answer,
-        });
-        setFeedback((prev) => ({ ...prev, [turn.chatId]: 'isSaved' in result && result.isSaved ? 'sent' : 'failed' }));
-      } catch {
-        setFeedback((prev) => ({ ...prev, [turn.chatId]: 'failed' }));
-      }
-    },
-    [],
-  );
+      const prefix = reasons.length ? `[reasons: ${reasons.join(', ')}] ` : '';
+      const result = await saveFeedback(newAuthToken, {
+        rating,
+        comment: `${prefix}${freeText}`.trim(),
+        prompt: turn.question,
+        response: turn.answer,
+      });
+      setFeedback((prev) => ({ ...prev, [turn.chatId]: 'isSaved' in result && result.isSaved ? 'sent' : 'failed' }));
+    } catch {
+      setFeedback((prev) => ({ ...prev, [turn.chatId]: 'failed' }));
+    }
+  }, []);
 
   const onThumbUp = useCallback(
     (turn: HuskyTurn) => {

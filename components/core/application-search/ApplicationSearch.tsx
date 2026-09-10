@@ -87,17 +87,34 @@ export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) =>
      copies would half-share state. */
   const chat = useHuskyChat({ isLoggedIn });
 
+  /* Mirrored into a ref, the way `useHuskyChat` mirrors its turns, so the two
+     close paths can read the current view without either dep array gaining
+     `view`. The back-gesture effect below pushes history in its body — adding a
+     dependency there would push an entry on every view change. */
+  const viewRef = useRef(view);
+  useEffect(() => {
+    viewRef.current = view;
+  }, [view]);
+
+  /* Whether the person was actually reading the conversation when the dialog
+     went away. Backing out to search first is them saying they are done with
+     it for now, and reopening has to honour that instead of dragging the
+     thread back — "reopen where you left off" means where they left off, not
+     wherever the last conversation happens to be. */
+  const resumeThreadRef = useRef(false);
+
   const open = useCallback(() => {
     openerRef.current = document.activeElement;
     /* The signed-out quota cookie expires at midnight, so a session that
        outlives the day must not still be showing yesterday's exhausted state. */
     chat.refreshLimit();
-    /* Reopen into the conversation. `close()` already keeps the thread — it is
-       only the route back to it that it throws away, by resetting the view. The
-       decision is made here rather than by leaving `view` alone on close,
-       because a preserved view would not survive a single keystroke: the dialog
-       forces it back to 'search' on every character typed. */
-    if (chat.turns.length > 0) {
+    /* Reopen into the conversation, but only if that is where they were when
+       it closed. `close()` already keeps the thread — it is only the route back
+       to it that it throws away, by resetting the view. The decision is made
+       here rather than by leaving `view` alone on close, because a preserved
+       view would not survive a single keystroke: the dialog forces it back to
+       'search' on every character typed. */
+    if (resumeThreadRef.current && chat.turns.length > 0) {
       setView('answer');
       setOrigin('restored');
     }
@@ -121,6 +138,8 @@ export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) =>
       window.history.back();
     }
 
+    resumeThreadRef.current = viewRef.current === 'answer';
+
     setIsOpen(false);
     setRawTerm('');
     setView('search');
@@ -141,7 +160,12 @@ export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) =>
     if (!isOpen || !fullBleed) return;
 
     window.history.pushState({ ...window.history.state, __appSearchOpen: true }, '');
-    const onPopState = () => setIsOpen(false);
+    /* This path deliberately does not go through `close()` — that would call
+       `history.back()` again — so it has to record the same intent itself. */
+    const onPopState = () => {
+      resumeThreadRef.current = viewRef.current === 'answer';
+      setIsOpen(false);
+    };
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
   }, [isOpen, fullBleed]);

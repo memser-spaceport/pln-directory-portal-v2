@@ -93,8 +93,8 @@ import { ApplicationSearch } from '@/components/core/application-search/Applicat
 
 const userInfo = { uid: 'u1', name: 'A', email: 'a@b.c' } as never;
 
-function renderSearch() {
-  return render(<ApplicationSearch isLoggedIn userInfo={userInfo} authToken="token" />);
+function renderSearch({ isLoggedIn = true } = {}) {
+  return render(<ApplicationSearch isLoggedIn={isLoggedIn} userInfo={userInfo} authToken="token" />);
 }
 
 const field = () => screen.getByPlaceholderText('Search or ask AI Search a question');
@@ -198,6 +198,48 @@ describe('AppSearchDialog', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+
+  /**
+   * The hint was designed as the last line of the idle stack and never made it
+   * out of the prototype. It names what the field reaches, which is worth most
+   * in the states the rest of the view leaves thin, so it is not conditional on
+   * any of them.
+   */
+  describe('the scope hint', () => {
+    const HINT = 'Search members, teams, projects, events and forum posts, or chat with AI Search.';
+
+    it('names what the field reaches before anything is typed', async () => {
+      renderSearch();
+      openWithShortcut();
+
+      await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+      expect(screen.getByText(HINT)).toBeInTheDocument();
+    });
+
+    it('still names it for someone with no history to show', async () => {
+      renderSearch({ isLoggedIn: false });
+      openWithShortcut();
+
+      await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+      expect(screen.getByText('Sign in to keep your AI Search history.')).toBeInTheDocument();
+      expect(screen.getByText(HINT)).toBeInTheDocument();
+    });
+
+    it('drops the hint once there are results to read', async () => {
+      const user = userEvent.setup();
+      renderSearch();
+      openWithShortcut();
+      await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+      expect(screen.getByText(HINT)).toBeInTheDocument();
+
+      await user.type(field(), 'fil');
+
+      // Assert the results view actually replaced idle first: without this, a
+      // render that never left idle would satisfy the absence below.
+      expect(screen.getByText(/Chat with AI Search about/)).toBeInTheDocument();
+      expect(screen.queryByText(HINT)).not.toBeInTheDocument();
+    });
   });
 
   /**

@@ -308,6 +308,11 @@ export const AppSearchDialog = ({
         onShowAll={() => onViewChange('history')}
         onCloseFull={() => onViewChange('search')}
       />
+
+      {/* Says what the field reaches. It earns its place most in the states the
+          rest of this view leaves thin — no history yet, still loading, signed
+          out — so it is not tied to any of them. */}
+      <p className={s.hint}>Search members, teams, projects, events and forum posts, or chat with AI Search.</p>
     </div>
   );
 

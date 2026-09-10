@@ -9,14 +9,14 @@ export type JobReferShareNetwork = 'linkedin' | 'x' | 'copy_link';
 
 /**
  * Which surface a role was acted on from. The same role card now renders on the job
- * board and on a team profile, and without this the two are indistinguishable in
- * PostHog — which would make it impossible to tell whether the team-profile section
- * drives any clicks or referrals at all.
+ * board, on a team profile and in the home feed's For You roll-ups, and without this
+ * they are indistinguishable in PostHog — which would make it impossible to tell
+ * whether the team-profile section or the feed drives any clicks or referrals at all.
  *
  * Required, never defaulted: a default would silently mislabel the next surface that
  * forgets to pass it.
  */
-export type JobSurface = 'job-board' | 'team-profile';
+export type JobSurface = 'job-board' | 'team-profile' | 'home-feed';
 
 export type JobReferBaseParams = {
   job_id: string;

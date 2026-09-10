@@ -122,12 +122,6 @@ export function HiringCard({
         )}
       </div>
 
-      <h3 className={clsx(newsCardStyles.headline, s.headline)}>
-        <a href={teamJobsUrl} target="_blank" rel="noopener noreferrer" className={s.headlineLink}>
-          {team.name} is hiring
-        </a>
-      </h3>
-
       {/* `<li>` wrappers because `ReferRoleRow` renders a `<div>`: the board puts
           those straight inside its own `<ul>`, which is invalid markup this card
           does not need to inherit. The row stretches to fill the item, so the

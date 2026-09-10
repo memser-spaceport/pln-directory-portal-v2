@@ -22,19 +22,6 @@
   text-transform: uppercase;
 }
 
-.headline {
-  margin: 0;
-}
-
-.headlineLink {
-  color: inherit;
-  text-decoration: none;
-
-  &:hover {
-    color: var(--foreground-brand-primary, #1b4dff);
-  }
-}
-
 // Geometry only. Everything inside a row — the grey panel, the title, the
 // meta line, the action cluster — is the board's own `ReferRoleRow` styling,
 // which is the point: 8px is the gap `TeamGroupCard.roleList` uses, so a

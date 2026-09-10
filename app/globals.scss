@@ -1,6 +1,24 @@
 @use 'styles/media';
 
 :root {
+  /* The navbar row's own height. Static, and the only thing inside the header
+     that may size itself from a token — see `--app-header-height` below for
+     why that distinction is load-bearing. */
+  --app-navbar-height: 56px;
+
+  /* The height of the *whole* site chrome: the navbar plus whatever bars
+     `SiteHeader` has stacked above it (domain migration, complete-your-profile,
+     and the two currently commented out). Everything that positions itself
+     below the chrome — sticky sub-headers, the search overlay, full-height
+     panes — reads this one.
+
+     The value here is only the no-JS / first-paint default. `useHeaderHeightVar`
+     overwrites it with the header's measured height, because the bars are
+     conditional and no static number can be right for all of them.
+
+     It must never be read by anything *inside* the header: the navbar sizing
+     itself from a value derived from the header's own height ratchets upward
+     on every measurement. */
   --app-header-height: 56px;
 
   /* PLAA Design Tokens (from Figma) */
@@ -23,6 +41,7 @@
   --plaa-sidebar-width: 215px;
 
   @include media.tablet-landscape {
+    --app-navbar-height: 80px;
     --app-header-height: 80px;
   }
 }
@@ -81,7 +100,10 @@ body {
 }
 
 .layout__header {
-  min-height: var(--app-header-height);
+  /* The navbar token, not the chrome one: this element's height is an *input*
+     to `--app-header-height`, so reading it back here would stop the header
+     ever shrinking again once a bar is dismissed. */
+  min-height: var(--app-navbar-height);
   width: 100%;
   position: sticky;
   top: 0;

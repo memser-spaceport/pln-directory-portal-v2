@@ -598,4 +598,24 @@ describe('AppSearchDialog', () => {
       expect(screen.getByRole('button', { name: 'Back to history' })).toBeInTheDocument();
     });
   });
+  /* The scrim used to start below the header, leaving a navbar that looked live
+     while `Modal`'s containment had already made it `inert` — visible, undimmed
+     and silently swallowing every click. The overlay covers the whole page now,
+     so what you see matches what you can press. */
+  it('keeps the header behind the dialog, and covered by it', async () => {
+    const header = document.createElement('header');
+    header.className = 'layout__header';
+    document.body.appendChild(header);
+
+    try {
+      renderSearch();
+      openWithShortcut();
+      await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+
+      expect(header.inert).toBe(true);
+      expect(screen.getByRole('dialog')).toHaveAttribute('aria-modal', 'true');
+    } finally {
+      header.remove();
+    }
+  });
 });

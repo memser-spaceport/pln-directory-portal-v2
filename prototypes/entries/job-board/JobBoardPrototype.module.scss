@@ -81,6 +81,38 @@
   gap: 10px;
 }
 
+// The nothing-matched state, now two blocks: the sentence, and the open roles
+// that survived the rail. A column so the second is plainly a second thing
+// rather than a continuation of the first — it answers a different question
+// ("what can I do instead?") and it is made of rows, not prose.
+.emptyStack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fallbackOpen {
+  display: flex;
+  flex-direction: column;
+  // The role list's own gap, because these are role rows and they are read as
+  // one list even without a card around them.
+  gap: 8px;
+  // `.empty`'s horizontal margin, so the two blocks share one left edge.
+  margin: 0 8px;
+}
+
+// A label on the list under it, not a heading competing with the empty state's
+// sentence — the section title's size and tone from the group card's own
+// secondary text.
+.fallbackOpenTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
 .empty {
   margin: 8px;
   padding: 32px 20px;

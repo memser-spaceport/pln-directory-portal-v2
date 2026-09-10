@@ -113,19 +113,41 @@
   gap: 8px;
 }
 
-// The design system's rectangular `Button` (size m; `border` for the way
-// back and Cancel, `fill` for Save), as the drawer's Continue and the cards'
-// own Cancel/Save wear it. *"Make buttons also rectangular for both onboarding
-// and job board drawer prototypes."* It replaced the navbar's rounded pair,
-// which the bar wore while it was itself a pill: a pill ground had pill
-// presses, and once the ground became a card its presses became the card's.
-// The class adds only what a glyph beside the label needs — the Button lays
-// its own label out as text and sets its own type, height and colours.
+// The design system's rectangular `Button` (size m), as the drawer's Continue
+// and the cards' own Cancel/Save wear it. *"Make buttons also rectangular for
+// both onboarding and job board drawer prototypes."* It replaced the navbar's
+// rounded pair, which the bar wore while it was itself a pill: a pill ground
+// had pill presses, and once the ground became a card its presses became the
+// card's. The class adds only what a glyph beside the label needs — the Button
+// lays its own label out as text and sets its own type, height and colours.
+//
+// **Which tone.** Save is `fill` — the one thing in the bar worth pressing
+// hardest. Every bordered press is `border` + `neutral`, the grey pair, rather
+// than the bordered *brand* they wore for a day.
+//
+// "Keep editing" first: *"for Keep editing button make it grey."* Two
+// brand-blue controls side by side made the way back argue with the Save, and
+// the way back is the quieter of the two — it puts you where you already were.
+//
+// Then the read state's Cancel: *"Cancel for loading state should also be
+// grey."* It had been left brand on the argument that it never stands beside
+// Save, so nothing was competing — true, and beside the point twice over. One
+// bar with a grey press in one state and a blue one in the next is two lineages
+// in one object. And this row *is* the importer's reading row at a distance,
+// whose own Cancel is `ExperienceImportPanel`'s `.quietButton` at
+// `--foreground-neutral-secondary` (#455468) — the exact ink `border` +
+// `neutral` gives it. The bar was louder than the row it claims to be
+// repeating; grey is what it was always mirroring.
 .btn.btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  /* 4px, not the row's 8: *"make spacing between label and arrow of the
+     button smaller."* 8px is the gap *between* two controls (`.actions`),
+     and spending the same value inside one made the arrow read as a second
+     object beside the label rather than as its mark. 4px is the next step
+     down the same scale — no new number, and the glyph joins the word. */
+  gap: 4px;
   white-space: nowrap;
 }
 

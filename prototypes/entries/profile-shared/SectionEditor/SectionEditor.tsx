@@ -108,10 +108,25 @@ export const editCardClass = s.editCard;
  * lands here rather than on the card because `DetailsSection` forwards none,
  * and the wrapper is the card's outline in every way that matters to the
  * observer.
+ *
+ * `className` is for a host whose column needs the wrapper to state a width:
+ * the apply drawer centres its children, so an unstyled div shrinks to its
+ * content and the card inside it loses 64px the moment it is wrapped (the
+ * same reason `ImportLock`'s `.wrap` exists). The profile pages pass none.
  */
-export function Section({ muted, ref, children }: PropsWithChildren<{ muted: boolean; ref?: Ref<HTMLDivElement> }>) {
+export function Section({
+  muted,
+  ref,
+  className,
+  children,
+}: PropsWithChildren<{ muted: boolean; ref?: Ref<HTMLDivElement>; className?: string }>) {
   return (
-    <div ref={ref} className={clsx(s.section, muted && s.muted)} inert={muted} aria-disabled={muted || undefined}>
+    <div
+      ref={ref}
+      className={clsx(s.section, className, muted && s.muted)}
+      inert={muted}
+      aria-disabled={muted || undefined}
+    >
       {children}
     </div>
   );

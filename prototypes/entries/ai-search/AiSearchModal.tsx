@@ -257,12 +257,25 @@ export function AiSearchModal({ open, onClose }: AiSearchModalProps) {
             padded header. Every palette in the reference set (ClickUp,
             Magnific, Notion, Dovetail, Devin, Supabase, Ferndesk on Mobbin)
             draws it this way: a borderless input with the search glyph on the
-            left, larger type, a hairline under it, and only the clear on the
+            left, larger type, a hairline under it, and one control on the
             right — the card is the box, so a second box inside it is chrome
             on chrome. Production's `DebouncedInput` is still the component
             (its debounce, Enter/Escape and clear behaviour), restyled through
-            its own `classes` hooks; the shared shell stays as it is for the
-            sibling dialog. */}
+            its own `classes` hooks.
+
+            That control is the word **Clear**, not a ✕. It used to be
+            production's grey close glyph, which put two crosses 12px apart on
+            one row — the field's and the dialog's. They do different things
+            (one empties the field, one shuts the dialog) and the only thing
+            telling them apart was that the left one was drawn smaller and
+            lighter, which is a compensation rather than a distinction. A
+            labelled button says which is which without anyone reading a size
+            difference, and the ✕ then means exactly one thing on this surface:
+            close. "Clear" is the product's own word for emptying a field
+            (`Clear All` in `FiltersSidePanel`, `aria-label="Clear"` on every
+            `FiltersSearch`), and it wears `ChatSubheader .button` — the
+            12px/500 brand text this dialog already uses for "Show all (N)" —
+            so the card has one text-button lineage. */}
         <div className={clsx(shell.header, s.headerBar)}>
           <div className={shell.field}>
             <DebouncedInput
@@ -275,7 +288,16 @@ export function AiSearchModal({ open, onClose }: AiSearchModalProps) {
                  Evernote and Mintlify both label theirs "Search or ask". */
               placeholder="Search or ask AI Search a question"
               flushIcon={<Image src="/icons/search-right.svg" alt="Search" width={20} height={20} />}
-              classes={{ root: s.fieldRoot, input: s.fieldInput, flushBtn: s.fieldFlush, clearBtn: s.fieldClear }}
+              /* `DebouncedInput` renders this inside its own clear button, so
+                 the debounce-cancel and the reset are kept and only the mark
+                 changes. */
+              clearIcon="Clear"
+              classes={{
+                root: s.fieldRoot,
+                input: s.fieldInput,
+                flushBtn: s.fieldFlush,
+                clearBtn: clsx(sub.button, s.fieldClear),
+              }}
             />
           </div>
           <button type="button" className={shell.close} onClick={handleClose} aria-label="Close search">
@@ -285,8 +307,9 @@ export function AiSearchModal({ open, onClose }: AiSearchModalProps) {
 
         {/* The one AI door, pinned above the list rather than at the end of
             it. It was the last row of the results first — and results
-            overflow a 640px card at six hits, so the door was below the fold
-            exactly when there was something to ask about. Then a band under
+            outrun the card once there are enough of them, so the door was
+            below the fold exactly when there was something to ask about (the
+            card was 640px tall then, which made it six). Then a band under
             the list — in view, but under the general answers, so the offer
             read as a fallback. Now it leads: the first thing under the field
             says you can chat with AI about the term, and the keyword hits
@@ -406,14 +429,22 @@ export function AiSearchModal({ open, onClose }: AiSearchModalProps) {
                             <span className={rs.searchItemText}>{item}</span>
                             <button
                               type="button"
-                              className={rs.removeButton}
+                              className={clsx(rs.removeButton, s.recentRemove)}
                               aria-label={`Remove ${item} from recent searches`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setRecent((prev) => prev.filter((r) => r !== item));
                               }}
                             >
-                              <Image src="/icons/close-gray.svg" alt="" width={20} height={20} />
+                              {/* The DS `CloseIcon`, not production's
+                                  `/icons/close-gray.svg` — a 16px drawing
+                                  rendered at 20 with `#64748b` baked in, which
+                                  is Tailwind slate and not a PL tone. With the
+                                  field's ✕ gone the dialog has one cross left
+                                  in the header, and these rows are the only
+                                  other place it appears; two drawings of one
+                                  mark on one surface is the cluster problem. */}
+                              <CloseIcon />
                             </button>
                           </li>
                         ))}

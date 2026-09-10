@@ -19,7 +19,8 @@ import efc from '@/components/common/profile/EditFormControls/EditFormControls.m
 // The design system's rectangular Button — the one the drawer's Continue and
 // the cards' own Cancel/Save wear. *"Make buttons also rectangular for both
 // onboarding and job board drawer prototypes."* (The navbar's rounded pair
-// stood here while the bar was a pill; see the stylesheet.)
+// stood here while the bar was a pill; see the stylesheet, which also carries
+// why the way back is the grey variant and Save the filled one.)
 import { Button } from '@/components/common/Button';
 
 // The CV importer's wait — its three lines (title, progress bar, "usually
@@ -240,7 +241,7 @@ export function EditorStatusRow({
         <SpinnerIcon className={panel.spinner} />
         <ImportWaitStatus wait={importWait} live />
         <div className={s.actions}>
-          <Button type="button" style="border" size="m" className={s.btn} onClick={importWait.cancel}>
+          <Button type="button" style="border" variant="neutral" size="m" className={s.btn} onClick={importWait.cancel}>
             Cancel
           </Button>
         </div>
@@ -262,7 +263,7 @@ export function EditorStatusRow({
   return (
     <div className={s.row}>
       <div className={s.actions}>
-        <Button type="button" style="border" size="m" className={s.btn} onClick={back} title={status}>
+        <Button type="button" style="border" variant="neutral" size="m" className={s.btn} onClick={back} title={status}>
           <ScrollArrowIcon className={s.btnIcon} direction={away.direction} aria-hidden />
           Keep editing
         </Button>
@@ -321,8 +322,9 @@ export function EditorStatusRow({
  * seconds" line that turns into "Taking longer than usual — still reading",
  * and its spinner — all rendered from the *same* wait value the card's row
  * renders from (`ImportWaitStatus`), so the two can never disagree about
- * where the read is. The one control is the row's own Cancel, as the bordered
- * pill: there is no Save (nothing has landed yet) and no Keep editing
+ * where the read is. The one control is the row's own Cancel, bordered grey as
+ * that row's own quiet Cancel is: there is no Save (nothing has landed yet) and
+ * no Keep editing
  * (nothing to edit yet — the card is a spinner). The bar is still one object;
  * this is what the object says during that beat, not a second bar.
  *
@@ -343,12 +345,13 @@ export function EditorStatusRow({
  * The status line wears `EditFormControls`' title type, so the sentence reads
  * as the editor's own row speaking from a distance; the wait's lines wear the
  * importer's, for the same reason. The buttons are the design system's
- * `Button` — Keep editing and Cancel bordered, Save filled — the same
- * control the cards' own Cancel/Save and the drawer's Continue are. They
- * were the navbar's rounded pair for a day, while the bar itself was a pill
- * (*"use rounded button components from ds"*); once the bar became a card
- * (*"rectangular not circular"*) its presses followed (*"make buttons also
- * rectangular"*), and the rounded lineage is gone from the bar entirely.
+ * `Button` — every bordered one grey (*"for Keep editing button make it
+ * grey"*, then *"Cancel for loading state should also be grey"*), Save the
+ * only filled one. They were the navbar's rounded pair for a day, while the bar
+ * itself was a pill (*"use rounded button components from ds"*); once the bar
+ * became a card (*"rectangular not circular"*) its presses followed (*"make
+ * buttons also rectangular"*), and the rounded lineage is gone from the bar
+ * entirely.
  *
  * Where the open card is a full-screen takeover below tablet-landscape
  * (the new-member page's CV card), the host says so and the bar is not
@@ -432,7 +435,7 @@ export function FloatingEditorBar({
         <SpinnerIcon className={panel.spinner} />
         <ImportWaitStatus wait={importWait} live />
         <div className={s.actions}>
-          <Button type="button" style="border" size="m" className={s.btn} onClick={importWait.cancel}>
+          <Button type="button" style="border" variant="neutral" size="m" className={s.btn} onClick={importWait.cancel}>
             Cancel
           </Button>
         </div>
@@ -451,7 +454,7 @@ export function FloatingEditorBar({
         <span className={s.statusText}>{status}</span>
       </span>
       <div className={s.actions}>
-        <Button type="button" style="border" size="m" className={s.btn} onClick={onBack}>
+        <Button type="button" style="border" variant="neutral" size="m" className={s.btn} onClick={onBack}>
           <EditIcon className={s.btnIcon} aria-hidden />
           Keep editing
         </Button>

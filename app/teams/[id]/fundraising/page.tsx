@@ -54,12 +54,12 @@ async function Page(props: { params: Promise<ITeamDetailParams> }) {
 
           {/* Pitch Deck */}
           <div className={styles?.fundraisingDetail__container__pitchDeck}>
-            <PitchDeckDetails team={team} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            <PitchDeckDetails team={team} isLoggedIn={!!isLoggedIn} userInfo={userInfo} />
           </div>
 
           {/* Video Pitch */}
           <div className={styles?.fundraisingDetail__container__videoPitch}>
-            <VideoPitchDetails team={team} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            <VideoPitchDetails team={team} isLoggedIn={!!isLoggedIn} userInfo={userInfo} />
           </div>
 
           {/* Funding Information */}

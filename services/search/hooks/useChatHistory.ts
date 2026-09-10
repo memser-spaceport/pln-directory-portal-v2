@@ -26,7 +26,9 @@ async function fetcher(): Promise<ChatHistoryThread[]> {
      than as a failed request. Normalised here, once, and thrown so React Query
      can actually report it. */
   if (!Array.isArray(history)) {
-    throw new Error(`Could not load AI Search history (status ${(history as { status?: number })?.status ?? 'unknown'})`);
+    throw new Error(
+      `Could not load AI Search history (status ${(history as { status?: number })?.status ?? 'unknown'})`,
+    );
   }
 
   return history as ChatHistoryThread[];
@@ -36,6 +38,10 @@ export function useChatHistory({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: [SearchQueryKeys.GET_AI_CHAT_HISTORY],
     queryFn: fetcher,
-    enabled,
+    /* Coerced even though the parameter is typed `boolean`: React Query v5
+       validates this and *throws*, so a caller handing over a falsy non-boolean
+       takes the whole tree down instead of just not fetching. That is exactly
+       what the signed-out `isLoggedIn` — `''` — used to do here. */
+    enabled: !!enabled,
   });
 }

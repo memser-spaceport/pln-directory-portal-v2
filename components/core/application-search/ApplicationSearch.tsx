@@ -1,9 +1,14 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
 
 import { IUserInfo } from '@/types/shared.types';
+import {
+  getServerShortcutLabel,
+  getShortcutLabel,
+  subscribeToNothing,
+} from '@/components/core/application-search/shortcutLabel';
 import { useIsBelowTabletLandscape } from '@/hooks/useIsBelowTabletLandscape';
 import { AppSearchDialog, type DialogView } from '@/components/core/application-search/components/AppSearchDialog';
 import { useDebouncedValue } from '@/components/core/application-search/hooks/useDebouncedValue';
@@ -64,12 +69,9 @@ export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) =>
 
   const fullBleed = useIsBelowTabletLandscape();
 
-  /* Snapshot on first render so SSR and hydration agree, and read `userAgent`
-     rather than the deprecated `platform`. The shortcut is Ctrl+K on Windows
-     and Linux, so naming it ⌘K everywhere would be wrong for most people. */
-  const [shortcutLabel] = useState(() =>
-    typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.userAgent) ? '⌘K' : 'Ctrl+K',
-  );
+  /* Server snapshot and client value deliberately differ — see `./shortcutLabel`
+     for why a lazy `useState` initializer is the wrong tool here. */
+  const shortcutLabel = useSyncExternalStore(subscribeToNothing, getShortcutLabel, getServerShortcutLabel);
 
   /* Mounted here, once, and never inside the dialog: this component lives in
      the root layout, so the thread outlives the sheet — which is the only way

@@ -8,7 +8,10 @@ import type { FollowAnalyticsSource } from '@/analytics/follow.analytics';
 import type { ISuggestedTeam } from '@/types/team-news.types';
 
 import { getTeamLogoFallback } from '../../utils/getTeamLogoFallback';
-import { stripFollowerCountFromReason } from '../NewsRail/components/TeamsToFollowCard/TeamsToFollowCard';
+import {
+  getSuggestedTeamSubtitle,
+  stripFollowerCountFromReason,
+} from '../NewsRail/components/TeamsToFollowCard/TeamsToFollowCard';
 
 import { MobileScrollRow } from './MobileScrollRow';
 import s from './FeedScrollers.module.scss';
@@ -28,13 +31,12 @@ interface FollowTeamsScrollerProps {
 /**
  * "Teams to follow" for sub-desktop widths.
  *
- * Cards are 240px rather than chip-sized on purpose: the *reason* line is the
- * only thing that earns a follow ("Storage", "works with 2 teams you follow"),
- * and a narrow chip would have to drop it, leaving a row of logos.
+ * Cards are 240px rather than chip-sized on purpose: the description (or
+ * focus-area fallback) would disappear on a narrow chip, leaving a row of logos.
  *
  * Reads the same `visibleSuggestions` the rail card does — TeamNews computes it
  * once, so the delayed-hide-after-follow confirm behaves identically at either
- * width, and the same reason-first subtitle rule applies.
+ * width, and the same description-first subtitle rule applies.
  */
 export function FollowTeamsScroller({ suggestions, followedTeamUids, onFollowToggle }: FollowTeamsScrollerProps) {
   const router = useRouter();
@@ -59,9 +61,7 @@ export function FollowTeamsScroller({ suggestions, followedTeamUids, onFollowTog
     <MobileScrollRow title="Teams to follow">
       {suggestions.map((team, position) => {
         const isFollowing = followedTeamUids.has(team.uid);
-        // Same precedence as the rail card: the reason says why this team is in
-        // front of *you*; the tagline only says what it is.
-        const subtitle = stripFollowerCountFromReason(team.reason || '') || team.shortDescription?.trim() || '';
+        const subtitle = getSuggestedTeamSubtitle(team);
         return (
           <div key={team.uid} className={s.card}>
             <div className={s.cardHead}>

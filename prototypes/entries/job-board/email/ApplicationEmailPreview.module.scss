@@ -14,6 +14,16 @@
 //
 // Not a monospace face, though — this is the email as a recipient reads it, not
 // the template as an author edits it. The digest's own body type.
+// The attachment row: the body's own horizontal inset, a hairline above it,
+// the chip sized to its contents.
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 28px 20px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
 .body {
   margin: 0;
   padding: 24px 28px;

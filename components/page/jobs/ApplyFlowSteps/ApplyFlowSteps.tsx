@@ -98,8 +98,13 @@ export function ApplyFlowSteps({ steps, onSelect }: ApplyFlowStepsProps) {
   return (
     /* `role="list"` and `role="listitem"` are the source's. The source spreads
        arbitrary props onto the root; nothing here needs that, so it's dropped
-       rather than plumbed through unused. */
-    <div className={clsx(s.root, s.horizontal)} role="list">
+       rather than plumbed through unused.
+
+       The name is ours. This stopped being the only list in the drawer when the
+       review step gained the two-item card making the case for a profile, and an
+       unnamed list among several is one a screen reader can only describe by its
+       contents — which for this one are three words that could be anything. */
+    <div className={clsx(s.root, s.horizontal)} role="list" aria-label="Application steps">
       {steps.map((step, index) => {
         const isLast = index === steps.length - 1;
         const connectorCompleted = currentIndex >= 0 && index < currentIndex;

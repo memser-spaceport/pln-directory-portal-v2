@@ -32,10 +32,15 @@ import { TeamMembersView } from './TeamMembersView';
 import { TeamContributionsView } from './TeamContributionsView';
 import { TeamProjectsView } from './TeamProjectsView';
 import { TeamOpenRolesView } from './TeamOpenRolesView';
+import { seedListingMeta, submitJobHref, type ListingMeta, type ListingStatus } from '../job-board/listings';
 import { NewsCardView } from './NewsCardView';
 import { NewsFullPageView } from './NewsFullPageView';
 import { TeamFollowBlock } from './TeamFollowBlock';
 import { TeamAdminActions } from './TeamAdminActions';
+import { PostNewsModal, type PostNewsSubmission } from './PostNewsModal';
+import { NewsEmptyCard } from './NewsEmptyCard';
+import { PostNewsButton } from './PostNewsButton';
+import { deriveDomain } from './newsUrl';
 import { FollowPill } from '../follow-shared/FollowPill';
 import { FollowToast } from '../follow-shared/FollowToast';
 // The archive itself — the same component the teams grid's news chip opens, so
@@ -99,7 +104,138 @@ export default function TeamProfilePrototype() {
   // inactive treatment at all. It lives in the demo bar with the view switch,
   // outside the page card — a prototype control, not something on the profile.
   const [status, setStatus] = useState<TeamStatus>('active');
+  // Demo-only, same reason as the status switch: one mock team, so the only
+  // way to see the rail with nothing in it is to empty it.
+  const [newsSeed, setNewsSeed] = useState<'some' | 'none'>('some');
   useEffect(() => setMounted(true), []);
+
+  /**
+   * WHO CAN POST. Production gates the team's own surfaces on
+   * `isCurrentUserTeamMember || isAdmin` (TeamDetails.tsx — the followers block,
+   * the asks) and this prototype's "Team" view is that pair. Admins and members
+   * post the same way, so the flow has one door, not two ranks of it. A team
+   * that has wound down posts nothing: news is something a team is doing, and
+   * an inactive team is, by definition, not.
+   */
+  const canPost = view === 'team' && status === 'active';
+
+  /**
+   * WHO CAN POST A JOB. Narrower than news in production — `isTeamLeaderOrAdmin`,
+   * a lead of this team or a directory admin, not any member — and this
+   * prototype's "Team" view stands in for that pair as it does for `canPost`.
+   * Same second half: a team that has wound down is not hiring.
+   */
+  const canSubmitJobs = view === 'team' && status === 'active';
+  // Demo-only, same reason as the news seed: one mock team, so the only way to
+  // see the owner's empty Open roles section is to take its roles away.
+  const [rolesSeed, setRolesSeed] = useState<'some' | 'none'>('some');
+
+  /**
+   * The team's listings as the team manages them, from its own page — the
+   * board's `listings` and `deletedUids`, kept here for the length of a visit.
+   * Seeded the way the board seeds the public roles (live, from the careers
+   * page), so the origin line under each row reads the same on both surfaces.
+   * A listing marked inactive stays in the list with the pill and `Bring back`
+   * — the undo where the action was — and one deleted is gone from it.
+   */
+  const [roleListings, setRoleListings] = useState<Map<string, ListingMeta>>(() =>
+    seedListingMeta(MOCK_TEAM_ROLES ? [{ teamUid: MOCK_TEAM_ROLES.team.uid, roles: MOCK_TEAM_ROLES.roles }] : []),
+  );
+  const [deletedRoleUids, setDeletedRoleUids] = useState<Set<string>>(() => new Set());
+  const [listingToast, setListingToast] = useState<string | null>(null);
+  const listingToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showListingToast = (message: string) => {
+    setListingToast(message);
+    if (listingToastTimer.current) clearTimeout(listingToastTimer.current);
+    listingToastTimer.current = setTimeout(() => setListingToast(null), 4000);
+  };
+  const roleTitle = (uid: string) => MOCK_TEAM_ROLES?.roles.find((r) => r.uid === uid)?.roleTitle ?? 'The listing';
+  const setRoleStatus = (uid: string, status: ListingStatus) => {
+    setRoleListings((prev) => {
+      const meta = prev.get(uid);
+      return meta ? new Map(prev).set(uid, { ...meta, status }) : prev;
+    });
+    // The board's own receipts, word for word: the part not on screen is what
+    // the public board now does.
+    showListingToast(status === 'inactive' ? `${roleTitle(uid)} is off the board.` : `${roleTitle(uid)} is back on the board.`);
+  };
+  const deleteRole = (uid: string) => {
+    setDeletedRoleUids((prev) => new Set(prev).add(uid));
+    showListingToast(`${roleTitle(uid)} is deleted.`);
+  };
+  /** The section's group: the seed minus deletions, or nothing. */
+  const teamRoles =
+    rolesSeed === 'some' && MOCK_TEAM_ROLES
+      ? (() => {
+          const roles = MOCK_TEAM_ROLES.roles.filter((r) => !deletedRoleUids.has(r.uid));
+          return { ...MOCK_TEAM_ROLES, roles, totalRoles: roles.length };
+        })()
+      : null;
+
+  /**
+   * The team's news, in state because the team can now add to it. Seeded from
+   * the mocks; a posted item is prepended, so the rail, the archive, the mobile
+   * page and the detail modal all read the same list.
+   */
+  const [news, setNews] = useState<ITeamNewsItem[]>(MOCK_NEWS);
+  useEffect(() => setNews(newsSeed === 'some' ? MOCK_NEWS : []), [newsSeed]);
+  /** Items the team wrote here, as opposed to enriched from coverage. */
+  const [authoredUids, setAuthoredUids] = useState<Set<string>>(new Set());
+  const [composeOpen, setComposeOpen] = useState(false);
+  /** The story just posted — flashed in the rail so the press has a visible outcome. */
+  const [postedUid, setPostedUid] = useState<string | null>(null);
+  const railListRef = useRef<HTMLDivElement>(null);
+
+  const publishNews = ({ title, body, url, summary }: PostNewsSubmission) => {
+    const now = new Date().toISOString();
+    const uid = `news-local-${Date.now()}`;
+    const item: ITeamNewsItem = {
+      uid,
+      teamUid: team.id ?? 'protocol-labs',
+      teamName: team.name ?? 'This team',
+      // Null like every sibling row: the archive's team row falls back to the
+      // same monogram for all of them, and one row with a different mark would
+      // read as a different team.
+      teamLogoUrl: null,
+      // The card's type dot. Nothing in the form asks for one — a team's own
+      // post is an announcement by construction; the finer types (funding,
+      // launch, milestone) are the enrichment pipeline's classification of
+      // coverage, not something an author picks.
+      eventType: 'ANNOUNCEMENT',
+      eventDate: now,
+      title,
+      summary,
+      contentHtml: body || undefined,
+      sourceUrl: url,
+      sourceDomain: deriveDomain(url),
+      tags: [],
+      focusAreas: [],
+      subFocusAreas: [],
+      createdAt: now,
+      discussion: { count: 0, latestTopicUrl: null },
+    };
+    setNews((prev) => [item, ...prev]);
+    setAuthoredUids((prev) => new Set(prev).add(uid));
+    setPostedUid(uid);
+  };
+
+  // The receipt for a post is the post itself, at the top of the rail: scroll
+  // it into view and flash it. A background flash rather than the archive's
+  // ring: the rail's rows are flat and its list clips to a scroll region, so a
+  // ring drawn around a row only ever shows its bottom edge — a thick blue
+  // divider, not a highlight.
+  useEffect(() => {
+    if (!postedUid) return;
+    const el = railListRef.current?.querySelector<HTMLElement>(`[data-news-uid="${postedUid}"]`);
+    if (!el) return;
+    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    el.classList.add(local.newsPosted);
+    const timer = setTimeout(() => {
+      el.classList.remove(local.newsPosted);
+      setPostedUid(null);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [postedUid]);
   useEffect(
     () => () => {
       if (followToastTimer.current) clearTimeout(followToastTimer.current);
@@ -189,6 +325,8 @@ export default function TeamProfilePrototype() {
     time: item.eventDate,
     views: viewsFor(item.uid),
     readUrl: item.sourceUrl ?? undefined,
+    authored: authoredUids.has(item.uid),
+    bodyHtml: authoredUids.has(item.uid) ? item.contentHtml : undefined,
   });
   const openDetail = (item: ITeamNewsItem) => setDetail(toDetail(item));
 
@@ -207,7 +345,16 @@ export default function TeamProfilePrototype() {
    */
   const [archiveStory, setArchiveStory] = useState<FeedDetail | null>(null);
 
-  const displayNews = [...MOCK_NEWS].sort((a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime());
+  const displayNews = [...news].sort((a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime());
+
+  /**
+   * The rail exists when there is news to read — or when the reader could
+   * write some. Production hides the whole panel for a team with no news
+   * (`showNewsRail = hasTeamNewsItems`); that stays true for visitors, who
+   * would only be shown an absence. A member of the team gets the panel with
+   * an invitation in it instead.
+   */
+  const showRail = displayNews.length > 0 || canPost;
 
   // Rail previews a few; "View all" opens the full feed in a modal.
   const previewNews = displayNews.slice(0, NEWS_PREVIEW_COUNT);
@@ -302,6 +449,46 @@ export default function TeamProfilePrototype() {
             </button>
           </div>
         </div>
+
+        <div className={local.demoGroup}>
+          <span className={local.demoLabel}>News</span>
+          <div className={local.demoSwitch}>
+            <button
+              type="button"
+              className={`${local.demoBtn} ${newsSeed === 'some' ? local.demoBtnActive : ''}`}
+              onClick={() => setNewsSeed('some')}
+            >
+              Has news
+            </button>
+            <button
+              type="button"
+              className={`${local.demoBtn} ${newsSeed === 'none' ? local.demoBtnActive : ''}`}
+              onClick={() => setNewsSeed('none')}
+            >
+              None yet
+            </button>
+          </div>
+        </div>
+
+        <div className={local.demoGroup}>
+          <span className={local.demoLabel}>Roles</span>
+          <div className={local.demoSwitch}>
+            <button
+              type="button"
+              className={`${local.demoBtn} ${rolesSeed === 'some' ? local.demoBtnActive : ''}`}
+              onClick={() => setRolesSeed('some')}
+            >
+              Hiring
+            </button>
+            <button
+              type="button"
+              className={`${local.demoBtn} ${rolesSeed === 'none' ? local.demoBtnActive : ''}`}
+              onClick={() => setRolesSeed('none')}
+            >
+              None yet
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className={local.layout}>
@@ -386,8 +573,19 @@ export default function TeamProfilePrototype() {
             two tenses: who's here, and who the team is looking for. Not in the
             news rail (that's a cross-surface stream, and 340px can't hold a role
             row); not near the top, because roles are perishable and most teams
-            have none. Renders nothing when there are none. */}
-            <TeamOpenRolesView group={MOCK_TEAM_ROLES} />
+            have none. Renders nothing when there are none — unless the reader
+            can change that: a lead or admin gets the section in both states,
+            with **Submit a job** in its header leading to the board's form,
+            already on this team. */}
+            <TeamOpenRolesView
+              group={teamRoles}
+              submitHref={canSubmitJobs ? submitJobHref(MOCK_TEAM.id) : undefined}
+              manage={
+                canSubmitJobs
+                  ? { metaFor: (uid) => roleListings.get(uid), onSetStatus: setRoleStatus, onDelete: deleteRole }
+                  : undefined
+              }
+            />
 
             {/* Focus areas — import-safe production view. */}
             <DetailsSection>
@@ -405,53 +603,78 @@ export default function TeamProfilePrototype() {
         </div>
 
         {/* News rail — team-related news (mocked), reusing the homepage NewsCard. */}
-        <aside className={local.rail}>
-          {/* Reserve the Back button's height so the news panel lines up with the
+        {showRail && (
+          <aside className={local.rail}>
+            {/* Reserve the Back button's height so the news panel lines up with the
             team card top (the main column has a Back button above it). */}
-          <div className={local.railBackSpacer} aria-hidden="true">
-            <BackButton to="/prototypes/teams" />
-          </div>
-          <div className={local.newsPanel}>
-            <DetailsSectionHeader title={`${team.name} News (${displayNews.length})`} />
-            <div className={local.newsList}>
-              {previewNews.map((item) => (
-                <NewsCardView
-                  key={item.uid}
-                  item={item}
-                  flat
-                  hideTeam
-                  views={viewsFor(item.uid)}
-                  likes={likesFor(item.uid)}
-                  liked={likedNews.has(item.uid)}
-                  comments={commentsFor(item.uid)}
-                  onToggleLike={() => toggleNewsLike(item.uid)}
-                  // Tap, "Show more" and the comment count are three ways of
-                  // asking for the same thing: this story, in full.
-                  onOpenComments={() => openDetail(item)}
-                  onShowMore={() => openDetail(item)}
-                />
-              ))}
+            <div className={local.railBackSpacer} aria-hidden="true">
+              <BackButton to="/prototypes/teams" />
             </div>
-            {/* The rail's two exits, paired on one row. They're deliberately not
+            <div className={local.newsPanel}>
+              {/* No "(0)" over the empty card — the card already says there is nothing. */}
+              <DetailsSectionHeader
+                title={displayNews.length > 0 ? `${team.name} News (${displayNews.length})` : `${team.name} News`}
+              >
+                {/* The section's own action, in the corner every profile section
+                    keeps for one — only for someone who can post, and only once
+                    there is news: with none, the empty card below is the one
+                    door, and a second one here would open into the same room.
+
+                    A small filled primary button with a one-time callout (see
+                    PostNewsButton). The placements it went through, for the
+                    record: the sections' link-style HeaderActionBtn here (blue
+                    14px text beside this panel's blue 14px title — "almost
+                    impossible to notice"); a bordered button here (read, but
+                    crowded); a full-width bordered row under the header; an
+                    input-shaped compose prompt in that row (the feed idiom).
+                    The corner won with a filled button and an announcement:
+                    a new feature is found by being announced, not by taking
+                    more of the list. */}
+                {canPost && displayNews.length > 0 && (
+                  <PostNewsButton teamName={team.name ?? 'this team'} onPost={() => setComposeOpen(true)} />
+                )}
+              </DetailsSectionHeader>
+              {canPost && displayNews.length === 0 && <NewsEmptyCard onPost={() => setComposeOpen(true)} />}
+              <div className={local.newsList} ref={railListRef}>
+                {previewNews.map((item) => (
+                  <NewsCardView
+                    key={item.uid}
+                    item={item}
+                    flat
+                    hideTeam
+                    views={viewsFor(item.uid)}
+                    likes={likesFor(item.uid)}
+                    liked={likedNews.has(item.uid)}
+                    comments={commentsFor(item.uid)}
+                    onToggleLike={() => toggleNewsLike(item.uid)}
+                    // Tap, "Show more" and the comment count are three ways of
+                    // asking for the same thing: this story, in full.
+                    onOpenComments={() => openDetail(item)}
+                    onShowMore={() => openDetail(item)}
+                  />
+                ))}
+              </div>
+              {/* The rail's two exits, paired on one row. They're deliberately not
               interchangeable: "View all news" stays inside this team (the modal
               is its own archive), while "All network updates" leaves for the home feed
               (which carries forum/events/Demo Day too — not just team news; "all"
               is the word marking that widening, and the ↗ carries "elsewhere")
               — hence the ↗ and the quieter neutral text against the blue. When
               there's no archive to open, the remaining button takes the row. */}
-            <div className={local.newsFooter}>
-              {hasMore && (
-                <button type="button" className={local.viewAll} onClick={() => openNewsFeed()}>
-                  View all news ({displayNews.length})
-                </button>
-              )}
-              <Link href="/prototypes/newsfeed" prefetch={false} className={local.viewFeed}>
-                All network updates
-                <ArrowUpRightIcon aria-hidden="true" />
-              </Link>
+              <div className={local.newsFooter}>
+                {hasMore && (
+                  <button type="button" className={local.viewAll} onClick={() => openNewsFeed()}>
+                    View all news ({displayNews.length})
+                  </button>
+                )}
+                <Link href="/prototypes/newsfeed" prefetch={false} className={local.viewFeed}>
+                  All network updates
+                  <ArrowUpRightIcon aria-hidden="true" />
+                </Link>
+              </div>
             </div>
-          </div>
-        </aside>
+          </aside>
+        )}
 
         {/* The team's full archive. Mobile gets a full-screen page
           (Notifications-style), desktop a modal with its own scroll.
@@ -532,6 +755,20 @@ export default function TeamProfilePrototype() {
         <FollowToast>
           You&apos;re following <strong>{team.name}</strong> — you&apos;ll get its updates in your feed.
         </FollowToast>
+      )}
+      {listingToast && <FollowToast>{listingToast}</FollowToast>}
+
+      {/* Compose. Mounted only for someone who can post — the modal owns a
+          draft, and a draft for a person with nowhere to post it is a leak. */}
+      {canPost && (
+        <PostNewsModal
+          open={composeOpen}
+          onClose={() => setComposeOpen(false)}
+          teamUid={team.id ?? 'protocol-labs'}
+          teamName={team.name ?? 'This team'}
+          existing={news}
+          onPublish={publishNews}
+        />
       )}
     </div>
   );

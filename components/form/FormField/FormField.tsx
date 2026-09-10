@@ -24,6 +24,15 @@ interface Props extends PropsWithChildren {
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   topDescription?: string;
   inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
+  /**
+   * The input's accessible name, for the rows that have no `label` of their own.
+   *
+   * Declared rather than wired: `{...rest}` already reaches `Field.Control`, so
+   * this only exists because the interface is closed and TypeScript would reject
+   * the prop at the call site. Nothing changes for a field that passes `label` —
+   * omit it there and the visible label goes on naming the input.
+   */
+  'aria-label'?: string;
 }
 
 export const FormField = ({

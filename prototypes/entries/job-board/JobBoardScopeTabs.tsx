@@ -35,6 +35,14 @@ interface Props {
  * without reading all thirteen rows, and that is precisely the question someone
  * returning to a job board asks first.
  *
+ * **There was a third scope — Manage listings — and it is gone.** It held a
+ * lead's own listings in every state, on the team-Asks "Archived Asks" model,
+ * so that All could stay identical for a lead and a stranger. That bought a
+ * second surface for a handful of rare actions. Now a lead's own listings sit
+ * on All, in their team's card, and the owner's controls ride each row as a
+ * ⋯ menu — see `ListingMenu`. The one thing All shows a lead that it shows no
+ * one else is their own not-yet-live rows, marked with a status pill.
+ *
  * **The scope lives in the filter store**, like `followingOnly` does on teams,
  * so Clear All puts you back on the whole board along with everything else you
  * had narrowed rather than leaving one narrowing behind that nothing undoes.
@@ -53,7 +61,8 @@ interface Props {
 export function JobBoardScopeTabs({ appliedCount }: Props) {
   const { params, setParam } = useMockJobsFilterStore();
 
-  const activeTab = params.get(SCOPE_PARAM) === SCOPE_APPLIED ? APPLIED_TAB : ALL_TAB;
+  const scope = params.get(SCOPE_PARAM);
+  const activeTab = scope === SCOPE_APPLIED ? APPLIED_TAB : ALL_TAB;
 
   useEffect(() => {
     // Avoid a jarring near-empty view when switching into a shorter tab mid-scroll.

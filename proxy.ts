@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkIsValidToken, renewAccessToken } from './services/auth.service';
 import { calculateExpiry, decodeToken } from './utils/auth.utils';
-import { isProtectedRoute } from './utils/isProtectedRoute';
+import { isAiAppsRoute, isProtectedRoute } from './utils/isProtectedRoute';
 
 export const config = {
   matcher: [
@@ -37,7 +37,9 @@ export const config = {
  * @returns NextResponse redirect to /members with backlink and #login hash
  */
 function createLoginRedirect(req: NextRequest, pathname: string): NextResponse {
-  const backlink = encodeURIComponent(pathname);
+  // AI App links carry the open subpage in `?path=`, so keep the query for them.
+  const target = isAiAppsRoute(pathname) ? `${pathname}${req.nextUrl.search}` : pathname;
+  const backlink = encodeURIComponent(target);
   const redirectUrl = new URL(`/members?backlink=${backlink}#login`, req.url);
   return NextResponse.redirect(redirectUrl);
 }

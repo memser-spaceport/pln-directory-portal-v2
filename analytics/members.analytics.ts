@@ -516,6 +516,23 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_CONTACT_DETAILS_SAVE_CLICKED);
   }
 
+  /**
+   * A member changed their own job search status.
+   *
+   * **The answer itself is never in the payload.** `jobSearchStatus` is private
+   * (see JOB_SEARCH_STATUS_OPTIONS in services/jobs/job-board-viewer.ts), so
+   * this counts the act and not the value. What it measures is whether the
+   * profile card gets used outside an application at all, which is the whole
+   * reason that card exists.
+   *
+   * `source` is a parameter rather than a literal in here: the job-board
+   * profile drawer writes the same field and can adopt this event without the
+   * helper claiming every change came from the profile.
+   */
+  function onJobSearchStatusChanged(params: { source: string }) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_JOB_SEARCH_STATUS_CHANGED, params);
+  }
+
   function onAddExperienceDetailsClicked() {
     captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_ADD_CLICKED);
   }
@@ -780,6 +797,7 @@ export const useMemberAnalytics = () => {
     onSaveProfileDetailsClicked,
     onPrimaryTeamChanged,
     onEditContactDetailsClicked,
+    onJobSearchStatusChanged,
     onSaveContactDetailsClicked,
     onAddExperienceDetailsClicked,
     onDeleteExperienceDetailsClicked,

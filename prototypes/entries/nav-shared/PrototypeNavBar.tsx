@@ -31,6 +31,7 @@ import local from './PrototypeNav.module.scss';
 import { HomeIcon, BellIcon, SearchGlyph } from './icons';
 import { LOGO_LABEL, scrollToTop } from './home';
 import { PrototypeSearchModal } from './PrototypeSearchModal';
+import { HelpFeedbackMenu, type HelpFeedbackMenuProps } from './HelpFeedbackMenu';
 
 /**
  * Copy of the production `Navbar` (components/core/navbar/nav-bar.tsx) with the
@@ -99,6 +100,27 @@ interface PrototypeNavBarProps {
    * stand-in it has today, so opting in is the new behaviour, not the norm.
    */
   searchable?: boolean;
+  /**
+   * Replaces the inert (?) with the proposed help & feedback menu (see
+   * HelpFeedbackMenu). Off by default for the same reason as `searchable`:
+   * every other entry sharing this header keeps the stand-in it has today.
+   * `askAi` adds the optional "Ask AI" item, which opens the search overlay
+   * (needs `searchable`); `key` remounts the menu, for re-showing the callout.
+   */
+  helpMenu?: Pick<HelpFeedbackMenuProps, 'onPickTopic' | 'callout'> & { askAi?: boolean; key?: string };
+  /**
+   * Controlled form of the search dialog's open state, for pages that also
+   * open it from somewhere other than the icon (a ⌘K shortcut, a page button).
+   * Omit both and the bar keeps its own state, as every other entry does.
+   */
+  searchOpen?: boolean;
+  onSearchOpenChange?: (open: boolean) => void;
+  /**
+   * A different dialog behind the same icon. Defaults to `PrototypeSearchModal`
+   * (the live global search); the `ai-search` entry passes its own mocked one.
+   * Only read while `searchable`.
+   */
+  renderSearchModal?: (open: boolean, close: () => void) => React.ReactNode;
 }
 
 export function PrototypeNavBar({
@@ -111,8 +133,17 @@ export function PrototypeNavBar({
   onSignIn,
   onSignUp,
   searchable = false,
+  helpMenu,
+  searchOpen: controlledOpen,
+  onSearchOpenChange,
+  renderSearchModal,
 }: PrototypeNavBarProps) {
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const searchOpen = controlledOpen ?? internalOpen;
+  const setSearchOpen = (open: boolean) => {
+    setInternalOpen(open);
+    onSearchOpenChange?.(open);
+  };
   const label = hasUnreadNews ? 'Home, new items since your last visit' : 'Home';
   const inner = (
     <>
@@ -234,9 +265,18 @@ export function PrototypeNavBar({
                 <SearchGlyph />
               </span>
             )}
-            <div className={s.supportButton}>
-              <HelpIcon />
-            </div>
+            {helpMenu ? (
+              <HelpFeedbackMenu
+                key={helpMenu.key}
+                onPickTopic={helpMenu.onPickTopic}
+                callout={helpMenu.callout}
+                onAskAi={helpMenu.askAi ? () => setSearchOpen(true) : undefined}
+              />
+            ) : (
+              <div className={s.supportButton}>
+                <HelpIcon />
+              </div>
+            )}
             {/* Logged out, the bell goes with the account: notifications with
                 nobody to notify is a control that can't mean anything. Same shape
                 production uses (nav-bar.tsx `.signInWrapper`), wearing the real
@@ -266,7 +306,12 @@ export function PrototypeNavBar({
         </NavigationMenu.List>
       </NavigationMenu.Root>
 
-      {searchable && <PrototypeSearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />}
+      {searchable &&
+        (renderSearchModal ? (
+          renderSearchModal(searchOpen, () => setSearchOpen(false))
+        ) : (
+          <PrototypeSearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+        ))}
     </header>
   );
 }

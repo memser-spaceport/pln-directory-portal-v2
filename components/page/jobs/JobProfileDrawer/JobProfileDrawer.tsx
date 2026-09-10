@@ -7,12 +7,18 @@ import { useQuery } from '@tanstack/react-query';
 import { Drawer } from '@/components/common/Drawer';
 import { Button } from '@/components/common/Button';
 import { toast } from '@/components/core/ToastContainer';
+import {
+  UnsavedEditsProvider,
+  blockIfUnsaved,
+  useUnsavedEditsRegistry,
+} from '@/components/common/profile/UnsavedEdits';
 import { DetailsSection } from '@/components/common/profile/DetailsSection/DetailsSection';
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete/DataIncomplete';
 import { ProfileDetails } from '@/components/page/member-details/ProfileDetails';
 import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
 import { ContributionsDetails } from '@/components/page/member-details/ContributionsDetails';
+import { LinkedInVerificationCard } from '@/components/page/member-details/OneClickVerification/LinkedInVerificationCard';
 import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
 import { ContactDetails } from '@/components/page/member-details/ContactDetails';
 import { getMember } from '@/services/members.service';
@@ -51,9 +57,15 @@ import d from './JobProfileDrawer.module.scss';
  * (`isJobProfileComplete`). Their cards mark themselves while unanswered;
  * everything else refines a read rather than making one possible.
  *
- * Escapable (Escape and overlay both close), unlike the investor drawer, which
- * pins itself shut: someone who pressed Apply and changed their mind about the
- * role is not someone to hold.
+ * Escapable — Escape and the header's Back both close it — unlike the investor
+ * drawer, which pins itself shut: someone who pressed Apply and changed their
+ * mind about the role is not someone to hold. (The overlay does *not* close it;
+ * `closeOnOverlayClick={false}`, so a stray click on a long form cannot throw it
+ * away. This line used to claim the overlay closed it too, which it never did.)
+ *
+ * Leaving with a half-edited section is held, though — the same "verify and
+ * save" popup every other way out of the step gets, rather than a second
+ * grammar invented for this press. The way past is the form's own Cancel.
  */
 
 /** What the flow's footer needs to know about a profile it cannot see. */
@@ -70,6 +82,17 @@ export interface JobProfilePaneProps {
   pendingRoleTitle: string | null;
   /** Signed up but not yet approved. Says so in the lede; gates nothing. */
   pendingApproval: boolean;
+  /**
+   * Absolute URL LinkedIn returns to after the identity round trip, which
+   * navigates the whole page away and back.
+   *
+   * The host's to decide, because only the host knows what was interrupted: the
+   * apply flow sends them back to the role they were applying for, the
+   * standalone drawer back to the board. Omit it and the verification card is
+   * withheld rather than offered with nowhere to return to — a round trip that
+   * loses the flow is worse than not offering the shortcut.
+   */
+  verifyReturnTo?: string;
   /** Reported on every change — see the note in the component. */
   onProfileState: (state: ProfileState) => void;
 }
@@ -88,7 +111,7 @@ export interface JobProfilePaneProps {
  * need it and neither of their footers is inside this component.
  */
 export function JobProfilePane(props: JobProfilePaneProps) {
-  const { memberUid, isLoggedIn, pendingRoleTitle, pendingApproval, onProfileState } = props;
+  const { memberUid, isLoggedIn, pendingRoleTitle, pendingApproval, verifyReturnTo, onProfileState } = props;
 
   const { currentUser: userInfo } = useCurrentUserStore();
   const isAdmin = isAdminUser(userInfo);
@@ -190,13 +213,6 @@ export function JobProfilePane(props: JobProfilePaneProps) {
 
       {member && (
         <>
-          {/* 0. Start with a document, while there is nothing to start from.
-                   Above the header card because a CV answers the required role
-                   sitting in it — a control that answers the question below it
-                   belongs above it. Disappears the moment the profile has
-                   anything in it, handing the offer to the Experience section. */}
-          {cvImportHost === 'top-card' && <CvFirstCard member={member} onHandOff={() => setHandedOff(true)} />}
-
           {/* 1. The header card — the first required answer (current role)
                    lives in its editor. While the role is missing the card wears
                    the required treatment: the strip names the consequence, the
@@ -212,10 +228,75 @@ export function JobProfilePane(props: JobProfilePaneProps) {
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="apply-flow" />
           </div>
 
-          {/* 2. Job search status — the required section, so it comes first
-                   after the header. PL-Team-only: the pill carries the
-                   audience, the note carries the purpose, and the value never
-                   appears on the public profile or in the apply read-back. */}
+          {/* 2. Start with a document, while there is nothing to start from.
+                   Disappears the moment the profile has anything in it, handing
+                   the offer to the Experience section.
+
+                   **Below the header card, having been above it.** The old order
+                   argued that a CV *answers* the required role sitting in the
+                   card, and a control that answers the question below it belongs
+                   above it. That is true of what the upload does and wrong about
+                   what someone opening this drawer is looking at: the first
+                   thing on the screen was an offer to hand over a file, before
+                   anything had established whose profile this is or what was
+                   missing from it. The amber strip is the screen's own answer to
+                   "what do I have to do", and it was the second thing read.
+
+                   So the profile identifies itself first and the shortcut
+                   follows it. The shortcut loses nothing by the move — it is
+                   still above every section it fills, and someone who wants it
+                   has not been asked to do anything in between. */}
+          {cvImportHost === 'top-card' && <CvFirstCard member={member} onHandOff={() => setHandedOff(true)} />}
+
+          {/* 3. Identity verification, for an account the PL team is reviewing.
+                   The same card the member profile page shows, in the position
+                   the design gives it: under the header card, above everything a
+                   hiring team reads.
+
+                   **Three conditions, and each excludes someone different.**
+                   `pendingApproval` is the review itself — an approved member has
+                   nothing to verify, and a Job Aspirant is never in a review at
+                   all (`deriveBoardViewer` never yields this state for one), so
+                   this is also what keeps the card away from the job-board
+                   sign-ups it would only confuse. `linkedinProfile` is the answer
+                   it asks for, so having one retires it. And `verifyReturnTo` is
+                   the host promising it can bring them back: connecting
+                   navigates the entire page to LinkedIn, so without a return
+                   this would trade a shortcut for the flow they were in. */}
+          {pendingApproval && !member.linkedinProfile && verifyReturnTo && (
+            <LinkedInVerificationCard
+              memberUid={memberUid}
+              redirectUrl={verifyReturnTo}
+              /* Unframed here — the design gives it a full-width band and lets
+                 the row sit on the drawer, rather than the white card it wears
+                 among the cards of a profile page. */
+              variant="plain"
+              /* Names what verifying unblocks, not the verifying. The member
+                 page's default sentence cannot say this: there is no
+                 application behind it to be reviewed faster. */
+              description="Verify your LinkedIn to get your application reviewed faster."
+            />
+          )}
+
+          {/* 4. Contact details.
+                   Above the status rather than below it, per the design. This
+                   used to sit after, on the reasoning recorded below: the
+                   required answer should come first because it is the one thing
+                   holding the application up.
+
+                   What that missed is that the required answer is not hard to
+                   find — it is the only amber card on the screen, and it says
+                   `Required to continue` on its own title. Ordering by urgency
+                   bought nothing the colour was not already buying, and it cost
+                   the reading order: this is a profile, and a profile opens with
+                   who you are and how to reach you. The status is a question
+                   about *this* application and follows from that. */}
+          <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="drawer" />
+
+          {/* 5. Job search status — the required section. PL-Team-only: the pill
+                   carries the audience, the note carries the purpose, and the
+                   value never appears on the public profile or in the apply
+                   read-back. */}
           {/* The requirement is said once, on the title, instead of in a strip
               above the card.
 
@@ -237,7 +318,11 @@ export function JobProfilePane(props: JobProfilePaneProps) {
               The amber card treatment stays: `missingData` is what marks the
               section, and that is the part the strip was only decorating. */}
           <DetailsSection missingData={!hasStatus}>
-            <div className={clsx({ [d.missingBody]: !hasStatus })}>
+            {/* `Uncapped` because this step has no `DataIncomplete` strip above
+                the body — the requirement is on the title instead. See the
+                stylesheet: without it the body's square top corners paint over
+                the rounded border under them. */}
+            <div className={clsx({ [d.missingBody]: !hasStatus, [d.missingBodyUncapped]: !hasStatus })}>
               <DetailsSectionHeader
                 title={
                   <>
@@ -257,6 +342,18 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                     the right winner. */}
               <JobSearchStatusInput
                 value={jobSearchStatus}
+                /* Two options, per the design — "Not looking" is not an answer
+                   this step is asking for, and someone reading a job is by
+                   definition not giving it.
+
+                   **Unless it is already their answer.** This drawer is the only
+                   place in the product that writes `jobSearchStatus`, so hiding
+                   the value unconditionally would both strand anyone who wants
+                   to stop being surfaced and — worse — render this card with no
+                   option selected for someone who is already on it, while
+                   `hasStatus` quietly reports the section as answered. Shown
+                   when it is the current value, hidden otherwise. */
+                hiddenValues={jobSearchStatus === 'not-looking' ? undefined : ['not-looking']}
                 onChange={(value) =>
                   updateMember.mutate(
                     { uid: memberUid, payload: { jobSearchStatus: value } },
@@ -278,9 +375,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
             </div>
           </DetailsSection>
 
-          <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="drawer" />
-
-          {/* 3–5. Optional sections — what a hiring team actually reads.
+          {/* 5–7. Optional sections — what a hiring team actually reads.
                    Real components: they edit in place and save themselves.
 
                    Experience is the one section with a shortcut: drop a CV and
@@ -347,47 +442,66 @@ export function JobProfileDrawer({
     hasStatus: false,
   });
 
+  /* The same guard the flow's step 2 gets, for the same reason: the fields are
+     in the pane and the button that leaves them is in the footer. `Save and
+     close` over a half-edited section loses it exactly as silently here. */
+  const unsavedEdits = useUnsavedEditsRegistry();
+
+  /** Back and Escape both land here, and are held like every other way out —
+   *  see `closeFlow` in the flow drawer for why this is not a discard modal. */
+  const requestClose = () => {
+    if (blockIfUnsaved(unsavedEdits)) return;
+    onClose();
+  };
+
   return (
-    <Drawer isOpen={open} onClose={onClose}>
-      <div className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
-        <div className={s.breadcrumbs}>
-          <button type="button" className={s.backButton} onClick={onClose}>
-            <BackIcon />
-            <span>Back</span>
-          </button>
+    <UnsavedEditsProvider value={unsavedEdits}>
+      <Drawer isOpen={open} onClose={requestClose} closeOnOverlayClick={false}>
+        <div className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
+          <div className={s.breadcrumbs}>
+            <button type="button" className={s.backButton} onClick={requestClose}>
+              <BackIcon />
+              <span>Back</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className={s.drawerContent}>
-        <JobProfilePane {...paneProps} onProfileState={setProfileState} />
-      </div>
+        <div className={s.drawerContent}>
+          <JobProfilePane {...paneProps} onProfileState={setProfileState} />
+        </div>
 
-      {/* One label for one act. The sections' own Saves commit one card each;
+        {/* One label for one act. The sections' own Saves commit one card each;
           this one says what happens NEXT — and for this surface that is going
           back to the board, because nothing was waiting on it. */}
-      <div className={d.footer}>
-        <div className={d.footerInner}>
-          {/* Silent while the profile is short — what is missing is named on the
+        <div className={d.footer}>
+          <div className={d.footerInner}>
+            {/* Silent while the profile is short — what is missing is named on the
               card that is missing it, and the footer restating it from down here
               was the same complaint at the greater distance. Absent rather than
               empty: `.footerInner` is a 12px-gap column on a phone, and a
               zero-height paragraph still earns its gap. */}
-          {complete && (
-            <p className={d.footerHint}>Experience, skills and bio are optional — you can add them any time.</p>
-          )}
-          <Button
-            variant="primary"
-            style="fill"
-            size="m"
-            className={d.footerAction}
-            disabled={!complete}
-            onClick={() => onFooterAction({ profileComplete: complete })}
-          >
-            Save and close
-          </Button>
+            {complete && (
+              <p className={d.footerHint}>Experience, skills and bio are optional — you can add them any time.</p>
+            )}
+            <Button
+              variant="primary"
+              style="fill"
+              size="m"
+              className={d.footerAction}
+              disabled={!complete}
+              onClick={() => {
+                /* Moving on, not leaving: held on the section with the popup, the
+                 same as the flow's `Continue to apply`. */
+                if (blockIfUnsaved(unsavedEdits)) return;
+                onFooterAction({ profileComplete: complete });
+              }}
+            >
+              Save and close
+            </Button>
+          </div>
         </div>
-      </div>
-    </Drawer>
+      </Drawer>
+    </UnsavedEditsProvider>
   );
 }
 

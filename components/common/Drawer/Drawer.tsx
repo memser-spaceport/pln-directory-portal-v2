@@ -22,10 +22,20 @@ export interface DrawerProps {
    * for everyone who doesn't ask.
    */
   containerRef?: React.Ref<HTMLDivElement>;
+  closeOnOverlayClick?: boolean;
 }
 
 export function Drawer(props: PropsWithChildren<DrawerProps>) {
-  const { isOpen, onClose, children, width = 720, fullScreen, noBlur, containerRef } = props;
+  const {
+    isOpen,
+    onClose,
+    children,
+    width = 720,
+    fullScreen,
+    noBlur,
+    containerRef,
+    closeOnOverlayClick = true,
+  } = props;
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -42,7 +52,7 @@ export function Drawer(props: PropsWithChildren<DrawerProps>) {
   }, [isOpen, onClose]);
 
   const handleOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
+    if (closeOnOverlayClick && e.target === e.currentTarget) {
       onClose();
     }
   };

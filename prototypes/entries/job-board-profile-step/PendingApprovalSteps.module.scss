@@ -1,66 +1,65 @@
 @use 'styles/media';
 
-/* Transcribed from
-   `components/page/demo-day/AppliedInvestorSteps/AppliedInvestorSteps.module.scss`.
+/* The atoms are transcribed from
+   `components/page/demo-day/AppliedInvestorSteps/AppliedInvestorSteps.module.scss`
+   — the 20px indicator, the check disc, the ringed dot, both shadows, the
+   connector colours and the two type ranks are 1:1 with the source, with only
+   the colour layer translated to `var(--token, #fallback)` pairs
+   (prototypes/CLAUDE.md §3, §4, §6).
 
-   That file only `@use`s `styles/media`, so it would have lifted by import —
-   but the component that owns it doesn't (it needs `useCurrentUserStore`, the
-   `useMember` react-query hook, `useDemoDayAnalytics` and `useRouter`), and a
-   stylesheet imported without its markup is a contract nobody can see. So the
-   rules are copied here, verbatim in every dimension: sizes, spacing, radii,
-   shadows and the two transitions are 1:1 with the source.
+   The *frame* is not the source's: this stepper runs horizontal, which the
+   source never does, so the layout rules here are this file's own and the
+   sheets are no longer line-for-line diffable. What was dropped with the
+   rotation, deliberately rather than lost:
 
-   Only the colour layer is translated — raw hex swapped for the
-   `var(--token, #fallback)` pair verified in a neighbouring production sheet,
-   keeping the same rendered colour (prototypes/CLAUDE.md §3, §4, §6).
-   The `.stepperCard` / `.titleSection` / `.icon` / `.title` block and the
-   `.secondaryButton` rule are NOT copied: this stepper sits inside the profile
-   drawer, which already owns its own heading and never reaches the state that
-   swaps the CTA to secondary. */
+   - the per-step inline connector heights (the wire now spans the column,
+     `flex: 1`, and needs no measuring);
+   - the source's dead `.stepContent:not(:last-child)` padding, kept in the
+     vertical file only for diffability;
+   - `.primaryButton`, which this component never rendered;
+   - the 322px max-width, which existed to keep a vertical rail dominant over
+     its text and has no meaning across the axis.
 
-/* 322px is production's number, and it is the whole reason this reads as a
-   stepper rather than a paragraph: the column is narrow enough that the rail of
-   dots stays the dominant vertical line on the card. */
-// Left-aligned, against production's centred 322px column.
-//
-// Centred is right where it comes from: a Demo Day page where the stepper IS the
-// content, alone on the surface with nothing to line up against. Here it sits at
-// the top of a drawer whose every card below it — the header, Experience, Job
-// search status — starts on the same left edge, and a centred column in that
-// stack reads as a floating inset rather than as the first thing in the sequence.
-// The `max-width` stays: the measure is right, only its placement was wrong.
-.verticalStepper {
+   NOT restyled into the DS `Steps` circles on purpose — `ApplyFlowSteps` in
+   this same drawer already wears those, and two rails in one viewport with the
+   same vocabulary would read as one journey drawn twice. See the component's
+   header. */
+
+.stepper {
   display: flex;
-  flex-direction: column;
-  width: 100%;
   align-items: flex-start;
-  max-width: 322px;
+  width: 100%;
   margin: 12px 0 0;
-
-  /* `.drawerContent` centres its children, so zeroing the auto margins is not
-     enough on its own — the flex parent re-centres the box. This is what
-     actually puts the rail on the column's left edge. */
-  align-self: flex-start;
 }
 
+/* Equal thirds, including the last (the DS gives its last step `flex: 0`, but
+   its text sits beside the circles — here each column carries a paragraph, and
+   a final column sized to its longest word would wrap "Await approval
+   confirmation" against a wall of free space). `min-width: 0` so a long title
+   wraps instead of forcing the row wide. */
 .stepContainer {
+  flex: 1;
+  min-width: 0;
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  width: 100%;
-  position: relative;
+  flex-direction: column;
 
-  @include media.mobile-only {
-    gap: 12px;
+  /* The breathing room between one column's text and the next dot's text.
+     On the container's content rather than a root `gap`, so the connector row
+     above still spans edge to edge — a gap at the root would break the wire
+     into three strokes with holes at every column boundary. */
+  &:not(:last-child) .stepContent {
+    padding-right: 16px;
+
+    @include media.mobile-only {
+      padding-right: 12px;
+    }
   }
 }
 
-.stepIndicatorContainer {
+.indicatorRow {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  flex-shrink: 0;
-  position: relative;
+  width: 100%;
 }
 
 .stepIndicator {
@@ -72,6 +71,7 @@
   justify-content: center;
   position: relative;
   z-index: 2;
+  flex-shrink: 0;
 }
 
 /* #11a75c. `--foreground-success-secondary` is the pair SuccessAlert.module.scss
@@ -108,11 +108,11 @@
   transition: all 0.2s ease;
 }
 
-/* The 3px brand ring. Production applies it to `.completed` as well as
+/* The 3px brand ring. The source applies it to `.completed` as well as
    `.current`, even though a completed step renders `.stepIconCompleted` and
-   never a dot — the selector is inert there. Kept anyway: this file mirrors the
-   source, and pruning a dead selector is exactly the kind of "correction" that
-   makes the next diff against production unreadable. */
+   never a dot — the selector is inert there. Kept for the same reason the
+   source keeps it: it is the source's rule, and the inertness is its property,
+   not this file's improvement. */
 .stepIndicator.completed .stepDot,
 .stepIndicator.current .stepDot {
   border: 3px solid var(--border-brand-default, #1b4dff);
@@ -121,14 +121,17 @@
     0px 2px 4px -1px rgba(14, 15, 17, 0.06);
 }
 
-/* `height` here is the default only — the real value arrives per step as an
-   inline style, because it has to span whatever that step's content measures.
-   Same mechanism as production. */
+/* The wire. Same 2px stroke and both colours as the source's vertical rail —
+   only the axis changed, so `width: 2px` became `height: 2px` and the length
+   is the flex remainder of the column instead of a measured pixel value. The
+   8px margins are the source's own dot-to-rail distance (its `margin-top: 4px`
+   was 4 because the rail ran *under* a dot it visually continued; side-on, the
+   wire meets two dots and gets the DS connector's 8 on each end). */
 .stepConnector {
-  width: 2px;
-  height: 120px;
+  flex: 1;
+  height: 2px;
   background: var(--background-neutral-subtle, #f0f3f9);
-  margin-top: 4px;
+  margin: 0 8px;
   transition: background-color 0.3s ease;
 
   &.completed {
@@ -136,29 +139,20 @@
   }
 
   @include media.mobile-only {
-    height: 32px;
+    margin: 0 4px;
   }
 }
 
-/* `:not(:last-child)` never matches — `.stepContent` is always the second and
-   final child of `.stepContainer`, so the 24px never lands. That is true in
-   production too; the vertical rhythm comes entirely from the connector heights.
-   Copied as-is rather than "fixed", so the two files stay diffable. */
+/* 8 under the dot — the same distance the title kept from the rail side-on.
+   The `margin-bottom: 8px` the description carried in the vertical sheet is
+   gone: it existed to hold a CTA off the text, and this component never grew
+   the CTA. */
 .stepContent {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  padding-top: 0;
   gap: 4px;
+  margin-top: 8px;
   min-width: 0;
-
-  &:not(:last-child) {
-    padding-bottom: 24px;
-
-    @include media.mobile-only {
-      padding-bottom: 20px;
-    }
-  }
 }
 
 .stepTitle {
@@ -177,39 +171,4 @@
   font-weight: 400;
   line-height: 18px;
   letter-spacing: -0.2px;
-  margin-bottom: 8px;
-}
-
-/* Production's `.primaryButton`, copied whole. Its hover `#1a45e6` is bare hex
-   in the source and in every other place the brand hover appears
-   (DemoDayCard, IrlGatheringModal) — there is no token paired with it anywhere
-   in the codebase, so inventing a name here would be worse than keeping it. */
-.primaryButton {
-  display: flex;
-  padding: 8px var(--global-size-size-125, 10px);
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-
-  border-radius: var(--corner-radius-md, 8px);
-  border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
-  background: var(--action-background-brand-normal, #1b4dff);
-  box-shadow:
-    0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
-    0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
-    0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
-
-  color: var(--action-foreground-base-inverted_white, #fff);
-  font-size: 14px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-  cursor: pointer;
-  width: 100%;
-  font-family: inherit;
-
-  &:hover {
-    background: #1a45e6;
-  }
 }

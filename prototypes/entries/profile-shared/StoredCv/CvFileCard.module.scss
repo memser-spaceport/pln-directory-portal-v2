@@ -1,0 +1,137 @@
+// The kept CV's row. Geometry is `FileUploader.container` — the box the offer
+// stands in and the reading row copies — so the three states of one card share
+// one outline. Values are that stylesheet's, restated here because a `<button>`
+// cannot wear a class from a module that also styles the drop area's hover.
+//
+// Every custom property is `var(--name, #fallback)`: this app does not load the
+// DS token sheet, so a bare token resolves to nothing.
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 16px;
+  margin: 0;
+  text-align: left;
+
+  border-radius: var(--corner-radius-lg, 10px);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+  transition: border-color 0.2s ease;
+}
+
+// The press. Same hover as the drop area (`FileUploader.container:hover`), so
+// "this box responds" reads the same whether it holds an offer or a file.
+.rowPressable {
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--border-brand-subtle, #aebfff);
+
+    .trailing {
+      color: var(--foreground-neutral-secondary, #455468);
+    }
+  }
+}
+
+// --- The page ---------------------------------------------------------------
+
+// 31 wide; A4 paints ~44 tall. Sized by the *row*, not by the disc it replaces
+// and not by the page: 44px is what the offer's title-over-description stack
+// measures, so the file row comes to the same 78px the offer and reading rows
+// do, and the box genuinely doesn't move between the three states. It was 48×68
+// — a page big enough to squint at — which made the resting state 22px taller
+// than the offer it replaced, i.e. the section grew as a reward for finishing
+// it. The page is a recognition mark; reading happens in the preview.
+//
+// The grey ground is the one `DetailsSectionGreyContentContainer` uses, so the
+// slot reads as a surface a page sits on rather than as a second border.
+.thumb {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 31px;
+  height: 44px;
+  overflow: hidden;
+
+  border-radius: 4px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-subtle, #f8fafc);
+}
+
+// Once the page has painted the ground goes white — the page is white, and a
+// grey hairline of ground showing under a white page reads as misalignment.
+.thumbPainted {
+  background: var(--background-base-white, #fff);
+}
+
+.thumbIcon {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// Pinned to the top-left so the page's own top edge is the slot's top edge, and
+// the crop (if the page is taller than 44) takes the bottom, which on a CV is
+// whitespace. Rendered on top of the glyph; the glyph unmounts once this paints.
+.thumbPage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  line-height: 0;
+
+  :global(.react-pdf__Page__canvas) {
+    display: block;
+  }
+}
+
+// --- The words --------------------------------------------------------------
+
+.text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+// `FileUploader.fileName`'s rank (14/500) on the PL token rather than its raw
+// slate — the same substitution the drawer's captions already make.
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+// `FileUploader.description`'s rank: the kind, the size and the date are the
+// three facts a person checks a file by, and none of them is worth more than
+// the name.
+.meta {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+}
+
+// The affordance's name. Tertiary at rest, secondary on hover (see
+// `.rowPressable`) — two tones and one meaning between them: quieter is
+// something to read, darker is something to press.
+.trailing {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  transition: color 0.2s ease;
+}

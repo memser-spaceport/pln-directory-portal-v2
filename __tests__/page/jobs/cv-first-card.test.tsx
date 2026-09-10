@@ -175,7 +175,10 @@ describe('the profile step’s "Upload your CV" card', () => {
     pickFile();
     await waitFor(() => expect(screen.getByText(/Lattice Compute/)).toBeInTheDocument());
 
-    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+    /* The review card has two Saves — the header's, and the sticky bar that is the
+       only one at mobile widths. What a press does is identical for both, so these
+       press the header's; the bar has its own case in `cv-import-review`. */
+    fireEvent.click(screen.getAllByRole('button', { name: /save/i })[0]);
 
     await waitFor(() => expect(mockApply).toHaveBeenCalled());
     await waitFor(() => expect(screen.queryByText('Upload your CV')).not.toBeInTheDocument());
@@ -191,7 +194,7 @@ describe('the profile step’s "Upload your CV" card', () => {
     pickFile();
     await waitFor(() => expect(screen.getByText(/Lattice Compute/)).toBeInTheDocument());
 
-    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: /save/i })[0]);
 
     await waitFor(() => expect(mockAnalytics.onCvImportSaveFailed).toHaveBeenCalled());
     expect(screen.getByText(/Lattice Compute/)).toBeInTheDocument();

@@ -4,8 +4,7 @@ import React, { use, useEffect } from 'react';
 import { redirect } from 'next/navigation';
 import { useCurrentUserStore } from '@/services/auth/store';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
-import { SyncParamsToUrl } from '@/components/core/SyncParamsToUrl';
-import { FiltersHydrator } from '@/components/core/FiltersHydrator/FiltersHydrator';
+import { MembersFilterUrlSync } from '@/components/page/members/MembersFilterUrlSync';
 import { AdminFilters } from '@/components/page/demo-day/AdminView/components/AdminFilters';
 import { AdminContent } from '@/components/page/demo-day/AdminView/components/AdminContent';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
@@ -32,8 +31,7 @@ function DemoDayDemoShowcasePage({ params }: { params: Promise<{ demoDayId: stri
   }
 
   return (
-    <FiltersHydrator>
-      <SyncParamsToUrl debounceTime={0} />
+    <MembersFilterUrlSync debounceTime={0}>
       <DashboardPagesLayout
         filters={<AdminFilters />}
         content={
@@ -45,7 +43,7 @@ function DemoDayDemoShowcasePage({ params }: { params: Promise<{ demoDayId: stri
           />
         }
       />
-    </FiltersHydrator>
+    </MembersFilterUrlSync>
   );
 }
 

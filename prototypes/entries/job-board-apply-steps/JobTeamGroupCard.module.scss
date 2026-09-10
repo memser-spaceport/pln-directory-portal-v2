@@ -70,6 +70,13 @@
 .card.plCard {
   position: relative;
   border-color: transparent;
+  // The ring's own stops again as a wash — same angle, same stop positions, so
+  // fill and outline read as one treatment. 4% alpha (the house subtle-surface
+  // alpha, --transparent-dark-4) over the card's opaque #fff, kept underneath so
+  // the tint can't shift with whatever the page shows behind the card.
+  background:
+    linear-gradient(71.47deg, rgba(66, 125, 255, 0.04) 8.43%, rgba(68, 213, 187, 0.04) 87.45%),
+    #fff;
 
   &::before {
     content: '';

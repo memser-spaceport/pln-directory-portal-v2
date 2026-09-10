@@ -5,4 +5,5 @@ export interface ISubItem {
   readonly title: string;
   readonly icon?: ReactNode;
   readonly description?: string;
+  readonly external?: boolean;
 }

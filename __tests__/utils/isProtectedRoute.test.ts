@@ -17,6 +17,18 @@ describe('isProtectedRoute', () => {
     expect(isProtectedRoute('/investors-club')).toBe(false);
   });
 
+  describe('the AI Apps carve-outs', () => {
+    it('protects the AI Apps section', () => {
+      expect(isProtectedRoute('/pl-infra/ai-apps')).toBe(true);
+      expect(isProtectedRoute('/pl-infra-os')).toBe(true);
+    });
+
+    it('leaves the sub-paths that render their own signed-out state open', () => {
+      expect(isProtectedRoute('/pl-infra/ai-apps/connect')).toBe(false);
+      expect(isProtectedRoute('/pl-infra/ai-apps/feedback')).toBe(false);
+    });
+  });
+
   it('leaves unconfigured sections open', () => {
     expect(isProtectedRoute('/members')).toBe(false);
     expect(isProtectedRoute('/teams')).toBe(false);

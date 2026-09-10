@@ -11,6 +11,9 @@ export enum JobsQueryKey {
   ApplicationStatuses = 'job-application-statuses',
   /** The viewer's own (PL-Team-only) job search status. */
   JobSearchStatus = 'job-search-status',
+  /** The viewer's complete interested-roles list. Same whole-map shape as
+   *  `ApplicationStatuses`, scoped by member uid for the same reason. */
+  InterestStatuses = 'job-interest-statuses',
 }
 
 /**
@@ -35,6 +38,20 @@ export enum JobsQueryKey {
  * bundler folds the branch.
  */
 export const SHOW_JOB_BOARD_APPLY: boolean = process.env.NEXT_PUBLIC_SHOW_JOB_BOARD_APPLY === 'true';
+
+/* (`SHOW_JOB_BOARD_INTEREST` lived here. It gated the "I'm interested" banner
+    for two reasons and outlived both: the endpoints did not exist yet, and the
+    logged-out layout was unreviewed. The endpoints landed and were verified
+    against dev, so the signal is simply part of the apply surface now — it
+    shows wherever the drawer opens, which is what `SHOW_JOB_BOARD_APPLY` above
+    already decides.
+
+    What that means in practice: there is no separate switch for the banner. If
+    it ever needs to come off on its own, the gate to restore is the `interest`
+    prop on `JobApplyFlowDrawer` — it is still optional, so withholding it is a
+    one-line change at the controller rather than a new flag threaded through
+    four layers. */
+
 
 /* (`SHOW_CV_IMPORT` lived here, "because there is exactly one host today". The
     member profile page is the second, so it moved somewhere neutral —

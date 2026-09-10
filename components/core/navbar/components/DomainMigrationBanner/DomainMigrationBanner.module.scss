@@ -1,0 +1,14 @@
+.root {
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 13px;
+  }
+}
+
+.link {
+  font-weight: 600;
+  text-decoration: underline;
+}

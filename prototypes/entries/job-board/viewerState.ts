@@ -4,6 +4,7 @@ import { seniorityDisplayLabel, workplaceTypeDisplayLabel } from '@/utils/jobs.u
 // The account's address, so the profile's contact card and the account fact are
 // one address rather than two that drift. See `FILLED_PROFILE.email`.
 import { VIEWER_EMAIL, VIEWER_ROLE } from './profile/viewerIdentity';
+import { MOCK_STORED_CV, type StoredCv } from '../profile-shared/StoredCv';
 
 /**
  * Who is looking at the board, and whether they can apply from it.
@@ -151,6 +152,12 @@ export const jobSearchStatusDisplayLabel = (raw: string): string => JOB_SEARCH_S
  * reads it, not because this flow demands it.
  */
 export interface MemberProfile {
+  /**
+   * The CV the profile keeps, or none. The *file* — the fields it filled in are
+   * the ordinary fields below, and removing one does not touch the other. See
+   * `profile-shared/StoredCv`.
+   */
+  cv: StoredCv | null;
   /** Header card: `member.mainTeam.role ?? member.role`. */
   role: string;
   /** Header card: `parseMemberLocation(member.location)`. */
@@ -215,6 +222,7 @@ export interface MemberProfile {
 }
 
 export const EMPTY_PROFILE: MemberProfile = {
+  cv: null,
   role: '',
   location: '',
   skills: [],
@@ -241,6 +249,9 @@ export const EMPTY_PROFILE: MemberProfile = {
  * form in by hand each time.
  */
 export const FILLED_PROFILE: MemberProfile = {
+  /* Uploaded some weeks back, like everything else on this profile — so the
+     returning member is the viewer the resting CV card is reviewed on. */
+  cv: MOCK_STORED_CV,
   role: 'Senior Protocol Engineer',
   location: 'Berlin, Germany',
   skills: ['Distributed Systems', 'Rust', 'libp2p'],
@@ -342,13 +353,30 @@ export const FILLED_PROFILE: MemberProfile = {
  * exists as its own entry state rather than as `profile-incomplete` with a flag.
  * The profile step is a different ask for them.
  */
+/**
+ * **`team-lead` and `directory-admin` are a different axis from the six above.**
+ * Those six are one person at successive moments; these two are what the same
+ * board looks like to someone who *owns listings on it*. Both are ordinary
+ * approved members with a finished profile — a lead can apply to another team's
+ * role like anyone else — plus one power: they can put their team's jobs on the
+ * board and take them off. Production decides that with
+ * `isTeamLeaderOrAdmin(userInfo, teamId)`; here it is `managedTeamUids` in
+ * `listings.ts`.
+ *
+ * Two, not one, because the form differs: a lead posts as the one team they
+ * lead and is never asked which, an admin posts for any team and picks. That
+ * is the only difference a reviewer needs to see, and it cannot be seen from
+ * one viewer.
+ */
 export type BoardViewer =
   | 'logged-out'
   | 'pending-approval'
   | 'job-aspirant'
   | 'profile-incomplete'
   | 'profile-ready'
-  | 'applied';
+  | 'applied'
+  | 'team-lead'
+  | 'directory-admin';
 
 /**
  * Signed up to look for work rather than to join a team — see `BoardViewer`.
@@ -373,15 +401,16 @@ export const isJobAspirant = (viewer: BoardViewer): boolean => viewer === 'job-a
 export const isViewerSignedIn = (viewer: BoardViewer): boolean => viewer !== 'logged-out';
 
 /**
- * A job aspirant's starting profile: both required answers already given, and
- * nothing else.
+ * A job aspirant's starting profile: the status and the role the sign-up
+ * collected, and nothing else.
  *
  * **Neither of these is an assumption — the sign-up collected them.**
  * `actively-looking` is what signing up as a job aspirant *means*, and the
  * current role is a field on the account form itself (see `accountFields`). A
  * step that opens by asking someone to re-enter what they typed two presses ago
- * is the product not listening, and an amber `required` strip over an answer
- * the account already holds is the step pointing at a gap that isn't there.
+ * is the product not listening. The role is no longer a requirement, so nothing
+ * would mark its absence any more; it is seeded because it was answered, which
+ * is the only reason a fixture ever needs.
  *
  * `VIEWER_ROLE`, not a fourth literal of the same string. `viewerIdentity` is
  * explicit that the sign-up form and the profile behind it have to describe one
@@ -390,7 +419,7 @@ export const isViewerSignedIn = (viewer: BoardViewer): boolean => viewer !== 'lo
  * Both stay ordinary editable answers, not locked ones: the header card and the
  * status card render as they do for anyone else, with these filled in.
  *
- * **What this makes true, and what it must not.** With both required answers in,
+ * **What this makes true, and what it must not.** With the status in,
  * `isProfileComplete` passes — so nothing on the board nags this viewer, which
  * is right. It would also make the profile step *skippable* on the usual rule
  * (complete → straight to the letter), which is wrong: for an aspirant that step
@@ -406,19 +435,21 @@ export const JOB_ASPIRANT_PROFILE: MemberProfile = {
 
 /** The profile each viewer arrives holding. */
 export const profileForViewer = (viewer: BoardViewer): MemberProfile =>
-  viewer === 'profile-ready' || viewer === 'applied'
+  /* A lead or an admin is a member in good standing, so they arrive with the
+     finished profile — and can apply to another team's role like anyone else. */
+  viewer === 'profile-ready' || viewer === 'applied' || viewer === 'team-lead' || viewer === 'directory-admin'
     ? FILLED_PROFILE
     : viewer === 'job-aspirant'
       ? JOB_ASPIRANT_PROFILE
       : EMPTY_PROFILE;
 
 /**
- * The gate on Apply: **your current role, and an answered job search status.**
+ * The gate on Apply: **an answered job search status, and nothing else.**
  *
- * Narrowed twice. The first version asked for a role, a team and a
+ * Narrowed three times. The first version asked for a role, a team and a
  * years-of-experience band as three separate top-level fields; those collapsed
- * into a single Experience entry, which answers all three at once. This version
- * drops even that.
+ * into a single Experience entry, which answers all three at once. Then the
+ * entry went too. The current role stood here last and is now gone as well.
  *
  * **Why the status and not the experience.** They are not the same kind of
  * question. An experience entry is a thing a member either has written down or
@@ -431,29 +462,29 @@ export const profileForViewer = (viewer: BoardViewer): MemberProfile =>
  * changes what the product does next — is a better gate than requiring the
  * paragraph they may have written elsewhere already.
  *
- * **And the current role, added second.** The status says whether to surface
- * someone; the role says *as what*, and it is the one line a hiring team reads
- * before anything else — an application from "someone, status: actively
- * looking" is not an application. It also costs a single field, and it is the
- * field the header card is already asking for in production's own amber
- * `+ Your Role` affordance, so requiring it adds a rule rather than a form.
+ * **And the current role, which stood here and no longer does.** The argument
+ * for it was that the status says whether to surface someone and the role says
+ * *as what* — the one line a hiring team reads first. That is still true about
+ * how a profile *reads*; it was never true that the board should refuse the
+ * application without it. It is the same class of answer as an Experience entry:
+ * a fact about the person that they may have written down elsewhere, that a CV
+ * fills in, and that a hiring team can ask for. Gating on it bought a tidier
+ * read-back at the price of stopping people at the door, which is the trade the
+ * experience gate had already lost.
  *
- * Deliberately not the same as an Experience entry's title. A member may have
- * no work history written down and still hold a job today; asking for the
- * current role directly gets the answer in one field instead of making them
- * file a dated entry to say it. The two coexist — the entry is the record, this
- * is the headline — and only this one gates.
+ * So the role is asked for in the two places it belongs — the account form and
+ * the profile's header card, both in production's own words — and neither of
+ * them stops anybody. Only the status does.
  *
- * Both live in the first two cards of the drawer, in that order: the required
- * things are the first things asked for, not the things three cards down.
+ * The status still lives in the first card of the drawer's profile step: the
+ * required thing is the first thing asked for, not the thing three cards down.
  *
- * Everything else is optional on purpose — experience, contributions, skills,
- * bio, location, repositories all refine a read rather than making one
+ * Everything else is optional on purpose — the role, experience, contributions,
+ * skills, bio, location, repositories all refine a read rather than making one
  * possible. Adding a section to the drawer never adds a requirement; this line
  * is the only place a requirement can be written.
  */
-export const isProfileComplete = (profile: MemberProfile): boolean =>
-  profile.role.trim() !== '' && profile.jobSearchStatus !== '';
+export const isProfileComplete = (profile: MemberProfile): boolean => profile.jobSearchStatus !== '';
 
 /** The entry a summary should speak for: the current role, else the most recent. */
 export function primaryExperience(profile: MemberProfile): ExperienceEntry | null {
@@ -468,18 +499,22 @@ export function primaryExperience(profile: MemberProfile): ExperienceEntry | nul
  * read back to the applicant before they send it. Reading back what will be sent
  * is the whole reason the apply modal isn't one button.
  *
- * **The title comes from `profile.role`, not from the experience entry.** It
- * used to be the entry's `title`, which meant this returned an empty string for
- * anyone who hadn't filled in a work history — and the apply modal then had to
- * apologise for having nothing to quote. That was backwards twice over: the
- * current role is a *required* field, so there is always a title; and the header
- * card of the profile shows `role` as the headline, so quoting the entry instead
- * could read the profile back differently from how the profile displays itself.
+ * **The title comes from `profile.role` first, then from the experience entry.**
+ * It used to be the entry's `title` alone, which meant this returned an empty
+ * string for anyone who hadn't filled in a work history while the header card
+ * of the profile was showing `role` as the headline — a read-back sourced
+ * differently from the thing it reads back, which will eventually disagree with
+ * it.
  *
  * The entry still supplies the company, because "at <somewhere>" is the half a
  * standalone role can't state. Entry-less profiles get the role alone, which is
- * a complete sentence and a true one. The entry's own `title` survives only as a
- * fallback for the impossible case of a blank role.
+ * a complete sentence and a true one.
+ *
+ * **This can now return an empty string, and callers have to expect it.** The
+ * role stopped being required (see `isProfileComplete`), so a profile with no
+ * role, no entry and no company has nothing to quote. That is not a state to
+ * apologise for in copy — the application pane simply omits the line, the way it
+ * already omits the skills row when there are no skills.
  */
 export function summariseProfile(profile: MemberProfile): string {
   const entry = primaryExperience(profile);

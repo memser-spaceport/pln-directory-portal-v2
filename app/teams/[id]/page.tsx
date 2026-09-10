@@ -2,6 +2,7 @@ import Error from '@/components/core/error';
 import { TeamContactInfo } from '@/components/page/team-details/TeamContactInfo';
 import { TeamProjects } from '@/components/page/team-details/TeamProjects';
 import { AiGeneratedTeamProfileBanner } from '@/components/page/team-details/AiGeneratedTeamProfileBanner';
+import { UnsavedEditsPageGuard } from '@/components/common/profile/UnsavedEdits';
 import { TeamDetails } from '@/components/page/team-details/TeamDetails';
 import { TeamMembers } from '@/components/page/team-details/TeamMembers';
 import { getMembers } from '@/services/members.service';
@@ -28,6 +29,7 @@ import { TeamNewsRail } from '@/components/page/team-details/TeamNews';
 import { fetchTeamNewsByTeam } from '@/services/team-news/team-news.service';
 import { TEAM_NEWS_PREVIEW_LIMIT } from '@/services/team-news/constants';
 import { hasTeamNewsItems } from '@/services/team-news/team-news.utils';
+import { canPostTeamNews } from '@/components/page/team-details/TeamNews/canPostTeamNews';
 import type { ITeamNewsByTeamResponse } from '@/types/team-news.types';
 import { getTeamFollowers } from '@/services/follow/follow.service';
 import type { ITeamFollowersResponse } from '@/types/follow.types';
@@ -81,11 +83,24 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
     !!team?.dataEnrichment?.isAIGenerated &&
     team?.dataEnrichment?.status !== 'Reviewed';
 
-  const showNewsRail = hasTeamNewsItems(teamNews);
   const isCurrentUserTeamMember = isLoggedIn && members?.some((m) => m.id === userInfo?.uid);
 
+  // Mount for logged-in viewers even when the SSR cookie lacks rbac yet —
+  // TeamNewsRail recomputes canPost from the client store (UserInfoChecker).
+  const canPost = canPostTeamNews(team, userInfo, isCurrentUserTeamMember);
+  const showNewsRail = hasTeamNewsItems(teamNews) || canPost || !!isLoggedIn;
+
   const teamDetailContent = (
-    <>
+    /* Leaving with a section still open and edited asks first — the same guard
+       the member profile uses, and it needs nothing from the sections: the two
+       controls components every edit form is built from register themselves.
+       A client boundary inside a server component, with these children passed
+       through as a slot.
+
+       Around the content rather than either return branch, because both render
+       it. The interception is a document-level listener, so what it covers does
+       not depend on where this sits. */
+    <UnsavedEditsPageGuard>
       <BackButton to={backTo} />
       <div className={styles?.teamDetail__container}>
         {/* Details */}
@@ -131,14 +146,31 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
           hasProjectsEditAccess={hasProjectsEditAccess}
         />
       </div>
-    </>
+    </UnsavedEditsPageGuard>
   );
 
-  if (showNewsRail && teamNews) {
+  if (showNewsRail) {
+    const railData: ITeamNewsByTeamResponse = teamNews ?? {
+      teamUid: teamId,
+      teamName: team.name ?? 'This team',
+      page: 1,
+      limit: TEAM_NEWS_PREVIEW_LIMIT,
+      total: 0,
+      items: [],
+    };
+
     return (
       <div className={layoutStyles.layout}>
         <div className={`${styles?.teamDetail} ${layoutStyles.mainCol}`}>{teamDetailContent}</div>
-        <TeamNewsRail teamUid={teamId} teamName={team.name ?? teamNews.teamName} initialData={teamNews} />
+        <TeamNewsRail
+          teamUid={teamId}
+          teamName={team.name ?? railData.teamName}
+          initialData={railData}
+          canPost={canPost}
+          isCurrentUserTeamMember={!!isCurrentUserTeamMember}
+          teamStatus={team.status}
+          memberUid={userInfo?.uid}
+        />
       </div>
     );
   }

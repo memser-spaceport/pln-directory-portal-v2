@@ -27,6 +27,10 @@ import {
   // The filled fixture both this modal's canvas frame and the flow's pre-filled
   // account step read, so one applicant signs up in both.
   FILLED_ACCOUNT_FORM,
+  // The status, in this modal's framing: a labelled field in a flat column,
+  // rather than the flow pane's amber-stripped card. Same control, same copy,
+  // same form field underneath — see `accountFields`.
+  JobSearchStatusField,
 } from './accountFields';
 import s from './JobSignUpModal.module.scss';
 
@@ -223,7 +227,21 @@ export function JobSignUpModal({
             an intention the person hasn't expressed. They pressed Sign up, not
             Apply. */}
         <div className={s.text}>
-          <h2 className={s.title}>Sign up to apply</h2>
+          {/* **"Create PL network Job profile", not "Sign up to apply".**
+
+              Two things were wrong with the old title on this door. It named
+              applying, which is not what this press does — the button below says
+              `Create account`, and nothing is applied to from here. And it was
+              the generic word for the thing being made, at the exact moment the
+              form stopped making one thing: this modal now forks into two
+              accounts on the tick of a checkbox, and what both forks have in
+              common is a *profile on the PL network*, not a sign-up.
+
+              Naming the artefact rather than the act is also what makes the
+              status question below defensible. A person filling in "a sign-up"
+              has no reason to answer where they are with job hunting; a person
+              building a job profile is doing exactly that. */}
+          <h2 className={s.title}>Create PL network Job profile</h2>
           {/* The banner's two lines, fused into one. The card has room for a
               single sentence under the title, and the offer has always been two
               halves — the roles you can go and find, and the ones that come to
@@ -245,6 +263,20 @@ export function JobSignUpModal({
                 copies of one schema is two chances to disagree about what a
                 valid handle is. */}
             <AccountFields />
+
+            {/* **The question that was missing from this door.**
+
+                The board has two ways to open an account and only one of them
+                used to ask this: the flow's step 2 collected it, the banner's
+                modal didn't. So the same form produced two different accounts,
+                and whoever came through here landed on a board that immediately
+                wanted an answer it had just spent a whole form not asking for.
+
+                It sits last, below the fork's own fields, because it is the one
+                question here that is about the person rather than about the
+                account — and because both forks answer it. Ticking the box
+                changes who you work for, not whether you are looking. */}
+            <JobSearchStatusField />
 
             <div className={s.bottomText}>
               {/* One line, and only the part nothing else on the card says.
@@ -279,9 +311,23 @@ export function JobSignUpModal({
 
                   No role/no-role branch any more: what the PL team does next
                   doesn't depend on which button opened this. */}
-              <p className={s.body}>
-                The PL team reviews new accounts — browse while that runs, and applying opens once you&apos;re approved.
-              </p>
+              {/* (A line stood here: "The PL team reviews new accounts — browse
+                  while that runs, and applying opens once you're approved."
+
+                  It is gone because the checkbox above made it false for half
+                  the people reading it. A review is what happens to someone
+                  *joining a PL network team*; a job aspirant is not joining
+                  anything, so there is nothing to approve and applying is live
+                  from the first minute. A single standing sentence cannot say
+                  that — it either warns the aspirant about a wait they will
+                  never have, or it drops the warning for the person who really
+                  does have one.
+
+                  So the review is told where it is true and where it can be
+                  acted on: the board's pending-approval banner, which only that
+                  account ever sees, and which is on screen for the whole of the
+                  wait rather than for the three seconds before the form is
+                  submitted. See `BoardBanners`.) */}
               <p className={s.bodySecondary}>
                 By submitting this form, you agree to our{' '}
                 <a

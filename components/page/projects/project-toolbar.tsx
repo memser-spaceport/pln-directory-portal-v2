@@ -93,7 +93,13 @@ const ProjectsToolbar = (props: any) => {
     <>
       <div className="toolbar">
         <div className="toolbar__left">
-          <button className="toolbar__left__filterbtn" onClick={onFilterClickHandler}>
+          <button
+            type="button"
+            className="toolbar__left__filterbtn"
+            onClick={onFilterClickHandler}
+            aria-label="Filters"
+            data-testid="projects-filter-button"
+          >
             <img alt="filter" src="/icons/filter.svg" height={20} width={20}></img>
             {filterCount > 0 && <FilterCount count={filterCount} />}
           </button>

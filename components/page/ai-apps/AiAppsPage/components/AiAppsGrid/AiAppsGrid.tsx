@@ -1,18 +1,20 @@
 'use client';
 
-import { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+
+import { deployFailureKind, hasPrd } from '@/services/ai-apps/ai-apps.service';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
-import { useAiApps } from '@/services/ai-apps/hooks/useAiApps';
+import { useFilteredAiApps } from '@/services/ai-apps/hooks/useFilteredAiApps';
 import { useAiAppManageAccess } from '@/services/ai-apps/hooks/useAiAppManageAccess';
-import { deployFailureKind, hasPrd } from '@/services/ai-apps/ai-apps.service';
+
 import {
   EditAiAppModal,
-  DeploymentSettingsModal,
-  DeploymentLogsModal,
   DeleteAiAppDialog,
   AiAppDetailsModal,
+  DeploymentLogsModal,
+  DeploymentSettingsModal,
 } from '@/components/page/ai-apps/dynamicActionModals';
 
 import { AddAiAppCard } from '../AddAiAppCard';
@@ -31,7 +33,7 @@ interface Props {
 export function AiAppsGrid({ onOpenCreateModal }: Props) {
   const shouldReduceMotion = useReducedMotion();
   const analytics = useAiAppsAnalytics();
-  const { apps, isLoading, isError } = useAiApps();
+  const { apps, visibleApps, filterCount, isLoading, isError } = useFilteredAiApps();
   const { canLikelyManage } = useAiAppManageAccess();
 
   // Which card's ⋯ action is open, if any. All management lives on the card —
@@ -40,6 +42,15 @@ export function AiAppsGrid({ onOpenCreateModal }: Props) {
   const [action, setAction] = useState<{ uid: string; type: ActionType } | null>(null);
   // The app whose one-pager a viewer is reading from the grid, if any.
   const [viewerUid, setViewerUid] = useState<string | null>(null);
+
+  const isEmptyResult = !isLoading && !isError && visibleApps.length === 0 && filterCount > 0;
+
+  useEffect(() => {
+    if (isEmptyResult) {
+      analytics.onEmptyResultsShown({ filterCount });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEmptyResult, filterCount]);
 
   if (isLoading) {
     return <div className={s.state}>Loading apps…</div>;
@@ -53,6 +64,8 @@ export function AiAppsGrid({ onOpenCreateModal }: Props) {
   const addCardVariants = getAddCardVariants();
   const cardVariants = getCardVariants(!!shouldReduceMotion);
 
+  // Against the FULL list, not the filtered one: a modal opened from a card must
+  // survive the filters changing underneath it.
   const actionApp = action ? (apps.find((app) => app.uid === action.uid) ?? null) : null;
   const viewerApp = viewerUid ? (apps.find((app) => app.uid === viewerUid) ?? null) : null;
   const closeAction = () => setAction(null);
@@ -62,7 +75,7 @@ export function AiAppsGrid({ onOpenCreateModal }: Props) {
     setViewerUid(uid);
   };
 
-  const openLogs = (app: (typeof apps)[number], source: 'menu' | 'failure-strip') => {
+  const openLogs = (app: (typeof visibleApps)[number], source: 'menu' | 'failure-strip') => {
     analytics.onDeploymentLogsOpened({
       appUid: app.uid,
       appName: app.name,
@@ -72,13 +85,20 @@ export function AiAppsGrid({ onOpenCreateModal }: Props) {
     setAction({ uid: app.uid, type: 'logs' });
   };
 
+  if (visibleApps.length === 0 && filterCount > 0) {
+    return <div className={s.state}>No apps match your filters. Try clearing some.</div>;
+  }
+
   return (
     <>
       <motion.div className={s.grid} variants={containerVariants} initial="hidden" animate="show">
-        <motion.div variants={addCardVariants}>
-          <AddAiAppCard onClick={onOpenCreateModal} />
-        </motion.div>
-        {apps.map((app) => (
+        {/* Part of the page, not of a result set: it steps out once the grid is answering a filter. */}
+        {filterCount === 0 && (
+          <motion.div variants={addCardVariants}>
+            <AddAiAppCard onClick={onOpenCreateModal} />
+          </motion.div>
+        )}
+        {visibleApps.map((app) => (
           <motion.div key={app.uid} variants={cardVariants}>
             <AiAppCard
               app={app}

@@ -1,0 +1,40 @@
+// The header pair's wrapper — `ExperienceDetailsView.headerActions`, verbatim.
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+// The quiet half. These are `JobProfilePane.headerImport`'s values (and the
+// onboarding page's `.headerAction`): a text control at secondary tone that
+// darkens to primary on hover, so `HeaderActionBtn`'s brand blue stays the only
+// loud thing in the row.
+.quiet {
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+// Not `display: none`: a hidden input still has to be clickable via its ref,
+// and some browsers refuse to open the picker for an input that isn't rendered.
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

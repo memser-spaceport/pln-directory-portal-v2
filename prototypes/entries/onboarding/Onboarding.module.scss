@@ -168,3 +168,25 @@
   white-space: nowrap;
   border: 0;
 }
+
+// Prototype-only: the Back button and the state switch on one line. The switch
+// joins the row the page already has rather than getting a band of its own, so
+// the scaffolding costs the column no height and nothing under it moves when it
+// is eventually deleted. Wraps at narrow widths — Back keeps the first line.
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  flex-wrap: wrap;
+}
+
+// `BackButton` is production's page `.subheader`: a full-width 64px band meant
+// to be a page's first row on its own, so as a flex item it takes the whole
+// line and pushes the switch onto a second one. Here it shares the row, so it
+// is sized by its own link. (It is `display: none` below tablet-landscape,
+// which is production's rule and why the switch stands alone there.)
+.topRow > :first-child {
+  width: auto;
+  flex: 0 0 auto;
+}

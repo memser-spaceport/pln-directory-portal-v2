@@ -33,12 +33,21 @@
 }
 
 .linkTitle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   color: var(--action-foreground-neutral-normal, #455468);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
   line-height: 20px; /* 142.857% */
   letter-spacing: -0.2px;
+}
+
+.externalIcon {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
 }
 
 .linkDescription {

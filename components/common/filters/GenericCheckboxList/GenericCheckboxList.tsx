@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { clsx } from 'clsx';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FilterState } from '@/services/filters/types';
 import { FilterOption } from '@/services/filters/commonTypes';
-import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
-import { FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED } from '@/constants/filters';
+import { decodeFilterValues } from '@/services/filters/decodeFilterValues';
+import { encodeFilterValues } from '@/services/filters/encodeFilterValues';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 
 import { SelectAll } from './components/SelectAll';
@@ -85,6 +86,13 @@ export interface GenericCheckboxListProps {
   hideSearch?: boolean;
 
   disableSorting?: boolean;
+
+  /**
+   * When true, all items are shown by default (ignoring `defaultItemsToShow`),
+   * with a "Show less" toggle to collapse down to `defaultItemsToShow` items
+   * and a "Show all" toggle to expand again.
+   */
+  collapsible?: boolean;
 }
 
 /**
@@ -136,9 +144,11 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
     className,
     hideSearch,
     disableSorting,
+    collapsible,
   } = props;
 
   const [searchValue, setSearchValue] = useState('');
+  const [isExpanded, setIsExpanded] = useState(!!collapsible);
 
   // Handle search change with optional callback
   const handleSearchChange = (value: string) => {
@@ -161,13 +171,10 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
       return [];
     }
 
-    return paramValue.split(URL_QUERY_VALUE_SEPARATOR).map((raw) => {
-      const value = raw.trim().replaceAll(FILTER_VALUE_SEPARATOR_ENCODED, FILTER_VALUE_SEPARATOR);
-      return {
-        value,
-        label: data?.find((item) => item.value === value)?.label || value,
-      };
-    });
+    return decodeFilterValues(paramValue).map((value) => ({
+      value,
+      label: data?.find((item) => item.value === value)?.label || value,
+    }));
   }, [params, paramKey, data]);
 
   // Merge backend data with selected values
@@ -175,10 +182,12 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
     beData: data,
     selectedData: selectedValues,
     searchValue,
-    defaultItemsToShow,
+    defaultItemsToShow: collapsible && isExpanded ? undefined : defaultItemsToShow,
     disableSorting,
     searchResultsToShow,
   });
+
+  const showToggle = !!collapsible && !searchValue && !!defaultItemsToShow && data.length > defaultItemsToShow;
 
   // React Hook Form setup
   const methods = useForm<Record<string, FilterOption[]>>({
@@ -195,9 +204,7 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
 
     if (filterValues && filterValues.length > 0) {
       const valuesArr = filterValues.map((item) => item.value);
-      const values = valuesArr
-        .map((v) => v.replaceAll(FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED))
-        .join(URL_QUERY_VALUE_SEPARATOR);
+      const values = encodeFilterValues(valuesArr);
 
       // Only update if the value actually changed
       const currentValue = params.get(paramKey);
@@ -238,7 +245,7 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
         {label && <div className={s.label}>{label}</div>}
         {hint && <div className={s.hint}>{hint}</div>}
         {!hideSearch && <SearchInput value={searchValue} onChange={handleSearchChange} placeholder={placeholder} />}
-        <div className={s.list}>
+        <div className={clsx(s.list, { [s.listExpanded]: collapsible && isExpanded })}>
           {!!searchValue && (
             <SelectAll
               data={data}
@@ -260,6 +267,11 @@ export function GenericCheckboxList(props: GenericCheckboxListProps) {
             );
           })}
         </div>
+        {showToggle && (
+          <button type="button" className={s.toggleButton} onClick={() => setIsExpanded((prev) => !prev)}>
+            {isExpanded ? 'Show less' : `Show all (${data.length})`}
+          </button>
+        )}
       </div>
     </FormProvider>
   );

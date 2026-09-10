@@ -4,6 +4,12 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { useTeamNewsAnalytics, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import { NewsDetailModal } from '@/components/page/home/TeamNews/components/NewsDetailModal';
+import { isTeamInactive } from '@/components/page/team-details/TeamDetails/utils/isTeamInactive';
+import {
+  PostNewsButton,
+  PostNewsModal,
+  type PostNewsSubmission,
+} from '@/components/page/team-details/TeamNews/PostNewsModal';
 import { TeamNewsFeedLink } from '@/components/page/team-details/TeamNews/TeamNewsFeedLink';
 import { TeamNewsModal } from '@/components/page/team-details/TeamNews/TeamNewsModal';
 import {
@@ -13,6 +19,7 @@ import {
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useFeedCommentCounts } from '@/services/feed/hooks/useFeedCommentCounts';
 import { TEAM_NEWS_PREVIEW_LIMIT } from '@/services/team-news/constants';
+import { useCreateTeamNewsPost } from '@/services/team-news/hooks/useCreateTeamNewsPost';
 import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsUpvoteToggle';
 import type { IMember } from '@/types/members.types';
 import type { ITeamNewsItem } from '@/types/team-news.types';
@@ -70,6 +77,7 @@ export function TeamNewsDetails({ member, isLoggedIn, userInfo }: TeamNewsDetail
 
   // What's open over the profile — at most one thing. See MemberNewsModalState.
   const [modalState, setModalState] = useState<MemberNewsModalState>({ kind: 'none' });
+  const [composeOpen, setComposeOpen] = useState(false);
 
   // NewsDetailModal is fully controlled and useTeamNewsUpvoteToggle writes
   // nothing to the cache, so without this map Like fires its request and the
@@ -90,6 +98,21 @@ export function TeamNewsDetails({ member, isLoggedIn, userInfo }: TeamNewsDetail
   });
 
   const items = useMemo(() => mergeUpvoteOverlay(rawItems, upvoteOverlay), [rawItems, upvoteOverlay]);
+
+  // Posting from this card is for the member speaking as their own team, not
+  // anyone else browsing it — narrower than the team page's canPostTeamNews,
+  // which also lets admins post from a teammate's profile.
+  const isOwner = userInfo?.uid === member?.id;
+  const primaryTeam = teamUid ? member.teams?.find((team) => team.id === teamUid) : undefined;
+  const canPost = isOwner && !!teamUid && !isTeamInactive(primaryTeam);
+
+  const createPost = useCreateTeamNewsPost(teamUid ?? '');
+  const handlePublish = useCallback(
+    async (post: PostNewsSubmission) => {
+      await createPost.mutateAsync({ title: post.title, body: post.body || undefined, url: post.url });
+    },
+    [createPost],
+  );
 
   // Counts for the rows on screen. The shared entry is filled incrementally, so
   // asking here for three uids costs one request and leaves /home free to ask
@@ -169,12 +192,17 @@ export function TeamNewsDetails({ member, isLoggedIn, userInfo }: TeamNewsDetail
     // a keyboard reader to the top of the document — the attribute means "the
     // surface that opened this", not only the feed.
     <div className={s.card} data-news-feed-root>
-      <h2 className={s.header}>
-        <span className={s.icon} aria-hidden="true">
-          <NewsIcon />
-        </span>
-        Updates from the team ({total})
-      </h2>
+      <div className={s.header}>
+        <h2 className={s.headerTitle}>
+          <span className={s.icon} aria-hidden="true">
+            <NewsIcon />
+          </span>
+          <span className={s.headerTitleText}>Updates from the team ({total})</span>
+        </h2>
+        {canPost && userInfo?.uid && (
+          <PostNewsButton teamName={teamName} memberUid={userInfo.uid} onPost={() => setComposeOpen(true)} />
+        )}
+      </div>
 
       <ul className={s.list}>
         {items.map((item, index) => (
@@ -205,6 +233,18 @@ export function TeamNewsDetails({ member, isLoggedIn, userInfo }: TeamNewsDetail
               renders its own copy of this link with its own source. */}
           <TeamNewsFeedLink teamUid={teamUid} teamName={teamName} source="member-profile" className={s.viewFeed} />
         </div>
+      )}
+
+      {canPost && teamUid && (
+        <PostNewsModal
+          open={composeOpen}
+          onClose={() => setComposeOpen(false)}
+          teamUid={teamUid}
+          teamName={teamName}
+          existing={items}
+          onPublish={handlePublish}
+          isPublishing={createPost.isPending}
+        />
       )}
 
       {teamUid && (

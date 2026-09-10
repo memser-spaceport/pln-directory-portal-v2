@@ -126,29 +126,20 @@
 // below it then supplies its own padding on white. Production does exactly this
 // pairing in ContactDetails (`.contentRoot`) and PitchDeckView (`.root`), and
 // this is that inner container.
-// The header card in its "you need this" state.
+// (`.missingCard` stood here: the header card in a "you need this" state, with
+// `DetailsSection.module.scss .missingData` transcribed verbatim — padding and
+// gap to 0 so the strip could sit flush to the top edge, the brand-soft ground,
+// no shadow, the subtle brand border from tablet-landscape up. It was hand-rolled
+// because the header card is `ProfileDetails`' own plain div rather than a
+// `DetailsSection`, so it could not take the prop the status card takes.
 //
-// `DetailsSection` carries a `missingData` prop that does exactly this, and the
-// job-search-status card below uses it. The header card can't: it is
-// `ProfileDetails`' own plain div (production swaps it for `EditProfileForm` in
-// place), not a `DetailsSection`. So the values are transcribed from
-// `DetailsSection.module.scss .missingData` verbatim — padding and gap to 0 so
-// the strip can sit flush against the top edge, the brand-soft ground, no
-// shadow, and the subtle brand border from tablet-landscape up. Same treatment,
-// same numbers; the two required cards must not look like two different kinds of
-// warning.
-.missingCard {
-  padding: 0;
-  gap: 0;
-  border: 0;
-  background: var(--background-brand-soft-surface, #f2f5ff);
-  box-shadow: none;
+// Gone with the rule it painted: the current role is not required to apply any
+// more, so the header card has no "you need this" state and every placeholder on
+// it is now an ordinary optional one. The status card keeps the treatment through
+// `DetailsSection`'s own `missingData`, which is where the last requirement is.)
 
-  @include media.tablet-landscape {
-    border: 1px solid var(--border-brand-subtle, #aebfff);
-  }
-}
-
+// The white body under an amber strip — still used by the status card in this
+// pane and by the logged-out step's copy of it.
 .missingBody {
   padding: 16px;
   background: var(--Neutral-White, #fff);

@@ -2,8 +2,7 @@
 
 import React from 'react';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
-import { SyncParamsToUrl } from '@/components/core/SyncParamsToUrl';
-import { FiltersHydrator } from '@/components/core/FiltersHydrator/FiltersHydrator';
+import { MembersFilterUrlSync } from '@/components/page/members/MembersFilterUrlSync';
 import { Filters } from './components/Filters';
 import { Content } from './components/Content';
 import { ConfidentialityModal } from './components/ConfidentialityModal';
@@ -77,12 +76,11 @@ export const ActiveView = ({ initialDemoDayState }: ActiveViewProps) => {
   }
 
   return (
-    <FiltersHydrator>
-      <SyncParamsToUrl debounceTime={0} />
+    <MembersFilterUrlSync debounceTime={0}>
       <DashboardPagesLayout filters={<Filters />} content={<Content />} />
 
       {/* Confidentiality Modal - shows when confidentialityAccepted is false */}
       <ConfidentialityModal isOpen={demoDayData?.confidentialityAccepted === false} />
-    </FiltersHydrator>
+    </MembersFilterUrlSync>
   );
 };

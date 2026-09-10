@@ -4,8 +4,10 @@ import Error from '@/components/core/error';
 import styles from './page.module.scss';
 import { getMember } from '@/services/members.service';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
+import { UnsavedEditsPageGuard } from '@/components/common/profile/UnsavedEdits';
 import { ProfileDetails } from '@/components/page/member-details/ProfileDetails';
 import { ContactDetails } from '@/components/page/member-details/ContactDetails';
+import { JobSearchStatusDetails } from '@/components/page/member-details/JobSearchStatusDetails';
 import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
 import { ContributionsDetails } from '@/components/page/member-details/ContributionsDetails';
 import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
@@ -118,16 +120,28 @@ const MemberDetails = (props: { params: Promise<any> }) => {
   const status = member?.rbac?.status;
   const isNewInvestor = status === 'PENDING' && isOwner && isDemodaySignUpSource(member?.signUpSource);
 
-  // Scroll to top when member data is loaded or member ID changes
+  /* Scroll to top when a member's page finishes loading, or when you navigate
+     to a different member.
+
+     **Keyed on the id, not on the `member` object.** The dependency used to be
+     `member` itself, which is a new object every time anything patches the
+     query cache — and `useUpdateMemberParams` patches it optimistically on
+     every inline save. So picking a job search status radio, or saving any
+     section that writes through that hook, snapped the page to the top under
+     the person's hands mid-interaction. The trigger this effect wants is "a
+     different member's page is now on screen", and that is what `loadedMemberId`
+     changes on. */
+  const loadedMemberId = member && !isLoading ? memberId : null;
   useEffect(() => {
-    if (member && !isLoading) {
-      document.body.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: 'instant',
-      });
+    if (!loadedMemberId) {
+      return;
     }
-  }, [member, memberId, isLoading]);
+    document.body.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'instant',
+    });
+  }, [loadedMemberId]);
 
   // Handle login click from AccountCreatedView
   const handleLoginClick = () => {
@@ -194,6 +208,17 @@ const MemberDetails = (props: { params: Promise<any> }) => {
             duplicate data-story-uid nodes on the page and focus restore
             resolves that attribute by querySelector. */}
         {isBelowTabletLandscape && <TeamNewsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />}
+        {/* Private to the member, so it is mounted only on their own profile —
+            the API omits `jobSearchStatus` for every other viewer anyway, but
+            the pill inside promises "only visible to you" and that sentence has
+            to be true of the surface, not just of the payload. The card carries
+            the same check itself as a backstop.
+
+            Sits directly above Experience, and deliberately OUTSIDE the
+            `!isInvestorOnly` block below it: an investor-only member loses the
+            Experience and Contributions sections, and their own job search
+            status is not one of the things that should go with them. */}
+        {isOwner && <JobSearchStatusDetails member={member} />}
         {!isInvestorOnly && (
           <>
             {/* The CV importer's second host. The section decides *where* to put
@@ -222,7 +247,13 @@ const MemberDetails = (props: { params: Promise<any> }) => {
   }
 
   return (
-    <>
+    /* Leaving with a section still open and edited asks first — see
+       `UnsavedEditsPageGuard`. Wraps the whole page rather than the section
+       column, because the links that leave (the navbar) are outside it, and
+       because the guard's own prompt has to render somewhere. The sections need
+       no changes: the controls component each edit form is built from registers
+       itself. */
+    <UnsavedEditsPageGuard>
       <Head>
         <title>{`${member?.name} | Protocol Labs Directory`}</title>
       </Head>
@@ -263,7 +294,7 @@ const MemberDetails = (props: { params: Promise<any> }) => {
           </>
         )} */}
       </div>
-    </>
+    </UnsavedEditsPageGuard>
   );
 };
 

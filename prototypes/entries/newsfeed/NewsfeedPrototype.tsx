@@ -29,6 +29,9 @@
  *   ../job-board .................... SignInBanner.module.scss `.inlineDoor`,
  *                                     so the prototypes' two signed-out asks
  *                                     wear one door rather than two lookalikes
+ *   ../help-feedback-menu ........... SupportModal + MOCK_VIEWER — the form the
+ *                                     header's (?) menu opens (the menu itself
+ *                                     is nav-shared's HelpFeedbackMenu)
  *
  * New here (and only here): TopStoryCard, HiringCard, PerkCard, CuratedRail,
  * ForYouBanner, SignedOutBanner.
@@ -88,6 +91,10 @@ import { FollowToast } from '../follow-shared/FollowToast';
 // back to the page you were standing on.
 import { PrototypeNavBar } from '../nav-shared/PrototypeNavBar';
 import { PrototypeMobileNav } from '../nav-shared/PrototypeMobileNav';
+// The (?) proposal, on the page a first visit actually lands on. The
+// help-feedback-menu entry argues it; this route is where it gets met.
+import { SupportModal } from '../help-feedback-menu/SupportModal';
+import { MOCK_VIEWER } from '../help-feedback-menu/mocks';
 import { getTeamNews, teamNameFor } from '../news-shared/mockTeamNews';
 import {
   MOCK_GROUPS,
@@ -386,6 +393,9 @@ export default function NewsfeedPrototype() {
    * entry has been looking at and the one the rest of the feed is designed for.
    */
   const [signedIn, setSignedIn] = useState(true);
+  /* The header's (?) menu — null = the support form is closed; otherwise the
+     topic the menu item was pressed on. See nav-shared/HelpFeedbackMenu. */
+  const [supportTopic, setSupportTopic] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   /**
    * Team scope, set from `?team=<uid>` — where every "N new updates" badge in the
@@ -1191,6 +1201,15 @@ export default function NewsfeedPrototype() {
         isLoggedIn={signedIn}
         onSignIn={handleSignIn}
         onSignUp={handleSignIn}
+        /* The (?) as the help & feedback menu, announced by the one-time callout
+           (the team profile's "Post news" pattern — the core Tooltip's highlight
+           variant, opening on arrival). This is the route every session starts
+           on, so it is where a first visit meets the announcement; the
+           help-feedback-menu entry demonstrates the same control over the
+           members page with its demo switches. Same as there, the prototype
+           shows the callout on every load — in production dismissal would be a
+           member preference, so it is seen once. */
+        helpMenu={{ onPickTopic: setSupportTopic, callout: true }}
       />
       <PrototypeMobileNav hasUnreadNews={false} active />
     </>
@@ -1564,6 +1583,15 @@ export default function NewsfeedPrototype() {
         )}
 
         {subscribeToast}
+
+        {/* The support form behind the (?) menu. Production prefills Email /
+            Name from the session; signed out, the fields start empty. */}
+        <SupportModal
+          open={supportTopic !== null}
+          initialTopic={supportTopic ?? 'Contact support'}
+          viewer={signedIn ? MOCK_VIEWER : { name: '', email: '' }}
+          onClose={() => setSupportTopic(null)}
+        />
       </div>
     </>
   );

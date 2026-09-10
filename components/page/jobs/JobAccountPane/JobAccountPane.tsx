@@ -88,7 +88,7 @@ export function JobAccountPane({ onSignIn, serverError }: JobAccountPaneProps) {
           who meets one of them should not be able to tell which. Keep them in
           sync; if they ever have to differ, that is a sign one of the doors
           should not exist. */}
-      <h2 className={s.title}>Create LabOS Job profile</h2>
+      <h2 className={s.title}>Create PL network Job profile</h2>
       {/* What the account is *for*, which the title names but does not sell.
           Both halves are load-bearing: "discover open roles" is the thing they
           came for, and "let founders reach out" is the return direction they

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import clsx from 'clsx';
@@ -61,6 +61,17 @@ interface JobDetailPaneProps {
    * than not mentioning it.
    */
   showOriginalPosting: boolean;
+  /**
+   * Rendered between the masthead and the description.
+   *
+   * A slot rather than a flag, because what belongs here depends on who is
+   * looking and this pane has never known that — `showOriginalPosting` above is
+   * a resolved answer handed down for the same reason. The drawer owns every
+   * auth-dependent affordance in this flow; keeping the decision there and the
+   * position here is what stops a second copy of `isLoggedIn` appearing in a
+   * component whose job is layout.
+   */
+  banner?: ReactNode;
 }
 
 /**
@@ -100,7 +111,7 @@ interface JobDetailPaneProps {
  * markup we do not control, and quietly deleting words the team wrote.
  */
 export function JobDetailPane(props: JobDetailPaneProps) {
-  const { role, team, applied, appliedAt, source, showOriginalPosting } = props;
+  const { role, team, applied, appliedAt, source, showOriginalPosting, banner } = props;
 
   const focusTags = useGetFocusTags(team ?? NO_TEAM);
 
@@ -196,6 +207,13 @@ export function JobDetailPane(props: JobDetailPaneProps) {
               )}
             </div>
           </DetailsSection>
+
+          {/* Between the masthead and the description, which is where the
+              design puts it and also the only place it can go: these sections
+              are siblings in a fragment, so the drawer's content column owns
+              the 16px between them and nothing here can wrap a subset of them
+              without taking that spacing away from the rest. */}
+          {banner}
 
           <DetailsSection>
             <DetailsSectionHeader title="About the role" />

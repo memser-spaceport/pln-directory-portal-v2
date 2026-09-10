@@ -1,0 +1,256 @@
+// Answer thread inside the search dialog.
+//
+// The message card, question and content values are transcribed from
+// components/page/husky/preview-message.tsx (styled-jsx, so they cannot be
+// imported); the actions row from chat-actions.tsx. Only colour is translated
+// to token/fallback pairs. Everything under `.why` is new — production has no
+// inline feedback — and is written on the same scale.
+
+@use 'styles/media';
+@use 'styles/mixins';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Pinned above the thread, so Back is reachable at any scroll position. */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+/* The thread is the one scroll region; scrollbar hidden per the prototypes'
+   convention for in-dialog lists (same as AiChatPanel's messagesWrapper). */
+.messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+
+  @include mixins.hide-scrollbar;
+}
+
+/* Input as a footer, not a sticky over the thread: the actions row of the
+   last answer must be able to scroll fully clear of it. */
+.inputWrap {
+  flex-shrink: 0;
+  padding: 8px 16px 12px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+}
+
+.continueLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* .preview-message — 16px between turns is chat__messages' gap */
+.message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+
+  & + & {
+    margin-top: 16px;
+  }
+
+  /* (A `:global(.directory-results …)` override lived here to pull production's
+     three-column grid down to two inside the 720px dialog. The grid is the
+     local `DirectoryResultsCards` now, which owns its own columns.) */
+}
+
+/* .preview-message__question-text, margin from __question-block */
+.question {
+  margin: 0 0 8px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 26px;
+
+  @include media.breakpoint-1024 {
+    font-size: 18px;
+    line-height: 20px;
+    font-weight: 600;
+  }
+}
+
+/* .preview-message__content-block */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+}
+
+/* .preview-message__header */
+.sourcesRow {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+/* .preview-message__content */
+.content {
+  font-size: 14px;
+  line-height: 26px;
+  margin-bottom: 16px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* .chat-message-actions */
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 42px;
+}
+
+.actionsBusy {
+  pointer-events: none;
+}
+
+/* .chat-message-actions__container */
+.actionsRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* One treatment for all five actions: a 16px `currentColor` glyph centred in
+   a 24px disc, tertiary at rest, secondary + a 4% tint on hover — the pair
+   every DS icon control on this surface already uses. Production's row gave
+   its three image glyphs no hit area and the file's own #64748B; a bare glyph
+   beside a disc'd one reads as two kinds of control. (Production's
+   `margin-top: 4px` on the copy glyph was an optical fix for an image sitting
+   on a baseline; a centred flex box needs none.) */
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+  line-height: 0;
+
+  &:hover {
+    color: var(--foreground-neutral-secondary, #455468);
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+/* The pair reads as one control: tighter inside than the 16px between
+   unrelated actions. */
+.thumbs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.thumbDown svg {
+  transform: rotate(180deg);
+}
+
+.thumbOn,
+.thumbOn:hover {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.receipt {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* Reason panel, only after a thumbs-down. */
+.why {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.whyHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.whyTitle {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.whyClose {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+.whyChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.whyComment {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: #fff;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  resize: none;
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.whyFooter {
+  display: flex;
+  justify-content: flex-end;
+}

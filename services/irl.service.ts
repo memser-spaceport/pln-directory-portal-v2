@@ -255,6 +255,52 @@ export const getGuestDetail = async (guestId: string, locationId: string, authTo
   return await response.json();
 };
 
+/**
+ * Reads the viewer's own location subscriptions.
+ *
+ * Separate from `getFollowersByLocation` on purpose. That call is the *public*
+ * follower list: it is sent unauthenticated and the API filters it to approved
+ * members, so a member who is not yet approved never appears in it. Deriving
+ * "am I following this?" from it left such a member unable to unfollow, because
+ * the subscription uid the unfollow request needs only exists in that list.
+ *
+ * Omit `locationUid` to get every location the viewer follows in one call.
+ *
+ * `isUnavailable` distinguishes "the endpoint did not answer" from "you follow
+ * nothing", so callers can fall back to the public list while the API rolls out
+ * rather than silently showing everyone as not following.
+ */
+export const getMyLocationSubscriptions = async (
+  authToken: string | undefined,
+  locationUid?: string,
+): Promise<{ subscriptions: any[]; isUnavailable: boolean }> => {
+  if (!authToken) {
+    return { subscriptions: [], isUnavailable: false };
+  }
+
+  const params = new URLSearchParams({ entityType: 'EVENT_LOCATION', isActive: 'true' });
+  if (locationUid) {
+    params.set('entityUid', locationUid);
+  }
+
+  try {
+    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/member-subscriptions/me?${params}`, {
+      cache: 'no-store',
+      method: 'GET',
+      headers: getHeader(authToken),
+    });
+
+    if (!response.ok) {
+      return { subscriptions: [], isUnavailable: true };
+    }
+
+    const result = await response.json();
+    return { subscriptions: Array.isArray(result) ? result : [], isUnavailable: false };
+  } catch (error) {
+    return { subscriptions: [], isUnavailable: true };
+  }
+};
+
 export const getFollowersByLocation = async (locationId: string, authToken: string) => {
   const response = await fetch(
     `${process.env.DIRECTORY_API_URL}/v1/member-subscriptions?entityUid=${locationId}&isActive=true&pagination=false&select=uid,memberUid,entityUid,entityAction,entityType,isActive,member.image.url,member.name,member.ohStatus,member.scheduleMeetingCount,member.officeHours,member.teamMemberRoles.team,member.teamMemberRoles.role,member.teamMemberRoles.mainTeam`,

@@ -1,6 +1,7 @@
 import {
   BOARD_VIEWER_STATES,
   canApplyToJobs,
+  canShowJobInterest,
   deriveBoardViewer,
   getJobsAccessVerdict,
   areAllJobProfileSectionsFilled,
@@ -110,6 +111,35 @@ describe('isJobAspirant', () => {
     ).toBe(true);
     expect(isJobAspirant({ uid: 'm1', signUpSource: 'job-board' })).toBe(true);
     expect(isJobAspirant({ uid: 'm1', signUpSource: 'website' })).toBe(false);
+  });
+
+  it('is false for a Job Board sign-up who selected a team', () => {
+    expect(isJobAspirant({ uid: 'm1', signUpSource: 'job-board', mainTeamName: 'Acme' })).toBe(false);
+    expect(
+      isJobAspirant({
+        uid: 'm1',
+        signUpSource: 'job-board',
+        mainTeamName: 'Acme',
+        rbac: { status: 'PENDING', policies: [], effectivePermissions: [], roles: [] },
+      }),
+    ).toBe(false);
+  });
+});
+
+describe('canShowJobInterest', () => {
+  it('is withheld from an established, signed-in member', () => {
+    expect(canShowJobInterest({ isLoggedIn: true, userInfo: rbacUser('APPROVED') })).toBe(false);
+    expect(canShowJobInterest({ isLoggedIn: true, userInfo: legacyUser('L4') })).toBe(false);
+  });
+
+  it('is shown to a signed-in Job Aspirant', () => {
+    expect(canShowJobInterest({ isLoggedIn: true, userInfo: rbacUser('PENDING', [JOB_ASPIRANT_POLICY]) })).toBe(true);
+    expect(canShowJobInterest({ isLoggedIn: true, userInfo: { uid: 'm1', signUpSource: 'job-board' } })).toBe(true);
+  });
+
+  it('is withheld from a signed-out visitor regardless of any stale cookie userInfo', () => {
+    expect(canShowJobInterest({ isLoggedIn: false, userInfo: null })).toBe(false);
+    expect(canShowJobInterest({ isLoggedIn: false, userInfo: { uid: 'm1', signUpSource: 'job-board' } })).toBe(false);
   });
 });
 

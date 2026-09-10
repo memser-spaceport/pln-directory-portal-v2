@@ -21,7 +21,19 @@ import s from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/Refer
 import btn from '@/components/common/Button/Button.module.scss';
 import js from './JobReferRoleRow.module.scss';
 
-import { ReferModal } from './components/ReferModal';
+/* The mocked modal from the apply-steps entry, not this folder's own.
+   This folder's own copy is the one production renders, so its pickers, draft
+   and send all call the real API — on a prototype route those 401 or CORS-fail and
+   the dialog opens empty. The apply-steps copy is identical UI on mocked data, so
+   this board demos the same modal and it actually works. Production is untouched:
+   it imports that copy directly, never this row. */
+import { ReferModal } from '../job-board-apply-steps/components/ReferModal';
+
+import { ListingStatusBadge } from './ListingStatusBadge';
+import { ListingMenu } from './ListingMenu';
+import type { ListingMeta, ListingStatus } from './listings';
+// Production's confirm — the one a team's Delete opens on the team profile.
+import { ConfirmDialog } from '@/components/core/ConfirmDialog/ConfirmDialog';
 
 interface JobReferRoleRowProps {
   role: IJobRole;
@@ -55,6 +67,31 @@ interface JobReferRoleRowProps {
   /** ISO stamp of when the application went. Present only when `applied`; the
    *  clock slot reports this instead of the posting age — see the note there. */
   appliedAt?: string;
+  /**
+   * Present for a viewer who owns this listing — on the board, in their own
+   * team's card, and on the team profile's Open roles in the team's own view.
+   *
+   * **The row keeps its title, meta and clock, and its actions all fold into
+   * one ⋯** (`ListingMenu`: View job / View posting, Refer, Share ▸, then
+   * `Mark inactive` / `Bring back` by state and `Delete`). On a listing that
+   * is not live it also wears a status pill — an owner's card is the one place
+   * the not-yet-live rows appear at all. Everything an owner does to a listing
+   * happens from the row: the title still opens the drawer, whose footer
+   * carries the same switch, but nothing has to be opened first.
+   *
+   * This went through three heavier shapes first — a *Manage listings* tab
+   * holding the owner's rows in every state, an inline pill + switch + Delete
+   * cluster in place of Apply and Refer, then the public cluster with a ⋯
+   * beside it. Each forked the surface, or crowded the row, for presses the
+   * owner makes rarely. One icon costs the row nothing.
+   *
+   * **Delete is the one press that asks.** The switch is reversible by the
+   * item it turns into, so it asks nothing; a deletion has no undo, so it
+   * takes production's own confirm — the dialog a team's Delete uses.
+   * Reversible is not the same as sufficient — a listing posted by mistake,
+   * or twice, is not something to keep "inactive" forever.
+   */
+  manage?: { meta: ListingMeta; onSetStatus: (status: ListingStatus) => void; onDelete: () => void };
 }
 
 /**
@@ -121,8 +158,11 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
     onViewJob,
     applied = false,
     appliedAt,
+    manage,
   } = props;
   const [referOpen, setReferOpen] = useState(false);
+  /** The owner's Delete, awaiting its confirm. See `manage`. */
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const { location, seniority, roleTitle, applyUrl, roleCategory } = role;
 
@@ -138,7 +178,10 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
   const relative = appliedAt ? `Applied ${formatRelativeDays(appliedAt)}` : formatRelativeDays(date);
   /* No "New" on a row you have applied to. The badge is an invitation to look at
      something before it goes stale, and that has already happened. */
-  const showNew = isNew(date) && !applied;
+  /* Nor on a listing you manage: "New" is an invitation to look before it goes
+     stale, and the person who posted it is not the one being invited. The status
+     pill takes that slot instead. */
+  const showNew = isNew(date) && !applied && !manage;
   const locationDisplay = isEmpty(location) ? null : location.join(', ');
 
   const metaParts = [seniority ? seniorityDisplayLabel(seniority) : null, roleCategory, locationDisplay].filter(
@@ -177,6 +220,9 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
             {showNew && <span className={`${s.newBadge} ${s.newBadgeMobile}`}>● New</span>}
           </div>
           {!isEmpty(metaParts) && <div className={s.meta}>{metaParts.join(' · ')}</div>}
+          {/* Where it came from — the one fact a manager needs that an applicant
+              never does, and the fact the open question about the inactive
+              control turns on (see `ListingOrigin`). */}
         </div>
 
         <div className={`${s.right} ${s.actions}`}>
@@ -188,7 +234,14 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
             </span>
           )}
 
+          {/* The owner's row shows no actions at rest: a status pill when the
+              listing is not live (the only rows All shows an owner that it
+              shows no one else), and the ⋯ at the end, holding everything —
+              the reader's presses and the owner's. See `ListingMenu`. */}
+          {manage && manage.meta.status !== 'live' && <ListingStatusBadge status={manage.meta.status} />}
           <div className={s.actionButtons}>
+            {!manage && (
+            <>
             {/* Refer is the quiet text button on every surface. The two actions
                 aren't peers: Apply is what the row is for, Refer is the sideline
                 you take when the role is right for someone who isn't you.
@@ -296,6 +349,36 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
                 Apply
               </a>
             )}
+            </>
+            )}
+
+            {manage && (
+              <>
+                <ListingMenu
+                  meta={manage.meta}
+                  role={role}
+                  teamId={teamId}
+                  teamName={teamName}
+                  source={source}
+                  onViewJob={onViewJob ? () => onViewJob(role) : undefined}
+                  postingHref={typeof linkProps.href === 'string' ? linkProps.href : undefined}
+                  onRefer={() => (canOpenReferral ? setReferOpen(true) : onReferSignUp?.())}
+                  onSetStatus={manage.onSetStatus}
+                  onDelete={() => setConfirmDelete(true)}
+                />
+                <ConfirmDialog
+                  isOpen={confirmDelete}
+                  title="Confirm Delete"
+                  desc={`Are you sure you want to delete the job ${roleTitle}?`}
+                  onClose={() => setConfirmDelete(false)}
+                  onConfirm={() => {
+                    setConfirmDelete(false);
+                    manage.onDelete();
+                  }}
+                  confirmTitle="Delete"
+                />
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -308,6 +391,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
         teamName={teamName}
         source={source}
         jobReferEmail={team?.jobReferEmail}
+        teamLogoUrl={team?.logoUrl}
       />
     </>
   );

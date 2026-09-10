@@ -36,10 +36,7 @@ export interface UseFilterCountConfig {
  * }
  * ```
  */
-export function useFilterCount(
-  filterStore: () => FilterState,
-  config: UseFilterCountConfig = {},
-): number {
+export function useFilterCount(filterStore: () => FilterState, config: UseFilterCountConfig = {}): number {
   const { params } = filterStore();
   const { excludeParams = [], shouldCount } = config;
 

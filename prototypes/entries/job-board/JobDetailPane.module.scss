@@ -145,6 +145,37 @@
   }
 }
 
+/* A body the listing carries as HTML — a submitted job's description, or an
+   ingested one's. `QuillContent` brings the editor's list and link rendering;
+   this only gives its prose the same measure as `.para`, so a typed description
+   and an invented one read at one size. */
+.rich.rich {
+  /* Doubled: `quill.snow.css` ships `.ql-editor { padding: 12px 15px }` and
+     `.ql-editor p { margin: 0 }` at the same specificity as a single class, and
+     in this app's bundle order it wins over `QuillContent`'s own reset — the
+     body rendered indented and with its paragraphs run together. */
+  padding: 0;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  p {
+    margin: 0 0 12px;
+  }
+
+  ul,
+  ol {
+    margin: 0 0 12px;
+  }
+
+  p:last-child,
+  ul:last-child,
+  ol:last-child {
+    margin-bottom: 0;
+  }
+}
+
 .list {
   margin: 0;
   padding: 0;

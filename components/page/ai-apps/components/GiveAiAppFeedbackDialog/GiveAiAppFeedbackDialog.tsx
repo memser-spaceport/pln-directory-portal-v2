@@ -5,12 +5,13 @@ import clsx from 'clsx';
 import { useForm, FormProvider } from 'react-hook-form';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
-import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
+import { FormEditor } from '@/components/form/FormEditor';
 import { FormSelect } from '@/components/form/FormSelect/FormSelect';
 import { CloseIcon, CommentIcon } from '@/components/icons';
 import { toast } from '@/components/core/ToastContainer';
 import { useContactSupport } from '@/components/ContactSupport/hooks/useContactSupport';
 import { useFormDraft } from '@/hooks/useFormDraft';
+import { hostDataUriImages, isBlankHtml } from '@/utils/html';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApps } from '@/services/ai-apps/hooks/useAiApps';
 import { useSubmitAiAppFeedback } from '@/services/ai-app-feedback/hooks/useSubmitAiAppFeedback';
@@ -19,7 +20,20 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import s from './GiveAiAppFeedbackDialog.module.scss';
 
 const MAX_LENGTH = 5000;
+const FEEDBACK_TOOLBAR: (string | Record<string, unknown>)[][] = [
+  [{ header: [1, 2, 3, false] }],
+  ['bold', 'link', 'image'],
+];
 export const AI_APP_FEEDBACK_DRAFT_KEY = 'form-draft:ai-app-feedback';
+export const FEEDBACK_PLACEHOLDER = 'What worked, what didn’t, and what would make this more useful?';
+
+function hasFeedbackContent(html: string): boolean {
+  return !isBlankHtml(html) || /<img\b/i.test(html);
+}
+
+function visibleFeedbackLength(html: string): number {
+  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').length;
+}
 
 export const LABOS_AI_APPS_OPTION = {
   label: 'LabOS - AI Apps',
@@ -115,11 +129,12 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
     getDefaults,
     toDraft: (form) => ({ message: form.message }),
     fromDraft: (draft) => ({ ...getDefaults(), message: draft.message }),
-    isEmpty: (draft) => !draft.message.trim(),
+    isEmpty: (draft) => !hasFeedbackContent(draft.message ?? ''),
   });
-  const messageLength = watch('message').length;
-  const isOverLimit = messageLength > MAX_LENGTH;
-  const isPending = isAppFeedbackPending || isContactSupportPending;
+  const message = watch('message') ?? '';
+  const isOverLimit = visibleFeedbackLength(message) > MAX_LENGTH;
+  const [isHostingImages, setIsHostingImages] = useState(false);
+  const isPending = isAppFeedbackPending || isContactSupportPending || isHostingImages;
   const [submitAttempted, setSubmitAttempted] = useState(false);
 
   useLayoutEffect(() => {
@@ -131,10 +146,10 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
     const update = () => setOverlayStyle(getAnchorOverlayStyle(anchorRef?.current ?? null, placement));
     update();
     window.addEventListener('resize', update);
-    window.addEventListener('scroll', update, true);
+    window.addEventListener('scroll', update);
     return () => {
       window.removeEventListener('resize', update);
-      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('scroll', update);
     };
   }, [isOpen, anchorRef, placement]);
 
@@ -150,12 +165,22 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
     onClose();
   };
 
-  const onSubmit = handleSubmit(({ app, message }) => {
+  const onSubmit = handleSubmit(async ({ app, message: rawMessage }) => {
     setSubmitAttempted(true);
-    const trimmedMessage = message.trim();
+    let trimmedMessage = (rawMessage ?? '').trim();
 
-    if (!app?.value || !trimmedMessage) {
+    if (!app?.value || !hasFeedbackContent(trimmedMessage)) {
       return;
+    }
+
+    try {
+      setIsHostingImages(true);
+      trimmedMessage = await hostDataUriImages(trimmedMessage);
+    } catch {
+      toast.error('Image upload failed. Please try again.');
+      return;
+    } finally {
+      setIsHostingImages(false);
     }
 
     if (app.value === LABOS_AI_APPS_OPTION.value) {
@@ -169,10 +194,10 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
 
       submitContactSupport(
         {
-          topic: 'Give feedback',
+          topic: 'AI Apps Feedback',
           email,
           name,
-          message: `AI Apps Feedback: ${trimmedMessage}`,
+          message: trimmedMessage,
           metadata: {
             logged: Boolean(currentUser),
             uid: currentUser?.uid || '',
@@ -229,23 +254,24 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
                 options={appOptions}
                 disabled={isAppsLoading}
                 isRequired
-                // FormSelect defaults menuPlacement to 'auto'. Anchored above the
-                // floating button the panel sits at the bottom of the viewport, so
-                // react-select finds no room below and flips the menu upward —
-                // straight into `.root`'s `overflow: hidden`, which clips it.
-                // Portalling lifts it out of that mask (and switches the menu to
-                // fixed positioning, which the fixed overlay needs).
+                // Portalled + fixed so the menu escapes `.root`'s overflow mask and
+                // `auto` can measure viewport space below the control. Forcing
+                // `top` made the list open upward over the nav even though the
+                // field sits at the top of this panel.
                 menuPortalTarget={typeof document === 'undefined' ? null : document.body}
               />
               {submitAttempted && !watch('app') && <p className={s.fieldError}>Please select an app</p>}
 
-              <FormTextArea
+              <FormEditor
                 name="message"
                 label="Your feedback"
-                placeholder="What worked, what didn’t, and what would make this more useful?"
+                placeholder={FEEDBACK_PLACEHOLDER}
+                simplified
+                toolbarConfig={FEEDBACK_TOOLBAR}
                 maxLength={MAX_LENGTH}
                 showCharCount
-                rows={6}
+                minHeight={120}
+                className={s.editor}
               />
             </div>
           </FormProvider>

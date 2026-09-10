@@ -2,7 +2,7 @@
 
 import clsx from 'clsx';
 import { useSearchParams } from 'next/navigation';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -10,81 +10,101 @@ import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
 import { NewsDetailModal } from '@/components/page/home/TeamNews/components/NewsDetailModal';
 import { useFeedCommentCounts } from '@/services/feed/hooks/useFeedCommentCounts';
 import { useTeamNewsImpressions } from '@/services/team-news/hooks/useTeamNewsImpressions';
+import { useCreateTeamNewsPost } from '@/services/team-news/hooks/useCreateTeamNewsPost';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { TEAM_NEWS_PREVIEW_LIMIT } from '@/services/team-news/constants';
 import type { ITeamNewsByTeamResponse, ITeamNewsItem } from '@/types/team-news.types';
+import type { TeamStatus } from '@/types/teams.types';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 
 import { TeamNewsCard } from './TeamNewsCard';
 import { TeamNewsFeedLink } from './TeamNewsFeedLink';
 import { TeamNewsModal } from './TeamNewsModal';
 import { mergeUpvoteOverlay, type TeamNewsUpvoteOverlay } from './teamNewsUpvoteOverlay';
 import { useTeamNewsUpvoteOverlay } from './useTeamNewsUpvoteOverlay';
+import { NewsEmptyCard, PostNewsButton, PostNewsModal, type PostNewsSubmission } from './PostNewsModal';
 
 import s from './TeamNewsRail.module.scss';
+import postStyles from './PostNewsModal/PostNewsModal.module.scss';
 
 interface TeamNewsRailProps {
   teamUid: string;
   teamName: string;
   initialData: ITeamNewsByTeamResponse;
+  /** SSR hint — may be false when the login cookie has no rbac yet. */
+  canPost?: boolean;
+  isCurrentUserTeamMember?: boolean;
+  teamStatus?: TeamStatus | null;
+  memberUid?: string;
 }
 
-// Re-exported for the callers that already import them from here.
 export { mergeUpvoteOverlay };
 export type { TeamNewsUpvoteOverlay };
 
-// One state for what's open over the profile, so illegal combinations can't
-// exist: the archive and a rail-opened story are never both up, closing always
-// drops the focus target, and "View all" after a "Show more" open is unfocused
-// by construction.
-//
-// `detail` is the story opened FROM THE RAIL. The archive drills into stories
-// itself (TeamNewsModal owns that state) rather than stacking this modal on top
-// of it — two overlays would mean two close buttons and an ambiguous Escape.
 type NewsModalState = { kind: 'none' } | { kind: 'archive'; focusUid: string | null } | { kind: 'detail'; uid: string };
 
-export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailProps) {
+export function TeamNewsRail({
+  teamUid,
+  teamName,
+  initialData,
+  canPost = false,
+  isCurrentUserTeamMember = false,
+  teamStatus = 'ACTIVE',
+  memberUid,
+}: TeamNewsRailProps) {
   const [modalState, setModalState] = useState<NewsModalState>({ kind: 'none' });
+  const [composeOpen, setComposeOpen] = useState(false);
+  const [items, setItems] = useState<ITeamNewsItem[]>(initialData.items);
+  const [total, setTotal] = useState(initialData.total);
+  const [postedUid, setPostedUid] = useState<string | null>(null);
+  const railListRef = useRef<HTMLDivElement>(null);
+
   const isMobile = useIsMobile();
+  const { currentUser, isHydrated } = useCurrentUserStore();
   const { onTeamNewsCardClicked, onTeamNewsViewAllClicked, onTeamNewsShowMoreClicked } = useTeamNewsAnalytics();
+  const createPost = useCreateTeamNewsPost(teamUid);
 
   const searchParams = useSearchParams();
   const highlightSection = searchParams.get('highlight') === 'news';
 
-  // The rail reads server-provided `initialData` and the modal has its own
-  // infinite query — two data sources for the same stories. Like the homepage
-  // feed (TeamNews.tsx), a single local overlay merged over both keeps the
-  // viewer's vote consistent everywhere it renders, which is why this is held
-  // here and handed down rather than left to the modal's own instance.
   const { upvoteOverlay, handleUpvoteToggle } = useTeamNewsUpvoteOverlay();
-
-  // Views, held here for the same reason the overlay above is: one instance for
-  // the whole team-profile surface, handed to the archive rather than letting it
-  // mount a second. Each useTeamNewsImpressions owns its dedup set, so two of
-  // them would count a story read in the rail and again in the archive twice in
-  // one sitting — while /home, which mounts one for Top Stories and the stream
-  // together, counts it once.
-  //
-  // Until this existed the rail passed no `onVisible` at all, and NewsCard skips
-  // the observer entirely without one: the cards showed a Views number they never
-  // contributed to.
   const { recordVisible } = useTeamNewsImpressions();
 
-  const total = initialData.total;
+  // Login cookies omit rbac; UserInfoChecker later fills the client store (same
+  // source TeamDetails uses for admin chrome). Recompute here so empty-card /
+  // Post news appear without relying on a stale SSR cookie.
+  const canPostNow =
+    teamStatus !== 'INACTIVE' &&
+    (canPost || (isHydrated && !!currentUser?.uid && (isAdminUser(currentUser) || isCurrentUserTeamMember)));
+
+  useEffect(() => {
+    setItems(initialData.items);
+    setTotal(initialData.total);
+  }, [initialData.items, initialData.total]);
+
+  useEffect(() => {
+    if (!postedUid) return;
+    const el = railListRef.current?.querySelector<HTMLElement>(`[data-story-uid="${CSS.escape(postedUid)}"]`);
+    if (!el) return;
+    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    el.classList.add(postStyles.newsPosted);
+    const timer = setTimeout(() => {
+      el.classList.remove(postStyles.newsPosted);
+      setPostedUid(null);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [postedUid]);
+
   const previewItems = useMemo(
-    () => mergeUpvoteOverlay(initialData.items.slice(0, TEAM_NEWS_PREVIEW_LIMIT), upvoteOverlay),
-    [initialData.items, upvoteOverlay],
+    () => mergeUpvoteOverlay(items.slice(0, TEAM_NEWS_PREVIEW_LIMIT), upvoteOverlay),
+    [items, upvoteOverlay],
   );
   const hasMore = total > TEAM_NEWS_PREVIEW_LIMIT;
+  const hasNews = total > 0;
 
-  // Counts for the rows on screen. The shared entry is filled incrementally, so
-  // asking here for three uids costs one request and leaves /home free to ask
-  // for its own when the reader follows "All network updates". Public, like the
-  // feed's — signed-out visitors see counts too.
   const previewUids = useMemo(() => previewItems.map((item) => item.uid), [previewItems]);
   useFeedCommentCounts({ uids: previewUids, enabled: true });
 
-  // Tapping the row and clicking its comment count are two ways of asking for
-  // the same thing — this story, in full — so both open the story over the
-  // profile and both report as a card click, split by `via`.
   const handleCardClick = useCallback(
     (item: ITeamNewsItem, position: number) => {
       onTeamNewsCardClicked(item, position, 'team-profile-rail');
@@ -94,16 +114,12 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
 
   const handleOpenDetail = useCallback(
     (item: ITeamNewsItem, position: number, via: 'row' | 'comments') => {
-      // The row's own click already reported through `onClick` (handleCardClick);
-      // reporting again here would double-count every card tap.
       if (via === 'comments') onTeamNewsCardClicked(item, position, 'team-profile-rail', 'comments');
       setModalState({ kind: 'detail', uid: item.uid });
     },
     [onTeamNewsCardClicked],
   );
 
-  // The third way of asking for the same story. Deliberately keeps its own event
-  // (it measures the teaser's clamp, not the row) and fires no card-click.
   const handleShowMore = useCallback(
     (item: ITeamNewsItem, position: number) => {
       onTeamNewsShowMoreClicked(item, position);
@@ -112,8 +128,29 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
     [onTeamNewsShowMoreClicked],
   );
 
+  const handlePublish = useCallback(
+    async (post: PostNewsSubmission) => {
+      const item = await createPost.mutateAsync({
+        title: post.title,
+        body: post.body || undefined,
+        url: post.url,
+      });
+      setItems((prev) => [item, ...prev]);
+      setTotal((prev) => prev + 1);
+      setPostedUid(item.uid);
+    },
+    [createPost],
+  );
+
   const detailItem =
     modalState.kind === 'detail' ? (previewItems.find((item) => item.uid === modalState.uid) ?? null) : null;
+
+  const openCompose = () => setComposeOpen(true);
+  const posterUid = memberUid || currentUser?.uid;
+
+  if (!hasNews && !canPostNow) {
+    return null;
+  }
 
   return (
     <>
@@ -124,32 +161,33 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
             [s.highlight]: highlightSection,
           })}
         >
-          <DetailsSectionHeader title={`${teamName} News (${total})`} />
-          <div className={s.newsList}>
-            {previewItems.map((item, index) => (
-              <TeamNewsCard
-                key={item.uid}
-                item={item}
-                position={index}
-                variant="flat"
-                analyticsSource="team-profile-rail"
-                onClick={(clicked) => handleCardClick(clicked, index)}
-                onUpvoteToggle={(toggled: ITeamNewsItem) => handleUpvoteToggle(toggled, index, 'team-profile-rail')}
-                onShowMore={(clicked) => handleShowMore(clicked, index)}
-                onOpenDetail={(clicked, via) => handleOpenDetail(clicked, index, via)}
-                /* By reference, not wrapped — unlike every other callback on
-                   this card. `useCardVisibilityTracking` lists its callback in
-                   the effect's deps, so a new identity each render rebuilds the
-                   observer every render. `trackOnce` keeps that from
-                   double-recording, which is exactly why the churn would never
-                   be noticed. */
-                onVisible={recordVisible}
-              />
-            ))}
-          </div>
-          {/* The panel's two exits, paired on one row: "View all news" stays
-              inside this team, "All network updates" widens to the feed. When
-              there's no archive to open, the remaining exit takes the row. */}
+          <DetailsSectionHeader title={hasNews ? `${teamName} News (${total})` : `${teamName} News`}>
+            {canPostNow && hasNews && posterUid && (
+              <PostNewsButton teamName={teamName} memberUid={posterUid} onPost={openCompose} />
+            )}
+          </DetailsSectionHeader>
+
+          {canPostNow && !hasNews && <NewsEmptyCard onPost={openCompose} />}
+
+          {hasNews && (
+            <div className={s.newsList} ref={railListRef}>
+              {previewItems.map((item, index) => (
+                <TeamNewsCard
+                  key={item.uid}
+                  item={item}
+                  position={index}
+                  variant="flat"
+                  analyticsSource="team-profile-rail"
+                  onClick={(clicked) => handleCardClick(clicked, index)}
+                  onUpvoteToggle={(toggled: ITeamNewsItem) => handleUpvoteToggle(toggled, index, 'team-profile-rail')}
+                  onShowMore={(clicked) => handleShowMore(clicked, index)}
+                  onOpenDetail={(clicked, via) => handleOpenDetail(clicked, index, via)}
+                  onVisible={recordVisible}
+                />
+              ))}
+            </div>
+          )}
+
           <div className={s.newsFooter}>
             {hasMore && (
               <button
@@ -168,6 +206,18 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
         </div>
       </aside>
 
+      {canPostNow && (
+        <PostNewsModal
+          open={composeOpen}
+          onClose={() => setComposeOpen(false)}
+          teamUid={teamUid}
+          teamName={teamName}
+          existing={items}
+          onPublish={handlePublish}
+          isPublishing={createPost.isPending}
+        />
+      )}
+
       <TeamNewsModal
         isOpen={modalState.kind === 'archive'}
         focusUid={modalState.kind === 'archive' ? modalState.focusUid : null}
@@ -178,14 +228,9 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
         fullscreen={isMobile}
         upvoteOverlay={upvoteOverlay}
         onUpvoteToggle={handleUpvoteToggle}
-        /* The same recorder the rail's own cards use, so a story seen in both
-           is one view. See the hook call above. */
         recordVisible={recordVisible}
       />
 
-      {/* Conditional mount, no isOpen half-state: the item prop is always the
-          live overlay-merged object, so the story and the card behind it can
-          never disagree about a vote (same call as /home's). */}
       {detailItem && (
         <NewsDetailModal
           item={detailItem}

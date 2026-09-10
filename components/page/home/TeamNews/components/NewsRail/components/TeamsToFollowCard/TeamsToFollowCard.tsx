@@ -16,6 +16,10 @@ export function stripFollowerCountFromReason(reason: string): string {
   return reason.replace(/\s*·\s*[\d.,]+\s*k?\s*followers?\s*$/i, '').trim();
 }
 
+export function getSuggestedTeamSubtitle(team: Pick<ISuggestedTeam, 'reason' | 'shortDescription'>): string {
+  return team.shortDescription?.trim() || stripFollowerCountFromReason(team.reason || '') || '';
+}
+
 interface TeamsToFollowCardProps {
   suggestions: ISuggestedTeam[];
   isLoading: boolean;
@@ -90,11 +94,7 @@ export function TeamsToFollowCard({
       <h3 className={s.railTitle}>Teams to follow</h3>
       {suggestions.map((team, position) => {
         const isFollowing = followedTeamUids.has(team.uid);
-        // Reason first, tagline as the fallback. A tagline says what a team is,
-        // which its profile already does; the reason says why it is in front of
-        // *you*, which is the only thing that earns a follow from a module
-        // nobody asked for.
-        const subtitle = stripFollowerCountFromReason(team.reason || '') || team.shortDescription?.trim() || '';
+        const subtitle = getSuggestedTeamSubtitle(team);
         return (
           <div key={team.uid} className={s.railRow}>
             {team.logo ? (

@@ -1,0 +1,138 @@
+// "Results from the directory" as compact entity cards. See the component for
+// what production draws and why this differs. Every value here is either the
+// dialog's own (row hover, borders, the 12/500 toggle) or the sibling
+// `followup-questions` head's (14px icon+label).
+
+@use 'styles/media';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* `followup-questions__title`'s measure — 14px, 16px glyph, 4px between —
+   in brand rather than production's gradient text, which is nowhere else in
+   the product. */
+.title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  img {
+    flex-shrink: 0;
+  }
+}
+
+/* Two columns in the 720px dialog; one below the small breakpoint, where a
+   name and a fact no longer fit beside a picture at half width. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include media.mobile-only {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* 32px picture + two 14/12 lines = a 52px card, over the 44px touch minimum
+   without padding doing the work. Rest on the card border every card in the
+   product wears; hover on the border-and-wash pair the dialog's rows use. */
+.card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+
+    .arrow {
+      color: var(--foreground-neutral-secondary, #455468);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.picture {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Teams, projects and events: the rounded square their own cards draw, with
+   a hairline because a placeholder mark on white has no edge of its own. */
+.logo {
+  border-radius: 6px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  padding: 3px;
+  object-fit: contain;
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Secondary, not tertiary: 12px text has to clear 4.5:1 on white, and the
+   tertiary grey does not. */
+.meta {
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* The same arrow the AI Search row carries: quiet at rest, darker on hover. */
+.arrow {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

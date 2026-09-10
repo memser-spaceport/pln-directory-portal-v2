@@ -81,6 +81,19 @@ jest.mock('@/hooks/useIsMobile', () => ({
   useIsMobile: jest.fn(() => false),
 }));
 
+jest.mock('@/services/team-news/hooks/useTeamNewsImpressions', () => ({
+  useTeamNewsImpressions: () => ({ recordVisible: jest.fn() }),
+}));
+
+jest.mock('@/services/team-news/hooks/useCreateTeamNewsPost', () => ({
+  useCreateTeamNewsPost: () => ({ mutateAsync: jest.fn(), isPending: false }),
+}));
+
+jest.mock('@/utils/uiFlags', () => ({
+  getUiFlag: jest.fn().mockResolvedValue(true),
+  setUiFlag: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock('@/components/page/team-details/TeamNews/TeamNewsModal', () => ({
   TeamNewsModal: (props: { isOpen: boolean; fullscreen?: boolean }) => {
     lastModalProps = props;
@@ -111,7 +124,10 @@ const makeItem = (uid: string): ITeamNewsItem => ({
 });
 
 describe('TeamNewsRail', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'm-1' }, isHydrated: true });
+  });
 
   it('renders preview items and header count', () => {
     render(
@@ -399,5 +415,57 @@ describe('TeamNewsRail', () => {
     renderRailWithSummaries(2);
     expect(screen.queryByRole('button', { name: /View all news/i })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: /All network updates/i })).toBeInTheDocument();
+  });
+
+  it('shows empty post prompt when the member can post and there is no news yet', () => {
+    render(
+      <TeamNewsRail
+        teamUid="team-1"
+        teamName="Protocol Labs"
+        canPost
+        memberUid="member-1"
+        initialData={{
+          teamUid: 'team-1',
+          teamName: 'Protocol Labs',
+          page: 1,
+          limit: 3,
+          total: 0,
+          items: [],
+        }}
+      />,
+    );
+
+    expect(screen.getByText('No news yet')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Post news' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /All network updates/i })).toHaveAttribute('href', '/home');
+  });
+
+  it('shows the empty card for a directory admin once the client store is hydrated', () => {
+    mockUseCurrentUserStore.mockReturnValue({
+      currentUser: {
+        uid: 'admin-1',
+        rbac: { effectivePermissions: [{ code: 'directory.admin.full' }] },
+      },
+      isHydrated: true,
+    });
+
+    render(
+      <TeamNewsRail
+        teamUid="team-1"
+        teamName="Protocol Labs"
+        canPost={false}
+        initialData={{
+          teamUid: 'team-1',
+          teamName: 'Protocol Labs',
+          page: 1,
+          limit: 3,
+          total: 0,
+          items: [],
+        }}
+      />,
+    );
+
+    expect(screen.getByText('No news yet')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Post news' })).toBeInTheDocument();
   });
 });

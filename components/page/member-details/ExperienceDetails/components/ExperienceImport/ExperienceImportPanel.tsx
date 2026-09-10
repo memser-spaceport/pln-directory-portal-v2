@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import clsx from 'clsx';
 
 import { InfoCircleIconOutlined, SpinnerIcon } from '@/components/icons';
@@ -14,6 +14,7 @@ import e from '@/components/page/member-details/ExperienceDetails/components/Exp
 
 import { ResumeDropzone } from './ResumeDropzone';
 import type { ParsedProfile } from './types';
+import { useReadingProgress } from './useReadingProgress';
 import p from './ExperienceImportPanel.module.scss';
 
 /**
@@ -151,6 +152,19 @@ const LINKEDIN_HINT = {
 
 const MAX_FILE_SIZE_MB = 5;
 
+/**
+ * How long the finished bar stays on screen before the row gives way.
+ *
+ * Longer than the fill's 300ms transition, and that is the whole point: without
+ * a pause the row unmounts in the same tick it reaches 100%, the transition
+ * never paints a frame, and "animate to 100%" is a thing the code does and
+ * nobody sees. The cost is this much added to every successful parse, which is
+ * the price of the completion being real.
+ */
+const COMPLETION_HOLD_MS = 320;
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export function ExperienceImportPanel({
   onParse,
   onAbort,
@@ -162,6 +176,15 @@ export function ExperienceImportPanel({
 }: ExperienceImportPanelProps) {
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<Status>('idle');
+
+  /* An invented curve over a wait the server reports no fraction for — see the
+     hook for why a determinate bar is still the honest choice here. Started and
+     stopped alongside the status, from the three places that change it. */
+  const { progress, start: startBar, stop: stopBar, settle: settleBar } = useReadingProgress();
+
+  /* Names the bar with the line already above it ("Reading polina-cv.pdf…"),
+     rather than a second label repeating it. */
+  const readingLabelId = useId();
 
   /**
    * Which read the panel is still interested in.
@@ -199,6 +222,13 @@ export function ExperienceImportPanel({
     onAbort();
     setFile(null);
     setStatus('idle');
+    stopBar();
+  };
+
+  /** Take the bar to 100% and let it be seen there. */
+  const finishBar = async () => {
+    settleBar();
+    await wait(COMPLETION_HOLD_MS);
   };
 
   const startReading = async (picked: File) => {
@@ -207,15 +237,31 @@ export function ExperienceImportPanel({
 
     setFile(picked);
     setStatus('reading');
+    startBar();
 
     try {
       const parsed = await onParse(picked);
       if (token !== readToken.current) return;
 
       if (parsed.experiences.length === 0) {
+        /* Still a completion. The document *was* read — it carried nothing this
+           importer can use, which is a fact about the file and not a failure of
+           the read, so the bar finishing is true. */
+        await finishBar();
+        if (token !== readToken.current) return;
+
         setStatus('nothing-found');
         return;
       }
+
+      /* THE SECOND TOKEN CHECK IS NOT REDUNDANT.
+         The one above guards the await on `onParse`; this one guards the hold,
+         which is a new window in which Cancel, a superseding file and unmount
+         can all still happen. Without it, cancelling while the bar finishes
+         would open the review anyway — over a parse whose request `reset` has
+         already aborted. */
+      await finishBar();
+      if (token !== readToken.current) return;
 
       /* The panel's job ends here. It does not keep the parse — the parent
          does, because the parent owns which card is open. */
@@ -225,8 +271,13 @@ export function ExperienceImportPanel({
     } catch {
       /* A cancelled or superseded read is the person changing their mind, and
          owes them nothing. Anything else is a failure, and says so — see the
-         two dead ends below. */
+         two dead ends below.
+
+         Deliberately no `finishBar()` on this path: filling the bar to 100% and
+         then saying "we couldn't read that file" claims a success that did not
+         happen. A failure ends the wait, it doesn't complete it. */
       if (token !== readToken.current) return;
+      stopBar();
       setStatus('failed');
     }
   };
@@ -239,8 +290,28 @@ export function ExperienceImportPanel({
         <div className={p.reading}>
           <SpinnerIcon className={p.spinner} />
           <div className={p.readingText}>
-            <div className={p.readingTitle}>Reading {file?.name ?? 'your file'}…</div>
+            <div className={p.readingTitle} id={readingLabelId}>
+              Reading {file?.name ?? 'your file'}…
+            </div>
             {file && <div className={p.readingMeta}>{formatFileSize(file.size)}</div>}
+            {/* Inside the text column rather than the row: the row is
+                `align-items: center` between the spinner and Cancel, and a
+                full-width bar in there would stretch that alignment around it.
+
+                `role="progressbar"` and NOT a live region — the value moves five
+                times a second, and an announcement per tick would bury the one
+                sentence on screen that matters. A progressbar is polled when the
+                reader wants it, which is the right relationship for this. */}
+            <div
+              className={p.progressTrack}
+              role="progressbar"
+              aria-labelledby={readingLabelId}
+              aria-valuenow={Math.round(progress)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              <div className={p.progressFill} style={{ width: `${progress}%` }} />
+            </div>
           </div>
           <button
             type="button"

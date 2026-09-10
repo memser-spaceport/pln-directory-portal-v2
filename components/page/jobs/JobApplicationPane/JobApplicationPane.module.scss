@@ -164,6 +164,16 @@
   gap: 8px;
 }
 
+// The rule between the profile being quoted and the note being written, per the
+// design. It is doing the job the "Message for the team" heading used to: saying
+// that one thing has ended and another has started. A line does it without
+// naming a genre — which is the same argument that took "Cover letter" out of
+// the copy below.
+.messageBlock {
+  padding-top: 16px;
+  border-top: 1px solid var(--border-neutral-subtle, #e2e8f0);
+}
+
 // One label idiom for both blocks — ReferModal's `.templateLabelRow` /
 // `.templateLabel`, transcribed rather than imported so this file owns its own
 // classes. The profile panel and the cover letter are two halves of one

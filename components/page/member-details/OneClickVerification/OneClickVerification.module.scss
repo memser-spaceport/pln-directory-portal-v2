@@ -46,6 +46,36 @@
   }
 }
 
+/* **The apply flow's framing: no card of its own.**
+   On the member profile page this block is one card among a page of cards, so it
+   carries a white surface, an amber hairline and a shadow, and hangs its banner
+   off the top edge with `position: absolute` (which is what the 64px top padding
+   above is reserving room for).
+
+   Inside the apply drawer the design draws it differently: a full-width amber
+   band, then the label and the grey row sitting directly on the drawer, with no
+   surface of their own. So the banner becomes an ordinary first flex child and
+   the card chrome comes off.
+
+   `align-self: stretch` is not decoration — `.drawerContent` is
+   `align-items: center`, so anything that does not ask to stretch is centred at
+   its natural width, which is how this arrived two-thirds as wide as the cards
+   above and below it. */
+.root.plain {
+  align-self: stretch;
+  width: 100%;
+  padding: 0;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+
+  .missingDataHeader {
+    position: static;
+    border-radius: 8px;
+  }
+}
+
 .label {
   display: flex;
   align-items: center;

@@ -96,8 +96,15 @@ export function useJobBoardViewer(args: {
     : (userInfo ?? null);
 
   // One query settles the whole viewer now: the job search status rides on the
-  // member record (PL-Team-only, so the API omits it for anyone else), rather
-  // than the separate endpoint the mocked version needed.
+  // member record rather than the separate endpoint the mocked version needed.
+  //
+  // The API gates that field on `requestor.uid === memberUid || isDirectoryAdmin`
+  // (`members.controller.ts`, `withJobSearchStatusVisibility`) — self or admin,
+  // not PL Team, as an earlier version of this comment claimed. The distinction
+  // decides whether this hook works at all: it reads the signed-in member's own
+  // record, which is the self case, so the status is present. Were it really
+  // PL-Team-only, every Job Aspirant would compute `profileComplete: false`
+  // forever, however carefully they answered the question at sign-up.
   const isResolved = !active || memberQuery.isSuccess || memberQuery.isError;
 
   const jobSearchStatus = isJobSearchStatus(member?.jobSearchStatus) ? member.jobSearchStatus : null;

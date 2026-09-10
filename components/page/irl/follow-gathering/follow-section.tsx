@@ -33,6 +33,7 @@ interface IFollowSectionProps {
   guestDetails: any;
   topicsAndReason: any;
   nearestEventDate: string | null;
+  mySubscriptions?: any;
 }
 
 const FollowSection = (props: IFollowSectionProps) => {
@@ -277,6 +278,9 @@ const FollowSection = (props: IFollowSectionProps) => {
     }
   }, [openModalParamString, isUserGoingValue, isUserLoggedInValue, v2CanWrite]);
 
+  /* Depends on userInfo: registered once with `[]`, the handler captured a
+     `userInfo` that useCurrentUserStore had not hydrated yet, so every
+     event-driven update recomputed isFollowing as false for a real follower. */
   useEffect(() => {
     function updateFollowers(e: any) {
       setFollowProperties(getFollowProperties(e.detail));
@@ -285,7 +289,8 @@ const FollowSection = (props: IFollowSectionProps) => {
     return function () {
       document.removeEventListener(EVENTS.UPDATE_IRL_LOCATION_FOLLOWERS, updateFollowers);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userInfo?.uid]);
 
   const onFollowersCloseClicHandler = () => {
     document.dispatchEvent(new CustomEvent(EVENTS.IRL_ALL_FOLLOWERS_OPEN_AND_CLOSE, { detail: { status: false } }));
@@ -527,6 +532,7 @@ const FollowSection = (props: IFollowSectionProps) => {
               eventLocationSummary={location}
               userInfo={userInfo}
               followProperties={followProperties}
+              mySubscriptions={props.mySubscriptions}
               expand={true}
             />
             {canUserAddAttendees && v2CanWrite && (

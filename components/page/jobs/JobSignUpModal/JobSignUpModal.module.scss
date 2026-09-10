@@ -268,23 +268,13 @@
   margin-bottom: 0.25rem;
 }
 
-// Transcribed from `SignupWizard.module.scss`'s `.aboutLabelOptional` — the
-// product's only other "this field is optional" mark. Source is
-// `font-weight: 400; color: #8897ae;` against a label at 500 / #455468, with the
-// gap coming from the parent's `gap: 4px`; here the label row is not a flex
-// container, so the gap becomes a margin.
-//
-// Size, line-height and letter-spacing are deliberately unset: inheriting them
-// from the label is what keeps the mark on the same baseline as the words it
-// qualifies. The weight and tone are the whole difference, which is the point —
-// it is a qualifier, not a second label.
-.optionalMark {
-  margin-left: 4px;
-  font-weight: 400;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-}
+// (`.optionalMark` stood here — the `(Optional)` this row wore when the PL-team
+// box was unticked, transcribed from `SignupWizard.module.scss`'s
+// `.aboutLabelOptional`. The design marks the row `Current role` in both states,
+// so the mark and its rule went together. `CvFirstCard` keeps its own copy off
+// `JobProfileDrawer.module.scss` and is unaffected.)
 
-// The other half of the pair: what this row wears once the PL-team tick makes
+// What this row wears once the PL-team tick makes
 // its two fields required. Same three declarations `FormField.module.scss` gives
 // `.label.required:after` — `content: '*'`, `color: red`, `margin-left: 0.25rem`
 // — so the mark is the product's own, not a second dialect of "required".

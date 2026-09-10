@@ -89,4 +89,21 @@ describe('RichTextEditor modules stability', () => {
     const { prev, next } = lastTwoModules();
     expect(isEqual(prev, next)).toBe(false);
   });
+
+  it("disables Quill's data-URI uploader when the toolbar has image", () => {
+    render(<RichTextEditor value="<p></p>" onChange={() => undefined} toolbarConfig={[['image']]} />);
+    const modules = capturedProps[0].modules as {
+      uploader?: { handler?: () => void };
+      imageUploader?: unknown;
+    };
+    expect(typeof modules.uploader?.handler).toBe('function');
+    expect(modules.imageUploader).toBeDefined();
+  });
+
+  it("leaves Quill's uploader alone when the toolbar has no image", () => {
+    render(<RichTextEditor value="<p></p>" onChange={() => undefined} toolbarConfig={[]} />);
+    const modules = capturedProps[0].modules as { uploader?: unknown; imageUploader?: unknown };
+    expect(modules.uploader).toBeUndefined();
+    expect(modules.imageUploader).toBeUndefined();
+  });
 });

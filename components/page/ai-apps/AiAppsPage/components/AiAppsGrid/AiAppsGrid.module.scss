@@ -3,6 +3,9 @@
 .grid {
   display: grid;
   grid-template-columns: 1fr;
+  /* Equal-height cards derived from the tallest row's content, rather than a
+     min-height constant on the card that goes stale. */
+  grid-auto-rows: 1fr;
   gap: 16px;
   width: 100%;
   padding: 8px 0;

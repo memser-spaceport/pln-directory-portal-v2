@@ -40,6 +40,14 @@ interface Props {
   selectRef?: React.RefObject<SelectInstance | null>;
   menuPlacement?: 'top' | 'bottom' | 'auto';
   menuPortalTarget?: HTMLElement | null;
+  /**
+   * The select's accessible name, for the rows that have no `label` of their own.
+   *
+   * react-select puts it on the combobox input `inputId` already points at, so a
+   * caller that passes `label` should leave this alone — the visible label is
+   * associated with that same input and would be overridden by this.
+   */
+  'aria-label'?: string;
 }
 
 export const FormSelect = (props: Props) => {
@@ -174,6 +182,7 @@ export const FormSelect = (props: Props) => {
           }}
           isDisabled={disabled || open}
           inputId={name}
+          aria-label={props['aria-label']}
           isClearable={isClearable}
           formatOptionLabel={formatOptionLabel}
           filterOption={(option, inputValue) => {
@@ -260,7 +269,9 @@ export const FormSelect = (props: Props) => {
               // auto` into a horizontal scrollbar (a non-visible value on one
               // axis computes the other away from `visible`).
               minWidth: 0,
+              minHeight: 0,
               overflowX: 'hidden' as const,
+              overflowY: 'auto' as const,
             }),
             menu: (baseStyles) => ({
               ...baseStyles,

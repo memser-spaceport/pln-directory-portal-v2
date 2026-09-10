@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import {
+  getSuggestedTeamSubtitle,
   stripFollowerCountFromReason,
   TeamsToFollowCard,
 } from '@/components/page/home/TeamNews/components/NewsRail/components/TeamsToFollowCard';
@@ -32,6 +33,28 @@ describe('stripFollowerCountFromReason', () => {
 
   it('leaves reasons without a follower count unchanged', () => {
     expect(stripFollowerCountFromReason('Storage · shared focus area')).toBe('Storage · shared focus area');
+  });
+});
+
+describe('getSuggestedTeamSubtitle', () => {
+  it('prefers the short description over the reason', () => {
+    expect(
+      getSuggestedTeamSubtitle({
+        reason: 'Storage · 1.2k followers',
+        shortDescription: 'Decentralized hot storage for large datasets.',
+      }),
+    ).toBe('Decentralized hot storage for large datasets.');
+  });
+
+  it('falls back to the stripped focus area when the description is missing or blank', () => {
+    expect(getSuggestedTeamSubtitle({ reason: 'Storage · 1.2k followers' })).toBe('Storage');
+    expect(getSuggestedTeamSubtitle({ reason: 'Storage · 1.2k followers', shortDescription: null })).toBe('Storage');
+    expect(getSuggestedTeamSubtitle({ reason: 'Storage · 1.2k followers', shortDescription: '  ' })).toBe('Storage');
+  });
+
+  it('returns empty when both description and reason are blank', () => {
+    expect(getSuggestedTeamSubtitle({ reason: '', shortDescription: null })).toBe('');
+    expect(getSuggestedTeamSubtitle({ reason: '   ', shortDescription: '  ' })).toBe('');
   });
 });
 
@@ -68,7 +91,7 @@ describe('TeamsToFollowCard', () => {
     expect(screen.getByRole('region', { name: 'Teams to follow' })).toHaveAttribute('aria-busy', 'true');
   });
 
-  it('renders each suggestion with name and reason, without follower counts', () => {
+  it('renders each suggestion with name and focus-area fallback when there is no description, without follower counts', () => {
     render(
       <TeamsToFollowCard
         suggestions={[team({ uid: 't1', name: 'Banyan Storage', reason: 'Storage · 1.2k followers' })]}
@@ -97,9 +120,7 @@ describe('TeamsToFollowCard', () => {
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
-  // A tagline says what a team is, which its profile already does; the reason
-  // says why it is in front of *you*, which is what earns a follow here.
-  it('prefers the recommendation reason as the subtitle, stripped of the follower count', () => {
+  it('prefers the short description as the subtitle when both description and reason exist', () => {
     render(
       <TeamsToFollowCard
         suggestions={[
@@ -115,29 +136,37 @@ describe('TeamsToFollowCard', () => {
         onFollowToggle={mockOnFollowToggle}
       />,
     );
-    expect(screen.getByText('Storage')).toBeInTheDocument();
-    expect(screen.queryByText('Decentralized hot storage for large datasets.')).not.toBeInTheDocument();
+    expect(screen.getByText('Decentralized hot storage for large datasets.')).toBeInTheDocument();
+    expect(screen.queryByText('Storage')).not.toBeInTheDocument();
   });
 
-  it('falls back to the short description when the reason is missing or blank', () => {
+  it('falls back to the stripped focus area when the short description is missing or blank', () => {
     render(
       <TeamsToFollowCard
         suggestions={[
-          team({
-            uid: 't1',
-            name: 'Banyan Storage',
-            reason: '',
-            shortDescription: 'Decentralized hot storage for large datasets.',
-          }),
-          team({ uid: 't2', name: 'Other Team', reason: '   ', shortDescription: 'Runs the indexer.' }),
+          team({ uid: 't1', name: 'Banyan Storage', reason: 'Storage · 1.2k followers', shortDescription: null }),
+          team({ uid: 't2', name: 'Other Team', reason: 'Infrastructure · 890 followers', shortDescription: '  ' }),
         ]}
         isLoading={false}
         followedTeamUids={emptyFollowed}
         onFollowToggle={mockOnFollowToggle}
       />,
     );
-    expect(screen.getByText('Decentralized hot storage for large datasets.')).toBeInTheDocument();
-    expect(screen.getByText('Runs the indexer.')).toBeInTheDocument();
+    expect(screen.getByText('Storage')).toBeInTheDocument();
+    expect(screen.getByText('Infrastructure')).toBeInTheDocument();
+  });
+
+  it('omits the subtitle when both description and reason are empty', () => {
+    render(
+      <TeamsToFollowCard
+        suggestions={[team({ uid: 't1', name: 'Banyan Storage', reason: '', shortDescription: null })]}
+        isLoading={false}
+        followedTeamUids={emptyFollowed}
+        onFollowToggle={mockOnFollowToggle}
+      />,
+    );
+    expect(screen.getByText('Banyan Storage')).toBeInTheDocument();
+    expect(screen.queryByText('Storage')).not.toBeInTheDocument();
   });
 
   it('redirects to login on follow click when anonymous, without calling onFollowToggle', () => {

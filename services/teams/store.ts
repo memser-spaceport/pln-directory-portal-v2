@@ -6,7 +6,7 @@ let legacyAnalyticsCallback: ((params: URLSearchParams) => void) | undefined;
 /**
  * Set analytics callback for filter changes
  * @deprecated Use the onFilterChange config in createFilterStore instead
- * This is kept for backward compatibility with SyncTeamsParamsToUrl component
+ * This is kept for backward compatibility with TeamsFilterUrlSync
  */
 export const setFilterAnalyticsCallback = (callback: (params: URLSearchParams) => void) => {
   legacyAnalyticsCallback = callback;

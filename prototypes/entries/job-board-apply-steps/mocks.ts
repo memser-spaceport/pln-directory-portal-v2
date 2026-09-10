@@ -30,7 +30,12 @@ const MOCK_GROUPS: MockGroup[] = [
       logoUrl: null,
       focusAreas: ['Infrastructure', 'Networking', 'Storage'],
       subFocusAreas: ['Networking'],
-      jobReferEmail: 'jobs@protocol.ai',
+      // null, not 'jobs@protocol.ai': a team-configured inbox hides the refer
+      // modal's whole "Send to" picker (the send skips recipients), so the one
+      // team every demo leads with was the one team that never showed the
+      // suggested-recipients design. The inbox branch still exists in the modal —
+      // put an address back here to demo it.
+      jobReferEmail: null,
     },
     roles: [
       {
@@ -268,7 +273,9 @@ export const MOCK_LOCATION_FACETS: IJobsFacetItem[] = [
 ];
 
 /**
- * Who reads an application, per hiring team.
+ * Who reads an application, per hiring team. Consumed through this folder's
+ * `useTeamMembers`, which serves it synchronously — the apply pane's facepile and
+ * the refer modal's "Send to" menu and suggestion chips all read that hook.
  *
  * **Why this is mocked rather than looked up.** It used to be neither: the apply
  * flow's facepile and the referral modal's prefill both came from
@@ -324,3 +331,62 @@ export const MOCK_HIRING_TEAMS: Record<string, Array<{ uid: string; name: string
     { uid: 'bac-lead-2', name: 'Amir Haddad', title: 'Head of Product' },
   ],
 };
+
+/**
+ * The searchable network, for the refer modal's two people fields — who you're
+ * referring, and anyone typed into "Send to". Mocked for the same reason as
+ * `MOCK_HIRING_TEAMS`, plus one this folder's viewer switcher makes sharper:
+ * the live search (`/api/members-search`) needs a **real** browser session, and
+ * this board's "signed in" viewers are pretend — so even they were met with
+ * "Sign in to search members" the moment they typed a name.
+ *
+ * Members of the hiring teams above are searchable too (the folder's
+ * `useMemberSearch` merges both lists); these are the members *outside* those
+ * teams, which is who a referee usually is. `skills` feed the drafted note's
+ * "why them" sentence — see `composeReferralNote`.
+ */
+export const MOCK_NETWORK_MEMBERS: Array<{ uid: string; name: string; title: string; team: string; skills: string[] }> =
+  [
+    {
+      uid: 'net-1',
+      name: 'Leah Okafor',
+      title: 'Distributed Systems Engineer',
+      team: 'Lattice Compute',
+      skills: ['Rust', 'libp2p', 'Consensus'],
+    },
+    {
+      uid: 'net-2',
+      name: 'Marco Silva',
+      title: 'Protocol Engineer',
+      team: 'Meridian Labs',
+      skills: ['Go', 'IPFS', 'Networking'],
+    },
+    {
+      uid: 'net-3',
+      name: 'Danielle Fournier',
+      title: 'Staff Software Engineer',
+      team: 'Bacalhau',
+      skills: ['Distributed Storage', 'Kubernetes'],
+    },
+    {
+      uid: 'net-4',
+      name: 'Owen Achterberg',
+      title: 'Senior Backend Engineer',
+      team: 'IPFS Collective',
+      skills: ['TypeScript', 'GraphQL'],
+    },
+    {
+      uid: 'net-5',
+      name: 'Grace Lindholm',
+      title: 'Research Engineer',
+      team: 'drand',
+      skills: ['Cryptography', 'Distributed Randomness'],
+    },
+    {
+      uid: 'net-6',
+      name: 'Ravi Mehta',
+      title: 'Site Reliability Engineer',
+      team: 'Lattice Compute',
+      skills: ['Observability', 'Infrastructure'],
+    },
+  ];

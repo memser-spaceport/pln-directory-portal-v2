@@ -87,8 +87,10 @@ export const EMPTY_ACCOUNT_FORM: AccountFormData = {
 // Transcribed from ApplyForDemoDayModal's `applySchema` — same email domain-dot
 // test, same LinkedIn handle-or-URL pair of patterns. Dropped: `isInvestor`,
 // `teamName`/`websiteAddress` (the add-a-team branch) and the conditional `role`
-// rule that only fired while adding a team. Here `role` is plainly required,
-// because there is no branch in which it isn't.
+// rule that only fired while adding a team. `role` is not required here either:
+// applying no longer waits on it (see `isProfileComplete`), and a schema that
+// refuses the form for it would make it required in the one place it matters
+// most — the step a stranger has to get through to apply at all.
 export const accountSchema = yup.object({
   email: yup
     .string()
@@ -121,7 +123,11 @@ export const accountSchema = yup.object({
 
       return linkedinUrlPattern.test(trimmedValue) || linkedinHandlePattern.test(trimmedValue);
     }),
-  role: yup.string().required('Role is required'),
+  /* `defined()` rather than `required()`, like `linkedin` above: applying no
+     longer waits on the current role (see `isProfileComplete`), so `''` is a
+     valid answer — and `required()` on a string rejects it. `defined()` keeps
+     the inferred type a plain `string`. */
+  role: yup.string().defined(),
   company: yup.mixed<{ label: string; value: string }>().nullable(),
 });
 
@@ -368,13 +374,14 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
 
           **Why the label is not the question itself.** "Are you already at a PL
           network team?" is what this asks, and it was the obvious candidate —
-          but the group holds one required field and one optional one. `role` is
-          required of everybody; the team is answerable only if you are on the
-          network. A question-shaped label covering both would make the required
-          half read as skippable, and the group can't carry a single
-          `OptionalMark` for the same reason. So the label states the pair, and
-          the description under the select — the half that is actually optional —
-          answers the question. */}
+          but the group was a mixed pair when the label was written: `role` was
+          required of everybody and the team answerable only if you are on the
+          network, so a question-shaped label covering both would make the
+          required half read as skippable. The role is optional now, so neither
+          half is marked and that objection has lapsed; the label still states
+          the pair, because the description under the select is the thing
+          answering the question and a question-shaped label above it would ask
+          it twice. */}
       <div className={s.column}>
         <div className={s.inputsLabel}>Current role &amp; PL network team</div>
         <div className={s.inputsWrapper}>

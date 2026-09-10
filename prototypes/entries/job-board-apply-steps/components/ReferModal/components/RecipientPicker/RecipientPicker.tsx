@@ -20,8 +20,9 @@ import { toRecipientOption } from '../../utils/toRecipientOption';
 
 import { useMemberSearch } from '../../hooks/useMemberSearch';
 
-import { MailIcon } from '../../../../icons';
+import { MailIcon, PlusIcon } from '../../../../icons';
 
+import { MemberAvatar } from '../MemberAvatar';
 import { RecipientInput } from './components/RecipientInput';
 
 import { selectStyles } from './selectStyles';
@@ -31,6 +32,10 @@ interface RecipientPickerProps {
   label: string;
   /** Members of the hiring team — the group the menu opens on, before anything is typed. */
   teamMembers: DirectoryMember[];
+  /** The hiring team itself as a pickable row: the first thing in the resting menu and
+   *  the first suggestion chip, for a referrer who recognises none of the names under
+   *  it. Built by `toTeamRecipientOption`, which is where the reasoning lives. */
+  teamOption?: RecipientOption | null;
   /** The hiring team is still on the wire — an empty menu means "not yet", not "nobody". */
   isTeamLoading?: boolean;
   teamName: string;
@@ -55,40 +60,72 @@ interface RecipientPickerProps {
  * (so it can't offer "Add ‹address›"). The chrome is transcribed from it rather than
  * reinvented — see `selectStyles`.
  *
- * **The value is a list of rows, not a wrap of chips**, because this field arrives
- * pre-filled: the modal seeds it with the hiring team, so the referrer's first job
- * here is to check a set someone else assembled. A name-only chip can't answer
- * "should Priya be on this?" — the role can, and it was already on the menu row
- * they picked from. `selectStyles.valueContainer` / `.multiValue` carry the layout;
- * `.row*` in the SCSS carries the contents.
+ * **The value is a list of rows, not a wrap of chips.** A name-only chip can't
+ * answer "should Priya be on this?" — the role can, and it was already on the
+ * menu row they picked from. `selectStyles.valueContainer` / `.multiValue` carry
+ * the layout; `.row*` in the SCSS carries the contents.
  */
 export function RecipientPicker(props: RecipientPickerProps) {
-  const { label, teamMembers, isTeamLoading, teamName, excludeUids, value, onChange, menuPortalTarget, description } =
-    props;
+  const {
+    label,
+    teamMembers,
+    teamOption,
+    isTeamLoading,
+    teamName,
+    excludeUids,
+    value,
+    onChange,
+    menuPortalTarget,
+    description,
+  } = props;
 
   const [query, setQuery] = useState('');
   const { results, isSearching, hasQuery, isUnauthorized } = useMemberSearch(query);
 
   const teamUids = useMemo(() => new Set(teamMembers.map((member) => member.uid)), [teamMembers]);
 
+  // The hiring team with the referee and anyone already added dropped, leads first —
+  // with nobody preselected, this list *is* the suggestion, and the leads are who a
+  // referral is usually addressed to (see `useTeamMembers`). Stable sort, so within
+  // leads and non-leads the directory's own order holds. Feeds both offers: the
+  // resting menu (all of it) and the quick-add chips under the field (the first few).
+  const restingTeam = useMemo<DirectoryMember[]>(() => {
+    const excluded = new Set([...(excludeUids ?? []), ...value.map((option) => option.value)]);
+    return teamMembers
+      .filter((member) => !excluded.has(member.uid))
+      .sort((a, b) => Number(b.isTeamLead ?? false) - Number(a.isTeamLead ?? false));
+  }, [teamMembers, excludeUids, value]);
+
   const groups = useMemo<GroupBase<RecipientOption>[]>(() => {
     const excluded = new Set([...(excludeUids ?? []), ...value.map((option) => option.value)]);
     const pickable = (members: DirectoryMember[]) => members.filter((member) => !excluded.has(member.uid));
 
     // Nothing typed: the hiring team is the whole menu. Searching swaps in what the
-    // directory matched, split so the hiring team still reads first.
-    const team = hasQuery ? pickable(results.filter((member) => teamUids.has(member.uid))) : pickable(teamMembers);
+    // directory matched, in the directory's ranking, split so the hiring team still
+    // reads first.
+    const team = hasQuery ? pickable(results.filter((member) => teamUids.has(member.uid))) : restingTeam;
     const network = hasQuery ? pickable(results.filter((member) => !teamUids.has(member.uid))) : [];
 
+    /* The team heads its own group — it is the same answer to "who hears about
+       this", one level up from the people under it, so it belongs in that list
+       rather than in a group of its own. While searching it stays only if the
+       query is actually about the team: typing "pri" is looking for Priya. */
+    const teamRow =
+      teamOption &&
+      !excluded.has(teamOption.value) &&
+      (!hasQuery || teamName.toLowerCase().includes(query.trim().toLowerCase()))
+        ? [teamOption]
+        : [];
+
     const result: GroupBase<RecipientOption>[] = [];
-    if (team.length) {
+    if (team.length || teamRow.length) {
       // `omitTeam` inside this group: the heading above the rows already says
       // "Protocol Labs team", and the modal's own title says it again — a "· Protocol
       // Labs" tail on each of four rows is the same word four more times, in the
       // space the role needs.
       result.push({
         label: `${teamName} team`,
-        options: team.map((member) => toRecipientOption(member, { omitTeam: true })),
+        options: [...teamRow, ...team.map((member) => toRecipientOption(member, { omitTeam: true }))],
       });
     }
     if (network.length) {
@@ -96,7 +133,23 @@ export function RecipientPicker(props: RecipientPickerProps) {
       result.push({ label: 'PL network', options: network.map((member) => toRecipientOption(member)) });
     }
     return result;
-  }, [teamMembers, teamUids, teamName, results, hasQuery, excludeUids, value]);
+  }, [restingTeam, teamUids, teamName, teamOption, query, results, hasQuery, excludeUids, value]);
+
+  /* A picked row is a snapshot, and the team row is the one row whose contents go
+     on changing after it is picked: naming the candidate as the referee drops them
+     from the leads it resolves to, so a team picked first would keep claiming to
+     reach the very person being referred. The send already reads the live list —
+     this makes the row agree with it. */
+  const displayValue = useMemo(
+    () => (teamOption ? value.map((option) => (option.value === teamOption.value ? teamOption : option)) : value),
+    [value, teamOption],
+  );
+
+  // Four, not the whole team: the chips are a shortcut for the names the referrer
+  // will recognise (the leads sort first), and a team of sixty as chips would bury
+  // the field under the control meant to feed it. The rest stay one press away in
+  // the same menu.
+  const suggested = restingTeam.slice(0, 4);
 
   return (
     <div className={fieldCss.field}>
@@ -107,7 +160,7 @@ export function RecipientPicker(props: RecipientPickerProps) {
         inputId="recipients"
         aria-label={label}
         options={groups}
-        value={value}
+        value={displayValue}
         onChange={(next) => onChange([...(next ?? [])])}
         placeholder="Type a name or email address"
         /* No clear-all. Every row already ends in its own ✕ on the field's right
@@ -200,10 +253,20 @@ export function RecipientPicker(props: RecipientPickerProps) {
                 </span>
               ) : (
                 <span className={s.optionRow}>
+                  {/* The logo keeps the person's 32px circle and swaps only the
+                      source — production's team fallback when the team has none of
+                      its own. What says "audience" is the label and the destination
+                      under it, not a different silhouette; see `.optionAvatarTeam`
+                      for why the row is not the rounded square production draws a
+                      team card with. */}
                   <img
-                    src={optionProps.data.image || getDefaultAvatar(optionProps.data.label)}
+                    src={
+                      optionProps.data.isTeam
+                        ? optionProps.data.image || '/icons/team-default-profile.svg'
+                        : optionProps.data.image || getDefaultAvatar(optionProps.data.label)
+                    }
                     alt=""
-                    className={s.optionAvatar}
+                    className={`${s.optionAvatar} ${optionProps.data.isTeam ? s.optionAvatarTeam : ''}`}
                   />
                   <span className={s.optionText}>
                     <span className={s.optionNameRow}>
@@ -271,10 +334,16 @@ export function RecipientPicker(props: RecipientPickerProps) {
                     <span className={s.rowMail}>
                       <MailIcon />
                     </span>
+                  ) : data.isTeam ? (
+                    <img
+                      src={data.image || '/icons/team-default-profile.svg'}
+                      alt=""
+                      className={`${s.rowAvatar} ${s.rowAvatarTeam}`}
+                    />
                   ) : (
                     <img src={data.image || getDefaultAvatar(data.label)} alt="" className={s.rowAvatar} />
                   )}
-                  <span className={s.rowText}>
+                  <span className={`${s.rowText} ${data.isTeam ? s.rowTextTeam : ''}`}>
                     <span className={s.rowName}>{data.label}</span>
                     {data.isTeamLead && <span className={s.leadBadge}>Lead</span>}
                     {/* The role — the half a name-only chip left out, and the whole
@@ -286,7 +355,11 @@ export function RecipientPicker(props: RecipientPickerProps) {
               </components.MultiValue>
             );
 
-            return data.isEmail ? (
+            /* The team row is unlinked, like a typed address: a member row points at
+               a directory page that answers "who is this?", and the team is already
+               named in the modal's own title and in the group heading this row was
+               picked from — there is nothing further to go and read. */
+            return data.isEmail || data.isTeam ? (
               content
             ) : (
               <a target="_blank" href={`${PAGE_ROUTES.MEMBERS}/${data.value}`}>
@@ -301,6 +374,80 @@ export function RecipientPicker(props: RecipientPickerProps) {
           ),
         }}
       />
+
+      {/* The suggestion, made visible. The resting menu already opens on the hiring
+          team, but a suggestion that only exists inside an unopened menu is not
+          being made — so the first few of the same list sit under the field as
+          quick-add chips, drawn to the reviewed mock: avatar, name over role, and
+          a brand plus saying what a press does. The plus is the bare one from this
+          entry's `icons.tsx`, not the DS `PlusIcon` — that glyph is circled, and a
+          ring around a plus reads as a button in its own right, which is wrong
+          inside a chip that is already one. The same mark is on the field's "Add
+          someone else" line and on the outside-network menu row, so one glyph
+          means "adds a recipient" everywhere on this field. Name and
+          role carry the menu row's own type values (`.optionName` /
+          `.optionDescription`), so the chip and the row it shortcuts read as the
+          same person. One press adds the row; an added member leaves
+          `restingTeam`, so their chip disappears and the next member steps up
+          until the team runs out.
+
+          **The label names the team, and has to.** It read "Suggested teammates"
+          — a possessive with no owner on screen, which a reader takes as *their*
+          teammates, and the referrer is usually an outsider to the hiring team.
+          A bare "Suggested" fixed that but said nothing about where the names
+          come from, so the scope of the offer was invisible: these are the team
+          the role is tied to, not the network at large. Naming the team is the
+          only thing on the card that says so at rest — the title names the role,
+          not the team, and the menu's "<TEAM> TEAM" heading needs opening.
+
+          Note this labels the *suggestions*, not the field: "Send to" itself
+          accepts any network member or a typed email address, and deliberately. */}
+      {(!!teamOption || suggested.length > 0) && (
+        <div className={s.suggestBlock}>
+          <span className={s.suggestLabel}>Suggested from {teamName}</span>
+
+          {/* First, and ahead of the people — this is the chip for the referrer who
+              recognises none of the names beside it, and a suggestion that only
+              exists inside an unopened menu is not being made. It leaves the row
+              the moment it is picked, like every other chip here. */}
+          {!!teamOption && !value.some((option) => option.value === teamOption.value) && (
+            <button
+              type="button"
+              className={s.suggestChip}
+              aria-label={`Add ${teamOption.label}`}
+              onClick={() => onChange([...value, teamOption])}
+            >
+              <img
+                src={teamOption.image || '/icons/team-default-profile.svg'}
+                alt=""
+                className={`${s.suggestAvatar} ${s.suggestAvatarTeam}`}
+              />
+              <span className={s.suggestText}>
+                <span className={s.suggestName}>{teamOption.label}</span>
+                {teamOption.description && <span className={s.suggestRole}>{teamOption.description}</span>}
+              </span>
+              <PlusIcon width={16} height={16} className={s.suggestPlus} />
+            </button>
+          )}
+
+          {suggested.map((member) => (
+            <button
+              key={member.uid}
+              type="button"
+              className={s.suggestChip}
+              aria-label={`Add ${member.name}`}
+              onClick={() => onChange([...value, toRecipientOption(member, { omitTeam: true })])}
+            >
+              <MemberAvatar name={member.name} image={member.image} size={24} className={s.suggestAvatar} />
+              <span className={s.suggestText}>
+                <span className={s.suggestName}>{member.name}</span>
+                {member.title && <span className={s.suggestRole}>{member.title}</span>}
+              </span>
+              <PlusIcon width={16} height={16} className={s.suggestPlus} />
+            </button>
+          ))}
+        </div>
+      )}
 
       {description && <span className={s.description}>{description}</span>}
     </div>

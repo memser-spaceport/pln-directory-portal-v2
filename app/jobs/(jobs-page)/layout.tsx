@@ -2,15 +2,13 @@ import { ReactNode } from 'react';
 import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
-import { JobsFiltersHydrator } from '@/components/page/jobs/JobsFiltersHydrator';
-import { SyncJobsParamsToUrl } from '@/components/page/jobs/SyncJobsParamsToUrl';
+import { JobsFilterUrlSync } from '@/components/page/jobs/JobsFilterUrlSync';
 
 export default function Layout({ filters, content }: { filters: ReactNode; content: ReactNode }) {
   return (
-    <JobsFiltersHydrator>
-      <SyncJobsParamsToUrl />
+    <JobsFilterUrlSync>
       <DashboardPagesLayout filters={filters} content={content} />
-    </JobsFiltersHydrator>
+    </JobsFilterUrlSync>
   );
 }
 

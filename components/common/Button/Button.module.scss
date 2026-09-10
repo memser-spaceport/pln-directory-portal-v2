@@ -49,6 +49,40 @@
       border-color: #1b4dff;
     }
   }
+
+  // The brand button at low emphasis — a tint of the primary rather than the
+  // primary itself, for a press that matters but is not the page's main act.
+  // The design system calls it "Button/primary/light".
+  //
+  // **`light` means something else under `.link`** (white-on-dark text, for a
+  // button sitting on a dark surface). Both rules are compound — `.fill.light`
+  // and `.link.light` — so they cannot collide, and no caller can ask for both
+  // styles at once. Worth knowing before reading one and assuming the other.
+  //
+  // `#e8edff` is the product's existing brand tint, not a new colour: it is
+  // `--border-brand-xsubtle`, and already the background of `TeamNewsCountChip`
+  // and the border of half the Demo Day cards. `#0f3cd9` is the same blue
+  // `.primary` above darkens to on hover.
+  &.light {
+    color: #0f3cd9;
+    background: #e8edff;
+    // Not `transparent`: the design draws a real 2%-brand hairline, which keeps
+    // this button the same total size as a `.fill.primary` beside it. A border
+    // of `none` would make it a pixel shorter in each direction.
+    border-color: rgba(27, 77, 255, 0.02);
+    box-shadow: inset 0 -1px 4px rgba(27, 77, 255, 0.08);
+
+    // Derived, not taken from the design, which supplies only the resting
+    // state. One step deeper on hover and back to base on press — the same
+    // shape `.primary` above uses, so the two feel like one family.
+    &:hover:not(:disabled) {
+      background: #dbe4ff;
+    }
+
+    &:active:not(:disabled) {
+      background: #e8edff;
+    }
+  }
 }
 
 .border {

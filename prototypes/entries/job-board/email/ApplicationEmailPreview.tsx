@@ -16,6 +16,7 @@ import {
   type ApplicationEmailInput,
 } from './applicationEmail';
 import s from './ApplicationEmailPreview.module.scss';
+import { CvAttachmentLine } from '../../profile-shared/StoredCv';
 
 /**
  * What the hiring team receives, rendered as an email.
@@ -82,6 +83,16 @@ export function ApplicationEmailPreview({ input }: { input: ApplicationEmailInpu
           {input.profileUrl && <span className={s.bodyLink}>{input.profileUrl}</span>}
           {afterUrl}
         </div>
+
+        {/* The attachment, where a mail client puts one: under the body, as a
+            chip. The body's own sentence names it so the two cannot disagree —
+            both come from the same `profile.cv`. Absent when there is none;
+            the template drops its sentence on the same condition. */}
+        {email.attachment && (
+          <div className={s.attachments}>
+            <CvAttachmentLine cv={email.attachment} variant="chip" />
+          </div>
+        )}
 
         <footer className={digest.emailFoot}>
           <p>{email.footerReason.text}</p>

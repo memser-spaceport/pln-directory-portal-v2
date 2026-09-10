@@ -6,7 +6,9 @@
  */
 
 export { createFilterStore } from './createFilterStore';
+export { decodeFilterValues } from './decodeFilterValues';
+export { encodeFilterValues } from './encodeFilterValues';
 export { useFilterCount } from './useFilterCount';
-export type { FilterState, FilterStoreConfig } from './types';
+export type { FilterState, FilterStoreConfig, FilterStoreHook } from './types';
 export type { UseFilterCountConfig } from './useFilterCount';
 export type { FilterOption } from './commonTypes';

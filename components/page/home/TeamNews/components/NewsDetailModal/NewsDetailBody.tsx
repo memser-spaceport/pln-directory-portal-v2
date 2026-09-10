@@ -212,9 +212,13 @@ export function NewsDetailBody({
 
         {sources.length > 0 && (
           <>
-            {/* Disclaimer and SOURCE hide together — "written by AI from the
-                linked sources" reads wrong when there are zero valid links. */}
-            <p className={s.disclaimer}>ⓘ This summary was written by AI from the linked sources.</p>
+            {item.isTeamPosted ? (
+              <p className={s.disclaimer}>ⓘ Posted by {item.teamName}.</p>
+            ) : (
+              (item.summary || sanitizedContentHtml) && (
+                <p className={s.disclaimer}>ⓘ This summary was written by AI from the linked sources.</p>
+              )
+            )}
             <div className={s.sources}>
               <span className={s.sourcesLabel}>Source</span>
               {sources.map(({ domain, url }) => (

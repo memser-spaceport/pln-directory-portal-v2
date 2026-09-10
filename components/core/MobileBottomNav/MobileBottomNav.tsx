@@ -18,6 +18,7 @@ import {
   JOBS_LINK,
   DEALS_LINK,
   FOUNDER_GUIDES_LINK,
+  PLAA_LINK,
 } from '@/components/core/navbar/constants/navLinks';
 import { HomeIcon, MoreIcon, StarFourIcon } from '@/components/core/navbar/components/icons';
 import { useHasNewNews } from '@/services/team-news/hooks/useHasNewNews';
@@ -39,7 +40,7 @@ import s from './MobileBottomNav.module.scss';
 /** More is one flat list on mobile — no sub-menus — so it sets its own order
  *  instead of inheriting the desktop menu's. Matched by href prefix so the
  *  three Events links rank together as one block. */
-const MORE_ORDER = [JOBS_LINK.href, DEALS_LINK.href, FORUM_LINK.href, '/events'];
+const MORE_ORDER = [JOBS_LINK.href, DEALS_LINK.href, FORUM_LINK.href, '/events', PLAA_LINK.href];
 
 function moreRank({ href }: ISubItem) {
   // Founder Guides sits last by request, below anything this list doesn't name.

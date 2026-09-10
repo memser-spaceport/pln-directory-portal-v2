@@ -5,8 +5,13 @@ import { useSearchParams } from 'next/navigation';
 
 import type { IUserInfo } from '@/types/shared.types';
 import type { IJobTeamGroup } from '@/types/jobs.types';
-import type { JobSurface } from '@/analytics/jobs.analytics';
-import { PENDING_APPLY_PARAM, PENDING_PROFILE_PARAM, stripPendingApplyFromUrl } from '@/services/jobs/job-apply-resume';
+import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
+import {
+  PENDING_APPLY_PARAM,
+  PENDING_INTEREST_PARAM,
+  stripResumeParamsFromUrl,
+} from '@/services/jobs/job-apply-resume';
+import { useToggleJobInterest } from '@/services/jobs/hooks/useJobInterests';
 import { JobApplyFlowController } from '@/components/page/jobs/JobApplyFlowController/JobApplyFlowController';
 import type { RowApplyProps } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow';
 
@@ -72,6 +77,7 @@ export function useJobApplySurface({
   deepLink,
 }: JobApplySurfaceArgs): JobApplySurface {
   const searchParams = useSearchParams();
+  const analytics = useJobsAnalytics();
 
   const viewer = useJobBoardViewer({ isLoggedIn, userInfo, enabled });
   const applyFlow = useJobApplyFlow({
@@ -119,8 +125,7 @@ export function useJobApplySurface({
     if (applyResumeHandled.current) return;
 
     const roleUid = searchParams.get(PENDING_APPLY_PARAM);
-    const completeProfile = searchParams.get(PENDING_PROFILE_PARAM) === '1';
-    if (!roleUid && !completeProfile) return;
+    if (!roleUid) return;
     if (!isLoggedIn || viewer.viewer === 'resolving') return;
     if (isLoading) return;
 
@@ -128,12 +133,7 @@ export function useJobApplySurface({
     // re-render mid-resume can't run the flow twice. The parameter goes with
     // it: a one-time instruction must not replay on reload.
     applyResumeHandled.current = true;
-    stripPendingApplyFromUrl();
-
-    if (completeProfile && !roleUid) {
-      flow.onUpdateProfile();
-      return;
-    }
+    stripResumeParamsFromUrl();
 
     /* The team travels with it: reading is step 1 of the flow, so a resumed run
        has to be able to render the review step it may step back to. */
@@ -157,8 +157,75 @@ export function useJobApplySurface({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, isLoggedIn, viewer.viewer, isLoading, groups]);
 
+  /* The other half of the round trip: someone pressed "I'm interested" with no
+     account, and this is them coming back with one.
+
+     Two things make this different from the application resume above, and both
+     are on purpose.
+
+     It records rather than merely reopens. The press was a completed intent, so
+     the signal lands without a second press — and it lands VISIBLY, on the
+     confirmed banner with Undo beside it, which is what makes a write triggered
+     by a URL parameter honest rather than silent.
+
+     It does not need the role to be resolvable. Only the uid is required to
+     record, so a role that has since been filtered out of the list still gets
+     the signal; resolving is what decides whether the drawer can also be
+     reopened on it, not whether the intent survives.
+
+     `toggleInterest` rather than the service function directly, so the write
+     goes through the same optimistic patch and the same cache invalidation as a
+     press, and the banner is correct the moment the drawer opens. */
+  const toggleInterest = useToggleJobInterest(viewer.memberUid);
+  const interestResumeHandled = useRef(false);
+  useEffect(() => {
+    if (!enabled) return;
+    if (interestResumeHandled.current) return;
+
+    const roleUid = searchParams.get(PENDING_INTEREST_PARAM);
+    if (!roleUid) return;
+    if (!isLoggedIn || viewer.viewer === 'resolving' || !viewer.memberUid) return;
+    if (isLoading) return;
+
+    interestResumeHandled.current = true;
+    stripResumeParamsFromUrl();
+
+    let resumed: JobDetailTarget | null = null;
+    for (const group of groups) {
+      const role = group.roles.find((r) => r.uid === roleUid);
+      if (role) {
+        resumed = { role, teamId: group.team.uid, teamName: group.team.name, team: group.team };
+        break;
+      }
+    }
+
+    toggleInterest.mutate({ roleUid, nextInterested: true });
+    analytics.onJobInterestMarked({
+      job_id: roleUid,
+      team_id: resumed?.teamId ?? null,
+      viewer_state: viewer.viewer,
+      source,
+      resumed: true,
+    });
+
+    /* Only if the application resume did not already claim the drawer. Our own
+       doors never set both parameters — `pushLogin` writes one and clears the
+       other — but a hand-edited URL can, and two openers racing for one drawer
+       is a worse outcome than the interest simply being recorded quietly. */
+    if (resumed && !applyResumeHandled.current) {
+      flow.onViewJob(resumed);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, isLoggedIn, viewer.viewer, viewer.memberUid, isLoading, groups]);
+
   const controller = enabled ? (
-    <JobApplyFlowController flow={flow} viewer={viewer} isLoggedIn={isLoggedIn} userInfo={userInfo} source={source} />
+    <JobApplyFlowController
+      flow={flow}
+      viewer={viewer}
+      isLoggedIn={isLoggedIn}
+      userInfo={userInfo}
+      source={source}
+    />
   ) : null;
 
   return { viewer, flow, applyProps, controller };

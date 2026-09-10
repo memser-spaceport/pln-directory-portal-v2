@@ -35,6 +35,16 @@
   }
 }
 
+// "N in review" in the count block, on the Manage listings tab. Production's
+// `.newCount` pill — same geometry, same 12/600 — in the warning family instead
+// of the success one, because a listing waiting on someone is the Badge's
+// `warning` state and the row's pill already says so in those tones. Doubled
+// with the production class it rides on so the colour layer wins.
+.reviewCount.reviewCount {
+  color: var(--foreground-warning-secondary, #d97706);
+  background: var(--transparent-warning-8, rgba(245, 158, 11, 0.08));
+}
+
 .card .avatar {
   @include media.mobile-only {
     width: 44px;
@@ -58,6 +68,19 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+// Your own team's card, for a lead: the product's "yours" surface — the blue
+// soft tint and subtle brand border the profile's editable panels, the job
+// board's own banner and the profile drawer all wear (`DetailsSection
+// .missingData`, `JobBoardBanner`, `JobProfileDrawer`) — so the one card on
+// the board you can act on is the one card that looks like the surfaces you
+// act on. Doubled class so it outranks the production `.card` beneath it.
+// Not for an admin: they manage every team by role, and a tint on every card
+// says nothing.
+.card.ownedCard {
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border-color: var(--border-brand-subtle, #aebfff);
+}
+
 // Protocol Labs' card, outlined edge to edge in the PL brand gradient. Doubled
 // class so it outranks the production `.card` it sits on top of.
 //
@@ -70,6 +93,13 @@
 .card.plCard {
   position: relative;
   border-color: transparent;
+  // The ring's own stops again as a wash — same angle, same stop positions, so
+  // fill and outline read as one treatment. 4% alpha (the house subtle-surface
+  // alpha, --transparent-dark-4) over the card's opaque #fff, kept underneath so
+  // the tint can't shift with whatever the page shows behind the card.
+  background:
+    linear-gradient(71.47deg, rgba(66, 125, 255, 0.04) 8.43%, rgba(68, 213, 187, 0.04) 87.45%),
+    #fff;
 
   &::before {
     content: '';

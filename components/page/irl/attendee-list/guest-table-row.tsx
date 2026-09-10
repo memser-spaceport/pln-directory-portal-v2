@@ -27,6 +27,8 @@ import IrlHostTag from '@/components/ui/irl-host-tag';
 import IrlSponsorTag from '@/components/ui/irl-sponsor-tag';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useIrlGoingAccess } from '@/services/access-control/hooks/useIrlGoingAccess';
+import { isJobAspirant } from '@/services/jobs/job-board-viewer';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface IGuestTableRow {
   guest: IGuest;
@@ -83,6 +85,11 @@ const GuestTableRow = (props: IGuestTableRow) => {
     isAdminInAllEvents && canUserPerformEditAction(userInfo?.roles as string[], ALLOWED_ROLES_TO_MANAGE_IRL_EVENTS);
   const isLoggedIn = props.isLoggedIn;
   const { canWrite: v2CanWrite } = useIrlGoingAccess();
+  const { currentUser } = useCurrentUserStore();
+  /* Same store, same predicate as AttendeeTableHeader — see the longer note
+     there. Read from the store rather than the `userInfo` prop so the two cannot
+     drift apart and leave a cell without its header. */
+  const showConnect = !isLoggedIn || !isJobAspirant(currentUser);
   const onLogin = props.onLogin;
   const isEventAvailable = guest.events.filter((event: IIrlEvent) => event.slugURL === newSearchParams.event);
   const onTeamClick = (teamUid: string, teamName: string) => {
@@ -288,8 +295,12 @@ const GuestTableRow = (props: IGuestTableRow) => {
           )}
         </div>
 
-        {/* Connect */}
-        {isLoggedIn && v2CanWrite && (
+        {/* Connect — all three branches share one `showConnect`, and the header
+            cell in AttendeeTableHeader reads the same permission. Keep them in
+            step: the table is fixed-width flex with no shared column config, so
+            a cell without its header (or the reverse) misaligns every column to
+            the right. */}
+        {showConnect && isLoggedIn && v2CanWrite && (
           <div className="gtr__connect">
             {!showTelegram && userInfo.uid === guestUid ? (
               <Tooltip
@@ -382,7 +393,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
             ) : null}
           </div>
         )}
-        {isLoggedIn && !v2CanWrite && (
+        {showConnect && isLoggedIn && !v2CanWrite && (
           <div
             className="gtr__connect__loggedOut__cntr"
             onClick={(e: SyntheticEvent) => {
@@ -393,7 +404,7 @@ const GuestTableRow = (props: IGuestTableRow) => {
             <img src="/icons/telegram-rounded.svg" height={22} width={22} loading="lazy" alt="cam" />
           </div>
         )}
-        {!isLoggedIn && (
+        {showConnect && !isLoggedIn && (
           <div className="gtr__connect__loggedOut">
             <Popover
               asChild

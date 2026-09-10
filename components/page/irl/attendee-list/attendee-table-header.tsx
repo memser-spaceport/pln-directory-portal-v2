@@ -5,6 +5,8 @@ import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { triggerLoader } from '@/utils/common.utils';
 import useFloatingSelect from '@/hooks/irl/use-floating-select';
 import { getUniqueEvents } from '@/utils/irl.utils';
+import { isJobAspirant } from '@/services/jobs/job-board-viewer';
+import { useCurrentUserStore } from '@/services/auth/store';
 interface IAttendeeTableHeader {
   isLoggedIn: boolean;
   eventDetails: any;
@@ -16,6 +18,22 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
   const eventDetails = props?.eventDetails;
 
   const analytics = useIrlAnalytics();
+  const { currentUser } = useCurrentUserStore();
+  /* Read from the store rather than threaded down from AttendeeList, so this and
+     GuestTableRow read the identical value and the header can never disagree
+     with the cells beneath it — the table is fixed-width flex with no shared
+     column config, so a mismatch misaligns every column to the right.
+
+     `isJobAspirant` and not the `member.contacts.read` permission: that query is
+     gated on the user store and, on this page, resolves to "no permissions"
+     without ever reaching the network, which would hide the column from every
+     logged-in member. This reads `signUpSource` off the login cookie instead —
+     synchronous, no round trip, nothing to fail open on.
+
+     Also not `irlg.going.write`, which the cell already uses: directory admins,
+     investors and demo-day admins lack that too, and they keep the column.
+     Logged out keeps it as well — the cell is the "Login to View" prompt. */
+  const showConnect = !isUserLoggedIn || !isJobAspirant(currentUser);
   const events = getUniqueEvents(eventDetails?.eventsForFilter ?? []);
   const topics = eventDetails?.topics ?? [];
   const searchParams = useSearchParams();
@@ -312,7 +330,7 @@ const AttendeeTableHeader = (props: IAttendeeTableHeader) => {
           </div>
         </div>
 
-        <div className="tbl__hdr__connect">Connect</div>
+        {showConnect && <div className="tbl__hdr__connect">Connect</div>}
 
         <div className="tbl__hdr__attending">
           Attending

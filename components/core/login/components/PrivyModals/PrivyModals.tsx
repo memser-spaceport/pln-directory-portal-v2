@@ -17,6 +17,7 @@ import { broadcastLogout } from '../BroadcastChannel';
 import { LinkAccountModal } from '../modals/LinkAccountModal';
 import { authStatus, authEvents, AuthErrorCode, LinkMethod, isDemoDayScopePage } from '../../utils';
 import { consumeAuthReturnHash } from '../../utils/authReturnHash';
+import { getSafeBacklinkTarget } from '../../utils/safeBacklink';
 
 import './PrivyModals.scss';
 
@@ -144,13 +145,15 @@ export function PrivyModals() {
         }
       }
 
-      // Check for backlink parameter (used for protected route redirects)
+      // Check for backlink parameter (used for protected route redirects,
+      // including a deployed AI App's own subdomain — see getSafeBacklinkTarget)
+      // searchParams.get already decodes; decoding again would corrupt an
+      // encoded `?path=` value inside an AI App backlink.
       const backlink = searchParams?.get('backlink');
       if (backlink) {
-        const decodedBacklink = decodeURIComponent(backlink);
-        // Validate backlink is a relative path for security
-        if (decodedBacklink.startsWith('/')) {
-          window.location.href = decodedBacklink;
+        const safeTarget = getSafeBacklinkTarget(backlink);
+        if (safeTarget) {
+          window.location.href = safeTarget;
           return;
         }
       }

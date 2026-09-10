@@ -138,6 +138,7 @@ interface Props {
     status: StreamStatus;
     isBusy: boolean;
     threadId: string | null;
+    isThreadPersisted: boolean;
     limitLevel: LimitLevel;
     limitRemaining: number;
     ask: (question: string) => void;
@@ -364,6 +365,7 @@ export const AppSearchDialog = ({
             status={chat.status}
             isBusy={chat.isBusy}
             threadId={chat.threadId}
+            isThreadPersisted={chat.isThreadPersisted}
             limitLevel={chat.limitLevel}
             limitRemaining={chat.limitRemaining}
             isLoggedIn={isLoggedIn}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 /* The markdown/syntax stack is what keeps the real AnswerView out of
@@ -29,6 +29,7 @@ const baseProps = {
   status: 'done' as const,
   isBusy: false,
   threadId: 't1',
+  isThreadPersisted: true,
   limitLevel: null as never,
   limitRemaining: 10,
   isLoggedIn: true,
@@ -97,5 +98,52 @@ describe('AnswerView on a restored thread', () => {
     );
 
     expect(composer()).not.toHaveFocus();
+  });
+});
+
+/**
+ * `Continue in AI Search` hands the reader a URL to `/husky/chat/<threadId>`,
+ * so it has to be gated on the thread *existing*.
+ *
+ * `threadId` is generated client-side and is truthy from the first answer
+ * onwards, so it says nothing about the server. The document behind it is
+ * written by a fire-and-forget registration call that is allowed to fail, and
+ * that never runs at all for a signed-out person. Gating on `!isBusy` alone
+ * sent both of those cases to a route that can only `notFound()`.
+ */
+describe('AnswerView continue link', () => {
+  /* Queried by text, not by role: an `<a>` with no `href` exposes no `link`
+     role at all, so a role-based lookup would fail on exactly the state under
+     test and pass only when the bug is absent. */
+  const continueLink = () => screen.getByText(/Continue in AI Search/i).closest('a')!;
+
+  it('links to the thread once the backend has one', () => {
+    render(<AnswerView {...baseProps} isThreadPersisted />);
+
+    expect(continueLink()).toHaveAttribute('href', '/husky/chat/t1');
+    expect(screen.getByRole('link', { name: /Continue in AI Search/i })).toBeInTheDocument();
+  });
+
+  it('offers no destination when registration never landed', () => {
+    render(<AnswerView {...baseProps} isThreadPersisted={false} />);
+
+    // The reported 404: the row still renders, so it must not carry an href
+    // the route can only answer with notFound().
+    expect(continueLink()).not.toHaveAttribute('href');
+    expect(continueLink()).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.queryByRole('link', { name: /Continue in AI Search/i })).not.toBeInTheDocument();
+  });
+
+  it('offers no destination while the answer is still streaming', () => {
+    render(<AnswerView {...baseProps} isThreadPersisted isBusy status="streaming" />);
+
+    expect(continueLink()).not.toHaveAttribute('href');
+  });
+
+  it('does not let the click act as navigation when there is nowhere to go', () => {
+    render(<AnswerView {...baseProps} isThreadPersisted={false} />);
+
+    // `false` means a handler called preventDefault().
+    expect(fireEvent.click(continueLink())).toBe(false);
   });
 });

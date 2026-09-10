@@ -36,6 +36,8 @@ interface Props {
   status: StreamStatus;
   isBusy: boolean;
   threadId: string | null;
+  /** Whether the backend actually has a document for `threadId` — see below. */
+  isThreadPersisted: boolean;
   limitLevel: LimitLevel;
   limitRemaining: number;
   isLoggedIn: boolean;
@@ -74,6 +76,7 @@ export const AnswerView = ({
   status,
   isBusy,
   threadId,
+  isThreadPersisted,
   limitLevel,
   limitRemaining,
   isLoggedIn,
@@ -165,7 +168,18 @@ export const AnswerView = ({
     [analytics],
   );
 
-  const canContinue = !!threadId && !isBusy;
+  /**
+   * `Continue in AI Search` hands the reader a URL, so it has to be gated on
+   * the thread *existing*, not on the answer having finished.
+   *
+   * `threadId` is generated client-side, so it is truthy from the first answer
+   * onwards and says nothing about the server. The document behind it is
+   * written by a fire-and-forget registration call that is allowed to fail, and
+   * that never runs for a signed-out person — so the previous
+   * `!!threadId && !isBusy` sent both of those cases to `/husky/chat/<id>`,
+   * where the route can only `notFound()`.
+   */
+  const canContinue = !!threadId && isThreadPersisted && !isBusy;
 
   return (
     <div className={s.root}>

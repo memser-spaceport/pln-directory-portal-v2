@@ -34,6 +34,7 @@ const baseProps = {
   limitRemaining: 10,
   isLoggedIn: true,
   backLabel: 'Back to search',
+  onBack: jest.fn(),
   onAsk: jest.fn(),
   onRegenerate: jest.fn(),
   onStop: jest.fn(),

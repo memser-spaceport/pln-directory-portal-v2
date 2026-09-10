@@ -71,8 +71,29 @@ jest.mock('@/services/husky/hooks/useHuskyChat', () => ({
   }),
 }));
 
+/* Set per test, like `huskyTurns`. The compact history list renders nothing for
+   an empty array, so a fixed `[]` here left the whole idle-view door untested —
+   which is how it kept its missing Back button. */
+let historyThreads: Array<{ threadId: string; title: string; createdAt: string; updatedAt: string }> = [];
+
 jest.mock('@/services/search/hooks/useChatHistory', () => ({
-  useChatHistory: () => ({ data: [], isLoading: false, isError: false, refetch: jest.fn() }),
+  useChatHistory: () => ({ data: historyThreads, isLoading: false, isError: false, refetch: jest.fn() }),
+}));
+
+/* Opening a thread from that list goes through both of these before the answer
+   view appears. Only `getUserCredentials` is imported from `auth.utils` anywhere
+   in this tree, so a narrow module mock is safe. */
+jest.mock('@/utils/auth.utils', () => ({
+  getUserCredentials: async () => ({ authToken: 'token', userInfo: {} }),
+}));
+
+jest.mock('@/services/husky/getAiSearchThread', () => ({
+  getAiSearchThread: async (threadId: string) => ({
+    ok: true,
+    threadId,
+    title: 'A past conversation',
+    turns: [{ chatId: 'c1', question: 'what is filecoin', answer: 'A storage network.' }],
+  }),
 }));
 
 jest.mock('@/services/search/hooks/useFullApplicationSearch', () => ({
@@ -102,6 +123,7 @@ const field = () => screen.getByPlaceholderText('Search or ask AI Search a quest
 beforeEach(() => {
   isBelowTabletLandscape = false;
   huskyTurns = [];
+  historyThreads = [];
   saveRecentSearch.mockClear();
 });
 
@@ -486,6 +508,94 @@ describe('AppSearchDialog', () => {
       openWithShortcut();
 
       expect(await screen.findByTestId('answer-view')).toBeInTheDocument();
+    });
+  });
+  /* Both doors on the idle view. The Back control is *rendered* on a condition,
+     and that condition used to be "does the search field have anything in it" —
+     so asking a suggested question, or reopening a conversation from the compact
+     history list, left an answer with no way back and an Escape that closed the
+     dialog outright. Every other Back test here types a term first, which is
+     exactly why neither door was covered. */
+  describe('reaching an answer from the idle view', () => {
+    const A_THREAD = {
+      threadId: 't1',
+      title: 'A past conversation',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const askFromPrompt = async () => {
+      openWithShortcut();
+      await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+      huskyTurns = A_CONVERSATION;
+      fireEvent.click(screen.getByRole('button', { name: /Find teams building on Filecoin/i }));
+      await screen.findByTestId('answer-view');
+    };
+
+    const openFromCompactHistory = async () => {
+      historyThreads = [A_THREAD];
+      openWithShortcut();
+      await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+      huskyTurns = A_CONVERSATION;
+      fireEvent.click(screen.getByRole('button', { name: /A past conversation/ }));
+      await screen.findByTestId('answer-view');
+    };
+
+    it('offers a way back from a suggested question', async () => {
+      renderSearch();
+      await askFromPrompt();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Back to search' }));
+
+      await waitFor(() => expect(screen.queryByTestId('answer-view')).not.toBeInTheDocument());
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(field()).toHaveValue('');
+    });
+
+    it('walks Escape back to the prompts rather than closing the dialog', async () => {
+      renderSearch();
+      await askFromPrompt();
+
+      escape();
+
+      await waitFor(() => expect(screen.queryByTestId('answer-view')).not.toBeInTheDocument());
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+      // ...and only the second Escape leaves, the same ladder every other view walks.
+      escape();
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    });
+
+    it('offers a way back from a conversation reopened on idle', async () => {
+      renderSearch();
+      await openFromCompactHistory();
+
+      expect(screen.getByRole('button', { name: 'Back to search' })).toBeInTheDocument();
+
+      // The same rung: Escape steps back to the list rather than throwing the dialog away.
+      escape();
+      await waitFor(() => expect(screen.queryByTestId('answer-view')).not.toBeInTheDocument());
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    /* The branch that must not move: reached from the full history view, Back
+       goes back to the history view, not to search. */
+    it('still says history when that is where the conversation was opened from', async () => {
+      historyThreads = Array.from({ length: 6 }, (_, i) => ({
+        ...A_THREAD,
+        threadId: `t${i}`,
+        title: `Conversation ${i}`,
+      }));
+      renderSearch();
+      openWithShortcut();
+      await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+
+      fireEvent.click(screen.getByRole('button', { name: /Show all \(6\)/ }));
+      huskyTurns = A_CONVERSATION;
+      fireEvent.click(await screen.findByRole('button', { name: 'Conversation 3' }));
+      await screen.findByTestId('answer-view');
+
+      expect(screen.getByRole('button', { name: 'Back to history' })).toBeInTheDocument();
     });
   });
 });

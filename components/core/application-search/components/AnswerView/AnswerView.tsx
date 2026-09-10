@@ -42,7 +42,7 @@ interface Props {
   limitRemaining: number;
   isLoggedIn: boolean;
   /** Only present when the answer was reached from a list there is a way back to. */
-  onBack?: () => void;
+  onBack: () => void;
   /**
    * Set when the dialog reopened straight into an existing thread.
    *
@@ -194,14 +194,10 @@ export const AnswerView = ({
       </div>
 
       <div className={s.bar}>
-        {onBack ? (
-          <button type="button" className={s.barButton} onClick={onBack}>
-            <ArrowBackIcon />
-            {backLabel}
-          </button>
-        ) : (
-          <span />
-        )}
+        <button type="button" className={s.barButton} onClick={onBack}>
+          <ArrowBackIcon />
+          {backLabel}
+        </button>
         {/* Enabled only once the turn is terminal: the thread document is
             written when the server's stream finishes, so a link followed
             mid-answer would land on a thread that does not exist yet. */}

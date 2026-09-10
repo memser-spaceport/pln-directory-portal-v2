@@ -1741,7 +1741,7 @@ describe('TeamNews', () => {
       mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
-      expect(screen.getByText('Hiring acme is hiring')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Hiring acme' })).toBeInTheDocument();
       expect(screen.getByText('View all 5 open roles at Hiring acme')).toBeInTheDocument();
     });
 
@@ -1828,11 +1828,11 @@ describe('TeamNews', () => {
     itHiring('drops the hiring roll-up on a category pill', () => {
       mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
-      expect(screen.getByText('Hiring acme is hiring')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Hiring acme' })).toBeInTheDocument();
 
       fireEvent.click(screen.getByRole('button', { name: /^Funding\b/ }));
 
-      expect(screen.queryByText('Hiring acme is hiring')).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Hiring acme' })).not.toBeInTheDocument();
     });
 
     it('drops the deal on a category pill', () => {
@@ -2363,7 +2363,7 @@ describe('TeamNews', () => {
         mockUseFeedForYouJobs.mockReturnValue({ forYouJobs: [forYouJobGroup('acme')] });
         renderForYou();
 
-        expect(screen.getByRole('heading', { name: 'Jobs acme is hiring' })).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'Jobs acme' })).toBeInTheDocument();
         // Title, meta line, refer, share and View job — the board's row, not a
         // feed-local lookalike.
         expect(screen.getByRole('button', { name: 'Matched acme-r1' })).toBeInTheDocument();
@@ -2404,7 +2404,7 @@ describe('TeamNews', () => {
         });
         renderForYou(50);
 
-        expect(screen.getAllByText(/ is hiring$/)).toHaveLength(MAX_FOR_YOU_JOB_ENTRIES);
+        expect(screen.getAllByRole('link', { name: /^Jobs t\d+$/ })).toHaveLength(MAX_FOR_YOU_JOB_ENTRIES);
       });
 
       it('never leads the feed with one', () => {
@@ -2418,11 +2418,11 @@ describe('TeamNews', () => {
       it('keeps them off every other category pill', () => {
         mockUseFeedForYouJobs.mockReturnValue({ forYouJobs: [forYouJobGroup('acme')] });
         renderForYou();
-        expect(screen.getByRole('heading', { name: 'Jobs acme is hiring' })).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'Jobs acme' })).toBeInTheDocument();
 
         fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
 
-        expect(screen.queryByRole('heading', { name: 'Jobs acme is hiring' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: 'Jobs acme' })).not.toBeInTheDocument();
       });
 
       // A job carries no focus area of its own, so a focus-area tab has nothing
@@ -2434,20 +2434,20 @@ describe('TeamNews', () => {
         fireEvent.click(screen.getByRole('tab', { name: new RegExp(FA_DHR.title) }));
 
         expect(within(catRow()).getByRole('button', { name: /For You/ })).toHaveClass(/catActive/);
-        expect(screen.queryByRole('heading', { name: 'Jobs acme is hiring' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: 'Jobs acme' })).not.toBeInTheDocument();
       });
 
       it('drops them while searching, like every other feed signal', () => {
         jest.useFakeTimers();
         mockUseFeedForYouJobs.mockReturnValue({ forYouJobs: [forYouJobGroup('acme')] });
         renderForYou();
-        expect(screen.getByRole('heading', { name: 'Jobs acme is hiring' })).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'Jobs acme' })).toBeInTheDocument();
 
         const inputs = screen.getAllByPlaceholderText('Search by news, teams…');
         fireEvent.change(inputs[inputs.length - 1], { target: { value: 'Mem Team' } });
         act(() => jest.advanceTimersByTime(700));
 
-        expect(screen.queryByRole('heading', { name: 'Jobs acme is hiring' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: 'Jobs acme' })).not.toBeInTheDocument();
         jest.useRealTimers();
       });
 

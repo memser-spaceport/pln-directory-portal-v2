@@ -71,10 +71,7 @@ const ResultsBody = React.memo(function ResultsBody({
 }: ResultsBodyProps) {
   const { data, isLoading, isError } = useFullApplicationSearch(term);
 
-  const total = SECTION_ORDER.filter((key) => key !== 'top').reduce(
-    (sum, key) => sum + (data?.[key]?.length ?? 0),
-    0,
-  );
+  const total = SECTION_ORDER.filter((key) => key !== 'top').reduce((sum, key) => sum + (data?.[key]?.length ?? 0), 0);
 
   if (isLoading) return <ContentLoader />;
 
@@ -128,7 +125,7 @@ interface Props {
   view: DialogView;
   onViewChange: (next: DialogView) => void;
   /** Where the answer state was reached from, so Back has somewhere to go. */
-  origin: 'results' | 'history' | null;
+  origin: 'results' | 'history' | 'restored' | null;
   onAskAi: (question: string) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
   isLoggedIn: boolean;
@@ -173,6 +170,12 @@ export const AppSearchDialog = ({
      once; only the fetch waits for the debounce. */
   const resolvedView: DialogView | 'idle' | 'results' =
     view === 'answer' || view === 'history' ? view : trimmed ? 'results' : 'idle';
+
+  /* Reopened straight into an existing thread. The person came back to continue
+     it, so the caret belongs in the follow-up composer — not in the search
+     field, whose first keystroke is treated as a brand new search and would
+     navigate away from the thread that was just restored. */
+  const restoringThread = resolvedView === 'answer' && origin === 'restored';
 
   const handleInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -247,6 +250,11 @@ export const AppSearchDialog = ({
    */
   useEffect(() => {
     if (!isOpen) return;
+    /* A reopened conversation focuses its own composer instead — see the note
+       on `autoFocusComposer` below. Skipped here rather than raced: two rAF
+       callbacks aiming at different nodes in the same frame is decided by
+       ordering, which is not a thing to rely on. */
+    if (restoringThread) return;
     let canceled = false;
     const id = requestAnimationFrame(() => {
       if (canceled) return;
@@ -256,7 +264,7 @@ export const AppSearchDialog = ({
       canceled = true;
       cancelAnimationFrame(id);
     };
-  }, [isOpen, inputRef]);
+  }, [isOpen, inputRef, restoringThread]);
 
   const renderIdle = () => (
     <div className={s.idle}>
@@ -359,8 +367,11 @@ export const AppSearchDialog = ({
             limitLevel={chat.limitLevel}
             limitRemaining={chat.limitRemaining}
             isLoggedIn={isLoggedIn}
+            autoFocusComposer={restoringThread}
             onBack={origin ? () => onViewChange(origin === 'history' ? 'history' : 'search') : undefined}
-            backLabel={origin === 'history' ? 'Back to history' : 'Back to results'}
+            backLabel={
+              origin === 'history' ? 'Back to history' : origin === 'results' ? 'Back to results' : 'Back to search'
+            }
             onAsk={chat.ask}
             onRegenerate={chat.regenerate}
             onStop={chat.stop}

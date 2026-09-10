@@ -59,7 +59,12 @@ export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) =>
   const [rawTerm, setRawTerm] = useState('');
   const term = useDebouncedValue(rawTerm, SEARCH_DEBOUNCE_MS);
   const [view, setView] = useState<DialogView>('search');
-  const [origin, setOrigin] = useState<'results' | 'history' | null>(null);
+  /* Where the answer state was reached from, so Back and Escape have somewhere
+     to go. `'restored'` is not a place the person navigated from — it is the
+     reopened-with-a-thread case, and it is a value rather than a separate flag
+     because `onBack` and the Escape ladder both already branch on this one
+     field. A flag would have meant two edits that must stay in step. */
+  const [origin, setOrigin] = useState<'results' | 'history' | 'restored' | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
   /* Captured once, here, rather than in a per-dialog effect: `Modal` has no
@@ -87,6 +92,15 @@ export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) =>
     /* The signed-out quota cookie expires at midnight, so a session that
        outlives the day must not still be showing yesterday's exhausted state. */
     chat.refreshLimit();
+    /* Reopen into the conversation. `close()` already keeps the thread — it is
+       only the route back to it that it throws away, by resetting the view. The
+       decision is made here rather than by leaving `view` alone on close,
+       because a preserved view would not survive a single keystroke: the dialog
+       forces it back to 'search' on every character typed. */
+    if (chat.turns.length > 0) {
+      setView('answer');
+      setOrigin('restored');
+    }
     setIsOpen(true);
   }, [chat]);
 

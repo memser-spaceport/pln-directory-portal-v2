@@ -1,16 +1,14 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { FormProvider, useForm, useWatch } from 'react-hook-form';
+import { useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
 import { CloseIcon, InfoCircleIconOutlined } from '@/components/icons';
 import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
-import type { MultiSelectOption } from '@/components/form/FormMultiSelect';
 import { formatRelativeDays } from '@/utils/jobs.utils';
 
-import { PreferenceMultiSelect } from './PreferenceMultiSelect';
 import { EnvelopeIcon } from './icons';
 // Same chrome as the referral dialog — see the note at the top of this folder's
 // `OpenRoleModal.module.scss`.
@@ -22,7 +20,6 @@ import type { OpenRole, OpenInterest } from './openRoles';
 const NOTE_MAX = 600;
 
 interface OpenRoleFormData {
-  areas: MultiSelectOption[];
   note: string;
 }
 
@@ -34,40 +31,57 @@ interface OpenRoleModalProps {
    *  read-back rather than a form. */
   interest?: OpenInterest;
   onClose: () => void;
-  onSend: (areas: string[], note: string) => void;
+  onSend: (note: string) => void;
   onWithdraw: () => void;
+  /**
+   * Opens the profile editor, carrying whatever has been typed here so far.
+   *
+   * The message comes back up rather than being abandoned: the board stashes it
+   * and hands it to `initialNote` when this dialog reopens. Lifting one string
+   * is cheaper than the alternatives (a second tab, or a warning that leaving
+   * loses your text), and it means the link can be offered without a caveat.
+   */
+  onEditProfile: (note: string) => void;
+  /** What the message box opens holding — a draft handed back after a trip to
+   *  the profile editor, and `''` on a fresh open. */
+  initialNote?: string;
 }
 
 /**
  * The open role's form: what a person says to a team that has no posting for
  * them.
  *
- * **Two fields, and each had to survive "does something already ask this?"**
+ * **One field.** It was two: a required pick from the team's role categories
+ * above the message, on the argument that a speculative application with no
+ * direction cannot be routed. Cut. Routing is the product's convenience, and it
+ * was buying it by making someone answer *what are you looking for?* twice —
+ * once in a taxonomy the team maintains, once in their own words. The words were
+ * always the half worth reading, and a select above them made the answer look
+ * like the smaller thing.
+ *
+ * What is left is the only question the profile cannot already answer.
  * Everything a hiring team needs to judge somebody — name, current role,
  * experience, skills, the CV — is on the profile, and the profile goes with the
- * signal. Asking any of it again would be charging someone to retype what their
- * account exists to hold. What the profile cannot say is *which of this team's
- * doors* to knock on, and *why this team*. That is the whole form.
+ * signal; asking for any of it here would be charging someone to retype what
+ * their account exists to hold.
  *
- *  - **Area** — picked from the team's own list, so the signal routes. Required,
- *    because a speculative application with no direction is a profile with no
- *    question attached, and nobody can act on it.
- *  - **Note** — optional. It is the part that makes a general application worth
- *    reading, but a person who has nothing to add should not be blocked from
- *    raising their hand; the placeholder does the encouraging instead of a gate.
+ * **And the field is optional.** The press *is* the signal — production's
+ * per-role interest is a bare button with nothing to fill in — so Send is live
+ * from the moment the dialog opens. The placeholder does the encouraging that a
+ * required mark would otherwise do by force.
  *
  * **It is a dialog, not a step in the apply flow.** The three-step drawer exists
  * because a posting has a description to read, a profile to check against it and
  * a letter to write. An open role has no description and no letter — a rail
- * whose first position holds nothing and whose last holds two fields would be
+ * whose first position holds nothing and whose last holds one text box would be
  * drawing a journey to justify a component.
  *
- * **Reopening shows the answers back, not the form.** See `.sent` in the
+ * **Reopening shows the answer back, not the form.** See `.sent` in the
  * stylesheet: the two questions someone has after sending are *what did I say*
  * and *can I take it back*, and neither is answered by an editable copy.
  */
 export function OpenRoleModal(props: OpenRoleModalProps) {
-  const { open, openRole, teamName, interest, onClose, onSend, onWithdraw } = props;
+  const { open, openRole, teamName, interest, onClose, onSend, onWithdraw, onEditProfile, initialNote = '' } = props;
 
   /** Sent in this sitting. The panel is the same either way — the answers, and
    *  the two presses — and only the two lines above it move: a confirmation
@@ -76,62 +90,52 @@ export function OpenRoleModal(props: OpenRoleModalProps) {
   const [justSent, setJustSent] = useState(false);
 
   const methods = useForm<OpenRoleFormData>({
-    defaultValues: { areas: [], note: '' },
+    defaultValues: { note: initialNote },
     mode: 'onChange',
   });
-  const { control, getValues } = methods;
-  /* `useWatch`, not `getValues`: the footer's Send has to wake up the moment an
-     area is picked, and `getValues` does not re-render. */
-  const areas = useWatch({ control, name: 'areas' }) ?? [];
+  const { getValues } = methods;
 
-  /* A fresh form each time the dialog opens, so a half-typed note from a team
+  /* A fresh form each time the dialog opens, so a half-typed message to a team
      you closed doesn't turn up on another team's card. That is the *mount's*
      job, not an effect's: the board renders this only while a team is open and
-     keys it by that team's uid, so both the form defaults and `justSent` above
+     keys it by that team's uid, so both the form default and `justSent` above
      start clean without a line of code here. An effect resetting them would be
      a cascading render doing what `useState` already did.
-     Deliberately not a draft, either: the referral modal keeps one because its
-     note is drafted for you and long, and this is two lines you would rather
-     retype than find waiting. */
 
-  const areaOptions: MultiSelectOption[] = useMemo(
-    () => openRole.areas.map((a) => ({ label: a, value: a })),
-    [openRole.areas],
-  );
+     `initialNote` is the one exception, and it is not a stored draft: it is the
+     same sitting, handed back after a trip to the profile editor that this form
+     itself offers. Closing the dialog still throws the message away — the
+     referral modal keeps a real draft because its note is long and drafted for
+     you, and this is two lines. */
 
-  /* Portalled to the body: `.fields` is the card's scroll region, so a menu
-     rendered inside it is clipped at the fold. Read at render rather than at
-     module scope because this folder's rules forbid touching `document` where
-     the server could reach it — the board mounts client-side only, and this
-     dialog only exists once someone has pressed something. */
-  const menuPortalTarget = typeof document === 'undefined' ? null : document.body;
-
-  const canSend = areas.length > 0;
+  /* (`useWatch` on the areas select stood here, to wake a Send that was dead
+      until something was picked. Both are gone: there is nothing left to pick,
+      and Send is live from the first frame — see the note on the component.) */
 
   const submit = () => {
-    if (!canSend) return;
-    const values = getValues();
-    onSend(
-      values.areas.map((a) => String(a.value)),
-      values.note.trim(),
-    );
+    onSend(getValues().note.trim());
     setJustSent(true);
   };
 
   const sentPanel = interest && (
     <>
-      <div className={local.sent}>
-        <div className={local.sentBlock}>
-          <p className={local.sentLabel}>What you&apos;re looking for</p>
-          <p className={local.sentValue}>{interest.areas.join(', ')}</p>
+      {/* Only when there is something to quote. The field is optional, and a
+          label reading "What you told them you're looking for" over the sentence
+          "You sent this without a message" is a question printed above its own
+          absence — it makes a skipped option look like a gap in the record. With
+          no message the receipt is the masthead and the two presses, which is
+          all that happened. */}
+      {interest.note && (
+        <div className={local.sent}>
+          <div className={local.sentBlock}>
+            {/* The label the field carried, in the past tense — so what is
+                quoted here is plainly the answer to the question that was asked,
+                and not a second thing the dialog now calls it. */}
+            <p className={local.sentLabel}>What you told {teamName} you&apos;re looking for</p>
+            <p className={local.sentValue}>{interest.note}</p>
+          </div>
         </div>
-        <div className={local.sentBlock}>
-          <p className={local.sentLabel}>Your note</p>
-          <p className={`${local.sentValue} ${interest.note ? '' : local.sentEmpty}`}>
-            {interest.note || 'You sent this without a note.'}
-          </p>
-        </div>
-      </div>
+      )}
 
       <div className={s.actions}>
         {/* Withdraw sits where Cancel sits — it is the leaving action for this
@@ -148,7 +152,16 @@ export function OpenRoleModal(props: OpenRoleModalProps) {
     </>
   );
 
-  const title = interest ? (justSent ? 'Interest sent' : `Your interest in ${teamName}`) : `Open role at ${teamName}`;
+  /* The row's own line, with the team named — so arriving here is recognised as
+     the thing that was pressed. It used to say "Open role at <team>", which is
+     what this record is *called in the code* and a phrase the board no longer
+     shows anywhere: the row asks a question now, and the dialog it opens should
+     not rename it on the way through. The team's blurb under it is the answer. */
+  const title = interest
+    ? justSent
+      ? 'Interest sent'
+      : `Your interest in ${teamName}`
+    : `Didn't find your role at ${teamName}?`;
 
   /* Both receipt lines say the same thing the form promised — the team was
      notified, and your profile went with it — because a confirmation that
@@ -172,11 +185,11 @@ export function OpenRoleModal(props: OpenRoleModalProps) {
 
             There, `.headerSent` centres the receipt, and correctly: what follows
             it is one button, so the card is an announcement and centring is what
-            announcements are for. This receipt has a body — the two answers,
-            each under its own label — and centring the masthead over a
-            left-aligned column puts two alignment axes an inch apart, which
-            reads as a mistake rather than as a choice. One left edge, and the
-            envelope stays beside the headline. */}
+            announcements are for. This receipt has a body — the message quoted
+            back under its label — and centring the masthead over a left-aligned
+            column puts two alignment axes an inch apart, which reads as a
+            mistake rather than as a choice. One left edge, and the envelope
+            stays beside the headline. */}
         <div className={s.header}>
           <div className={s.iconWrapper}>
             <EnvelopeIcon />
@@ -199,17 +212,9 @@ export function OpenRoleModal(props: OpenRoleModalProps) {
               }}
             >
               <div className={s.fields}>
-                <PreferenceMultiSelect
-                  name="areas"
-                  label="What kind of role are you looking for?"
-                  placeholder="Pick one or more"
-                  options={areaOptions}
-                  menuPortalTarget={menuPortalTarget}
-                />
-
                 <FormTextArea
                   name="note"
-                  label={`Anything you'd like ${teamName} to know?`}
+                  label={`Tell ${teamName} what you're looking for`}
                   isOptional
                   placeholder="A couple of lines on what you're after, and why this team."
                   rows={5}
@@ -226,14 +231,38 @@ export function OpenRoleModal(props: OpenRoleModalProps) {
                     on this form the profile is the whole of what gets sent and
                     the document is the part nobody would assume. One signal, one
                     promise, wherever it is made. */}
-                <span>We&apos;ll notify {teamName} and share your LabOS profile and CV.</span>
+                <span>
+                  We&apos;ll notify {teamName} and share your LabOS profile and CV.{' '}
+                  {/* The way to check what that is, in the sentence that names
+                      it. The profile is the whole of what this press sends —
+                      the message is the smaller half — and up to now the form
+                      asserted that without offering any way to look at it.
+
+                      Inline, at the end of the clause, rather than as a control
+                      of its own: it qualifies a sentence, and a bordered button
+                      beside a note would be a second object competing with the
+                      footer's own pair. Same reasoning the apply flow's step 3
+                      uses for its `Edit profile`, which is also a link and not a
+                      button.
+
+                      The typed message survives the trip — the board holds it
+                      while the editor is open and hands it back. See
+                      `openProfileFromInterest` there. */}
+                  <button type="button" className={local.editLink} onClick={() => onEditProfile(getValues().note)}>
+                    Edit profile
+                  </button>
+                </span>
               </p>
 
               <div className={s.actions}>
                 <Button style="border" variant="primary" className={s.actionButton} onClick={onClose}>
                   Cancel
                 </Button>
-                <Button type="submit" style="fill" variant="primary" className={s.actionButton} disabled={!canSend}>
+                {/* Never disabled. The press is the signal; the message is what
+                    someone adds to it. A Send that stays dead until a text box
+                    has something in it would make an optional field required
+                    without saying so. */}
+                <Button type="submit" style="fill" variant="primary" className={s.actionButton}>
                   Send interest
                 </Button>
               </div>

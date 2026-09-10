@@ -287,7 +287,6 @@ export function JobTeamGroupCard({
           on the team profile; see the note in `openRoles.ts`. */}
       {openRole && !manage && onOpenRoleInterest && (
         <OpenRoleRow
-          openRole={openRole}
           teamName={team.name}
           interest={openInterest}
           onExpressInterest={() => onOpenRoleInterest(team.uid)}

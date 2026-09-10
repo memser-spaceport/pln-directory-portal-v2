@@ -101,18 +101,6 @@
   margin: 0 8px;
 }
 
-// A label on the list under it, not a heading competing with the empty state's
-// sentence — the section title's size and tone from the group card's own
-// secondary text.
-.fallbackOpenTitle {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-secondary, #455468);
-}
-
 .empty {
   margin: 8px;
   padding: 32px 20px;

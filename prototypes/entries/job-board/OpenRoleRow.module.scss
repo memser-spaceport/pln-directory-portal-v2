@@ -1,49 +1,69 @@
-// Local extras on top of the reused production `ReferRoleRow.module.scss` — the
-// open role wears the posting row's geometry (16px radius, 12/16 padding, the
-// same title, meta and action slots) so the two line up in one column.
-//
-// Only two things differ, and both say the same thing: this is an invitation,
-// not a posting.
+// Local extras on top of the reused production `ReferRoleRow.module.scss`. The
+// open role borrows the posting row's structure — a body on the left, an action
+// slot on the right, one horizontal inset — and then stops looking like a row.
 
-/* The posting row is a filled `#f9fafb` slab. This one is an outline: the
-   product's own "a slot waiting to be filled" treatment — `1px dashed` at
-   `--border-neutral-muted`, exactly as Demo Day draws its empty pitch-deck and
-   video wells (`PitchDeckUpload`, `PitchVideoUpload`, `EditProfileDrawer`).
-
-   It is the whole of the distinction, and it is worth one rule rather than a
-   sentence: a reader scanning four filled rows and one dashed one does not need
-   to be told which of them is a job ad. */
+/* **No slab, and no outline either.**
+ *
+ * It was a `1px dashed` well at `--border-neutral-muted`, the product's own
+ * "a slot waiting to be filled" treatment (`PitchDeckUpload`,
+ * `PitchVideoUpload`), chosen so a reader scanning four filled rows and one
+ * dashed one would not need telling which of them was a job ad.
+ *
+ * That worked, and it cost too much for what it says: a dashed box is a *card*,
+ * so the invitation ended up the same size and weight as the postings it is
+ * offered after — a fifth object in a list of four, with a border drawing a
+ * frame around one short question. Nothing here needs a container. The line and
+ * its button are the whole of it, and the card's own edge is the frame.
+ *
+ * What is left of the row is the inset: 16px of horizontal padding, so the line
+ * starts on the same x as the role titles above it and the button ends on the
+ * same right edge. */
 .openRow {
   background-color: transparent;
-  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
-
-  /* The filled rows have no border, so a 1px one here would make this row 2px
-     taller than its neighbours and break the column's rhythm. Production's
-     global `* { box-sizing: border-box }` (app/globals.scss) already pays for
-     it — verified, not assumed — so nothing needs compensating. */
-}
-
-/* The dashed row sits directly under the role list (or under its expander), and
-   the card's own 20px flex `gap` would leave it equidistant between the list
-   above and the news strip below — floating, related to neither. It belongs to
-   the list: it is the last thing that team has to offer. Pulled up so it reads
-   as attached, with the card's gap left alone so nothing else moves. */
-.attached {
-  margin-top: -8px;
-}
-
-/* Title as a <button>, since the press opens the interest form rather than a
-   URL. Same body as `JobReferRoleRow`'s `.titleButton` — kept local rather than
-   imported so this row owns its own chrome, and because that file's copy is
-   documented as belonging to the posting row. */
-.titleButton {
-  appearance: none;
-  background: none;
   border: 0;
-  padding: 0;
+  /* Vertical padding down from the posting row's 12px: with no box around it
+     the block is its own content, and the button's own height is the height. */
+  padding: 0 16px;
+  border-radius: 0;
+  /* The row's own `gap: 16px` is drawn for a two-line body against a cluster of
+     four controls. This is one line and one button. */
+  gap: 12px;
+}
+
+/* Attaches the block to the role list above it. The card is a 20px flex column
+   and this is not a peer of the sections in it — it is the last thing the list
+   has to say — so it sits closer to the list than the card's rhythm would put
+   it, without moving any sibling (lesson: change the child, not the container's
+   gap). Bigger than it was, because the block itself lost 24px of padding and
+   the pull-up is now the only thing holding it up. */
+.attached {
+  margin-top: -12px;
+}
+
+/* The line. Down from the posting row's `.title` (16/500 primary), which made
+   it a peer of the role titles — it is not one: the roles are the offer, and
+   this is the sentence under them for whoever the offer missed. 14px is the
+   card's own secondary size, the same one the rows' meta line uses. */
+.line {
   margin: 0;
-  font: inherit;
-  text-align: left;
-  color: inherit;
-  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* The press, at `xs` rather than the posting rows' `s`.
+ *
+ * It also gives up their 104px slot width (`JobReferRoleRow`'s `.applyButton`),
+ * and that is the point rather than a side effect: that number exists so a list
+ * of postings does not twitch as rows change state, and this block is no longer
+ * in that list — it is the line under it. Sized to its own label, the two states
+ * it takes ("I'm interested" / "Interested") differ by ~20px, which is invisible
+ * on a block that stands alone.
+ *
+ * All this adds is the gap the check glyph needs; every other value is the
+ * design system's. */
+.button {
+  gap: 6px;
 }

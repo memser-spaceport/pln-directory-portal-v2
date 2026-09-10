@@ -23,53 +23,45 @@
  * that has to special-case each one. It is its own small record, and the row
  * reads it directly.
  *
- * **Mocked, not submitted.** In the product a lead would post one from *Submit a
- * job* — the form's fields would drop the title, seniority and posting link and
- * ask for the three below instead. That half is not built here; the two teams
- * that have one are seeded in `MOCK_OPEN_ROLES`, so this pass is about what a
- * reader meets.
+ * **Mocked, not submitted.** In the product a lead would switch one on from
+ * *Submit a job* — no title, no seniority, no posting link, just the sentence
+ * below. That half is not built here; the two teams that have one are seeded in
+ * `MOCK_OPEN_ROLES`, so this pass is about what a reader meets.
  */
 
-/** What a team offers when it has no posting to offer. */
+/**
+ * What a team offers when it has no posting to offer.
+ *
+ * **One field, and it took a correction to get here.** The first version carried
+ * `areas` (the role categories the team hires into) and `locations`, because the
+ * row it renders in has a meta slot and a posting fills that slot with exactly
+ * those two facts. Both were cut. A borrowed component's slots are not a list of
+ * questions to answer — the row's job here is to ask one, and a line of
+ * categories under it turns an invitation back into a small posting.
+ */
 export interface OpenRole {
   teamUid: string;
-  /**
-   * The areas this team will read a speculative application for — the row's
-   * first meta part, and the interest form's one required question.
-   *
-   * A closed list, and this is where it comes from: a free-text "what do you
-   * do?" produces answers nobody can route. These are the rail's own role
-   * categories, so a team's open role speaks the vocabulary the board already
-   * filters by.
-   */
-  areas: string[];
-  /**
-   * Where they hire — the row's second meta part, same slot a posting uses.
-   *
-   * No `workMode` beside it: a posting row doesn't render one either (its
-   * location list already says `Remote` where that is the answer), and a field
-   * nothing reads is a field that drifts.
-   */
-  locations: string[];
   /**
    * The team's own sentence about who they want to hear from, shown on the
    * interest form under its title.
    *
-   * It is on the form and not on the row on purpose: the row is scanned in a
-   * list of postings and has room for facts, not for a pitch. Someone who
-   * presses has asked to read it.
+   * On the form and not on the row: the row is one line in a list of postings
+   * and its line is the question. Someone who presses has asked to read the
+   * answer.
    */
   blurb: string;
 }
 
 /**
- * What the reader sends back.
+ * What the reader sends back: one message, and nothing else.
  *
- * Two fields, and both had to earn their place against something that already
- * asks the question. **Areas** is not a duplicate of the profile's job-search
- * preferences: those say what someone wants *in general*, and this says which of
- * *this team's* doors to knock on — the thing that decides who reads it. **Note**
- * is the one part no record holds, because it is about this team specifically.
+ * **The structured half is gone.** This used to carry `areas` too — a required
+ * pick from the team's own categories, defended on the grounds that a
+ * speculative application with no direction cannot be routed. Routing is the
+ * product's convenience, not the reader's question, and the person answering
+ * "what are you looking for?" was being made to answer it twice: once as a
+ * taxonomy the team maintains, once in their own words. The words were always
+ * the part worth reading.
  *
  * Everything else a team needs — name, current role, experience, skills, the CV
  * — is already on the profile, which travels with the signal. Asking for it here
@@ -77,8 +69,8 @@ export interface OpenRole {
  */
 export interface OpenInterest {
   teamUid: string;
-  areas: string[];
-  /** Optional. Empty string when they sent it without one. */
+  /** Optional. Empty string when they sent it without one — the press itself is
+   *  the signal, exactly as production's per-role interest is a bare press. */
   note: string;
   /** ISO, stamped at send — the row reports it the way an applied row does. */
   sentAt: string;
@@ -96,15 +88,11 @@ export interface OpenInterest {
 export const MOCK_OPEN_ROLES: Record<string, OpenRole> = {
   'protocol-labs': {
     teamUid: 'protocol-labs',
-    areas: ['Engineering', 'Research', 'Product'],
-    locations: ['Remote'],
     blurb:
       'We hire ahead of our postings. If you have built distributed systems, worked on protocol research, or shipped developer products, tell us what you are after — we open roles as the work lands.',
   },
   libp2p: {
     teamUid: 'libp2p',
-    areas: ['Engineering', 'Marketing'],
-    locations: ['Remote'],
     blurb:
       'The maintainers read every note. We are a small core team, so a role usually starts as a conversation about what you would own rather than as a posting.',
   },

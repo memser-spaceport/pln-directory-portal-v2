@@ -10,20 +10,23 @@ import { ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferR
 // The posting row's own stylesheet, unchanged — same radius, padding, title,
 // meta and action slots, so the two rows line up in one column.
 import s from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow.module.scss';
-// …and its 104px action-slot width, so the button column doesn't step in or out
-// when the last row of the card is this one. That number is chosen once, in the
-// posting row, for exactly this reason.
+// …and its clock tone, so "Sent 2d ago" here is the same grey as "12d ago" two
+// lines up. (Its 104px action-slot width is deliberately NOT taken — see
+// `.button` in this file's stylesheet.)
 import js from './JobReferRoleRow.module.scss';
 import local from './OpenRoleRow.module.scss';
 
-import type { OpenRole, OpenInterest } from './openRoles';
+import type { OpenInterest } from './openRoles';
 
 interface OpenRoleRowProps {
-  openRole: OpenRole;
+  /* No `openRole` here any more. The row used to read its `areas` and
+     `locations` for a meta line; with that gone it renders nothing from the
+     record, and a prop nothing reads is a prop that drifts. Whether a team *has*
+     one is still the caller's question — see `JobTeamGroupCard`. */
   teamName: string;
   /**
-   * Names the team in the title. Off inside the team's own card, where the name
-   * is one line up and repeating it would be the only title on the card that
+   * Names the team in the line. Off inside the team's own card, where the name
+   * is a few lines up and repeating it would be the only row on the card that
    * does; on when the row is shown away from its card — the board's
    * nothing-matched state, where it is the only thing saying whose door this is.
    */
@@ -37,13 +40,25 @@ interface OpenRoleRowProps {
 }
 
 /**
- * A team's open role, as a row on its card.
+ * A team's open role: **one line and one button**, on the card its postings
+ * failed.
  *
- * **The posting row's shape, re-ranked for a different reader.** It takes
- * `ReferRoleRow`'s stylesheet verbatim, so the title, the meta line and the
- * action slot measure the same — and then drops the three things a posting has
- * and this does not:
+ * **The posting row's structure, emptied of everything a posting fills it
+ * with.** It takes `ReferRoleRow`'s stylesheet for the parts that still apply —
+ * a body on the left, an action slot on the right, the 16px inset that lines the
+ * text up with the role titles above — and then drops all five of the things a
+ * posting puts around them:
  *
+ *  - **No box.** Not the postings' filled slab, and not the dashed well it wore
+ *    for one pass either. A container makes this a fifth card in a list of four,
+ *    and it is not a card: it is the line under the list, for whoever the list
+ *    missed. The team card's own edge is the frame.
+ *
+ *  - **No meta line.** The first version listed the team's hiring areas and
+ *    locations there, because the row has that slot and a posting fills it with
+ *    exactly those. A borrowed component's slots are not questions to answer:
+ *    the row's whole job is to *ask* one, and facts underneath turn it back into
+ *    a small posting — a worse one, with no title and no date.
  *  - **No clock and no `New`.** Those count a posting's age, which is how you
  *    decide whether it is still worth going for. An open role has no age; it is
  *    the state a team is in. The slot is not left empty, though — once a signal
@@ -52,13 +67,14 @@ interface OpenRoleRowProps {
  *  - **No `Refer`.** The referral modal is written around a role: it drafts a
  *    note naming the posting and sends it to the people hiring for it. There is
  *    no posting here to name. Referring someone into a team's open door is a
- *    real thing to want and it is not this pass — see the note in `openRoles.ts`.
- *  - **No link out.** There is no ad.
+ *    real thing to want and it is not this pass — see `openRoles.ts`.
+ *  - **No link out**, and no link on the line either. There is no ad, and a
+ *    question is not a destination: what the line says is answered by the button
+ *    beside it, so the line is text and the row has exactly one control.
  *
- * What it keeps is the row's one action position, and the button in it is the
- * board's own words for this act: **I'm interested**, the same label
- * `InterestStrip` and production's `JobInterestBanner` put on the same signal.
- * One press, one meaning, wherever it appears.
+ * That button is the board's own words for this act — **I'm interested**, the
+ * label `InterestStrip` and production's `JobInterestBanner` put on the same
+ * signal. One press, one meaning, wherever it appears.
  *
  * **Offered to everyone, honoured with an account.** Like `Refer` and like
  * `Apply`, the button is not hidden or disabled for a visitor — the press lands
@@ -66,35 +82,20 @@ interface OpenRoleRowProps {
  * most likely to need it cannot be learned.
  */
 export function OpenRoleRow(props: OpenRoleRowProps) {
-  const { openRole, teamName, showTeam = false, interest, onExpressInterest, attached = false } = props;
+  const { teamName, showTeam = false, interest, onExpressInterest, attached = false } = props;
 
-  const title = showTeam ? `Open role at ${teamName}` : 'Open role';
-
-  /* The fields, in the posting row's own meta order: what the role would be,
-     then where it is. "Engineering, Research or Product" rather than a
-     comma-run — this is a list of alternatives you pick one of, and the meta
-     line is the only place that is said before the form opens. */
-  const areaList =
-    openRole.areas.length > 1
-      ? `${openRole.areas.slice(0, -1).join(', ')} or ${openRole.areas[openRole.areas.length - 1]}`
-      : openRole.areas[0];
-  const metaParts = [areaList, openRole.locations.join(', ')].filter(Boolean);
+  /* The line, and it stays a question after the signal is sent — a row keeps its
+     identity through its states, the way a posting keeps its title once you have
+     applied to it. What changed is reported to the right, in the slot that
+     reports state. */
+  const line = showTeam ? `Didn't find your role at ${teamName}?` : `Didn't find your role?`;
 
   const sent = Boolean(interest);
 
   return (
     <div className={clsx(s.root, s.row, local.openRow, attached && local.attached)}>
       <div className={s.body}>
-        <div className={s.titleRow}>
-          <button
-            type="button"
-            className={`${s.title} ${s.titleLink} ${local.titleButton}`}
-            onClick={onExpressInterest}
-          >
-            {title}
-          </button>
-        </div>
-        <div className={s.meta}>{metaParts.join(' · ')}</div>
+        <p className={local.line}>{line}</p>
       </div>
 
       <div className={`${s.right} ${s.actions}`}>
@@ -131,10 +132,10 @@ export function OpenRoleRow(props: OpenRoleRowProps) {
                offer the way `Applied` mirrors `Apply`, and the clock beside it
                is already the half that says *sent*. */
             <Button
-              size="s"
+              size="xs"
               style="border"
               variant="neutral"
-              className={clsx(js.applyButton, js.appliedButton)}
+              className={local.button}
               onClick={onExpressInterest}
               aria-label={`Your interest in ${teamName} — view it or withdraw it`}
             >
@@ -142,11 +143,22 @@ export function OpenRoleRow(props: OpenRoleRowProps) {
               Interested
             </Button>
           ) : (
+            /* Bordered, not filled — and this is the product's own treatment
+               for this exact press: `InterestStrip`, the per-role "I'm
+               interested" in the apply drawer, is `variant="primary"
+               style="border"`. One label, one act, one tone, wherever it
+               appears.
+
+               It is also the rank this block asks for now that it is a line
+               rather than a card: a filled brand button was the loudest thing
+               on a team's card, above four `View job` buttons on the postings
+               the invitation is offered *after*. Bordered keeps it a control
+               and stops it outranking the roles. */
             <Button
-              size="s"
-              style="fill"
+              size="xs"
+              style="border"
               variant="primary"
-              className={js.applyButton}
+              className={local.button}
               onClick={onExpressInterest}
               aria-label={`Tell ${teamName} you're interested`}
             >

@@ -35,8 +35,9 @@
 // as a surface lifted off the page rather than as a brand control — the
 // presses inside it carry the emphasis, and a Save filled brand-blue inside a
 // brand-blue surface would have nowhere to stand out. 8px inset around the
-// 40px pills plus the hairline is what makes the bar 58px; the status line
-// gets 16px on its side so the sentence starts where a card's text would.
+// 42px buttons plus the hairline is what makes the bar 60px (it was 58 when
+// they were the navbar's 40px pills); the status line gets 16px on its side so
+// the sentence starts where a card's text would.
 .bar {
   pointer-events: auto;
   display: flex;
@@ -44,13 +45,18 @@
   gap: 16px;
   max-width: 100%;
   padding: 8px 8px 8px 16px;
-  /* The cards' own radius (production `DetailsSection`, 8px), not a pill:
-     *"let's do it rectangular not circular."* The bar is a card lifted off
-     the page — it wears the card border and speaks for a card — and only
-     the presses inside it are pills. One radius in every state and at every
-     width; the 16px the wait and the phone layout used to take is gone with
-     the pill it was an exception to. */
-  border-radius: 8px;
+  /* A card's corner, not a pill: *"let's do it rectangular not circular."*
+     The bar is a card lifted off the page — it wears the card border and
+     speaks for a card — and only the presses inside it are pills. One radius
+     in every state and at every width; the 16px the wait and the phone layout
+     used to take is gone with the pill it was an exception to.
+
+     12px rather than the 8px it started at (*"a bit more rounded"*): the two
+     are one step apart on the product's own scale — 8px is the in-page card
+     (`DetailsSection`), 12px is what the product gives a surface that floats
+     over the page (`Modal`, and 176 other uses to 8px's in-flow ones), which
+     is what this is. It stays well short of the 999px it used to be. */
+  border-radius: 12px;
   cursor: pointer;
   background: #fff;
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
@@ -161,7 +167,7 @@
 // ~100px and it truncated to "Unsaved ch…" — measured, not guessed. The
 // sentence is the one thing the buttons cannot say, so it goes above them and
 // the pair fills the row, which is how the editor's own controls sit on a
-// phone. The corner stays the card's 8px, as at every other width.
+// phone. The corner stays 12px, as at every other width.
 @include media.mobile-only {
   .bar {
     flex-direction: column;

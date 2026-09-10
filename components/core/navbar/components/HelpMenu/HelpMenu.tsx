@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Menu } from '@base-ui-components/react/menu';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import clsx from 'clsx';
@@ -10,7 +10,7 @@ import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { useCommonAnalytics } from '@/analytics/common.analytics';
 import { useContactSupportStore } from '@/services/contact-support/store';
 import { CONTACT_SUPPORT_TOPICS, type IContactSupportTopic } from '@/components/ContactSupport/constants';
-import { getUiFlag, setUiFlag } from '@/utils/uiFlags';
+import { useOneTimeCallout } from '@/hooks/useOneTimeCallout';
 
 // The header's own menu chrome (the account menu, two seats along this row):
 // positioner, popup, items. Imported rather than copied, so the two menus in
@@ -26,9 +26,10 @@ import { HelpIcon } from '../icons';
 
 import s from './HelpMenu.module.scss';
 
-/** Per member, per browser — `uiFlags` is IndexedDB, so a second device gets
- *  its own answer. Signed-out visitors see the (?) too and share one key. */
-const calloutKey = (uid?: string) => `help_callout_dismissed_${uid ?? 'anon'}`;
+/** Once per member, across devices — the record lives on the member row, with
+ *  IndexedDB in front of it as a cache. Signed-out visitors still see the (?),
+ *  and for them the local flag is the only record there can be. */
+const CALLOUT_KEY = 'help_callout';
 
 type DismissedVia = 'got-it' | 'escape' | 'menu-opened';
 
@@ -66,26 +67,11 @@ interface Props {
 export const HelpMenu = ({ userInfo }: Props) => {
   const analytics = useCommonAnalytics();
   const { openModal } = useContactSupportStore((store) => store.actions);
-  const uid = userInfo?.uid;
 
-  const [calloutOpen, setCalloutOpen] = useState(false);
-
-  // `getUiFlag` is async (IndexedDB), so the callout can only appear a tick
-  // after mount — which is exactly what stops it flashing for the members who
-  // dismissed it long ago.
-  useEffect(() => {
-    let cancelled = false;
-
-    getUiFlag(calloutKey(uid)).then((dismissed) => {
-      if (!cancelled && !dismissed) {
-        setCalloutOpen(true);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [uid]);
+  // Both answers — local cache and member record — are resolved in here, which
+  // is also why the callout can still only appear a tick after mount: that
+  // delay is what stops it flashing for members who dismissed it long ago.
+  const { open: calloutOpen, dismiss: dismissFlag } = useOneTimeCallout(CALLOUT_KEY);
 
   // A ref rather than a dependency, for the reason the Home news dot uses one:
   // `useCommonAnalytics()` hands back a fresh object every render, so an effect
@@ -106,9 +92,8 @@ export const HelpMenu = ({ userInfo }: Props) => {
     if (!calloutOpen) {
       return;
     }
-    setCalloutOpen(false);
     analytics.onHelpCalloutDismissed(via, getAnalyticsUserInfo(userInfo));
-    void setUiFlag(calloutKey(uid));
+    dismissFlag();
   };
 
   const handleOpenChange = (open: boolean) => {

@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 
 import { filterAndSortAiApps } from '../utils/filterAndSortAiApps';
 import { getCreatorOptions } from '../utils/getCreatorOptions';
+import { getTagOptions } from '../utils/getTagOptions';
 
 import { useAiApps } from './useAiApps';
 import { useAiAppsFilterCount } from './useAiAppsFilterCount';
@@ -16,6 +17,7 @@ export function useFilteredAiApps() {
   const filterCount = useAiAppsFilterCount();
 
   const creators = useMemo(() => getCreatorOptions(apps), [apps]);
+  const tagOptions = useMemo(() => getTagOptions(apps), [apps]);
   const visibleApps = useMemo(() => filterAndSortAiApps(apps, params), [apps, params]);
 
   return {
@@ -23,6 +25,8 @@ export function useFilteredAiApps() {
     apps,
     visibleApps,
     creators,
+    /** Only tags in use, with app counts — the filter never offers an empty facet. */
+    tagOptions,
     filterCount,
     isLoading,
     isError,

@@ -1,6 +1,6 @@
 'use client';
 
-import { KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
@@ -38,6 +38,8 @@ interface PreparedLine {
   clock: string;
   /** Full "Jul 23 14:24:24" (or raw) — the export line's prefix. */
   time: string;
+  /** Runner deployment the line came from, when the backend reports it. */
+  deploymentId?: string;
 }
 
 /**
@@ -56,6 +58,7 @@ function prepareLines(events: AiAppLogEvent[] | null): PreparedLine[] {
     const parts = /^[A-Z][a-z]{2} \d{1,2} \d{2}:\d{2}:\d{2}$/.test(time) ? time.split(' ') : null;
     return {
       key: `${event.timestamp}-${i}`,
+      deploymentId: event.deploymentId,
       text,
       searchText: text.toLowerCase(),
       level: deriveLogLevel(text),
@@ -130,6 +133,21 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
     if (!q) return lines;
     return lines.filter((line) => line.searchText.includes(q));
   }, [lines, query]);
+
+  // Newest-first, so the first line carrying a deploymentId not seen above it
+  // is where an EARLIER deployment's output starts. Marked once per
+  // deployment, not on every neighbour change: during a rollover the old and
+  // new pods log concurrently for a while and their lines interleave.
+  const earlierDeploymentStarts = useMemo(() => {
+    const seen = new Set<string>();
+    const starts = new Set<string>();
+    for (const line of filtered) {
+      if (!line.deploymentId) continue;
+      if (!seen.has(line.deploymentId) && seen.size > 0) starts.add(line.key);
+      seen.add(line.deploymentId);
+    }
+    return starts;
+  }, [filtered]);
 
   const paneRef = useRef<HTMLDivElement>(null);
   const buildTabRef = useRef<HTMLButtonElement>(null);
@@ -358,25 +376,37 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((line) => (
-                <tr key={line.key} className={line.level ? s[line.level] : undefined}>
-                  <td className={s.messageCell}>
-                    {line.level && (
-                      <>
-                        <span className={s.levelDot} aria-hidden />
-                        <span className={s.srOnly}>{line.level === 'error' ? 'Error: ' : 'Warning: '}</span>
-                      </>
+              {filtered.map((line) => {
+                return (
+                  <Fragment key={line.key}>
+                    {earlierDeploymentStarts.has(line.key) && (
+                      <tr className={s.deploymentBoundary}>
+                        <td colSpan={2}>
+                          Earlier deployment <code>{line.deploymentId}</code> starts here — its lines can briefly
+                          interleave with the newer deploy during the rollover
+                        </td>
+                      </tr>
                     )}
-                    <span className={s.messageText}>{line.text}</span>
-                  </td>
-                  <td>
-                    <span className={s.timeCell}>
-                      {line.date && <span className={s.date}>{line.date}</span>}
-                      <span className={s.time}>{line.clock}</span>
-                    </span>
-                  </td>
-                </tr>
-              ))}
+                    <tr className={line.level ? s[line.level] : undefined}>
+                      <td className={s.messageCell}>
+                        {line.level && (
+                          <>
+                            <span className={s.levelDot} aria-hidden />
+                            <span className={s.srOnly}>{line.level === 'error' ? 'Error: ' : 'Warning: '}</span>
+                          </>
+                        )}
+                        <span className={s.messageText}>{line.text}</span>
+                      </td>
+                      <td>
+                        <span className={s.timeCell}>
+                          {line.date && <span className={s.date}>{line.date}</span>}
+                          <span className={s.time}>{line.clock}</span>
+                        </span>
+                      </td>
+                    </tr>
+                  </Fragment>
+                );
+              })}
               {loadMoreRow}
             </tbody>
           </table>

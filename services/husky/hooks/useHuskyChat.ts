@@ -98,6 +98,20 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
   const [turns, setTurns] = useState<HuskyTurn[]>([]);
   const [status, setStatus] = useState<StreamStatus>('idle');
   const [threadId, setThreadId] = useState<string | null>(null);
+  /**
+   * Whether a thread *document* exists for `threadId`, server-side.
+   *
+   * Not the same question as "is there a threadId": that is generated on the
+   * client, so it is a string from the first keystroke of the first answer. The
+   * document is a separate, deliberately fire-and-forget POST that is allowed
+   * to fail (see `send`) — and never runs at all for a signed-out person.
+   *
+   * Anything that offers to *navigate* to the thread has to gate on this rather
+   * than on the id or on the stream being finished. `Continue in AI Search` did
+   * not, and linked to `/husky/chat/<id>` for threads the backend had no record
+   * of, which is a 404 page.
+   */
+  const [isThreadPersisted, setIsThreadPersisted] = useState(false);
 
   const queryClient = useQueryClient();
   const analytics = useHuskyAnalytics();
@@ -292,6 +306,9 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
       const chatId = generateUUID();
 
       if (newThread) setTurns([]);
+      /* A new id has no document behind it until registration says otherwise —
+         including when the previous thread in this session did. */
+      if (isFirstTurn) setIsThreadPersisted(false);
       rememberThreadId(nextThreadId);
       activeStreamRef.current = { threadId: nextThreadId, chatId, canceled: false };
 
@@ -332,6 +349,10 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
             try {
               const created = await createHuskyThread(authToken, nextThreadId);
               if (!created) return;
+              /* Set here, not after the title call: the document exists at this
+                 point, and the title is decoration that must not decide whether
+                 the thread can be linked to. */
+              setIsThreadPersisted(true);
               await createThreadTitle(authToken, nextThreadId, trimmed);
               queryClient.invalidateQueries({ queryKey: [SearchQueryKeys.GET_AI_CHAT_HISTORY] });
             } catch (error) {
@@ -373,6 +394,9 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
       abandonStream();
       setTurns(nextTurns);
       rememberThreadId(nextThreadId);
+      /* These turns were just read back from the server, so the document is
+         not in doubt. */
+      setIsThreadPersisted(true);
       setStatus(nextTurns.length ? 'done' : 'idle');
     },
     [abandonStream, rememberThreadId],
@@ -382,6 +406,7 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
     abandonStream();
     setTurns([]);
     rememberThreadId(null);
+    setIsThreadPersisted(false);
     setStatus('idle');
   }, [abandonStream, rememberThreadId]);
 
@@ -390,6 +415,7 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
   return {
     turns,
     threadId,
+    isThreadPersisted,
     status,
     isBusy,
     limitLevel: limit.level as LimitLevel,

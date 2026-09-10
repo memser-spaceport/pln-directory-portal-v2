@@ -194,14 +194,31 @@ export const AppSearchDialog = ({
     setActiveCategory('top');
   }, [onRawTermChange]);
 
-  /* A recent search is a search you *made*, not every prefix you typed on the
-     way. This used to fire inside the query fetcher, so "f", "fi", "fil" and
-     "file" all became entries against a three-item cap — one long question
-     evicted the whole list. */
   const handleResultSelect = useCallback(() => {
-    if (trimmed) saveRecentSearch(trimmed);
     onClose();
-  }, [onClose, trimmed]);
+  }, [onClose]);
+
+  /**
+   * A recent search is a search you *made*, not every prefix you typed on the
+   * way — and with results appearing as you type and `Enter` asking the AI,
+   * there is no submit gesture to read that from.
+   *
+   * The debounced term is the closest thing: it is what you stopped typing on,
+   * and it is the value the search query itself runs on. The ladder that
+   * produced it still arrives as several saves, so `saveRecentSearch` collapses
+   * them — which is what lets this be recorded without a result ever being
+   * clicked, and without one typed query filling a three-item list.
+   *
+   * Floored at the same length the dialog uses to decide it has a query at all.
+   * A term abandoned inside the debounce window never settles, so a discarded
+   * typo is never recorded.
+   */
+  useEffect(() => {
+    const settled = term.trim();
+    if (settled.length >= MIN_ASK_LENGTH) {
+      saveRecentSearch(settled);
+    }
+  }, [term]);
 
   const askAi = useCallback(() => {
     if (trimmed.length < MIN_ASK_LENGTH) return;

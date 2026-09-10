@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 
@@ -79,9 +79,10 @@ jest.mock('@/services/search/hooks/useFullApplicationSearch', () => ({
   useFullApplicationSearch: () => ({ data: undefined, isLoading: false, isError: false }),
 }));
 
+const saveRecentSearch = jest.fn();
 jest.mock('@/services/search/hooks/useRecentSearch', () => ({
   useRecentSearch: () => ({ data: [] }),
-  saveRecentSearch: jest.fn(),
+  saveRecentSearch: (...args: unknown[]) => saveRecentSearch(...args),
 }));
 
 jest.mock('@/services/search/hooks/useRemoveRecentSearch', () => ({
@@ -101,6 +102,7 @@ const field = () => screen.getByPlaceholderText('Search or ask AI Search a quest
 beforeEach(() => {
   isBelowTabletLandscape = false;
   huskyTurns = [];
+  saveRecentSearch.mockClear();
 });
 
 const A_CONVERSATION = [{ chatId: 'c1', question: 'what is filecoin', answer: 'A storage network.' }];
@@ -208,6 +210,67 @@ describe('AppSearchDialog', () => {
    * opening cold is a state the app cannot reach, and testing it hid the bug
    * these cases now pin: restoring on `turns.length` alone.
    */
+  /**
+   * A search used to reach Recent only if a result was clicked, so searching,
+   * reading the list and moving on left no trace. There is no submit gesture to
+   * read intent from — results appear as you type and `Enter` asks the AI — so
+   * the debounced term is what stands in for "the search I made".
+   */
+  describe('recording a search in Recent', () => {
+    const settle = () => act(() => jest.advanceTimersByTime(1000));
+
+    beforeEach(() => jest.useFakeTimers());
+    afterEach(() => jest.useRealTimers());
+
+    it('records the term without a result ever being clicked', () => {
+      renderSearch();
+      openWithShortcut();
+
+      fireEvent.change(field(), { target: { value: 'filecoin' } });
+      settle();
+
+      expect(saveRecentSearch).toHaveBeenCalledWith('filecoin');
+    });
+
+    // The reported flow, end to end.
+    it('still has it after the field is cleared', () => {
+      renderSearch();
+      openWithShortcut();
+      fireEvent.change(field(), { target: { value: 'filecoin' } });
+      settle();
+
+      fireEvent.change(field(), { target: { value: '' } });
+      settle();
+
+      expect(saveRecentSearch).toHaveBeenCalledTimes(1);
+      expect(saveRecentSearch).toHaveBeenCalledWith('filecoin');
+    });
+
+    /* Nothing settled, so nothing was searched. This is what keeps a typo the
+       person backed out of from being remembered. */
+    it('records nothing for a term abandoned inside the debounce window', () => {
+      renderSearch();
+      openWithShortcut();
+
+      fireEvent.change(field(), { target: { value: 'fil' } });
+      fireEvent.change(field(), { target: { value: '' } });
+      settle();
+
+      expect(saveRecentSearch).not.toHaveBeenCalled();
+    });
+
+    // Same floor the dialog uses to decide it has a query at all.
+    it('records nothing for a single character', () => {
+      renderSearch();
+      openWithShortcut();
+
+      fireEvent.change(field(), { target: { value: 'f' } });
+      settle();
+
+      expect(saveRecentSearch).not.toHaveBeenCalled();
+    });
+  });
+
   describe('reopening with a conversation in memory', () => {
     const haveAConversation = async () => {
       openWithShortcut();

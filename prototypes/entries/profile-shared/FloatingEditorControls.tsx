@@ -16,12 +16,11 @@ import fab from '@/components/page/ai-apps/components/FloatingFeedbackButton/Flo
 // that row at a distance, so it borrows the row's type rather than
 // approximating it.
 import efc from '@/components/common/profile/EditFormControls/EditFormControls.module.scss';
-// The design system's rounded buttons, as the product draws them in the
-// navbar: the bordered white pill (Sign up) and the gradient pill (Sign in).
-// Imported by class, the way `PrototypeNavBar` already does. *"Make buttons
-// round, use rounded button components from ds."*
-import signup from '@/components/core/navbar/components/Signup/Signup.module.scss';
-import login from '@/components/core/navbar/components/LoginBtn/LoginButton.module.scss';
+// The design system's rectangular Button — the one the drawer's Continue and
+// the cards' own Cancel/Save wear. *"Make buttons also rectangular for both
+// onboarding and job board drawer prototypes."* (The navbar's rounded pair
+// stood here while the bar was a pill; see the stylesheet.)
+import { Button } from '@/components/common/Button';
 
 // The CV importer's wait — its three lines (title, progress bar, "usually
 // takes…" hint) and the spinner that stands before them — drawn here exactly
@@ -241,9 +240,9 @@ export function EditorStatusRow({
         <SpinnerIcon className={panel.spinner} />
         <ImportWaitStatus wait={importWait} live />
         <div className={s.actions}>
-          <button type="button" className={clsx(signup.root, s.pill, s.pillBordered)} onClick={importWait.cancel}>
+          <Button type="button" style="border" size="m" className={s.btn} onClick={importWait.cancel}>
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -263,14 +262,14 @@ export function EditorStatusRow({
   return (
     <div className={s.row}>
       <div className={s.actions}>
-        <button type="button" className={clsx(signup.root, s.pill, s.pillBordered)} onClick={back} title={status}>
-          <ScrollArrowIcon className={s.pillIcon} direction={away.direction} aria-hidden />
+        <Button type="button" style="border" size="m" className={s.btn} onClick={back} title={status}>
+          <ScrollArrowIcon className={s.btnIcon} direction={away.direction} aria-hidden />
           Keep editing
-        </button>
+        </Button>
         {canSave && (
-          <button type="button" className={clsx(login.root, s.pill, s.pillPrimary)} onClick={save}>
+          <Button type="button" style="fill" size="m" className={s.btn} onClick={save}>
             {saveLabel}
-          </button>
+          </Button>
         )}
       </div>
     </div>
@@ -344,12 +343,12 @@ export function EditorStatusRow({
  * The status line wears `EditFormControls`' title type, so the sentence reads
  * as the editor's own row speaking from a distance; the wait's lines wear the
  * importer's, for the same reason. The buttons are the design system's
- * rounded pair as the navbar draws them — Keep editing and Cancel the
- * bordered white pill, Save the gradient pill — *"use rounded button
- * components from ds."* A floating object takes the product's floating,
- * rounded lineage rather than the card's 8px-radius buttons; the first cut
- * used the card's own DS `Button size="s"`, and square buttons inside a pill
- * read as a form fragment rather than a control.
+ * `Button` — Keep editing and Cancel bordered, Save filled — the same
+ * control the cards' own Cancel/Save and the drawer's Continue are. They
+ * were the navbar's rounded pair for a day, while the bar itself was a pill
+ * (*"use rounded button components from ds"*); once the bar became a card
+ * (*"rectangular not circular"*) its presses followed (*"make buttons also
+ * rectangular"*), and the rounded lineage is gone from the bar entirely.
  *
  * Where the open card is a full-screen takeover below tablet-landscape
  * (the new-member page's CV card), the host says so and the bar is not
@@ -380,50 +379,87 @@ export function FloatingEditorControls({
   /* The bar stands only while the card is away — see the note above. */
   if (!away) return null;
 
+  return (
+    <div className={clsx(fab.wrap, s.wrap, takeoverBelowTabletLandscape && s.desktopOnly)}>
+      <FloatingEditorBar
+        away={away}
+        canSave={canSave}
+        status={status}
+        saveLabel={saveLabel}
+        importWait={importWait}
+        onBack={back}
+        onSave={save}
+        onClick={handleBarClick}
+      />
+    </div>
+  );
+}
+
+/**
+ * The bar itself — the card with the sentence and the presses, or the
+ * reading row — without its position. `FloatingEditorControls` puts it in
+ * the fixed wrap; the states sheet (`status-bar-states`) lays it on a page,
+ * one per state, so every state can be seen without producing it.
+ */
+export function FloatingEditorBar({
+  away,
+  canSave,
+  status,
+  saveLabel = 'Save changes',
+  importWait = null,
+  onBack,
+  onSave,
+  onClick,
+}: {
+  away: CardAway;
+  canSave: boolean;
+  status: string;
+  saveLabel?: string;
+  importWait?: ImportWait | null;
+  onBack: () => void;
+  onSave: () => void;
+  onClick?: (event: MouseEvent<HTMLDivElement>) => void;
+}) {
   if (importWait) {
     return (
-      <div className={clsx(fab.wrap, s.wrap, takeoverBelowTabletLandscape && s.desktopOnly)}>
-        {/* The importer's reading row, at a distance: its spinner, its three
-            lines, its Cancel. The spinner is the row's alive signal — the
-            one thing a held bar cannot show — and it is not optional here
-            either; the bar exists for the person who can no longer see the
-            row, so it carries every signal the row does. */}
-        <div className={clsx(s.bar, s.barWait)} onClick={handleBarClick}>
-          <ScrollArrowIcon className={s.directionMark} direction={away.direction} aria-hidden />
-          <SpinnerIcon className={panel.spinner} />
-          <ImportWaitStatus wait={importWait} live />
-          <div className={s.actions}>
-            <button type="button" className={clsx(signup.root, s.pill, s.pillBordered)} onClick={importWait.cancel}>
-              Cancel
-            </button>
-          </div>
+      /* The importer's reading row, at a distance: its spinner, its three
+         lines, its Cancel. The spinner is the row's alive signal — the
+         one thing a held bar cannot show — and it is not optional here
+         either; the bar exists for the person who can no longer see the
+         row, so it carries every signal the row does. */
+      <div className={clsx(s.bar, s.barWait)} onClick={onClick}>
+        <ScrollArrowIcon className={s.directionMark} direction={away.direction} aria-hidden />
+        <SpinnerIcon className={panel.spinner} />
+        <ImportWaitStatus wait={importWait} live />
+        <div className={s.actions}>
+          <Button type="button" style="border" size="m" className={s.btn} onClick={importWait.cancel}>
+            Cancel
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={clsx(fab.wrap, s.wrap, takeoverBelowTabletLandscape && s.desktopOnly)}>
-      <div className={s.bar} onClick={handleBarClick}>
-        {/* The live region is the sentence, not the bar: a screen reader should
-            hear what became pending, and buttons do not belong inside a
-            status region. The sentence leads with a direction arrow, so the
-            bar says where the open section is before the person presses it. */}
-        <span className={clsx(efc.title, s.status)} role="status">
-          <ScrollArrowIcon className={s.directionMark} direction={away.direction} aria-hidden />
-          <span className={s.statusText}>{status}</span>
-        </span>
-        <div className={s.actions}>
-          <button type="button" className={clsx(signup.root, s.pill, s.pillBordered)} onClick={back}>
-            <EditIcon className={s.pillIcon} aria-hidden />
-            Keep editing
-          </button>
-          {canSave && (
-            <button type="button" className={clsx(login.root, s.pill, s.pillPrimary)} onClick={save}>
-              {saveLabel}
-            </button>
-          )}
-        </div>
+    <div className={s.bar} onClick={onClick}>
+      {/* The live region is the sentence, not the bar: a screen reader should
+          hear what became pending, and buttons do not belong inside a
+          status region. The sentence leads with a direction arrow, so the
+          bar says where the open section is before the person presses it. */}
+      <span className={clsx(efc.title, s.status)} role="status">
+        <ScrollArrowIcon className={s.directionMark} direction={away.direction} aria-hidden />
+        <span className={s.statusText}>{status}</span>
+      </span>
+      <div className={s.actions}>
+        <Button type="button" style="border" size="m" className={s.btn} onClick={onBack}>
+          <EditIcon className={s.btnIcon} aria-hidden />
+          Keep editing
+        </Button>
+        {canSave && (
+          <Button type="button" style="fill" size="m" className={s.btn} onClick={onSave}>
+            {saveLabel}
+          </Button>
+        )}
       </div>
     </div>
   );

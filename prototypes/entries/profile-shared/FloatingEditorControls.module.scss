@@ -30,15 +30,13 @@
   }
 }
 
-// One object: a white pill holding the status sentence and the design
-// system's rounded buttons. The card border and a neutral shadow, so it reads
+// One object: a white card holding the status sentence and the design
+// system's buttons. The card border and a neutral shadow, so it reads
 // as a surface lifted off the page rather than as a brand control — the
 // presses inside it carry the emphasis, and a Save filled brand-blue inside a
-// brand-blue pill would have nowhere to stand out. 8px inset around the 40px
-// pills plus the hairline is what makes the bar 58px; the status line gets 16px on its side so
-// the sentence starts where a card's text would. 999px rather than the card's
-// 8px: this is a floating control, and the product's floating controls are
-// pills.
+// brand-blue surface would have nowhere to stand out. 8px inset around the
+// 40px pills plus the hairline is what makes the bar 58px; the status line
+// gets 16px on its side so the sentence starts where a card's text would.
 .bar {
   pointer-events: auto;
   display: flex;
@@ -46,7 +44,13 @@
   gap: 16px;
   max-width: 100%;
   padding: 8px 8px 8px 16px;
-  border-radius: 999px;
+  /* The cards' own radius (production `DetailsSection`, 8px), not a pill:
+     *"let's do it rectangular not circular."* The bar is a card lifted off
+     the page — it wears the card border and speaks for a card — and only
+     the presses inside it are pills. One radius in every state and at every
+     width; the 16px the wait and the phone layout used to take is gone with
+     the pill it was an exception to. */
+  border-radius: 8px;
   cursor: pointer;
   background: #fff;
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
@@ -56,9 +60,7 @@
 // The bar while a CV is being read: the importer's reading row at a distance
 // — spinner, then the row's three stacked lines (title, 6px progress track,
 // "usually takes…" hint, all in the importer's own classes), then Cancel.
-// Three lines are no longer a pill, by this file's own rule for the phone
-// layout below: the corner goes to 16px, the radius the product's bottom
-// sheets wear. A fixed width rather than the content's, because the one line
+// A fixed width rather than the content's, because the one line
 // in it that has no width of its own is the progress track, and a track that
 // sized itself to the file name would be a different length for every file.
 // 560px: the review bar this one hands off to measured 510px at 1280 wide
@@ -68,7 +70,6 @@
 // for a fill to be read as a fraction rather than a dot.
 .barWait {
   width: min(100%, 560px);
-  border-radius: 16px;
 }
 
 // The status sentence takes `EditFormControls`' title type (14/500,
@@ -112,61 +113,33 @@
   gap: 8px;
 }
 
-// The navbar's pills only *become* pills from tablet-landscape up — below it
-// they are the mobile navbar's bare text (Sign up loses its border, radius and
-// height; Sign in keeps its gradient but drops to 12px text on a full-height
-// row). This bar renders on a phone in the profile host, so the desktop
-// treatment is re-asserted here at every width: the values are the two
-// stylesheets' own tablet-landscape blocks, not new numbers. `.pill.pill`
-// because the navbar rule inside its media query has the same specificity
-// as this one and comes later in the cascade.
-.pill.pill {
+// The design system's rectangular `Button` (size m; `border` for the way
+// back and Cancel, `fill` for Save), as the drawer's Continue and the cards'
+// own Cancel/Save wear it. *"Make buttons also rectangular for both onboarding
+// and job board drawer prototypes."* It replaced the navbar's rounded pair,
+// which the bar wore while it was itself a pill: a pill ground had pill
+// presses, and once the ground became a card its presses became the card's.
+// The class adds only what a glyph beside the label needs — the Button lays
+// its own label out as text and sets its own type, height and colours.
+.btn.btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 40px;
-  padding: 0 24px;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 24px;
-  letter-spacing: -0.2px;
   white-space: nowrap;
-  cursor: pointer;
 }
 
-.pillIcon {
+.btnIcon {
   flex-shrink: 0;
   width: 14px;
   height: 15px;
-}
-
-// `Signup.module.scss`' tablet-landscape block, verbatim.
-.pillBordered.pillBordered {
-  border-radius: 40px;
-  border: 1px solid var(--Neutral-Slate-300, #cbd5e1);
-  background: var(--Neutral-White, #fff);
-  box-shadow: 0 1px 1px 0 rgba(15, 23, 42, 0.08);
-  color: var(--action-foreground-neutral-normal, #455468);
-}
-
-.pillPrimary.pillPrimary {
-  border: 1px solid var(--action-background-brand-normal, #156ff7);
-  background: var(--action-background-brand-normal, #156ff7);
-  color: var(--Neutral-White, #fff);
-}
-
-.pillPrimary.pillPrimary:hover {
-  filter: brightness(108%);
 }
 
 // On a phone the row does not fit: 358px minus two buttons left the sentence
 // ~100px and it truncated to "Unsaved ch…" — measured, not guessed. The
 // sentence is the one thing the buttons cannot say, so it goes above them and
 // the pair fills the row, which is how the editor's own controls sit on a
-// phone. Two rows are no longer a pill; 16px is the radius the product's
-// bottom sheets wear (`MobileDrawer`, `MobileFilterControls`,
-// `MobileFilterWrapper` — all `16px 16px 0 0` on the sheet).
+// phone. The corner stays the card's 8px, as at every other width.
 @include media.mobile-only {
   .bar {
     flex-direction: column;
@@ -174,7 +147,6 @@
     gap: 8px;
     width: 100%;
     padding: 12px 12px 12px 16px;
-    border-radius: 16px;
   }
 
   .statusText {
@@ -220,9 +192,9 @@
     flex: 1;
   }
 
-  /* 16px sides rather than the navbar pills' 24px, so Keep editing and
-     Save CV results keep some air between them on a 358px line. */
-  .row .pill.pill {
+  /* 16px sides rather than the Button's own, so Keep editing and Save CV
+     results keep some air between them on a 358px line. */
+  .row .btn.btn {
     padding-inline: 16px;
   }
 }

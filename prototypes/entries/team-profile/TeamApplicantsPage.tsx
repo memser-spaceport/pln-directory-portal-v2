@@ -8,7 +8,7 @@ import type { IUserInfo } from '@/types/shared.types';
 import { formatRelativeDays } from '@/utils/jobs.utils';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
-import { Tabs } from '@/components/ui/tabs/Tabs';
+import { SortDropdown } from '@/components/common/filters/SortDropdown';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { ArrowUpRightIcon } from '@/components/icons/ArrowUpRightIcon';
 import { TagsList } from '@/components/common/profile/TagsList';
@@ -32,6 +32,7 @@ import rowTone from '../job-board/JobReferRoleRow.module.scss';
 import { ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
 
 import { CvAttachmentLine } from '../profile-shared/StoredCv/CvAttachmentLine';
+import { EnvelopeIcon } from './icons';
 import { ApplicantRow } from './ApplicantRow';
 import type { RoleApplicant } from './mocks';
 import s from './TeamApplicantsPage.module.scss';
@@ -39,6 +40,8 @@ import s from './TeamApplicantsPage.module.scss';
 export interface ApplicantsRole {
   uid: string;
   title: string;
+  /** The team's own posting — the same link the role row's ⋯ menu calls "View posting". */
+  postingHref?: string;
   applicants: RoleApplicant[];
 }
 
@@ -66,7 +69,7 @@ const VIEWER = { uid: 'viewer', name: 'Viewer', email: 'viewer@pl.org' } as unkn
  * list in place and show the person beside it, so a founder steps through
  * applicants the way they would step through an inbox. This is that, on the
  * team's own surface: reached from the count line on the role row, with Back
- * to the profile, and the team's roles as tabs across the top so all of a
+ * to the profile, and the team's roles in a picker above the split so all of a
  * team's hiring is one place rather than one modal per role.
  *
  * **The right pane is the member's profile, not a new object.** Its header is
@@ -81,11 +84,11 @@ const VIEWER = { uid: 'viewer', name: 'Viewer', email: 'viewer@pl.org' } as unkn
  * application in this product (`{team} can reply to you directly`), so it is
  * the pane's one filled button. No Shortlist / Reject — see `applicantMocks`.
  *
- * **New → Viewed, per person, on selection.** The look is opening the person,
- * so a row's `● New` becomes `✓ Viewed` when it is selected and the others
- * keep theirs. Viewed is its own mark, not New's absence: a row the founder
- * read and a row that was never new must not look alike on the next visit.
- * Session-local here; production would keep it per team member.
+ * **New clears per person, on selection.** An unread row is tinted and marked
+ * `● New`; the look is opening the person, so selecting a row returns it to
+ * the plain grey and the others keep their tint. Read is the row at rest, not
+ * a state with a mark of its own. Session-local here; production would keep
+ * it per team member.
  *
  * **Mobile: one column at a time.** The split needs ~900px; below the tablet
  * breakpoint the list shows alone and a row opens the pane full-width with a
@@ -130,10 +133,9 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
     if (isMobile) setPaneOpen(true);
   };
 
-  const switchRole = (title: string) => {
-    const next = roles.find((r) => tabName(r) === title);
-    if (!next || next.uid === role.uid) return;
-    setRoleUid(next.uid);
+  const switchRole = (uid: string) => {
+    if (uid === role.uid) return;
+    setRoleUid(uid);
     setSelectedId(null);
     setQuery('');
     setPaneOpen(false);
@@ -159,13 +161,35 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
       )}
 
       {showList && (
-        <div className={s.tabs}>
-          <Tabs
-            variant="secondary"
-            activeTab={tabName(role)}
-            onTabClick={switchRole}
-            tabs={roles.map((r) => ({ name: tabName(r), count: r.applicants.length || undefined }))}
+        <div className={s.roleBar}>
+          {/* The product's toolbar picker (the board's "Sort by:"), holding the
+              team's roles with their counts — a tab strip was here first and
+              fitted the four mocked roles exactly, which is the tell that it
+              would not fit ten. */}
+          <SortDropdown
+            sortByLabel="Role:"
+            className={s.rolePicker}
+            options={roles.map((r) => ({
+              value: r.uid,
+              label: r.applicants.length ? `${r.title} (${r.applicants.length})` : r.title,
+            }))}
+            currentSort={role.uid}
+            onSortChange={switchRole}
           />
+          {/* The posting itself, one press from the people who answered it —
+              the same link, and the same words, as the row's ⋯ menu on the
+              profile, so the exit reads the same on both surfaces. */}
+          {role.postingHref && (
+            <a
+              href={role.postingHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.actionLink)}
+            >
+              View posting
+              <ArrowUpRightIcon width={14} height={14} />
+            </a>
+          )}
         </div>
       )}
 
@@ -182,7 +206,6 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
                     key={a.id}
                     applicant={a}
                     isNew={a.unseen && !seenIds.has(a.id)}
-                    viewed={seenIds.has(a.id)}
                     last={index === shown.length - 1}
                     selected={!isMobile && a.id === selectedId}
                     onSelect={() => select(a)}
@@ -237,6 +260,8 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
                   href={`mailto:${selected.email}?subject=${encodeURIComponent(`Your application for ${role.title}`)}`}
                   className={clsx(btn.root, btn.small, btn.fill, btn.primary, s.actionLink)}
                 >
+                  {/* The product's envelope, at the arrow's size on the button beside it. */}
+                  <EnvelopeIcon size={14} />
                   Email {selected.name.split(' ')[0]}
                 </a>
                 <a
@@ -290,9 +315,6 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
     </div>
   );
 }
-
-/** Tab label: the role title; the count rides on the Tabs component's own `count`. */
-const tabName = (r: ApplicantsRole) => r.title;
 
 /* BackButton's glyph, which it doesn't export. */
 const BackIcon = () => (

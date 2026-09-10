@@ -1,16 +1,26 @@
 @use 'styles/media';
 
-/* The Members row, unchanged, with one addition the page needs: a selected
- * state. Production's row has no such thing (its press leaves the page), so
- * the paint is the section's own resting-blue card — the tint the profile
- * uses for the card you are editing — with the brand hairline the apply
- * rail draws around the current step. */
+/* The Members row, with the two states production's row never needs because
+ * its press leaves the page.
+ *
+ * Unread is the loud one: the section's resting-blue card (the tint the
+ * profile uses for the card you are editing) under the `● New` mark, so a
+ * founder sees from across the list which rows they haven't opened. Opening a
+ * row is reading it, and the row returns to the plain grey — read has no paint
+ * of its own (design-thinking lesson 21).
+ *
+ * Selected is the brand hairline the apply rail draws around the current step,
+ * on the plain row. Selecting *is* reading, so the ring and the tint never
+ * meet on one row and the ring can stand alone. */
 .row {
   transition: background-color 120ms ease;
 }
 
-.selected {
+.unread {
   background: var(--background-brand-subtle, #eef2ff);
+}
+
+.selected {
   box-shadow: inset 0 0 0 1px var(--border-brand-subtle, #aebfff);
 }
 
@@ -56,15 +66,3 @@
   gap: 12px;
 }
 
-/* `✓ Viewed` — the same size and weight as the row's `● New`, in the tertiary
- * tone rather than the green: a fact about what the reader has done, not a
- * call to look. The check is the design system's stroked glyph at the badge's
- * own 12px, taking the text's colour. */
-.viewed {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-}

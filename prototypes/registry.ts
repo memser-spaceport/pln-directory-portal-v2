@@ -127,6 +127,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/member-profile-edit/MemberProfileEditPrototype'),
   },
   {
+    key: 'status-bar-states',
+    title: 'Status bar — every state',
+    description:
+      "A states sheet for the open-card status bar shared by the profile pages and the job board's apply drawer, so every state can be seen without producing it. The floating bar as the profile pages draw it — an editor with the card above (arrow up) or below (arrow down), unsaved changes with its Save, a CV review with Save CV results, and the CV read's three beats (uploading, reading, taking longer than usual) with the importer's own progress row and Cancel. And the same object as the job board drawer's footer row beside Continue: at rest with the footer's hint, then the read, the review and an editor once their card has scrolled away. Phone layouts are viewport rules and are not on this sheet — narrow the window on the real hosts for those.",
+    category: 'Members',
+    load: () => import('./entries/status-bar-states/StatusBarStatesPrototype'),
+  },
+  {
     key: 'person-city-calendar',
     title: 'Person city calendar',
     description:

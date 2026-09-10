@@ -2,7 +2,11 @@
 
 import { useCallback, useRef, useState } from 'react';
 
-import { AppSearchDialog, type DialogView } from '@/components/core/application-search/components/AppSearchDialog';
+import {
+  AppSearchDialog,
+  type AnswerOrigin,
+  type DialogView,
+} from '@/components/core/application-search/components/AppSearchDialog';
 import { useDebouncedValue } from '@/components/core/application-search/hooks/useDebouncedValue';
 import { useIsBelowTabletLandscape } from '@/hooks/useIsBelowTabletLandscape';
 import { useHuskyChat } from '@/services/husky/hooks/useHuskyChat';
@@ -30,7 +34,7 @@ export function PrototypeSearchModal({ open, onClose }: PrototypeSearchModalProp
   const [rawTerm, setRawTerm] = useState('');
   const term = useDebouncedValue(rawTerm, 700);
   const [view, setView] = useState<DialogView>('search');
-  const [origin, setOrigin] = useState<'results' | 'history' | null>(null);
+  const [origin, setOrigin] = useState<AnswerOrigin>('search');
   const inputRef = useRef<HTMLInputElement>(null);
   const fullBleed = useIsBelowTabletLandscape();
   const chat = useHuskyChat({ isLoggedIn: false });
@@ -40,7 +44,7 @@ export function PrototypeSearchModal({ open, onClose }: PrototypeSearchModalProp
   const handleClose = useCallback(() => {
     setRawTerm('');
     setView('search');
-    setOrigin(null);
+    setOrigin('search');
     onClose();
   }, [onClose]);
 
@@ -56,7 +60,7 @@ export function PrototypeSearchModal({ open, onClose }: PrototypeSearchModalProp
       onViewChange={setView}
       origin={origin}
       onAskAi={(question) => {
-        setOrigin(rawTerm.trim() ? 'results' : null);
+        setOrigin(rawTerm.trim() ? 'results' : 'search');
         setView('answer');
         chat.startThread(question);
       }}

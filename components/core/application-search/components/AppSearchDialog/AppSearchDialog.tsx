@@ -112,6 +112,23 @@ const ResultsBody = React.memo(function ResultsBody({
 
 export type DialogView = 'search' | 'answer' | 'history';
 
+/**
+ * Which screen the answer view was reached from — the one Back and Escape
+ * return to.
+ *
+ * Not nullable, and deliberately: every door into the answer view comes from a
+ * screen of this dialog, so "nowhere to go back to" was a state that could not
+ * happen. It was reachable anyway, because the value was derived from whether
+ * the search field had anything in it — which left both idle-view doors (a
+ * suggested prompt, a row of the compact history list) with no Back at all and
+ * an Escape that closed the whole dialog.
+ *
+ * `'restored'` is not a place anyone navigated from: it is the
+ * reopened-with-a-thread case, a value rather than a separate flag because Back,
+ * Escape and the composer autofocus all branch on this one field.
+ */
+export type AnswerOrigin = 'search' | 'results' | 'history' | 'restored';
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -125,7 +142,7 @@ interface Props {
   view: DialogView;
   onViewChange: (next: DialogView) => void;
   /** Where the answer state was reached from, so Back has somewhere to go. */
-  origin: 'results' | 'history' | 'restored' | null;
+  origin: AnswerOrigin;
   onAskAi: (question: string) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
   isLoggedIn: boolean;
@@ -240,8 +257,7 @@ export const AppSearchDialog = ({
       e.stopPropagation();
 
       if (resolvedView === 'answer') {
-        if (origin) onViewChange(origin === 'history' ? 'history' : 'search');
-        else onClose();
+        onViewChange(origin === 'history' ? 'history' : 'search');
         return;
       }
       if (resolvedView === 'history') {
@@ -392,7 +408,7 @@ export const AppSearchDialog = ({
             limitRemaining={chat.limitRemaining}
             isLoggedIn={isLoggedIn}
             autoFocusComposer={restoringThread}
-            onBack={origin ? () => onViewChange(origin === 'history' ? 'history' : 'search') : undefined}
+            onBack={() => onViewChange(origin === 'history' ? 'history' : 'search')}
             backLabel={
               origin === 'history' ? 'Back to history' : origin === 'results' ? 'Back to results' : 'Back to search'
             }

@@ -10,7 +10,11 @@ import {
   subscribeToNothing,
 } from '@/components/core/application-search/shortcutLabel';
 import { useIsBelowTabletLandscape } from '@/hooks/useIsBelowTabletLandscape';
-import { AppSearchDialog, type DialogView } from '@/components/core/application-search/components/AppSearchDialog';
+import {
+  AppSearchDialog,
+  type AnswerOrigin,
+  type DialogView,
+} from '@/components/core/application-search/components/AppSearchDialog';
 import { useDebouncedValue } from '@/components/core/application-search/hooks/useDebouncedValue';
 import { useHuskyChat } from '@/services/husky/hooks/useHuskyChat';
 import { getAiSearchThread } from '@/services/husky/getAiSearchThread';
@@ -60,11 +64,8 @@ export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) =>
   const term = useDebouncedValue(rawTerm, SEARCH_DEBOUNCE_MS);
   const [view, setView] = useState<DialogView>('search');
   /* Where the answer state was reached from, so Back and Escape have somewhere
-     to go. `'restored'` is not a place the person navigated from — it is the
-     reopened-with-a-thread case, and it is a value rather than a separate flag
-     because `onBack` and the Escape ladder both already branch on this one
-     field. A flag would have meant two edits that must stay in step. */
-  const [origin, setOrigin] = useState<'results' | 'history' | 'restored' | null>(null);
+     to go — see `AnswerOrigin` for why it is not nullable. */
+  const [origin, setOrigin] = useState<AnswerOrigin>('search');
 
   const inputRef = useRef<HTMLInputElement>(null);
   /* Captured once, here, rather than in a per-dialog effect: `Modal` has no
@@ -143,7 +144,7 @@ export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) =>
     setIsOpen(false);
     setRawTerm('');
     setView('search');
-    setOrigin(null);
+    setOrigin('search');
     /* The thread is deliberately not reset — it is what the person comes back
        to. Only the dialog's own position does. */
     const opener = openerRef.current;
@@ -192,6 +193,16 @@ export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) =>
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, open]);
 
+  /* The screen an answer is being opened from, decided by where the person
+     actually is rather than by whether the field happens to have something in
+     it. Both doors ask the same question, so they ask it in one place: the idle
+     view is a destination like any other — the suggested prompts and the
+     compact history list that lead into an answer are on it. */
+  const originFor = useCallback(
+    (): AnswerOrigin => (view === 'history' ? 'history' : rawTerm.trim() ? 'results' : 'search'),
+    [rawTerm, view],
+  );
+
   /* Reopen a past conversation in place, rather than sending the person to
      /husky/chat and costing them the search they were in the middle of.
      Returns false so the row that failed can say so and offer a retry, instead
@@ -205,11 +216,11 @@ export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) =>
       if (!result.ok) return false;
 
       chat.hydrate(result.turns, result.threadId);
-      setOrigin(view === 'history' ? 'history' : null);
+      setOrigin(originFor());
       setView('answer');
       return true;
     },
-    [chat, isLoggedIn, view],
+    [chat, isLoggedIn, originFor],
   );
 
   /* Always a new conversation. A follow-up is what `ChatInput` inside the
@@ -218,11 +229,11 @@ export const ApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Props) =>
      a fresh search as turn 2 of the last one. */
   const handleAskAi = useCallback(
     (question: string) => {
-      setOrigin(rawTerm.trim() ? 'results' : null);
+      setOrigin(originFor());
       setView('answer');
       chat.startThread(question);
     },
-    [chat, rawTerm],
+    [chat, originFor],
   );
 
   return (

@@ -1,0 +1,82 @@
+@use 'styles/media';
+
+$padding-inline: 16px;
+
+.root {
+  position: relative;
+  z-index: 1;
+  display: none;
+  flex: 1;
+  max-width: 600px;
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  width: 100%;
+  max-height: 600px;
+  overflow: auto;
+
+  border-radius: 8px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px 0 rgba(15, 23, 42, 0.16),
+    0 0 1px 0 rgba(15, 23, 42, 0.12),
+    0 4px 4px 0 rgba(15, 23, 42, 0.04);
+
+  //padding: 12px $padding-inline;
+}
+
+.divider {
+  height: 1px;
+  width: calc(100% + $padding-inline * 2);
+  margin-inline: -$padding-inline;
+  margin-block: 8px;
+  background: #e2e8f0;
+}
+
+.modal {
+  position: fixed;
+  top: var(--app-header-height);
+  right: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #00000066;
+}
+
+.closeButton {
+  position: absolute;
+  border: none;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  user-select: none;
+  outline: none;
+  z-index: 2;
+}
+
+.modalContent {
+  background: white;
+  border-radius: 12px;
+  position: relative;
+  padding: 32px;
+  width: 100%;
+  max-width: calc(100vw - 32px);
+  height: calc(100% - 16px);
+  gap: 10px;
+}
+
+.wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-column-gap: 64px;
+  height: 100%;
+}

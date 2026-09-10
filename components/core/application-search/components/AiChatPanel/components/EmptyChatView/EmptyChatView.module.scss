@@ -1,0 +1,6 @@
+@use 'styles/mixins';
+
+.root {
+  @include mixins.centralize;
+  flex: 1;
+}

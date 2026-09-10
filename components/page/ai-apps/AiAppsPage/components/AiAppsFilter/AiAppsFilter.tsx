@@ -70,6 +70,7 @@ export function AiAppsFilter(props: Props) {
           <GenericCheckboxList
             paramKey={AI_APPS_TAGS_PARAM}
             filterStore={useAiAppsFilterStore}
+            placeholder="E.g. Dashboards, Developer Tools"
             useGetDataHook={getTags}
             defaultItemsToShow={6}
             collapsible

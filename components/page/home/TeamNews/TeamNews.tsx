@@ -101,7 +101,7 @@ import s from './TeamNews.module.scss';
 
 interface TeamNewsProps {
   groups: ITeamNewsGroup[];
-  /** Allowlisted teams with no focus-area group; shown on "All" only. */
+  /** Teams with no focus-area group; shown on "All" only. */
   allTabExtraItems?: ITeamNewsItem[];
   /** Memberships ∪ follows ∪ matcher teams; empty for guests. Frozen at mount. */
   forYouTeamUids?: string[];

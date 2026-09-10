@@ -83,7 +83,7 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
     !!team?.dataEnrichment?.isAIGenerated &&
     team?.dataEnrichment?.status !== 'Reviewed';
 
-  const isCurrentUserTeamMember = isLoggedIn && members?.some((m) => m.id === userInfo?.uid);
+  const isCurrentUserTeamMember = !!(isLoggedIn && members?.some((m) => m.id === userInfo?.uid));
 
   // Mount for logged-in viewers even when the SSR cookie lacks rbac yet —
   // TeamNewsRail recomputes canPost from the client store (UserInfoChecker).
@@ -140,7 +140,7 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
         <TeamFocusAreas team={team} focusAreas={focusAreas || []} teamFocusAreas={team?.teamFocusAreas || []} />
 
         <TeamProjects
-          isLoggedIn={isLoggedIn}
+          isLoggedIn={!!isLoggedIn}
           projects={teamProjectList}
           team={team}
           hasProjectsEditAccess={hasProjectsEditAccess}

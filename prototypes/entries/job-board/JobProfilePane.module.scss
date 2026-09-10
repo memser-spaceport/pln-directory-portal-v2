@@ -50,23 +50,11 @@
   // own internal scroller. None of that is true in a drawer, but the rules came
   // along with the markup.
   //
-  // Surfacing the header controls is what makes the rest safe to drop.
-  // `EditOfficeHoursFormControls` hides its Cancel/Save below tablet-landscape
-  // and leans on `EditFormMobileControls` instead; here the header is in the flow
-  // and perfectly visible, so it can carry the pair on every width — one Save,
-  // in one place, same as desktop. The attribute selector reaches a hashed class
-  // in another CSS module, which is the only handle available: that component
-  // takes no `className`, and the hash preserves the original name.
-  @media (max-width: #{media.$breakpoint-md - 1}px) {
-    :global(div[class*='EditOfficeHoursFormControls-module'][class*='controls']) {
-      display: flex !important;
-    }
-
-    // Its mobile ✕ would then be a second way to cancel, next to Cancel itself.
-    :global(button[class*='EditOfficeHoursFormControls-module'][class*='mobileCloseButton']) {
-      display: none !important;
-    }
-  }
+  // Two `:global` overrides used to stand here, surfacing
+  // `EditOfficeHoursFormControls`' Cancel/Save below tablet-landscape and hiding
+  // the mobile ✕ it falls back to. They went with the row: the editors now end
+  // in `SectionEditorControls` under the fields, which is one pair on every
+  // width and has no phone variant to override. See the pane.
 }
 
 // The form panel inside an editing card.

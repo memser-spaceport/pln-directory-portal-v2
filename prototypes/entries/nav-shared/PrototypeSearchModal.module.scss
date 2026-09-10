@@ -1,17 +1,29 @@
 // Chrome for the header search dialog. Doubled-class selectors on .overlay /
 // .container because `Modal` merges its own classes first (clsx(s.overlay, ...)),
 // so a single class loses the specificity tie.
+//
+// The one consumer is now `ai-search/AiSearchModal`: the sibling this sheet was
+// factored out for renders production's `AppSearchDialog` instead, since the
+// dialog it was proposing shipped (LAB-2477).
 
 @use 'styles/media';
 
 .overlay.overlay {
-  /* Starts below the header, like production's own search overlay
-     (`AppSearchDesktop.module.scss` .modal). The icon you just pressed stays lit
-     and unshaded — shading the control that opened the dialog makes the dialog
-     look like it came from nowhere. */
-  top: var(--app-header-height);
-  align-items: flex-start;
-  padding: 24px 12px;
+  /* Whole viewport, header included. This used to start at
+     `var(--app-header-height)` so the icon you just pressed stayed lit and
+     unshaded, which is what production's overlay does — but that rule and
+     "almost full page" cannot both hold: a sheet that stops below the nav is a
+     large dialog, not a takeover, and the 80px band of live page at the top is
+     exactly what makes it read as one. The scrim now covers everything and the
+     card is inset by a gutter on all four sides. */
+  top: 0;
+  /* The card fills the overlay rather than sitting at the top of it. */
+  align-items: stretch;
+  padding: 16px 12px;
+
+  @include media.tablet-landscape {
+    padding: 32px 24px;
+  }
 
   /* The grey shading. `--transparent-dark-50` is the design system's own modal
      scrim (tokens/colors.scss: #0e0f1180). Modal's default is a 6% tint carried
@@ -21,19 +33,27 @@
   backdrop-filter: none;
 }
 
+/* 1344px is the product's own page container (`DemoDayListPage`,
+   `SignupWizard`, `DealsLandingPage` and four more), so at the widths where
+   this stops being edge-to-edge it lines up with the page behind it rather
+   than with a number picked for the dialog. */
 .container.container {
-  max-width: 720px;
+  max-width: 1344px;
 }
 
 .card {
   display: flex;
   flex-direction: column;
   width: 100%;
-  /* Height follows the content — a fixed-height sheet opens onto 600px of empty
-     white before you've typed anything, which reads as a page that failed to
-     load rather than as a field waiting for you. It grows with results and stops
-     short of the viewport, and the body scrolls from there. */
-  max-height: min(640px, calc(100dvh - var(--app-header-height) - 48px));
+  /* The sheet is the page: it fills the overlay at every width rather than
+     shrink-wrapping its content. That was the earlier call — a 640px card that
+     grew with the results, on the argument that a fixed height opens onto empty
+     white — and it is the one thing being traded away here. What it buys is a
+     results list that never has to scroll for six hits, an answer with room to
+     be read, and a dialog that stays the same size while you move through its
+     four states instead of resizing under the cursor. The body still scrolls;
+     the card never does (lesson 5b). */
+  height: 100%;
   overflow: hidden;
   border-radius: 12px;
   background: #fff;
@@ -44,8 +64,7 @@
 }
 
 /* Input and close side by side rather than production's absolutely-positioned
-   close button: one column is narrow enough that an overlaid × sits on top of
-   the field's own clear ×. */
+   close button, which would land on top of the field's own trailing control. */
 .header {
   display: flex;
   align-items: center;
@@ -59,6 +78,10 @@
   min-width: 0;
 }
 
+/* The dialog's ✕ — now the only one on the surface. `CloseIcon` strokes
+   `currentColor`, and nothing here was setting a colour, so it was inheriting
+   black: the loudest mark in the header was the dismissal. Tertiary at rest,
+   secondary on hover, which is what every other ✕ in the product does. */
 .close {
   display: inline-flex;
   align-items: center;
@@ -70,10 +93,12 @@
   border: 0;
   border-radius: 8px;
   background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
   cursor: pointer;
 
   &:hover {
     background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-secondary, #455468);
   }
 }
 
@@ -101,8 +126,9 @@
 
 /* Full-bleed on phones: the header cluster is visible at every width (only the
    nav items hide below tablet-landscape), so the icon is reachable here too, and
-   a 640px-tall card floating in a 12px gutter is a worse phone dialog than a
-   takeover. Same move as newsfeed-v0's FeedDetailModal. */
+   a card floating in a 12px gutter is a worse phone dialog than a takeover.
+   Same move as newsfeed-v0's FeedDetailModal. The sizing is the desktop's
+   already; what the takeover drops is the gutter, the offset and the corners. */
 @include media.mobile-only {
   .overlay.overlay {
     top: 0;
@@ -111,14 +137,9 @@
 
   .container.container {
     max-width: none;
-    height: 100%;
   }
 
-  /* The one place the sheet is fixed-height: a takeover that shrink-wraps its
-     content is a card floating on a white screen. */
   .card {
-    height: 100%;
-    max-height: none;
     border-radius: 0;
   }
 }

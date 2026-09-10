@@ -34,7 +34,9 @@
   }
 
   > .fieldInput {
-    padding: 0 44px 0 48px;
+    /* 76px on the right clears the Clear button (12px offset + ~52px of
+       button) with a gutter left over, so the caret never runs under it. */
+    padding: 0 76px 0 48px;
     border: 0;
     border-radius: 0;
     color: var(--foreground-neutral-primary, #0f172a);
@@ -59,19 +61,31 @@
     left: 16px;
   }
 
-  /* With the glyph gone from the right, the clear takes its slot. A 24px
-     disc on hover so it reads as a control and not a stray mark. */
+  /* With the glyph gone from the right, the clear takes its slot — as the
+     word "Clear" rather than a second ✕ beside the dialog's own (see the
+     field's note in AiSearchModal.tsx). Type and colour come from
+     `ChatSubheader .button`, which the class list already carries; this only
+     places it and gives it a hit area. 28px in a 56px row centres it. */
   .fieldClear {
     right: 12px;
-    height: 24px;
-    top: 16px;
-    padding: 2px;
-    border-radius: 50%;
+    top: 14px;
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 6px;
 
     &:hover {
       background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
     }
   }
+}
+
+/* The recent row's remove ✕, now the DS `CloseIcon`: it takes `currentColor`,
+   so the tone lives here — the same tertiary the dialog's own close wears. The
+   production class supplies the hover (a brightness filter, which works on a
+   stroked glyph as well as on the image it was written for). */
+.recentRemove {
+  display: inline-flex;
+  color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
 /* Resets a production row class (`RecentSearch .searchItem`, a <li>) for use

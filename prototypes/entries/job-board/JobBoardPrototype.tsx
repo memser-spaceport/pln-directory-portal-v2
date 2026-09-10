@@ -219,6 +219,9 @@ import { useMockJobsFilterStore } from './mockJobsFilterStore';
 import { JobBoardFilterView } from './JobBoardFilterView';
 import { JobBoardMobileFilters } from './JobBoardMobileFilters';
 import { JobTeamGroupCard, type JobCardNewsVariant } from './JobTeamGroupCard';
+import { OpenRoleRow } from './OpenRoleRow';
+import { OpenRoleModal } from './OpenRoleModal';
+import { openRoleFor, type OpenInterest } from './openRoles';
 import { JobBoardScopeTabs, SCOPE_APPLIED, SCOPE_PARAM } from './JobBoardScopeTabs';
 import { SubmitJobModal, type SubmittedJob } from './SubmitJobModal';
 import {
@@ -707,6 +710,20 @@ export default function JobBoardPrototype() {
       else next.delete(roleUid);
       return next;
     });
+  /* **Open roles: interest in a team that has no posting for you.**
+   *
+   * Kept here for the same reason the applications and the per-role signals are
+   * — it has to survive the dialog closing, and it is the board's fact about the
+   * person rather than the dialog's. Keyed by team uid, because that is what an
+   * open role belongs to: a team has one, or none.
+   *
+   * Session-only, like everything else on this board. Withdrawing is a delete,
+   * which is the only way a signal can honestly be taken back. */
+  const [openInterests, setOpenInterests] = useState<Map<string, OpenInterest>>(() => new Map());
+  /** Which team's open role has its form open. One dialog over the whole list,
+   *  the way the apply drawer is one drawer over the whole list. */
+  const [openRoleTeamUid, setOpenRoleTeamUid] = useState<string | null>(null);
+
   /** The same map, reduced to what the row needs: uid → when. Derived rather than
    *  passed whole, so the row never receives the cover letters — a list of roles
    *  has no business carrying the letters that went with them. */
@@ -813,6 +830,42 @@ export default function JobBoardPrototype() {
 
   const totalRoles = visibleGroups.reduce((sum, g) => sum + g.totalRoles, 0);
   const totalGroups = visibleGroups.length;
+
+  /**
+   * The open roles that survive the rail, for the board's nothing-matched state.
+   *
+   * **Why they belong there at all.** The open role's whole reason is the reader
+   * a posting failed, and the sharpest version of that reader is the one who
+   * narrowed the board to nothing — at which point every team card is gone and
+   * with it every open-role row. The empty state used to be a dead end with one
+   * piece of advice on it ("try clearing some"), and clearing the filters is
+   * advice that returns you to the roles you have already rejected.
+   *
+   * **Narrowed by the same rail, not shown regardless.** An open role has no
+   * seniority, date or work mode to test, but it does name the areas the team
+   * hires into — so it is filtered on the one axis it can answer. Someone who
+   * filtered to Design is not shown a team whose open door says Engineering;
+   * that would be the empty state answering a question nobody asked, which is
+   * the failure it is trying to fix. Location is deliberately not tested: an
+   * open role's locations are where the team hires *today*, and the whole point
+   * of the row is that today's list is not the answer.
+   *
+   * Not shown in the Applied tab, where the list is empty for a reason that has
+   * nothing to do with fit.
+   */
+  const fallbackOpenRoles = useMemo(
+    () =>
+      allGroups
+        .map((g) => ({ team: g.team, openRole: openRoleFor(g.team.uid) }))
+        .filter(
+          (entry): entry is { team: IJobTeam; openRole: NonNullable<ReturnType<typeof openRoleFor>> } =>
+            Boolean(entry.openRole) &&
+            !manages(entry.team.uid) &&
+            (criteria.roleCategory.length === 0 ||
+              entry.openRole!.areas.some((a) => criteria.roleCategory.includes(a))),
+        ),
+    [allGroups, criteria.roleCategory, manages],
+  );
   /** The teams this viewer may post for — one for a lead, all for an admin. */
   const submittableTeams = useMemo<IJobTeam[]>(
     () => allGroups.filter((g) => manages(g.team.uid)).map((g) => g.team),
@@ -872,6 +925,50 @@ export default function JobBoardPrototype() {
    * sentence is already true of everything behind the door: an account is what
    * lets you act on this board rather than read it. */
   const onSignUp = () => setSignUp(true);
+
+  /**
+   * The open role's press.
+   *
+   * **Gated on an account and nothing else.** Applying from this board is also
+   * gated on the PL team's review (`canApply`), because an application is a
+   * letter sent from here into a hiring inbox and an unreviewed account is
+   * exactly what that review is for. Expressing interest is not that: it is a
+   * mark on your own record that the team reads when it looks at who is
+   * interested — which is what production's own interest signal is
+   * (`/v1/job-openings/interests`, and `JobInterestBanner` gates it on login
+   * alone). So a pending member may raise their hand; they still may not send
+   * an application.
+   *
+   * Logged out, the press opens the board's sign-up door, exactly as Refer and
+   * Apply do. The row is never hidden and never disabled — see `OpenRoleRow`.
+   */
+  const onOpenRoleInterest = (teamUid: string) => {
+    if (!isLoggedIn) {
+      onSignUp();
+      return;
+    }
+    setOpenRoleTeamUid(teamUid);
+  };
+
+  const sendOpenInterest = (teamUid: string, areas: string[], note: string) =>
+    setOpenInterests((prev) => {
+      const next = new Map(prev);
+      next.set(teamUid, { teamUid, areas, note, sentAt: new Date().toISOString() });
+      return next;
+    });
+
+  const withdrawOpenInterest = (teamUid: string) => {
+    setOpenInterests((prev) => {
+      const next = new Map(prev);
+      next.delete(teamUid);
+      return next;
+    });
+    /* Withdrawing closes the dialog. What is left once the record is gone is the
+       empty form again, on a card whose masthead just said the signal was sent —
+       and re-offering the thing someone has this second taken back reads as the
+       product not having heard them. The row goes back to offering it. */
+    setOpenRoleTeamUid(null);
+  };
 
   /** Which team posted a role. The card hands the row only the role, so the team
    *  is recovered here rather than threaded through two components that have no
@@ -1442,6 +1539,7 @@ export default function JobBoardPrototype() {
            "you have applied to nothing" and "nothing you applied to survived
            this rail", which is why the filtered case still gets the original
            line. */
+        <div className={s.emptyStack}>
         <div className={s.empty}>
           {appliedScope && appliedRoleUids.size === 0 ? (
             <>
@@ -1454,6 +1552,28 @@ export default function JobBoardPrototype() {
           ) : (
             <>No roles match your filters. Try clearing some.</>
           )}
+        </div>
+
+        {/* The other half of the answer. "Try clearing some" sends the reader
+            back to the roles they have already turned down; this is the thing
+            they can do instead. See `fallbackOpenRoles` for what it is narrowed
+            by, and why the team's name is on the title here and not on the
+            card. */}
+        {!appliedScope && fallbackOpenRoles.length > 0 && (
+          <div className={s.fallbackOpen}>
+            <p className={s.fallbackOpenTitle}>Teams hiring ahead of their postings</p>
+            {fallbackOpenRoles.map(({ team, openRole }) => (
+              <OpenRoleRow
+                key={team.uid}
+                openRole={openRole}
+                teamName={team.name}
+                showTeam
+                interest={openInterests.get(team.uid)}
+                onExpressInterest={() => onOpenRoleInterest(team.uid)}
+              />
+            ))}
+          </div>
+        )}
         </div>
       ) : (
         <div className={contentCss.list}>
@@ -1471,6 +1591,8 @@ export default function JobBoardPrototype() {
               onViewJob={onViewJob}
               appliedRoleUids={appliedRoleUids}
               appliedAtByRole={appliedAtByRole}
+              openInterest={openInterests.get(group.team.uid)}
+              onOpenRoleInterest={onOpenRoleInterest}
               /* The owner's team: its card carries every state and each row
                  its ⋯ menu — see the note on the row's `manage` prop. */
               manage={
@@ -1626,6 +1748,30 @@ export default function JobBoardPrototype() {
           onSubmit={onSubmitJob}
           // DELETE WITH: the `design-canvas/` folder. See `canvasStates.ts`.
           canvasFilled={canvasPin?.submitJobFilled}
+        />
+      )}
+
+      {/* The open role's form. One dialog over the whole board — the row that
+          opens it appears on two surfaces (a team's card, and the
+          nothing-matched state) and both press the same thing, so there is one
+          of these and not one per row. Mounted only while a team is open, so
+          the react-select and rich-text weight it carries is not on the board's
+          first paint. */}
+      {openRoleTeamUid && openRoleFor(openRoleTeamUid) && (
+        <OpenRoleModal
+          /* Keyed by team, so switching from one team's open role to another's
+             gets a clean form rather than the previous team's half-typed note.
+             The dialog resets by mounting — it holds no effect that does it. */
+          key={openRoleTeamUid}
+          open
+          openRole={openRoleFor(openRoleTeamUid)!}
+          teamName={
+            allGroups.find((g) => g.team.uid === openRoleTeamUid)?.team.name ?? openRoleTeamUid
+          }
+          interest={openInterests.get(openRoleTeamUid)}
+          onClose={() => setOpenRoleTeamUid(null)}
+          onSend={(areas, note) => sendOpenInterest(openRoleTeamUid, areas, note)}
+          onWithdraw={() => withdrawOpenInterest(openRoleTeamUid)}
         />
       )}
     </>

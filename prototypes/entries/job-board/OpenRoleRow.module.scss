@@ -1,0 +1,49 @@
+// Local extras on top of the reused production `ReferRoleRow.module.scss` — the
+// open role wears the posting row's geometry (16px radius, 12/16 padding, the
+// same title, meta and action slots) so the two line up in one column.
+//
+// Only two things differ, and both say the same thing: this is an invitation,
+// not a posting.
+
+/* The posting row is a filled `#f9fafb` slab. This one is an outline: the
+   product's own "a slot waiting to be filled" treatment — `1px dashed` at
+   `--border-neutral-muted`, exactly as Demo Day draws its empty pitch-deck and
+   video wells (`PitchDeckUpload`, `PitchVideoUpload`, `EditProfileDrawer`).
+
+   It is the whole of the distinction, and it is worth one rule rather than a
+   sentence: a reader scanning four filled rows and one dashed one does not need
+   to be told which of them is a job ad. */
+.openRow {
+  background-color: transparent;
+  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+
+  /* The filled rows have no border, so a 1px one here would make this row 2px
+     taller than its neighbours and break the column's rhythm. Production's
+     global `* { box-sizing: border-box }` (app/globals.scss) already pays for
+     it — verified, not assumed — so nothing needs compensating. */
+}
+
+/* The dashed row sits directly under the role list (or under its expander), and
+   the card's own 20px flex `gap` would leave it equidistant between the list
+   above and the news strip below — floating, related to neither. It belongs to
+   the list: it is the last thing that team has to offer. Pulled up so it reads
+   as attached, with the card's gap left alone so nothing else moves. */
+.attached {
+  margin-top: -8px;
+}
+
+/* Title as a <button>, since the press opens the interest form rather than a
+   URL. Same body as `JobReferRoleRow`'s `.titleButton` — kept local rather than
+   imported so this row owns its own chrome, and because that file's copy is
+   documented as belonging to the posting row. */
+.titleButton {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}

@@ -22,7 +22,6 @@ import { AddButton } from '@/components/page/member-details/components/AddButton
 // in a different shape.
 import { ChevronDownIcon } from '@/components/icons';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete/DataIncomplete';
-import { EditOfficeHoursFormControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursFormControls';
 import ConfirmDialog from '@/components/core/ConfirmDialog/ConfirmDialog';
 import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
@@ -137,6 +136,25 @@ import { isoToYm, ymToIso } from '../profile-shared/ExperienceImport/dateBridge'
 import type { ImportWait } from '../profile-shared/ExperienceImport/ImportWait';
 import type { ImportSelection, ParsedProfile } from '../profile-shared/ExperienceImport/types';
 import { EditorStatusRow, useCardAway } from '../profile-shared/FloatingEditorControls';
+// **One card at a time — the member profile’s rule, which this step had not
+// taken.** `Section` mutes every card that is not the open one (`inert` + 0.6,
+// so nothing on them can be clicked, focused or tabbed to), and
+// `SectionEditorTitle` / `SectionEditorControls` are production’s
+// `EditFormControls` row split in two so Cancel and Save sit *under* the fields
+// they act on rather than above them. `EditorDirtyContext` is how the open
+// form’s dirty state reaches the footer’s Save, replacing this file’s own
+// `onDirtyChange` plumbing — the shared row already computes it, and computes
+// it with the whitespace rule the raw `isDirty` was missing (this Quill build
+// writes every space in a seeded bio as `&nbsp;`, so a form with a bio opened
+// dirty). Same pattern, same components, as `member-profile-edit`,
+// `onboarding` and the `job-board` original. Not the whole-drawer variant:
+// there every area is open at once on purpose, so there is nothing to mute.
+import {
+  EditorDirtyContext,
+  Section,
+  SectionEditorControls,
+  SectionEditorTitle,
+} from '../profile-shared/SectionEditor/SectionEditor';
 import {
   EMPTY_PROFILE,
   JOB_SEARCH_STATUS_OPTIONS,
@@ -322,6 +340,15 @@ export type ProfileEditFlow = 'sections' | 'whole';
  * `uid: null` on a list section means "a new entry"; a uid means that row.
  * `github` carries no uid because the section edits one field, not a list.
  */
+/**
+ * Every card the step draws, plus the fold above the optional three. The ones
+ * with no editor (`status`, `fold`) are here because muting is a fact about
+ * *all* of them: a kind the editor can never be reads as "another card is
+ * open" whenever anything is — and the fold in particular must not be pressed
+ * under an open form, since the sections it closes are where the Save is.
+ */
+type CardKind = 'profile' | 'cv' | 'status' | 'fold' | 'experience' | 'contribution' | 'github';
+
 export type EditTarget =
   | { kind: 'profile' }
   | { kind: 'experience'; uid: string | null }
@@ -688,13 +715,36 @@ export function JobProfilePane(props: JobProfilePaneProps) {
      not contain. */
   const experienceEditing = editingExperience || (editingImport && !importAtTop);
 
+  /**
+   * **The one live card, and the mute on every other one.**
+   *
+   * The rule the member profile works to and this step had not taken: while
+   * something is open it is the only thing on the step that can be clicked,
+   * focused or tabbed into — every other card is `inert` and faded to
+   * production’s own disabled measure (`Section`). An Edit cannot be pressed
+   * under a read, a file cannot be dropped under an editor, the radio in the
+   * status card cannot be moved while an unsaved form is open above it, and
+   * the fold cannot be pressed at all (it is already forced open around an
+   * editor — see `optionalOpen` — so the press did nothing but move a chevron).
+   */
+  const importOpenCard: CardKind | null = importActive ? (importAtTop ? 'cv' : 'experience') : null;
+  const openCard: CardKind | null = importOpenCard ?? (editing && editing.kind !== 'import' ? editing.kind : null);
+
+  /** Muted while another card is open; carries the ref the status row watches while this one is. */
+  const sectionProps = (kind: CardKind) => ({
+    muted: openCard !== null && openCard !== kind,
+    ref: openCard === kind ? editorCardRef : undefined,
+  });
+
   /* (`submit` — the boundary check that used to guard this drawer's own Save —
       has moved with the footer to `JobApplyFlowDrawer`. The rule it enforced is
       unchanged and still `isProfileComplete`, read from the one place that
       defines it.) */
 
   return (
-    <>
+    /* Every editor’s controls row reports its dirty state here; the footer’s
+       Save reads it. See the import note. */
+    <EditorDirtyContext.Provider value={setEditorDirty}>
       {/* The wrapper is `fd.stepIntro` — the logged-out pane's, and for the same
           reason it exists there: `.drawerContent`'s gap is a uniform 16px, so a
           title and the sentence qualifying it dropped in as two siblings would
@@ -766,7 +816,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                loudest thing here. This is an offer, and the requirement is a
                requirement. */}
       {importAtTop && (
-        <div ref={importActive && importAtTop ? editorCardRef : undefined} className={d.sectionAnchor}>
+        <Section {...sectionProps('cv')} className={d.sectionAnchor}>
           <DetailsSection
             editView={editingImport}
             classes={editingImport ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }}
@@ -839,7 +889,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
               </>
             )}
           </DetailsSection>
-        </div>
+        </Section>
       )}
 
       {/* **The alternative, written down.**
@@ -881,21 +931,15 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                distinguish: every placeholder on this card is optional and they
                all look alike, which is the truth. What is left is production's
                own affordance, inviting the answer without demanding it. */}
-      <div
-        ref={editingProfile ? editorCardRef : undefined}
-        className={clsx(p.root, { [p.editView]: editingProfile, [d.editCard]: editingProfile })}
-      >
-        {editingProfile ? (
-          <ProfileDetailsForm
-            profile={draft}
-            onClose={() => setEditing(null)}
-            onSubmit={saveProfileDetails}
-            onDirtyChange={setEditorDirty}
-          />
-        ) : (
-          <ProfileHeaderCard profile={draft} onEdit={canEdit ? () => setEditing({ kind: 'profile' }) : undefined} />
-        )}
-      </div>
+      <Section {...sectionProps('profile')} className={d.sectionAnchor}>
+        <div className={clsx(p.root, { [p.editView]: editingProfile, [d.editCard]: editingProfile })}>
+          {editingProfile ? (
+            <ProfileDetailsForm profile={draft} onClose={() => setEditing(null)} onSubmit={saveProfileDetails} />
+          ) : (
+            <ProfileHeaderCard profile={draft} onEdit={canEdit ? () => setEditing({ kind: 'profile' }) : undefined} />
+          )}
+        </div>
+      </Section>
 
       {/* 2. Job search status — the required section, so it comes first and,
                while it is unanswered, wears `missingData` and carries the strip
@@ -910,24 +954,26 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                every other section puts its qualifier (Add, Edit, the Github
                Profile link), so the privacy mark reads as part of the section
                rather than as content inside it. */}
-      <DetailsSection missingData={!hasStatus} classes={{ root: hasStatus ? fd.cardEdge : undefined }}>
-        {!hasStatus && (
-          <DataIncomplete className={d.incompleteStrip}>
-            {pendingRoleTitle
-              ? `An answer here is required to apply to ${pendingRoleTitle}.`
-              : 'An answer here is required to apply.'}
-          </DataIncomplete>
-        )}
-        <div className={clsx({ [d.missingBody]: !hasStatus })}>
-          <DetailsSectionHeader title="Job search status">
-            <PlTeamOnlyPill />
-          </DetailsSectionHeader>
-          <JobSearchStatusInput
-            value={draft.jobSearchStatus}
-            onChange={(value) => setDraft((prev) => ({ ...prev, jobSearchStatus: value }))}
-          />
-        </div>
-      </DetailsSection>
+      <Section {...sectionProps('status')} className={d.sectionAnchor}>
+        <DetailsSection missingData={!hasStatus} classes={{ root: hasStatus ? fd.cardEdge : undefined }}>
+          {!hasStatus && (
+            <DataIncomplete className={d.incompleteStrip}>
+              {pendingRoleTitle
+                ? `An answer here is required to apply to ${pendingRoleTitle}.`
+                : 'An answer here is required to apply.'}
+            </DataIncomplete>
+          )}
+          <div className={clsx({ [d.missingBody]: !hasStatus })}>
+            <DetailsSectionHeader title="Job search status">
+              <PlTeamOnlyPill />
+            </DetailsSectionHeader>
+            <JobSearchStatusInput
+              value={draft.jobSearchStatus}
+              onChange={(value) => setDraft((prev) => ({ ...prev, jobSearchStatus: value }))}
+            />
+          </div>
+        </DetailsSection>
+      </Section>
 
       {/* The fold. Everything below it is optional; everything above it is the
           two answers applying actually needs.
@@ -955,40 +1001,39 @@ export function JobProfilePane(props: JobProfilePaneProps) {
           three profile cards are tall enough that a 300ms height transition on
           them is a long slide with a footer moving underneath it — the thing the
           drawer's sticky bar exists to hold still. */}
-      <button
-        type="button"
-        className={d.optionalToggle}
-        onClick={() => setShowOptional((v) => !v)}
-        aria-expanded={optionalOpen}
-        aria-controls="apply-optional-sections"
-      >
-        <span className={d.optionalToggleLabel}>
-          Experience, projects and repositories
-          {/* The same `(Optional)` the CV card above wears, for the same reason:
+      <Section {...sectionProps('fold')} className={d.sectionAnchor}>
+        <button
+          type="button"
+          className={d.optionalToggle}
+          onClick={() => setShowOptional((v) => !v)}
+          aria-expanded={optionalOpen}
+          aria-controls="apply-optional-sections"
+        >
+          <span className={d.optionalToggleLabel}>
+            Experience, projects and repositories
+            {/* The same `(Optional)` the CV card above wears, for the same reason:
               this is the one place on the step where the distinction between
               "required to continue" and "worth adding" is being drawn, and it is
               drawn with the mark production already uses for it. */}
-          <OptionalMark />
-        </span>
-        {/* At rest the control reports its contents; open, the contents are on
+            <OptionalMark />
+          </span>
+          {/* At rest the control reports its contents; open, the contents are on
             screen and saying what they are a second time is the summary
             competing with the thing it summarises. */}
-        {!optionalOpen && optionalSummary && <span className={d.optionalToggleSummary}>{optionalSummary}</span>}
-        <ChevronDownIcon
-          className={clsx(d.optionalToggleChevron, optionalOpen && d.optionalToggleChevronOpen)}
-          aria-hidden="true"
-        />
-      </button>
+          {!optionalOpen && optionalSummary && <span className={d.optionalToggleSummary}>{optionalSummary}</span>}
+          <ChevronDownIcon
+            className={clsx(d.optionalToggleChevron, optionalOpen && d.optionalToggleChevronOpen)}
+            aria-hidden="true"
+          />
+        </button>
+      </Section>
 
       <div id="apply-optional-sections" className={clsx(d.optionalSections, !optionalOpen && d.optionalSectionsHidden)}>
         {/* 3. Experience — optional now, and no longer the gate. It stays because
                it is what a hiring team actually reads on an application, and the
                apply modal quotes its first entry; it just isn't held over
                anyone's head. */}
-        <div
-          ref={((editingExperience || importActive) && !importAtTop) || editingExperience ? editorCardRef : undefined}
-          className={d.sectionAnchor}
-        >
+        <Section {...sectionProps('experience')} className={d.sectionAnchor}>
           <DetailsSection
             editView={experienceEditing}
             classes={
@@ -1062,7 +1107,6 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                 onClose={() => setEditing(null)}
                 onSubmit={saveExperience}
                 onDelete={deleteExperience}
-                onDirtyChange={setEditorDirty}
               />
             ) : (
               <>
@@ -1160,7 +1204,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
               </>
             )}
           </DetailsSection>
-        </div>
+        </Section>
 
         {/* 4. Project Contributions. Optional — nothing here touches
                `isProfileComplete` — and kept, unlike Teams, because it answers a
@@ -1172,7 +1216,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                Its empty copy is production's, word for word, because it is a
                true instruction in both places — the button that makes it true is
                right above it. */}
-        <div ref={editingContribution ? editorCardRef : undefined} className={d.sectionAnchor}>
+        <Section {...sectionProps('contribution')} className={d.sectionAnchor}>
           <DetailsSection
             editView={editingContribution}
             classes={
@@ -1185,7 +1229,6 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                 onClose={() => setEditing(null)}
                 onSubmit={saveContribution}
                 onDelete={deleteContribution}
-                onDirtyChange={setEditorDirty}
               />
             ) : (
               <>
@@ -1201,7 +1244,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
               </>
             )}
           </DetailsSection>
-        </div>
+        </Section>
 
         {/* 5. Repositories. Optional too.
 
@@ -1209,7 +1252,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                the primary team that an Experience entry's "Team or Organization"
                field already collects, so a member filling both in answered the
                same question twice. */}
-        <div ref={editingGithub ? editorCardRef : undefined} className={d.sectionAnchor}>
+        <Section {...sectionProps('github')} className={d.sectionAnchor}>
           <DetailsSection
             editView={editingGithub}
             classes={editingGithub ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }}
@@ -1219,7 +1262,6 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                 handle={draft.githubHandle}
                 onClose={() => setEditing(null)}
                 onSubmit={saveGithubHandle}
-                onDirtyChange={setEditorDirty}
               />
             ) : (
               <RepositoriesSection
@@ -1228,7 +1270,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
               />
             )}
           </DetailsSection>
-        </div>
+        </Section>
       </div>
 
       {/* (The footer that used to close this file — the persistent
@@ -1254,7 +1296,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
           />,
           floatingChrome.slot,
         )}
-    </>
+    </EditorDirtyContext.Provider>
   );
 }
 
@@ -1279,12 +1321,6 @@ function editorStatusForProfileTarget(target: EditTarget, dirty: boolean): strin
   const label = labelForProfileTarget(target);
   if (!label) return '';
   return dirty ? `Unsaved changes in ${label}` : `Editing ${label}`;
-}
-
-function useDirtyChange(isDirty: boolean, onDirtyChange?: (dirty: boolean) => void) {
-  useEffect(() => {
-    onDirtyChange?.(isDirty);
-  }, [isDirty, onDirtyChange]);
 }
 
 type WholeExperienceFormData = {
@@ -1978,26 +2014,33 @@ function ProfileHeaderCard({ profile, onEdit }: { profile: MemberProfile; onEdit
 type ProfileFormData = { role: string; location: string; skills: string[]; bio: string };
 
 /**
- * The header card's editor — production's composition, verbatim:
+ * The header card's editor — production's composition with its control row
+ * split in two:
  *
- *   form › EditOfficeHoursFormControls + .body(rows) + EditFormMobileControls
+ *   form › SectionEditorTitle + .body(rows) + SectionEditorControls
  *
- * `EditOfficeHoursFormControls` rather than `EditFormControls` because of one
- * flag: `alwaysEnabled`. Without it Save sits disabled reading "No Changes"
- * until something is typed — right for an editor, wrong on a card that is empty
- * by definition, where the first thing a person reads would be a button telling
- * them there is nothing to do. Nothing here is required, so nothing is gated.
+ * Production puts the title, Cancel and Save in one row *above* the fields
+ * (`EditFormControls`). Every editor on this step now ends with the pair
+ * instead — *"put Save cancel buttons under the fields"* — which is the shape
+ * the member profile already edits in, and the reason there is no mobile
+ * control bar here: the card is in the flow at every width (`d.editCard`), so
+ * one Save sits under the last field on a phone exactly as it does on a
+ * desktop, rather than a second one riding the bottom of a full-screen layer.
+ *
+ * `alwaysEnabled` is kept from the row this replaces. Without it Save sits
+ * disabled reading "No Changes" until something is typed — right for an editor,
+ * wrong on a card that is empty by definition, where the first thing a person
+ * reads would be a button telling them there is nothing to do. Nothing here is
+ * required, so nothing is gated.
  */
 function ProfileDetailsForm({
   profile,
   onClose,
   onSubmit,
-  onDirtyChange,
 }: {
   profile: MemberProfile;
   onClose: () => void;
   onSubmit: (patch: ProfileFormData) => void;
-  onDirtyChange?: (dirty: boolean) => void;
 }) {
   const methods = useForm<ProfileFormData>({
     mode: 'onSubmit',
@@ -2011,8 +2054,6 @@ function ProfileDetailsForm({
   const {
     formState: { isDirty },
   } = methods;
-
-  useDirtyChange(isDirty, onDirtyChange);
 
   return (
     <FormProvider {...methods}>
@@ -2035,7 +2076,7 @@ function ProfileDetailsForm({
           if (ev.key === 'Enter') ev.preventDefault();
         }}
       >
-        <EditOfficeHoursFormControls onClose={onClose} title="Edit Profile Details" alwaysEnabled />
+        <SectionEditorTitle title="Edit Profile Details" />
 
         <div className={clsx(f.body, d.formBody)}>
           <div className={f.row}>
@@ -2057,10 +2098,7 @@ function ProfileDetailsForm({
           </div>
         </div>
 
-        {/* Below tablet-landscape the controls row collapses to a title and a ✕,
-            and Save moves down here: a sticky bar that slides up the moment the
-            form is dirty. Same component, same rule, same animation as the
-            profile page. */}
+        <SectionEditorControls onClose={onClose} alwaysEnabled />
       </form>
     </FormProvider>
   );
@@ -2192,13 +2230,11 @@ export function ExperienceForm({
   onClose,
   onSubmit,
   onDelete,
-  onDirtyChange,
 }: {
   initial: ExperienceEntry | null;
   onClose: () => void;
   onSubmit: (entry: ExperienceEntry) => void;
   onDelete: (uid: string) => void;
-  onDirtyChange?: (dirty: boolean) => void;
 }) {
   const isNew = !initial;
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -2220,13 +2256,12 @@ export function ExperienceForm({
     register,
     setValue,
     trigger,
-    formState: { errors, isDirty },
+    formState: { errors },
   } = methods;
 
   const startDate = useWatch({ control, name: 'startDate' });
   const endDate = useWatch({ control, name: 'endDate' });
   const isCurrent = useWatch({ control, name: 'isCurrent' });
-  useDirtyChange(isDirty, onDirtyChange);
 
   useEffect(() => {
     register('startDate', { required: 'Start date is required' });
@@ -2262,11 +2297,7 @@ export function ExperienceForm({
           if (ev.key === 'Enter') ev.preventDefault();
         }}
       >
-        <EditOfficeHoursFormControls
-          onClose={onClose}
-          title={isNew ? 'Add Experience' : 'Edit Experience'}
-          alwaysEnabled
-        />
+        <SectionEditorTitle title={isNew ? 'Add Experience' : 'Edit Experience'} />
 
         {/* An "Already written down? Fill this in from your CV" line used to
             open this form. It was the only route back to the importer once the
@@ -2355,6 +2386,8 @@ export function ExperienceForm({
             </>
           )}
         </div>
+
+        <SectionEditorControls onClose={onClose} alwaysEnabled />
       </form>
     </FormProvider>
   );
@@ -2478,13 +2511,11 @@ function ContributionForm({
   onClose,
   onSubmit,
   onDelete,
-  onDirtyChange,
 }: {
   initial: ContributionEntry | null;
   onClose: () => void;
   onSubmit: (entry: ContributionEntry) => void;
   onDelete: (uid: string) => void;
-  onDirtyChange?: (dirty: boolean) => void;
 }) {
   const isNew = !initial;
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -2505,13 +2536,12 @@ function ContributionForm({
     register,
     setValue,
     trigger,
-    formState: { errors, isDirty },
+    formState: { errors },
   } = methods;
 
   const startDate = useWatch({ control, name: 'startDate' });
   const endDate = useWatch({ control, name: 'endDate' });
   const isCurrent = useWatch({ control, name: 'isCurrent' });
-  useDirtyChange(isDirty, onDirtyChange);
 
   useEffect(() => {
     register('project', { required: 'Project is required' });
@@ -2546,11 +2576,7 @@ function ContributionForm({
           if (ev.key === 'Enter') ev.preventDefault();
         }}
       >
-        <EditOfficeHoursFormControls
-          onClose={onClose}
-          title={isNew ? 'Add Project Contribution' : 'Edit Project Contribution'}
-          alwaysEnabled
-        />
+        <SectionEditorTitle title={isNew ? 'Add Project Contribution' : 'Edit Project Contribution'} />
 
         <div className={clsx(x.body, d.formBody)}>
           <div className={x.row}>
@@ -2634,6 +2660,8 @@ function ContributionForm({
             </>
           )}
         </div>
+
+        <SectionEditorControls onClose={onClose} alwaysEnabled />
       </form>
     </FormProvider>
   );
@@ -2734,12 +2762,10 @@ function GithubHandleForm({
   handle,
   onClose,
   onSubmit,
-  onDirtyChange,
 }: {
   handle: string;
   onClose: () => void;
   onSubmit: (handle: string) => void;
-  onDirtyChange?: (dirty: boolean) => void;
 }) {
   const isNew = !handle;
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -2748,8 +2774,6 @@ function GithubHandleForm({
   const {
     formState: { isDirty },
   } = methods;
-
-  useDirtyChange(isDirty, onDirtyChange);
 
   return (
     <FormProvider {...methods}>
@@ -2760,11 +2784,7 @@ function GithubHandleForm({
           if (ev.key === 'Enter') ev.preventDefault();
         }}
       >
-        <EditOfficeHoursFormControls
-          onClose={onClose}
-          title={isNew ? 'Add GitHub Handle' : 'Edit GitHub Handle'}
-          alwaysEnabled
-        />
+        <SectionEditorTitle title={isNew ? 'Add GitHub Handle' : 'Edit GitHub Handle'} />
 
         <div className={clsx(x.body, d.formBody)}>
           <div className={x.row}>
@@ -2793,6 +2813,8 @@ function GithubHandleForm({
             </>
           )}
         </div>
+
+        <SectionEditorControls onClose={onClose} alwaysEnabled />
       </form>
     </FormProvider>
   );

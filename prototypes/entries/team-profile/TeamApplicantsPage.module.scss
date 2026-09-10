@@ -42,23 +42,24 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-/* The Tabs component draws its own underline row; it only needs a ground. */
-.tabs {
+/* The role picker and the posting link, one row above the split. A select
+ * rather than tabs: a team can carry ten or more roles, and ten titles in a
+ * tab strip is a scroll with no end in sight, where a menu lists them. */
+.roleBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
   margin-bottom: 16px;
-  overflow-x: auto;
-  scrollbar-width: none;
+}
 
-  &::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* 4px more between role names than the component's own 12px padding gives.
-     The scope tabs it was built for hold two short words; four role titles
-     read as one run without it. Reached structurally (root > tabsList) because
-     the component's classes are hashed and it exposes no gap. */
-  > :first-child > :first-child {
-    gap: 4px;
-  }
+/* SortDropdown's trigger, widened for a role title: its own `white-space:
+ * nowrap` is right for "Latest" and wrong for "Senior Distributed Systems
+ * Engineer (3)" on a phone, so the label may ellipsise inside a cap. */
+.rolePicker {
+  max-width: min(100%, 420px);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* List beside pane. 440px keeps "Protocol Engineer · Lattice Compute" whole

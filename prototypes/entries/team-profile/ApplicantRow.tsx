@@ -3,7 +3,6 @@
 import clsx from 'clsx';
 
 import { formatRelativeDays } from '@/utils/jobs.utils';
-import { CheckIcon } from '@/components/icons';
 import { ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
 
 // The role row's own stylesheet, for the two marks this row repeats from the
@@ -23,14 +22,12 @@ import s from './ApplicantRow.module.scss';
 
 interface Props {
   applicant: RoleApplicant;
-  /** Not looked at yet — `● New`, in the role row's green. */
-  isNew: boolean;
   /**
-   * Looked at, on this visit or an earlier one — `✓ Viewed`, quiet, in the slot
-   * `New` vacates. A row with neither mark is one that was never new and never
-   * opened; the three have to read differently (design-thinking lesson 20).
+   * Not looked at yet: the row is tinted and carries `● New`. Opening it
+   * returns the row to the plain grey every other row wears — read is the row
+   * at rest, not a state with a mark of its own (design-thinking lesson 21).
    */
-  viewed: boolean;
+  isNew: boolean;
   /** Stacked-card geometry: every row but the last draws the shared hairline. */
   last: boolean;
   selected: boolean;
@@ -43,12 +40,13 @@ interface Props {
  * it came, and the first lines of what they said. Pressing it shows the person
  * in the pane beside the list; the link out to their full profile lives there.
  */
-export function ApplicantRow({ applicant: a, isNew, viewed, last, selected, onSelect }: Props) {
+export function ApplicantRow({ applicant: a, isNew, last, selected, onSelect }: Props) {
   return (
     <button type="button" className={clsx(tmvc.root, s.selectable)} onClick={onSelect} aria-pressed={selected}>
       <div
         className={clsx(mcb.root, tmvc.member, s.row, {
           [tmvc.memberBorder]: !last,
+          [s.unread]: isNew,
           [s.selected]: selected,
         })}
       >
@@ -70,12 +68,6 @@ export function ApplicantRow({ applicant: a, isNew, viewed, last, selected, onSe
 
         <div className={clsx(mcb.right, s.right)}>
           {isNew && <span className={row.newBadge}>● New</span>}
-          {!isNew && viewed && (
-            <span className={s.viewed}>
-              <CheckIcon width={12} height={12} aria-hidden="true" />
-              Viewed
-            </span>
-          )}
           <span className={clsx(row.relative, rowTone.relativeTone)}>
             <ClockIcon />
             Applied {formatRelativeDays(a.appliedAt)}

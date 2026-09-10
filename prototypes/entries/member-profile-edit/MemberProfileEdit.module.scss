@@ -1,6 +1,10 @@
 // The page ground — `app/members/[id]/page.module.scss` paints `.memberDetail`
 // this colour; this only makes sure the ground runs to the bottom of a short
 // viewport, the same way `member-profile`'s `.pageBackdrop` does.
+//
+// Everything else this sheet held — the muted card, the in-flow `.editCard`,
+// the editor's head and footer — is `profile-shared/SectionEditor/`'s now,
+// since the new-member page opens the same editors.
 .page {
   min-height: 100vh;
   background-color: #f1f5f9;

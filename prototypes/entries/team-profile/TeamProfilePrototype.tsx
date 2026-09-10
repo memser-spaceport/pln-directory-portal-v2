@@ -508,6 +508,7 @@ export default function TeamProfilePrototype() {
           roles={teamRoles.roles.map((r) => ({
             uid: r.uid,
             title: r.roleTitle,
+            postingHref: r.applyUrl ?? undefined,
             applicants: MOCK_APPLICANTS[r.uid] ?? [],
           }))}
           initialRoleUid={applicantsRole}

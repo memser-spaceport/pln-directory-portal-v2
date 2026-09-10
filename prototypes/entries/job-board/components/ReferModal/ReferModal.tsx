@@ -94,7 +94,7 @@ type RefereeMode = 'member' | 'outside';
  *
  * **The person referred can be outside the network.** "Who are you referring?" has two
  * states, and it is the same field in both: a directory search, whose menu ends in
- * *Refer someone outside the network*; and, once that is pressed, three inputs in its
+ * *Refer someone not in PL network*; and, once that is pressed, three inputs in its
  * place — full name, email address, LinkedIn profile — with the way back on the label
  * line. All three are required, because together they are the whole record: without
  * them a referral is a name in an email nobody can reach or check. The draft, the copy
@@ -545,7 +545,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                     <div className={s.outsideHeader}>
                       <span className={fieldCss.label}>Who are you referring?</span>
                       <button type="button" className={s.resetLink} onClick={() => setRefereeMode('member')}>
-                        Search the network instead
+                        Search someone in the network instead
                       </button>
                     </div>
                     <div className={s.outsideFields}>

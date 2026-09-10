@@ -380,7 +380,7 @@ describe('ReferModal', () => {
       expect(screen.getByLabelText(/Email address/)).toBeInTheDocument();
       expect(screen.getByLabelText(/LinkedIn profile/)).toBeInTheDocument();
 
-      await user.click(screen.getByRole('button', { name: 'Search the network instead' }));
+      await user.click(screen.getByRole('button', { name: 'Search someone in the network instead' }));
 
       expect(screen.getByRole('button', { name: 'Pick referee' })).toBeInTheDocument();
       expect(screen.queryByLabelText(/Full name/)).not.toBeInTheDocument();
@@ -396,7 +396,7 @@ describe('ReferModal', () => {
 
       // Back to the search and out again: what is already typed wins over what the
       // search reports, or returning would undo an edit.
-      await user.click(screen.getByRole('button', { name: 'Search the network instead' }));
+      await user.click(screen.getByRole('button', { name: 'Search someone in the network instead' }));
       mockTypedQuery.mockReturnValue('Someone Else');
       await goOutside(user);
 
@@ -472,7 +472,7 @@ describe('ReferModal', () => {
 
       await goOutside(user);
       await fillOutside(user);
-      await user.click(screen.getByRole('button', { name: 'Search the network instead' }));
+      await user.click(screen.getByRole('button', { name: 'Search someone in the network instead' }));
       await user.click(screen.getByRole('button', { name: 'Pick referee' }));
       await waitFor(() => expect(screen.getByRole('button', { name: 'Send referral' })).toBeEnabled());
       await user.click(screen.getByRole('button', { name: 'Send referral' }));

@@ -7,12 +7,16 @@
 @use 'styles/media';
 
 .overlay.overlay {
-  /* Starts below the header, like the overlay this replaces. The icon you just
-     pressed stays lit and unshaded — shading the control that opened the dialog
-     makes the dialog look like it came from nowhere. */
-  top: var(--app-header-height);
+  /* Covers the header too, rather than starting below it.
+     It used to stop at `--app-header-height` so the icon you just pressed stayed
+     lit — but `Modal`'s containment makes everything behind the dialog `inert`,
+     so that left a navbar that looked live and silently swallowed every click.
+     A scrim over the whole page says what is true: the dialog has the page, and
+     clicking out here dismisses it. The card still sits below the header line,
+     which is what kept the dialog feeling anchored to its trigger. */
+  top: 0;
   align-items: flex-start;
-  padding: 24px 12px;
+  padding: calc(var(--app-header-height) + 24px) 12px 24px;
 
   /* The design system's own modal scrim. `Modal`'s default 6% tint behind a
      15px blur is dropped: a blur behind a results list makes the page
@@ -46,7 +50,6 @@
    dialog is portalled to <body> and chosen at runtime — exactly one exists at
    any width, so CSS can no longer be what decides which one is visible. */
 .overlayFullBleed.overlayFullBleed {
-  top: 0;
   padding: 0;
 }
 

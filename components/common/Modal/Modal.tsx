@@ -6,6 +6,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import s from './Modal.module.scss';
 import clsx from 'clsx';
 
+/** Matches the `transition` on the overlay and container below. */
+const EXIT_ANIMATION_MS = 200;
+
 interface ModalProps {
   isOpen: boolean;
   onClose?: () => void;
@@ -43,9 +46,43 @@ export const Modal: React.FC<ModalProps> = (props) => {
   const [mounted, setMounted] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
 
+  /**
+   * Whether the overlay is still on screen playing its exit animation.
+   *
+   * `AnimatePresence` is supposed to unmount the overlay once that animation
+   * finishes. With framer-motion 12.16 on React 19 it does not: the overlay
+   * animates to `opacity: 0` and then *stays* — a fixed, full-viewport,
+   * `pointer-events: auto` layer at z-index 9999. Every click on the page behind
+   * a closed dialog lands on it, and the dialog's contents stay in the
+   * accessibility tree. Neither `onExitComplete` nor the overlay's own
+   * `onAnimationComplete` ever fires, so there is nothing to hook: the portal is
+   * torn down here instead, on a timer of our own.
+   *
+   * A modal its parent renders conditionally never showed this, because
+   * unmounting the component takes the portal with it. One mounted permanently
+   * — the AI Search dialog — leaves the page dead after the first close.
+   */
+  const [lingering, setLingering] = useState(false);
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  if (wasOpen !== isOpen) {
+    /* Adjusted during render rather than in an effect, so the closing render is
+       already the lingering one — a frame of `null` in between would take the
+       exit animation away entirely. */
+    setWasOpen(isOpen);
+    setLingering(!isOpen);
+  }
+
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!lingering) return;
+    /* Comfortably past the 0.2s exit above; reopening inside the window clears
+       the timer through this cleanup. */
+    const id = setTimeout(() => setLingering(false), EXIT_ANIMATION_MS + 50);
+    return () => clearTimeout(id);
+  }, [lingering]);
 
   useEffect(() => {
     if (!isOpen || !lockScroll) return;
@@ -147,8 +184,8 @@ export const Modal: React.FC<ModalProps> = (props) => {
     </AnimatePresence>
   );
 
-  // Only render portal on client side
-  if (!mounted) {
+  // Only render portal on client side, and only while there is something to show.
+  if (!mounted || (!isOpen && !lingering)) {
     return null;
   }
 

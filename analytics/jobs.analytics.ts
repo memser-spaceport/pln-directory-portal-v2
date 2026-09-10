@@ -27,6 +27,17 @@ export type JobReferBaseParams = {
   seniority: string | null;
   source: JobSurface;
   uses_team_refer_email?: boolean;
+  /**
+   * Which kind of referral the event is about. Optional because the click and
+   * modal-open events fire before anyone has been chosen.
+   *
+   * It exists because `referred_member_uid` cannot tell the two apart: someone outside
+   * the network has no uid, so that field is `''` for them, and `''` would otherwise be
+   * indistinguishable from a bug. Nothing about who they are goes any further than this
+   * — see the payload rule on `JobApplyBaseParams` below, which holds here for the same
+   * reason: a dashboard is a wider audience than a referral email.
+   */
+  referee_type?: 'network_member' | 'outside_network';
 };
 
 /**

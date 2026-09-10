@@ -1759,7 +1759,10 @@ describe('TeamNews', () => {
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
       const first = document.querySelector('[data-news-feed-list]')!.firstElementChild!;
-      expect(first.textContent).not.toContain('is hiring');
+      /* The team name, not "is hiring": that phrase left with the headline
+         markup, so a card containing it is something no version of this app
+         renders and the assertion could not fail. */
+      expect(first.textContent).not.toContain('Hiring acme');
       expect(first.textContent).not.toContain('Vendor d1');
     });
 
@@ -1848,7 +1851,11 @@ describe('TeamNews', () => {
     it('leaves the feed intact when neither stream loads', () => {
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
-      expect(screen.queryByText(/is hiring/)).not.toBeInTheDocument();
+      /* Anchored to the handle the positive tests above prove appears when a
+         roll-up renders. `/is hiring/` matched nothing in any state once the
+         headline was removed, so it reported success for a card that was never
+         looked for. */
+      expect(screen.queryByRole('link', { name: 'Hiring acme' })).not.toBeInTheDocument();
       expect(document.querySelector('[data-news-feed-list]')!.children.length).toBeGreaterThan(0);
     });
 
@@ -2412,7 +2419,7 @@ describe('TeamNews', () => {
         renderForYou();
 
         const first = document.querySelector('[data-news-feed-list]')!.firstElementChild!;
-        expect(first.textContent).not.toContain('is hiring');
+        expect(first.textContent).not.toContain('Jobs acme');
       });
 
       it('keeps them off every other category pill', () => {
@@ -2430,6 +2437,10 @@ describe('TeamNews', () => {
       it('keeps them off a focus-area tab', () => {
         mockUseFeedForYouJobs.mockReturnValue({ forYouJobs: [forYouJobGroup('acme')] });
         renderForYou();
+        /* Paired with the check below on purpose: this test asserted only
+           absence, so between the headline being deleted and its handle being
+           replaced it passed without a roll-up ever being rendered to filter. */
+        expect(screen.getByRole('link', { name: 'Jobs acme' })).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole('tab', { name: new RegExp(FA_DHR.title) }));
 
@@ -2454,7 +2465,8 @@ describe('TeamNews', () => {
       it('leaves the feed intact when the match never loads', () => {
         renderForYou();
 
-        expect(screen.queryByText(/is hiring/)).not.toBeInTheDocument();
+        // Same handle the positive tests use — see the note on its twin above.
+        expect(screen.queryByRole('link', { name: 'Jobs acme' })).not.toBeInTheDocument();
         expect(document.querySelector('[data-news-feed-list]')!.children.length).toBeGreaterThan(0);
       });
 

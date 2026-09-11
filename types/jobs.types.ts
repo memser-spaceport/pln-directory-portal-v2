@@ -57,6 +57,8 @@ export interface IJobTeam {
   subFocusAreas: string[];
   /** Team-configured inbox for job referrals. When set, the Refer modal skips member pick. */
   jobReferEmail?: string | null;
+  /** False when the backend refuses in-app applications for this team (e.g. inactive lead emails); Apply then leaves the site. */
+  inAppApplyAvailable?: boolean;
 }
 
 export interface IJobTeamGroup {

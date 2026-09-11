@@ -44,7 +44,7 @@ export function useTeamMembers(teamName: string, enabled: boolean) {
 
       return ((result?.data ?? []) as any[])
         .map((member) => toDirectoryMember(member, team.value))
-        .filter((member) => !!member.uid && !!member.name);
+        .filter((member) => !!member.uid && !!member.name && !member.hasInactiveEmail);
     },
     enabled: enabled && !!teamName.trim(),
     staleTime: 5 * 60 * 1000,

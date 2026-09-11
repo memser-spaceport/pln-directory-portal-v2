@@ -47,6 +47,7 @@ export const getMemberListForQuery = async (query: string, currentPage: number, 
       isVerified: member.isVerified || false,
       openToWork: member.openToWork || false,
       role: member.role || '',
+      hasInactiveEmail: !!member.hasInactiveEmail,
     };
   });
   return {

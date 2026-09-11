@@ -1,3 +1,4 @@
+import type { IJobTeam } from '@/types/jobs.types';
 import { IUserInfo } from '@/types/shared.types';
 import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { isBlankHtml } from '@/utils/html';
@@ -107,8 +108,12 @@ export const canSeeOriginalPosting = (args: { isLoggedIn: boolean; userInfo: IUs
  * withheld it entirely rather than shown a control they cannot meaningfully
  * use.
  */
-export const canShowJobInterest = (args: { isLoggedIn: boolean; userInfo: IUserInfo | null | undefined }): boolean =>
-  args.isLoggedIn && isJobAspirant(args.userInfo ?? null);
+export const canShowJobInterest = (args: {
+  isLoggedIn: boolean;
+  userInfo: IUserInfo | null | undefined;
+  team?: IJobTeam | null;
+}): boolean =>
+  args.isLoggedIn && (isJobAspirant(args.userInfo ?? null) || args.team?.inAppApplyAvailable === false);
 
 /**
  * Where someone is in their search.

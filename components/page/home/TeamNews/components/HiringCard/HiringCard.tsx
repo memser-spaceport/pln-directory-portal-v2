@@ -19,7 +19,7 @@ import newsCardStyles from '../NewsCard/NewsCard.module.scss';
 import s from './HiringCard.module.scss';
 
 /** Roles named on the card; the rest roll into the expander. */
-const VISIBLE_ROLES = 3;
+const VISIBLE_ROLES = 1;
 
 /**
  * Structurally unreachable, and passed anyway because `RowApplyProps` requires

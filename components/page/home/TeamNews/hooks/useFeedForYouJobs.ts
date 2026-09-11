@@ -13,8 +13,8 @@ export const forYouJobsQueryKey = (memberUid: string) => [JobsQueryKey.ForYou, m
  * Jobs matched to this member, for the For You pill's hiring roll-ups.
  *
  * Everything about the match lives server-side (`GET /v1/job-openings/for-you`):
- * the two-week window, the team signal it shares with the news For You, the
- * skills/role/experience signal, and the ranking. This hook only asks.
+ * the two-week window, the skills/role/experience match, and the ranking. This
+ * hook only asks.
  *
  * Client-side and non-blocking, like `useFeedHiring` — the feed renders without
  * it and the cards pop in. No data resolves to `undefined`, which

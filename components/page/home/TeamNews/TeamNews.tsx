@@ -260,7 +260,7 @@ export const TeamNews = ({
     [allItems, initialForYouTeamUids],
   );
 
-  // Jobs matched to this member — the whole match (two-week window, team signal,
+  // Jobs matched to this member — the whole match (two-week window,
   // skills/role/experience signal, ranking) is the server's; see
   // `useFeedForYouJobs`. Fetched whenever the For You pill exists for a signed-in
   // member rather than on the click: the pill's own count includes these, so
@@ -271,10 +271,9 @@ export const TeamNews = ({
    * The roll-ups For You actually shows, pre-sliced to `MAX_FOR_YOU_JOB_ENTRIES`.
    *
    * Pre-slicing HERE is what preserves the server's ranking: `injectFeedSignals`
-   * re-sorts what it is handed by recency, so cutting there would pick the
-   * freshest matches rather than the strongest. Selection stays match-rank; the
-   * order of the survivors is recency, like every other feed signal. The same
-   * cap goes to `injectFeedSignals` as `maxHiring` so the two cannot disagree.
+   * re-sorts what it is handed, so cutting there would pick a different set of
+   * teams than the one the matcher ranked. The same cap goes to
+   * `injectFeedSignals` as `maxHiring` so the two cannot disagree.
    *
    * All tab only. A focus-area tab is a cut of the news corpus BY focus area and
    * a job carries none of its own, so filtering these by tab would mean

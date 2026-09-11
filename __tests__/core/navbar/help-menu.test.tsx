@@ -32,13 +32,11 @@ jest.mock('@/hooks/useOneTimeCallout', () => {
   };
 });
 
-const mockOnNavGetHelpItemClicked = jest.fn();
 const mockOnHelpMenuOpened = jest.fn();
 const mockOnHelpCalloutShown = jest.fn();
 const mockOnHelpCalloutDismissed = jest.fn();
 jest.mock('@/analytics/common.analytics', () => ({
   useCommonAnalytics: () => ({
-    onNavGetHelpItemClicked: mockOnNavGetHelpItemClicked,
     onHelpMenuOpened: mockOnHelpMenuOpened,
     onHelpCalloutShown: mockOnHelpCalloutShown,
     onHelpCalloutDismissed: mockOnHelpCalloutDismissed,
@@ -62,54 +60,51 @@ const userInfo = {
   roles: ['MEMBER'],
 } as never;
 
-const openMenu = () => fireEvent.click(screen.getByRole('button', { name: 'Help and feedback' }));
+const clickHelp = () => fireEvent.click(screen.getByRole('button', { name: 'Help and feedback' }));
 
 describe('HelpMenu', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Dismissed by default, so a test about the menu is not also a test about
+    // Dismissed by default, so a test about the button is not also a test about
     // the callout.
     calloutStartsOpen = false;
     useContactSupportStore.getState().actions.closeModal();
   });
 
-  describe('the menu', () => {
-    it('offers every support topic, not just the default one', async () => {
+  describe('the help button', () => {
+    it('opens the support form on Contact support', async () => {
       render(<HelpMenu userInfo={userInfo} />);
 
-      openMenu();
-
-      expect(await screen.findByRole('menuitem', { name: 'Contact support' })).toBeInTheDocument();
-      for (const label of ['Ask a question', 'Give feedback', 'Share an idea', 'Report a bug']) {
-        expect(screen.getByRole('menuitem', { name: label })).toBeInTheDocument();
-      }
-    });
-
-    it('opens the support form already on the chosen topic', async () => {
-      render(<HelpMenu userInfo={userInfo} />);
-
-      openMenu();
-      fireEvent.click(await screen.findByRole('menuitem', { name: 'Report a bug' }));
+      clickHelp();
 
       await waitFor(() => expect(useContactSupportStore.getState().open).toBe(true));
-      expect(useContactSupportStore.getState().topic).toBe('Report a bug');
+      expect(useContactSupportStore.getState().topic).toBe('Contact support');
     });
 
-    it('reports the chosen topic on the existing get-help series', async () => {
+    /*
+     * The behaviour change itself, asserted rather than implied.
+     *
+     * Every other test here would pass just as well with a menu in between —
+     * they only check where the click lands eventually. This one checks that
+     * the first press opens the form and nothing else, which is the thing that
+     * would silently regress if a list of topics were ever put back in front.
+     */
+    it('opens it on the first press, with nothing in between', async () => {
       render(<HelpMenu userInfo={userInfo} />);
 
-      openMenu();
-      fireEvent.click(await screen.findByRole('menuitem', { name: 'Give feedback' }));
+      clickHelp();
 
-      expect(mockOnNavGetHelpItemClicked).toHaveBeenCalledWith('Give feedback', expect.anything());
+      await waitFor(() => expect(useContactSupportStore.getState().open).toBe(true));
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+      expect(screen.queryByRole('menuitem')).not.toBeInTheDocument();
     });
 
-    it('reports the open, so the topic clicks have a denominator', async () => {
+    it('reports that the help door was used', async () => {
       render(<HelpMenu userInfo={userInfo} />);
 
-      openMenu();
+      clickHelp();
 
-      await screen.findByRole('menuitem', { name: 'Contact support' });
+      await waitFor(() => expect(useContactSupportStore.getState().open).toBe(true));
       expect(mockOnHelpMenuOpened).toHaveBeenCalledTimes(1);
     });
   });
@@ -154,14 +149,14 @@ describe('HelpMenu', () => {
       expect(mockOnHelpCalloutDismissed).toHaveBeenCalledWith('got-it', expect.anything());
     });
 
-    it('clears itself when the menu it was announcing opens', async () => {
+    it('clears itself when the form it was announcing opens', async () => {
       render(<HelpMenu userInfo={userInfo} />);
 
       await screen.findByRole('button', { name: 'Got it' });
-      openMenu();
+      clickHelp();
 
       await waitFor(() => expect(mockDismiss).toHaveBeenCalledWith('help_callout'));
-      expect(mockOnHelpCalloutDismissed).toHaveBeenCalledWith('menu-opened', expect.anything());
+      expect(mockOnHelpCalloutDismissed).toHaveBeenCalledWith('modal-opened', expect.anything());
     });
 
     it('does not write a flag when there was no callout to dismiss', async () => {
@@ -170,9 +165,12 @@ describe('HelpMenu', () => {
       render(<HelpMenu userInfo={userInfo} />);
 
       await waitFor(() => expect(mockCalloutKey).toHaveBeenCalled());
-      openMenu();
+      clickHelp();
 
-      await screen.findByRole('menuitem', { name: 'Contact support' });
+      // Waits on the press having landed, so the assertions below are about a
+      // dismissal that did not happen rather than about a click that had not
+      // finished yet.
+      await waitFor(() => expect(useContactSupportStore.getState().open).toBe(true));
       expect(mockDismiss).not.toHaveBeenCalled();
       expect(mockOnHelpCalloutDismissed).not.toHaveBeenCalled();
     });

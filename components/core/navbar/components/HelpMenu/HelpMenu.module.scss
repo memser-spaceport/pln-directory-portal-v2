@@ -27,23 +27,10 @@
     }
   }
 
-  &[data-popup-open] {
-    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-  }
-
   &:focus-visible {
     outline: 2px solid var(--foreground-brand-primary, #1b4dff);
     outline-offset: -1px;
   }
-}
-
-/* Opening on hover hands focus to the popup with no pointer press to blame it
-   on, so Chrome paints a focus-visible ring round the whole card. The account
-   menu never meets this — it opens on click — which is why its `.Popup` has no
-   such reset while its `.Positioner` does. Keyboard users still get the
-   per-item highlight. */
-.popup {
-  outline: 0;
 }
 
 /* ---------- One-time callout ---------- */

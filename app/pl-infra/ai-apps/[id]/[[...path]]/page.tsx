@@ -6,7 +6,7 @@ import { AiAppDetailPage } from '@/components/page/ai-apps/AiAppDetailPage';
 import { AiAppsAccessGuard } from '@/components/page/ai-apps/AiAppsPage/components/AiAppsAccessGuard';
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; path?: string[] }>;
 }
 
 export default function Page(props: Props) {
@@ -14,7 +14,7 @@ export default function Page(props: Props) {
 
   return (
     <AiAppsAccessGuard>
-      <AiAppDetailPage uid={params.id} />
+      <AiAppDetailPage uid={params.id} basePath={`/pl-infra/ai-apps/${params.id}`} />
     </AiAppsAccessGuard>
   );
 }

@@ -66,14 +66,40 @@ function isProtectedRoute(pathname: string): boolean {
  * @returns NextResponse redirect to /members with backlink and #login hash
  */
 function createLoginRedirect(req: NextRequest, pathname: string): NextResponse {
-  // AI App links carry the open subpage in `?path=`, so keep the query for them.
+  // AI App links carry `?settings=deployment`, so keep the query for them.
   const target = isAiAppsRoute(pathname) ? `${pathname}${req.nextUrl.search}` : pathname;
   const backlink = encodeURIComponent(target);
   const redirectUrl = new URL(`/members?backlink=${backlink}#login`, req.url);
   return NextResponse.redirect(redirectUrl);
 }
 
+const LEGACY_DEEP_LINK_ROUTES = [/^\/pl-infra-os$/, /^\/pl-infra\/ai-apps\/[^/]+$/];
+const RELATIVE_PATH_PROBE_BASE = 'https://placeholder.invalid';
+
+// AI App deep links used to carry the open subpage as `?path=`; those links
+// are still shared and bookmarked, so send them to the segment form
+// (`/pl-infra-os/flywheels`), keeping every other param (e.g. `settings`).
+// Only a same-origin pathname is accepted; anything else lands on the app root.
+function legacyDeepLinkRedirect(req: NextRequest): NextResponse | null {
+  const { pathname, searchParams } = req.nextUrl;
+  if (!searchParams.has('path') || !LEGACY_DEEP_LINK_ROUTES.some((route) => route.test(pathname))) return null;
+  const target = req.nextUrl.clone();
+  target.searchParams.delete('path');
+  try {
+    const probe = new URL(searchParams.get('path') ?? '', RELATIVE_PATH_PROBE_BASE);
+    if (probe.hostname === new URL(RELATIVE_PATH_PROBE_BASE).hostname) {
+      target.pathname = `${pathname}${probe.pathname.replace(/\/$/, '')}`;
+    }
+  } catch {
+    // not a parsable path — fall through to the bare app route
+  }
+  return NextResponse.redirect(target, 308);
+}
+
 export async function proxy(req: NextRequest) {
+  const legacyRedirect = legacyDeepLinkRedirect(req);
+  if (legacyRedirect) return legacyRedirect;
+
   const response = NextResponse.next();
   const refreshTokenFromCookie = req?.cookies?.get('refreshToken');
   const authTokenFromCookie = req?.cookies?.get('authToken');

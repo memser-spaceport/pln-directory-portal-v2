@@ -12,6 +12,7 @@ import {
   JOB_SEARCH_STATUS_OPTIONS,
   jobSearchStatusDisplayLabel,
 } from '@/services/jobs/job-board-viewer';
+import type { IJobTeam } from '@/types/jobs.types';
 import { IUserInfo } from '@/types/shared.types';
 
 const rbacUser = (
@@ -140,6 +141,15 @@ describe('canShowJobInterest', () => {
   it('is withheld from a signed-out visitor regardless of any stale cookie userInfo', () => {
     expect(canShowJobInterest({ isLoggedIn: false, userInfo: null })).toBe(false);
     expect(canShowJobInterest({ isLoggedIn: false, userInfo: { uid: 'm1', signUpSource: 'job-board' } })).toBe(false);
+  });
+
+  it('is shown to any signed-in member when the team does not take in-app applications', () => {
+    const team = { uid: 't1', name: 'Acme', inAppApplyAvailable: false } as IJobTeam;
+    expect(canShowJobInterest({ isLoggedIn: true, userInfo: rbacUser('APPROVED'), team })).toBe(true);
+    expect(canShowJobInterest({ isLoggedIn: false, userInfo: null, team })).toBe(false);
+    expect(
+      canShowJobInterest({ isLoggedIn: true, userInfo: rbacUser('APPROVED'), team: { ...team, inAppApplyAvailable: true } }),
+    ).toBe(false);
   });
 });
 

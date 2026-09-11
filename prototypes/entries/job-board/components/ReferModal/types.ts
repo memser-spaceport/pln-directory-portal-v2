@@ -18,6 +18,8 @@ export interface DirectoryMember {
   /** Leads the hiring team. Only `useTeamMembers` sets this — it's a fact about a
    *  member's role on one specific team, not about the member. */
   isTeamLead?: boolean;
+  /** Admin-marked dead mailbox; never offered as a referral recipient. */
+  hasInactiveEmail?: boolean;
 }
 
 export interface RecipientOption {
@@ -33,4 +35,17 @@ export interface RecipientOption {
   isTeamLead?: boolean;
   /** Set by react-select's Creatable on the "Add ‹address›" row, before it's chosen. */
   __isNew__?: boolean;
+}
+
+/** Someone the referrer vouches for who has no directory record. Three facts, all
+ *  required, because they are the whole record: the name is who the note is about, the
+ *  email is how the hiring team reaches them (and how they're copied, if the referrer
+ *  ticks that), and the LinkedIn profile is the only way anyone reading the email can
+ *  check who they are — the thing a member's directory page does for a member. */
+export interface OutsidePerson {
+  name: string;
+  email: string;
+  /** As typed — a bare slug or a URL, the same shapes the profile's own LinkedIn field
+   *  accepts. The backend normalises it into a link; nothing here renders it. */
+  linkedin: string;
 }

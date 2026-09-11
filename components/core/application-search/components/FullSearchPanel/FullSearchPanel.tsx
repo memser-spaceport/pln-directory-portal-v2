@@ -10,6 +10,7 @@ import { FullSearchResults } from '@/components/core/application-search/componen
 import s from './FullSearchPanel.module.scss';
 import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
 import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
+import { useRecordRecentSearch } from '@/services/search/hooks/useRecordRecentSearch';
 import { SearchResult } from '@/services/search/types';
 import { SearchCategories } from '@/components/core/application-search/components/SearchCategories';
 
@@ -31,6 +32,10 @@ export const FullSearchPanel = ({
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [, setFocused] = useState(!initialSearchTerm);
   const { data, isLoading } = useFullApplicationSearch(searchTerm);
+
+  /* Recent used to be written by that hook's fetcher; it is the caller's job
+     now. See useRecordRecentSearch. */
+  useRecordRecentSearch(searchTerm);
   const analyticsRef = useRef<boolean>(false);
   const isFocused = false;
 
@@ -69,7 +74,11 @@ export const FullSearchPanel = ({
             {/*<TryAiSearch onClick={handleTryAiSearch} disabled={searchTerm.trim().length === 0} />*/}
             {/*<TryToSearch onSelect={handleChange} />*/}
             {/*<div className={clsx(s.divider, s.mt1)} />*/}
-            <RecentSearch onSelect={handleChange} />
+            <div className={s.recentSearchDivider} />
+            <div className={s.recentSearchBody}>
+              <RecentSearch onSelect={handleChange} />
+            </div>
+            <div className={s.recentSearchDivider} />
           </>
         );
       }

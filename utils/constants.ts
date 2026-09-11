@@ -89,6 +89,8 @@ export const JOBS_ANALYTICS = {
   ON_JOB_REFER_FAILED: 'job-refer-failed',
   ON_JOB_REFER_SHARE_MENU_OPENED: 'job-refer-share-menu-opened',
   ON_JOB_REFER_SHARED: 'job-refer-shared',
+  ON_JOB_REFER_SHARE_LINK_OPENED: 'job-refer-share-link-opened',
+  ON_JOB_EMAIL_PROFILE_LINK_CLICKED: 'job-email-profile-link-clicked',
   ON_JOB_APPLY_CLICKED: 'job-apply-clicked',
   ON_JOB_APPLY_SIGNUP_SUBMITTED: 'job-apply-signup-submitted',
   ON_JOB_APPLY_SIGNUP_FAILED: 'job-apply-signup-failed',
@@ -192,6 +194,9 @@ export const JOIN_NETWORK_MENUS = [
 export const COMMON_ANALYTICS_EVENTS = {
   NAVBAR_MENU_ITEM_CLICKED: 'navbar-menu-item-clicked',
   NAVBAR_GET_HELP_ITEM_CLICKED: 'navbar-get-help-item-clicked',
+  NAVBAR_HELP_MENU_OPENED: 'navbar-help-menu-opened',
+  NAVBAR_HELP_CALLOUT_SHOWN: 'navbar-help-callout-shown',
+  NAVBAR_HELP_CALLOUT_DISMISSED: 'navbar-help-callout-dismissed',
   NAVBAR_ACCOUNTMENU_ITEM_CLICKED: 'navbar-accountmenu-item-clicked',
   NAVBAR_JOIN_NETWORK_CLICKED: 'navbar-join-network-menu-clicked',
   NAVBAR_JOIN_NETWORK_OPTION_CLICKED: 'navbar-join-network-option-clicked',
@@ -204,6 +209,7 @@ export const COMMON_ANALYTICS_EVENTS = {
   SUBMIT_A_TEAM_BTN_CLICKED: 'submit_a_team_btn_clicked',
   NAVBAR_HOME_CLICKED: 'navbar-home-clicked',
   NAVBAR_HOME_NEW_NEWS_DOT_SHOWN: 'navbar-home-new-news-dot-shown',
+  CONTACT_SUPPORT_TOPIC_PILL_SELECTED: 'contact-support-topic-pill-selected',
 };
 
 export const NOTIFICATION_ANALYTICS_EVENTS = {
@@ -688,6 +694,9 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_TOP_STORY_CLICKED: 'team-news-top-story-clicked',
   // Supporting kinds in the feed. Both carry `position` so a card that only
   // ever converts from the first slot can be told from one that converts anywhere.
+  // Denominator for HIRING_ROLE_CLICKED / HIRING_VIEW_ALL_CLICKED — without it a
+  // low click count can't be told apart from a card nobody saw.
+  TEAM_NEWS_FEED_HIRING_CARD_VIEWED: 'team-news-feed-hiring-card-viewed',
   TEAM_NEWS_FEED_HIRING_ROLE_CLICKED: 'team-news-feed-hiring-role-clicked',
   TEAM_NEWS_FEED_HIRING_VIEW_ALL_CLICKED: 'team-news-feed-hiring-view-all-clicked',
   TEAM_NEWS_FEED_DEAL_CLICKED: 'team-news-feed-deal-clicked',
@@ -901,6 +910,28 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.6.1 - External Referrals, Help Menu & Feed Upgrades',
+    tag: 'New Feature',
+    date: '11, Sep 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Refer outside the network</span> - Refer someone who isn't in the Directory yet by entering their name, email, and LinkedIn profile instead of picking a member.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Help & Feedback</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Help menu</span> - The header (?) now opens a menu with Contact support, Ask a question, Give feedback, Share an idea, and Report a bug.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">For You job matches</span> - Personalized job openings now appear in your feed, matched to your role, skills, and experience.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">All tab</span> - The All tab now shows every story, including news from teams without a listed focus area.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Shared articles</span> - Links to shared news stories now unfurl with a proper title, snippet, and preview image.</li>
+        </ul>
+        </div>`,
+  },
   {
     title: 'Version 4.6.0 - Job Referrals, Team News & AI Apps',
     tag: 'New Feature',

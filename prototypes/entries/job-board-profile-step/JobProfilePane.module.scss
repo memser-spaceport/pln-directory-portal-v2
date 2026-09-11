@@ -50,23 +50,11 @@
   // own internal scroller. None of that is true in a drawer, but the rules came
   // along with the markup.
   //
-  // Surfacing the header controls is what makes the rest safe to drop.
-  // `EditOfficeHoursFormControls` hides its Cancel/Save below tablet-landscape
-  // and leans on `EditFormMobileControls` instead; here the header is in the flow
-  // and perfectly visible, so it can carry the pair on every width — one Save,
-  // in one place, same as desktop. The attribute selector reaches a hashed class
-  // in another CSS module, which is the only handle available: that component
-  // takes no `className`, and the hash preserves the original name.
-  @media (max-width: #{media.$breakpoint-md - 1}px) {
-    :global(div[class*='EditOfficeHoursFormControls-module'][class*='controls']) {
-      display: flex !important;
-    }
-
-    // Its mobile ✕ would then be a second way to cancel, next to Cancel itself.
-    :global(button[class*='EditOfficeHoursFormControls-module'][class*='mobileCloseButton']) {
-      display: none !important;
-    }
-  }
+  // Two `:global` overrides used to stand here, surfacing
+  // `EditOfficeHoursFormControls`' Cancel/Save below tablet-landscape and hiding
+  // the mobile ✕ it falls back to. They went with the row: the editors now end
+  // in `SectionEditorControls` under the fields, which is one pair on every
+  // width and has no phone variant to override. See the pane.
 }
 
 // The form panel inside an editing card.
@@ -597,6 +585,152 @@
       margin-bottom: 14px;
     }
   }
+}
+
+// --- Floating editor anchor + whole-drawer variant ----------------------------
+
+.sectionAnchor {
+  width: 100%;
+}
+
+.wholeForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.wholeBody {
+  gap: 16px;
+}
+
+.wholeList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wholeEntry {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  border-radius: 8px;
+  background: var(--Neutral-White, #fff);
+}
+
+.wholeEntryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.wholeEntryTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.wholeRemove {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0;
+  color: var(--action-foreground-error-normal, #f71515);
+
+  &:hover {
+    color: var(--action-foreground-error-hover, #cf1010);
+  }
+}
+
+.wholeGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+
+  @include media.tablet-landscape {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.wholeField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.wholeLabel {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.wholeInput,
+.wholeSelect {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  border-radius: 8px;
+  background: var(--Neutral-White, #fff);
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0;
+
+  &:hover {
+    border-color: var(--foreground-neutral-muted, #5e718d);
+  }
+
+  &:focus {
+    border-color: var(--foreground-neutral-muted, #5e718d);
+    outline: 0;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    background: var(--background-neutral-soft-surface, #f9fafb);
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+.wholeCheck {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding-top: 26px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.wholeCheckbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--action-background-brand-normal, #156ff7);
 }
 
 // --- The optional-sections fold -----------------------------------------------

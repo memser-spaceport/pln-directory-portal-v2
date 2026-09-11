@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 
-import { InfoCircleIconOutlined, SpinnerIcon } from '@/components/icons';
-import { formatFileSize } from '@/utils/file.utils';
+import { SpinnerIcon } from '@/components/icons';
 // The host section's own empty row and its connect-button slot. Production keeps
 // `.connectButton` nested inside `.emptyData` in four of these stylesheets
 // (Experience, Teams, Contributions, Repositories) and renders it in none of
@@ -13,14 +12,11 @@ import { formatFileSize } from '@/utils/file.utils';
 // drawn in.
 import e from '@/components/page/member-details/ExperienceDetails/components/ExperienceDetailsView/components/ExperiencesList/ExperiencesList.module.scss';
 
-import {
-  PARSE_CANCELLED,
-  PARSE_SCENARIOS,
-  USUAL_READ_MS,
-  USUAL_UPLOAD_MS,
-  parseDocument,
-  type ParseScenario,
-} from './parseMocks';
+import { PARSE_CANCELLED, PARSE_SCENARIOS, parseDocument, type ParseScenario } from './parseMocks';
+// The wait's three lines — title, bar, hint — and the clock behind them. Shared
+// with the floating status bar, which shows the same row while this card is
+// scrolled away; see `ImportWait` for why the wait is one value.
+import { ImportWaitStatus, type ImportWait } from './ImportWait';
 import { ResumeDropzone } from './ResumeDropzone';
 import type { ParsedProfile } from './types';
 import p from './ExperienceImportPanel.module.scss';
@@ -142,6 +138,20 @@ interface ExperienceImportPanelProps {
    */
   onStatusChange?: (status: ImportStatus) => void;
   /**
+   * The wait itself — which beat, which file, when it started, its Cancel —
+   * every time one of those changes, and `null` when there is no wait (and
+   * once more on unmount, like `onStatusChange`).
+   *
+   * For a host that shows the wait somewhere other than this card: the
+   * new-member page's floating status bar draws the same row at the bottom of
+   * the viewport once the card is scrolled away, so a person who left to do
+   * something else can see the read is still going and how far it is. Hosts
+   * that only need to know *whether* the panel is waiting use
+   * `onStatusChange`; this carries what a second drawing of the row needs. See
+   * `ImportWait` for what is and isn't in it.
+   */
+  onWaitChange?: (wait: ImportWait | null) => void;
+  /**
    * What the person is told before handing over a document.
    *
    * A prop because the honest sentence is not the same on every surface. The
@@ -181,89 +191,45 @@ type Status = 'idle' | 'uploading' | 'reading' | 'nothing-found';
 /** The panel's status, as hosts see it through `onStatusChange`. */
 export type ImportStatus = Status;
 
-/**
- * The progress bar's shape. Where the upload's share ends, where the bar stops
- * and waits for the result, and how often the row re-reads the clock.
- *
- * **An estimate, drawn against the usual case, and it says so.** Production's
- * poll reports a status and nothing else — `PROCESSING` until it isn't — so
- * there is no true percentage to show, and the product's other long wait (the
- * AI Apps deploy) sweeps an indeterminate bar for exactly that reason. This
- * row does something slightly different, on purpose: the wait is a few tens of
- * seconds with a known typical length, and the thing the person actually
- * wants to know is *roughly how much of that is left*. A bar that fills over
- * the usual duration answers that; a sweep answers only "still going". The
- * honesty is in the hold — the bar never reaches the end on the clock alone.
- * It stops at `HOLD` and stays there until the result lands, and the hint
- * under it changes to say the read is taking longer than usual. What the bar
- * claims is "this far into a usual read", never "this far into yours".
- *
- * The upload's share is real: the post returning is a boundary the client
- * observes, so the bar snaps to `UPLOAD_SHARE` the moment it does. Everything
- * after is the clock.
+/*
+ * The progress bar's shape — the upload's share, the hold point, the tick, and
+ * the "usually takes…" sentence — used to be constants here, next to the row
+ * that drew them. They live in `ImportWait` now, because the row is drawn in
+ * two places (this card, and the floating status bar once the card is scrolled
+ * away) and the numbers have to be one set. What they claim and why is written
+ * there.
  */
-const UPLOAD_SHARE = 0.2;
-const HOLD = 0.92;
-const TICK_MS = 100;
-
-/** Front-loaded, like a real read: most of the movement early, then slowing. */
-const easeOut = (t: number) => 1 - (1 - Math.min(Math.max(t, 0), 1)) ** 2;
 
 /**
- * "Usually takes about 10 seconds" — derived from the constants the bar is
- * drawn against, so the sentence cannot drift from the bar once the frontend
- * tunes the numbers to what the import row measures.
- */
-function usuallyTakes(ms: number): string {
-  const seconds = Math.round(ms / 1000 / 5) * 5;
-  if (seconds >= 45) return 'Usually takes under a minute';
-  return `Usually takes about ${Math.max(seconds, 5)} seconds`;
-}
-
-/**
- * The formats the drop area takes, and what it says about them.
+ * The formats the drop area takes, and the way in for someone with no CV file
+ * — one description line, inside the box.
  *
- * Back to being only that. The LinkedIn clause that used to end the description
- * moved out to `LINKEDIN_HINT`, because this line answers "is my file allowed"
- * and that is a different question from "what could I bring". Leaving it in both
- * places would be one fact stated twice on one box, and the copy a person skips
- * would still be the copy carrying it.
+ * The LinkedIn route has lived in three places. First as a second door
+ * ("Import from LinkedIn"), gone because it was the same mechanism wearing a
+ * second label. Then as a clause on this line — "A LinkedIn PDF export works
+ * too" — which is where lesson 1 put it: a synonym belongs in the copy that
+ * removes doubt, not on a control. Then it was moved *out* to a standing
+ * tinted note under the box, on the argument that "is my file allowed" and
+ * "what could I bring" are two questions and that someone who has never
+ * exported LinkedIn does not know how.
+ *
+ * *"See if we can make this section more compact and beautiful."* The note was
+ * the loudest thing in the section — a tinted band with a glyph, which is the
+ * chrome of an announcement (lesson 12's sixth example) — for a gloss that
+ * takes twelve words. Every reference that reads compact keeps this fact as a
+ * caption beside the formats: Deputy's one-row box ("Drop a file here, or
+ * browse · PDF and images supported"), Remote's "Learn how to save your
+ * LinkedIn profile as PDF" as a quiet line, Coursera's "Maximum size of 5MB.
+ * PDF files only." under the file. So the clause is back on this line, and
+ * the objection that moved it out is met inside the parentheses: the menu
+ * path is the how. Two questions, one 12px line — the second is short enough
+ * to sit after the first, and a person who has a file reads past it at no
+ * cost.
  */
 const DROPZONE_COPY = {
   title: 'Drag & drop your CV',
-  description: 'PDF, DOC or DOCX, up to 5MB.',
+  description: 'PDF, DOC or DOCX, up to 5MB. Or export LinkedIn (More → Save to PDF).',
   formats: ['PDF', 'DOC', 'DOCX'],
-};
-
-/**
- * The way in for someone who has no CV file: one standing note under the box.
- *
- * **It was a disclosure, and the toggle has been removed.** "No CV? Your
- * LinkedIn profile works too" sat above this sentence and revealed it on a
- * press. The argument for that was that the fact is useless without the two
- * clicks that make it true, so the clicks should be *asked for* rather than
- * preached. But the whole thing is one line long — and a press that reveals a
- * single sentence is a door in front of a door, charging a click for something
- * that could simply have been said. The instruction *is* the fact here; there is
- * no shorter honest version of it to show first.
- *
- * **Why not a tooltip.** A tooltip is for a gloss you read and release. This is
- * an instruction you carry into another tab, and it has to survive the trip — a
- * hover that vanishes, and does not exist at all on a phone, is the wrong
- * container for something you follow.
- *
- * **What keeps it from becoming the second door again.** It is prose, not a
- * control: nothing here is pressable, so there is nothing to choose between it
- * and Upload, and the last sentence sends the person back to the box that is
- * already open. One sentence, not three steps, because the two clicks are one
- * menu.
- */
-const LINKEDIN_HINT = {
-  /* Split so the menu path can carry a little weight — it is the part someone
-     scans back to while looking at LinkedIn rather than at this page. */
-  before: 'On LinkedIn, open your profile and choose ',
-  path: 'More → Save to PDF',
-  after: '. Drop that file here.',
 };
 
 const MAX_FILE_SIZE_MB = 5;
@@ -301,6 +267,7 @@ export function ExperienceImportPanel({
   onFileRead,
   onCancelRead,
   onStatusChange,
+  onWaitChange,
   privacyNote = 'We read the file to fill in your profile. The file itself is not kept.',
   canvasOpen,
   canvasStatus,
@@ -316,11 +283,11 @@ export function ExperienceImportPanel({
   const cancelRef = useRef<(() => void) | null>(null);
 
   /* When the wait began and when the upload landed — what the bar and the
-     overdue hint are computed from. Both null for a frame the canvas pinned,
-     where no clock is running; the bar then paints a resting mid-read. */
+     overdue hint are computed from (`useImportProgress`). Both null for a frame
+     the canvas pinned, where no clock is running; the bar then paints a
+     resting mid-read. */
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [uploadedAt, setUploadedAt] = useState<number | null>(null);
-  const [now, setNow] = useState(0);
 
   const waiting = status === 'uploading' || status === 'reading';
 
@@ -332,16 +299,6 @@ export function ExperienceImportPanel({
     return () => onStatusChange?.('idle');
   }, [status, onStatusChange]);
 
-  /* The row re-reads the clock while it is waiting and not otherwise — ten
-     times a second is enough for a 6px bar to move smoothly and far too slow
-     to matter. */
-  useEffect(() => {
-    if (!waiting || startedAt === null) return;
-    setNow(Date.now());
-    const timer = setInterval(() => setNow(Date.now()), TICK_MS);
-    return () => clearInterval(timer);
-  }, [waiting, startedAt]);
-
   const reset = () => {
     cancelRef.current?.();
     cancelRef.current = null;
@@ -351,14 +308,41 @@ export function ExperienceImportPanel({
     setUploadedAt(null);
   };
 
-  /* Where the bar is, 0–1, and whether the read has outrun the usual case. */
-  const readElapsed = uploadedAt === null ? 0 : now - uploadedAt;
-  const overdue = status === 'reading' && readElapsed > USUAL_READ_MS;
-  const progress = (() => {
-    if (startedAt === null) return status === 'reading' ? 0.55 : UPLOAD_SHARE / 2;
-    if (status === 'uploading') return UPLOAD_SHARE * 0.9 * easeOut((now - startedAt) / USUAL_UPLOAD_MS);
-    return UPLOAD_SHARE + (HOLD - UPLOAD_SHARE) * easeOut(readElapsed / USUAL_READ_MS);
-  })();
+  /* The reading row's Cancel, behind a ref so the wait below can carry it
+     without being rebuilt every render — `reset` closes over this render's
+     state, and a wait that changed identity on every render would report
+     itself to the host on every render. */
+  const cancelReadRef = useRef<() => void>(() => undefined);
+  cancelReadRef.current = () => {
+    reset();
+    onCancelRead?.();
+  };
+
+  /* The wait, as one value: made here, drawn by `ImportWaitStatus` in the row
+     below, and handed to the host for the floating status bar to draw the
+     same row from. `canvasFileName` only ever fills in for a frame the canvas
+     pinned, where no File was dropped — DELETE WITH: design-canvas/. */
+  const wait = useMemo<ImportWait | null>(
+    () =>
+      status === 'uploading' || status === 'reading'
+        ? {
+            status,
+            fileName: file?.name ?? canvasFileName ?? 'your file',
+            fileSize: file?.size ?? null,
+            startedAt,
+            uploadedAt,
+            cancel: () => cancelReadRef.current(),
+          }
+        : null,
+    [status, file, canvasFileName, startedAt, uploadedAt],
+  );
+
+  /* Same contract as `onStatusChange`: reported when it changes, `null` on
+     unmount, so a host never holds a wait the panel has stopped having. */
+  useEffect(() => {
+    onWaitChange?.(wait);
+    return () => onWaitChange?.(null);
+  }, [wait, onWaitChange]);
 
   const closeDoor = () => {
     reset();
@@ -452,11 +436,10 @@ export function ExperienceImportPanel({
           here, above the box and shown to everyone who took the LinkedIn door.
           It went with the door — it existed to explain why the thing the label
           promised wasn't what the door did, which is a sentence no door should
-          need. The same facts now live *under* the box, in one sentence, behind
-          a press: see `LINKEDIN_HINT` and the disclosure below. Requested, not
-          preached, is the whole difference. */}
+          need. The same fact is now the second clause of the box's own
+          description: see `DROPZONE_COPY`. */}
 
-      {waiting ? (
+      {waiting && wait ? (
         /* One row, two sentences, three signals.
 
            Production's `parseCv` posts the file first and only then polls the
@@ -483,44 +466,16 @@ export function ExperienceImportPanel({
            line under it, in this panel's own token pairs rather than that
            page's slate greys. The track and the fill are the spinner's two
            colours, so the bar reads as the spinner unrolled, not a third
-           loader. */
+           loader.
+
+           The three lines between the spinner and the Cancel are
+           `ImportWaitStatus`, which the floating status bar also renders from
+           the same wait once this card is scrolled away — so what the person
+           sees there is this row, not a summary of it. */
         <div className={p.reading}>
           <SpinnerIcon className={p.spinner} />
-          <div className={p.readingText}>
-            {/* `canvasFileName` only ever fills in for a frame the canvas pinned,
-                where no File was dropped. DELETE WITH: design-canvas/. */}
-            <div className={p.readingTitle}>
-              {status === 'uploading' ? 'Uploading' : 'Reading'} {file?.name ?? canvasFileName ?? 'your file'}…
-            </div>
-            <div
-              className={p.progressTrack}
-              role="progressbar"
-              aria-label={status === 'uploading' ? 'Uploading your CV' : 'Reading your CV'}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.round(progress * 100)}
-            >
-              <div className={p.progressFill} style={{ transform: `scaleX(${progress})` }} />
-            </div>
-            {/* The size stays — it was here before the bar and it is still the
-                one fact about the file the row can state. The second half is
-                the expectation, and it changes exactly once: when the clock
-                passes the usual case, so that a person looking at a bar that
-                has stopped moving is told why, in the same breath as being told
-                it hasn't died. */}
-            <div className={p.readingMeta}>
-              {file && <>{formatFileSize(file.size)} · </>}
-              {overdue ? 'Taking longer than usual — still reading' : usuallyTakes(USUAL_UPLOAD_MS + USUAL_READ_MS)}
-            </div>
-          </div>
-          <button
-            type="button"
-            className={p.quietButton}
-            onClick={() => {
-              reset();
-              onCancelRead?.();
-            }}
-          >
+          <ImportWaitStatus wait={wait} />
+          <button type="button" className={p.quietButton} onClick={() => cancelReadRef.current()}>
             Cancel
           </button>
         </div>
@@ -602,38 +557,12 @@ export function ExperienceImportPanel({
             onRemove={() => setFile(null)}
           />
 
-          {/* Under the box rather than beside the formats, and closer to the box
-              than to the note below it — this is a way *into* the drop area, and
-              `.panel`'s uniform 12px gap would otherwise assert it belongs to
-              neither. See `.linkedinSteps` for the four pixels that fixes.
-
-              The two asides here are still two tones and no more: this one is
-              secondary and marked with the info glyph, because it is something
-              to act on; the privacy note is tertiary and unmarked, because it is
-              something to read once. */}
-          <p className={p.linkedinSteps}>
-            {/* The DS's own mark for a quiet inline note, not a new one:
-                `DataIncomplete` — production's 12px/500 note row — reaches for
-                this exact glyph beside this exact size of text, at a 4px gap.
-                The *outlined* one, which is the half of that pair that means
-                "here is a fact"; the filled `InfoCircleIcon` carries banners and
-                tooltip triggers (`AiGeneratedTeamProfileBanner`,
-                `FollowControl`), which are louder things than this.
-
-                Rendered at 14px rather than its native 18: see the note on
-                `.linkedinStepsIcon` for why it shrank once the line got a
-                ground of its own to sit on. */}
-            <InfoCircleIconOutlined width={14} height={14} className={p.linkedinStepsIcon} aria-hidden />
-            <span>
-              {LINKEDIN_HINT.before}
-              <span className={p.linkedinPath}>{LINKEDIN_HINT.path}</span>
-              {LINKEDIN_HINT.after}
-            </span>
-          </p>
-
           {/* The one thing a person is entitled to know before handing over a
               document, in the place they hand it over — a promise nobody states
-              is a promise nobody believes. Wording is the host's; see the prop. */}
+              is a promise nobody believes. Wording is the host's; see the prop.
+              The only aside under the box now: the LinkedIn route moved into
+              the box's description (`DROPZONE_COPY`), so the column under the
+              drop area is one tertiary line rather than a tinted note over it. */}
           <p className={p.privacyNote}>{privacyNote}</p>
         </>
       )}

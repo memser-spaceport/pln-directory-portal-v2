@@ -16,7 +16,12 @@ async function Page(props: { searchParams: Promise<IMembersSearchParams> }) {
   }
 
   return (
-    <FilterWrapper searchParams={searchParams} filterValues={filters} userInfo={userInfo} isUserLoggedIn={isLoggedIn} />
+    <FilterWrapper
+      searchParams={searchParams}
+      filterValues={filters}
+      userInfo={userInfo}
+      isUserLoggedIn={!!isLoggedIn}
+    />
   );
 }
 

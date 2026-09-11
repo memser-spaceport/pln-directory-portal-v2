@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { clsx } from 'clsx';
-import { getUiFlag, setUiFlag } from '@/utils/uiFlags';
+import { useOneTimeCallout } from '@/hooks/useOneTimeCallout';
 import { DndContext, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
@@ -54,7 +54,7 @@ import { useRoadmapPinActions } from './hooks/useRoadmapPinActions';
 import gantryPageStyles from '@/components/page/gantry/GantryPage.module.scss';
 import s from './Roadmap.module.scss';
 
-const BOOST_TIP_KEY = 'gantry_boost_tip_dismissed';
+const BOOST_TIP_KEY = 'gantry_boost_tip';
 
 const DEFAULT_SUBTITLE = 'Submit what you need, see what we are building. The shortest path to the LabOS roadmap.';
 const DRAFT_SUBTITLE =
@@ -114,7 +114,7 @@ export function RoadmapView() {
   );
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [adminOrderMap, setAdminOrderMap] = useState<Partial<Record<RoadmapColumnStage, string[]>>>({});
-  const [showBoostTip, setShowBoostTip] = useState(false);
+  const { open: showBoostTip, dismiss: dismissBoostTip } = useOneTimeCallout(BOOST_TIP_KEY);
 
   const isNarrow = useIsNarrow();
 
@@ -208,21 +208,6 @@ export function RoadmapView() {
   useEffect(() => {
     analytics.onRoadmapViewed();
   }, [analytics]);
-
-  useEffect(() => {
-    if (!currentUser?.uid) {
-      setShowBoostTip(false);
-      return;
-    }
-    getUiFlag(`${BOOST_TIP_KEY}_${currentUser.uid}`).then((dismissed) => {
-      setShowBoostTip(!dismissed);
-    });
-  }, [currentUser?.uid]);
-
-  const dismissBoostTip = () => {
-    if (currentUser?.uid) setUiFlag(`${BOOST_TIP_KEY}_${currentUser.uid}`);
-    setShowBoostTip(false);
-  };
 
   const handleClearAllFilters = () => {
     filters.handleClearAll();

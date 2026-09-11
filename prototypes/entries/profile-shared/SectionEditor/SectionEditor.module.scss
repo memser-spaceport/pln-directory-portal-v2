@@ -1,0 +1,100 @@
+@use 'styles/media';
+
+// The section-editing pattern's sheet — see `SectionEditor.tsx`. It was
+// `member-profile-edit/MemberProfileEdit.module.scss` until the new-member page
+// (`onboarding`) opened the same editors; the page ground stayed behind with
+// that page and everything about an open card moved here with the components
+// that wear it.
+
+// One wrapper per card, so the page can speak to a card as a unit — mute it,
+// point the floating control at it — without reaching into production markup.
+.section {
+  transition: opacity 0.2s ease;
+}
+
+// **Every card that is not being edited, while one is.** `inert` (set on the
+// element) is what actually disables it — no clicks, no focus, no tab stops —
+// and this is only how that reads. 0.6 is production's own disabled measure:
+// `FormField.module.scss` fades a disabled input to exactly this, so a muted
+// card and a disabled field are one tone of "not now". Not greyscale — the
+// cards keep their colour so the page still reads as the same page, just out
+// of reach.
+.muted {
+  opacity: 0.6;
+  user-select: none;
+}
+
+// **The card that has swapped itself for its editor.**
+//
+// Production's `editView` (both `ProfileDetails` and `DetailsSection`) turns the
+// card into a fullscreen fixed layer below tablet-landscape. That is right on the
+// real page, where the fullscreen card *is* how the other sections get out of
+// the way. Here the other sections get out of the way by being muted, and the
+// two rules this entry exists for — controls after the fields, a floating way
+// back when you scroll off — only mean anything while the card stays in the
+// flow. So it stays in the flow on every width, wearing the desktop tint. The
+// `!important`s answer `.root.editView` in another module, same hammer the job
+// board's `.editCard` and production's own ContactDetails reach for.
+//
+// `scroll-margin-top` is what "Keep editing" scrolls back to: the card's top
+// edge, with the same 16px the column keeps between cards.
+.editCard {
+  scroll-margin-top: 16px;
+
+  @media (max-width: #{media.$breakpoint-md - 1}px) {
+    position: static !important;
+    inset: auto !important;
+    z-index: auto !important;
+    overflow-y: visible !important;
+    padding: 16px !important;
+    border: 1px solid var(--border-brand-subtle, #aebfff);
+    background: var(--background-brand-soft-surface, #f2f5ff);
+  }
+}
+
+// The white field panel inside an editing card. Production gives it a nested
+// scroller and 92px of bottom padding below tablet-landscape — both for the
+// fullscreen layer's sticky Save bar, neither true once the card is in the flow
+// and Save sits under the last field. (Transcribed from the job board's
+// `.formBody`, which un-does the same three rules for the same reason.)
+.formBody {
+  @media (max-width: #{media.$breakpoint-md - 1}px) {
+    max-height: none;
+    overflow: visible;
+    padding-bottom: 16px;
+  }
+}
+
+// The editor's title row. Just the title now — the controls that used to share
+// this row are in `.editorFooter`. 16px under it is `EditFormControls.root`'s
+// own desktop margin, so the title sits over the panel exactly where it did.
+.editorHead {
+  margin-bottom: 16px;
+}
+
+// **Cancel and Save, after the fields.** Right-aligned under the white panel,
+// 8px apart, the same `Button size="s"` pair and the same 100px minimum
+// `EditFormControls` gives them — only the position changed. 16px above is the
+// panel-to-controls distance the header row had; the pair is closer to the
+// fields it acts on than to anything else, which is the point of moving it.
+//
+// Below tablet-landscape the two share the row edge to edge, which is how
+// production's own mobile control pair (`EditOfficeHoursFormControls`'
+// `.secondaryButton` / `.primaryButton`, `flex: 1 0 0`) already lays them out.
+.editorFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.footerBtn {
+  @media (max-width: #{media.$breakpoint-md - 1}px) {
+    flex: 1 0 0;
+  }
+}
+
+// (The floating "Keep editing" / "Save changes" pills lived here; they moved to
+// `profile-shared/FloatingEditorControls` when the new-member page needed them
+// for its CV review card — and then the rest of this sheet followed, for the
+// same page and the same reason. One component, one sheet, two hosts.)

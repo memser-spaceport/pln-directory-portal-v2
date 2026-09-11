@@ -57,6 +57,8 @@ export interface IJobTeam {
   subFocusAreas: string[];
   /** Team-configured inbox for job referrals. When set, the Refer modal skips member pick. */
   jobReferEmail?: string | null;
+  /** False when the backend refuses in-app applications for this team (e.g. inactive lead emails); Apply then leaves the site. */
+  inAppApplyAvailable?: boolean;
 }
 
 export interface IJobTeamGroup {
@@ -101,21 +103,39 @@ export type JobsFilterKey = 'roleCategory' | 'seniority' | 'focus' | 'location' 
  *  `email`. */
 export type IJobReferralRecipient = { memberUid: string; name?: string } | { email: string; name?: string };
 
-export interface ICreateJobReferralPayload {
-  referredMemberUid: string;
+/** The person being referred when they have no directory record. Mirrors the backend's
+ *  `ReferredExternalPersonSchema` — all three required, because together they are the
+ *  whole record: the name is who the note is about, the email is how the hiring team
+ *  reaches them, and the LinkedIn profile is the only way a reader can check who they
+ *  are (the job a member's directory page does for a member). */
+export interface IJobReferralExternalPerson {
+  name: string;
+  email: string;
+  /** As typed — a bare slug or a URL. The backend normalises it
+   *  (`normalizeExternalLinkedinUrl`); the frontend only validates the shape. */
+  linkedinUrl: string;
+}
+
+/** Exactly one of the two, mirroring `CreateJobReferralSchema`'s refine. That refine
+ *  rejects both-or-neither with a 400, so the `never` arms turn a wrong payload into a
+ *  type error instead of a toast. */
+type IJobReferralReferee =
+  | { referredMemberUid: string; referredPerson?: never }
+  | { referredPerson: IJobReferralExternalPerson; referredMemberUid?: never };
+
+export type ICreateJobReferralPayload = IJobReferralReferee & {
   /** Omitted entirely when the hiring team has a referral inbox — the backend addresses it. */
   recipients?: IJobReferralRecipient[];
   note: string;
   /**
-   * Whether the referred member is copied on the email.
+   * Whether the referred person is copied on the referral email.
    *
-   * The backend CCs them unconditionally today, and `CreateJobReferralSchema` is a
-   * plain `z.object` — non-strict — so this key is stripped rather than rejected. It
-   * is sent anyway so the referrer's choice starts working the day the API honours
-   * it, with no second frontend change.
+   * Honoured by the backend, which defaults it to `true`. Unchecked, they are left off
+   * the CC and receive a separate "you were referred" notice instead — so the choice is
+   * which email they get, not whether they hear about it.
    */
   includeReferredMember?: boolean;
-}
+};
 
 export interface IJobReferralDraft {
   /** The complete note, ready to show in an editable field. */

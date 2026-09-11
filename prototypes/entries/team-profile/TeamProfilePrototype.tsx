@@ -32,6 +32,7 @@ import { TeamMembersView } from './TeamMembersView';
 import { TeamContributionsView } from './TeamContributionsView';
 import { TeamProjectsView } from './TeamProjectsView';
 import { TeamOpenRolesView } from './TeamOpenRolesView';
+import { TeamApplicantsPage } from './TeamApplicantsPage';
 import { seedListingMeta, submitJobHref, type ListingMeta, type ListingStatus } from '../job-board/listings';
 import { NewsCardView } from './NewsCardView';
 import { NewsFullPageView } from './NewsFullPageView';
@@ -67,6 +68,7 @@ import {
   TEAM_FOLLOWER_COUNT,
   MOCK_TEAM_DEMO_DAY,
   MOCK_TEAM_ROLES,
+  MOCK_APPLICANTS,
   MOCK_TEAM_FACTS,
   type TeamStatus,
 } from './mocks';
@@ -129,6 +131,13 @@ export default function TeamProfilePrototype() {
   // Demo-only, same reason as the news seed: one mock team, so the only way to
   // see the owner's empty Open roles section is to take its roles away.
   const [rolesSeed, setRolesSeed] = useState<'some' | 'none'>('some');
+  /**
+   * The applicants page, open on a role — client state here; the real thing
+   * would be a route under the team (`/teams/<id>/applicants`). A modal was
+   * built beside it and compared; the page is what stayed (see
+   * `RoleApplicants`).
+   */
+  const [applicantsRole, setApplicantsRole] = useState<string | null>(null);
 
   /**
    * The team's listings as the team manages them, from its own page — the
@@ -491,6 +500,21 @@ export default function TeamProfilePrototype() {
         </div>
       </div>
 
+      {applicantsRole && teamRoles ? (
+        /* The applicants page, in the profile's place — one press from the
+           role row, Back returns here with the profile as it was. */
+        <TeamApplicantsPage
+          teamName={team.name ?? 'the team'}
+          roles={teamRoles.roles.map((r) => ({
+            uid: r.uid,
+            title: r.roleTitle,
+            postingHref: r.applyUrl ?? undefined,
+            applicants: MOCK_APPLICANTS[r.uid] ?? [],
+          }))}
+          initialRoleUid={applicantsRole}
+          onBack={() => setApplicantsRole(null)}
+        />
+      ) : (
       <div className={local.layout}>
         <div className={`${shell.teamDetail} ${local.mainCol}`}>
           <BackButton to="/prototypes/teams" />
@@ -582,7 +606,13 @@ export default function TeamProfilePrototype() {
               submitHref={canSubmitJobs ? submitJobHref(MOCK_TEAM.id) : undefined}
               manage={
                 canSubmitJobs
-                  ? { metaFor: (uid) => roleListings.get(uid), onSetStatus: setRoleStatus, onDelete: deleteRole }
+                  ? {
+                      metaFor: (uid) => roleListings.get(uid),
+                      onSetStatus: setRoleStatus,
+                      onDelete: deleteRole,
+                      applicantsFor: (uid) => MOCK_APPLICANTS[uid] ?? [],
+                      openApplicants: setApplicantsRole,
+                    }
                   : undefined
               }
             />
@@ -734,6 +764,7 @@ export default function TeamProfilePrototype() {
           )
         )}
       </div>
+      )}
 
       {/* One story, in full — the feed's own modal. Rendered outside the news
           panel so it overlays the page, not the rail. */}

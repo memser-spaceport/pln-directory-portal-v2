@@ -1,0 +1,228 @@
+@use 'styles/media';
+
+// The editor status bar wears `FloatingFeedbackButton`'s *wrap* — fixed,
+// bottom, z-index 9, the arriving animation — imported, not re-drawn. The wrap
+// is then stretched across the viewport and made to centre its child, so the
+// bar sits in the middle rather than the corner the feedback control lives in.
+// The wrap itself takes no pointer events: it now covers the whole width, and
+// a click beside the bar has to reach the page underneath.
+.wrap.wrap {
+  left: 0;
+  right: 0;
+  justify-content: center;
+  padding-inline: 16px;
+  pointer-events: none;
+}
+
+// Hosts whose editor becomes a fixed, full-screen takeover below
+// tablet-landscape (production `DetailsSection`'s `editView`, z-index 10, its
+// own close and Save) opt into this: there is no page to scroll away from an
+// editor on, so nothing for the bar to say or return to. Measured before the
+// rule existed, the bar rendered *under* that takeover and was hidden by
+// z-order alone; the modifier makes the absence a decision. It is a modifier
+// and not the default because the profile's section editors un-fix that
+// layer and keep their cards in flow — on a phone their bar is the way back.
+.desktopOnly.desktopOnly {
+  display: none;
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
+}
+
+// One object: a white card holding the status sentence and the design
+// system's buttons. The card border and a neutral shadow, so it reads
+// as a surface lifted off the page rather than as a brand control — the
+// presses inside it carry the emphasis, and a Save filled brand-blue inside a
+// brand-blue surface would have nowhere to stand out. 8px inset around the
+// 42px buttons plus the hairline is what makes the bar 60px (it was 58 when
+// they were the navbar's 40px pills); the status line gets 16px on its side so
+// the sentence starts where a card's text would.
+.bar {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 100%;
+  padding: 8px 8px 8px 16px;
+  /* A card's corner, not a pill: *"let's do it rectangular not circular."*
+     The bar is a card lifted off the page — it wears the card border and
+     speaks for a card — and only the presses inside it are pills. One radius
+     in every state and at every width; the 16px the wait and the phone layout
+     used to take is gone with the pill it was an exception to.
+
+     12px rather than the 8px it started at (*"a bit more rounded"*): the two
+     are one step apart on the product's own scale — 8px is the in-page card
+     (`DetailsSection`), 12px is what the product gives a surface that floats
+     over the page (`Modal`, and 176 other uses to 8px's in-flow ones), which
+     is what this is. It stays well short of the 999px it used to be. */
+  border-radius: 12px;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  box-shadow: 0 4px 8px rgba(14, 15, 17, 0.12);
+}
+
+// The bar while a CV is being read: the importer's reading row at a distance
+// — spinner, then the row's three stacked lines (title, 6px progress track,
+// "usually takes…" hint, all in the importer's own classes), then Cancel.
+// A fixed width rather than the content's, because the one line
+// in it that has no width of its own is the progress track, and a track that
+// sized itself to the file name would be a different length for every file.
+// 560px: the review bar this one hands off to measured 510px at 1280 wide
+// ("Reviewing your experience" · Keep editing · Save CV results), so the two
+// states of the bar stand in about the same footprint, and the track gets the
+// ~380px left after the spinner, the gaps and the Cancel pill — long enough
+// for a fill to be read as a fraction rather than a dot.
+.barWait {
+  width: min(100%, 560px);
+}
+
+// The status sentence takes `EditFormControls`' title type (14/500,
+// secondary), led by the scroll-direction arrow, and truncates before it
+// pushes the buttons out of the bar — on a phone the buttons are the point
+// and the sentence is the caption. The mark and the text are one flex row so
+// the ellipsis lands on the text and never swallows the glyph.
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+// Direction, not state: the mark tells whether the open card is above or below
+// the current viewport, and the whole bar can be pressed to go there.
+.directionMark {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--background-brand-subtle, #eef6ff);
+  color: var(--action-background-brand-normal, #156ff7);
+}
+
+.statusText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// 8px between the two buttons — the same gap the editor's own Cancel/Save row
+// keeps, because this bar speaks for that row.
+.actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+// The design system's rectangular `Button` (size m), as the drawer's Continue
+// and the cards' own Cancel/Save wear it. *"Make buttons also rectangular for
+// both onboarding and job board drawer prototypes."* It replaced the navbar's
+// rounded pair, which the bar wore while it was itself a pill: a pill ground
+// had pill presses, and once the ground became a card its presses became the
+// card's. The class adds only what a glyph beside the label needs — the Button
+// lays its own label out as text and sets its own type, height and colours.
+//
+// **Which tone.** Save is `fill` — the one thing in the bar worth pressing
+// hardest. Every bordered press is `border` + `neutral`, the grey pair, rather
+// than the bordered *brand* they wore for a day.
+//
+// "Keep editing" first: *"for Keep editing button make it grey."* Two
+// brand-blue controls side by side made the way back argue with the Save, and
+// the way back is the quieter of the two — it puts you where you already were.
+//
+// Then the read state's Cancel: *"Cancel for loading state should also be
+// grey."* It had been left brand on the argument that it never stands beside
+// Save, so nothing was competing — true, and beside the point twice over. One
+// bar with a grey press in one state and a blue one in the next is two lineages
+// in one object. And this row *is* the importer's reading row at a distance,
+// whose own Cancel is `ExperienceImportPanel`'s `.quietButton` at
+// `--foreground-neutral-secondary` (#455468) — the exact ink `border` +
+// `neutral` gives it. The bar was louder than the row it claims to be
+// repeating; grey is what it was always mirroring.
+.btn.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 4px, not the row's 8: *"make spacing between label and arrow of the
+     button smaller."* 8px is the gap *between* two controls (`.actions`),
+     and spending the same value inside one made the arrow read as a second
+     object beside the label rather than as its mark. 4px is the next step
+     down the same scale — no new number, and the glyph joins the word. */
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.btnIcon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 15px;
+}
+
+// On a phone the row does not fit: 358px minus two buttons left the sentence
+// ~100px and it truncated to "Unsaved ch…" — measured, not guessed. The
+// sentence is the one thing the buttons cannot say, so it goes above them and
+// the pair fills the row, which is how the editor's own controls sit on a
+// phone. The corner stays 12px, as at every other width.
+@include media.mobile-only {
+  .bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 12px 12px 16px;
+  }
+
+  .statusText {
+    white-space: normal;
+  }
+
+  .actions > * {
+    flex: 1;
+  }
+}
+
+// --- The same object, inline in a bar the host already has -------------------
+//
+// The apply flow's drawer ends in a sticky footer holding Continue, and the
+// floating pill over that footer was a second bar standing on the first —
+// *"put progress bar in the footer, next to Continue to apply."* So the drawer
+// hosts mount the bar's content as a row in that footer (`EditorStatusRow`,
+// through a slot) and never draw the wrap above. The row takes the footer's
+// free width — the hint's place — so Continue keeps its end of the bar; the
+// sentence gets what is left and truncates before it pushes a button. Below
+// tablet-landscape the footer is a stretched column and the row is its top
+// line; on a phone the actions drop under the sentence and fill the width,
+// as the bar's own phone layout does.
+.row {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+// On a phone the footer is a column and the row is its top line. The reading
+// row wraps (its three lines want the width; Cancel drops under them); the
+// editor row does not — Keep editing and Save share the line.
+@include media.mobile-only {
+  .row {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+
+  .row .actions {
+    flex: 1;
+  }
+
+  /* 16px sides rather than the Button's own, so Keep editing and Save CV
+     results keep some air between them on a 358px line. */
+  .row .btn.btn {
+    padding-inline: 16px;
+  }
+}

@@ -9,14 +9,14 @@ export type JobReferShareNetwork = 'linkedin' | 'x' | 'copy_link';
 
 /**
  * Which surface a role was acted on from. The same role card now renders on the job
- * board and on a team profile, and without this the two are indistinguishable in
- * PostHog — which would make it impossible to tell whether the team-profile section
- * drives any clicks or referrals at all.
+ * board, on a team profile and in the home feed's For You roll-ups, and without this
+ * they are indistinguishable in PostHog — which would make it impossible to tell
+ * whether the team-profile section or the feed drives any clicks or referrals at all.
  *
  * Required, never defaulted: a default would silently mislabel the next surface that
  * forgets to pass it.
  */
-export type JobSurface = 'job-board' | 'team-profile';
+export type JobSurface = 'job-board' | 'team-profile' | 'home-feed';
 
 export type JobReferBaseParams = {
   job_id: string;
@@ -27,6 +27,17 @@ export type JobReferBaseParams = {
   seniority: string | null;
   source: JobSurface;
   uses_team_refer_email?: boolean;
+  /**
+   * Which kind of referral the event is about. Optional because the click and
+   * modal-open events fire before anyone has been chosen.
+   *
+   * It exists because `referred_member_uid` cannot tell the two apart: someone outside
+   * the network has no uid, so that field is `''` for them, and `''` would otherwise be
+   * indistinguishable from a bug. Nothing about who they are goes any further than this
+   * — see the payload rule on `JobApplyBaseParams` below, which holds here for the same
+   * reason: a dashboard is a wider audience than a referral email.
+   */
+  referee_type?: 'network_member' | 'outside_network';
 };
 
 /**
@@ -269,6 +280,40 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_SHARED, { ...args });
   };
 
+  /**
+   * A `/jobs?job=` link copied or shared from the refer menu was opened.
+   *
+   * Deliberately its own event rather than a field on `job-detail-opened`,
+   * which fires immediately after it: that event is the denominator of the
+   * apply funnel, and folding shared arrivals into it would silently change
+   * every dashboard already reading it. Join the two on `job_id` instead.
+   */
+  const onJobReferShareLinkOpened = (args: {
+    job_id: string;
+    utm_source: string;
+    /** The share channel, absent if the link was hand-edited on its way here. */
+    utm_medium: string | null;
+  }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_SHARE_LINK_OPENED, { ...args });
+  };
+
+  /**
+   * A profile link in a referral or application email was opened — the
+   * clickthrough that closes the loop on `onJobReferSucceeded` and
+   * `onJobApplySubmitted`, neither of which could see past the send.
+   *
+   * `utm_content` says whose card was pressed, because the referral email
+   * carries both the referrer's and the referred person's.
+   */
+  const onJobEmailProfileLinkClicked = (args: {
+    profile_member_uid: string;
+    job_id: string | null;
+    utm_source: string;
+    utm_content: string | null;
+  }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_EMAIL_PROFILE_LINK_CLICKED, { ...args });
+  };
+
   const onJobApplyClicked = (args: JobApplyBaseParams & { trigger: JobApplyTrigger }) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_CLICKED, { ...args });
   };
@@ -433,6 +478,8 @@ export const useJobsAnalytics = () => {
     onJobReferFailed,
     onJobReferShareMenuOpened,
     onJobReferShared,
+    onJobReferShareLinkOpened,
+    onJobEmailProfileLinkClicked,
     onJobApplyClicked,
     onJobApplySignUpSubmitted,
     onJobApplySignUpFailed,

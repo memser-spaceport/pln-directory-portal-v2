@@ -13,7 +13,7 @@ import { NotificationBell } from '@/components/core/NotificationBell';
 import { useMemberProfileStatus } from '@/services/members/hooks/useMemberProfileStatus';
 import { Signup } from './components/Signup';
 import { NavigationMenu } from '@base-ui-components/react';
-import { useContactSupportStore } from '@/services/contact-support/store';
+import { HelpMenu } from '@/components/core/navbar/components/HelpMenu';
 
 import { DIRECTORY_LINKS, EVENT_LINKS, DEMO_DAY_LINK, DEMO_DAY_ANALYTICS_LINK } from './constants/navLinks';
 
@@ -25,7 +25,6 @@ import { MoreNavItems } from './components/navItems/MoreNavItems';
 import { PLInfraNavItems } from './components/navItems/PLInfraNavItems';
 import {
   AppLogo,
-  HelpIcon,
   ForumIcon,
   EventsIcon,
   DemoDayIcon,
@@ -50,7 +49,6 @@ function Navbar(props: Readonly<INavbar>) {
   const analytics = useCommonAnalytics();
   const authToken = props?.authToken;
   const [showNotifications, setShowNotifications] = useState(false);
-  const { openModal } = useContactSupportStore((s) => s.actions);
   const hasNewNews = useHasNewNews();
 
   const closeNavigationMenu = () => {
@@ -194,9 +192,7 @@ function Navbar(props: Readonly<INavbar>) {
           />
           <ApplicationSearch isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
 
-          <div className={s.supportButton}>
-            <HelpIcon onClick={() => openModal()} />
-          </div>
+          <HelpMenu isLoggedIn={isLoggedIn} userInfo={userInfo} />
           <NotificationBell isLoggedIn={isLoggedIn} />
           {isLoggedIn && userInfo?.uid && (
             <AccountMenu

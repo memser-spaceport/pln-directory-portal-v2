@@ -7,6 +7,7 @@ import { FullSearchResults } from '@/components/core/application-search/componen
 import { AiChatPanel } from '@/components/core/application-search/components/AiChatPanel';
 import { IUserInfo } from '@/types/shared.types';
 import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
+import { useRecordRecentSearch } from '@/services/search/hooks/useRecordRecentSearch';
 import { SearchCategories } from '@/components/core/application-search/components/SearchCategories';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -24,6 +25,10 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
   const [mode, setMode] = useState<'regular' | 'ai'>('regular');
   const [searchTerm, setSearchTerm] = useState('');
   const { data } = useFullApplicationSearch(searchTerm);
+
+  /* Recent used to be written by that hook's fetcher; it is the caller's job
+     now. See useRecordRecentSearch. */
+  useRecordRecentSearch(searchTerm);
   const [initialAiPrompt, setInitialAiPrompt] = useState('');
   const [activeCategory, setActiveCategory] = React.useState<
     'top' | 'members' | 'teams' | 'projects' | 'forumThreads' | 'events' | null

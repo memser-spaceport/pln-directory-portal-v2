@@ -14,6 +14,8 @@ export enum JobsQueryKey {
   /** The viewer's complete interested-roles list. Same whole-map shape as
    *  `ApplicationStatuses`, scoped by member uid for the same reason. */
   InterestStatuses = 'job-interest-statuses',
+  /** Hiring roll-ups matched to the signed-in member, for the newsfeed's For You. */
+  ForYou = 'jobs-for-you',
 }
 
 /**

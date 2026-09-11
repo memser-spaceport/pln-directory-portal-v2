@@ -1,124 +1,151 @@
-import React from 'react';
-import { Menu } from '@base-ui-components/react/menu';
+'use client';
+
+import React, { useEffect, useRef } from 'react';
+import * as TooltipPrimitive from '@radix-ui/react-tooltip';
+import clsx from 'clsx';
+
 import { IUserInfo } from '@/types/shared.types';
-import Link from 'next/link';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { useCommonAnalytics } from '@/analytics/common.analytics';
+import { useContactSupportStore } from '@/services/contact-support/store';
+import { useOneTimeCallout } from '@/hooks/useOneTimeCallout';
+
+// The product's callout tooltip — the brand-blue `highlight` variant of the
+// core Tooltip, reused by its stylesheet rather than through the component,
+// because that component only opens on hover and this one has to open on
+// arrival. Same move team-profile's PostNewsButton makes.
+import tip from '@/components/core/tooltip/tooltip.module.css';
+
+import { HelpIcon } from '../icons';
 
 import s from './HelpMenu.module.scss';
 
+/** Once per member, across devices — the record lives on the member row, with
+ *  IndexedDB in front of it as a cache. Signed-out visitors still see the (?),
+ *  and for them the local flag is the only record there can be. */
+const CALLOUT_KEY = 'help_callout';
+
+type DismissedVia = 'got-it' | 'escape' | 'modal-opened';
+
 interface Props {
-  userInfo: IUserInfo;
-  authToken: string;
-  isLoggedIn: boolean;
+  userInfo?: IUserInfo;
+  isLoggedIn?: boolean;
 }
 
-export const HelpMenu = ({ userInfo, authToken, isLoggedIn }: Props) => {
-  const menuTriggerRef = React.useRef<HTMLButtonElement>(null);
+/**
+ * The header's (?) — the network's global help and feedback door.
+ *
+ * One click opens the Contact Support form on its first topic. No menu: for one
+ * day it listed the five `CONTACT_SUPPORT_TOPICS` in front of the form, which
+ * was half of the answer to a discovery problem (PostHog, 90 days: 605 modal
+ * opens, 12 on a non-default topic — nobody looking to give feedback found out
+ * the (?) was where feedback lived).
+ *
+ * The other half was moving the topics out from behind a `Dropdown` *inside*
+ * the form and onto a pill row, where all five sit at rest. That is the half
+ * that fixes it, and it makes the menu redundant: a list of five topics in
+ * front of a form showing the same five topics is a second click to reach what
+ * was already on screen. `contact-support.test.tsx` holds the guarantee that
+ * they are all visible there — "puts every topic on screen at rest, rather than
+ * behind a press".
+ *
+ * So the (?) behaves like its neighbours again. The row's other icon buttons —
+ * search, the notification bell — open their thing on a press, and this one now
+ * does too.
+ */
+export const HelpMenu = ({ userInfo, isLoggedIn }: Props) => {
   const analytics = useCommonAnalytics();
+  const { openModal } = useContactSupportStore((store) => store.actions);
+
+  // Both answers — local cache and member record — are resolved in here, which
+  // is also why the callout can still only appear a tick after mount: that
+  // delay is what stops it flashing for members who dismissed it long ago.
+  const { open: calloutReady, dismiss: dismissFlag } = useOneTimeCallout(CALLOUT_KEY);
+
+  /* Members only. The (?) is in the header for signed-out visitors too and the
+     support form works without a session, so the sentence is true for them —
+     but it is an unprompted interruption to someone who has not signed in yet,
+     and they have the sign-up flow in the same row competing for that attention.
+     Gated here rather than inside `useOneTimeCallout`, because this is one
+     callout's decision: the hook's other two callers are on pages that already
+     require a session, and one of them might one day want the opposite.
+     `isLoggedIn` arrives from the server-rendered cookie state, so it is settled
+     on the first paint and this cannot flash. `Boolean()` is for the type, not
+     the behaviour: `isLoggedIn` has historically been `''` rather than `false`
+     here, and `'' && x` is already falsy — this just stops that `''` reaching
+     `open=`, which wants a boolean. */
+  const calloutOpen = Boolean(isLoggedIn) && calloutReady;
+
+  // A ref rather than a dependency, for the reason the Home news dot uses one:
+  // `useCommonAnalytics()` hands back a fresh object every render, so an effect
+  // that depended on it would report an impression per render.
+  const shownReportedRef = useRef(false);
+  useEffect(() => {
+    if (shownReportedRef.current || !calloutOpen) {
+      return;
+    }
+    shownReportedRef.current = true;
+    analytics.onHelpCalloutShown(getAnalyticsUserInfo(userInfo));
+  }, [analytics, calloutOpen, userInfo]);
+
+  const dismissCallout = (via: DismissedVia) => {
+    // Guarded so a second dismissal — Escape after Got it, or the modal opening
+    // when there was no callout to begin with — neither double-counts nor
+    // rewrites a flag that is already set.
+    if (!calloutOpen) {
+      return;
+    }
+    analytics.onHelpCalloutDismissed(via, getAnalyticsUserInfo(userInfo));
+    dismissFlag();
+  };
+
+  const handleClick = () => {
+    analytics.onHelpMenuOpened(getAnalyticsUserInfo(userInfo));
+    // The form is the thing the callout was announcing, so arriving at it is
+    // the announcement landing rather than being ignored.
+    dismissCallout('modal-opened');
+    // Named rather than left to `openModal`'s default, which is the same value
+    // today: "opens on Contact support" is the requirement, so the call site is
+    // where it should be legible, and it survives the default changing.
+    openModal(undefined, 'contactSupport');
+  };
 
   return (
-    <>
-      <Menu.Root modal={false}>
-        <Menu.Trigger className={s.Button} ref={menuTriggerRef}>
-          <LifesafeIcon className={s.ButtonIcon} />
-        </Menu.Trigger>
-        <Menu.Portal>
-          <Menu.Positioner className={s.Positioner} align="end" sideOffset={10}>
-            <Menu.Popup className={s.Popup}>
-              <Link target="_blank" href={process.env.PROTOSPHERE_URL ?? ''}>
-                <Menu.Item
-                  className={s.Item}
-                  onClick={() => analytics.onNavGetHelpItemClicked('ProtoSphere', getAnalyticsUserInfo(userInfo))}
-                >
-                  <MessageIcon /> ProtoSphere{' '}
-                  <span className={s.itemSub}>
-                    Forum <LinkIcon />
-                  </span>
-                </Menu.Item>
-              </Link>
-              <div className={s.SeparatorWrapper}>
-                Support
-                <Menu.Separator className={s.Separator} />
-              </div>
-              <Link target="_blank" href={process.env.GET_SUPPORT_URL ?? ''}>
-                <Menu.Item
-                  className={s.Item}
-                  onClick={() => analytics.onNavGetHelpItemClicked('Get Support', getAnalyticsUserInfo(userInfo))}
-                >
-                  <HelpIcon /> Get Support{' '}
-                  <span className={s.itemSub}>
-                    <LinkIcon />
-                  </span>
-                </Menu.Item>
-              </Link>
-              <Link href="/changelog">
-                <Menu.Item
-                  className={s.Item}
-                  onClick={() => analytics.onNavGetHelpItemClicked('Changelog', getAnalyticsUserInfo(userInfo))}
-                >
-                  <ChangeLogIcon /> Changelog
-                </Menu.Item>
-              </Link>
-            </Menu.Popup>
-          </Menu.Positioner>
-        </Menu.Portal>
-      </Menu.Root>
-    </>
+    <TooltipPrimitive.Provider delayDuration={0}>
+      <TooltipPrimitive.Root open={calloutOpen}>
+        {/* A span rather than the button via `asChild`: the button carries its
+            own class and handler, and letting Radix's Slot merge onto it is one
+            library reaching into a node that is simpler left alone. */}
+        <TooltipPrimitive.Trigger asChild>
+          <span className={s.anchor}>
+            <button type="button" className={s.trigger} onClick={handleClick} aria-label="Help and feedback">
+              <HelpIcon />
+            </button>
+          </span>
+        </TooltipPrimitive.Trigger>
+        <TooltipPrimitive.Portal>
+          <TooltipPrimitive.Content
+            side="bottom"
+            align="end"
+            sideOffset={8}
+            // Radix mirrors the children into a hidden role="tooltip" node;
+            // an aria-label replaces that copy with text, so "Got it" is not
+            // announced twice.
+            aria-label="You can give feedback, report a bug or contact support here."
+            className={clsx(tip.tp, tip['tp--highlight'], s.calloutTip)}
+            onEscapeKeyDown={() => dismissCallout('escape')}
+            onPointerDownOutside={(e) => e.preventDefault()}
+          >
+            {/* The three verbs are the form's own topics, so the hint and the
+                room it announces say the same words. */}
+            <p className={s.calloutText}>You can give feedback, report a bug or contact support here.</p>
+            <button type="button" className={s.calloutDismiss} onClick={() => dismissCallout('got-it')}>
+              Got it
+            </button>
+            <TooltipPrimitive.Arrow className={tip['tp__arrow--highlight']} width={14} height={7} />
+          </TooltipPrimitive.Content>
+        </TooltipPrimitive.Portal>
+      </TooltipPrimitive.Root>
+    </TooltipPrimitive.Provider>
   );
 };
-
-function LifesafeIcon(props: React.ComponentProps<'svg'>) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M15.6875 14.5352C15.9609 14.8086 15.9609 15.2188 15.6875 15.4648C15.4414 15.7383 15.0312 15.7383 14.7852 15.4648L14.457 15.1641C13.2266 16.1484 11.6953 16.75 10 16.75C8.27734 16.75 6.74609 16.1484 5.51562 15.1641L5.1875 15.4648C4.94141 15.7383 4.53125 15.7383 4.28516 15.4648C4.01172 15.2188 4.01172 14.8086 4.28516 14.5352L4.58594 14.2344C3.60156 13.0039 3 11.4727 3 9.75C3 8.05469 3.60156 6.52344 4.58594 5.29297L4.28516 4.96484C4.01172 4.71875 4.01172 4.30859 4.28516 4.0625C4.53125 3.78906 4.94141 3.78906 5.1875 4.0625L5.51562 4.36328C6.74609 3.37891 8.27734 2.75 10 2.75C11.6953 2.75 13.2266 3.37891 14.457 4.36328L14.7852 4.0625C15.0312 3.78906 15.4414 3.78906 15.6875 4.0625C15.9609 4.30859 15.9609 4.71875 15.6875 4.96484L15.3867 5.29297C16.3711 6.52344 17 8.05469 17 9.75C17 11.4727 16.3711 13.0039 15.3867 14.2344L15.6875 14.5352ZM11.3125 12.0195C10.9297 12.2656 10.4648 12.375 10 12.375C9.50781 12.375 9.04297 12.2656 8.66016 12.0195L6.44531 14.2344C7.42969 15 8.66016 15.4375 10 15.4375C11.3125 15.4375 12.543 15 13.5273 14.2344L11.3125 12.0195ZM15.6875 9.75C15.6875 8.4375 15.2227 7.20703 14.457 6.22266L12.2422 8.4375C12.4883 8.82031 12.625 9.28516 12.625 9.75C12.625 10.2422 12.4883 10.707 12.2422 11.0898L14.457 13.3047C15.2227 12.3203 15.6875 11.0898 15.6875 9.75ZM10 4.0625C8.66016 4.0625 7.42969 4.52734 6.44531 5.29297L8.66016 7.50781C9.04297 7.26172 9.50781 7.125 10 7.125C10.4648 7.125 10.9297 7.26172 11.3125 7.50781L13.5273 5.29297C12.543 4.52734 11.3125 4.0625 10 4.0625ZM7.73047 11.0898C7.48438 10.707 7.375 10.2422 7.375 9.75C7.375 9.28516 7.48438 8.82031 7.73047 8.4375L5.51562 6.22266C4.75 7.20703 4.3125 8.4375 4.3125 9.75C4.3125 11.0898 4.75 12.3203 5.51562 13.3047L7.73047 11.0898ZM10 8.4375C9.26172 8.4375 8.6875 9.03906 8.6875 9.75C8.6875 10.4883 9.26172 11.0625 10 11.0625C10.7109 11.0625 11.3125 10.4883 11.3125 9.75C11.3125 9.03906 10.7109 8.4375 10 8.4375Z"
-        fill="#0F172A"
-      />
-    </svg>
-  );
-}
-
-function MessageIcon(props: React.ComponentProps<'svg'>) {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <path
-        d="M10.8438 4.6875C11.1992 4.6875 11.5 4.98828 11.5 5.34375C11.5 5.72656 11.1992 6 10.8438 6H5.15625C4.77344 6 4.5 5.72656 4.5 5.34375C4.5 4.98828 4.77344 4.6875 5.15625 4.6875H10.8438ZM8.21875 7.3125C8.57422 7.3125 8.875 7.61328 8.875 7.96875C8.875 8.35156 8.57422 8.625 8.21875 8.625H5.15625C4.77344 8.625 4.5 8.35156 4.5 7.96875C4.5 7.61328 4.77344 7.3125 5.15625 7.3125H8.21875ZM13.2227 0.75C14.207 0.75 14.9727 1.54297 14.9727 2.5V10.3203C14.9727 11.25 14.1797 12.043 13.2227 12.043H9.28516L5.86719 14.6133C5.64844 14.75 5.34766 14.6133 5.34766 14.3398V12.0703H2.72266C1.73828 12.0703 0.972656 11.3047 0.972656 10.3477V2.5C0.972656 1.54297 1.73828 0.75 2.72266 0.75H13.2227ZM13.6875 10.375V2.5C13.6875 2.28125 13.4688 2.0625 13.25 2.0625H2.75C2.50391 2.0625 2.3125 2.28125 2.3125 2.5V10.375C2.3125 10.6211 2.50391 10.8125 2.75 10.8125H6.6875V12.4531L8.875 10.8125H13.25C13.4688 10.8125 13.6875 10.6211 13.6875 10.375Z"
-        fill="#64748B"
-      />
-    </svg>
-  );
-}
-
-function LinkIcon(props: React.ComponentProps<'svg'>) {
-  return (
-    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <path
-        d="M0.84375 8.93359C0.953125 9.07031 1.11719 9.125 1.28125 9.125C1.47266 9.125 1.63672 9.07031 1.74609 8.93359L8.0625 2.61719V7.59375C8.0625 7.97656 8.36328 8.25 8.71875 8.25C9.10156 8.25 9.375 7.97656 9.375 7.59375V1.03125C9.375 0.675781 9.10156 0.375 8.71875 0.375H2.15625C1.80078 0.375 1.5 0.675781 1.5 1.03125C1.5 1.41406 1.80078 1.6875 2.15625 1.6875H7.16016L0.84375 8.00391C0.570312 8.27734 0.570312 8.6875 0.84375 8.93359Z"
-        fill="#E2E8F0"
-      />
-    </svg>
-  );
-}
-
-function HelpIcon(props: React.ComponentProps<'svg'>) {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <path
-        d="M8 0.75C11.8555 0.75 15 3.89453 15 7.75C15 11.6328 11.8555 14.75 8 14.75C4.11719 14.75 1 11.6328 1 7.75C1 3.89453 4.11719 0.75 8 0.75ZM8 13.4375C11.1172 13.4375 13.6875 10.8945 13.6875 7.75C13.6875 4.63281 11.1172 2.0625 8 2.0625C4.85547 2.0625 2.3125 4.63281 2.3125 7.75C2.3125 10.8945 4.85547 13.4375 8 13.4375ZM8 9.9375C8.46484 9.9375 8.875 10.3203 8.875 10.8125C8.875 11.3047 8.46484 11.6875 8 11.6875C7.48047 11.6875 7.125 11.3047 7.125 10.8125C7.125 10.3203 7.50781 9.9375 8 9.9375ZM8.90234 4.25C9.99609 4.25 10.8438 5.09766 10.8164 6.16406C10.8164 6.82031 10.4609 7.44922 9.88672 7.80469L8.65625 8.57031V8.625C8.65625 8.98047 8.35547 9.28125 8 9.28125C7.64453 9.28125 7.34375 8.98047 7.34375 8.625V8.1875C7.34375 7.96875 7.45312 7.75 7.67188 7.61328L9.23047 6.68359C9.42188 6.57422 9.53125 6.38281 9.53125 6.16406C9.53125 5.83594 9.23047 5.5625 8.875 5.5625H7.48047C7.15234 5.5625 6.90625 5.83594 6.90625 6.16406C6.90625 6.51953 6.60547 6.82031 6.25 6.82031C5.89453 6.82031 5.59375 6.51953 5.59375 6.16406C5.59375 5.09766 6.44141 4.25 7.50781 4.25H8.90234Z"
-        fill="#64748B"
-      />
-    </svg>
-  );
-}
-
-function ChangeLogIcon(props: React.ComponentProps<'svg'>) {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <path
-        d="M8 0.75C11.8555 0.75 15 3.89453 15 7.75C15 11.6328 11.8555 14.75 8 14.75C6.55078 14.75 5.23828 14.3398 4.11719 13.6016C3.81641 13.4102 3.73438 13 3.92578 12.6992C4.14453 12.3984 4.55469 12.3164 4.85547 12.5078C5.75781 13.1094 6.82422 13.4375 8 13.4375C11.1172 13.4375 13.6875 10.8945 13.6875 7.75C13.6875 4.63281 11.1172 2.0625 8 2.0625C5.97656 2.0625 4.19922 3.12891 3.1875 4.6875H4.71875C5.07422 4.6875 5.375 4.98828 5.375 5.34375C5.375 5.72656 5.07422 6 4.71875 6H1.65625C1.27344 6 1 5.72656 1 5.34375V2.28125C1 1.92578 1.27344 1.625 1.65625 1.625C2.01172 1.625 2.3125 1.92578 2.3125 2.28125V3.67578C3.57031 1.92578 5.64844 0.75 8 0.75ZM8 4.25C8.35547 4.25 8.65625 4.55078 8.65625 4.90625V7.50391L10.4062 9.25391C10.6797 9.52734 10.6797 9.9375 10.4062 10.1836C10.1602 10.457 9.75 10.457 9.50391 10.1836L7.53516 8.21484C7.39844 8.10547 7.34375 7.94141 7.34375 7.75V4.90625C7.34375 4.55078 7.61719 4.25 8 4.25Z"
-        fill="#64748B"
-      />
-    </svg>
-  );
-}

@@ -1,0 +1,159 @@
+@use 'styles/media';
+
+/* The team page's own width and ground: the profile column plus the rail is
+ * 1264px at the demo bar, and the shell paints #f1f5f9 behind the cards. */
+.page {
+  width: 100%;
+  max-width: 1264px;
+  margin: 0 auto;
+  padding: 0 16px 40px;
+}
+
+.back {
+  margin: 8px 0 16px;
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* The section title scale the profile's H2s use, one step up for a page. */
+.title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* The role picker and the posting link, one row above the split. A select
+ * rather than tabs: a team can carry ten or more roles, and ten titles in a
+ * tab strip is a scroll with no end in sight, where a menu lists them. */
+.roleBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+/* SortDropdown's trigger, widened for a role title: its own `white-space:
+ * nowrap` is right for "Latest" and wrong for "Senior Distributed Systems
+ * Engineer (3)" on a phone, so the label may ellipsise inside a cap. */
+.rolePicker {
+  max-width: min(100%, 420px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* List beside pane. 440px keeps "Protocol Engineer · Lattice Compute" whole
+ * beside a New mark and a date — at 400 the row ellipsised the team, which is
+ * the half of the line a founder scans for; the pane takes the rest. */
+.split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+
+  @include media.tablet-landscape {
+    grid-template-columns: 440px minmax(0, 1fr);
+  }
+}
+
+/* The list is a white card, like every section on the profile; the rows
+ * inside carry the section's grey. Sticky on desktop so the list stays under
+ * the hand while a long profile scrolls in the pane. */
+.listCol {
+  background: var(--background-base-white, #fff);
+  border-radius: 12px;
+  padding: 16px;
+
+  @include media.tablet-landscape {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.searchWrap {
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+
+  @include media.tablet-landscape {
+    overflow-y: auto;
+    min-height: 0;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+
+/* The pane is the profile's own column: white cards, 8px apart, the profile
+ * shell's own rhythm. */
+.pane {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+/* DS Button's classes on an <a>: box layout and no underline, nothing else. */
+.actionLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+/* The note in full — the profile's body size, paragraphs kept. */
+.noteFull {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  white-space: pre-line;
+}
+
+.cvLink {
+  display: inline-flex;
+  margin-top: 12px;
+  text-decoration: none;
+  color: inherit;
+}

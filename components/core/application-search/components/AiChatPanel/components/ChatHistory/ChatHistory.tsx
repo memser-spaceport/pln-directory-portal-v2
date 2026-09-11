@@ -70,8 +70,11 @@ export const ChatHistory = ({ onSelect, isLoggedIn }: Props) => {
     );
   }, []);
 
+  /* `useChatHistory` gained a real return type after this component was written:
+     it is `ChatHistoryThread[] | undefined`, undefined while the request is in
+     flight. The shape is otherwise identical to the local `IThread`. */
   // Memoize the grouped chats to prevent unnecessary recalculations
-  const groupedChats = useMemo(() => groupChatsByDate(history), [history, groupChatsByDate]);
+  const groupedChats = useMemo(() => groupChatsByDate(history ?? []), [history, groupChatsByDate]);
 
   // Memoize the ordered keys for better performance
   const orderedKeys = useMemo(() => {

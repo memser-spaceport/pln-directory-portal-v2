@@ -27,6 +27,7 @@ function toDirectoryMember(item: any): DirectoryMember {
     team: item?.mainTeam?.name || item?.teams?.[0]?.name || '',
     image: item?.profile ?? null,
     skills: (item?.skills ?? []).map((skill: any) => skill?.title).filter(Boolean),
+    hasInactiveEmail: !!item?.hasInactiveEmail,
   };
 }
 
@@ -79,7 +80,10 @@ export function useMemberSearch(query: string) {
   });
 
   const results = useMemo<DirectoryMember[]>(
-    () => (data?.items ?? []).map(toDirectoryMember).filter((member) => !!member.uid && !!member.name),
+    () =>
+      (data?.items ?? [])
+        .map(toDirectoryMember)
+        .filter((member) => !!member.uid && !!member.name && !member.hasInactiveEmail),
     [data],
   );
 

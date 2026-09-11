@@ -20,6 +20,8 @@ import s from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.scss';
 import js from './JobTeamGroupCard.module.scss';
 
 import { JobReferRoleRow } from './JobReferRoleRow';
+import { OpenRoleRow } from './OpenRoleRow';
+import { openRoleFor, type OpenInterest } from './openRoles';
 import { TeamUpdateStrip, type TeamUpdateVariant } from '../news-shared/TeamUpdateStrip';
 import { TeamNewsCountChip } from '../news-shared/TeamNewsCountChip';
 // The list the chip opens — the teams grid's modal, not a job-board retelling.
@@ -67,6 +69,15 @@ interface JobTeamGroupCardProps {
    *  date instead of the posting age. Same map the board keys applications by. */
   appliedAtByRole?: Map<string, string>;
   /**
+   * The team's open role, once the reader has answered it. Absent means the
+   * offer still stands; the row reads the record itself.
+   */
+  openInterest?: OpenInterest;
+  /** Opens the open role's interest form — the board owns it, one dialog over
+   *  the whole list, the same way it owns the apply drawer. Omitted on a surface
+   *  that has no such dialog, and then the row is not drawn at all. */
+  onOpenRoleInterest?: (teamUid: string) => void;
+  /**
    * Present when the viewer owns this team: the card is then the team's own
    * list, in every state. The count block still counts what is *up* and says
    * how many are waiting, and each row gets its ⋯ menu — see the row.
@@ -94,6 +105,8 @@ export function JobTeamGroupCard({
   onViewJob,
   appliedRoleUids,
   appliedAtByRole,
+  openInterest,
+  onOpenRoleInterest,
   manage,
 }: JobTeamGroupCardProps) {
   const [expanded, toggleExpanded] = useToggle(false);
@@ -119,6 +132,9 @@ export function JobTeamGroupCard({
 
   const focusTags = useGetFocusTags(team);
   const news = getTeamNews(team.uid, team.name);
+  /* Two of the six teams have one — a row on every card would read as board
+     furniture rather than as something a team chose. See `MOCK_OPEN_ROLES`. */
+  const openRole = openRoleFor(team.uid);
 
   /**
    * A story the feed has already carried past opens here instead of sending
@@ -255,6 +271,27 @@ export function JobTeamGroupCard({
         <button type="button" className={s.expander} onClick={toggleExpanded}>
           {expanded ? 'Show less' : `View all ${roles.length} roles at ${team.name}`}
         </button>
+      )}
+
+      {/* The team's standing invitation, for the reader that all the rows above
+          just failed. It goes after the expander for the same reason the news
+          strip does — the expander belongs to the role list and has to stay
+          attached to it — and it is not one of the roles the expander counts:
+          "View all 4 roles at libp2p" would be wrong the moment a fifth,
+          role-less row joined the list it names.
+
+          Not drawn for the team that owns the card. `manage` means the viewer
+          posted these listings, and "I'm interested" on your own team's open
+          door is a control with nothing behind it. What an owner should see in
+          this slot — who has answered it — is the applicants list, which lives
+          on the team profile; see the note in `openRoles.ts`. */}
+      {openRole && !manage && onOpenRoleInterest && (
+        <OpenRoleRow
+          teamName={team.name}
+          interest={openInterest}
+          onExpressInterest={() => onOpenRoleInterest(team.uid)}
+          attached
+        />
       )}
 
       {/* After the expander, not before it: the expander belongs to the role

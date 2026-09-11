@@ -89,9 +89,12 @@ jest.mock('@/services/team-news/hooks/useCreateTeamNewsPost', () => ({
   useCreateTeamNewsPost: () => ({ mutateAsync: jest.fn(), isPending: false }),
 }));
 
-jest.mock('@/utils/uiFlags', () => ({
-  getUiFlag: jest.fn().mockResolvedValue(true),
-  setUiFlag: jest.fn().mockResolvedValue(undefined),
+// Kept dismissed so the Post news tip does not sit on top of the rail's own
+// assertions. The tip's storage moved behind `useOneTimeCallout`, so that is
+// what has to be stubbed now; leaving the old `uiFlags` mock here would stub a
+// module the rail no longer reaches and let the tip render after all.
+jest.mock('@/hooks/useOneTimeCallout', () => ({
+  useOneTimeCallout: () => ({ open: false, dismiss: jest.fn() }),
 }));
 
 jest.mock('@/components/page/team-details/TeamNews/TeamNewsModal', () => ({

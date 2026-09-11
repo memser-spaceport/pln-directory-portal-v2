@@ -52,6 +52,10 @@ export const ChatSubheader = ({ isEmpty, isShowHistory, onToggleHistory, lastQue
         </>
       );
     }
+
+    /* Without this, a non-empty, non-history state fell out of the function as
+       `undefined` and rendered an empty bordered bar. */
+    return null;
   }
 
   return <div className={s.root}>{renderContent()}</div>;

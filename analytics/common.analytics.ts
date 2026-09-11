@@ -42,6 +42,44 @@ export const useCommonAnalytics = () => {
     captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_GET_HELP_ITEM_CLICKED, params);
   }
 
+  /** The header (?) was pressed — the help and feedback door being used.
+   *
+   *  The name says "menu" because the wire string does, and that string is not
+   *  worth breaking: for one day the (?) opened a menu of topics, and the event
+   *  predates and outlives it. What it counts is unchanged either way — someone
+   *  went looking for help — and it is now the only signal that they did, since
+   *  the form itself reports nothing. */
+  function onHelpMenuOpened(user: IAnalyticsUserInfo | null) {
+    captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_HELP_MENU_OPENED, { user });
+  }
+
+  /** The one-time callout on the (?) was rendered. Paired with the dismissal
+   *  the same way `onHomeNewNewsDotShown` is paired with its click. */
+  function onHelpCalloutShown(user: IAnalyticsUserInfo | null) {
+    captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_HELP_CALLOUT_SHOWN, { user });
+  }
+
+  /** `via` separates "read it and acknowledged" from "opened the support form,
+   *  which is what the callout was pointing at" — the second is the outcome the
+   *  callout exists for, and they should not be counted as one thing.
+   *  `escape` is neither: a keyboard dismissal that tells us nothing about
+   *  whether the sentence landed.
+   *
+   *  `modal-opened` was `menu-opened` for the one day the (?) opened a menu. A
+   *  property value rather than an event name, and a day old, so it was renamed
+   *  rather than kept pointing at something that no longer exists. */
+  function onHelpCalloutDismissed(via: 'got-it' | 'escape' | 'modal-opened', user: IAnalyticsUserInfo | null) {
+    captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_HELP_CALLOUT_DISMISSED, { via, user });
+  }
+
+  /** A topic pill in the support form was picked — separate from
+   *  `onNavGetHelpItemClicked`, which already covers the menu item that opened
+   *  the form on that topic. This is the in-form change, e.g. someone landed on
+   *  "Contact support" via a deep link and switched to "Report a bug". */
+  function onContactSupportTopicPillSelected(topic: string, user: IAnalyticsUserInfo | null) {
+    captureEvent(COMMON_ANALYTICS_EVENTS.CONTACT_SUPPORT_TOPIC_PILL_SELECTED, { topic, user });
+  }
+
   function onNavAccountItemClicked(name: string, user: IAnalyticsUserInfo | null) {
     const params = {
       name,
@@ -134,6 +172,10 @@ export const useCommonAnalytics = () => {
     onHomeNewNewsDotShown,
     onNavItemClicked,
     onNavGetHelpItemClicked,
+    onHelpMenuOpened,
+    onHelpCalloutShown,
+    onHelpCalloutDismissed,
+    onContactSupportTopicPillSelected,
     onNavAccountItemClicked,
     onNavJoinNetworkClicked,
     onNavJoinNetworkOptionClicked,

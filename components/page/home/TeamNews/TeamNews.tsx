@@ -38,6 +38,7 @@ import {
   FOR_YOU_CAT,
   FOR_YOU_CATEGORY,
   SHOW_HIRING_NEWS,
+  MAX_FOR_YOU_JOB_ENTRIES,
   DISCUSSIONS_CATEGORY,
   SHOW_POPULAR_THIS_WEEK,
   type TeamNewsCategoryId,
@@ -75,6 +76,7 @@ import {
 import { useFeedDeals } from './hooks/useFeedDeals';
 import { useFeedSocial } from './hooks/useFeedSocial';
 import { useFeedHiring } from './hooks/useFeedHiring';
+import { useFeedForYouJobs } from './hooks/useFeedForYouJobs';
 import { useStoryReveal } from './hooks/useStoryReveal';
 import { useNewsDeepLink } from './hooks/useNewsDeepLink';
 import { useForumPostDeepLink } from './hooks/useForumPostDeepLink';
@@ -99,7 +101,7 @@ import s from './TeamNews.module.scss';
 
 interface TeamNewsProps {
   groups: ITeamNewsGroup[];
-  /** Allowlisted teams with no focus-area group; shown on "All" only. */
+  /** Teams with no focus-area group; shown on "All" only. */
   allTabExtraItems?: ITeamNewsItem[];
   /** Memberships ∪ follows ∪ matcher teams; empty for guests. Frozen at mount. */
   forYouTeamUids?: string[];
@@ -108,6 +110,11 @@ interface TeamNewsProps {
   popularItems?: ITeamNewsPopularItem[];
   pageSize?: number;
   initialDigestSettings?: ForumDigestSettings | null;
+  /** Story named by ?news=<uid> that the feed window does not cover, resolved
+   *  server-side by uid. Feeds the detail modal only — never the rendered feed,
+   *  which must stay the 14-day corpus. Null when there is no deep link, or
+   *  when the story is already in `groups`. */
+  deepLinkedItem?: ITeamNewsItem | null;
 }
 
 export const TeamNews = ({
@@ -117,6 +124,7 @@ export const TeamNews = ({
   popularItems = [],
   pageSize = 6,
   initialDigestSettings = null,
+  deepLinkedItem = null,
 }: TeamNewsProps) => {
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [initialForYouTeamUids] = useState<ReadonlySet<string>>(() => new Set(forYouTeamUids));
@@ -133,6 +141,9 @@ export const TeamNews = ({
   const { mutate: followMutate } = useFollowTeam();
   const { mutate: upvoteMutate } = useTeamNewsUpvoteToggle();
   const { mutate: postLikeMutate } = useFeedForumPostLikeToggle();
+  // Read here rather than beside the rail's suggestions, where it used to sit:
+  // the For You jobs query below needs it, and that is above the rail.
+  const { currentUser } = useCurrentUserStore();
   // One instance for the whole page: holds every rendered card's dedup/queue
   // state, regardless of tab/category remounts below it (see the hook's own
   // unmount-vs-page-load-scoped comments).
@@ -169,6 +180,15 @@ export const TeamNews = ({
         viewedUids,
       ),
     [groups, allTabExtraItems, upvoteOverlay, viewedUids],
+  );
+
+  // Same overlay pipeline as allItems: without it an optimistic Like taken in
+  // the modal would leave the count frozen, since this item is not in the array
+  // those overlays are applied to.
+  const deepLinkedNewsItem = useMemo(
+    () =>
+      deepLinkedItem ? applyViewOverlay(applyUpvoteOverlay([deepLinkedItem], upvoteOverlay), viewedUids)[0] : null,
+    [deepLinkedItem, upvoteOverlay, viewedUids],
   );
 
   // Derived from `groups` (not allItems) so its identity never churns with the
@@ -240,6 +260,30 @@ export const TeamNews = ({
     [allItems, initialForYouTeamUids],
   );
 
+  // Jobs matched to this member — the whole match (two-week window,
+  // skills/role/experience signal, ranking) is the server's; see
+  // `useFeedForYouJobs`. Fetched whenever the For You pill exists for a signed-in
+  // member rather than on the click: the pill's own count includes these, so
+  // deferring the request would show a number that then jumped.
+  const { forYouJobs } = useFeedForYouJobs(Boolean(currentUser?.uid) && hasForYouNews, currentUser?.uid);
+
+  /**
+   * The roll-ups For You actually shows, pre-sliced to `MAX_FOR_YOU_JOB_ENTRIES`.
+   *
+   * Pre-slicing HERE is what preserves the server's ranking: `injectFeedSignals`
+   * re-sorts what it is handed, so cutting there would pick a different set of
+   * teams than the one the matcher ranked. The same cap goes to
+   * `injectFeedSignals` as `maxHiring` so the two cannot disagree.
+   *
+   * All tab only. A focus-area tab is a cut of the news corpus BY focus area and
+   * a job carries none of its own, so filtering these by tab would mean
+   * inventing one — they simply don't appear there.
+   */
+  const forYouJobEntries = useMemo(
+    () => (activeTab === ALL_TAB ? forYouJobs?.slice(0, MAX_FOR_YOU_JOB_ENTRIES) : undefined),
+    [activeTab, forYouJobs],
+  );
+
   // Forum posts joining the current tab (All / Discussions use this 14-day
   // activity list; For You is a further createdAt L7D cut below). Memoized so
   // its array identity can't re-run the merge on unrelated renders (e.g. upvote
@@ -264,7 +308,8 @@ export const TeamNews = ({
   // once already.
   const countForCategory = useCallback(
     (id: TeamNewsCategoryId) => {
-      if (id === FOR_YOU_CAT) return forYouItemsForActiveTab.length + forYouForumPosts.length;
+      if (id === FOR_YOU_CAT)
+        return forYouItemsForActiveTab.length + forYouForumPosts.length + (forYouJobEntries?.length ?? 0);
       const newsCount =
         id === ALL_CAT
           ? itemsForActiveTab.length
@@ -273,7 +318,7 @@ export const TeamNews = ({
       // own L7D list; All / Discussions share tabForumPosts.
       return newsCount + (categoryIncludesForumPosts(id) ? tabForumPosts.length : 0);
     },
-    [itemsForActiveTab, tabForumPosts, forYouItemsForActiveTab, forYouForumPosts],
+    [itemsForActiveTab, tabForumPosts, forYouItemsForActiveTab, forYouForumPosts, forYouJobEntries],
   );
 
   const categoriesWithCounts = useMemo(() => {
@@ -354,6 +399,10 @@ export const TeamNews = ({
   // band sit on For You without dragging hiring and deals into that slice.
   const isRestingCategory = activeCategory === ALL_CAT || activeCategory === FOR_YOU_CAT;
   const isNarrowedView = activeTab !== ALL_TAB || activeCategory !== ALL_CAT || Boolean(query.trim());
+  // For You is a narrowed view by the flag above, but it is the one narrowed view
+  // that carries signals of its own — personalized ones. Searching inside it
+  // narrows again, and drops them like every other search does.
+  const isForYouStream = activeCategory === FOR_YOU_CAT && !query.trim();
   const showTopStoriesBand = activeTab === ALL_TAB && isRestingCategory && !query.trim();
 
   // Ranked from editorialRank (LLM Top Stories picks), rendered from the live
@@ -414,24 +463,35 @@ export const TeamNews = ({
   // them past pageSize forever. See injectFeedSignals for the full rationale.
   //
   // Both are unfiltered by tab/category/search on purpose: neither carries a
-  // focus area or an event type, so every narrowed view drops them. That falls
-  // out of `isNarrowedView` below rather than being re-derived per stream.
+  // focus area or an event type, so every narrowed view drops them — For You
+  // excepted, which brings roll-ups of its own. That falls out of
+  // `isForYouStream` / `isNarrowedView` rather than being re-derived per stream.
   // SHOW_HIRING_NEWS gates the INJECTION, not the render. Gating only the card
   // (as #2775 did) still let the entry into `entries`, where it silently ate a
   // `pageSize` slot — a first page of six showed five — and shifted the
   // analytics `position` of every card after it. `undefined` is the same "leave
   // the feed alone" signal a failed request already sends.
-  const entries = useMemo(
-    () =>
-      isNarrowedView
-        ? rankedEntries
-        : injectFeedSignals({
-            entries: rankedEntries,
-            hiring: SHOW_HIRING_NEWS ? feedHiring : undefined,
-            deals: feedDeals,
-          }),
-    [rankedEntries, isNarrowedView, feedHiring, feedDeals],
-  );
+  const entries = useMemo(() => {
+    // For You gets the PERSONALIZED roll-ups and no deals: a perk is network-wide,
+    // so it belongs to the resting view rather than to a slice built about one
+    // member. `SHOW_HIRING_NEWS` is not consulted — it gates the unpersonalized
+    // roll-ups on All, which is a different question from this one.
+    if (isForYouStream) {
+      return injectFeedSignals({
+        entries: rankedEntries,
+        hiring: forYouJobEntries,
+        deals: undefined,
+        maxHiring: MAX_FOR_YOU_JOB_ENTRIES,
+      });
+    }
+    return isNarrowedView
+      ? rankedEntries
+      : injectFeedSignals({
+          entries: rankedEntries,
+          hiring: SHOW_HIRING_NEWS ? feedHiring : undefined,
+          deals: feedDeals,
+        });
+  }, [rankedEntries, isForYouStream, forYouJobEntries, isNarrowedView, feedHiring, feedDeals]);
 
   const visibleEntries = expanded ? entries : entries.slice(0, pageSize);
   const newCount = allItems.length + (forumPosts?.length ?? 0);
@@ -446,14 +506,20 @@ export const TeamNews = ({
   // ?news=<uid> ↔ detail-modal sync (declared after the allItems memo — the
   // validator closes over it). All URL writes are history.replaceState; see
   // the hook for why router.replace is the wrong tool here.
-  const isValidNewsUid = useCallback((uid: string) => allItems.some((i) => i.uid === uid), [allItems]);
+  const isValidNewsUid = useCallback(
+    (uid: string) => allItems.some((i) => i.uid === uid) || deepLinkedNewsItem?.uid === uid,
+    [allItems, deepLinkedNewsItem],
+  );
   const { activeNewsUid, openNews, closeNews, openedViaDeepLink } = useNewsDeepLink({ isValidUid: isValidNewsUid });
 
   // Resolved fresh each render from overlay-merged allItems so the modal's Like
   // count can never disagree with the rows; null lookup (an item expired away)
   // renders nothing rather than a stale copy. Guarded — closed-modal renders
   // skip the scan; deliberately not memoized (O(hundreds), single-digit µs).
-  const activeNewsItem = activeNewsUid ? (allItems.find((i) => i.uid === activeNewsUid) ?? null) : null;
+  const activeNewsItem = activeNewsUid
+    ? (allItems.find((i) => i.uid === activeNewsUid) ??
+      (deepLinkedNewsItem?.uid === activeNewsUid ? deepLinkedNewsItem : null))
+    : null;
 
   // Deep-link opens have no click to ride on — report them once. Ref-guarded
   // effect with no dependency array, per this file's latest-ref idiom.
@@ -523,7 +589,6 @@ export const TeamNews = ({
     if (activePostUid && !hasAccess) closePost();
   }, [activePostUid, hasAccess, closePost]);
 
-  const { currentUser } = useCurrentUserStore();
   const { suggestions: suggestedTeams, isLoading: isLoadingSuggestedTeams } = useSuggestedTeamsToFollow({
     currentUserUid: currentUser?.uid ?? null,
   });
@@ -1065,6 +1130,7 @@ export const TeamNews = ({
                           key={key}
                           group={entry.group}
                           isFollowing={followedTeamUids.has(entry.group.team.uid)}
+                          position={index}
                           onFollowToggle={handleFollowToggle}
                           onRoleClick={(group, role, rolePosition) =>
                             analytics.onFeedHiringRoleClicked(group, role, rolePosition, index)

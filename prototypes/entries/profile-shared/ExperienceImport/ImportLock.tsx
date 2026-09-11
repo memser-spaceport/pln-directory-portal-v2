@@ -26,8 +26,15 @@ import s from './ImportLock.module.scss';
  *   the beat the panel is in.
  *
  * Cards the import does *not* write to (Office Hours, Investor Details,
- * Project Contributions, Repositories) stay live — locking them would be
- * locking for the sake of a mood.
+ * Project Contributions, Repositories) get no lock and no note — there is
+ * nothing about them the read will change. Whether they stay *live* is the
+ * host's business, not this lock's: a host where those cards open editors of
+ * their own (the new-member page) mutes them for the read under its
+ * one-thing-open rule, because a read that lands while Office Hours is open
+ * would put a review and a form on one page with two Saves. That is the
+ * page's plain mute (`SectionEditor`'s `Section`), the same 0.6 as this lock
+ * and without its note, so a locked card and a stepped-back one read as one
+ * tone with one difference: the locked one says when it comes back.
  */
 export function isImportWaiting(status: ImportStatus): boolean {
   return status === 'uploading' || status === 'reading';

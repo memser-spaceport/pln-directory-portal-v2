@@ -8,12 +8,14 @@ import {
   useState,
   type Dispatch,
   type ReactNode,
+  type RefObject,
   type SetStateAction,
 } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { uniq } from 'lodash';
+import { createPortal } from 'react-dom';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 
 // (`Drawer` and `Button` are gone: this file used to BE the drawer and used to
@@ -33,7 +35,6 @@ import { getProfileFromURL } from '@/utils/common.utils';
 import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
 import { AddButton } from '@/components/page/member-details/components/AddButton/AddButton';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete/DataIncomplete';
-import { EditOfficeHoursFormControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursFormControls';
 import ConfirmDialog from '@/components/core/ConfirmDialog/ConfirmDialog';
 import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
@@ -151,15 +152,39 @@ import { ExperienceImportPanel, type ImportStatus } from '../profile-shared/Expe
 // The CV-read lock: while a file is uploading or being read, the header card
 // and the Experience card — what the document writes to — are muted and say
 // when they come back. See `ImportLock`.
-import {
-  ImportLockNote,
-  importLockClass,
-  importLockWrapClass,
-  isImportWaiting,
-} from '../profile-shared/ExperienceImport/ImportLock';
+/* Only the note now: the lock’s fade and its `inert` are the section-muting
+   rule’s (`Section`), which mutes every card the open one is not — and the two
+   cards a read locks are exactly that while it runs. One 0.6, one `inert`, one
+   wrapper; the note stays, because it is the half that says when the card
+   comes back. */
+import { ImportLockNote, isImportWaiting } from '../profile-shared/ExperienceImport/ImportLock';
 import { ExperienceImportReview } from '../profile-shared/ExperienceImport/ExperienceImportReview';
 import { isoToYm, ymToIso } from '../profile-shared/ExperienceImport/dateBridge';
 import type { ImportSelection, ParsedProfile } from '../profile-shared/ExperienceImport/types';
+import type { ImportWait } from '../profile-shared/ExperienceImport/ImportWait';
+// The status bar for whichever card is open once it has scrolled away — the
+// read's progress while a file is being read, then the review's way back and
+// its Save at a distance, and the same for a section editor. Shared with the
+// profile pages and the fork; see the component for the rule it draws by.
+import { EditorStatusRow, useCardAway } from '../profile-shared/FloatingEditorControls';
+// **One card at a time — the member profile’s rule, which this step had not
+// taken.** `Section` mutes every card that is not the open one (`inert` + 0.6,
+// so nothing on them can be clicked, focused or tabbed to), and
+// `SectionEditorTitle` / `SectionEditorControls` are production’s
+// `EditFormControls` row split in two so Cancel and Save sit *under* the fields
+// they act on rather than above them. `EditorDirtyContext` is how the open
+// form’s dirty state reaches the footer’s Save, replacing this file’s own
+// `onDirtyChange` plumbing — the shared row already computes it, and computes
+// it with the whitespace rule the raw `isDirty` was missing (this Quill build
+// writes every space in a seeded bio as `&nbsp;`, so a form with a bio opened
+// dirty). Same pattern, same components, as `member-profile-edit` and
+// `onboarding`.
+import {
+  EditorDirtyContext,
+  Section,
+  SectionEditorControls,
+  SectionEditorTitle,
+} from '../profile-shared/SectionEditor/SectionEditor';
 import {
   EMPTY_PROFILE,
   JOB_SEARCH_STATUS_OPTIONS,
@@ -317,6 +342,19 @@ interface JobProfilePaneProps {
    */
   jobAspirant?: boolean;
   /**
+   * The drawer's chrome, for the open card's status row: the sticky header
+   * the card scrolls under (so "away" is measured from its bottom edge), and
+   * the slot in the drawer's footer the row is rendered into, beside Continue
+   * — *"put progress bar in the footer, next to Continue to apply."* The pane
+   * cannot reach either itself: they are the drawer's, and the pane is one
+   * step inside it. The slot is a node, not a ref, so the portal re-renders
+   * once the footer has mounted it.
+   */
+  floatingChrome?: {
+    top: RefObject<HTMLElement | null>;
+    slot: HTMLElement | null;
+  };
+  /**
    * DELETE WITH: the `design-canvas/` folder.
    *
    * Opens the Experience card straight into the importer, and optionally hands
@@ -344,6 +382,14 @@ interface JobProfilePaneProps {
  * `uid: null` on a list section means "a new entry"; a uid means that row.
  * `github` carries no uid because the section edits one field, not a list.
  */
+/**
+ * Every card the step draws, whether or not it has an editor. The ones with no
+ * editor (`contact`, `status`) are here because muting is a fact about *all*
+ * the cards: a kind the editor can never be reads as "another card is open"
+ * whenever anything is.
+ */
+type CardKind = 'profile' | 'contact' | 'cv' | 'status' | 'experience' | 'contribution' | 'github';
+
 export type EditTarget =
   | { kind: 'profile' }
   | { kind: 'experience'; uid: string | null }
@@ -376,6 +422,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
     pendingRoleTitle,
     pendingApproval = false,
     jobAspirant = false,
+    floatingChrome,
     canvasImport,
   } = props;
 
@@ -404,9 +451,10 @@ export function JobProfilePane(props: JobProfilePaneProps) {
   /* The "Remove CV" confirmation — see `RemoveCvDialog` for why a kept file asks. */
   const [confirmRemoveCv, setConfirmRemoveCv] = useState(false);
   /* What the import panel is doing, from whichever mount is live. While it is
-     uploading or reading, the cards the document fills are locked — the header
-     card always, the Experience card unless it is the panel's own host. The
-     status card and Contact Details are not written to and stay live. */
+     uploading or reading, the card holding the read is the open one and every
+     other card on the step is muted with it (`sectionProps`) — the two the
+     document writes to, the header card and Experience, say so as well with a
+     note in the slot their Edit vacated (`ImportLockNote`). */
   const [importStatus, setImportStatus] = useState<ImportStatus>('idle');
   const cvWaiting = isImportWaiting(importStatus);
   /**
@@ -421,6 +469,20 @@ export function JobProfilePane(props: JobProfilePaneProps) {
    * and no file, in the Experience header.
    */
   const [cvRemoved, setCvRemoved] = useState(false);
+  /* The wait itself — file, beat, clock, Cancel — for the floating status bar
+     to draw the reading row from once the card is scrolled away. Reported by
+     the same mount as `importStatus`; see the panel's `onWaitChange`. */
+  const [importWait, setImportWait] = useState<ImportWait | null>(null);
+  /* Whether the open section editor has unsaved changes — reported by every
+     editor's own controls row through `EditorDirtyContext`, read by the
+     footer's Save. Reset whenever the open
+     card changes, so a dirty flag never outlives the form that raised it. */
+  const [editorDirty, setEditorDirty] = useState(false);
+  useEffect(() => setEditorDirty(false), [editing]);
+  /* The wrapper of whichever card is open — a section editor, or the card the
+     importer is reading or reviewing in — which is what the bar watches and
+     returns to. */
+  const editorCardRef = useRef<HTMLDivElement | null>(null);
 
   /* Runs once per mount, and this pane mounts exactly when its step becomes
      current — so "on open" and "on mount" are now the same moment. Seeding the
@@ -554,6 +616,69 @@ export function JobProfilePane(props: JobProfilePaneProps) {
      own host. See `importReviewLockCopy`. */
   const reviewingFromCv = editingImport && !!parsed && importHost !== 'experience';
   const experienceLocked = (cvWaiting && importHost !== 'experience') || reviewingFromCv;
+
+  /* **What the floating bar is about.** A review is open (`reviewing`); a
+     file is being read (`activeWait` — nulled the moment the review opens, so
+     the bar is never a stale "Reading…" for the render in which the panel is
+     replaced); or a section editor is open. `importCard` names the card the
+     importer is live in through both of its beats, and the bar's key is one
+     key for both, so the observer stays attached through the handoff. The read
+     can start with `editing` still null (the panel only opens the card once it
+     has something to review), which is why the wait is read directly. */
+  const reviewing = editingImport && !!parsed;
+  const activeWait = reviewing ? null : importWait;
+  const importCard: 'cv' | 'experience' | null =
+    editingImport || activeWait
+      ? importHost === 'experience'
+        ? 'experience'
+        : showCvSection
+          ? 'cv'
+          : 'experience'
+      : null;
+  const floatingActiveKey = importCard ? `import:${importCard}` : editKeyForTarget(editing);
+  const floatingStatus = editorStatusForTarget(editing, editorDirty, reviewing);
+  const cardAway = useCardAway(editorCardRef, floatingActiveKey, {
+    topOcclusion: floatingChrome?.top,
+    visibleRatioThreshold: 0.75,
+  });
+  /* The Experience card is an editor when its own form is open, or when it is
+     the import's host — not whenever an import is open somewhere. With the
+     import in the CV section, this card marking itself for it drew a tinted
+     "Experience" under a review it did not contain, on top of its lock. */
+  const experienceEditing = editingExperience || (editingImport && importHost === 'experience');
+
+  /**
+   * **The one live card, and the mute on every other one.**
+   *
+   * The rule the member profile works to and this step had not taken: while
+   * something is open it is the only thing on the step that can be clicked,
+   * focused or tabbed into — every other card is `inert` and faded to
+   * production’s own disabled measure (`Section`). An Edit cannot be pressed
+   * under a read, a file cannot be dropped under an editor, and the radio in
+   * the status card cannot be moved while an unsaved form is open above it.
+   *
+   * Broader than `importCard`, which is the status row’s key and is null in the
+   * beats the row has nothing to say (Replace pressed, the panel not yet
+   * reporting a wait). This is the page’s, and the page mutes for the whole
+   * import — which is also why the CV-read lock no longer paints anything: the
+   * two cards it used to fade are muted by this rule for exactly as long, and
+   * two 0.6s on two nested elements is 0.36.
+   */
+  const importOpenCard: CardKind | null =
+    editingImport || cvWaiting
+      ? importHost === 'experience'
+        ? 'experience'
+        : showCvSection
+          ? 'cv'
+          : 'experience'
+      : null;
+  const openCard: CardKind | null = importOpenCard ?? (editing && editing.kind !== 'import' ? editing.kind : null);
+
+  /** Muted while another card is open; carries the ref the status row watches while this one is. */
+  const sectionProps = (kind: CardKind) => ({
+    muted: openCard !== null && openCard !== kind,
+    ref: openCard === kind ? editorCardRef : undefined,
+  });
 
   const experienceBeingEdited = useMemo(
     () => (editingExperience && editing.uid ? (draft.experiences.find((i) => i.uid === editing.uid) ?? null) : null),
@@ -690,7 +815,9 @@ export function JobProfilePane(props: JobProfilePaneProps) {
   const hasIntroBody = pendingApproval || !pendingRoleTitle;
 
   return (
-    <>
+    /* Every editor’s controls row reports its dirty state here; the footer’s
+       Save reads it. See the import note. */
+    <EditorDirtyContext.Provider value={setEditorDirty}>
       {/* The wrapper is `fd.stepIntro` — the logged-out pane's, and for the same
           reason it exists there: `.drawerContent`'s gap is a uniform 16px, so a
           title and the sentence qualifying it dropped in as two siblings would
@@ -788,24 +915,24 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                inviting the answer without demanding it. The strip's copy, the
                tint and `d.missingCard` went with the rule; the status card keeps
                all three, because it keeps the requirement. */}
-      <div
-        className={clsx(p.root, {
-          [p.editView]: editingProfile,
-          [d.editCard]: editingProfile,
-          [importLockClass]: cvWaiting,
-        })}
-        inert={cvWaiting}
-      >
-        {editingProfile ? (
-          <ProfileDetailsForm profile={draft} onClose={() => setEditing(null)} onSubmit={saveProfileDetails} />
-        ) : (
-          <ProfileHeaderCard
-            profile={draft}
-            onEdit={canEdit ? () => setEditing({ kind: 'profile' }) : undefined}
-            lockNote={cvWaiting ? <ImportLockNote status={importStatus} /> : undefined}
-          />
-        )}
-      </div>
+      <Section {...sectionProps('profile')} className={d.sectionAnchor}>
+        <div
+          className={clsx(p.root, {
+            [p.editView]: editingProfile,
+            [d.editCard]: editingProfile,
+          })}
+        >
+          {editingProfile ? (
+            <ProfileDetailsForm profile={draft} onClose={() => setEditing(null)} onSubmit={saveProfileDetails} />
+          ) : (
+            <ProfileHeaderCard
+              profile={draft}
+              onEdit={canEdit ? () => setEditing({ kind: 'profile' }) : undefined}
+              lockNote={cvWaiting ? <ImportLockNote status={importStatus} /> : undefined}
+            />
+          )}
+        </div>
+      </Section>
 
       {/* 1b. Contact details, in the position production's member profile puts
                it: directly under the header card, before everything else. It was
@@ -837,7 +964,9 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                between entries. It reads from *this* prototype's profile record
                rather than a second mock, so the LinkedIn on this card and the
                LinkedIn the sign-up form collected are one value. */}
-      <ContactCard profile={draft} />
+      <Section {...sectionProps('contact')} className={d.sectionAnchor}>
+        <ContactCard profile={draft} />
+      </Section>
 
       {/* **Below the header card, having been above it** — production's order
           (`JobProfileDrawer`): the profile identifies itself first and the
@@ -870,30 +999,31 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                the loudest thing here. This is an offer, and the requirement is a
                requirement. */}
       {showCvSection && (
-        <DetailsSection
-          editView={editingImport}
-          classes={editingImport ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }}
-        >
-          {editingImport && parsed ? (
-            <ExperienceImportReview
-              parsed={parsed}
-              /* Both known — this drawer only opens for someone signed in — so
+        <Section {...sectionProps('cv')} className={d.sectionAnchor}>
+          <DetailsSection
+            editView={editingImport}
+            classes={editingImport ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }}
+          >
+            {editingImport && parsed ? (
+              <ExperienceImportReview
+                parsed={parsed}
+                /* Both known — this drawer only opens for someone signed in — so
                    the review never puts a Name or Email field on screen. The
                    card's contact group is for the surface that *doesn't* have
                    them yet. */
-              currentName={VIEWER_NAME}
-              currentEmail={VIEWER_EMAIL}
-              currentRole={draft.role}
-              currentLocation={draft.location}
-              currentSkills={draft.skills}
-              currentExperiences={draft.experiences}
-              formatDates={formatExperienceDates}
-              bodyClassName={d.formBody}
-              onClose={closeImport}
-              onSubmit={applyImport}
-            />
-          ) : draft.cv && !editingImport ? (
-            /* **The resting state: a kept file.**
+                currentName={VIEWER_NAME}
+                currentEmail={VIEWER_EMAIL}
+                currentRole={draft.role}
+                currentLocation={draft.location}
+                currentSkills={draft.skills}
+                currentExperiences={draft.experiences}
+                formatDates={formatExperienceDates}
+                bodyClassName={d.formBody}
+                onClose={closeImport}
+                onSubmit={applyImport}
+              />
+            ) : draft.cv && !editingImport ? (
+              /* **The resting state: a kept file.**
 
                The section stops being an offer and becomes a possession, and
                the title says which: "Your CV", no `(Optional)`. The mark reports
@@ -906,35 +1036,39 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                its controls, as the Experience header's own pair does; the row
                holds the file and nothing else. See `CvHeaderActions` for the
                ranking and `CvFileCard` for why the page is a thumbnail. */
-            <>
-              <DetailsSectionHeader title="Your CV">
-                <CvHeaderActions
-                  /* Straight into the same route the header's "Update from CV"
+              <>
+                <DetailsSectionHeader title="Your CV">
+                  <CvHeaderActions
+                    /* Straight into the same route the header's "Update from CV"
                      took: the file goes to the panel, which validates it and
                      reads it, and the section becomes the reading row. */
-                  onReplace={(file) => {
-                    setPickedFile(file);
-                    setEditing({ kind: 'import' });
-                  }}
-                  onRemove={() => setConfirmRemoveCv(true)}
+                    onReplace={(file) => {
+                      setPickedFile(file);
+                      setEditing({ kind: 'import' });
+                    }}
+                    onRemove={() => setConfirmRemoveCv(true)}
+                  />
+                </DetailsSectionHeader>
+                <CvFileCard cv={draft.cv} />
+                <RemoveCvDialog
+                  isOpen={confirmRemoveCv}
+                  onClose={() => setConfirmRemoveCv(false)}
+                  onConfirm={removeCv}
                 />
-              </DetailsSectionHeader>
-              <CvFileCard cv={draft.cv} />
-              <RemoveCvDialog isOpen={confirmRemoveCv} onClose={() => setConfirmRemoveCv(false)} onConfirm={removeCv} />
-            </>
-          ) : (
-            <>
-              {/* Same offer, same mark, same words as the other two surfaces
+              </>
+            ) : (
+              <>
+                {/* Same offer, same mark, same words as the other two surfaces
                   that make it — see `OptionalMark`. While a kept file is being
                   replaced the header keeps the resting title: the body says
                   what is happening (the reading row, or the drop area after a
                   cancelled read), and the Cancel beside the title is the way
                   back to the file. */}
-              <DetailsSectionHeader
-                title={
-                  draft.cv ? (
-                    'Your CV'
-                  ) : /* **Two titles, one mark — and the mark is not a judgement about
+                <DetailsSectionHeader
+                  title={
+                    draft.cv ? (
+                      'Your CV'
+                    ) : /* **Two titles, one mark — and the mark is not a judgement about
                      how central the CV is.** The aspirant's title briefly went
                      without it, on the argument that the document is the thing
                      that account exists to carry and "(Optional)" over it would
@@ -952,30 +1086,30 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                      they could type instead. For an aspirant it is a part of the
                      profile that stays and travels with applications, so it gets
                      a noun. Both are optional, and both say so. */
-                  jobAspirant ? (
-                    <>
-                      Your CV
-                      <OptionalMark />
-                    </>
-                  ) : (
-                    <>
-                      You can upload your CV
-                      <OptionalMark />
-                    </>
-                  )
-                }
-              >
-                {/* Only while the importer is a *section being edited* — i.e.
+                    jobAspirant ? (
+                      <>
+                        Your CV
+                        <OptionalMark />
+                      </>
+                    ) : (
+                      <>
+                        You can upload your CV
+                        <OptionalMark />
+                      </>
+                    )
+                  }
+                >
+                  {/* Only while the importer is a *section being edited* — i.e.
                       reached from Replace. In its resting offer state this card
                       is not an editor and there is nothing to cancel; the
                       drawer's own footer is live and the stack is right below. */}
-                {editingImport && (
-                  <button type="button" className={d.headerCancel} onClick={closeImport}>
-                    Cancel
-                  </button>
-                )}
-              </DetailsSectionHeader>
-              {/* Names the work avoided, not just the work done — and, now that
+                  {editingImport && (
+                    <button type="button" className={d.headerCancel} onClick={closeImport}>
+                      Cancel
+                    </button>
+                  )}
+                </DetailsSectionHeader>
+                {/* Names the work avoided, not just the work done — and, now that
                     the file is kept, where it goes. This was two sentences, one
                     per viewer: a member's CV was "read and discarded", an
                     aspirant's "kept and sent". The product decision behind this
@@ -986,34 +1120,36 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                     Only under the offer: a replace in progress has the reading
                     row saying what is happening, and the person already knows
                     what the file is for. */}
-              {!draft.cv && (
-                <p className={d.cvFirstNote}>
-                  We&apos;ll fill in your role, skills and experience from it — and it goes with your applications, so
-                  teams read the document you wrote as well as the profile.
-                </p>
-              )}
-              <ExperienceImportPanel
-                entry="direct"
-                /* One promise for every viewer, for the reason the note above
+                {!draft.cv && (
+                  <p className={d.cvFirstNote}>
+                    We&apos;ll fill in your role, skills and experience from it — and it goes with your applications, so
+                    teams read the document you wrote as well as the profile.
+                  </p>
+                )}
+                <ExperienceImportPanel
+                  entry="direct"
+                  /* One promise for every viewer, for the reason the note above
                    gives. "It isn't sent with your applications" was the member's
                    line while the file was discarded after reading; a kept file
                    that goes with applications cannot keep saying that. */
-                privacyNote="Kept on your profile and sent with your applications. You can replace or remove it any time."
-                initialFile={pickedFile}
-                onFileRead={keepFile}
-                onStatusChange={setImportStatus}
-                /* Cancelling a replacement's read goes back to the file, not to
+                  privacyNote="Kept on your profile and sent with your applications. You can replace or remove it any time."
+                  initialFile={pickedFile}
+                  onFileRead={keepFile}
+                  onStatusChange={setImportStatus}
+                  onWaitChange={setImportWait}
+                  /* Cancelling a replacement's read goes back to the file, not to
                    an empty drop area — see the panel's prop. */
-                onCancelRead={draft.cv ? closeImport : undefined}
-                onParsed={openImportReview}
-                onAddManually={() => setEditing({ kind: 'experience', uid: null })}
-                // DELETE WITH: the `design-canvas/` folder.
-                canvasStatus={canvasImport?.panel?.status}
-                canvasFileName={canvasImport?.panel?.fileName}
-              />
-            </>
-          )}
-        </DetailsSection>
+                  onCancelRead={draft.cv ? closeImport : undefined}
+                  onParsed={openImportReview}
+                  onAddManually={() => setEditing({ kind: 'experience', uid: null })}
+                  // DELETE WITH: the `design-canvas/` folder.
+                  canvasStatus={canvasImport?.panel?.status}
+                  canvasFileName={canvasImport?.panel?.fileName}
+                />
+              </>
+            )}
+          </DetailsSection>
+        </Section>
       )}
 
       {/* **The alternative, written down.**
@@ -1065,24 +1201,26 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                every other section puts its qualifier (Add, Edit, the Github
                Profile link), so the privacy mark reads as part of the section
                rather than as content inside it. */}
-      <DetailsSection missingData={!hasStatus} classes={{ root: hasStatus ? fd.cardEdge : undefined }}>
-        {!hasStatus && (
-          <DataIncomplete className={d.incompleteStrip}>
-            {pendingRoleTitle
-              ? `An answer here is required to apply to ${pendingRoleTitle}.`
-              : 'An answer here is required to apply.'}
-          </DataIncomplete>
-        )}
-        <div className={clsx({ [d.missingBody]: !hasStatus })}>
-          <DetailsSectionHeader title="Job search status">
-            <PlTeamOnlyPill />
-          </DetailsSectionHeader>
-          <JobSearchStatusInput
-            value={draft.jobSearchStatus}
-            onChange={(value) => setDraft((prev) => ({ ...prev, jobSearchStatus: value }))}
-          />
-        </div>
-      </DetailsSection>
+      <Section {...sectionProps('status')} className={d.sectionAnchor}>
+        <DetailsSection missingData={!hasStatus} classes={{ root: hasStatus ? fd.cardEdge : undefined }}>
+          {!hasStatus && (
+            <DataIncomplete className={d.incompleteStrip}>
+              {pendingRoleTitle
+                ? `An answer here is required to apply to ${pendingRoleTitle}.`
+                : 'An answer here is required to apply.'}
+            </DataIncomplete>
+          )}
+          <div className={clsx({ [d.missingBody]: !hasStatus })}>
+            <DetailsSectionHeader title="Job search status">
+              <PlTeamOnlyPill />
+            </DetailsSectionHeader>
+            <JobSearchStatusInput
+              value={draft.jobSearchStatus}
+              onChange={(value) => setDraft((prev) => ({ ...prev, jobSearchStatus: value }))}
+            />
+          </div>
+        </DetailsSection>
+      </Section>
 
       {/* 3. Experience — optional now, and no longer the gate. It stays because
                it is what a hiring team actually reads on an application, and the
@@ -1090,13 +1228,11 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                anyone's head. */}
       {/* Locked with the header card while the CV section above is reading;
           never while this card is the importer's own host. */}
-      <div className={clsx(importLockWrapClass, { [importLockClass]: experienceLocked })} inert={experienceLocked}>
+      <Section {...sectionProps('experience')} className={d.sectionAnchor}>
         <DetailsSection
-          editView={editingExperience || editingImport}
+          editView={experienceEditing}
           classes={
-            editingExperience || editingImport
-              ? { root: c.root, editView: `${c.editView} ${d.editCard}` }
-              : { root: fd.cardEdge }
+            experienceEditing ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }
           }
         >
           {editingImport && importHost === 'experience' ? (
@@ -1152,6 +1288,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                   privacyNote="Kept on your profile and sent with your applications. You can replace or remove it any time."
                   onFileRead={keepFile}
                   onStatusChange={setImportStatus}
+                  onWaitChange={setImportWait}
                   onParsed={openImportReview}
                   onAddManually={() => setEditing({ kind: 'experience', uid: null })}
                   // DELETE WITH: the `design-canvas/` folder.
@@ -1251,6 +1388,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                     privacyNote="Kept on your profile and sent with your applications. You can replace or remove it any time."
                     onFileRead={keepFile}
                     onStatusChange={setImportStatus}
+                    onWaitChange={setImportWait}
                     onParsed={(result) => {
                       setParsed(result);
                       setEditing({ kind: 'import', host: 'experience' });
@@ -1273,7 +1411,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
             </>
           )}
         </DetailsSection>
-      </div>
+      </Section>
 
       {/* 4. Project Contributions. Optional — nothing here touches
                `isProfileComplete` — and kept, unlike Teams, because it answers a
@@ -1285,33 +1423,35 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                Its empty copy is production's, word for word, because it is a
                true instruction in both places — the button that makes it true is
                right above it. */}
-      <DetailsSection
-        editView={editingContribution}
-        classes={
-          editingContribution ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }
-        }
-      >
-        {editingContribution ? (
-          <ContributionForm
-            initial={contributionBeingEdited}
-            onClose={() => setEditing(null)}
-            onSubmit={saveContribution}
-            onDelete={deleteContribution}
-          />
-        ) : (
-          <>
-            <DetailsSectionHeader
-              title={`Project Contributions ${draft.contributions.length ? `(${draft.contributions.length})` : ''}`}
-            >
-              {canEdit && <AddButton onClick={() => setEditing({ kind: 'contribution', uid: null })} />}
-            </DetailsSectionHeader>
-            <ContributionsList
-              entries={draft.contributions}
-              onEdit={canEdit ? (uid) => setEditing({ kind: 'contribution', uid }) : undefined}
+      <Section {...sectionProps('contribution')} className={d.sectionAnchor}>
+        <DetailsSection
+          editView={editingContribution}
+          classes={
+            editingContribution ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }
+          }
+        >
+          {editingContribution ? (
+            <ContributionForm
+              initial={contributionBeingEdited}
+              onClose={() => setEditing(null)}
+              onSubmit={saveContribution}
+              onDelete={deleteContribution}
             />
-          </>
-        )}
-      </DetailsSection>
+          ) : (
+            <>
+              <DetailsSectionHeader
+                title={`Project Contributions ${draft.contributions.length ? `(${draft.contributions.length})` : ''}`}
+              >
+                {canEdit && <AddButton onClick={() => setEditing({ kind: 'contribution', uid: null })} />}
+              </DetailsSectionHeader>
+              <ContributionsList
+                entries={draft.contributions}
+                onEdit={canEdit ? (uid) => setEditing({ kind: 'contribution', uid }) : undefined}
+              />
+            </>
+          )}
+        </DetailsSection>
+      </Section>
 
       {/* 5. Repositories. Optional too.
 
@@ -1319,19 +1459,42 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                the primary team that an Experience entry's "Team or Organization"
                field already collects, so a member filling both in answered the
                same question twice. */}
-      <DetailsSection
-        editView={editingGithub}
-        classes={editingGithub ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }}
-      >
-        {editingGithub ? (
-          <GithubHandleForm handle={draft.githubHandle} onClose={() => setEditing(null)} onSubmit={saveGithubHandle} />
-        ) : (
-          <RepositoriesSection
-            handle={draft.githubHandle}
-            onEdit={canEdit ? () => setEditing({ kind: 'github' }) : undefined}
-          />
+      <Section {...sectionProps('github')} className={d.sectionAnchor}>
+        <DetailsSection
+          editView={editingGithub}
+          classes={editingGithub ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }}
+        >
+          {editingGithub ? (
+            <GithubHandleForm
+              handle={draft.githubHandle}
+              onClose={() => setEditing(null)}
+              onSubmit={saveGithubHandle}
+            />
+          ) : (
+            <RepositoriesSection
+              handle={draft.githubHandle}
+              onEdit={canEdit ? () => setEditing({ kind: 'github' }) : undefined}
+            />
+          )}
+        </DetailsSection>
+      </Section>
+
+      {/* The open card's status, in the drawer's footer beside Continue — the
+          read's progress for its whole length, then the way back and the Save
+          for a card that was scrolled away. See `EditorStatusRow`. */}
+      {floatingChrome?.slot &&
+        createPortal(
+          <EditorStatusRow
+            target={editorCardRef}
+            away={cardAway}
+            canSave={reviewing || (!editingImport && editorDirty)}
+            status={floatingStatus}
+            saveLabel={reviewing ? 'Save CV results' : undefined}
+            importWait={activeWait}
+            topOcclusion={floatingChrome.top}
+          />,
+          floatingChrome.slot,
         )}
-      </DetailsSection>
 
       {/* (The footer that used to close this file — the persistent
           `Continue to apply` / `Save profile` bar with its "what is still
@@ -1340,7 +1503,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
           the same things for the same reasons; it just says them for all three
           steps instead of only this one, which is what stops the flow ending in
           three differently-worded buttons.) */}
-    </>
+    </EditorDirtyContext.Provider>
   );
 }
 
@@ -1570,16 +1733,54 @@ function ProfileHeaderCard({
 type ProfileFormData = { role: string; location: string; skills: string[]; bio: string };
 
 /**
- * The header card's editor — production's composition, verbatim:
+ * The header card's editor — production's composition with its control row
+ * split in two:
  *
- *   form › EditOfficeHoursFormControls + .body(rows) + EditFormMobileControls
+ *   form › SectionEditorTitle + .body(rows) + SectionEditorControls
  *
- * `EditOfficeHoursFormControls` rather than `EditFormControls` because of one
- * flag: `alwaysEnabled`. Without it Save sits disabled reading "No Changes"
- * until something is typed — right for an editor, wrong on a card that is empty
- * by definition, where the first thing a person reads would be a button telling
- * them there is nothing to do. Nothing here is required, so nothing is gated.
+ * Production puts the title, Cancel and Save in one row *above* the fields
+ * (`EditFormControls`). Every editor on this step now ends with the pair
+ * instead — *"put Save cancel buttons under the fields"* — which is the shape
+ * the member profile already edits in, and the reason there is no mobile
+ * control bar here: the card is in the flow at every width (`d.editCard`), so
+ * one Save sits under the last field on a phone exactly as it does on a
+ * desktop, rather than a second one riding the bottom of a full-screen layer.
+ *
+ * `alwaysEnabled` is kept from the row this replaces. Without it Save sits
+ * disabled reading "No Changes" until something is typed — right for an editor,
+ * wrong on a card that is empty by definition, where the first thing a person
+ * reads would be a button telling them there is nothing to do. Nothing here is
+ * required, so nothing is gated.
  */
+/**
+ * The floating bar's key for a section editor: one per open card, and per row
+ * of a list section, so the bar re-observes when one closes and another opens
+ * in the same render. The importer's key is made by the pane (`importCard`),
+ * because its card is not a fact of the target alone.
+ */
+function editKeyForTarget(target: EditTarget): string | null {
+  if (!target) return null;
+  if (target.kind === 'import') return `import:${target.host ?? 'cv'}`;
+  if (target.kind === 'experience' || target.kind === 'contribution') return `${target.kind}:${target.uid ?? 'new'}`;
+  return target.kind;
+}
+
+/** The bar's sentence, naming the card as its own header spells it. */
+function editorStatusForTarget(target: EditTarget, dirty: boolean, reviewing: boolean): string {
+  if (!target) return '';
+  if (target.kind === 'import') {
+    if (reviewing) return 'Reviewing your experience';
+    return target.host === 'experience' ? 'Adding experience from a document' : 'Editing your CV';
+  }
+  const label = {
+    profile: 'Profile details',
+    experience: 'Experience',
+    contribution: 'Project contributions',
+    github: 'Repositories',
+  }[target.kind];
+  return dirty ? `Unsaved changes in ${label}` : `Editing ${label}`;
+}
+
 function ProfileDetailsForm({
   profile,
   onClose,
@@ -1620,7 +1821,7 @@ function ProfileDetailsForm({
           if (ev.key === 'Enter') ev.preventDefault();
         }}
       >
-        <EditOfficeHoursFormControls onClose={onClose} title="Edit Profile Details" alwaysEnabled />
+        <SectionEditorTitle title="Edit Profile Details" />
 
         <div className={clsx(f.body, d.formBody)}>
           <div className={f.row}>
@@ -1642,10 +1843,7 @@ function ProfileDetailsForm({
           </div>
         </div>
 
-        {/* Below tablet-landscape the controls row collapses to a title and a ✕,
-            and Save moves down here: a sticky bar that slides up the moment the
-            form is dirty. Same component, same rule, same animation as the
-            profile page. */}
+        <SectionEditorControls onClose={onClose} alwaysEnabled />
       </form>
     </FormProvider>
   );
@@ -1844,11 +2042,7 @@ export function ExperienceForm({
           if (ev.key === 'Enter') ev.preventDefault();
         }}
       >
-        <EditOfficeHoursFormControls
-          onClose={onClose}
-          title={isNew ? 'Add Experience' : 'Edit Experience'}
-          alwaysEnabled
-        />
+        <SectionEditorTitle title={isNew ? 'Add Experience' : 'Edit Experience'} />
 
         {/* An "Already written down? Fill this in from your CV" line used to
             open this form. It was the only route back to the importer once the
@@ -1937,6 +2131,8 @@ export function ExperienceForm({
             </>
           )}
         </div>
+
+        <SectionEditorControls onClose={onClose} alwaysEnabled />
       </form>
     </FormProvider>
   );
@@ -2125,11 +2321,7 @@ function ContributionForm({
           if (ev.key === 'Enter') ev.preventDefault();
         }}
       >
-        <EditOfficeHoursFormControls
-          onClose={onClose}
-          title={isNew ? 'Add Project Contribution' : 'Edit Project Contribution'}
-          alwaysEnabled
-        />
+        <SectionEditorTitle title={isNew ? 'Add Project Contribution' : 'Edit Project Contribution'} />
 
         <div className={clsx(x.body, d.formBody)}>
           <div className={x.row}>
@@ -2213,6 +2405,8 @@ function ContributionForm({
             </>
           )}
         </div>
+
+        <SectionEditorControls onClose={onClose} alwaysEnabled />
       </form>
     </FormProvider>
   );
@@ -2332,11 +2526,7 @@ function GithubHandleForm({
           if (ev.key === 'Enter') ev.preventDefault();
         }}
       >
-        <EditOfficeHoursFormControls
-          onClose={onClose}
-          title={isNew ? 'Add GitHub Handle' : 'Edit GitHub Handle'}
-          alwaysEnabled
-        />
+        <SectionEditorTitle title={isNew ? 'Add GitHub Handle' : 'Edit GitHub Handle'} />
 
         <div className={clsx(x.body, d.formBody)}>
           <div className={x.row}>
@@ -2365,6 +2555,8 @@ function GithubHandleForm({
             </>
           )}
         </div>
+
+        <SectionEditorControls onClose={onClose} alwaysEnabled />
       </form>
     </FormProvider>
   );

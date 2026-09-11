@@ -1,41 +1,30 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import clsx from 'clsx';
 
 import { Button } from '@/components/common/Button';
 import { PlusIcon } from '@/components/icons';
-import { getUiFlag, setUiFlag } from '@/utils/uiFlags';
+import { useOneTimeCallout } from '@/hooks/useOneTimeCallout';
 
 import tip from '@/components/core/tooltip/tooltip.module.css';
 import local from './PostNewsModal.module.scss';
 
-const tipKey = (memberUid: string) => `team_news_post_tip_dismissed_${memberUid}`;
+/* This used to take the poster's uid as a prop and build its own storage key
+   from it. The hook reads the uid from the session instead, so the prop is
+   gone: both callers happened to pass the signed-in member, but `AuthGuard`
+   lets a directory admin write another member's row, and a future caller
+   passing a profile uid would have recorded the dismissal against the wrong
+   account with nothing to catch it. */
+const TIP_KEY = 'team_news_post_tip';
 
 interface Props {
   teamName: string;
-  memberUid: string;
   onPost: () => void;
 }
 
-export function PostNewsButton({ teamName, memberUid, onPost }: Props) {
-  const [tipOpen, setTipOpen] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    getUiFlag(tipKey(memberUid)).then((dismissed) => {
-      if (!cancelled && !dismissed) setTipOpen(true);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [memberUid]);
-
-  const dismiss = () => {
-    setTipOpen(false);
-    void setUiFlag(tipKey(memberUid));
-  };
+export function PostNewsButton({ teamName, onPost }: Props) {
+  const { open: tipOpen, dismiss } = useOneTimeCallout(TIP_KEY);
 
   return (
     <TooltipPrimitive.Provider delayDuration={0}>

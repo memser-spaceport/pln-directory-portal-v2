@@ -341,7 +341,7 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
           viewerState={viewer.viewer}
           source={source}
           interest={
-            canShowJobInterest({ isLoggedIn, userInfo })
+            canShowJobInterest({ isLoggedIn, userInfo, team: state.target.team })
               ? {
                   isInterested,
                   isSettled: interestSettled,

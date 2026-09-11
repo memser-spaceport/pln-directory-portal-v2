@@ -1,10 +1,14 @@
 import '@testing-library/jest-dom';
 import type { ReactElement } from 'react';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { TeamNews } from '@/components/page/home/TeamNews/TeamNews';
-import { SHOW_HIRING_NEWS, SHOW_POPULAR_THIS_WEEK } from '@/components/page/home/TeamNews/constants';
+import {
+  MAX_FOR_YOU_JOB_ENTRIES,
+  SHOW_HIRING_NEWS,
+  SHOW_POPULAR_THIS_WEEK,
+} from '@/components/page/home/TeamNews/constants';
 import { DEFAULT_TEAM_NEWS_SORT, SORT_OPTIONS } from '@/components/page/home/TeamNews/utils/sortTeamNewsClusters';
 import { useCurrentUserStore } from '@/services/auth/store';
 import type { IFeedForumPost } from '@/types/feed.types';
@@ -84,6 +88,7 @@ const mockOnShared = jest.fn();
 const mockOnForumPostModalOpened = jest.fn();
 const mockOnTopStoriesBlockViewed = jest.fn();
 const mockOnTopStoryClicked = jest.fn();
+const mockOnFeedHiringCardViewed = jest.fn();
 const mockOnFeedHiringRoleClicked = jest.fn();
 const mockOnFeedHiringViewAllClicked = jest.fn();
 const mockOnFeedDealClicked = jest.fn();
@@ -111,6 +116,7 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onTeamsToFollowHidden: (...a: unknown[]) => mockOnTeamsToFollowHidden(...a),
     onTopStoriesBlockViewed: (...a: unknown[]) => mockOnTopStoriesBlockViewed(...a),
     onTopStoryClicked: (...a: unknown[]) => mockOnTopStoryClicked(...a),
+    onFeedHiringCardViewed: (...a: unknown[]) => mockOnFeedHiringCardViewed(...a),
     onFeedHiringRoleClicked: (...a: unknown[]) => mockOnFeedHiringRoleClicked(...a),
     onFeedHiringViewAllClicked: (...a: unknown[]) => mockOnFeedHiringViewAllClicked(...a),
     onFeedDealClicked: (...a: unknown[]) => mockOnFeedDealClicked(...a),
@@ -140,9 +146,38 @@ jest.mock('@/components/page/home/TeamNews/hooks/useFeedSocial', () => ({
 // Hiring roll-ups and deals reach the feed through these two. Default: neither
 // loaded, which is what the globally-mocked useQuery already produced — so every
 // other test in this file behaves exactly as before.
+/* The feed's hiring roll-ups render the board's own `ReferRoleRow`, whose
+   ReferModal reaches `next/server` through the hooks it borrows from
+   `prototypes/` — `Request is not defined` under jsdom. Stubbed exactly as every
+   other suite that renders that row does (see refer-role-row-apply-slot).
+   The refer/share controls are the board's and are tested there; here the row
+   matters for its View job destination and its meta line. */
+jest.mock('@/prototypes/entries/job-board/components/ReferModal/ReferModal', () => ({
+  ReferModal: () => null,
+}));
+jest.mock('@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/ReferMenu', () => ({
+  ReferMenu: () => <div data-testid="refer-menu" />,
+}));
+
+/* View job is a <button> on the board's row (title and button are one door with
+   two handles there), so from the feed it reaches the board via window.open
+   rather than an href. */
+const mockWindowOpen = jest.fn();
+
 const mockUseFeedHiring = jest.fn((): { hiring: IJobTeamGroup[] | undefined } => ({ hiring: undefined }));
 jest.mock('@/components/page/home/TeamNews/hooks/useFeedHiring', () => ({
   useFeedHiring: () => mockUseFeedHiring(),
+}));
+
+// The For You pill's PERSONALIZED roll-ups, which are a different stream from
+// the two above — matched server-side and shown only under that pill. Same
+// default of "nothing loaded", so no other test in this file changes. Takes its
+// argument so the `enabled` gate can be asserted.
+const mockUseFeedForYouJobs = jest.fn((..._args: unknown[]): { forYouJobs: IJobTeamGroup[] | undefined } => ({
+  forYouJobs: undefined,
+}));
+jest.mock('@/components/page/home/TeamNews/hooks/useFeedForYouJobs', () => ({
+  useFeedForYouJobs: (...a: unknown[]) => mockUseFeedForYouJobs(...a),
 }));
 const mockUseIsBelowDesktop = jest.fn(() => false);
 jest.mock('@/hooks/useIsBelowDesktop', () => ({
@@ -290,6 +325,9 @@ describe('TeamNews', () => {
     // that supplies forum posts leaks them into every later test's feed.
     mockUseFeedSocial.mockReturnValue(feedSocial(undefined, false));
     mockUseFeedHiring.mockReturnValue({ hiring: undefined });
+    mockUseFeedForYouJobs.mockReturnValue({ forYouJobs: undefined });
+    mockWindowOpen.mockClear();
+    window.open = mockWindowOpen as unknown as typeof window.open;
     mockUseFeedDeals.mockReturnValue({ deals: undefined });
     mockUseIsBelowDesktop.mockReturnValue(false);
     // useNewsDeepLink reads the real jsdom URL on mount — reset it so a
@@ -1705,7 +1743,7 @@ describe('TeamNews', () => {
       mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
-      expect(screen.getByText('Hiring acme is hiring')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Hiring acme' })).toBeInTheDocument();
       expect(screen.getByText('View all 5 open roles at Hiring acme')).toBeInTheDocument();
     });
 
@@ -1723,7 +1761,10 @@ describe('TeamNews', () => {
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
       const first = document.querySelector('[data-news-feed-list]')!.firstElementChild!;
-      expect(first.textContent).not.toContain('is hiring');
+      /* The team name, not "is hiring": that phrase left with the headline
+         markup, so a card containing it is something no version of this app
+         renders and the assertion could not fail. */
+      expect(first.textContent).not.toContain('Hiring acme');
       expect(first.textContent).not.toContain('Vendor d1');
     });
 
@@ -1741,34 +1782,50 @@ describe('TeamNews', () => {
       expect(document.querySelector('[data-news-feed-list]')!.children).toHaveLength(6);
     });
 
-    itHiring('carries the job board attribution params on role links', () => {
+    itHiring('opens the board with the role’s drawer, in a new tab', () => {
       mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
-      expect(screen.getByRole('link', { name: 'Role acme-r1' })).toHaveAttribute(
-        'href',
-        'https://jobs.example.com/acme-r1?utm_source=os.pl.xyz&utm_medium=job_board',
-      );
+      fireEvent.click(screen.getAllByRole('button', { name: 'View job' })[0]);
+
+      expect(mockWindowOpen).toHaveBeenCalledWith('/jobs?job=acme-r1', '_blank', 'noopener,noreferrer');
     });
 
-    itHiring('renders a role without an apply link as plain text, not a dead anchor', () => {
+    // Used to be "renders a role without an apply link as plain text, not a dead
+    // anchor". The drawer is keyed by uid, which every role has, so the dead
+    // anchor the old assertion guarded against can no longer occur — a role with
+    // no source link is reachable rather than inert.
+    itHiring('still offers View job for a role whose source posting is missing', () => {
       mockUseFeedHiring.mockReturnValue({
         hiring: [hiringGroup('acme', { roles: [jobRole('no-url', { applyUrl: null })] })],
       });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
-      expect(screen.getByText('Role no-url')).toBeInTheDocument();
-      expect(screen.queryByRole('link', { name: 'Role no-url' })).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'View job' }));
+
+      expect(mockWindowOpen).toHaveBeenCalledWith('/jobs?job=no-url', '_blank', 'noopener,noreferrer');
     });
 
-    itHiring('renders no location rather than an empty one', () => {
+    // The board's row builds "seniority · function · location" and omits the
+    // parts a role doesn't carry — the feed shows the same line because it is
+    // the same component, seniority label map included.
+    itHiring('renders the board’s meta line from the parts a role actually carries', () => {
       mockUseFeedHiring.mockReturnValue({
-        hiring: [hiringGroup('acme', { roles: [jobRole('bare', { location: [] })] })],
+        hiring: [
+          hiringGroup('acme', {
+            roles: [
+              jobRole('full', { seniority: 'Principal+ (L6-L7)', roleCategory: 'Operations', location: ['US'] }),
+              jobRole('partial', { seniority: null, roleCategory: 'Operations', location: [] }),
+            ],
+          }),
+        ],
       });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
-      const row = screen.getByRole('link', { name: 'Role bare' }).closest('li')!;
-      expect(row.textContent).toBe('Role bare');
+      // Displayed through the board's label map, not the raw wire value.
+      expect(screen.getByText('Principal+ · Operations · US')).toBeInTheDocument();
+      // No stray separators around the two parts this role has nothing for.
+      expect(screen.getByText('Operations')).toBeInTheDocument();
     });
 
     // Neither kind carries a focus area or an event type, so every narrowed
@@ -1776,11 +1833,11 @@ describe('TeamNews', () => {
     itHiring('drops the hiring roll-up on a category pill', () => {
       mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
-      expect(screen.getByText('Hiring acme is hiring')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Hiring acme' })).toBeInTheDocument();
 
       fireEvent.click(screen.getByRole('button', { name: /^Funding\b/ }));
 
-      expect(screen.queryByText('Hiring acme is hiring')).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Hiring acme' })).not.toBeInTheDocument();
     });
 
     it('drops the deal on a category pill', () => {
@@ -1796,7 +1853,11 @@ describe('TeamNews', () => {
     it('leaves the feed intact when neither stream loads', () => {
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
-      expect(screen.queryByText(/is hiring/)).not.toBeInTheDocument();
+      /* Anchored to the handle the positive tests above prove appears when a
+         roll-up renders. `/is hiring/` matched nothing in any state once the
+         headline was removed, so it reported success for a card that was never
+         looked for. */
+      expect(screen.queryByRole('link', { name: 'Hiring acme' })).not.toBeInTheDocument();
       expect(document.querySelector('[data-news-feed-list]')!.children.length).toBeGreaterThan(0);
     });
 
@@ -1804,7 +1865,7 @@ describe('TeamNews', () => {
       mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
-      fireEvent.click(screen.getByRole('link', { name: 'Role acme-r1' }));
+      fireEvent.click(screen.getAllByRole('button', { name: 'View job' })[0]);
       expect(mockOnFeedHiringRoleClicked).toHaveBeenCalledWith(
         expect.objectContaining({ team: expect.objectContaining({ uid: 'acme' }) }),
         expect.objectContaining({ uid: 'acme-r1' }),
@@ -2271,6 +2332,161 @@ describe('TeamNews', () => {
 
       expect(screen.getByText('Posted this week')).toBeInTheDocument();
       expect(screen.getByText('Posted last fortnight')).toBeInTheDocument();
+    });
+
+    /**
+     * Personalized jobs. Unlike the unpersonalized roll-ups on All (dark behind
+     * `SHOW_HIRING_NEWS`), these are NOT flagged — matching is what makes them
+     * appropriate here, and the server does all of it. These tests therefore run
+     * unconditionally.
+     */
+    describe('personalized hiring roll-ups', () => {
+      const forYouRole = (uid: string) => ({
+        uid,
+        roleTitle: `Matched ${uid}`,
+        roleCategory: 'Engineering',
+        seniority: null,
+        location: ['Remote'],
+        workMode: null,
+        applyUrl: `https://jobs.example.com/${uid}`,
+        lastUpdated: '2026-05-01T00:00:00.000Z',
+        postedDate: null,
+        detectionDate: null,
+      });
+
+      const forYouJobGroup = (uid: string, roleUids: string[] = [`${uid}-r1`]): IJobTeamGroup =>
+        ({
+          team: { uid, name: `Jobs ${uid}`, logoUrl: null, focusAreas: [], subFocusAreas: [], jobReferEmail: null },
+          totalRoles: roleUids.length,
+          roles: roleUids.map(forYouRole),
+        }) as IJobTeamGroup;
+
+      // pageSize is overridable so the cap test stays honest if
+      // MAX_FOR_YOU_JOB_ENTRIES is raised past what a default page can hold.
+      const renderForYou = (pageSize?: number) =>
+        renderTeamNews(
+          <TeamNews groups={forYouGroups} forYouTeamUids={['team-mem', 'team-rec']} pageSize={pageSize} />,
+        );
+
+      it('renders matched roles as the board’s own rows', () => {
+        mockUseFeedForYouJobs.mockReturnValue({ forYouJobs: [forYouJobGroup('acme')] });
+        renderForYou();
+
+        expect(screen.getByRole('link', { name: 'Jobs acme' })).toBeInTheDocument();
+        // Title, meta line, refer, share and View job — the board's row, not a
+        // feed-local lookalike.
+        expect(screen.getByRole('button', { name: 'Matched acme-r1' })).toBeInTheDocument();
+        expect(screen.getByText('Engineering · Remote')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Refer' })).toBeInTheDocument();
+        expect(screen.getByTestId('refer-menu')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'View job' })).toBeInTheDocument();
+      });
+
+      it('opens the board with that role’s drawer in a new tab, and reports the click', () => {
+        mockUseFeedForYouJobs.mockReturnValue({ forYouJobs: [forYouJobGroup('acme')] });
+        renderForYou();
+
+        fireEvent.click(screen.getByRole('button', { name: 'View job' }));
+
+        expect(mockWindowOpen).toHaveBeenCalledWith('/jobs?job=acme-r1', '_blank', 'noopener,noreferrer');
+        expect(mockOnFeedHiringRoleClicked).toHaveBeenCalledWith(
+          expect.objectContaining({ team: expect.objectContaining({ uid: 'acme' }) }),
+          expect.objectContaining({ uid: 'acme-r1' }),
+          0,
+          expect.any(Number),
+        );
+      });
+
+      it('counts them on the For You pill', () => {
+        mockUseFeedForYouJobs.mockReturnValue({
+          forYouJobs: [forYouJobGroup('acme'), forYouJobGroup('globex')],
+        });
+        renderForYou();
+
+        // 2 For You news items (one per matching team) + 2 matched roll-ups.
+        expect(within(within(catRow()).getByRole('button', { name: /For You/ })).getByText('4')).toBeInTheDocument();
+      });
+
+      it('takes at most MAX_FOR_YOU_JOB_ENTRIES, however many were matched', () => {
+        mockUseFeedForYouJobs.mockReturnValue({
+          forYouJobs: Array.from({ length: MAX_FOR_YOU_JOB_ENTRIES + 2 }, (_, i) => forYouJobGroup(`t${i}`)),
+        });
+        renderForYou(50);
+
+        expect(screen.getAllByRole('link', { name: /^Jobs t\d+$/ })).toHaveLength(MAX_FOR_YOU_JOB_ENTRIES);
+      });
+
+      it('never leads the feed with one', () => {
+        mockUseFeedForYouJobs.mockReturnValue({ forYouJobs: [forYouJobGroup('acme')] });
+        renderForYou();
+
+        const first = document.querySelector('[data-news-feed-list]')!.firstElementChild!;
+        expect(first.textContent).not.toContain('Jobs acme');
+      });
+
+      it('keeps them off every other category pill', () => {
+        mockUseFeedForYouJobs.mockReturnValue({ forYouJobs: [forYouJobGroup('acme')] });
+        renderForYou();
+        expect(screen.getByRole('link', { name: 'Jobs acme' })).toBeInTheDocument();
+
+        fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
+
+        expect(screen.queryByRole('link', { name: 'Jobs acme' })).not.toBeInTheDocument();
+      });
+
+      // A job carries no focus area of its own, so a focus-area tab has nothing
+      // to place it under — For You stays selected there, the roll-ups do not.
+      it('keeps them off a focus-area tab', () => {
+        mockUseFeedForYouJobs.mockReturnValue({ forYouJobs: [forYouJobGroup('acme')] });
+        renderForYou();
+        /* Paired with the check below on purpose: this test asserted only
+           absence, so between the headline being deleted and its handle being
+           replaced it passed without a roll-up ever being rendered to filter. */
+        expect(screen.getByRole('link', { name: 'Jobs acme' })).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('tab', { name: new RegExp(FA_DHR.title) }));
+
+        expect(within(catRow()).getByRole('button', { name: /For You/ })).toHaveClass(/catActive/);
+        expect(screen.queryByRole('link', { name: 'Jobs acme' })).not.toBeInTheDocument();
+      });
+
+      it('drops them while searching, like every other feed signal', () => {
+        jest.useFakeTimers();
+        mockUseFeedForYouJobs.mockReturnValue({ forYouJobs: [forYouJobGroup('acme')] });
+        renderForYou();
+        expect(screen.getByRole('link', { name: 'Jobs acme' })).toBeInTheDocument();
+
+        const inputs = screen.getAllByPlaceholderText('Search by news, teams…');
+        fireEvent.change(inputs[inputs.length - 1], { target: { value: 'Mem Team' } });
+        act(() => jest.advanceTimersByTime(700));
+
+        expect(screen.queryByRole('link', { name: 'Jobs acme' })).not.toBeInTheDocument();
+        jest.useRealTimers();
+      });
+
+      it('leaves the feed intact when the match never loads', () => {
+        renderForYou();
+
+        // Same handle the positive tests use — see the note on its twin above.
+        expect(screen.queryByRole('link', { name: 'Jobs acme' })).not.toBeInTheDocument();
+        expect(document.querySelector('[data-news-feed-list]')!.children.length).toBeGreaterThan(0);
+      });
+
+      it('asks for the match only for a signed-in member with a For You pill', () => {
+        useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+        renderForYou();
+        expect(mockUseFeedForYouJobs).toHaveBeenLastCalledWith(false, undefined);
+
+        cleanup();
+        useCurrentUserStore.setState({ currentUser: { uid: 'user-1' }, isHydrated: true });
+        renderForYou();
+        expect(mockUseFeedForYouJobs).toHaveBeenLastCalledWith(true, 'user-1');
+
+        // No For You pill (no matching team) ⇒ nothing to fetch for.
+        cleanup();
+        renderTeamNews(<TeamNews groups={forYouGroups} forYouTeamUids={[]} />);
+        expect(mockUseFeedForYouJobs).toHaveBeenLastCalledWith(false, 'user-1');
+      });
     });
   });
   describe('the Views count, without a reload', () => {

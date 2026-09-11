@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm, type Resolver } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import clsx from 'clsx';
@@ -161,7 +161,15 @@ interface JobApplyFlowDrawerProps {
    * brand-new account is under review from the moment it exists, so the one
    * press was the rule's most common violation rather than its exception.
    */
-  onSubmitApplication: (coverLetter: string) => void;
+  onSubmitApplication: (coverLetter: string, followTeam: boolean) => void;
+  /**
+   * Whether this viewer already follows the hiring team.
+   *
+   * When they do, the footer's follow tick is not drawn at all — there is
+   * nothing left to offer, and a ticked-and-disabled box reporting a state you
+   * already have is a mark for the resting state.
+   */
+  followsTeam?: boolean;
   /**
    * Opens the account, and *only* the account. This is where the details step
    * now ends for a visitor who arrived without one.
@@ -303,6 +311,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     profile,
     onSaveProfile,
     onSubmitApplication,
+    followsTeam = false,
     onCreateAccount,
     loggedIn,
     onSignIn,
@@ -318,6 +327,12 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   } = props;
 
   const isMobile = useIsMobile();
+  /* The drawer's chrome, for the profile step's status row: the sticky header
+     the cards scroll under, and the slot in the footer the row renders into,
+     beside Continue. The slot is state rather than a ref so the step's portal
+     re-renders once the footer has mounted it. See `EditorStatusRow`. */
+  const drawerHeaderRef = useRef<HTMLDivElement | null>(null);
+  const [footerSlot, setFooterSlot] = useState<HTMLDivElement | null>(null);
 
   /* The footer's "What your profile unlocks?" popover, on the logged-out
      reading step. Local: it is a glance at a card that is also in the body,
@@ -353,6 +368,24 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
      Reset with everything else when the drawer opens — a fresh run asks again,
      which is the only version of confirmedComplete worth collecting. */
   const [confirmedComplete, setConfirmedComplete] = useState(false);
+
+  /**
+   * "Follow <team> to hear when they post or hire", offered beside the press
+   * that sends the application.
+   *
+   * **Checked by default.** The RSVP rule: a default keeps adoption, the tick
+   * keeps consent. It is safe to default here in a way it would not be for
+   * something public — production's own follower list carries the tooltip *"The
+   * follower list is only visible to your team"*, so the only people who learn
+   * you followed are the people who are about to read your application anyway.
+   * Nothing about you reaches a stranger that the press was not already sending.
+   *
+   * **Held at flow level**, like the letter and the completeness tick, for the
+   * same reason: the pane that would otherwise own it unmounts on every step
+   * change. Unlike `draft`, it is not a fact about the person — it is one
+   * decision about one act, so it does not belong on `MemberProfile`.
+   */
+  const [followTeam, setFollowTeam] = useState(true);
 
   /* The account form, lifted for exactly the reason the draft is: `JobAccountPane`
      unmounts every time someone steps to the letter, and a stranger who went to
@@ -395,6 +428,10 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     setEditing(null);
     setCoverLetter(canvasCoverLetter ?? '');
     setConfirmedComplete(false);
+    /* Back to its default, not to whatever the last run left — the offer is
+       made once per application, and an application to a different team is a
+       different question. */
+    setFollowTeam(true);
     setUnlocksOpen(false);
     accountMethods.reset(EMPTY_ACCOUNT_FORM);
     /* `loggedIn &&` is belt and braces — a logged-out viewer's profile is the
@@ -629,6 +666,23 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   const blockedByReview = loggedIn && pendingApproval;
 
   /**
+   * Whether the follow tick is drawn — the last step, for the one viewer whose
+   * press actually sends an application from this board.
+   *
+   * **Why it is not simply "signed in".** Three of the flow's viewers never
+   * reach an in-app send: a visitor with no account and a member still under
+   * review are handed to the team's own site, and a job aspirant's act on a role
+   * is the *I'm interested* strip, not an application. A follow offered beside a
+   * press that leaves the product would be attached to nothing this board can
+   * honour. What is left is a member of a PL network team, on step 3, pressing
+   * `Apply` — which is exactly where the offer was asked for.
+   *
+   * `managed` is excluded for the obvious reason: a lead does not follow their
+   * own team out of the drawer they use to manage its listings.
+   */
+  const showFollowTick = step === 'application' && !managed && !followsTeam && !!team;
+
+  /**
    * The way out to the team's own ad, for a member whose account is still under
    * review.
    *
@@ -721,7 +775,13 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
         );
       }
       return (
-        <Button variant="primary" style="fill" size="m" className={d.footerAction} onClick={() => managed.onSetStatus('live')}>
+        <Button
+          variant="primary"
+          style="fill"
+          size="m"
+          className={d.footerAction}
+          onClick={() => managed.onSetStatus('live')}
+        >
           Bring back
         </Button>
       );
@@ -948,7 +1008,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
         size="m"
         className={d.footerAction}
         disabled={!canSend}
-        onClick={() => onSubmitApplication(coverLetter.trim())}
+        onClick={() => onSubmitApplication(coverLetter.trim(), showFollowTick && followTeam)}
       >
         Apply
       </Button>
@@ -960,7 +1020,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
       {/* `d.drawerHeaderLift` is what this header adds to production's: a
           stacking order that survives positioned content scrolling past it, and
           the room for a second row. See the notes in the stylesheet. */}
-      <div className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
+      <div ref={drawerHeaderRef} className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
         <div className={clsx(s.breadcrumbs, d.headerRow)}>
           <button type="button" className={s.backButton} onClick={onBack}>
             <BackIcon />
@@ -1030,6 +1090,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               pendingRoleTitle={role?.roleTitle ?? null}
               pendingApproval={pendingApproval}
               jobAspirant={jobAspirant}
+              floatingChrome={{ top: drawerHeaderRef, slot: footerSlot }}
               canvasImport={canvasImport}
             />
           ) : (
@@ -1080,6 +1141,8 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
           makes them read as one screen rather than three. */}
       <div className={d.footer}>
         <div className={clsx(d.footerInner, step === 'review' && !loggedIn && !managed && d.footerInnerSplit)}>
+          {/* The open card's status, on the profile step — see `.footerStatus`. */}
+          <div ref={setFooterSlot} className={d.footerStatus} />
           {/* The "What your profile unlocks?" list, floated above the link that
               opened it. Inside the bar so it is positioned against the bar's
               own top edge, and only ever on the visitor's reading step. */}
@@ -1133,6 +1196,29 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               <span className={d.footerCheckLabel}>
                 {blockedByReview ? 'My profile is complete' : "I've reviewed my profile"}
               </span>
+            </label>
+          )}
+
+          {/* The follow offer, in the same slot on the step that sends.
+
+              **It is an offer, not a gate**, which is the one thing that has to
+              read differently from the tick above: no red `*`, so the label is a
+              bare `<span>` rather than `.footerCheckLabel` — that class exists
+              only to draw the required mark. `Apply` stays live whether this is
+              ticked or not.
+
+              **In the bar rather than in the pane** for the same reason the
+              completeness tick is: it decides what the press does, and a
+              decision about a press belongs beside it, where no scroll position
+              can separate the two. It never meets the tick above — that one is
+              step 2, this one step 3 — so the bar still holds one tick at most.
+
+              **Checked by default**, and drawn only for someone who does not
+              already follow the team. See `followTeam` and `showFollowTick`. */}
+          {showFollowTick && (
+            <label className={d.footerCheck}>
+              <Checkbox checked={followTeam} onChange={setFollowTeam} />
+              <span>Follow {team.name} to hear when they post or hire</span>
             </label>
           )}
           {footer}

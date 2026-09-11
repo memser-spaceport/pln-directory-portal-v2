@@ -1,0 +1,129 @@
+// The chrome is `ReferModal.module.scss`, imported whole — the same card, close
+// button, envelope masthead, scrolling field stack and twin-action footer. This
+// is the board's second "tell a team something" dialog and it should be the same
+// object; a second transcription of the same Demo Day reference would be two
+// copies to keep in agreement.
+//
+// Only what this form does differently lives here.
+@use 'styles/media';
+
+/* The referral card is pinned to 870px so that adding recipients scrolls the
+   field instead of moving the footer. This form has nothing that grows — two
+   fields, both fixed — so a fixed height would leave a few hundred pixels of
+   white between the note and the buttons. It sizes to its content and keeps the
+   same viewport cap as a ceiling, exactly as `.modalSent` does for the receipt.
+
+   `dvh`, and the overlay's own gutter subtracted, so a short laptop window
+   scrolls the fields rather than the card (see the prototypes' modal rule). */
+.card {
+  height: auto;
+  max-height: min(720px, calc(100dvh - 48px));
+
+  @include media.mobile-only {
+    max-height: min(720px, calc(100dvh - 32px));
+  }
+}
+
+/* The one thing this dialog says that its controls cannot show: where the rest
+   of the answer comes from. The two fields are visibly the whole form, so
+   without this line a reader has no way to know their profile and CV go with it
+   — and that is exactly the part they would want to have known.
+
+   It takes `.privacyNote`'s tone and size from the referral card's equivalent
+   slot; only the icon's alignment is added here. */
+.payloadNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+
+  svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+/* `Edit profile`, inline at the end of the note that names the profile.
+ *
+ * **Not the design system's `Button`, and deliberately so.** `style="link"` is
+ * the DS's chromeless base and it would zero the border, padding and min-width
+ * correctly — but every size class pins its own type (`xxs` is 12/16, `xs` is
+ * 14/20) and this control sits *inside a sentence* set at 12/18. Reaching for
+ * the component would mean overriding the one thing it is being reached for.
+ *
+ * What it is instead is a transcription of production's own control for exactly
+ * this: `components/page/jobs/JobApplicationPane/JobApplicationPane.module.scss`
+ * `.editLink`, a plain `<button>` at 12/500/18 in the brand token with a hover
+ * underline. The apply flow's step 3 offers the same escape in the same words,
+ * so the two routes to one editor are one control drawn once.
+ *
+ * The values are copied rather than inherited. An earlier version used
+ * `font: inherit`, which took the note's own weight — 400 — and left the two
+ * `Edit profile` links in one flow a weight apart. 500 is also what makes this
+ * read as a control inside a sentence of body text.
+ *
+ * It keeps a `<button>`'s own `inline-block`, which is what we want: the phrase
+ * moves to the next line whole rather than breaking across one. */
+.editLink {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* --- The read-back, when the dialog is reopened on a signal already sent ------
+
+   Not a form. Reopening is for two questions — *what did I say?* and *can I take
+   it back?* — and neither is answered by handing back an editable copy of a note
+   somebody wrote once. So the answers are quoted, and the only control is the
+   one that removes them. */
+
+.sent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Label over answer, twice. `.sentLabel` borrows the field label's size and
+   weight from `FormTextArea` so a quoted answer sits under the same kind of
+   caption it was given under. */
+.sentBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sentLabel {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.sentValue {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  white-space: pre-wrap;
+}
+
+/* (`.sentEmpty` stood here — a tertiary tone for "You sent this without a
+   message." That sentence is gone: the whole block is now conditional on there
+   being a message, because a label over an absence makes a skipped optional
+   field look like a hole in the record. See the receipt in the component.) */

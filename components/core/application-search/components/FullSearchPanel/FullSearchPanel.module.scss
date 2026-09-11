@@ -62,3 +62,22 @@ $padding-inline: 16px;
   //background-color: red;
   flex: 1;
 }
+
+/* DELETE WITH: the legacy header search.
+   `RecentSearch` used to draw its own dividers and vertical spacing. The dialog
+   rebuild moved that to the host — "the dialog is the only host now, and it owns
+   the rhythm between its sections", per the note in RecentSearch.tsx — so this
+   host has to draw them itself. Geometry is the component's own, at de644d92a:
+   a 12px gap above the list, 8px of padding around it, and a hairline top and
+   bottom with 8px either side. */
+.recentSearchBody {
+  margin-top: 12px;
+  padding-block: 8px;
+}
+
+.recentSearchDivider {
+  height: 1px;
+  width: 100%;
+  margin-block: 8px;
+  background: #e2e8f0;
+}

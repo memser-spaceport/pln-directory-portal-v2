@@ -27,7 +27,7 @@ export function useAiAppsAnalytics() {
         appUid,
         appName,
         path: `/pl-infra/ai-apps/${appUid}`,
-        // Set only when the page was opened via a ?path= deep link into an app subpage.
+        // Set only when the page was opened at an app subpage (`/pl-infra/ai-apps/<uid>/<subpage>`).
         deepLinkPath: deepLinkPath ?? undefined,
       }),
     onOpenInNewTabClicked: (appUid: string, appName: string, appUrl: string) =>

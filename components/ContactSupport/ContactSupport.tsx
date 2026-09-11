@@ -10,13 +10,16 @@ import { useContactSupportStore } from '@/services/contact-support/store';
 import { ModalBase } from '@/components/common/ModalBase';
 import { QuestionCircleIcon } from '@/components/icons';
 import { LabeledInput } from '@/components/common/form/LabeledInput';
+import { FormLabel } from '@/components/common/form/FormLabel';
 import { FormEditor } from '@/components/form/FormEditor';
-import { Dropdown } from '@/components/form/Dropdown';
 import { toast } from '@/components/core/ToastContainer';
 import { hostDataUriImages, isBlankHtml } from '@/utils/html';
 import { IUserInfo } from '@/types/shared.types';
+import { useCommonAnalytics } from '@/analytics/common.analytics';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
 
 import { CONTACT_SUPPORT_TOPICS } from './constants';
+import { TopicPills } from './TopicPills';
 
 import { useContactSupport } from './hooks/useContactSupport';
 
@@ -99,6 +102,7 @@ export function ContactSupport(props: Props) {
   const { open, metadata, topic: contextTopic, prefillMessage, actions } = useContactSupportStore();
   const { closeModal, updateTopic } = actions;
   const contactSupportMutation = useContactSupport();
+  const analytics = useCommonAnalytics();
 
   const getDefaultValues = useCallback(() => {
     const { email = '', name = '' } = userInfo || {};
@@ -182,12 +186,17 @@ export function ContactSupport(props: Props) {
   const description = getDescriptionByReason(metadata?.reason as string);
   const fieldLabel = getFieldLabelByTopic(selectedTopic);
   const fieldPlaceholder = getFieldPlaceholderByTopic(selectedTopic);
+  // Every variant used to be titled "Contact Support", so a menu item reading
+  // "Give feedback" opened a dialog that said something else across the top —
+  // the door and the room disagreeing about where you had arrived. The title
+  // now says the topic, and the pills under it are how you change it.
+  const title = CONTACT_SUPPORT_TOPICS.find((topic) => topic.value === selectedTopic)?.label ?? 'Contact support';
 
   return (
     <FormProvider {...methods}>
       <ModalBase
         className={s.root}
-        title="Contact Support"
+        title={title}
         titleIcon={<QuestionCircleIcon />}
         description={description}
         open={open}
@@ -206,28 +215,20 @@ export function ContactSupport(props: Props) {
           disabled: !isValid || isLoading,
         }}
       >
-        <Dropdown
-          id="topic"
-          label="Please choose topic below"
-          options={CONTACT_SUPPORT_TOPICS}
-          onItemSelect={(option) => {
-            if (option) {
-              setValue('topic', option.value, { shouldValidate: true });
-              updateTopic(option.value);
-            }
-          }}
-          uniqueKey="value"
-          displayKey="label"
-          selectedOption={CONTACT_SUPPORT_TOPICS.find((topic) => topic.value === selectedTopic)}
-          isMandatory
-          classes={{
-            label: s.ddLabel,
-            ddRoot: s.ddRoot,
-            option: s.option,
-            selectedOption: s.selectedOption,
-          }}
-          arrowImgUrl="/icons/arrow-down.svg"
-        />
+        {/* The pills wear the same label chrome as the fields below them, so the
+            row reads as one more field rather than as a tab strip over the
+            form. `updateTopic` is what keeps `?dialog=` in step — see
+            ContactSupportUrlSync. */}
+        <FormLabel label="Topic">
+          <TopicPills
+            value={selectedTopic}
+            onChange={(next) => {
+              setValue('topic', next, { shouldValidate: true });
+              updateTopic(next);
+              analytics.onContactSupportTopicPillSelected(next, getAnalyticsUserInfo(userInfo));
+            }}
+          />
+        </FormLabel>
 
         <LabeledInput
           label={isEmailPrefilled ? 'Email Address (Prefilled)' : 'Email Address'}

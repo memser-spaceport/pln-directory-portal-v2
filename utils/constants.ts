@@ -911,6 +911,28 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.6.1 - External Referrals, Help Menu & Feed Upgrades',
+    tag: 'New Feature',
+    date: '11, Sep 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Refer outside the network</span> - Refer someone who isn't in the Directory yet by entering their name, email, and LinkedIn profile instead of picking a member.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Help & Feedback</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Help menu</span> - The header (?) now opens a menu with Contact support, Ask a question, Give feedback, Share an idea, and Report a bug.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">For You job matches</span> - Personalized job openings now appear in your feed, matched to your role, skills, and experience.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">All tab</span> - The All tab now shows every story, including news from teams without a listed focus area.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Shared articles</span> - Links to shared news stories now unfurl with a proper title, snippet, and preview image.</li>
+        </ul>
+        </div>`,
+  },
+  {
     title: 'Version 4.6.0 - Job Referrals, Team News & AI Apps',
     tag: 'New Feature',
     date: '4, Sep 2026',

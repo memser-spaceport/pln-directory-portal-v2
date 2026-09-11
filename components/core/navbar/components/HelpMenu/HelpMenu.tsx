@@ -29,6 +29,7 @@ type DismissedVia = 'got-it' | 'escape' | 'modal-opened';
 
 interface Props {
   userInfo?: IUserInfo;
+  isLoggedIn?: boolean;
 }
 
 /**
@@ -52,14 +53,28 @@ interface Props {
  * search, the notification bell — open their thing on a press, and this one now
  * does too.
  */
-export const HelpMenu = ({ userInfo }: Props) => {
+export const HelpMenu = ({ userInfo, isLoggedIn }: Props) => {
   const analytics = useCommonAnalytics();
   const { openModal } = useContactSupportStore((store) => store.actions);
 
   // Both answers — local cache and member record — are resolved in here, which
   // is also why the callout can still only appear a tick after mount: that
   // delay is what stops it flashing for members who dismissed it long ago.
-  const { open: calloutOpen, dismiss: dismissFlag } = useOneTimeCallout(CALLOUT_KEY);
+  const { open: calloutReady, dismiss: dismissFlag } = useOneTimeCallout(CALLOUT_KEY);
+
+  /* Members only. The (?) is in the header for signed-out visitors too and the
+     support form works without a session, so the sentence is true for them —
+     but it is an unprompted interruption to someone who has not signed in yet,
+     and they have the sign-up flow in the same row competing for that attention.
+     Gated here rather than inside `useOneTimeCallout`, because this is one
+     callout's decision: the hook's other two callers are on pages that already
+     require a session, and one of them might one day want the opposite.
+     `isLoggedIn` arrives from the server-rendered cookie state, so it is settled
+     on the first paint and this cannot flash. `Boolean()` is for the type, not
+     the behaviour: `isLoggedIn` has historically been `''` rather than `false`
+     here, and `'' && x` is already falsy — this just stops that `''` reaching
+     `open=`, which wants a boolean. */
+  const calloutOpen = Boolean(isLoggedIn) && calloutReady;
 
   // A ref rather than a dependency, for the reason the Home news dot uses one:
   // `useCommonAnalytics()` hands back a fresh object every render, so an effect

@@ -73,7 +73,7 @@ describe('HelpMenu', () => {
 
   describe('the help button', () => {
     it('opens the support form on Contact support', async () => {
-      render(<HelpMenu userInfo={userInfo} />);
+      render(<HelpMenu isLoggedIn userInfo={userInfo} />);
 
       clickHelp();
 
@@ -90,7 +90,7 @@ describe('HelpMenu', () => {
      * would silently regress if a list of topics were ever put back in front.
      */
     it('opens it on the first press, with nothing in between', async () => {
-      render(<HelpMenu userInfo={userInfo} />);
+      render(<HelpMenu isLoggedIn userInfo={userInfo} />);
 
       clickHelp();
 
@@ -100,7 +100,7 @@ describe('HelpMenu', () => {
     });
 
     it('reports that the help door was used', async () => {
-      render(<HelpMenu userInfo={userInfo} />);
+      render(<HelpMenu isLoggedIn userInfo={userInfo} />);
 
       clickHelp();
 
@@ -115,7 +115,7 @@ describe('HelpMenu', () => {
     });
 
     it('greets a member who has not seen it, and reports the impression', async () => {
-      render(<HelpMenu userInfo={userInfo} />);
+      render(<HelpMenu isLoggedIn userInfo={userInfo} />);
 
       expect(await screen.findByRole('button', { name: 'Got it' })).toBeInTheDocument();
       expect(mockOnHelpCalloutShown).toHaveBeenCalledTimes(1);
@@ -124,7 +124,7 @@ describe('HelpMenu', () => {
     // The exact string is the contract with the member's stored record: change
     // it and every member who already dismissed the callout sees it again.
     it('asks about the callout under its published key', () => {
-      render(<HelpMenu userInfo={userInfo} />);
+      render(<HelpMenu isLoggedIn userInfo={userInfo} />);
 
       expect(mockCalloutKey).toHaveBeenCalledWith('help_callout');
     });
@@ -132,7 +132,7 @@ describe('HelpMenu', () => {
     it('stays away once it has been dismissed', async () => {
       calloutStartsOpen = false;
 
-      render(<HelpMenu userInfo={userInfo} />);
+      render(<HelpMenu isLoggedIn userInfo={userInfo} />);
 
       await waitFor(() => expect(mockCalloutKey).toHaveBeenCalled());
       expect(screen.queryByRole('button', { name: 'Got it' })).not.toBeInTheDocument();
@@ -140,7 +140,7 @@ describe('HelpMenu', () => {
     });
 
     it('remembers Got it for good', async () => {
-      render(<HelpMenu userInfo={userInfo} />);
+      render(<HelpMenu isLoggedIn userInfo={userInfo} />);
 
       fireEvent.click(await screen.findByRole('button', { name: 'Got it' }));
 
@@ -150,7 +150,7 @@ describe('HelpMenu', () => {
     });
 
     it('clears itself when the form it was announcing opens', async () => {
-      render(<HelpMenu userInfo={userInfo} />);
+      render(<HelpMenu isLoggedIn userInfo={userInfo} />);
 
       await screen.findByRole('button', { name: 'Got it' });
       clickHelp();
@@ -162,7 +162,7 @@ describe('HelpMenu', () => {
     it('does not write a flag when there was no callout to dismiss', async () => {
       calloutStartsOpen = false;
 
-      render(<HelpMenu userInfo={userInfo} />);
+      render(<HelpMenu isLoggedIn userInfo={userInfo} />);
 
       await waitFor(() => expect(mockCalloutKey).toHaveBeenCalled());
       clickHelp();
@@ -175,15 +175,46 @@ describe('HelpMenu', () => {
       expect(mockOnHelpCalloutDismissed).not.toHaveBeenCalled();
     });
 
-    // The (?) is in the header for signed-out visitors too, and the support
-    // form works without a session — so they get the callout as well. Which
-    // storage answers for them is the hook's business, not this component's.
-    it('greets a signed-out visitor too', async () => {
-      render(<HelpMenu />);
+    /*
+     * The (?) is in the header for signed-out visitors and the support form
+     * works without a session, so the sentence would be true for them — but it
+     * is an unprompted interruption to someone who has not signed in yet.
+     *
+     * `calloutStartsOpen` is true throughout this block, so the fake hook is
+     * saying "not dismissed": this asserts the component overrules it, not that
+     * storage happened to answer no.
+     */
+    it('stays away from a signed-out visitor, even with nothing dismissed', async () => {
+      render(<HelpMenu isLoggedIn={false} />);
 
-      fireEvent.click(await screen.findByRole('button', { name: 'Got it' }));
+      await waitFor(() => expect(mockCalloutKey).toHaveBeenCalled());
+      expect(screen.queryByRole('button', { name: 'Got it' })).not.toBeInTheDocument();
+      expect(mockOnHelpCalloutShown).not.toHaveBeenCalled();
+    });
 
-      await waitFor(() => expect(mockDismiss).toHaveBeenCalledWith('help_callout'));
+    /*
+     * `isLoggedIn` has historically been `''` rather than `false` here, so this
+     * pins the behaviour for the value the app actually passes.
+     *
+     * It does NOT prove the `Boolean()` in the component does anything —
+     * verified by mutation: removing it keeps all 12 green, because `'' && x`
+     * is already falsy. That coercion is there for the `open=` prop's type.
+     */
+    it('treats a falsy non-boolean as signed out', async () => {
+      render(<HelpMenu isLoggedIn={'' as unknown as boolean} userInfo={userInfo} />);
+
+      await waitFor(() => expect(mockCalloutKey).toHaveBeenCalled());
+      expect(screen.queryByRole('button', { name: 'Got it' })).not.toBeInTheDocument();
+    });
+
+    // The button is still the support door for them — only the tip is gone.
+    it('still opens the support form for a signed-out visitor', async () => {
+      render(<HelpMenu isLoggedIn={false} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Help and feedback' }));
+
+      await waitFor(() => expect(useContactSupportStore.getState().open).toBe(true));
+      expect(useContactSupportStore.getState().topic).toBe('Contact support');
     });
   });
 });

@@ -65,6 +65,14 @@ export const useCommonAnalytics = () => {
     captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_HELP_CALLOUT_DISMISSED, { via, user });
   }
 
+  /** A topic pill in the support form was picked — separate from
+   *  `onNavGetHelpItemClicked`, which already covers the menu item that opened
+   *  the form on that topic. This is the in-form change, e.g. someone landed on
+   *  "Contact support" via a deep link and switched to "Report a bug". */
+  function onContactSupportTopicPillSelected(topic: string, user: IAnalyticsUserInfo | null) {
+    captureEvent(COMMON_ANALYTICS_EVENTS.CONTACT_SUPPORT_TOPIC_PILL_SELECTED, { topic, user });
+  }
+
   function onNavAccountItemClicked(name: string, user: IAnalyticsUserInfo | null) {
     const params = {
       name,
@@ -160,6 +168,7 @@ export const useCommonAnalytics = () => {
     onHelpMenuOpened,
     onHelpCalloutShown,
     onHelpCalloutDismissed,
+    onContactSupportTopicPillSelected,
     onNavAccountItemClicked,
     onNavJoinNetworkClicked,
     onNavJoinNetworkOptionClicked,

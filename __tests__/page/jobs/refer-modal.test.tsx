@@ -20,6 +20,7 @@ jest.mock('@/analytics/jobs.analytics', () => ({
     onJobReferRecipientsChanged: jest.fn(),
     onJobReferNoteEdited: jest.fn(),
     onJobReferNoteReset: jest.fn(),
+    onJobReferCcReferredPersonToggled: jest.fn(),
     onJobReferSubmitted: jest.fn(),
     onJobReferSucceeded: jest.fn(),
     onJobReferFailed: jest.fn(),

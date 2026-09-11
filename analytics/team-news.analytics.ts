@@ -427,6 +427,21 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  /** The hiring card rendered in the feed — the denominator `onFeedHiringRoleClicked`
+   *  and `onFeedHiringViewAllClicked` need, same pairing as `onTopStoriesBlockViewed`. */
+  const onFeedHiringCardViewed = (
+    group: { team: { uid: string; name: string }; totalRoles: number },
+    feedPosition: number,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_HIRING_CARD_VIEWED, {
+      teamUid: group.team.uid,
+      teamName: group.team.name,
+      totalRoles: group.totalRoles,
+      position: feedPosition,
+      source: 'home' satisfies TeamNewsAnalyticsSource,
+    });
+  };
+
   const onFeedHiringRoleClicked = (
     group: { team: { uid: string; name: string }; totalRoles: number },
     role: { uid: string; roleTitle: string },
@@ -766,6 +781,7 @@ export const useTeamNewsAnalytics = () => {
     onPopularStoryFallbackOpened,
     onTopStoriesBlockViewed,
     onTopStoryClicked,
+    onFeedHiringCardViewed,
     onFeedHiringRoleClicked,
     onFeedHiringViewAllClicked,
     onFeedDealClicked,

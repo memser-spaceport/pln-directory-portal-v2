@@ -708,7 +708,13 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                   minus its required asterisk, which belongs to a gate and this is an
                   option, not a requirement. */}
               <label className={s.footerCheck}>
-                <Checkbox checked={copyReferee} onChange={setCopyReferee} />
+                <Checkbox
+                  checked={copyReferee}
+                  onChange={(next) => {
+                    setCopyReferee(next);
+                    analytics.onJobReferCcReferredPersonToggled({ ...refereeParams, next_state: next });
+                  }}
+                />
                 <span>{copyLabel}</span>
               </label>
 

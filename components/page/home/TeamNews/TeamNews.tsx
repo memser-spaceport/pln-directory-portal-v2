@@ -1130,6 +1130,7 @@ export const TeamNews = ({
                           key={key}
                           group={entry.group}
                           isFollowing={followedTeamUids.has(entry.group.team.uid)}
+                          position={index}
                           onFollowToggle={handleFollowToggle}
                           onRoleClick={(group, role, rolePosition) =>
                             analytics.onFeedHiringRoleClicked(group, role, rolePosition, index)

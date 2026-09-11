@@ -209,6 +209,7 @@ export const COMMON_ANALYTICS_EVENTS = {
   SUBMIT_A_TEAM_BTN_CLICKED: 'submit_a_team_btn_clicked',
   NAVBAR_HOME_CLICKED: 'navbar-home-clicked',
   NAVBAR_HOME_NEW_NEWS_DOT_SHOWN: 'navbar-home-new-news-dot-shown',
+  CONTACT_SUPPORT_TOPIC_PILL_SELECTED: 'contact-support-topic-pill-selected',
 };
 
 export const NOTIFICATION_ANALYTICS_EVENTS = {
@@ -693,6 +694,9 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_TOP_STORY_CLICKED: 'team-news-top-story-clicked',
   // Supporting kinds in the feed. Both carry `position` so a card that only
   // ever converts from the first slot can be told from one that converts anywhere.
+  // Denominator for HIRING_ROLE_CLICKED / HIRING_VIEW_ALL_CLICKED — without it a
+  // low click count can't be told apart from a card nobody saw.
+  TEAM_NEWS_FEED_HIRING_CARD_VIEWED: 'team-news-feed-hiring-card-viewed',
   TEAM_NEWS_FEED_HIRING_ROLE_CLICKED: 'team-news-feed-hiring-role-clicked',
   TEAM_NEWS_FEED_HIRING_VIEW_ALL_CLICKED: 'team-news-feed-hiring-view-all-clicked',
   TEAM_NEWS_FEED_DEAL_CLICKED: 'team-news-feed-deal-clicked',

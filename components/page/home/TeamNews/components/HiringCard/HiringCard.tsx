@@ -1,6 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
+import { useEffect, useRef } from 'react';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -9,7 +10,7 @@ import { Badge } from '@/components/common/Badge';
 import { FollowButton } from '@/components/ui/FollowButton';
 import { jobDetailPath } from '@/services/jobs/job-detail-link';
 import { ReferRoleRow } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow';
-import type { TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
+import { useTeamNewsAnalytics, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
 
 import { getTeamLogoFallback } from '../../utils/getTeamLogoFallback';
@@ -33,6 +34,7 @@ const NEVER_APPLIES_FROM_THE_FEED = () => {};
 interface HiringCardProps {
   group: IJobTeamGroup;
   isFollowing: boolean;
+  position: number;
   onFollowToggle: (teamUid: string, teamName: string, isCurrentlyFollowing: boolean) => void;
   onRoleClick?: (group: IJobTeamGroup, role: IJobRole, position: number) => void;
   onViewAllClick?: (group: IJobTeamGroup) => void;
@@ -60,6 +62,7 @@ interface HiringCardProps {
 export function HiringCard({
   group,
   isFollowing,
+  position,
   onFollowToggle,
   onRoleClick,
   onViewAllClick,
@@ -67,6 +70,19 @@ export function HiringCard({
 }: HiringCardProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
+  const analytics = useTeamNewsAnalytics();
+
+  // Fire-once view event, same guard as TopStoriesBlock's — the click events
+  // below need a denominator or they measure nothing. No IntersectionObserver:
+  // the switch that injects a hiring entry into the feed already gates it to
+  // "meant to be seen", so render is the impression.
+  const viewedRef = useRef(false);
+  useEffect(() => {
+    if (viewedRef.current) return;
+    viewedRef.current = true;
+    analytics.onFeedHiringCardViewed(group, position);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { team, totalRoles, roles } = group;
   const visibleRoles = roles.slice(0, VISIBLE_ROLES);

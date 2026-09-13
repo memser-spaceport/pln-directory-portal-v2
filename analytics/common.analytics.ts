@@ -42,13 +42,13 @@ export const useCommonAnalytics = () => {
     captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_GET_HELP_ITEM_CLICKED, params);
   }
 
-  /** The header (?) was pressed — the help and feedback door being used.
+  /** The header (?) was pressed — the help and feedback door being used. Which
+   *  door that press opens depends on the pointer (the form on a cursor device,
+   *  the topic list on touch), and this counts both the same way: someone went
+   *  looking for help.
    *
-   *  The name says "menu" because the wire string does, and that string is not
-   *  worth breaking: for one day the (?) opened a menu of topics, and the event
-   *  predates and outlives it. What it counts is unchanged either way — someone
-   *  went looking for help — and it is now the only signal that they did, since
-   *  the form itself reports nothing. */
+   *  Presses only. The list also opens on hover, and counting a cursor crossing
+   *  the icon would drown the number this event exists for. */
   function onHelpMenuOpened(user: IAnalyticsUserInfo | null) {
     captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_HELP_MENU_OPENED, { user });
   }
@@ -65,10 +65,14 @@ export const useCommonAnalytics = () => {
    *  `escape` is neither: a keyboard dismissal that tells us nothing about
    *  whether the sentence landed.
    *
-   *  `modal-opened` was `menu-opened` for the one day the (?) opened a menu. A
-   *  property value rather than an event name, and a day old, so it was renamed
-   *  rather than kept pointing at something that no longer exists. */
-  function onHelpCalloutDismissed(via: 'got-it' | 'escape' | 'modal-opened', user: IAnalyticsUserInfo | null) {
+   *  The two openings are separate values because they are separate rooms:
+   *  `modal-opened` is the support form, which a press opens on a cursor
+   *  device; `menu-opened` is the topic list, which a tap opens on touch and a
+   *  hover opens on a cursor. */
+  function onHelpCalloutDismissed(
+    via: 'got-it' | 'escape' | 'menu-opened' | 'modal-opened',
+    user: IAnalyticsUserInfo | null,
+  ) {
     captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_HELP_CALLOUT_DISMISSED, { via, user });
   }
 

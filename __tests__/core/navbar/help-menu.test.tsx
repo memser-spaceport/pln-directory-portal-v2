@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { HelpMenu } from '@/components/core/navbar/components/HelpMenu';
 import { useContactSupportStore } from '@/services/contact-support/store';
@@ -32,11 +32,13 @@ jest.mock('@/hooks/useOneTimeCallout', () => {
   };
 });
 
+const mockOnNavGetHelpItemClicked = jest.fn();
 const mockOnHelpMenuOpened = jest.fn();
 const mockOnHelpCalloutShown = jest.fn();
 const mockOnHelpCalloutDismissed = jest.fn();
 jest.mock('@/analytics/common.analytics', () => ({
   useCommonAnalytics: () => ({
+    onNavGetHelpItemClicked: mockOnNavGetHelpItemClicked,
     onHelpMenuOpened: mockOnHelpMenuOpened,
     onHelpCalloutShown: mockOnHelpCalloutShown,
     onHelpCalloutDismissed: mockOnHelpCalloutDismissed,
@@ -51,6 +53,22 @@ beforeAll(() => {
   } as typeof ResizeObserver;
 });
 
+/**
+ * The one thing that decides what the (?) does. jsdom answers `false` to every
+ * media query, which is the truthful answer for a device with no pointer at
+ * all — so the touch behaviour is what an unconfigured suite gets, and the
+ * cursor blocks below say so explicitly.
+ */
+const usePointer = (kind: 'cursor' | 'touch') => {
+  window.matchMedia = jest.fn().mockImplementation((query: string) => ({
+    matches: query === '(hover: hover)' && kind === 'cursor',
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+  }));
+};
+
 // `roles` matters: getAnalyticsUserInfo returns null without it, so a fixture
 // missing it would quietly stop the analytics payload being tested at all.
 const userInfo = {
@@ -60,7 +78,8 @@ const userInfo = {
   roles: ['MEMBER'],
 } as never;
 
-const clickHelp = () => fireEvent.click(screen.getByRole('button', { name: 'Help and feedback' }));
+const helpButton = () => screen.getByRole('button', { name: 'Help and feedback' });
+const pressHelp = () => fireEvent.click(helpButton());
 
 describe('HelpMenu', () => {
   beforeEach(() => {
@@ -71,28 +90,27 @@ describe('HelpMenu', () => {
     useContactSupportStore.getState().actions.closeModal();
   });
 
-  describe('the help button', () => {
+  /*
+   * Where there is a cursor, the topic list is what hover is for, so the press
+   * itself is free to go straight to the form — someone who does not hover has
+   * asked for help, not for a list, and the form shows all five topics anyway.
+   */
+  describe('with a cursor', () => {
+    beforeEach(() => usePointer('cursor'));
+
     it('opens the support form on Contact support', async () => {
       render(<HelpMenu isLoggedIn userInfo={userInfo} />);
 
-      clickHelp();
+      pressHelp();
 
       await waitFor(() => expect(useContactSupportStore.getState().open).toBe(true));
       expect(useContactSupportStore.getState().topic).toBe('Contact support');
     });
 
-    /*
-     * The behaviour change itself, asserted rather than implied.
-     *
-     * Every other test here would pass just as well with a menu in between —
-     * they only check where the click lands eventually. This one checks that
-     * the first press opens the form and nothing else, which is the thing that
-     * would silently regress if a list of topics were ever put back in front.
-     */
-    it('opens it on the first press, with nothing in between', async () => {
+    it('opens it on the first press, with no list in between', async () => {
       render(<HelpMenu isLoggedIn userInfo={userInfo} />);
 
-      clickHelp();
+      pressHelp();
 
       await waitFor(() => expect(useContactSupportStore.getState().open).toBe(true));
       expect(screen.queryByRole('menu')).not.toBeInTheDocument();
@@ -102,9 +120,113 @@ describe('HelpMenu', () => {
     it('reports that the help door was used', async () => {
       render(<HelpMenu isLoggedIn userInfo={userInfo} />);
 
-      clickHelp();
+      pressHelp();
 
       await waitFor(() => expect(useContactSupportStore.getState().open).toBe(true));
+      expect(mockOnHelpMenuOpened).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  /*
+   * The other half of the cursor's answer: the list the press walks past is
+   * still reachable, by hovering the way the bar's left half is hovered.
+   */
+  describe('hovering with a cursor', () => {
+    beforeEach(() => {
+      usePointer('cursor');
+      // The list only opens once the pointer has rested for the `delay`, so the
+      // clock has to be driven rather than waited on.
+      jest.useFakeTimers();
+    });
+    afterEach(() => jest.useRealTimers());
+
+    const hoverHelp = async () => {
+      fireEvent.mouseEnter(helpButton());
+      fireEvent.mouseMove(helpButton());
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+      });
+    };
+
+    it('shows the topics, and leaves the form alone', async () => {
+      render(<HelpMenu isLoggedIn userInfo={userInfo} />);
+
+      await hoverHelp();
+
+      expect(screen.getByRole('menuitem', { name: 'Contact support' })).toBeInTheDocument();
+      expect(useContactSupportStore.getState().open).toBe(false);
+    });
+
+    it('does not count a passing cursor as the help door being used', async () => {
+      render(<HelpMenu isLoggedIn userInfo={userInfo} />);
+
+      await hoverHelp();
+
+      expect(mockOnHelpMenuOpened).not.toHaveBeenCalled();
+    });
+
+    /*
+     * base-ui's own answer to this press is to keep the list open — a click
+     * within 500ms of a hover-open is treated as impatient and ignored — which
+     * is why the menu here is controlled rather than left to it.
+     */
+    it('takes the list away when the press it was offering lands on the form', async () => {
+      render(<HelpMenu isLoggedIn userInfo={userInfo} />);
+
+      await hoverHelp();
+      await act(async () => {
+        pressHelp();
+      });
+
+      expect(useContactSupportStore.getState().open).toBe(true);
+      expect(screen.queryByRole('menuitem')).not.toBeInTheDocument();
+    });
+  });
+
+  /*
+   * On touch there is no hover to put the list anywhere else, so the tap opens
+   * it — the same gesture the bar's other nested tabs answer that way.
+   */
+  describe('on touch', () => {
+    beforeEach(() => usePointer('touch'));
+
+    it('opens the topic list on a tap, not the form', async () => {
+      render(<HelpMenu isLoggedIn userInfo={userInfo} />);
+
+      pressHelp();
+
+      expect(await screen.findByRole('menuitem', { name: 'Contact support' })).toBeInTheDocument();
+      for (const label of ['Ask a question', 'Give feedback', 'Share an idea', 'Report a bug']) {
+        expect(screen.getByRole('menuitem', { name: label })).toBeInTheDocument();
+      }
+      expect(useContactSupportStore.getState().open).toBe(false);
+    });
+
+    it('opens the support form already on the chosen topic', async () => {
+      render(<HelpMenu isLoggedIn userInfo={userInfo} />);
+
+      pressHelp();
+      fireEvent.click(await screen.findByRole('menuitem', { name: 'Report a bug' }));
+
+      await waitFor(() => expect(useContactSupportStore.getState().open).toBe(true));
+      expect(useContactSupportStore.getState().topic).toBe('Report a bug');
+    });
+
+    it('reports the chosen topic on the existing get-help series', async () => {
+      render(<HelpMenu isLoggedIn userInfo={userInfo} />);
+
+      pressHelp();
+      fireEvent.click(await screen.findByRole('menuitem', { name: 'Give feedback' }));
+
+      expect(mockOnNavGetHelpItemClicked).toHaveBeenCalledWith('Give feedback', expect.anything());
+    });
+
+    it('reports the help door was used once, on the tap that opened the list', async () => {
+      render(<HelpMenu isLoggedIn userInfo={userInfo} />);
+
+      pressHelp();
+
+      await screen.findByRole('menuitem', { name: 'Contact support' });
       expect(mockOnHelpMenuOpened).toHaveBeenCalledTimes(1);
     });
   });
@@ -112,6 +234,7 @@ describe('HelpMenu', () => {
   describe('the first-visit callout', () => {
     beforeEach(() => {
       calloutStartsOpen = true;
+      usePointer('cursor');
     });
 
     it('greets a member who has not seen it, and reports the impression', async () => {
@@ -153,10 +276,24 @@ describe('HelpMenu', () => {
       render(<HelpMenu isLoggedIn userInfo={userInfo} />);
 
       await screen.findByRole('button', { name: 'Got it' });
-      clickHelp();
+      pressHelp();
 
       await waitFor(() => expect(mockDismiss).toHaveBeenCalledWith('help_callout'));
       expect(mockOnHelpCalloutDismissed).toHaveBeenCalledWith('modal-opened', expect.anything());
+    });
+
+    // A tip standing on top of the list it was pointing at is the announcement
+    // in the way of what it announced.
+    it('clears itself when a tap opens the topic list instead', async () => {
+      usePointer('touch');
+
+      render(<HelpMenu isLoggedIn userInfo={userInfo} />);
+
+      await screen.findByRole('button', { name: 'Got it' });
+      pressHelp();
+
+      await waitFor(() => expect(mockDismiss).toHaveBeenCalledWith('help_callout'));
+      expect(mockOnHelpCalloutDismissed).toHaveBeenCalledWith('menu-opened', expect.anything());
     });
 
     it('does not write a flag when there was no callout to dismiss', async () => {
@@ -165,7 +302,7 @@ describe('HelpMenu', () => {
       render(<HelpMenu isLoggedIn userInfo={userInfo} />);
 
       await waitFor(() => expect(mockCalloutKey).toHaveBeenCalled());
-      clickHelp();
+      pressHelp();
 
       // Waits on the press having landed, so the assertions below are about a
       // dismissal that did not happen rather than about a click that had not
@@ -211,7 +348,7 @@ describe('HelpMenu', () => {
     it('still opens the support form for a signed-out visitor', async () => {
       render(<HelpMenu isLoggedIn={false} />);
 
-      fireEvent.click(screen.getByRole('button', { name: 'Help and feedback' }));
+      pressHelp();
 
       await waitFor(() => expect(useContactSupportStore.getState().open).toBe(true));
       expect(useContactSupportStore.getState().topic).toBe('Contact support');

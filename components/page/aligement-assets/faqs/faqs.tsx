@@ -430,7 +430,7 @@ function buildFaqCategories(kpiWeights: KpiWeightEntry[] | undefined): FAQCatego
     items: [
       {
         question: 'What is a reverse auction?',
-        answer: 'A reverse auction is a process in which holders of PLAA submit the price at which they are willing to redeem their PLAA. The Trust accepts bids beginning with the lowest asking prices and continues upward until the available buyback pool is exhausted or the applicable allocation cap is reached. PLAA that are accepted in the auction are settled through the issuance of tokens, which are then immediately purchased by the Trust for cash or other consideration in accordance with the applicable settlement process.',
+        answer: 'A reverse auction is a process in which holders of PLAA submit the price at which they are willing to redeem their PLAA. The Trust accepts bids beginning with the lowest asking prices and continues upward until the available buyback pool is exhausted or the applicable allocation cap is reached. PLAA that are accepted in the auction are settled through the issuance of tokens, which are then immediately redeemed by the Trust for cash or other consideration in accordance with the applicable settlement process.',
       },
       {
         question: 'What is a batch auction?',
@@ -441,7 +441,7 @@ function buildFaqCategories(kpiWeights: KpiWeightEntry[] | undefined): FAQCatego
         answer: (
           <div>
             <p style={{ marginBottom: '12px' }}>The clearing price is the asking price of the last seller whose bid is accepted before the buyback pool is exhausted. In other words, the highest price among all accepted bids. It is applied to all accepted bids, up to the value of that bid. Bids at or below the clearing price are accepted; bids above are not. The last accepted bid may be partially filled if the pool runs out.</p>
-            <p style={{ marginBottom: '12px' }}>Any changes to auction rules will be communicated 24 hours in advance.</p>
+            <p style={{ marginBottom: '12px' }}>Any changes to auction rules will be communicated at least 24 hours before an auction window opens.</p>
           </div>
         ),
       },
@@ -454,14 +454,14 @@ function buildFaqCategories(kpiWeights: KpiWeightEntry[] | undefined): FAQCatego
                <li style={{ marginBottom: '4px' }}>Bids below the clearing price → filled up to their full bid value.</li>
                <li>Bids at the clearing price → may be partially filled if the buyback pool runs out. In that case, each bid is filled only up to its total bid value (PLAA × bid price).</li>
             </ol>
-            <p style={{ marginBottom: '12px' }}>Each accepted bidder receives payment using the clearing price up to their total bid value. This means that for example, if you bid 5 PLAA at $18 (total bid value $90) and the clearing price was $20, you would only be able to sell 4 PLAA for $72 (5 x $18 / $20) because your fill cannot exceed your original bid value and only whole PLAA are accepted.</p>
-            <p>Any changes to auction rules will be communicated 24 hours in advance.</p>
+            <p style={{ marginBottom: '12px' }}>Each accepted bidder receives payment using the clearing price up to their total bid value. This means that for example, if you bid 5 PLAA at $18 (total bid value $90) and the clearing price was $20, you would only be able to redeem 4 PLAA for $72 (5 x $18 / $20) because your fill cannot exceed your original bid value and only whole PLAA are accepted.</p>
+            <p>Any changes to auction rules will be communicated at least 24 hours before an auction window opens.</p>
           </div>
         ),
       },
       {
         question: 'Why is there an allocation cap on the buyback?',
-        answer: 'The allocation cap ensures that no single participant can capture more than a predetermined percentage of the pool (currently 4.5%). This ensures broader participation and preserves fairness.',
+        answer: 'The allocation cap ensures that no single participant can capture more than a predetermined percentage of the pool, set independently for each auction. This ensures broader participation and preserves fairness.',
       },
       {
         question: 'Do earlier bids have an advantage?',
@@ -472,29 +472,29 @@ function buildFaqCategories(kpiWeights: KpiWeightEntry[] | undefined): FAQCatego
         answer: (
           <div>
             <p style={{ marginBottom: '12px' }}>No — if your bid is accepted, you are paid at the clearing price, not your bid price.</p>
-            <p>If your bid is accepted, you receive up to the total dollar value of your bid. When the clearing price is higher than your bid price, this means you may sell fewer PLAA, but the total cash amount you receive stays within your bid&apos;s total value. In some cases, if multiple bids are accepted at the clearing price and the buyback pool is fully used, those bids may be partially filled, again capped by each bid&apos;s total value.</p>
+            <p>If your bid is accepted, you receive up to the total dollar value of your bid. When the clearing price is higher than your bid price, this means you may redeem fewer PLAA, but the total cash amount you receive stays within your bid&apos;s total value. In some cases, if multiple bids are accepted at the clearing price and the buyback pool is fully used, those bids may be partially filled, again capped by each bid&apos;s total value.</p>
           </div>
         ),
       },
       {
         question: 'What happens after the buyback if my bid is above the clearing price?',
-        answer: 'Your bid will not be accepted, and you retain all of your PLAA — nothing is sold or removed from your account, and you may use them to participate in future buyback auctions.',
+        answer: 'Your bid will not be accepted, and you retain all of your PLAA — nothing is redeemed or removed from your account, and you may use them to participate in future buyback auctions.',
       },
       {
         question: 'Can I change or cancel my bid?',
         answer: 'You may submit, edit, or cancel your bids anytime before the auction closes. After close, no changes or new bids are accepted.',
       },
       {
-        question: 'What determines how many of my PLAA are purchased?',
+        question: 'What determines how many of my PLAA are redeemed?',
         answer: (
           <div>
             <p style={{ marginBottom: '12px' }}>In general, three factors determine your fill:</p>
             <ol style={{ paddingLeft: '24px', marginBottom: '12px' }}>
               <li style={{ marginBottom: '4px' }}><strong>Your bid price vs. the clearing price:</strong> Your bid must be at or below the clearing price to be accepted.</li>
-              <li style={{ marginBottom: '4px' }}><strong>Your bid-value cap:</strong> You can only receive up to your total bid value (PLAA × your bid price). So if you bid 100 PLAA at $5 and the clearing price is $20, you&apos;ll sell 25 PLAA for $500, not all 100.</li>
-              <li><strong>The 4.5% per-bidder cap:</strong> No single participant can receive more than 4.5% of the total buyback pool.</li>
+              <li style={{ marginBottom: '4px' }}><strong>Your bid-value cap:</strong> You can only receive up to your total bid value (PLAA × your bid price). So if you bid 100 PLAA at $5 and the clearing price is $20, you&apos;ll redeem 25 PLAA for $500, not all 100.</li>
+              <li><strong>The per-bidder cap:</strong> Based on the auction&apos;s rules, no single bidder can receive more than the maximum share of the total buyback pool set independently for each auction.</li>
             </ol>
-            <p>Any changes to auction rules will be communicated 24 hours in advance.</p>
+            <p>Any changes to auction rules will be communicated at least 24 hours before an auction window opens.</p>
           </div>
         ),
       },
@@ -504,11 +504,11 @@ function buildFaqCategories(kpiWeights: KpiWeightEntry[] | undefined): FAQCatego
       },
       {
         question: 'What happens to settled tokens?',
-        answer: 'Tokens issued as part of the settlement process are purchased by the PLAA1 Trust and then cancelled (or "burned"), after which they are no longer available on the applicable blockchain.',
+        answer: 'Tokens issued as part of the settlement process are redeemed by the PLAA1 Trust and then cancelled (or "burned"), after which they are no longer available on the applicable blockchain.',
       },
       {
         question: 'How do I receive payment for the PLAA redeemed in an auction?',
-        answer: 'After the auction results have been calculated, if your bids are accepted, you will receive an email from Surus with instructions regarding settlement and payment. Accepted PLAA will be settled through the issuance of tokens, which will then be purchased by the Trust for cash or other consideration, including stablecoins, at Surus\' discretion.',
+        answer: 'After the auction results have been calculated, if your bids are accepted, you will receive an email from Surus with instructions regarding settlement and payment. Accepted PLAA will be settled through the issuance of tokens, which will then be redeemed by the Trust for cash or other consideration, including stablecoins, at Surus\' discretion.',
       },
       {
         question: 'When do I receive payment for the PLAA redeemed?',
@@ -542,7 +542,7 @@ function buildFaqCategories(kpiWeights: KpiWeightEntry[] | undefined): FAQCatego
                 auction are automatically &quot;issued&quot; to the participant.
               </li>
               <li style={{ marginBottom: '8px' }}>
-                Immediately thereafter, the Trust purchases the Tokens at the applicable auction price and burns them.
+                Immediately thereafter, the Trust redeems the Tokens at the applicable auction price and burns them.
               </li>
               <li>
                 The participant receives cash (or other consideration) from the Trust in exchange for the Tokens.
@@ -821,7 +821,7 @@ export default function FAQsPage({ kpiWeights }: FAQsPageProps) {
         <div className="faqs__header">
           <h1 className="faqs__header__title">Frequently Asked Questions</h1>
           <p className="faqs__header__header__date">
-            <em>Last Updated: July 7, 2026</em>
+            <em>Last Updated: September 14, 2026</em>
           </p>
         </div>
 

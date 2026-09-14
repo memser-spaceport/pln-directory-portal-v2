@@ -319,3 +319,128 @@ export const MOCK_APPLICANTS: Record<string, RoleApplicant[]> = {
     },
   ],
 };
+
+/* ---------------------------------------------------------------------------
+   Interested, per role — the board's "I'm interested" press, as the team reads it.
+   --------------------------------------------------------------------------- */
+
+/**
+ * Someone who pressed **I'm interested** on one of this team's roles
+ * (`InterestStrip` on the board) instead of applying. It is a bare press, so
+ * there is no note to quote. What the team gets is the person, the time they
+ * pressed, and the profile that went with it ("share your LabOS profile"),
+ * plus a CV when the account keeps one. Same shape as an application
+ * otherwise, so the page draws both with one row and one pane.
+ */
+export type RoleInterested = Omit<RoleApplicant, 'note' | 'appliedAt'> & {
+  /** ISO — when they pressed I'm interested. */
+  interestedAt: string;
+};
+
+export const MOCK_INTERESTED: Record<string, RoleInterested[]> = {
+  'pl-1': [
+    {
+      id: 'int-1',
+      memberId: 'amara-nwosu',
+      name: 'Amara Nwosu',
+      role: 'Backend Engineer · Chainsafe',
+      title: 'Backend Engineer',
+      team: 'Chainsafe',
+      location: 'Lagos, Nigeria',
+      email: 'amara@nwosu.dev',
+      avatar: 'https://i.pravatar.cc/96?img=32',
+      interestedAt: daysAgo(0, 2),
+      cv: { name: 'amara-nwosu-cv.pdf', url: '#', size: 176128 },
+      skills: ['Go', 'Distributed Systems', 'Kubernetes'],
+      experience: [
+        exp('amara-nwosu', 'an1', 'Backend Engineer', 'Chainsafe', '2022-02', null, 'Lagos, Nigeria'),
+        exp('amara-nwosu', 'an2', 'Software Engineer', 'Paystack', '2019-07', '2022-01', 'Lagos, Nigeria'),
+      ],
+      profile: {
+        bio: '<p>Backend engineer on validator infrastructure. Before that, payments systems at Paystack, where most of the job was making a distributed ledger boring.</p>',
+        openToWork: true,
+        linkedinHandle: 'amaranwosu',
+        githubHandle: 'anwosu',
+        teams: [],
+        contributions: [],
+        repositories: [{ name: 'lodestar-metrics', description: 'Prometheus exporters for Lodestar beacon nodes.' }],
+      },
+      unseen: true,
+    },
+    {
+      id: 'int-2',
+      memberId: 'jonas-weber',
+      name: 'Jonas Weber',
+      role: 'Site Reliability Engineer',
+      title: 'Site Reliability Engineer',
+      team: 'Independent',
+      location: 'Zurich, Switzerland',
+      email: 'jonas@weber.sh',
+      avatar: 'https://i.pravatar.cc/96?img=60',
+      interestedAt: daysAgo(4),
+      skills: ['Site Reliability', 'Rust', 'Observability'],
+      experience: [exp('jonas-weber', 'jw1', 'Site Reliability Engineer', 'Independent', '2021-05', null, 'Zurich, Switzerland')],
+      profile: {
+        linkedinHandle: 'jonasweber',
+        teams: [],
+        contributions: [],
+        repositories: [],
+      },
+      unseen: false,
+    },
+  ],
+  'pl-2': [
+    {
+      id: 'int-3',
+      memberId: 'priya-raman',
+      name: 'Priya Raman',
+      role: 'Developer Advocate · Ceramic',
+      title: 'Developer Advocate',
+      team: 'Ceramic',
+      location: 'Bangalore, India',
+      email: 'priya@ceramic.network',
+      avatar: 'https://i.pravatar.cc/96?img=45',
+      interestedAt: daysAgo(1, 6),
+      cv: { name: 'priya-raman-resume.pdf', url: '#', size: 143360 },
+      skills: ['Developer Relations', 'Product', 'TypeScript'],
+      experience: [
+        exp('priya-raman', 'pr1', 'Developer Advocate', 'Ceramic', '2022-08', null, 'Bangalore, India'),
+        exp('priya-raman', 'pr2', 'Solutions Engineer', 'Postman', '2019-03', '2022-07', 'Bangalore, India'),
+      ],
+      profile: {
+        bio: '<p>Developer advocate moving towards product. I run Ceramic’s SDK feedback loop and wrote most of its getting-started docs.</p>',
+        openToWork: true,
+        linkedinHandle: 'priyaraman',
+        twitter: 'priyaraman_',
+        teams: [{ id: 'ceramic', name: 'Ceramic', role: 'Developer Advocate', mainTeam: true }],
+        contributions: [],
+        repositories: [],
+      },
+      unseen: true,
+    },
+  ],
+  'pl-3': [],
+  'pl-4': [
+    {
+      id: 'int-4',
+      memberId: 'tomas-ruiz',
+      name: 'Tomás Ruiz',
+      role: 'Security Researcher',
+      title: 'Security Researcher',
+      team: 'Independent',
+      location: 'Madrid, Spain',
+      email: 'tomas@ruiz.security',
+      avatar: 'https://i.pravatar.cc/96?img=12',
+      interestedAt: daysAgo(3, 4),
+      skills: ['Cryptography', 'Auditing', 'Rust'],
+      experience: [exp('tomas-ruiz', 'tr1', 'Security Researcher', 'Independent', '2020-01', null, 'Madrid, Spain')],
+      profile: {
+        githubHandle: 'truiz-sec',
+        teams: [],
+        contributions: [],
+        repositories: [{ name: 'zk-audit-notes', description: 'Public notes from zero-knowledge circuit reviews.' }],
+      },
+      unseen: false,
+    },
+  ],
+};

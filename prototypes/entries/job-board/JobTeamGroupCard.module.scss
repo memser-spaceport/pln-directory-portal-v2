@@ -45,6 +45,13 @@
   background: var(--transparent-warning-8, rgba(245, 158, 11, 0.08));
 }
 
+// A step rounder than production's 8px (`--radius-md`): the DS scale's
+// `--radius-xl`. Doubled class so it outranks the production `.card` beneath it;
+// the PL card's gradient ring takes it through `border-radius: inherit`.
+.card.card {
+  border-radius: var(--radius-xl, 12px);
+}
+
 .card .avatar {
   @include media.mobile-only {
     width: 44px;

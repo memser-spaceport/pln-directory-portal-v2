@@ -32,8 +32,16 @@ import { CvAttachmentLine } from '../profile-shared/StoredCv/CvAttachmentLine';
 import { EnvelopeIcon } from './icons';
 import { ApplicantRow } from './ApplicantRow';
 import { ApplicantMemberPage } from './ApplicantMemberPage';
-import type { RoleApplicant } from './mocks';
+import { Tabs } from '@/components/ui/tabs/Tabs';
+
+import type { RoleApplicant, RoleInterested } from './mocks';
 import s from './TeamApplicantsPage.module.scss';
+
+const APPLIED_TAB = 'Applied';
+const INTERESTED_TAB = 'Interested';
+
+type Person = RoleApplicant | RoleInterested;
+const personDate = (p: Person) => ('appliedAt' in p ? p.appliedAt : p.interestedAt);
 
 export interface ApplicantsRole {
   uid: string;
@@ -45,6 +53,8 @@ export interface ApplicantsRole {
   /** ISO — when the role was posted, for "Posted 2d ago". */
   postedAt?: string;
   applicants: RoleApplicant[];
+  /** Pressed "I'm interested" on this role instead of applying. */
+  interested: RoleInterested[];
 }
 
 interface Props {
@@ -103,6 +113,15 @@ interface Props {
  * a state with a mark of its own. Session-local here; production would keep
  * it per team member.
  *
+ * **Applied / Interested.** Two tabs above the search, per role: the people who
+ * applied, and the people who pressed **I'm interested** on the board
+ * (`InterestStrip`) instead. They sit in tabs, not one merged list, because
+ * they are two different acts. An application has a note and asks for a
+ * reply. An interest press is a bare signal. Same row and same pane for both:
+ * the interested row has no note, and its pane's section is Interest rather
+ * than Application. It is production's `Tabs` `variant="secondary"` with a
+ * count, which is the board's own Applied scope strip.
+ *
  * **Mobile: one column at a time.** The split needs ~900px; below the tablet
  * breakpoint the list shows alone and a row opens the pane full-width with a
  * back to the list, which is how the members grid and its profile relate on a
@@ -111,6 +130,7 @@ interface Props {
 export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: Props) {
   const isMobile = useIsMobile();
   const [roleUid, setRoleUid] = useState(initialRoleUid);
+  const [tab, setTab] = useState(APPLIED_TAB);
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [seenIds, setSeenIds] = useState<Set<string>>(() => new Set());
@@ -118,9 +138,12 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
   const [paneOpen, setPaneOpen] = useState(false);
 
   const role = roles.find((r) => r.uid === roleUid) ?? roles[0];
-  const newest = useMemo(
-    () => [...role.applicants].sort((a, b) => b.appliedAt.localeCompare(a.appliedAt)),
-    [role],
+  const newest = useMemo<Person[]>(
+    () =>
+      [...(tab === INTERESTED_TAB ? role.interested : role.applicants)].sort((a, b) =>
+        personDate(b).localeCompare(personDate(a)),
+      ),
+    [role, tab],
   );
   const term = query.trim().toLowerCase();
   const shown = term
@@ -140,7 +163,7 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
 
   const selected = shown.find((a) => a.id === selectedId) ?? newest.find((a) => a.id === selectedId) ?? null;
 
-  const select = (a: RoleApplicant) => {
+  const select = (a: Person) => {
     setSelectedId(a.id);
     setSeenIds((prev) => new Set(prev).add(a.id));
     if (isMobile) setPaneOpen(true);
@@ -149,6 +172,14 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
   const switchRole = (uid: string) => {
     if (uid === role.uid) return;
     setRoleUid(uid);
+    setSelectedId(null);
+    setQuery('');
+    setPaneOpen(false);
+  };
+
+  const switchTab = (next: string) => {
+    if (next === tab) return;
+    setTab(next);
     setSelectedId(null);
     setQuery('');
     setPaneOpen(false);
@@ -270,6 +301,17 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
                 {postingButton}
               </div>
             )}
+            <div className={s.tabs}>
+              <Tabs
+                variant="secondary"
+                activeTab={tab}
+                onTabClick={switchTab}
+                tabs={[
+                  { name: APPLIED_TAB, count: role.applicants.length },
+                  { name: INTERESTED_TAB, count: role.interested.length },
+                ]}
+              />
+            </div>
             <div className={s.searchWrap}>
               <SearchInput value={query} onChange={setQuery} placeholder="Search by name or role" />
             </div>
@@ -288,7 +330,13 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
               </div>
             ) : (
               <DetailsSectionGreyContentContainer>
-                <NoDataBlock>{term ? `No applicants match “${query.trim()}”.` : 'No applicants yet.'}</NoDataBlock>
+                <NoDataBlock>
+                  {term
+                    ? `No one matches “${query.trim()}”.`
+                    : tab === INTERESTED_TAB
+                      ? 'No one has said they’re interested yet.'
+                      : 'No applicants yet.'}
+                </NoDataBlock>
               </DetailsSectionGreyContentContainer>
             )}
           </div>
@@ -299,6 +347,37 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
             key={selected.id}
             applicant={selected}
             application={
+              !('note' in selected) ? (
+                /* The interest press: no note to quote, so the section is its
+                   date, the CV when one went with the profile, and the reply. */
+                <DetailsSection>
+                  <DetailsSectionHeader title="Interest">
+                    <span className={clsx(row.relative, rowTone.relativeTone)}>
+                      <ClockIcon />
+                      Interested {formatRelativeDays(selected.interestedAt)}
+                    </span>
+                  </DetailsSectionHeader>
+                  {selected.cv && (
+                    <DetailsSectionGreyContentContainer>
+                      <a href={selected.cv.url} target="_blank" rel="noopener noreferrer" className={s.cvLink}>
+                        <CvAttachmentLine
+                          cv={{ fileName: selected.cv.name, size: selected.cv.size, uploadedAt: selected.interestedAt }}
+                          variant="chip"
+                        />
+                      </a>
+                    </DetailsSectionGreyContentContainer>
+                  )}
+                  <div className={s.actions}>
+                    <a
+                      href={`mailto:${selected.email}?subject=${encodeURIComponent(`Your interest in ${role.title}`)}`}
+                      className={clsx(btn.root, btn.small, btn.fill, btn.primary, s.actionLink)}
+                    >
+                      <EnvelopeIcon size={14} />
+                      Email {selected.name.split(' ')[0]}
+                    </a>
+                  </div>
+                </DetailsSection>
+              ) : (
               /* The application — the only section this page has that the
                  member page doesn't. The reply lives here, under what it
                  answers, so the profile card above stays production's. */
@@ -330,6 +409,7 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
                   </a>
                 </div>
               </DetailsSection>
+              )
             }
           />
         )}

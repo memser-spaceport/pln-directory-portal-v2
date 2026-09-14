@@ -131,6 +131,14 @@
   }
 }
 
+/* Applied / Interested, between the role's head and the search: the tabs pick
+ * which list of people answered this role. `flex-shrink: 0` because the column
+ * is a capped flex column on desktop. */
+.tabs {
+  flex-shrink: 0;
+  margin-bottom: 12px;
+}
+
 .searchWrap {
   margin-bottom: 12px;
   flex-shrink: 0;

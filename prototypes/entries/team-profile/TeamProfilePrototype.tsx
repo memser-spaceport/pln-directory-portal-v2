@@ -70,6 +70,7 @@ import {
   MOCK_TEAM_DEMO_DAY,
   MOCK_TEAM_ROLES,
   MOCK_APPLICANTS,
+  MOCK_INTERESTED,
   MOCK_TEAM_FACTS,
   type TeamStatus,
 } from './mocks';
@@ -524,6 +525,7 @@ export default function TeamProfilePrototype() {
               .join(' · '),
             postedAt: getJobDate(r),
             applicants: MOCK_APPLICANTS[r.uid] ?? [],
+            interested: MOCK_INTERESTED[r.uid] ?? [],
           }))}
           initialRoleUid={applicantsRole}
           onBack={() => setApplicantsRole(null)}

@@ -11,7 +11,6 @@ import { HelpIcon } from '@/components/core/navbar/components/icons';
 // The header's own menu chrome (account menu): popup, items, group separators.
 // Imported, not copied, so the two menus in this row cannot drift.
 import menu from '@/components/core/navbar/components/AccountMenu/AccountMenu.module.scss';
-import nav from '@/components/core/navbar/NavBar.module.scss';
 // The product's callout tooltip — the brand-blue `highlight` variant of the
 // core Tooltip, reused by its stylesheet because that component only opens on
 // hover and this one has to open on arrival (same move as team-profile's
@@ -121,8 +120,8 @@ export function HelpFeedbackMenu({ onPickTopic, onAskAi, callout = false }: Help
           <TooltipPrimitive.Trigger asChild>
             <span className={local.anchor}>
               <Menu.Trigger
-                className={clsx(nav.supportButton, local.trigger)}
-                aria-label="Help and feedback"
+                className={clsx(local.contact, local.trigger)}
+                aria-label="Contact us"
                 onPointerDown={(e) => {
                   pressPointer.current = e.pointerType;
                   if (e.pointerType === 'mouse' && e.button === 0) holdMenu.current = true;
@@ -133,6 +132,7 @@ export function HelpFeedbackMenu({ onPickTopic, onAskAi, callout = false }: Help
                 onClick={onTriggerClick}
               >
                 <HelpIcon />
+                <span className={local.contactLabel}>Contact us</span>
               </Menu.Trigger>
             </span>
           </TooltipPrimitive.Trigger>

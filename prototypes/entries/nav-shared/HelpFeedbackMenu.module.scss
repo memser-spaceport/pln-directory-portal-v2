@@ -1,17 +1,51 @@
-/* The (?) as a real button. Production's `.supportButton` (NavBar.module.scss)
-   is a 40px flex box on a <div>; the same class on a <button> needs the
-   browser chrome taken off. Hover and open states are the row's own —
-   `.navIconTrigger` (search) hovers on transparent-dark-4, and the left-hand
+@use 'styles/media';
+
+/* The (?) + "Contact us", in the left-hand nav items' grammar (production
+   `.Trigger`: 6px gap, 14/20/500 menu ink, 40px tall, 12px sides). Production
+   deleted the old `.supportButton` geometry, so the box lives here. Below
+   tablet-landscape, where production hides the labelled items, the label goes
+   and it is a 40px icon box. Shared with PrototypeNavBar's static (?). */
+.contact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0;
+  border-radius: 8px;
+  color: var(--Text-text-menu, #475569);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+
+  @include media.tablet-landscape {
+    padding: 0 12px;
+  }
+}
+
+.contactLabel {
+  display: none;
+
+  @include media.tablet-landscape {
+    display: inline;
+  }
+}
+
+/* The (?) as a real button needs the browser chrome taken off. Hover and open
+   states are the row's own —
+   `.navSearchTrigger` (search, icon-only below tablet-landscape) hovers on
+   transparent-dark-4, and the left-hand
    `.Trigger` items mark [data-popup-open] the same way. */
 .anchor {
   display: inline-flex;
 }
 
 .trigger {
-  padding: 0;
   border: 0;
-  border-radius: 8px;
   background: none;
+  font-family: inherit;
   cursor: pointer;
 
   @media (hover: hover) {

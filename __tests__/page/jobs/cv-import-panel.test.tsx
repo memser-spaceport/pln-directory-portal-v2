@@ -87,11 +87,30 @@ describe('ExperienceImportPanel', () => {
     drop(file('polina-cv.pdf'));
 
     expect(await screen.findByText(/reading polina-cv\.pdf/i)).toBeInTheDocument();
+    expect(screen.getByText(/Usually takes about 10 seconds/)).toBeInTheDocument();
 
     await act(async () => resolve(parsedWith(3)));
 
     await waitFor(() => expect(onParsed).toHaveBeenCalledTimes(1));
     expect(onParsed.mock.calls[0][0].experiences).toHaveLength(3);
+  });
+
+  it('says the read is taking longer than usual once the usual wait has passed', async () => {
+    jest.useFakeTimers({ now: Date.now() });
+    try {
+      renderPanel({ onParse: jest.fn(() => new Promise(() => {})) });
+      drop(file('polina-cv.pdf'));
+
+      expect(screen.getByText(/Usually takes about 10 seconds/)).toBeInTheDocument();
+
+      await act(async () => {
+        jest.advanceTimersByTime(11_000);
+      });
+
+      expect(screen.getByText(/Taking longer than usual — still reading/)).toBeInTheDocument();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('says the document had nothing in it when the parse resolves empty', async () => {

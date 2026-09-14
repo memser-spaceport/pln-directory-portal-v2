@@ -3,6 +3,7 @@ import type {
   ParsedExperience,
   ParsedProfile,
 } from '@/components/page/member-details/ExperienceDetails/components/ExperienceImport';
+import type { StoredCv } from '@/components/common/profile/StoredCv';
 
 /**
  * The three calls behind "fill my Experience section from a CV".
@@ -379,5 +380,66 @@ async function readErrorMessage(response: Response): Promise<string | undefined>
     return body?.message;
   } catch {
     return undefined;
+  }
+}
+
+/**
+ * The CV the profile is currently holding, or `null` if it is holding none.
+ *
+ * One question — "is there a CV, and where is it" — over the API's two calls:
+ * `latest` says whether a row exists, `file` mints the short-lived link the
+ * preview reads and carries what the card prints beside it. Folded here so no
+ * call site has to reassemble the answer.
+ *
+ * **Not gated on the parse.** `latest` reports `PROCESSING | SUCCEEDED |
+ * NOTHING_FOUND | FAILED`, and the document reaches storage before any of those
+ * is decided, so a CV the parser gave up on is still one the member uploaded and
+ * can still see, replace and remove. The API takes that position; this mirrors
+ * it rather than deciding it again.
+ *
+ * A missing CV is `null`, not a throw: having none is the ordinary state of most
+ * profiles, and a throw would make React Query report every new member as an
+ * error.
+ *
+ * Note `request` resolves for *any* status — it only rejects when no response
+ * arrives at all — so 404 is read off the response rather than caught.
+ */
+export async function getStoredCv(uid: string, signal?: AbortSignal): Promise<StoredCv | null> {
+  const latest = await request(`${BASE}/${uid}/cv-imports/latest`, { method: 'GET', signal }, signal);
+  if (latest.status === 404) return null;
+  if (!latest.ok) throw new CvParseError('server', latest.status);
+
+  const file = await request(`${BASE}/${uid}/cv-imports/file`, { method: 'GET', signal }, signal);
+  /* The row exists but the object does not — treat it as no CV rather than an
+     error, so the upload offer comes back instead of a card that cannot paint. */
+  if (file.status === 404) return null;
+  if (!file.ok) throw new CvParseError('server', file.status);
+
+  const body = (await file.json()) as {
+    url: string;
+    originalFilename: string;
+    uploadedAt: string;
+    size?: number;
+  };
+
+  return {
+    fileName: body.originalFilename,
+    uploadedAt: body.uploadedAt,
+    url: body.url,
+    size: body.size,
+  };
+}
+
+/**
+ * Remove the stored CV.
+ *
+ * The profile fields it filled are deliberately left alone — see the API's
+ * `remove`, and the sentence `RemoveCvDialog` puts in front of the member.
+ */
+export async function removeStoredCv(uid: string): Promise<void> {
+  const response = await request(`${BASE}/${uid}/cv-imports`, { method: 'DELETE' });
+  /* 404 is success here: the CV is gone, which is what was asked for. */
+  if (!response.ok && response.status !== 404) {
+    throw new CvParseError('server', response.status);
   }
 }

@@ -13,6 +13,13 @@
  *    "Update from CV" header control), next to the section it fills. Right once
  *    a history exists: that person has already done this by hand, and a slab at
  *    the top telling them to start over is noise.
+ *  - `'stored'` — there is already a CV. Nothing is *offered*, because the
+ *    document is here: the resting "Your CV" card is drawn instead, and Replace
+ *    in its header is the way to a different one. This is still a host answer
+ *    rather than a separate flag for the same reason as the rest — while that
+ *    card is on screen it is the document's only door, so the Experience
+ *    header's "Update from CV" has to stand down, and an independent expression
+ *    of that is exactly how both doors end up open.
  *  - `'off'` — the flag is down, or nobody should be offered it right now.
  *
  * **A function returning one host rather than two booleans on the call site.**
@@ -22,7 +29,7 @@
  * drawer derives both props from a single answer, so "never both" is not a rule
  * anyone has to remember.
  */
-export type CvImportHost = 'top-card' | 'experience-section' | 'off';
+export type CvImportHost = 'top-card' | 'experience-section' | 'off' | 'stored';
 
 export interface CvImportHostInput {
   /** `SHOW_CV_IMPORT`. Down means no host, whatever else is true. */
@@ -44,6 +51,15 @@ export interface CvImportHostInput {
    */
   experiencesLoading: boolean;
   /**
+   * Whether the profile already holds a CV.
+   *
+   * `undefined` while the answer is still in flight, and treated like
+   * `experiencesLoading`: withhold every host for that render rather than offer
+   * an upload to someone who has already uploaded and then swap it for their
+   * file. Flashing the wrong door is worse than a render with no door.
+   */
+  hasStoredCv: boolean | undefined;
+  /**
    * Someone hit a parse dead end and pressed "Add manually".
    *
    * The Add form lives inside the Experience section and cannot be opened from
@@ -54,10 +70,17 @@ export interface CvImportHostInput {
 }
 
 export function pickCvImportHost(input: CvImportHostInput): CvImportHost {
-  const { enabled, experienceCount, experiencesLoading, handedOff } = input;
+  const { enabled, experienceCount, experiencesLoading, handedOff, hasStoredCv } = input;
 
   if (!enabled) return 'off';
   if (experiencesLoading) return 'off';
+  /* Before the offer questions, not after: whether a CV is already here settles
+     the screen regardless of how the history got written. Someone who uploaded a
+     CV and then typed their roles in by hand still holds a document, and asking
+     "has this person written history by hand" about them answers a question
+     nobody asked. */
+  if (hasStoredCv === undefined) return 'off';
+  if (hasStoredCv) return 'stored';
 
   /**
    * Nothing a CV would supply, so a CV is the fastest way to supply it.

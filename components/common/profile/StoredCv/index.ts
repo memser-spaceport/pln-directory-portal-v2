@@ -5,3 +5,4 @@ export { CvHeaderActions } from './CvHeaderActions';
 export { CvPreviewModal } from './CvPreviewModal';
 export { RemoveCvDialog } from './RemoveCvDialog';
 export { CvAttachmentLine } from './CvAttachmentLine';
+export { StoredCvSection } from './StoredCvSection';

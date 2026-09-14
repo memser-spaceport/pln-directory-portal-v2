@@ -210,35 +210,36 @@ export const EditOfficeHoursForm = ({ onClose, member, userInfo }: Props) => {
         }}
         noValidate
       >
-        <EditOfficeHoursFormControls onClose={onClose} title="Edit Office Hours" />
-        <div className={s.body}>
-          <div className={s.row}>
-            <OfficeHoursFormField
-              name="officeHours"
-              label="Office Hours"
-              placeholder="Enter Office Hours link"
-              description="Drop your calendar link here so others can get in touch with you at a time that is convenient. We recommend 15-min meetings scheduled."
-              validationCache={validationCache}
-              isValidatingField={isValidatingOfficeHours}
-            />
+        <EditOfficeHoursFormControls onClose={onClose} title="Edit Office Hours">
+          <div className={s.body}>
+            <div className={s.row}>
+              <OfficeHoursFormField
+                name="officeHours"
+                label="Office Hours"
+                placeholder="Enter Office Hours link"
+                description="Drop your calendar link here so others can get in touch with you at a time that is convenient. We recommend 15-min meetings scheduled."
+                validationCache={validationCache}
+                isValidatingField={isValidatingOfficeHours}
+              />
+            </div>
+            <div className={s.row}>
+              <FormTagsInput
+                selectLabel="I am interested in:"
+                name="officeHoursInterestedIn"
+                warning={false}
+                placeholder="Add keywords (e.g. Web3, AI, Neurotech, etc.)"
+              />
+            </div>
+            <div className={s.row}>
+              <FormTagsInput
+                selectLabel="I can help with:"
+                name="officeHoursCanHelpWith"
+                warning={false}
+                placeholder="Add keywords (e.g. Early-stage Startups, Product Design, etc.)"
+              />
+            </div>
           </div>
-          <div className={s.row}>
-            <FormTagsInput
-              selectLabel="I am interested in:"
-              name="officeHoursInterestedIn"
-              warning={false}
-              placeholder="Add keywords (e.g. Web3, AI, Neurotech, etc.)"
-            />
-          </div>
-          <div className={s.row}>
-            <FormTagsInput
-              selectLabel="I can help with:"
-              name="officeHoursCanHelpWith"
-              warning={false}
-              placeholder="Add keywords (e.g. Early-stage Startups, Product Design, etc.)"
-            />
-          </div>
-        </div>
+        </EditOfficeHoursFormControls>
         <EditOfficeHoursMobileControls />
       </form>
     </FormProvider>

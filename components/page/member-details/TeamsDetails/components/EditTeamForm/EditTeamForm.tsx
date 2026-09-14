@@ -169,136 +169,137 @@ export const EditTeamForm = ({ onClose, member, initialData }: Props) => {
   return (
     <FormProvider {...methods}>
       <form noValidate onSubmit={handleSubmit(onSubmit)}>
-        <EditFormControls onClose={onClose} title={isNew ? 'Add Team' : 'Edit Team'} />
-        <div className={s.body}>
-          {!isAddingTeamInline && previewData ? (
-            <div className={s.expItem}>
-              {previewData?.logo ? (
-                <Image
-                  src={previewData.logo ?? '/icons/default-project.svg'}
-                  alt={previewData.name ?? ''}
-                  width={40}
-                  height={40}
-                  className={s.logo}
-                />
-              ) : (
-                <ExpIcon />
-              )}
-              <div className={s.details}>
-                <div className={s.row}>
-                  <div className={s.primaryLabel}>{previewData.name}</div>
-                </div>
-                <div className={s.row}>
-                  <div className={s.secondaryLabel}>{previewData.role}</div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            !isAddingTeamInline &&
-            formValues?.name?.value && (
+        <EditFormControls onClose={onClose} title={isNew ? 'Add Team' : 'Edit Team'}>
+          <div className={s.body}>
+            {!isAddingTeamInline && previewData ? (
               <div className={s.expItem}>
-                <Skeleton
-                  inline
-                  width={40}
-                  height={40}
-                  style={{ minWidth: 40, display: 'block', background: '#f3f3f3' }}
-                  borderRadius={8}
-                />
+                {previewData?.logo ? (
+                  <Image
+                    src={previewData.logo ?? '/icons/default-project.svg'}
+                    alt={previewData.name ?? ''}
+                    width={40}
+                    height={40}
+                    className={s.logo}
+                  />
+                ) : (
+                  <ExpIcon />
+                )}
                 <div className={s.details}>
                   <div className={s.row}>
-                    <Skeleton
-                      count={1}
-                      inline
-                      width={90}
-                      height={20}
-                      style={{ display: 'block', background: '#f3f3f3' }}
-                      borderRadius={4}
-                    />
+                    <div className={s.primaryLabel}>{previewData.name}</div>
                   </div>
                   <div className={s.row}>
-                    <Skeleton
-                      count={1}
-                      inline
-                      width={60}
-                      height={14}
-                      style={{ minWidth: 90, background: '#f3f3f3', display: 'block' }}
-                      borderRadius={4}
-                    />
+                    <div className={s.secondaryLabel}>{previewData.role}</div>
                   </div>
                 </div>
               </div>
-            )
-          )}
+            ) : (
+              !isAddingTeamInline &&
+              formValues?.name?.value && (
+                <div className={s.expItem}>
+                  <Skeleton
+                    inline
+                    width={40}
+                    height={40}
+                    style={{ minWidth: 40, display: 'block', background: '#f3f3f3' }}
+                    borderRadius={8}
+                  />
+                  <div className={s.details}>
+                    <div className={s.row}>
+                      <Skeleton
+                        count={1}
+                        inline
+                        width={90}
+                        height={20}
+                        style={{ display: 'block', background: '#f3f3f3' }}
+                        borderRadius={4}
+                      />
+                    </div>
+                    <div className={s.row}>
+                      <Skeleton
+                        count={1}
+                        inline
+                        width={60}
+                        height={14}
+                        style={{ minWidth: 90, background: '#f3f3f3', display: 'block' }}
+                        borderRadius={4}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )
+            )}
 
-          {!isAddingTeamInline && (
-            <>
-              <div className={s.row}>
-                <FormSelect
-                  name="name"
-                  placeholder="Enter your team"
-                  backLabel="Teams"
-                  label="Team"
-                  isRequired
-                  options={
-                    data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
-                      value: item.teamUid,
-                      label: item.teamTitle,
-                    })) ?? []
-                  }
-                  notFoundContent={
-                    isNew ? (
-                      <div className={s.secondaryLabel}>
-                        If you don&apos;t see your team on this list,{' '}
-                        <button type="button" className={s.link} onClick={() => setIsAddingTeamInline(true)}>
-                          add your team
-                        </button>
-                        .
-                      </div>
-                    ) : (
-                      <div className={s.secondaryLabel}>
-                        If you don&apos;t see your team on this list, please{' '}
-                        <Link href="/teams/add" className={s.link} target="_blank">
-                          add your team
-                        </Link>{' '}
-                        first.
-                      </div>
-                    )
-                  }
-                />
-              </div>
-              <div className={s.row}>
-                <FormField name="role" label="Role" placeholder="Enter your title/role" />
-              </div>
-            </>
-          )}
+            {!isAddingTeamInline && (
+              <>
+                <div className={s.row}>
+                  <FormSelect
+                    name="name"
+                    placeholder="Enter your team"
+                    backLabel="Teams"
+                    label="Team"
+                    isRequired
+                    options={
+                      data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
+                        value: item.teamUid,
+                        label: item.teamTitle,
+                      })) ?? []
+                    }
+                    notFoundContent={
+                      isNew ? (
+                        <div className={s.secondaryLabel}>
+                          If you don&apos;t see your team on this list,{' '}
+                          <button type="button" className={s.link} onClick={() => setIsAddingTeamInline(true)}>
+                            add your team
+                          </button>
+                          .
+                        </div>
+                      ) : (
+                        <div className={s.secondaryLabel}>
+                          If you don&apos;t see your team on this list, please{' '}
+                          <Link href="/teams/add" className={s.link} target="_blank">
+                            add your team
+                          </Link>{' '}
+                          first.
+                        </div>
+                      )
+                    }
+                  />
+                </div>
+                <div className={s.row}>
+                  <FormField name="role" label="Role" placeholder="Enter your title/role" />
+                </div>
+              </>
+            )}
 
-          {isAddingTeamInline && (
-            <AddTeamInlineForm
-              fieldNames={{
-                role: 'newTeamRole',
-                name: 'newTeamName',
-                website: 'newTeamWebsite',
-              }}
-              onClose={() => setIsAddingTeamInline(false)}
-            />
-          )}
-
-          {!isNew && (
-            <>
-              <button className={s.deleteBtn} type="button" onClick={() => setIsOpenDelete(true)}>
-                <DeleteIcon /> Remove Team
-              </button>
-              <ConfirmDialog
-                title="Remove Team"
-                desc="Are you sure you want to remove selected team?"
-                isOpen={isOpenDelete}
-                onClose={() => setIsOpenDelete(false)}
-                onConfirm={onDelete}
-                confirmTitle="Remove"
+            {isAddingTeamInline && (
+              <AddTeamInlineForm
+                fieldNames={{
+                  role: 'newTeamRole',
+                  name: 'newTeamName',
+                  website: 'newTeamWebsite',
+                }}
+                onClose={() => setIsAddingTeamInline(false)}
               />
-            </>
-          )}
-        </div>
+            )}
+
+            {!isNew && (
+              <>
+                <button className={s.deleteBtn} type="button" onClick={() => setIsOpenDelete(true)}>
+                  <DeleteIcon /> Remove Team
+                </button>
+                <ConfirmDialog
+                  title="Remove Team"
+                  desc="Are you sure you want to remove selected team?"
+                  isOpen={isOpenDelete}
+                  onClose={() => setIsOpenDelete(false)}
+                  onConfirm={onDelete}
+                  confirmTitle="Remove"
+                />
+              </>
+            )}
+          </div>
+        </EditFormControls>
         <EditFormMobileControls />
       </form>
     </FormProvider>

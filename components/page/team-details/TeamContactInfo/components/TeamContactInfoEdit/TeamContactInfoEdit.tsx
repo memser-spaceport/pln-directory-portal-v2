@@ -82,47 +82,46 @@ export function TeamContactInfoEdit(props: Props) {
   return (
     <FormProvider {...methods}>
       <form noValidate onSubmit={handleSubmit(onSubmit)}>
-        <EditFormControls title="Edit Contact Details" onClose={toggleIsEditMode} isProcessing={isPending} />
+        <EditFormControls title="Edit Contact Details" onClose={toggleIsEditMode} isProcessing={isPending}>
+          <DetailsSection classes={{ root: s.detailsSection }}>
+            <FormField name="website" label="Website" placeholder="Enter website" isRequired />
 
-        <DetailsSection classes={{ root: s.detailsSection }}>
-          <FormField name="website" label="Website" placeholder="Enter website" isRequired />
+            <FormField
+              isRequired
+              name="contactMethod"
+              label="Preferred method of contact"
+              placeholder="Enter contact method"
+              description="What is the best way for people to connect with your team? (e.g., team Slack channel, team email address, team Discord server/channel, etc.)"
+            />
 
-          <FormField
-            isRequired
-            name="contactMethod"
-            label="Preferred method of contact"
-            placeholder="Enter contact method"
-            description="What is the best way for people to connect with your team? (e.g., team Slack channel, team email address, team Discord server/channel, etc.)"
-          />
+            <FormField
+              name="jobReferEmail"
+              label="Job Referral/Application Contact"
+              placeholder="jobs@team.com"
+              description="Referrals for this team’s open roles go here instead of to selected members. Leave blank to send referrals to team leads."
+            />
 
-          <FormField
-            name="jobReferEmail"
-            label="Job Referral/Application Contact"
-            placeholder="jobs@team.com"
-            description="Referrals for this team’s open roles go here instead of to selected members. Leave blank to send referrals to team leads."
-          />
+            <FormField name="linkedin" label="LinkedIn" placeholder="eg.,https://linkedin.com/in/company_name" />
 
-          <FormField name="linkedin" label="LinkedIn" placeholder="eg.,https://linkedin.com/in/company_name" />
+            <FormField name="twitter" label="X (Twitter)" placeholder="eg.,@protocollabs" />
 
-          <FormField name="twitter" label="X (Twitter)" placeholder="eg.,@protocollabs" />
+            <FormField name="telegram" label="Telegram" placeholder="eg.,name#1234" />
 
-          <FormField name="telegram" label="Telegram" placeholder="eg.,name#1234" />
+            <FormField name="blog" label="Blog" placeholder="Enter your teams blog address" />
 
-          <FormField name="blog" label="Blog" placeholder="Enter your teams blog address" />
+            <FormField
+              name="bluesky"
+              label="Bluesky"
+              placeholder="eg., @protocol.ai, protocol.ai or https://bsky.app/profile/protocol.ai"
+            />
 
-          <FormField
-            name="bluesky"
-            label="Bluesky"
-            placeholder="eg., @protocol.ai, protocol.ai or https://bsky.app/profile/protocol.ai"
-          />
-
-          <FormField
-            name="crunchbase"
-            label="Crunchbase"
-            placeholder="eg., protocol-labs or https://www.crunchbase.com/organization/protocol-labs"
-          />
-        </DetailsSection>
-
+            <FormField
+              name="crunchbase"
+              label="Crunchbase"
+              placeholder="eg., protocol-labs or https://www.crunchbase.com/organization/protocol-labs"
+            />
+          </DetailsSection>
+        </EditFormControls>
         <EditFormMobileControls />
       </form>
     </FormProvider>

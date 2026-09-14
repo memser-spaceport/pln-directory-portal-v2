@@ -62,49 +62,49 @@ export function TeamProjectsEditProject(props: Props) {
 
   return (
     <FormProvider {...methods}>
-      <EditFormControls title="Edit Project" onClose={returnToViewMode} />
-
-      <DetailsSection>
-        <div className={s.body}>
-          <div className={s.fieldGroup}>
-            <label className={s.label}>
-              Project Name <span className={s.required}>*</span>
-            </label>
-            <div className={s.readOnlyInput}>
-              <img src={logo} alt="" className={s.projectLogo} />
-              <span className={s.projectName}>{project.name}</span>
+      <EditFormControls title="Edit Project" onClose={returnToViewMode}>
+        <DetailsSection>
+          <div className={s.body}>
+            <div className={s.fieldGroup}>
+              <label className={s.label}>
+                Project Name <span className={s.required}>*</span>
+              </label>
+              <div className={s.readOnlyInput}>
+                <img src={logo} alt="" className={s.projectLogo} />
+                <span className={s.projectName}>{project.name}</span>
+              </div>
             </div>
+
+            <DetailsSectionGreyContentContainer className={s.info}>
+              <InfoIcon />
+              <span className={s.infoText}>Edit project details on</span>
+              <Link href={`/projects/update/${project.uid}`} target="_blank" className={s.infoLink}>
+                {project.name} page <ArrowUpRightIcon />
+              </Link>
+            </DetailsSectionGreyContentContainer>
+
+            {!project.isMaintainingProject && (
+              <>
+                <div className={s.divider} />
+
+                <button className={s.removeBtn} type="button" onClick={() => setIsOpenDelete(true)}>
+                  <TrashIcon /> Remove Project
+                </button>
+
+                <ConfirmDialog
+                  title="Remove Project"
+                  desc="Are you sure you want to remove this project from the team?"
+                  isOpen={isOpenDelete}
+                  onClose={() => setIsOpenDelete(false)}
+                  onConfirm={handleRemove}
+                  disabled={isRemoving}
+                  confirmTitle={isRemoving ? 'Processing...' : 'Remove'}
+                />
+              </>
+            )}
           </div>
-
-          <DetailsSectionGreyContentContainer className={s.info}>
-            <InfoIcon />
-            <span className={s.infoText}>Edit project details on</span>
-            <Link href={`/projects/update/${project.uid}`} target="_blank" className={s.infoLink}>
-              {project.name} page <ArrowUpRightIcon />
-            </Link>
-          </DetailsSectionGreyContentContainer>
-
-          {!project.isMaintainingProject && (
-            <>
-              <div className={s.divider} />
-
-              <button className={s.removeBtn} type="button" onClick={() => setIsOpenDelete(true)}>
-                <TrashIcon /> Remove Project
-              </button>
-
-              <ConfirmDialog
-                title="Remove Project"
-                desc="Are you sure you want to remove this project from the team?"
-                isOpen={isOpenDelete}
-                onClose={() => setIsOpenDelete(false)}
-                onConfirm={handleRemove}
-                disabled={isRemoving}
-                confirmTitle={isRemoving ? 'Processing...' : 'Remove'}
-              />
-            </>
-          )}
-        </div>
-      </DetailsSection>
+        </DetailsSection>
+      </EditFormControls>
     </FormProvider>
   );
 }

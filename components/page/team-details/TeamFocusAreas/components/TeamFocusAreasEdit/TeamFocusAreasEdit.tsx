@@ -57,24 +57,23 @@ export function TeamFocusAreasEdit(props: Props) {
   return (
     <FormProvider {...methods}>
       <form noValidate onSubmit={handleSubmit(onSubmit)}>
-        <EditFormControls title="Edit Focus Areas" onClose={toggleIsEditMode} isProcessing={isPending} />
-
-        <DetailsSection
-          classes={{
-            root: s.areas,
-          }}
-        >
-          {focusAreas.map((parent) => (
-            <FormMultiSelect
-              key={parent.uid}
-              name={parent.uid}
-              label={parent.title}
-              options={optionsPerGroup[parent.uid]}
-              placeholder={`Select and add topics within ${parent.title}`}
-            />
-          ))}
-        </DetailsSection>
-
+        <EditFormControls title="Edit Focus Areas" onClose={toggleIsEditMode} isProcessing={isPending}>
+          <DetailsSection
+            classes={{
+              root: s.areas,
+            }}
+          >
+            {focusAreas.map((parent) => (
+              <FormMultiSelect
+                key={parent.uid}
+                name={parent.uid}
+                label={parent.title}
+                options={optionsPerGroup[parent.uid]}
+                placeholder={`Select and add topics within ${parent.title}`}
+              />
+            ))}
+          </DetailsSection>
+        </EditFormControls>
         <EditFormMobileControls />
       </form>
     </FormProvider>

@@ -62,10 +62,11 @@ export const EditPitchDeckForm = ({ onClose, team, userInfo }: Props) => {
         }}
         noValidate
       >
-        <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Profile" />
-        <div className={s.body}>
-          <div className={s.row}>content???</div>
-        </div>
+        <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Profile">
+          <div className={s.body}>
+            <div className={s.row}>content???</div>
+          </div>
+        </EditOfficeHoursFormControls>
         <EditOfficeHoursMobileControls />
       </form>
     </FormProvider>

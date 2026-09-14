@@ -42,8 +42,8 @@ export function TeamMembersEditMember(props: Props) {
 
   const methods = useForm<FormData>({
     defaultValues: {
-      teamLead: !!memberTeam?.teamLead
-    }
+      teamLead: !!memberTeam?.teamLead,
+    },
   });
 
   const { onSubmit: commonOnSubmit, isPending } = useOnSubmit(team, onClose);
@@ -61,7 +61,7 @@ export function TeamMembersEditMember(props: Props) {
         role: mTeam?.role || 'Contributor',
         teamLead: isEditedMember ? formData.teamLead : !!mTeam?.teamLead,
         mainTeam: !!mTeam?.mainTeam,
-        ...(isEditedMember && { status: 'Update' as const })
+        ...(isEditedMember && { status: 'Update' as const }),
       };
     });
 
@@ -79,7 +79,7 @@ export function TeamMembersEditMember(props: Props) {
           role: mTeam?.role || 'Contributor',
           teamLead: !!mTeam?.teamLead,
           mainTeam: !!mTeam?.mainTeam,
-          ...(m.id === member.id && { status: 'Delete' as const })
+          ...(m.id === member.id && { status: 'Delete' as const }),
         };
       });
 
@@ -96,61 +96,60 @@ export function TeamMembersEditMember(props: Props) {
   return (
     <FormProvider {...methods}>
       <form noValidate onSubmit={methods.handleSubmit(onSubmit)}>
-        <EditFormControls title="Edit Team Member" onClose={onClose} isProcessing={isPending} />
+        <EditFormControls title="Edit Team Member" onClose={onClose} isProcessing={isPending}>
+          <DetailsSection
+            classes={{
+              root: s.section,
+            }}
+          >
+            <MemberCardBase member={member} teamId={teamId}>
+              <div className={s.skills}>
+                <SkillsList skills={skills} />
+              </div>
+            </MemberCardBase>
 
-        <DetailsSection
-          classes={{
-            root: s.section
-          }}
-        >
-          <MemberCardBase member={member} teamId={teamId}>
-            <div className={s.skills}>
-              <SkillsList skills={skills} />
+            <div className={s.field}>
+              <div className={s.fieldLabel}>Team Member</div>
+              <div className={s.memberInput}>
+                <img
+                  className={s.memberInputAvatar}
+                  src={member.profile || getDefaultAvatar(member.name)}
+                  alt={member.name}
+                  width={24}
+                  height={24}
+                />
+                <span className={s.memberInputName}>{member.name}</span>
+              </div>
             </div>
-          </MemberCardBase>
 
-          <div className={s.field}>
-            <div className={s.fieldLabel}>Team Member</div>
-            <div className={s.memberInput}>
-              <img
-                className={s.memberInputAvatar}
-                src={member.profile || getDefaultAvatar(member.name)}
-                alt={member.name}
-                width={24}
-                height={24}
+            <div className={s.toggleRow}>
+              <span className={s.toggleLabel}>This member is a Team Lead</span>
+              <CustomToggle
+                id="team-lead-toggle"
+                name="team-lead-toggle"
+                checked={teamLeadValue}
+                onChange={() => methods.setValue('teamLead', !teamLeadValue, { shouldDirty: true })}
               />
-              <span className={s.memberInputName}>{member.name}</span>
             </div>
-          </div>
 
-          <div className={s.toggleRow}>
-            <span className={s.toggleLabel}>This member is a Team Lead</span>
-            <CustomToggle
-              id="team-lead-toggle"
-              name="team-lead-toggle"
-              checked={teamLeadValue}
-              onChange={() => methods.setValue('teamLead', !teamLeadValue, { shouldDirty: true })}
+            <div className={s.divider} />
+
+            <button className={s.removeButton} type="button" onClick={() => setIsOpenDelete(true)}>
+              <TrashIcon />
+              Remove Team Member
+            </button>
+
+            <ConfirmDialog
+              title="Remove Team Member"
+              desc="Are you sure you want to remove this member from the team?"
+              isOpen={isOpenDelete}
+              onClose={() => setIsOpenDelete(false)}
+              onConfirm={onRemove}
+              disabled={isRemoving}
+              confirmTitle={isRemoving ? 'Processing...' : 'Remove'}
             />
-          </div>
-
-          <div className={s.divider} />
-
-          <button className={s.removeButton} type="button" onClick={() => setIsOpenDelete(true)}>
-            <TrashIcon />
-            Remove Team Member
-          </button>
-
-          <ConfirmDialog
-            title="Remove Team Member"
-            desc="Are you sure you want to remove this member from the team?"
-            isOpen={isOpenDelete}
-            onClose={() => setIsOpenDelete(false)}
-            onConfirm={onRemove}
-            disabled={isRemoving}
-            confirmTitle={isRemoving ? 'Processing...' : 'Remove'}
-          />
-        </DetailsSection>
-
+          </DetailsSection>
+        </EditFormControls>
         <EditFormMobileControls />
       </form>
     </FormProvider>

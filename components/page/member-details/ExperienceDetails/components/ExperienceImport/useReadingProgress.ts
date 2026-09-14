@@ -82,24 +82,22 @@ export interface ReadingWaitClock {
  * row and the floating status bar cannot disagree.
  */
 export function useReadingBarProgress(wait: ReadingWaitClock | null): { progress: number; overdue: boolean } {
-  const [now, setNow] = useState(0);
   const running = wait !== null && wait.startedAt !== null && !wait.settled;
+  /* Wall clock, not `0`. The floating bar often mounts after the usual 10s;
+     a sentinel of 0 made that first paint still say "usually takes 10 seconds". */
+  const [now, setNow] = useState(Date.now);
 
   useEffect(() => {
     if (!running) return;
-    const timeout = window.setTimeout(() => setNow(Date.now()), 0);
     const id = window.setInterval(() => setNow(Date.now()), TICK_MS);
-    return () => {
-      window.clearTimeout(timeout);
-      window.clearInterval(id);
-    };
+    return () => window.clearInterval(id);
   }, [running, wait?.startedAt]);
 
   if (!wait) return { progress: 0, overdue: false };
   if (wait.settled) return { progress: 100, overdue: false };
-  if (wait.startedAt === null || now === 0) return { progress: 0, overdue: false };
+  if (wait.startedAt === null) return { progress: 0, overdue: false };
   const elapsed = Math.max(0, now - wait.startedAt);
-  return { progress: curveAt(elapsed), overdue: elapsed > USUAL_READ_MS };
+  return { progress: curveAt(elapsed), overdue: elapsed >= USUAL_READ_MS };
 }
 
 /**

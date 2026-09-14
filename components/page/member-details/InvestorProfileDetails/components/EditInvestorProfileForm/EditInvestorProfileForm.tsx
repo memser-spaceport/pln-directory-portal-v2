@@ -602,351 +602,352 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
         }}
         noValidate
       >
-        <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Details" />
-        <div className={s.body}>
-          <div className={s.block}>
-            <div className={s.sectionHeader}>
-              <h3>How do you invest (select all that apply)?</h3>
-            </div>
-            <section>
-              <label className={s.Label}>
-                <Checkbox.Root
-                  className={s.Checkbox}
-                  checked={secRulesAccepted}
-                  onCheckedChange={(v: boolean) => {
-                    setValue('secRulesAccepted', v, { shouldValidate: true, shouldDirty: true });
-                    if (isSubmitted) trigger();
-                  }}
-                >
-                  <Checkbox.Indicator className={s.Indicator}>
-                    <CheckIcon className={s.Icon} />
-                  </Checkbox.Indicator>
-                </Checkbox.Root>
-                <div className={s.col}>
-                  <div className={s.primary}>
-                    I angel invest as an accredited investor under{' '}
-                    <Link
-                      target="_blank"
-                      href="https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/updated-3"
-                      className={s.link}
-                    >
-                      SEC rules <ExternalLinkIcon />
-                    </Link>
+        <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Details">
+          <div className={s.body}>
+            <div className={s.block}>
+              <div className={s.sectionHeader}>
+                <h3>How do you invest (select all that apply)?</h3>
+              </div>
+              <section>
+                <label className={s.Label}>
+                  <Checkbox.Root
+                    className={s.Checkbox}
+                    checked={secRulesAccepted}
+                    onCheckedChange={(v: boolean) => {
+                      setValue('secRulesAccepted', v, { shouldValidate: true, shouldDirty: true });
+                      if (isSubmitted) trigger();
+                    }}
+                  >
+                    <Checkbox.Indicator className={s.Indicator}>
+                      <CheckIcon className={s.Icon} />
+                    </Checkbox.Indicator>
+                  </Checkbox.Root>
+                  <div className={s.col}>
+                    <div className={s.primary}>
+                      I angel invest as an accredited investor under{' '}
+                      <Link
+                        target="_blank"
+                        href="https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/updated-3"
+                        className={s.link}
+                      >
+                        SEC rules <ExternalLinkIcon />
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              </label>
+                </label>
 
-              {secRulesAccepted && (
-                <>
-                  <div className={s.row}>
-                    <FormMultiSelect
-                      name="investInStartupStages"
-                      label="Startup stage(s) you invest in?"
-                      placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
-                      options={formOptions.fundingStageOptions}
-                      isRequired
-                      // showNone
-                    />
-                  </div>
-                  <div className={s.row}>
-                    <FormCurrencyField
-                      name="typicalCheckSize"
-                      label="Typical Check Size"
-                      placeholder="E.g. $250.000"
-                      currency="USD"
-                      disabled={!secRulesAccepted}
-                      isRequired
-                    />
-                  </div>
-                  <div className={s.row}>
-                    <FormTagsInput
-                      selectLabel="Add Investment Focus"
-                      name="investmentFocusAreas"
-                      placeholder="Add keywords E.g. AI, Staking, Governance, etc."
-                      disabled={!secRulesAccepted}
-                    />
-                  </div>
+                {secRulesAccepted && (
+                  <>
+                    <div className={s.row}>
+                      <FormMultiSelect
+                        name="investInStartupStages"
+                        label="Startup stage(s) you invest in?"
+                        placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
+                        options={formOptions.fundingStageOptions}
+                        isRequired
+                        // showNone
+                      />
+                    </div>
+                    <div className={s.row}>
+                      <FormCurrencyField
+                        name="typicalCheckSize"
+                        label="Typical Check Size"
+                        placeholder="E.g. $250.000"
+                        currency="USD"
+                        disabled={!secRulesAccepted}
+                        isRequired
+                      />
+                    </div>
+                    <div className={s.row}>
+                      <FormTagsInput
+                        selectLabel="Add Investment Focus"
+                        name="investmentFocusAreas"
+                        placeholder="Add keywords E.g. AI, Staking, Governance, etc."
+                        disabled={!secRulesAccepted}
+                      />
+                    </div>
 
-                  <div className={s.divider} />
-                </>
-              )}
-            </section>
-            <section>
-              <label className={s.Label}>
-                <Checkbox.Root
-                  className={s.Checkbox}
-                  checked={isInvestViaFund}
-                  onCheckedChange={(v: boolean) => {
-                    setValue('isInvestViaFund', v, { shouldValidate: true, shouldDirty: true });
-                    if (isSubmitted) trigger();
-                  }}
-                >
-                  <Checkbox.Indicator className={s.Indicator}>
-                    <CheckIcon className={s.Icon} />
-                  </Checkbox.Indicator>
-                </Checkbox.Root>
-                <div className={s.col}>
-                  <div className={s.primary}>I invest through fund(s).</div>
-                </div>
-              </label>
+                    <div className={s.divider} />
+                  </>
+                )}
+              </section>
+              <section>
+                <label className={s.Label}>
+                  <Checkbox.Root
+                    className={s.Checkbox}
+                    checked={isInvestViaFund}
+                    onCheckedChange={(v: boolean) => {
+                      setValue('isInvestViaFund', v, { shouldValidate: true, shouldDirty: true });
+                      if (isSubmitted) trigger();
+                    }}
+                  >
+                    <Checkbox.Indicator className={s.Indicator}>
+                      <CheckIcon className={s.Icon} />
+                    </Checkbox.Indicator>
+                  </Checkbox.Root>
+                  <div className={s.col}>
+                    <div className={s.primary}>I invest through fund(s).</div>
+                  </div>
+                </label>
 
-              {isInvestViaFund && (
-                <>
-                  {!isAddingTeamInline && (
-                    <>
-                      {selectedTeam && (
-                        <div className={s.fundInfoBox}>
-                          <div className={s.fundInfo}>
-                            <div className={s.fundAvatar}>
-                              <img
-                                src={
-                                  data?.teams.find((t: any) => t.teamUid === selectedTeam.value)?.teamLogo ||
-                                  '/images/demo-day/profile-placeholder.svg'
-                                }
-                                alt={selectedTeam.label}
-                              />
-                            </div>
-                            <div className={s.fundDetails}>
-                              <div className={s.fundName}>{selectedTeam.label}</div>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            className={s.removeButton}
-                            onClick={() => setValue('team', null, { shouldValidate: true, shouldDirty: true })}
-                            aria-label="Remove team"
-                          >
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 16 16"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M3.13 10.87L10.87 3.13M10.87 10.87L3.13 3.13"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      )}
-                      <div className={s.infoSectionContent}>
-                        <FormSelect
-                          name="team"
-                          backLabel="Teams"
-                          placeholder="Search by org name"
-                          label="Search and add an investment fund"
-                          options={
-                            data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
-                              value: item.teamUid,
-                              label: item.teamTitle,
-                              originalObject: item,
-                            })) ?? []
-                          }
-                          renderOption={({ option, label, description }) => {
-                            return (
-                              <div className={s.teamOption}>
-                                <ImageWithFallback
-                                  width={24}
-                                  height={24}
-                                  alt={option.label}
-                                  className={s.optImg}
-                                  fallbackSrc="/icons/camera.svg"
-                                  src={option.originalObject.logo}
-                                />
-                                <div>
-                                  {label}
-                                  {description}
-                                </div>
-                              </div>
-                            );
-                          }}
-                          onChange={(value) => handleTeamSelect(value)}
-                          isStickyNoData
-                          selectRef={teamSelectRef}
-                          notFoundContent={
-                            <div className={s.secondaryLabel}>
-                              If you don&apos;t see your team on this list, please{' '}
-                              <button
-                                type="button"
-                                className={s.link}
-                                onClick={() => {
-                                  handleAddTeamLinkClick();
-                                  // Close the dropdown menu
-                                  (teamSelectRef.current as any)?.blur();
-                                  if (useInlineAddTeam) {
-                                    setIsAddingTeamInline(true);
-                                  } else {
-                                    setIsAddTeamDrawerOpen(true);
+                {isInvestViaFund && (
+                  <>
+                    {!isAddingTeamInline && (
+                      <>
+                        {selectedTeam && (
+                          <div className={s.fundInfoBox}>
+                            <div className={s.fundInfo}>
+                              <div className={s.fundAvatar}>
+                                <img
+                                  src={
+                                    data?.teams.find((t: any) => t.teamUid === selectedTeam.value)?.teamLogo ||
+                                    '/images/demo-day/profile-placeholder.svg'
                                   }
-                                }}
+                                  alt={selectedTeam.label}
+                                />
+                              </div>
+                              <div className={s.fundDetails}>
+                                <div className={s.fundName}>{selectedTeam.label}</div>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              className={s.removeButton}
+                              onClick={() => setValue('team', null, { shouldValidate: true, shouldDirty: true })}
+                              aria-label="Remove team"
+                            >
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 16 16"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
                               >
-                                add your team
-                              </button>{' '}
-                              first.
-                            </div>
-                          }
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  {isAddingTeamInline && useInlineAddTeam && (
-                    <AddTeamInlineForm
-                      showInvestorFields
-                      investorFieldsConfig={{
-                        fundingStageOptions: formOptions.fundingStageOptions,
-                        fundTypeOptions: formOptions.fundTypeOptions,
-                      }}
-                      fieldNames={{
-                        role: 'newTeamRole',
-                        name: 'newTeamName',
-                        website: 'newTeamWebsite',
-                        startupStages: 'teamInvestInStartupStages',
-                        typicalCheckSize: 'teamTypicalCheckSize',
-                        investmentFocusAreas: 'teamInvestmentFocusAreas',
-                        fundTypes: 'teamInvestInFundTypes',
-                      }}
-                      onClose={() => setIsAddingTeamInline(false)}
-                    />
-                  )}
-
-                  {selectedTeam && !isAddingTeamInline && (
-                    <>
-                      <div className={s.row}>
-                        <FormField
-                          name="teamRole"
-                          placeholder="Enter your role"
-                          label="Role"
-                          disabled={!selectedTeam}
-                          isRequired={!!isTeamLead}
-                        />
-                        {!isTeamLead && !useInlineAddTeam && (
-                          <div className={s.infoSection}>
-                            <div className={s.infoIcon}>
-                              <InfoIcon />
-                            </div>
-                            <div className={s.infoContent}>
-                              <p className={s.infoText}>
-                                Update to fund&apos;s investment details can only be made by team lead
-                              </p>
-                            </div>
+                                <path
+                                  d="M3.13 10.87L10.87 3.13M10.87 10.87L3.13 3.13"
+                                  stroke="currentColor"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </button>
                           </div>
                         )}
-                        {!isTeamLead && useInlineAddTeam && (
-                          <div className={s.noAccessInfoBox}>
-                            <div className={s.noAccessIcon}>
-                              <InfoIconFilled />
-                            </div>
-                            <div className={s.noAccessContent}>
-                              <p className={s.noAccessTitle}>You don&apos;t have access to edit team information</p>
-                              <p className={s.noAccessDescription}>
-                                Only team leads can update investment details for {selectedTeam?.label}.
-                              </p>
-                              <div className={s.noAccessActions}>
+                        <div className={s.infoSectionContent}>
+                          <FormSelect
+                            name="team"
+                            backLabel="Teams"
+                            placeholder="Search by org name"
+                            label="Search and add an investment fund"
+                            options={
+                              data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
+                                value: item.teamUid,
+                                label: item.teamTitle,
+                                originalObject: item,
+                              })) ?? []
+                            }
+                            renderOption={({ option, label, description }) => {
+                              return (
+                                <div className={s.teamOption}>
+                                  <ImageWithFallback
+                                    width={24}
+                                    height={24}
+                                    alt={option.label}
+                                    className={s.optImg}
+                                    fallbackSrc="/icons/camera.svg"
+                                    src={option.originalObject.logo}
+                                  />
+                                  <div>
+                                    {label}
+                                    {description}
+                                  </div>
+                                </div>
+                              );
+                            }}
+                            onChange={(value) => handleTeamSelect(value)}
+                            isStickyNoData
+                            selectRef={teamSelectRef}
+                            notFoundContent={
+                              <div className={s.secondaryLabel}>
+                                If you don&apos;t see your team on this list, please{' '}
                                 <button
                                   type="button"
-                                  className={s.contactSupportLink}
+                                  className={s.link}
                                   onClick={() => {
-                                    const teamRole = watch('teamRole');
-                                    const message = `Fund: ${selectedTeam?.label || 'N/A'}\nMy Role: ${teamRole || 'N/A'}\nReason:`;
-                                    openContactSupport(undefined, 'contactSupport', message);
+                                    handleAddTeamLinkClick();
+                                    // Close the dropdown menu
+                                    (teamSelectRef.current as any)?.blur();
+                                    if (useInlineAddTeam) {
+                                      setIsAddingTeamInline(true);
+                                    } else {
+                                      setIsAddTeamDrawerOpen(true);
+                                    }
                                   }}
                                 >
-                                  Contact Support
-                                  <ExternalLinkIconBlue />
-                                </button>
-                                <span className={s.noAccessActionText}>to request lead reassignment.</span>
+                                  add your team
+                                </button>{' '}
+                                first.
+                              </div>
+                            }
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {isAddingTeamInline && useInlineAddTeam && (
+                      <AddTeamInlineForm
+                        showInvestorFields
+                        investorFieldsConfig={{
+                          fundingStageOptions: formOptions.fundingStageOptions,
+                          fundTypeOptions: formOptions.fundTypeOptions,
+                        }}
+                        fieldNames={{
+                          role: 'newTeamRole',
+                          name: 'newTeamName',
+                          website: 'newTeamWebsite',
+                          startupStages: 'teamInvestInStartupStages',
+                          typicalCheckSize: 'teamTypicalCheckSize',
+                          investmentFocusAreas: 'teamInvestmentFocusAreas',
+                          fundTypes: 'teamInvestInFundTypes',
+                        }}
+                        onClose={() => setIsAddingTeamInline(false)}
+                      />
+                    )}
+
+                    {selectedTeam && !isAddingTeamInline && (
+                      <>
+                        <div className={s.row}>
+                          <FormField
+                            name="teamRole"
+                            placeholder="Enter your role"
+                            label="Role"
+                            disabled={!selectedTeam}
+                            isRequired={!!isTeamLead}
+                          />
+                          {!isTeamLead && !useInlineAddTeam && (
+                            <div className={s.infoSection}>
+                              <div className={s.infoIcon}>
+                                <InfoIcon />
+                              </div>
+                              <div className={s.infoContent}>
+                                <p className={s.infoText}>
+                                  Update to fund&apos;s investment details can only be made by team lead
+                                </p>
                               </div>
                             </div>
-                          </div>
+                          )}
+                          {!isTeamLead && useInlineAddTeam && (
+                            <div className={s.noAccessInfoBox}>
+                              <div className={s.noAccessIcon}>
+                                <InfoIconFilled />
+                              </div>
+                              <div className={s.noAccessContent}>
+                                <p className={s.noAccessTitle}>You don&apos;t have access to edit team information</p>
+                                <p className={s.noAccessDescription}>
+                                  Only team leads can update investment details for {selectedTeam?.label}.
+                                </p>
+                                <div className={s.noAccessActions}>
+                                  <button
+                                    type="button"
+                                    className={s.contactSupportLink}
+                                    onClick={() => {
+                                      const teamRole = watch('teamRole');
+                                      const message = `Fund: ${selectedTeam?.label || 'N/A'}\nMy Role: ${teamRole || 'N/A'}\nReason:`;
+                                      openContactSupport(undefined, 'contactSupport', message);
+                                    }}
+                                  >
+                                    Contact Support
+                                    <ExternalLinkIconBlue />
+                                  </button>
+                                  <span className={s.noAccessActionText}>to request lead reassignment.</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {isTeamLead && (
+                          <>
+                            <div className={s.row}>
+                              <FormField
+                                name="website"
+                                placeholder="Enter website"
+                                label="Website address"
+                                description="Paste a URL (company website, LinkedIn, Notion, X.com, Bluesky, etc.)"
+                                disabled={!isTeamLead || !selectedTeam}
+                                isRequired
+                                onBlur={() => ensureProtocol()}
+                              />
+                            </div>
+
+                            <div className={s.row}>
+                              <FormMultiSelect
+                                name="teamInvestInStartupStages"
+                                label="Startup stage(s) you invest in?"
+                                placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
+                                options={formOptions.fundingStageOptions}
+                                disabled={!isTeamLead || !selectedTeam}
+                                isRequired
+                              />
+                            </div>
+
+                            <div className={s.row}>
+                              <FormCurrencyField
+                                name="teamTypicalCheckSize"
+                                label="Typical Check Size"
+                                placeholder="Select typical check size (E.g. $25k - $50.000k)"
+                                currency="USD"
+                                disabled={!isTeamLead || !selectedTeam}
+                                isRequired
+                              />
+                            </div>
+
+                            <div className={s.row}>
+                              <FormTagsInput
+                                selectLabel="Add Investment Focus"
+                                name="teamInvestmentFocusAreas"
+                                placeholder="Add keywords. E.g. AI, Staking, Governance, etc."
+                                disabled={!isTeamLead || !selectedTeam}
+                              />
+                            </div>
+
+                            <div className={s.row}>
+                              <FormMultiSelect
+                                name="teamInvestInFundTypes"
+                                label="Type of fund(s) you invest in?"
+                                placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
+                                options={formOptions.fundTypeOptions}
+                                disabled={!isTeamLead || !selectedTeam}
+                              />
+                            </div>
+                          </>
                         )}
-                      </div>
-
-                      {isTeamLead && (
-                        <>
-                          <div className={s.row}>
-                            <FormField
-                              name="website"
-                              placeholder="Enter website"
-                              label="Website address"
-                              description="Paste a URL (company website, LinkedIn, Notion, X.com, Bluesky, etc.)"
-                              disabled={!isTeamLead || !selectedTeam}
-                              isRequired
-                              onBlur={() => ensureProtocol()}
-                            />
-                          </div>
-
-                          <div className={s.row}>
-                            <FormMultiSelect
-                              name="teamInvestInStartupStages"
-                              label="Startup stage(s) you invest in?"
-                              placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
-                              options={formOptions.fundingStageOptions}
-                              disabled={!isTeamLead || !selectedTeam}
-                              isRequired
-                            />
-                          </div>
-
-                          <div className={s.row}>
-                            <FormCurrencyField
-                              name="teamTypicalCheckSize"
-                              label="Typical Check Size"
-                              placeholder="Select typical check size (E.g. $25k - $50.000k)"
-                              currency="USD"
-                              disabled={!isTeamLead || !selectedTeam}
-                              isRequired
-                            />
-                          </div>
-
-                          <div className={s.row}>
-                            <FormTagsInput
-                              selectLabel="Add Investment Focus"
-                              name="teamInvestmentFocusAreas"
-                              placeholder="Add keywords. E.g. AI, Staking, Governance, etc."
-                              disabled={!isTeamLead || !selectedTeam}
-                            />
-                          </div>
-
-                          <div className={s.row}>
-                            <FormMultiSelect
-                              name="teamInvestInFundTypes"
-                              label="Type of fund(s) you invest in?"
-                              placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
-                              options={formOptions.fundTypeOptions}
-                              disabled={!isTeamLead || !selectedTeam}
-                            />
-                          </div>
-                        </>
-                      )}
-                    </>
-                  )}
-                </>
-              )}
-            </section>
-          </div>
-
-          {secRulesAccepted && source !== 'investor-drawer' && (
-            <div className={clsx(s.block, s.ctaBlock)}>
-              <Link href="/settings/email" target="_blank" className={s.cta}>
-                <div className={s.ctaIcon}>
-                  <InfoIcon />
-                </div>
-                <div className={s.col}>
-                  <div className={s.ctaLink}>Manage your investor settings</div>
-                  <p>Update demo day invites and investor profile visibility in Account Settings → </p>
-                  <p className={s.link}>
-                    Email Preferences <LinkIcon />
-                  </p>
-                </div>
-              </Link>
+                      </>
+                    )}
+                  </>
+                )}
+              </section>
             </div>
-          )}
-        </div>
+
+            {secRulesAccepted && source !== 'investor-drawer' && (
+              <div className={clsx(s.block, s.ctaBlock)}>
+                <Link href="/settings/email" target="_blank" className={s.cta}>
+                  <div className={s.ctaIcon}>
+                    <InfoIcon />
+                  </div>
+                  <div className={s.col}>
+                    <div className={s.ctaLink}>Manage your investor settings</div>
+                    <p>Update demo day invites and investor profile visibility in Account Settings → </p>
+                    <p className={s.link}>
+                      Email Preferences <LinkIcon />
+                    </p>
+                  </div>
+                </Link>
+              </div>
+            )}
+          </div>
+        </EditOfficeHoursFormControls>
         <EditOfficeHoursMobileControls />
       </form>
 

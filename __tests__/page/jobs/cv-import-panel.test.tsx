@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import '@testing-library/jest-dom';
 
 import { ExperienceImportPanel } from '@/components/page/member-details/ExperienceDetails/components/ExperienceImport';
+import { ImportWaitStatus } from '@/components/page/member-details/ExperienceDetails/components/ExperienceImport/ImportWaitStatus';
 import type { ParsedProfile } from '@/components/page/member-details/ExperienceDetails/components/ExperienceImport';
 
 /**
@@ -111,6 +112,21 @@ describe('ExperienceImportPanel', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+
+  it('shows the overdue hint on first paint when the wait already outran the usual case', () => {
+    render(
+      <ImportWaitStatus
+        wait={{
+          fileName: 'polina-cv.pdf',
+          fileSize: 1024,
+          startedAt: Date.now() - 11_000,
+          settled: false,
+        }}
+      />,
+    );
+
+    expect(screen.getByText(/Taking longer than usual — still reading/)).toBeInTheDocument();
   });
 
   it('says the document had nothing in it when the parse resolves empty', async () => {

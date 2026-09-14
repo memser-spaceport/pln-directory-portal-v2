@@ -14,6 +14,7 @@ const blank: CvImportHostInput = {
   experienceCount: 0,
   experiencesLoading: false,
   handedOff: false,
+  hasStoredCv: false,
 };
 
 describe('which card hosts the CV importer', () => {
@@ -110,10 +111,48 @@ describe('which card hosts the CV importer', () => {
               experienceCount,
               experiencesLoading,
               handedOff,
+              hasStoredCv: false,
             }),
           ).toBe('off');
         }
       }
     }
+  });
+
+  /**
+   * A kept CV settles the screen on its own.
+   *
+   * Not "an offer for people with no history" plus "a card for people with a
+   * file" — one answer, decided before the offer questions are asked. Someone
+   * who uploaded a CV *and* typed their roles in by hand holds a document, and
+   * `experienceCount` has nothing to say about them.
+   */
+  describe('once a CV is already held', () => {
+    it('draws the kept file instead of offering an upload', () => {
+      expect(pickCvImportHost({ ...blank, hasStoredCv: true })).toBe('stored');
+    });
+
+    it('still draws it for someone who also has work history', () => {
+      expect(pickCvImportHost({ ...blank, hasStoredCv: true, experienceCount: 5 })).toBe('stored');
+    });
+
+    it('still draws it after a hand-off', () => {
+      expect(pickCvImportHost({ ...blank, hasStoredCv: true, handedOff: true })).toBe('stored');
+    });
+
+    it('offers nothing while the flag is down, CV or not', () => {
+      expect(pickCvImportHost({ ...blank, hasStoredCv: true, enabled: false })).toBe('off');
+    });
+
+    /*
+     * The reason `undefined` is its own case rather than falsy. Collapsing it
+     * into "no CV" shows the upload offer for one render to someone who has
+     * already uploaded, then swaps it for their file underneath them — the same
+     * flash `experiencesLoading` exists to prevent.
+     */
+    it('withholds every host until the answer is in', () => {
+      expect(pickCvImportHost({ ...blank, hasStoredCv: undefined })).toBe('off');
+      expect(pickCvImportHost({ ...blank, hasStoredCv: undefined, experienceCount: 5 })).toBe('off');
+    });
   });
 });

@@ -57,6 +57,9 @@ const CEIL = 97;
  */
 const TAU_MS = 3_800;
 
+/** What the "usually takes…" hint is drawn against — same 10s the curve is. */
+export const USUAL_READ_MS = 10_000;
+
 /**
  * Sampling rate. Shorter than the 300ms CSS transition, so consecutive
  * transitions overlap and the fill moves continuously rather than in steps.
@@ -74,10 +77,11 @@ export interface ReadingWaitClock {
 }
 
 /**
- * Where the bar is, 0–100. Every reader of a wait calls this; none computes
- * its own, so the panel's row and the floating status bar cannot disagree.
+ * Where the bar is, 0–100, and whether the read has outrun the usual case.
+ * Every reader of a wait calls this; none computes its own, so the panel's
+ * row and the floating status bar cannot disagree.
  */
-export function useReadingBarProgress(wait: ReadingWaitClock | null): number {
+export function useReadingBarProgress(wait: ReadingWaitClock | null): { progress: number; overdue: boolean } {
   const [now, setNow] = useState(0);
   const running = wait !== null && wait.startedAt !== null && !wait.settled;
 
@@ -91,10 +95,11 @@ export function useReadingBarProgress(wait: ReadingWaitClock | null): number {
     };
   }, [running, wait?.startedAt]);
 
-  if (!wait) return 0;
-  if (wait.settled) return 100;
-  if (wait.startedAt === null || now === 0) return 0;
-  return curveAt(Math.max(0, now - wait.startedAt));
+  if (!wait) return { progress: 0, overdue: false };
+  if (wait.settled) return { progress: 100, overdue: false };
+  if (wait.startedAt === null || now === 0) return { progress: 0, overdue: false };
+  const elapsed = Math.max(0, now - wait.startedAt);
+  return { progress: curveAt(elapsed), overdue: elapsed > USUAL_READ_MS };
 }
 
 /**

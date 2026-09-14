@@ -392,6 +392,7 @@ describe('the floating status bar during a CV read', () => {
     FakeIntersectionObserver.instances.at(-1)!.fireAway();
 
     expect(await screen.findByRole('status')).toHaveTextContent(/Reading cv.pdf/);
+    expect(screen.getAllByText(/Usually takes about 10 seconds/).length).toBeGreaterThan(1);
     expect(screen.queryByRole('button', { name: /keep editing/i })).not.toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /^cancel$/i }).length).toBeGreaterThan(1);
   });

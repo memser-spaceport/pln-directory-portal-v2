@@ -236,7 +236,7 @@ export function JobTeamGroupCard({
         </div>
       </header>
 
-      <ul className={s.roleList}>
+      <ul className={`${s.roleList}${isProtocolLabs ? ` ${js.plRoles}` : ''}`}>
         {visibleRoles.map((role) => {
           const meta = manage?.metaFor(role.uid);
           return (

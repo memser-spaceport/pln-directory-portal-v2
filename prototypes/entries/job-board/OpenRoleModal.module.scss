@@ -24,6 +24,12 @@
   }
 }
 
+/* Subtitle 4px nearer its title than the referral card's 8px. Doubled so it
+   outranks `.headerText`'s own gap. */
+.headerText.headerText {
+  gap: 4px;
+}
+
 /* The one thing this dialog says that its controls cannot show: where the rest
    of the answer comes from. The two fields are visibly the whole form, so
    without this line a reader has no way to know their profile and CV go with it

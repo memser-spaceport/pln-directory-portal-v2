@@ -230,6 +230,13 @@ interface JobApplyFlowDrawerProps {
    */
   interested?: boolean;
   onSetInterested?: (interested: boolean) => void;
+  /**
+   * Present when the profile was opened from the interest form's `Edit profile`.
+   * The footer's press is then **Continue**: it saves the profile and hands the
+   * person back to the form they left, message intact. No tick and no
+   * completeness gate — expressing interest is gated on an account alone.
+   */
+  onContinue?: () => void;
   /** DELETE WITH: the `design-canvas/` folder. Passed through to the profile
    *  step; see `canvasStates.ts`. */
   canvasImport?: {
@@ -321,6 +328,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     appliedAt,
     interested = false,
     onSetInterested,
+    onContinue,
     canvasImport,
     canvasCoverLetter,
     managed,
@@ -934,6 +942,26 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
         );
       }
 
+      /* Back to the interest form. See `onContinue`. Dead only mid-edit, for the
+         same reason as below: unsaved work in a card would be dropped. */
+      if (onContinue) {
+        return (
+          <Button
+            variant="primary"
+            style="fill"
+            size="m"
+            className={d.footerAction}
+            disabled={!!editing}
+            onClick={() => {
+              onSaveProfile(draft);
+              onContinue();
+            }}
+          >
+            Continue
+          </Button>
+        );
+      }
+
       return (
         /* Disabled while a card is open as well as while the profile is
              incomplete: mid-edit there is unsaved work in front of the person,
@@ -1190,7 +1218,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               aspirant is asked whether they have *read* it — everything on it is
               still editable, and the question is whether what is there is what
               they meant to send. */}
-          {step === 'profile' && (blockedByReview || jobAspirant) && (
+          {step === 'profile' && !onContinue && (blockedByReview || jobAspirant) && (
             <label className={d.footerCheck}>
               <Checkbox checked={confirmedComplete} onChange={setConfirmedComplete} />
               <span className={d.footerCheckLabel}>

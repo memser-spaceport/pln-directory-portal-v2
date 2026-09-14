@@ -2,28 +2,25 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
+import Select, { type StylesConfig } from 'react-select';
 
-import type { IMember } from '@/types/members.types';
-import type { IUserInfo } from '@/types/shared.types';
 import { formatRelativeDays } from '@/utils/jobs.utils';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
-import { SortDropdown } from '@/components/common/filters/SortDropdown';
 import { SearchInput } from '@/components/common/filters/SearchInput';
+import type { Option } from '@/components/form/FormSelect/types';
+// Production's searchable toolbar select — `FilterSelect`'s own styles.
+import { filterSelectStyles } from '@/components/common/filters/FilterSelect/filterSelectStyles';
+// "Role:" keeps the label treatment it had beside the old dropdown.
+import sort from '@/components/common/filters/SortDropdown/SortDropdown.module.scss';
 import { ArrowUpRightIcon } from '@/components/icons/ArrowUpRightIcon';
-import { TagsList } from '@/components/common/profile/TagsList';
 import {
   DetailsSection,
   DetailsSectionHeader,
   DetailsSectionGreyContentContainer,
   NoDataBlock,
 } from '@/components/common/profile/DetailsSection';
-import { ExperiencesList } from '@/components/page/member-details/ExperienceDetails/components/ExperienceDetailsView/components/ExperiencesList';
 
-// The member profile's header chrome, as the member-profile prototype wears it:
-// 48px avatar, name, team · role · location, the tag row.
-import h from '@/components/page/member-details/MemberDetailHeader/MemberDetailHeader.module.scss';
-import profile from '@/components/page/member-details/ProfileDetails/ProfileDetails.module.scss';
 import btn from '@/components/common/Button/Button.module.scss';
 import back from '@/components/ui/BackButton/BackButton.module.scss';
 // The role row's clock + relative date, and its tone override.
@@ -34,6 +31,7 @@ import { ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferR
 import { CvAttachmentLine } from '../profile-shared/StoredCv/CvAttachmentLine';
 import { EnvelopeIcon } from './icons';
 import { ApplicantRow } from './ApplicantRow';
+import { ApplicantMemberPage } from './ApplicantMemberPage';
 import type { RoleApplicant } from './mocks';
 import s from './TeamApplicantsPage.module.scss';
 
@@ -42,6 +40,10 @@ export interface ApplicantsRole {
   title: string;
   /** The team's own posting — the same link the role row's ⋯ menu calls "View posting". */
   postingHref?: string;
+  /** The role row's meta line: seniority · category · location. */
+  meta?: string;
+  /** ISO — when the role was posted, for "Posted 2d ago". */
+  postedAt?: string;
   applicants: RoleApplicant[];
 }
 
@@ -52,11 +54,6 @@ interface Props {
   initialRoleUid: string;
   onBack: () => void;
 }
-
-/* `ExperiencesList` takes a member and a viewer it never reads for a read-only
-   list; the member-profile prototype passes the same casts. */
-const NO_MEMBER = {} as unknown as IMember;
-const VIEWER = { uid: 'viewer', name: 'Viewer', email: 'viewer@pl.org' } as unknown as IUserInfo;
 
 /**
  * The team's applicants, as a page of the team's own: the list on the left,
@@ -72,17 +69,33 @@ const VIEWER = { uid: 'viewer', name: 'Viewer', email: 'viewer@pl.org' } as unkn
  * to the profile, and the team's roles in a picker above the split so all of a
  * team's hiring is one place rather than one modal per role.
  *
- * **The right pane is the member's profile, not a new object.** Its header is
- * `MemberDetailHeader`'s chrome and its Experience block is production's
- * `ExperiencesList`, because the founder is reading the same person the
- * directory shows — plus the one section only this page has, the application
- * itself: when, what they wrote, and the CV that came with it. The link out
- * to the full profile stays, in a new tab, for everything the pane doesn't
- * carry.
+ * **The role heads its list.** The role's facts (seniority · category ·
+ * location · posted) and **View posting** sit at the top of the applicant
+ * list, above its search, so the list reads "these people answered this".
+ * Chosen from five placements compared side by side (beside the picker, the
+ * page header, a role summary card, here, and a narrow list).
+ *
+ * **The picker is searchable**, because a team can carry ten or more roles and
+ * a menu of ten titles is a scan. It is production's searchable toolbar select
+ * (`FilterSelect`'s react-select and styles), not a search field bolted into
+ * the old `SortDropdown` menu, which has none. It rests white rather than in
+ * that control's blue: the blue says "a filter is applied", and choosing which
+ * role's applicants to read is not a filter.
+ *
+ * **The right pane is the member's page, not a new object.** It is
+ * `/members/<id>` itself — every section, in production's order and with
+ * production's visibility rules (`ApplicantMemberPage`) — because the founder
+ * is judging the same person the directory shows. One section is added, under
+ * the profile card: the application — when, what they wrote, and the CV that
+ * came with it. The pane used to be a slice (header, skills, experience) with
+ * a "View full profile ↗" link out for the rest; with the whole page here,
+ * that link had nothing left to reach, so it went.
  *
  * **One action: Email.** It is the only thing the team does with an
  * application in this product (`{team} can reply to you directly`), so it is
- * the pane's one filled button. No Shortlist / Reject — see `applicantMocks`.
+ * the pane's one filled button — at the foot of the Application section,
+ * under what it answers, which leaves the profile card exactly production's.
+ * No Shortlist / Reject — see `applicantMocks`.
  *
  * **New clears per person, on selection.** An unread row is tinted and marked
  * `● New`; the look is opening the person, so selecting a row returns it to
@@ -144,6 +157,91 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
   const showList = !isMobile || !paneOpen;
   const showPane = !isMobile || paneOpen;
 
+  /* The team's roles with their applicant counts, searchable. A tab strip was
+     here first and fitted the four mocked roles exactly (the tell that it would
+     not fit ten); then the board's `SortDropdown`, which lists ten but makes
+     you read all ten. Typing into the control filters the titles.
+
+     Transcribed from `FilterSelect` rather than imported for one reason: that
+     wrapper takes no `noOptionsMessage`, and react-select's own "No options"
+     is library copy, not ours. Portal and fixed menu are what `FilterSelect`
+     passes; the styles are its own too, minus the blue — see below. */
+  const roleOptions: Option[] = roles.map((r) => ({
+    value: r.uid,
+    label: r.applicants.length ? `${r.title} (${r.applicants.length})` : r.title,
+  }));
+
+  /* White at rest, not `filterSelectStyles`' blue. That blue is its "a filter is
+     applied" state, and it keys off `hasValue` — which a role picker always
+     has, so the control would be permanently blue for a choice that is not a
+     filter. Every value here is that same stylesheet's own *unselected* branch
+     (white fill, the pale border, #5E718D + ring on hover/focus/open, neutral
+     text and caret), which is also exactly how production's founder-guides
+     "Viewing as:" scope select — the one `filterSelectStyles` says it matches —
+     draws a select that always holds a value. Menu, options and portal stay
+     `filterSelectStyles`'. */
+  const roleSelectStyles: StylesConfig<Option, false> = {
+    ...filterSelectStyles,
+    control: (base, state) => ({
+      ...base,
+      borderRadius: '8px',
+      border: `1px solid ${state.isFocused || state.menuIsOpen ? '#5E718D' : 'rgba(203, 213, 225, 0.50)'}`,
+      boxShadow: state.isFocused || state.menuIsOpen ? '0 0 0 4px rgba(27, 56, 96, 0.12)' : 'none',
+      background: 'var(--background-base-white, #fff)',
+      fontSize: '14px',
+      color: 'var(--foreground-neutral-secondary, #455468)',
+      minHeight: '40px',
+      cursor: 'pointer',
+      '&:hover': {
+        borderColor: '#5E718D',
+        boxShadow: '0 0 0 4px rgba(27, 56, 96, 0.12)',
+      },
+    }),
+    singleValue: (base) => ({ ...base, color: 'var(--foreground-neutral-secondary, #455468)', fontWeight: 400 }),
+    dropdownIndicator: (base) => ({ ...base, color: 'var(--foreground-neutral-secondary, #455468)', padding: '0 8px' }),
+  };
+  const picker = (
+    <div className={clsx(sort.sortGroup, s.roleGroup)}>
+      <label htmlFor="applicants-role" className={sort.sortByLabel}>
+        Role:
+      </label>
+      <div className={s.rolePicker}>
+        <Select
+          inputId="applicants-role"
+          options={roleOptions}
+          value={roleOptions.find((o) => o.value === role.uid) ?? null}
+          onChange={(opt) => opt && switchRole(opt.value)}
+          isSearchable
+          noOptionsMessage={({ inputValue }) => `No roles match “${inputValue.trim()}”`}
+          styles={roleSelectStyles}
+          menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+          menuPosition="fixed"
+        />
+      </div>
+    </div>
+  );
+
+  /* The posting itself, one press from the people who answered it — the same
+     link, and the same words, as the row's ⋯ menu on the profile, so the exit
+     reads the same on both surfaces. */
+  const postingButton = role.postingHref ? (
+    <a
+      href={role.postingHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.actionLink)}
+    >
+      View posting
+      <ArrowUpRightIcon width={14} height={14} />
+    </a>
+  ) : null;
+
+  /* The role row's own facts, at the head of the list beside the posting:
+     seniority · category · location, then its age. */
+  const roleFacts = [role.meta, role.postedAt ? `Posted ${formatRelativeDays(role.postedAt)}` : null]
+    .filter(Boolean)
+    .join(' · ');
+
   return (
     <div className={s.page}>
       {/* BackButton's own chrome on a press that unwinds state rather than a
@@ -160,42 +258,18 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
         </header>
       )}
 
-      {showList && (
-        <div className={s.roleBar}>
-          {/* The product's toolbar picker (the board's "Sort by:"), holding the
-              team's roles with their counts — a tab strip was here first and
-              fitted the four mocked roles exactly, which is the tell that it
-              would not fit ten. */}
-          <SortDropdown
-            sortByLabel="Role:"
-            className={s.rolePicker}
-            options={roles.map((r) => ({
-              value: r.uid,
-              label: r.applicants.length ? `${r.title} (${r.applicants.length})` : r.title,
-            }))}
-            currentSort={role.uid}
-            onSortChange={switchRole}
-          />
-          {/* The posting itself, one press from the people who answered it —
-              the same link, and the same words, as the row's ⋯ menu on the
-              profile, so the exit reads the same on both surfaces. */}
-          {role.postingHref && (
-            <a
-              href={role.postingHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.actionLink)}
-            >
-              View posting
-              <ArrowUpRightIcon width={14} height={14} />
-            </a>
-          )}
-        </div>
-      )}
+      {showList && <div className={s.roleBar}>{picker}</div>}
 
       <div className={s.split}>
         {showList && (
           <div className={s.listCol}>
+            {/* The role heads the list of people who answered it. */}
+            {(roleFacts || postingButton) && (
+              <div className={s.listHead}>
+                {roleFacts && <p className={s.roleFacts}>{roleFacts}</p>}
+                {postingButton}
+              </div>
+            )}
             <div className={s.searchWrap}>
               <SearchInput value={query} onChange={setQuery} placeholder="Search by name or role" />
             </div>
@@ -221,95 +295,43 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
         )}
 
         {showPane && selected && (
-          <div className={s.pane}>
-            {/* Profile header — MemberDetailHeader's chrome, as the member-profile
-                prototype composes it. */}
-            <div className={profile.root}>
-              <div className={h.header}>
-                <div className={h.headerProfile}>
-                  <img className={h.headerProfileImg} src={selected.avatar} alt={selected.name} />
-                </div>
-                <div className={h.headerDetails}>
-                  <div>
-                    <div className={h.specificsHdr}>
-                      <h2 className={h.specificsName}>{selected.name}</h2>
-                    </div>
-                    <div className={h.roleAndLocation}>
-                      <div className={h.teams}>
-                        <p className={h.teamsName}>{selected.team}</p>
-                      </div>
-                      <div className={clsx(h.divider, h.desktopOnly)} />
-                      <p className={h.role}>{selected.title}</p>
-                      <div className={h.divider} />
-                      <div className={h.location}>
-                        <LocationIcon />
-                        <p className={h.locationName}>{selected.location}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className={h.tags}>
-                  <TagsList tags={selected.skills.map((title) => ({ title }))} tagsToShow={5} />
-                </div>
-              </div>
-
-              {/* The pane's actions: the one thing the team does (write back),
-                  and the way out to everything the pane doesn't carry. */}
-              <div className={s.actions}>
-                <a
-                  href={`mailto:${selected.email}?subject=${encodeURIComponent(`Your application for ${role.title}`)}`}
-                  className={clsx(btn.root, btn.small, btn.fill, btn.primary, s.actionLink)}
-                >
-                  {/* The product's envelope, at the arrow's size on the button beside it. */}
-                  <EnvelopeIcon size={14} />
-                  Email {selected.name.split(' ')[0]}
-                </a>
-                <a
-                  href={`/members/${selected.memberId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.actionLink)}
-                >
-                  View full profile
-                  <ArrowUpRightIcon width={14} height={14} />
-                </a>
-              </div>
-            </div>
-
-            {/* The application — the only section this page has that the
-                profile doesn't. */}
-            <DetailsSection>
-              <DetailsSectionHeader title="Application">
-                <span className={clsx(row.relative, rowTone.relativeTone)}>
-                  <ClockIcon />
-                  Applied {formatRelativeDays(selected.appliedAt)}
-                </span>
-              </DetailsSectionHeader>
-              <DetailsSectionGreyContentContainer>
-                <p className={s.noteFull}>{selected.note}</p>
-                {selected.cv && (
-                  <a href={selected.cv.url} target="_blank" rel="noopener noreferrer" className={s.cvLink}>
-                    <CvAttachmentLine
-                      cv={{ fileName: selected.cv.name, size: selected.cv.size, uploadedAt: selected.appliedAt }}
-                      variant="chip"
-                    />
+          <ApplicantMemberPage
+            key={selected.id}
+            applicant={selected}
+            application={
+              /* The application — the only section this page has that the
+                 member page doesn't. The reply lives here, under what it
+                 answers, so the profile card above stays production's. */
+              <DetailsSection>
+                <DetailsSectionHeader title="Application">
+                  <span className={clsx(row.relative, rowTone.relativeTone)}>
+                    <ClockIcon />
+                    Applied {formatRelativeDays(selected.appliedAt)}
+                  </span>
+                </DetailsSectionHeader>
+                <DetailsSectionGreyContentContainer>
+                  <p className={s.noteFull}>{selected.note}</p>
+                  {selected.cv && (
+                    <a href={selected.cv.url} target="_blank" rel="noopener noreferrer" className={s.cvLink}>
+                      <CvAttachmentLine
+                        cv={{ fileName: selected.cv.name, size: selected.cv.size, uploadedAt: selected.appliedAt }}
+                        variant="chip"
+                      />
+                    </a>
+                  )}
+                </DetailsSectionGreyContentContainer>
+                <div className={s.actions}>
+                  <a
+                    href={`mailto:${selected.email}?subject=${encodeURIComponent(`Your application for ${role.title}`)}`}
+                    className={clsx(btn.root, btn.small, btn.fill, btn.primary, s.actionLink)}
+                  >
+                    <EnvelopeIcon size={14} />
+                    Email {selected.name.split(' ')[0]}
                   </a>
-                )}
-              </DetailsSectionGreyContentContainer>
-            </DetailsSection>
-
-            <DetailsSection>
-              <DetailsSectionHeader title={`Experience (${selected.experience.length})`} />
-              <ExperiencesList
-                data={selected.experience}
-                member={NO_MEMBER}
-                userInfo={VIEWER}
-                isEditable={false}
-                isLoading={false}
-                onEdit={() => {}}
-              />
-            </DetailsSection>
-          </div>
+                </div>
+              </DetailsSection>
+            }
+          />
         )}
       </div>
     </div>
@@ -320,15 +342,5 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
 const BackIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <path d="M11 14L5 8L11 2" stroke="#5E718D" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-/* The member-profile prototype's location pin, transcribed. */
-const LocationIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <path
-      d="M8 1.5A4.75 4.75 0 0 0 3.25 6.25c0 3.4 4.3 7.75 4.48 7.93a.4.4 0 0 0 .54 0c.18-.18 4.48-4.53 4.48-7.93A4.75 4.75 0 0 0 8 1.5Zm0 6.5a1.75 1.75 0 1 1 0-3.5 1.75 1.75 0 0 1 0 3.5Z"
-      fill="#94A3B8"
-    />
   </svg>
 );

@@ -1,6 +1,6 @@
 'use client';
 
-import { HTMLProps, useState } from 'react';
+import { HTMLProps, MouseEvent, useState } from 'react';
 import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
 
@@ -9,8 +9,7 @@ import type { JobSurface } from '@/analytics/jobs.analytics';
 import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
 import { Button } from '@/components/common/Button';
-import { CheckIcon } from '@/components/icons';
-import { ReferMenu } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/ReferMenu';
+import { CaretRightIcon, CheckIcon } from '@/components/icons';
 import { ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
 import { jobApplyQueryParams } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
 
@@ -29,6 +28,8 @@ import js from './JobReferRoleRow.module.scss';
    it imports that copy directly, never this row. */
 import { ReferModal } from '../job-board-apply-steps/components/ReferModal';
 
+// Production's share menu, copied so it also opens on hover.
+import { JobShareMenu } from './JobShareMenu';
 import { ListingStatusBadge } from './ListingStatusBadge';
 import { ListingMenu } from './ListingMenu';
 import type { ListingMeta, ListingStatus } from './listings';
@@ -161,6 +162,24 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
     manage,
   } = props;
   const [referOpen, setReferOpen] = useState(false);
+
+  /* The row is the press wherever there is an in-app job to open — no View job
+     button, a chevron in its place (chosen from five compared layouts). Not on an
+     owner's row: that one's actions all live behind its ⋯, and a row that opened
+     the job on any stray click would fight the menu for the same presses. */
+  const press = !!onViewJob && !manage;
+  const onRowClick = (e: MouseEvent<HTMLDivElement>) => {
+    const target = e.target as Element;
+    /* React bubbles clicks out of portals (the share menu's popup) through the
+       component tree, not the DOM — so a press that did not land inside this
+       row's own DOM is not a press on the row. */
+    if (!e.currentTarget.contains(target)) return;
+    /* The row's own controls — the title, Refer, the share trigger — keep their
+       jobs. The title already opens the job itself, so this also stops it
+       opening twice. */
+    if (target.closest('a, button, [role="button"], [role="menuitem"], [role="menu"]')) return;
+    onViewJob?.(role);
+  };
   /** The owner's Delete, awaiting its confirm. See `manage`. */
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -194,7 +213,10 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
 
   return (
     <>
-      <div className={`${s.root} ${s.row}`}>
+      <div
+        className={clsx(s.root, s.row, { [js.rowPress]: press })}
+        onClick={press ? onRowClick : undefined}
+      >
         <div className={s.body}>
           <div className={s.titleRow}>
             {/* The title opens whatever the surface's canonical reading of the
@@ -267,7 +289,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
               Refer
             </Button>
 
-            <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />
+            <JobShareMenu role={role} teamName={teamName} />
 
             {/* (The `↗` out to the external posting stood here, on the board
                 only. It was removed, and the route it carried was not: the
@@ -291,33 +313,18 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
                 can name until they press it, where "Original posting" says which
                 of the two readings of this job it is. It also takes a fourth
                 grey out of a 200px cluster that had no business holding four. */}
-            {onViewJob ? (
-              /* The board's button, once the description moved in-app.
+            {press ? (
+              /* The row is the press, so the button's place holds the mark that
+                 says so. Decorative — the title is the keyboard's door to the
+                 same drawer, and it is a real <button>.
 
-                 Apply is no longer here. A row carries a title, a seniority and
-                 a location, which is not enough to decide with — pressing Apply
-                 from it was pressing send on a job you had not read. So the
-                 row's one action is now the reading step, and Apply sits at the
-                 bottom of what it applies to. It costs one press, and the press
-                 it costs is the one where the person learns what they are
-                 applying for.
-
-                 One button in both states, because the applied fact is already
-                 in this row: the clock to the left reads "Applied 3d ago"
-                 instead of the posting's age. A second report of the same fact,
-                 in the slot that used to hold the offer, would only be there to
-                 fill the space the offer left — and having applied is no reason
-                 to stop being able to reread the job. The drawer's own footer
-                 carries the Applied control, where the offer it replaces is. */
-              <Button
-                size="s"
-                style="fill"
-                variant="primary"
-                className={js.applyButton}
-                onClick={() => onViewJob(role)}
-              >
-                View job
-              </Button>
+                 Apply is not on the row: a title, seniority and location are not
+                 enough to decide with, so the row opens the reading step and
+                 Apply sits at the bottom of what it applies to. An applied row
+                 says so in its clock ("Applied 3d ago") and stays rereadable. */
+              <span className={js.rowChevron} aria-hidden="true">
+                <CaretRightIcon width={16} height={16} />
+              </span>
             ) : applied ? (
               /* Same slot, same geometry: a row you've applied to must not
                  resize the list around it. Bordered neutral rather than filled

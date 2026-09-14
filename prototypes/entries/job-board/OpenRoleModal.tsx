@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useForm, useWatch } from 'react-hook-form';
 
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
@@ -17,7 +17,7 @@ import local from './OpenRoleModal.module.scss';
 
 import type { OpenRole, OpenInterest } from './openRoles';
 
-const NOTE_MAX = 600;
+const NOTE_MAX = 1000;
 
 interface OpenRoleFormData {
   note: string;
@@ -65,10 +65,8 @@ interface OpenRoleModalProps {
  * signal; asking for any of it here would be charging someone to retype what
  * their account exists to hold.
  *
- * **And the field is optional.** The press *is* the signal — production's
- * per-role interest is a bare button with nothing to fill in — so Send is live
- * from the moment the dialog opens. The placeholder does the encouraging that a
- * required mark would otherwise do by force.
+ * **And the field is required.** It was optional, on the argument that the
+ * press is the signal; the team wants the words, so Send waits for them.
  *
  * **It is a dialog, not a step in the apply flow.** The three-step drawer exists
  * because a posting has a description to read, a profile to check against it and
@@ -93,7 +91,9 @@ export function OpenRoleModal(props: OpenRoleModalProps) {
     defaultValues: { note: initialNote },
     mode: 'onChange',
   });
-  const { getValues } = methods;
+  const { getValues, control } = methods;
+  /** The message is required, so Send wakes only once it has text. */
+  const note = useWatch({ control, name: 'note' }) ?? '';
 
   /* A fresh form each time the dialog opens, so a half-typed message to a team
      you closed doesn't turn up on another team's card. That is the *mount's*
@@ -131,7 +131,7 @@ export function OpenRoleModal(props: OpenRoleModalProps) {
             {/* The label the field carried, in the past tense — so what is
                 quoted here is plainly the answer to the question that was asked,
                 and not a second thing the dialog now calls it. */}
-            <p className={local.sentLabel}>What you told {teamName} you&apos;re looking for</p>
+            <p className={local.sentLabel}>What you told {teamName} you&apos;re interested in</p>
             <p className={local.sentValue}>{interest.note}</p>
           </div>
         </div>
@@ -171,7 +171,7 @@ export function OpenRoleModal(props: OpenRoleModalProps) {
     ? justSent
       ? `We've let ${teamName} know, and sent your profile and CV with it.`
       : `Sent ${formatRelativeDays(interest.sentAt)}. ${teamName} has your profile and CV with it.`
-    : openRole.blurb;
+    : `Let ${teamName} know what you're looking for.`;
 
   return (
     <Modal isOpen={open} onClose={onClose} closeOnBackdropClick={false} lockScroll>
@@ -190,17 +190,25 @@ export function OpenRoleModal(props: OpenRoleModalProps) {
             column puts two alignment axes an inch apart, which reads as a
             mistake rather than as a choice. One left edge, and the envelope
             stays beside the headline. */}
-        <div className={s.header}>
+        {/* Sent in this sitting, the card is an announcement — a message and Done
+            — so it takes the referral card's own centred stack. */}
+        <div className={`${s.header} ${justSent ? s.headerSent : ''}`}>
           <div className={s.iconWrapper}>
             <EnvelopeIcon />
           </div>
-          <div className={s.headerText}>
+          <div className={`${s.headerText} ${local.headerText}`}>
             <h2 className={s.title}>{title}</h2>
             <p className={s.desc}>{desc}</p>
           </div>
         </div>
 
-        {interest ? (
+        {justSent ? (
+          <div className={s.actions}>
+            <Button style="fill" variant="primary" className={s.actionButton} onClick={onClose}>
+              Done
+            </Button>
+          </div>
+        ) : interest ? (
           sentPanel
         ) : (
           <FormProvider {...methods}>
@@ -214,10 +222,10 @@ export function OpenRoleModal(props: OpenRoleModalProps) {
               <div className={s.fields}>
                 <FormTextArea
                   name="note"
-                  label={`Tell ${teamName} what you're looking for`}
-                  isOptional
-                  placeholder="A couple of lines on what you're after, and why this team."
-                  rows={5}
+                  label="Express what you're interested in"
+                  isRequired
+                  placeholder={`A few lines on what you'd like to do and why ${teamName}.`}
+                  rows={10}
                   maxLength={NOTE_MAX}
                   showCharCount
                 />
@@ -258,12 +266,16 @@ export function OpenRoleModal(props: OpenRoleModalProps) {
                 <Button style="border" variant="primary" className={s.actionButton} onClick={onClose}>
                   Cancel
                 </Button>
-                {/* Never disabled. The press is the signal; the message is what
-                    someone adds to it. A Send that stays dead until a text box
-                    has something in it would make an optional field required
-                    without saying so. */}
-                <Button type="submit" style="fill" variant="primary" className={s.actionButton}>
-                  Send interest
+                {/* Dead until the required message has something in it — the
+                    `*` on the label says why. */}
+                <Button
+                  type="submit"
+                  style="fill"
+                  variant="primary"
+                  className={s.actionButton}
+                  disabled={!note.trim()}
+                >
+                  Send
                 </Button>
               </div>
             </form>

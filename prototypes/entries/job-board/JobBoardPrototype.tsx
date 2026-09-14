@@ -448,6 +448,13 @@ const initialUnlisted = (): Map<string, IJobRole[]> => new Map(Object.entries(MO
  * as its owner sees it. Read off the seeds so the three frames name the three
  * roles the Manage tab actually shows.
  */
+/** The network's own org — pinned to the top of the board and given its own
+ *  section heading. One predicate for both, so the pin and the heading cannot
+ *  disagree about which card is first. */
+function isProtocolLabsGroup(group: IJobTeamGroup): boolean {
+  return group.team.name.trim().toLowerCase() === 'protocol labs';
+}
+
 function managedSampleRole(status: ListingStatus): IJobRole | null {
   const meta = initialListings();
   const pool = [
@@ -852,13 +859,21 @@ export default function JobBoardPrototype() {
       groups.sort((a, b) => newest(b) - newest(a));
     }
 
-    const plIndex = groups.findIndex((g) => g.team.name.trim().toLowerCase() === 'protocol labs');
+    const plIndex = groups.findIndex(isProtocolLabsGroup);
     if (plIndex > 0) {
       const [protocolLabs] = groups.splice(plIndex, 1);
       groups.unshift(protocolLabs);
     }
     return groups;
   }, [railGroups, sort]);
+
+  /* The pin above, said in words: "From Protocol Labs" over the pinned card and
+     "Across the network" over the rest, so first place stops reading as
+     "newest". Only when both halves have something in them — a lone heading
+     over one card restates the card's name, and one over the whole list has
+     nothing to be different from. */
+  const plGroup = visibleGroups.length > 1 && isProtocolLabsGroup(visibleGroups[0]) ? visibleGroups[0] : null;
+  const networkGroups = plGroup ? visibleGroups.slice(1) : visibleGroups;
 
   const totalRoles = visibleGroups.reduce((sum, g) => sum + g.totalRoles, 0);
   const totalGroups = visibleGroups.length;
@@ -1259,7 +1274,8 @@ export default function JobBoardPrototype() {
      * Unless there is nothing to read back: experience is optional, so a profile
      * can be saved with only a role and a status in it, and quoting an empty
      * summary would produce "Applications will read .". */
-    if (flowJob) return;
+    /* Nor on the way back to the interest form: the form reopening is the receipt. */
+    if (flowJob || openRoleResumeTeamUid) return;
     const summary = summariseProfile(next);
     toast.success(summary ? `Profile saved. Applications will read ${summary}.` : 'Profile saved.');
   };
@@ -1545,6 +1561,39 @@ export default function JobBoardPrototype() {
     </div>
   ) : null;
 
+  /* One card, rendered in whichever section it lands in — the sections change
+     the list's framing, never the card. */
+  const renderGroupCard = (group: IJobTeamGroup) => (
+    <JobTeamGroupCard
+      key={group.team.uid}
+      group={group}
+      newsVariant={NEWS_VARIANT}
+      /* The Refer button is on every row for every viewer. Only the
+         modal behind it needs an account — logged out the press opens
+         the sign-up door instead, which carries its own sign-in escape.
+         See the note above `JobReferRoleRow`. */
+      canOpenReferral={isLoggedIn}
+      onReferSignUp={onSignUp}
+      onViewJob={onViewJob}
+      appliedRoleUids={appliedRoleUids}
+      appliedAtByRole={appliedAtByRole}
+      openInterest={openInterests.get(group.team.uid)}
+      onOpenRoleInterest={onOpenRoleInterest}
+      /* The owner's team: its card carries every state and each row
+         its ⋯ menu — see the note on the row's `manage` prop. */
+      manage={
+        manages(group.team.uid)
+          ? {
+              metaFor: (uid) => listings.get(uid),
+              onSetStatus: setListingStatus,
+              onDelete: deleteListing,
+              yours: viewer !== 'directory-admin',
+            }
+          : undefined
+      }
+    />
+  );
+
   const content = (
     <div className={contentCss.root}>
       {/* Logged out: the same banner production's home page shows a signed-out
@@ -1664,39 +1713,23 @@ export default function JobBoardPrototype() {
             </div>
           )}
         </div>
-      ) : (
-        <div className={contentCss.list}>
-          {visibleGroups.map((group) => (
-            <JobTeamGroupCard
-              key={group.team.uid}
-              group={group}
-              newsVariant={NEWS_VARIANT}
-              /* The Refer button is on every row for every viewer. Only the
-                 modal behind it needs an account — logged out the press opens
-                 the sign-up door instead, which carries its own sign-in escape.
-                 See the note above `JobReferRoleRow`. */
-              canOpenReferral={isLoggedIn}
-              onReferSignUp={onSignUp}
-              onViewJob={onViewJob}
-              appliedRoleUids={appliedRoleUids}
-              appliedAtByRole={appliedAtByRole}
-              openInterest={openInterests.get(group.team.uid)}
-              onOpenRoleInterest={onOpenRoleInterest}
-              /* The owner's team: its card carries every state and each row
-                 its ⋯ menu — see the note on the row's `manage` prop. */
-              manage={
-                manages(group.team.uid)
-                  ? {
-                      metaFor: (uid) => listings.get(uid),
-                      onSetStatus: setListingStatus,
-                      onDelete: deleteListing,
-                      yours: viewer !== 'directory-admin',
-                    }
-                  : undefined
-              }
-            />
-          ))}
+      ) : plGroup ? (
+        <div className={s.boardSections}>
+          <section className={s.boardSection} aria-labelledby="board-section-pl">
+            <h2 id="board-section-pl" className={s.boardSectionLabel}>
+              From Protocol Labs
+            </h2>
+            <div className={contentCss.list}>{renderGroupCard(plGroup)}</div>
+          </section>
+          <section className={s.boardSection} aria-labelledby="board-section-network">
+            <h2 id="board-section-network" className={s.boardSectionLabel}>
+              Across the network
+            </h2>
+            <div className={contentCss.list}>{networkGroups.map((group) => renderGroupCard(group))}</div>
+          </section>
         </div>
+      ) : (
+        <div className={contentCss.list}>{visibleGroups.map((group) => renderGroupCard(group))}</div>
       )}
     </div>
   );
@@ -1739,8 +1772,11 @@ export default function JobBoardPrototype() {
         {/* (A `Details step` switch stood here while two drawings of the
             logged-out step 2 were being compared. It is gone with the losing
             one: a review switch left up after the decision invites the decision
-            to be re-litigated every time someone opens the page. The viewer
-            switch above is the only scaffolding on this board again.) */}
+            to be re-litigated every time someone opens the page.) */}
+
+        {/* (A `Role row` switch stood here comparing five ways a posting row
+            offers the job. "Row opens job" won — the row is the press, a chevron
+            says so — and the switch went with the losing four.) */}
       </div>
     </div>
   );
@@ -1776,6 +1812,9 @@ export default function JobBoardPrototype() {
         appliedAt={flowJob ? appliedAtByRole.get(flowJob.role.uid) : undefined}
         interested={flowJob ? interested.has(flowJob.role.uid) : false}
         onSetInterested={flowJob ? (on) => setRoleInterest(flowJob.role.uid, on) : undefined}
+        /* Opened from the interest form's `Edit profile`: Continue saves and
+           reopens that form, message intact — `onCloseFlow` does the reopening. */
+        onContinue={!flowJob && openRoleResumeTeamUid ? onCloseFlow : undefined}
         /* The owner's drawer: from the Manage tab, or from All when a lead
            opens one of their own live roles — either way the footer is the
            listing's switch, not Apply. */

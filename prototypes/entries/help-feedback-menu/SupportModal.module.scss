@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 /* The search-category pill row, re-hosted in a form. Production's `.root` is a
    one-line scrolling strip with its own end padding; in a 440px form the row
    wraps instead, and the FormLabel above supplies the spacing. */
@@ -19,5 +21,20 @@
   &:focus-visible {
     outline: 2px solid var(--foreground-brand-primary, #1b4dff);
     outline-offset: 2px;
+  }
+}
+
+/* Deliberate deviation from production on phones: the search chip is 22px tall
+   (2/8 pad, 12/16 type), sized for a pointer. Here it is the form's first
+   required choice and is tapped, so below 640px it grows to 32px (5/12 pad,
+   14/20 type — the form's own label size). Only size moves; tones stay
+   production's. The attribute raises specificity past production's
+   `.categoryBadge.active`, which re-declares padding and type and would
+   otherwise shrink the chosen pill back. */
+@include media.mobile-only {
+  .pillRow .pill[aria-checked] {
+    padding: 5px 12px;
+    font-size: 14px;
+    line-height: 20px;
   }
 }

@@ -33,6 +33,7 @@ import { TeamContributionsView } from './TeamContributionsView';
 import { TeamProjectsView } from './TeamProjectsView';
 import { TeamOpenRolesView } from './TeamOpenRolesView';
 import { TeamApplicantsPage } from './TeamApplicantsPage';
+import { getJobDate, seniorityDisplayLabel } from '@/utils/jobs.utils';
 import { seedListingMeta, submitJobHref, type ListingMeta, type ListingStatus } from '../job-board/listings';
 import { NewsCardView } from './NewsCardView';
 import { NewsFullPageView } from './NewsFullPageView';
@@ -138,7 +139,6 @@ export default function TeamProfilePrototype() {
    * `RoleApplicants`).
    */
   const [applicantsRole, setApplicantsRole] = useState<string | null>(null);
-
   /**
    * The team's listings as the team manages them, from its own page — the
    * board's `listings` and `deletedUids`, kept here for the length of a visit.
@@ -498,6 +498,11 @@ export default function TeamProfilePrototype() {
             </button>
           </div>
         </div>
+
+        {/* (A "Layout" group stood here while the applicants page compared five
+            placements for View posting. Top of list won, so the group and
+            `applicantsLayouts.ts` went — a review switch left up after the
+            decision invites it to be re-litigated.) */}
       </div>
 
       {applicantsRole && teamRoles ? (
@@ -509,6 +514,15 @@ export default function TeamProfilePrototype() {
             uid: r.uid,
             title: r.roleTitle,
             postingHref: r.applyUrl ?? undefined,
+            // The role row's own meta line, in its order: seniority · category · location.
+            meta: [
+              r.seniority ? seniorityDisplayLabel(r.seniority) : null,
+              r.roleCategory,
+              r.location?.length ? r.location.join(', ') : null,
+            ]
+              .filter(Boolean)
+              .join(' · '),
+            postedAt: getJobDate(r),
             applicants: MOCK_APPLICANTS[r.uid] ?? [],
           }))}
           initialRoleUid={applicantsRole}

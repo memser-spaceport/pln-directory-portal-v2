@@ -91,6 +91,37 @@
   gap: 16px;
 }
 
+// The board split in two when Protocol Labs' card is pinned: "From Protocol
+// Labs" over it, "Across the network" over the rest. Each heading sits closer to
+// its own cards (12px) than to the section before it (40px), so it reads as the
+// label of what follows rather than a line floating between two lists.
+.boardSections {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.boardSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+// Text lines up with the title above it: `JobsContent .mobileHeader`'s 16px on
+// the phone, `.toolbar`'s 4px from 1024 up.
+.boardSectionLabel {
+  margin: 0;
+  padding: 0 16px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  @include media.breakpoint-1024 {
+    padding: 0 4px;
+  }
+}
+
 .fallbackOpen {
   display: flex;
   flex-direction: column;

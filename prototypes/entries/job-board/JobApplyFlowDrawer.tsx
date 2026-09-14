@@ -36,6 +36,8 @@ import { ProfileUnlocksPopover } from './ProfileUnlocks';
 import { JobProfilePane, BackIcon, type EditTarget } from './JobProfilePane';
 import { JobAccountPane } from './JobAccountPane';
 import { JobApplicationPane } from './JobApplicationPane';
+import { JobInterestPane } from './JobInterestPane';
+import type { OpenInterest } from './openRoles';
 import {
   EMPTY_ACCOUNT_FORM,
   accountSchema,
@@ -46,6 +48,7 @@ import {
 import type { ParsedProfile } from '../profile-shared/ExperienceImport/types';
 import { isProfileComplete, type MemberProfile } from './viewerState';
 import type { ListingStatus } from './listings';
+import type { ApplicationStatus } from './applicationStatus';
 import d from './JobApplyFlowDrawer.module.scss';
 
 /**
@@ -53,7 +56,14 @@ import d from './JobApplyFlowDrawer.module.scss';
  * them (`?canvas=`) and resumes onto them after a sign-up.
  */
 export const APPLY_FLOW_STEPS = ['review', 'profile', 'application'] as const;
-export type ApplyFlowStepId = (typeof APPLY_FLOW_STEPS)[number];
+type ApplyRailStepId = (typeof APPLY_FLOW_STEPS)[number];
+/**
+ * Plus `interest`: the open role's message, the last stop of the interest
+ * route (profile → interest). Not in the rail — that route draws none, see
+ * `showRail` — so it is a step the drawer can stand on without being a place
+ * the rail promises.
+ */
+export type ApplyFlowStepId = ApplyRailStepId | 'interest';
 
 /**
  * The rail's labels. Three positions for everyone — only the middle one is named
@@ -102,6 +112,11 @@ const backLabelFor = (id: ApplyFlowStepId, loggedIn: boolean): string => {
        visitor who has neither. */
     case 'profile':
       return loggedIn ? 'Back to your profile' : 'Back to your details';
+    /* The interest route's last stop, reached back from an `Edit profile`
+       detour. Named for what is on it — the message — since the pane's own
+       title is a question. */
+    case 'interest':
+      return 'Back to your message';
     /* Not dead: this is what a *detour* returns to. Visiting the profile step
        when it isn't on the path — `Edit profile` on a profile that was already
        finished — leaves the application waiting, and Back is how you get back to
@@ -220,9 +235,16 @@ interface JobApplyFlowDrawerProps {
    *  step's ask that differs, and this hands the pane the one fact it needs to
    *  make it. See `BoardViewer` in `viewerState`. */
   jobAspirant?: boolean;
+  /** The first run after sign-up. The "I've reviewed my profile" tick (and the
+   *  gate it puts on the footer press) is asked on this run only; the board
+   *  clears it when the drawer closes. */
+  askProfileReview?: boolean;
   /** Already sent from this session, and when. */
   applied: boolean;
   appliedAt?: string;
+  /** Where it stands, when `applied` — the masthead's stamp row wears the pill
+   *  the row wears. */
+  applicationStatus?: ApplicationStatus;
   /**
    * A job aspirant's signal on this role — "I'm interested", and its undo.
    * Held by the board, like the applications, because the rows and the Applied
@@ -230,6 +252,25 @@ interface JobApplyFlowDrawerProps {
    */
   interested?: boolean;
   onSetInterested?: (interested: boolean) => void;
+  /**
+   * Present when the drawer is the **interest route** — "I'm interested" on a
+   * team's open role, with no posting behind it. `role` and `team` are null;
+   * the steps are the profile review and then the message (`interest`), with
+   * no rail. The profile step's footer is **Continue**, with no tick and no
+   * completeness gate — expressing interest is gated on an account alone; the
+   * interest step's is **Send**, dead until the message has text, or the
+   * withdraw when `sent` is on record.
+   */
+  interest?: {
+    teamName: string;
+    /** The signal already on record — the last step is then a read-back. */
+    sent?: OpenInterest;
+    /** `followTeam` is the footer's follow tick, exactly as `onSubmitApplication`
+     *  carries it — the interest route's last step offers the same follow the
+     *  apply route's does. */
+    onSend: (note: string, followTeam: boolean) => void;
+    onWithdraw: () => void;
+  };
   /** DELETE WITH: the `design-canvas/` folder. Passed through to the profile
    *  step; see `canvasStates.ts`. */
   canvasImport?: {
@@ -317,10 +358,13 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     onSignIn,
     pendingApproval,
     jobAspirant = false,
+    askProfileReview = false,
     applied,
     appliedAt,
+    applicationStatus,
     interested = false,
     onSetInterested,
+    interest,
     canvasImport,
     canvasCoverLetter,
     managed,
@@ -350,6 +394,11 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   /* The letter, held here for the same reason and one more: the button that
      sends it is this footer, not the pane that collects it. */
   const [coverLetter, setCoverLetter] = useState('');
+  /* The open role's message, on the interest route — the letter's twin, held
+     here for the same two reasons. It used to live on the board, because the
+     modal that collected it unmounted whenever the profile editor opened over
+     it; in one drawer a trip to the profile is a step change. */
+  const [interestNote, setInterestNote] = useState('');
 
   /* The pending member's completeness tick: that the profile they are leaving
      behind is the one they meant to leave, before the press hands them to the
@@ -427,6 +476,8 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     setDraft(profile);
     setEditing(null);
     setCoverLetter(canvasCoverLetter ?? '');
+    /* A message written for one team must never turn up under another's. */
+    setInterestNote('');
     setConfirmedComplete(false);
     /* Back to its default, not to whatever the last run left — the offer is
        made once per application, and an application to a different team is a
@@ -498,7 +549,17 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
      this, so a skipped profile step is skipped in both directions. Symmetry is
      the point: a flow whose Next skips a step and whose Back does not is a flow
      that puts you somewhere you have never been. */
-  const path: ApplyFlowStepId[] = skipProfile ? ['review', 'application'] : ['review', 'profile', 'application'];
+  /* The interest route walks two — or one, when the profile was already
+     finished: the same skip rule as Apply, for the same reason (showing someone
+     a profile they have already completed is charging them a step for
+     nothing). The board opens on the matching step; this is what Back walks. */
+  const path: ApplyFlowStepId[] = interest
+    ? skipProfile
+      ? ['interest']
+      : ['profile', 'interest']
+    : skipProfile
+      ? ['review', 'application']
+      : ['review', 'profile', 'application'];
   /* -1 when the current step is off the path — which `backTarget` handles
      explicitly rather than clamping to 0. Clamping was the bug: it made an
      off-path step look like the first one, so Back read "Back to roles" and
@@ -530,11 +591,32 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
              of something you did in this session. */
           id === 'profile' && skipProfile
           ? 'completed'
-          : APPLY_FLOW_STEPS.indexOf(id) < APPLY_FLOW_STEPS.indexOf(step)
+          : APPLY_FLOW_STEPS.indexOf(id) < APPLY_FLOW_STEPS.indexOf(step as ApplyRailStepId)
             ? 'completed'
             : 'upcoming';
     return { id, title: stepTitle(id, loggedIn), status, reachable: canVisit(id) };
   });
+
+  /**
+   * The interest route's rail: **Your profile → Application**, drawn only when
+   * the route actually stops at both — a recently signed-up person, or a
+   * member whose profile is not finished. A profile-ready member walks one
+   * step, and a rail with one stop would be a position indicator for a
+   * journey nobody is on.
+   *
+   * "Application" rather than "Your interest": it is the position where the
+   * thing you send gets written, and that is what the apply rail calls the same
+   * position. The pane's own title says what kind of application it is.
+   *
+   * Both stops are always reachable from each other — Continue is gated on
+   * nothing but an open card, so the rail is too.
+   */
+  const interestSteps: ApplyFlowStep[] = (['profile', 'interest'] as const).map((id) => ({
+    id,
+    title: id === 'profile' ? 'Your profile' : 'Application',
+    status: id === step ? 'current' : path.indexOf(id) < pathIndex ? 'completed' : 'upcoming',
+    reachable: id !== step && !editing,
+  }));
 
   /** Commit whatever the profile step collected. Called on every exit from it —
    *  forwards, backwards, and through the rail — because a section Save has
@@ -571,8 +653,22 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
    * application you left. That is where the person actually was.
    */
   const backTarget: ApplyFlowStepId | null = (() => {
+    /* The interest route. Its one detour is `Edit profile` from the message
+       when the profile was skipped — off-path, so Back returns to the message
+       rather than closing the drawer out from under it. */
+    if (interest) {
+      if (path.includes(step)) return pathIndex > 0 ? path[pathIndex - 1] : null;
+      return 'interest';
+    }
+    /* No role, no flow: the profile was opened on its own (a banner's Update
+       profile), so there is no job step to step back to. It read "Back to the
+       job" and pressed through to a review step with nothing in it. Back closes
+       instead. */
+    if (!role) return null;
     if (path.includes(step)) return pathIndex === 0 ? null : path[pathIndex - 1];
-    const after = APPLY_FLOW_STEPS.slice(APPLY_FLOW_STEPS.indexOf(step) + 1).find((id) => path.includes(id));
+    const after = APPLY_FLOW_STEPS.slice(APPLY_FLOW_STEPS.indexOf(step as ApplyRailStepId) + 1).find((id) =>
+      path.includes(id),
+    );
     return after ?? path[path.length - 1];
   })();
 
@@ -601,9 +697,10 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
    * do. The header keeps its Back and ✕ and the panes keep their own titles,
    * so nothing else changes shape when the rail goes.
    *
-   * A listing's owner has no rail either — see `managed`.
+   * A listing's owner has no rail either — see `managed`. The interest route
+   * draws its own two-stop rail when it has two stops — see `interestSteps`.
    */
-  const showRail = !managed && loggedIn && !jobAspirant;
+  const showRail = !managed && (interest ? path.length > 1 : loggedIn && !jobAspirant);
 
   /* The two ways a stranger and an aspirant leave for the team's own site,
      with the board's tracking suffix — the same door `openExternalPosting`
@@ -664,6 +761,9 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
    * to the team's own site, and the arrow on it says so.
    */
   const blockedByReview = loggedIn && pendingApproval;
+  /* The tick is asked once — on the run after sign-up — so outside that run it
+     is neither drawn nor a gate. See `askProfileReview`. */
+  const reviewTickUnmet = askProfileReview && !confirmedComplete;
 
   /**
    * Whether the follow tick is drawn — the last step, for the one viewer whose
@@ -679,8 +779,21 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
    *
    * `managed` is excluded for the obvious reason: a lead does not follow their
    * own team out of the drawer they use to manage its listings.
+   *
+   * **And the interest route's last step, for the same reason.** Expressing
+   * interest in a team's open role is the one other press on this board that
+   * sends something to a team from here — and "hear when they post" is, if
+   * anything, more exactly what that person wants: they are telling a team
+   * they would work there before there is a posting to apply to. The tick is
+   * drawn while the signal is still to be sent; once it is on record the
+   * footer is Withdraw / Done and there is no press for the tick to ride.
    */
-  const showFollowTick = step === 'application' && !managed && !followsTeam && !!team;
+  const showFollowTick =
+    !managed &&
+    !followsTeam &&
+    ((step === 'application' && !!team) || (step === 'interest' && !!interest && !interest.sent));
+  /** Whose follow the tick offers: the posting's team, or the open role's. */
+  const followTeamName = team?.name ?? interest?.teamName ?? '';
 
   /**
    * The way out to the team's own ad, for a member whose account is still under
@@ -862,6 +975,13 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
           style="fill"
           size="m"
           className={clsx(d.footerAction, blockedByReview && d.footerActionIcon)}
+          /* Under review, dead until the tick beside it is given — the press
+             leaves the product from here, so this is the first place that can
+             ask and the one most people under review will actually press. The
+             reason is in the same bar as the button, which is the drawer's rule
+             for a dead control. Members are not gated here: their press goes to
+             the next step, not out. */
+          disabled={blockedByReview && reviewTickUnmet}
           onClick={
             blockedByReview
               ? () => {
@@ -934,6 +1054,24 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
         );
       }
 
+      /* On to the message. See `interest`. Dead mid-edit, for the same reason
+         as below (unsaved work in a card would be dropped), and until the
+         "I've reviewed my profile" tick beside it is given. */
+      if (interest) {
+        return (
+          <Button
+            variant="primary"
+            style="fill"
+            size="m"
+            className={d.footerAction}
+            disabled={!!editing || reviewTickUnmet}
+            onClick={() => goTo('interest')}
+          >
+            Continue
+          </Button>
+        );
+      }
+
       return (
         /* Disabled while a card is open as well as while the profile is
              incomplete: mid-edit there is unsaved work in front of the person,
@@ -960,8 +1098,8 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                applies — and stays in the aspirant's, whose press goes to step 3. */
           disabled={
             blockedByReview
-              ? !confirmedComplete || !!editing
-              : !complete || !!editing || (jobAspirant && !confirmedComplete)
+              ? reviewTickUnmet || !!editing
+              : !complete || !!editing || (jobAspirant && reviewTickUnmet)
           }
           onClick={() => {
             onSaveProfile(draft);
@@ -989,6 +1127,38 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
           ) : (
             'Continue to apply'
           )}
+        </Button>
+      );
+    }
+
+    if (step === 'interest' && interest) {
+      if (interest.sent) {
+        /* The withdraw sits where a Cancel would — it is the leaving action for
+           this state — bordered so the press that ends something is never the
+           loudest thing in the bar; Done keeps the primary slot and closes. */
+        return (
+          <>
+            <Button variant="neutral" style="border" size="m" className={d.footerAction} onClick={interest.onWithdraw}>
+              Withdraw interest
+            </Button>
+            <Button variant="primary" style="fill" size="m" className={d.footerAction} onClick={onClose}>
+              Done
+            </Button>
+          </>
+        );
+      }
+      return (
+        /* Dead until the required message has something in it — the `*` on
+           the field's label says why. */
+        <Button
+          variant="primary"
+          style="fill"
+          size="m"
+          className={d.footerAction}
+          disabled={!interestNote.trim()}
+          onClick={() => interest.onSend(interestNote.trim(), showFollowTick && followTeam)}
+        >
+          Send
         </Button>
       );
     }
@@ -1049,7 +1219,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             `showRail`. */}
         {showRail && (
           <div className={d.stepBand}>
-            <ApplyFlowSteps steps={steps} onSelect={(id) => goTo(id as ApplyFlowStepId)} />
+            <ApplyFlowSteps steps={interest ? interestSteps : steps} onSelect={(id) => goTo(id as ApplyFlowStepId)} />
           </div>
         )}
       </div>
@@ -1061,6 +1231,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             team={team}
             applied={applied}
             appliedAt={appliedAt}
+            applicationStatus={applicationStatus}
             status={managed?.status}
             /* The slot under the masthead: the profile's case to a visitor,
                the profile's one use to an aspirant. See `showRail` for why
@@ -1088,6 +1259,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               editing={editing}
               setEditing={setEditing}
               pendingRoleTitle={role?.roleTitle ?? null}
+              forInterest={!!interest}
               pendingApproval={pendingApproval}
               jobAspirant={jobAspirant}
               floatingChrome={{ top: drawerHeaderRef, slot: footerSlot }}
@@ -1133,6 +1305,19 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             onCoverLetterChange={setCoverLetter}
           />
         )}
+
+        {step === 'interest' && interest && (
+          <JobInterestPane
+            teamName={interest.teamName}
+            /* The draft, for the reason the application pane gets it: a
+               read-back quotes what is about to be sent. */
+            profile={draft}
+            sent={interest.sent}
+            note={interestNote}
+            onNoteChange={setInterestNote}
+            onEditProfile={() => onStepChange('profile')}
+          />
+        )}
       </div>
 
       {/* One bar, every step. Sticky, because a job description is long enough
@@ -1167,10 +1352,14 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               same red `*` the required text fields on this flow already wear,
               so one screen has one way of saying "required".
 
-              **Only on this step, and only for the two viewers who are asked.**
-              A pending member has no step 3 — the press hands them to the team's
-              own site, and the profile they leave behind is left as it stands —
-              so this is the last place that can ask, and it does. A job aspirant
+              **On the steps whose press leaves, for the two viewers who are
+              asked.** A pending member has no step 3 — the press hands them to
+              the team's own site, and the profile they leave behind is left as
+              it stands. That press exists on *two* steps for them: step 1's
+              `Continue to apply` goes straight out, and so does the profile
+              step's. So the tick is asked on both, and it is one tick: the same
+              `confirmedComplete`, so a person who ticks on the job and walks
+              the rail to their profile is not asked again. A job aspirant
               is asked because the profile is the whole of what a hiring team
               gets from a stranger: the CV and the cards are the introduction,
               not a supporting document behind one they already have.
@@ -1184,17 +1373,28 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               of a read-back. If it turns out to be the second ask, this
               condition is where it comes back out.
 
-              **Two labels, because they confirm two different things.** The
-              pending member is asked whether the profile is *finished*, since
-              nothing can be added to it after the press leaves the product. The
-              aspirant is asked whether they have *read* it — everything on it is
-              still editable, and the question is whether what is there is what
-              they meant to send. */}
-          {step === 'profile' && (blockedByReview || jobAspirant) && (
+              **Two labels, because they confirm two different things.** On the
+              profile step the pending member is asked whether the profile is
+              *finished*, since nothing can be added to it after the press
+              leaves the product. The aspirant — and the pending member on the
+              job step, where the profile is not in front of them — is asked
+              whether they have *read* it: on step 1 that is the honest
+              question, because the press there leaves before the profile step
+              has been seen at all, and "complete" would be asking them to vouch
+              for a page they have not opened. The rail beside it is how they
+              go and look. */}
+          {/* **And on the interest route's `Your profile` step, for everyone
+              signed in.** The profile is the whole of what an interest signal
+              sends — the Application step carries only the note — so the person
+              is asked whether they have read it, gating `Continue`. */}
+          {askProfileReview &&
+            (interest
+              ? step === 'profile' && loggedIn
+              : (step === 'profile' && (blockedByReview || jobAspirant)) || (step === 'review' && blockedByReview)) && (
             <label className={d.footerCheck}>
               <Checkbox checked={confirmedComplete} onChange={setConfirmedComplete} />
               <span className={d.footerCheckLabel}>
-                {blockedByReview ? 'My profile is complete' : "I've reviewed my profile"}
+                {!interest && step === 'profile' && blockedByReview ? 'My profile is complete' : "I've reviewed my profile"}
               </span>
             </label>
           )}
@@ -1218,7 +1418,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
           {showFollowTick && (
             <label className={d.footerCheck}>
               <Checkbox checked={followTeam} onChange={setFollowTeam} />
-              <span>Follow {team.name} to hear when they post or hire</span>
+              <span>Follow {followTeamName} to hear when they post or hire</span>
             </label>
           )}
           {footer}

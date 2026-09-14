@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
+import type { NewsItemWithPost } from '../news-shared/teamPosts';
 
 import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTeamLogoFallback';
 
@@ -152,6 +153,14 @@ export function V0FeedCard({
                 <SourceList sources={SOURCES_BY_UID[story.uid]} fallbackDomain={story.sourceDomain} />
                 {' · '}
                 {formatTimeAgo(story.eventDate)}
+                {/* A team-posted story changed after publishing — the same one
+                    word the profile's card wears, in the same slot. */}
+                {(story as NewsItemWithPost).post?.editedAt && (
+                  <>
+                    {' · '}
+                    <span title={`Edited ${formatTimeAgo((story as NewsItemWithPost).post!.editedAt!)}`}>Edited</span>
+                  </>
+                )}
               </span>
               <span className={local.footerActions} onClick={(e) => e.stopPropagation()}>
                 <ShareMenu variant="card" url={story.sourceUrl ?? undefined} />

@@ -27,6 +27,7 @@ import s from '@/components/core/navbar/NavBar.module.scss';
 import signup from '@/components/core/navbar/components/Signup/Signup.module.scss';
 import login from '@/components/core/navbar/components/LoginBtn/LoginButton.module.scss';
 import local from './PrototypeNav.module.scss';
+import help from './HelpFeedbackMenu.module.scss';
 
 import { HomeIcon, BellIcon, SearchGlyph } from './icons';
 import { LOGO_LABEL, scrollToTop } from './home';
@@ -254,15 +255,17 @@ export function PrototypeNavBar({
             {searchable ? (
               <button
                 type="button"
-                className={local.navIconTrigger}
+                className={clsx(local.navSearch, local.navSearchTrigger)}
                 onClick={() => setSearchOpen(true)}
                 aria-label="Search"
               >
                 <SearchGlyph />
+                <span className={local.navSearchLabel}>Search</span>
               </button>
             ) : (
-              <span className={local.navIconButton} aria-hidden="true">
+              <span className={local.navSearch} aria-hidden="true">
                 <SearchGlyph />
+                <span className={local.navSearchLabel}>Search</span>
               </span>
             )}
             {helpMenu ? (
@@ -273,9 +276,10 @@ export function PrototypeNavBar({
                 onAskAi={helpMenu.askAi ? () => setSearchOpen(true) : undefined}
               />
             ) : (
-              <div className={s.supportButton}>
+              <span className={help.contact} aria-hidden="true">
                 <HelpIcon />
-              </div>
+                <span className={help.contactLabel}>Contact us</span>
+              </span>
             )}
             {/* Logged out, the bell goes with the account: notifications with
                 nobody to notify is a control that can't mean anything. Same shape

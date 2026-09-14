@@ -45,6 +45,13 @@
   background: var(--transparent-warning-8, rgba(245, 158, 11, 0.08));
 }
 
+// A step rounder than production's 8px (`--radius-md`): the DS scale's
+// `--radius-xl`. Doubled class so it outranks the production `.card` beneath it;
+// the PL card's gradient ring takes it through `border-radius: inherit`.
+.card.card {
+  border-radius: var(--radius-xl, 12px);
+}
+
 .card .avatar {
   @include media.mobile-only {
     width: 44px;
@@ -81,24 +88,40 @@
   border-color: var(--border-brand-subtle, #aebfff);
 }
 
+// Protocol Labs' role rows go white. Production's rows are `#f9fafb` — a grey
+// that reads as a surface on a white card, but on this card's gradient wash it
+// reads as grey patches on a tint. White rows sit on the wash as the lightest
+// thing in the card. The row root is production's hashed `.row`, so it is reached
+// structurally (li > the row's outer div). `:not(:hover)` hands the hover back
+// to `JobReferRoleRow .rowPress:hover`, which this selector would otherwise
+// outrank.
+.plRoles > li > div:first-child:not(:hover) {
+  background-color: var(--background-base-white, #fff);
+}
+
 // Protocol Labs' card, outlined edge to edge in the PL brand gradient. Doubled
 // class so it outranks the production `.card` it sits on top of.
 //
 // The ring replaces the card's own hairline rather than sitting inside it: the
 // border stays 1px of transparent so the geometry is untouched, and a masked
-// pseudo at `inset: -1px` paints exactly that 1px band. (Production's own recipe
-// — `app/globals.scss .asks__tooltip::before` — and the same one the newsfeed's
-// PL card uses.) The stops are the app-wide PL brand gradient, copied literally:
-// it is hardcoded everywhere in production and has no token.
+// pseudo at `inset: -1px` paints the band. (Production's own recipe —
+// `app/globals.scss .asks__tooltip::before` — and the same one the newsfeed's PL
+// card uses.) The stops are the app-wide PL brand gradient, copied literally: it
+// is hardcoded everywhere in production and has no token.
+//
+// 2px, not the 1px hairline every other card wears: at 1px the gradient read as
+// a slightly different border colour rather than as a mark, and the card's only
+// other difference was its position — which reads as "newest". The band covers
+// the transparent 1px border plus 1px of padding, so nothing moves.
 .card.plCard {
   position: relative;
   border-color: transparent;
   // The ring's own stops again as a wash — same angle, same stop positions, so
-  // fill and outline read as one treatment. 4% alpha (the house subtle-surface
-  // alpha, --transparent-dark-4) over the card's opaque #fff, kept underneath so
-  // the tint can't shift with whatever the page shows behind the card.
+  // fill and outline read as one treatment. 8%: the 4% this started at was a
+  // 2%-lightness difference on white, a fill nobody could see. Kept over the
+  // card's opaque #fff so the tint can't shift with the page behind the card.
   background:
-    linear-gradient(71.47deg, rgba(66, 125, 255, 0.04) 8.43%, rgba(68, 213, 187, 0.04) 87.45%),
+    linear-gradient(71.47deg, rgba(66, 125, 255, 0.08) 8.43%, rgba(68, 213, 187, 0.08) 87.45%),
     #fff;
 
   &::before {
@@ -107,7 +130,7 @@
     inset: -1px;
     z-index: 1;
     border-radius: inherit;
-    border: 1px solid transparent;
+    border: 2px solid transparent;
     background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%) border-box;
     -webkit-mask:
       linear-gradient(#fff 0 0) padding-box,

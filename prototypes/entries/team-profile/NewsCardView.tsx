@@ -1,8 +1,8 @@
 'use client';
 
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 
-import type { ITeamNewsItem } from '@/types/team-news.types';
+import type { NewsItemWithPost } from '../news-shared/teamPosts';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTeamLogoFallback';
 
@@ -48,8 +48,9 @@ export function NewsCardView({
   onToggleLike,
   onOpenComments,
   onShowMore,
+  menu,
 }: {
-  item: ITeamNewsItem;
+  item: NewsItemWithPost;
   flat?: boolean;
   hideTeam?: boolean;
   /** Rail clamps the summary to 2 lines; the full feed renders it in full. */
@@ -63,6 +64,12 @@ export function NewsCardView({
   onOpenComments?: () => void;
   /** Rail only: "Show more" opens the full feed focused on this item. */
   onShowMore?: () => void;
+  /**
+   * An owner's ⋯ (see `NewsPostMenu`), at the end of the action cluster. The
+   * caller decides who gets one — the card only renders what it is handed, so
+   * a reader who may not act sees nothing here, not a disabled control.
+   */
+  menu?: ReactNode;
 }) {
   /**
    * Tapping a rail row opens the story in the modal rather than leaving for the
@@ -225,7 +232,22 @@ export function NewsCardView({
             </>
           )}
           <span className={n.sep} aria-hidden="true" />
-          <span className={n.time}>{formatTimeAgo(item.eventDate)}</span>
+          {/* A post changed after publishing says so, beside the time it was
+              posted — one word in the meta's own tone, with the when on hover.
+              The post keeps its date and its place; only the mark is new. The
+              time and the mark wrap as one unit: the meta row wraps per item,
+              and "3 months ago ·" over an orphaned "Edited" reads as two facts. */}
+          <span className={s.newsWhen}>
+            <span className={n.time}>{formatTimeAgo(item.eventDate)}</span>
+            {item.post?.editedAt && (
+              <>
+                <span className={n.sep} aria-hidden="true" />
+                <span className={n.time} title={`Edited ${formatEdited(item.post.editedAt)}`}>
+                  Edited
+                </span>
+              </>
+            )}
+          </span>
         </div>
         <span className={s.newsActions} onClick={(e) => e.stopPropagation()}>
           <ShareMenu variant="card" url={item.sourceUrl ?? undefined} />
@@ -239,8 +261,14 @@ export function NewsCardView({
           ) : (
             <CommentCount count={comments} />
           )}
+          {menu}
         </span>
       </div>
     </div>
   );
 }
+
+/** The full moment for the "Edited" mark's hover — the card itself only has
+ *  room for the word. */
+const formatEdited = (iso: string) =>
+  new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });

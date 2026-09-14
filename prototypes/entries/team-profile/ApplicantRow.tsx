@@ -17,11 +17,13 @@ import rowTone from '../job-board/JobReferRoleRow.module.scss';
 import mcb from '@/components/page/team-details/TeamMembers/components/MemberCardBase/MemberCardBase.module.scss';
 import tmvc from '@/components/page/team-details/TeamMembers/components/TeamMembersView/components/TeamMembersViewCard/TeamMembersViewCard.module.scss';
 
-import type { RoleApplicant } from './mocks';
+import type { RoleApplicant, RoleInterested } from './mocks';
 import s from './ApplicantRow.module.scss';
 
 interface Props {
-  applicant: RoleApplicant;
+  /** An application, or an "I'm interested" press — the Interested tab's row
+   *  is this row with no note and its own date. */
+  applicant: RoleApplicant | RoleInterested;
   /**
    * Not looked at yet: the row is tinted and carries `● New`. Opening it
    * returns the row to the plain grey every other row wears — read is the row
@@ -62,7 +64,7 @@ export function ApplicantRow({ applicant: a, isNew, last, selected, onSelect }: 
             {/* The one thing this row knows that the profile does not: what they
                 said when they applied. Two lines here; the whole note is on the
                 pane. */}
-            <p className={s.note}>“{a.note}”</p>
+            {'note' in a && <p className={s.note}>“{a.note}”</p>}
           </div>
         </div>
 
@@ -70,7 +72,9 @@ export function ApplicantRow({ applicant: a, isNew, last, selected, onSelect }: 
           {isNew && <span className={row.newBadge}>● New</span>}
           <span className={clsx(row.relative, rowTone.relativeTone)}>
             <ClockIcon />
-            Applied {formatRelativeDays(a.appliedAt)}
+            {'appliedAt' in a
+              ? `Applied ${formatRelativeDays(a.appliedAt)}`
+              : `Interested ${formatRelativeDays(a.interestedAt)}`}
           </span>
         </div>
       </div>

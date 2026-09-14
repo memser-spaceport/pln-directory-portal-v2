@@ -119,6 +119,20 @@
   gap: 8px;
 }
 
+// 12px in the floating bar: *"add 4 more px between edit and save buttons."*
+// The bar is a separate object floating over the page, so its pair gets more
+// air than the in-card row. 12px is the next step on the scale.
+.bar .actions {
+  gap: 12px;
+}
+
+// 10px in the drawer footer's row: *"add 2 more pixels on job board footer
+// too."* It gets less than the floating bar because the row shares a 358px
+// phone line with Continue.
+.row .actions {
+  gap: 10px;
+}
+
 // The design system's rectangular `Button` (size m), as the drawer's Continue
 // and the cards' own Cancel/Save wear it. *"Make buttons also rectangular for
 // both onboarding and job board drawer prototypes."* It replaced the navbar's
@@ -155,6 +169,15 @@
      down the same scale — no new number, and the glyph joins the word. */
   gap: 4px;
   white-space: nowrap;
+}
+
+// Save gets the drop shadow the grey Keep editing beside it already has from
+// the design system's `border` + `neutral`: *"add to save."* The DS gives its
+// filled primary no shadow, so the two presses in one bar sat at two
+// elevations. Only the outer 1px shadow is copied. The grey button's inner
+// shadow is 2% dark, which cannot be seen on a brand fill.
+.btnSave.btnSave {
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
 }
 
 .btnIcon {

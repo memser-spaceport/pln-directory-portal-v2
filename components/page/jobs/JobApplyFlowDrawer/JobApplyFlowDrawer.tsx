@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import clsx from 'clsx';
 import { FormProvider, useForm, type Resolver } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -498,6 +498,18 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
    * Escape — is not. See `UnsavedEditsContext`.
    */
   const unsavedEdits = useUnsavedEditsRegistry();
+  /* Continue has to know this during render, unlike Back / Escape which only
+     ask at press time. Dirtiness flips once, not per keystroke. */
+  const hasUnsaved = useSyncExternalStore(
+    unsavedEdits.subscribe,
+    () => Boolean(unsavedEdits.firstDirty()),
+    () => false,
+  );
+  const hasOpenEditor = useSyncExternalStore(
+    unsavedEdits.subscribe,
+    () => unsavedEdits.hasEntry(),
+    () => false,
+  );
 
   /* One open section at a time on the profile step, and the way back to it in
      the footer beside Continue. Held here for the same reason the guard above
@@ -985,21 +997,22 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
            whether the profile can be sent at all; this is about whether you meant
            to send this one. The amber "Required to continue" strips stay exactly
            where they are — see `JobProfileDrawer`. */
-        lead: (
-          <label className={d.consentRow}>
-            <Checkbox checked={reviewed} onChange={setReviewed} />
-            {/* The `*` is `.consentLabel`'s `:after`, exactly as `FormField`
+        lead:
+          Boolean(sectionEditLock.open) || hasOpenEditor ? undefined : (
+            <label className={d.consentRow}>
+              <Checkbox checked={reviewed} onChange={setReviewed} />
+              {/* The `*` is `.consentLabel`'s `:after`, exactly as `FormField`
                 draws it on a required label. */}
-            <span className={d.consentLabel}>I reviewed my profile</span>
-          </label>
-        ),
+              <span className={d.consentLabel}>I reviewed my profile</span>
+            </label>
+          ),
         action: (
           <Button
             variant="primary"
             style="fill"
             size="m"
             className={d.footerAction}
-            disabled={!complete || !reviewed}
+            disabled={!complete || !reviewed || hasUnsaved}
             onClick={() => goTo('application')}
           >
             Continue to apply

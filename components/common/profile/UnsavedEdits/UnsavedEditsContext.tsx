@@ -48,10 +48,9 @@ export interface UnsavedEditsApi {
    * registering, unregistering, or crossing the dirty line. Not on every
    * keystroke: `isDirty` only flips once.
    *
-   * Exists for the page-level leave guard, which has to keep a history entry in
-   * step with dirtiness and so cannot simply ask at press time. Nothing else
-   * should subscribe: pulling with `firstDirty` is what keeps typing out of the
-   * render path.
+   * The apply drawer's Continue button subscribes so it can go disabled; the
+   * page-level leave guard does too. Pull with `firstDirty` at press time for
+   * everything else — that keeps typing out of the render path.
    */
   subscribe: (listener: () => void) => () => void;
   /** Called by registered forms when their dirtiness changes. */
@@ -61,6 +60,8 @@ export interface UnsavedEditsApi {
    * Pulled at press time; see the note on `register`.
    */
   firstDirty: () => UnsavedEntry | null;
+  /** Whether any edit form is currently mounted — open, not necessarily dirty. */
+  hasEntry: () => boolean;
   /** Which form is being pointed at right now. The only piece of state here. */
   flaggedId: string | null;
   flag: (id: string) => void;
@@ -144,12 +145,14 @@ export function useUnsavedEditsRegistry(): UnsavedEditsApi {
     })[0];
   }, []);
 
+  const hasEntry = useCallback(() => entries.current.size > 0, []);
+
   const flag = useCallback((id: string) => setFlaggedId(id), []);
   const clearFlag = useCallback(() => setFlaggedId(null), []);
 
   return useMemo(
-    () => ({ register, subscribe, notifyChanged, firstDirty, flaggedId, flag, clearFlag }),
-    [register, subscribe, notifyChanged, firstDirty, flaggedId, flag, clearFlag],
+    () => ({ register, subscribe, notifyChanged, firstDirty, hasEntry, flaggedId, flag, clearFlag }),
+    [register, subscribe, notifyChanged, firstDirty, hasEntry, flaggedId, flag, clearFlag],
   );
 }
 

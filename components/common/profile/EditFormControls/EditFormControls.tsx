@@ -14,10 +14,11 @@ interface Props {
   onClose: () => void;
   title: ReactNode;
   isProcessing?: boolean;
+  children?: ReactNode;
 }
 
 export const EditFormControls = (props: Props) => {
-  const { title, onClose, isProcessing: pIsProcessing = false } = props;
+  const { title, onClose, isProcessing: pIsProcessing = false, children } = props;
 
   const { reset, formState } = useFormContext() || {};
   const { isSubmitting, isDirty } = formState || {};
@@ -61,8 +62,15 @@ export const EditFormControls = (props: Props) => {
   };
 
   return (
-    <div className={s.root} ref={rootRef}>
-      <div className={s.title}>{title}</div>
+    <>
+      <div className={s.root} ref={rootRef}>
+        <div className={s.title}>{title}</div>
+        <button className={s.mobileCloseButton} onClick={cancel} type="button">
+          <CloseIcon className={s.closeIcon} />
+        </button>
+        {showPopup && <UnsavedEditPopup anchor={anchor} onDismiss={dismissPopup} />}
+      </div>
+      {children}
       <div className={s.controls}>
         <Button size="s" style="border" onClick={cancel} type="button" className={s.btn}>
           Cancel
@@ -71,10 +79,6 @@ export const EditFormControls = (props: Props) => {
           {getSaveBtnLabel({ isDirty, isProcessing })}
         </Button>
       </div>
-      <button className={s.mobileCloseButton} onClick={cancel} type="button">
-        <CloseIcon className={s.closeIcon} />
-      </button>
-      {showPopup && <UnsavedEditPopup anchor={anchor} onDismiss={dismissPopup} />}
-    </div>
+    </>
   );
 };

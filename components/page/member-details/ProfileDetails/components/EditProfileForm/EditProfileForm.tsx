@@ -352,117 +352,118 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
           }
         }}
       >
-        <EditFormControls onClose={onClose} title="Edit Profile Details" />
-        <div className={s.body}>
-          <div className={s.row}>
-            <ProfileImageInput member={member} allowDelete />
-            <FormField name="name" label="Name" isRequired placeholder="Text" max={MAX_NAME_LENGTH} />
-          </div>
-
-          <div className={s.row}>
-            <ProfileLocationInput />
-          </div>
-          {variant !== 'investor-drawer' && (
+        <EditFormControls onClose={onClose} title="Edit Profile Details">
+          <div className={s.body}>
             <div className={s.row}>
-              <ProfileSkillsInput />
+              <ProfileImageInput member={member} allowDelete />
+              <FormField name="name" label="Name" isRequired placeholder="Text" max={MAX_NAME_LENGTH} />
             </div>
-          )}
-          {variant !== 'investor-drawer' && !v2IsInvestor && v2HasMemberContacts && (
-            <div className={s.row}>
-              <ProfileCollaborateInput />
-            </div>
-          )}
 
-          <div className={s.column}>
-            {!isAddingTeamInline && (
-              <>
-                <div className={s.inputsLabel}>Primary Role & Team</div>
-                <div className={s.inputsWrapper}>
-                  <FormField name="primaryTeamRole" placeholder="Enter your primary role" />
-                  <span>@</span>
-                  <FormSelect
-                    name="primaryTeam"
-                    placeholder="Search or add a team"
-                    backLabel="Teams"
-                    options={
-                      data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
-                        value: item.teamUid,
-                        label: item.teamTitle,
-                        originalObject: item,
-                      })) ?? []
-                    }
-                    renderOption={({ option, label, description }) => {
-                      return (
-                        <div className={s.teamOption}>
-                          <ImageWithFallback
-                            width={24}
-                            height={24}
-                            alt={option.label}
-                            className={s.optImg}
-                            fallbackSrc="/icons/camera.svg"
-                            src={option.originalObject.logo}
-                          />
-                          <div className={s.optionContent}>
-                            {label}
-                            {description}
-                          </div>
-                        </div>
-                      );
-                    }}
-                    isStickyNoData
-                    notFoundContent={
-                      <div className={s.secondaryLabel}>
-                        Not able to find your project or team?{' '}
-                        <button
-                          type="button"
-                          className={s.link}
-                          onClick={() => {
-                            onAddTeamDropdownClicked('profile-edit');
-                            setValue('newTeamRole', getValues().primaryTeamRole ?? '');
-                            setIsAddingTeamInline(true);
-                          }}
-                        >
-                          Add your team
-                        </button>
-                      </div>
-                    }
-                  />
-                </div>
-              </>
+            <div className={s.row}>
+              <ProfileLocationInput />
+            </div>
+            {variant !== 'investor-drawer' && (
+              <div className={s.row}>
+                <ProfileSkillsInput />
+              </div>
+            )}
+            {variant !== 'investor-drawer' && !v2IsInvestor && v2HasMemberContacts && (
+              <div className={s.row}>
+                <ProfileCollaborateInput />
+              </div>
             )}
 
-            {isAddingTeamInline && (
-              <div style={{ marginTop: '16px' }}>
-                <AddTeamInlineForm
-                  fieldNames={{
-                    role: 'newTeamRole',
-                    name: 'newTeamName',
-                    website: 'newTeamWebsite',
-                  }}
-                  onClose={() => {
-                    setIsAddingTeamInline(false);
-                  }}
-                />
+            <div className={s.column}>
+              {!isAddingTeamInline && (
+                <>
+                  <div className={s.inputsLabel}>Primary Role & Team</div>
+                  <div className={s.inputsWrapper}>
+                    <FormField name="primaryTeamRole" placeholder="Enter your primary role" />
+                    <span>@</span>
+                    <FormSelect
+                      name="primaryTeam"
+                      placeholder="Search or add a team"
+                      backLabel="Teams"
+                      options={
+                        data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
+                          value: item.teamUid,
+                          label: item.teamTitle,
+                          originalObject: item,
+                        })) ?? []
+                      }
+                      renderOption={({ option, label, description }) => {
+                        return (
+                          <div className={s.teamOption}>
+                            <ImageWithFallback
+                              width={24}
+                              height={24}
+                              alt={option.label}
+                              className={s.optImg}
+                              fallbackSrc="/icons/camera.svg"
+                              src={option.originalObject.logo}
+                            />
+                            <div className={s.optionContent}>
+                              {label}
+                              {description}
+                            </div>
+                          </div>
+                        );
+                      }}
+                      isStickyNoData
+                      notFoundContent={
+                        <div className={s.secondaryLabel}>
+                          Not able to find your project or team?{' '}
+                          <button
+                            type="button"
+                            className={s.link}
+                            onClick={() => {
+                              onAddTeamDropdownClicked('profile-edit');
+                              setValue('newTeamRole', getValues().primaryTeamRole ?? '');
+                              setIsAddingTeamInline(true);
+                            }}
+                          >
+                            Add your team
+                          </button>
+                        </div>
+                      }
+                    />
+                  </div>
+                </>
+              )}
+
+              {isAddingTeamInline && (
+                <div style={{ marginTop: '16px' }}>
+                  <AddTeamInlineForm
+                    fieldNames={{
+                      role: 'newTeamRole',
+                      name: 'newTeamName',
+                      website: 'newTeamWebsite',
+                    }}
+                    onClose={() => {
+                      setIsAddingTeamInline(false);
+                    }}
+                  />
+                </div>
+              )}
+
+              {variant !== 'investor-drawer' && (
+                <div className={s.description}>Add your role and team so others can connect with you.</div>
+              )}
+            </div>
+            {variant !== 'investor-drawer' && (
+              <div className={s.infoBlock}>
+                <InfoIcon />
+                <span className={s.infoText}>Manage additional teams/roles in Teams section below.</span>
               </div>
             )}
 
             {variant !== 'investor-drawer' && (
-              <div className={s.description}>Add your role and team so others can connect with you.</div>
+              <div className={s.row}>
+                <BioInput generateBio={generateBio} onAiContentGenerated={handleAiContentGenerated} simplified />
+              </div>
             )}
           </div>
-          {variant !== 'investor-drawer' && (
-            <div className={s.infoBlock}>
-              <InfoIcon />
-              <span className={s.infoText}>Manage additional teams/roles in Teams section below.</span>
-            </div>
-          )}
-
-          {variant !== 'investor-drawer' && (
-            <div className={s.row}>
-              <BioInput generateBio={generateBio} onAiContentGenerated={handleAiContentGenerated} simplified />
-            </div>
-          )}
-        </div>
+        </EditFormControls>
         <EditFormMobileControls />
       </form>
     </FormProvider>

@@ -17,13 +17,14 @@
 }
 
 .controls {
-  align-items: center;
-  gap: 8px;
-
   display: none;
 
   @include media.tablet-landscape {
     display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
   }
 }
 

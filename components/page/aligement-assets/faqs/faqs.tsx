@@ -440,7 +440,7 @@ function buildFaqCategories(kpiWeights: KpiWeightEntry[] | undefined): FAQCatego
         question: 'How is the clearing price calculated?',
         answer: (
           <div>
-            <p style={{ marginBottom: '12px' }}>The clearing price is the asking price of the last seller whose bid is accepted before the buyback pool is exhausted. In other words, the highest price among all accepted bids. It is applied to all accepted bids, up to the value of that bid. Bids at or below the clearing price are accepted; bids above are not. The last accepted bid may be partially filled if the pool runs out.</p>
+            <p style={{ marginBottom: '12px' }}>The clearing price is the asking price of the last bidder whose bid is accepted before the buyback pool is exhausted. In other words, the highest price among all accepted bids. It is applied to all accepted bids, up to the value of that bid. Bids at or below the clearing price are accepted; bids above are not. The last accepted bid may be partially filled if the pool runs out.</p>
             <p style={{ marginBottom: '12px' }}>Any changes to auction rules will be communicated at least 24 hours before an auction window opens.</p>
           </div>
         ),
@@ -482,7 +482,7 @@ function buildFaqCategories(kpiWeights: KpiWeightEntry[] | undefined): FAQCatego
       },
       {
         question: 'Can I change or cancel my bid?',
-        answer: 'You may submit, edit, or cancel your bids anytime before the auction closes. After close, no changes or new bids are accepted.',
+        answer: 'You may submit or cancel your bids anytime before the auction closes. After close, no changes or new bids are accepted.',
       },
       {
         question: 'What determines how many of my PLAA are redeemed?',

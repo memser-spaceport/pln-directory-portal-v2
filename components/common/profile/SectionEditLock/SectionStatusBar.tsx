@@ -77,29 +77,50 @@ function useSectionAway(
   useEffect(() => {
     const card = getElement?.();
     if (!activeKey || !card) return;
+    /* The apply drawer scrolls its own column, and Framer Motion leaves a
+       transform on that column. A viewport-root observer does not see that
+       scroll, so the card going under the header never flipped `away` and the
+       footer's CV-wait row never appeared. The page still uses the viewport:
+       its scroller is `body`. */
+    const scrollHost = findScrollableParent(card);
+    const root =
+      scrollHost && scrollHost !== document.documentElement && scrollHost !== document.body ? scrollHost : null;
     /* Thresholds every 5% of the card, so the crossing is caught wherever it
        falls — "half of what could be on screen" is half the *viewport* for a
        card taller than it, which is some fraction of the card that depends on
        both heights. */
+    const apply = (rect: DOMRectReadOnly, rootBox: DOMRectReadOnly | null) => {
+      const rootTop = rootBox?.top ?? 0;
+      const rootBottom = rootBox?.bottom ?? window.innerHeight;
+      const rootHeight = rootBottom - rootTop;
+      const occlusionBottom = topOcclusion?.current?.getBoundingClientRect().bottom ?? rootTop;
+      const visibleTop = Math.min(Math.max(rootTop, occlusionBottom), rootBottom);
+      const visible = Math.max(0, Math.min(rect.bottom, rootBottom) - Math.max(rect.top, visibleTop));
+      const couldBeVisible = Math.min(rect.height, Math.max(1, rootHeight - (visibleTop - rootTop)));
+      const headVisible = rect.top < rootBottom && rect.top + HEAD_PX > visibleTop;
+      const isAway = !headVisible && visible < couldBeVisible * visibleRatioThreshold;
+      const direction: ScrollDirection = rect.top >= rootBottom ? 'down' : 'up';
+      setAway(isAway ? { key: activeKey, direction } : null);
+    };
+
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        const rect = entry.boundingClientRect;
-        const rootTop = entry.rootBounds?.top ?? 0;
-        const rootBottom = entry.rootBounds?.bottom ?? window.innerHeight;
-        const rootHeight = rootBottom - rootTop;
-        const occlusionBottom = topOcclusion?.current?.getBoundingClientRect().bottom ?? rootTop;
-        const visibleTop = Math.min(Math.max(rootTop, occlusionBottom), rootBottom);
-        const visible = Math.max(0, Math.min(rect.bottom, rootBottom) - Math.max(rect.top, visibleTop));
-        const couldBeVisible = Math.min(rect.height, Math.max(1, rootHeight - (visibleTop - rootTop)));
-        const headVisible = rect.top < rootBottom && rect.top + HEAD_PX > visibleTop;
-        const isAway = !headVisible && visible < couldBeVisible * visibleRatioThreshold;
-        const direction: ScrollDirection = rect.top >= rootBottom ? 'down' : 'up';
-        setAway(isAway ? { key: activeKey, direction } : null);
-      },
-      { threshold: Array.from({ length: 21 }, (_, i) => i / 20) },
+      ([entry]) => apply(entry.boundingClientRect, entry.rootBounds ?? root?.getBoundingClientRect() ?? null),
+      { root, threshold: Array.from({ length: 21 }, (_, i) => i / 20) },
     );
     observer.observe(card);
-    return () => observer.disconnect();
+    if (!root) {
+      return () => observer.disconnect();
+    }
+    /* Transformed overflow roots still miss some scroll ticks in Chromium;
+       reading the same rule off the scroller itself is what the footer row
+       actually needs. The page is left on the observer: its scroller is
+       `body`, and a window listener would measure the document, not the view. */
+    const onScroll = () => apply(card.getBoundingClientRect(), root.getBoundingClientRect());
+    root.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      observer.disconnect();
+      root.removeEventListener('scroll', onScroll);
+    };
   }, [activeKey, getElement, topOcclusion, visibleRatioThreshold]);
 
   if (!activeKey || !away || away.key !== activeKey) return null;

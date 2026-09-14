@@ -123,10 +123,19 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member, enableCvImport
               setPickedFile(file);
               setView('import');
             },
-            onCancelRead: () => onCvImportCancelled('reading'),
+            onCancelRead: () => {
+              onCvImportCancelled('reading');
+              /* The header's "Update from CV" opened this card for a refresh.
+                 Cancel has to leave it, not drop back to the drop area with the
+                 same file still in `pickedFile` — that identity is what the
+                 dropzone keys its auto-start on, so the read would begin again
+                 and Cancel would look like it did nothing. The empty-row panel
+                 is already on `view`, so this is a no-op there. */
+              closeImport();
+            },
           }
         : undefined,
-    [enableCvImport, parseAndReport, abort, openAddForm, setParsed, onCvImportCancelled],
+    [enableCvImport, parseAndReport, abort, openAddForm, setParsed, onCvImportCancelled, closeImport],
   );
 
   if (!isLoggedIn || (!v2HasMemberContacts && !isOwner)) {

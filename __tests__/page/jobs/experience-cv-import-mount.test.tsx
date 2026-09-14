@@ -87,6 +87,7 @@ import {
   ProfileSection,
   SectionEditLockProvider,
   SectionStatusBar,
+  SectionStatusRow,
   useSectionEditLockRegistry,
 } from '@/components/common/profile/SectionEditLock';
 
@@ -190,6 +191,26 @@ describe('CV import inside the Experience section', () => {
     renderSection({ enableCvImport: true, entries: [entry] });
     expect(screen.getByRole('button', { name: /^add$/i })).toBeInTheDocument();
   });
+
+  it('cancelling a header-driven read returns to the experience list', async () => {
+    mockParse.mockReturnValue(new Promise(() => {}));
+    renderSection({ enableCvImport: true, entries: [entry] });
+
+    const cv = new File(['x'], 'cv.pdf', { type: 'application/pdf' });
+    Object.defineProperty(cv, 'size', { value: 1024 });
+    const input = document.querySelector('input[accept=".pdf"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [cv] } });
+
+    expect(await screen.findByText(/Reading cv.pdf/)).toBeInTheDocument();
+
+    const cancels = screen.getAllByRole('button', { name: /^cancel$/i });
+    fireEvent.click(cancels[cancels.length - 1]);
+
+    expect(await screen.findByText('Protocol Engineer')).toBeInTheDocument();
+    expect(screen.queryByText(/Reading cv.pdf/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /update from cv/i })).toBeInTheDocument();
+    expect(mockAnalytics.onCvImportCancelled).toHaveBeenCalledWith('reading');
+  });
 });
 
 describe('the whole way through: drop a file, review it, save it', () => {
@@ -290,9 +311,11 @@ function LockHost({ children }: { children: ReactNode }) {
 class FakeIntersectionObserver {
   static instances: FakeIntersectionObserver[] = [];
   callback: IntersectionObserverCallback;
+  options: IntersectionObserverInit;
 
-  constructor(callback: IntersectionObserverCallback) {
+  constructor(callback: IntersectionObserverCallback, options: IntersectionObserverInit = {}) {
     this.callback = callback;
+    this.options = options;
     FakeIntersectionObserver.instances.push(this);
   }
 
@@ -302,7 +325,9 @@ class FakeIntersectionObserver {
   takeRecords(): IntersectionObserverEntry[] {
     return [];
   }
-  root = null;
+  get root() {
+    return this.options.root ?? null;
+  }
   rootMargin = '';
   thresholds: number[] = [];
 
@@ -387,6 +412,75 @@ describe('the floating status bar during a CV read', () => {
 
     expect(await screen.findByText(/Reading cv.pdf/)).toBeInTheDocument();
     await waitFor(() => expect(FakeIntersectionObserver.instances.length).toBeGreaterThan(0));
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+
+    FakeIntersectionObserver.instances.at(-1)!.fireAway();
+
+    expect(await screen.findByRole('status')).toHaveTextContent(/Reading cv.pdf/);
+    expect(screen.getAllByText(/Usually takes about 10 seconds/).length).toBeGreaterThan(1);
+    expect(screen.queryByRole('button', { name: /keep editing/i })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /^cancel$/i }).length).toBeGreaterThan(1);
+  });
+});
+
+function DrawerLockHost({ children }: { children: ReactNode }) {
+  const lock = useSectionEditLockRegistry();
+  return (
+    <SectionEditLockProvider value={lock}>
+      <div data-testid="drawer-scroll" style={{ overflowY: 'auto', height: 400 }}>
+        <ProfileSection name="Your CV">{children}</ProfileSection>
+      </div>
+      <SectionStatusRow />
+    </SectionEditLockProvider>
+  );
+}
+
+describe('the apply-drawer status row during a CV read', () => {
+  const originalIO = global.IntersectionObserver;
+  const originalStyle = window.getComputedStyle;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    FakeIntersectionObserver.instances = [];
+    global.IntersectionObserver = FakeIntersectionObserver as unknown as typeof IntersectionObserver;
+    mockParse.mockReturnValue(new Promise(() => {}));
+    window.getComputedStyle = (elt: Element) => {
+      if (elt instanceof HTMLElement && elt.dataset.testid === 'drawer-scroll') {
+        return { overflowY: 'auto' } as CSSStyleDeclaration;
+      }
+      return originalStyle(elt);
+    };
+  });
+
+  afterEach(() => {
+    global.IntersectionObserver = originalIO;
+    window.getComputedStyle = originalStyle;
+  });
+
+  const dropCv = () => {
+    const cv = new File(['x'], 'cv.pdf', { type: 'application/pdf' });
+    Object.defineProperty(cv, 'size', { value: 1024 });
+    const box = screen.getByText('Drag & drop your CV').closest('div')!.parentElement!;
+    fireEvent.drop(box, { dataTransfer: { files: [cv] } });
+  };
+
+  it('appears in the footer once the CV card is scrolled away, with Cancel and no Keep editing', async () => {
+    mockExperiences.mockReturnValue({ data: [], isLoading: false });
+    render(
+      <DrawerLockHost>
+        <ExperienceDetails member={member} userInfo={userInfo as never} isLoggedIn enableCvImport />
+      </DrawerLockHost>,
+    );
+
+    const scroller = screen.getByTestId('drawer-scroll');
+    Object.defineProperty(scroller, 'scrollHeight', { configurable: true, value: 2000 });
+    Object.defineProperty(scroller, 'clientHeight', { configurable: true, value: 400 });
+
+    dropCv();
+
+    expect(await screen.findByText(/Reading cv.pdf/)).toBeInTheDocument();
+    await waitFor(() => expect(FakeIntersectionObserver.instances.length).toBeGreaterThan(0));
+    expect(FakeIntersectionObserver.instances.at(-1)!.root).toBe(scroller);
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
 
     FakeIntersectionObserver.instances.at(-1)!.fireAway();

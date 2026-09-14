@@ -602,7 +602,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
         }}
         noValidate
       >
-        <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Details" alwaysEnabled />
+        <EditOfficeHoursFormControls onClose={onClose} title="Edit Investor Details" />
         <div className={s.body}>
           <div className={s.block}>
             <div className={s.sectionHeader}>
@@ -947,7 +947,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
             </div>
           )}
         </div>
-        <EditOfficeHoursMobileControls alwaysEnabled />
+        <EditOfficeHoursMobileControls />
       </form>
 
       {!useInlineAddTeam && (

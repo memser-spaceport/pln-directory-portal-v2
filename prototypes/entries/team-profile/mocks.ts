@@ -8,6 +8,7 @@ import type { IJobTeamGroup } from '@/types/jobs.types';
 // The feed's own comment shape — the detail modal's thread is the feed's
 // component, so the data has to be the feed's type, not a parallel one.
 import type { FeedComment } from '../newsfeed-v0/mocks';
+import { TEAM_POSTED_SEED, type NewsItemWithPost } from '../news-shared/teamPosts';
 // This team's open roles live with every other team's, on the job board.
 import { MOCK_JOB_GROUPS } from '../job-board/mocks';
 
@@ -270,7 +271,10 @@ export const MOCK_PROJECTS = [
 ] as unknown as IFormatedTeamProject[];
 
 /* ---------------- Team news (mirrors ITeamNewsItem from the homepage) ---------------- */
-export const MOCK_NEWS: ITeamNewsItem[] = [
+// The team's own posts lead the fixture (they're the newest), then the
+// enriched coverage. See `news-shared/teamPosts.ts` for who posted what.
+export const MOCK_NEWS: NewsItemWithPost[] = [
+  ...TEAM_POSTED_SEED,
   {
     uid: 'news-1',
     teamUid: 'protocol-labs',
@@ -442,6 +446,8 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
    click. Views run an order of magnitude above likes, likes above comments, the
    way engagement actually falls off. */
 export const NEWS_LIKES: Record<string, number> = {
+  'news-posted-1': 9,
+  'news-posted-2': 3,
   'news-1': 12,
   'news-2': 0,
   'news-3': 5,
@@ -454,6 +460,8 @@ export const NEWS_LIKES: Record<string, number> = {
 };
 
 export const NEWS_VIEWS: Record<string, number> = {
+  'news-posted-1': 312,
+  'news-posted-2': 148,
   'news-1': 1240,
   'news-2': 86,
   'news-3': 410,

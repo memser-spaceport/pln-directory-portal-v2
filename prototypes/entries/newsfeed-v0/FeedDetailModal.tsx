@@ -75,6 +75,8 @@ export interface FeedDetail {
    * production sanitizes `contentHtml` before rendering (see NewsDetailModal).
    */
   bodyHtml?: string;
+  /** Team-posted news changed after publishing — shown beside the time. */
+  editedAt?: string;
 }
 
 /** Whether the modal renders per-claim citations (superscript markers). */
@@ -101,6 +103,12 @@ interface Props {
    * slot.
    */
   footerAction?: ReactNode;
+  /**
+   * An owner's control in the header, between the identity and Close — the
+   * team-posted news ⋯ (`NewsPostMenu`), for a reader who may edit or remove
+   * the story they're reading. Absent for everyone else.
+   */
+  headerAction?: ReactNode;
 }
 
 /**
@@ -154,6 +162,7 @@ export function FeedDetailBody({
   isCommentLiked,
   onToggleCommentLike,
   footerAction,
+  headerAction,
   onBack,
   className,
 }: BodyProps) {
@@ -217,6 +226,7 @@ export function FeedDetailBody({
                 list, Close leaves the archive. Two meanings, two controls —
                 overloading one button is how a reader ends up pressing it twice
                 to get out and losing the list instead. */}
+        {headerAction && <span className={s.headAction}>{headerAction}</span>}
         <button type="button" className={dealModal.closeButton} aria-label="Close" onClick={onClose}>
           <CloseIcon width={20} height={20} color="#0a0c11" />
         </button>
@@ -235,6 +245,15 @@ export function FeedDetailBody({
             </>
           )}
           <span className={s.kickerTime}>{formatTimeAgo(detail.time)}</span>
+          {/* Same mark the card wears, with room here to say when. */}
+          {detail.editedAt && (
+            <>
+              <span className={s.kickerSep} aria-hidden>
+                ·
+              </span>
+              <span className={s.kickerTime}>Edited {formatTimeAgo(detail.editedAt)}</span>
+            </>
+          )}
         </div>
 
         <h2 className={s.title}>{detail.title}</h2>

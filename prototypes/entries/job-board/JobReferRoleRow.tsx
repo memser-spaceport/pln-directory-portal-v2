@@ -31,6 +31,8 @@ import { ReferModal } from '../job-board-apply-steps/components/ReferModal';
 // Production's share menu, copied so it also opens on hover.
 import { JobShareMenu } from './JobShareMenu';
 import { ListingStatusBadge } from './ListingStatusBadge';
+import { ApplicationStatusBadge } from './ApplicationStatusBadge';
+import type { ApplicationStatus } from './applicationStatus';
 import { ListingMenu } from './ListingMenu';
 import type { ListingMeta, ListingStatus } from './listings';
 // Production's confirm — the one a team's Delete opens on the team profile.
@@ -68,6 +70,10 @@ interface JobReferRoleRowProps {
   /** ISO stamp of when the application went. Present only when `applied`; the
    *  clock slot reports this instead of the posting age — see the note there. */
   appliedAt?: string;
+  /** Where the application stands, when `applied`. The row wears a pill for
+   *  anything past `sent` — the same slot the owner's listing pill takes, so a
+   *  status is one kind of thing on this row whoever it belongs to. */
+  applicationStatus?: ApplicationStatus;
   /**
    * Present for a viewer who owns this listing — on the board, in their own
    * team's card, and on the team profile's Open roles in the team's own view.
@@ -159,6 +165,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
     onViewJob,
     applied = false,
     appliedAt,
+    applicationStatus,
     manage,
   } = props;
   const [referOpen, setReferOpen] = useState(false);
@@ -261,6 +268,10 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
               shows no one else), and the ⋯ at the end, holding everything —
               the reader's presses and the owner's. See `ListingMenu`. */}
           {manage && manage.meta.status !== 'live' && <ListingStatusBadge status={manage.meta.status} />}
+          {/* The applicant's status, in the same slot. Nothing for `sent` —
+              the clock beside it already reads "Applied 2d ago", and that is
+              the resting state (lesson 21). See `ApplicationStatus`. */}
+          {applied && applicationStatus && <ApplicationStatusBadge status={applicationStatus} />}
           <div className={s.actionButtons}>
             {!manage && (
             <>

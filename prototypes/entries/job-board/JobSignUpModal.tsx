@@ -257,6 +257,12 @@ export function JobSignUpModal({
 
         <FormProvider {...methods}>
           <form className={s.form} noValidate onSubmit={handleSubmit(onSubmit)}>
+            {/* The card's scroll region: the fields and the fine print. The title
+                above and the dock below stay put, the way the refer modal on this
+                board keeps its header and footer still and scrolls only the
+                fields. On the mobile page it is an ordinary block and the
+                document scrolls. See `.scrollArea`. */}
+            <div className={s.scrollArea}>
             {/* Email → name → LinkedIn → role @ company. The fields and their
                 rules live in `accountFields.tsx` now, because the apply flow's
                 account step asks for exactly the same five answers and two
@@ -350,15 +356,15 @@ export function JobSignUpModal({
                 .
               </p>
             </div>
+            </div>
 
-            {/* The dock: the actions and the sign-in escape, sticky together on
-                the mobile page.
+            {/* The dock: the actions and the sign-in escape, pinned together —
+                sticky at the bottom of the mobile page, and the card's fixed
+                footer under the scroll region on desktop.
 
                 One wrapper rather than two sticky elements, because two would
-                each stick to `bottom: 0` and land on top of each other. On the
-                desktop card it is `display: contents`, so the footer and the
-                sign-in row go back to being direct children of the form and lay
-                out exactly as they did before this existed. See `.actionsDock`. */}
+                each stick to `bottom: 0` and land on top of each other. See
+                `.actionsDock`. */}
             <div className={s.actionsDock}>
               <div className={s.footer}>
                 {/* Card only. On the mobile page the `← Back` header is the way

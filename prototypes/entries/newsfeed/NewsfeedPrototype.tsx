@@ -47,6 +47,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FocusEvent, PropsWithChildren, ReactNode } from 'react';
 
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
+import {
+  applyTeamPostOverrides,
+  readTeamPostOverrides,
+  type NewsItemWithPost,
+  type TeamPostOverrides,
+} from '../news-shared/teamPosts';
 
 import { Button } from '@/components/common/Button';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
@@ -362,6 +368,16 @@ function NetworkUpdatesBase({ headerDetails, children }: PropsWithChildren<{ hea
 export default function NewsfeedPrototype() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  /**
+   * What a team did to its own posts on its profile this session — edits and
+   * removals, from the mocked backend in `teamPosts.ts` — read once at mount
+   * and laid over the fixture. The spine then shows a team-posted story as it
+   * now reads, or not at all; the feed itself offers no edit control, because
+   * the owner's door is on the owner's page.
+   */
+  const [postOverrides, setPostOverrides] = useState<TeamPostOverrides>({});
+  useEffect(() => setPostOverrides(readTeamPostOverrides()), []);
+  const curatedItems = useMemo(() => applyTeamPostOverrides(ALL_CURATED_ITEMS, postOverrides), [postOverrides]);
 
   // Feed state.
   const [activeFocus, setActiveFocus] = useState<string>(ALL_TAB);
@@ -579,6 +595,11 @@ export default function NewsfeedPrototype() {
       autoplayVideo: playVideo,
       isProtocolLabs: story.teamUid === PL_TEAM_UID,
       readUrl: story.sourceUrl ?? undefined,
+      // A post the team wrote on its profile is its own words — no AI note,
+      // the author's formatting, and "Edited" once it has been changed.
+      authored: Boolean((story as NewsItemWithPost).post),
+      bodyHtml: (story as NewsItemWithPost).post ? story.contentHtml : undefined,
+      editedAt: (story as NewsItemWithPost).post?.editedAt,
     });
 
   /**
@@ -621,7 +642,11 @@ export default function NewsfeedPrototype() {
     }
 
     const newsUid = params.get('news');
-    const story = newsUid ? ALL_CURATED_ITEMS.find((i) => i.uid === newsUid) : undefined;
+    // Read the overrides directly: this runs in the same commit as the state
+    // above, so a removed post must not open from a stale link.
+    const story = newsUid
+      ? applyTeamPostOverrides(ALL_CURATED_ITEMS, readTeamPostOverrides()).find((i) => i.uid === newsUid)
+      : undefined;
     if (story) {
       openStoryDetail(story);
       // Consume the param. The modal is a one-shot arrival, so leaving `news` in
@@ -734,7 +759,7 @@ export default function NewsfeedPrototype() {
 
   /** One ranked stream: the grouped items plus the untagged stories no group holds. */
   const sourceItems = useMemo(() => {
-    const items = sortAllTabItemsByEventDate(dedupeByUid(ALL_CURATED_ITEMS));
+    const items = sortAllTabItemsByEventDate(dedupeByUid(curatedItems));
     // The hiring roll-up carries the "opened N roles" fact, so the one-off
     // announcement of the same thing is dropped rather than said twice. With
     // hiring switched off the roll-up isn't there to carry it, so it stays.
@@ -751,7 +776,7 @@ export default function NewsfeedPrototype() {
     // their own). A badge must still land on the stories it counted, so a team
     // this week doesn't cover is served from the shared fixture instead.
     return scoped.length ? scoped : getTeamNews(teamFilter);
-  }, [showHiring, teamFilter]);
+  }, [showHiring, teamFilter, curatedItems]);
 
   /**
    * Monitor reads the whole week, unfiltered by the editorial levers — a standing

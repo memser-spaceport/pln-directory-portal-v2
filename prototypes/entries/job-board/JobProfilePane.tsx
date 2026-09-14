@@ -327,6 +327,14 @@ interface JobProfilePaneProps {
    *  only way to reach it is through the job. Names the role in the lede, so the
    *  ask says why it is being made and what happens next. */
   pendingRoleTitle?: string | null;
+  /**
+   * Opened on the way to the interest form — after signing up from
+   * "I'm interested", or from that form's `Edit profile`. The profile is sent
+   * with the interest, not with an application, so the lede says so; and there is
+   * no completeness gate on that route (the drawer's Continue waits on nothing
+   * but an open card), so the status card carries no "required" strip.
+   */
+  forInterest?: boolean;
   /** Signed up but not yet approved by the PL team. The stack stays editable —
    *  production never locks a pending member's form — but applying is off, and
    *  the lede and the flow's footer say so. */
@@ -420,6 +428,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
     editing,
     setEditing,
     pendingRoleTitle,
+    forInterest = false,
     pendingApproval = false,
     jobAspirant = false,
     floatingChrome,
@@ -890,7 +899,13 @@ export function JobProfilePane(props: JobProfilePaneProps) {
         {pendingApproval ? (
           <PendingApprovalSteps />
         ) : (
-          !pendingRoleTitle && <p className={fd.lede}>This is what hiring teams see when you apply.</p>
+          !pendingRoleTitle && (
+            <p className={fd.lede}>
+              {forInterest
+                ? 'This is what the team sees with your interest.'
+                : 'This is what hiring teams see when you apply.'}
+            </p>
+          )
         )}
       </div>
 
@@ -1202,8 +1217,11 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                Profile link), so the privacy mark reads as part of the section
                rather than as content inside it. */}
       <Section {...sectionProps('status')} className={d.sectionAnchor}>
-        <DetailsSection missingData={!hasStatus} classes={{ root: hasStatus ? fd.cardEdge : undefined }}>
-          {!hasStatus && (
+        <DetailsSection
+          missingData={!hasStatus && !forInterest}
+          classes={{ root: hasStatus || forInterest ? fd.cardEdge : undefined }}
+        >
+          {!hasStatus && !forInterest && (
             <DataIncomplete className={d.incompleteStrip}>
               {pendingRoleTitle
                 ? `An answer here is required to apply to ${pendingRoleTitle}.`

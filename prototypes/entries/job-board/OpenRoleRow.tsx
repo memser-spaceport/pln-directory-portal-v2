@@ -69,7 +69,7 @@ interface OpenRoleRowProps {
  *    a subtitle; here they are run together as one line, because a banner has a
  *    block to fill and this has a row — see the note at the markup.
  *
- *    It is a strict prefix of what `OpenRoleModal` promises at the moment of
+ *    It is a strict prefix of what `JobInterestPane` promises at the moment of
  *    sending — that one goes on to name the profile and the CV, where naming
  *    them is what the person is about to hand over — so the two cannot drift
  *    into different promises. The shorter one stops earlier; it does not say

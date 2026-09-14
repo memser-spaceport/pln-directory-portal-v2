@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
+import type { NewsItemWithPost } from '../news-shared/teamPosts';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { CloseIcon } from '@/components/icons';
@@ -63,6 +64,13 @@ interface Props {
   /** This team's news as it stands — what the link is checked against. */
   existing: ITeamNewsItem[];
   onPublish: (post: PostNewsSubmission) => void;
+  /**
+   * The published post being changed, if any. Same three fields, prefilled;
+   * "Save" instead of "Post", and dead until something actually differs from
+   * what is published — the product's editors disable Save on "No Changes".
+   */
+  editing?: NewsItemWithPost | null;
+  onSave?: (uid: string, post: PostNewsSubmission) => void;
 }
 
 /**
@@ -86,13 +94,37 @@ interface Props {
  * Post stays disabled until the link changes; there is no "post anyway",
  * because the second copy would sit two rows under the first.
  *
+ * EDITING is the same modal on the same three fields, opened on a published
+ * post. Nothing else is editable: the type dot, the date and the team are not
+ * the author's to change — an edit is a correction, not a new event, and the
+ * post keeps its place in every list. The link is still checked against the
+ * team's other news (a post may keep its own link). The draft is kept per
+ * post, so closing mid-edit and reopening lands on the unsaved change.
+ *
  * Drafts follow the product's autosave contract via production's own
  * `useFormDraft` (the hook Gantry's modal and the AI-apps feedback dialog use):
  * a visible Saving… / Saved status in the title row, the backdrop inert while
  * open, and an explicit Discard step — Cancel and Escape keep the draft.
  */
-export function PostNewsModal({ open, onClose, teamUid, teamName, existing, onPublish }: Props) {
+export function PostNewsModal({ open, onClose, teamUid, teamName, existing, onPublish, editing, onSave }: Props) {
   const [discardOpen, setDiscardOpen] = useState(false);
+  /** What the form opens on: the published post when editing, blank otherwise. */
+  const getInitial = (): PostNewsFormData =>
+    editing ? { title: editing.title, body: editing.contentHtml ?? '', url: editing.sourceUrl } : getDefaults();
+  // The editor re-serialises its HTML on mount (Quill 2's getSemanticHTML
+  // writes every space as `&nbsp;`), so the body is compared with entities
+  // and inter-tag whitespace normalised; an empty editor is an empty body.
+  const normBody = (html: string) =>
+    hasRichTextContent(html)
+      ? html
+          .replace(/&nbsp;/g, ' ')
+          .replace(/>\s+</g, '><')
+          .trim()
+      : '';
+  const sameAsPublished = (d: PostNewsFormData) => {
+    const o = getInitial();
+    return d.title.trim() === o.title.trim() && normBody(d.body) === normBody(o.body) && d.url.trim() === o.url.trim();
+  };
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const saveTimer = useRef<number | null>(null);
 
@@ -108,18 +140,20 @@ export function PostNewsModal({ open, onClose, teamUid, teamName, existing, onPu
   const body = useWatch({ control, name: 'body' }) ?? '';
   const url = useWatch({ control, name: 'url' }) ?? '';
 
-  const hasDraft = !isDraftEmpty({ title, body, url });
+  // Posting: anything typed is a draft. Editing: only a difference from what
+  // is published is one — the prefilled form is not "unsaved work".
+  const hasDraft = editing ? !sameAsPublished({ title, body, url }) : !isDraftEmpty({ title, body, url });
   const bodyLength = htmlToPlainText(body).length;
   const bodyTooLong = bodyLength > BODY_MAX_LENGTH;
 
   const { clearDraft } = useFormDraft<PostNewsFormData, PostNewsFormData>({
-    storageKey: `team-news-post:${teamUid}`,
+    storageKey: editing ? `team-news-edit:${editing.uid}` : `team-news-post:${teamUid}`,
     enabled: open,
     methods,
-    getDefaults,
+    getDefaults: getInitial,
     toDraft: (form) => form,
-    fromDraft: (draft) => ({ ...getDefaults(), ...draft }),
-    isEmpty: isDraftEmpty,
+    fromDraft: (draft) => ({ ...getInitial(), ...draft }),
+    isEmpty: editing ? sameAsPublished : isDraftEmpty,
     // A restored draft is already on disk, so it opens as Saved rather than
     // idle — the status has to be true of the text on screen.
     onRestore: (draft) => setSaveStatus(draft ? 'saved' : 'idle'),
@@ -155,31 +189,41 @@ export function PostNewsModal({ open, onClose, teamUid, teamName, existing, onPu
     (value: string) => {
       if (!value?.trim()) return 'Required';
       if (!isSafeHttpUrl(value)) return 'Enter the full link, starting with https://';
-      const hit = findNewsByUrl(existing, value);
+      // A post may keep its own link; every other story's is still taken.
+      const hit = findNewsByUrl(
+        existing.filter((item) => item.uid !== editing?.uid),
+        value,
+      );
       if (hit) return `Already in ${teamName} news: “${hit.title}” (${formatWhen(hit.eventDate)})`;
       return true;
     },
-    [existing, teamName],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [existing, teamName, editing?.uid],
   );
 
   const handleDiscard = () => {
     clearDraft();
-    reset(getDefaults());
+    reset(getInitial());
     setSaveStatus('idle');
     setDiscardOpen(false);
     onClose();
   };
 
   const onSubmit = (data: PostNewsFormData) => {
-    const bodyHtml = hasRichTextContent(data.body) ? data.body : '';
-    onPublish({
+    // Quill 2 hands back every space as `&nbsp;`, which the story modal then
+    // renders as one unbreakable line per paragraph. Ordinary spaces on the
+    // way out; the editor re-encodes them on the way back in.
+    const bodyHtml = hasRichTextContent(data.body) ? data.body.replace(/&nbsp;/g, ' ') : '';
+    const post: PostNewsSubmission = {
       title: data.title.trim(),
       body: bodyHtml,
       url: data.url.trim(),
       summary: bodyHtml ? htmlToPlainText(bodyHtml) : null,
-    });
+    };
+    if (editing) onSave?.(editing.uid, post);
+    else onPublish(post);
     clearDraft();
-    reset(getDefaults());
+    reset(getInitial());
     setSaveStatus('idle');
     onClose();
   };
@@ -194,13 +238,15 @@ export function PostNewsModal({ open, onClose, teamUid, teamName, existing, onPu
           <div className={dealModalStyles.header}>
             <div className={dealModalStyles.headerText}>
               <div className={ideaModalStyles.titleRow}>
-                <h2 className={dealModalStyles.title}>Post news</h2>
+                <h2 className={dealModalStyles.title}>{editing ? 'Edit news' : 'Post news'}</h2>
                 <DraftSaveStatus status={saveStatus} />
               </div>
               {/* The one thing the form can't show: where this goes, and under
                   whose name. */}
               <p className={dealModalStyles.subtitle}>
-                Published as {teamName}, to its followers and the network feed.
+                {editing
+                  ? `Changes show on ${teamName}’s page and in the network feed.`
+                  : `Published as ${teamName}, to its followers and the network feed.`}
               </p>
             </div>
             <button type="button" className={dealModalStyles.closeButton} onClick={onClose} aria-label="Close">
@@ -260,8 +306,11 @@ export function PostNewsModal({ open, onClose, teamUid, teamName, existing, onPu
             <Button style="border" variant="neutral" onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit(onSubmit)} disabled={!isValid || bodyTooLong}>
-              Post
+            <Button
+              onClick={handleSubmit(onSubmit)}
+              disabled={!isValid || bodyTooLong || (Boolean(editing) && !hasDraft)}
+            >
+              {editing ? 'Save' : 'Post'}
             </Button>
           </div>
         </div>

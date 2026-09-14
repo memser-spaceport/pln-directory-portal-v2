@@ -191,6 +191,26 @@ describe('CV import inside the Experience section', () => {
     renderSection({ enableCvImport: true, entries: [entry] });
     expect(screen.getByRole('button', { name: /^add$/i })).toBeInTheDocument();
   });
+
+  it('cancelling a header-driven read returns to the experience list', async () => {
+    mockParse.mockReturnValue(new Promise(() => {}));
+    renderSection({ enableCvImport: true, entries: [entry] });
+
+    const cv = new File(['x'], 'cv.pdf', { type: 'application/pdf' });
+    Object.defineProperty(cv, 'size', { value: 1024 });
+    const input = document.querySelector('input[accept=".pdf"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [cv] } });
+
+    expect(await screen.findByText(/Reading cv.pdf/)).toBeInTheDocument();
+
+    const cancels = screen.getAllByRole('button', { name: /^cancel$/i });
+    fireEvent.click(cancels[cancels.length - 1]);
+
+    expect(await screen.findByText('Protocol Engineer')).toBeInTheDocument();
+    expect(screen.queryByText(/Reading cv.pdf/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /update from cv/i })).toBeInTheDocument();
+    expect(mockAnalytics.onCvImportCancelled).toHaveBeenCalledWith('reading');
+  });
 });
 
 describe('the whole way through: drop a file, review it, save it', () => {

@@ -1,0 +1,27 @@
+// One wrapper per card, so the page can speak to a card as a unit — mute it,
+// point the status bar at it — without reaching into each section's markup.
+//
+// `width: 100%` because the apply drawer's column centres its children
+// (`EditInvestorProfileDrawer.module.scss .drawerContent`), so a wrapper with no
+// width of its own would shrink to its contents and pull the card in with it.
+.section {
+  width: 100%;
+  transition: opacity 0.2s ease;
+}
+
+// A section that renders nothing at all — several are conditional — must not
+// earn the column's gap.
+.section:empty {
+  display: none;
+}
+
+// **Every card that is not being edited, while one is.** `inert` on the element
+// is what actually disables it; this is only how that reads. 0.6 is production's
+// own disabled measure — `FormField.module.scss` fades a disabled input to
+// exactly this — so a muted card and a disabled field are one tone of "not now".
+// Not greyscale: the cards keep their colour so the page still reads as the same
+// page, just out of reach.
+.muted {
+  opacity: 0.6;
+  user-select: none;
+}

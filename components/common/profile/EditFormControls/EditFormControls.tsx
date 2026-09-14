@@ -4,6 +4,7 @@ import { useFormContext } from 'react-hook-form';
 import { CloseIcon } from '@/components/icons';
 import { Button } from '@/components/common/Button';
 import { UnsavedEditPopup, useUnsavedEditRegistration } from '@/components/common/profile/UnsavedEdits';
+import { useSectionEditClaim } from '@/components/common/profile/SectionEditLock';
 
 import { getSaveBtnLabel } from './utils/getSaveBtnLabel';
 
@@ -38,14 +39,26 @@ export const EditFormControls = (props: Props) => {
    */
   const { rootRef, anchor, showPopup, dismissPopup } = useUnsavedEditRegistration(Boolean(isDirty));
 
+  const isProcessing = isSubmitting || pIsProcessing;
+
+  /**
+   * Hold the surrounding profile column's edit lock for as long as this editor
+   * is open, so every other section is muted and the page's status bar has a
+   * card to report on. Same mount-means-open argument as the registration
+   * above, and inert outside a `SectionEditLockProvider`.
+   *
+   * The bar's Save is this row's Save at a distance, so it is told about the
+   * save in flight too — otherwise the two buttons disagree about whether the
+   * form is busy.
+   */
+  useSectionEditClaim(Boolean(isDirty), Boolean(isProcessing));
+
   const cancel = () => {
     if (reset) {
       reset();
     }
     onClose();
   };
-
-  const isProcessing = isSubmitting || pIsProcessing;
 
   return (
     <div className={s.root} ref={rootRef}>

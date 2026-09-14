@@ -135,6 +135,23 @@
   }
 }
 
+// --- The open section's status, in the bar -----------------------------------
+//
+// The slot the profile column's status row renders into (`SectionStatusRow`):
+// the way back to a card that was scrolled away, and its Save, beside the
+// footer's own action. The drawer already has a bar, so the presses join it
+// rather than floating over it. Empty — and so not laid out — the rest of the
+// time, which is what keeps the action on its own end of the row.
+.footerStatus {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+
+  &:empty {
+    display: none;
+  }
+}
+
 // The action, which must not wrap.
 //
 // The row is `space-between` with a hint that runs to two lines in its longest

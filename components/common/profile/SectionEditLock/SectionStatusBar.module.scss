@@ -1,0 +1,130 @@
+@use 'styles/media';
+
+// The floating bar's position. Fixed, centred at the bottom of the viewport.
+//
+// z-index 9 is where this app puts a floating affordance: above MobileBottomNav
+// (1), below UpdatesPanel (100), the bottom nav's More menu (1000) and the Modal
+// overlay (9999) — the same slot `FloatingFeedbackButton` takes.
+//
+// The wrap covers the whole width, so it takes no pointer events of its own: a
+// click beside the bar has to reach the page underneath.
+.wrap {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 24px;
+  z-index: 9;
+  display: flex;
+  justify-content: center;
+  padding-inline: 16px;
+  pointer-events: none;
+  animation: barIn 200ms ease-out both;
+}
+
+// It arrives rather than appearing — the page under it did not change, only
+// what is pending on it.
+@keyframes barIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// One object: a white card holding the status sentence and the two presses. The
+// card border and a neutral shadow, so it reads as a surface lifted off the page
+// rather than as a brand control — the presses inside it carry the emphasis, and
+// a Save filled brand-blue inside a brand-blue surface would have nowhere to
+// stand out. 12px is what this product gives a surface that floats over the page
+// (`Modal`), where 8px is the in-flow card (`DetailsSection`).
+.bar {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 100%;
+  padding: 8px 8px 8px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  background: var(--Neutral-White, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  box-shadow: 0 4px 8px rgba(14, 15, 17, 0.12);
+}
+
+// `EditFormControls .title`'s type, so the sentence reads as the editor's own
+// control row speaking from a distance. The mark and the text are one flex row,
+// so the ellipsis lands on the text and never swallows the glyph.
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+// Direction, not state: the mark says whether the open card is above or below
+// the current view, and the whole bar can be pressed to go there.
+.directionMark {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--background-brand-subtle, #eef6ff);
+  color: var(--action-background-brand-normal, #156ff7);
+}
+
+.statusText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// 8px between the two buttons — the gap the editor's own Cancel/Save row keeps,
+// because this bar speaks for that row.
+.actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+// Save is the only filled press; the way back is the grey bordered pair, because
+// it is the quieter of the two — it puts you where you already were.
+.btn.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 4px, not the row's 8: 8px is the gap *between* two controls, and spending
+     the same value inside one makes the glyph read as a second object beside
+     the label rather than as its mark. */
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.btnIcon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 15px;
+}
+
+// --- The same presses, inline in a bar the host already has ------------------
+//
+// The apply drawer's footer row. Takes the footer's free width — the hint's
+// place — so Continue keeps its end of the bar.
+.row {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}

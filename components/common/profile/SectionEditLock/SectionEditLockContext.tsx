@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 /**
  * "One section at a time, and a way back to it."
@@ -24,6 +24,22 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
  * everywhere except the member profile page and the two job drawers.
  */
 
+/**
+ * A CV being read in the open section — facts only, not the progress figure.
+ * Each place that draws the wait runs its own clock against these timestamps
+ * so a tick cannot re-render the whole profile column. See `ImportWaitStatus`.
+ */
+export interface SectionImportWait {
+  fileName: string;
+  fileSize: number | null;
+  /** When the current read began. Null once the bar has been settled at 100%. */
+  startedAt: number | null;
+  /** The read came back; the bar holds at 100% until the review opens. */
+  settled: boolean;
+  /** The row's own Cancel, so the bar backs out of the same read. */
+  cancel: () => void;
+}
+
 /** The one section whose editor is open, as the page around it sees it. */
 export interface OpenSectionEdit {
   id: string;
@@ -35,6 +51,8 @@ export interface OpenSectionEdit {
   dirty: boolean;
   /** Whether that save is in flight — the bar's Save says so and stops taking presses. */
   submitting: boolean;
+  /** Set while a CV is being read — the bar draws the wait instead of Keep editing / Save. */
+  importWait?: SectionImportWait | null;
 }
 
 export interface SectionEditLockApi {
@@ -62,15 +80,7 @@ export function useSectionEditLockRegistry(): SectionEditLockApi {
      without the comparison every flip would be a new state value and a new
      observer on the same card. */
   const claim = useCallback((entry: OpenSectionEdit) => {
-    setOpen((prev) =>
-      prev &&
-      prev.id === entry.id &&
-      prev.name === entry.name &&
-      prev.dirty === entry.dirty &&
-      prev.submitting === entry.submitting
-        ? prev
-        : entry,
-    );
+    setOpen((prev) => (prev && sameOpen(prev, entry) ? prev : entry));
   }, []);
 
   /* Keyed, so a form unmounting after another has already claimed the lock
@@ -83,7 +93,7 @@ export function useSectionEditLockRegistry(): SectionEditLockApi {
 }
 
 /** Which section a form is inside, provided by `ProfileSection`. */
-export type SectionSlot = Omit<OpenSectionEdit, 'dirty' | 'submitting'>;
+export type SectionSlot = Omit<OpenSectionEdit, 'dirty' | 'submitting' | 'importWait'>;
 
 const SectionSlotContext = createContext<SectionSlot | null>(null);
 
@@ -97,7 +107,8 @@ export const SectionSlotProvider = SectionSlotContext.Provider;
  * `EditFormControls` and `EditOfficeHoursFormControls` — for the same reason
  * `useUnsavedEditRegistration` is: they mount only while an editor is open, and
  * one form picks between them by variant, so registering in only one of them
- * would cover half the sections on the same screen.
+ * would cover half the sections on the same screen. A CV read claims through
+ * `useSectionImportWaitClaim` instead — there is no form yet.
  */
 export function useSectionEditClaim(isDirty: boolean, isSubmitting: boolean) {
   const slot = useContext(SectionSlotContext);
@@ -113,4 +124,54 @@ export function useSectionEditClaim(isDirty: boolean, isSubmitting: boolean) {
     claim({ ...slot, dirty: isDirty, submitting: isSubmitting });
     return () => release(slot.id);
   }, [claim, release, slot, isDirty, isSubmitting]);
+}
+
+/**
+ * Hold the lock for as long as a CV is being read in this section, so other
+ * cards mute and the status bar can draw the wait once the card is off-screen.
+ *
+ * The wait's progress must not live on the lock: a tick would be a new `open`
+ * and a new observer on the same card. Timestamps only — see `SectionImportWait`.
+ */
+export function useSectionImportWaitClaim(wait: SectionImportWait | null) {
+  const slot = useContext(SectionSlotContext);
+  const lock = useContext(SectionEditLockContext);
+  const claim = lock?.claim;
+  const release = lock?.release;
+  const waitRef = useRef(wait);
+  useEffect(() => {
+    waitRef.current = wait;
+  });
+  /* Primitive facts, not the wait object: `cancel` identity must not release
+     and re-claim the lock (that loop is what crashed CV upload). */
+  const fileName = wait?.fileName;
+  const fileSize = wait?.fileSize;
+  const startedAt = wait?.startedAt;
+  const settled = wait?.settled;
+  const active = wait !== null;
+
+  useEffect(() => {
+    const current = waitRef.current;
+    if (!claim || !release || !slot || !current) return;
+    claim({ ...slot, dirty: false, submitting: false, importWait: current });
+    return () => release(slot.id);
+  }, [claim, release, slot, active, fileName, fileSize, startedAt, settled]);
+}
+
+function sameOpen(prev: OpenSectionEdit, entry: OpenSectionEdit) {
+  return (
+    prev.id === entry.id &&
+    prev.name === entry.name &&
+    prev.dirty === entry.dirty &&
+    prev.submitting === entry.submitting &&
+    sameImportWait(prev.importWait, entry.importWait)
+  );
+}
+
+function sameImportWait(a?: SectionImportWait | null, b?: SectionImportWait | null) {
+  if (!a && !b) return true;
+  if (!a || !b) return false;
+  return (
+    a.fileName === b.fileName && a.fileSize === b.fileSize && a.startedAt === b.startedAt && a.settled === b.settled
+  );
 }

@@ -23,6 +23,10 @@ import { useCallback, useEffect, useState } from 'react';
  * **So the curve cannot reach 100.** `settle` is the only route there, and only a
  * resolved read calls it. 100% means done, always; the long tail is a bar still
  * visibly moving rather than one parked at 95.
+ *
+ * Progress is derived from timestamps (`useReadingBarProgress`), not stored on
+ * the wait: the panel's row and the floating status bar both draw from the same
+ * facts, and a tick must not re-render the whole profile column through the lock.
  */
 
 /**
@@ -64,57 +68,67 @@ const TICK_MS = 200;
 
 const curveAt = (elapsedMs: number) => CEIL * (1 - Math.exp(-elapsedMs / TAU_MS));
 
+export interface ReadingWaitClock {
+  startedAt: number | null;
+  settled: boolean;
+}
+
 /**
- * Driven by events, not by a status flag.
+ * Where the bar is, 0–100. Every reader of a wait calls this; none computes
+ * its own, so the panel's row and the floating status bar cannot disagree.
+ */
+export function useReadingBarProgress(wait: ReadingWaitClock | null): number {
+  const [now, setNow] = useState(0);
+  const running = wait !== null && wait.startedAt !== null && !wait.settled;
+
+  useEffect(() => {
+    if (!running) return;
+    const timeout = window.setTimeout(() => setNow(Date.now()), 0);
+    const id = window.setInterval(() => setNow(Date.now()), TICK_MS);
+    return () => {
+      window.clearTimeout(timeout);
+      window.clearInterval(id);
+    };
+  }, [running, wait?.startedAt]);
+
+  if (!wait) return 0;
+  if (wait.settled) return 100;
+  if (wait.startedAt === null || now === 0) return 0;
+  return curveAt(Math.max(0, now - wait.startedAt));
+}
+
+/**
+ * The wait's clock. Driven by events, not by a status flag.
  *
  * An earlier version took `active: boolean` and reset itself in an effect, which
  * is the shape `react-hooks/set-state-in-effect` exists to catch — and the rule
  * was right: the panel already knows exactly when a read begins and ends, so a
  * flag for the hook to *notice* was a second copy of something already known.
  * `start`/`stop`/`settle` are called from the three places that make those
- * things happen, and the interval is the only thing left for an effect to own.
+ * things happen. The interval lives in `useReadingBarProgress`, next to the
+ * bar that needs it.
  */
 export function useReadingProgress() {
-  /** When the current read began, or `null` between reads. Owns the interval. */
   const [startedAt, setStartedAt] = useState<number | null>(null);
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    if (startedAt === null) return;
-
-    const id = setInterval(() => {
-      /* Position from an ABSOLUTE start, never accumulated tick by tick: a
-         backgrounded tab has its intervals throttled to roughly once a second,
-         and a counter that added up its own ticks would come back visibly
-         behind. This one comes back exactly where it should be.
-
-         `Math.max` keeps the bar monotonic, which also closes a small race: a
-         tick already queued when `settle` runs would otherwise land after the
-         100 and drag the finished bar back down to ~90 for the length of the
-         hold. The curve tops out below CEIL, so it can never win against 100. */
-      setProgress((previous) => Math.max(previous, curveAt(Date.now() - startedAt)));
-    }, TICK_MS);
-
-    return () => clearInterval(id);
-  }, [startedAt]);
+  const [settled, setSettled] = useState(false);
 
   /** A read has begun. */
   const start = useCallback(() => {
-    setProgress(0);
+    setSettled(false);
     setStartedAt(Date.now());
   }, []);
 
   /** A read ended without finishing — cancelled, superseded, or failed. */
   const stop = useCallback(() => {
     setStartedAt(null);
-    setProgress(0);
+    setSettled(false);
   }, []);
 
   /** The read came back. The only route to 100. */
   const settle = useCallback(() => {
     setStartedAt(null);
-    setProgress(100);
+    setSettled(true);
   }, []);
 
-  return { progress, start, stop, settle };
+  return { startedAt, settled, start, stop, settle };
 }

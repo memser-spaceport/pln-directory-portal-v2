@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 
 import { InfoCircleIconOutlined, SpinnerIcon } from '@/components/icons';
-import { formatFileSize } from '@/utils/file.utils';
 // The host section's own empty row and its connect-button slot. `.connectButton`
 // is nested inside `.emptyData` in four of these stylesheets (Experience, Teams,
 // Contributions, Repositories) and rendered in none of them — the affordance for
@@ -12,7 +11,13 @@ import { formatFileSize } from '@/utils/file.utils';
 // This is that button, finally used, in the sheet it was drawn in.
 import e from '@/components/page/member-details/ExperienceDetails/components/ExperienceDetailsView/components/ExperiencesList/ExperiencesList.module.scss';
 
+import {
+  useSectionImportWaitClaim,
+  type SectionImportWait,
+} from '@/components/common/profile/SectionEditLock/SectionEditLockContext';
+
 import { ResumeDropzone } from './ResumeDropzone';
+import { ImportWaitStatus } from './ImportWaitStatus';
 import type { ParsedProfile } from './types';
 import { useReadingProgress } from './useReadingProgress';
 import p from './ExperienceImportPanel.module.scss';
@@ -180,11 +185,7 @@ export function ExperienceImportPanel({
   /* An invented curve over a wait the server reports no fraction for — see the
      hook for why a determinate bar is still the honest choice here. Started and
      stopped alongside the status, from the three places that change it. */
-  const { progress, start: startBar, stop: stopBar, settle: settleBar } = useReadingProgress();
-
-  /* Names the bar with the line already above it ("Reading polina-cv.pdf…"),
-     rather than a second label repeating it. */
-  const readingLabelId = useId();
+  const { startedAt, settled, start: startBar, stop: stopBar, settle: settleBar } = useReadingProgress();
 
   /**
    * Which read the panel is still interested in.
@@ -224,6 +225,29 @@ export function ExperienceImportPanel({
     setStatus('idle');
     stopBar();
   };
+
+  const cancelReadRef = useRef(() => {});
+  useEffect(() => {
+    cancelReadRef.current = () => {
+      onCancelRead?.();
+      reset();
+    };
+  });
+
+  /* Facts only — progress is derived by each reader. Cancel closes over a ref
+     so a parent re-render cannot mint a new wait and re-claim the lock. */
+  const importWait = useMemo<SectionImportWait | null>(() => {
+    if (status !== 'reading' || !file) return null;
+    return {
+      fileName: file.name,
+      fileSize: file.size,
+      startedAt,
+      settled,
+      cancel: () => cancelReadRef.current(),
+    };
+  }, [status, file, startedAt, settled]);
+
+  useSectionImportWaitClaim(importWait);
 
   /** Take the bar to 100% and let it be seen there. */
   const finishBar = async () => {
@@ -286,33 +310,10 @@ export function ExperienceImportPanel({
 
   return (
     <div className={p.panel}>
-      {status === 'reading' ? (
+      {status === 'reading' && file ? (
         <div className={p.reading}>
           <SpinnerIcon className={p.spinner} />
-          <div className={p.readingText}>
-            <div className={p.readingTitle} id={readingLabelId}>
-              Reading {file?.name ?? 'your file'}…
-            </div>
-            {file && <div className={p.readingMeta}>{formatFileSize(file.size)}</div>}
-            {/* Inside the text column rather than the row: the row is
-                `align-items: center` between the spinner and Cancel, and a
-                full-width bar in there would stretch that alignment around it.
-
-                `role="progressbar"` and NOT a live region — the value moves five
-                times a second, and an announcement per tick would bury the one
-                sentence on screen that matters. A progressbar is polled when the
-                reader wants it, which is the right relationship for this. */}
-            <div
-              className={p.progressTrack}
-              role="progressbar"
-              aria-labelledby={readingLabelId}
-              aria-valuenow={Math.round(progress)}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            >
-              <div className={p.progressFill} style={{ width: `${progress}%` }} />
-            </div>
-          </div>
+          <ImportWaitStatus wait={{ fileName: file.name, fileSize: file.size, startedAt, settled }} />
           <button
             type="button"
             className={p.quietButton}

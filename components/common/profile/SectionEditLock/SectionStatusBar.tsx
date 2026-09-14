@@ -1,10 +1,13 @@
 'use client';
 
 import { type MouseEvent, type RefObject, type SVGProps, useEffect, useState } from 'react';
+import clsx from 'clsx';
 
 import { Button } from '@/components/common/Button';
-import { EditIcon } from '@/components/icons';
+import { EditIcon, SpinnerIcon } from '@/components/icons';
 import { useIsBelowTabletLandscape } from '@/hooks/useIsBelowTabletLandscape';
+import { ImportWaitStatus } from '@/components/page/member-details/ExperienceDetails/components/ExperienceImport/ImportWaitStatus';
+import panel from '@/components/page/member-details/ExperienceDetails/components/ExperienceImport/ExperienceImportPanel.module.scss';
 
 import { type OpenSectionEdit, useSectionEditLock } from './SectionEditLockContext';
 
@@ -25,6 +28,12 @@ import s from './SectionStatusBar.module.scss';
  * already ends in a sticky footer holding Continue, so there the same presses
  * are a row in that footer beside it (`SectionStatusRow`) — a floating bar over
  * a footer would be a second bar standing on the first.
+ *
+ * **A CV is being read.** The read is ten to thirty seconds, and someone who
+ * dropped a file and scrolled away has the same two questions the importer's
+ * own row answers — how far, and is it still going. The bar shows that row
+ * (title, progress, Cancel) instead of Keep editing / Save. There is no Save
+ * (nothing has landed yet) and no Keep editing (nothing to edit yet).
  *
  * **Only above tablet-landscape.** Below it an open editor is a fixed,
  * full-screen takeover (`DetailsSection.editView`) with its own close and Save:
@@ -149,6 +158,16 @@ export function SectionStatusBar() {
   if (!open || !away || isBelowTabletLandscape) return null;
 
   const { back, save } = sectionActions(open);
+  const wait = open.importWait;
+
+  if (wait) {
+    return (
+      <div className={s.wrap}>
+        <ImportWaitBar className={clsx(s.bar, s.barWait)} wait={wait} direction={away} onBack={back} />
+      </div>
+    );
+  }
+
   const status = statusOf(open);
 
   const onBarClick = (event: MouseEvent<HTMLDivElement>) => {
@@ -202,6 +221,11 @@ export function SectionStatusRow({ topOcclusion }: { topOcclusion?: RefObject<HT
   if (!open || !away || isBelowTabletLandscape) return null;
 
   const { back, save } = sectionActions(open, topOcclusion);
+  const wait = open.importWait;
+
+  if (wait) {
+    return <ImportWaitBar className={clsx(s.row, s.rowWait)} wait={wait} direction={away} onBack={back} />;
+  }
 
   return (
     <div className={s.row}>
@@ -218,6 +242,36 @@ export function SectionStatusRow({ topOcclusion }: { topOcclusion?: RefObject<HT
         Keep editing
       </Button>
       {open.dirty && <SaveButton open={open} onSave={save} />}
+    </div>
+  );
+}
+
+function ImportWaitBar({
+  className,
+  wait,
+  direction,
+  onBack,
+}: {
+  className: string;
+  wait: NonNullable<OpenSectionEdit['importWait']>;
+  direction: ScrollDirection;
+  onBack: () => void;
+}) {
+  const onBarClick = (event: MouseEvent<HTMLDivElement>) => {
+    if ((event.target as HTMLElement).closest('button')) return;
+    onBack();
+  };
+
+  return (
+    <div className={className} onClick={onBarClick}>
+      <ScrollArrowIcon className={s.directionMark} direction={direction} aria-hidden />
+      <SpinnerIcon className={panel.spinner} />
+      <ImportWaitStatus wait={wait} live />
+      <div className={s.actions}>
+        <Button type="button" style="border" variant="neutral" size="m" className={s.btn} onClick={wait.cancel}>
+          Cancel
+        </Button>
+      </div>
     </div>
   );
 }

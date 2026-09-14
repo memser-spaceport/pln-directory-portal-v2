@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import '@testing-library/jest-dom';
 
 /**
@@ -23,6 +24,10 @@ jest.mock('@/services/access-control/hooks/useMemberContactsAccess', () => ({
 
 jest.mock('@/hooks/useMobileNavVisibility', () => ({
   useMobileNavVisibility: jest.fn(),
+}));
+
+jest.mock('@/hooks/useIsBelowTabletLandscape', () => ({
+  useIsBelowTabletLandscape: () => false,
 }));
 
 jest.mock('@/analytics/members.analytics', () => ({
@@ -78,6 +83,12 @@ jest.mock('@/components/page/member-details/ExperienceDetails/components/EditExp
 
 import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
 import type { IMember } from '@/types/members.types';
+import {
+  ProfileSection,
+  SectionEditLockProvider,
+  SectionStatusBar,
+  useSectionEditLockRegistry,
+} from '@/components/common/profile/SectionEditLock';
 
 const member = {
   id: 'member-1',
@@ -263,5 +274,125 @@ describe('the whole way through: drop a file, review it, save it', () => {
     expect(await screen.findByText(/couldn’t find any roles in that file/i)).toBeInTheDocument();
     expect(mockAnalytics.onCvImportParseEmpty).toHaveBeenCalledTimes(1);
     expect(mockAnalytics.onCvImportParseFailed).not.toHaveBeenCalled();
+  });
+});
+
+function LockHost({ children }: { children: ReactNode }) {
+  const lock = useSectionEditLockRegistry();
+  return (
+    <SectionEditLockProvider value={lock}>
+      <ProfileSection name="Experience">{children}</ProfileSection>
+      <SectionStatusBar />
+    </SectionEditLockProvider>
+  );
+}
+
+class FakeIntersectionObserver {
+  static instances: FakeIntersectionObserver[] = [];
+  callback: IntersectionObserverCallback;
+
+  constructor(callback: IntersectionObserverCallback) {
+    this.callback = callback;
+    FakeIntersectionObserver.instances.push(this);
+  }
+
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords(): IntersectionObserverEntry[] {
+    return [];
+  }
+  root = null;
+  rootMargin = '';
+  thresholds: number[] = [];
+
+  fireAway() {
+    this.callback(
+      [
+        {
+          boundingClientRect: {
+            top: 2000,
+            bottom: 2200,
+            height: 200,
+            left: 0,
+            right: 0,
+            width: 400,
+            x: 0,
+            y: 2000,
+            toJSON: () => ({}),
+          },
+          rootBounds: {
+            top: 0,
+            bottom: 800,
+            height: 800,
+            left: 0,
+            right: 0,
+            width: 1280,
+            x: 0,
+            y: 0,
+            toJSON: () => ({}),
+          },
+          intersectionRatio: 0,
+          intersectionRect: {
+            top: 0,
+            bottom: 0,
+            height: 0,
+            left: 0,
+            right: 0,
+            width: 0,
+            x: 0,
+            y: 0,
+            toJSON: () => ({}),
+          },
+          isIntersecting: false,
+          target: document.body,
+          time: 0,
+        },
+      ],
+      this as unknown as IntersectionObserver,
+    );
+  }
+}
+
+describe('the floating status bar during a CV read', () => {
+  const originalIO = global.IntersectionObserver;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    FakeIntersectionObserver.instances = [];
+    global.IntersectionObserver = FakeIntersectionObserver as unknown as typeof IntersectionObserver;
+    mockParse.mockReturnValue(new Promise(() => {}));
+  });
+
+  afterEach(() => {
+    global.IntersectionObserver = originalIO;
+  });
+
+  const dropCv = () => {
+    const cv = new File(['x'], 'cv.pdf', { type: 'application/pdf' });
+    Object.defineProperty(cv, 'size', { value: 1024 });
+    const box = screen.getByText('Drag & drop your CV').closest('div')!.parentElement!;
+    fireEvent.drop(box, { dataTransfer: { files: [cv] } });
+  };
+
+  it('appears once the Experience card is scrolled away, with Cancel and no Keep editing', async () => {
+    mockExperiences.mockReturnValue({ data: [], isLoading: false });
+    render(
+      <LockHost>
+        <ExperienceDetails member={member} userInfo={userInfo as never} isLoggedIn enableCvImport />
+      </LockHost>,
+    );
+
+    dropCv();
+
+    expect(await screen.findByText(/Reading cv.pdf/)).toBeInTheDocument();
+    await waitFor(() => expect(FakeIntersectionObserver.instances.length).toBeGreaterThan(0));
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+
+    FakeIntersectionObserver.instances.at(-1)!.fireAway();
+
+    expect(await screen.findByRole('status')).toHaveTextContent(/Reading cv.pdf/);
+    expect(screen.queryByRole('button', { name: /keep editing/i })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /^cancel$/i }).length).toBeGreaterThan(1);
   });
 });

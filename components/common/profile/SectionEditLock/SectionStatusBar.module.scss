@@ -117,6 +117,13 @@
   height: 15px;
 }
 
+// The bar while a CV is being read: the importer's reading row at a distance.
+// A fixed width rather than the content's, because the progress track has no
+// width of its own and would size itself to the file name.
+.barWait {
+  width: min(100%, 560px);
+}
+
 // --- The same presses, inline in a bar the host already has ------------------
 //
 // The apply drawer's footer row. Takes the footer's free width — the hint's
@@ -127,4 +134,9 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
+}
+
+.rowWait {
+  cursor: pointer;
+  gap: 12px;
 }

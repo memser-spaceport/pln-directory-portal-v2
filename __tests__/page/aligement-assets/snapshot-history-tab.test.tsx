@@ -53,7 +53,7 @@ describe('SnapshotHistoryTab', () => {
     expect(screen.getByText('Activities this snapshot')).toBeInTheDocument();
     expect(screen.getByText('Activity 1')).toBeInTheDocument();
     expect(screen.getByText('Activity rewards')).toBeInTheDocument();
-    expect(screen.getByText('Infra Member')).toBeInTheDocument();
+    expect(screen.getByText('Infra')).toBeInTheDocument();
     expect(screen.getByText('+30 PLAA')).toBeInTheDocument();
     expect(screen.getByText('Jul 2026 total')).toBeInTheDocument();
 
@@ -61,7 +61,7 @@ describe('SnapshotHistoryTab', () => {
     fireEvent.click(screen.getByText('May 2026'));
     expect(screen.queryByText('Activity 1')).not.toBeInTheDocument();
     expect(screen.getByText('Activity 2')).toBeInTheDocument();
-    expect(screen.queryByText('Infra Member')).not.toBeInTheDocument();
+    expect(screen.queryByText('Infra')).not.toBeInTheDocument();
   });
 
   it('collapses a row when clicked again', () => {
@@ -127,15 +127,40 @@ describe('SnapshotHistoryTab', () => {
     });
   });
 
-  it('shows Pending in place of an open snapshot\'s own points and PLAA figures', () => {
+  describe('an open snapshot (not yet closed)', () => {
     const withPending: SnapshotHistoryEntry[] = [
       { ...entries[0], isPending: true },
       { ...entries[1], isPending: false },
     ];
-    render(<SnapshotHistoryTab entries={withPending} />);
 
-    expect(screen.getAllByText('Pending')).toHaveLength(2);
-    expect(screen.queryByText('450 points')).not.toBeInTheDocument();
-    expect(screen.getByText('350 points')).toBeInTheDocument();
+    it('shows Pending for the snapshot\'s PLAA, but still shows its points', () => {
+      render(<SnapshotHistoryTab entries={withPending} />);
+
+      const openRow = screen.getByText('Jul 2026').closest('button') as HTMLElement;
+      expect(openRow).toHaveTextContent('Pending');
+      expect(openRow).toHaveTextContent('450 points');
+      expect(openRow).not.toHaveTextContent('75');
+      expect(screen.getByText('350 points')).toBeInTheDocument();
+    });
+
+    it('shows Pending for every PLAA figure in the expanded breakdown, keeping the activity points', () => {
+      render(<SnapshotHistoryTab entries={withPending} />);
+
+      fireEvent.click(screen.getByText('Jul 2026'));
+      expect(screen.getByText('+300 points')).toBeInTheDocument();
+      expect(screen.queryByText('+45 PLAA')).not.toBeInTheDocument();
+      expect(screen.queryByText('+30 PLAA')).not.toBeInTheDocument();
+      expect(screen.queryByText('75 PLAA')).not.toBeInTheDocument();
+      // Row PLAA cell, activity rewards, infra rewards, and the snapshot total.
+      expect(screen.getAllByText('Pending')).toHaveLength(4);
+    });
+
+    it('keeps the open snapshot\'s PLAA out of the footer total, but counts its points', () => {
+      render(<SnapshotHistoryTab entries={withPending} />);
+
+      const footer = screen.getByText('Total to date').parentElement as HTMLElement;
+      expect(footer).toHaveTextContent('800 points');
+      expect(footer).toHaveTextContent(/^Total to date800 points35$/);
+    });
   });
 });

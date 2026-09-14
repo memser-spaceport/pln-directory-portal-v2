@@ -12,6 +12,7 @@ function snapshot(periodIso: string, period: string, activityPlaa: number, infra
     infra,
     plaaTotal: activityPlaa + infra,
     items: null,
+    isPending: false,
   };
 }
 

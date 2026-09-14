@@ -109,8 +109,10 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
   const chart = buildChart(entries, hasPointsData);
 
   const totalPoints = sumOrNull(entries, (e) => e.points);
-  const totalPlaa = entries.reduce((sum, p) => sum + p.plaa, 0);
-  const totalInfra = entries.reduce((sum, p) => sum + p.infra, 0);
+  // An open snapshot's PLAA is not final, so it stays out of the totals until it closes.
+  const closedEntries = entries.filter((e) => !e.isPending);
+  const totalPlaa = closedEntries.reduce((sum, p) => sum + p.plaa, 0);
+  const totalInfra = closedEntries.reduce((sum, p) => sum + p.infra, 0);
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
@@ -118,12 +120,12 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
         <div className={styles.chartHeader}>
           <div>
             <h3 className={styles.chartTitle}>
-              {hasPointsData ? 'Points and PLAA earned over time' : 'PLAA earned over time'}
+              {hasPointsData ? 'Points and PLAA balance over time' : 'PLAA balance over time'}
             </h3>
             <p className={styles.chartSubtitle}>
               {hasPointsData
-                ? 'Points collected in each snapshot, and your PLAA earned, cumulative, before redemptions.'
-                : 'Your PLAA earned, cumulative, before redemptions.'}
+                ? 'Points collected in each snapshot, and your PLAA balance before redemptions.'
+                : 'Your PLAA balance before redemptions.'}
             </p>
           </div>
           <div className={styles.legend}>
@@ -135,7 +137,7 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
             )}
             <span className={styles.legendItem}>
               <span className={styles.legendSwatchLine} />
-              PLAA earned (cumulative)
+              PLAA balance
             </span>
           </div>
         </div>
@@ -214,7 +216,7 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
                   </text>
                 )}
                 <text x={boxX + 12} y={boxY + (hasPointsData ? 55 : 37)} textAnchor="start" fontSize="10" fill="#dbeafe">
-                  PLAA earned: {entry.cum.toLocaleString()}
+                  PLAA balance: {entry.isPending ? PENDING_LABEL : entry.cum.toLocaleString()}
                 </text>
               </g>
             );
@@ -236,13 +238,13 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
 
         <div className={styles.axisLabels}>
           {hasPointsData && <span className={styles.axisLabel}>Points per snapshot</span>}
-          <span className={`${styles.axisLabel} ${styles.brand}`}>PLAA earned</span>
+          <span className={`${styles.axisLabel} ${styles.brand}`}>PLAA balance</span>
         </div>
 
         <div className={styles.divider} />
 
         <h4 className={styles.historyTitle}>Contribution History</h4>
-        <p className={styles.historySubtitle}>Every closed snapshot since you joined.</p>
+        <p className={styles.historySubtitle}>Every snapshot since you joined.</p>
 
         <div className={styles.tableWrap}>
           <div className={styles.bracketRow}>
@@ -259,15 +261,13 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
             <span>Activities</span>
             <span>Infra rewards</span>
             <span>Redeemed</span>
-            <span className={styles.brand}>PLAA earned</span>
+            <span className={styles.brand}>Balance</span>
           </div>
 
           {entries.map((entry) => (
             <div key={entry.period} className={styles.dataRow}>
               <span className={styles.period}>{entry.period}</span>
-              <span className={`${styles.right} ${styles.points}`}>
-                {entry.isPending ? PENDING_LABEL : dashOr(entry.points)}
-              </span>
+              <span className={`${styles.right} ${styles.points}`}>{dashOr(entry.points)}</span>
               <span className={`${styles.right} ${styles.secondary}`}>
                 {entry.isPending ? PENDING_LABEL : entry.plaa.toLocaleString()}
               </span>
@@ -275,7 +275,7 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
                 {entry.isPending ? PENDING_LABEL : entry.infra.toLocaleString()}
               </span>
               <span className={`${styles.right} ${styles.tertiary}`}>{dashOr(entry.redeemed)}</span>
-              <span className={styles.balanceChip}>{entry.cum.toLocaleString()}</span>
+              <span className={styles.balanceChip}>{entry.isPending ? PENDING_LABEL : entry.cum.toLocaleString()}</span>
             </div>
           ))}
 
@@ -290,8 +290,8 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
         </div>
 
         <p className={styles.historySubtitle}>
-          The last cell above is your confirmed current balance, after redemptions. Every other PLAA figure on this
-          page is cumulative earned, not yet adjusted for redemptions.
+          The last cell above is your confirmed current balance, after redemptions. Every other balance on this page
+          is before redemptions.
         </p>
       </div>
     </div>

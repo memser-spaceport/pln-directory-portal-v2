@@ -53,6 +53,7 @@ const Profile = () => {
         balance={data.balance}
         balanceStatus={data.balanceStatus}
         pointsThisSnapshot={data.pointsThisSnapshot}
+        currentSnapshotLabel={data.currentSnapshotLabel}
       />
 
       <div className={styles.tabs} role="tablist">

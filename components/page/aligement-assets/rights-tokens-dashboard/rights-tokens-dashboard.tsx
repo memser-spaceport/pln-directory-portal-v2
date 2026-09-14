@@ -29,9 +29,9 @@ function getWelcomeDisplayName(user: IUserInfo | null): string {
 
 const TOOLTIP_CONTENT = {
   total: 'PLAA Available to Bid in Buyback Auctions',
-  collected: 'Combined Value of PLAA Owned + PLAA Redeemed',
+  collected: 'Combined Value of PLAA Balance + PLAA Redeemed',
   tokens: 'Tokens Available to Bid in Buyback Auctions',
-  sold: 'TotalPLAA Redeemed in Buyback Auctions',
+  sold: 'Total PLAA Redeemed in Buyback Auctions',
 } as const;
 
 function formatLastUpdated(dateString: string): string {
@@ -167,7 +167,7 @@ export default function RightsTokensDashboard() {
                 <span className={styles['rights-tokens-dashboard__title-icon']}>
                   <Image src="/icons/token-icon.svg" alt="" width={16} height={16} />
                 </span>
-                <span className={styles['rights-tokens-dashboard__primary-label']}>PLAA OWNED</span>
+                <span className={styles['rights-tokens-dashboard__primary-label']}>PLAA Balance</span>
                 <InfoTooltip content={TOOLTIP_CONTENT.total} label="My rights and tokens info" />
               </div>
               {lastUpdatedLabel && (

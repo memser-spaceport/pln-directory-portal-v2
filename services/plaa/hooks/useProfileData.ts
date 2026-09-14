@@ -1,9 +1,10 @@
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useCurrentSnapshotStatus } from '@/services/plaa/hooks/useCurrentSnapshotStatus';
+import { useIsInfraMember } from '@/services/plaa/hooks/useIsInfraMember';
 import { useProfileBalance } from '@/services/plaa/hooks/useProfileBalance';
 import { useProfilePlaaHistory, type ProfilePlaaHistoryEntry } from '@/services/plaa/hooks/useProfilePlaaHistory';
 import { useRedemptionHistory } from '@/services/plaa/hooks/useRedemptionHistory';
-import { useSnapshotLifecycle } from '@/services/plaa/hooks/useSnapshotLifecycle';
+import { useSnapshotLifecycle, type SnapshotLifecycleEntry } from '@/services/plaa/hooks/useSnapshotLifecycle';
 import { useSnapshotPointsHistory, type SnapshotPointsByPeriod } from '@/services/plaa/hooks/useSnapshotPointsHistory';
 import type { SnapshotPointsResponse } from '@/services/points/hooks/usePoints';
 
@@ -65,6 +66,8 @@ export interface ProfileData {
   balance: ProfileBalance;
   balanceStatus: ProfileBalanceStatus;
   pointsThisSnapshot: number;
+  /** Month of the open snapshot, e.g. "September 2026". */
+  currentSnapshotLabel: string;
   historyStatus: ProfileHistoryStatus;
   snapshotHistory: SnapshotHistoryEntry[];
   contributionHistory: ContributionHistoryEntry[];
@@ -135,6 +138,26 @@ function isPendingMonth(isoDate: string, closedByMonth: Record<string, boolean>)
   return closed === undefined ? false : !closed;
 }
 
+/**
+ * PLAA history only gains a row once a snapshot's PLAA is calculated, so an open snapshot
+ * (appeal window or current) would be missing from the history. Add it as a zero-PLAA row;
+ * it is marked pending, so its PLAA is never shown or counted. Snapshots staged ahead of
+ * their month are skipped.
+ */
+function withOpenSnapshots(
+  history: ProfilePlaaHistoryEntry[],
+  lifecycle: SnapshotLifecycleEntry[],
+  now: Date,
+): ProfilePlaaHistoryEntry[] {
+  const months = new Set(history.map((e) => monthKey(e.period)));
+  const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const open = lifecycle
+    .filter((e): e is SnapshotLifecycleEntry & { period: string } => e.period !== null && !e.isClosed)
+    .filter((e) => monthKey(e.period) <= thisMonth && !months.has(monthKey(e.period)))
+    .map((e) => ({ period: e.period, iaPlaa: 0, irPlaa: 0, plaaTotal: 0 }));
+  return [...history, ...open].sort((a, b) => a.period.localeCompare(b.period));
+}
+
 export function buildContributionHistory(
   snapshotHistory: SnapshotHistoryEntry[],
   redeemedByMonth: Record<string, number>,
@@ -143,9 +166,10 @@ export function buildContributionHistory(
   const oldestFirst = [...snapshotHistory].reverse();
   let cum = 0;
   return oldestFirst.map((entry) => {
-    cum += entry.activityPlaa + entry.infra;
     const month = monthKey(entry.periodIso);
     const closed = closedByMonth[month];
+    // An open snapshot's PLAA joins the balance only once the snapshot closes.
+    if (closed !== false) cum += entry.activityPlaa + entry.infra;
     return {
       period: entry.period,
       points: entry.points,
@@ -160,14 +184,21 @@ export function buildContributionHistory(
 
 export function useProfileData(): ProfileData {
   const currentUser = useCurrentUserStore((s) => s.currentUser);
-  const { pointsCollected } = useCurrentSnapshotStatus();
+  const { pointsCollected, periodLabel } = useCurrentSnapshotStatus();
   const { data: balanceData, isLoading: isBalanceLoading } = useProfileBalance();
   const balanceStatus: ProfileBalanceStatus = isBalanceLoading ? 'loading' : balanceData ? 'ready' : 'unavailable';
   const { data: historyData, isLoading: isHistoryLoading } = useProfilePlaaHistory();
   const historyStatus: ProfileHistoryStatus = isHistoryLoading ? 'loading' : historyData ? 'ready' : 'unavailable';
-  const pointsByPeriod = useSnapshotPointsHistory(historyData?.map((e) => e.period) ?? []);
   const { data: redemptionData } = useRedemptionHistory();
   const { data: lifecycleData } = useSnapshotLifecycle();
+  const candidateHistory = historyData ? withOpenSnapshots(historyData, lifecycleData ?? [], new Date()) : null;
+  const pointsByPeriod = useSnapshotPointsHistory(candidateHistory?.map((e) => e.period) ?? []);
+  // A member with no history yet only gets an open-snapshot row once they have points in it.
+  const fullHistory =
+    historyData && historyData.length === 0
+      ? candidateHistory?.filter((e) => pointsByPeriod[e.period]) ?? null
+      : candidateHistory;
+  const isInfraMember = useIsInfraMember();
 
   const name = currentUser?.name || 'Member';
   const redeemedByMonth: Record<string, number> = {};
@@ -183,7 +214,7 @@ export function useProfileData(): ProfileData {
     closedByMonth[monthKey(entry.period)] = entry.isClosed;
   }
 
-  const snapshotHistory = historyData ? toSnapshotHistory(historyData, pointsByPeriod, closedByMonth) : [];
+  const snapshotHistory = fullHistory ? toSnapshotHistory(fullHistory, pointsByPeriod, closedByMonth) : [];
   const contributionHistory = buildContributionHistory(snapshotHistory, redeemedByMonth, closedByMonth);
 
   return {
@@ -191,9 +222,9 @@ export function useProfileData(): ProfileData {
       name,
       initials: initialsFrom(name),
       avatarUrl: currentUser?.profileImageUrl,
-      memberSince: findMemberSince(historyData, pointsByPeriod),
+      memberSince: findMemberSince(fullHistory, pointsByPeriod),
       isOnboarded: Boolean(currentUser) || IS_DEV,
-      isInfraMember: false, // TODO(backend): no real RBAC source wired yet — never claim Infra without one.
+      isInfraMember,
     },
     balanceStatus,
     balance: {
@@ -203,6 +234,7 @@ export function useProfileData(): ProfileData {
       redeemed: balanceData?.redeemed ?? 0,
     },
     pointsThisSnapshot: pointsCollected,
+    currentSnapshotLabel: periodLabel,
     historyStatus,
     snapshotHistory,
     contributionHistory,

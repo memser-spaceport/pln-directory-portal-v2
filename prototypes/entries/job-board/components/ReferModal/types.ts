@@ -18,6 +18,8 @@ export interface DirectoryMember {
   /** Leads the hiring team. Only `useTeamMembers` sets this — it's a fact about a
    *  member's role on one specific team, not about the member. */
   isTeamLead?: boolean;
+  /** Admin-marked dead mailbox; never offered as a referral recipient. */
+  hasInactiveEmail?: boolean;
 }
 
 export interface RecipientOption {

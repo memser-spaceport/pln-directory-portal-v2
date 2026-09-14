@@ -15,6 +15,8 @@ import { FormEditor } from '@/components/form/FormEditor';
 import { toast } from '@/components/core/ToastContainer';
 import { hostDataUriImages, isBlankHtml } from '@/utils/html';
 import { IUserInfo } from '@/types/shared.types';
+import { useCommonAnalytics } from '@/analytics/common.analytics';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
 
 import { CONTACT_SUPPORT_TOPICS } from './constants';
 import { TopicPills } from './TopicPills';
@@ -100,6 +102,7 @@ export function ContactSupport(props: Props) {
   const { open, metadata, topic: contextTopic, prefillMessage, actions } = useContactSupportStore();
   const { closeModal, updateTopic } = actions;
   const contactSupportMutation = useContactSupport();
+  const analytics = useCommonAnalytics();
 
   const getDefaultValues = useCallback(() => {
     const { email = '', name = '' } = userInfo || {};
@@ -222,6 +225,7 @@ export function ContactSupport(props: Props) {
             onChange={(next) => {
               setValue('topic', next, { shouldValidate: true });
               updateTopic(next);
+              analytics.onContactSupportTopicPillSelected(next, getAnalyticsUserInfo(userInfo));
             }}
           />
         </FormLabel>

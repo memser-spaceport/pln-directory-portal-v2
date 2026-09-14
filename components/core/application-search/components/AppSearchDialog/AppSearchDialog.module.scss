@@ -7,12 +7,16 @@
 @use 'styles/media';
 
 .overlay.overlay {
-  /* Starts below the header, like the overlay this replaces. The icon you just
-     pressed stays lit and unshaded — shading the control that opened the dialog
-     makes the dialog look like it came from nowhere. */
-  top: var(--app-header-height);
+  /* Covers the header too, rather than starting below it.
+     It used to stop at `--app-header-height` so the icon you just pressed stayed
+     lit — but `Modal`'s containment makes everything behind the dialog `inert`,
+     so that left a navbar that looked live and silently swallowed every click.
+     A scrim over the whole page says what is true: the dialog has the page, and
+     clicking out here dismisses it. The card still sits below the header line,
+     which is what kept the dialog feeling anchored to its trigger. */
+  top: 0;
   align-items: flex-start;
-  padding: 24px 12px;
+  padding: calc(var(--app-header-height) + 24px) 12px 24px;
 
   /* The design system's own modal scrim. `Modal`'s default 6% tint behind a
      15px blur is dropped: a blur behind a results list makes the page
@@ -46,7 +50,6 @@
    dialog is portalled to <body> and chosen at runtime — exactly one exists at
    any width, so CSS can no longer be what decides which one is visible. */
 .overlayFullBleed.overlayFullBleed {
-  top: 0;
   padding: 0;
 }
 
@@ -182,6 +185,20 @@
   border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
+/* The scope note is a trailing line, not another section: it keeps the stack's
+   16px inset but not its divider, so it reads as belonging to the list above
+   rather than to a band of its own. `.idle > .hint` outranks `.idle > * + *` on
+   specificity, so this holds wherever the rule lands in the file — and the
+   shorthand `padding` is what clears the inherited `padding-top`. */
+.idle > .hint {
+  margin: 12px 0 0;
+  padding: 0 16px;
+  border-top: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 18px;
+}
+
 .section {
   display: flex;
   flex-direction: column;
@@ -190,10 +207,14 @@
 
 .sectionLabel {
   padding: 0 16px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
+  /* Brand blue, not the neutral the other two idle labels use: this one is the
+     offer — what AI Search can do for someone who has not asked it anything —
+     while Recent and History are records of what you already did. The design
+     separates them by colour on purpose, so they are deliberately not uniform. */
+  color: var(--foreground-brand-primary, #156ff7);
   font-size: 12px;
   font-weight: 500;
-  line-height: 18px;
+  line-height: 16px;
 }
 
 .list {

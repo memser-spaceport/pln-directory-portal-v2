@@ -88,6 +88,7 @@ const mockOnShared = jest.fn();
 const mockOnForumPostModalOpened = jest.fn();
 const mockOnTopStoriesBlockViewed = jest.fn();
 const mockOnTopStoryClicked = jest.fn();
+const mockOnFeedHiringCardViewed = jest.fn();
 const mockOnFeedHiringRoleClicked = jest.fn();
 const mockOnFeedHiringViewAllClicked = jest.fn();
 const mockOnFeedDealClicked = jest.fn();
@@ -115,6 +116,7 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onTeamsToFollowHidden: (...a: unknown[]) => mockOnTeamsToFollowHidden(...a),
     onTopStoriesBlockViewed: (...a: unknown[]) => mockOnTopStoriesBlockViewed(...a),
     onTopStoryClicked: (...a: unknown[]) => mockOnTopStoryClicked(...a),
+    onFeedHiringCardViewed: (...a: unknown[]) => mockOnFeedHiringCardViewed(...a),
     onFeedHiringRoleClicked: (...a: unknown[]) => mockOnFeedHiringRoleClicked(...a),
     onFeedHiringViewAllClicked: (...a: unknown[]) => mockOnFeedHiringViewAllClicked(...a),
     onFeedDealClicked: (...a: unknown[]) => mockOnFeedDealClicked(...a),
@@ -1741,7 +1743,7 @@ describe('TeamNews', () => {
       mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
-      expect(screen.getByText('Hiring acme is hiring')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Hiring acme' })).toBeInTheDocument();
       expect(screen.getByText('View all 5 open roles at Hiring acme')).toBeInTheDocument();
     });
 
@@ -1759,7 +1761,10 @@ describe('TeamNews', () => {
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
       const first = document.querySelector('[data-news-feed-list]')!.firstElementChild!;
-      expect(first.textContent).not.toContain('is hiring');
+      /* The team name, not "is hiring": that phrase left with the headline
+         markup, so a card containing it is something no version of this app
+         renders and the assertion could not fail. */
+      expect(first.textContent).not.toContain('Hiring acme');
       expect(first.textContent).not.toContain('Vendor d1');
     });
 
@@ -1828,11 +1833,11 @@ describe('TeamNews', () => {
     itHiring('drops the hiring roll-up on a category pill', () => {
       mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
-      expect(screen.getByText('Hiring acme is hiring')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Hiring acme' })).toBeInTheDocument();
 
       fireEvent.click(screen.getByRole('button', { name: /^Funding\b/ }));
 
-      expect(screen.queryByText('Hiring acme is hiring')).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Hiring acme' })).not.toBeInTheDocument();
     });
 
     it('drops the deal on a category pill', () => {
@@ -1848,7 +1853,11 @@ describe('TeamNews', () => {
     it('leaves the feed intact when neither stream loads', () => {
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
-      expect(screen.queryByText(/is hiring/)).not.toBeInTheDocument();
+      /* Anchored to the handle the positive tests above prove appears when a
+         roll-up renders. `/is hiring/` matched nothing in any state once the
+         headline was removed, so it reported success for a card that was never
+         looked for. */
+      expect(screen.queryByRole('link', { name: 'Hiring acme' })).not.toBeInTheDocument();
       expect(document.querySelector('[data-news-feed-list]')!.children.length).toBeGreaterThan(0);
     });
 
@@ -2363,7 +2372,7 @@ describe('TeamNews', () => {
         mockUseFeedForYouJobs.mockReturnValue({ forYouJobs: [forYouJobGroup('acme')] });
         renderForYou();
 
-        expect(screen.getByRole('heading', { name: 'Jobs acme is hiring' })).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'Jobs acme' })).toBeInTheDocument();
         // Title, meta line, refer, share and View job — the board's row, not a
         // feed-local lookalike.
         expect(screen.getByRole('button', { name: 'Matched acme-r1' })).toBeInTheDocument();
@@ -2404,7 +2413,7 @@ describe('TeamNews', () => {
         });
         renderForYou(50);
 
-        expect(screen.getAllByText(/ is hiring$/)).toHaveLength(MAX_FOR_YOU_JOB_ENTRIES);
+        expect(screen.getAllByRole('link', { name: /^Jobs t\d+$/ })).toHaveLength(MAX_FOR_YOU_JOB_ENTRIES);
       });
 
       it('never leads the feed with one', () => {
@@ -2412,17 +2421,17 @@ describe('TeamNews', () => {
         renderForYou();
 
         const first = document.querySelector('[data-news-feed-list]')!.firstElementChild!;
-        expect(first.textContent).not.toContain('is hiring');
+        expect(first.textContent).not.toContain('Jobs acme');
       });
 
       it('keeps them off every other category pill', () => {
         mockUseFeedForYouJobs.mockReturnValue({ forYouJobs: [forYouJobGroup('acme')] });
         renderForYou();
-        expect(screen.getByRole('heading', { name: 'Jobs acme is hiring' })).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'Jobs acme' })).toBeInTheDocument();
 
         fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
 
-        expect(screen.queryByRole('heading', { name: 'Jobs acme is hiring' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: 'Jobs acme' })).not.toBeInTheDocument();
       });
 
       // A job carries no focus area of its own, so a focus-area tab has nothing
@@ -2430,31 +2439,36 @@ describe('TeamNews', () => {
       it('keeps them off a focus-area tab', () => {
         mockUseFeedForYouJobs.mockReturnValue({ forYouJobs: [forYouJobGroup('acme')] });
         renderForYou();
+        /* Paired with the check below on purpose: this test asserted only
+           absence, so between the headline being deleted and its handle being
+           replaced it passed without a roll-up ever being rendered to filter. */
+        expect(screen.getByRole('link', { name: 'Jobs acme' })).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole('tab', { name: new RegExp(FA_DHR.title) }));
 
         expect(within(catRow()).getByRole('button', { name: /For You/ })).toHaveClass(/catActive/);
-        expect(screen.queryByRole('heading', { name: 'Jobs acme is hiring' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: 'Jobs acme' })).not.toBeInTheDocument();
       });
 
       it('drops them while searching, like every other feed signal', () => {
         jest.useFakeTimers();
         mockUseFeedForYouJobs.mockReturnValue({ forYouJobs: [forYouJobGroup('acme')] });
         renderForYou();
-        expect(screen.getByRole('heading', { name: 'Jobs acme is hiring' })).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'Jobs acme' })).toBeInTheDocument();
 
         const inputs = screen.getAllByPlaceholderText('Search by news, teams…');
         fireEvent.change(inputs[inputs.length - 1], { target: { value: 'Mem Team' } });
         act(() => jest.advanceTimersByTime(700));
 
-        expect(screen.queryByRole('heading', { name: 'Jobs acme is hiring' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: 'Jobs acme' })).not.toBeInTheDocument();
         jest.useRealTimers();
       });
 
       it('leaves the feed intact when the match never loads', () => {
         renderForYou();
 
-        expect(screen.queryByText(/is hiring/)).not.toBeInTheDocument();
+        // Same handle the positive tests use — see the note on its twin above.
+        expect(screen.queryByRole('link', { name: 'Jobs acme' })).not.toBeInTheDocument();
         expect(document.querySelector('[data-news-feed-list]')!.children.length).toBeGreaterThan(0);
       });
 

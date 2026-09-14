@@ -29,6 +29,8 @@ const role: IJobRole = {
 };
 
 const CANONICAL = 'http://localhost/jobs?job=role-1';
+/** What a shared link carries so the arrival can be attributed back to the share. */
+const shared = (channel: string) => `${CANONICAL}&utm_source=job_refer_share&utm_medium=${channel}`;
 
 const writeText = jest.fn().mockResolvedValue(undefined);
 beforeAll(() => {
@@ -56,8 +58,8 @@ describe('ReferMenu', () => {
     fireEvent.click(screen.getByRole('menuitem', { name: 'Copy link' }));
     await act(async () => {});
 
-    expect(writeText).toHaveBeenCalledWith(CANONICAL);
-    expect(writeText).toHaveBeenCalledWith(jobDetailShareUrl(role.uid));
+    expect(writeText).toHaveBeenCalledWith(shared('copy_link'));
+    expect(writeText).toHaveBeenCalledWith(jobDetailShareUrl(role.uid, 'copy_link'));
     expect(writeText.mock.calls[0][0]).not.toContain('greenhouse.example');
     expect(screen.getByRole('menuitem', { name: 'Link copied!' })).toBeInTheDocument();
     expect(onJobReferShared).toHaveBeenCalledWith(expect.objectContaining({ network: 'copy_link', job_id: 'role-1' }));
@@ -71,7 +73,7 @@ describe('ReferMenu', () => {
 
     const linkedinUrl = windowOpenSpy.mock.calls[0][0] as string;
     expect(linkedinUrl).toContain('linkedin.com/sharing/share-offsite');
-    expect(linkedinUrl).toContain(encodeURIComponent(CANONICAL));
+    expect(linkedinUrl).toContain(encodeURIComponent(shared('linkedin')));
     expect(linkedinUrl).not.toContain('greenhouse.example');
     expect(onJobReferShared).toHaveBeenCalledWith(expect.objectContaining({ network: 'linkedin' }));
 
@@ -81,7 +83,7 @@ describe('ReferMenu', () => {
 
     const xUrl = windowOpenSpy.mock.calls[0][0] as string;
     expect(xUrl).toContain('twitter.com/intent/tweet');
-    expect(xUrl).toContain(encodeURIComponent(CANONICAL));
+    expect(xUrl).toContain(encodeURIComponent(shared('x')));
     expect(onJobReferShared).toHaveBeenCalledWith(expect.objectContaining({ network: 'x' }));
   });
 });

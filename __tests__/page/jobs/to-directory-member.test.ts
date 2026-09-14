@@ -37,6 +37,13 @@ describe('toDirectoryMember', () => {
     expect(result).toMatchObject({ title: 'Advisor', team: 'Other Co', isTeamLead: false });
   });
 
+  it('carries the inactive-email mark so pickers can drop the member', () => {
+    const marked = { ...member([{ teamLead: true, team: { uid: teamUid, name: 'Acme' } }]), hasInactiveEmail: true };
+
+    expect(toDirectoryMember(marked, teamUid).hasInactiveEmail).toBe(true);
+    expect(toDirectoryMember(member([]), teamUid).hasInactiveEmail).toBe(false);
+  });
+
   it('does not treat a lead of another team as a hiring-team lead', () => {
     const result = toDirectoryMember(
       member([{ teamLead: true, mainTeam: true, role: 'CEO', team: { uid: 'other', name: 'Other Co' } }]),

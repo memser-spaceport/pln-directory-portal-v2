@@ -115,11 +115,13 @@ jest.mock('@/components/page/ai-apps/dynamicActionModals', () => ({
   ),
 }));
 
+const BASE_PATH = '/pl-infra/ai-apps/app-1';
 const mockPush = jest.fn();
+let mockPathname = BASE_PATH;
 let mockSearchParams = new URLSearchParams();
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush, replace: jest.fn(), prefetch: jest.fn() }),
-  usePathname: () => '/pl-infra/ai-apps/app-1',
+  usePathname: () => mockPathname,
   useSearchParams: () => mockSearchParams,
 }));
 
@@ -159,6 +161,7 @@ function buildApp(overrides: Partial<AiApp> = {}): AiApp {
 describe('AiAppDetailPage', () => {
   beforeEach(() => {
     mockCanLikelyManage.mockReturnValue(true);
+    mockPathname = BASE_PATH;
     mockSearchParams = new URLSearchParams();
     document.title = 'AI Apps | Protocol Labs Directory';
   });
@@ -170,7 +173,7 @@ describe('AiAppDetailPage', () => {
   describe('document title', () => {
     it('sets the tab title to the app name after load and restores it on unmount', () => {
       mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
-      const { unmount } = render(<AiAppDetailPage uid="app-1" />);
+      const { unmount } = render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       expect(document.title).toBe('News Summarizer');
       unmount();
@@ -179,14 +182,14 @@ describe('AiAppDetailPage', () => {
 
     it('does not overwrite the tab title while the app is still loading', () => {
       mockUseAiAppReturn = { app: null, isLoading: true, isError: false };
-      render(<AiAppDetailPage uid="app-1" />);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       expect(document.title).toBe('AI Apps | Protocol Labs Directory');
     });
 
     it('does not overwrite the tab title when the app name is blank', () => {
       mockUseAiAppReturn = { app: buildApp({ name: '   ' }), isLoading: false, isError: false };
-      render(<AiAppDetailPage uid="app-1" />);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       expect(document.title).toBe('AI Apps | Protocol Labs Directory');
     });
@@ -195,7 +198,7 @@ describe('AiAppDetailPage', () => {
   it('renders the centered setup card for a DRAFT app, with no top bar', () => {
     mockUseAiAppReturn = { app: buildApp({ status: 'DRAFT', providedEnvVars: [] }), isLoading: false, isError: false };
 
-    render(<AiAppDetailPage uid="app-1" />);
+    render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
     expect(screen.getByText('Draft')).toBeInTheDocument();
     expect(screen.getByText('AppSecretsPanel')).toBeInTheDocument();
@@ -205,7 +208,7 @@ describe('AiAppDetailPage', () => {
   describe('healthy app top bar', () => {
     it('renders "Back" pointing at the list route', () => {
       mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
-      render(<AiAppDetailPage uid="app-1" />);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       expect(screen.getByRole('link', { name: /^back$/i })).toHaveAttribute('href', '/pl-infra/ai-apps');
     });
@@ -216,7 +219,7 @@ describe('AiAppDetailPage', () => {
         isLoading: false,
         isError: false,
       };
-      render(<AiAppDetailPage uid="app-1" />);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       const detailsButton = screen.getByRole('button', { name: /app details for news summarizer/i });
       fireEvent.click(detailsButton);
@@ -228,7 +231,7 @@ describe('AiAppDetailPage', () => {
 
     it('hides "App Details" when the app has no one-pager', () => {
       mockUseAiAppReturn = { app: buildApp({ prd: null }), isLoading: false, isError: false };
-      render(<AiAppDetailPage uid="app-1" />);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       expect(screen.queryByRole('button', { name: /app details/i })).not.toBeInTheDocument();
     });
@@ -236,14 +239,14 @@ describe('AiAppDetailPage', () => {
     it('shows the manage menu only when canLikelyManage is true', () => {
       mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
       mockCanLikelyManage.mockReturnValue(false);
-      render(<AiAppDetailPage uid="app-1" />);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       expect(screen.queryByText('AppActionsMenu')).not.toBeInTheDocument();
     });
 
     it('opens EditAiAppModal / DeploymentSettingsModal / DeleteAiAppDialog from the manage menu', () => {
       mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
-      render(<AiAppDetailPage uid="app-1" />);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       fireEvent.click(screen.getByText('Edit details'));
       expect(screen.getByText('EditAiAppModal')).toBeInTheDocument();
@@ -261,7 +264,7 @@ describe('AiAppDetailPage', () => {
 
     it('navigates to the AI Apps list once delete succeeds, not on cancel', () => {
       mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
-      render(<AiAppDetailPage uid="app-1" />);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       fireEvent.click(screen.getByText('Delete app'));
       fireEvent.click(screen.getByText('Cancel delete'));
@@ -274,7 +277,7 @@ describe('AiAppDetailPage', () => {
 
     it('starting a redeploy from the menu does not swap the page into the mandatory "Deploying" card', () => {
       mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
-      const { rerender } = render(<AiAppDetailPage uid="app-1" />);
+      const { rerender } = render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       fireEvent.click(screen.getByText('Deployment settings'));
       fireEvent.click(screen.getByText('Start redeploy'));
@@ -282,7 +285,7 @@ describe('AiAppDetailPage', () => {
       // Simulate the page's own poll observing the backend flip to DEPLOYING —
       // without the onDeployingChange fix, this would unmount the modal below.
       mockUseAiAppReturn = { app: buildApp({ status: 'DEPLOYING' }), isLoading: false, isError: false };
-      rerender(<AiAppDetailPage uid="app-1" />);
+      rerender(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       expect(screen.getByText('DeploymentSettingsModal')).toBeInTheDocument();
       expect(screen.queryByText('Deploying')).not.toBeInTheDocument();
@@ -297,7 +300,7 @@ describe('AiAppDetailPage', () => {
 
     it('warning (previous still serving), creator: normal layout with banner; See logs opens the modal', () => {
       mockUseAiAppReturn = { app: WARNING_APP(), isLoading: false, isError: false };
-      render(<AiAppDetailPage uid="app-1" />);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       // Normal layout, not the setup card.
       expect(screen.getByRole('link', { name: /^back$/i })).toBeInTheDocument();
@@ -321,7 +324,7 @@ describe('AiAppDetailPage', () => {
         isLoading: false,
         isError: false,
       };
-      render(<AiAppDetailPage uid="app-1" />);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       expect(screen.getByRole('link', { name: /^back$/i })).toBeInTheDocument();
       expect(screen.queryByText("Latest deploy didn't ship")).not.toBeInTheDocument();
@@ -330,7 +333,7 @@ describe('AiAppDetailPage', () => {
 
     it('danger (nothing serving), creator: setup card keeps notes + retry and gains See logs', () => {
       mockUseAiAppReturn = { app: DANGER_APP(), isLoading: false, isError: false };
-      render(<AiAppDetailPage uid="app-1" />);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       expect(screen.getByText('Deploy failed')).toBeInTheDocument();
       expect(screen.getByText(/Last deploy failed: boom/)).toBeInTheDocument();
@@ -353,7 +356,7 @@ describe('AiAppDetailPage', () => {
         isLoading: false,
         isError: false,
       };
-      render(<AiAppDetailPage uid="app-1" />);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       expect(screen.getByText('Not deployed')).toBeInTheDocument();
       expect(screen.getByText(/never been built successfully/)).toBeInTheDocument();
@@ -364,7 +367,7 @@ describe('AiAppDetailPage', () => {
 
     it('legacy ERROR (no deployment info) still routes to the setup card; notes stay creator-only', () => {
       mockUseAiAppReturn = { app: buildApp({ status: 'ERROR', notes: 'boom' }), isLoading: false, isError: false };
-      const { unmount } = render(<AiAppDetailPage uid="app-1" />);
+      const { unmount } = render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       expect(screen.getByText('Deploy failed')).toBeInTheDocument();
       expect(screen.getByText(/Last deploy failed: boom/)).toBeInTheDocument();
@@ -376,7 +379,7 @@ describe('AiAppDetailPage', () => {
         isLoading: false,
         isError: false,
       };
-      render(<AiAppDetailPage uid="app-1" />);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       expect(screen.getByText(/The last deploy of this app failed/)).toBeInTheDocument();
       expect(screen.queryByText(/boom/)).not.toBeInTheDocument();
@@ -384,7 +387,7 @@ describe('AiAppDetailPage', () => {
 
     it('the warning banner hides during the creator’s own redeploy, and a warning→danger settle keeps the settings modal mounted', () => {
       mockUseAiAppReturn = { app: WARNING_APP(), isLoading: false, isError: false };
-      const { rerender } = render(<AiAppDetailPage uid="app-1" />);
+      const { rerender } = render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       fireEvent.click(screen.getByText('Deployment settings'));
       fireEvent.click(screen.getByText('Start redeploy'));
@@ -394,7 +397,7 @@ describe('AiAppDetailPage', () => {
       // to the setup card — the open modal must survive the flip (hoisted
       // modals regression guard).
       mockUseAiAppReturn = { app: DANGER_APP(), isLoading: false, isError: false };
-      rerender(<AiAppDetailPage uid="app-1" />);
+      rerender(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       expect(screen.getByText('DeploymentSettingsModal')).toBeInTheDocument();
     });
@@ -403,21 +406,34 @@ describe('AiAppDetailPage', () => {
       mockSearchParams = new URLSearchParams('settings=deployment');
       mockCanLikelyManage.mockReturnValue(false);
       mockUseAiAppReturn = { app: buildApp(VISITOR), isLoading: false, isError: false };
-      const { unmount } = render(<AiAppDetailPage uid="app-1" />);
+      const { unmount } = render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       expect(screen.queryByText('DeploymentSettingsModal')).not.toBeInTheDocument();
       unmount();
 
       mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
-      render(<AiAppDetailPage uid="app-1" />);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
       expect(screen.getByText('DeploymentSettingsModal')).toBeInTheDocument();
+    });
+
+    it('closing the deep-linked deployment modal drops ?settings without navigating away from the subpage', () => {
+      mockSearchParams = new URLSearchParams('settings=deployment');
+      window.history.replaceState(null, '', `${BASE_PATH}/reports/42?settings=deployment`);
+      mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
+
+      fireEvent.click(screen.getByText('Close deployment'));
+
+      expect(screen.queryByText('DeploymentSettingsModal')).not.toBeInTheDocument();
+      expect(window.location.pathname).toBe(`${BASE_PATH}/reports/42`);
+      expect(window.location.search).toBe('');
     });
   });
 
   describe('iframe view recording', () => {
     it('posts a view once when the iframe loads', async () => {
       mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
-      render(<AiAppDetailPage uid="app-1" />);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       const iframe = await waitFor(() => {
         const el = document.querySelector('iframe');
@@ -454,51 +470,68 @@ describe('AiAppDetailPage', () => {
     }
 
     beforeEach(() => {
-      window.history.replaceState(null, '', '/pl-infra/ai-apps/app-1');
+      window.history.replaceState(null, '', BASE_PATH);
       mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
     });
 
-    it('opens the app at the ?path subpage', async () => {
-      mockSearchParams = new URLSearchParams('path=%2Freports%2F42');
-      render(<AiAppDetailPage uid="app-1" />);
+    it('opens the app at the subpage named by the URL segments', async () => {
+      mockPathname = `${BASE_PATH}/reports/42`;
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       const iframe = await mountIframe();
       expect(iframe.getAttribute('src')).toBe(`${APP_ORIGIN}/reports/42`);
       expect(mockAnalytics.onDetailPageViewed).toHaveBeenCalledWith('app-1', 'News Summarizer', '/reports/42');
     });
 
-    it.each(['//evil.com/x', 'https://evil.com', 'javascript:alert(1)'])(
-      'falls back to the app root for a ?path outside the app origin (%s)',
-      async (path) => {
-        mockSearchParams = new URLSearchParams({ path });
-        render(<AiAppDetailPage uid="app-1" />);
+    it('passes an encoded segment through to the app verbatim', async () => {
+      mockPathname = `${BASE_PATH}/a%20b`;
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
-        const iframe = await mountIframe();
-        expect(iframe.getAttribute('src')).toBe('https://sandbox.example.com/app-1');
-        expect(mockAnalytics.onDetailPageViewed).toHaveBeenCalledWith('app-1', 'News Summarizer', null);
-      },
-    );
+      const iframe = await mountIframe();
+      expect(iframe.getAttribute('src')).toBe(`${APP_ORIGIN}/a%20b`);
+    });
+
+    it('falls back to the app root when the segments do not form a path on the app origin', async () => {
+      mockPathname = `${BASE_PATH}//evil.com/x`;
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
+
+      const iframe = await mountIframe();
+      expect(iframe.getAttribute('src')).toBe('https://sandbox.example.com/app-1');
+      expect(mockAnalytics.onDetailPageViewed).toHaveBeenCalledWith('app-1', 'News Summarizer', null);
+    });
 
     it('mirrors the reported route and title into the URL and tab title without reloading the frame', async () => {
-      render(<AiAppDetailPage uid="app-1" />);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
       const iframe = await mountIframe();
       const initialSrc = iframe.getAttribute('src');
 
       postRoute(iframe, { type: 'pln-ai-app:route', path: '/reports/42', title: 'Reports' });
 
-      expect(window.location.search).toBe(`?path=${encodeURIComponent('/reports/42')}`);
+      expect(window.location.pathname).toBe(`${BASE_PATH}/reports/42`);
+      expect(window.location.search).toBe('');
       expect(document.title).toBe('Reports · News Summarizer');
       expect(iframe.getAttribute('src')).toBe(initialSrc);
 
       postRoute(iframe, { type: 'pln-ai-app:route', path: '/', title: '' });
 
-      expect(window.location.search).toBe('');
+      expect(window.location.pathname).toBe(BASE_PATH);
       expect(document.title).toBe('News Summarizer');
       expect(document.querySelector('iframe')?.getAttribute('src')).toBe(initialSrc);
     });
 
+    it('keeps the portal query string when mirroring the route', async () => {
+      window.history.replaceState(null, '', `${BASE_PATH}?settings=deployment`);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
+      const iframe = await mountIframe();
+
+      postRoute(iframe, { type: 'pln-ai-app:route', path: '/reports/42', title: 'Reports' });
+
+      expect(window.location.pathname).toBe(`${BASE_PATH}/reports/42`);
+      expect(window.location.search).toBe('?settings=deployment');
+    });
+
     it('never mirrors a reported query string or hash — an OAuth callback code must not reach this URL', async () => {
-      render(<AiAppDetailPage uid="app-1" />);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
       const iframe = await mountIframe();
 
       // Kits 1.10–1.11 report pathname + search + hash; the app's query string
@@ -509,26 +542,27 @@ describe('AiAppDetailPage', () => {
         title: 'Connecting…',
       });
 
-      expect(window.location.search).toBe(`?path=${encodeURIComponent('/oauth/gdrive/callback')}`);
+      expect(window.location.pathname).toBe(`${BASE_PATH}/oauth/gdrive/callback`);
+      expect(window.location.search).toBe('');
       expect(window.location.href).not.toContain('live-auth-code');
       expect(window.location.hash).toBe('');
       expect(document.title).toBe('Connecting… · News Summarizer');
     });
 
     it('ignores messages from another origin, another window, or of another type', async () => {
-      render(<AiAppDetailPage uid="app-1" />);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
       const iframe = await mountIframe();
 
       postRoute(iframe, { type: 'pln-ai-app:route', path: '/a', title: 'A' }, { origin: 'https://evil.com' });
       postRoute(iframe, { type: 'pln-ai-app:route', path: '/b', title: 'B' }, { source: window });
       postRoute(iframe, { type: 'other', path: '/c', title: 'C' });
 
-      expect(window.location.search).toBe('');
+      expect(window.location.pathname).toBe(BASE_PATH);
       expect(document.title).toBe('News Summarizer');
     });
 
     it('reopens the last reported subpage when the frame remounts after a deploy', async () => {
-      const { rerender } = render(<AiAppDetailPage uid="app-1" />);
+      const { rerender } = render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
       const iframe = await mountIframe();
 
       postRoute(iframe, { type: 'pln-ai-app:route', path: '/reports/42', title: 'Reports' });
@@ -538,7 +572,7 @@ describe('AiAppDetailPage', () => {
         isLoading: false,
         isError: false,
       };
-      rerender(<AiAppDetailPage uid="app-1" />);
+      rerender(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       const remounted = await mountIframe();
       expect(remounted).not.toBe(iframe);

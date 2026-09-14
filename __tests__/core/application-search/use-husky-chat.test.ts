@@ -29,7 +29,10 @@ const stream: {
 };
 
 jest.mock('@ai-sdk/react', () => ({
-  experimental_useObject: function useObjectStub(opts: { onFinish?: (e: unknown) => void; onError?: (e: Error) => void }) {
+  experimental_useObject: function useObjectStub(opts: {
+    onFinish?: (e: unknown) => void;
+    onError?: (e: Error) => void;
+  }) {
     const [, force] = React.useReducer((x: number) => x + 1, 0);
     stream.force = force;
     stream.onFinish = opts.onFinish;
@@ -134,6 +137,86 @@ describe('useHuskyChat', () => {
 
     expect(stream.submit).toHaveBeenCalledTimes(1);
     expect(createThreadTitle).not.toHaveBeenCalled();
+    /* ...and the thread must not claim to be linkable. Registration is the only
+       thing that creates the document `/husky/chat/<id>` reads, so a failure
+       here has to reach anything that offers to navigate there — otherwise the
+       reader is handed a URL the route can only answer with notFound(). */
+    expect(result.current.isThreadPersisted).toBe(false);
+  });
+
+  /**
+   * `threadId` is generated on the client, so it is a truthy string from the
+   * first answer onwards and cannot stand in for "the backend has this thread".
+   */
+  describe('whether the thread can be linked to', () => {
+    it('says no before anything has been asked', () => {
+      const { result } = renderHook(() => useHuskyChat({ isLoggedIn: true }));
+
+      expect(result.current.isThreadPersisted).toBe(false);
+    });
+
+    it('says yes once registration succeeds', async () => {
+      createHuskyThread.mockResolvedValue(true);
+
+      const { result } = renderHook(() => useHuskyChat({ isLoggedIn: true }));
+      await act(async () => {
+        await result.current.startThread('who works on zk');
+      });
+
+      await waitFor(() => expect(result.current.isThreadPersisted).toBe(true));
+      expect(result.current.threadId).toEqual(expect.any(String));
+    });
+
+    // Registration only runs for a signed-in member, so this is not an edge
+    // case: signed out, the link could never have resolved.
+    it('says no for a signed-out visitor, who registers nothing', async () => {
+      createHuskyThread.mockResolvedValue(true);
+      getUserCredentials.mockResolvedValue({ authToken: null, userInfo: undefined });
+
+      const { result } = renderHook(() => useHuskyChat({ isLoggedIn: false }));
+      await act(async () => {
+        await result.current.startThread('who works on zk');
+      });
+
+      expect(createHuskyThread).not.toHaveBeenCalled();
+      expect(result.current.isThreadPersisted).toBe(false);
+    });
+
+    it('says yes for a thread read back from the server', () => {
+      const { result } = renderHook(() => useHuskyChat({ isLoggedIn: true }));
+
+      act(() => {
+        result.current.hydrate(
+          [{ chatId: 'c1', question: 'q', answer: 'a', sources: [], followUpQuestions: [], actions: [] }],
+          'thread-from-history',
+        );
+      });
+
+      expect(result.current.isThreadPersisted).toBe(true);
+    });
+
+    // A second search reuses nothing: the new id has no document behind it
+    // until its own registration lands.
+    it('says no again the moment a new thread starts', async () => {
+      createHuskyThread.mockResolvedValue(true);
+
+      const { result } = renderHook(() => useHuskyChat({ isLoggedIn: true }));
+      await act(async () => {
+        await result.current.startThread('first');
+      });
+      await waitFor(() => expect(result.current.isThreadPersisted).toBe(true));
+
+      let release: (value: unknown) => void = () => {};
+      getUserCredentials.mockReturnValue(new Promise((resolve) => (release = resolve)));
+      act(() => {
+        result.current.startThread('second');
+      });
+
+      expect(result.current.isThreadPersisted).toBe(false);
+      await act(async () => {
+        release({ authToken: 'token', userInfo: {} });
+      });
+    });
   });
 
   it('accepts a new question after stop()', async () => {

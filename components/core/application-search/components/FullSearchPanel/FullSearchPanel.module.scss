@@ -1,0 +1,83 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
+$padding-inline: 16px;
+
+.root {
+  @include mixins.hide-scrollbar;
+  position: relative;
+  flex: 1;
+  height: 100%;
+  background: #fff;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.top {
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 1;
+}
+
+.divider {
+  margin-inline: $padding-inline;
+  height: 1px;
+  width: calc(100% - $padding-inline * 2);
+  background: #e2e8f0;
+
+  &.mt1 {
+    margin-top: 16px;
+  }
+}
+
+.header {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  color: var(--Neutral-Slate-900, #0f172a);
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 40px; /* 222.222% */
+}
+
+.closeButton {
+  margin-left: auto;
+  padding: 8px;
+}
+
+.inputSection {
+  padding-inline: 16px;
+}
+
+.content {
+  padding: 16px;
+  //background-color: red;
+  flex: 1;
+}
+
+/* DELETE WITH: the legacy header search.
+   `RecentSearch` used to draw its own dividers and vertical spacing. The dialog
+   rebuild moved that to the host — "the dialog is the only host now, and it owns
+   the rhythm between its sections", per the note in RecentSearch.tsx — so this
+   host has to draw them itself. Geometry is the component's own, at de644d92a:
+   a 12px gap above the list, 8px of padding around it, and a hairline top and
+   bottom with 8px either side. */
+.recentSearchBody {
+  margin-top: 12px;
+  padding-block: 8px;
+}
+
+.recentSearchDivider {
+  height: 1px;
+  width: 100%;
+  margin-block: 8px;
+  background: #e2e8f0;
+}

@@ -33,7 +33,7 @@ const searchState = (over: Partial<ReturnType<typeof mockUseMemberSearch>> = {})
   ...over,
 });
 
-const OUTSIDE_ROW = /Refer someone outside the network/i;
+const OUTSIDE_ROW = /Refer someone not in PL network/i;
 
 /* The row and the menu around it. The modal's own suite stubs this component out, so
    everything below is invisible from there — including the two states that only exist

@@ -42,10 +42,13 @@ export const useCommonAnalytics = () => {
     captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_GET_HELP_ITEM_CLICKED, params);
   }
 
-  /** The header (?) menu was opened — the denominator for the topic clicks
-   *  above, which still report through `onNavGetHelpItemClicked`. Without it a
-   *  drop in topic clicks cannot be told apart from a drop in people opening
-   *  the menu at all. */
+  /** The header (?) was pressed — the help and feedback door being used. Which
+   *  door that press opens depends on the pointer (the form on a cursor device,
+   *  the topic list on touch), and this counts both the same way: someone went
+   *  looking for help.
+   *
+   *  Presses only. The list also opens on hover, and counting a cursor crossing
+   *  the icon would drown the number this event exists for. */
   function onHelpMenuOpened(user: IAnalyticsUserInfo | null) {
     captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_HELP_MENU_OPENED, { user });
   }
@@ -56,13 +59,29 @@ export const useCommonAnalytics = () => {
     captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_HELP_CALLOUT_SHOWN, { user });
   }
 
-  /** `via` separates "read it and acknowledged" from "opened the menu, which
-   *  is what the callout was pointing at" — the second is the outcome the
+  /** `via` separates "read it and acknowledged" from "opened the support form,
+   *  which is what the callout was pointing at" — the second is the outcome the
    *  callout exists for, and they should not be counted as one thing.
    *  `escape` is neither: a keyboard dismissal that tells us nothing about
-   *  whether the sentence landed. */
-  function onHelpCalloutDismissed(via: 'got-it' | 'escape' | 'menu-opened', user: IAnalyticsUserInfo | null) {
+   *  whether the sentence landed.
+   *
+   *  The two openings are separate values because they are separate rooms:
+   *  `modal-opened` is the support form, which a press opens on a cursor
+   *  device; `menu-opened` is the topic list, which a tap opens on touch and a
+   *  hover opens on a cursor. */
+  function onHelpCalloutDismissed(
+    via: 'got-it' | 'escape' | 'menu-opened' | 'modal-opened',
+    user: IAnalyticsUserInfo | null,
+  ) {
     captureEvent(COMMON_ANALYTICS_EVENTS.NAVBAR_HELP_CALLOUT_DISMISSED, { via, user });
+  }
+
+  /** A topic pill in the support form was picked — separate from
+   *  `onNavGetHelpItemClicked`, which already covers the menu item that opened
+   *  the form on that topic. This is the in-form change, e.g. someone landed on
+   *  "Contact support" via a deep link and switched to "Report a bug". */
+  function onContactSupportTopicPillSelected(topic: string, user: IAnalyticsUserInfo | null) {
+    captureEvent(COMMON_ANALYTICS_EVENTS.CONTACT_SUPPORT_TOPIC_PILL_SELECTED, { topic, user });
   }
 
   function onNavAccountItemClicked(name: string, user: IAnalyticsUserInfo | null) {
@@ -160,6 +179,7 @@ export const useCommonAnalytics = () => {
     onHelpMenuOpened,
     onHelpCalloutShown,
     onHelpCalloutDismissed,
+    onContactSupportTopicPillSelected,
     onNavAccountItemClicked,
     onNavJoinNetworkClicked,
     onNavJoinNetworkOptionClicked,

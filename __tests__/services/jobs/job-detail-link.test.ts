@@ -51,6 +51,12 @@ describe('jobDetailShareUrl', () => {
 
     expect(jobDetailShareUrl('role-1')).toBe(`${window.location.origin}/jobs?${JOB_DETAIL_PARAM}=role-1`);
   });
+
+  it('tags a link meant for someone else with the share channel', () => {
+    expect(jobDetailShareUrl('role-1', 'copy_link')).toBe(
+      `${window.location.origin}/jobs?${JOB_DETAIL_PARAM}=role-1&utm_source=job_refer_share&utm_medium=copy_link`,
+    );
+  });
 });
 
 describe('findJobInGroups', () => {

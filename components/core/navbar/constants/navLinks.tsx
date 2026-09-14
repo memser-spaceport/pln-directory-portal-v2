@@ -109,7 +109,7 @@ export const PLAA_LINK: ISubItem = {
   icon: <PlaaIcon />,
   href: '/alignment-asset',
   title: 'PLAA',
-  description: 'Earn and track rewards for your contributions across the network',
+  description: 'Collect and track rewards for your contributions across the network',
 };
 
 export const GANTRY_LINK: ISubItem = {

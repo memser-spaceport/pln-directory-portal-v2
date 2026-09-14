@@ -26,7 +26,7 @@ const AnswerView = dynamic(
 import type { HuskyTurn, StreamStatus } from '@/services/husky/hooks/useHuskyChat';
 import type { LimitLevel } from '@/services/husky/hooks/useDailyChatLimit';
 import { AiSearchHistorySection } from '@/components/core/application-search/components/AiSearchHistorySection';
-import { AI_SEARCH_SUGGESTIONS } from '@/services/search/constants';
+import { AI_SEARCH_SUGGESTIONS, MIN_ASK_LENGTH } from '@/services/search/constants';
 import type { SearchResult } from '@/services/search/types';
 
 import s from './AppSearchDialog.module.scss';
@@ -40,9 +40,6 @@ import s from './AppSearchDialog.module.scss';
  * order means the section you were reaching for is where you left it.
  */
 const SECTION_ORDER: (keyof SearchResult)[] = ['top', 'members', 'teams', 'projects', 'forumThreads', 'events'];
-
-/** Below this the AI row would offer to chat about a stray character. */
-const MIN_ASK_LENGTH = 2;
 
 interface ResultsBodyProps {
   term: string;
@@ -71,10 +68,7 @@ const ResultsBody = React.memo(function ResultsBody({
 }: ResultsBodyProps) {
   const { data, isLoading, isError } = useFullApplicationSearch(term);
 
-  const total = SECTION_ORDER.filter((key) => key !== 'top').reduce(
-    (sum, key) => sum + (data?.[key]?.length ?? 0),
-    0,
-  );
+  const total = SECTION_ORDER.filter((key) => key !== 'top').reduce((sum, key) => sum + (data?.[key]?.length ?? 0), 0);
 
   if (isLoading) return <ContentLoader />;
 
@@ -115,6 +109,23 @@ const ResultsBody = React.memo(function ResultsBody({
 
 export type DialogView = 'search' | 'answer' | 'history';
 
+/**
+ * Which screen the answer view was reached from — the one Back and Escape
+ * return to.
+ *
+ * Not nullable, and deliberately: every door into the answer view comes from a
+ * screen of this dialog, so "nowhere to go back to" was a state that could not
+ * happen. It was reachable anyway, because the value was derived from whether
+ * the search field had anything in it — which left both idle-view doors (a
+ * suggested prompt, a row of the compact history list) with no Back at all and
+ * an Escape that closed the whole dialog.
+ *
+ * `'restored'` is not a place anyone navigated from: it is the
+ * reopened-with-a-thread case, a value rather than a separate flag because Back,
+ * Escape and the composer autofocus all branch on this one field.
+ */
+export type AnswerOrigin = 'search' | 'results' | 'history' | 'restored';
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -128,7 +139,7 @@ interface Props {
   view: DialogView;
   onViewChange: (next: DialogView) => void;
   /** Where the answer state was reached from, so Back has somewhere to go. */
-  origin: 'results' | 'history' | null;
+  origin: AnswerOrigin;
   onAskAi: (question: string) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
   isLoggedIn: boolean;
@@ -141,6 +152,7 @@ interface Props {
     status: StreamStatus;
     isBusy: boolean;
     threadId: string | null;
+    isThreadPersisted: boolean;
     limitLevel: LimitLevel;
     limitRemaining: number;
     ask: (question: string) => void;
@@ -174,6 +186,12 @@ export const AppSearchDialog = ({
   const resolvedView: DialogView | 'idle' | 'results' =
     view === 'answer' || view === 'history' ? view : trimmed ? 'results' : 'idle';
 
+  /* Reopened straight into an existing thread. The person came back to continue
+     it, so the caret belongs in the follow-up composer — not in the search
+     field, whose first keystroke is treated as a brand new search and would
+     navigate away from the thread that was just restored. */
+  const restoringThread = resolvedView === 'answer' && origin === 'restored';
+
   const handleInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       onRawTermChange(e.target.value);
@@ -191,14 +209,31 @@ export const AppSearchDialog = ({
     setActiveCategory('top');
   }, [onRawTermChange]);
 
-  /* A recent search is a search you *made*, not every prefix you typed on the
-     way. This used to fire inside the query fetcher, so "f", "fi", "fil" and
-     "file" all became entries against a three-item cap — one long question
-     evicted the whole list. */
   const handleResultSelect = useCallback(() => {
-    if (trimmed) saveRecentSearch(trimmed);
     onClose();
-  }, [onClose, trimmed]);
+  }, [onClose]);
+
+  /**
+   * A recent search is a search you *made*, not every prefix you typed on the
+   * way — and with results appearing as you type and `Enter` asking the AI,
+   * there is no submit gesture to read that from.
+   *
+   * The debounced term is the closest thing: it is what you stopped typing on,
+   * and it is the value the search query itself runs on. The ladder that
+   * produced it still arrives as several saves, so `saveRecentSearch` collapses
+   * them — which is what lets this be recorded without a result ever being
+   * clicked, and without one typed query filling a three-item list.
+   *
+   * Floored at the same length the dialog uses to decide it has a query at all.
+   * A term abandoned inside the debounce window never settles, so a discarded
+   * typo is never recorded.
+   */
+  useEffect(() => {
+    const settled = term.trim();
+    if (settled.length >= MIN_ASK_LENGTH) {
+      saveRecentSearch(settled);
+    }
+  }, [term]);
 
   const askAi = useCallback(() => {
     if (trimmed.length < MIN_ASK_LENGTH) return;
@@ -219,8 +254,7 @@ export const AppSearchDialog = ({
       e.stopPropagation();
 
       if (resolvedView === 'answer') {
-        if (origin) onViewChange(origin === 'history' ? 'history' : 'search');
-        else onClose();
+        onViewChange(origin === 'history' ? 'history' : 'search');
         return;
       }
       if (resolvedView === 'history') {
@@ -247,6 +281,11 @@ export const AppSearchDialog = ({
    */
   useEffect(() => {
     if (!isOpen) return;
+    /* A reopened conversation focuses its own composer instead — see the note
+       on `autoFocusComposer` below. Skipped here rather than raced: two rAF
+       callbacks aiming at different nodes in the same frame is decided by
+       ordering, which is not a thing to rely on. */
+    if (restoringThread) return;
     let canceled = false;
     const id = requestAnimationFrame(() => {
       if (canceled) return;
@@ -256,7 +295,7 @@ export const AppSearchDialog = ({
       canceled = true;
       cancelAnimationFrame(id);
     };
-  }, [isOpen, inputRef]);
+  }, [isOpen, inputRef, restoringThread]);
 
   const renderIdle = () => (
     <div className={s.idle}>
@@ -282,6 +321,11 @@ export const AppSearchDialog = ({
         onShowAll={() => onViewChange('history')}
         onCloseFull={() => onViewChange('search')}
       />
+
+      {/* Says what the field reaches. It earns its place most in the states the
+          rest of this view leaves thin — no history yet, still loading, signed
+          out — so it is not tied to any of them. */}
+      <p className={s.hint}>Search members, teams, projects, events and forum posts, or chat with AI Search.</p>
     </div>
   );
 
@@ -356,11 +400,15 @@ export const AppSearchDialog = ({
             status={chat.status}
             isBusy={chat.isBusy}
             threadId={chat.threadId}
+            isThreadPersisted={chat.isThreadPersisted}
             limitLevel={chat.limitLevel}
             limitRemaining={chat.limitRemaining}
             isLoggedIn={isLoggedIn}
-            onBack={origin ? () => onViewChange(origin === 'history' ? 'history' : 'search') : undefined}
-            backLabel={origin === 'history' ? 'Back to history' : 'Back to results'}
+            autoFocusComposer={restoringThread}
+            onBack={() => onViewChange(origin === 'history' ? 'history' : 'search')}
+            backLabel={
+              origin === 'history' ? 'Back to history' : origin === 'results' ? 'Back to results' : 'Back to search'
+            }
             onAsk={chat.ask}
             onRegenerate={chat.regenerate}
             onStop={chat.stop}

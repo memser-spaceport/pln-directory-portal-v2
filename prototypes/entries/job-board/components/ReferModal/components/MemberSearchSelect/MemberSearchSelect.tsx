@@ -77,7 +77,7 @@ function MenuWithOutsideRow(menuProps: MenuProps<Option, false>) {
           <span className={s.outsideGlyph}>
             <PlusIcon width={16} height={16} />
           </span>
-          Refer someone outside the network
+          Refer someone not in PL network
         </button>
       )}
     </components.Menu>
@@ -114,7 +114,7 @@ const toOption = (member: DirectoryMember): Option => ({
  *   that row alone, which is also why `NoOptionsMessage` is suppressed there — react-select
  *   would otherwise answer a question nobody asked with "No members found".
  *
- * The menu ends in one standing row, **Refer someone outside the network**, in every
+ * The menu ends in one standing row, **Refer someone not in PL network**, in every
  * state — an empty field, a result list, a list with nothing in it. It is the same
  * question this field asks, answered for a person the directory can't return, so it
  * lives in this field rather than beside it: a second door next to the search would be

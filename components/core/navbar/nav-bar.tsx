@@ -192,7 +192,7 @@ function Navbar(props: Readonly<INavbar>) {
           />
           <ApplicationSearch isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
 
-          <HelpMenu userInfo={userInfo} />
+          <HelpMenu isLoggedIn={isLoggedIn} userInfo={userInfo} />
           <NotificationBell isLoggedIn={isLoggedIn} />
           {isLoggedIn && userInfo?.uid && (
             <AccountMenu

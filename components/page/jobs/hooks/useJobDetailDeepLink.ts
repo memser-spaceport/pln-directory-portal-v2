@@ -5,7 +5,13 @@ import { useSearchParams } from 'next/navigation';
 
 import type { JobDetailTarget, useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
 import { fetchJobByUid } from '@/services/jobs/jobs.service';
-import { JOB_DETAIL_PARAM, findJobInGroups, writeJobDetailParam } from '@/services/jobs/job-detail-link';
+import { useJobsAnalytics } from '@/analytics/jobs.analytics';
+import {
+  JOB_DETAIL_PARAM,
+  JOB_SHARE_UTM_SOURCE,
+  findJobInGroups,
+  writeJobDetailParam,
+} from '@/services/jobs/job-detail-link';
 import type { IJobTeamGroup } from '@/types/jobs.types';
 
 /**
@@ -41,6 +47,7 @@ export function useJobDetailDeepLink({
 }): ReturnType<typeof useJobApplyFlow> {
   const searchParams = useSearchParams();
   const openedFromUrl = useRef(false);
+  const analytics = useJobsAnalytics();
   const { onViewJob: openDetail, close: closeFlow } = flow;
 
   const onViewJob = useCallback(
@@ -83,6 +90,17 @@ export function useJobDetailDeepLink({
 
     const fromList = findJobInGroups(groups, jobUid);
     openedFromUrl.current = true;
+
+    /* Before the role is resolved, so a link to a role that has since closed
+       still counts as a click on the link someone sent. */
+    if (searchParams.get('utm_source') === JOB_SHARE_UTM_SOURCE) {
+      analytics.onJobReferShareLinkOpened({
+        job_id: jobUid,
+        utm_source: JOB_SHARE_UTM_SOURCE,
+        utm_medium: searchParams.get('utm_medium'),
+      });
+    }
+
     if (fromList) {
       openDetail({
         role: fromList.role,
@@ -112,7 +130,7 @@ export function useJobDetailDeepLink({
       }
     })();
     // Claimed before the fetch, so a later groups change must not re-open.
-  }, [enabled, isLoading, groups, searchParams, openDetail]);
+  }, [enabled, isLoading, groups, searchParams, openDetail, analytics]);
 
   return useMemo(
     () => (enabled ? { ...flow, onViewJob, close } : flow),

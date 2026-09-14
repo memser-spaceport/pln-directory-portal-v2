@@ -50,7 +50,9 @@ export const shouldApplyGoExternal = (args: {
   viewer: BoardViewerState;
   verdict: JobsAccessVerdict;
   team: IJobTeam | null | undefined;
-}): boolean => !isProtocolLabsTeam(args.team) && (args.viewer === 'logged-out' || args.verdict === 'pending');
+}): boolean =>
+  args.team?.inAppApplyAvailable === false ||
+  (!isProtocolLabsTeam(args.team) && (args.viewer === 'logged-out' || args.verdict === 'pending'));
 
 /**
  * The flow's whole state as ONE discriminated union: illegal combinations (two

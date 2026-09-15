@@ -91,4 +91,23 @@ describe('PlaaSnapshotSummaryModal', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
     expect(mockPush).toHaveBeenCalledWith('/alignment-asset/activities');
   });
+
+  it('says no activities are recorded yet instead of leaving the list blank', () => {
+    mockUseCurrentSnapshotStatus.mockReturnValue({
+      ...STATUS,
+      pointsCollected: 0,
+      activitiesCount: 0,
+      categoriesCount: 0,
+      activities: [],
+    });
+    render(<PlaaSnapshotSummaryModal isOpen={true} onClose={mockOnClose} />);
+
+    expect(screen.getByText('No activities recorded yet this snapshot')).toBeInTheDocument();
+  });
+
+  it('does not show the empty message when there are activities', () => {
+    render(<PlaaSnapshotSummaryModal isOpen={true} onClose={mockOnClose} />);
+
+    expect(screen.queryByText('No activities recorded yet this snapshot')).not.toBeInTheDocument();
+  });
 });

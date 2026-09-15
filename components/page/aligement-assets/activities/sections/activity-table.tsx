@@ -171,6 +171,10 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
                       </p>
                     </div>
 
+                    {activity.isNew && (
+                      <span className="activity-card__new-badge">New</span>
+                    )}
+
                     <div className="activity-card__footer">
                       <div className="activity-card__tracking">
                         {(() => {
@@ -332,6 +336,20 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
           padding: 6px 12px;
           border-radius: 999px;
           white-space: normal;
+        }
+
+        .activity-card__new-badge {
+          display: inline-block;
+          align-self: flex-start;
+          color: #2563eb;
+          font-size: 12px;
+          font-weight: 600;
+          background: transparent;
+          border: 1px solid #2563eb;
+          padding: 5px 12px;
+          border-radius: 999px;
+          white-space: nowrap;
+          margin-bottom: 16px;
         }
 
         .activity-card__points {

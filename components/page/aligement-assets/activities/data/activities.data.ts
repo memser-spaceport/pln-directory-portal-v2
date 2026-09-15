@@ -102,6 +102,33 @@ export const activitiesData: ActivitiesData = {
       }
     },
     {
+      id: 'submit-deal-debrief',
+      category: 'Knowledge Sharing',
+      activity: 'Submit a Deal Debrief',
+      networkValue: 'Share a substantive debrief on a VC, M&A, or other deal to build practical deal knowledge for the network',
+      points: '250',
+      frequency: 'Repeatable',
+      verificationType: 'Manual Review',
+      cta: 'submit',
+      popupContent: {
+        title: 'Submit a Deal Debrief',
+        overview: 'Share the lesson, not just the deal. Submit a substantive debrief through the PL Deal Debrief app, drawing on your own perspective on a VC, M&A, or other deal. Explain what worked, what was challenging, and what others could learn (without confidential, privileged, or identifying deal information).',
+        networkBenefits: 'Builds a repository of practical deal knowledge that can inform reports and advice for network companies and PL Infra, helping them improve deal processes and outcomes.',
+        rules: [
+          'Submit all deal information for this activity through the app and complete all required fields, using generalized, non-confidential answers',
+          'Provide substantive information: meaningful context, insights, and reusable lessons from your own perspective. Empty, generic, or copied answers do not qualify',
+          'The Legal Ops team will review all deal information before you collect the 250 points. Submission alone does not guarantee points',
+          'Multiple people may submit the same deal, provided each person supplies unique answers representing their own perspective on that deal',
+          `Do not submit confidential or privileged information about any deal. Follow the app's guidance: no names, exact figures, dates, non-public diligence reports, third-party term sheets, documents subject to NDAs, or confidential links in your deal narrative. Do not submit information you are not authorized to share; if you cannot answer safely, do not submit it`,
+          'Providing confidential or privileged deal information will result in immediate point forfeiture and potential removal from the activity program'
+        ],
+        ctaLink: 'https://os.pl.xyz/pl-infra/ai-apps/cmtdebct4000otb4fqp4vyim8',
+        links: [
+          { text: 'PL Deal Debrief app', url: 'https://os.pl.xyz/pl-infra/ai-apps/cmtdebct4000otb4fqp4vyim8' }
+        ]
+      }
+    },
+    {
       id: 'network-introduction',
       category: 'Programs',
       activity: 'Make a Network Introduction',
@@ -162,17 +189,17 @@ export const activitiesData: ActivitiesData = {
       }
     },
     {
-      id: 'give-excellent-survey-feedback',
+      id: 'give-excellent-feedback',
       category: 'Projects',
-      activity: 'Give Excellent Survey Feedback',
+      activity: 'Give Excellent Feedback',
       networkValue: 'You went above and beyond in giving thoughtful and actionable feedback',
       points: '100',
       frequency: 'Repeatable',
       verificationType: 'Auto',
       cta: 'confirm',
       popupContent: {
-        title: 'Give Excellent Survey Feedback',
-        overview: 'Your survey feedback went above and beyond. The insights you provided helped identify new issues or drive real improvements to the Alignment Asset program.',
+        title: 'Give Excellent Feedback',
+        overview: 'Your feedback — whether through a survey, the LabOS Feedback button, or another PLAA channel — went above and beyond. The insights you provided helped identify new issues or drive real improvements to the Alignment Asset program.',
         networkBenefits: 'Rewards feedback that identifies meaningful issues or improvement opportunities, not just completed forms.',
         rules: [
           'Your feedback created meaningful impact, as determined by the PLAA working group',
@@ -398,6 +425,32 @@ export const activitiesData: ActivitiesData = {
         ],
         links: [
           { text: '/pl-infra/ai-apps', url: '/pl-infra/ai-apps' }
+        ]
+      }
+    },
+    {
+      id: 'contribute-reusable-prompt-or-skill',
+      category: 'Network Tooling',
+      activity: 'Contribute a Reusable Prompt or Skill',
+      networkValue: 'Contribute a reusable prompt, AI resource, or skill to the PLAAbook or PL Infra Toolkit',
+      points: '350',
+      frequency: 'Recurring',
+      isNew: true,
+      verificationType: 'Manual Review',
+      cta: 'confirm',
+      popupContent: {
+        title: 'Contribute a Reusable Prompt or Skill',
+        overview: 'Contribute a reusable resource, prompt or AI skill to the PLAAbook or PL Infra Toolkit for PL Infra users. Receive 100 points for an approved resource or prompt and also 250 points for an approved skill, up to 350 points total.',
+        networkBenefits: 'Builds a library of useful, reusable AI resources while encouraging PL Infra members to share proven knowledge resources, workflows and tools with the broader network.',
+        rules: [
+          '100 points are awarded for an approved reusable resource or prompt; 250 points are awarded for an approved skill (up to 350 points total)',
+          'Available to current PLAA participants with verified PL Infra membership and Toolkit access',
+          'Submit up to one prompt or AI-related resource and one AI skill',
+          'Contributions must be publication-verified, useful, reproducible, safe, and non-duplicative'
+        ],
+        links: [
+          { text: 'PLAAbook', url: 'https://directory.plnetwork.io/pl-infra/ai-apps/cmthpnpeo059vnz4g9kf55xrv' },
+          { text: 'PL Infra Toolkit', url: 'https://directory.plnetwork.io/pl-infra/ai-apps/cmr2wll3y0a07ot4gjdy8ma6b' }
         ]
       }
     },

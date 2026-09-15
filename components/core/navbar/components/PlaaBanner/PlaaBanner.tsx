@@ -47,7 +47,7 @@ export const BANNER_CONTENTS: BannerContent[] = [
     subtitle: 'Visit the new Kudos Board to recognize meaningful contributions from across the network.',
     date: '',
     buttons: [
-      { label: 'Give Kudos', link: 'https://directory.plnetwork.io/alignment-asset/kudos', variant: 'secondary' },
+      { label: 'Give Kudos', link: '/alignment-asset/kudos', variant: 'secondary' },
     ],
   },
   {
@@ -69,7 +69,7 @@ export const BANNER_CONTENTS: BannerContent[] = [
     subtitle: 'Explore new ways to contribute to the network and collect PLAA points.',
     date: '',
     buttons: [
-      { label: 'View Activities', link: 'https://directory.plnetwork.io/alignment-asset/activities', variant: 'secondary' },
+      { label: 'View Activities', link: '/alignment-asset/activities', variant: 'secondary' },
     ],
   },
 ];

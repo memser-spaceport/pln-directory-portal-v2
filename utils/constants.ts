@@ -1717,7 +1717,7 @@ export const ChangeLogList = [
       <div style="font-size: 14px; line-height:23px;">
       <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
       <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-      <li>Enabled events submission capability for <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/events/irl?location=Toronto" target="_blank">IRL Toronto</a>, allowing users to register and manage event entries</li>
+      <li>Enabled events submission capability for <a style="text-decoration:underline; color:#156ff7" href="/events/irl?location=Toronto" target="_blank">IRL Toronto</a>, allowing users to register and manage event entries</li>
       <li>Enhanced user experience by enabling seamless navigation between PL Events and IRL Gatherings allowing access to both event details and attendee information</li>
       <li>Ability for the event participants to claim their attendance for the past events</li>
       <li>Ability for IRL Admins to perform user management for related events</li>
@@ -1732,7 +1732,7 @@ export const ChangeLogList = [
       <div style="font-size: 14px; line-height:23px;">
       <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
       <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-      <li>Enabled events submission capability for <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/events/irl?location=Dubai" target="_blank">IRL Dubai</a>, allowing users to register and manage event entries</li>
+      <li>Enabled events submission capability for <a style="text-decoration:underline; color:#156ff7" href="/events/irl?location=Dubai" target="_blank">IRL Dubai</a>, allowing users to register and manage event entries</li>
       <li>Enhanced user experience by enabling cross-module event visibility between PL Events and IRL Gatherings</li>
       </ul>
   
@@ -1868,13 +1868,13 @@ export const ChangeLogList = [
       <div style="font-size: 14px; line-height:23px;">
       <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features</span><br/>
       <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-      <li>Husky AI is the new LLM-powered chatbot that can respond to your queries for any and all members, teams, and projects within the directory with a faster response time <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/" target="_blank">Use Husky to traverse the network</a></li>
+      <li>Husky AI is the new LLM-powered chatbot that can respond to your queries for any and all members, teams, and projects within the directory with a faster response time <a style="text-decoration:underline; color:#156ff7" href="/" target="_blank">Use Husky to traverse the network</a></li>
       </ul>
   
       <span style="font-size: 14px;line-height:23px; font-weight: 600">Enhancements</span><br/>
       <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-      <li>The process for adding teams to the directory has been revised. Users must now log in and <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/teams/add" target="_blank">submit a team</a> via the Teams landing page. If you see a team that's a good fit, feel free to recommend it to the network.</li>
-      <li>To provide more insights into event information, we have now added the attendee count for every event in the <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/irl" target="_blank">IRL Gatherings page</a>, allowing users to see the number of attendees along with the resources for each event at a quick glance.</li>
+      <li>The process for adding teams to the directory has been revised. Users must now log in and <a style="text-decoration:underline; color:#156ff7" href="/teams/add" target="_blank">submit a team</a> via the Teams landing page. If you see a team that's a good fit, feel free to recommend it to the network.</li>
+      <li>To provide more insights into event information, we have now added the attendee count for every event in the <a style="text-decoration:underline; color:#156ff7" href="/events/irl" target="_blank">IRL Gatherings page</a>, allowing users to see the number of attendees along with the resources for each event at a quick glance.</li>
       </ul>
   
       <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug Fixes</span><br/>

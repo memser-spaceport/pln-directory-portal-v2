@@ -381,11 +381,17 @@ export async function generateMetadata(props: IGenerateMetadata, parent: Resolvi
   const team = teamResonse?.data?.formatedData;
   const previousImages = (await parent).openGraph?.images || [];
   const logo = team?.logo || SOCIAL_IMAGE_URL;
+  const pageUrl = `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.TEAMS}/${teamId}`;
+  const description = team?.name
+    ? `${team.name} on Protocol Labs Directory`
+    : 'Explore teams across the Protocol Labs network.';
   return {
     title: `${team?.name} | Protocol Labs Directory`,
+    description,
+    alternates: { canonical: pageUrl },
     openGraph: {
       type: 'website',
-      url: `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.TEAMS}/${teamId}`,
+      url: pageUrl,
       images: [logo, ...previousImages],
     },
   };

@@ -1788,7 +1788,7 @@ describe('TeamNews', () => {
 
       fireEvent.click(screen.getAllByRole('button', { name: 'View job' })[0]);
 
-      expect(mockWindowOpen).toHaveBeenCalledWith('/jobs?job=acme-r1', '_blank', 'noopener,noreferrer');
+      expect(mockWindowOpen).toHaveBeenCalledWith('/jobs/openings/acme-r1', '_blank', 'noopener,noreferrer');
     });
 
     // Used to be "renders a role without an apply link as plain text, not a dead
@@ -1803,7 +1803,7 @@ describe('TeamNews', () => {
 
       fireEvent.click(screen.getByRole('button', { name: 'View job' }));
 
-      expect(mockWindowOpen).toHaveBeenCalledWith('/jobs?job=no-url', '_blank', 'noopener,noreferrer');
+      expect(mockWindowOpen).toHaveBeenCalledWith('/jobs/openings/no-url', '_blank', 'noopener,noreferrer');
     });
 
     // The board's row builds "seniority · function · location" and omits the
@@ -2388,7 +2388,7 @@ describe('TeamNews', () => {
 
         fireEvent.click(screen.getByRole('button', { name: 'View job' }));
 
-        expect(mockWindowOpen).toHaveBeenCalledWith('/jobs?job=acme-r1', '_blank', 'noopener,noreferrer');
+        expect(mockWindowOpen).toHaveBeenCalledWith('/jobs/openings/acme-r1', '_blank', 'noopener,noreferrer');
         expect(mockOnFeedHiringRoleClicked).toHaveBeenCalledWith(
           expect.objectContaining({ team: expect.objectContaining({ uid: 'acme' }) }),
           expect.objectContaining({ uid: 'acme-r1' }),

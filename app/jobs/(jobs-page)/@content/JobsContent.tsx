@@ -97,8 +97,8 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
     userInfo,
     groups,
     isLoading,
-    /* The board's share links are `/jobs?job=<uid>`, so a description someone
-       opened is a description they can send. */
+    /* The board's share links are `/jobs/openings/<uid>`. `?job=` still tracks
+       the open drawer on this page so a refresh restores it. */
     deepLink: true,
   });
   const { viewer: boardViewer, flow, applyProps } = surface;

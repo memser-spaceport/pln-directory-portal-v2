@@ -20,9 +20,9 @@ interface ReferMenuProps {
 /**
  * Share control on each job row: LinkedIn / X intents, or copy link.
  *
- * Always shares the in-app drawer deep link (`/jobs?job=<uid>`), never the
- * company's own posting — recipients should land on the board with that role
- * open, the same destination refer/apply emails now send.
+ * Always shares the crawlable job page (`/jobs/openings/<uid>`), never the
+ * company's own posting — recipients should land on that role, the same
+ * destination refer/apply emails now send.
  *
  * NOTE: TeamNews's NewsShareMenu is the hardened adaptation of this component
  * (base-ui Menu, encoded intents, cleared copy timer) — a third share surface

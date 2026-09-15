@@ -10,7 +10,8 @@ import { IFocusArea } from '@/components/page/team-form-info/focus-area/focus-ar
 import HuskyDialog from '@/components/page/home/husky-dialog';
 import HuskyDiscover from '@/components/page/home/husky-discover';
 import { Metadata } from 'next';
-import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { PAGE_ROUTES } from '@/utils/constants';
+import { getApplicationBaseUrl, listingPageMetadata } from '@/utils/seo';
 import ScrollToTop from '@/components/page/home/featured/scroll-to-top';
 import { getFeaturedData } from '@/services/featured.service';
 import { getTeamList } from '@/app/actions/teams.actions';
@@ -283,27 +284,11 @@ const getPageData = async (deepLinkedNewsUid?: string) => {
   }
 };
 
-const HOME_METADATA: Metadata = {
+const HOME_METADATA: Metadata = listingPageMetadata({
   title: 'Home | Protocol Labs Directory',
   description: 'The Protocol Labs Directory drives breakthroughs in computing to push humanity forward.',
-  openGraph: {
-    type: 'website',
-    url: process.env.APPLICATION_BASE_URL,
-    images: [
-      {
-        url: SOCIAL_IMAGE_URL,
-        width: 1280,
-        height: 640,
-        alt: 'Protocol Labs Directory',
-        type: 'image/jpeg',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    images: [SOCIAL_IMAGE_URL],
-  },
-};
+  path: PAGE_ROUTES.HOME,
+});
 
 /** A news permalink (`/home?news=<uid>`) previews as that article rather than
  *  as the directory, so sharing one reads like sharing an HN item.
@@ -324,7 +309,7 @@ export async function generateMetadata(props: HomeProps): Promise<Metadata> {
     return HOME_METADATA;
   }
 
-  const baseUrl = (process.env.APPLICATION_BASE_URL ?? '').replace(/\/$/, '');
+  const baseUrl = getApplicationBaseUrl();
   const pageUrl = `${baseUrl}/home?news=${encodeURIComponent(item.uid)}`;
   const imageUrl = `${baseUrl}/api/og/team-news/${encodeURIComponent(item.uid)}`;
   const description = getNewsPreviewSnippet(item);

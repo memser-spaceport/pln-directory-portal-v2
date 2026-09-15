@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { PAGE_ROUTES } from '@/utils/constants';
+import { jobOpeningPath } from '@/services/jobs/job-detail-link';
+import { getApplicationBaseUrl } from '@/utils/seo';
 
 const STATIC_PATHS = [
   PAGE_ROUTES.HOME,
@@ -34,8 +36,35 @@ async function fetchUids(path: string, listKey: string): Promise<string[]> {
   }
 }
 
+async function fetchJobCrawlIndex(): Promise<{ uid: string; updatedAt: string }[]> {
+  const apiBase = process.env.DIRECTORY_API_URL;
+  if (!apiBase) {
+    return [];
+  }
+
+  try {
+    const response = await fetch(`${apiBase}/v1/job-openings/crawl-index`, {
+      next: { revalidate: 3600 },
+    });
+    if (!response.ok) {
+      return [];
+    }
+    const data = await response.json();
+    const jobs = data?.jobs;
+    if (!Array.isArray(jobs)) {
+      return [];
+    }
+    return jobs.filter(
+      (item: { uid?: string; updatedAt?: string }): item is { uid: string; updatedAt: string } =>
+        typeof item?.uid === 'string' && typeof item?.updatedAt === 'string',
+    );
+  } catch {
+    return [];
+  }
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = (process.env.APPLICATION_BASE_URL ?? '').replace(/\/$/, '');
+  const baseUrl = getApplicationBaseUrl();
   if (!baseUrl) {
     return [];
   }
@@ -43,13 +72,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map((path) => ({
     url: `${baseUrl}${path}`,
     changeFrequency: 'daily',
-    priority: path === PAGE_ROUTES.HOME ? 1 : 0.8,
+    priority: path === PAGE_ROUTES.HOME ? 1 : path === PAGE_ROUTES.JOBS ? 0.9 : 0.8,
   }));
 
-  const [teamUids, memberUids, projectUids] = await Promise.all([
+  const [teamUids, memberUids, projectUids, jobs] = await Promise.all([
     fetchUids('/v1/teams', 'teams'),
     fetchUids('/v1/members', 'members'),
     fetchUids('/v1/projects', 'projects'),
+    fetchJobCrawlIndex(),
   ]);
 
   const teamEntries: MetadataRoute.Sitemap = teamUids.map((uid) => ({
@@ -70,5 +100,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  return [...staticEntries, ...teamEntries, ...memberEntries, ...projectEntries];
+  const jobEntries: MetadataRoute.Sitemap = jobs.map((job) => ({
+    url: `${baseUrl}${jobOpeningPath(job.uid)}`,
+    lastModified: job.updatedAt,
+    changeFrequency: 'daily',
+    priority: 0.7,
+  }));
+
+  return [...staticEntries, ...jobEntries, ...teamEntries, ...memberEntries, ...projectEntries];
 }

@@ -1,7 +1,7 @@
 'use server';
 
 import { getHeader } from '@/utils/common.utils';
-import type { IJobsFiltersResponse, IJobsListResponse } from '@/types/jobs.types';
+import type { IJobTeamGroup, IJobsFiltersResponse, IJobsListResponse } from '@/types/jobs.types';
 
 const jobsAPI = `${process.env.DIRECTORY_API_URL}/v1/job-openings`;
 
@@ -35,6 +35,23 @@ export async function getJobsFilters(query: string): Promise<Result<IJobsFilters
       return { isError: true, status: response.status, statusText: response.statusText };
     }
     const data = (await response.json()) as IJobsFiltersResponse;
+    return { data };
+  } catch {
+    return { isError: true };
+  }
+}
+
+export async function getJobOpening(uid: string): Promise<Result<IJobTeamGroup>> {
+  try {
+    const response = await fetch(`${jobsAPI}/${encodeURIComponent(uid)}`, {
+      method: 'GET',
+      headers: getHeader(''),
+      next: { revalidate: 3600 },
+    });
+    if (!response.ok) {
+      return { isError: true, status: response.status, statusText: response.statusText };
+    }
+    const data = (await response.json()) as IJobTeamGroup;
     return { data };
   } catch {
     return { isError: true };

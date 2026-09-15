@@ -99,13 +99,13 @@ export function HiringCard({
   };
 
   /**
-   * View job leaves for the board rather than opening a drawer here.
+   * View job leaves for the dedicated job page rather than opening a drawer here.
    *
    * The feed is a scanning surface and the flow behind that drawer is not — it
    * runs a sign-in gate, a profile check and a cover letter, and `router.refresh()`
    * from inside it would re-fetch the whole home page under the reader. A new
    * tab keeps the feed they were scanning exactly where it was, and lands them
-   * on `/jobs?job=<uid>`, where the board opens the same drawer from the URL.
+   * on `/jobs/openings/<uid>`.
    *
    * `window.open` rather than an `<a>` because the row's View job is a
    * `<button>` — see `ReferRoleRow`, where the title and the button are

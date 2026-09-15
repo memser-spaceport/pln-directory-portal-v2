@@ -18,8 +18,13 @@ export const JOB_DETAIL_PARAM = 'job';
  *  from a click on the board. */
 export const JOB_SHARE_UTM_SOURCE = 'job_refer_share';
 
+export function jobOpeningPath(jobUid: string): string {
+  return `/jobs/openings/${encodeURIComponent(jobUid)}`;
+}
+
+/** Canonical public URL for a role — the crawlable job page. */
 export function jobDetailPath(jobUid: string): string {
-  return `/jobs?${JOB_DETAIL_PARAM}=${encodeURIComponent(jobUid)}`;
+  return jobOpeningPath(jobUid);
 }
 
 /** Canonical share/email URL. Never `location.href` — the current page may
@@ -29,7 +34,7 @@ export function jobDetailPath(jobUid: string): string {
  *  a person is about to hand to someone else. */
 export function jobDetailShareUrl(jobUid: string, channel?: JobReferShareNetwork): string {
   const path = channel
-    ? `${jobDetailPath(jobUid)}&utm_source=${JOB_SHARE_UTM_SOURCE}&utm_medium=${channel}`
+    ? `${jobDetailPath(jobUid)}?utm_source=${JOB_SHARE_UTM_SOURCE}&utm_medium=${channel}`
     : jobDetailPath(jobUid);
   if (typeof window === 'undefined') return path;
   return `${window.location.origin}${path}`;

@@ -26,7 +26,7 @@ export function TeamCard(props: Props) {
 
   const websiteLink = website.split(' ')[0];
   const isValidWebsite = isLink(websiteLink);
-  const teamPageUrl = `https://directory.plnetwork.io/teams/${uid}`;
+  const teamPageUrl = `/teams/${uid}`;
   const websiteUrl = isValidWebsite ? getSocialLinkUrl(websiteLink, 'website') : null;
 
   const handleCardClick = () => {

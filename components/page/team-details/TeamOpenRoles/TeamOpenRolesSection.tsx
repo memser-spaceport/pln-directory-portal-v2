@@ -53,10 +53,9 @@ export function TeamOpenRolesSection({ group, isLoggedIn, userInfo }: TeamOpenRo
     groups,
     // Server-rendered: the roles arrive with the page, so there is nothing to wait for.
     isLoading: false,
-    /* No `?job=` here. `jobDetailPath` is `/jobs?job=<uid>`, so sharing from this
-       page already points at the board — a destination that works. Writing the
-       param onto `/teams/[id]` without changing that would make the URL someone
-       sees and the URL they can send disagree. */
+    /* No `?job=` here. Share links already point at `/jobs/openings/[uid]`.
+       Writing the param onto `/teams/[id]` would make the URL someone sees
+       and the URL they can send disagree. */
     deepLink: false,
   });
 

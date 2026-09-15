@@ -29,7 +29,7 @@ export const activitiesData: ActivitiesData = {
           'Responses will be reviewed by the PLAA Working Group before points are awarded'
         ],
         links: [
-          { text: 'LabOS Forum', url: 'https://directory.plnetwork.io/forum?cid=0' }
+          { text: 'LabOS Forum', url: '/forum?cid=0' }
         ]
       }
     },
@@ -51,7 +51,7 @@ export const activitiesData: ActivitiesData = {
           'The response must be substantive enough to keep the conversation moving'
         ],
         links: [
-          { text: 'forum post', url: 'https://directory.plnetwork.io/forum?cid=0' }
+          { text: 'forum post', url: '/forum?cid=0' }
         ]
       }
     },
@@ -69,7 +69,7 @@ export const activitiesData: ActivitiesData = {
         overview: 'Host live sessions to share expertise, provide feedback, or collaborate with others in the network. These real-time connections not only share knowledge, but build stronger connections. Set yourself up to host office hours via your profile page.\n\nYou can host office hours through your PL Network profile. For meetings scheduled outside the Directory, add plaa-oh@plrs.xyz as an attendee to make the session eligible for automatic tracking.',
         networkBenefits: 'Makes member expertise accessible and creates lightweight paths for feedback, collaboration, and mentoring across the network.',
         rules: [
-          'Sessions must either be scheduled through directory.plnetwork.io or include plaa-oh@plrs.xyz as an attendee on the calendar invitation',
+          'Sessions must either be scheduled through the Directory or include plaa-oh@plrs.xyz as an attendee on the calendar invitation',
           'Each session must run for at least 15 minutes',
           'The tracking email must be added to the calendar invitation before the session occurs',
           'Cancelled, declined, duplicated, or unverified sessions are not eligible'
@@ -157,7 +157,7 @@ export const activitiesData: ActivitiesData = {
           'Must attend to receive points'
         ],
         links: [
-          { text: 'RSVP on the LabOS site', url: 'https://directory.plnetwork.io/events/irl' }
+          { text: 'RSVP on the LabOS site', url: '/events/irl' }
         ]
       }
     },
@@ -261,7 +261,7 @@ export const activitiesData: ActivitiesData = {
           'Kudos may be reviewed or removed if they appear duplicated, coordinated, or otherwise misused.'
         ],
         links: [
-          { text: 'Kudos feature', url: 'https://directory.plnetwork.io/alignment-asset/kudos' }
+          { text: 'Kudos feature', url: '/alignment-asset/kudos' }
         ]
       }
     },
@@ -298,7 +298,7 @@ export const activitiesData: ActivitiesData = {
       cta: 'submit',
       popupContent: {
         title: 'Refer a Potential Team Member to a PL Network Org',
-        overview: 'Refer exceptional talent to the Protocol Labs network by submitting candidates through the designated form. Check out the PL Network Job Board to see open roles: https://directory.plnetwork.io/jobs.',
+        overview: 'Refer exceptional talent to the Protocol Labs network by submitting candidates through the designated form. Check out the PL Network Job Board to see open roles: /jobs.',
         networkBenefits: 'Expands the candidate pipeline for open roles across network companies and organizations.',
         rules: [
           'The referral must be for an open role at a PL Network Member organization or company',
@@ -306,7 +306,7 @@ export const activitiesData: ActivitiesData = {
           'The referral must at least pass the screening interview stage'
         ],
         links: [
-          { text: 'https://directory.plnetwork.io/jobs', url: 'https://directory.plnetwork.io/jobs' }
+          { text: '/jobs', url: '/jobs' }
         ]
       }
     },
@@ -345,13 +345,13 @@ export const activitiesData: ActivitiesData = {
         rules: [
           'The event must be created and published in Luma and included on a live, discoverable calendar or listing',
           'You must add events@plrs.xyz as an Event Manager in Luma so registration and attendance data can be accessed',
-          'Host must submit it to the PL events directory by adding it to https://directory.plnetwork.io/events/irl via https://irl.plnetwork.io/events/',
+          'Host must submit it to the PL events directory by adding it to /events/irl via https://irl.plnetwork.io/events/',
           'To qualify as a Host, your profile must be clearly listed under the Host section of the event',
           'At least 10 people not associated with your organization or company must attend'
         ],
         links: [
           { text: 'events@plrs.xyz', url: 'mailto:events@plrs.xyz' },
-          { text: 'https://directory.plnetwork.io/events/irl', url: 'https://directory.plnetwork.io/events/irl' },
+          { text: '/events/irl', url: '/events/irl' },
           { text: 'https://irl.plnetwork.io/events/', url: 'https://irl.plnetwork.io/events/' }
         ]
       }
@@ -391,13 +391,13 @@ export const activitiesData: ActivitiesData = {
         networkBenefits: 'Expands useful network tooling while driving adoption and feedback for LabOS infrastructure.',
         rules: [
           'Available to PL Infra members only. Other participants may submit qualifying tools through the Share an AI Resource or Tool You Built activity.',
-          'Create and deploy a functional AI application through LabOS via https://directory.plnetwork.io/pl-infra/ai-apps.',
+          'Create and deploy a functional AI application through LabOS via /pl-infra/ai-apps.',
           'The application must be useful to the average PL Infra user.',
           'Include basic documentation and identify any collaborators.',
           'Applications are reviewed by the PLAA Working Group before points are awarded.'
         ],
         links: [
-          { text: 'https://directory.plnetwork.io/pl-infra/ai-apps', url: 'https://directory.plnetwork.io/pl-infra/ai-apps' }
+          { text: '/pl-infra/ai-apps', url: '/pl-infra/ai-apps' }
         ]
       }
     },
@@ -456,13 +456,13 @@ export const activitiesData: ActivitiesData = {
         overview: 'Subscribe to the PL Newsletter to receive network news, opportunities, events, and other important updates directly in your inbox.',
         networkBenefits: 'Keeps more members informed and connected to opportunities across the PL Network.',
         rules: [
-          'Turn on the Subscribe to PL Newsletter toggle in Directory via https://directory.plnetwork.io/settings/email',
+          'Turn on the Subscribe to PL Newsletter toggle in Directory via /settings/email',
           'The toggle must remain enabled when the subscription is verified',
           'Points are awarded after Marketing confirms the subscription',
           'This activity may only be completed once'
         ],
         links: [
-          { text: 'https://directory.plnetwork.io/settings/email', url: 'https://directory.plnetwork.io/settings/email' }
+          { text: '/settings/email', url: '/settings/email' }
         ]
       }
     }

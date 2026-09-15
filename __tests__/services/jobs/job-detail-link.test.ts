@@ -36,12 +36,12 @@ const group = (teamUid: string, roleUids: string[]): IJobTeamGroup => ({
 });
 
 describe('jobDetailPath', () => {
-  it('builds /jobs?job=<uid>', () => {
-    expect(jobDetailPath('role-1')).toBe(`/jobs?${JOB_DETAIL_PARAM}=role-1`);
+  it('builds /jobs/openings/<uid>', () => {
+    expect(jobDetailPath('role-1')).toBe('/jobs/openings/role-1');
   });
 
-  it('encodes a uid that would break the query string', () => {
-    expect(jobDetailPath('role with space&x')).toBe(`/jobs?${JOB_DETAIL_PARAM}=role%20with%20space%26x`);
+  it('encodes a uid that would break the path', () => {
+    expect(jobDetailPath('role with space&x')).toBe('/jobs/openings/role%20with%20space%26x');
   });
 });
 
@@ -49,12 +49,12 @@ describe('jobDetailShareUrl', () => {
   it('prefixes the current origin — never location.href, which may carry filters', () => {
     window.history.replaceState({}, '', '/jobs?roleCategory=Engineering&sort=newest');
 
-    expect(jobDetailShareUrl('role-1')).toBe(`${window.location.origin}/jobs?${JOB_DETAIL_PARAM}=role-1`);
+    expect(jobDetailShareUrl('role-1')).toBe(`${window.location.origin}/jobs/openings/role-1`);
   });
 
   it('tags a link meant for someone else with the share channel', () => {
     expect(jobDetailShareUrl('role-1', 'copy_link')).toBe(
-      `${window.location.origin}/jobs?${JOB_DETAIL_PARAM}=role-1&utm_source=job_refer_share&utm_medium=copy_link`,
+      `${window.location.origin}/jobs/openings/role-1?utm_source=job_refer_share&utm_medium=copy_link`,
     );
   });
 });

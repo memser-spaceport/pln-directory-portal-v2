@@ -35,10 +35,10 @@ export interface JobApplySurfaceArgs {
   /** True while `groups` is still arriving. Server-rendered surfaces pass `false`. */
   isLoading: boolean;
   /**
-   * Keep `?job=` in sync with the reading step. The board wants this — its share
-   * links are `/jobs?job=<uid>`, so a description someone opened is a
-   * description they can send. Surfaces whose share links point elsewhere pass
-   * `false` and get an untouched URL.
+   * Keep `?job=` in sync with the reading step. The board wants this so a
+   * description someone opened stays in the address bar while they browse.
+   * Share/copy links point at `/jobs/openings/[uid]`. Surfaces whose share
+   * links already point elsewhere pass `false`.
    */
   deepLink: boolean;
 }

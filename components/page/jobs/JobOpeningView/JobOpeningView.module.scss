@@ -1,0 +1,19 @@
+.page {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 16px 16px 48px;
+}
+
+.article {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.actions {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 12px;
+}

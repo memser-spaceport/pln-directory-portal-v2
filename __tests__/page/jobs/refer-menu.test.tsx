@@ -28,9 +28,9 @@ const role: IJobRole = {
   detectionDate: null,
 };
 
-const CANONICAL = 'http://localhost/jobs?job=role-1';
+const CANONICAL = 'http://localhost/jobs/openings/role-1';
 /** What a shared link carries so the arrival can be attributed back to the share. */
-const shared = (channel: string) => `${CANONICAL}&utm_source=job_refer_share&utm_medium=${channel}`;
+const shared = (channel: string) => `${CANONICAL}?utm_source=job_refer_share&utm_medium=${channel}`;
 
 const writeText = jest.fn().mockResolvedValue(undefined);
 beforeAll(() => {

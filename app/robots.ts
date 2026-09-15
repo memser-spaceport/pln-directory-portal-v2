@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next';
+import { getApplicationBaseUrl } from '@/utils/seo';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = (process.env.APPLICATION_BASE_URL ?? '').replace(/\/$/, '');
+  const baseUrl = getApplicationBaseUrl();
 
   return {
     rules: [

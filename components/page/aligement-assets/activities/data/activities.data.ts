@@ -418,7 +418,6 @@ export const activitiesData: ActivitiesData = {
         rules: [
           '100 points are awarded for an approved reusable resource or prompt; 250 points are awarded for an approved skill (up to 350 points total)',
           'Available to current PLAA participants with verified PL Infra membership and Toolkit access',
-          'Open September 9–October 31, 2026',
           'Submit up to one prompt or AI-related resource and one AI skill',
           'Contributions must be publication-verified, useful, reproducible, safe, and non-duplicative'
         ],

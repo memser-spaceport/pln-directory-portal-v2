@@ -157,10 +157,7 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
                     onClick={() => handleCardClick(activity)}
                   >
                     <div className="activity-card__top">
-                      <div className="activity-card__top-left">
-                        <span className="activity-card__category">{activity.category}</span>
-                        {activity.isNew && <span className="activity-card__new-badge">New</span>}
-                      </div>
+                      <span className="activity-card__category">{activity.category}</span>
                       <div className="activity-card__points">
                         <Image src="/icons/points-icon.svg" alt="points-icon" width={16} height={16} />
                         <span className="activity-card__points-val">{activity.points} points</span>
@@ -173,6 +170,10 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
                         {activity.networkValue}
                       </p>
                     </div>
+
+                    {activity.isNew && (
+                      <span className="activity-card__new-badge">New</span>
+                    )}
 
                     <div className="activity-card__footer">
                       <div className="activity-card__tracking">
@@ -337,14 +338,9 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
           white-space: normal;
         }
 
-        .activity-card__top-left {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-
         .activity-card__new-badge {
+          display: inline-block;
+          align-self: flex-start;
           color: #2563eb;
           font-size: 12px;
           font-weight: 600;
@@ -353,6 +349,7 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
           padding: 5px 12px;
           border-radius: 999px;
           white-space: nowrap;
+          margin-bottom: 16px;
         }
 
         .activity-card__points {

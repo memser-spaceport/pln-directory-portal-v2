@@ -243,61 +243,57 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
           }
         }}
       >
-        <EditFormControls onClose={handleCancel} title="Edit Profile Details" />
-        <div className={s.body}>
-          <div className={s.row}>
-            <ProfileImageInput
-              member={{
-                profile: profileData?.team?.logo?.url || '',
-                name: profileData?.team?.name || 'Team Name',
-              }}
-            />
-            <FormField name="name" label="Team Name" placeholder="Enter team name" max={50} />
-          </div>
-          <div className={s.row}>
-            <FormField
-              name="shortDescription"
-              label="Short Description"
-              placeholder="Describe your team and what you do..."
-              max={100}
-            />
-          </div>
-
-          <div className={s.row}>
-            <FormMultiSelect
-              name="tags"
-              label="Tags"
-              placeholder="Add tags (e.g., AI, Blockchain, FinTech)"
-              options={options.industryTagsOptions}
-            />
-          </div>
-
-          {demoDayData?.stageTagEnabled !== false && (
+        <EditFormControls onClose={handleCancel} title="Edit Profile Details">
+          <div className={s.body}>
             <div className={s.row}>
-              <FormSelect
-                name="fundingStage"
-                label="Company Stage"
-                placeholder="Select your current company stage"
-                options={options.fundingStageOptions}
+              <ProfileImageInput
+                member={{
+                  profile: profileData?.team?.logo?.url || '',
+                  name: profileData?.team?.name || 'Team Name',
+                }}
+              />
+              <FormField name="name" label="Team Name" placeholder="Enter team name" max={50} />
+            </div>
+            <div className={s.row}>
+              <FormField
+                name="shortDescription"
+                label="Short Description"
+                placeholder="Describe your team and what you do..."
+                max={100}
               />
             </div>
-          )}
 
-          {demoDayData?.programFieldEnabled && programOptions.length > 0 && (
             <div className={s.row}>
-              <FormSelect
-                name="program"
-                label="Program"
-                placeholder="Select your program"
-                options={programOptions}
+              <FormMultiSelect
+                name="tags"
+                label="Tags"
+                placeholder="Add tags (e.g., AI, Blockchain, FinTech)"
+                options={options.industryTagsOptions}
               />
             </div>
-          )}
 
-          <div className={s.row}>
-            <FormField name="website" label="Website" placeholder="Enter your website URL" />
+            {demoDayData?.stageTagEnabled !== false && (
+              <div className={s.row}>
+                <FormSelect
+                  name="fundingStage"
+                  label="Company Stage"
+                  placeholder="Select your current company stage"
+                  options={options.fundingStageOptions}
+                />
+              </div>
+            )}
+
+            {demoDayData?.programFieldEnabled && programOptions.length > 0 && (
+              <div className={s.row}>
+                <FormSelect name="program" label="Program" placeholder="Select your program" options={programOptions} />
+              </div>
+            )}
+
+            <div className={s.row}>
+              <FormField name="website" label="Website" placeholder="Enter your website URL" />
+            </div>
           </div>
-        </div>
+        </EditFormControls>
         <EditFormMobileControls />
       </form>
     </FormProvider>

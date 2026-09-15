@@ -111,27 +111,26 @@ export function TeamProjectsAddProject(props: Props) {
   return (
     <FormProvider {...methods}>
       <form noValidate onSubmit={handleSubmit(onSubmit)}>
-        <EditFormControls title="Add Project" onClose={toggleIsEditMode} isProcessing={isProcessing} />
-
-        <DetailsSection>
-          <FormMultiSelect
-            isRequired
-            name="projects"
-            options={options}
-            label="Select or add project"
-            placeholder="Search and select projects"
-            notFoundContent={
-              <div className={s.hint}>
-                If you don&apos;t see your project on this list, please{' '}
-                <Link href="/projects/add" className={s.link} target="_blank">
-                  add your project
-                </Link>{' '}
-                first.
-              </div>
-            }
-          />
-        </DetailsSection>
-
+        <EditFormControls title="Add Project" onClose={toggleIsEditMode} isProcessing={isProcessing}>
+          <DetailsSection>
+            <FormMultiSelect
+              isRequired
+              name="projects"
+              options={options}
+              label="Select or add project"
+              placeholder="Search and select projects"
+              notFoundContent={
+                <div className={s.hint}>
+                  If you don&apos;t see your project on this list, please{' '}
+                  <Link href="/projects/add" className={s.link} target="_blank">
+                    add your project
+                  </Link>{' '}
+                  first.
+                </div>
+              }
+            />
+          </DetailsSection>
+        </EditFormControls>
         <EditFormMobileControls />
       </form>
     </FormProvider>

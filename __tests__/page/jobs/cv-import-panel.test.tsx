@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import '@testing-library/jest-dom';
 
 import { ExperienceImportPanel } from '@/components/page/member-details/ExperienceDetails/components/ExperienceImport';
+import { ImportWaitStatus } from '@/components/page/member-details/ExperienceDetails/components/ExperienceImport/ImportWaitStatus';
 import type { ParsedProfile } from '@/components/page/member-details/ExperienceDetails/components/ExperienceImport';
 
 /**
@@ -87,11 +88,45 @@ describe('ExperienceImportPanel', () => {
     drop(file('polina-cv.pdf'));
 
     expect(await screen.findByText(/reading polina-cv\.pdf/i)).toBeInTheDocument();
+    expect(screen.getByText(/Usually takes about 10 seconds/)).toBeInTheDocument();
 
     await act(async () => resolve(parsedWith(3)));
 
     await waitFor(() => expect(onParsed).toHaveBeenCalledTimes(1));
     expect(onParsed.mock.calls[0][0].experiences).toHaveLength(3);
+  });
+
+  it('says the read is taking longer than usual once the usual wait has passed', async () => {
+    jest.useFakeTimers({ now: Date.now() });
+    try {
+      renderPanel({ onParse: jest.fn(() => new Promise(() => {})) });
+      drop(file('polina-cv.pdf'));
+
+      expect(screen.getByText(/Usually takes about 10 seconds/)).toBeInTheDocument();
+
+      await act(async () => {
+        jest.advanceTimersByTime(11_000);
+      });
+
+      expect(screen.getByText(/Taking longer than usual — still reading/)).toBeInTheDocument();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('shows the overdue hint on first paint when the wait already outran the usual case', () => {
+    render(
+      <ImportWaitStatus
+        wait={{
+          fileName: 'polina-cv.pdf',
+          fileSize: 1024,
+          startedAt: Date.now() - 11_000,
+          settled: false,
+        }}
+      />,
+    );
+
+    expect(screen.getByText(/Taking longer than usual — still reading/)).toBeInTheDocument();
   });
 
   it('says the document had nothing in it when the parse resolves empty', async () => {

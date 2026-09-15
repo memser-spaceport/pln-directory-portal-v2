@@ -90,23 +90,92 @@
   border-radius: 8px;
 }
 
-/* The one that isn't a stand-in. Same box as .navIconButton plus the button
-   reset .logoButton and .newsTrigger already carry, so nothing moves when the
-   glyph becomes clickable — only the cursor and the hover say so. */
-.navIconTrigger {
+/* Search as a small field: glyph + "Search" placeholder inside the DS
+   SearchInput's chrome (pl-design-system/components/SearchInput — 40px, subtle
+   border, 8px radius, white surface, 16px tertiary glyph at 12px, 14px
+   tertiary placeholder, hover to the neutral action border). It is still a
+   button — pressing it opens the dialog, whose first row is the real field —
+   so it only borrows the field's look, at a width that says "search" without
+   claiming production's old 360px.
+
+   Below tablet-landscape, where production hides the labelled nav items
+   (.menuItem), there is no room for a field beside the account controls: it
+   falls back to the bare 40px glyph box. */
+.navSearch {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
   padding: 0;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: 8px;
   background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  line-height: 20px;
+
+  @include tablet-landscape {
+    justify-content: flex-start;
+    gap: 8px;
+    width: 200px;
+    padding: 0 12px;
+    border-color: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    background: var(--surface-light, #ffffff);
+  }
+
+  /* SearchGlyph draws a 20px path filled #475569; the field wants the DS 16px
+     mark in the placeholder's ink. A CSS fill outranks the attribute. */
+  svg {
+    flex-shrink: 0;
+
+    @include tablet-landscape {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  svg path {
+    @include tablet-landscape {
+      fill: currentColor;
+    }
+  }
+}
+
+.navSearchLabel {
+  display: none;
+
+  @include tablet-landscape {
+    display: inline;
+  }
+}
+
+/* The clickable variant: the button reset .logoButton and .newsTrigger already
+   carry. Hover follows the field on desktop (border steps to the neutral
+   action border, as SearchInput's does) and the (?) beside it on mobile, where
+   it is an icon box like that one. */
+.navSearchTrigger {
+  font-family: inherit;
   cursor: pointer;
 
-  &:hover {
-    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  @media (hover: hover) {
+    &:hover {
+      background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    }
+  }
+
+  @include tablet-landscape {
+    @media (hover: hover) {
+      &:hover {
+        border-color: var(--action-border-neutral-normal, rgba(14, 15, 17, 0.24));
+        background: var(--surface-light, #ffffff);
+      }
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -1px;
   }
 }
 

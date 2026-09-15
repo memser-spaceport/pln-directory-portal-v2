@@ -49,7 +49,10 @@ export const EditTeamInvestorDetailsForm = ({ team, onClose }: Props) => {
       ...(options?.fundingStage
         ?.filter(
           (item: { name: string }) =>
-            item.name !== 'Not Applicable' && item.name !== 'Series D' && item.name !== 'Series E' && item.name !== 'None',
+            item.name !== 'Not Applicable' &&
+            item.name !== 'Series D' &&
+            item.name !== 'Series E' &&
+            item.name !== 'None',
         )
         .map((item: { name: string }) => ({ label: item.name, value: item.name })) || []),
       { label: 'Series D and later', value: 'Series D and later' },
@@ -134,61 +137,62 @@ export const EditTeamInvestorDetailsForm = ({ team, onClose }: Props) => {
   return (
     <FormProvider {...methods}>
       <form className={s.form} onSubmit={handleSubmit(onSubmit)}>
-        <EditFormControls title="Edit Fund Details" onClose={onClose} />
-
-        <div className={s.panel}>
-          <div className={s.row}>
-            <FormMultiSelect
-              name="investInStartupStages"
-              label="Startup stage(s) you invest in?"
-              placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
-              options={fundingStageOptions}
-              isRequired
-            />
-          </div>
-
-          <div className={s.row}>
-            <FormCurrencyField
-              name="typicalCheckSize"
-              label="Typical Check Size"
-              placeholder="Add check size"
-              currency="USD"
-              isRequired
-            />
-          </div>
-
-          <div className={s.row}>
-            <FormTagsInput
-              selectLabel="Add Investment Focus"
-              name="investmentFocusAreas"
-              placeholder="Add keywords. E.g. AI, Staking, Governance, etc."
-            />
-          </div>
-
-          <div className={s.row}>
-            <FormMultiSelect
-              name="investInFundTypes"
-              label="Type of fund(s) you invest in?"
-              placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
-              options={FUND_TYPE_OPTIONS}
-            />
-          </div>
-
-          <div className={s.infoBox}>
-            <div className={s.infoIcon}>
-              <InfoIcon />
+        <EditFormControls title="Edit Fund Details" onClose={onClose}>
+          <div className={s.panel}>
+            <div className={s.row}>
+              <FormMultiSelect
+                name="investInStartupStages"
+                label="Startup stage(s) you invest in?"
+                placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
+                options={fundingStageOptions}
+                isRequired
+              />
             </div>
 
-            <div className={s.infoContent}>
-              <div className={s.infoTitle}>Manage your investor settings</div>
-              <p className={s.infoText}>Update demo day invites and investor profile visibility in Account Settings →</p>
-              <Link href="/settings/email" target="_blank" className={s.infoLink}>
-                Email Preferences <LinkIcon />
-              </Link>
+            <div className={s.row}>
+              <FormCurrencyField
+                name="typicalCheckSize"
+                label="Typical Check Size"
+                placeholder="Add check size"
+                currency="USD"
+                isRequired
+              />
+            </div>
+
+            <div className={s.row}>
+              <FormTagsInput
+                selectLabel="Add Investment Focus"
+                name="investmentFocusAreas"
+                placeholder="Add keywords. E.g. AI, Staking, Governance, etc."
+              />
+            </div>
+
+            <div className={s.row}>
+              <FormMultiSelect
+                name="investInFundTypes"
+                label="Type of fund(s) you invest in?"
+                placeholder="Select fund types (e.g., Early stage, Late stage, Fund-of-funds)"
+                options={FUND_TYPE_OPTIONS}
+              />
+            </div>
+
+            <div className={s.infoBox}>
+              <div className={s.infoIcon}>
+                <InfoIcon />
+              </div>
+
+              <div className={s.infoContent}>
+                <div className={s.infoTitle}>Manage your investor settings</div>
+                <p className={s.infoText}>
+                  Update demo day invites and investor profile visibility in Account Settings →
+                </p>
+                <Link href="/settings/email" target="_blank" className={s.infoLink}>
+                  Email Preferences <LinkIcon />
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-
+        </EditFormControls>
         <EditFormMobileControls />
       </form>
     </FormProvider>

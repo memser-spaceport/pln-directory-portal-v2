@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState, type MouseEvent } from 'react';
 import { Menu } from '@base-ui-components/react/menu';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import clsx from 'clsx';
@@ -11,7 +11,6 @@ import { HelpIcon } from '@/components/core/navbar/components/icons';
 // The header's own menu chrome (account menu): popup, items, group separators.
 // Imported, not copied, so the two menus in this row cannot drift.
 import menu from '@/components/core/navbar/components/AccountMenu/AccountMenu.module.scss';
-import nav from '@/components/core/navbar/NavBar.module.scss';
 // The product's callout tooltip — the brand-blue `highlight` variant of the
 // core Tooltip, reused by its stylesheet because that component only opens on
 // hover and this one has to open on arrival (same move as team-profile's
@@ -19,6 +18,9 @@ import nav from '@/components/core/navbar/NavBar.module.scss';
 import tip from '@/components/core/tooltip/tooltip.module.css';
 
 import local from './HelpFeedbackMenu.module.scss';
+
+/** Where a mouse click on the (?) lands: the form, already on this topic. */
+const CLICK_TOPIC = 'Give feedback';
 
 export interface HelpFeedbackMenuProps {
   /** A topic was chosen — open the support form on it. Values are the
@@ -47,12 +49,16 @@ export interface HelpFeedbackMenuProps {
  * `?dialog=giveFeedback` deep link does today (`DIALOG_TO_TOPIC_MAP`); the
  * menu is that deep link with a label on it.
  *
- * It opens on hover as well as on click. The bar's left half (Directory,
- * Events, More) already opens on hover, so a cursor passing over the (?) gets
- * the same answer those get — the contents, with no press spent. On touch
- * there is no hover and the tap does what it always did, except that it now
- * lands on a list instead of a form. No chevron: the bar's other icon buttons
- * (search, bell) carry none, and the hover is the disclosure.
+ * With a mouse, hover and click do two different things. Hover opens the menu:
+ * the bar's left half (Directory, Events, More) already opens on hover, so a
+ * cursor passing over the (?) gets the same answer those get — the contents,
+ * with no press spent. A click goes straight to the form on "Give feedback",
+ * the job this button is being renamed around; the pills in the form switch
+ * topic in one press, so the click never costs the menu's choice. On touch
+ * there is no hover, so the tap opens the menu; keyboard Enter/Space does too,
+ * because the menu is the only way a keyboard reaches the five topics. No
+ * chevron: the bar's other icon buttons (search, bell) carry none, and the
+ * hover is the disclosure.
  *
  * The product had this shape once — `HelpMenu` (a lifesaver icon over
  * ProtoSphere / Get Support / Changelog, base-ui Menu) — and dropped it for the
@@ -73,8 +79,39 @@ export function HelpFeedbackMenu({ onPickTopic, onAskAi, callout = false }: Help
   const [tipOpen, setTipOpen] = useState(callout);
   const dismiss = () => setTipOpen(false);
 
+  const [menuOpen, setMenuOpen] = useState(false);
+  // The pointer that started the press. A click event does not reliably say
+  // whether it came from a mouse or a finger, but the pointerdown before it does.
+  const pressPointer = useRef<string | null>(null);
+  // From a mouse press until the pointer next arrives on the (?), the menu may
+  // not open. base-ui opens on mousedown one frame late, and the hover has a
+  // delay, so without this a quick click opens the form and then the menu
+  // lands on top of it. Cleared on enter, not leave: the form's overlay makes
+  // the pointer "leave" before that late open fires.
+  const holdMenu = useRef(false);
+
+  const onTriggerClick = (event: MouseEvent<HTMLButtonElement> & { preventBaseUIHandler?: () => void }) => {
+    const fromMouse = pressPointer.current === 'mouse' && event.detail > 0;
+    pressPointer.current = null;
+    if (!fromMouse) return; // touch or keyboard: base-ui opens the menu as usual
+    event.preventBaseUIHandler?.();
+    setMenuOpen(false);
+    dismiss();
+    onPickTopic(CLICK_TOPIC);
+  };
+
   return (
-    <Menu.Root modal={false} openOnHover delay={120} onOpenChange={(open) => open && dismiss()}>
+    <Menu.Root
+      modal={false}
+      openOnHover
+      delay={120}
+      open={menuOpen}
+      onOpenChange={(open) => {
+        if (open && holdMenu.current) return;
+        setMenuOpen(open);
+        if (open) dismiss();
+      }}
+    >
       <TooltipPrimitive.Provider delayDuration={0}>
         <TooltipPrimitive.Root open={tipOpen}>
           {/* A span, not the trigger via asChild: the Menu.Trigger already
@@ -82,8 +119,20 @@ export function HelpFeedbackMenu({ onPickTopic, onAskAi, callout = false }: Help
               Slot on top of that is two libraries arguing over one node. */}
           <TooltipPrimitive.Trigger asChild>
             <span className={local.anchor}>
-              <Menu.Trigger className={clsx(nav.supportButton, local.trigger)} aria-label="Help and feedback">
+              <Menu.Trigger
+                className={clsx(local.contact, local.trigger)}
+                aria-label="Contact us"
+                onPointerDown={(e) => {
+                  pressPointer.current = e.pointerType;
+                  if (e.pointerType === 'mouse' && e.button === 0) holdMenu.current = true;
+                }}
+                onPointerEnter={() => {
+                  holdMenu.current = false;
+                }}
+                onClick={onTriggerClick}
+              >
                 <HelpIcon />
+                <span className={local.contactLabel}>Contact us</span>
               </Menu.Trigger>
             </span>
           </TooltipPrimitive.Trigger>

@@ -36,6 +36,7 @@ import { BASE_LIKES, PL_TEAM_UID } from '../newsfeed-v0/mocks';
 import fa from '../newsfeed-v0/FeedActions.module.scss';
 
 import type { ListingMeta, ListingStatus } from './listings';
+import type { ApplicationStatus } from './applicationStatus';
 
 const INITIAL_ROLES_SHOWN = 3;
 const MAX_FOCUS_CHIPS = 100;
@@ -68,6 +69,9 @@ interface JobTeamGroupCardProps {
   /** Role uid → when the application went, so an applied row can report its own
    *  date instead of the posting age. Same map the board keys applications by. */
   appliedAtByRole?: Map<string, string>;
+  /** Role uid → where that application stands. Same keys as `appliedAtByRole`;
+   *  the row wears a pill for anything past `sent`. */
+  applicationStatusByRole?: Map<string, ApplicationStatus>;
   /**
    * The team's open role, once the reader has answered it. Absent means the
    * offer still stands; the row reads the record itself.
@@ -105,6 +109,7 @@ export function JobTeamGroupCard({
   onViewJob,
   appliedRoleUids,
   appliedAtByRole,
+  applicationStatusByRole,
   openInterest,
   onOpenRoleInterest,
   manage,
@@ -236,7 +241,7 @@ export function JobTeamGroupCard({
         </div>
       </header>
 
-      <ul className={s.roleList}>
+      <ul className={`${s.roleList}${isProtocolLabs ? ` ${js.plRoles}` : ''}`}>
         {visibleRoles.map((role) => {
           const meta = manage?.metaFor(role.uid);
           return (
@@ -251,6 +256,7 @@ export function JobTeamGroupCard({
                 onViewJob={onViewJob}
                 applied={appliedRoleUids?.has(role.uid) ?? false}
                 appliedAt={appliedAtByRole?.get(role.uid)}
+                applicationStatus={applicationStatusByRole?.get(role.uid)}
                 teamId={team.uid}
                 manage={
                   manage && meta

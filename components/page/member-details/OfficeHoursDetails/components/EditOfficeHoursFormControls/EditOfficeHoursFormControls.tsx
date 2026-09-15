@@ -2,6 +2,7 @@ import React from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { UnsavedEditPopup, useUnsavedEditRegistration } from '@/components/common/profile/UnsavedEdits';
+import { useSectionEditClaim } from '@/components/common/profile/SectionEditLock';
 
 import s from './EditOfficeHoursFormControls.module.scss';
 
@@ -9,9 +10,10 @@ interface Props {
   onClose: () => void;
   title: string;
   alwaysEnabled?: boolean;
+  children?: React.ReactNode;
 }
 
-export const EditOfficeHoursFormControls = ({ title, onClose, alwaysEnabled }: Props) => {
+export const EditOfficeHoursFormControls = ({ title, onClose, alwaysEnabled, children }: Props) => {
   const {
     reset,
     formState: { isSubmitting, isDirty, isValidating },
@@ -38,9 +40,27 @@ export const EditOfficeHoursFormControls = ({ title, onClose, alwaysEnabled }: P
    */
   const { rootRef, anchor, showPopup, dismissPopup } = useUnsavedEditRegistration(Boolean(alwaysEnabled || isDirty));
 
+  /* The profile column's edit lock, for the same reason and with the same
+     "these two headers must stay in step" rule — see `EditFormControls`. */
+  useSectionEditClaim(Boolean(alwaysEnabled || isDirty), Boolean(isSubmitting));
+
   return (
-    <div className={s.root} ref={rootRef}>
-      <div className={s.title}>{title}</div>
+    <>
+      <div className={s.root} ref={rootRef}>
+        <div className={s.title}>{title}</div>
+        <button
+          className={s.mobileCloseButton}
+          onClick={() => {
+            reset();
+            onClose();
+          }}
+          type="button"
+        >
+          <CloseIcon />
+        </button>
+        {showPopup && <UnsavedEditPopup anchor={anchor} onDismiss={dismissPopup} />}
+      </div>
+      {children}
       <div className={s.controls}>
         <button
           className={s.secondaryButton}
@@ -56,18 +76,7 @@ export const EditOfficeHoursFormControls = ({ title, onClose, alwaysEnabled }: P
           {isSubmitting ? 'Processing...' : 'Save'}
         </button>
       </div>
-      <button
-        className={s.mobileCloseButton}
-        onClick={() => {
-          reset();
-          onClose();
-        }}
-        type="button"
-      >
-        <CloseIcon />
-      </button>
-      {showPopup && <UnsavedEditPopup anchor={anchor} onDismiss={dismissPopup} />}
-    </div>
+    </>
   );
 };
 

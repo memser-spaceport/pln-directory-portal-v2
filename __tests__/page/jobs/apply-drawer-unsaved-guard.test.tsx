@@ -78,8 +78,15 @@ jest.mock('@/components/page/jobs/JobProfileDrawer/JobProfileDrawer', () => {
     return (
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(() => {})}>
-          <Controls onClose={() => methods.reset()} title={label} />
-          <input aria-label={`${label} field`} {...methods.register('value')} />
+          <Controls
+            onClose={() => {
+              methods.reset();
+              setOpen(false);
+            }}
+            title={label}
+          >
+            <input aria-label={`${label} field`} {...methods.register('value')} />
+          </Controls>
         </form>
       </FormProvider>
     );
@@ -205,21 +212,28 @@ describe('leaving the details step with unsaved section edits', () => {
     expect(popup()).not.toBeInTheDocument();
   });
 
-  it('refuses Continue while a section is dirty, and says so beside its Save', () => {
-    const scrollTo = jest.spyOn(Element.prototype, 'scrollIntoView');
+  it('holds Continue shut while a section is dirty', () => {
     renderProfileStep();
     tickConsent();
     dirty('Section A');
 
-    fireEvent.click(continueButton());
-
-    expect(onStepChange).not.toHaveBeenCalled();
-    expect(popup()).toBeInTheDocument();
-    expect(scrollTo).toHaveBeenCalled();
-    scrollTo.mockRestore();
+    expect(continueButton()).toBeDisabled();
   });
 
-  it('refuses Back by the same rule — it is the same move', () => {
+  it('hides the review checkbox while a section is open, and shows it again after Cancel', () => {
+    renderProfileStep();
+    tickConsent();
+    expect(screen.getByRole('checkbox', { name: /I reviewed my profile/i })).toBeInTheDocument();
+
+    openEditor('Section A');
+    expect(screen.queryByRole('checkbox', { name: /I reviewed my profile/i })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByRole('checkbox', { name: /I reviewed my profile/i })).toBeInTheDocument();
+  });
+
+  it('refuses Back while a section is dirty, and says so beside its Save', () => {
+    const scrollTo = jest.spyOn(Element.prototype, 'scrollIntoView');
     renderProfileStep();
     dirty('Section A');
 
@@ -227,6 +241,8 @@ describe('leaving the details step with unsaved section edits', () => {
 
     expect(onStepChange).not.toHaveBeenCalled();
     expect(popup()).toBeInTheDocument();
+    expect(scrollTo).toHaveBeenCalled();
+    scrollTo.mockRestore();
   });
 
   /**
@@ -244,7 +260,7 @@ describe('leaving the details step with unsaved section edits', () => {
     dirty('Section B');
     dirty('Section A');
 
-    fireEvent.click(continueButton());
+    fireEvent.click(screen.getByRole('button', { name: /back/i }));
 
     expect(onStepChange).not.toHaveBeenCalled();
     const scrolled = scrollTo.mock.instances[0] as unknown as HTMLElement;
@@ -256,7 +272,7 @@ describe('leaving the details step with unsaved section edits', () => {
     renderProfileStep();
     tickConsent();
     dirty('Section A');
-    fireEvent.click(continueButton());
+    fireEvent.click(screen.getByRole('button', { name: /back/i }));
     expect(popup()).toBeInTheDocument();
 
     // Cancel resets the form; the popup is derived from "flagged AND dirty", so
@@ -325,7 +341,8 @@ describe('leaving the details step with unsaved section edits', () => {
     tickConsent();
     dirty('Section C');
 
-    fireEvent.click(continueButton());
+    expect(continueButton()).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: /back/i }));
 
     expect(onStepChange).not.toHaveBeenCalled();
     expect(popup()).toBeInTheDocument();

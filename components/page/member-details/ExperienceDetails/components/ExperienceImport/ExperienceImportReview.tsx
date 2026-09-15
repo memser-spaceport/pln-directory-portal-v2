@@ -265,32 +265,31 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
         {/* `alwaysEnabled` does double duty: it keeps Save pressable on a card
             nobody needs to touch, and it is what tells the drawer's unsaved-edit
             guard there is a parse here worth refusing to leave. */}
-        <EditOfficeHoursFormControls onClose={onClose} title="Review your experience" alwaysEnabled />
-
-        {/* No lede and no group caption above the fields.
+        <EditOfficeHoursFormControls onClose={onClose} title="Review your experience" alwaysEnabled>
+          {/* No lede and no group caption above the fields.
             Both were cut, and both were explaining what the card
-            already shows: Cancel and Save sit in the header, so "nothing is
+            already shows: Cancel and Save sit under the fields, so "nothing is
             added until you press Save" is the button saying it twice, and two
             labelled fields prefilled with the document's answers do not need a
             sentence telling you they came from the document and can be edited.
             The one line kept is the footnote, which says something the card
             *can't* show — what remains possible after Save. */}
-        <div className={clsx(f.body, bodyClassName, r.body)}>
-          {/* 1. The details the profile is still missing. First, because the
+          <div className={clsx(f.body, bodyClassName, r.body)}>
+            {/* 1. The details the profile is still missing. First, because the
                  current role is what the board requires before you can apply,
                  and the drawer's rule is that required things are asked for
                  first rather than three groups down. Unheaded: two labelled
                  fields are their own heading, and "Experience (N found)" below
                  is a count rather than a label, which is why that one stays. */}
-          {asksDetails && (
-            <section className={r.group}>
-              {askRole && (
-                <div className={f.row}>
-                  <FormField name="role" label="Current role" placeholder="e.g. Senior Protocol Engineer" />
-                </div>
-              )}
-              {askLocation && (
-                /* The autocomplete, not a text box, wearing the same label and
+            {asksDetails && (
+              <section className={r.group}>
+                {askRole && (
+                  <div className={f.row}>
+                    <FormField name="role" label="Current role" placeholder="e.g. Senior Protocol Engineer" />
+                  </div>
+                )}
+                {askLocation && (
+                  /* The autocomplete, not a text box, wearing the same label and
                    wrapper the profile card's own location field wears.
 
                    A CV says "Berlin, Germany" and the profile stores a resolved
@@ -301,134 +300,134 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
                    Save. Seeding the search with what the document said turns
                    that into one press: the list is already open on the right
                    answer. */
-                <div className={f.row}>
-                  <div className={l.root}>
-                    <div className={l.header}>
-                      <span className={l.label}>Location</span>
-                    </div>
-                    <LocationSelect
-                      defaultInputValue={parsed.location || undefined}
-                      resolvedCity={location?.city}
-                      resolvedState={location?.metroArea ?? undefined}
-                      resolvedCountry={location?.country}
-                      onSelect={setLocation}
-                    />
-                    {/* react-select drops an uncontrolled input's text on blur,
+                  <div className={f.row}>
+                    <div className={l.root}>
+                      <div className={l.header}>
+                        <span className={l.label}>Location</span>
+                      </div>
+                      <LocationSelect
+                        defaultInputValue={parsed.location || undefined}
+                        resolvedCity={location?.city}
+                        resolvedState={location?.metroArea ?? undefined}
+                        resolvedCountry={location?.country}
+                        onSelect={setLocation}
+                      />
+                      {/* react-select drops an uncontrolled input's text on blur,
                         so the seeded guess can vanish from the box while still
                         being the thing the person is deciding about. This line
                         holds it — and says plainly that reading it is not the
                         same as having chosen it. Gone the moment they pick, when
                         the control shows the resolved place itself. */}
-                    {!location && parsed.location && (
-                      <p className={l.hint}>Your CV says {parsed.location} — pick the matching place to save it.</p>
-                    )}
+                      {!location && parsed.location && (
+                        <p className={l.hint}>Your CV says {parsed.location} — pick the matching place to save it.</p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
-            </section>
-          )}
+                )}
+              </section>
+            )}
 
-          {/* 2. The positions. */}
-          <section className={r.group}>
-            {/* Counts what the document held, not what is ticked — the number
+            {/* 2. The positions. */}
+            <section className={r.group}>
+              {/* Counts what the document held, not what is ticked — the number
                 is a fact about the file, and a count that dropped as you
                 unticked rows would be reporting your edits back to you. */}
-            <h3 className={r.groupTitle}>Experience ({rows.length} found)</h3>
-            <ul className={r.rows}>
-              {rows.map((row) => {
-                const needsDate = row.startDate === '';
-                const dateError = showDateErrors && row.include && needsDate;
+              <h3 className={r.groupTitle}>Experience ({rows.length} found)</h3>
+              <ul className={r.rows}>
+                {rows.map((row) => {
+                  const needsDate = row.startDate === '';
+                  const dateError = showDateErrors && row.include && needsDate;
 
-                return (
-                  <li key={row.key} className={clsx(e.expItem, r.rowItem, { [r.rowOff]: !row.include })}>
-                    <div className={r.rowCheck}>
-                      <Checkbox checked={row.include} onChange={(next) => setRow(row.key, { include: next })} />
-                    </div>
-                    <div className={clsx(e.details, r.rowDetails)}>
-                      <div className={e.row}>
-                        <div className={e.primaryLabel}>{row.title}</div>
-                        {row.company && (
-                          <>
-                            <span className={e.Separator} />
-                            <div className={e.primaryLabel}>{row.company}</div>
-                          </>
-                        )}
-                        {row.location && (
-                          <>
-                            <span className={e.Separator} />
-                            <div className={e.primaryLabel}>{row.location}</div>
-                          </>
-                        )}
+                  return (
+                    <li key={row.key} className={clsx(e.expItem, r.rowItem, { [r.rowOff]: !row.include })}>
+                      <div className={r.rowCheck}>
+                        <Checkbox checked={row.include} onChange={(next) => setRow(row.key, { include: next })} />
                       </div>
-                      <div className={e.row}>
-                        <div className={e.secondaryLabel}>
-                          {needsDate ? 'No dates in the document' : formatDates(row)}
+                      <div className={clsx(e.details, r.rowDetails)}>
+                        <div className={e.row}>
+                          <div className={e.primaryLabel}>{row.title}</div>
+                          {row.company && (
+                            <>
+                              <span className={e.Separator} />
+                              <div className={e.primaryLabel}>{row.company}</div>
+                            </>
+                          )}
+                          {row.location && (
+                            <>
+                              <span className={e.Separator} />
+                              <div className={e.primaryLabel}>{row.location}</div>
+                            </>
+                          )}
                         </div>
-                        {/* Says why this one row arrived switched off. Without
+                        <div className={e.row}>
+                          <div className={e.secondaryLabel}>
+                            {needsDate ? 'No dates in the document' : formatDates(row)}
+                          </div>
+                          {/* Says why this one row arrived switched off. Without
                             it an unticked row in a card whose other rows are
                             ticked reads as the parser being unsure about it,
                             which is a different and more worrying claim. On the
                             secondary line rather than beside the title: it is a
                             fact about the row's *state*, not part of the job. */}
-                        {row.duplicate && <span className={r.rowAlready}>Already on your profile</span>}
-                      </div>
+                          {row.duplicate && <span className={r.rowAlready}>Already on your profile</span>}
+                        </div>
 
-                      {/* The one correction this card takes. A start date is
+                        {/* The one correction this card takes. A start date is
                           required by the record, and "2021 – present" with no
                           month is the commonest thing a parser hands back — so
                           it is asked for here rather than discovered as a
                           failure after Save. Only while the row is included:
                           a row on its way to being dropped owes nothing. */}
-                      {needsDate && row.include && (
-                        <div className={r.rowDate}>
-                          <MonthYearSelect
-                            label="Start Date"
-                            isRequired
-                            error={dateError ? 'Start date is required' : undefined}
-                            value={ymToIso(row.startDate || null)}
-                            onChange={(value) => {
-                              if (value === null) return;
-                              setRow(row.key, { startDate: isoToYm(value) ?? '' });
-                            }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
+                        {needsDate && row.include && (
+                          <div className={r.rowDate}>
+                            <MonthYearSelect
+                              label="Start Date"
+                              isRequired
+                              error={dateError ? 'Start date is required' : undefined}
+                              value={ymToIso(row.startDate || null)}
+                              onChange={(value) => {
+                                if (value === null) return;
+                                setRow(row.key, { startDate: isoToYm(value) ?? '' });
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
 
-          {/* 3. Skills. Editable rather than a checklist: the tags input is the
+            {/* 3. Skills. Editable rather than a checklist: the tags input is the
                  control this profile already uses for skills, and it lets
                  someone drop a bad parse and add the one it missed in the same
                  gesture. */}
-          {newSkills.length > 0 && (
-            <section className={r.group}>
-              <SkillsTagsInput
-                name="skills"
-                selectLabel={`Skills (${newSkills.length} found)`}
-                placeholder="Add a skill"
-              />
-            </section>
-          )}
+            {newSkills.length > 0 && (
+              <section className={r.group}>
+                <SkillsTagsInput
+                  name="skills"
+                  selectLabel={`Skills (${newSkills.length} found)`}
+                  placeholder="Add a skill"
+                />
+              </section>
+            )}
 
-          {/* Above the footnote and below everything it is about: the person's
+            {/* Above the footnote and below everything it is about: the person's
               eye is on the Save they just pressed, and the reason it didn't take
               belongs at the end of what they were reading, not at the top of a
               card they have already scrolled past. Nothing is cleared — the
               ticks, the dates and the skills are exactly as they left them, so
               a second press is one press. */}
-          {submitError && (
-            <p className={r.submitError} role="alert">
-              {submitError}
-            </p>
-          )}
+            {submitError && (
+              <p className={r.submitError} role="alert">
+                {submitError}
+              </p>
+            )}
 
-          <p className={r.footnote}>You can edit or delete any of these afterwards from the Experience card.</p>
-        </div>
-        {/* THE ONLY SAVE THIS CARD HAS ON A PHONE.
+            <p className={r.footnote}>You can edit or delete any of these afterwards from the Experience card.</p>
+          </div>
+          {/* THE ONLY SAVE THIS CARD HAS ON A PHONE.
             `EditOfficeHoursFormControls` above hides its Cancel/Save pair below
             1024px and leaves a close X — which resets the form — so without this
             bar a CV could be uploaded and reviewed on a phone and then not kept.
@@ -439,6 +438,7 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
             `alwaysEnabled` because the rows arrive already ticked: agreeing with
             the parse means never touching the form, and the bar's default is to
             appear only once something has changed. */}
+        </EditOfficeHoursFormControls>
         <EditOfficeHoursMobileControls alwaysEnabled />
       </form>
     </FormProvider>

@@ -105,45 +105,46 @@ export const EditExperienceForm = ({ onClose, member, initialData }: Props) => {
   return (
     <FormProvider {...methods}>
       <form noValidate onSubmit={handleSubmit(onSubmit)}>
-        <EditFormControls onClose={onClose} title={isNew ? 'Add Experience' : 'Edit Experience'} />
-        <div className={s.body}>
-          <div className={s.row}>
-            <FormField name="title" label="Role" isRequired placeholder="Enter role" />
-          </div>
-          <div className={s.row}>
-            <FormField
-              name="company"
-              label="Team or Organization"
-              isRequired
-              placeholder="Enter team or organization"
-            />
-          </div>
-          <div className={s.row}>
-            <ExperienceDescriptionInput />
-          </div>
-          <div className={s.row}>
-            <ExperienceDatesInput />
-          </div>
-          <div className={s.row}>
-            <FormField name="location" label="Location" placeholder="Enter location" />
-          </div>
-
-          {!isNew && (
-            <>
-              <button className={s.deleteBtn} type="button" onClick={() => setIsOpenDelete(true)}>
-                <DeleteIcon /> Delete Experience
-              </button>
-              <ConfirmDialog
-                title="Delete Experience"
-                desc="Are you sure you want to delete selected experience?"
-                isOpen={isOpenDelete}
-                onClose={() => setIsOpenDelete(false)}
-                onConfirm={onDelete}
-                confirmTitle="Delete"
+        <EditFormControls onClose={onClose} title={isNew ? 'Add Experience' : 'Edit Experience'}>
+          <div className={s.body}>
+            <div className={s.row}>
+              <FormField name="title" label="Role" isRequired placeholder="Enter role" />
+            </div>
+            <div className={s.row}>
+              <FormField
+                name="company"
+                label="Team or Organization"
+                isRequired
+                placeholder="Enter team or organization"
               />
-            </>
-          )}
-        </div>
+            </div>
+            <div className={s.row}>
+              <ExperienceDescriptionInput />
+            </div>
+            <div className={s.row}>
+              <ExperienceDatesInput />
+            </div>
+            <div className={s.row}>
+              <FormField name="location" label="Location" placeholder="Enter location" />
+            </div>
+
+            {!isNew && (
+              <>
+                <button className={s.deleteBtn} type="button" onClick={() => setIsOpenDelete(true)}>
+                  <DeleteIcon /> Delete Experience
+                </button>
+                <ConfirmDialog
+                  title="Delete Experience"
+                  desc="Are you sure you want to delete selected experience?"
+                  isOpen={isOpenDelete}
+                  onClose={() => setIsOpenDelete(false)}
+                  onConfirm={onDelete}
+                  confirmTitle="Delete"
+                />
+              </>
+            )}
+          </div>
+        </EditFormControls>
         <EditFormMobileControls />
       </form>
     </FormProvider>

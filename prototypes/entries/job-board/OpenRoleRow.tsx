@@ -59,6 +59,21 @@ interface OpenRoleRowProps {
  *    exactly those. A borrowed component's slots are not questions to answer:
  *    the row's whole job is to *ask* one, and facts underneath turn it back into
  *    a small posting — a worse one, with no title and no date.
+ *
+ *    What fills that slot instead is the **offer**: `Express your interest and
+ *    we'll notify the team.` The question on its own leaves the reader to infer
+ *    what the button does with them, and production does not make them infer it
+ *    — this is the same block. `JobInterestBanner` pairs *"Let {team} know
+ *    you're interested"* with *"We'll notify the team … and share your LabOS
+ *    profile."* over the same `I'm interested` press. There they are a title and
+ *    a subtitle; here they are run together as one line, because a banner has a
+ *    block to fill and this has a row — see the note at the markup.
+ *
+ *    It is a strict prefix of what `JobInterestPane` promises at the moment of
+ *    sending — that one goes on to name the profile and the CV, where naming
+ *    them is what the person is about to hand over — so the two cannot drift
+ *    into different promises. The shorter one stops earlier; it does not say
+ *    something else.
  *  - **No clock and no `New`.** Those count a posting's age, which is how you
  *    decide whether it is still worth going for. An open role has no age; it is
  *    the state a team is in. The slot is not left empty, though — once a signal
@@ -68,9 +83,10 @@ interface OpenRoleRowProps {
  *    note naming the posting and sends it to the people hiring for it. There is
  *    no posting here to name. Referring someone into a team's open door is a
  *    real thing to want and it is not this pass — see `openRoles.ts`.
- *  - **No link out**, and no link on the line either. There is no ad, and a
- *    question is not a destination: what the line says is answered by the button
- *    beside it, so the line is text and the row has exactly one control.
+ *  - **No link out**, and nothing on the line is a link either. There is no ad,
+ *    and neither the question nor the offer is a destination: both are answered
+ *    by the button beside them, so the text stays text and the row has exactly
+ *    one control.
  *
  * That button is the board's own words for this act — **I'm interested**, the
  * label `InterestStrip` and production's `JobInterestBanner` put on the same
@@ -95,7 +111,31 @@ export function OpenRoleRow(props: OpenRoleRowProps) {
   return (
     <div className={clsx(s.root, s.row, local.openRow, attached && local.attached)}>
       <div className={s.body}>
-        <p className={local.line}>{line}</p>
+        {/* **One line, two clauses** — not a title with a subtitle under it.
+            Stacked, the pair rebuilt the two-line body this block had just been
+            trimmed out of, and gave a one-sentence invitation the silhouette of
+            a card again. Run together they are what they read as: a question and
+            the answer to *what happens if I press this*.
+
+            The second clause is a `<span>` inside the same `<p>`, so it inherits
+            the size, line-height and letter-spacing and shares one baseline —
+            a second font-size on one line would set two line boxes fighting for
+            the same row. Only weight and ink change; see `.sub`.
+
+            The offer shows only while it is still on offer. After a signal it
+            would be inviting someone to do the thing they have just done — the
+            two marks to the right (`Sent 2d ago`, `Interested`) are the row's
+            report for that state. The line gets shorter when it is answered,
+            which is the shape of a thing being completed. */}
+        <p className={local.line}>
+          {line}
+          {!sent && (
+            <>
+              {' '}
+              <span className={local.sub}>Express your interest and we&apos;ll notify the team.</span>
+            </>
+          )}
+        </p>
       </div>
 
       <div className={`${s.right} ${s.actions}`}>

@@ -157,26 +157,68 @@
   @include media.tablet-landscape {
     padding: 0;
 
-    // The scroll region — card only. Below 960 this is a full-bleed *page*
-    // (`min-height: 100dvh` on `.modal`), where scrolling the document is the
-    // right behaviour and the sticky `.actionsDock` already keeps the primary
-    // action reachable; capping it there would reintroduce the bug the notes on
-    // `.overlay` describe, where 78px of form rendered outside the white.
-    //
-    // `min-height: 0` is the half that does the work — see the cap in `.modal`.
+    // Card only: a flex column that fills the capped card, so the header stays
+    // at the top, `.scrollArea` takes the leftover height and `.actionsDock`
+    // sits under it. It used to be the scroll region itself, which scrolled the
+    // title away with the fields and put Create account below the fold. Below
+    // 960 this is a full-bleed *page* (`min-height: 100dvh` on `.modal`), where
+    // scrolling the document is right and the sticky dock keeps the action
+    // reachable. `min-height: 0` is the half that does the work — see the cap
+    // in `.modal`.
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+// The fields and the fine print — the one part of the card that scrolls.
+//
+// **The scrollbar is the refer modal's** (`ReferModal.module.scss .fields`),
+// value for value, so the board's two form dialogs scroll the same way. It rides
+// the card's edge rather than the fields' edge: the region is pulled out through
+// `.modal`'s 20px padding and puts the 20px back as its own, short by `--bar` on
+// the right because a classic scrollbar comes out of the padding box. The
+// default bar sat flush against the inputs, running into their right border.
+//
+// Drawn through the webkit pseudo-elements, never `scrollbar-width` /
+// `scrollbar-color`: setting either makes Chrome ignore these rules and draw its
+// own bar, with stepper arrows on Windows. Visible rather than hidden, because
+// what sits below a form's fold is its submit (lesson 5b) — though with the dock
+// pinned the bar now only has to say that more fields follow.
+//
+// Vertical 2px / -2px leaves room for focus rings at the fold; 16px at the
+// bottom is the air above the dock's rule.
+.scrollArea {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  @include media.tablet-landscape {
+    --bar: 6px;
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-
-    // Scrollbar left visible, against the prototypes' usual
-    // `scrollbar-width: none` (the rails in newsfeed, gantry, v0). Those hide it
-    // because content clipped at a fold is its own affordance — you can see there
-    // is more. A form cannot borrow that argument: the thing below the fold is
-    // the button that submits it, and "is there more?" is the one question a
-    // person filling this in must not have to ask.
-    //
-    // Gutter reserved so the fields do not reflow the moment it appears.
+    margin: -2px -20px 0;
+    padding: 2px calc(20px - var(--bar)) 16px 20px;
     scrollbar-gutter: stable;
+
+    &::-webkit-scrollbar {
+      width: var(--bar);
+    }
+
+    &::-webkit-scrollbar-button {
+      display: none;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+      border-radius: 9999px;
+      border: 1px solid transparent;
+      background-clip: content-box;
+    }
   }
 }
 
@@ -263,10 +305,19 @@
   letter-spacing: -0.2px;
 }
 
+// Two children now: `.scrollArea` and `.actionsDock`. On the card it is the
+// flex column that hands the scroll region its height (`min-height: 0`, same
+// reason as `.pageBody`), and the rule under the fields replaces the gap.
 .form {
   display: flex;
   flex-direction: column;
   gap: 24px;
+
+  @include media.tablet-landscape {
+    flex: 1;
+    min-height: 0;
+    gap: 0;
+  }
 }
 
 // The shared account group's own vertical rhythm — `AccountFields` wraps itself
@@ -583,9 +634,12 @@
 // Two sticky siblings would both resolve to `bottom: 0` and stack on top of each
 // other, so one wrapper holds both and sticks once.
 //
-// **`display: contents` above 960** so the card is untouched: the wrapper stops
-// generating a box, and the footer and the sign-in row go back to being direct
-// children of `.form`, inheriting its 24px gap exactly as before.
+// **On the card it is the fixed footer.** It used to be `display: contents`
+// above 960, which put the actions inside the scroll region — on a laptop-height
+// window Create account sat below the fold and the board's own backdrop was the
+// only hint there was more. Now it sits under `.scrollArea`, outside the scroll:
+// a hairline rule (the same `--border-neutral-subtle` that closes the header
+// block), 16px above the buttons, and the sign-in escape under them.
 .actionsDock {
   position: sticky;
   bottom: 0;
@@ -603,7 +657,13 @@
   box-shadow: 0 -1px 4px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
 
   @include media.tablet-landscape {
-    display: contents;
+    position: static;
+    flex-shrink: 0;
+    gap: 16px;
+    margin: 0;
+    padding: 16px 0 0;
+    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    box-shadow: none;
   }
 }
 

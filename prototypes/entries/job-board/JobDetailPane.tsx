@@ -29,6 +29,8 @@ import { QuillContent } from '@/components/ui/QuillContent/QuillContent';
 
 import { getJobDetail, jobMetaParts } from './jobDetails';
 import { ListingStatusBadge } from './ListingStatusBadge';
+import { ApplicationStatusBadge } from './ApplicationStatusBadge';
+import type { ApplicationStatus } from './applicationStatus';
 import { ProfileUnlocksCard } from './ProfileUnlocks';
 import { InterestStrip } from './InterestStrip';
 import type { ListingStatus } from './listings';
@@ -45,6 +47,8 @@ interface JobDetailPaneProps {
   /** Already sent from this session — the stamp row reports when instead of how old. */
   applied?: boolean;
   appliedAt?: string;
+  /** Where the application stands — a pill in the stamp row for anything past `sent`. */
+  applicationStatus?: ApplicationStatus;
   /**
    * A visitor with no account. Draws the "What your profile unlocks" card
    * between the masthead and the description — the reading step's own
@@ -91,7 +95,7 @@ interface JobDetailPaneProps {
  * signed-in reader, and no longer on the row at all. See `postingHref`.
  */
 export function JobDetailPane(props: JobDetailPaneProps) {
-  const { role, team, applied = false, appliedAt, status, showUnlocks = false, interest } = props;
+  const { role, team, applied = false, appliedAt, applicationStatus, status, showUnlocks = false, interest } = props;
 
   const focusTags = useGetFocusTags(team ?? NO_TEAM);
 
@@ -149,6 +153,7 @@ export function JobDetailPane(props: JobDetailPaneProps) {
 
         <div className={d.stampRow}>
           {status && <ListingStatusBadge status={status} />}
+          {applied && applicationStatus && <ApplicationStatusBadge status={applicationStatus} />}
           {date && isNew(date) && !applied && !status && <span className={rr.newBadge}>● New</span>}
           {date && (
             <span className={clsx(rr.relative, d.stampTone)}>

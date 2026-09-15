@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
+import type { NewsItemWithPost } from './teamPosts';
 import { Modal } from '@/components/common/Modal';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { ArrowUpRightIcon } from '@/components/icons/ArrowUpRightIcon';
@@ -65,11 +66,18 @@ export function TeamNewsModal({
   onAddComment,
   isCommentLiked,
   onToggleCommentLike,
+  menuFor,
 }: {
   teamName: string;
   /** The card's own resolved mark — real logo or generated monogram. */
   teamLogo?: string;
-  items: ITeamNewsItem[];
+  items: NewsItemWithPost[];
+  /**
+   * The owner's ⋯ for a story, or nothing. The profile decides who may act
+   * (see `canManageTeamPost`) and hands the control in; the grid and the job
+   * board pass nothing and render exactly as before.
+   */
+  menuFor?: (uid: string) => ReactNode;
   /**
    * What the header counts, when that isn't the number of rows below it. Only
    * the searchable archive needs it: the title names the whole archive, so it
@@ -105,7 +113,13 @@ export function TeamNewsModal({
   isCommentLiked?: (commentUid: string) => boolean;
   onToggleCommentLike?: (commentUid: string) => void;
 }) {
-  const [story, setStory] = useState<FeedDetail | null>(null);
+  /**
+   * The drilled story is a uid, and the view is derived from `items` on every
+   * render — so an edit made from inside the story shows in the story, and a
+   * story removed from under the reader closes back to the list rather than
+   * lingering as a snapshot of something that no longer exists.
+   */
+  const [storyUid, setStoryUid] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   /**
@@ -127,8 +141,8 @@ export function TeamNewsModal({
    * halfway down: scroll the row you left into view and flash it once.
    */
   useEffect(() => {
-    if (story) {
-      lastStoryUid.current = story.id;
+    if (storyUid) {
+      lastStoryUid.current = storyUid;
       return;
     }
     const uid = lastStoryUid.current;
@@ -145,11 +159,12 @@ export function TeamNewsModal({
       cancelAnimationFrame(raf);
       clearTimeout(timer);
     };
-  }, [story]);
+  }, [storyUid]);
 
-  const open = (item: ITeamNewsItem) =>
-    setStory({
-      id: item.uid,
+  const open = (item: ITeamNewsItem) => setStoryUid(item.uid);
+
+  const toDetail = (item: NewsItemWithPost): FeedDetail => ({
+    id: item.uid,
       kind: 'news',
       title: item.title,
       name: item.teamName,
@@ -164,7 +179,15 @@ export function TeamNewsModal({
       summary: item.summary,
       time: item.eventDate,
       readUrl: item.sourceUrl ?? undefined,
+      // A post the team wrote itself reads as its own words, not as an AI
+      // summary — the same three facts the profile's rail passes.
+      authored: Boolean(item.post),
+      bodyHtml: item.post ? item.contentHtml : undefined,
+      editedAt: item.post?.editedAt,
     });
+
+  const storyItem = storyUid ? (items.find((item) => item.uid === storyUid) ?? null) : null;
+  const story = storyItem ? toDetail(storyItem) : null;
 
   return (
     <Modal isOpen onClose={onClose} className={local.newsModal} lockScroll inertBackground>
@@ -172,7 +195,7 @@ export function TeamNewsModal({
         <FeedDetailBody
           detail={story}
           onClose={onClose}
-          onBack={() => setStory(null)}
+          onBack={() => setStoryUid(null)}
           className={detailCss.embedded}
           citationStyle="off"
           // No comment thread when the caller doesn't keep one: reached from a
@@ -187,6 +210,7 @@ export function TeamNewsModal({
           onAddComment={onAddComment && ((text, parentUid) => onAddComment(story.id, text, parentUid))}
           isCommentLiked={isCommentLiked}
           onToggleCommentLike={onToggleCommentLike}
+          headerAction={menuFor?.(story.id)}
         />
       ) : (
         <>
@@ -235,6 +259,7 @@ export function TeamNewsModal({
                   // would eject the reader from the surface built for reading.
                   onShowMore={() => open(item)}
                   onOpenComments={() => open(item)}
+                  menu={menuFor?.(item.uid)}
                 />
               ))
             ) : (

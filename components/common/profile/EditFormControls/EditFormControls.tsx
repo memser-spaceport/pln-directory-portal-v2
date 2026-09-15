@@ -4,6 +4,7 @@ import { useFormContext } from 'react-hook-form';
 import { CloseIcon } from '@/components/icons';
 import { Button } from '@/components/common/Button';
 import { UnsavedEditPopup, useUnsavedEditRegistration } from '@/components/common/profile/UnsavedEdits';
+import { useSectionEditClaim } from '@/components/common/profile/SectionEditLock';
 
 import { getSaveBtnLabel } from './utils/getSaveBtnLabel';
 
@@ -13,10 +14,11 @@ interface Props {
   onClose: () => void;
   title: ReactNode;
   isProcessing?: boolean;
+  children?: ReactNode;
 }
 
 export const EditFormControls = (props: Props) => {
-  const { title, onClose, isProcessing: pIsProcessing = false } = props;
+  const { title, onClose, isProcessing: pIsProcessing = false, children } = props;
 
   const { reset, formState } = useFormContext() || {};
   const { isSubmitting, isDirty } = formState || {};
@@ -38,6 +40,20 @@ export const EditFormControls = (props: Props) => {
    */
   const { rootRef, anchor, showPopup, dismissPopup } = useUnsavedEditRegistration(Boolean(isDirty));
 
+  const isProcessing = isSubmitting || pIsProcessing;
+
+  /**
+   * Hold the surrounding profile column's edit lock for as long as this editor
+   * is open, so every other section is muted and the page's status bar has a
+   * card to report on. Same mount-means-open argument as the registration
+   * above, and inert outside a `SectionEditLockProvider`.
+   *
+   * The bar's Save is this row's Save at a distance, so it is told about the
+   * save in flight too — otherwise the two buttons disagree about whether the
+   * form is busy.
+   */
+  useSectionEditClaim(Boolean(isDirty), Boolean(isProcessing));
+
   const cancel = () => {
     if (reset) {
       reset();
@@ -45,11 +61,16 @@ export const EditFormControls = (props: Props) => {
     onClose();
   };
 
-  const isProcessing = isSubmitting || pIsProcessing;
-
   return (
-    <div className={s.root} ref={rootRef}>
-      <div className={s.title}>{title}</div>
+    <>
+      <div className={s.root} ref={rootRef}>
+        <div className={s.title}>{title}</div>
+        <button className={s.mobileCloseButton} onClick={cancel} type="button">
+          <CloseIcon className={s.closeIcon} />
+        </button>
+        {showPopup && <UnsavedEditPopup anchor={anchor} onDismiss={dismissPopup} />}
+      </div>
+      {children}
       <div className={s.controls}>
         <Button size="s" style="border" onClick={cancel} type="button" className={s.btn}>
           Cancel
@@ -58,10 +79,6 @@ export const EditFormControls = (props: Props) => {
           {getSaveBtnLabel({ isDirty, isProcessing })}
         </Button>
       </div>
-      <button className={s.mobileCloseButton} onClick={cancel} type="button">
-        <CloseIcon className={s.closeIcon} />
-      </button>
-      {showPopup && <UnsavedEditPopup anchor={anchor} onDismiss={dismissPopup} />}
-    </div>
+    </>
   );
 };

@@ -268,7 +268,7 @@ export function EditorStatusRow({
           Keep editing
         </Button>
         {canSave && (
-          <Button type="button" style="fill" size="m" className={s.btn} onClick={save}>
+          <Button type="button" style="fill" size="m" className={clsx(s.btn, s.btnSave)} onClick={save}>
             {saveLabel}
           </Button>
         )}
@@ -459,7 +459,7 @@ export function FloatingEditorBar({
           Keep editing
         </Button>
         {canSave && (
-          <Button type="button" style="fill" size="m" className={s.btn} onClick={onSave}>
+          <Button type="button" style="fill" size="m" className={clsx(s.btn, s.btnSave)} onClick={onSave}>
             {saveLabel}
           </Button>
         )}

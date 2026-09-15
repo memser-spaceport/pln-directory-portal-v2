@@ -214,87 +214,90 @@ export const EditTeamDetailsForm = ({ team, userInfo, onClose }: Props) => {
     <FormProvider {...methods}>
       {/* @ts-ignore */}
       <form className={s.form} onSubmit={handleSubmit(onSubmit)}>
-        <EditFormControls title="Edit Profile Details" onClose={onClose} isProcessing={isPending} />
-        <div className={s.panel}>
-          <div className={s.imageRow}>
-            <ProfileImageInput member={{ name: team?.name || '', profile: team?.logo }} allowDelete />
-            <FormField name="name" placeholder="Enter team name" label="Team Name" max={150} isRequired />
-          </div>
+        <EditFormControls title="Edit Profile Details" onClose={onClose} isProcessing={isPending}>
+          <div className={s.panel}>
+            <div className={s.imageRow}>
+              <ProfileImageInput member={{ name: team?.name || '', profile: team?.logo }} allowDelete />
+              <FormField name="name" placeholder="Enter team name" label="Team Name" max={150} isRequired />
+            </div>
 
-          <FormField
-            name="shortDescription"
-            placeholder="Add a short description"
-            label="Short Description"
-            max={100}
-            description={
-              <>
-                This description appears on your team&apos;s card in the{' '}
-                <Link style={{ color: '#1b4dff' }} href="/teams" target="_blank">
-                  Teams Page
-                </Link>
-                , not on this page. Keep it brief: 1–2 sentences work best.
-              </>
-            }
-          />
-          <FormField
-            name="dateFounded"
-            placeholder="eg., 2014"
-            label="Date Founded"
-            maxLength={4}
-            inputMode="numeric"
-            description="The 4-digit year your team was founded."
-          />
-
-          <FormField
-            name="teamSize"
-            placeholder="eg., 50 or 11-50"
-            label="Team Size"
-            description="Employee count as a number, or a range label."
-          />
-
-          <FormField
-            name="location"
-            placeholder="eg., San Francisco, United States"
-            label="Location"
-            description="Where your team is based."
-          />
-
-          {isAdmin && (
-            <FormSwitch
-              name="isActive"
-              label="This team is active"
-              helperText="Inactive teams are hidden from the Teams page and search, and their profile shows an “Inactive” badge."
+            <FormField
+              name="shortDescription"
+              placeholder="Add a short description"
+              label="Short Description"
+              max={100}
+              description={
+                <>
+                  This description appears on your team&apos;s card in the{' '}
+                  <Link style={{ color: '#1b4dff' }} href="/teams" target="_blank">
+                    Teams Page
+                  </Link>
+                  , not on this page. Keep it brief: 1–2 sentences work best.
+                </>
+              }
             />
-          )}
-
-          <div className={s.checkboxLabel}>
-            <Checkbox
-              checked={!!methods.watch('isFund')}
-              onChange={(checked) => methods.setValue('isFund', !!checked, { shouldValidate: true, shouldDirty: true })}
+            <FormField
+              name="dateFounded"
+              placeholder="eg., 2014"
+              label="Date Founded"
+              maxLength={4}
+              inputMode="numeric"
+              description="The 4-digit year your team was founded."
             />
-            <span className={s.checkboxText}>This team is an investment fund.</span>
+
+            <FormField
+              name="teamSize"
+              placeholder="eg., 50 or 11-50"
+              label="Team Size"
+              description="Employee count as a number, or a range label."
+            />
+
+            <FormField
+              name="location"
+              placeholder="eg., San Francisco, United States"
+              label="Location"
+              description="Where your team is based."
+            />
+
+            {isAdmin && (
+              <FormSwitch
+                name="isActive"
+                label="This team is active"
+                helperText="Inactive teams are hidden from the Teams page and search, and their profile shows an “Inactive” badge."
+              />
+            )}
+
+            <div className={s.checkboxLabel}>
+              <Checkbox
+                checked={!!methods.watch('isFund')}
+                onChange={(checked) =>
+                  methods.setValue('isFund', !!checked, { shouldValidate: true, shouldDirty: true })
+                }
+              />
+              <span className={s.checkboxText}>This team is an investment fund.</span>
+            </div>
+            <FormSelect
+              name="fundingStage"
+              label="Company Stage"
+              placeholder="Select stage"
+              options={fundingStageOptions}
+            />
+            <FormMultiSelect
+              name="industryTags"
+              label="Industry Tags"
+              placeholder="Select industry tags"
+              options={industryTagOptions}
+              description="Add industries that you had worked in. This will make it easier for people to find & connect based on shared professional interests."
+            />
+            <BioInput
+              name="about"
+              label="About"
+              simplified
+              showGenerateWithAiButton={false}
+              placeholder="Add long description"
+            />
           </div>
-          <FormSelect
-            name="fundingStage"
-            label="Company Stage"
-            placeholder="Select stage"
-            options={fundingStageOptions}
-          />
-          <FormMultiSelect
-            name="industryTags"
-            label="Industry Tags"
-            placeholder="Select industry tags"
-            options={industryTagOptions}
-            description="Add industries that you had worked in. This will make it easier for people to find & connect based on shared professional interests."
-          />
-          <BioInput
-            name="about"
-            label="About"
-            simplified
-            showGenerateWithAiButton={false}
-            placeholder="Add long description"
-          />
-        </div>
+        </EditFormControls>
         <EditFormMobileControls />
       </form>
     </FormProvider>

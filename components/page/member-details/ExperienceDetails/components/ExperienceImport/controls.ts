@@ -27,6 +27,9 @@ export interface CvImportControls {
   /** A file collected by the header control, on its way to the same validator
    *  the drop area uses. */
   onPickFile: (file: File) => void;
-  /** Cancel was pressed while reading. Analytics only — see the panel's prop. */
+  /**
+   * Cancel was pressed while reading. Analytics, and — when the host opened
+   * this card for a refresh — leaving it. See `ExperienceDetails.onCancelRead`.
+   */
   onCancelRead: () => void;
 }

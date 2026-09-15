@@ -42,9 +42,9 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-/* The role picker and the posting link, one row above the split. A select
- * rather than tabs: a team can carry ten or more roles, and ten titles in a
- * tab strip is a scroll with no end in sight, where a menu lists them. */
+/* The role picker, one row above the split. A select rather than tabs: a team
+ * can carry ten or more roles, and ten titles in a tab strip is a scroll with
+ * no end in sight, where a searchable menu lists and filters them. */
 .roleBar {
   display: flex;
   align-items: center;
@@ -53,13 +53,51 @@
   margin-bottom: 16px;
 }
 
-/* SortDropdown's trigger, widened for a role title: its own `white-space:
- * nowrap` is right for "Latest" and wrong for "Senior Distributed Systems
- * Engineer (3)" on a phone, so the label may ellipsise inside a cap. */
+/* The select's slot. `filterSelectStyles` makes the container 100% wide, so
+ * the width is set here: room for "Senior Distributed Systems Engineer (3)"
+ * without the ellipsis react-select would otherwise draw, capped so it does
+ * not stretch the toolbar on a wide screen. The "Role:" group is a flex row,
+ * so the slot also has to be allowed to shrink on a phone. */
 .rolePicker {
-  max-width: min(100%, 420px);
-  overflow: hidden;
-  text-overflow: ellipsis;
+  width: 360px;
+  max-width: 100%;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+/* The "Role:" group around it (`SortDropdown`'s `.sortGroup`, a flex row). As a
+ * flex item of `.roleBar` it defaults to `min-width: auto`, so it refused to
+ * shrink below label + 360px and pushed the select off a phone's right edge.
+ * Holding it to the row lets `.rolePicker` give way instead. */
+.roleGroup {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* The role row's meta line, verbatim (`ReferRoleRow .meta`: 14/22, -0.2px,
+ * secondary), since it is the same facts about the same role. */
+.roleFacts {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* The role's facts and the posting head the list, above the search. The rule
+ * under it is the card's divider (the one the job board's team card draws under
+ * its header), so the role reads as the list's heading rather than as one more
+ * row. */
+.listHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  flex-shrink: 0;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-neutral-subtle, #f1f5f9);
 }
 
 /* List beside pane. 440px keeps "Protocol Engineer · Lattice Compute" whole
@@ -93,6 +131,14 @@
   }
 }
 
+/* Applied / Interested, between the role's head and the search: the tabs pick
+ * which list of people answered this role. `flex-shrink: 0` because the column
+ * is a capped flex column on desktop. */
+.tabs {
+  flex-shrink: 0;
+  margin-bottom: 12px;
+}
+
 .searchWrap {
   margin-bottom: 12px;
   flex-shrink: 0;
@@ -113,15 +159,8 @@
   }
 }
 
-/* The pane is the profile's own column: white cards, 8px apart, the profile
- * shell's own rhythm. */
-.pane {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-
+/* The pane is `ApplicantMemberPage`, which brings the member page's own column.
+ * The Email reply sits at the foot of the Application section. */
 .actions {
   display: flex;
   gap: 8px;

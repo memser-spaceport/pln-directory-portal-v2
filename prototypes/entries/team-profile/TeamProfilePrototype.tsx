@@ -33,12 +33,25 @@ import { TeamContributionsView } from './TeamContributionsView';
 import { TeamProjectsView } from './TeamProjectsView';
 import { TeamOpenRolesView } from './TeamOpenRolesView';
 import { TeamApplicantsPage } from './TeamApplicantsPage';
+import { getJobDate, seniorityDisplayLabel } from '@/utils/jobs.utils';
 import { seedListingMeta, submitJobHref, type ListingMeta, type ListingStatus } from '../job-board/listings';
 import { NewsCardView } from './NewsCardView';
 import { NewsFullPageView } from './NewsFullPageView';
 import { TeamFollowBlock } from './TeamFollowBlock';
 import { TeamAdminActions } from './TeamAdminActions';
 import { PostNewsModal, type PostNewsSubmission } from './PostNewsModal';
+import { NewsPostMenu } from '../news-shared/NewsPostMenu';
+import {
+  TEAM_POST_VIEWER,
+  applyTeamPostOverrides,
+  canManageTeamPost,
+  clearTeamPostOverrides,
+  readTeamPostOverrides,
+  writeTeamPostOverride,
+  type NewsItemWithPost,
+  type TeamPostRole,
+} from '../news-shared/teamPosts';
+import { ConfirmDialog } from '@/components/core/ConfirmDialog/ConfirmDialog';
 import { NewsEmptyCard } from './NewsEmptyCard';
 import { PostNewsButton } from './PostNewsButton';
 import { deriveDomain } from './newsUrl';
@@ -69,6 +82,7 @@ import {
   MOCK_TEAM_DEMO_DAY,
   MOCK_TEAM_ROLES,
   MOCK_APPLICANTS,
+  MOCK_INTERESTED,
   MOCK_TEAM_FACTS,
   type TeamStatus,
 } from './mocks';
@@ -98,10 +112,20 @@ export default function TeamProfilePrototype() {
   const [following, setFollowing] = useState(false);
   const [followToast, setFollowToast] = useState(false);
   const followToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Demo-only: public vs team view. Both put the follow cluster in the header
-  // card's top-right corner: public gets the Follow pill, team gets the
-  // follower avatar stack + count (opens the full-list modal).
-  const [view, setView] = useState<'public' | 'team'>('team');
+  /**
+   * Demo-only: who is looking. Four seats, because the news controls draw
+   * their line in a different place from the page's other owner features:
+   *   admin  — a directory admin, not necessarily on the team
+   *   lead   — a lead of this team
+   *   member — on the team, not a lead
+   *   public — everyone else
+   * The first three are production's "team view" (`isCurrentUserTeamMember ||
+   * isAdmin`): the follower stack in the header card's corner instead of the
+   * Follow pill, the Asks, posting news. Jobs are narrower (lead or admin), and
+   * editing someone else's news post narrower still — see `canManageTeamPost`.
+   */
+  const [view, setView] = useState<TeamPostRole>('lead');
+  const isTeamView = view !== 'public';
   // Demo-only: with one mock team, flipping status is the only way to see the
   // inactive treatment at all. It lives in the demo bar with the view switch,
   // outside the page card — a prototype control, not something on the profile.
@@ -119,15 +143,15 @@ export default function TeamProfilePrototype() {
    * that has wound down posts nothing: news is something a team is doing, and
    * an inactive team is, by definition, not.
    */
-  const canPost = view === 'team' && status === 'active';
+  const canPost = isTeamView && status === 'active';
 
   /**
    * WHO CAN POST A JOB. Narrower than news in production — `isTeamLeaderOrAdmin`,
-   * a lead of this team or a directory admin, not any member — and this
-   * prototype's "Team" view stands in for that pair as it does for `canPost`.
-   * Same second half: a team that has wound down is not hiring.
+   * a lead of this team or a directory admin, not any member — so the Member
+   * seat of the view switch gets the news door and not this one. Same second
+   * half: a team that has wound down is not hiring.
    */
-  const canSubmitJobs = view === 'team' && status === 'active';
+  const canSubmitJobs = (view === 'lead' || view === 'admin') && status === 'active';
   // Demo-only, same reason as the news seed: one mock team, so the only way to
   // see the owner's empty Open roles section is to take its roles away.
   const [rolesSeed, setRolesSeed] = useState<'some' | 'none'>('some');
@@ -138,7 +162,6 @@ export default function TeamProfilePrototype() {
    * `RoleApplicants`).
    */
   const [applicantsRole, setApplicantsRole] = useState<string | null>(null);
-
   /**
    * The team's listings as the team manages them, from its own page — the
    * board's `listings` and `deletedUids`, kept here for the length of a visit.
@@ -186,19 +209,27 @@ export default function TeamProfilePrototype() {
    * the mocks; a posted item is prepended, so the rail, the archive, the mobile
    * page and the detail modal all read the same list.
    */
-  const [news, setNews] = useState<ITeamNewsItem[]>(MOCK_NEWS);
-  useEffect(() => setNews(newsSeed === 'some' ? MOCK_NEWS : []), [newsSeed]);
-  /** Items the team wrote here, as opposed to enriched from coverage. */
-  const [authoredUids, setAuthoredUids] = useState<Set<string>>(new Set());
+  const [news, setNews] = useState<NewsItemWithPost[]>(MOCK_NEWS);
+  // Seeded through the mocked backend (see teamPosts.ts): an edit or a removal
+  // made earlier in this tab is still in force after a reload — which is what
+  // lets the network feed be checked and this page come back to the same state.
+  useEffect(
+    () => setNews(newsSeed === 'some' ? applyTeamPostOverrides(MOCK_NEWS, readTeamPostOverrides()) : []),
+    [newsSeed],
+  );
   const [composeOpen, setComposeOpen] = useState(false);
-  /** The story just posted — flashed in the rail so the press has a visible outcome. */
-  const [postedUid, setPostedUid] = useState<string | null>(null);
+  /** The published post open in the compose modal for editing, if any. */
+  const [editing, setEditing] = useState<NewsItemWithPost | null>(null);
+  /** The post whose removal is being confirmed, if any. */
+  const [removing, setRemoving] = useState<NewsItemWithPost | null>(null);
+  /** The story just posted or saved — flashed in the rail so the press has a visible outcome. */
+  const [flashUid, setFlashUid] = useState<string | null>(null);
   const railListRef = useRef<HTMLDivElement>(null);
 
   const publishNews = ({ title, body, url, summary }: PostNewsSubmission) => {
     const now = new Date().toISOString();
     const uid = `news-local-${Date.now()}`;
-    const item: ITeamNewsItem = {
+    const item: NewsItemWithPost = {
       uid,
       teamUid: team.id ?? 'protocol-labs',
       teamName: team.name ?? 'This team',
@@ -222,29 +253,88 @@ export default function TeamProfilePrototype() {
       subFocusAreas: [],
       createdAt: now,
       discussion: { count: 0, latestTopicUrl: null },
+      isTeamPosted: true,
+      post: { posterUid: TEAM_POST_VIEWER.uid, posterName: TEAM_POST_VIEWER.name },
     };
     setNews((prev) => [item, ...prev]);
-    setAuthoredUids((prev) => new Set(prev).add(uid));
-    setPostedUid(uid);
+    setFlashUid(uid);
   };
 
-  // The receipt for a post is the post itself, at the top of the rail: scroll
-  // it into view and flash it. A background flash rather than the archive's
+  /**
+   * WHO MAY EDIT OR REMOVE. A directory admin, a lead of this team, or the
+   * person who posted it — and only a post the team wrote here; enriched
+   * coverage has no author on this page. One rule, asked by every surface (the
+   * rail, the archive, the story modal) through `menuFor`, so a reader who may
+   * not act meets no control anywhere rather than a disabled one somewhere.
+   */
+  const canManage = (item: NewsItemWithPost) => canManageTeamPost(item, view, TEAM_POST_VIEWER.uid);
+
+  /**
+   * Save an edit: the three fields the form owns, in place. The date stays —
+   * an edit is a correction, not a new event — so the post keeps its place in
+   * every list; the card gains "Edited". Written through to the mocked backend
+   * so the network feed shows the same text.
+   */
+  const saveNews = (uid: string, { title, body, url, summary }: PostNewsSubmission) => {
+    const patch = {
+      title,
+      summary,
+      contentHtml: body || undefined,
+      sourceUrl: url,
+      sourceDomain: deriveDomain(url),
+      editedAt: new Date().toISOString(),
+    };
+    setNews((prev) => prev.map((item) => (item.uid === uid ? applyTeamPostOverrides([item], { [uid]: patch })[0] : item)));
+    writeTeamPostOverride(uid, patch);
+    setFlashUid(uid);
+  };
+
+  /** Remove, after the confirm: gone from every list here and from the feed. */
+  const removeNews = (item: NewsItemWithPost) => {
+    setNews((prev) => prev.filter((n) => n.uid !== item.uid));
+    writeTeamPostOverride(item.uid, { removed: true });
+    setRemoving(null);
+    // A story open in a modal has nothing left to show.
+    if (detailUid === item.uid) setDetailUid(null);
+    if (archiveStoryUid === item.uid) setArchiveStoryUid(null);
+    showListingToast(`“${item.title}” removed.`);
+  };
+
+  /** The owner's ⋯ for a story — or nothing, which is what most readers get. */
+  const menuFor = (uid: string) => {
+    const item = news.find((n) => n.uid === uid);
+    if (!item?.post || !canManage(item)) return null;
+    return (
+      <NewsPostMenu
+        title={item.title}
+        posterName={item.post.posterName}
+        postedByViewer={item.post.posterUid === TEAM_POST_VIEWER.uid}
+        onEdit={() => {
+          setEditing(item);
+          setComposeOpen(true);
+        }}
+        onRemove={() => setRemoving(item)}
+      />
+    );
+  };
+
+  // The receipt for a post — or a saved edit — is the post itself in the rail:
+  // scroll it into view and flash it. A background flash rather than the archive's
   // ring: the rail's rows are flat and its list clips to a scroll region, so a
   // ring drawn around a row only ever shows its bottom edge — a thick blue
   // divider, not a highlight.
   useEffect(() => {
-    if (!postedUid) return;
-    const el = railListRef.current?.querySelector<HTMLElement>(`[data-news-uid="${postedUid}"]`);
+    if (!flashUid) return;
+    const el = railListRef.current?.querySelector<HTMLElement>(`[data-news-uid="${flashUid}"]`);
     if (!el) return;
     el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     el.classList.add(local.newsPosted);
     const timer = setTimeout(() => {
       el.classList.remove(local.newsPosted);
-      setPostedUid(null);
+      setFlashUid(null);
     }, 1500);
     return () => clearTimeout(timer);
-  }, [postedUid]);
+  }, [flashUid]);
   useEffect(
     () => () => {
       if (followToastTimer.current) clearTimeout(followToastTimer.current);
@@ -320,9 +410,11 @@ export default function TeamProfilePrototype() {
    * sources, AI disclosure, thread and footer metrics) rather than a
    * profile-flavoured retelling of it.
    */
-  const [detail, setDetail] = useState<FeedDetail | null>(null);
+  // A uid, with the view derived from `news` on every render: an edit made
+  // from inside the story shows in the story, and a removed one closes.
+  const [detailUid, setDetailUid] = useState<string | null>(null);
   /** One payload shape, so a story reads the same from the rail and the archive. */
-  const toDetail = (item: ITeamNewsItem): FeedDetail => ({
+  const toDetail = (item: NewsItemWithPost): FeedDetail => ({
     id: item.uid,
     kind: 'news',
     title: item.title,
@@ -334,10 +426,14 @@ export default function TeamProfilePrototype() {
     time: item.eventDate,
     views: viewsFor(item.uid),
     readUrl: item.sourceUrl ?? undefined,
-    authored: authoredUids.has(item.uid),
-    bodyHtml: authoredUids.has(item.uid) ? item.contentHtml : undefined,
+    authored: Boolean(item.post),
+    bodyHtml: item.post ? item.contentHtml : undefined,
+    editedAt: item.post?.editedAt,
   });
-  const openDetail = (item: ITeamNewsItem) => setDetail(toDetail(item));
+  const itemByUid = (uid: string | null) => (uid ? (news.find((n) => n.uid === uid) ?? null) : null);
+  const detailItem = itemByUid(detailUid);
+  const detail = detailItem ? toDetail(detailItem) : null;
+  const openDetail = (item: ITeamNewsItem) => setDetailUid(item.uid);
 
   /**
    * The story the MOBILE archive has drilled into, kept apart from `detail`
@@ -352,7 +448,9 @@ export default function TeamProfilePrototype() {
    * Desktop no longer needs this: `TeamNewsModal` owns its own drill state (and
    * its own scroll-back), the same way it does on the teams grid.
    */
-  const [archiveStory, setArchiveStory] = useState<FeedDetail | null>(null);
+  const [archiveStoryUid, setArchiveStoryUid] = useState<string | null>(null);
+  const archiveStoryItem = itemByUid(archiveStoryUid);
+  const archiveStory = archiveStoryItem ? toDetail(archiveStoryItem) : null;
 
   const displayNews = [...news].sort((a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime());
 
@@ -392,11 +490,11 @@ export default function TeamProfilePrototype() {
     setNewsQuery('');
     setNewsFocusUid(null);
     // Reopening lands on the list, not on whatever story was last read.
-    setArchiveStory(null);
+    setArchiveStoryUid(null);
   };
 
   /** Drill into a story without leaving the archive. */
-  const openArchiveStory = (item: ITeamNewsItem) => setArchiveStory(toDetail(item));
+  const openArchiveStory = (item: ITeamNewsItem) => setArchiveStoryUid(item.uid);
 
   /**
    * Back to the list, focused on the story just left — the same scroll-and-flash
@@ -404,8 +502,8 @@ export default function TeamProfilePrototype() {
    * at the top of a list they'd scrolled halfway down.
    */
   const backToArchiveList = () => {
-    setNewsFocusUid(archiveStory?.id ?? null);
-    setArchiveStory(null);
+    setNewsFocusUid(archiveStoryUid);
+    setArchiveStoryUid(null);
   };
 
   const focusAreas = useGetFocusAreasToDisplay(MOCK_FOCUS_AREAS, MOCK_TEAM_FOCUS_AREAS);
@@ -422,20 +520,23 @@ export default function TeamProfilePrototype() {
         <div className={local.demoGroup}>
           <span className={local.demoLabel}>View</span>
           <div className={local.demoSwitch}>
-            <button
-              type="button"
-              className={`${local.demoBtn} ${view === 'team' ? local.demoBtnActive : ''}`}
-              onClick={() => setView('team')}
-            >
-              Team
-            </button>
-            <button
-              type="button"
-              className={`${local.demoBtn} ${view === 'public' ? local.demoBtnActive : ''}`}
-              onClick={() => setView('public')}
-            >
-              Public
-            </button>
+            {(
+              [
+                ['admin', 'Admin'],
+                ['lead', 'Team lead'],
+                ['member', 'Member'],
+                ['public', 'Public'],
+              ] as const
+            ).map(([seat, label]) => (
+              <button
+                key={seat}
+                type="button"
+                className={`${local.demoBtn} ${view === seat ? local.demoBtnActive : ''}`}
+                onClick={() => setView(seat)}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -476,6 +577,19 @@ export default function TeamProfilePrototype() {
             >
               None yet
             </button>
+            {/* Undo this tab's edits and removals (the mocked backend is session
+                storage) and put the fixture back as shipped. */}
+            <button
+              type="button"
+              className={local.demoBtn}
+              onClick={() => {
+                clearTeamPostOverrides();
+                setNewsSeed('some');
+                setNews(MOCK_NEWS);
+              }}
+            >
+              Reset
+            </button>
           </div>
         </div>
 
@@ -498,6 +612,11 @@ export default function TeamProfilePrototype() {
             </button>
           </div>
         </div>
+
+        {/* (A "Layout" group stood here while the applicants page compared five
+            placements for View posting. Top of list won, so the group and
+            `applicantsLayouts.ts` went — a review switch left up after the
+            decision invites it to be re-litigated.) */}
       </div>
 
       {applicantsRole && teamRoles ? (
@@ -509,7 +628,17 @@ export default function TeamProfilePrototype() {
             uid: r.uid,
             title: r.roleTitle,
             postingHref: r.applyUrl ?? undefined,
+            // The role row's own meta line, in its order: seniority · category · location.
+            meta: [
+              r.seniority ? seniorityDisplayLabel(r.seniority) : null,
+              r.roleCategory,
+              r.location?.length ? r.location.join(', ') : null,
+            ]
+              .filter(Boolean)
+              .join(' · '),
+            postedAt: getJobDate(r),
             applicants: MOCK_APPLICANTS[r.uid] ?? [],
+            interested: MOCK_INTERESTED[r.uid] ?? [],
           }))}
           initialRoleUid={applicantsRole}
           onBack={() => setApplicantsRole(null)}
@@ -532,7 +661,7 @@ export default function TeamProfilePrototype() {
                 facts={MOCK_TEAM_FACTS}
                 status={status}
                 headerAction={
-                  view === 'public' ? (
+                  !isTeamView ? (
                     <div className={`${local.followHeader} ${local.followClusterMobile}`}>
                       <FollowPill following={following} onToggle={handleFollowToggle} name={team.name ?? 'this team'} />
                       {/* Reserve the caption's height once following so nothing below jumps. */}
@@ -681,6 +810,7 @@ export default function TeamProfilePrototype() {
                     // asking for the same thing: this story, in full.
                     onOpenComments={() => openDetail(item)}
                     onShowMore={() => openDetail(item)}
+                    menu={menuFor(item.uid)}
                   />
                 ))}
               </div>
@@ -728,6 +858,7 @@ export default function TeamProfilePrototype() {
             likedNews={likedNews}
             onToggleLike={toggleNewsLike}
             onOpenStory={openArchiveStory}
+            menuFor={menuFor}
             story={archiveStory}
             onBack={backToArchiveList}
             storyComments={archiveStory ? threadFor(archiveStory.id) : []}
@@ -758,6 +889,7 @@ export default function TeamProfilePrototype() {
               onToggleLike={toggleNewsLike}
               threadFor={threadFor}
               onAddComment={addComment}
+              menuFor={menuFor}
               isCommentLiked={(uid) => likedComments.has(uid)}
               onToggleCommentLike={toggleCommentLike}
             />
@@ -770,7 +902,8 @@ export default function TeamProfilePrototype() {
           panel so it overlays the page, not the rail. */}
       <FeedDetailModal
         detail={detail}
-        onClose={() => setDetail(null)}
+        onClose={() => setDetailUid(null)}
+        headerAction={detail ? menuFor(detail.id) : undefined}
         likeCount={detail ? likesFor(detail.id) : 0}
         liked={detail ? likedNews.has(detail.id) : false}
         onToggleLike={() => detail && toggleNewsLike(detail.id)}
@@ -782,6 +915,23 @@ export default function TeamProfilePrototype() {
         onToggleCommentLike={toggleCommentLike}
       />
 
+      {/* Removing asks first — the same dialog the team's Delete and a listing's
+          Delete use — because the press ends on a public feed and has no undo
+          on this side. The one thing it says that the menu didn't: where the
+          post stops appearing. */}
+      <ConfirmDialog
+        isOpen={Boolean(removing)}
+        title="Remove Post"
+        desc={
+          removing
+            ? `Are you sure you want to remove “${removing.title}”? It will no longer appear on ${team.name}’s page or in the network feed.`
+            : ''
+        }
+        onClose={() => setRemoving(null)}
+        onConfirm={() => removing && removeNews(removing)}
+        confirmTitle="Remove"
+      />
+
       {followToast && (
         <FollowToast>
           You&apos;re following <strong>{team.name}</strong> — you&apos;ll get its updates in your feed.
@@ -789,16 +939,24 @@ export default function TeamProfilePrototype() {
       )}
       {listingToast && <FollowToast>{listingToast}</FollowToast>}
 
-      {/* Compose. Mounted only for someone who can post — the modal owns a
-          draft, and a draft for a person with nowhere to post it is a leak. */}
-      {canPost && (
+      {/* Compose and edit. Mounted for anyone on the team's side of the page —
+          the compose door is still gated by `canPost`, but a lead or an admin
+          can still correct or take down a post on a team that has since gone
+          inactive. A visitor gets no modal: it owns a draft, and a draft for a
+          person with nowhere to post is a leak. */}
+      {isTeamView && (
         <PostNewsModal
           open={composeOpen}
-          onClose={() => setComposeOpen(false)}
+          onClose={() => {
+            setComposeOpen(false);
+            setEditing(null);
+          }}
           teamUid={team.id ?? 'protocol-labs'}
           teamName={team.name ?? 'This team'}
           existing={news}
           onPublish={publishNews}
+          editing={editing}
+          onSave={saveNews}
         />
       )}
     </div>

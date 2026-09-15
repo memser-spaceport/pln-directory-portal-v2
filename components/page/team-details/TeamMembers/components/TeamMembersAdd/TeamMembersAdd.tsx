@@ -88,50 +88,49 @@ export function TeamMembersAdd(props: Props) {
   return (
     <FormProvider {...methods}>
       <form noValidate onSubmit={methods.handleSubmit(onSubmit)}>
-        <EditFormControls title="Add Member" onClose={toggleIsEditMode} isProcessing={isPending} />
+        <EditFormControls title="Add Member" onClose={toggleIsEditMode} isProcessing={isPending}>
+          <DetailsSection>
+            <MemberMultiSelect
+              label="Select Team Members"
+              placeholder="Search and select members"
+              options={options}
+              value={selectedMembers}
+              onChange={(val) => methods.setValue('newMembers', val, { shouldValidate: true, shouldDirty: true })}
+            />
 
-        <DetailsSection>
-          <MemberMultiSelect
-            label="Select Team Members"
-            placeholder="Search and select members"
-            options={options}
-            value={selectedMembers}
-            onChange={(val) => methods.setValue('newMembers', val, { shouldValidate: true, shouldDirty: true })}
-          />
+            {selectedMembers.length > 0 && (
+              <div className={s.selectedList}>
+                {selectedMembers.map((member) => {
+                  const allMemberData = allMembersMap.get(member.value);
+                  const role = allMemberData?.teamMemberRoles?.[0]?.role || '';
 
-          {selectedMembers.length > 0 && (
-            <div className={s.selectedList}>
-              {selectedMembers.map((member) => {
-                const allMemberData = allMembersMap.get(member.value);
-                const role = allMemberData?.teamMemberRoles?.[0]?.role || '';
+                  const memberObj = {
+                    id: member.value,
+                    name: member.label,
+                    profile: member.image,
+                    teams: [{ id: teamId, role }],
+                  } as IMember;
 
-                const memberObj = {
-                  id: member.value,
-                  name: member.label,
-                  profile: member.image,
-                  teams: [{ id: teamId, role }],
-                } as IMember;
-
-                return (
-                  <div key={member.value} className={s.selectedCard}>
-                    <MemberCardBase member={memberObj} teamId={teamId}>
-                      <div className={s.teamLeadToggle}>
-                        <span className={s.teamLeadLabel}>Team Lead</span>
-                        <CustomToggle
-                          id={`team-lead-${member.value}`}
-                          name={`team-lead-${member.value}`}
-                          checked={!!teamLeadMap[member.value]}
-                          onChange={() => handleTeamLeadToggle(member.value)}
-                        />
-                      </div>
-                    </MemberCardBase>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </DetailsSection>
-
+                  return (
+                    <div key={member.value} className={s.selectedCard}>
+                      <MemberCardBase member={memberObj} teamId={teamId}>
+                        <div className={s.teamLeadToggle}>
+                          <span className={s.teamLeadLabel}>Team Lead</span>
+                          <CustomToggle
+                            id={`team-lead-${member.value}`}
+                            name={`team-lead-${member.value}`}
+                            checked={!!teamLeadMap[member.value]}
+                            onChange={() => handleTeamLeadToggle(member.value)}
+                          />
+                        </div>
+                      </MemberCardBase>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </DetailsSection>
+        </EditFormControls>
         <EditFormMobileControls />
       </form>
     </FormProvider>

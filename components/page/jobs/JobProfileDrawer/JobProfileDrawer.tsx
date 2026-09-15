@@ -31,6 +31,13 @@ import { SHOW_CV_IMPORT } from '@/services/members/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 
+import {
+  ProfileSection,
+  SectionEditLockProvider,
+  SectionStatusRow,
+  useSectionEditLockRegistry,
+} from '@/components/common/profile/SectionEditLock';
+
 import { PlTeamOnlyPill } from '@/components/page/jobs/PlTeamOnlyPill/PlTeamOnlyPill';
 import { CvFirstCard } from './CvFirstCard';
 import { pickCvImportHost } from './cvImportHost';
@@ -217,7 +224,11 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                    lives in its editor. While the role is missing the card wears
                    the required treatment: the strip names the consequence, the
                    amber "+ Your Role" inside is production's own affordance. */}
-          <div className={clsx(d.headerCard, { [d.missingCard]: !hasRole })}>
+          {/* Every card is wrapped: while one section is being edited the rest
+              of the step is `inert` and faded, and the footer carries the way
+              back to whichever one is open. The read-only cards mute with the
+              others. See `SectionEditLock`. */}
+          <ProfileSection name="Profile Details" className={clsx(d.headerCard, { [d.missingCard]: !hasRole })}>
             {!hasRole && (
               <DataIncomplete className={d.incompleteStrip}>
                 {pendingRoleTitle
@@ -226,7 +237,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
               </DataIncomplete>
             )}
             <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="apply-flow" />
-          </div>
+          </ProfileSection>
 
           {/* 2. Start with a document, while there is nothing to start from.
                    Disappears the moment the profile has anything in it, handing
@@ -246,7 +257,11 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                    follows it. The shortcut loses nothing by the move — it is
                    still above every section it fills, and someone who wants it
                    has not been asked to do anything in between. */}
-          {cvImportHost === 'top-card' && <CvFirstCard member={member} onHandOff={() => setHandedOff(true)} />}
+          {cvImportHost === 'top-card' && (
+            <ProfileSection name="Your CV">
+              <CvFirstCard member={member} onHandOff={() => setHandedOff(true)} />
+            </ProfileSection>
+          )}
 
           {/* 3. Identity verification, for an account the PL team is reviewing.
                    The same card the member profile page shows, in the position
@@ -264,18 +279,20 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                    navigates the entire page to LinkedIn, so without a return
                    this would trade a shortcut for the flow they were in. */}
           {pendingApproval && !member.linkedinProfile && verifyReturnTo && (
-            <LinkedInVerificationCard
-              memberUid={memberUid}
-              redirectUrl={verifyReturnTo}
-              /* Unframed here — the design gives it a full-width band and lets
+            <ProfileSection name="LinkedIn Verification">
+              <LinkedInVerificationCard
+                memberUid={memberUid}
+                redirectUrl={verifyReturnTo}
+                /* Unframed here — the design gives it a full-width band and lets
                  the row sit on the drawer, rather than the white card it wears
                  among the cards of a profile page. */
-              variant="plain"
-              /* Names what verifying unblocks, not the verifying. The member
+                variant="plain"
+                /* Names what verifying unblocks, not the verifying. The member
                  page's default sentence cannot say this: there is no
                  application behind it to be reviewed faster. */
-              description="Verify your LinkedIn to get your application reviewed faster."
-            />
+                description="Verify your LinkedIn to get your application reviewed faster."
+              />
+            </ProfileSection>
           )}
 
           {/* 4. Contact details.
@@ -291,7 +308,9 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                    the reading order: this is a profile, and a profile opens with
                    who you are and how to reach you. The status is a question
                    about *this* application and follows from that. */}
-          <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="drawer" />
+          <ProfileSection name="Contact Details">
+            <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="drawer" />
+          </ProfileSection>
 
           {/* 5. Job search status — the required section. PL-Team-only: the pill
                    carries the audience, the note carries the purpose, and the
@@ -317,32 +336,33 @@ export function JobProfilePane(props: JobProfilePaneProps) {
 
               The amber card treatment stays: `missingData` is what marks the
               section, and that is the part the strip was only decorating. */}
-          <DetailsSection missingData={!hasStatus}>
-            {/* `Uncapped` because this step has no `DataIncomplete` strip above
+          <ProfileSection name="Job Search Status">
+            <DetailsSection missingData={!hasStatus}>
+              {/* `Uncapped` because this step has no `DataIncomplete` strip above
                 the body — the requirement is on the title instead. See the
                 stylesheet: without it the body's square top corners paint over
                 the rounded border under them. */}
-            <div className={clsx({ [d.missingBody]: !hasStatus, [d.missingBodyUncapped]: !hasStatus })}>
-              <DetailsSectionHeader
-                title={
-                  <>
-                    Job search status
-                    {!hasStatus && <span className={d.requiredMark}>Required to continue</span>}
-                  </>
-                }
-              >
-                <PlTeamOnlyPill />
-              </DetailsSectionHeader>
-              {/* Not disabled while saving, deliberately. The write is
+              <div className={clsx({ [d.missingBody]: !hasStatus, [d.missingBodyUncapped]: !hasStatus })}>
+                <DetailsSectionHeader
+                  title={
+                    <>
+                      Job search status
+                      {!hasStatus && <span className={d.requiredMark}>Required to continue</span>}
+                    </>
+                  }
+                >
+                  <PlTeamOnlyPill />
+                </DetailsSectionHeader>
+                {/* Not disabled while saving, deliberately. The write is
                     optimistic now, so the dot has already moved and the only
                     thing a lock would buy is stopping someone changing their
                     mind during a window they can no longer see. Two clicks in
                     that window race, and the later PATCH's invalidation settles
                     last — which is the answer they picked last, so the race has
                     the right winner. */}
-              <JobSearchStatusInput
-                value={jobSearchStatus}
-                /* Two options, per the design — "Not looking" is not an answer
+                <JobSearchStatusInput
+                  value={jobSearchStatus}
+                  /* Two options, per the design — "Not looking" is not an answer
                    this step is asking for, and someone reading a job is by
                    definition not giving it.
 
@@ -353,12 +373,12 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                    option selected for someone who is already on it, while
                    `hasStatus` quietly reports the section as answered. Shown
                    when it is the current value, hidden otherwise. */
-                hiddenValues={jobSearchStatus === 'not-looking' ? undefined : ['not-looking']}
-                onChange={(value) =>
-                  updateMember.mutate(
-                    { uid: memberUid, payload: { jobSearchStatus: value } },
-                    {
-                      /* Here rather than in the hook's own `onError`: the bio
+                  hiddenValues={jobSearchStatus === 'not-looking' ? undefined : ['not-looking']}
+                  onChange={(value) =>
+                    updateMember.mutate(
+                      { uid: memberUid, payload: { jobSearchStatus: value } },
+                      {
+                        /* Here rather than in the hook's own `onError`: the bio
                            and profile forms already show their own message, and
                            a blanket toast would double up on both. The hook
                            owns the rollback; each caller owns what it says.
@@ -367,13 +387,14 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                            moved, so a failed save claimed nothing; optimistically
                            it moves and then un-moves on its own, which turns a
                            silent failure into a misleading one. */
-                      onError: () => toast.error("Couldn't save your job search status. Please try again."),
-                    },
-                  )
-                }
-              />
-            </div>
-          </DetailsSection>
+                        onError: () => toast.error("Couldn't save your job search status. Please try again."),
+                      },
+                    )
+                  }
+                />
+              </div>
+            </DetailsSection>
+          </ProfileSection>
 
           {/* 5–7. Optional sections — what a hiring team actually reads.
                    Real components: they edit in place and save themselves.
@@ -399,14 +420,20 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                    nothing loads until someone presses Apply, and buying true
                    dead-code elimination would cost a second dynamic boundary
                    inside the section for a feature that is about to be on. */}
-          <ExperienceDetails
-            userInfo={userInfo}
-            member={member}
-            isLoggedIn={isLoggedIn}
-            enableCvImport={cvImportHost === 'experience-section'}
-          />
-          <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-          <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+          <ProfileSection name="Experience">
+            <ExperienceDetails
+              userInfo={userInfo}
+              member={member}
+              isLoggedIn={isLoggedIn}
+              enableCvImport={cvImportHost === 'experience-section'}
+            />
+          </ProfileSection>
+          <ProfileSection name="Project Contributions">
+            <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+          </ProfileSection>
+          <ProfileSection name="Repositories">
+            <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+          </ProfileSection>
         </>
       )}
     </>
@@ -447,6 +474,14 @@ export function JobProfileDrawer({
      close` over a half-edited section loses it exactly as silently here. */
   const unsavedEdits = useUnsavedEditsRegistry();
 
+  /* One open section at a time, and the way back to it in the footer beside
+     `Save and close` — the drawer already has a bar, so the status presses join
+     it rather than floating over it. See `SectionEditLock`. */
+  const sectionEditLock = useSectionEditLockRegistry();
+  /* The sticky header covers the top of the column, so "how much of the card is
+     on screen" has to discount it. */
+  const headerRef = React.useRef<HTMLDivElement>(null);
+
   /** Back and Escape both land here, and are held like every other way out —
    *  see `closeFlow` in the flow drawer for why this is not a discard modal. */
   const requestClose = () => {
@@ -456,51 +491,59 @@ export function JobProfileDrawer({
 
   return (
     <UnsavedEditsProvider value={unsavedEdits}>
-      <Drawer isOpen={open} onClose={requestClose} closeOnOverlayClick={false}>
-        <div className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
-          <div className={s.breadcrumbs}>
-            <button type="button" className={s.backButton} onClick={requestClose}>
-              <BackIcon />
-              <span>Back</span>
-            </button>
+      <SectionEditLockProvider value={sectionEditLock}>
+        <Drawer isOpen={open} onClose={requestClose} closeOnOverlayClick={false}>
+          <div ref={headerRef} className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
+            <div className={s.breadcrumbs}>
+              <button type="button" className={s.backButton} onClick={requestClose}>
+                <BackIcon />
+                <span>Back</span>
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div className={s.drawerContent}>
-          <JobProfilePane {...paneProps} onProfileState={setProfileState} />
-        </div>
+          <div className={s.drawerContent}>
+            <JobProfilePane {...paneProps} onProfileState={setProfileState} />
+          </div>
 
-        {/* One label for one act. The sections' own Saves commit one card each;
+          {/* One label for one act. The sections' own Saves commit one card each;
           this one says what happens NEXT — and for this surface that is going
           back to the board, because nothing was waiting on it. */}
-        <div className={d.footer}>
-          <div className={d.footerInner}>
-            {/* Silent while the profile is short — what is missing is named on the
+          <div className={d.footer}>
+            <div className={d.footerInner}>
+              {/* The open section's status, in the footer beside the action — the
+              way back to a card that was scrolled away, and its Save. Empty, and
+              so not laid out, the rest of the time. */}
+              <div className={d.footerStatus}>
+                <SectionStatusRow topOcclusion={headerRef} />
+              </div>
+              {/* Silent while the profile is short — what is missing is named on the
               card that is missing it, and the footer restating it from down here
               was the same complaint at the greater distance. Absent rather than
               empty: `.footerInner` is a 12px-gap column on a phone, and a
               zero-height paragraph still earns its gap. */}
-            {complete && (
-              <p className={d.footerHint}>Experience, skills and bio are optional — you can add them any time.</p>
-            )}
-            <Button
-              variant="primary"
-              style="fill"
-              size="m"
-              className={d.footerAction}
-              disabled={!complete}
-              onClick={() => {
-                /* Moving on, not leaving: held on the section with the popup, the
+              {complete && (
+                <p className={d.footerHint}>Experience, skills and bio are optional — you can add them any time.</p>
+              )}
+              <Button
+                variant="primary"
+                style="fill"
+                size="m"
+                className={d.footerAction}
+                disabled={!complete}
+                onClick={() => {
+                  /* Moving on, not leaving: held on the section with the popup, the
                  same as the flow's `Continue to apply`. */
-                if (blockIfUnsaved(unsavedEdits)) return;
-                onFooterAction({ profileComplete: complete });
-              }}
-            >
-              Save and close
-            </Button>
+                  if (blockIfUnsaved(unsavedEdits)) return;
+                  onFooterAction({ profileComplete: complete });
+                }}
+              >
+                Save and close
+              </Button>
+            </div>
           </div>
-        </div>
-      </Drawer>
+        </Drawer>
+      </SectionEditLockProvider>
     </UnsavedEditsProvider>
   );
 }

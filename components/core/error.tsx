@@ -6,13 +6,19 @@ import { useEffect } from 'react';
 interface Props {
   title?: string;
   description?: string;
+  refreshOnMount?: boolean;
 }
 
-const Error = ({ title = 'Oh snap! Something went wrong!', description = 'Please try again later.' }: Props) => {
+const Error = ({
+  title = 'Oh snap! Something went wrong!',
+  description = 'Please try again later.',
+  refreshOnMount = true,
+}: Props) => {
   const router = useRouter();
 
   useEffect(() => {
-    router.refresh();
+    // Refreshing a 404 makes Next hard-reload the page, which remounts this component and loops.
+    if (refreshOnMount) router.refresh();
   }, []);
 
   return (

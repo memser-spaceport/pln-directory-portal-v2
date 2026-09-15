@@ -401,6 +401,33 @@ export const activitiesData: ActivitiesData = {
         ]
       }
     },
+    {
+      id: 'contribute-reusable-prompt-or-skill',
+      category: 'Network Tooling',
+      activity: 'Contribute a Reusable Prompt or Skill',
+      networkValue: 'Contribute a reusable prompt, AI resource, or skill to the PLAAbook or PL Infra Toolkit',
+      points: '350',
+      frequency: 'Recurring',
+      isNew: true,
+      verificationType: 'Manual Review',
+      cta: 'confirm',
+      popupContent: {
+        title: 'Contribute a Reusable Prompt or Skill',
+        overview: 'Contribute a reusable resource, prompt or AI skill to the PLAAbook or PL Infra Toolkit for PL Infra users. Receive 100 points for an approved resource or prompt and also 250 points for an approved skill, up to 350 points total.',
+        networkBenefits: 'Builds a library of useful, reusable AI resources while encouraging PL Infra members to share proven knowledge resources, workflows and tools with the broader network.',
+        rules: [
+          '100 points are awarded for an approved reusable resource or prompt; 250 points are awarded for an approved skill (up to 350 points total)',
+          'Available to current PLAA participants with verified PL Infra membership and Toolkit access',
+          'Open September 9–October 31, 2026',
+          'Submit up to one prompt or AI-related resource and one AI skill',
+          'Contributions must be publication-verified, useful, reproducible, safe, and non-duplicative'
+        ],
+        links: [
+          { text: 'PLAAbook', url: 'https://directory.plnetwork.io/pl-infra/ai-apps/cmthpnpeo059vnz4g9kf55xrv' },
+          { text: 'PL Infra Toolkit', url: 'https://directory.plnetwork.io/pl-infra/ai-apps/cmr2wll3y0a07ot4gjdy8ma6b' }
+        ]
+      }
+    },
 
     // ─── One-Time ─────────────────────────────────────────────────────────────
     {

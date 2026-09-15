@@ -157,7 +157,10 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
                     onClick={() => handleCardClick(activity)}
                   >
                     <div className="activity-card__top">
-                      <span className="activity-card__category">{activity.category}</span>
+                      <div className="activity-card__top-left">
+                        <span className="activity-card__category">{activity.category}</span>
+                        {activity.isNew && <span className="activity-card__new-badge">New</span>}
+                      </div>
                       <div className="activity-card__points">
                         <Image src="/icons/points-icon.svg" alt="points-icon" width={16} height={16} />
                         <span className="activity-card__points-val">{activity.points} points</span>
@@ -332,6 +335,24 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
           padding: 6px 12px;
           border-radius: 999px;
           white-space: normal;
+        }
+
+        .activity-card__top-left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .activity-card__new-badge {
+          color: #2563eb;
+          font-size: 12px;
+          font-weight: 600;
+          background: transparent;
+          border: 1px solid #2563eb;
+          padding: 5px 12px;
+          border-radius: 999px;
+          white-space: nowrap;
         }
 
         .activity-card__points {

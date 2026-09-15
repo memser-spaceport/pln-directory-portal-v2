@@ -102,6 +102,33 @@ export const activitiesData: ActivitiesData = {
       }
     },
     {
+      id: 'submit-deal-debrief',
+      category: 'Knowledge Sharing',
+      activity: 'Submit a Deal Debrief',
+      networkValue: 'Share a substantive debrief on a VC, M&A, or other deal to build practical deal knowledge for the network',
+      points: '250',
+      frequency: 'Repeatable',
+      verificationType: 'Manual Review',
+      cta: 'submit',
+      popupContent: {
+        title: 'Submit a Deal Debrief',
+        overview: 'Share the lesson, not just the deal. Submit a substantive debrief through the PL Deal Debrief app, drawing on your own perspective on a VC, M&A, or other deal. Explain what worked, what was challenging, and what others could learn (without confidential, privileged, or identifying deal information).',
+        networkBenefits: 'Builds a repository of practical deal knowledge that can inform reports and advice for network companies and PL Infra, helping them improve deal processes and outcomes.',
+        rules: [
+          'Submit all deal information for this activity through the app and complete all required fields, using generalized, non-confidential answers',
+          'Provide substantive information: meaningful context, insights, and reusable lessons from your own perspective. Empty, generic, or copied answers do not qualify',
+          'The Legal Ops team will review all deal information before you collect the 250 points. Submission alone does not guarantee points',
+          'Multiple people may submit the same deal, provided each person supplies unique answers representing their own perspective on that deal',
+          `Do not submit confidential or privileged information about any deal. Follow the app's guidance: no names, exact figures, dates, non-public diligence reports, third-party term sheets, documents subject to NDAs, or confidential links in your deal narrative. Do not submit information you are not authorized to share; if you cannot answer safely, do not submit it`,
+          'Providing confidential or privileged deal information will result in immediate point forfeiture and potential removal from the activity program'
+        ],
+        ctaLink: 'https://os.pl.xyz/pl-infra/ai-apps/cmtdebct4000otb4fqp4vyim8',
+        links: [
+          { text: 'PL Deal Debrief app', url: 'https://os.pl.xyz/pl-infra/ai-apps/cmtdebct4000otb4fqp4vyim8' }
+        ]
+      }
+    },
+    {
       id: 'network-introduction',
       category: 'Programs',
       activity: 'Make a Network Introduction',

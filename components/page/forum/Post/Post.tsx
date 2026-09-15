@@ -34,6 +34,8 @@ import forumStyles from '@/app/forum/page.module.scss';
 import { OhBadge } from '@/components/core/OhBadge/OhBadge';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { setStoredForumPostLike } from '@/utils/forumPostLikeStorage';
+import { imageFloatClass } from '@/utils/richText/imageFloatClass';
+import { decodeImageLayoutFromSrc } from '@/utils/html/decodeImageLayoutFromSrc';
 
 // Function to process markdown images and prepare content for Linkify
 export const processPostContent = (content: string) => {
@@ -44,12 +46,19 @@ export const processPostContent = (content: string) => {
   // Extract image URLs to exclude from Linkify
   let match;
   while ((match = markdownImageRegex.exec(content)) !== null) {
-    imageUrls.push(match[2]); // Store the URL part
+    imageUrls.push(decodeImageLayoutFromSrc(match[2]).src); // Store the URL part
   }
 
-  // Convert markdown images to HTML img tags
-  let processedContent = content.replace(markdownImageRegex, (match, altText, imageUrl) => {
-    return `<img src="${imageUrl}" alt="${altText}" style="max-width: 100%; height: auto; border-radius: 8px; margin: 8px 0;" />`;
+  // Convert markdown images to HTML img tags, restoring the author's size and
+  // text wrap from the URL fragment they survive NodeBB's markdown storage in.
+  // A wrapped image takes its margins from that class, so the inline vertical
+  // margin — which would win over them — is left off in that case.
+  let processedContent = content.replace(markdownImageRegex, (_, altText, encodedSrc) => {
+    const { src, width, float } = decodeImageLayoutFromSrc(encodedSrc);
+    const widthAttr = width ? ` width="${width}"` : '';
+    const classAttr = float ? ` class="${imageFloatClass(float)}"` : '';
+    const spacing = float ? '' : ' margin: 8px 0;';
+    return `<img src="${src}" alt="${altText}"${widthAttr}${classAttr} style="max-width: 100%; height: auto; border-radius: 8px;${spacing}" />`;
   });
 
   // Quill 2 serializes spaces as &nbsp; /   which prevents line wrapping — replace with regular spaces

@@ -1,3 +1,8 @@
+import { IMAGE_FLOATS } from '@/utils/richText/imageFloats';
+import { imageFloatClass } from '@/utils/richText/imageFloatClass';
+import { encodeImageLayoutInSrc } from '@/utils/html/encodeImageLayoutInSrc';
+import { decodeImageLayoutFromSrc } from '@/utils/html/decodeImageLayoutFromSrc';
+
 export function decodeHtml(html: string): string {
   const txt = document.createElement('textarea');
   txt.innerHTML = html;
@@ -5,9 +10,18 @@ export function decodeHtml(html: string): string {
 }
 
 export function replaceImagesWithMarkdown(html: string): string {
-  return html.replace(/<img[^>]*src="([^"]+)"[^>]*\/?>/gi, (_, src) => {
-    const filename = src.split('/').pop() || 'image.png';
-    return `![${filename}](${src})`;
+  return html.replace(/<img\b[^>]*>/gi, (tag) => {
+    const src = tag.match(/\bsrc="([^"]+)"/i)?.[1];
+
+    if (!src) {
+      return tag;
+    }
+
+    const width = tag.match(/\bwidth="([^"]+)"/i)?.[1];
+    const classNames = (tag.match(/\bclass="([^"]*)"/i)?.[1] ?? '').split(/\s+/);
+    const float = IMAGE_FLOATS.find((value) => classNames.includes(imageFloatClass(value)));
+    const filename = src.split('#')[0].split('/').pop() || 'image.png';
+    return `![${filename}](${encodeImageLayoutInSrc(src, { width, float })})`;
   });
 }
 
@@ -64,7 +78,10 @@ export function extractTextWithImages(input: string): string {
 
 export function convertMarkdownImagesToHtml(html: string): string {
   // Convert markdown images ![alt](url) to <img> tags
-  return html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, src) => {
-    return `<img src="${src}" alt="${alt}" />`;
+  return html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, encodedSrc) => {
+    const { src, width, float } = decodeImageLayoutFromSrc(encodedSrc);
+    const widthAttr = width ? ` width="${width}"` : '';
+    const classAttr = float ? ` class="${imageFloatClass(float)}"` : '';
+    return `<img src="${src}" alt="${alt}"${widthAttr}${classAttr} />`;
   });
 }

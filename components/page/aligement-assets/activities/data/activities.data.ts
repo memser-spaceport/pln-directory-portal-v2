@@ -162,17 +162,17 @@ export const activitiesData: ActivitiesData = {
       }
     },
     {
-      id: 'give-excellent-survey-feedback',
+      id: 'give-excellent-feedback',
       category: 'Projects',
-      activity: 'Give Excellent Survey Feedback',
+      activity: 'Give Excellent Feedback',
       networkValue: 'You went above and beyond in giving thoughtful and actionable feedback',
       points: '100',
       frequency: 'Repeatable',
       verificationType: 'Auto',
       cta: 'confirm',
       popupContent: {
-        title: 'Give Excellent Survey Feedback',
-        overview: 'Your survey feedback went above and beyond. The insights you provided helped identify new issues or drive real improvements to the Alignment Asset program.',
+        title: 'Give Excellent Feedback',
+        overview: 'Your feedback — whether through a survey, the LabOS Feedback button, or another PLAA channel — went above and beyond. The insights you provided helped identify new issues or drive real improvements to the Alignment Asset program.',
         networkBenefits: 'Rewards feedback that identifies meaningful issues or improvement opportunities, not just completed forms.',
         rules: [
           'Your feedback created meaningful impact, as determined by the PLAA working group',

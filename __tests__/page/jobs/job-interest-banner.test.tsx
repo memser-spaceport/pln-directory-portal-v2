@@ -51,6 +51,22 @@ jest.mock('@/services/jobs/hooks/useJobApplications', () => ({
   useRoleApplication: () => null,
 }));
 
+/* The drawer asks who this member follows to decide whether the follow tick is
+   offered at all. Default: nobody — the tick is on the table. */
+let mockFollowedUids = new Set<string>();
+jest.mock('@/services/follow/hooks/useFollowedTeamUids', () => ({
+  useFollowedTeamUids: () => ({ followedTeamUids: mockFollowedUids, isSettled: true }),
+  useRememberTeamFollowed: () => jest.fn(),
+}));
+
+jest.mock('@/services/follow/follow.service', () => ({
+  followTeam: jest.fn(),
+}));
+
+jest.mock('@/analytics/follow.analytics', () => ({
+  useFollowAnalytics: () => ({ onTeamFollowed: jest.fn(), onTeamUnfollowed: jest.fn(), onTeamFollowFailed: jest.fn() }),
+}));
+
 jest.mock('@/analytics/jobs.analytics', () => ({
   useJobsAnalytics: () => ({
     onJobApplySubmitted: jest.fn(),
@@ -72,6 +88,7 @@ import {
   INTEREST_UNDO_LABEL,
   JobInterestBanner,
   interestPromptTitle,
+  teamFollowOfferLabel,
 } from '@/components/page/jobs/JobInterestBanner/JobInterestBanner';
 import { UNLOCK_TITLE } from '@/components/page/jobs/JobUnlock/unlockCopy';
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
@@ -127,13 +144,13 @@ describe('the banner itself', () => {
 
     const { rerender } = renderBanner({ onToggle });
     fireEvent.click(action());
-    expect(onToggle).toHaveBeenCalledWith(true);
+    expect(onToggle).toHaveBeenCalledWith(true, false);
 
     rerender(
       <JobInterestBanner teamName={TEAM_NAME} isInterested isLoggedIn error={null} onToggle={onToggle} />,
     );
     fireEvent.click(action());
-    expect(onToggle).toHaveBeenLastCalledWith(false);
+    expect(onToggle).toHaveBeenLastCalledWith(false, false);
   });
 
   it('puts a refusal where the offer was, and leaves the control pressable', () => {
@@ -144,7 +161,35 @@ describe('the banner itself', () => {
     expect(screen.queryByText(INTEREST_SUBTITLE_MEMBER)).not.toBeInTheDocument();
 
     fireEvent.click(action());
-    expect(onToggle).toHaveBeenCalledWith(true);
+    expect(onToggle).toHaveBeenCalledWith(true, false);
+  });
+
+  /* The follow offer: one row under the subtitle while the signal is unsent,
+     and the tick as it stands rides the press. */
+  it('carries the follow tick into the press that sends the signal', () => {
+    const onToggle = jest.fn();
+    renderBanner({ follow: { checked: true, onChange: jest.fn() }, onToggle });
+
+    expect(screen.getByText(teamFollowOfferLabel(TEAM_NAME))).toBeInTheDocument();
+
+    fireEvent.click(action());
+    expect(onToggle).toHaveBeenCalledWith(true, true);
+  });
+
+  it('sends no follow when the tick was removed', () => {
+    const onToggle = jest.fn();
+    renderBanner({ follow: { checked: false, onChange: jest.fn() }, onToggle });
+
+    fireEvent.click(action());
+    expect(onToggle).toHaveBeenCalledWith(true, false);
+  });
+
+  /* Once the signal is in, the footer's press is Undo — and Undo is not an
+     unfollow, so there is no press for the tick to ride. */
+  it('withdraws the offer once the signal is in', () => {
+    renderBanner({ isInterested: true, follow: { checked: true, onChange: jest.fn() } });
+
+    expect(screen.queryByText(teamFollowOfferLabel(TEAM_NAME))).not.toBeInTheDocument();
   });
 
   /* The reason the two states share one `<button>`. If someone splits this into
@@ -219,6 +264,10 @@ const renderDrawer = (props: Partial<React.ComponentProps<typeof JobApplyFlowDra
 const bannerTitle = () => screen.queryByText(interestPromptTitle(TEAM_NAME));
 
 describe('when the drawer offers it', () => {
+  beforeEach(() => {
+    mockFollowedUids = new Set();
+  });
+
   it('shows it to a member reading a role', () => {
     renderDrawer();
     expect(bannerTitle()).toBeInTheDocument();
@@ -276,5 +325,19 @@ describe('when the drawer offers it', () => {
     renderDrawer();
     expect(bannerTitle()).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: UNLOCK_TITLE })).not.toBeInTheDocument();
+  });
+
+  /* The banner's follow row, decided by the drawer: offered to a member who
+     does not follow the team, withheld from one who does — there is nothing
+     left to offer. */
+  it('offers the follow tick when the member does not follow the team', () => {
+    renderDrawer();
+    expect(screen.getByText(teamFollowOfferLabel(TEAM_NAME))).toBeInTheDocument();
+  });
+
+  it('withholds the follow tick when the member already follows the team', () => {
+    mockFollowedUids = new Set(['t2']);
+    renderDrawer();
+    expect(screen.queryByText(teamFollowOfferLabel(TEAM_NAME))).not.toBeInTheDocument();
   });
 });

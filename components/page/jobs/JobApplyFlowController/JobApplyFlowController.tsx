@@ -16,6 +16,9 @@ import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 import { useRoleApplication } from '@/services/jobs/hooks/useJobApplications';
 import { useRoleInterest, useToggleJobInterest } from '@/services/jobs/hooks/useJobInterests';
 import { isJobGoneError } from '@/services/jobs/job-interests.service';
+import { followTeam } from '@/services/follow/follow.service';
+import { useRememberTeamFollowed } from '@/services/follow/hooks/useFollowedTeamUids';
+import { useFollowAnalytics } from '@/analytics/follow.analytics';
 import { withPendingApply, withPendingInterest } from '@/services/jobs/job-apply-resume';
 import type { IUserInfo } from '@/types/shared.types';
 
@@ -236,6 +239,8 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
     enabled: state.step === 'flow' && !!viewer.memberUid,
   });
   const toggleInterest = useToggleJobInterest(viewer.memberUid);
+  const rememberTeamFollowed = useRememberTeamFollowed(viewer.memberUid);
+  const followAnalytics = useFollowAnalytics();
   /* A refusal belongs to the role it was refused for, so it is STORED with that
      role rather than cleared by an effect when the role changes. Same outcome,
      no cascading render — and it survives the drawer closing and reopening on
@@ -246,7 +251,7 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
   const interestErrorForRole =
     interestError && interestError.roleUid === flowRole?.uid ? interestError.message : null;
 
-  const handleToggleInterest = (nextInterested: boolean) => {
+  const handleToggleInterest = (nextInterested: boolean, followRequested = false) => {
     if (state.step !== 'flow') return;
     const target = state.target;
     const analyticsBase = {
@@ -278,6 +283,21 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
         onSuccess: (result) => {
           if (result.viewerIsInterested) {
             analytics.onJobInterestMarked({ ...analyticsBase, resumed: false });
+            /* The banner's follow tick, honoured the way the apply footer's is:
+               the signal is on record, so a failed follow costs the follow and
+               nothing else. Only ever added — Undo is not an unfollow. */
+            if (nextInterested && followRequested) {
+              followTeam(target.teamId).then((followState) => {
+                if (followState?.following) {
+                  rememberTeamFollowed(target.teamId);
+                  followAnalytics.onTeamFollowed({
+                    teamUid: target.teamId,
+                    teamName: target.teamName,
+                    source: 'job-interest',
+                  });
+                }
+              });
+            }
           } else {
             analytics.onJobInterestUndone(analyticsBase);
           }

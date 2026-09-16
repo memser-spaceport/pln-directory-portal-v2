@@ -3,6 +3,7 @@
 import clsx from 'clsx';
 
 import btn from '@/components/common/Button/Button.module.scss';
+import { Checkbox } from '@/components/common/Checkbox';
 import { InfoCircleIconOutlined, SuccessCircleIcon } from '@/components/icons';
 
 import s from './JobInterestBanner.module.scss';
@@ -59,17 +60,33 @@ export const interestPromptTitle = (teamName: string) => `Let ${teamName} know y
 export const INTEREST_SUBTITLE_MEMBER = "We'll notify the team if you're a match and share your LabOS profile.";
 export const INTEREST_SUBTITLE_VISITOR = "Sign in and we'll notify the team if you're a match and share your profile.";
 
+/** The follow offer carried beside the press that sends something to a team —
+ *  this banner's row and the apply footer's tick share one sentence. */
+export const teamFollowOfferLabel = (teamName: string) => `Follow ${teamName} to hear when they post or hire`;
+
 interface JobInterestBannerProps {
   teamName: string;
   isInterested: boolean;
   isLoggedIn: boolean;
   /** The server's own message when the last toggle failed. Replaces the subtitle. */
   error: string | null;
-  onToggle: (nextInterested: boolean) => void;
+  /**
+   * The follow offer, drawn under the subtitle while the signal is still to be
+   * sent. Absent when the viewer already follows the team — there is nothing
+   * left to offer — and once the signal is in, because the footer of that
+   * state is Undo and there is no press for the tick to ride.
+   */
+  follow?: {
+    checked: boolean;
+    onChange: (next: boolean) => void;
+  };
+  /** `followTeam` is the follow row's tick at press time: true when marking
+   *  interest should also follow the team. Meaningless on Undo. */
+  onToggle: (nextInterested: boolean, followTeam: boolean) => void;
 }
 
 export function JobInterestBanner(props: JobInterestBannerProps) {
-  const { teamName, isInterested, isLoggedIn, error, onToggle } = props;
+  const { teamName, isInterested, isLoggedIn, error, follow, onToggle } = props;
 
   const title = isInterested ? INTEREST_CONFIRMED_TITLE : interestPromptTitle(teamName);
   const subtitle = isLoggedIn ? INTEREST_SUBTITLE_MEMBER : INTEREST_SUBTITLE_VISITOR;
@@ -86,11 +103,17 @@ export function JobInterestBanner(props: JobInterestBannerProps) {
             once the signal is in — nothing, because the title is the whole
             message and a subtitle under it would be padding. */}
         {error ? <p className={s.error}>{error}</p> : !isInterested && <p className={s.subtitle}>{subtitle}</p>}
+        {!isInterested && follow && (
+          <label className={s.follow}>
+            <Checkbox checked={follow.checked} onChange={follow.onChange} />
+            <span>{teamFollowOfferLabel(teamName)}</span>
+          </label>
+        )}
       </div>
 
       <button
         type="button"
-        onClick={() => onToggle(!isInterested)}
+        onClick={() => onToggle(!isInterested, !isInterested && (follow?.checked ?? false))}
         className={clsx(
           s.action,
           isInterested ? clsx(btn.root, btn.small, btn.link, btn.success, btn.underline) : clsx(btn.root, btn.medium, btn.border, btn.primary),

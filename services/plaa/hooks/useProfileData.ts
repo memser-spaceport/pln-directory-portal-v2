@@ -139,23 +139,31 @@ function isPendingMonth(isoDate: string, closedByMonth: Record<string, boolean>)
 }
 
 /**
- * PLAA history only gains a row once a snapshot's PLAA is calculated, so an open snapshot
- * (appeal window or current) would be missing from the history. Add it as a zero-PLAA row;
- * it is marked pending, so its PLAA is never shown or counted. Snapshots staged ahead of
- * their month are skipped.
+ * A member's PLAA history only gains a row once that snapshot's PLAA is calculated, so a
+ * snapshot can be missing from it: the open one always, and a closed one whose row has not
+ * been written. Either way the month is shown, with zero PLAA — an open snapshot reads
+ * Pending, a closed one reads zero, which is what a month with no PLAA means.
+ *
+ * Two months are never invented: one staged ahead of its own month, and anything before the
+ * member's first snapshot, which predates them.
  */
-function withOpenSnapshots(
+function withMissingSnapshots(
   history: ProfilePlaaHistoryEntry[],
   lifecycle: SnapshotLifecycleEntry[],
   now: Date,
 ): ProfilePlaaHistoryEntry[] {
   const months = new Set(history.map((e) => monthKey(e.period)));
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const open = lifecycle
-    .filter((e): e is SnapshotLifecycleEntry & { period: string } => e.period !== null && !e.isClosed)
-    .filter((e) => monthKey(e.period) <= thisMonth && !months.has(monthKey(e.period)))
+  const firstMonth = history.length > 0 ? monthKey(history[0].period) : null;
+  const missing = lifecycle
+    .filter((e): e is SnapshotLifecycleEntry & { period: string } => e.period !== null)
+    .filter((e) => {
+      const month = monthKey(e.period);
+      if (month > thisMonth || months.has(month)) return false;
+      return firstMonth === null || month >= firstMonth;
+    })
     .map((e) => ({ period: e.period, iaPlaa: 0, irPlaa: 0, plaaTotal: 0 }));
-  return [...history, ...open].sort((a, b) => a.period.localeCompare(b.period));
+  return [...history, ...missing].sort((a, b) => a.period.localeCompare(b.period));
 }
 
 export function buildContributionHistory(
@@ -193,7 +201,7 @@ export function useProfileData(): ProfileData {
   const historyStatus: ProfileHistoryStatus = isHistoryLoading ? 'loading' : historyData ? 'ready' : 'unavailable';
   const { data: redemptionData } = useRedemptionHistory();
   const { data: lifecycleData } = useSnapshotLifecycle();
-  const candidateHistory = historyData ? withOpenSnapshots(historyData, lifecycleData ?? [], new Date()) : null;
+  const candidateHistory = historyData ? withMissingSnapshots(historyData, lifecycleData ?? [], new Date()) : null;
   const pointsByPeriod = useSnapshotPointsHistory(candidateHistory?.map((e) => e.period) ?? []);
   // A member with no history yet only gets an open-snapshot row once they have points in it.
   const fullHistory =

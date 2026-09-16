@@ -521,6 +521,39 @@ describe('useProfileData', () => {
       ]);
     });
 
+    it('fills a closed snapshot the member has no history row for, as a zero month', () => {
+      mockUseSnapshotLifecycle.mockReturnValue({
+        data: [
+          ...LIFECYCLE.slice(0, 2),
+          { roundNumber: 19, period: '2026-08-01', status: 'Snapshot Closed', plaaLocked: true, isClosed: true },
+          LIFECYCLE[3],
+        ],
+      });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      const aug = result.current.snapshotHistory.find((e) => e.period === 'Aug 2026')!;
+      expect(aug).toBeDefined();
+      expect(aug.isPending).toBe(false);
+      expect(aug.plaaTotal).toBe(0);
+      expect(aug.activityPlaa).toBe(0);
+    });
+
+    it('does not invent months from before the member\'s first snapshot', () => {
+      mockUseSnapshotLifecycle.mockReturnValue({
+        data: [
+          { roundNumber: 15, period: '2026-04-01', status: 'Snapshot Closed', plaaLocked: true, isClosed: true },
+          { roundNumber: 16, period: '2026-05-01', status: 'Snapshot Closed', plaaLocked: true, isClosed: true },
+          ...LIFECYCLE,
+        ],
+      });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      const periods = result.current.snapshotHistory.map((e) => e.period);
+      expect(periods).not.toContain('Apr 2026');
+      expect(periods).not.toContain('May 2026');
+      expect(periods[periods.length - 1]).toBe('Jun 2026');
+    });
+
     it('skips a snapshot staged ahead of its month', () => {
       jest.setSystemTime(new Date('2026-08-31T23:00:00'));
       const { result } = renderHook(() => useProfileDataDefault());

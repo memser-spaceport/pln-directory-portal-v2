@@ -16,6 +16,7 @@ interface ProfileHeroProps {
   balance: ProfileBalance;
   balanceStatus: ProfileBalanceStatus;
   pointsThisSnapshot: number;
+  currentSnapshotLabel: string;
 }
 
 const balanceSourcesLabel = (expanded: boolean) => (expanded ? 'Hide PLAA balance breakdown' : 'Show PLAA balance breakdown');
@@ -25,7 +26,13 @@ function displayBalanceValue(status: ProfileBalanceStatus, value: number): strin
   return status === 'loading' ? '···' : '—';
 }
 
-export default function ProfileHero({ identity, balance, balanceStatus, pointsThisSnapshot }: ProfileHeroProps) {
+export default function ProfileHero({
+  identity,
+  balance,
+  balanceStatus,
+  pointsThisSnapshot,
+  currentSnapshotLabel,
+}: ProfileHeroProps) {
   const [expanded, setExpanded] = useState(false);
   const [hovering, setHovering] = useState(false);
 
@@ -61,7 +68,7 @@ export default function ProfileHero({ identity, balance, balanceStatus, pointsTh
                 <circle cx="7" cy="7" r="1" fill="currentColor" />
                 <circle cx="7" cy="17" r="1" fill="currentColor" />
               </svg>
-              Infra Member
+              Infra
             </span>
           )}
         </div>
@@ -80,6 +87,7 @@ export default function ProfileHero({ identity, balance, balanceStatus, pointsTh
             >
               <div className={`${styles.statValue} ${styles.points}`}>{pointsThisSnapshot.toLocaleString()}</div>
               <div className={styles.statLabel}>Points this snapshot</div>
+              <div className={styles.snapshotPeriod}>{currentSnapshotLabel}</div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -96,7 +104,7 @@ export default function ProfileHero({ identity, balance, balanceStatus, pointsTh
         >
           <div className={styles.statBlock}>
             <div className={styles.statValue}>{displayBalanceValue(balanceStatus, balance.plaaBalance)}</div>
-            <div className={styles.statLabel}>PLAA balance</div>
+            <div className={styles.statLabel}>PLAA Balance</div>
             {balanceStatus === 'ready' ? (
               <div className={styles.confirmed}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

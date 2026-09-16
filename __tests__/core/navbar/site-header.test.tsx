@@ -13,6 +13,10 @@ jest.mock('@/components/core/navbar/nav-bar', () => ({
   default: () => <div data-testid="navbar" />,
 }));
 
+jest.mock('@/components/core/navbar/components/PlaaSnapshotBar', () => ({
+  PlaaSnapshotBar: () => <div data-testid="plaa-snapshot-bar" />,
+}));
+
 jest.mock('@/components/core/navbar/components/CompleteYourProfile', () => ({
   CompleteYourProfile: () => <div data-testid="complete-your-profile" />,
 }));
@@ -39,6 +43,8 @@ describe('SiteHeader', () => {
     render(<SiteHeader {...props} />);
 
     expect(screen.getByTestId('navbar')).toBeInTheDocument();
+    // The bar decides for itself whether to show (PLAA routes, PLAA members only).
+    expect(screen.getByTestId('plaa-snapshot-bar')).toBeInTheDocument();
     expect(screen.getByTestId('complete-your-profile')).toBeInTheDocument();
   });
 

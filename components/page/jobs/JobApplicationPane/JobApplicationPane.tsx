@@ -166,9 +166,12 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
      never looks at) could name a different company than the email carries. */
   const company = (member.currentCompany ?? '').trim() || (member.mainTeam?.name ?? '').trim();
   const summary = roleLine && company ? `${roleLine} at ${company}` : roleLine || company;
-  const skills = (member.skills ?? []).map((skill: { title: string } | string) =>
-    typeof skill === 'string' ? skill : skill.title,
-  );
+  const skills = [
+    ...(member.skills ?? []).map((skill: { title: string } | string) =>
+      typeof skill === 'string' ? skill : skill.title,
+    ),
+    ...(member.customSkills ?? []),
+  ];
 
   const remaining = COVER_LETTER_MAX_LENGTH - typed.length;
   const overLimit = remaining < 0;

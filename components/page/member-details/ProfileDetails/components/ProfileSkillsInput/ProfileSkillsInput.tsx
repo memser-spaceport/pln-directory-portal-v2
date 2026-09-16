@@ -1,25 +1,19 @@
 import React from 'react';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
-import { FormMultiSelect } from '@/components/form/FormMultiSelect';
+import { SkillsTagsInput } from '@/components/form/SkillsTagsInput/SkillsTagsInput';
 import s from './ProfileSkillsInput.module.scss';
 
 export const ProfileSkillsInput = () => {
   const { data } = useMemberFormOptions();
+  const suggestions = data?.skills.map((item: { name: string }) => item.name) ?? [];
 
   return (
     <div className={s.root}>
-      <div className={s.header}>
-        <span className={s.label}>Professional skills</span>
-      </div>
-      <FormMultiSelect
-        placeholder="Add your skills"
-        options={
-          data?.skills.map((item: { id: string; name: string }) => ({
-            value: item.id,
-            label: item.name,
-          })) ?? []
-        }
+      <SkillsTagsInput
         name="skills"
+        selectLabel="Professional skills"
+        placeholder="Add your skills"
+        suggestions={suggestions}
       />
       <p className={s.hint}>Sharing your skills help founders & teams connect with you.</p>
     </div>

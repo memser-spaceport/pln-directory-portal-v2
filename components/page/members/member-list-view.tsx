@@ -4,6 +4,7 @@ import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { Tag } from '@/components/ui/Tag';
 import { IMember } from '@/types/members.types';
 import { parseMemberLocation } from '@/utils/member.utils';
+import { memberSkillTags } from '@/utils/member/memberSkillTags';
 import MemberSkillList from './member-skill-list';
 import Image from 'next/image';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
@@ -18,7 +19,7 @@ const MemberListView = (props: IMemberListView) => {
   const isUserLoggedIn = props?.isUserLoggedIn;
   const role = member.mainTeam?.role || 'Contributor';
   const location = parseMemberLocation(member?.location);
-  const skills = member?.skills ?? [];
+  const skills = memberSkillTags(member);
   const isTeamLead = member?.teamLead;
   const isOpenToWork = member?.openToWork;
   const isBorder = isTeamLead || isOpenToWork;

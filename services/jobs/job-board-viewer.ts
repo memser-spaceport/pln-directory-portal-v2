@@ -209,6 +209,7 @@ export function isJobProfileComplete(
  */
 export interface JobProfileSectionFields extends JobProfileFields {
   skills?: unknown[] | null;
+  customSkills?: string[] | null;
   bio?: string | null;
 }
 
@@ -218,7 +219,10 @@ export function areAllJobProfileSectionsFilled(
   experienceCount: number,
 ): boolean {
   if (!isJobProfileComplete(member, jobSearchStatus)) return false;
-  if (!Array.isArray(member?.skills) || member.skills.length === 0) return false;
+  const hasSkills =
+    (Array.isArray(member?.skills) && member.skills.length > 0) ||
+    (Array.isArray(member?.customSkills) && member.customSkills.length > 0);
+  if (!hasSkills) return false;
   const bio = member?.bio ?? '';
   if (!bio.trim() || (isBlankHtml(bio) && !/<img\b/i.test(bio))) return false;
   return experienceCount >= 1;

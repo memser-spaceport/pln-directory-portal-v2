@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import { IMember } from '@/types/members.types';
 
 import { PAGE_ROUTES } from '@/utils/constants';
+import { memberSkillTags } from '@/utils/member/memberSkillTags';
 
 import { MemberCardBase } from '../../../MemberCardBase';
 import { SkillsList } from '../../../SkillsList/SkillsList';
@@ -31,7 +32,7 @@ export function TeamMembersViewCard(props: Props) {
         })}
       >
         <div className={s.skills}>
-          <SkillsList skills={member?.skills ?? []} />
+          <SkillsList skills={memberSkillTags(member)} />
         </div>
 
         <div className={s.actionIcon}>

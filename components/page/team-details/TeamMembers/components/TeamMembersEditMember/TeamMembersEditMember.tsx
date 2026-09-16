@@ -7,6 +7,7 @@ import { IMember } from '@/types/members.types';
 import { ITeam } from '@/types/teams.types';
 
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { memberSkillTags } from '@/utils/member/memberSkillTags';
 
 import { useOnSubmit } from '@/components/page/team-details/hooks/useOnSubmit';
 
@@ -38,7 +39,7 @@ export function TeamMembersEditMember(props: Props) {
 
   const teamId = team.id;
   const memberTeam = member.teams?.find((t: ITeam) => t.id === teamId);
-  const skills = member?.skills ?? [];
+  const skills = memberSkillTags(member);
 
   const methods = useForm<FormData>({
     defaultValues: {

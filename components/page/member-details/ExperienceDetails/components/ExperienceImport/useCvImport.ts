@@ -130,7 +130,13 @@ export function useCvImport(member: IMember) {
      already has one. */
   const hasLocation = Boolean(member.location?.city || member.location?.country || member.location?.metroArea);
 
-  const currentSkills = useMemo(() => (member.skills ?? []).map((skill) => skill.title), [member.skills]);
+  const currentSkills = useMemo(
+    () => [
+      ...(member.skills ?? []).map((skill) => skill.title),
+      ...(member.customSkills ?? []),
+    ],
+    [member.customSkills, member.skills],
+  );
 
   /**
    * The one place a proposal becomes something the server stores.

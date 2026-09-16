@@ -1,9 +1,10 @@
-import sharp from 'sharp';
 import { ImageResponse } from 'next/og';
 import { NextResponse } from 'next/server';
 
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { getTeamNewsItemByUid } from '@/services/team-news/team-news.service';
+
+import { fetchLogoPngDataUri } from '../../utils/fetchLogoPngDataUri';
 
 // The 1.91:1 ratio every platform crops OG images to.
 const WIDTH = 1200;
@@ -29,7 +30,7 @@ export async function GET(_request: Request, context: { params: Promise<{ uid: s
     return NextResponse.redirect(SOCIAL_IMAGE_URL);
   }
 
-  const logo = await fetchLogoPngDataUri(item.teamLogoUrl);
+  const logo = await fetchLogoPngDataUri(item.teamLogoUrl, LOGO_SIZE);
 
   return new ImageResponse(
     (
@@ -98,27 +99,4 @@ function formatEventDate(eventDate: string): string {
     year: 'numeric',
     timeZone: 'UTC',
   });
-}
-
-/** Inlines the logo as a PNG rather than letting Satori fetch the original.
- *  Two reasons, both of which otherwise fail the whole render: most team logos
- *  are stored as WebP, which Satori cannot decode ("u2 is not iterable"), and a
- *  slow or 404 logo host would hang the image request. Returning null on any
- *  failure leaves a logo-less card, which beats no card at all. */
-async function fetchLogoPngDataUri(logoUrl: string | null): Promise<string | null> {
-  if (!logoUrl) return null;
-
-  try {
-    const response = await fetch(logoUrl, { signal: AbortSignal.timeout(2000) });
-    if (!response.ok) return null;
-
-    const png = await sharp(await response.arrayBuffer())
-      .resize(LOGO_SIZE * 2, LOGO_SIZE * 2, { fit: 'contain', background: '#fff' })
-      .png()
-      .toBuffer();
-
-    return `data:image/png;base64,${png.toString('base64')}`;
-  } catch {
-    return null;
-  }
 }

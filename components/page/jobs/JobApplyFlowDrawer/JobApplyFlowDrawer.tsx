@@ -167,7 +167,7 @@ interface JobApplyFlowDrawerProps {
   /** `linkedinProfile` is read only to pick which receipt the send shows — see
    *  the toast in `submit`. It rides on the record the read-back already
    *  fetches, so this is a wider `Pick` rather than a second query. */
-  member: Pick<IMember, 'id' | 'name' | 'role' | 'mainTeam' | 'skills' | 'currentCompany' | 'linkedinProfile'> | null;
+  member: Pick<IMember, 'id' | 'name' | 'role' | 'mainTeam' | 'skills' | 'customSkills' | 'currentCompany' | 'linkedinProfile'> | null;
   isLoggedIn: boolean;
   /** Signed up, waiting on the PL team. Says so in the profile lede; gates nothing. */
   pendingApproval: boolean;

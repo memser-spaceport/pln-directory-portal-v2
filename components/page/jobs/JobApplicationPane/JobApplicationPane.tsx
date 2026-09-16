@@ -71,7 +71,7 @@ export interface JobApplicationPaneProps {
   teamId: string;
   teamName: string;
   /** The member whose profile goes with the application. */
-  member: Pick<IMember, 'id' | 'name' | 'role' | 'mainTeam' | 'skills' | 'currentCompany'> | null;
+  member: Pick<IMember, 'id' | 'name' | 'role' | 'mainTeam' | 'skills' | 'customSkills' | 'currentCompany'> | null;
   memberUid: string | undefined;
   /**
    * The letter, owned by the flow rather than by this pane.

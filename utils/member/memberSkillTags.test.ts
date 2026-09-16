@@ -9,7 +9,7 @@ describe('memberSkillTags', () => {
       }),
     ).toEqual([
       { title: 'Engineering', uid: 'skill-1' },
-      { title: 'Rust' },
+      { title: 'Rust', uid: 'Rust' },
     ]);
   });
 

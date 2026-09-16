@@ -1,6 +1,6 @@
 import { IMember } from '@/types/members.types';
 
-export type MemberSkillTag = { title: string; uid?: string };
+export type MemberSkillTag = { title: string; uid: string };
 
 export function memberSkillTags(member: {
   skills?: Array<{ uid?: string; title: string }>;
@@ -8,9 +8,9 @@ export function memberSkillTags(member: {
 }): MemberSkillTag[] {
   const catalog = (member.skills ?? []).map((skill) => ({
     title: skill.title,
-    uid: skill.uid,
+    uid: skill.uid ?? skill.title,
   }));
-  const custom = (member.customSkills ?? []).map((title) => ({ title }));
+  const custom = (member.customSkills ?? []).map((title) => ({ title, uid: title }));
   return [...catalog, ...custom];
 }
 

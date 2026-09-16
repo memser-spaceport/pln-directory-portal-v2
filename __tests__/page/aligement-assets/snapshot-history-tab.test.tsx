@@ -119,11 +119,19 @@ describe('SnapshotHistoryTab', () => {
       expect(screen.getByText('Per-activity breakdown not yet available')).toBeInTheDocument();
     });
 
-    it('shows a dash for the footer points total when any entry has unavailable points', () => {
+    it('still totals the PLAA when no entry has points data', () => {
       render(<SnapshotHistoryTab entries={realEntries} />);
 
       expect(screen.getByText('Total to date')).toBeInTheDocument();
       expect(screen.getByText('1,050')).toBeInTheDocument(); // 50 + 1000 PLAA total
+    });
+
+    it('totals the points it has, rather than blanking the total when one snapshot has none', () => {
+      const mixed: SnapshotHistoryEntry[] = [{ ...entries[0] }, { ...realEntries[1] }];
+      render(<SnapshotHistoryTab entries={mixed} />);
+
+      const footer = screen.getByText('Total to date').parentElement as HTMLElement;
+      expect(footer).toHaveTextContent('450 points');
     });
   });
 

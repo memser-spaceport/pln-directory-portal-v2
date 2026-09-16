@@ -28,12 +28,13 @@ function dashOr(value: number | null): string {
   return value === null ? '—' : value.toLocaleString();
 }
 
-function sumOrNull(entries: ContributionHistoryEntry[], pick: (e: ContributionHistoryEntry) => number | null): number | null {
-  let total = 0;
+/** Sums what is known: a month with no figure is left out rather than voiding the whole total. */
+function sumKnown(entries: ContributionHistoryEntry[], pick: (e: ContributionHistoryEntry) => number | null): number | null {
+  let total: number | null = null;
   for (const e of entries) {
     const v = pick(e);
-    if (v === null) return null;
-    total += v;
+    if (v === null) continue;
+    total = (total ?? 0) + v;
   }
   return total;
 }
@@ -108,7 +109,7 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
   const hasPointsData = entries.some((e) => e.points !== null);
   const chart = buildChart(entries, hasPointsData);
 
-  const totalPoints = sumOrNull(entries, (e) => e.points);
+  const totalPoints = sumKnown(entries, (e) => e.points);
   // An open snapshot's PLAA is not final, so it stays out of the totals until it closes.
   const closedEntries = entries.filter((e) => !e.isPending);
   const totalPlaa = closedEntries.reduce((sum, p) => sum + p.plaa, 0);
@@ -124,8 +125,8 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
             </h3>
             <p className={styles.chartSubtitle}>
               {hasPointsData
-                ? 'Points collected in each snapshot, and your PLAA balance before redemptions.'
-                : 'Your PLAA balance before redemptions.'}
+                ? 'Points collected in each snapshot, and your PLAA balance after redemptions.'
+                : 'Your PLAA balance after redemptions.'}
             </p>
           </div>
           <div className={styles.legend}>
@@ -290,8 +291,7 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
         </div>
 
         <p className={styles.historySubtitle}>
-          The last cell above is your confirmed current balance, after redemptions. Every other balance on this page
-          is before redemptions.
+          The last cell above is your confirmed current balance.
         </p>
       </div>
     </div>

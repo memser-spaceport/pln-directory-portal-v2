@@ -208,6 +208,7 @@ export const activitiesData: ActivitiesData = {
       networkValue: 'Test an approved product, tool, or workflow on a real task and share meaningful, actionable feedback',
       points: '100',
       frequency: 'Repeatable',
+      isNew: true,
       verificationType: 'Manual Review',
       cta: 'confirm',
       popupContent: {

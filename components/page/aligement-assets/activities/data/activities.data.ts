@@ -202,6 +202,31 @@ export const activitiesData: ActivitiesData = {
       }
     },
     {
+      id: 'provide-product-testing-feedback',
+      category: 'Projects',
+      activity: 'Provide Product Testing + Feedback',
+      networkValue: 'Test an approved product, tool, or workflow on a real task and share meaningful, actionable feedback',
+      points: '100',
+      frequency: 'Repeatable',
+      verificationType: 'Manual Review',
+      cta: 'confirm',
+      popupContent: {
+        title: 'Provide Product Testing + Feedback',
+        overview: `Test an approved product, tool, workflow, or process on a real work task and provide meaningful, actionable feedback on the experience.\n\nCurrent eligible requests for product testing:\n\nFactorio Weekly Updates — Submit your weekly update, then provide feedback using the LabOS feedback feature in the bottom-right corner of the screen. Collect an additional 100 points for sharing meaningful feedback on the broader UX and the features you would find most useful in your daily workflow. Feedback will be eligible for points through Friday, September 18, 2026.`,
+        networkBenefits: 'Helps teams improve shared products and workflows through real-world use, identifying friction, missing capabilities, and opportunities to improve the user experience.',
+        rules: [
+          'Participate in an eligible product-testing request and complete the defined task',
+          'On the designated feedback form/feature, describe what you tried, what happened, and provide at least one actionable observation',
+          'Feedback may identify friction, bugs, missing capabilities, suggested UX/UI improvements, or something that worked well and should be retained',
+          'Feedback must be meaningful and specific enough for the product owner to act on',
+          'Attendance, account creation, routine use, demos, logins, praise alone, or general reactions do not qualify'
+        ],
+        links: [
+          { text: 'Factorio Weekly Updates', url: 'https://os.pl.xyz/pl-infra/ai-apps/cmst544z7008siz4g1d59fubr/weekly' }
+        ]
+      }
+    },
+    {
       id: 'bring-new-members',
       category: 'Projects',
       activity: 'Refer New Alignment Asset Participants',

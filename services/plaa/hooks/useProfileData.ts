@@ -170,6 +170,8 @@ export function buildContributionHistory(
     const closed = closedByMonth[month];
     // An open snapshot's PLAA joins the balance only once the snapshot closes.
     if (closed !== false) cum += entry.activityPlaa + entry.infra;
+    // The balance is net: a redemption leaves it from the month its auction closed in.
+    cum -= redeemedByMonth[month] ?? 0;
     return {
       period: entry.period,
       points: entry.points,

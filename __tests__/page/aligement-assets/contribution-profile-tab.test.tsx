@@ -293,4 +293,30 @@ describe('ContributionProfileTab', () => {
 
     expect(screen.getByText('No snapshot history yet.')).toBeInTheDocument();
   });
+
+  it('totals the points it has, rather than blanking the whole total when one month has none', () => {
+    const someMissing: ContributionHistoryEntry[] = [
+      { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: null, isPending: false, cum: 35 },
+      { period: 'Jun 2026', points: null, plaa: 22, infra: 30, redeemed: null, isPending: false, cum: 87 },
+      { period: 'Jul 2026', points: 450, plaa: 45, infra: 30, redeemed: null, isPending: false, cum: 112 },
+    ];
+    render(<ContributionProfileTab entries={someMissing} currentBalance={112} totalRedeemed={null} />);
+
+    const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
+    expect(within(totalRow).getByText('800')).toBeInTheDocument();
+  });
+
+  it('shows a dash for the points total only when no month has any points', () => {
+    const noneAtAll: ContributionHistoryEntry[] = entries.map((e) => ({ ...e, points: null }));
+    render(<ContributionProfileTab entries={noneAtAll} currentBalance={112} totalRedeemed={null} />);
+
+    const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
+    expect(within(totalRow).getAllByText('—').length).toBeGreaterThan(0);
+  });
+
+  it('describes the balance as after redemptions, with no before-redemptions disclaimer', () => {
+    const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+
+    expect(container.textContent).not.toMatch(/before redemptions/i);
+  });
 });

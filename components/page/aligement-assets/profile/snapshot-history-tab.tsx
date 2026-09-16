@@ -31,9 +31,9 @@ export default function SnapshotHistoryTab({ entries }: SnapshotHistoryTabProps)
     );
   }
 
-  const totalPoints = entries.some((e) => e.points === null)
-    ? null
-    : entries.reduce((sum, e) => sum + (e.points ?? 0), 0);
+  // Sums what is known: a snapshot with no points yet is left out rather than voiding the total.
+  const withPoints = entries.filter((e) => e.points !== null);
+  const totalPoints = withPoints.length === 0 ? null : withPoints.reduce((sum, e) => sum + (e.points ?? 0), 0);
   // An open snapshot's PLAA is not final, so it stays out of the total until it closes.
   const totalPlaa = entries.filter((e) => !e.isPending).reduce((sum, e) => sum + e.plaaTotal, 0);
 

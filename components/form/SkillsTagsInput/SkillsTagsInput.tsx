@@ -34,14 +34,25 @@ export function SkillsTagsInput({
 
   const selectedLower = useMemo(() => new Set(val.map((item) => item.toLowerCase())), [val]);
 
+  const trimmedInput = inputText.trim();
+  const trimmedInputLower = trimmedInput.toLowerCase();
+
   const filteredSuggestions = useMemo(() => {
-    const query = inputText.trim().toLowerCase();
-    if (!query || suggestions.length === 0) return [];
+    if (suggestions.length === 0) return [];
 
     return suggestions
-      .filter((item) => item.toLowerCase().includes(query) && !selectedLower.has(item.toLowerCase()))
-      .slice(0, 8);
-  }, [inputText, selectedLower, suggestions]);
+      .filter((item) => {
+        if (selectedLower.has(item.toLowerCase())) return false;
+        if (!trimmedInputLower) return true;
+        return item.toLowerCase().includes(trimmedInputLower);
+      })
+      .sort((a, b) => a.localeCompare(b));
+  }, [selectedLower, suggestions, trimmedInputLower]);
+
+  const canAddCustom =
+    trimmedInput.length > 0 &&
+    !selectedLower.has(trimmedInputLower) &&
+    !suggestions.some((item) => item.toLowerCase() === trimmedInputLower);
 
   const resolveTitle = (text: string) => {
     const trimmed = text.trim();
@@ -135,8 +146,20 @@ export function SkillsTagsInput({
             </button>
           )}
         </div>
-        {filteredSuggestions.length > 0 && (
+        {(canAddCustom || filteredSuggestions.length > 0) && (
           <ul className={t.suggestions} role="listbox">
+            {canAddCustom && (
+              <li>
+                <button
+                  type="button"
+                  className={clsx(t.suggestionItem, t.suggestionItemCustom)}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => commitTitles(trimmedInput)}
+                >
+                  Add &ldquo;{trimmedInput}&rdquo;
+                </button>
+              </li>
+            )}
             {filteredSuggestions.map((item) => (
               <li key={item}>
                 <button

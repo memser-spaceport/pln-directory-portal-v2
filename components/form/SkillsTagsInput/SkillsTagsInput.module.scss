@@ -38,6 +38,12 @@
   }
 }
 
+.suggestionItemCustom {
+  color: #1b3860;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(203, 213, 225, 0.5);
+}
+
 .badge {
   // Production stroke-paints react-select's *filled* cross (`svg { stroke: #64748b }`),
   // which leaves the glyph reading near-black. The DS CloseIcon is a stroked path

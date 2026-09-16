@@ -138,15 +138,7 @@ function isPendingMonth(isoDate: string, closedByMonth: Record<string, boolean>)
   return closed === undefined ? false : !closed;
 }
 
-/**
- * A member's PLAA history only gains a row once that snapshot's PLAA is calculated, so a
- * snapshot can be missing from it: the open one always, and a closed one whose row has not
- * been written. Either way the month is shown, with zero PLAA — an open snapshot reads
- * Pending, a closed one reads zero, which is what a month with no PLAA means.
- *
- * Two months are never invented: one staged ahead of its own month, and anything before the
- * member's first snapshot, which predates them.
- */
+/** A history row is only written once a snapshot's PLAA is calculated; without one the month showed nothing at all. */
 function withMissingSnapshots(
   history: ProfilePlaaHistoryEntry[],
   lifecycle: SnapshotLifecycleEntry[],
@@ -154,7 +146,7 @@ function withMissingSnapshots(
 ): ProfilePlaaHistoryEntry[] {
   const months = new Set(history.map((e) => monthKey(e.period)));
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const firstMonth = history.length > 0 ? monthKey(history[0].period) : null;
+  const firstMonth = months.size > 0 ? [...months].sort()[0] : null;
   const missing = lifecycle
     .filter((e): e is SnapshotLifecycleEntry & { period: string } => e.period !== null)
     .filter((e) => {
@@ -203,7 +195,7 @@ export function useProfileData(): ProfileData {
   const { data: lifecycleData } = useSnapshotLifecycle();
   const candidateHistory = historyData ? withMissingSnapshots(historyData, lifecycleData ?? [], new Date()) : null;
   const pointsByPeriod = useSnapshotPointsHistory(candidateHistory?.map((e) => e.period) ?? []);
-  // A member with no history yet only gets an open-snapshot row once they have points in it.
+  // Someone with no history at all only gets a month once they have points in it.
   const fullHistory =
     historyData && historyData.length === 0
       ? candidateHistory?.filter((e) => pointsByPeriod[e.period]) ?? null

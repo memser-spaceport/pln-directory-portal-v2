@@ -289,10 +289,6 @@ export default function ContributionProfileTab({ entries, currentBalance, totalR
             <span className={styles.balanceChip}>{currentBalance === null ? '—' : currentBalance.toLocaleString()}</span>
           </div>
         </div>
-
-        <p className={styles.historySubtitle}>
-          The last cell above is your confirmed current balance.
-        </p>
       </div>
     </div>
   );

@@ -595,8 +595,6 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
   const metrics = capstoneMetrics(data, buybacks);
 
 
-  // Most recent monthly point, oldest-first array — same source NavTable and
-  // takeRecentMonths use. Surfaces Total PLAA / NAV alongside NAV/PLAA above.
   const latestMonthly = data.monthly[data.monthly.length - 1];
 
   return (

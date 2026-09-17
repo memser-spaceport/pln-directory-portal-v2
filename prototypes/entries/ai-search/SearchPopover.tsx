@@ -88,7 +88,14 @@ export function SearchPopover({
     };
     measure();
     window.addEventListener('resize', measure);
-    const raf = requestAnimationFrame(() => document.getElementById(INPUT_ID)?.focus());
+    /* A term kept from the last visit opens selected, so the next keystroke
+       replaces it: the words are there to read or re-run, never to delete
+       first. Nothing typed yet, nothing to select. */
+    const raf = requestAnimationFrame(() => {
+      const input = document.getElementById(INPUT_ID) as HTMLInputElement | null;
+      input?.focus();
+      if (input?.value) input.select();
+    });
     return () => {
       window.removeEventListener('resize', measure);
       cancelAnimationFrame(raf);

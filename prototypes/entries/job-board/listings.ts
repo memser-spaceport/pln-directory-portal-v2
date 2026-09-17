@@ -1,6 +1,6 @@
 import type { IJobRole } from '@/types/jobs.types';
 
-import type { BoardViewer } from './viewerState';
+import { isTeamLeadViewer, type BoardViewer } from './viewerState';
 import { VIEWER_NAME } from './profile/viewerIdentity';
 
 /**
@@ -101,7 +101,7 @@ export const LEAD_TEAM_UID = 'filecoin-foundation';
  */
 export function managedTeamUids(viewer: BoardViewer, leadTeamUid: string = LEAD_TEAM_UID): 'all' | string[] {
   if (viewer === 'directory-admin') return 'all';
-  if (viewer === 'team-lead') return [leadTeamUid];
+  if (isTeamLeadViewer(viewer)) return [leadTeamUid];
   return [];
 }
 
@@ -230,7 +230,9 @@ const CAREERS_HOST: Record<string, string> = {
   bacalhau: 'bacalhau.org/careers',
 };
 
-export function seedListingMeta(publicRolesByTeam: Array<{ teamUid: string; roles: IJobRole[] }>): Map<string, ListingMeta> {
+export function seedListingMeta(
+  publicRolesByTeam: Array<{ teamUid: string; roles: IJobRole[] }>,
+): Map<string, ListingMeta> {
   const map = new Map<string, ListingMeta>();
   for (const { teamUid, roles } of publicRolesByTeam) {
     for (const role of roles) {

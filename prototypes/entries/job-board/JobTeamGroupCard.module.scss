@@ -88,41 +88,27 @@
   border-color: var(--border-brand-subtle, #aebfff);
 }
 
-// Protocol Labs' role rows go white. Production's rows are `#f9fafb` — a grey
-// that reads as a surface on a white card, but on this card's gradient wash it
-// reads as grey patches on a tint. White rows sit on the wash as the lightest
-// thing in the card. The row root is production's hashed `.row`, so it is reached
-// structurally (li > the row's outer div). `:not(:hover)` hands the hover back
-// to `JobReferRoleRow .rowPress:hover`, which this selector would otherwise
-// outrank.
-.plRoles > li > div:first-child:not(:hover) {
-  background-color: var(--background-base-white, #fff);
-}
-
-// Protocol Labs' card, outlined edge to edge in the PL brand gradient. Doubled
-// class so it outranks the production `.card` it sits on top of.
+// Protocol Labs' card: the standard card, with its hairline drawn in the PL brand
+// gradient. Doubled class so it outranks the production `.card` it sits on.
 //
-// The ring replaces the card's own hairline rather than sitting inside it: the
-// border stays 1px of transparent so the geometry is untouched, and a masked
-// pseudo at `inset: -1px` paints the band. (Production's own recipe —
-// `app/globals.scss .asks__tooltip::before` — and the same one the newsfeed's PL
-// card uses.) The stops are the app-wide PL brand gradient, copied literally: it
-// is hardcoded everywhere in production and has no token.
+// **One mark, and a slight one.** This card used to differ three ways — a 2px
+// gradient ring, the same gradient as an 8% wash behind the content, and white
+// role rows — and each was there to prop up the one before: the ring went to
+// 2px because 1px "read as a slightly different border colour", the wash was
+// raised from 4% to 8% because nobody could see it, and the rows went white
+// because grey rows on a tint read as patches. Asked for plainly: the card as
+// it was, plus a slight gradient border. The section heading above it ("From
+// Protocol Labs") and its place at the top already say whose card this is; the
+// border only has to agree with them, not announce it again.
 //
-// 2px, not the 1px hairline every other card wears: at 1px the gradient read as
-// a slightly different border colour rather than as a mark, and the card's only
-// other difference was its position — which reads as "newest". The band covers
-// the transparent 1px border plus 1px of padding, so nothing moves.
+// The border stays 1px of transparent so the geometry is untouched, and a masked
+// pseudo at `inset: -1px` paints exactly that pixel. (Production's own recipe —
+// `app/globals.scss .asks__tooltip::before`.) The stops are the app-wide PL
+// brand gradient, copied literally: it is hardcoded everywhere in production
+// and has no token.
 .card.plCard {
   position: relative;
   border-color: transparent;
-  // The ring's own stops again as a wash — same angle, same stop positions, so
-  // fill and outline read as one treatment. 8%: the 4% this started at was a
-  // 2%-lightness difference on white, a fill nobody could see. Kept over the
-  // card's opaque #fff so the tint can't shift with the page behind the card.
-  background:
-    linear-gradient(71.47deg, rgba(66, 125, 255, 0.08) 8.43%, rgba(68, 213, 187, 0.08) 87.45%),
-    #fff;
 
   &::before {
     content: '';
@@ -130,7 +116,7 @@
     inset: -1px;
     z-index: 1;
     border-radius: inherit;
-    border: 2px solid transparent;
+    border: 1px solid transparent;
     background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%) border-box;
     -webkit-mask:
       linear-gradient(#fff 0 0) padding-box,
@@ -140,3 +126,7 @@
     pointer-events: none;
   }
 }
+
+// (`.plRoles` and `.plRoles > .ownerRoleBlock` stood here — Protocol Labs' rows
+// in white. They went with the wash they were compensating for; every card's
+// rows are production's grey again, the owner's role blocks included.)

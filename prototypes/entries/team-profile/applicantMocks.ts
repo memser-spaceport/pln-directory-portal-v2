@@ -85,10 +85,10 @@ export interface ApplicantMemberRecord {
   repositories: { name: string; description: string }[];
 }
 
-const daysAgo = (days: number, hours = 0) =>
+export const daysAgo = (days: number, hours = 0) =>
   new Date(Date.now() - (days * 24 + hours) * 60 * 60 * 1000).toISOString();
 
-const exp = (
+export const exp = (
   memberId: string,
   uid: string,
   title: string,

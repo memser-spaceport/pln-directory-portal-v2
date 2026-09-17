@@ -223,10 +223,26 @@ export function AiSearchView({ open, onClose, request, onBackToResults, scope = 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, request?.nonce]);
 
+  /**
+   * Unsent follow-ups, kept per thread. A half-written question is work, and
+   * the only thing on this surface that closing could destroy — the answers
+   * are in the thread, the thread is in history, and the thread you left is
+   * the row you reopen. Per thread, not one draft for the view: a question
+   * begun in one chat has no business appearing in another.
+   */
+  const [drafts, setDrafts] = useState<Record<number, string>>({});
+  const setDraft = useCallback(
+    (text: string) => {
+      if (activeThreadId == null) return;
+      setDrafts((prev) => ({ ...prev, [activeThreadId]: text }));
+    },
+    [activeThreadId],
+  );
+
   /* Close leaves the threads alone: the chat you were in is the first history
-     row next time. Only the view's own position resets. */
+     row next time, with whatever you had started typing in it. The field's
+     own unsent question keeps likewise — only the view's position resets. */
   const reset = () => {
-    setQuestion('');
     setView('idle');
     setActiveThreadId(null);
     setOrigin(null);
@@ -325,6 +341,8 @@ export function AiSearchView({ open, onClose, request, onBackToResults, scope = 
               turns={turns}
               onTurnsChange={setTurns}
               onAsk={ask}
+              draft={activeThreadId == null ? '' : (drafts[activeThreadId] ?? '')}
+              onDraftChange={setDraft}
               onBackToResults={
                 origin === 'results' && onBackToResults
                   ? () => {

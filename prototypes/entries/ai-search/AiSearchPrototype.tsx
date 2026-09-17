@@ -80,12 +80,12 @@ export default function AiSearchPrototype() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  /* Closing the popover by ✕, Esc or a click outside starts the next visit
-     clean. The AI handoff below closes it *without* clearing the term. */
-  const closeSearch = useCallback(() => {
-    setSearchOpen(false);
-    setTerm('');
-  }, []);
+  /* Closing the popover keeps what was typed. Leaving a search — by ✕, Esc or
+     a click outside — is not a decision to throw the words away, and retyping
+     a name you already typed is the one thing a reopened field can spare you
+     (Raycast, Spotlight and the browser's own bar all restore the last term).
+     Emptying it stays a press: the field's own Clear. */
+  const closeSearch = useCallback(() => setSearchOpen(false), []);
 
   /* The popover's AI row: the term becomes the first question, and the
      popover remembers it for Back. An empty term opens the view idle. */
@@ -118,10 +118,7 @@ export default function AiSearchPrototype() {
     (open: boolean, close: () => void) => (
       <SearchPopover
         open={open}
-        onClose={() => {
-          close();
-          setTerm('');
-        }}
+        onClose={close}
         term={term}
         onTermChange={setTerm}
         onAskAi={askAi}
@@ -177,12 +174,13 @@ export default function AiSearchPrototype() {
             <strong>Press that row</strong> and the AI view takes the screen: a streamed answer with sources, directory
             results and follow-ups. Rate it with the thumbs; a thumbs-down asks why, inline. <em>Back to results</em>{' '}
             returns to the popover; <em>New question</em> returns to the view&apos;s prompts and history. Close and
-            reopen: the chat is kept under history.
+            reopen: the chat is kept under history, and anything typed but not sent — the search term, a half-written
+            follow-up — is still in its field.
           </li>
           <li>
             <strong>Scoped to a team:</strong> on the{' '}
-            <a href="/prototypes/team-profile">team profile</a> in team view, <em>Ask AI about Protocol Labs</em> opens
-            the AI view with the team as a chip in the field. The prompts come from the profile&apos;s own sections,
+            <a href="/prototypes/team-profile">team profile</a>, <em>Ask AI</em> in the header&apos;s actions opens the
+            AI view with the team as a chip in the field. The prompts come from the profile&apos;s own sections,
             and each answer shows what it read, the people it found, and a button to the section they belong to.
             Remove the chip to ask the whole network.
           </li>

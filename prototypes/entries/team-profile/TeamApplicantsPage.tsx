@@ -24,6 +24,13 @@ import {
 } from '@/components/common/profile/DetailsSection';
 
 import btn from '@/components/common/Button/Button.module.scss';
+// The highlighted primary — inset light highlights and a brand glow over the
+// flat DS fill. Production hand-rolls it on its headline presses (Demo Day's
+// primary action, Office Hours' Schedule Meeting, the forum's Post) in design-
+// system tokens; the coded DS `Button` does not carry it. The prototypes keep
+// one transcription, on the Follow button, and this imports that class rather
+// than writing a second copy.
+import fb from '../follow-shared/FollowButton.module.scss';
 import back from '@/components/ui/BackButton/BackButton.module.scss';
 // The role row's clock + relative date, and its tone override.
 import row from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow.module.scss';
@@ -67,6 +74,13 @@ interface Props {
   /** The role whose count line was pressed. */
   initialRoleUid: string;
   onBack: () => void;
+  /**
+   * What Back is called. "Back to <team>" by default — the page's first home is
+   * the team profile. The job board mounts the same page from its owner rows
+   * and passes "Back to job board": a Back control names where it goes, and a
+   * lead who came from the board is not going to the team's profile.
+   */
+  backLabel?: string;
 }
 
 /**
@@ -158,7 +172,7 @@ interface Props {
  * back to the list, which is how the members grid and its profile relate on a
  * phone already.
  */
-export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: Props) {
+export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack, backLabel }: Props) {
   const isMobile = useIsMobile();
   const [roleUid, setRoleUid] = useState(initialRoleUid);
   const [tab, setTab] = useState(APPLIED_TAB);
@@ -386,7 +400,9 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
           />
           {reviewedIds.has(selected.id) ? 'Reviewed' : 'Mark as reviewed'}
         </button>
-        <a href={emailHref} className={clsx(btn.root, btn.small, btn.fill, btn.primary, s.actionLink)}>
+        {/* The page's one filled press, so it wears the product's headline-primary
+            treatment (`fb.glossy`) — see the import. */}
+        <a href={emailHref} className={clsx(btn.root, btn.small, btn.fill, btn.primary, fb.glossy, s.actionLink)}>
           <EnvelopeIcon size={14} />
           Email {selected.name.split(' ')[0]}
         </a>
@@ -404,7 +420,7 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
         className={clsx(back.backBtn, s.back)}
         onClick={isMobile && paneOpen ? () => setPaneOpen(false) : onBack}
       >
-        <BackIcon /> {isMobile && paneOpen ? 'All applicants' : `Back to ${teamName}`}
+        <BackIcon /> {isMobile && paneOpen ? 'All applicants' : (backLabel ?? `Back to ${teamName}`)}
       </button>
 
       {showList && (

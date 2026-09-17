@@ -58,6 +58,9 @@ interface AnswerPanelProps {
   onNewQuestion?: () => void;
   /** Follows a scoped answer's door ("Open applicants"). Only scoped answers have one. */
   onOpenTarget?: (target: string) => void;
+  /** What was typed into this thread's input and not sent, from the last visit. */
+  draft?: string;
+  onDraftChange?: (text: string) => void;
 }
 
 /**
@@ -95,6 +98,8 @@ export function AnswerPanel({
   backLabel = 'Back to results',
   onNewQuestion,
   onOpenTarget,
+  draft = '',
+  onDraftChange,
 }: AnswerPanelProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -137,6 +142,17 @@ export function AnswerPanel({
     onTurnsChange((prev) => prev.map((x) => (x.id === last.id ? { ...x, status: 'done' } : x)));
   };
 
+  /* `ChatInput` is uncontrolled (production reads its ref on submit), so a
+     restored draft is seeded as the textarea's `defaultValue` and its height
+     is set once on mount — `adjustHeight` only runs on a keystroke, so a
+     two-line draft would come back one line tall. */
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el || !el.value) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight + 1}px`;
+  }, []);
+
   const submit = () => {
     const value = inputRef.current?.value.trim();
     if (!value || busy) return;
@@ -145,6 +161,8 @@ export function AnswerPanel({
       inputRef.current.value = '';
       inputRef.current.style.height = 'auto';
     }
+    /* Asked, so there is nothing left unsent to keep. */
+    onDraftChange?.('');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -165,6 +183,9 @@ export function AnswerPanel({
     if (!inputRef.current) return;
     inputRef.current.value = turn.question;
     inputRef.current.focus();
+    /* Written into the input by us rather than typed, but it is unsent text in
+       the box either way — it keeps like anything else there. */
+    onDraftChange?.(turn.question);
   };
 
   const setFeedback = (turn: Turn, feedback: FeedbackState) => {
@@ -215,6 +236,8 @@ export function AnswerPanel({
           ref={inputRef}
           placeholder="Go ahead, ask anything!"
           rows={1}
+          defaultValue={draft}
+          onChange={(e) => onDraftChange?.(e.target.value)}
           onKeyDown={handleKeyDown}
           onTextSubmit={submit}
           onStopStreaming={stop}

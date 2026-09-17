@@ -194,7 +194,7 @@ import { toast } from '@/components/core/ToastContainer';
 import { SortDropdown, type SortOption } from '@/components/common/filters/SortDropdown';
 import { JOBS_SORT_OPTIONS } from '@/services/jobs/constants';
 import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
-import { getJobDate } from '@/utils/jobs.utils';
+import { getJobDate, seniorityDisplayLabel } from '@/utils/jobs.utils';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED } from '@/constants/filters';
 import type { IJobRole, IJobTeam, IJobTeamGroup, JobsSortKey } from '@/types/jobs.types';
@@ -221,7 +221,20 @@ import { JobBoardMobileFilters } from './JobBoardMobileFilters';
 import { JobTeamGroupCard, type JobCardNewsVariant } from './JobTeamGroupCard';
 import { OpenRoleRow } from './OpenRoleRow';
 import { openRoleFor, type OpenInterest } from './openRoles';
-import { JobBoardScopeTabs, SCOPE_APPLIED, SCOPE_PARAM } from './JobBoardScopeTabs';
+import { JobBoardScopeTabs, SCOPE_APPLIED, SCOPE_PARAM, SCOPE_SAVED } from './JobBoardScopeTabs';
+// Saving — designed and settled in the `saving` entry, ported here the way that
+// entry's own note asks: mount the store, hand the card, the row and the scope
+// tabs the optional props they already take. Same store (`save-shared`), so a
+// role kept here is kept there.
+import { useSavedItems } from '../save-shared/savedItems';
+import { FollowToast } from '../follow-shared/FollowToast';
+// `.toastLink` and the scope strip's +8px gap for a third tab — the saving
+// entry's own two rules, imported rather than restated.
+import sp from '../saving/SavingPrototype.module.scss';
+// The team's applicants page — the team profile's own, mounted here as the
+// destination of the owner rows' count line. See `applicantsView`.
+import { TeamApplicantsPage } from '../team-profile/TeamApplicantsPage';
+import { applicantsForRole, interestedForRole } from './boardApplicants';
 import { SubmitJobModal, type SubmittedJob } from './SubmitJobModal';
 import {
   canManageTeam,
@@ -235,7 +248,7 @@ import {
 } from './listings';
 import { VIEWER_NAME } from './profile/viewerIdentity';
 import { SignInBanner } from './SignInBanner';
-import { ProfileNudgeBanner, PendingApprovalBanner } from './BoardBanners';
+import { ProfileNudgeBanner, PendingApprovalBanner, NewApplicantsBanner } from './BoardBanners';
 import { JobApplyFlowDrawer, type ApplyFlowStepId } from './JobApplyFlowDrawer';
 import { JobSignUpModal, type JobSignUpDetails } from './JobSignUpModal';
 // DELETE WITH: the `design-canvas/` folder.
@@ -246,6 +259,7 @@ import type { ApplicationEmailInput } from './email/applicationEmail';
 import {
   EMPTY_PROFILE,
   isViewerSignedIn,
+  isTeamLeadViewer,
   profileForViewer,
   FILLED_PROFILE,
   type BoardViewer,
@@ -333,6 +347,9 @@ const VIEWER_OPTIONS: Array<{ value: BoardViewer; label: string }> = [
      person, they are the board seen by someone who owns listings on it. See
      `BoardViewer`. */
   { value: 'team-lead', label: 'Team lead' },
+  /* The same lead once people have applied — the next thing that happens to
+     them, the way `applied` follows `profile-ready`. */
+  { value: 'team-lead-applicants', label: 'Team lead, has applicants' },
   { value: 'directory-admin', label: 'Directory admin' },
 ];
 
@@ -351,6 +368,8 @@ const VIEWER_NOTE: Record<BoardViewer, string> = {
     'The returning member: two applications already sent. The Applied tab has a count and a list, and each row reads “Applied Nd ago” in its clock — an application has one state, applied, and wears no pill. The rest of the board carries on as normal.',
   'team-lead':
     'Leads Filecoin Foundation. Two things change and nothing else: “Submit a job” in the toolbar (the Submit a Deal door — a modal, then review by the PL team before it goes live), and their own team’s card showing its listings in every state — one in review, the live ones, one taken down — each row with a status pill when it is not live and a ⋯ menu holding Mark inactive / Bring back and Delete. Every other card is the public board.',
+  'team-lead-applicants':
+    'The same lead of Filecoin Foundation, once people have applied. The banner slot says how many applicants are new and on which roles, with Review applicants leading to the team’s applicants page (the team profile’s own page, mounted here with Back to job board). Their rows carry the applicants line — faces, count, “● N new” — inside the role’s card, including the listing they took down, which keeps the one person who applied while it was live. Everything else is the Team lead view.',
   'directory-admin':
     'The same door and menu, on every team’s card. The form gains one field — which team — and every card shows its listings in every state, so the admin sees libp2p’s pending submission beside Filecoin’s. Open question kept open: whether an admin’s own submission still waits on review, or goes live on submit.',
 };
@@ -535,7 +554,7 @@ export default function JobBoardPrototype() {
          `submitJobHref` for why the profile has a door at all. */
       const submitFor = q.get(SUBMIT_PARAM);
       if (submitFor) {
-        if (asViewer === 'team-lead') setLeadTeamUid(submitFor);
+        if (asViewer && isTeamLeadViewer(asViewer)) setLeadTeamUid(submitFor);
         setSubmitTeamUid(submitFor);
         setSubmitOpen(true);
       }
@@ -665,6 +684,22 @@ export default function JobBoardPrototype() {
   const [submitOpen, setSubmitOpen] = useState(false);
   /** The team a `?submit=` arrival is posting for; the form opens on it. */
   const [submitTeamUid, setSubmitTeamUid] = useState<string | undefined>(undefined);
+  /**
+   * The team's applicants page, open on a role — the destination of the count
+   * line on an owner's row.
+   *
+   * **One page, two entrances.** The page is the team profile's
+   * (`TeamApplicantsPage`), not a board version of it: same list, same member
+   * pane, same New and Reviewed marks. In production both doors lead to one
+   * route (`/teams/<id>/applicants`). Here it is mounted in the board's place
+   * rather than linked to, because the team-profile prototype only ever
+   * renders Protocol Labs and the board's lead runs Filecoin Foundation — a
+   * link would land on somebody else's applicants.
+   *
+   * Back returns to the board as it was: filters, scope and scroll are board
+   * state and none of it is touched by opening this.
+   */
+  const [applicantsView, setApplicantsView] = useState<{ teamUid: string; roleUid: string } | null>(null);
   const [unlisted, setUnlisted] = useState<Map<string, IJobRole[]>>(initialUnlisted);
   const [listings, setListings] = useState<Map<string, ListingMeta>>(initialListings);
   /** Listings the owner deleted this session. A set over the mocks rather than
@@ -794,6 +829,37 @@ export default function JobBoardPrototype() {
   const appliedScope = params.get(SCOPE_PARAM) === SCOPE_APPLIED;
 
   /**
+   * Saved roles — the bookmark on every row, and the **Saved** tab between All
+   * and Applied.
+   *
+   * **Offered to everyone, honoured with an account** — the row's own rule for
+   * Refer. A visitor sees the bookmark and the press opens the sign-up door;
+   * nothing is kept for someone with nowhere to keep it, so without an account
+   * no row reads as saved and the scope cannot be on (the strip that would turn
+   * it off is not drawn for them either).
+   *
+   * Owners' rows have no bookmark: their actions all live behind the ⋯, and
+   * nobody bookmarks their own listing.
+   */
+  const saved = useSavedItems();
+  const savedScope = isLoggedIn && params.get(SCOPE_PARAM) === SCOPE_SAVED;
+  const savedRoleUids = useMemo(() => (isLoggedIn ? saved.uidsOf('job') : new Set<string>()), [isLoggedIn, saved]);
+  /* The clock reads "Saved …" only inside the Saved tab — Applied's own move.
+     On the open board the posting age is still the number that decides. */
+  const savedAtByRole = useMemo(
+    () => (savedScope ? new Map([...savedRoleUids].map((uid) => [uid, saved.savedAt(uid) ?? ''])) : undefined),
+    [savedScope, savedRoleUids, saved],
+  );
+  /** The save receipt: the icon fills in place, and the toast adds the one
+   *  thing it cannot say — where the role went. Unsaving is quiet. */
+  const [savedToast, setSavedToast] = useState(false);
+  useEffect(() => {
+    if (!savedToast) return;
+    const t = setTimeout(() => setSavedToast(false), 4000);
+    return () => clearTimeout(t);
+  }, [savedToast]);
+
+  /**
    * Every team with every role it has, listed or not — the public groups with
    * the unlisted ones merged in. The status filter below is what keeps the
    * unlisted off the public board; this is the one place both live.
@@ -852,6 +918,8 @@ export default function JobBoardPrototype() {
            swapped the data source instead would have had to reimplement all
            three, or quietly drop them. */
         if (appliedScope && !appliedRoleUids.has(role.uid)) return false;
+        // Saved narrows the same way — one more predicate, not a second list.
+        if (savedScope && !savedRoleUids.has(role.uid)) return false;
         // The shared predicate — the same one the match badge runs, so a role that
         // survives the rail is always a role the badge would mark.
         if (!roleMatches(criteria, role)) return false;
@@ -866,7 +934,7 @@ export default function JobBoardPrototype() {
     }
     return groups;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params, criteria, appliedScope, appliedRoleUids, allGroups, listings, manages]);
+  }, [params, criteria, appliedScope, appliedRoleUids, savedScope, savedRoleUids, allGroups, listings, manages]);
 
   const visibleGroups = useMemo<IJobTeamGroup[]>(() => {
     // A copy: the sorts below mutate, and `railGroups` is the memo's own value.
@@ -1485,6 +1553,9 @@ export default function JobBoardPrototype() {
     onCloseFlow();
     setApplications(next === 'applied' ? seededApplications() : new Map());
     setInterested(new Set());
+    /* A viewer who manages nothing must not be left standing on a team's
+       applicants. */
+    setApplicantsView(null);
     /* The listings too, and the form: a submission made as the lead must not
        turn up under the admin, and a viewer with no Manage tab must not be left
        standing on it. */
@@ -1613,13 +1684,71 @@ export default function JobBoardPrototype() {
    * a logged-out visitor has no applications, so the tab could only ever open on
    * nothing. */
   const scopeTabs = isLoggedIn ? (
-    <div className={s.scopeTabs}>
-      <JobBoardScopeTabs appliedCount={appliedRoleUids.size} />
+    <div className={`${s.scopeTabs} ${sp.scopeTabs}`}>
+      {/* All · Saved · Applied. */}
+      <JobBoardScopeTabs appliedCount={appliedRoleUids.size} savedCount={saved.countOf('job')} />
     </div>
   ) : null;
 
   /* One card, rendered in whichever section it lands in — the sections change
      the list's framing, never the card. */
+  /** The team whose applicants are open — every role it has, in every state,
+   *  because the owner's list is the owner's list. Null once the viewer stops
+   *  managing it. */
+  const applicantsGroup =
+    applicantsView && manages(applicantsView.teamUid)
+      ? (allGroups.find((g) => g.team.uid === applicantsView.teamUid) ?? null)
+      : null;
+
+  const onToggleSave = (role: IJobRole) => {
+    /* No account, nowhere to keep it: the press lands on the sign-up door, the
+       same one a visitor's Refer opens. */
+    if (!isLoggedIn) {
+      onSignUp();
+      return;
+    }
+    const nowSaved = saved.toggle(role.uid, 'job');
+    if (nowSaved) setSavedToast(true);
+  };
+
+  /** Whether this viewer's managed rows have anyone on them. */
+  const showsApplicants = viewer === 'team-lead-applicants' || viewer === 'directory-admin';
+
+  /**
+   * What the lead has not looked at yet, per role — the banner's content and
+   * where its press lands. Read through the same lookup the rows and the page
+   * use (`applicantsForRole`), so the three cannot disagree. A lead only: an
+   * admin manages every team by role and is nobody's hiring team.
+   *
+   * "New" is the record's own `unseen`, as on the rows' count lines. The page
+   * clears it per person for the session and the board does not hear about it —
+   * in production both would read one per-member flag.
+   *
+   * Computed inline, not memoised: this sits below the component's mount gate,
+   * where a hook may not go, and it is a walk over one team's roles.
+   */
+  const leadNewApplicants = (() => {
+    if (viewer !== 'team-lead-applicants') return null;
+    const group = allGroups.find((g) => g.team.uid === leadTeamUid);
+    if (!group) return null;
+    const roles = group.roles
+      .map((r) => ({
+        uid: r.uid,
+        title: r.roleTitle,
+        newCount: applicantsForRole(r.uid).filter((a) => a.unseen).length,
+      }))
+      .filter((r) => r.newCount > 0)
+      .sort((a, b) => b.newCount - a.newCount);
+    const newCount = roles.reduce((n, r) => n + r.newCount, 0);
+    return newCount > 0 ? { teamUid: group.team.uid, teamName: group.team.name, roles, newCount } : null;
+  })();
+
+  const openApplicants = (teamUid: string, roleUid: string) => {
+    setApplicantsView({ teamUid, roleUid });
+    window.scrollTo({ top: 0 });
+    document.body.scrollTo?.({ top: 0 });
+  };
+
   const renderGroupCard = (group: IJobTeamGroup) => (
     <JobTeamGroupCard
       key={group.team.uid}
@@ -1634,6 +1763,9 @@ export default function JobBoardPrototype() {
       onViewJob={onViewJob}
       appliedRoleUids={appliedRoleUids}
       appliedAtByRole={appliedAtByRole}
+      savedRoleUids={savedRoleUids}
+      savedAtByRole={savedAtByRole}
+      onToggleSave={onToggleSave}
       openInterest={openInterests.get(group.team.uid)}
       onOpenRoleInterest={onOpenRoleInterest}
       /* The owner's team: its card carries every state and each row
@@ -1645,6 +1777,10 @@ export default function JobBoardPrototype() {
               onSetStatus: setListingStatus,
               onDelete: deleteListing,
               yours: viewer !== 'directory-admin',
+              /* Nobody has applied yet in the plain `team-lead` view — that
+                 one is about managing listings. See `BoardViewer`. */
+              applicantsFor: showsApplicants ? applicantsForRole : () => [],
+              openApplicants: (roleUid) => openApplicants(group.team.uid, roleUid),
             }
           : undefined
       }
@@ -1686,6 +1822,18 @@ export default function JobBoardPrototype() {
           the one move that is theirs. */}
       {isPendingApproval && (
         <PendingApprovalBanner profileComplete={isProfileComplete(profile)} onUpdateProfile={openProfileEditor} />
+      )}
+
+      {/* A lead with unread applicants. It never meets the two above: a lead
+          arrives with a finished, approved profile. Lands on the role with the
+          most new — the page's own picker marks the rest. */}
+      {leadNewApplicants && (
+        <NewApplicantsBanner
+          teamName={leadNewApplicants.teamName}
+          newCount={leadNewApplicants.newCount}
+          roles={leadNewApplicants.roles}
+          onReview={() => openApplicants(leadNewApplicants.teamUid, leadNewApplicants.roles[0].uid)}
+        />
       )}
 
       {/* Mobile (< 1024): title + the "⊕ Filters" / sort trigger (desktop toolbar is hidden here). */}
@@ -1733,7 +1881,14 @@ export default function JobBoardPrototype() {
            line. */
         <div className={s.emptyStack}>
           <div className={s.empty}>
-            {appliedScope && appliedRoleUids.size === 0 ? (
+            {savedScope && savedRoleUids.size === 0 ? (
+              <>
+                You haven&apos;t saved any roles yet. Roles you bookmark collect here, so you can come back to them.{' '}
+                <button type="button" className={s.emptyLink} onClick={() => setParam(SCOPE_PARAM, undefined)}>
+                  Browse all roles
+                </button>
+              </>
+            ) : appliedScope && appliedRoleUids.size === 0 ? (
               <>
                 You haven&apos;t applied to anything yet. Roles you apply to collect here, so you can see what
                 you&apos;ve already gone for.{' '}
@@ -1842,7 +1997,51 @@ export default function JobBoardPrototype() {
     <>
       {nav}
       {reviewControls}
-      <DashboardPagesLayout filters={<JobBoardFilterView />} content={content} />
+      {applicantsGroup && applicantsView ? (
+        /* In the board's place, under the same navbar. `--applicants-top` tells
+           the page how tall that pinned navbar is — see its stylesheet. */
+        <div className={s.applicantsHost}>
+          <TeamApplicantsPage
+            teamName={applicantsGroup.team.name}
+            roles={applicantsGroup.roles.map((r) => ({
+              uid: r.uid,
+              title: r.roleTitle,
+              postingHref: r.applyUrl ?? undefined,
+              meta: [
+                r.seniority ? seniorityDisplayLabel(r.seniority) : null,
+                r.roleCategory,
+                r.location?.length ? r.location.join(', ') : null,
+              ]
+                .filter(Boolean)
+                .join(' · '),
+              postedAt: getJobDate(r),
+              applicants: applicantsForRole(r.uid),
+              interested: interestedForRole(r.uid),
+            }))}
+            initialRoleUid={applicantsView.roleUid}
+            onBack={() => setApplicantsView(null)}
+            backLabel="Back to job board"
+          />
+        </div>
+      ) : (
+        <DashboardPagesLayout filters={<JobBoardFilterView />} content={content} />
+      )}
+
+      {savedToast && (
+        <FollowToast>
+          Saved.{' '}
+          <button
+            type="button"
+            className={sp.toastLink}
+            onClick={() => {
+              setParam(SCOPE_PARAM, SCOPE_SAVED);
+              setSavedToast(false);
+            }}
+          >
+            View saved roles
+          </button>
+        </FollowToast>
+      )}
 
       {/* The whole application, in one drawer: read the job, fill in what it
           needs, write the note, apply. Three components used to stand here — a

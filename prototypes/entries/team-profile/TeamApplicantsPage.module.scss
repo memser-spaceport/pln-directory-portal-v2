@@ -122,10 +122,14 @@
   border-radius: 12px;
   padding: 16px;
 
+  /* `--applicants-top` is the height of whatever the host pins above the
+     page. The team profile pins nothing (its header scrolls away), so it is
+     0 there; the job board pins an 80px navbar and sets it, or the list and
+     the bar would stick underneath it. */
   @include media.tablet-landscape {
     position: sticky;
-    top: 16px;
-    max-height: calc(100vh - 32px);
+    top: calc(var(--applicants-top, 0px) + 16px);
+    max-height: calc(100vh - 32px - var(--applicants-top, 0px));
     display: flex;
     flex-direction: column;
   }
@@ -196,7 +200,7 @@
  * the ATS references (Workable, Homerun, Wellfound) all pin theirs. */
 .paneBar {
   position: sticky;
-  top: 8px;
+  top: calc(var(--applicants-top, 0px) + 8px);
   z-index: 2;
   display: flex;
   align-items: center;
@@ -208,7 +212,7 @@
   box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.08);
 
   @include media.tablet-landscape {
-    top: 16px;
+    top: calc(var(--applicants-top, 0px) + 16px);
   }
 }
 

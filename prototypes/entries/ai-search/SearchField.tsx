@@ -81,6 +81,15 @@ export function SearchField({
       <div
         className={s.fieldHost}
         style={{ '--scope-chip-width': `${chipWidth}px` } as React.CSSProperties}
+        /* Escape means one thing in both surfaces: close. `DebouncedInput`
+           also empties itself on Escape *keyup*, and the dialog's exit
+           animation keeps the input mounted long enough to receive it — so
+           closing by Escape wiped the text that closing by ✕ or a click
+           outside kept. Emptying the field is Clear's job; stop the keyup
+           before it reaches the input. */
+        onKeyUpCapture={(e) => {
+          if (e.key === 'Escape') e.stopPropagation();
+        }}
         onKeyDown={(e) => {
           const target = e.target as HTMLInputElement;
           if (e.key === 'Backspace' && scope && onRemoveScope && target.id === id && !target.value) onRemoveScope();

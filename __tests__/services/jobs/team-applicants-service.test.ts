@@ -47,6 +47,7 @@ describe('the applicant row contract', () => {
     name: 'Devon Park',
     email: 'devon@example.com',
     profileUrl: 'https://directory.plnetwork.io/members/m-1',
+    avatarUrl: 'https://example.com/devon.jpg',
     headline: 'Protocol Engineer',
     currentCompany: 'Lattice Compute',
     location: 'Berlin, Germany',
@@ -64,6 +65,10 @@ describe('the applicant row contract', () => {
 
   it('accepts a member with no email, because Email <name> has to hide itself', () => {
     expect(() => applicantRowSchema.parse({ ...row, email: null })).not.toThrow();
+  });
+
+  it('accepts a member with no picture, because the row draws initials instead', () => {
+    expect(() => applicantRowSchema.parse({ ...row, avatarUrl: null })).not.toThrow();
   });
 
   it('accepts a CV with no size — the API reads it from S3 and that read may fail', () => {
@@ -103,6 +108,9 @@ describe('fetchApplicantCounts', () => {
     counts.forEach((count) => {
       expect(count.applicantCount + count.interestCount).toBeGreaterThan(0);
       expect(count.newCount).toBeLessThanOrEqual(count.applicantCount + count.interestCount);
+      /* The facepile shows three at most, and a member without a picture
+         contributes none rather than a gap. */
+      expect(count.newestAvatars.length).toBeLessThanOrEqual(3);
     });
   });
 

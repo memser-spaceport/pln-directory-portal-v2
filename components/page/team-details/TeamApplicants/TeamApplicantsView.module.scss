@@ -1,0 +1,178 @@
+@use 'styles/media';
+
+/**
+ * The split needs about 900px before a 440px list and a profile beside it stop
+ * fighting each other, so it turns on at `tablet-landscape` (960px) — the same
+ * width the member profile's right rail appears at.
+ *
+ * `useIsBelowTabletLandscape` in the view switches at exactly this number. If
+ * the two ever disagree, the pane renders under the list on a tablet with
+ * nothing to go back to, which is what using `useIsMobile` (768px) here would
+ * have done.
+ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.back {
+  align-self: flex-start;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 4px 0 8px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0f172a);
+}
+
+.subtitle {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--foreground-neutral-tertiary, #64748b);
+}
+
+.roleBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+}
+
+.roleLabel {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+  white-space: nowrap;
+}
+
+.rolePicker {
+  min-width: 0;
+  flex: 1 1 auto;
+  max-width: 420px;
+}
+
+.roleOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.roleOptionLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The "there is something here you have not read" mark, in the product's
+ * success green. It is a dot and a count, never a number alone: a bare "2"
+ * beside a title reads as a quantity of the thing, not of the unread. */
+.newBadge {
+  flex: none;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--foreground-success-primary, #0a9952);
+  white-space: nowrap;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+
+  @include media.tablet-landscape {
+    grid-template-columns: 440px minmax(0, 1fr);
+  }
+}
+
+.listCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--background-neutral-primary, #fff);
+  border: 1px solid var(--border-neutral-subtle, #e2e8f0);
+  min-width: 0;
+
+  /* Sticky only where there are two columns to keep level with each other.
+   * `--app-header-height` is measured by the header stack rather than assumed,
+   * because the header grows a bar above the navbar in some states. */
+  @include media.tablet-landscape {
+    position: sticky;
+    top: calc(var(--app-header-height, 80px) + 16px);
+    max-height: calc(100vh - var(--app-header-height, 80px) - 32px);
+    overflow-y: auto;
+  }
+}
+
+.listHead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-neutral-subtle, #e2e8f0);
+}
+
+.roleFacts {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #64748b);
+}
+
+.postingLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-normal, #cbd5e1);
+  background: var(--background-neutral-primary, #fff);
+  color: var(--foreground-neutral-primary, #0f172a);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+
+  &:hover {
+    background: var(--background-neutral-subtle, #f1f5f9);
+  }
+}
+
+.tabs,
+.searchWrap {
+  min-width: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.paneCol {
+  min-width: 0;
+}
+
+.paneEmpty {
+  display: flex;
+  align-items: flex-start;
+}

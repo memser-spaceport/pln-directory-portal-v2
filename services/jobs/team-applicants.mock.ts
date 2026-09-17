@@ -168,6 +168,9 @@ function buildRow(kind: ApplicantKind, roleUid: string, index: number): TeamAppl
     name: person.name,
     email: `${person.name.toLowerCase().replace(/[^a-z]+/g, '.')}@example.com`,
     profileUrl: `https://directory.plnetwork.io/members/mock-member-${h % 997}`,
+    /* A deterministic stand-in face. `null` on every third person, so the row's
+       initials fallback is reachable without editing the mock. */
+    avatarUrl: h % 3 === 0 ? null : `https://i.pravatar.cc/96?img=${(h % 70) + 1}`,
     headline: person.headline,
     currentCompany: person.company,
     location: person.location,
@@ -224,11 +227,16 @@ export async function mockFetchApplicantCounts(teamUid: string): Promise<Applica
   const counts = roleUids
     .map((roleUid) => {
       const { applications, interests } = castFor(roleUid);
+      const everyone = newest([...applications, ...interests]);
       return {
         roleUid,
         applicantCount: applications.length,
         interestCount: interests.length,
-        newCount: [...applications, ...interests].filter((row) => row.unseen).length,
+        newCount: everyone.filter((row) => row.unseen).length,
+        newestAvatars: everyone
+          .map((row) => row.avatarUrl)
+          .filter((url): url is string => !!url)
+          .slice(0, 3),
       };
     })
     /* A role with nobody is absent, not a zero row — the contract says the list

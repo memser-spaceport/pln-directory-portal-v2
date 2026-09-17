@@ -69,6 +69,8 @@ export const applicantRowSchema = z
     /** Absolute — the backend composes it, so a link out of an ATS and a link
      *  out of this page agree. The page itself routes by `memberUid`. */
     profileUrl: z.string().min(1),
+    /** Null for a member with no picture; the row draws initials instead. */
+    avatarUrl: z.string().nullable(),
     /** "Protocol Engineer" — their current role, not the one they applied for. */
     headline: z.string().nullable(),
     currentCompany: z.string().nullable(),
@@ -107,6 +109,16 @@ export const applicantCountSchema = z
     interestCount: z.number(),
     /** Unopened by this viewer, across BOTH lists. */
     newCount: z.number(),
+    /**
+     * Up to three pictures, newest first, for the profile's facepile.
+     *
+     * On the count rather than fetched per role: the line renders inside a
+     * `memo`'d list of rows, and a query per row would be a request per row.
+     * Entries are URLs only — a face is all the line shows, and a name here
+     * would put the people who applied on a page the lead's own teammates read
+     * over their shoulder.
+     */
+    newestAvatars: z.array(z.string()).max(3),
   })
   .strict();
 

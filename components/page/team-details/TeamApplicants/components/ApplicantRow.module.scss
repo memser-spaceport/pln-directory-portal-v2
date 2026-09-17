@@ -1,0 +1,119 @@
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  width: 100%;
+  padding: 12px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--background-neutral-subtle, #f1f5f9);
+  }
+}
+
+/* Stacked-card geometry: the hairline belongs between rows, so the last one
+ * does not draw a line against the card's own edge. */
+.bordered {
+  border-bottom-color: var(--border-neutral-subtle, #e2e8f0);
+  border-radius: 0;
+}
+
+/* An unread row is tinted rather than badged alone, because the tint is what
+ * makes a column of fifty scannable — the badge only answers once you are
+ * already looking at the row. */
+.unseen {
+  background: var(--background-brand-subtle, #f5f8ff);
+}
+
+.selected {
+  border-color: var(--border-brand-normal, #1b4dff);
+  background: var(--background-brand-subtle, #f5f8ff);
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.avatar {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0f172a);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* "Protocol Engineer · Lattice Compute" on one line. It ellipsises rather than
+ * wrapping: at 440px a wrapped second clause pushes the row taller than its
+ * avatar and the list stops reading as a list. */
+.role {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #64748b);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.newBadge {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--foreground-success-primary, #0a9952);
+  white-space: nowrap;
+}
+
+.reviewed {
+  color: var(--foreground-success-primary, #0a9952);
+  flex: none;
+}
+
+.when {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #64748b);
+  white-space: nowrap;
+
+  svg {
+    color: currentColor;
+  }
+}

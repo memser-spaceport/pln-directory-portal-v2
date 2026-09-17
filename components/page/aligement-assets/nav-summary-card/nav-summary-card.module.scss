@@ -1,0 +1,114 @@
+// One-off palette: no equivalents in styles/colors.scss for this exact scale
+// (its Slate tokens sit at different values), so these stay local to the
+// component rather than forcing a mismatched token onto the design.
+$ink: #101828;
+$brand-blue: #2563eb;
+$card-border: #e4e7ec;
+$hairline: #edf0f4;
+$tint: #f7f9fc;
+
+// Panels stack below this width; chosen by the design, not one of the
+// project's shared breakpoints (640/960/1200).
+$stack-breakpoint: 720px;
+
+// No top/left padding: the gray left panel bleeds flush to its container's
+// own top-left corner (see .panelPrimary's matching border-radius below). No
+// bottom padding either, so the border-bottom sits flush with the panels'
+// own bottom edge — it's on .root (not .card) only so it still runs edge to
+// edge to the container's border, since .card itself is right-inset by 40px.
+.root {
+  width: 100%;
+  padding: 0 40px 0 0;
+  border-bottom: 1px solid $card-border;
+  font-family: 'Inter', sans-serif;
+  color: $ink;
+}
+
+.card {
+  display: flex;
+
+  @media (max-width: $stack-breakpoint - 1) {
+    flex-direction: column;
+  }
+}
+
+.panelPrimary {
+  flex: 0 0 432px;
+  display: flex;
+  align-items: center;
+  padding: 28px 32px;
+  background-color: $tint;
+  // Matches the containing card's own corner radius so the bleed to its
+  // top-left edge doesn't poke a square corner past the rounded border.
+  border-top-left-radius: 16px;
+
+  @media (max-width: $stack-breakpoint - 1) {
+    flex-basis: auto;
+    width: 100%;
+    // Stacked full-width, so both top corners now sit on the outer edge.
+    border-top-right-radius: 16px;
+  }
+}
+
+.panelSecondary {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  padding: 28px 32px;
+  border-left: 1px solid $card-border;
+
+  @media (max-width: $stack-breakpoint - 1) {
+    border-left: none;
+    border-top: 1px solid $card-border;
+  }
+}
+
+.fieldGroup {
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: $brand-blue;
+}
+
+.hero {
+  margin: 0;
+  font-size: 64px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  color: $ink;
+  font-variant-numeric: tabular-nums;
+
+  // Keeps the hero figure from wrapping or clipping down to a 360px viewport.
+  @media (max-width: 480px) {
+    font-size: 40px;
+  }
+}
+
+.secondaryValue {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: $ink;
+  font-variant-numeric: tabular-nums;
+}
+
+.divider {
+  height: 1px;
+  background-color: $hairline;
+}

@@ -21,7 +21,7 @@ import { PL_TEAM_UID, SOURCES_BY_UID, VIDEO_BY_UID, viewsFor } from './mocks';
 import type { FeedComment } from './mocks';
 import { SourceList } from './SourceList';
 import type { TeamCluster } from './V0NewsCard';
-import { LikeButton, CommentButton, ViewCount } from './FeedActions';
+import { LikeButton, CommentButton, ViewCount, SaveButton } from './FeedActions';
 import { ShareMenu } from './ShareMenu';
 import { CommentsThread } from './CommentsThread';
 import { VideoThumb } from './NewsVideo';
@@ -52,6 +52,10 @@ interface V0FeedCardProps {
   /** Open the story's detail modal (summary + share + sources). `playVideo` opens
    *  it with the attached video already playing — the poster was the click target. */
   onOpenStory: (story: ITeamNewsItem, playVideo?: boolean) => void;
+  /** Saved state per story. Present together with `onToggleSave` = the card
+   *  offers Save (the `saving` entry); absent = no bookmark, the feed as it was. */
+  isSaved?: (uid: string) => boolean;
+  onToggleSave?: (uid: string) => void;
 }
 
 /**
@@ -73,6 +77,8 @@ export function V0FeedCard({
   commentsFor,
   onAddComment,
   onOpenStory,
+  isSaved,
+  onToggleSave,
 }: V0FeedCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [openThreads, setOpenThreads] = useState<Set<string>>(new Set());
@@ -177,6 +183,12 @@ export function V0FeedCard({
                 />
                 {showComments && (
                   <CommentButton count={comments.length} open={threadOpen} onToggle={() => toggleThread(story.uid)} />
+                )}
+                {/* Save closes the row. A control, not a count, so it goes with
+                    Share at an edge rather than inside the trio — the far one,
+                    where the bookmark sits on every feed card Mobbin has. */}
+                {onToggleSave && (
+                  <SaveButton saved={isSaved?.(story.uid) ?? false} onToggle={() => onToggleSave(story.uid)} />
                 )}
               </span>
             </div>

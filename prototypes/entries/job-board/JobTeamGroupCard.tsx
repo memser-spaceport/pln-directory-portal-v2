@@ -36,7 +36,6 @@ import { BASE_LIKES, PL_TEAM_UID } from '../newsfeed-v0/mocks';
 import fa from '../newsfeed-v0/FeedActions.module.scss';
 
 import type { ListingMeta, ListingStatus } from './listings';
-import type { ApplicationStatus } from './applicationStatus';
 
 const INITIAL_ROLES_SHOWN = 3;
 const MAX_FOCUS_CHIPS = 100;
@@ -69,9 +68,14 @@ interface JobTeamGroupCardProps {
   /** Role uid → when the application went, so an applied row can report its own
    *  date instead of the posting age. Same map the board keys applications by. */
   appliedAtByRole?: Map<string, string>;
-  /** Role uid → where that application stands. Same keys as `appliedAtByRole`;
-   *  the row wears a pill for anything past `sent`. */
-  applicationStatusByRole?: Map<string, ApplicationStatus>;
+  /** Uids of roles the viewer has saved — the filled bookmark on those rows. */
+  savedRoleUids?: Set<string>;
+  /** Role uid → when it was saved. Handed over only on the saved list; see the
+   *  row's `savedAt`. */
+  savedAtByRole?: Map<string, string>;
+  /** Present = every row offers Save. The board owns the store, one for the
+   *  whole list, the way it owns the applications. */
+  onToggleSave?: (role: IJobRole) => void;
   /**
    * The team's open role, once the reader has answered it. Absent means the
    * offer still stands; the row reads the record itself.
@@ -109,7 +113,9 @@ export function JobTeamGroupCard({
   onViewJob,
   appliedRoleUids,
   appliedAtByRole,
-  applicationStatusByRole,
+  savedRoleUids,
+  savedAtByRole,
+  onToggleSave,
   openInterest,
   onOpenRoleInterest,
   manage,
@@ -233,11 +239,7 @@ export function JobTeamGroupCard({
           <div className={s.countNumber}>{totalRoles}</div>
           <div className={s.countLabel}>{totalRoles === 1 ? 'open role' : 'open roles'}</div>
           {newCount > 0 && <div className={s.newCount}>+{newCount} new</div>}
-          {inReviewCount > 0 && (
-            <div className={`${s.newCount} ${js.reviewCount}`}>
-              {inReviewCount} in review
-            </div>
-          )}
+          {inReviewCount > 0 && <div className={`${s.newCount} ${js.reviewCount}`}>{inReviewCount} in review</div>}
         </div>
       </header>
 
@@ -256,7 +258,9 @@ export function JobTeamGroupCard({
                 onViewJob={onViewJob}
                 applied={appliedRoleUids?.has(role.uid) ?? false}
                 appliedAt={appliedAtByRole?.get(role.uid)}
-                applicationStatus={applicationStatusByRole?.get(role.uid)}
+                saved={savedRoleUids?.has(role.uid) ?? false}
+                savedAt={savedAtByRole?.get(role.uid)}
+                onToggleSave={onToggleSave ? () => onToggleSave(role) : undefined}
                 teamId={team.uid}
                 manage={
                   manage && meta

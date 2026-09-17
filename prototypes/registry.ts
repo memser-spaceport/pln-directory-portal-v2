@@ -231,6 +231,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/job-board-apply-steps/JobBoardPrototype'),
   },
   {
+    key: 'saving',
+    title: 'Saving — jobs and news',
+    description:
+      'Keep a role or an update for later, and find it again where it lives. One new control per surface: a bookmark beside Share on every job row (grey outline at rest, filled brand blue once kept) and a bookmark at the end of every feed card\'s Share · Views · Likes row, on stories and forum posts alike, spelled out as Save / Saved in the story modal\'s footer. One new tab per surface, in the slot the product already uses for a personal scope on a listing: **Saved** between All and Applied on the board, and **Saved** at the end of the feed\'s focus-area strip — no standalone “Your saved items” page, because the product has no personal hub for one to hang on and every job board and reader on Mobbin keeps the list on the surface it came from. Inside the Saved tab the rail, sort and category pills keep working, the board\'s rows read “Saved 3d ago” in place of the posting age (the Applied tab\'s own move), and a saved role can be opened and applied to from there through the real apply drawer. Saving fills the icon in place and shows one receipt — “Saved · View saved roles / updates”, a link into that tab — while unsaving is silent. One session-scoped store behind both surfaces, seeded with two roles and one story so the tabs have a before; a Surface switch under the navbar (or `?view=feed`) moves between the board and the feed, and the navbar\'s Home item lands on the feed. Open: no bookmark in the drawer\'s masthead yet, and the logged-out press (which should open the sign-in door) is not drawn.',
+    category: 'Jobs',
+    load: () => import('./entries/saving/SavingPrototype'),
+  },
+  {
     key: 'newsfeed-discovery',
     title: 'Newsfeed discoverability — labelled door + unread signal',
     description:
@@ -352,9 +360,9 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'ai-search',
-    title: 'AI search — one list, one door',
+    title: 'Search in two sizes',
     description:
-      'The header search dialog with AI Search as a row above the results and a state of the same dialog, instead of production\'s two-column overlay (keyword list left, AI chat with a wordless empty state right). Idle: recent searches, the Husky page\'s "Try asking or searching for" block with prompts phrased as directory finds, then "Your AI Search History" (past threads that reopen in place, kept across closing the dialog). Typing: one fixed row first — Chat with AI Search about "<term>" — then production\'s category chips and result rows over a mocked corpus. The row replaces both of production\'s AI doors (the zero-results card and the commented-out "Try AI Search" button). Pressing it streams an answer with sources, "Results from the directory" and follow-ups, with Back to results and Continue in AI Search. Feedback is an inline thumbs pair; a thumbs-down asks why under the answer instead of opening the 1–5 rating dialog. History shows five threads with a "Show all (N)" door that opens the whole record in place, grouped Today / Yesterday / Last 7 days / Last 30 days / year in production\'s own history chrome, and a thread opened from there goes "Back to history". "Results from the directory" is redrawn as compact cards — 32px picture, name, one "Type · fact" line, the dialog\'s own borders and hover — in place of production\'s gradient-bordered 18px cards, with "Show all (N)" expanding in place. ⌘K opens it. Everything mocked.',
+      'General search as a popover under the header field, AI Search as a full-screen view — one field, one AI door, instead of production\'s two-column overlay (keyword list left, AI chat with a wordless empty state right). The popover is a lookup: an "Ask AI Search a question" row, then recent searches; typing lists production\'s category chips and result rows over a mocked corpus, with "Chat with AI Search about <term>" pinned above them (also at zero results), and team and member rows carrying a visible "Ask AI" action that opens the view about that team. Pressing the row grows into the AI view with the term as the first question; Back to results reopens the popover with the term intact. The view: prompts phrased as directory finds, "Your AI Search History" (five threads, "Show all (N)" opens the record grouped Today / Yesterday / Last 7 days / Last 30 days / year in production\'s history chrome), a streamed answer with sources, "Results from the directory" as compact cards and follow-ups, inline thumbs feedback with a "why" under the answer. Scoped: from a team profile\'s "Ask AI about <team>" (or a result row), the team is a removable "About <team>" chip in the field; prompts come from the profile\'s own sections, and each answer leads with a grey "Retrieved: …" line, the people or events it found, a two-sentence summary and a button to the section that owns them, with the lock pill where the records are team-only. ⌘K opens the popover. Everything mocked.',
     category: 'Cross-product',
     load: () => import('./entries/ai-search/AiSearchPrototype'),
   },

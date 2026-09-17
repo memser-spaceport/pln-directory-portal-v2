@@ -159,13 +159,194 @@
   }
 }
 
-/* The pane is `ApplicantMemberPage`, which brings the member page's own column.
- * The Email reply sits at the foot of the Application section. */
-.actions {
+/* The picker's option: the title with its count, and the count line's
+ * `● M new` at the end of the line when the role has unopened applicants. */
+.roleOption {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.roleOptionLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The pane: its bar, then `ApplicantMemberPage`'s own column. `min-width: 0`
+ * so the grid track can shrink the member column instead of being forced by
+ * it. */
+.paneCol {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 16px;
+  min-width: 0;
+
+  @include media.tablet-landscape {
+    gap: 16px;
+  }
+}
+
+/* The page's one bar, on the list's card: where you are in the list, the two
+ * steps, and the reply. Sticky at the list's own offset, so the way to the
+ * next person and the one action stay in reach while the profile scrolls —
+ * the ATS references (Workable, Homerun, Wellfound) all pin theirs. */
+.paneBar {
+  position: sticky;
+  top: 8px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--background-base-white, #fff);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.08);
+
+  @include media.tablet-landscape {
+    top: 16px;
+  }
+}
+
+.paneNav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The DS bordered neutral button holding one glyph: the small size's height,
+ * square, without the label's minimum width. */
+.stepBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 8px;
+}
+
+/* "2 of 3", in the row's secondary tone — a fact about the list, not a press. */
+.position {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  white-space: nowrap;
+}
+
+/* The bar's two presses on the person: the status switch, then the reply.
+ * Under 640px the five controls need ~440px in a ~340px bar (measured), so
+ * the bar wraps and the two presses take a row of their own under the
+ * stepper, each half the width — the product's mobile footer shape. */
+.paneActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+@include media.mobile-only {
+  .paneBar {
+    flex-wrap: wrap;
+  }
+
+  .paneActions {
+    width: 100%;
+
+    > * {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+}
+
+/* Mark as reviewed / Reviewed — shaped from Mobbin references.
+ *
+ * Rest: the DS bordered neutral button with an *outline* check (Todoist,
+ * Asana, Adaline draw an undone "done" as a ring), the ring in the tertiary
+ * grey so the word leads. Hover previews the result: the ring and check turn
+ * green before anything is pressed, so the press explains itself.
+ *
+ * On: Juicebox's Approve shape — a soft green tint, a green hairline and green
+ * ink on the same box, with the ring filling to a solid disc and the check
+ * popping in. The PL success pair the product uses most (`#0a9952` ink, its
+ * 8% tint and 24% border), not `Badge`'s Tailwind green. No shadow once on:
+ * a tinted press sitting flat reads as a state, a raised one as a button
+ * still waiting.
+ *
+ * Label and glyph keep a 6px gap, not the bar's 8px, so the check reads as
+ * the word's mark and not a third control. */
+.reviewBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.reviewIcon {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  transition: color 160ms ease;
+}
+
+.reviewBtn:hover:not(:disabled) .reviewIcon,
+.reviewBtn:focus-visible .reviewIcon {
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+/* Written under `.paneActions` for specificity: the DS `.border.neutral` rules
+ * are four simple selectors deep and were winning the hover background
+ * (measured: the neutral grey, not the success tint). */
+.paneActions .reviewBtn.isReviewed {
+  &,
+  &:hover:not(:disabled),
+  &:active:not(:disabled) {
+    color: var(--foreground-success-primary, #0a9952);
+    border-color: var(--border-success-subtle, rgba(10, 153, 82, 0.24));
+    background: var(--background-success-subtle, rgba(10, 153, 82, 0.08));
+    box-shadow: none;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: var(--border-success-muted, rgba(10, 153, 82, 0.4));
+  }
+
+  .reviewIcon {
+    color: var(--foreground-success-primary, #0a9952);
+    animation: reviewPop 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+/* Settles in, no overshoot: ease-out-quint from a slightly smaller, fainter
+ * disc, so the fill reads as arriving rather than bouncing. */
+@keyframes reviewPop {
+  from {
+    transform: scale(0.72);
+    opacity: 0.4;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reviewBtn,
+  .reviewIcon {
+    transition: none;
+  }
+
+  .paneActions .reviewBtn.isReviewed .reviewIcon {
+    animation: none;
+  }
 }
 
 /* DS Button's classes on an <a>: box layout and no underline, nothing else. */

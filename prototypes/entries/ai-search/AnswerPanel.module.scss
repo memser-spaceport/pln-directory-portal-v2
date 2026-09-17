@@ -47,18 +47,6 @@
   background: #fff;
 }
 
-.continueLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  text-decoration: none;
-
-  svg {
-    width: 14px;
-    height: 14px;
-  }
-}
-
 /* .preview-message — 16px between turns is chat__messages' gap */
 .message {
   display: flex;
@@ -115,6 +103,39 @@
   line-height: 26px;
   margin-bottom: 16px;
   color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* Scoped answers only. What was read, in one grey line, with the lock pill
+   beside it when the records are not public. Secondary ink rather than
+   tertiary: the line exists to be checked against the question, so it has to
+   be legible, but it stays below the summary's primary. */
+.retrieved {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.retrievedLabel {
+  font-weight: 500;
+}
+
+/* Two sentences under the cards, not the network answer's long prose: the
+   cards carry the list, so the summary drops production's 16px bottom margin
+   and its 26px reading leading. */
+.summary {
+  margin-bottom: 0;
+  line-height: 22px;
+}
+
+/* The hand-over to the section that owns the records. */
+.door {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 /* .chat-message-actions */

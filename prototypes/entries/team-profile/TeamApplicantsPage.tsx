@@ -14,6 +14,8 @@ import { filterSelectStyles } from '@/components/common/filters/FilterSelect/fil
 // "Role:" keeps the label treatment it had beside the old dropdown.
 import sort from '@/components/common/filters/SortDropdown/SortDropdown.module.scss';
 import { ArrowUpRightIcon } from '@/components/icons/ArrowUpRightIcon';
+import { CaretLeftIcon } from '@/components/icons/CaretLeftIcon';
+import { CaretRightIcon } from '@/components/icons/CaretRightIcon';
 import {
   DetailsSection,
   DetailsSectionHeader,
@@ -29,7 +31,7 @@ import rowTone from '../job-board/JobReferRoleRow.module.scss';
 import { ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
 
 import { CvAttachmentLine } from '../profile-shared/StoredCv/CvAttachmentLine';
-import { EnvelopeIcon } from './icons';
+import { EnvelopeIcon, ReviewCheckIcon } from './icons';
 import { ApplicantRow } from './ApplicantRow';
 import { ApplicantMemberPage } from './ApplicantMemberPage';
 import { Tabs } from '@/components/ui/tabs/Tabs';
@@ -41,6 +43,8 @@ const APPLIED_TAB = 'Applied';
 const INTERESTED_TAB = 'Interested';
 
 type Person = RoleApplicant | RoleInterested;
+/** A picker option with the role's live unopened count, for its `● M new`. */
+type RoleOption = Option & { newCount: number };
 const personDate = (p: Person) => ('appliedAt' in p ? p.appliedAt : p.interestedAt);
 
 export interface ApplicantsRole {
@@ -101,17 +105,44 @@ interface Props {
  * a "View full profile ↗" link out for the rest; with the whole page here,
  * that link had nothing left to reach, so it went.
  *
- * **One action: Email.** It is the only thing the team does with an
- * application in this product (`{team} can reply to you directly`), so it is
- * the pane's one filled button — at the foot of the Application section,
- * under what it answers, which leaves the profile card exactly production's.
- * No Shortlist / Reject — see `applicantMocks`.
+ * **One bar above the pane: where you are, next, and the reply.** Wellfound
+ * heads its applicant pane with "1 of 26" and Previous / Next applicant;
+ * Workable and Homerun show "2 of 4" with arrows; every ATS reference pins
+ * the action (Workable's toolbar, Homerun's top bar, User Interviews' bottom
+ * bar). At fifty applicants the founder's question after reading one person
+ * is "how many left, and next", and the list beside the pane answers it only
+ * by scrolling back to find the row they were on. So the pane opens with a
+ * slim sticky row: `2 of 3`, prev / next, and **Email** — the only thing the
+ * team does with an application in this product (`{team} can reply to you
+ * directly`). It used to sit at the foot of the Application section, and went
+ * out of reach the moment the founder scrolled to Experience to check what
+ * the note claimed. It is the page's one bar, above the profile card rather
+ * than in it, so the card stays production's. No Shortlist / Reject — see
+ * `applicantMocks`.
+ *
+ * **The picker says what is new.** The role row on the profile reads
+ * "N applicants · M new"; the picker's options used to say only "(3)". A
+ * founder with ten roles is asking which role has something they haven't
+ * looked at (Wellfound's job list: "28 applicants to review"), so each option
+ * carries the count line's own `● M new`, live against what was opened here.
  *
  * **New clears per person, on selection.** An unread row is tinted and marked
  * `● New`; the look is opening the person, so selecting a row returns it to
  * the plain grey and the others keep their tint. Read is the row at rest, not
  * a state with a mark of its own. Session-local here; production would keep
  * it per team member.
+ *
+ * **Reviewed is the team's own press.** Beside Email in the bar: **Mark as
+ * reviewed**, a bordered neutral button that turns into the state itself
+ * (`✓ Reviewed`, the DS success pair) and back on a second press — the same
+ * switch shape as a listing's Mark inactive / Bring back, no confirm because
+ * the undo is the button it turns into. The row in the list carries the same
+ * green check. This is not the "viewed" mark lesson 21 removed: that was the
+ * product reading an open back to the founder as a stage; this is the founder
+ * saying they have dealt with someone, which an open cannot say (stepping
+ * past a row opens it too). Still one tick, not a pipeline — no Shortlist /
+ * Reject, see `applicantMocks`. Seeded from the record, kept here for the
+ * session.
  *
  * **Applied / Interested.** Two tabs above the search, per role: the people who
  * applied, and the people who pressed **I'm interested** on the board
@@ -134,6 +165,17 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [seenIds, setSeenIds] = useState<Set<string>>(() => new Set());
+  // Who the team has marked reviewed — starts from the record's own flags.
+  const [reviewedIds, setReviewedIds] = useState<Set<string>>(
+    () => new Set(roles.flatMap((r) => [...r.applicants, ...r.interested].filter((p) => p.reviewed).map((p) => p.id))),
+  );
+  const toggleReviewed = (id: string) =>
+    setReviewedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   // Mobile only: whether the pane is showing instead of the list.
   const [paneOpen, setPaneOpen] = useState(false);
 
@@ -197,9 +239,11 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
      wrapper takes no `noOptionsMessage`, and react-select's own "No options"
      is library copy, not ours. Portal and fixed menu are what `FilterSelect`
      passes; the styles are its own too, minus the blue — see below. */
-  const roleOptions: Option[] = roles.map((r) => ({
+  const newCountFor = (r: ApplicantsRole) => r.applicants.filter((a) => a.unseen && !seenIds.has(a.id)).length;
+  const roleOptions: RoleOption[] = roles.map((r) => ({
     value: r.uid,
     label: r.applicants.length ? `${r.title} (${r.applicants.length})` : r.title,
+    newCount: newCountFor(r),
   }));
 
   /* White at rest, not `filterSelectStyles`' blue. That blue is its "a filter is
@@ -211,8 +255,8 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
      "Viewing as:" scope select — the one `filterSelectStyles` says it matches —
      draws a select that always holds a value. Menu, options and portal stay
      `filterSelectStyles`'. */
-  const roleSelectStyles: StylesConfig<Option, false> = {
-    ...filterSelectStyles,
+  const roleSelectStyles: StylesConfig<RoleOption, false> = {
+    ...(filterSelectStyles as unknown as StylesConfig<RoleOption, false>),
     control: (base, state) => ({
       ...base,
       borderRadius: '8px',
@@ -243,6 +287,14 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
           value={roleOptions.find((o) => o.value === role.uid) ?? null}
           onChange={(opt) => opt && switchRole(opt.value)}
           isSearchable
+          /* The option: the title with its count, then the count line's green
+             `● M new` when any of that role's applicants are unopened. */
+          formatOptionLabel={(opt) => (
+            <span className={s.roleOption}>
+              <span className={s.roleOptionLabel}>{opt.label}</span>
+              {opt.newCount > 0 && <span className={row.newBadge}>● {opt.newCount} new</span>}
+            </span>
+          )}
           noOptionsMessage={({ inputValue }) => `No roles match “${inputValue.trim()}”`}
           styles={roleSelectStyles}
           menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
@@ -273,12 +325,85 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
     .filter(Boolean)
     .join(' · ');
 
+  /* Where the selected person sits in the list as shown (the search narrows
+     it), for "2 of 3" and the two steps. Stepping is selecting, so it marks
+     the row opened the same way a press does. */
+  const position = selected ? shown.findIndex((a) => a.id === selected.id) : -1;
+  const step = (delta: number) => {
+    const next = shown[position + delta];
+    if (next) select(next);
+  };
+  const emailHref = selected
+    ? `mailto:${selected.email}?subject=${encodeURIComponent(
+        'note' in selected ? `Your application for ${role.title}` : `Your interest in ${role.title}`,
+      )}`
+    : '';
+
+  const paneBar = selected && (
+    <div className={s.paneBar}>
+      <div className={s.paneNav}>
+        <button
+          type="button"
+          className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.stepBtn)}
+          onClick={() => step(-1)}
+          disabled={position <= 0}
+          aria-label="Previous applicant"
+        >
+          <CaretLeftIcon width={16} height={16} />
+        </button>
+        <button
+          type="button"
+          className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.stepBtn)}
+          onClick={() => step(1)}
+          disabled={position < 0 || position >= shown.length - 1}
+          aria-label="Next applicant"
+        >
+          <CaretRightIcon width={16} height={16} />
+        </button>
+        {position >= 0 && (
+          <span className={s.position}>
+            {position + 1} of {shown.length}
+          </span>
+        )}
+      </div>
+      <div className={s.paneActions}>
+        {/* The status as a switch: press to mark, press again to unmark. Email
+            stays the bar's only brand press; this one is bordered neutral at
+            rest and wears the success pair once on. */}
+        <button
+          type="button"
+          className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.reviewBtn, {
+            [s.isReviewed]: reviewedIds.has(selected.id),
+          })}
+          onClick={() => toggleReviewed(selected.id)}
+          aria-pressed={reviewedIds.has(selected.id)}
+          title={reviewedIds.has(selected.id) ? 'Press to unmark' : undefined}
+        >
+          <ReviewCheckIcon
+            size={16}
+            state={reviewedIds.has(selected.id) ? 'filled' : 'outline'}
+            className={s.reviewIcon}
+          />
+          {reviewedIds.has(selected.id) ? 'Reviewed' : 'Mark as reviewed'}
+        </button>
+        <a href={emailHref} className={clsx(btn.root, btn.small, btn.fill, btn.primary, s.actionLink)}>
+          <EnvelopeIcon size={14} />
+          Email {selected.name.split(' ')[0]}
+        </a>
+      </div>
+    </div>
+  );
+
   return (
     <div className={s.page}>
       {/* BackButton's own chrome on a press that unwinds state rather than a
           route: this page is client state inside the profile prototype. The
           real thing would be /teams/<id>/applicants and the production button. */}
-      <button type="button" className={clsx(back.backBtn, s.back)} onClick={isMobile && paneOpen ? () => setPaneOpen(false) : onBack}>
+      <button
+        type="button"
+        className={clsx(back.backBtn, s.back)}
+        onClick={isMobile && paneOpen ? () => setPaneOpen(false) : onBack}
+      >
         <BackIcon /> {isMobile && paneOpen ? 'All applicants' : `Back to ${teamName}`}
       </button>
 
@@ -322,6 +447,7 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
                     key={a.id}
                     applicant={a}
                     isNew={a.unseen && !seenIds.has(a.id)}
+                    reviewed={reviewedIds.has(a.id)}
                     last={index === shown.length - 1}
                     selected={!isMobile && a.id === selectedId}
                     onSelect={() => select(a)}
@@ -343,75 +469,64 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack }: 
         )}
 
         {showPane && selected && (
-          <ApplicantMemberPage
-            key={selected.id}
-            applicant={selected}
-            application={
-              !('note' in selected) ? (
-                /* The interest press: no note to quote, so the section is its
+          <div className={s.paneCol}>
+            {paneBar}
+            <ApplicantMemberPage
+              key={selected.id}
+              applicant={selected}
+              application={
+                !('note' in selected) ? (
+                  /* The interest press: no note to quote, so the section is its
                    date, the CV when one went with the profile, and the reply. */
-                <DetailsSection>
-                  <DetailsSectionHeader title="Interest">
-                    <span className={clsx(row.relative, rowTone.relativeTone)}>
-                      <ClockIcon />
-                      Interested {formatRelativeDays(selected.interestedAt)}
-                    </span>
-                  </DetailsSectionHeader>
-                  {selected.cv && (
-                    <DetailsSectionGreyContentContainer>
-                      <a href={selected.cv.url} target="_blank" rel="noopener noreferrer" className={s.cvLink}>
-                        <CvAttachmentLine
-                          cv={{ fileName: selected.cv.name, size: selected.cv.size, uploadedAt: selected.interestedAt }}
-                          variant="chip"
-                        />
-                      </a>
-                    </DetailsSectionGreyContentContainer>
-                  )}
-                  <div className={s.actions}>
-                    <a
-                      href={`mailto:${selected.email}?subject=${encodeURIComponent(`Your interest in ${role.title}`)}`}
-                      className={clsx(btn.root, btn.small, btn.fill, btn.primary, s.actionLink)}
-                    >
-                      <EnvelopeIcon size={14} />
-                      Email {selected.name.split(' ')[0]}
-                    </a>
-                  </div>
-                </DetailsSection>
-              ) : (
-              /* The application — the only section this page has that the
+                  <DetailsSection>
+                    <DetailsSectionHeader title="Interest">
+                      <span className={clsx(row.relative, rowTone.relativeTone)}>
+                        <ClockIcon />
+                        Interested {formatRelativeDays(selected.interestedAt)}
+                      </span>
+                    </DetailsSectionHeader>
+                    {selected.cv && (
+                      <DetailsSectionGreyContentContainer>
+                        <a href={selected.cv.url} target="_blank" rel="noopener noreferrer" className={s.cvLink}>
+                          <CvAttachmentLine
+                            cv={{
+                              fileName: selected.cv.name,
+                              size: selected.cv.size,
+                              uploadedAt: selected.interestedAt,
+                            }}
+                            variant="chip"
+                          />
+                        </a>
+                      </DetailsSectionGreyContentContainer>
+                    )}
+                  </DetailsSection>
+                ) : (
+                  /* The application — the only section this page has that the
                  member page doesn't. The reply lives here, under what it
                  answers, so the profile card above stays production's. */
-              <DetailsSection>
-                <DetailsSectionHeader title="Application">
-                  <span className={clsx(row.relative, rowTone.relativeTone)}>
-                    <ClockIcon />
-                    Applied {formatRelativeDays(selected.appliedAt)}
-                  </span>
-                </DetailsSectionHeader>
-                <DetailsSectionGreyContentContainer>
-                  <p className={s.noteFull}>{selected.note}</p>
-                  {selected.cv && (
-                    <a href={selected.cv.url} target="_blank" rel="noopener noreferrer" className={s.cvLink}>
-                      <CvAttachmentLine
-                        cv={{ fileName: selected.cv.name, size: selected.cv.size, uploadedAt: selected.appliedAt }}
-                        variant="chip"
-                      />
-                    </a>
-                  )}
-                </DetailsSectionGreyContentContainer>
-                <div className={s.actions}>
-                  <a
-                    href={`mailto:${selected.email}?subject=${encodeURIComponent(`Your application for ${role.title}`)}`}
-                    className={clsx(btn.root, btn.small, btn.fill, btn.primary, s.actionLink)}
-                  >
-                    <EnvelopeIcon size={14} />
-                    Email {selected.name.split(' ')[0]}
-                  </a>
-                </div>
-              </DetailsSection>
-              )
-            }
-          />
+                  <DetailsSection>
+                    <DetailsSectionHeader title="Application">
+                      <span className={clsx(row.relative, rowTone.relativeTone)}>
+                        <ClockIcon />
+                        Applied {formatRelativeDays(selected.appliedAt)}
+                      </span>
+                    </DetailsSectionHeader>
+                    <DetailsSectionGreyContentContainer>
+                      <p className={s.noteFull}>{selected.note}</p>
+                      {selected.cv && (
+                        <a href={selected.cv.url} target="_blank" rel="noopener noreferrer" className={s.cvLink}>
+                          <CvAttachmentLine
+                            cv={{ fileName: selected.cv.name, size: selected.cv.size, uploadedAt: selected.appliedAt }}
+                            variant="chip"
+                          />
+                        </a>
+                      )}
+                    </DetailsSectionGreyContentContainer>
+                  </DetailsSection>
+                )
+              }
+            />
+          </div>
         )}
       </div>
     </div>

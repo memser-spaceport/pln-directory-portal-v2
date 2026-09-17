@@ -11,6 +11,9 @@ import { useDebouncedValue } from '@/components/core/application-search/hooks/us
 import { useIsBelowTabletLandscape } from '@/hooks/useIsBelowTabletLandscape';
 import { useHuskyChat } from '@/services/husky/hooks/useHuskyChat';
 
+// Only for its global rule that turns the field glyph (see the stylesheet's end).
+import './PrototypeSearchModal.module.scss';
+
 interface PrototypeSearchModalProps {
   open: boolean;
   onClose: () => void;

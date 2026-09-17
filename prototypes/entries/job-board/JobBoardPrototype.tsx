@@ -222,7 +222,6 @@ import { JobTeamGroupCard, type JobCardNewsVariant } from './JobTeamGroupCard';
 import { OpenRoleRow } from './OpenRoleRow';
 import { openRoleFor, type OpenInterest } from './openRoles';
 import { JobBoardScopeTabs, SCOPE_APPLIED, SCOPE_PARAM } from './JobBoardScopeTabs';
-import { applicationStatus, type ApplicationStatus } from './applicationStatus';
 import { SubmitJobModal, type SubmittedJob } from './SubmitJobModal';
 import {
   canManageTeam,
@@ -349,7 +348,7 @@ const VIEWER_NOTE: Record<BoardViewer, string> = {
   'profile-ready':
     'Signed in, profile already good. Apply goes straight to the cover letter — the modal reads the profile back, so a drawer in front of it would be showing the same thing twice.',
   applied:
-    'The returning member: three applications already sent, one in each state the board can report. The Applied tab has a count and a list; each row keeps its “Applied Nd ago” clock and wears a status pill once something has happened since — “Viewed by team” when the team opened it on their applicants page, “Role closed” when the listing was taken down (that row stays in the tab, though it has left the board). The rest of the board carries on as normal.',
+    'The returning member: two applications already sent. The Applied tab has a count and a list, and each row reads “Applied Nd ago” in its clock — an application has one state, applied, and wears no pill. The rest of the board carries on as normal.',
   'team-lead':
     'Leads Filecoin Foundation. Two things change and nothing else: “Submit a job” in the toolbar (the Submit a Deal door — a modal, then review by the PL team before it goes live), and their own team’s card showing its listings in every state — one in review, the live ones, one taken down — each row with a status pill when it is not live and a ⋯ menu holding Mark inactive / Bring back and Delete. Every other card is the public board.',
   'directory-admin':
@@ -367,14 +366,9 @@ const VIEWER_NOTE: Record<BoardViewer, string> = {
  * Read off `MOCK_JOB_GROUPS` rather than typed as uids, so a rename or reorder in
  * the mocks can't leave this pointing at roles that no longer exist.
  */
-const SEEDED_APPLICATION_ROLES = [
-  ...(MOCK_JOB_GROUPS.find((g) => g.team.name === 'Filecoin Foundation') ?? MOCK_JOB_GROUPS[0]).roles.slice(0, 2),
-  /* A third, to a listing the team has since taken down (`ff-4` is seeded
-     `inactive` — see `seedListingMeta`). It is the one way to show the
-     "Role closed" status without a control to produce it, and it is the row
-     that proves the Applied tab keeps what the public board no longer lists. */
-  ...(MOCK_UNLISTED_ROLES['filecoin-foundation'] ?? []).filter((r) => r.uid === 'ff-4'),
-];
+const SEEDED_APPLICATION_ROLES = (
+  MOCK_JOB_GROUPS.find((g) => g.team.name === 'Filecoin Foundation') ?? MOCK_JOB_GROUPS[0]
+).roles.slice(0, 2);
 
 const SEEDED_APPLICATION_LETTERS = [
   'I built the transport layer this role touches — QUIC upgrade paths at Lattice, and the libp2p maintainer seat before that. Ecosystem growth here means talking to the teams already shipping on it, which is the half I have been doing informally for two years.',
@@ -401,12 +395,7 @@ function seededApplications(): Map<string, JobApplication> {
     d.setDate(d.getDate() - n);
     return d.toISOString();
   };
-  const offsets = [2, 9, 20];
-  /* The newest one has been opened by the team, the day after it went — so
-     the list shows every state the board can report: viewed, still waiting,
-     and closed (the third, by its listing's status rather than by anything on
-     the application). */
-  const viewed = [daysAgo(1), undefined, undefined];
+  const offsets = [2, 9];
 
   return new Map(
     SEEDED_APPLICATION_ROLES.map((role, i) => [
@@ -415,7 +404,6 @@ function seededApplications(): Map<string, JobApplication> {
         coverLetter: SEEDED_APPLICATION_LETTERS[i] ?? '',
         appliedAt: daysAgo(offsets[i] ?? 1),
         withCv: true,
-        viewedAt: viewed[i],
       },
     ]),
   );
@@ -480,9 +468,17 @@ function managedSampleRole(status: ListingStatus): IJobRole | null {
   return pool.find((r) => meta.get(r.uid)?.status === status) ?? null;
 }
 
-/** One sent application. The letter is what went; `appliedAt` is what the Applied
- *  tab reads to say how long ago it went. ISO, like every other date on the board,
- *  so `getJobDate`'s own formatting helpers can read it. */
+/**
+ * One sent application. The letter is what went; `appliedAt` is what the Applied
+ * tab reads to say how long ago it went. ISO, like every other date on the board,
+ * so `getJobDate`'s own formatting helpers can read it.
+ *
+ * **An application has one state: applied.** Nothing here records whether the
+ * team has opened it or whether the listing is still live, and the row wears no
+ * status pill — the clock's "Applied Nd ago" is the whole report. The team's
+ * applicants page keeps its own unread tint (`seenIds` there); that fact is not
+ * read back to the applicant.
+ */
 interface JobApplication {
   coverLetter: string;
   appliedAt: string;
@@ -494,13 +490,6 @@ interface JobApplication {
    * question this prototype names rather than answers — see the design note.)
    */
   withCv: boolean;
-  /**
-   * When the team opened it, if they have. The one fact the team's applicants
-   * page records about an application (`seenIds` there), read from this side.
-   * Never set by anything on the board — it is the team's act — so in this
-   * mock it only ever arrives seeded. See `applicationStatus`.
-   */
-  viewedAt?: string;
 }
 
 export default function JobBoardPrototype() {
@@ -821,22 +810,6 @@ export default function JobBoardPrototype() {
 
   const statusOf = (role: IJobRole): ListingStatus => listings.get(role.uid)?.status ?? 'live';
 
-  /** Role uid → where the application stands, for the rows and the drawer.
-   *  Derived here — the one place that holds both the applications and the
-   *  listings' states — so the row and the masthead read one answer. A role the
-   *  owner deleted this session is out of `allGroups` altogether and so never
-   *  reaches a row; in production that application would read `closed` too. */
-  const applicationStatusByRole = useMemo<Map<string, ApplicationStatus>>(
-    () =>
-      new Map(
-        [...applications].map(([uid, application]) => [
-          uid,
-          applicationStatus(application, listings.get(uid)?.status ?? 'live'),
-        ]),
-      ),
-    [applications, listings],
-  );
-
   /** What the rail is currently narrowed to — the intent the visitor has already expressed. */
   const criteria = useMemo<RoleCriteria>(
     () => ({
@@ -867,10 +840,9 @@ export default function JobBoardPrototype() {
            One exception: **your own application survives its listing.** In the
            Applied scope a role you applied to stays even after the team takes
            it down — the tab is the record of what you sent, and a row that
-           vanished the day the team closed the role would erase the one fact
-           you most need to know about it. The row says so instead, with a
-           "Role closed" pill (`ApplicationStatusBadge`). On All it is still
-           gone, because All is the public board. */
+           vanished the day the team closed the role would erase what you sent.
+           The row reads like any other applied row: an application has one
+           state. On All it is still gone, because All is the public board. */
         if (!owned && statusOf(role) !== 'live' && !(appliedScope && appliedRoleUids.has(role.uid))) return false;
         /* The Applied scope narrows first, and narrows like every other filter:
            it is one more predicate in this list rather than a separate list. So
@@ -1662,7 +1634,6 @@ export default function JobBoardPrototype() {
       onViewJob={onViewJob}
       appliedRoleUids={appliedRoleUids}
       appliedAtByRole={appliedAtByRole}
-      applicationStatusByRole={applicationStatusByRole}
       openInterest={openInterests.get(group.team.uid)}
       onOpenRoleInterest={onOpenRoleInterest}
       /* The owner's team: its card carries every state and each row
@@ -1900,7 +1871,6 @@ export default function JobBoardPrototype() {
         askProfileReview={askProfileReview}
         applied={flowJob ? appliedRoleUids.has(flowJob.role.uid) : false}
         appliedAt={flowJob ? appliedAtByRole.get(flowJob.role.uid) : undefined}
-        applicationStatus={flowJob ? applicationStatusByRole.get(flowJob.role.uid) : undefined}
         interested={flowJob ? interested.has(flowJob.role.uid) : false}
         onSetInterested={flowJob ? (on) => setRoleInterest(flowJob.role.uid, on) : undefined}
         /* The open role's route: profile review, then the message to the team.

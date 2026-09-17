@@ -82,6 +82,17 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 12px;
+
+  /* Phone: Edit/Delete have left for the corner, so what wraps under the tags
+     is Ask AI and the follower stack — one row from the content edge, the
+     followers first (they are the page's own fact), Ask AI at the row's end. */
+  @include media.mobile-only {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
 }
 
 // Inline variant: Follow button + followers on a single row, above About.
@@ -1378,4 +1389,67 @@
 .newsPosted {
   animation: newsPostedWash 1.5s ease-out;
   border-radius: 8px;
+}
+
+/* The meta line's time and its "Edited" mark, as one wrapping unit —
+   production's .meta wraps per item, which strands the mark on a line of its
+   own under a dangling separator. Same 6px gap as .meta, so nothing moves when
+   there is no mark. */
+.newsWhen {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* Ask AI is the DS Button as a text action (link, primary) — what
+   HeaderActionBtn renders for Edit. Production Button's root has no flex/gap,
+   so the icon + label layout is HeaderActionBtn's own (.root: flex, 4px). */
+.askAiBtn {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+/* Visitor's header: Ask AI and Follow on one row, the Follow caption under
+   them. Follow stays last on desktop so it keeps the card's corner and the
+   right-aligned caption sits under it. On a phone the cluster is left-aligned,
+   so the row reverses: Follow leads and the caption is still under Follow,
+   never under Ask AI. */
+.headerActionRow {
+  display: inline-flex;
+  align-items: center;
+  /* 12px — production's `.actions` gap in the owner's row (TeamDetails), so
+     Ask AI stands the same distance from its neighbour in every seat. A bare
+     text action needs the air a boxed one carried in its padding. */
+  gap: 12px;
+
+  @include media.mobile-only {
+    flex-direction: row-reverse;
+  }
+}
+
+/* Owner's seat: Ask AI rides the Edit/Delete row from tablet up, and the
+   wrapped row under the tags on a phone (see TeamProfilePrototype). */
+.askAiFromTablet {
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.askAiMobileOnly {
+  display: none;
+
+  @include media.mobile-only {
+    display: inline-flex;
+  }
+}
+
+/* Sections an AI answer's door scrolls to. The prototype has no pinned
+   header, so the section lands with a little air above it rather than
+   flush against the viewport edge. */
+.aiAnchor {
+  scroll-margin-top: 16px;
 }

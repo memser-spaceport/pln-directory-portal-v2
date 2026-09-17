@@ -2,7 +2,7 @@
 // .container because `Modal` merges its own classes first (clsx(s.overlay, ...)),
 // so a single class loses the specificity tie.
 //
-// The one consumer is now `ai-search/AiSearchModal`: the sibling this sheet was
+// The one consumer is now `ai-search/AiSearchView`: the sibling this sheet was
 // factored out for renders production's `AppSearchDialog` instead, since the
 // dialog it was proposing shipped (LAB-2477).
 
@@ -142,4 +142,14 @@
   .card {
     border-radius: 0;
   }
+}
+
+/* Production's dialog leads its field with `/icons/search-right.svg`, whose
+   handle points down-left. Prototypes turn it to the common magnifier — lens
+   top-left, handle down-right — by mirroring the same asset, so its weight and
+   ink are untouched. `AppSearchDialog` is production and portals to <body>, so
+   this is a global rule, gated on the prototype-route marker for the reason
+   given in PrototypeRouteChrome.module.scss. ai-search mirrors its own copy. */
+:global(body:has([data-prototype-chrome]) [role='dialog'][aria-label='Search'] img[src*='search-right']) {
+  transform: scaleX(-1);
 }

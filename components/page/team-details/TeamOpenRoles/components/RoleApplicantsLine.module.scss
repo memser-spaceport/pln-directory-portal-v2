@@ -1,0 +1,56 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 8px 16px 12px;
+  min-width: 0;
+
+  &:hover .count {
+    text-decoration: underline;
+  }
+}
+
+/* Overlapped, the way the profile's own follower stack overlaps: the faces are
+ * a texture saying "people", not three portraits to identify. */
+.faces {
+  display: inline-flex;
+  flex: none;
+}
+
+.face {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--background-neutral-primary, #fff);
+  background: var(--background-neutral-subtle, #f1f5f9);
+
+  & + & {
+    margin-left: -9px;
+  }
+}
+
+.count {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  strong {
+    font-weight: 600;
+    color: var(--foreground-neutral-primary, #0f172a);
+  }
+}
+
+.newBadge {
+  flex: none;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--foreground-success-primary, #0a9952);
+  white-space: nowrap;
+}

@@ -39,9 +39,26 @@ jest.mock('@/components/page/jobs/hooks/useJobApplySurface', () => ({
 }));
 
 jest.mock('@/components/page/team-details/TeamOpenRoles/TeamOpenRoles', () => ({
-  TeamOpenRoles: (props: { group: { team: { uid: string } }; apply?: unknown }) => (
-    <div data-testid="roles-list" data-team={props.group.team.uid} data-has-apply={String(Boolean(props.apply))} />
+  TeamOpenRoles: (props: { group: { team: { uid: string } }; apply?: unknown; renderRoleFooter?: unknown }) => (
+    <div
+      data-testid="roles-list"
+      data-team={props.group.team.uid}
+      data-has-apply={String(Boolean(props.apply))}
+      data-has-footer={String(Boolean(props.renderRoleFooter))}
+    />
   ),
+}));
+
+/* The applicants count line rides on this host. Its query is captured rather
+   than run: what matters here is whether the host asks for privileged counts at
+   all, because every applicants read is authenticated and an ungated one on a
+   public team profile makes customFetch reload the page forever. */
+const countsCalls: { enabled: boolean; teamUid: string }[] = [];
+jest.mock('@/services/jobs/hooks/useTeamApplicants', () => ({
+  useApplicantCounts: (args: { enabled: boolean; teamUid: string }) => {
+    countsCalls.push(args);
+    return { data: undefined };
+  },
 }));
 
 import { TeamOpenRolesSection } from '@/components/page/team-details/TeamOpenRoles/TeamOpenRolesSection';
@@ -77,7 +94,10 @@ const lastCall = () => surfaceCalls[surfaceCalls.length - 1];
 
 beforeEach(() => {
   surfaceCalls.length = 0;
+  countsCalls.length = 0;
 });
+
+const lastCounts = () => countsCalls[countsCalls.length - 1];
 
 describe('TeamOpenRolesSection', () => {
   it('renders the list and the drawer stack when the team is hiring', () => {
@@ -109,6 +129,22 @@ describe('TeamOpenRolesSection', () => {
 
     expect(screen.queryByTestId('roles-list')).not.toBeInTheDocument();
     expect(screen.getByTestId('controller')).toBeInTheDocument();
+  });
+
+  /* The applicants flag is off in this suite (only SHOW_JOB_BOARD_APPLY is
+     pinned on), which is the state every environment is in today. */
+  it('asks for no applicant counts, and offers no count line, while the flag is off', () => {
+    render(<TeamOpenRolesSection group={GROUP} isLoggedIn userInfo={{ uid: 'u1', leadingTeams: ['team-1'] } as any} />);
+
+    expect(lastCounts().enabled).toBe(false);
+    expect(screen.getByTestId('roles-list')).toHaveAttribute('data-has-footer', 'false');
+  });
+
+  it('asks for no applicant counts for a signed-out visitor', () => {
+    render(<TeamOpenRolesSection group={GROUP} isLoggedIn={false} userInfo={undefined} />);
+
+    expect(lastCounts().enabled).toBe(false);
+    expect(screen.getByTestId('roles-list')).toHaveAttribute('data-has-footer', 'false');
   });
 
   it('never writes ?job= on a team profile, and says which surface it is', () => {

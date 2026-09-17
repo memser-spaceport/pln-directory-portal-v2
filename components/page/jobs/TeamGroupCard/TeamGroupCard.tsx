@@ -3,6 +3,7 @@
 import { memo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
 import { useToggle } from 'react-use';
 
@@ -67,11 +68,15 @@ function TeamGroupCardImpl({
   const newCount = roles.filter((r) => isNew(getJobDate(r))).length;
 
   const focusTags = useGetFocusTags(team);
-  const showOpenRole = Boolean(openRole) && isProtocolLabsTeam(team);
+  /* Protocol Labs is both the team whose card wears the brand hairline and the
+     only team offering the open-role signal in Phase 1 — one test, read twice,
+     so the two can never disagree about which card is PL's. */
+  const isProtocolLabs = isProtocolLabsTeam(team);
+  const showOpenRole = Boolean(openRole) && isProtocolLabs;
   const currentUser = useCurrentUserStore((state) => state.currentUser);
 
   return (
-    <article className={s.card}>
+    <article className={clsx(s.card, isProtocolLabs && s.plCard)}>
       <header className={s.header}>
         <div className={s.avatar}>
           {team.logoUrl ? (

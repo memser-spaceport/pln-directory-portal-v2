@@ -173,6 +173,27 @@ describe('who gets the row', () => {
   });
 });
 
+describe("Protocol Labs' card", () => {
+  /* The brand hairline (#3047). Asserted through the class rather than the
+     painted pixel, because the gradient is a masked ::before that jsdom does not
+     render — the class is the only honest thing to check here, and a visual
+     regression is a review-by-eye matter. */
+  it('wears the brand hairline, and no other team does', () => {
+    const { container: pl } = renderCard();
+    expect(pl.querySelector('article')?.className).toContain('plCard');
+
+    const { container: other } = renderCard({ name: 'Filecoin Foundation', uid: 'team-2' });
+    expect(other.querySelector('article')?.className).not.toContain('plCard');
+  });
+
+  /* The hairline is the card's own mark and does not depend on the open-role
+     signal being wired — a host that passes no `openRole` still gets it. */
+  it('wears it whether or not the open-role signal is wired', () => {
+    const { container } = renderCardWithoutSignal();
+    expect(container.querySelector('article')?.className).toContain('plCard');
+  });
+});
+
 describe('the copy', () => {
   /* The per-role interest banner promised a notification nothing sent (fixed in
      #3050). This one may promise outreach — the signal is pushed to the team's

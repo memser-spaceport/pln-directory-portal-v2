@@ -14,6 +14,7 @@ import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { HeaderActionBtn } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { useStoredCv } from '@/services/members/hooks/useStoredCv';
 
 import { ExperienceDetailsView } from './components/ExperienceDetailsView';
 /* The view's header-control tone, worn by the import card's Cancel for the same
@@ -108,9 +109,17 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member, enableCvImport
     setView('add');
   }, [abort, setParsed]);
 
+  /* Whether the profile already holds a CV. The same query `MemberCvSection`
+     reads, so the two cannot disagree about it: one cache entry is the shared
+     answer, where two independent conditions would be two doors waiting to both
+     stand open. While that card is up it owns Replace, so this section's own
+     offer — the empty-state drop area and the header's "Update from CV" — stands
+     down. */
+  const { data: storedCv } = useStoredCv(enableCvImport ? member.id : undefined);
+
   const cvImport: CvImportControls | undefined = useMemo(
     () =>
-      enableCvImport
+      enableCvImport && !storedCv
         ? {
             onParse: parseAndReport,
             onAbort: abort,
@@ -135,7 +144,7 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member, enableCvImport
             },
           }
         : undefined,
-    [enableCvImport, parseAndReport, abort, openAddForm, setParsed, onCvImportCancelled, closeImport],
+    [enableCvImport, storedCv, parseAndReport, abort, openAddForm, setParsed, onCvImportCancelled, closeImport],
   );
 
   if (!isLoggedIn || (!v2HasMemberContacts && !isOwner)) {

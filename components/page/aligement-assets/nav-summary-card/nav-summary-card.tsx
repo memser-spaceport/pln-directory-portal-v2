@@ -1,9 +1,7 @@
 import styles from './nav-summary-card.module.scss';
 
 export interface NavSummaryCardProps {
-  /** Total trust net asset value, in USD. `null`/`undefined` renders a loading dash, never "$0.00M". */
   navUsd: number | null | undefined;
-  /** Total PLAA outstanding. `null`/`0` renders a loading/undefined dash for the derived per-unit value. */
   totalUnits: number | null | undefined;
 }
 
@@ -21,9 +19,7 @@ const currency0dpFormatter = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 0,
 });
 
-// Compact currency notation rounds to significant digits, not a fixed 2dp, so
-// the "$19.07M" shape is built by hand: scale, format the scaled number as
-// currency, then append the unit suffix.
+// Intl's compact notation rounds to significant digits, so the "$19.07M" shape is built by hand.
 function formatNavUsd(value: number): string {
   const abs = Math.abs(value);
   if (abs >= 1_000_000_000) return `${currency2dpFormatter.format(value / 1_000_000_000)}B`;
@@ -32,13 +28,12 @@ function formatNavUsd(value: number): string {
 }
 
 export default function NavSummaryCard({ navUsd, totalUnits }: NavSummaryCardProps) {
-  // navUsd / totalUnits is derived here, not accepted as a prop, so it can
-  // never drift from the two source figures.
+  // Zero units is treated as missing, not divided by.
   const perUnit = navUsd != null && totalUnits ? navUsd / totalUnits : null;
 
   const navLabel = navUsd != null ? formatNavUsd(navUsd) : '—';
   const totalUnitsLabel = totalUnits != null ? unitFormatter.format(totalUnits) : '—';
-  const perUnitLabel = perUnit != null ? currency2dpFormatter.format(Math.round(perUnit * 100) / 100) : '—';
+  const perUnitLabel = perUnit != null ? currency2dpFormatter.format(perUnit) : '—';
 
   return (
     <div className={styles.root}>

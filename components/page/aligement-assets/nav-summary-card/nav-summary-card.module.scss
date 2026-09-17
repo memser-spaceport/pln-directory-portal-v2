@@ -1,23 +1,14 @@
-// One-off palette: no equivalents in styles/colors.scss for this exact scale
-// (its Slate tokens sit at different values), so these stay local to the
-// component rather than forcing a mismatched token onto the design.
+// Local palette: the shared Slate tokens sit at different values than this design.
 $ink: #101828;
 $brand-blue: #2563eb;
 $card-border: #e4e7ec;
 $hairline: #edf0f4;
 $tint: #f7f9fc;
+$stack-breakpoint: 720px; // set by the design, not one of the shared breakpoints
 
-// Panels stack below this width; chosen by the design, not one of the
-// project's shared breakpoints (640/960/1200).
-$stack-breakpoint: 720px;
-
-// No top/left padding: the gray left panel bleeds flush to its container's
-// own top-left corner (see .panelPrimary's matching border-radius below). No
-// bottom padding either, so the border-bottom sits flush with the panels'
-// own bottom edge — it's on .root (not .card) only so it still runs edge to
-// edge to the container's border, since .card itself is right-inset by 40px.
 .root {
   width: 100%;
+  // No top or left padding: the gray panel bleeds to the container's corner.
   padding: 0 40px 0 0;
   border-bottom: 1px solid $card-border;
   font-family: 'Inter', sans-serif;
@@ -38,14 +29,11 @@ $stack-breakpoint: 720px;
   align-items: center;
   padding: 28px 32px;
   background-color: $tint;
-  // Matches the containing card's own corner radius so the bleed to its
-  // top-left edge doesn't poke a square corner past the rounded border.
   border-top-left-radius: 16px;
 
   @media (max-width: $stack-breakpoint - 1) {
     flex-basis: auto;
     width: 100%;
-    // Stacked full-width, so both top corners now sit on the outer edge.
     border-top-right-radius: 16px;
   }
 }
@@ -92,8 +80,6 @@ $stack-breakpoint: 720px;
   letter-spacing: -0.025em;
   color: $ink;
   font-variant-numeric: tabular-nums;
-
-  // Keeps the hero figure from wrapping or clipping down to a 360px viewport.
   @media (max-width: 480px) {
     font-size: 40px;
   }

@@ -386,55 +386,39 @@ async function readErrorMessage(response: Response): Promise<string | undefined>
 /**
  * The CV the profile is currently holding, or `null` if it is holding none.
  *
- * One question — "is there a CV, and where is it" — over the API's two calls:
- * `latest` says whether a row exists, `file` mints the short-lived link the
- * preview reads and carries what the card prints beside it. Folded here so no
- * call site has to reassemble the answer.
+ * One call. `GET /cv-imports/latest` carries a `file` object whenever the row
+ * has an `uploadedAt`, and that object is already this shape — `fileName`,
+ * `uploadedAt`, and optionally `size` and a signed `url`. No mapping to do
+ * beyond handing it back.
  *
- * **Not gated on the parse.** `latest` reports `PROCESSING | SUCCEEDED |
- * NOTHING_FOUND | FAILED`, and the document reaches storage before any of those
- * is decided, so a CV the parser gave up on is still one the member uploaded and
- * can still see, replace and remove. The API takes that position; this mirrors
- * it rather than deciding it again.
+ * **`file`, not `status`, is the test for "has a CV".** The API sets it from the
+ * upload timestamp rather than the parse outcome, so a document the model failed
+ * on — or found nothing in — still comes back here, which is what lets the owner
+ * see, replace and remove a CV that parsed badly.
+ *
+ * `url` can be absent even with a file present: the API signs it at read time
+ * and swallows a signing failure rather than lose the whole response over it.
+ * The card handles that — it falls back to a document glyph — so this does not.
  *
  * A missing CV is `null`, not a throw: having none is the ordinary state of most
  * profiles, and a throw would make React Query report every new member as an
- * error.
- *
- * Note `request` resolves for *any* status — it only rejects when no response
- * arrives at all — so 404 is read off the response rather than caught.
+ * error. Note `request` resolves for *any* status and rejects only when no
+ * response arrives, so 404 is read off the response rather than caught.
  */
 export async function getStoredCv(uid: string, signal?: AbortSignal): Promise<StoredCv | null> {
-  const latest = await request(`${BASE}/${uid}/cv-imports/latest`, { method: 'GET', signal }, signal);
-  if (latest.status === 404) return null;
-  if (!latest.ok) throw new CvParseError('server', latest.status);
+  const response = await request(`${BASE}/${uid}/cv-imports/latest`, { method: 'GET', signal }, signal);
+  if (response.status === 404) return null;
+  if (!response.ok) throw new CvParseError('server', response.status);
 
-  const file = await request(`${BASE}/${uid}/cv-imports/file`, { method: 'GET', signal }, signal);
-  /* The row exists but the object does not — treat it as no CV rather than an
-     error, so the upload offer comes back instead of a card that cannot paint. */
-  if (file.status === 404) return null;
-  if (!file.ok) throw new CvParseError('server', file.status);
-
-  const body = (await file.json()) as {
-    url: string;
-    originalFilename: string;
-    uploadedAt: string;
-    size?: number;
-  };
-
-  return {
-    fileName: body.originalFilename,
-    uploadedAt: body.uploadedAt,
-    url: body.url,
-    size: body.size,
-  };
+  const body = (await response.json()) as { file?: StoredCv };
+  return body.file ?? null;
 }
 
 /**
  * Remove the stored CV.
  *
- * The profile fields it filled are deliberately left alone — see the API's
- * `remove`, and the sentence `RemoveCvDialog` puts in front of the member.
+ * The profile fields it filled are deliberately left alone — the API leaves
+ * them, and `RemoveCvDialog` says so before the press.
  */
 export async function removeStoredCv(uid: string): Promise<void> {
   const response = await request(`${BASE}/${uid}/cv-imports`, { method: 'DELETE' });

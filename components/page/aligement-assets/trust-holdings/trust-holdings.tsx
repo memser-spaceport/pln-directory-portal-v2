@@ -17,7 +17,6 @@ import {
 } from 'recharts';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
-import { DISCLOSURE_URL } from '@/constants/plaa';
 import { BuybackMetric, DonutSlice, NavPoint, TrustHoldingsData } from '@/services/plaa/trust-holdings.service';
 import NavSummaryCard from '../nav-summary-card/nav-summary-card';
 import { BuybackSimulationSectionData } from '../rounds/types/current-round.types';
@@ -616,12 +615,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
         <div className="th-card__body">
           <div className="th-nav-meta-block">
             <h2 className="th-heading th-heading--title-weight">Trust Total Net Asset Value</h2>
-            <p className="th-heading__sub th-heading__sub--muted">
-              Estimated as of {data.asOfDate} ·{' '}
-              <a className="th-nav-meta-link" href={DISCLOSURE_URL}>
-                Methodology &amp; disclaimers
-              </a>
-            </p>
+            <p className="th-heading__sub th-heading__sub--muted">Estimated as of {data.asOfDate}</p>
           </div>
 
           <p className="th-card__note th-card__note--standalone">
@@ -1276,15 +1270,6 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           flex-direction: column;
           gap: 8px;
           margin: 20px 0;
-        }
-
-        .th-nav-meta-link {
-          color: #156ff7;
-          text-decoration: underline;
-        }
-
-        .th-nav-meta-link:hover {
-          color: #1260d9;
         }
 
         /* Donut + legend split */

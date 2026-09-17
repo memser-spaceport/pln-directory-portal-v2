@@ -192,3 +192,21 @@
     text-decoration: underline;
   }
 }
+
+/* The team applicants page, mounted in the board's place. The page was built
+   on the team profile, where nothing is pinned above it; the board pins its
+   navbar, so the page's sticky list and bar are told how far down to stop.
+
+   The numbers are the navbar's *measured* height — 56px, and 80px from the
+   960px breakpoint up, where the navbar itself switches. Not the app-header-height variable: on this route it
+   resolves to 0 (the navbar is tall because of what is in it, not because of
+   the variable), so offsetting by it parked the list and the bar underneath
+   the navbar. */
+.applicantsHost {
+  --applicants-top: 56px;
+  padding-top: 16px;
+
+  @include media.tablet-landscape {
+    --applicants-top: 80px;
+  }
+}

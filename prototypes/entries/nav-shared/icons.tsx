@@ -39,12 +39,24 @@ export const BellIcon = () => (
   </svg>
 );
 
-/** Static stand-in for the service-wired `ApplicationSearch` trigger. */
+/**
+ * Static stand-in for the service-wired `ApplicationSearch` trigger.
+ *
+ * Stroked rather than a filled outline, with `non-scaling-stroke`, so the ring
+ * stays 1.5px whether the bar draws it at 20 (mobile icon box) or 16 (the
+ * desktop field). The filled version it replaces thinned to ~1px when the
+ * field shrank it, reading lighter than MoreIcon, the bell and the (?) beside
+ * it — which all sit at about 1.5px.
+ */
 export const SearchGlyph = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="8.75" cy="8.75" r="6" stroke="#475569" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
     <path
-      d="M17.9422 17.0578L14.0305 13.1469C15.1642 11.7857 15.7296 10.0398 15.6086 8.27238C15.4875 6.50496 14.6894 4.85224 13.3806 3.65814C12.0718 2.46404 10.3527 1.81958 8.58159 1.85891C6.81046 1.89823 5.12174 2.61832 3.86723 3.86923C2.61272 5.12013 1.88777 6.80677 1.84334 8.57774C1.79891 10.3487 2.43838 12.0696 3.6287 13.3818C4.81903 14.694 6.46963 15.4972 8.23673 15.6236C10.0038 15.75 11.7517 15.1897 13.1164 14.0602L17.0578 17.9422C17.1159 18.0003 17.1849 18.0464 17.2608 18.0778C17.3367 18.1093 17.4181 18.1255 17.5002 18.1255C17.5824 18.1255 17.6637 18.1093 17.7396 18.0778C17.8155 18.0464 17.8845 18.0003 17.9426 17.9422C18.0007 17.8841 18.0468 17.8151 18.0782 17.7392C18.1097 17.6633 18.1259 17.5819 18.1259 17.4998C18.1259 17.4176 18.1097 17.3363 18.0782 17.2604C18.0468 17.1845 18.0007 17.1155 17.9426 17.0574L17.9422 17.0578ZM3.12518 8.74979C3.12518 7.63727 3.45508 6.54974 4.07316 5.62471C4.69124 4.69968 5.56975 3.97871 6.59758 3.55292C7.62542 3.12713 8.75641 3.01573 9.84756 3.2328C10.9387 3.44987 11.941 3.98564 12.7277 4.7723C13.5143 5.55897 14.0501 6.56131 14.2672 7.65246C14.4842 8.7436 14.3728 9.87459 13.9471 10.9024C13.5213 11.9303 12.8003 12.8088 11.8753 13.4268C10.9502 14.0449 9.8627 14.3748 8.75018 14.3748C7.25884 14.3733 5.82907 13.7801 4.77448 12.7255C3.71988 11.6709 3.12667 10.2411 3.12518 8.74979Z"
-      fill="#475569"
+      d="M13.25 13.25L17.5 17.5"
+      stroke="#475569"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      vectorEffect="non-scaling-stroke"
     />
   </svg>
 );

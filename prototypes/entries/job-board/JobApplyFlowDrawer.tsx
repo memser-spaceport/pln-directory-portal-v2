@@ -48,7 +48,6 @@ import {
 import type { ParsedProfile } from '../profile-shared/ExperienceImport/types';
 import { isProfileComplete, type MemberProfile } from './viewerState';
 import type { ListingStatus } from './listings';
-import type { ApplicationStatus } from './applicationStatus';
 import d from './JobApplyFlowDrawer.module.scss';
 
 /**
@@ -242,9 +241,6 @@ interface JobApplyFlowDrawerProps {
   /** Already sent from this session, and when. */
   applied: boolean;
   appliedAt?: string;
-  /** Where it stands, when `applied` — the masthead's stamp row wears the pill
-   *  the row wears. */
-  applicationStatus?: ApplicationStatus;
   /**
    * A job aspirant's signal on this role — "I'm interested", and its undo.
    * Held by the board, like the applications, because the rows and the Applied
@@ -361,7 +357,6 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     askProfileReview = false,
     applied,
     appliedAt,
-    applicationStatus,
     interested = false,
     onSetInterested,
     interest,
@@ -1231,7 +1226,6 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             team={team}
             applied={applied}
             appliedAt={appliedAt}
-            applicationStatus={applicationStatus}
             status={managed?.status}
             /* The slot under the masthead: the profile's case to a visitor,
                the profile's one use to an aspirant. See `showRail` for why

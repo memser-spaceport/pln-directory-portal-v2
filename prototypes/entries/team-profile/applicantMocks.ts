@@ -23,6 +23,7 @@ import type { FormattedMemberExperience } from '@/services/members/hooks/useMemb
  * `email` is what that reply needs.
  *
  * `unseen` is the product's "new": not looked at since the team's last visit.
+ * `reviewed` is the team's own tick — see the field.
  * The rows are keyed by the board's role uids (`MOCK_JOB_GROUPS`, `pl-*`), so a
  * role deleted from the section takes its applicants with it.
  */
@@ -50,6 +51,15 @@ export interface RoleApplicant {
   /** The rest of what `/members/<id>` renders for them. */
   profile: ApplicantMemberRecord;
   unseen: boolean;
+  /**
+   * The team's own press — **Mark as reviewed** on the applicants page — not
+   * a derived fact. It is the one stage the list carries: a founder working
+   * through fifty people needs to know which ones they have already dealt
+   * with, and "opened" (`unseen`) cannot say that, because stepping past a
+   * row opens it too. Still no Shortlist / Reject (see above): reviewed is a
+   * tick, not a column to move people across.
+   */
+  reviewed: boolean;
 }
 
 /**
@@ -75,10 +85,10 @@ export interface ApplicantMemberRecord {
   repositories: { name: string; description: string }[];
 }
 
-const daysAgo = (days: number, hours = 0) =>
+export const daysAgo = (days: number, hours = 0) =>
   new Date(Date.now() - (days * 24 + hours) * 60 * 60 * 1000).toISOString();
 
-const exp = (
+export const exp = (
   memberId: string,
   uid: string,
   title: string,
@@ -144,6 +154,7 @@ export const MOCK_APPLICANTS: Record<string, RoleApplicant[]> = {
         ],
       },
       unseen: true,
+      reviewed: false,
     },
     {
       id: 'app-2',
@@ -181,6 +192,7 @@ export const MOCK_APPLICANTS: Record<string, RoleApplicant[]> = {
         ],
       },
       unseen: true,
+      reviewed: false,
     },
     {
       id: 'app-3',
@@ -211,6 +223,7 @@ export const MOCK_APPLICANTS: Record<string, RoleApplicant[]> = {
         repositories: [{ name: 'go-bitswap-lite', description: 'Minimal Bitswap client for embedded nodes.' }],
       },
       unseen: false,
+      reviewed: true,
     },
   ],
   // Product Manager, Developer Tools
@@ -249,6 +262,7 @@ export const MOCK_APPLICANTS: Record<string, RoleApplicant[]> = {
         repositories: [],
       },
       unseen: true,
+      reviewed: false,
     },
   ],
   // Protocol Researcher — nobody yet: the row shows no line at all.
@@ -286,6 +300,7 @@ export const MOCK_APPLICANTS: Record<string, RoleApplicant[]> = {
         ],
       },
       unseen: false,
+      reviewed: false,
     },
     {
       id: 'app-6',
@@ -316,6 +331,7 @@ export const MOCK_APPLICANTS: Record<string, RoleApplicant[]> = {
         repositories: [{ name: 'noise-spec-notes', description: 'Annotated notes on the libp2p Noise handshake.' }],
       },
       unseen: false,
+      reviewed: false,
     },
   ],
 };
@@ -366,6 +382,7 @@ export const MOCK_INTERESTED: Record<string, RoleInterested[]> = {
         repositories: [{ name: 'lodestar-metrics', description: 'Prometheus exporters for Lodestar beacon nodes.' }],
       },
       unseen: true,
+      reviewed: false,
     },
     {
       id: 'int-2',
@@ -387,6 +404,7 @@ export const MOCK_INTERESTED: Record<string, RoleInterested[]> = {
         repositories: [],
       },
       unseen: false,
+      reviewed: false,
     },
   ],
   'pl-2': [
@@ -417,6 +435,7 @@ export const MOCK_INTERESTED: Record<string, RoleInterested[]> = {
         repositories: [],
       },
       unseen: true,
+      reviewed: false,
     },
   ],
   'pl-3': [],
@@ -441,6 +460,7 @@ export const MOCK_INTERESTED: Record<string, RoleInterested[]> = {
         repositories: [{ name: 'zk-audit-notes', description: 'Public notes from zero-knowledge circuit reviews.' }],
       },
       unseen: false,
+      reviewed: false,
     },
   ],
 };

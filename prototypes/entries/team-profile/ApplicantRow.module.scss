@@ -40,29 +40,27 @@
 }
 
 /* The left column takes what the right cluster leaves: `mcb.left` only sets
- * `min-width: 0`, which lets the name ellipsise but gives the note nothing to
- * fill. */
+ * `min-width: 0`, which lets the name and role ellipsise but gives them no
+ * width to fill. */
 .left {
   flex: 1;
 }
 
-/* Under the name and role, in the row's small size and the row's secondary
- * tone. Two lines, clamped — enough to read the sentence they led with. */
-.note {
-  margin: 2px 0 0;
-  font-size: 12px;
-  line-height: 18px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-secondary, #455468);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-}
-
-/* The right cluster: the New mark, the clock, the document, the arrow — the
- * row's own gap, kept from wrapping into the note on a narrow box. */
+/* The right cluster: the New mark, the reviewed check, the clock — the row's
+ * own gap, kept from wrapping under the name on a narrow box. */
 .right {
   gap: 12px;
 }
 
+/* The reviewed tick: a thin green check on a pale green disc (Remote's
+ * completed-row mark), not a solid disc — the solid one was the loudest thing
+ * on the row, beside a 1px grey clock. The PL success ink the bar's Reviewed
+ * button wears, so the state reads the same in the list and above the pane.
+ * Glyph only in the list: the word lives on the button, and the accessible
+ * name carries it here. */
+.reviewedMark {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--foreground-success-primary, #0a9952);
+}

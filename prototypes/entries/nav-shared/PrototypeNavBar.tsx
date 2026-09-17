@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { NavigationMenu } from '@base-ui-components/react';
 
 import { NavItemWithMenu } from '@/components/core/navbar/components/NavItemWithMenu';
+import { AiSearchIcon } from '@/prototypes/components/AiSearchIcon/AiSearchIcon';
 import {
   DIRECTORY_LINKS,
   EVENT_LINKS,
@@ -122,6 +123,8 @@ interface PrototypeNavBarProps {
    * Only read while `searchable`.
    */
   renderSearchModal?: (open: boolean, close: () => void) => React.ReactNode;
+  /** Optional AI shortcut inside the desktop search field. */
+  onAiSearchClick?: () => void;
 }
 
 export function PrototypeNavBar({
@@ -138,6 +141,7 @@ export function PrototypeNavBar({
   searchOpen: controlledOpen,
   onSearchOpenChange,
   renderSearchModal,
+  onAiSearchClick,
 }: PrototypeNavBarProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const searchOpen = controlledOpen ?? internalOpen;
@@ -253,15 +257,32 @@ export function PrototypeNavBar({
                 a dropdown, then promotes itself to an overlay on Enter. Here the
                 icon opens that overlay directly; see PrototypeSearchModal. */}
             {searchable ? (
-              <button
-                type="button"
-                className={clsx(local.navSearch, local.navSearchTrigger)}
-                onClick={() => setSearchOpen(true)}
-                aria-label="Search"
-              >
-                <SearchGlyph />
-                <span className={local.navSearchLabel}>Search</span>
-              </button>
+              <div className={clsx(onAiSearchClick && local.navSearchWithAi)}>
+                <button
+                  type="button"
+                  className={clsx(
+                    local.navSearch,
+                    local.navSearchTrigger,
+                    onAiSearchClick && local.navSearchWithAiTrigger,
+                  )}
+                  onClick={() => setSearchOpen(true)}
+                  aria-label="Search"
+                >
+                  <SearchGlyph />
+                  <span className={local.navSearchLabel}>Search</span>
+                </button>
+                {onAiSearchClick && (
+                  <button
+                    type="button"
+                    className={local.navAiBadge}
+                    onClick={onAiSearchClick}
+                    aria-label="Open AI Search"
+                  >
+                    <AiSearchIcon size={16} />
+                    AI
+                  </button>
+                )}
+              </div>
             ) : (
               <span className={local.navSearch} aria-hidden="true">
                 <SearchGlyph />

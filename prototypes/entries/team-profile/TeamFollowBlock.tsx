@@ -15,6 +15,9 @@ interface Props {
   followers: TeamFollower[];
   /** Inline layout: single row above the About section (vs. the header cluster). */
   inline?: boolean;
+  /** Controlled open state, for doors elsewhere on the page (an AI answer's "Open followers"). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -23,8 +26,10 @@ interface Props {
  * pill in the header card's corner instead — rendered by the prototype page,
  * not this block.
  */
-export function TeamFollowBlock({ count, followers, inline }: Props) {
-  const [open, setOpen] = useState(false);
+export function TeamFollowBlock({ count, followers, inline, open: openProp, onOpenChange }: Props) {
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = onOpenChange ?? setOpenState;
   const stack = followers.slice(0, 3);
 
   // Avatar stack + count + team-only eye; click opens the full list.

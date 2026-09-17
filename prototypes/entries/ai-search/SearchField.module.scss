@@ -1,0 +1,183 @@
+// The field row both search surfaces share (see SearchField.tsx). Moved out of
+// the AI view's stylesheet when the keyword popover became a second consumer:
+// two chromes that have to stay in step get one sheet.
+
+/* The header row IS the field: no inner padding, so the input's own inset sets
+   where the glyph and the text start (16px, the list rows' inset), and the
+   close button keeps a 12px gutter. */
+.headerBar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 12px 0 0;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+/* The scope chip lives in the field, after the search glyph. */
+.fieldHost {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Production's `DebouncedInput .root` is a 40px grey-filled rounded box with
+   a 360px minimum. Here it is transparent and 56px tall — the card supplies
+   the edges. Every selector below is doubled so it beats production's
+   `.root > input`, `.root .flushButton` rules at equal specificity regardless
+   of sheet order. */
+.fieldRoot.fieldRoot {
+  height: 56px;
+  min-width: 0;
+  border-radius: 0;
+  background: transparent;
+
+  &:focus-within {
+    background: transparent;
+  }
+
+  > .fieldInput {
+    /* 76px on the right clears the Clear button (12px offset + ~52px of
+       button) with a gutter left over, so the caret never runs under it. */
+    padding: 0 76px 0 48px;
+    border: 0;
+    border-radius: 0;
+    color: var(--foreground-neutral-primary, #0f172a);
+    font-size: 16px;
+    line-height: 24px;
+
+    &::placeholder {
+      color: var(--foreground-neutral-tertiary, #8897ae);
+    }
+
+    /* The card is the focus: the dialog opened with the caret already here,
+       and a ring inside a hairline-bounded row is a box inside a box. */
+    &:focus-visible {
+      border: 0;
+    }
+
+    /* Scoped: the text starts after the chip, which sits over this padding. */
+    &.fieldInputScoped {
+      padding-left: calc(48px + var(--scope-chip-width, 0px) + 8px);
+    }
+  }
+
+  /* The glyph leads the row, as in every reference; it is still production's
+     flush button, so pressing it still flushes the debounce. */
+  .fieldFlush {
+    right: auto;
+    left: 16px;
+
+    /* search-right.svg points its handle down-left; mirrored, it is the common
+       magnifier (lens top-left, handle down-right) at the same weight. The AI
+       glyph is symmetric enough that the mirror is harmless. */
+    img[src*='search-right'] {
+      transform: scaleX(-1);
+    }
+  }
+
+  /* The clear takes the right slot, as the word "Clear". Type and colour come
+     from `ChatSubheader .button`; this only places it and gives it a hit
+     area. 28px in a 56px row centres it. */
+  .fieldClear {
+    right: 12px;
+    top: 14px;
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 6px;
+
+    &:hover {
+      background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    }
+  }
+}
+
+/* The dialog's ✕ — the only cross on either surface. `CloseIcon` strokes
+   `currentColor`; tertiary at rest, secondary on hover, as every ✕ in the
+   product. */
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+/* A label chip (no hover: the chip itself is not a control) carrying one
+   control, its ✕. The border and wash are the lock pill's and the dialog's own
+   row wash, so it reads as a token in the field rather than as a button. 28px
+   tall in the 56px row. Capped so a long team name truncates instead of
+   pushing the caret out of the field. */
+.scopeChip {
+  position: absolute;
+  top: 50%;
+  left: 48px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 45%;
+  height: 28px;
+  padding: 0 4px 0 6px;
+  transform: translateY(-50%);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-primary, #0f172a);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+/* A team's mark is a rounded square everywhere a team is drawn; a person is a
+   circle, as the answer cards draw them. */
+.scopeLogo {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.scopeLogoPerson {
+  border-radius: 50%;
+}
+
+.scopeName {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Tertiary at rest, secondary on hover: the grey every ✕ here wears. */
+.scopeRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-secondary, #455468);
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}

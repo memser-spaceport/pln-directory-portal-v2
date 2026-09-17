@@ -12,7 +12,7 @@ import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.modu
 import local from './NewsfeedV0.module.scss';
 
 import type { ForumPost, FeedComment } from './mocks';
-import { LikeButton, CommentButton, ViewCount } from './FeedActions';
+import { LikeButton, CommentButton, ViewCount, SaveButton } from './FeedActions';
 import { ShareMenu } from './ShareMenu';
 import { CommentsThread } from './CommentsThread';
 
@@ -29,6 +29,10 @@ interface Props {
   isCommentLiked: (commentUid: string) => boolean;
   onToggleCommentLike: (commentUid: string) => void;
   onOpenDetail: () => void;
+  /** Present = the card offers Save (the `saving` entry). A post is kept the
+   *  same way a story is — one list, one bookmark. */
+  saved?: boolean;
+  onToggleSave?: () => void;
 }
 
 /**
@@ -48,6 +52,8 @@ export function ForumPostCard({
   isCommentLiked,
   onToggleCommentLike,
   onOpenDetail,
+  saved = false,
+  onToggleSave,
 }: Props) {
   const [threadOpen, setThreadOpen] = useState(false);
 
@@ -115,6 +121,7 @@ export function ForumPostCard({
             {showComments && (
               <CommentButton count={comments.length} open={threadOpen} onToggle={() => setThreadOpen((v) => !v)} />
             )}
+            {onToggleSave && <SaveButton saved={saved} onToggle={onToggleSave} />}
           </span>
         </div>
 

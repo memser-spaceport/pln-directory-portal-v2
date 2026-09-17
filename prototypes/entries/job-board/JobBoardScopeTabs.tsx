@@ -8,14 +8,24 @@ import { useMockJobsFilterStore } from './mockJobsFilterStore';
 
 export const SCOPE_PARAM = 'scope';
 export const SCOPE_APPLIED = 'applied';
+export const SCOPE_SAVED = 'saved';
 
 const ALL_TAB = 'All';
 const APPLIED_TAB = 'Applied';
+const SAVED_TAB = 'Saved';
 
 interface Props {
   /** How many roles the viewer has applied to this session. Drives the count and,
    *  at zero, whether the tab is worth offering at all. */
   appliedCount: number;
+  /**
+   * How many roles the viewer has saved. **Present = the board has saving**
+   * (the `saving` entry); absent and the strip is the All / Applied pair it
+   * always was. Between All and Applied, because the three read as a funnel —
+   * everything, then what you kept, then what you sent — and Peerlist,
+   * Wellfound and Mercor all put Saved in that position.
+   */
+  savedCount?: number;
 }
 
 /**
@@ -58,11 +68,12 @@ interface Props {
  * applied to anything, so the tab could only ever open an empty list — an offer
  * with nothing behind it.
  */
-export function JobBoardScopeTabs({ appliedCount }: Props) {
+export function JobBoardScopeTabs({ appliedCount, savedCount }: Props) {
   const { params, setParam } = useMockJobsFilterStore();
 
   const scope = params.get(SCOPE_PARAM);
-  const activeTab = scope === SCOPE_APPLIED ? APPLIED_TAB : ALL_TAB;
+  const hasSaved = savedCount !== undefined;
+  const activeTab = scope === SCOPE_APPLIED ? APPLIED_TAB : scope === SCOPE_SAVED && hasSaved ? SAVED_TAB : ALL_TAB;
 
   useEffect(() => {
     // Avoid a jarring near-empty view when switching into a shorter tab mid-scroll.
@@ -71,7 +82,7 @@ export function JobBoardScopeTabs({ appliedCount }: Props) {
 
   const onTabClick = (tab: string) => {
     if (tab === activeTab) return;
-    setParam(SCOPE_PARAM, tab === APPLIED_TAB ? SCOPE_APPLIED : undefined);
+    setParam(SCOPE_PARAM, tab === APPLIED_TAB ? SCOPE_APPLIED : tab === SAVED_TAB ? SCOPE_SAVED : undefined);
   };
 
   return (
@@ -81,6 +92,8 @@ export function JobBoardScopeTabs({ appliedCount }: Props) {
       onTabClick={onTabClick}
       tabs={[
         { name: ALL_TAB },
+        /* Same count rule as Applied: left off at zero, the tab itself stays. */
+        ...(hasSaved ? [{ name: SAVED_TAB, count: savedCount > 0 ? savedCount : undefined }] : []),
         /* `count` rather than a badge, which is production's own choice for
            Following. At zero the count is left off instead of rendering "(0)":
            the tab still opens and says for itself that there is nothing there,

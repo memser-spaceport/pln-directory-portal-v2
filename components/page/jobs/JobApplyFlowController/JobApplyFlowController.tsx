@@ -361,7 +361,16 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
           viewerState={viewer.viewer}
           source={source}
           interest={
-            canShowJobInterest({ isLoggedIn, userInfo, team: state.target.team })
+            /* The same `viewer`/`verdict` pair the step rail is computed from
+               (`applyGoesExternal` above), so the banner and the rail cannot
+               disagree about whether this person can apply here. */
+            canShowJobInterest({
+              isLoggedIn,
+              userInfo,
+              viewer: viewer.viewer,
+              verdict: viewer.verdict,
+              team: state.target.team,
+            })
               ? {
                   isInterested,
                   isSettled: interestSettled,

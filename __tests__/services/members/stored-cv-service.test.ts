@@ -94,6 +94,20 @@ describe('getStoredCv', () => {
     await expect(getStoredCv(UID)).resolves.toEqual(noUrl);
   });
 
+  /*
+   * The read is guarded by `assertCanView` — the member, a directory admin, or a
+   * lead of a team this member applied to — and the frontend cannot compute that
+   * last clause, so it asks on every profile and takes the refusal for an answer.
+   * `null` rather than a throw because every caller does the same thing with
+   * both: draw nothing. A throw would buy an error state nobody renders, three
+   * retries per refused profile, and a console line on every member page opened.
+   */
+  it('answers null when this reader may not see the CV', async () => {
+    mockFetch.mockResolvedValueOnce(fail(403));
+
+    await expect(getStoredCv(UID)).resolves.toBeNull();
+  });
+
   it('throws on a server failure rather than reporting no CV', async () => {
     mockFetch.mockResolvedValueOnce(fail(500));
 

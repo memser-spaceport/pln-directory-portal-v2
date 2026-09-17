@@ -25,6 +25,26 @@ interface StoredCvSectionProps {
   onReplace?: (file: File) => void;
   /** Fired after a replace is accepted, so a host tracking hand-off can reset. */
   onReplaced?: () => void;
+  /**
+   * The section's heading.
+   *
+   * "Your CV" is only true on your own profile. The read is wider than the
+   * write — a directory admin, and a lead of a team you applied to, can both
+   * reach this card on someone else's page — and a heading that calls their
+   * document yours is a small lie the rest of the card then builds on.
+   */
+  title?: string;
+  /**
+   * Whether this reader may act on the document, not merely read it.
+   *
+   * The API draws that line itself and draws it in a different place:
+   * `assertCanView` lets a lead read the CV of someone who applied to their
+   * role, `assertCanManage` does not let them replace or remove it. Drawing
+   * Replace and Remove for them would be offering two presses that answer 403 —
+   * and Remove would offer it behind a confirmation dialog, which is the worst
+   * possible place to discover you were never allowed.
+   */
+  canManage?: boolean;
 }
 
 /**
@@ -46,20 +66,29 @@ interface StoredCvSectionProps {
  * because "remove" over a file that visibly produced half the page invites
  * exactly the opposite assumption.
  */
-export function StoredCvSection({ cv, memberUid, onReplace, onReplaced }: StoredCvSectionProps) {
+export function StoredCvSection({
+  cv,
+  memberUid,
+  onReplace,
+  onReplaced,
+  title = 'Your CV',
+  canManage = true,
+}: StoredCvSectionProps) {
   const [confirmingRemove, setConfirmingRemove] = useState(false);
   const { mutate: remove, isPending } = useRemoveStoredCv(memberUid);
 
   return (
     <DetailsSection>
-      <DetailsSectionHeader title="Your CV">
-        <CvHeaderActions
-          onReplace={(file) => {
-            onReplace?.(file);
-            onReplaced?.();
-          }}
-          onRemove={() => setConfirmingRemove(true)}
-        />
+      <DetailsSectionHeader title={title}>
+        {canManage && (
+          <CvHeaderActions
+            onReplace={(file) => {
+              onReplace?.(file);
+              onReplaced?.();
+            }}
+            onRemove={() => setConfirmingRemove(true)}
+          />
+        )}
       </DetailsSectionHeader>
 
       <CvFileCard cv={cv} />

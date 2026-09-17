@@ -261,30 +261,40 @@ const MemberDetails = (props: { params: Promise<any> }) => {
           </ProfileSection>
         )}
         {/* The document the profile is holding, and the only place it can be
-            previewed, replaced or removed. Drawn only once there is one — with
-            no CV this renders nothing and the Experience section keeps the offer
-            it has always made, so the page never carries two upload doors.
+            previewed, replaced or removed.
 
-            Owner-only: the CV is theirs, its controls act on their record, and
-            nothing about it belongs on a visitor's view of the profile. */}
-        {isOwner && SHOW_CV_IMPORT && (
-          <ProfileSection name="Your CV">
-            <MemberCvSection member={member} />
+            Mounted for every signed-in reader rather than gated on `isOwner`,
+            because who may see a CV is a question only the API can answer:
+            `assertCanView` admits the member, a directory admin, and a lead of a
+            team this member applied to — and that last clause is a
+            `jobApplication` lookup. So the section asks and draws what comes
+            back; everyone else gets `null` and `.section:empty` collapses the
+            wrapper, so a reader with no answer sees no gap.
+
+            The owner always gets the section: the resting card with a CV, the
+            drop area without one. */}
+        {isLoggedIn && SHOW_CV_IMPORT && (
+          <ProfileSection name={isOwner ? 'Your CV' : 'CV'}>
+            <MemberCvSection member={member} isOwner={isOwner} />
           </ProfileSection>
         )}
         {!isInvestorOnly && (
           <>
-            {/* The CV importer's second host. The section decides *where* to put
-                the offer (empty-state drop area, or the header's "Update from
-                CV") and refuses both to anyone who cannot edit this profile —
-                `canEditMemberProfile`, the same gate its Add and Edit controls
-                use — so this prop only has to say that the host allows it. */}
+            {/* The CV importer's second host, and only half of it: the header's
+                "Update from CV", never a drop area. The section above holds one
+                permanently, and one page carrying two boxes to drop a file into
+                is the choice nobody can get right or wrong.
+
+                The section still refuses even that to anyone who cannot edit
+                this profile — `canEditMemberProfile`, the same gate its Add and
+                Edit controls use — so this prop only has to say what the host
+                offers. */}
             <ProfileSection name="Experience">
               <ExperienceDetails
                 userInfo={userInfo}
                 member={member}
                 isLoggedIn={isLoggedIn}
-                enableCvImport={SHOW_CV_IMPORT}
+                cvImportSurface={SHOW_CV_IMPORT ? 'header-only' : 'off'}
               />
             </ProfileSection>
             <ProfileSection name="Project Contributions">

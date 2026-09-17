@@ -4,11 +4,7 @@ import { useCallback, useReducer, useRef } from 'react';
 
 import { useJobsAnalytics, type JobApplyTrigger, type JobSurface } from '@/analytics/jobs.analytics';
 import { openExternalApply } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
-import {
-  shouldApplyGoExternal,
-  type BoardViewerState,
-  type JobsAccessVerdict,
-} from '@/services/jobs/job-board-viewer';
+import { shouldApplyGoExternal, type BoardViewerState, type JobsAccessVerdict } from '@/services/jobs/job-board-viewer';
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 
 /**

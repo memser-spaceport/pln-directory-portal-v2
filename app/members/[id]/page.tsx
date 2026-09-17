@@ -31,7 +31,6 @@ import { isDemodaySignUpSource, isMemberAvailableToConnect } from '@/utils/membe
 import { useCurrentUserStore } from '@/services/auth/store';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useQuery } from '@tanstack/react-query';
-import { IMember } from '@/types/members.types';
 import { useSearchParams } from 'next/navigation';
 import { AccountCreatedView } from '@/components/page/member-details/AccountCreatedView';
 
@@ -39,6 +38,12 @@ import MemberPageLoader from './loading';
 import Head from 'next/head';
 import { MembersQueryKeys, SHOW_CV_IMPORT } from '@/services/members/constants';
 import { MemberCvSection } from '@/components/page/member-details/MemberCvSection/MemberCvSection';
+import {
+  isJobAspirantMember,
+  shouldPlaceCvAfterProfileDetails,
+  shouldPlaceCvInDefaultPosition,
+  shouldShowInvestorProfile,
+} from '@/components/page/member-details/job-aspirant-profile';
 import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
 import { ForumActivity } from '@/components/page/member-details/ForumActivity';
 import { TeamNewsDetails } from '@/components/page/member-details/TeamNewsDetails';
@@ -50,23 +55,6 @@ import { useAffinityMember } from '@/services/affinity/hooks/useAffinityMember';
 import { useJobEmailProfileLinkEventCapture } from '@/components/page/member-details/hooks';
 import { RelationshipDetails } from '@/components/page/member-details/RelationshipDetails';
 import { useLoginRedirect } from '@/components/core/login/utils';
-
-const shouldShowInvestorProfileForThirdParty = (
-  member: IMember,
-  isOwner: boolean,
-  isAdmin: boolean,
-  isInvestor?: boolean,
-): boolean => {
-  if (!isOwner && !isAdmin) {
-    return false;
-  }
-
-  if (isInvestor === null || isInvestor) {
-    return true;
-  }
-
-  return false;
-};
 
 const MemberDetails = (props: { params: Promise<any> }) => {
   const params = use(props.params);
@@ -104,7 +92,6 @@ const MemberDetails = (props: { params: Promise<any> }) => {
     select: (data) => data?.data?.formattedData,
   });
 
-  // Fetch investor settings to check visibility preference
   const { data: memberInvestorSettings } = useGetMemberInvestorSettings(memberId);
   const { authToken } = getCookiesFromClient();
   const { data: availableToConnectCount } = useQuery({
@@ -185,14 +172,31 @@ const MemberDetails = (props: { params: Promise<any> }) => {
       return null;
     }
 
-    const showInvestorProfile = shouldShowInvestorProfileForThirdParty(
-      member,
+    const jobAspirant = isJobAspirantMember(member);
+    const showInvestorProfile = shouldShowInvestorProfile({
       isOwner,
       isAdmin,
-      memberInvestorSettings?.isInvestor,
-    );
+      isInvestor: memberInvestorSettings?.isInvestor,
+      isJobAspirant: jobAspirant,
+    });
     const isInvestorOnly =
       isNewInvestor || member.rbac.policies?.every((p: { role: string }) => p.role.toLowerCase() === 'investor');
+    const showCvSection = isLoggedIn && SHOW_CV_IMPORT;
+    const cvAfterProfile = shouldPlaceCvAfterProfileDetails({
+      showCvSection,
+      isJobAspirant: jobAspirant,
+      isOwner,
+    });
+    const cvInDefaultPosition = shouldPlaceCvInDefaultPosition({
+      showCvSection,
+      isJobAspirant: jobAspirant,
+      isOwner,
+    });
+    const cvSection = showCvSection ? (
+      <ProfileSection name={isOwner ? 'Your CV' : 'CV'}>
+        <MemberCvSection member={member} isOwner={isOwner} />
+      </ProfileSection>
+    ) : null;
 
     return (
       <>
@@ -212,6 +216,7 @@ const MemberDetails = (props: { params: Promise<any> }) => {
         <ProfileSection name="Profile Details">
           <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
         </ProfileSection>
+        {cvAfterProfile && cvSection}
         {showInvestorProfile && (
           <ProfileSection name="Investor Profile">
             <InvestorProfileDetails
@@ -272,12 +277,9 @@ const MemberDetails = (props: { params: Promise<any> }) => {
             wrapper, so a reader with no answer sees no gap.
 
             The owner always gets the section: the resting card with a CV, the
-            drop area without one. */}
-        {isLoggedIn && SHOW_CV_IMPORT && (
-          <ProfileSection name={isOwner ? 'Your CV' : 'CV'}>
-            <MemberCvSection member={member} isOwner={isOwner} />
-          </ProfileSection>
-        )}
+            drop area without one. Job Aspirants, and anyone reading another
+            member's CV, pin it under Profile Details. */}
+        {cvInDefaultPosition && cvSection}
         {!isInvestorOnly && (
           <>
             {/* The CV importer's second host, and only half of it: the header's

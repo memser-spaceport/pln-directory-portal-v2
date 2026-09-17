@@ -10,15 +10,23 @@ import { Tabs } from '@/components/ui/tabs/Tabs';
 import { DetailsSectionGreyContentContainer, NoDataBlock } from '@/components/common/profile/DetailsSection';
 import { filterSelectStyles } from '@/components/common/filters/FilterSelect';
 import { ArrowUpRightIcon } from '@/components/icons/ArrowUpRightIcon';
+import { CaretLeftIcon } from '@/components/icons/CaretLeftIcon';
 import type { Option } from '@/components/form/FormSelect/types';
 import { useIsBelowTabletLandscape } from '@/hooks/useIsBelowTabletLandscape';
 import type { TeamApplicant } from '@/schema/team-applicants';
 import { SHOW_TEAM_APPLICANTS } from '@/services/jobs/constants';
-import { useApplicantCounts, useRoleApplicants } from '@/services/jobs/hooks/useTeamApplicants';
+import {
+  useApplicantCounts,
+  useMarkApplicantSeen,
+  useRoleApplicants,
+  useToggleApplicantReviewed,
+} from '@/services/jobs/hooks/useTeamApplicants';
 import type { IJobRole } from '@/types/jobs.types';
 import { formatRelativeDays, getJobDate, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
+import { ApplicantPane } from './components/ApplicantPane';
 import { ApplicantRow } from './components/ApplicantRow';
+import { ApplicantsPaneBar } from './components/ApplicantsPaneBar';
 import s from './TeamApplicantsView.module.scss';
 
 export const APPLIED_TAB = 'Applied';
@@ -40,6 +48,9 @@ interface Props {
    * empty list at someone whose applicants are already known to exist.
    */
   viewerUid: string | undefined;
+  /** Always true in practice — the gate requires it — but the profile sections
+   *  below take it, and a literal here would be a second place to be wrong. */
+  isLoggedIn: boolean;
 }
 
 type RoleOption = Option & { newCount: number };
@@ -54,7 +65,7 @@ type RoleOption = Option & { newCount: number };
  * has to carry the gate, because an early `return null` in a host does not stop
  * a hook that already ran.
  */
-export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, viewerUid }: Props) {
+export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, viewerUid, isLoggedIn }: Props) {
   /* The tablet-landscape hook, not `useIsMobile`. `useIsMobile` switches at
      768px and this layout goes two-column at 960 — between the two the pane
      would render under the list with nothing to go back to. */
@@ -80,6 +91,9 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
     viewerUid,
     enabled: SHOW_TEAM_APPLICANTS,
   });
+
+  const markSeen = useMarkApplicantSeen({ teamUid: teamId, roleUid: role?.uid, viewerUid });
+  const toggleReviewed = useToggleApplicantReviewed({ teamUid: teamId, roleUid: role?.uid, viewerUid });
 
   const roleOptions: RoleOption[] = useMemo(
     () =>
@@ -144,6 +158,18 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
   const select = (row: TeamApplicant) => {
     setSelectedUid(row.uid);
     if (isNarrow) setPaneOpen(true);
+    /* Opening a row IS reading it, so the tint clears on selection rather than
+       on some later "mark as read". Fire-and-forget: a failed write costs a
+       badge that comes back, which is not worth interrupting anyone over. */
+    if (row.unseen) markSeen.mutate({ kind: row.kind, uid: row.uid });
+  };
+
+  const selected = shown.find((row) => row.uid === selectedUid) ?? null;
+  const position = selected ? shown.findIndex((row) => row.uid === selected.uid) : -1;
+
+  const step = (delta: number) => {
+    const next = shown[position + delta];
+    if (next) select(next);
   };
 
   const showList = !isNarrow || !paneOpen;
@@ -160,10 +186,22 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
 
   return (
     <div className={s.page}>
-      {/* `forceTo`, because `BackButton` otherwise prefers `router.back()` —
-          and a lead who arrived on this page from a shared link has a browser
-          history that goes somewhere else entirely. */}
-      <BackButton to={`/teams/${teamId}`} forceTo className={s.back} />
+      {/* One control, two meanings. On a narrow screen with the pane open, Back
+          is the way out of the pane and not off the page — a lead who tapped a
+          row wants the list again, and sending them to the team profile would
+          throw away the role and the tab they had chosen.
+
+          `forceTo` on the page-level one, because `BackButton` otherwise prefers
+          `router.back()` — and a lead who arrived here from a shared link has a
+          browser history that goes somewhere else entirely. */}
+      {isNarrow && paneOpen ? (
+        <button type="button" className={s.paneBack} onClick={() => setPaneOpen(false)}>
+          <CaretLeftIcon width={16} height={16} />
+          All applicants
+        </button>
+      ) : (
+        <BackButton to={`/teams/${teamId}`} forceTo className={s.back} />
+      )}
 
       {showList && (
         <header className={s.head}>
@@ -251,8 +289,29 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
         )}
 
         {showPane && (
-          <div className={clsx(s.paneCol, !selectedUid && s.paneEmpty)}>
-            {!selectedUid && (
+          <div className={clsx(s.paneCol, !selected && s.paneEmpty)}>
+            {selected ? (
+              <>
+                <ApplicantsPaneBar
+                  applicant={selected}
+                  roleTitle={role?.roleTitle ?? ''}
+                  position={position}
+                  total={shown.length}
+                  onStep={step}
+                  onToggleReviewed={() =>
+                    toggleReviewed.mutate({
+                      kind: selected.kind,
+                      uid: selected.uid,
+                      reviewed: !selected.reviewed,
+                    })
+                  }
+                />
+                {/* Keyed on the row, so stepping to the next person remounts the
+                    pane rather than showing the previous one's sections while
+                    the new record arrives. */}
+                <ApplicantPane key={selected.uid} applicant={selected} isLoggedIn={isLoggedIn} />
+              </>
+            ) : (
               <DetailsSectionGreyContentContainer>
                 <NoDataBlock>Select someone to read their profile and what they sent.</NoDataBlock>
               </DetailsSectionGreyContentContainer>

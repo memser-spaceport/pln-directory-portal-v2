@@ -13,6 +13,14 @@ jest.mock('@/utils/fetch-wrapper', () => ({ customFetch: jest.fn() }));
    with the postings the profile shows. That call is not what is under test. */
 jest.mock('@/services/jobs/jobs.service', () => ({ fetchJobsList: jest.fn() }));
 
+/* The mock borrows real members so the profile pane has someone to fetch. Here
+   it must not reach the network at all: an unmocked call would make these
+   assertions depend on whatever the dev directory holds today. Refusing it also
+   exercises the fallback, which is the path a mock without API access takes. */
+jest.mock('@/services/members.service', () => ({
+  getMembers: jest.fn().mockRejectedValue(new Error('offline in tests')),
+}));
+
 import {
   applicantCountsResponseSchema,
   applicantRowSchema,

@@ -176,3 +176,27 @@
   display: flex;
   align-items: flex-start;
 }
+
+/* The narrow-screen way out of the pane. It wears the back control's shape
+ * rather than BackButton itself, because BackButton navigates and this does
+ * not — it closes a column. */
+.paneBack {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+
+  padding: 6px 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0f172a);
+  }
+}

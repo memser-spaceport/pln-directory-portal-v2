@@ -69,6 +69,7 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
         roles={roles}
         initialRoleUid={searchParams?.role ?? null}
         viewerUid={userInfo?.uid}
+        isLoggedIn={!!isLoggedIn}
       />
     </div>
   );

@@ -15,6 +15,7 @@ import {
   TeamApplicant,
 } from '@/schema/team-applicants';
 import { fetchJobsList } from '@/services/jobs/jobs.service';
+import { getMembers } from '@/services/members.service';
 
 /**
  * People are **synthesised from the real role uid**, not read from a fixture
@@ -33,6 +34,13 @@ import { fetchJobsList } from '@/services/jobs/jobs.service';
  * which throws `Request is not defined` under jsdom, which is why every
  * apply-flow suite has to stub the component that does it. This is a fifth
  * entry nobody needs.
+ *
+ * The CAST is real members, borrowed from the directory, because the pane beside
+ * the list fetches whoever the row names — and a made-up member uid would make
+ * every profile in dev a not-found. What is invented is the *act*: who applied
+ * to what, when, and what they wrote. Names, headlines and faces are real
+ * people who have not applied to anything, which is the honest shape of a mock
+ * for this screen: the thing that does not exist yet is the application.
  *
  * Everything below is parsed through the real schemas before it is returned, so
  * the mock cannot drift from the contract it is standing in for.
@@ -123,6 +131,71 @@ const PEOPLE: MockPerson[] = [
   },
 ];
 
+/**
+ * A page of real directory members, fetched once and reused.
+ *
+ * `DIRECTORY_API_URL` is inlined into the client bundle by `next.config.mjs`,
+ * so `getMembers` works here. Failure is not fatal: the cast falls back to the
+ * invented people below, and the pane then shows its own not-found — a mock
+ * that cannot reach the API should degrade, not throw inside a page.
+ */
+let memberPool: Promise<CastMember[]> | null = null;
+
+interface CastMember {
+  uid: string;
+  name: string;
+  headline: string | null;
+  company: string | null;
+  location: string | null;
+  tags: string[];
+  avatarUrl: string | null;
+  email: string | null;
+}
+
+async function loadMemberPool(): Promise<CastMember[]> {
+  try {
+    const response = await getMembers(
+      {
+        isVerified: 'all',
+        select:
+          'uid,name,image.url,skills.title,location.city,location.country,teamMemberRoles.role,teamMemberRoles.team.name,teamMemberRoles.mainTeam',
+      } as never,
+      '',
+      1,
+      24,
+      true,
+    );
+    const rows = (response as { data?: { formattedData?: unknown[] } })?.data?.formattedData;
+    if (!Array.isArray(rows) || !rows.length) return [];
+
+    return rows
+      .map((row) => row as Record<string, any>)
+      .filter((row) => row?.uid && row?.name)
+      .map((row) => ({
+        uid: String(row.uid),
+        name: String(row.name),
+        headline: row.mainTeam?.role ?? row.teams?.[0]?.role ?? null,
+        company: row.mainTeam?.name ?? row.teams?.[0]?.name ?? null,
+        location: row.location ?? null,
+        tags: Array.isArray(row.skills)
+          ? row.skills
+              .map((skill: any) => skill?.title)
+              .filter(Boolean)
+              .slice(0, 4)
+          : [],
+        avatarUrl: row.profile ?? row.image?.url ?? null,
+        email: row.email ?? null,
+      }));
+  } catch {
+    return [];
+  }
+}
+
+const castPool = () => {
+  if (!memberPool) memberPool = loadMemberPool();
+  return memberPool;
+};
+
 const HOUR = 60 * 60 * 1000;
 const hoursAgo = (hours: number) => new Date(Date.now() - hours * HOUR).toISOString();
 
@@ -152,31 +225,39 @@ function castSizes(roleUid: string): { applications: number; interests: number }
   };
 }
 
-function buildRow(kind: ApplicantKind, roleUid: string, index: number): TeamApplicant {
+/**
+ * One row. The person is a real member when the pool loaded and an invented one
+ * when it did not; the act — applied or interested, when, and the note — is
+ * invented either way, because that is the part with no backend.
+ *
+ * The same `h` picks the person and the note, so a given role always shows the
+ * same people saying the same things.
+ */
+function buildRow(kind: ApplicantKind, roleUid: string, index: number, pool: CastMember[]): TeamApplicant {
   const h = hash(`${kind}:${roleUid}:${index}`);
-  const person = PEOPLE[h % PEOPLE.length];
+  const invented = PEOPLE[h % PEOPLE.length];
+  const real = pool.length ? pool[h % pool.length] : null;
   const uid = rowUid(kind, roleUid, index);
   const isApplication = kind === 'application';
+  const memberUid = real?.uid ?? `mock-member-${h % 997}`;
 
   return {
     uid,
     kind,
-    /* A real member uid would let the pane fetch a real profile, which is the
-       one thing this mock cannot invent. It is a mock uid, so the pane shows
-       its own not-found state — see the service's cutover note. */
-    memberUid: `mock-member-${h % 997}`,
-    name: person.name,
-    email: `${person.name.toLowerCase().replace(/[^a-z]+/g, '.')}@example.com`,
-    profileUrl: `https://directory.plnetwork.io/members/mock-member-${h % 997}`,
-    /* A deterministic stand-in face. `null` on every third person, so the row's
-       initials fallback is reachable without editing the mock. */
-    avatarUrl: h % 3 === 0 ? null : `https://i.pravatar.cc/96?img=${(h % 70) + 1}`,
-    headline: person.headline,
-    currentCompany: person.company,
-    location: person.location,
-    tags: person.tags,
+    memberUid,
+    name: real?.name ?? invented.name,
+    email: real?.email ?? `${invented.name.toLowerCase().replace(/[^a-z]+/g, '.')}@example.com`,
+    profileUrl: `https://directory.plnetwork.io/members/${memberUid}`,
+    avatarUrl: real ? real.avatarUrl : h % 3 === 0 ? null : `https://i.pravatar.cc/96?img=${(h % 70) + 1}`,
+    headline: real?.headline ?? invented.headline,
+    currentCompany: real?.company ?? invented.company,
+    location: real?.location ?? invented.location,
+    tags: real?.tags.length ? real.tags : invented.tags,
     createdAt: hoursAgo((h % 240) + index),
-    coverLetter: isApplication ? person.note : null,
+    /* The note is always invented. It is the one field that is the application
+       rather than the person, and borrowing a real member's words for it would
+       put sentences in somebody's mouth. */
+    coverLetter: isApplication ? invented.note : null,
     cv: isApplication && h % 3 !== 0 ? { fileName: 'cv.pdf', size: 184320, uploadedAt: hoursAgo(h % 240) } : null,
     unseen: !seenUids.has(uid),
     reviewed: reviewedUids.has(uid),
@@ -187,11 +268,13 @@ const newest = (rows: TeamApplicant[]) => [...rows].sort((a, b) => b.createdAt.l
 
 const mockLatency = () => new Promise<void>((resolve) => setTimeout(resolve, 250));
 
-function castFor(roleUid: string): { applications: TeamApplicant[]; interests: TeamApplicant[] } {
+function castFor(roleUid: string, pool: CastMember[]): { applications: TeamApplicant[]; interests: TeamApplicant[] } {
   const sizes = castSizes(roleUid);
   return {
-    applications: newest(Array.from({ length: sizes.applications }, (_, i) => buildRow('application', roleUid, i))),
-    interests: newest(Array.from({ length: sizes.interests }, (_, i) => buildRow('interest', roleUid, i))),
+    applications: newest(
+      Array.from({ length: sizes.applications }, (_, i) => buildRow('application', roleUid, i, pool)),
+    ),
+    interests: newest(Array.from({ length: sizes.interests }, (_, i) => buildRow('interest', roleUid, i, pool))),
   };
 }
 
@@ -222,11 +305,11 @@ async function teamRoleUids(teamUid: string): Promise<string[]> {
 
 export async function mockFetchApplicantCounts(teamUid: string): Promise<ApplicantCount[]> {
   await mockLatency();
-  const roleUids = await teamRoleUids(teamUid);
+  const [roleUids, pool] = await Promise.all([teamRoleUids(teamUid), castPool()]);
 
   const counts = roleUids
     .map((roleUid) => {
-      const { applications, interests } = castFor(roleUid);
+      const { applications, interests } = castFor(roleUid, pool);
       const everyone = newest([...applications, ...interests]);
       return {
         roleUid,
@@ -251,7 +334,7 @@ export async function mockFetchRoleApplicants(
   roleUid: string,
 ): Promise<{ applications: TeamApplicant[]; interests: TeamApplicant[] }> {
   await mockLatency();
-  const cast = castFor(roleUid);
+  const cast = castFor(roleUid, await castPool());
 
   /* Parsed through the wire schema — which has no `kind`, because the envelope
      carries it — then re-tagged the way the real service will. That keeps the

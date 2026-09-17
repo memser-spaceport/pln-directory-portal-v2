@@ -43,11 +43,31 @@ jest.mock('@/components/common/filters/SearchInput', () => ({
   ),
 }));
 
+/**
+ * The pane is stubbed, and not only for speed.
+ *
+ * It composes the real member-profile sections, and `TeamsDetails` reaches
+ * `next/server` through `EditTeamForm → useGetTeam → services/teams.service →
+ * utils/team.utils` — which throws `ReferenceError: Request is not defined`
+ * under jsdom and takes the whole suite's module load with it. The same reason
+ * every apply-flow suite stubs `JobApplicationPane`.
+ *
+ * What is under test here is the list, the tabs, the search and the selection.
+ * The pane's own behaviour belongs to the pane's own test.
+ */
+jest.mock('@/components/page/team-details/TeamApplicants/components/ApplicantPane', () => ({
+  ApplicantPane: ({ applicant }: any) => <div data-testid="pane">{applicant.name}</div>,
+}));
+
 const useApplicantCounts = jest.fn();
 const useRoleApplicants = jest.fn();
+const markSeen = jest.fn();
+const toggleReviewed = jest.fn();
 jest.mock('@/services/jobs/hooks/useTeamApplicants', () => ({
   useApplicantCounts: (...args: unknown[]) => useApplicantCounts(...args),
   useRoleApplicants: (...args: unknown[]) => useRoleApplicants(...args),
+  useMarkApplicantSeen: () => ({ mutate: markSeen }),
+  useToggleApplicantReviewed: () => ({ mutate: toggleReviewed }),
 }));
 
 import { TeamApplicantsView } from '@/components/page/team-details/TeamApplicants';
@@ -103,6 +123,7 @@ const renderView = (props: Partial<React.ComponentProps<typeof TeamApplicantsVie
       roles={ROLES}
       initialRoleUid={null}
       viewerUid="u1"
+      isLoggedIn
       {...props}
     />,
   );
@@ -110,6 +131,8 @@ const renderView = (props: Partial<React.ComponentProps<typeof TeamApplicantsVie
 beforeEach(() => {
   useApplicantCounts.mockReset();
   useRoleApplicants.mockReset();
+  markSeen.mockReset();
+  toggleReviewed.mockReset();
   useApplicantCounts.mockReturnValue({
     data: [
       { roleUid: 'role-1', applicantCount: 2, interestCount: 1, newCount: 1, newestAvatars: [] },
@@ -232,6 +255,70 @@ describe('TeamApplicantsView', () => {
 
     expect(useApplicantCounts).toHaveBeenLastCalledWith(expect.objectContaining({ viewerUid: undefined }));
     expect(useRoleApplicants).toHaveBeenLastCalledWith(expect.objectContaining({ viewerUid: undefined }));
+  });
+
+  it('counts opening a row as reading it, and only for a row that was unread', async () => {
+    renderView();
+
+    await userEvent.click(screen.getByText('Devon Park'));
+    expect(markSeen).toHaveBeenCalledWith({ kind: 'application', uid: 'a1' });
+
+    markSeen.mockReset();
+    await userEvent.click(screen.getByText('Lina Suarez'));
+    expect(markSeen).not.toHaveBeenCalled();
+  });
+
+  it('steps to the next person, and stops at the ends', async () => {
+    renderView();
+    await userEvent.click(screen.getByText('Devon Park'));
+
+    expect(screen.getByText('1 of 2')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Previous applicant' })).toBeDisabled();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Next applicant' }));
+
+    expect(screen.getByText('2 of 2')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next applicant' })).toBeDisabled();
+  });
+
+  it('asks to mark reviewed', async () => {
+    renderView();
+    await userEvent.click(screen.getByText('Devon Park'));
+
+    await userEvent.click(screen.getByRole('button', { name: /Mark as reviewed/ }));
+
+    expect(toggleReviewed).toHaveBeenCalledWith({ kind: 'application', uid: 'a1', reviewed: true });
+  });
+
+  /* The undo is the button it turned into, which is why there is no confirm. */
+  it('asks to unmark when the row is already reviewed', async () => {
+    setLists({ applications: [{ ...DEVON, reviewed: true }], interests: [] });
+    renderView();
+    await userEvent.click(screen.getByText('Devon Park'));
+
+    await userEvent.click(screen.getByRole('button', { name: 'Reviewed' }));
+
+    expect(toggleReviewed).toHaveBeenCalledWith({ kind: 'application', uid: 'a1', reviewed: false });
+  });
+
+  it('writes a mail link naming the act, not just the role', async () => {
+    renderView();
+    await userEvent.click(screen.getByText('Devon Park'));
+
+    expect(screen.getByRole('link', { name: /Email Devon/ })).toHaveAttribute(
+      'href',
+      'mailto:someone@example.com?subject=Your%20application%20for%20Senior%20Distributed%20Systems%20Engineer',
+    );
+  });
+
+  /* A mail link with no address opens an empty compose window, which looks like
+     the team has a way to reach this person when it does not. */
+  it('offers no Email button for a member with no address', async () => {
+    setLists({ applications: [person({ uid: 'a5', name: 'No Address', email: null })], interests: [] });
+    renderView();
+    await userEvent.click(screen.getByText('No Address'));
+
+    expect(screen.queryByRole('link', { name: /Email/ })).not.toBeInTheDocument();
   });
 
   it('drops the selection and the search when the role changes', async () => {

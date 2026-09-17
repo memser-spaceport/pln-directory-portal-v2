@@ -14,6 +14,20 @@ import '@testing-library/jest-dom';
  */
 
 const mockExperiences = jest.fn();
+/*
+ * No stored CV, so this suite is about the offer.
+ *
+ * Needed explicitly because jest.setup's global `useQuery` mock answers *every*
+ * query with `data: { memberInfo: {} }` — truthy — so an unmocked `useStoredCv`
+ * reads as "this member already has a CV" and the section correctly stands its
+ * offer down. Every assertion below would then fail for a reason that has
+ * nothing to do with what it is testing.
+ */
+let storedCv: unknown = null;
+jest.mock('@/services/members/hooks/useStoredCv', () => ({
+  useStoredCv: () => ({ data: storedCv, isLoading: false }),
+}));
+
 jest.mock('@/services/members/hooks/useMemberExperience', () => ({
   useMemberExperience: () => mockExperiences(),
 }));
@@ -489,5 +503,27 @@ describe('the apply-drawer status row during a CV read', () => {
     expect(screen.getAllByText(/Usually takes about 10 seconds/).length).toBeGreaterThan(1);
     expect(screen.queryByRole('button', { name: /keep editing/i })).not.toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /^cancel$/i }).length).toBeGreaterThan(1);
+  });
+});
+
+/*
+ * The one-door rule, from the Experience section's side.
+ *
+ * `MemberCvSection` draws the kept file and owns Replace; this section's own
+ * offer has to disappear while it does, or the page carries two entrances to one
+ * importer. Both read the same query, which is what makes them agree.
+ */
+describe('when the profile already holds a CV', () => {
+  afterEach(() => {
+    storedCv = null;
+  });
+
+  it('stands its own offer down', async () => {
+    storedCv = { fileName: 'cv.pdf', uploadedAt: '2026-08-12T09:30:00.000Z', url: 'https://s3/x' };
+
+    renderSection({ enableCvImport: true, entries: [] });
+
+    await waitFor(() => expect(screen.queryByText('Drag & drop your CV')).not.toBeInTheDocument());
+    expect(screen.queryByRole('button', { name: /update from cv/i })).not.toBeInTheDocument();
   });
 });

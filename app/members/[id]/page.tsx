@@ -38,6 +38,7 @@ import { AccountCreatedView } from '@/components/page/member-details/AccountCrea
 import MemberPageLoader from './loading';
 import Head from 'next/head';
 import { MembersQueryKeys, SHOW_CV_IMPORT } from '@/services/members/constants';
+import { MemberCvSection } from '@/components/page/member-details/MemberCvSection/MemberCvSection';
 import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
 import { ForumActivity } from '@/components/page/member-details/ForumActivity';
 import { TeamNewsDetails } from '@/components/page/member-details/TeamNewsDetails';
@@ -257,6 +258,18 @@ const MemberDetails = (props: { params: Promise<any> }) => {
         {isOwner && (
           <ProfileSection name="Job Search Status">
             <JobSearchStatusDetails member={member} />
+          </ProfileSection>
+        )}
+        {/* The document the profile is holding, and the only place it can be
+            previewed, replaced or removed. Drawn only once there is one — with
+            no CV this renders nothing and the Experience section keeps the offer
+            it has always made, so the page never carries two upload doors.
+
+            Owner-only: the CV is theirs, its controls act on their record, and
+            nothing about it belongs on a visitor's view of the profile. */}
+        {isOwner && SHOW_CV_IMPORT && (
+          <ProfileSection name="Your CV">
+            <MemberCvSection member={member} />
           </ProfileSection>
         )}
         {!isInvestorOnly && (

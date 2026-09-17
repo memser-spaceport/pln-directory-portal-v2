@@ -9,6 +9,7 @@ import type { IJobRole, IJobTeam, IJobTeamGroup, JobsSortKey } from '@/types/job
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 import { useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
 import { useMarkTeamInterest } from '@/services/jobs/hooks/useTeamInterest';
+import { OpenRoleInterestModal } from '@/components/page/jobs/OpenRoleInterestModal/OpenRoleInterestModal';
 import { isJobGoneError } from '@/services/jobs/job-interests.service';
 import { useJobsParamsUpdater } from '@/services/jobs/hooks/useJobsParamsUpdater';
 import { useCreateJobAlert } from '@/services/job-alerts/hooks/useCreateJobAlert';
@@ -125,45 +126,78 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
    * knowing they did.
    */
   const markTeamInterest = useMarkTeamInterest();
+  /* The team whose dialog is open. A uid rather than a boolean: the board has
+     many cards and the dialog is one, so what is open has to say which. */
+  const [interestTeam, setInterestTeam] = useState<IJobTeam | null>(null);
+  const [interestError, setInterestError] = useState<string | null>(null);
+
   const onExpressTeamInterest = useCallback(
     (team: IJobTeam) => {
       if (!isLoggedIn) {
         pushLogin();
         return;
       }
+      /* Already sent. The row draws a spent marker rather than a press, so this
+         is only reachable by a stale render. */
       if (team.viewerIsInterestedInTeam) return;
 
-      markTeamInterest.mutate(team.uid, {
-        /* Reported from the server's answer, not from the press: the write is
-           idempotent, so a second press that changed nothing must not be
-           counted as a new signal. */
-        onSuccess: (status) => {
-          if (!status.viewerIsInterested) return;
-          analytics.onTeamInterestMarked({
-            team_id: team.uid,
-            viewer_state: boardViewer.viewer,
-            source: 'job-board',
-          });
-          toast.success(`${team.name} has your profile. They'll reach out if a matching role opens.`);
-        },
-        onError: (error) => {
-          analytics.onTeamInterestFailed({
-            team_id: team.uid,
-            viewer_state: boardViewer.viewer,
-            source: 'job-board',
-            failure_category: isJobGoneError(error) ? 'gone' : 'request-failed',
-          });
-          toast.error('Could not save your interest. Please try again.');
-        },
-      });
+      setInterestError(null);
+      setInterestTeam(team);
     },
-    [isLoggedIn, pushLogin, markTeamInterest, analytics, boardViewer.viewer],
+    [isLoggedIn, pushLogin],
+  );
+
+  const closeInterest = useCallback(() => {
+    /* Refused while the send is in flight: closing would leave the member with
+       no receipt for a write that is still going to land. */
+    if (markTeamInterest.isPending) return;
+    setInterestTeam(null);
+    setInterestError(null);
+  }, [markTeamInterest.isPending]);
+
+  const sendTeamInterest = useCallback(
+    (message: string) => {
+      const team = interestTeam;
+      if (!team) return;
+
+      setInterestError(null);
+      markTeamInterest.mutate(
+        { teamUid: team.uid, message },
+        {
+          /* Reported from the server's answer, not from the press: the write is
+             idempotent, so a second press that changed nothing must not be
+             counted as a new signal. */
+          onSuccess: (status) => {
+            setInterestTeam(null);
+            if (!status.viewerIsInterested) return;
+            analytics.onTeamInterestMarked({
+              team_id: team.uid,
+              viewer_state: boardViewer.viewer,
+              source: 'job-board',
+            });
+            toast.success(`${team.name} has your profile. They'll reach out if a matching role opens.`);
+          },
+          /* The dialog stays open on a refusal, holding what was typed: the note
+             is the whole submission and there is nowhere else it is saved. */
+          onError: (error) => {
+            analytics.onTeamInterestFailed({
+              team_id: team.uid,
+              viewer_state: boardViewer.viewer,
+              source: 'job-board',
+              failure_category: isJobGoneError(error) ? 'gone' : 'request-failed',
+            });
+            setInterestError('Could not send your interest. Please try again.');
+          },
+        },
+      );
+    },
+    [interestTeam, markTeamInterest, analytics, boardViewer.viewer],
   );
 
   const openRoleProps = useMemo(
     () => ({
       onExpressInterest: onExpressTeamInterest,
-      pendingTeamUid: markTeamInterest.isPending ? (markTeamInterest.variables ?? null) : null,
+      pendingTeamUid: markTeamInterest.isPending ? (markTeamInterest.variables?.teamUid ?? null) : null,
     }),
     [onExpressTeamInterest, markTeamInterest.isPending, markTeamInterest.variables],
   );
@@ -371,6 +405,23 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
           for the same reason the news modal is: a filter change mid-application
           must not yank an open modal. */}
       {surface.controller}
+
+      {/* Same reason again, and it matters more here: the note is the whole
+          submission and is held nowhere else, so a filter change that unmounted
+          this dialog would throw away what someone had written. Keyed on the
+          team so opening a second card's dialog starts on an empty field rather
+          than inheriting the first one's draft. */}
+      {interestTeam && (
+        <OpenRoleInterestModal
+          key={interestTeam.uid}
+          isOpen
+          teamName={interestTeam.name}
+          isSending={markTeamInterest.isPending}
+          error={interestError}
+          onClose={closeInterest}
+          onSend={sendTeamInterest}
+        />
+      )}
 
       {/* Rendered outside the groups.length branch so an open modal survives the
           list emptying underneath it — a filter change while reading a team's

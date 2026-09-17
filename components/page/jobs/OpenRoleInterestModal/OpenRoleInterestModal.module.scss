@@ -1,0 +1,103 @@
+@use 'styles/media';
+
+// The board's dialog card — the refer modal's shell, which is what every dialog
+// opened from this board wears: 24px radius, 20px padding, the same shadow.
+.modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 20px;
+
+  background: var(--background-base-white, #fff);
+  border-radius: 24px;
+  box-shadow:
+    0px 10px 20px -5px rgba(14, 15, 17, 0.06),
+    0px 20px 65px -5px rgba(14, 15, 17, 0.06);
+
+  @include media.mobile-only {
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+}
+
+// The DS close disc every dialog on this board wears. Doubled to beat `Button`'s
+// own rule, as in `CvPreviewModal`.
+.closeButton.closeButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-secondary, #455468);
+  box-shadow: 0px -2px 4px 0px inset rgba(14, 15, 17, 0.02);
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.08);
+  }
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  // Clear of the close disc.
+  padding-right: 36px;
+}
+
+// The row's own question, promoted to the dialog's title — so arriving here is
+// recognised as the thing that was pressed.
+.title {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.4px;
+}
+
+.lede {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+}
+
+// Scrolls rather than pushing the card past its cap, the same arrangement
+// `CvPreviewModal` uses for the reader.
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+// The server's refusal, where the field's own error would be — this one is about
+// the send, not about what was typed.
+.error {
+  margin: 0;
+  color: var(--foreground-error-primary, #dd2c5a);
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+}
+
+.footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+
+  @include media.mobile-only {
+    // Full width and Send first: on a phone the primary action belongs under the
+    // thumb, not tucked at the end of a row.
+    flex-direction: column-reverse;
+  }
+}

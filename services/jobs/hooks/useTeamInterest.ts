@@ -82,7 +82,7 @@ export function useMarkTeamInterest() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (teamUid: string) => markTeamInterest(teamUid),
+    mutationFn: ({ teamUid, message }: { teamUid: string; message?: string }) => markTeamInterest(teamUid, message),
     onSuccess: (status) => {
       queryClient.setQueriesData<InfiniteData<IJobsListResponse>>({ queryKey: [JobsQueryKey.List] }, (cached) =>
         applyTeamInterestToBoardCache(cached, status),

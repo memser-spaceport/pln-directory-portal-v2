@@ -83,8 +83,7 @@ import { JobApplyFlowDrawer } from '@/components/page/jobs/JobApplyFlowDrawer/Jo
 import {
   INTEREST_CONFIRMED_TITLE,
   INTEREST_CTA_LABEL,
-  INTEREST_SUBTITLE_MEMBER,
-  INTEREST_SUBTITLE_VISITOR,
+  INTEREST_SUBTITLE,
   INTEREST_UNDO_LABEL,
   JobInterestBanner,
   interestPromptTitle,
@@ -96,16 +95,7 @@ import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 const TEAM_NAME = 'Filecoin Foundation';
 
 const renderBanner = (props: Partial<React.ComponentProps<typeof JobInterestBanner>> = {}) =>
-  render(
-    <JobInterestBanner
-      teamName={TEAM_NAME}
-      isInterested={false}
-      isLoggedIn
-      error={null}
-      onToggle={jest.fn()}
-      {...props}
-    />,
-  );
+  render(<JobInterestBanner teamName={TEAM_NAME} isInterested={false} error={null} onToggle={jest.fn()} {...props} />);
 
 const action = () => screen.getByRole('button');
 
@@ -114,29 +104,22 @@ describe('the banner itself', () => {
     renderBanner();
 
     expect(screen.getByText(interestPromptTitle(TEAM_NAME))).toBeInTheDocument();
-    expect(screen.getByText(INTEREST_SUBTITLE_MEMBER)).toBeInTheDocument();
+    expect(screen.getByText(INTEREST_SUBTITLE)).toBeInTheDocument();
     expect(action()).toHaveAccessibleName(INTEREST_CTA_LABEL);
   });
 
-  /* The design's sentence names the LabOS profile, which a signed-out visitor
-     does not have. The press really does open an account first, so the visitor's
-     copy says so — the same rewording this drawer has already applied to two
-     other over-promises. Both states still carry the "if you're a match"
-     qualifier; only the profile half differs. */
-  it('does not promise to share a profile the visitor has not got', () => {
-    renderBanner({ isLoggedIn: false });
-
-    expect(screen.getByText(INTEREST_SUBTITLE_VISITOR)).toBeInTheDocument();
-    expect(screen.queryByText(INTEREST_SUBTITLE_MEMBER)).not.toBeInTheDocument();
-  });
+  /* (A second case stood here, asserting a separate sentence for a signed-out
+     visitor. `d5375bd05` withheld the banner from visitors entirely, so that
+     state has been unreachable since — and the test went on passing, because it
+     rendered the component directly rather than through the gate. The one rule
+     that IS reachable is covered in `__tests__/services/jobs/job-board-viewer.test.ts`.) */
 
   it('confirms without a subtitle, because the title is the whole message', () => {
     renderBanner({ isInterested: true });
 
     expect(screen.getByText(INTEREST_CONFIRMED_TITLE)).toBeInTheDocument();
     expect(action()).toHaveAccessibleName(INTEREST_UNDO_LABEL);
-    expect(screen.queryByText(INTEREST_SUBTITLE_MEMBER)).not.toBeInTheDocument();
-    expect(screen.queryByText(INTEREST_SUBTITLE_VISITOR)).not.toBeInTheDocument();
+    expect(screen.queryByText(INTEREST_SUBTITLE)).not.toBeInTheDocument();
   });
 
   it('asks for the state it is not in', () => {
@@ -146,9 +129,7 @@ describe('the banner itself', () => {
     fireEvent.click(action());
     expect(onToggle).toHaveBeenCalledWith(true, false);
 
-    rerender(
-      <JobInterestBanner teamName={TEAM_NAME} isInterested isLoggedIn error={null} onToggle={onToggle} />,
-    );
+    rerender(<JobInterestBanner teamName={TEAM_NAME} isInterested error={null} onToggle={onToggle} />);
     fireEvent.click(action());
     expect(onToggle).toHaveBeenLastCalledWith(false, false);
   });
@@ -158,7 +139,7 @@ describe('the banner itself', () => {
     renderBanner({ error: 'Could not save your interest', onToggle });
 
     expect(screen.getByText('Could not save your interest')).toBeInTheDocument();
-    expect(screen.queryByText(INTEREST_SUBTITLE_MEMBER)).not.toBeInTheDocument();
+    expect(screen.queryByText(INTEREST_SUBTITLE)).not.toBeInTheDocument();
 
     fireEvent.click(action());
     expect(onToggle).toHaveBeenCalledWith(true, false);
@@ -202,9 +183,7 @@ describe('the banner itself', () => {
     before.focus();
     expect(document.activeElement).toBe(before);
 
-    rerender(
-      <JobInterestBanner teamName={TEAM_NAME} isInterested isLoggedIn error={null} onToggle={jest.fn()} />,
-    );
+    rerender(<JobInterestBanner teamName={TEAM_NAME} isInterested error={null} onToggle={jest.fn()} />);
 
     expect(action()).toBe(before);
     expect(document.activeElement).toBe(before);
@@ -220,7 +199,11 @@ describe('the banner itself', () => {
   });
 });
 
-const role = { uid: 'r1', roleTitle: 'Protocol Engineer', applyUrl: 'https://example.com/apply' } as unknown as IJobRole;
+const role = {
+  uid: 'r1',
+  roleTitle: 'Protocol Engineer',
+  applyUrl: 'https://example.com/apply',
+} as unknown as IJobRole;
 const team = { uid: 't2', name: TEAM_NAME } as unknown as IJobTeam;
 
 const settledInterest = {
@@ -303,22 +286,16 @@ describe('when the drawer offers it', () => {
     expect(bannerTitle()).not.toBeInTheDocument();
   });
 
-  /* The divergence from Figma, pinned. The design draws this banner only in the
-     "Signed up" frames; logged out, that slot holds `JobUnlockBanner` alone. The
-     ticket asks for the CTA logged out too, so both render — interest first.
-     If a later design review reverses this, it should fail here and be changed
-     deliberately rather than drift. */
-  it('stacks above the unlocks card for a signed-out visitor, in that order', () => {
-    const { container } = renderDrawer({ isLoggedIn: false, memberUid: undefined, viewerState: 'logged-out' });
+  /* A signed-out visitor gets the unlocks card and nothing above it — the
+     composition the Figma draws. The drawer's markup can stack both, and a test
+     here used to assert that it did, by handing the drawer an `interest` prop
+     the controller never supplies without a session. Wiring none is what
+     production does, so that is what this asserts. */
+  it('leaves a signed-out visitor the unlocks card alone', () => {
+    renderDrawer({ isLoggedIn: false, memberUid: undefined, viewerState: 'logged-out', interest: undefined });
 
-    const interest = bannerTitle();
-    const unlocks = screen.getByRole('heading', { name: UNLOCK_TITLE });
-    expect(interest).toBeInTheDocument();
-    expect(unlocks).toBeInTheDocument();
-
-    const order = interest!.compareDocumentPosition(unlocks);
-    expect(order & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(container).toBeTruthy();
+    expect(screen.getByRole('heading', { name: UNLOCK_TITLE })).toBeInTheDocument();
+    expect(bannerTitle()).not.toBeInTheDocument();
   });
 
   it('leaves a signed-in member the interest banner and no unlocks card', () => {

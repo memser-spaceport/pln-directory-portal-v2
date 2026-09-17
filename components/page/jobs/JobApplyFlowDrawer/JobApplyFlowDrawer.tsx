@@ -220,13 +220,14 @@ interface JobApplyFlowDrawerProps {
   /**
    * The "I'm interested" signal.
    *
-   * Supplied by the controller only for a signed-in Job Aspirant — the one
-   * persona the light signal exists for. A signed-out visitor and an
-   * established member are both withheld this prop entirely (see
-   * `canShowJobInterest` in `services/jobs/job-board-viewer`), so the banner
-   * never renders for either. Optional here only so that the several suites
-   * which render this drawer to test something else do not have to wire a
-   * signal they never press.
+   * Supplied by the controller only where the full in-app Apply is NOT available
+   * to this viewer — a signed-in Job Aspirant on a role that sends them off-site,
+   * or anyone on a team that takes no in-app applications. A signed-out visitor,
+   * an established member, and a Job Aspirant reading a Protocol Labs role are
+   * all withheld this prop entirely (see `canShowJobInterest` in
+   * `services/jobs/job-board-viewer`), so the banner never renders for them.
+   * Optional here only so that the several suites which render this drawer to
+   * test something else do not have to wire a signal they never press.
    *
    * `isSettled` is not a loading flag to render a spinner from: it says whether
    * the answer is known, and until it is the banner does not draw. An
@@ -1199,14 +1200,14 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                  what keeps them from reading as one journey drawn twice. */
                   banner={
                     <>
-                      {/* Above the unlocks card, not instead of it.
-                      The Figma draws this banner only in the "Signed up" frames
-                      — logged out, this slot holds `JobUnlockBanner` and nothing
-                      else. The ticket asks for the CTA logged out too, so both
-                      render, and the composition below is the one thing here
-                      that no frame shows. It is deliberate, it is reviewable,
-                      and it is one clause to undo if the review goes the other
-                      way: see the plan's D1.
+                      {/* Never both at once, despite the stacking this markup
+                      allows. The Figma draws the interest banner only in the
+                      "Signed up" frames — logged out, this slot holds
+                      `JobUnlockBanner` alone — and that is now also what the
+                      code does: `canShowJobInterest` requires a session, so a
+                      visitor is never wired `interest`. (`d5375bd05` withdrew
+                      the logged-out banner; this comment and a pair of tests
+                      went on describing it for a fortnight afterwards.)
 
                       Withheld once an application exists. "Let them know you're
                       interested" above a footer reading `Applied` is the drawer
@@ -1216,7 +1217,6 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                         <JobInterestBanner
                           teamName={target.teamName}
                           isInterested={interest.isInterested}
-                          isLoggedIn={isLoggedIn}
                           error={interest.error}
                           /* The same offer the apply footer makes, on the one
                              other press that sends something to a team from

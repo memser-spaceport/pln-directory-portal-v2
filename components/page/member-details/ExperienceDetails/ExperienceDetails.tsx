@@ -115,7 +115,11 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member, enableCvImport
      stand open. While that card is up it owns Replace, so this section's own
      offer — the empty-state drop area and the header's "Update from CV" — stands
      down. */
-  const { data: storedCv } = useStoredCv(enableCvImport ? member.id : undefined);
+  /* Owner-only, like `MemberCvSection`'s mount gate: the stored CV is this
+     member's document, so asking for it on someone else's profile is a request
+     that can only be refused. `enableCvImport` is the flag alone — it says the
+     host allows the feature, not that this reader is entitled to it. */
+  const { data: storedCv } = useStoredCv(enableCvImport && isOwner ? member.id : undefined);
 
   const cvImport: CvImportControls | undefined = useMemo(
     () =>

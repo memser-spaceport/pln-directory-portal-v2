@@ -25,6 +25,7 @@ export function SkillsTagsInput({
   suggestions = [],
 }: SkillsTagsInputProps) {
   const [inputText, setInputText] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
   const {
     setValue,
     getValues,
@@ -92,7 +93,15 @@ export function SkillsTagsInput({
   return (
     <div className={s.Content}>
       <div className={s.inputLabel}>{selectLabel}</div>
-      <div className={t.fieldWrap}>
+      <div
+        className={t.fieldWrap}
+        onFocus={() => setIsFocused(true)}
+        onBlur={(event) => {
+          const next = event.relatedTarget as Node | null;
+          if (next && event.currentTarget.contains(next)) return;
+          setIsFocused(false);
+        }}
+      >
         <div className={clsx(s.input, { [s.error]: errors[name] })}>
           <div className={s.inputContent}>
             {val.map((item) => (
@@ -146,7 +155,7 @@ export function SkillsTagsInput({
             </button>
           )}
         </div>
-        {(canAddCustom || filteredSuggestions.length > 0) && (
+        {isFocused && (canAddCustom || filteredSuggestions.length > 0) && (
           <ul className={t.suggestions} role="listbox">
             {canAddCustom && (
               <li>

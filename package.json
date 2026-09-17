@@ -1,6 +1,6 @@
 {
   "name": "pln-directory-web-v2",
-  "version": "plaa-v7.22",
+  "version": "plaa-v7.24",
   "private": true,
   "engines": {
     "node": ">=20.9.0"

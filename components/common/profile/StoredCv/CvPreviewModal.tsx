@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useMeasure } from 'react-use';
 
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
@@ -16,8 +17,19 @@ import s from './CvPreviewModal.module.scss';
    Dynamic for the reason given there. */
 const CvPdfPage = dynamic(() => import('./CvPdfPage'), { ssr: false });
 
-/** An A4 page at readable scale; the card is 720 wide with 20px padding and a 16px inset. */
-const PAGE_WIDTH = 640;
+/**
+ * A4 at 96dpi — the page's true size, and the ceiling the canvas is rendered at.
+ *
+ * A cap rather than a width: the reader is measured, so on a narrower viewport
+ * the page shrinks to fit instead of being clipped by its own scroller, and on a
+ * wider one it stops here rather than upscaling a 794px document into a blurry
+ * 900px one.
+ *
+ * It replaces a hardcoded 640 that had to agree by hand with a `max-width` in
+ * the stylesheet. It did not: `Modal`'s container caps at 600, so the card was
+ * 600 wide with a 640 canvas inside it.
+ */
+const A4_WIDTH = 794;
 
 interface CvPreviewModalProps {
   cv: StoredCv;
@@ -51,8 +63,22 @@ export function CvPreviewModal({ cv, isOpen, onClose }: CvPreviewModalProps) {
     .filter(Boolean)
     .join(' · ');
 
+  /* The space the page actually has, measured on a box with no padding of its
+     own — see `.pageInner`. Zero until the first layout, which is why the
+     fallback stands in below rather than a 0-width canvas being handed to
+     react-pdf. */
+  const [readerRef, { width: readerWidth }] = useMeasure<HTMLDivElement>();
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} ariaLabelledBy="cv-preview-title" lockScroll>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabelledBy="cv-preview-title"
+      lockScroll
+      /* Widens `Modal`'s 600px container — the card inside is `width: 100%` and
+         cannot exceed it on its own. */
+      className={s.container}
+    >
       <div className={s.modal}>
         <Button style="link" variant="neutral" className={s.closeButton} onClick={onClose} aria-label="Close preview">
           <CloseIcon />
@@ -64,9 +90,19 @@ export function CvPreviewModal({ cv, isOpen, onClose }: CvPreviewModalProps) {
           <p className={s.meta}>{meta}</p>
         </div>
         <div className={s.page}>
-          {cv.url && (
-            <CvPdfPage url={cv.url} width={PAGE_WIDTH} pages="all" fallback={<p className={s.loading}>Loading…</p>} />
-          )}
+          <div ref={readerRef} className={s.pageInner}>
+            {cv.url &&
+              (readerWidth > 0 ? (
+                <CvPdfPage
+                  url={cv.url}
+                  width={Math.min(readerWidth, A4_WIDTH)}
+                  pages="all"
+                  fallback={<p className={s.loading}>Loading…</p>}
+                />
+              ) : (
+                <p className={s.loading}>Loading…</p>
+              ))}
+          </div>
         </div>
       </div>
     </Modal>

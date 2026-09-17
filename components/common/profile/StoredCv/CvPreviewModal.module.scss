@@ -1,16 +1,31 @@
 @use 'styles/media';
 
-// The refer modal's card (`ReferModal.module.scss .modal`), at the width a
-// document wants: an A4 page at readable scale is ~640px, plus the card's
-// padding. Capped to the viewport per lesson 5b — the card holds still and the
-// page inside it scrolls.
+// `Modal`'s own container is `max-width: 600px` — the dialog default, and the
+// reason this card's 720 never applied: the card is `width: 100%` inside it, so
+// it rendered at 600 while the page canvas was pinned at 640 and clipped by its
+// own scroller. Widening the card means widening the container, which is a
+// `className` on `<Modal>` — the same way `JobSignUpModal` and the AI Apps
+// dialogs do it.
+//
+// 880: an A4 page at 100% is 794px (96dpi), and the card spends 74 on chrome —
+// 20px padding each side, the reader's 16px inset each side, its hairline. So
+// this is the smallest card that shows a CV at true size without upscaling it.
+// Doubled so it outranks `Modal.module.scss .modalContainer` regardless of which
+// module the bundler emits first — at equal specificity that order decides, and
+// it is not guaranteed. The same trick `.closeButton` below uses against
+// `Button`'s own rule.
+.container.container {
+  max-width: 880px;
+}
+
+// The refer modal's card (`ReferModal.module.scss .modal`). Capped to the
+// viewport per lesson 5b — the card holds still and the page inside it scrolls.
 .modal {
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 16px;
   width: 100%;
-  max-width: 720px;
   max-height: calc(100dvh - 32px);
   margin: auto;
   padding: 20px;
@@ -97,6 +112,14 @@
     margin: 0 auto;
     box-shadow: 0 1px 2px rgba(14, 15, 17, 0.08);
   }
+}
+
+// What the reader measures itself against. A bare full-width box inside the
+// scroller: `.page` carries 16px of padding and a border, and a measurement
+// taken on it would hand the canvas a width ~34px wider than the space it has,
+// which is how a page ends up clipped by its own container.
+.pageInner {
+  width: 100%;
 }
 
 // Until the first page paints: the meta line's rank, centred on the ground.

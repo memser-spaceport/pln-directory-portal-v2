@@ -74,7 +74,18 @@
 
 // Scrolls rather than pushing the card past its cap, the same arrangement
 // `CvPreviewModal` uses for the reader.
+//
+// A flex column with the card's own 16px rhythm, because its three children —
+// the field, a refusal when there is one, and the footer — otherwise stack with
+// nothing between them, and `FormTextArea` ends in a character counter that sat
+// directly on top of the buttons. The gap is declared here rather than as a
+// margin on `.footer` so the error line is spaced by the same rule instead of
+// needing one of its own.
 .body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
   flex: 1;
   min-height: 0;
   overflow: auto;

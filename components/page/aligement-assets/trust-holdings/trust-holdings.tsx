@@ -594,11 +594,6 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
   const buybackMarkers = buybackMarkersByPeriod(buybacks);
   const metrics = capstoneMetrics(data, buybacks);
 
-  // TEMPORARY — hardcoded override of the backend-generated `data.asOfDate` for this
-  // review cycle. MUST be reverted to `data.asOfDate` once real September data is
-  // live (expected next month, October 2026) — do not let this date ship past then.
-  // const asOfDate = data.asOfDate;
-  const asOfDate = 'September 16th, 2026';
 
   // Most recent monthly point, oldest-first array — same source NavTable and
   // takeRecentMonths use. Surfaces Total PLAA / NAV alongside NAV/PLAA above.
@@ -624,7 +619,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           <div className="th-nav-meta-block">
             <h2 className="th-heading th-heading--title-weight">Trust Total Net Asset Value</h2>
             <p className="th-heading__sub th-heading__sub--muted">
-              Estimated as of {asOfDate} ·{' '}
+              Estimated as of {data.asOfDate} ·{' '}
               <a className="th-nav-meta-link" href={DISCLOSURE_URL}>
                 Methodology &amp; disclaimers
               </a>
@@ -727,7 +722,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
 
           <div className="th-legend">
             <p className="th-section-eyebrow">FOCUS AREA BREAKDOWN</p>
-            <p className="th-legend__sub">Share of PLVH exposure by category · 6 categories · as of {asOfDate}</p>
+            <p className="th-legend__sub">Share of PLVH exposure by category · 6 categories · as of {data.asOfDate}</p>
             <ul className="th-legend__list">
               {data.focusAreas.map((slice) => (
                 <li key={slice.name} className="th-legend__row">
@@ -745,7 +740,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
       <section className="th-card th-card--padded">
         <h2 className="th-heading">Current Trust Composition</h2>
         <p className="th-heading__sub">
-          Composition of all trust assets as a share of net asset value · as of {asOfDate}.
+          Composition of all trust assets as a share of net asset value · as of {data.asOfDate}.
         </p>
 
         <div className="th-split">

@@ -55,5 +55,11 @@ export function useStoredCv(uid: string | undefined) {
        focus is what keeps a preview opened an hour later from 403ing on an
        expired signature. */
     staleTime: 5 * 60 * 1000,
+    /* `QueryProvider` sets no `defaultOptions`, so React Query's own default of
+       three retries with backoff applies unless this says otherwise — and this
+       query now runs on every member profile a signed-in reader opens. A refusal
+       is already `null` (see `getStoredCv`), so what is left here is a server
+       that is down, and asking it four times per profile view helps nobody. */
+    retry: false,
   });
 }

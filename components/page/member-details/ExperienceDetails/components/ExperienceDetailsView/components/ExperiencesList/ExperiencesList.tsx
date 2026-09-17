@@ -70,7 +70,7 @@ export const ExperiencesList = (props: Props) => {
       )}
       {!isLoading &&
         !data?.length &&
-        (cvImport && isEditable ? (
+        (cvImport?.hostsEmptyRow && isEditable ? (
           /* The offer, standing in the empty row rather than above it.
              `.connectButton` was drawn inside `.emptyData` in this stylesheet
              for exactly this — "connect a source and this section fills itself"
@@ -80,7 +80,11 @@ export const ExperiencesList = (props: Props) => {
 
              Only while the section is empty: an import offer standing over a
              history someone has already written is nagging, and the header's
-             "Update from CV" covers that case. */
+             "Update from CV" covers that case.
+
+             And only when the host is offering the drop area *here*. On the
+             member profile the CV section holds one of its own, and this row
+             falls back to the plain sentence below — see `hostsEmptyRow`. */
           <ExperienceImportPanel
             privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
             onParse={cvImport.onParse}

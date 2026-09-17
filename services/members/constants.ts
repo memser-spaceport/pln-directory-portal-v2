@@ -43,7 +43,7 @@ export enum MembersQueryKeys {
  * `services/jobs/constants` when the apply flow's profile step was the only one;
  * the member profile page is the second, and the components it gates were always
  * `member-details/`. The hosts read it; the section itself never does — the
- * `enableCvImport` prop is what keeps it flag-free, so a third host is one prop
+ * `cvImportSurface` prop is what keeps it flag-free, so a third host is one prop
  * rather than another import.
  *
  * Read literal-first in `&&` so the bundler folds the branch. BUILD-time: a

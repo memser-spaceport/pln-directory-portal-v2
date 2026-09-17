@@ -1,0 +1,76 @@
+/* The open-role block: the line under a team's postings, for whoever they
+   missed. It wears `ReferRoleRow.module.scss`'s row and then takes away
+   everything a posting fills it with — see the component. */
+
+.openRow {
+  /* No box. Not the postings' filled slab: a container would make this a fourth
+     card in a list of three, and it is not a card. The team card's own edge is
+     the frame. */
+  background-color: transparent;
+  border: 0;
+  border-radius: 0;
+
+  /* Longhand so `.attached` can add a top padding without fighting a shorthand
+     at equal specificity. Vertical padding is down from the posting row's 12px:
+     with no box around it the block is its own content, and the button's height
+     is the height. */
+  padding-left: 16px;
+  padding-right: 16px;
+
+  /* The row's own 16px gap is drawn for a two-line body against a cluster of
+     controls. This is one line and one button. */
+  gap: 12px;
+}
+
+/* The rule above the line, saying this is not one more posting. Lives on a
+   modifier rather than on `.openRow` because it is only true inside a card,
+   under a list — the host declares it. */
+.attached {
+  border-top: 1px solid var(--border-neutral-subtle, #f1f5f9);
+  padding-top: 12px;
+}
+
+/* The question. Down from the posting row's `.title` (16/500), which would make
+   it a peer of the role titles — it is not one: the roles are the offer, and
+   this is the sentence under them for whoever the offer missed. 14px is the
+   card's own secondary size, the same the rows' meta line uses. */
+.line {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* The offer, run on after the question on the same line.
+ *
+ * Two properties and no third: it inherits size, line-height and letter-spacing
+ * from `.line` because it lives inside that `<p>`, so both clauses share one
+ * baseline and one line box. Weight and ink are all a qualifier needs. */
+.sub {
+  font-weight: 400;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* The press, at `xs` rather than the posting rows' `s`, and without their 104px
+   slot width. That number exists so a list of postings does not twitch as rows
+   change state; this block is not in that list, it is the line under it.
+   Restates the box because `Button`'s root does not set a gap for a leading
+   glyph. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* "Interested" — the terminal state, drawn exactly as `Applied` is, and for the
+   same reason `ReferRoleRowApply.module.scss` gives: at full contrast a spent
+   control still looks pressable, and it would be the only button on the card
+   that lies. Here it is doubly true — this signal has no undo, so half-opacity
+   is the honest paint rather than a borrowed one. `default` cursor, not
+   `not-allowed`: this is a report, not a refusal. */
+.marker.marker:disabled {
+  cursor: default;
+}

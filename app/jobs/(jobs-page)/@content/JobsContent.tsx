@@ -5,9 +5,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import type { IUserInfo } from '@/types/shared.types';
 import type { IJobAlert, IJobAlertFilterState } from '@/types/job-alerts.types';
-import type { IJobRole, IJobTeamGroup, JobsSortKey } from '@/types/jobs.types';
+import type { IJobRole, IJobTeam, IJobTeamGroup, JobsSortKey } from '@/types/jobs.types';
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 import { useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
+import { useMarkTeamInterest } from '@/services/jobs/hooks/useTeamInterest';
+import { isJobGoneError } from '@/services/jobs/job-interests.service';
 import { useJobsParamsUpdater } from '@/services/jobs/hooks/useJobsParamsUpdater';
 import { useCreateJobAlert } from '@/services/job-alerts/hooks/useCreateJobAlert';
 import { useJobAlertMatch } from '@/services/job-alerts/hooks/useJobAlertMatch';
@@ -109,6 +111,62 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
     const search = withPendingApply(window.location.search, undefined);
     goToLogin({ returnTo: `${window.location.pathname}${search}` });
   }, [goToLogin]);
+
+  /**
+   * The open-role signal (LAB-2439). Lives on the board rather than in the card
+   * so there is ONE mutation for every card, and so the logged-out door is the
+   * same one the banner's "Sign in" uses.
+   *
+   * **Logged out goes to sign-up and does not come back to finish.** The apply
+   * flow has a resume param that replays a press after Privy; this deliberately
+   * has no twin. That mechanism writes on the way back, which means a stale
+   * param files a talent-pool entry nobody pressed for — and this signal has no
+   * undo. Someone who signs up lands on the board and presses again, once,
+   * knowing they did.
+   */
+  const markTeamInterest = useMarkTeamInterest();
+  const onExpressTeamInterest = useCallback(
+    (team: IJobTeam) => {
+      if (!isLoggedIn) {
+        pushLogin();
+        return;
+      }
+      if (team.viewerIsInterestedInTeam) return;
+
+      markTeamInterest.mutate(team.uid, {
+        /* Reported from the server's answer, not from the press: the write is
+           idempotent, so a second press that changed nothing must not be
+           counted as a new signal. */
+        onSuccess: (status) => {
+          if (!status.viewerIsInterested) return;
+          analytics.onTeamInterestMarked({
+            team_id: team.uid,
+            viewer_state: boardViewer.viewer,
+            source: 'job-board',
+          });
+          toast.success(`${team.name} has your profile. They'll reach out if a matching role opens.`);
+        },
+        onError: (error) => {
+          analytics.onTeamInterestFailed({
+            team_id: team.uid,
+            viewer_state: boardViewer.viewer,
+            source: 'job-board',
+            failure_category: isJobGoneError(error) ? 'gone' : 'request-failed',
+          });
+          toast.error('Could not save your interest. Please try again.');
+        },
+      });
+    },
+    [isLoggedIn, pushLogin, markTeamInterest, analytics, boardViewer.viewer],
+  );
+
+  const openRoleProps = useMemo(
+    () => ({
+      onExpressInterest: onExpressTeamInterest,
+      pendingTeamUid: markTeamInterest.isPending ? (markTeamInterest.variables ?? null) : null,
+    }),
+    [onExpressTeamInterest, markTeamInterest.isPending, markTeamInterest.variables],
+  );
 
   /* ONE stable callback for every card — `TeamGroupCard` is memoized, and a
      closure minted per group re-renders every scrolled-in card on each host
@@ -301,6 +359,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
                 onOpenTeamNews={openTeamNews}
                 onRoleClick={onRoleClick}
                 apply={applyProps}
+                openRole={openRoleProps}
               />
             ))}
             {isFetchingNextPage && <CardsLoader />}

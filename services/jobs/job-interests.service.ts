@@ -3,6 +3,8 @@ import {
   jobInterestListResponseSchema,
   JobInterestToggle,
   jobInterestToggleResponseSchema,
+  TeamInterestStatus,
+  teamInterestStatusResponseSchema,
 } from '@/schema/job-interests';
 import { customFetch } from '@/utils/fetch-wrapper';
 
@@ -28,7 +30,7 @@ const JSON_WRITE = (method: 'POST' | 'DELETE') => ({
   body: JSON.stringify({}),
 });
 
-export type { JobInterest, JobInterestToggle };
+export type { JobInterest, JobInterestToggle, TeamInterestStatus };
 
 /**
  * A refusal from the interest endpoints.
@@ -124,6 +126,36 @@ export async function clearJobInterest(roleUid: string): Promise<JobInterestTogg
   }
 
   return jobInterestToggleResponseSchema.parse(await response.json());
+}
+
+/**
+ * Signal interest in a TEAM, with no role attached — the open-role press, for
+ * someone who found nothing on the card that fits.
+ *
+ * **One-way, unlike every other write in this file.** There is no
+ * `clearTeamInterest` because the endpoint has no DELETE: the signal is filed
+ * in the team's ATS as a talent-pool entry, and nothing in this product can
+ * reach in and unfile it. Do not add an Undo to the UI until the server grows
+ * the verb — an affordance that cannot keep its promise is worse than its
+ * absence.
+ *
+ * **Idempotent**, so a second press answers 200 rather than a 409, exactly as
+ * `markJobInterest` does. A 404 means the team uid is unknown to the server.
+ *
+ * Note the path sits under `/job-openings/teams/:uid/interest` rather than
+ * anywhere in a teams namespace. That is the server's shape — the route is
+ * declared above `getJob` in its contract precisely so `teams` is not read as a
+ * job uid — and it is why this lives beside the role interests rather than in a
+ * teams service.
+ */
+export async function markTeamInterest(teamUid: string): Promise<TeamInterestStatus> {
+  const response = await customFetch(`${JOB_OPENINGS_API_URL}/teams/${teamUid}/interest`, JSON_WRITE('POST'), true);
+
+  if (!response?.ok) {
+    throw await errorFrom(response, 'Could not save your interest');
+  }
+
+  return teamInterestStatusResponseSchema.parse(await response.json());
 }
 
 const statusIs = (error: unknown, status: number): boolean =>

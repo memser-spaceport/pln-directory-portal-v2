@@ -6,7 +6,7 @@ import Link from 'next/link';
 import isEmpty from 'lodash/isEmpty';
 import { useToggle } from 'react-use';
 
-import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
+import type { IJobRole, IJobTeam, IJobTeamGroup } from '@/types/jobs.types';
 import { PAGE_ROUTES } from '@/utils/constants';
 import { getJobDate, isNew, teamInitials } from '@/utils/jobs.utils';
 import { TagsList } from '@/components/common/profile/TagsList';
@@ -16,6 +16,8 @@ import { TeamNewsCountChip } from '@/components/page/team-news/TeamNewsCountChip
 import { useGetFocusTags } from './hooks/useGetFocusTags';
 
 import { ReferRoleRow, type RowApplyProps } from './component/ReferRoleRow';
+import { OpenRoleRow } from './component/OpenRoleRow';
+import { isProtocolLabsTeam } from '@/services/jobs/protocol-labs-team';
 
 import s from './TeamGroupCard.module.scss';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -34,9 +36,30 @@ interface TeamGroupCardProps {
   onOpenTeamNews?: (teamUid: string, teamName: string) => void;
   /** In-app apply wiring, threaded to rows. Presence is the gate — see RowApplyProps. */
   apply?: RowApplyProps;
+  /**
+   * The open-role signal — "I want to work here, and none of these fit".
+   *
+   * Presence is the gate, as with `apply`: a host that omits it gets the card it
+   * always had. Which *teams* offer it is decided here rather than by the host,
+   * because it is a fact about the team and the card is what holds one — Phase 1
+   * is Protocol Labs only (LAB-2439), so one `isProtocolLabsTeam` test keeps
+   * every host consistent instead of each remembering the rule.
+   */
+  openRole?: {
+    onExpressInterest: (team: IJobTeam) => void;
+    /** The team whose press is in flight, if any. */
+    pendingTeamUid?: string | null;
+  };
 }
 
-function TeamGroupCardImpl({ group, groupIndex = 0, onRoleClick, onOpenTeamNews, apply }: TeamGroupCardProps) {
+function TeamGroupCardImpl({
+  group,
+  groupIndex = 0,
+  onRoleClick,
+  onOpenTeamNews,
+  apply,
+  openRole,
+}: TeamGroupCardProps) {
   const [expanded, toggleExpanded] = useToggle(false);
   const { team, roles, totalRoles } = group;
 
@@ -44,6 +67,7 @@ function TeamGroupCardImpl({ group, groupIndex = 0, onRoleClick, onOpenTeamNews,
   const newCount = roles.filter((r) => isNew(getJobDate(r))).length;
 
   const focusTags = useGetFocusTags(team);
+  const showOpenRole = Boolean(openRole) && isProtocolLabsTeam(team);
   const currentUser = useCurrentUserStore((state) => state.currentUser);
 
   return (
@@ -104,6 +128,20 @@ function TeamGroupCardImpl({ group, groupIndex = 0, onRoleClick, onOpenTeamNews,
           />
         ))}
       </ul>
+
+      {/* Under the postings, inside the card, and outside the <ul>: it is not a
+          role, so it is not a list item. Drawn after the visible roles rather
+          than after the expander, because it answers the list — "none of these"
+          reads as a reply to what was just shown, not as a footer under a
+          control. */}
+      {showOpenRole && (
+        <OpenRoleRow
+          teamName={team.name}
+          isInterested={Boolean(team.viewerIsInterestedInTeam)}
+          isPending={openRole!.pendingTeamUid === team.uid}
+          onExpressInterest={() => openRole!.onExpressInterest(team)}
+        />
+      )}
 
       {roles.length > INITIAL_ROLES_SHOWN && (
         <button type="button" className={s.expander} onClick={toggleExpanded}>

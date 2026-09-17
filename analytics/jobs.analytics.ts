@@ -448,6 +448,30 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_INTEREST_FAILED, { ...args });
   };
 
+  /**
+   * The open-role signal: interest in a team, sent from its card when none of
+   * its postings fit.
+   *
+   * No `job_id` in the payload at all, rather than a null one — there is no role
+   * involved, and a null would read as "we failed to capture it".
+   *
+   * Like the role signal, a logged-out press fires nothing: it is a sign-up
+   * intent, and the mark event fires when the signal actually exists.
+   */
+  const onTeamInterestMarked = (args: { team_id: string; viewer_state: BoardViewerState; source: JobSurface }) => {
+    captureEvent(JOBS_ANALYTICS.ON_TEAM_INTEREST_MARKED, { ...args });
+  };
+
+  const onTeamInterestFailed = (args: {
+    team_id: string;
+    viewer_state: BoardViewerState;
+    source: JobSurface;
+    /** `gone` is a 404 — the team uid is unknown to the server. */
+    failure_category: 'gone' | 'request-failed';
+  }) => {
+    captureEvent(JOBS_ANALYTICS.ON_TEAM_INTEREST_FAILED, { ...args });
+  };
+
   return {
     onJobsPageViewed,
     onJobsFiltersApplied,
@@ -497,5 +521,7 @@ export const useJobsAnalytics = () => {
     onJobInterestMarked,
     onJobInterestUndone,
     onJobInterestFailed,
+    onTeamInterestMarked,
+    onTeamInterestFailed,
   };
 };

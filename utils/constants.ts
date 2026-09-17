@@ -108,6 +108,12 @@ export const JOBS_ANALYTICS = {
   ON_JOB_INTEREST_MARKED: 'job-interest-marked',
   ON_JOB_INTEREST_UNDONE: 'job-interest-undone',
   ON_JOB_INTEREST_FAILED: 'job-interest-failed',
+  /* The open-role signal — interest in a TEAM, with no role attached. Its own
+     events rather than the role ones with a null job: the two convert
+     differently (one is "this posting", the other "this employer"), and a
+     shared name would make either funnel unreadable. */
+  ON_TEAM_INTEREST_MARKED: 'team-interest-marked',
+  ON_TEAM_INTEREST_FAILED: 'team-interest-failed',
 };
 
 export const EVENTS = {

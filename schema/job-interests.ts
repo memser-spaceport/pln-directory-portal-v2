@@ -58,5 +58,24 @@ export const jobInterestToggleResponseSchema = z
   })
   .strict();
 
+/**
+ * What marking interest in a TEAM answers with — the open-role signal, for a
+ * team that has no posting the reader wants.
+ *
+ * Shaped like `jobInterestToggleResponseSchema` and deliberately not merged with
+ * it: the key differs (`teamUid`, not `jobUid`), and one endpoint is a toggle
+ * while this one is **one-way**. A shared schema would have to make both keys
+ * optional, which is how a response missing the one that matters stops being an
+ * error. `.strict()` like its neighbour, so a field added upstream fails loudly.
+ */
+export const teamInterestStatusResponseSchema = z
+  .object({
+    teamUid: z.string().min(1),
+    interestedCount: z.number(),
+    viewerIsInterested: z.boolean(),
+  })
+  .strict();
+
 export type JobInterest = z.infer<typeof jobInterestSchema>;
 export type JobInterestToggle = z.infer<typeof jobInterestToggleResponseSchema>;
+export type TeamInterestStatus = z.infer<typeof teamInterestStatusResponseSchema>;

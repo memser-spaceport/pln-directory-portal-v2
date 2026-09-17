@@ -11,6 +11,7 @@ import {
   JOB_ASPIRANT_POLICY_CODE,
   JOB_SEARCH_STATUS_OPTIONS,
   jobSearchStatusDisplayLabel,
+  shouldApplyGoExternal,
 } from '@/services/jobs/job-board-viewer';
 import type { IJobTeam } from '@/types/jobs.types';
 import { IUserInfo } from '@/types/shared.types';
@@ -33,6 +34,13 @@ const JOB_ASPIRANT_POLICY = {
 };
 
 const legacyUser = (accessLevel: IUserInfo['accessLevel']): IUserInfo => ({ uid: 'm1', accessLevel });
+
+/* `isProtocolLabsTeam` matches on either the uid or the name, so a team built
+   from a name alone is a real PL record as far as every rule here is
+   concerned — which is the point: the board's own data is matched both ways. */
+const team = (over: Partial<IJobTeam> = {}): IJobTeam =>
+  ({ uid: 't1', name: 'Acme', inAppApplyAvailable: true, ...over }) as IJobTeam;
+const plTeam = (over: Partial<IJobTeam> = {}): IJobTeam => team({ name: 'Protocol Labs', ...over });
 
 describe('getJobsAccessVerdict', () => {
   describe('access-control v2 (rbac.status)', () => {
@@ -124,6 +132,38 @@ describe('isJobAspirant', () => {
         rbac: { status: 'PENDING', policies: [], effectivePermissions: [], roles: [] },
       }),
     ).toBe(false);
+  });
+});
+
+/**
+ * Where an application lands, and therefore where the light signal is offered —
+ * `canShowJobInterest` below is built on this. It decided both of those things
+ * with no coverage at all until it moved out of `useJobApplyFlow`.
+ */
+describe('shouldApplyGoExternal', () => {
+  it('sends everyone off-site when the team takes no in-app applications', () => {
+    const dead = { inAppApplyAvailable: false };
+    /* Including Protocol Labs, and including an approved member: this disjunct
+       is about a route that does not work, not about who is asking. */
+    expect(shouldApplyGoExternal({ viewer: 'profile-ready', verdict: 'approved', team: team(dead) })).toBe(true);
+    expect(shouldApplyGoExternal({ viewer: 'profile-ready', verdict: 'approved', team: plTeam(dead) })).toBe(true);
+  });
+
+  it('keeps Protocol Labs in-app for everyone who can still reach Apply', () => {
+    expect(shouldApplyGoExternal({ viewer: 'logged-out', verdict: 'pending', team: plTeam() })).toBe(false);
+    expect(shouldApplyGoExternal({ viewer: 'profile-ready', verdict: 'pending', team: plTeam() })).toBe(false);
+    expect(shouldApplyGoExternal({ viewer: 'profile-ready', verdict: 'approved', team: plTeam() })).toBe(false);
+  });
+
+  it('hands every other employer their own posting until the account is approved', () => {
+    expect(shouldApplyGoExternal({ viewer: 'logged-out', verdict: 'pending', team: team() })).toBe(true);
+    expect(shouldApplyGoExternal({ viewer: 'profile-ready', verdict: 'pending', team: team() })).toBe(true);
+    expect(shouldApplyGoExternal({ viewer: 'profile-ready', verdict: 'approved', team: team() })).toBe(false);
+  });
+
+  it('treats a missing team as not Protocol Labs', () => {
+    expect(shouldApplyGoExternal({ viewer: 'profile-ready', verdict: 'pending', team: null })).toBe(true);
+    expect(shouldApplyGoExternal({ viewer: 'profile-ready', verdict: 'approved', team: undefined })).toBe(false);
   });
 });
 

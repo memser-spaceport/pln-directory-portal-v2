@@ -1,3 +1,4 @@
+import { isProtocolLabsTeam } from '@/services/jobs/protocol-labs-team';
 import type { IJobTeam } from '@/types/jobs.types';
 import { IUserInfo } from '@/types/shared.types';
 import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
@@ -97,6 +98,29 @@ export const isJobAspirant = (userInfo: IUserInfo | null): boolean =>
  */
 export const canSeeOriginalPosting = (args: { isLoggedIn: boolean; userInfo: IUserInfo | null | undefined }): boolean =>
   args.isLoggedIn && !isJobAspirant(args.userInfo ?? null);
+
+/**
+ * Whether Apply leaves the site for this viewer and this role.
+ *
+ * Protocol Labs takes applications in-app for everyone who can still reach
+ * Apply. Every other employer gets their own posting when there is no approved
+ * account yet — a signed-out visitor, or one still awaiting review — because
+ * handing them a stranger the PL team has not vetted is the board applying
+ * *for* a team that did not ask it to.
+ *
+ * **It lives here, not in `useJobApplyFlow`**, where it was written. It is a
+ * pure decision about a viewer and a team — this file's whole subject — and it
+ * had no tests at all while it sat in a `'use client'` hook module beside React
+ * state. `canShowJobInterest` below now reads it, and a service reaching into a
+ * client hook for it would have been a cycle.
+ */
+export const shouldApplyGoExternal = (args: {
+  viewer: BoardViewerState;
+  verdict: JobsAccessVerdict;
+  team: IJobTeam | null | undefined;
+}): boolean =>
+  args.team?.inAppApplyAvailable === false ||
+  (!isProtocolLabsTeam(args.team) && (args.viewer === 'logged-out' || args.verdict === 'pending'));
 
 /**
  * Whether this viewer is offered the "I'm interested" light signal.

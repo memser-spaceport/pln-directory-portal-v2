@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import Select, { type StylesConfig } from 'react-select';
 
@@ -183,6 +183,36 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
        badge that comes back, which is not worth interrupting anyone over. */
     if (row.unseen) markSeen.mutate({ kind: row.kind, uid: row.uid });
   };
+
+  /**
+   * The pane opens on someone, rather than on an instruction to pick someone.
+   *
+   * Two-column only: on a narrow screen the pane is a second screen the list
+   * hands you over to, and preselecting there would land a lead on a profile
+   * having never seen the list they came for.
+   *
+   * **It marks that person seen, and that is the point rather than a side
+   * effect.** Their profile is on screen; a "● New" left on the row would be
+   * claiming nobody has looked at someone the page just showed. It goes the same
+   * way it goes on a press, through the same `select`.
+   *
+   * `selectedUid` is the whole guard: this fires once, on a list nobody has
+   * chosen from yet, and stands down for good afterwards — so typing cannot walk
+   * the selection or quietly mark people read as the query narrows. Switching
+   * tab or role clears the selection (and the search with it), and this runs
+   * again for the new list.
+   *
+   * `rows` rather than `shown` is therefore belt and braces: the search is
+   * always empty at the moment this can fire, so the two are the same list. It
+   * is the conservative read, not a behaviour the tests can tell apart.
+   */
+  useEffect(() => {
+    if (isNarrow || selectedUid || !rows.length) return;
+    select(rows[0]);
+    /* `select` is rebuilt every render and is deliberately not a dependency;
+       the guards above are what stop this running twice. */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isNarrow, selectedUid, rows]);
 
   const selected = shown.find((row) => row.uid === selectedUid) ?? null;
   const position = selected ? shown.findIndex((row) => row.uid === selected.uid) : -1;

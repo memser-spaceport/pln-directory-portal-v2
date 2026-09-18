@@ -59,6 +59,14 @@ jest.mock('@/components/page/team-details/TeamApplicants/components/ApplicantPan
   ApplicantPane: ({ applicant }: any) => <div data-testid="pane">{applicant.name}</div>,
 }));
 
+/* Two-column by default; one case below flips it to check the pane does NOT
+   preselect on a narrow screen, where it is a second screen rather than a
+   column. */
+let isNarrow = false;
+jest.mock('@/hooks/useIsBelowTabletLandscape', () => ({
+  useIsBelowTabletLandscape: () => isNarrow,
+}));
+
 const useApplicantCounts = jest.fn();
 const useRoleApplicants = jest.fn();
 const markSeen = jest.fn();
@@ -128,7 +136,16 @@ const renderView = (props: Partial<React.ComponentProps<typeof TeamApplicantsVie
     />,
   );
 
+/**
+ * The person's row in the LIST.
+ *
+ * A bare `getByText(name)` is ambiguous now that the page opens on someone: the
+ * pane renders their name too, so the query matches the row and the pane both.
+ */
+const rowFor = (name: string) => screen.getAllByRole('button').find((b) => b.textContent?.includes(name));
+
 beforeEach(() => {
+  isNarrow = false;
   useApplicantCounts.mockReset();
   useRoleApplicants.mockReset();
   markSeen.mockReset();
@@ -158,7 +175,7 @@ describe('TeamApplicantsView', () => {
 
       renderView();
 
-      expect(screen.getByText('Maya Okonjo')).toBeInTheDocument();
+      expect(rowFor('Maya Okonjo')).toBeTruthy();
       expect(screen.queryByText(/No one has applied to this role yet/)).not.toBeInTheDocument();
     });
 
@@ -167,8 +184,8 @@ describe('TeamApplicantsView', () => {
 
       renderView();
 
-      expect(screen.getByText('Devon Park')).toBeInTheDocument();
-      expect(screen.queryByText('Maya Okonjo')).not.toBeInTheDocument();
+      expect(rowFor('Devon Park')).toBeTruthy();
+      expect(rowFor('Maya Okonjo')).toBeUndefined();
     });
 
     /* Both empty is the ordinary empty state, and it belongs to Applied — the
@@ -190,7 +207,44 @@ describe('TeamApplicantsView', () => {
       await userEvent.click(screen.getByText(/Applied/));
 
       expect(screen.getByText(/No one has applied to this role yet/)).toBeInTheDocument();
-      expect(screen.queryByText('Maya Okonjo')).not.toBeInTheDocument();
+      expect(rowFor('Maya Okonjo')).toBeUndefined();
+    });
+  });
+
+  /**
+   * Arriving on somebody, rather than on an instruction to pick somebody.
+   *
+   * The right half of a two-column page is too much room to spend on "Select
+   * someone to read their profile"; the first row is the newest answer and the
+   * one a lead would have pressed anyway.
+   */
+  describe('the person the page opens on', () => {
+    it('opens on the first row, so the pane is never blank', () => {
+      renderView();
+
+      expect(screen.getByTestId('pane')).toHaveTextContent('Devon Park');
+      expect(screen.getByRole('button', { pressed: true }).textContent).toContain('Devon Park');
+    });
+
+    /* On a narrow screen the pane is a second screen the list hands you to.
+       Preselecting there lands a lead on a profile having never seen the list
+       they came for. */
+    it('opens on the list, not a profile, when there is only one column', () => {
+      isNarrow = true;
+
+      renderView();
+
+      expect(screen.queryByTestId('pane')).not.toBeInTheDocument();
+      expect(markSeen).not.toHaveBeenCalled();
+    });
+
+    it('leaves an empty role alone', () => {
+      setLists({ applications: [], interests: [] });
+
+      renderView();
+
+      expect(screen.queryByTestId('pane')).not.toBeInTheDocument();
+      expect(markSeen).not.toHaveBeenCalled();
     });
   });
 
@@ -207,13 +261,13 @@ describe('TeamApplicantsView', () => {
   it('keeps the two acts in separate tabs, because they are different acts', async () => {
     renderView();
 
-    expect(screen.getByText('Devon Park')).toBeInTheDocument();
-    expect(screen.queryByText('Maya Okonjo')).not.toBeInTheDocument();
+    expect(rowFor('Devon Park')).toBeTruthy();
+    expect(rowFor('Maya Okonjo')).toBeUndefined();
 
     await userEvent.click(screen.getByText(/Interested/));
 
-    expect(screen.getByText('Maya Okonjo')).toBeInTheDocument();
-    expect(screen.queryByText('Devon Park')).not.toBeInTheDocument();
+    expect(rowFor('Maya Okonjo')).toBeTruthy();
+    expect(rowFor('Devon Park')).toBeUndefined();
   });
 
   it('filters by name and by the role line', async () => {
@@ -233,9 +287,8 @@ describe('TeamApplicantsView', () => {
   it('marks an unopened person new, and leaves the opened ones plain', () => {
     renderView();
 
-    const rows = screen.getAllByRole('button', { pressed: false });
-    const devon = rows.find((row) => row.textContent?.includes('Devon Park'));
-    const lina = rows.find((row) => row.textContent?.includes('Lina Suarez'));
+    const devon = rowFor('Devon Park');
+    const lina = rowFor('Lina Suarez');
 
     expect(devon?.textContent).toContain('New');
     expect(lina?.textContent).not.toContain('New');
@@ -251,7 +304,7 @@ describe('TeamApplicantsView', () => {
   it('selects the row that was pressed', async () => {
     renderView();
 
-    await userEvent.click(screen.getByText('Lina Suarez'));
+    await userEvent.click(rowFor('Lina Suarez')!);
 
     const pressed = screen.getByRole('button', { pressed: true });
     expect(pressed.textContent).toContain('Lina Suarez');
@@ -311,17 +364,18 @@ describe('TeamApplicantsView', () => {
   it('counts opening a row as reading it, and only for a row that was unread', async () => {
     renderView();
 
-    await userEvent.click(screen.getByText('Devon Park'));
+    /* The pane opens on the first row, and opening someone is reading them — so
+       the mark goes on mount, without a press. */
     expect(markSeen).toHaveBeenCalledWith({ kind: 'application', uid: 'a1' });
 
     markSeen.mockReset();
-    await userEvent.click(screen.getByText('Lina Suarez'));
+    await userEvent.click(rowFor('Lina Suarez')!);
     expect(markSeen).not.toHaveBeenCalled();
   });
 
   it('steps to the next person, and stops at the ends', async () => {
     renderView();
-    await userEvent.click(screen.getByText('Devon Park'));
+    await userEvent.click(rowFor('Devon Park')!);
 
     expect(screen.getByText('1 of 2')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Previous applicant' })).toBeDisabled();
@@ -334,7 +388,7 @@ describe('TeamApplicantsView', () => {
 
   it('asks to mark reviewed', async () => {
     renderView();
-    await userEvent.click(screen.getByText('Devon Park'));
+    await userEvent.click(rowFor('Devon Park')!);
 
     await userEvent.click(screen.getByRole('button', { name: /Mark as reviewed/ }));
 
@@ -345,7 +399,7 @@ describe('TeamApplicantsView', () => {
   it('asks to unmark when the row is already reviewed', async () => {
     setLists({ applications: [{ ...DEVON, reviewed: true }], interests: [] });
     renderView();
-    await userEvent.click(screen.getByText('Devon Park'));
+    await userEvent.click(rowFor('Devon Park')!);
 
     await userEvent.click(screen.getByRole('button', { name: 'Reviewed' }));
 
@@ -354,7 +408,7 @@ describe('TeamApplicantsView', () => {
 
   it('writes a mail link naming the act, not just the role', async () => {
     renderView();
-    await userEvent.click(screen.getByText('Devon Park'));
+    await userEvent.click(rowFor('Devon Park')!);
 
     expect(screen.getByRole('link', { name: /Email Devon/ })).toHaveAttribute(
       'href',
@@ -367,18 +421,20 @@ describe('TeamApplicantsView', () => {
   it('offers no Email button for a member with no address', async () => {
     setLists({ applications: [person({ uid: 'a5', name: 'No Address', email: null })], interests: [] });
     renderView();
-    await userEvent.click(screen.getByText('No Address'));
+    await userEvent.click(rowFor('No Address')!);
 
     expect(screen.queryByRole('link', { name: /Email/ })).not.toBeInTheDocument();
   });
 
   it('drops the selection and the search when the role changes', async () => {
     renderView();
-    await userEvent.click(screen.getByText('Lina Suarez'));
+    await userEvent.click(rowFor('Lina Suarez')!);
     expect(screen.getByRole('button', { pressed: true })).toBeInTheDocument();
 
     await userEvent.click(within(screen.getByTestId('role-picker')).getByText(/Developer Advocate/));
 
-    expect(screen.queryByRole('button', { pressed: true })).not.toBeInTheDocument();
+    /* The chosen person does not follow the role. The new role's list opens on
+       its own first person, the same way the page opened in the first place. */
+    expect(screen.getByRole('button', { pressed: true }).textContent).toContain('Devon Park');
   });
 });

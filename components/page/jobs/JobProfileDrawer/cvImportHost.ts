@@ -20,7 +20,8 @@
  *    card is on screen it is the document's only door, so the Experience
  *    header's "Update from CV" has to stand down, and an independent expression
  *    of that is exactly how both doors end up open.
- *  - `'off'` — the flag is down, or nobody should be offered it right now.
+ *  - `'off'` — nobody should be offered it right now: the row count is not in
+ *    yet, and offering the wrong door for one render is worse than offering none.
  *
  * **A function returning one host rather than two booleans on the call site.**
  * Two entry points to one mechanism on one screen is a choice the person cannot
@@ -32,8 +33,6 @@
 export type CvImportHost = 'top-card' | 'experience-section' | 'off' | 'stored';
 
 export interface CvImportHostInput {
-  /** `SHOW_CV_IMPORT`. Down means no host, whatever else is true. */
-  enabled: boolean;
   /**
    * How many Experience rows the profile already has — the whole of the test
    * now. `hasRole`, `hasLocation` and `skillCount` were all in here once; each
@@ -70,9 +69,8 @@ export interface CvImportHostInput {
 }
 
 export function pickCvImportHost(input: CvImportHostInput): CvImportHost {
-  const { enabled, experienceCount, experiencesLoading, handedOff, hasStoredCv } = input;
+  const { experienceCount, experiencesLoading, handedOff, hasStoredCv } = input;
 
-  if (!enabled) return 'off';
   if (experiencesLoading) return 'off';
   /* Before the offer questions, not after: whether a CV is already here settles
      the screen regardless of how the history got written. Someone who uploaded a

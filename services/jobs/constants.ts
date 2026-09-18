@@ -54,11 +54,10 @@ export const SHOW_JOB_BOARD_APPLY: boolean = process.env.NEXT_PUBLIC_SHOW_JOB_BO
     one-line change at the controller rather than a new flag threaded through
     four layers. */
 
-
 /* (`SHOW_CV_IMPORT` lived here, "because there is exactly one host today". The
-    member profile page is the second, so it moved somewhere neutral —
-    `services/members/constants` — which is where the components it gates live.
-    Its own note called this move in advance. */
+    member profile page became the second, so it moved to
+    `services/members/constants` — and has since been removed there too, the
+    importer being permanent on both hosts. */
 
 /* (`SHOW_JOB_DETAIL` lived here. It gated the reading step in front of Apply,
     and it was dark for one reason: coverage. The ingest only carried a body for

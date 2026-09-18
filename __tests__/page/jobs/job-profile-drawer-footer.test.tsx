@@ -48,6 +48,17 @@ jest.mock('@/services/members/hooks/useMemberExperience', () => ({
   useMemberExperience: () => ({ data: [], isLoading: false }),
 }));
 
+/* A profile with no CV — the fixture these cases have always meant.
+   Needed explicitly now the importer has no flag to be dark behind: this suite
+   replaces `useQuery` wholesale with the member fixture, so an unmocked
+   `useStoredCv` answers with that object, the drawer reads it as a stored CV and
+   mounts the resting card — whose Remove wants a `QueryClientProvider` this
+   suite has no other reason to build. The flag was hiding that, which also means
+   none of these cases was ever rendering the drawer's stored-CV branch. */
+jest.mock('@/services/members/hooks/useStoredCv', () => ({
+  useStoredCv: () => ({ data: null, isLoading: false }),
+}));
+
 const mockMember = jest.fn();
 jest.mock('@tanstack/react-query', () => ({
   ...jest.requireActual('@tanstack/react-query'),

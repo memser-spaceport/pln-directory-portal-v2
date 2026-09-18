@@ -7,6 +7,7 @@ import { uniq } from 'lodash';
 import { useFormContext } from 'react-hook-form';
 
 import { CloseIcon } from '@/components/icons';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 import s from '@/components/form/FormTagsInput/FormTagsInput.module.scss';
 
 import t from './SkillsTagsInput.module.scss';
@@ -32,6 +33,7 @@ export function SkillsTagsInput({
     formState: { errors },
   } = useFormContext();
   const val = (getValues()[name] as string[]) ?? [];
+  const { onMemberCustomSkillAdded } = useMemberAnalytics();
 
   const selectedLower = useMemo(() => new Set(val.map((item) => item.toLowerCase())), [val]);
 
@@ -78,6 +80,9 @@ export function SkillsTagsInput({
       if (nextLower.has(key)) continue;
       nextLower.add(key);
       next.push(title);
+      if (suggestions.length > 0 && !suggestions.some((item) => item.toLowerCase() === key)) {
+        onMemberCustomSkillAdded();
+      }
     }
 
     setValue(name, next, { shouldValidate: true, shouldDirty: true });

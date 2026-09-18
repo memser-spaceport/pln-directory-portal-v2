@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import clsx from 'clsx';
 
 import { DocumentIcon } from '@/components/icons';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { formatFileSize } from '@/utils/file.utils';
 
 import { CvPreviewModal } from './CvPreviewModal';
@@ -65,6 +66,7 @@ interface CvFileCardProps {
 export function CvFileCard({ cv, quiet = false }: CvFileCardProps) {
   const [open, setOpen] = useState(false);
   const [painted, setPainted] = useState(false);
+  const { onCvPreviewOpened } = useMemberAnalytics();
   const file = cv;
   const previewable = isPdfName(file.fileName) && !!file.url && !quiet;
 
@@ -104,7 +106,14 @@ export function CvFileCard({ cv, quiet = false }: CvFileCardProps) {
   return (
     <>
       {previewable ? (
-        <button type="button" className={clsx(s.row, s.rowPressable)} onClick={() => setOpen(true)}>
+        <button
+          type="button"
+          className={clsx(s.row, s.rowPressable)}
+          onClick={() => {
+            onCvPreviewOpened();
+            setOpen(true);
+          }}
+        >
           {thumb}
           {text}
           <span className={s.trailing}>Preview</span>

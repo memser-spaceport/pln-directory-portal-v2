@@ -167,7 +167,10 @@ interface JobApplyFlowDrawerProps {
   /** `linkedinProfile` is read only to pick which receipt the send shows — see
    *  the toast in `submit`. It rides on the record the read-back already
    *  fetches, so this is a wider `Pick` rather than a second query. */
-  member: Pick<IMember, 'id' | 'name' | 'role' | 'mainTeam' | 'skills' | 'customSkills' | 'currentCompany' | 'linkedinProfile'> | null;
+  member: Pick<
+    IMember,
+    'id' | 'name' | 'role' | 'mainTeam' | 'skills' | 'customSkills' | 'currentCompany' | 'linkedinProfile'
+  > | null;
   isLoggedIn: boolean;
   /** Signed up, waiting on the PL team. Says so in the profile lede; gates nothing. */
   pendingApproval: boolean;
@@ -239,8 +242,9 @@ interface JobApplyFlowDrawerProps {
     isSettled: boolean;
     error: string | null;
     /** `followTeam` is the banner's follow tick at press time — true when the
-     *  mark should also follow the team. Meaningless on Undo. */
-    onToggle: (nextInterested: boolean, followTeam: boolean) => void;
+     *  mark should also follow the team. Meaningless on Undo.
+     *  `followOffered` is whether the tick was on screen for this press. */
+    onToggle: (nextInterested: boolean, followTeam: boolean, followOffered?: boolean) => void;
   };
   viewerState: BoardViewerState;
   source: JobSurface;
@@ -678,6 +682,9 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
       source,
     };
     analytics.onJobApplySubmitted({ ...analyticsBase, cover_letter_length: coverLetter.trim().length });
+    if (showApplyFollowTick && !followTick) {
+      analytics.onJobApplyFollowDeclined(analyticsBase);
+    }
 
     submitMutation.mutate(
       { roleUid: target.role.uid, coverLetter: coverLetter.trim() },
@@ -687,6 +694,9 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
              record, so a failed follow costs the tick and the receipt clause,
              never the application. */
           const followed = showApplyFollowTick && followTick ? await followHiringTeam('job-apply') : false;
+          if (showApplyFollowTick && followTick && !followed) {
+            analytics.onJobApplyFollowFailed(analyticsBase);
+          }
           onSubmitted();
           /**
            * Two receipts, and which one you get is the answer to the question
@@ -723,6 +733,9 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                was the part that had not happened yet. */
             analytics.onJobApplyFailed({ ...analyticsBase, failure_category: 'already-applied' });
             const followed = showApplyFollowTick && followTick ? await followHiringTeam('job-apply') : false;
+            if (showApplyFollowTick && followTick && !followed) {
+              analytics.onJobApplyFollowFailed(analyticsBase);
+            }
             onSubmitted();
             toast.success(
               `You had already applied to ${target.role.roleTitle} at ${target.teamName}.` +

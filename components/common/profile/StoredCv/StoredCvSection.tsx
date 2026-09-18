@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 
 import { DetailsSection } from '@/components/common/profile/DetailsSection/DetailsSection';
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { useRemoveStoredCv } from '@/services/members/hooks/useRemoveStoredCv';
 
 import { CvFileCard } from './CvFileCard';
@@ -76,6 +77,7 @@ export function StoredCvSection({
 }: StoredCvSectionProps) {
   const [confirmingRemove, setConfirmingRemove] = useState(false);
   const { mutate: remove, isPending } = useRemoveStoredCv(memberUid);
+  const { onCvReplaceStarted, onCvRemoved } = useMemberAnalytics();
 
   return (
     <DetailsSection>
@@ -83,6 +85,7 @@ export function StoredCvSection({
         {canManage && (
           <CvHeaderActions
             onReplace={(file) => {
+              onCvReplaceStarted();
               onReplace?.(file);
               onReplaced?.();
             }}
@@ -101,7 +104,12 @@ export function StoredCvSection({
           /* Closed on success rather than on press: the dialog staying up is the
              only thing on screen saying the removal is still going, and closing
              first would leave the card sitting there looking untouched. */
-          remove(undefined, { onSuccess: () => setConfirmingRemove(false) });
+          remove(undefined, {
+            onSuccess: () => {
+              onCvRemoved();
+              setConfirmingRemove(false);
+            },
+          });
         }}
       />
     </DetailsSection>

@@ -54,6 +54,8 @@ jest.mock('@/analytics/members.analytics', () => ({
     onCvImportCancelled: jest.fn(),
     onCvPreviewOpened: jest.fn(),
     onCvRemoved: jest.fn(),
+    onCvReplaceStarted: jest.fn(),
+    onMemberCustomSkillAdded: jest.fn(),
   }),
 }));
 

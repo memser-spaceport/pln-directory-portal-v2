@@ -114,6 +114,13 @@ export const JOBS_ANALYTICS = {
      shared name would make either funnel unreadable. */
   ON_TEAM_INTEREST_MARKED: 'team-interest-marked',
   ON_TEAM_INTEREST_FAILED: 'team-interest-failed',
+  /* Follow tick on apply / interest. Accepted follows reuse team-news-team-followed
+     with source job-apply | job-interest. These two are the missing halves:
+     opting out of the default-on offer, and an apply that landed while the
+     follow request did not. */
+  ON_JOB_APPLY_FOLLOW_DECLINED: 'job-apply-follow-declined',
+  ON_JOB_INTEREST_FOLLOW_DECLINED: 'job-interest-follow-declined',
+  ON_JOB_APPLY_FOLLOW_FAILED: 'job-apply-follow-failed',
 };
 
 export const EVENTS = {
@@ -560,6 +567,10 @@ export const MEMBER_ANALYTICS_EVENTS = {
   CV_IMPORT_SAVED: 'cv-import-saved',
   CV_IMPORT_SAVE_FAILED: 'cv-import-save-failed',
   CV_IMPORT_CANCELLED: 'cv-import-cancelled',
+  CV_PREVIEW_OPENED: 'cv-preview-opened',
+  CV_REMOVED: 'cv-removed',
+  CV_REPLACE_STARTED: 'cv-replace-started',
+  MEMBER_CUSTOM_SKILL_ADDED: 'member-custom-skill-added',
 
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_ADD_CLICKED: 'inline-profile-editor-contribution-details-add-clicked',
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_EDIT_CLICKED: 'inline-profile-editor-contribution-details-edit-clicked',

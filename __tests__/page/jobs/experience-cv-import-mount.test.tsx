@@ -85,6 +85,7 @@ const mockAnalytics = {
   onCvImportSaved: jest.fn(),
   onCvImportSaveFailed: jest.fn(),
   onCvImportCancelled: jest.fn(),
+  onMemberCustomSkillAdded: jest.fn(),
 };
 
 // The manual editor drags in react-quill and the experience server action;

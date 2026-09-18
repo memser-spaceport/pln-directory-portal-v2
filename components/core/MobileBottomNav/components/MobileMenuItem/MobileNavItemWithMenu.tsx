@@ -40,8 +40,14 @@ export function MobileNavItemWithMenu(props: Props) {
         <Menu.Portal>
           <Menu.Positioner className={s.positioner} side="top" sideOffset={16} align="center">
             <Menu.Popup className={s.popup}>
-              {items.map(({ href, title, icon }) => (
-                <Link key={href} href={href} onClick={() => onNavItemClickHandler(href, title)}>
+              {items.map(({ href, title, icon, external }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => onNavItemClickHandler(href, title)}
+                  target={external ? '_blank' : undefined}
+                  rel={external ? 'noopener noreferrer' : undefined}
+                >
                   <Menu.Item className={clsx(s.menuItem, pathname.startsWith(href) && s.menuItemActive)}>
                     {icon}
                     <span>{title}</span>

@@ -280,6 +280,21 @@ export function StarFourIcon() {
   );
 }
 
+export function PlAtsIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="8" cy="7.25" r="2.75" stroke="#455468" strokeWidth="1.5" />
+      <path
+        d="M3.5 17.25c.45-2.7 2.35-4.25 4.5-4.25s4.05 1.55 4.5 4.25"
+        stroke="#455468"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path d="M14.25 8h6.25M14.25 12h6.25M14.25 16h6.25" stroke="#455468" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 // Phosphor "House" (regular), filled — the same family and weight as every
 // other icon in this bar. An outlined/stroked house reads noticeably lighter
 // next to them, which is what made Home look like it belonged to a different

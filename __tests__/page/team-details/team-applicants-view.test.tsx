@@ -212,6 +212,21 @@ describe('TeamApplicantsView', () => {
   });
 
   /**
+   * Reached from a count line most of the way down a team profile. Next scrolls
+   * the scrolling element on navigation, and in this app that is not what
+   * scrolls — `body` is — so without this the page opened already scrolled, with
+   * the role picker and the list head above the fold.
+   */
+  it('starts at the top of the page', () => {
+    const scrollTo = jest.fn();
+    (document.body as any).scrollTo = scrollTo;
+
+    renderView();
+
+    expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }));
+  });
+
+  /**
    * Arriving on somebody, rather than on an instruction to pick somebody.
    *
    * The right half of a two-column page is too much room to spend on "Select

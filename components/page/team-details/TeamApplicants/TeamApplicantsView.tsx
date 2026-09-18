@@ -185,6 +185,25 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
   };
 
   /**
+   * The page starts at the top.
+   *
+   * It is reached from a count line most of the way down a team profile, and
+   * arriving on a fresh page already scrolled is disorienting — the role picker
+   * and the list head are above the fold before you have read either.
+   *
+   * Next's own scroll handling does not cover it: it scrolls the scrolling
+   * element, and in this app that is not what scrolls — `body` is. The member
+   * page (`app/members/[id]/page.tsx`) and the home page's own "back to top"
+   * button both reach for `document.body` for the same reason.
+   *
+   * Optionally called because jsdom implements no scroll methods at all, and a
+   * hard call would take out every test that renders this view.
+   */
+  useEffect(() => {
+    document.body.scrollTo?.({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
+
+  /**
    * The pane opens on someone, rather than on an instruction to pick someone.
    *
    * Two-column only: on a narrow screen the pane is a second screen the list

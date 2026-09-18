@@ -60,10 +60,19 @@
   white-space: nowrap;
 }
 
+/**
+ * The select's slot. `filterSelectStyles` makes react-select's container 100%
+ * wide, so the width is set here.
+ *
+ * 320 rather than 420: at the wider size it ran most of the way across the list
+ * column for a control whose longest common value is a role title, and a picker
+ * that wide reads as a search field. Long titles ellipsize, which is the trade —
+ * the full title is directly under it, in the list head.
+ */
 .rolePicker {
   min-width: 0;
   flex: 1 1 auto;
-  max-width: 420px;
+  max-width: 320px;
 }
 
 .roleOption {

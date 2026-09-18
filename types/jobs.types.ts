@@ -34,17 +34,15 @@ export interface IJobRole {
   /**
    * Whether THIS viewer has signalled interest.
    *
-   * **Do not read this.** It is on the wire and it is always `false` here.
-   * `getJobsList` fetches the board with `getHeader('')` — no token — and the
-   * endpoint documents this field as false whenever the request is
-   * unauthenticated. So it would report "not interested" for a member who is,
-   * on every role, with no error to notice.
+   * **Still do not read this**, though the reason has changed. The token is now
+   * threaded through `/api/jobs/list` and `getJobsList` (it had to be, for
+   * `IJobTeam.viewerIsInterestedInTeam` below), so the field is no longer
+   * structurally false — but nothing has verified it against the per-role
+   * banner, which reads `GET /v1/job-openings/interests` via `useJobInterests`.
    *
-   * The banner reads `GET /v1/job-openings/interests` instead
-   * (`useJobInterests`), which is authenticated. Making this field usable means
-   * threading the member's token through `getJobsList` and the `/api/jobs/list`
-   * route first — a change to the board's hot path, and a separate piece of
-   * work. Typed here so the field is documented rather than rediscovered.
+   * Two sources for one answer is how they drift. If this field is to become
+   * the banner's source, retire that query in the same change rather than
+   * letting both run.
    */
   viewerIsInterested?: boolean;
 }
@@ -59,6 +57,21 @@ export interface IJobTeam {
   jobReferEmail?: string | null;
   /** False when the backend refuses in-app applications for this team (e.g. inactive lead emails); Apply then leaves the site. */
   inAppApplyAvailable?: boolean;
+  /**
+   * Whether THIS viewer has signalled interest in the team itself — the
+   * open-role signal, sent when nothing on the card fits.
+   *
+   * Unlike `IJobRole.viewerIsInterested` above, this one **is** readable: the
+   * board's proxy route now forwards the member's token (see
+   * `app/api/jobs/list/route.ts`), and the list endpoint resolves the viewer
+   * when one arrives. It is still `false` for an anonymous request, which is
+   * correct rather than misleading — a signed-out visitor has signalled nothing.
+   */
+  viewerIsInterestedInTeam?: boolean;
+  /** How many members have signalled interest in the team. On the wire, and
+   *  deliberately not rendered — the row says "we'll be in touch", not "you and
+   *  eleven others". Typed so it is documented rather than rediscovered. */
+  interestedInTeamCount?: number;
 }
 
 export interface IJobTeamGroup {

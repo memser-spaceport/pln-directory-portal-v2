@@ -25,6 +25,7 @@ export interface IMemberResponse {
   image: { url: string };
   isVerified: boolean;
   skills: [{ title: string }];
+  customSkills?: string[];
   teamMemberRoles: ITeamMemberRole[];
   projectContributions: [];
   location: IMemberLocation;
@@ -135,6 +136,7 @@ export interface IMember {
   id: string;
   name: string;
   skills: [{ uid: string; title: string }];
+  customSkills?: string[];
   teamMemberRoles?: ITeamMemberRole[];
   projectContributions: IProjectContribution[];
   location: IMemberLocation;
@@ -326,6 +328,7 @@ export interface IMemberUpdateSource {
   teamMemberRoles?: any[];
   projectContributions?: any[];
   skills?: { id?: string; name?: string }[];
+  customSkills?: string[];
   bio?: string | null;
   currentCompany?: string | null;
   jobSearchStatus?: JobSearchStatus | null;
@@ -354,6 +357,7 @@ export interface IMemberUpdatePayload {
   teamAndRoles?: any[];
   projectContributions?: any[];
   skills?: { title?: string; uid?: string }[];
+  customSkills?: string[];
   bio?: string | null;
   currentCompany?: string | null;
   jobSearchStatus?: JobSearchStatus | null;

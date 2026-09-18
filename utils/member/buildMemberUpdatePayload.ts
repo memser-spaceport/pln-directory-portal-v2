@@ -42,9 +42,10 @@ export function buildMemberUpdatePayload(
       ...omit(contribution, 'projectName'),
     })),
     skills: memberInfo.skills?.map((skill: any) => ({
-      title: skill.name,
-      uid: skill.id,
+      title: skill.name ?? skill.title,
+      uid: skill.id ?? skill.uid,
     })),
+    customSkills: memberInfo.customSkills ?? [],
     bio: memberInfo.bio,
     currentCompany: memberInfo.currentCompany,
     /* Carried like every other field, and for exactly the reason this helper

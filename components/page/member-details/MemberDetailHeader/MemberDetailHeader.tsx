@@ -9,6 +9,7 @@ import { IMember, IMemberTeam } from '@/types/members.types';
 
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { parseMemberLocation } from '@/utils/member.utils';
+import { memberSkillTags } from '@/utils/member/memberSkillTags';
 import { getAnalyticsMemberInfo, getAnalyticsUserInfo } from '@/utils/common.utils';
 
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
@@ -39,7 +40,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
   const location = parseMemberLocation(member?.location);
   const isTeamLead = member?.teamLead;
   const isOpenToWork = member?.openToWork;
-  const skills = member?.skills;
+  const skills = memberSkillTags(member);
   const userInfo = props?.userInfo;
   const { onEdit, variant } = props;
 

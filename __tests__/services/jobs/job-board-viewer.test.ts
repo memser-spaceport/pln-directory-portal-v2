@@ -11,6 +11,7 @@ import {
   JOB_ASPIRANT_POLICY_CODE,
   JOB_SEARCH_STATUS_OPTIONS,
   jobSearchStatusDisplayLabel,
+  shouldApplyGoExternal,
 } from '@/services/jobs/job-board-viewer';
 import type { IJobTeam } from '@/types/jobs.types';
 import { IUserInfo } from '@/types/shared.types';
@@ -33,6 +34,13 @@ const JOB_ASPIRANT_POLICY = {
 };
 
 const legacyUser = (accessLevel: IUserInfo['accessLevel']): IUserInfo => ({ uid: 'm1', accessLevel });
+
+/* `isProtocolLabsTeam` matches on either the uid or the name, so a team built
+   from a name alone is a real PL record as far as every rule here is
+   concerned — which is the point: the board's own data is matched both ways. */
+const team = (over: Partial<IJobTeam> = {}): IJobTeam =>
+  ({ uid: 't1', name: 'Acme', inAppApplyAvailable: true, ...over }) as IJobTeam;
+const plTeam = (over: Partial<IJobTeam> = {}): IJobTeam => team({ name: 'Protocol Labs', ...over });
 
 describe('getJobsAccessVerdict', () => {
   describe('access-control v2 (rbac.status)', () => {
@@ -127,29 +135,107 @@ describe('isJobAspirant', () => {
   });
 });
 
-describe('canShowJobInterest', () => {
-  it('is withheld from an established, signed-in member', () => {
-    expect(canShowJobInterest({ isLoggedIn: true, userInfo: rbacUser('APPROVED') })).toBe(false);
-    expect(canShowJobInterest({ isLoggedIn: true, userInfo: legacyUser('L4') })).toBe(false);
+/**
+ * Where an application lands, and therefore where the light signal is offered —
+ * `canShowJobInterest` below is built on this. It decided both of those things
+ * with no coverage at all until it moved out of `useJobApplyFlow`.
+ */
+describe('shouldApplyGoExternal', () => {
+  it('sends everyone off-site when the team takes no in-app applications', () => {
+    const dead = { inAppApplyAvailable: false };
+    /* Including Protocol Labs, and including an approved member: this disjunct
+       is about a route that does not work, not about who is asking. */
+    expect(shouldApplyGoExternal({ viewer: 'profile-ready', verdict: 'approved', team: team(dead) })).toBe(true);
+    expect(shouldApplyGoExternal({ viewer: 'profile-ready', verdict: 'approved', team: plTeam(dead) })).toBe(true);
   });
 
-  it('is shown to a signed-in Job Aspirant', () => {
-    expect(canShowJobInterest({ isLoggedIn: true, userInfo: rbacUser('PENDING', [JOB_ASPIRANT_POLICY]) })).toBe(true);
-    expect(canShowJobInterest({ isLoggedIn: true, userInfo: { uid: 'm1', signUpSource: 'job-board' } })).toBe(true);
+  it('keeps Protocol Labs in-app for everyone who can still reach Apply', () => {
+    expect(shouldApplyGoExternal({ viewer: 'logged-out', verdict: 'pending', team: plTeam() })).toBe(false);
+    expect(shouldApplyGoExternal({ viewer: 'profile-ready', verdict: 'pending', team: plTeam() })).toBe(false);
+    expect(shouldApplyGoExternal({ viewer: 'profile-ready', verdict: 'approved', team: plTeam() })).toBe(false);
+  });
+
+  it('hands every other employer their own posting until the account is approved', () => {
+    expect(shouldApplyGoExternal({ viewer: 'logged-out', verdict: 'pending', team: team() })).toBe(true);
+    expect(shouldApplyGoExternal({ viewer: 'profile-ready', verdict: 'pending', team: team() })).toBe(true);
+    expect(shouldApplyGoExternal({ viewer: 'profile-ready', verdict: 'approved', team: team() })).toBe(false);
+  });
+
+  it('treats a missing team as not Protocol Labs', () => {
+    expect(shouldApplyGoExternal({ viewer: 'profile-ready', verdict: 'pending', team: null })).toBe(true);
+    expect(shouldApplyGoExternal({ viewer: 'profile-ready', verdict: 'approved', team: undefined })).toBe(false);
+  });
+});
+
+/**
+ * The decision table from the 2026-09-16 TG thread, one row per case.
+ *
+ * Every call carries a `viewer`/`verdict` pair because the rule is built on
+ * `shouldApplyGoExternal`: the signal shows exactly where in-app Apply does not.
+ * `aspirant` is pending-by-default, which is the ordinary Job Aspirant; the
+ * approved one is spelled out where it matters.
+ */
+describe('canShowJobInterest', () => {
+  const aspirant = rbacUser('PENDING', [JOB_ASPIRANT_POLICY]);
+  const approvedAspirant = rbacUser('APPROVED', [JOB_ASPIRANT_POLICY]);
+
+  const ask = (over: Partial<Parameters<typeof canShowJobInterest>[0]>) =>
+    canShowJobInterest({
+      isLoggedIn: true,
+      userInfo: aspirant,
+      viewer: 'profile-ready',
+      verdict: 'pending',
+      team: team(),
+      ...over,
+    });
+
+  it('is withheld from an established, signed-in member', () => {
+    expect(ask({ userInfo: rbacUser('APPROVED'), verdict: 'approved' })).toBe(false);
+    expect(ask({ userInfo: legacyUser('L4'), verdict: 'approved' })).toBe(false);
+  });
+
+  it('is shown to a Job Aspirant on a role that sends them off-site', () => {
+    expect(ask({ userInfo: aspirant })).toBe(true);
+    expect(ask({ userInfo: { uid: 'm1', signUpSource: 'job-board' } })).toBe(true);
+  });
+
+  /* The 2026-09-16 narrowing. Protocol Labs takes applications in-app from
+     everyone who can reach Apply — an unapproved Job Aspirant included — so
+     that role shows Apply and nothing beside it. Before this rule the same
+     person got both asks at once. */
+  it('is withheld from a Job Aspirant on a Protocol Labs role they can apply to', () => {
+    expect(ask({ userInfo: aspirant, team: plTeam() })).toBe(false);
+  });
+
+  /* The contested reading of rule 1, pinned deliberately. The ticket says "a job
+     aspirant who cannot apply on the page (non-PL roles)", and the two halves
+     disagree here: an APPROVED Job Aspirant on a non-PL role has working in-app
+     Apply. We follow "cannot apply on the page" — a real application is the
+     thing the light signal stands in for, so where one is available the signal
+     has nothing to add. If product wants the parenthetical instead, this is the
+     line to change, and it should be changed knowingly. */
+  it('is withheld from an APPROVED Job Aspirant wherever Apply works in-app', () => {
+    expect(ask({ userInfo: approvedAspirant, verdict: 'approved' })).toBe(false);
+    expect(ask({ userInfo: approvedAspirant, verdict: 'approved', team: plTeam() })).toBe(false);
   });
 
   it('is withheld from a signed-out visitor regardless of any stale cookie userInfo', () => {
-    expect(canShowJobInterest({ isLoggedIn: false, userInfo: null })).toBe(false);
-    expect(canShowJobInterest({ isLoggedIn: false, userInfo: { uid: 'm1', signUpSource: 'job-board' } })).toBe(false);
+    expect(ask({ isLoggedIn: false, userInfo: null, viewer: 'logged-out' })).toBe(false);
+    expect(ask({ isLoggedIn: false, userInfo: { uid: 'm1', signUpSource: 'job-board' }, viewer: 'logged-out' })).toBe(
+      false,
+    );
   });
 
   it('is shown to any signed-in member when the team does not take in-app applications', () => {
-    const team = { uid: 't1', name: 'Acme', inAppApplyAvailable: false } as IJobTeam;
-    expect(canShowJobInterest({ isLoggedIn: true, userInfo: rbacUser('APPROVED'), team })).toBe(true);
-    expect(canShowJobInterest({ isLoggedIn: false, userInfo: null, team })).toBe(false);
-    expect(
-      canShowJobInterest({ isLoggedIn: true, userInfo: rbacUser('APPROVED'), team: { ...team, inAppApplyAvailable: true } }),
-    ).toBe(false);
+    const dead = { inAppApplyAvailable: false };
+    const established = { userInfo: rbacUser('APPROVED'), verdict: 'approved' } as const;
+
+    expect(ask({ ...established, team: team(dead) })).toBe(true);
+    /* Protocol Labs included: this branch is about a route that does not work,
+       and there is no in-app Apply to prefer over the signal. */
+    expect(ask({ ...established, team: plTeam(dead) })).toBe(true);
+    expect(ask({ ...established, isLoggedIn: false, viewer: 'logged-out', team: team(dead) })).toBe(false);
+    expect(ask({ ...established, team: team() })).toBe(false);
   });
 });
 

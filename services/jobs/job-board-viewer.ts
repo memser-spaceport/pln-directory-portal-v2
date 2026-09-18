@@ -1,3 +1,4 @@
+import { isProtocolLabsTeam } from '@/services/jobs/protocol-labs-team';
 import type { IJobTeam } from '@/types/jobs.types';
 import { IUserInfo } from '@/types/shared.types';
 import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
@@ -99,21 +100,67 @@ export const canSeeOriginalPosting = (args: { isLoggedIn: boolean; userInfo: IUs
   args.isLoggedIn && !isJobAspirant(args.userInfo ?? null);
 
 /**
+ * Whether Apply leaves the site for this viewer and this role.
+ *
+ * Protocol Labs takes applications in-app for everyone who can still reach
+ * Apply. Every other employer gets their own posting when there is no approved
+ * account yet — a signed-out visitor, or one still awaiting review — because
+ * handing them a stranger the PL team has not vetted is the board applying
+ * *for* a team that did not ask it to.
+ *
+ * **It lives here, not in `useJobApplyFlow`**, where it was written. It is a
+ * pure decision about a viewer and a team — this file's whole subject — and it
+ * had no tests at all while it sat in a `'use client'` hook module beside React
+ * state. `canShowJobInterest` below now reads it, and a service reaching into a
+ * client hook for it would have been a cycle.
+ */
+export const shouldApplyGoExternal = (args: {
+  viewer: BoardViewerState;
+  verdict: JobsAccessVerdict;
+  team: IJobTeam | null | undefined;
+}): boolean =>
+  args.team?.inAppApplyAvailable === false ||
+  (!isProtocolLabsTeam(args.team) && (args.viewer === 'logged-out' || args.verdict === 'pending'));
+
+/**
  * Whether this viewer is offered the "I'm interested" light signal.
  *
- * It exists to capture intent before someone has a real application in — a
- * **Job Aspirant**'s problem, and only theirs. An established member already
- * has full Apply available, with the profile it needs to be used right, and a
- * signed-out visitor has no account to attach the signal to; both are
- * withheld it entirely rather than shown a control they cannot meaningfully
- * use.
+ * **One rule: the light signal appears exactly where the full Apply does not.**
+ * It exists to capture intent before someone has a real application in, so
+ * wherever an application can actually be made from this page, making one is the
+ * stronger act and the only one offered. That is `shouldApplyGoExternal` above —
+ * read rather than restated, because two implementations of "can this person
+ * apply here" drift one case at a time and these two sit side by side in the
+ * same drawer.
+ *
+ * On top of that, who is offered it at all:
+ *
+ * - a **Job Aspirant**, who arrived through the board to look for work and has
+ *   no other way to register intent; and
+ * - **anyone**, when the team takes no in-app applications — there the board
+ *   cannot route an application at all, so the signal is all there is.
+ *
+ * An established member on a working role is withheld it: they have full Apply,
+ * with the profile it needs to be used right. A signed-out visitor is withheld
+ * it too — there is no account to attach a signal to. (That was not always so;
+ * `d5375bd05` withdrew the logged-out banner deliberately.)
+ *
+ * The narrowing that `shouldApplyGoExternal` adds is the 2026-09-16 rule: a Job
+ * Aspirant reading a **Protocol Labs** role applies in-app like anyone else, so
+ * that role shows Apply alone. The same test withholds it from an *approved*
+ * Job Aspirant on any role they can apply to — they have a real application
+ * available, which is the one thing this signal exists to stand in for.
  */
 export const canShowJobInterest = (args: {
   isLoggedIn: boolean;
   userInfo: IUserInfo | null | undefined;
+  viewer: BoardViewerState;
+  verdict: JobsAccessVerdict;
   team?: IJobTeam | null;
 }): boolean =>
-  args.isLoggedIn && (isJobAspirant(args.userInfo ?? null) || args.team?.inAppApplyAvailable === false);
+  args.isLoggedIn &&
+  shouldApplyGoExternal({ viewer: args.viewer, verdict: args.verdict, team: args.team }) &&
+  (isJobAspirant(args.userInfo ?? null) || args.team?.inAppApplyAvailable === false);
 
 /**
  * Where someone is in their search.
@@ -209,6 +256,7 @@ export function isJobProfileComplete(
  */
 export interface JobProfileSectionFields extends JobProfileFields {
   skills?: unknown[] | null;
+  customSkills?: string[] | null;
   bio?: string | null;
 }
 
@@ -218,7 +266,10 @@ export function areAllJobProfileSectionsFilled(
   experienceCount: number,
 ): boolean {
   if (!isJobProfileComplete(member, jobSearchStatus)) return false;
-  if (!Array.isArray(member?.skills) || member.skills.length === 0) return false;
+  const hasSkills =
+    (Array.isArray(member?.skills) && member.skills.length > 0) ||
+    (Array.isArray(member?.customSkills) && member.customSkills.length > 0);
+  if (!hasSkills) return false;
   const bio = member?.bio ?? '';
   if (!bio.trim() || (isBlankHtml(bio) && !/<img\b/i.test(bio))) return false;
   return experienceCount >= 1;

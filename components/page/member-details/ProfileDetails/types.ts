@@ -5,7 +5,7 @@ export interface TEditProfileForm {
   country: string;
   state: string;
   city: string;
-  skills: { [key: string]: any }[];
+  skills: string[];
   openToCollaborate: boolean;
   primaryTeam: { value: string; label: string; role?: string; originalObject?: any } | null;
   primaryTeamRole: string | null;

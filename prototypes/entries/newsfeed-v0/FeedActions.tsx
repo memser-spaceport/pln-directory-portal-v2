@@ -3,6 +3,7 @@
 import clsx from 'clsx';
 
 import { LikeIcon, CommentIcon, ViewIcon } from './ForumIcons';
+import { BookmarkGlyph } from '../save-shared/BookmarkIcon';
 import s from './FeedActions.module.scss';
 
 /**
@@ -69,6 +70,46 @@ export function CommentCount({ count, onClick }: { count: number; onClick?: () =
     );
   }
   return <span className={s.subItem}>{inner}</span>;
+}
+
+/**
+ * Save — the bookmark at the end of a card's action row.
+ *
+ * The same meta-row item as Like: `.subItem` + `.button`, `.liked` for the
+ * active state, so a saved story and a liked one wear one blue. Icon-only on
+ * the card, like Share — the counts beside it carry labels because a number
+ * needs a noun, and a bookmark needs none (Hashnode, Contra, Circle and Digg
+ * all draw it bare at the row's end). The detail modal has the room, so it
+ * spells the state out with `showLabel`.
+ *
+ * `aria-pressed`, not a checkbox: it is a toggle on the story, and the label
+ * says which way it will flip.
+ */
+export function SaveButton({
+  saved,
+  onToggle,
+  showLabel,
+}: {
+  saved: boolean;
+  onToggle: () => void;
+  showLabel?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className={clsx(s.subItem, s.button, saved && s.liked)}
+      aria-pressed={saved}
+      aria-label={saved ? 'Unsave' : 'Save'}
+      title={saved ? 'Saved' : 'Save'}
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggle();
+      }}
+    >
+      <BookmarkGlyph filled={saved} size={20} />
+      {showLabel ? (saved ? ' Saved' : ' Save') : ''}
+    </button>
+  );
 }
 
 /**

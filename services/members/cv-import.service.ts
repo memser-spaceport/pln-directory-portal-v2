@@ -3,6 +3,7 @@ import type {
   ParsedExperience,
   ParsedProfile,
 } from '@/components/page/member-details/ExperienceDetails/components/ExperienceImport';
+import type { StoredCv } from '@/components/common/profile/StoredCv';
 
 /**
  * The three calls behind "fill my Experience section from a CV".
@@ -379,5 +380,59 @@ async function readErrorMessage(response: Response): Promise<string | undefined>
     return body?.message;
   } catch {
     return undefined;
+  }
+}
+
+/**
+ * The CV the profile is currently holding, or `null` if it is holding none.
+ *
+ * One call. `GET /cv-imports/latest` carries a `file` object whenever the row
+ * has an `uploadedAt`, and that object is already this shape — `fileName`,
+ * `uploadedAt`, and optionally `size` and a signed `url`. No mapping to do
+ * beyond handing it back.
+ *
+ * **`file`, not `status`, is the test for "has a CV".** The API sets it from the
+ * upload timestamp rather than the parse outcome, so a document the model failed
+ * on — or found nothing in — still comes back here, which is what lets the owner
+ * see, replace and remove a CV that parsed badly.
+ *
+ * `url` can be absent even with a file present: the API signs it at read time
+ * and swallows a signing failure rather than lose the whole response over it.
+ * The card handles that — it falls back to a document glyph — so this does not.
+ *
+ * A missing CV is `null`, not a throw: having none is the ordinary state of most
+ * profiles, and a throw would make React Query report every new member as an
+ * error. Note `request` resolves for *any* status and rejects only when no
+ * response arrives, so 404 is read off the response rather than caught.
+ *
+ * **403 is `null` too, and that is not swallowing an error.** The API guards this
+ * read with `assertCanView` — the member, a directory admin, or a lead of a team
+ * this member applied to — and the frontend cannot compute that last clause, so
+ * it asks and renders what comes back. To every caller "there is no CV" and "not
+ * yours to see" are the same instruction: draw nothing. Keeping them apart would
+ * buy an error state nobody renders, three retries per refused profile, and a
+ * console line on every member page a reader opens. The owner can never be the
+ * 403 case, so nothing diagnostic is lost where it would matter.
+ */
+export async function getStoredCv(uid: string, signal?: AbortSignal): Promise<StoredCv | null> {
+  const response = await request(`${BASE}/${uid}/cv-imports/latest`, { method: 'GET', signal }, signal);
+  if (response.status === 404 || response.status === 403) return null;
+  if (!response.ok) throw new CvParseError('server', response.status);
+
+  const body = (await response.json()) as { file?: StoredCv };
+  return body.file ?? null;
+}
+
+/**
+ * Remove the stored CV.
+ *
+ * The profile fields it filled are deliberately left alone — the API leaves
+ * them, and `RemoveCvDialog` says so before the press.
+ */
+export async function removeStoredCv(uid: string): Promise<void> {
+  const response = await request(`${BASE}/${uid}/cv-imports`, { method: 'DELETE' });
+  /* 404 is success here: the CV is gone, which is what was asked for. */
+  if (!response.ok && response.status !== 404) {
+    throw new CvParseError('server', response.status);
   }
 }

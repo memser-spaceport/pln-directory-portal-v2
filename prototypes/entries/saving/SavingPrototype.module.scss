@@ -1,0 +1,29 @@
+// Everything on this entry wears its host's stylesheet — the board's review
+// band, empty state and scope strip (`JobBoardPrototype.module.scss`), the
+// feed's switch chrome (`NewsfeedV0.module.scss`), the follow receipt's toast
+// (`FollowToast.module.scss`). Only the toast's own link is local.
+
+// "View saved roles", inside the toast's sentence. A text button in the
+// toast's own ink, underlined so it reads as the way somewhere — the same
+// treatment `.emptyLink` gives the way out of an empty tab, in the toast's
+// colour rather than brand blue (blue on the green success surface is a
+// third colour in a 14px line).
+.toastLink {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+// All · Saved · Applied. Production's secondary tabs sit 12px apart (the tab's
+// right padding); with a third tab and "(n)" counts the labels ran together, so
+// the strip gets 8px more between tabs. Tabs' classes are hashed, hence the
+// structure: root > tabsList.
+.scopeTabs > * > * {
+  gap: 8px;
+}

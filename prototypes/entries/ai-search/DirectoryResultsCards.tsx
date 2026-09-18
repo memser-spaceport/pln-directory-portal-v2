@@ -67,17 +67,24 @@ const FALLBACK_LOGO: Record<Exclude<DirectoryHit['type'], 'member'>, string> = {
  * only an event's external site opens in a new one. (Production opens all of
  * them in new tabs.)
  */
-export function DirectoryResultsCards({ hits }: { hits: DirectoryHit[] }) {
+export function DirectoryResultsCards({
+  hits,
+  title = 'Results from the directory',
+}: {
+  hits: DirectoryHit[];
+  /** A scoped answer says where it looked ("Found on the profile"). */
+  title?: string;
+}) {
   const [expanded, setExpanded] = useState(false);
   const shown = expanded ? hits : hits.slice(0, SHOWN);
   const hasMore = hits.length > SHOWN;
 
   return (
-    <section className={s.root} aria-label="Results from the directory">
+    <section className={s.root} aria-label={title}>
       <div className={s.head}>
         <h3 className={s.title}>
           <img src="/icons/chip.svg" width={16} height={16} alt="" />
-          Results from the directory
+          {title}
         </h3>
         {hasMore && (
           <button type="button" className={sub.button} onClick={() => setExpanded((v) => !v)}>
@@ -89,7 +96,7 @@ export function DirectoryResultsCards({ hits }: { hits: DirectoryHit[] }) {
       <ul className={s.grid}>
         {shown.map((hit) => {
           const external = /^https?:/i.test(hit.source);
-          const picture = hit.type === 'member' ? getDefaultAvatar(hit.name) : FALLBACK_LOGO[hit.type];
+          const picture = hit.avatar ?? (hit.type === 'member' ? getDefaultAvatar(hit.name) : FALLBACK_LOGO[hit.type]);
           return (
             <li key={`${hit.type}-${hit.source}`}>
               <a

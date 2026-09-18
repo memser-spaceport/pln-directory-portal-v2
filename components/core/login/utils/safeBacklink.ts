@@ -9,8 +9,8 @@ const RELATIVE_PATH_PROBE_BASE = 'https://placeholder.invalid';
  * long-standing rule — see PrivyModals' loginUser) or an absolute URL on
  * this portal's own host or a subdomain of it (covers a deployed AI App's
  * own origin, e.g. `<appId>.dev.plnetwork.io` when the portal itself is
- * `dev.plnetwork.io`). Anything else is rejected to avoid turning `backlink`
- * into an open redirect.
+ * `dev.plnetwork.io`) or under the session cookie's own domain. Anything else
+ * is rejected to avoid turning `backlink` into an open redirect.
  */
 export function getSafeBacklinkTarget(raw: string): string | null {
   if (raw.startsWith('/')) {
@@ -37,8 +37,15 @@ export function getSafeBacklinkTarget(raw: string): string | null {
     const target = new URL(raw);
     const base = new URL(process.env.APPLICATION_BASE_URL || 'http://localhost');
 
-    if (target.protocol !== base.protocol) return null;
-    if (target.hostname === base.hostname || target.hostname.endsWith(`.${base.hostname}`)) {
+    if (target.protocol === base.protocol && isHostOrSubdomainOf(target.hostname, base.hostname)) {
+      return target.toString();
+    }
+
+    // The portal's own host is not always a parent of the apps signed in through
+    // it — `ats.dev.os.pl.xyz` is a sibling of `directoryv2.dev.os.pl.xyz`, not a
+    // child. Anything under the session cookie's domain shares this session by
+    // definition, so it is as safe a return target as the portal itself.
+    if (target.protocol === 'https:' && isHostOrSubdomainOf(target.hostname, cookieDomainHost())) {
       return target.toString();
     }
   } catch {
@@ -46,4 +53,14 @@ export function getSafeBacklinkTarget(raw: string): string | null {
   }
 
   return null;
+}
+
+function cookieDomainHost(): string | null {
+  const host = (process.env.COOKIE_DOMAIN || '').trim().replace(/^\./, '').toLowerCase();
+  return host.includes('.') ? host : null;
+}
+
+function isHostOrSubdomainOf(hostname: string, base: string | null): boolean {
+  if (!base) return false;
+  return hostname === base || hostname.endsWith(`.${base}`);
 }

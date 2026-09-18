@@ -1,0 +1,6 @@
+.icon {
+  display: inline-block;
+  flex-shrink: 0;
+  background: var(--Gradients-2-Color-17, linear-gradient(285deg, #45d8ff 0%, #005bea 82.52%));
+  mask: url('/icons/ai-search.svg') center / contain no-repeat;
+}

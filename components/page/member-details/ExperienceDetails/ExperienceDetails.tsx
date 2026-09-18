@@ -40,31 +40,39 @@ import { ViewType } from '@/types/ui';
  */
 type ExperienceView = ViewType | 'import';
 
+/** See `Props.cvImportSurface`. */
+export type CvImportSurface = 'off' | 'header-only' | 'full';
+
 interface Props {
   member: IMember;
   isLoggedIn: boolean;
   userInfo: IUserInfo | null;
   /**
-   * Offer "fill this section from a CV" — i.e. **this section is the host**.
+   * How much of the CV importer this section hosts.
    *
-   * Off by default, and the member profile page leaves it off: the flag behind
-   * this lives in `services/jobs/constants.ts` and the only host that reads it
-   * is `JobProfileDrawer`. A prop rather than a flag read in here keeps this
-   * section — which is shared with `/members/[id]` — free of a feature gate it
-   * doesn't own.
+   * - `'off'` — none of it, and the default. A prop rather than a flag read in
+   *   here keeps this section free of a feature gate it doesn't own.
+   * - `'full'` — both affordances: the drop area in the empty row, and "Update
+   *   from CV" in the header once entries exist. The apply drawer's Experience
+   *   host.
+   * - `'header-only'` — the header control alone. What `/members/[id]` passes,
+   *   because `MemberCvSection` sits above this section carrying a permanent
+   *   drop area of its own, and a second box to drop a file into on the same
+   *   page is a choice nobody can get right or wrong.
    *
-   * It is not only the flag. The drawer turns this **off while it is making the
-   * offer itself**, from its own "Start with your CV" card above the header: a
-   * CV fills the required role as well as the history, so on a blank profile the
-   * offer belongs above the questions it answers. One mechanism, two possible
-   * hosts, never both at once — two doors to the same place on one screen is a
-   * choice with no consequence. See `pickCvImportHost`, which answers that once
-   * so this prop and the card above cannot disagree.
+   * One value rather than two booleans, for the reason `pickCvImportHost`
+   * returns a host instead of a pair: two independent expressions of "who is
+   * offering this" is exactly how both doors end up open.
+   *
+   * Note the drawer turns this **off entirely while it is making the offer
+   * itself**, from its own "Start with your CV" card above the header — and
+   * again once a CV is stored. Both are `pickCvImportHost`'s answer, not this
+   * section's: the host that knows decides, and this section renders it.
    */
-  enableCvImport?: boolean;
+  cvImportSurface?: CvImportSurface;
 }
 
-export const ExperienceDetails = ({ isLoggedIn, userInfo, member, enableCvImport = false }: Props) => {
+export const ExperienceDetails = ({ isLoggedIn, userInfo, member, cvImportSurface = 'off' }: Props) => {
   const [view, setView] = useState<ExperienceView>('view');
   const [selectedItem, setSelectedItem] = useState<null | FormattedMemberExperience>(null);
 
@@ -108,10 +116,18 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member, enableCvImport
     setView('add');
   }, [abort, setParsed]);
 
+  /* No stored-CV read of its own any more.
+     It had one, to stand this section's offer down while the resting "Your CV"
+     card was up. Both hosts now answer that above: the drawer through
+     `pickCvImportHost`, which returns `'stored'` and passes `'off'`; the profile
+     page through `'header-only'`, where the question doesn't arise because the
+     CV section owns the drop area in every state. A second opinion here would be
+     a second condition that can drift from the one that decided. */
   const cvImport: CvImportControls | undefined = useMemo(
     () =>
-      enableCvImport
+      cvImportSurface !== 'off'
         ? {
+            hostsEmptyRow: cvImportSurface === 'full',
             onParse: parseAndReport,
             onAbort: abort,
             onParsed: (result) => {
@@ -135,7 +151,7 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member, enableCvImport
             },
           }
         : undefined,
-    [enableCvImport, parseAndReport, abort, openAddForm, setParsed, onCvImportCancelled, closeImport],
+    [cvImportSurface, parseAndReport, abort, openAddForm, setParsed, onCvImportCancelled, closeImport],
   );
 
   if (!isLoggedIn || (!v2HasMemberContacts && !isOwner)) {

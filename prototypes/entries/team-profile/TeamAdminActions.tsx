@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import { ConfirmDialog } from '@/components/core/ConfirmDialog/ConfirmDialog';
 import { EditButton } from '@/components/common/profile/EditButton';
@@ -12,6 +12,8 @@ import { FollowToast } from '../follow-shared/FollowToast';
 
 interface Props {
   teamName: string;
+  /** A control that belongs in the owner's row ahead of Edit (Ask AI about the team). */
+  leading?: ReactNode;
 }
 
 /**
@@ -21,7 +23,7 @@ interface Props {
  * flows out of scope for a mocked prototype. Here both just acknowledge the
  * click with a toast; Delete additionally confirms first, like production.
  */
-export function TeamAdminActions({ teamName }: Props) {
+export function TeamAdminActions({ teamName, leading }: Props) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [toast, setToast] = useState<'edit' | 'delete' | null>(null);
 
@@ -38,6 +40,7 @@ export function TeamAdminActions({ teamName }: Props) {
   return (
     <>
       <div className={s.actions}>
+        {leading}
         <EditButton onClick={() => showToast('edit')} />
         <HeaderActionBtn onClick={() => setConfirmOpen(true)} className={s.delete}>
           <DeleteIcon />

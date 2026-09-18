@@ -2,6 +2,7 @@ import { IMember } from '@/types/members.types';
 import { ITeam } from '@/types/teams.types';
 
 import { isMemberAvailableToConnect } from '@/utils/member.utils';
+import { memberSkillTags } from '@/utils/member/memberSkillTags';
 
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
@@ -24,7 +25,7 @@ export function TeamMemberCard(props: Props) {
 
   const memberName = member?.name ?? '';
   const role = team?.role ?? '';
-  const skills = member?.skills ?? [];
+  const skills = memberSkillTags(member);
   const isTeamLead = member?.teamLead;
   const defaultAvatarImage = useDefaultAvatar(member?.name);
   const logo = member?.profile || defaultAvatarImage;

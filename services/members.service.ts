@@ -209,6 +209,7 @@ export const getMember = async (
     scheduleMeetingCount: result.scheduleMeetingCount || 0,
     location: result?.location,
     skills: result.skills || [],
+    customSkills: result.customSkills ?? [],
     teamLead,
     projectContributions: result.projectContributions ?? null,
     teams,

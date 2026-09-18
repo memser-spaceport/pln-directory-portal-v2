@@ -40,6 +40,18 @@ export function jobDetailShareUrl(jobUid: string, channel?: JobReferShareNetwork
   return `${window.location.origin}${path}`;
 }
 
+export function jobBoardShareUrl(jobUid: string, channel: JobReferShareNetwork): string {
+  const path =
+    `/jobs?${JOB_DETAIL_PARAM}=${encodeURIComponent(jobUid)}` +
+    `&utm_source=${JOB_SHARE_UTM_SOURCE}&utm_medium=${channel}`;
+
+  if (typeof window === 'undefined') {
+    return path;
+  }
+
+  return `${window.location.origin}${path}`;
+}
+
 export function findJobInGroups(groups: IJobTeamGroup[], jobUid: string): { role: IJobRole; team: IJobTeam } | null {
   for (const group of groups) {
     const role = group.roles.find((item) => item.uid === jobUid);

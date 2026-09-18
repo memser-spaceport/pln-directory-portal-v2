@@ -1,0 +1,21 @@
+// `rs.trigger` is written for a <span>; on a <button> the UA adds a border,
+// a background and its own font. Take those off and nothing else — geometry,
+// hover wash and resting grey all stay production's.
+.saveTrigger {
+  appearance: none;
+  border: none;
+  background: none;
+  font: inherit;
+  margin: 0;
+}
+
+// Saved: the trigger's own open-state blue (`.trigger[aria-expanded='true']`),
+// not the feed's `#156ff7` — each surface keeps its one active tone. Doubled
+// to outrank `.trigger`'s resting `color`, which is the same specificity.
+.saved.saved {
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}

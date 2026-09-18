@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import {
@@ -9,6 +10,7 @@ import {
   type CvImportApplyResult,
 } from '@/services/members/cv-import.service';
 import type { ResolvedLocation } from '@/services/location.service';
+import { MembersQueryKeys } from '@/services/members/constants';
 import { useApplyCvImport } from '@/services/members/hooks/useApplyCvImport';
 import { useMemberExperience } from '@/services/members/hooks/useMemberExperience';
 import { useParseCv } from '@/services/members/hooks/useParseCv';
@@ -69,6 +71,8 @@ export function useCvImport(member: IMember) {
    * the host can report them without the panel knowing what analytics is, and
    * without a second copy of "what counts as empty" living in a component.
    */
+  const queryClient = useQueryClient();
+
   const parseAndReport = useCallback(
     async (file: File) => {
       try {
@@ -92,9 +96,19 @@ export function useCvImport(member: IMember) {
           onCvImportParseFailed(error.category);
         }
         throw error;
+      } finally {
+        /* The upload *is* the store: by the time a parse has an outcome the
+           member's CV row has already been overwritten and the previous file
+           deleted. So the resting "Your CV" card is stale from here on, whatever
+           the parser went on to say — including when it said nothing, since a
+           failed read still leaves the new document.
+           In `finally`, and in this hook rather than a host, so every upload
+           path refreshes it: the Experience section's, the drawer's first card,
+           and Replace on the resting card itself. */
+        queryClient.invalidateQueries({ queryKey: [MembersQueryKeys.GET_STORED_CV] });
       }
     },
-    [parse, onCvImportParseEmpty, onCvImportParseSucceeded, onCvImportParseFailed],
+    [parse, queryClient, onCvImportParseEmpty, onCvImportParseSucceeded, onCvImportParseFailed],
   );
 
   /**
@@ -130,7 +144,13 @@ export function useCvImport(member: IMember) {
      already has one. */
   const hasLocation = Boolean(member.location?.city || member.location?.country || member.location?.metroArea);
 
-  const currentSkills = useMemo(() => (member.skills ?? []).map((skill) => skill.title), [member.skills]);
+  const currentSkills = useMemo(
+    () => [
+      ...(member.skills ?? []).map((skill) => skill.title),
+      ...(member.customSkills ?? []),
+    ],
+    [member.customSkills, member.skills],
+  );
 
   /**
    * The one place a proposal becomes something the server stores.

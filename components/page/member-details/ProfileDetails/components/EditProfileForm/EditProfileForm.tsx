@@ -12,6 +12,7 @@ import { toast } from '@/components/core/ToastContainer';
 import { updateMemberInfoCookie } from '@/utils/member.utils';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { buildMemberUpdatePayload } from '@/utils/member/buildMemberUpdatePayload';
+import { memberSkillTitles, splitMemberSkillTitles } from '@/utils/member/memberSkillTags';
 import { editProfileSchema } from '@/components/page/member-details/ProfileDetails/components/EditProfileForm/helpers';
 
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -90,6 +91,8 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
     return { team: null, role: '' };
   }, [member.mainTeam?.id, member.mainTeam?.name, member.mainTeam?.role, member.role, member.teams]);
 
+  const { data: memberFormOptions } = useMemberFormOptions();
+
   const methods = useForm<TEditProfileForm>({
     defaultValues: {
       image: null,
@@ -99,11 +102,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
       country: member.location?.country || '',
       state: member.location?.region || '',
       city: member.location?.city || '',
-      skills:
-        member.skills.map((item) => ({
-          value: item.uid,
-          label: item.title,
-        })) ?? [],
+      skills: memberSkillTitles(member),
       openToCollaborate: member.openToWork,
       primaryTeam: mainTeamData.team,
       primaryTeamRole: mainTeamData.team ? mainTeamData.role : member.role,
@@ -290,7 +289,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
       referenceUid: member.id,
       uniqueIdentifier: member.email,
       newData: {
-        ...formatPayload(memberData.memberInfo, formData),
+        ...formatPayload(memberData.memberInfo, formData, memberFormOptions?.skills ?? []),
         imageUid: formData.isImageDeleted ? null : image ? image : memberData.memberInfo.imageUid,
         role: formData.primaryTeamRole,
       },
@@ -319,8 +318,6 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
       toast.error(res.errorData.message);
     }
   };
-
-  const { data } = useMemberFormOptions();
 
   // Re-trigger validation when isAddingTeamInline changes (yup context dependency)
   // useEffect(() => {
@@ -385,7 +382,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
                       placeholder="Search or add a team"
                       backLabel="Teams"
                       options={
-                        data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
+                        memberFormOptions?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
                           value: item.teamUid,
                           label: item.teamTitle,
                           originalObject: item,
@@ -479,7 +476,11 @@ const InfoIcon = () => (
   </svg>
 );
 
-function formatPayload(memberInfo: any, formData: TEditProfileForm) {
+function formatPayload(
+  memberInfo: any,
+  formData: TEditProfileForm,
+  catalog: Array<{ id: string; name: string }>,
+) {
   // Update teamAndRoles to set mainTeam based on primaryTeam selection
   let updatedTeamAndRoles = memberInfo.teamMemberRoles;
 
@@ -516,6 +517,8 @@ function formatPayload(memberInfo: any, formData: TEditProfileForm) {
     }));
   }
 
+  const { skills, customSkills } = splitMemberSkillTitles(formData.skills ?? [], catalog);
+
   return buildMemberUpdatePayload(memberInfo, {
     name: formData.name,
     city: formData.city,
@@ -523,10 +526,8 @@ function formatPayload(memberInfo: any, formData: TEditProfileForm) {
     country: formData.country,
     openToWork: formData.openToCollaborate,
     teamAndRoles: updatedTeamAndRoles,
-    skills: formData.skills?.map((skill: any) => ({
-      title: skill.label,
-      uid: skill.value,
-    })),
+    skills,
+    customSkills,
     // bio is saved separately through updateMemberParams, so it must not ride along on the PUT
     bio: undefined,
   });

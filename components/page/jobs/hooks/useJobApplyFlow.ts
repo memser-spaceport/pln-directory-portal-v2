@@ -4,8 +4,7 @@ import { useCallback, useReducer, useRef } from 'react';
 
 import { useJobsAnalytics, type JobApplyTrigger, type JobSurface } from '@/analytics/jobs.analytics';
 import { openExternalApply } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
-import { isProtocolLabsTeam } from '@/services/jobs/protocol-labs-team';
-import type { BoardViewerState, JobsAccessVerdict } from '@/services/jobs/job-board-viewer';
+import { shouldApplyGoExternal, type BoardViewerState, type JobsAccessVerdict } from '@/services/jobs/job-board-viewer';
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 
 /**
@@ -36,23 +35,6 @@ export interface JobDetailTarget extends ApplyTarget {
 /** The three places the flow stops, in order. */
 export const APPLY_FLOW_STEPS = ['review', 'profile', 'application'] as const;
 export type ApplyFlowStepId = (typeof APPLY_FLOW_STEPS)[number];
-
-/**
- * Whether Apply leaves the site for this viewer and this role.
- *
- * Protocol Labs takes applications in-app for everyone who can still reach
- * Apply. Every other employer gets their own posting when there is no approved
- * account yet — a signed-out visitor, or one still awaiting review — because
- * handing them a stranger the PL team has not vetted is the board applying
- * *for* a team that did not ask it to.
- */
-export const shouldApplyGoExternal = (args: {
-  viewer: BoardViewerState;
-  verdict: JobsAccessVerdict;
-  team: IJobTeam | null | undefined;
-}): boolean =>
-  args.team?.inAppApplyAvailable === false ||
-  (!isProtocolLabsTeam(args.team) && (args.viewer === 'logged-out' || args.verdict === 'pending'));
 
 /**
  * The flow's whole state as ONE discriminated union: illegal combinations (two

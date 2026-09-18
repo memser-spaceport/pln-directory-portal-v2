@@ -376,7 +376,19 @@ export type BoardViewer =
   | 'profile-ready'
   | 'applied'
   | 'team-lead'
+  /* The same lead, on a day when people have applied. A state of its own
+     because the board *changes* for it — a banner in the board's one banner
+     slot, and the applicants line on their rows — and because the plain
+     `team-lead` view is the one that shows listing management with nothing
+     else competing for the eye. Two moments of one person, like
+     `profile-ready` and `applied`. */
+  | 'team-lead-applicants'
   | 'directory-admin';
+
+/** Leads a team — either moment of it. One test, so the listings, the profile
+ *  seed and the board cannot disagree about who a lead is. */
+export const isTeamLeadViewer = (viewer: BoardViewer): boolean =>
+  viewer === 'team-lead' || viewer === 'team-lead-applicants';
 
 /**
  * Signed up to look for work rather than to join a team — see `BoardViewer`.
@@ -437,7 +449,7 @@ export const JOB_ASPIRANT_PROFILE: MemberProfile = {
 export const profileForViewer = (viewer: BoardViewer): MemberProfile =>
   /* A lead or an admin is a member in good standing, so they arrive with the
      finished profile — and can apply to another team's role like anyone else. */
-  viewer === 'profile-ready' || viewer === 'applied' || viewer === 'team-lead' || viewer === 'directory-admin'
+  viewer === 'profile-ready' || viewer === 'applied' || isTeamLeadViewer(viewer) || viewer === 'directory-admin'
     ? FILLED_PROFILE
     : viewer === 'job-aspirant'
       ? JOB_ASPIRANT_PROFILE

@@ -30,9 +30,10 @@ import { ReferModal } from '../job-board-apply-steps/components/ReferModal';
 
 // Production's share menu, copied so it also opens on hover.
 import { JobShareMenu } from './JobShareMenu';
+// Save — the bookmark beside Share. Rendered only where the surface hands the
+// row a toggle (the `saving` entry); every other board is unchanged.
+import { JobSaveButton } from './JobSaveButton';
 import { ListingStatusBadge } from './ListingStatusBadge';
-import { ApplicationStatusBadge } from './ApplicationStatusBadge';
-import type { ApplicationStatus } from './applicationStatus';
 import { ListingMenu } from './ListingMenu';
 import type { ListingMeta, ListingStatus } from './listings';
 // Production's confirm — the one a team's Delete opens on the team profile.
@@ -70,10 +71,15 @@ interface JobReferRoleRowProps {
   /** ISO stamp of when the application went. Present only when `applied`; the
    *  clock slot reports this instead of the posting age — see the note there. */
   appliedAt?: string;
-  /** Where the application stands, when `applied`. The row wears a pill for
-   *  anything past `sent` — the same slot the owner's listing pill takes, so a
-   *  status is one kind of thing on this row whoever it belongs to. */
-  applicationStatus?: ApplicationStatus;
+  /** Kept by the viewer. Drawn as the filled bookmark; see `JobSaveButton`. */
+  saved?: boolean;
+  /** ISO stamp of when it was saved. Pass it only where the list is the saved
+   *  list — the clock then reads "Saved 3d ago" instead of the posting age,
+   *  for the reason `appliedAt` does in the Applied tab. On the open board the
+   *  posting age is still the number that decides anything, so it stays. */
+  savedAt?: string;
+  /** Present = the row offers Save. Absent = no bookmark at all. */
+  onToggleSave?: () => void;
   /**
    * Present for a viewer who owns this listing — on the board, in their own
    * team's card, and on the team profile's Open roles in the team's own view.
@@ -165,7 +171,9 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
     onViewJob,
     applied = false,
     appliedAt,
-    applicationStatus,
+    saved = false,
+    savedAt,
+    onToggleSave,
     manage,
   } = props;
   const [referOpen, setReferOpen] = useState(false);
@@ -201,7 +209,12 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
    * ago" beside a role you applied to reads as when you applied. So the applied
    * row reports its own date instead, labelled, and the posting age steps aside
    * rather than sitting next to a second number nobody asked to compare. */
-  const relative = appliedAt ? `Applied ${formatRelativeDays(appliedAt)}` : formatRelativeDays(date);
+  /* Applied outranks saved: a role you both kept and sent is, to you, sent. */
+  const relative = appliedAt
+    ? `Applied ${formatRelativeDays(appliedAt)}`
+    : savedAt
+      ? `Saved ${formatRelativeDays(savedAt)}`
+      : formatRelativeDays(date);
   /* No "New" on a row you have applied to. The badge is an invitation to look at
      something before it goes stale, and that has already happened. */
   /* Nor on a listing you manage: "New" is an invitation to look before it goes
@@ -220,10 +233,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
 
   return (
     <>
-      <div
-        className={clsx(s.root, s.row, { [js.rowPress]: press })}
-        onClick={press ? onRowClick : undefined}
-      >
+      <div className={clsx(s.root, s.row, { [js.rowPress]: press })} onClick={press ? onRowClick : undefined}>
         <div className={s.body}>
           <div className={s.titleRow}>
             {/* The title opens whatever the surface's canonical reading of the
@@ -268,14 +278,12 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
               shows no one else), and the ⋯ at the end, holding everything —
               the reader's presses and the owner's. See `ListingMenu`. */}
           {manage && manage.meta.status !== 'live' && <ListingStatusBadge status={manage.meta.status} />}
-          {/* The applicant's status, in the same slot. Nothing for `sent` —
-              the clock beside it already reads "Applied 2d ago", and that is
-              the resting state (lesson 21). See `ApplicationStatus`. */}
-          {applied && applicationStatus && <ApplicationStatusBadge status={applicationStatus} />}
+          {/* An application has one state, and the clock already reports it
+              ("Applied 2d ago") — so an applied row wears no pill. */}
           <div className={s.actionButtons}>
             {!manage && (
-            <>
-            {/* Refer is the quiet text button on every surface. The two actions
+              <>
+                {/* Refer is the quiet text button on every surface. The two actions
                 aren't peers: Apply is what the row is for, Refer is the sideline
                 you take when the role is right for someone who isn't you.
                 `.link` carries no `neutral`, so `secondary` is the design
@@ -290,19 +298,25 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
                 not have, which is the worst of both readings. The press is
                 live and lands where it can be honoured — the referral modal
                 with an account, the board's sign-up door without one. */}
-            <Button
-              size="s"
-              style="link"
-              variant="secondary"
-              className={js.referTone}
-              onClick={() => (canOpenReferral ? setReferOpen(true) : onReferSignUp?.())}
-            >
-              Refer
-            </Button>
+                <Button
+                  size="s"
+                  style="link"
+                  variant="secondary"
+                  className={js.referTone}
+                  onClick={() => (canOpenReferral ? setReferOpen(true) : onReferSignUp?.())}
+                >
+                  Refer
+                </Button>
 
-            <JobShareMenu role={role} teamName={teamName} />
+                <JobShareMenu role={role} teamName={teamName} />
 
-            {/* (The `↗` out to the external posting stood here, on the board
+                {/* Save, after Share and before the row's primary: the two icons are
+                the row's sidelines, in the order Braintrust and Glassdoor draw
+                them, and the bookmark is the last thing before the press that
+                the row is for. */}
+                {onToggleSave && <JobSaveButton saved={saved} onToggle={onToggleSave} roleTitle={roleTitle} />}
+
+                {/* (The `↗` out to the external posting stood here, on the board
                 only. It was removed, and the route it carried was not: the
                 drawer's step 1 opens with **Original posting** in its masthead
                 (`JobDetailPane`'s `.postingLink`), a labelled link to the same
@@ -324,8 +338,8 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
                 can name until they press it, where "Original posting" says which
                 of the two readings of this job it is. It also takes a fourth
                 grey out of a 200px cluster that had no business holding four. */}
-            {press ? (
-              /* The row is the press, so the button's place holds the mark that
+                {press ? (
+                  /* The row is the press, so the button's place holds the mark that
                  says so. Decorative — the title is the keyboard's door to the
                  same drawer, and it is a real <button>.
 
@@ -333,11 +347,11 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
                  enough to decide with, so the row opens the reading step and
                  Apply sits at the bottom of what it applies to. An applied row
                  says so in its clock ("Applied 3d ago") and stays rereadable. */
-              <span className={js.rowChevron} aria-hidden="true">
-                <CaretRightIcon width={16} height={16} />
-              </span>
-            ) : applied ? (
-              /* Same slot, same geometry: a row you've applied to must not
+                  <span className={js.rowChevron} aria-hidden="true">
+                    <CaretRightIcon width={16} height={16} />
+                  </span>
+                ) : applied ? (
+                  /* Same slot, same geometry: a row you've applied to must not
                  resize the list around it. Bordered neutral rather than filled
                  primary, because it has stopped being an offer and become a
                  statement of fact — it vacates the row's one call-to-action
@@ -346,28 +360,28 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
                  press); `.appliedButton` takes the design system's disabled
                  *paint* back off, since half-opacity reads as "not available to
                  you yet" rather than "done". */
-              <button
-                type="button"
-                disabled
-                className={clsx(btn.root, btn.small, btn.border, btn.neutral, js.applyButton, js.appliedButton)}
-              >
-                <CheckIcon width={12} height={12} aria-hidden="true" />
-                Applied
-              </button>
-            ) : (
-              /* An anchor wearing Button's classes rather than a <Button>: this
+                  <button
+                    type="button"
+                    disabled
+                    className={clsx(btn.root, btn.small, btn.border, btn.neutral, js.applyButton, js.appliedButton)}
+                  >
+                    <CheckIcon width={12} height={12} aria-hidden="true" />
+                    Applied
+                  </button>
+                ) : (
+                  /* An anchor wearing Button's classes rather than a <Button>: this
                  opens an external posting, so it has to stay a real link (new
                  tab, middle-click, copy address). `Button` renders a <button>
                  and nesting one inside an <a> is invalid. */
-              <a
-                className={clsx(btn.root, btn.small, btn.fill, btn.primary, js.applyButton)}
-                aria-label={`Apply to ${roleTitle}`}
-                {...linkProps}
-              >
-                Apply
-              </a>
-            )}
-            </>
+                  <a
+                    className={clsx(btn.root, btn.small, btn.fill, btn.primary, js.applyButton)}
+                    aria-label={`Apply to ${roleTitle}`}
+                    {...linkProps}
+                  >
+                    Apply
+                  </a>
+                )}
+              </>
             )}
 
             {manage && (

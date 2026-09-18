@@ -2375,7 +2375,7 @@ describe('TeamNews', () => {
         expect(screen.getByRole('link', { name: 'Jobs acme' })).toBeInTheDocument();
         // Title, meta line, refer, share and View job — the board's row, not a
         // feed-local lookalike.
-        expect(screen.getByRole('button', { name: 'Matched acme-r1' })).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'Matched acme-r1' })).toHaveAttribute('href', '/jobs/openings/acme-r1');
         expect(screen.getByText('Engineering · Remote')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Refer' })).toBeInTheDocument();
         expect(screen.getByTestId('refer-menu')).toBeInTheDocument();

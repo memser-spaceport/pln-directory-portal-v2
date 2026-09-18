@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import clsx from 'clsx';
 import Link from 'next/link';
 
 import type { ITeam } from '@/types/teams.types';
@@ -8,12 +9,16 @@ import type { ITeamNewsItem } from '@/types/team-news.types';
 import { ArrowUpRightIcon } from '@/components/icons/ArrowUpRightIcon';
 
 import { BackButton } from '@/components/ui/BackButton';
+import { Button } from '@/components/common/Button';
 import {
   DetailsSection,
   DetailsSectionHeader,
   DetailsSectionGreyContentContainer,
   NoDataBlock,
 } from '@/components/common/profile/DetailsSection';
+import { AiSearchView } from '../ai-search/AiSearchView';
+import { AiSearchIcon } from '@/prototypes/components/AiSearchIcon/AiSearchIcon';
+import { buildTeamAiScope, type TeamScopeInput } from './aiSearchScope';
 import { TagsList } from '@/components/common/profile/TagsList';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
@@ -508,6 +513,64 @@ export default function TeamProfilePrototype() {
 
   const focusAreas = useGetFocusAreasToDisplay(MOCK_FOCUS_AREAS, MOCK_TEAM_FOCUS_AREAS);
 
+  /**
+   * AI Search, narrowed to this team. The door is on the team's own header
+   * because nobody goes to the AI Search page (2 unique visitors in 90 days
+   * against 1,998 on /teams): it goes where people already are. Every seat has
+   * it — founders asking about their own team, visitors about someone else's.
+   * It opens the AI Search view with the team as a chip in the field.
+   *
+   * The scope reads the page's own state, so its prompts follow what is drawn
+   * for this seat: no applicants prompt for a member, no followers prompt or
+   * "our" for a visitor, no roles prompt once the roles are gone, no news
+   * prompt on an empty rail.
+   */
+  const [aiOpen, setAiOpen] = useState(false);
+  const [followersOpen, setFollowersOpen] = useState(false);
+  const scrollToSection = (id: string) =>
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const aiScope = buildTeamAiScope({
+    teamName: team.name ?? 'this team',
+    logo: teamLogo,
+    members: MOCK_MEMBERS as unknown as TeamScopeInput['members'],
+    roles: teamRoles?.roles ?? null,
+    applicantsFor: (uid) => MOCK_APPLICANTS[uid] ?? [],
+    canSeeApplicants: canSubmitJobs,
+    isTeamView,
+    followers: MOCK_FOLLOWERS,
+    contributions: MOCK_CONTRIBUTIONS,
+    news: displayNews,
+    commentsFor: threadFor,
+    onOpen: (target) => {
+      if (target.startsWith('applicants:')) setApplicantsRole(target.slice('applicants:'.length));
+      else if (target === 'followers') setFollowersOpen(true);
+      else if (target === 'news') openNewsFeed(null);
+      else scrollToSection(`team-${target}`);
+    },
+  });
+  /* Ask AI sits in the header's action cluster, not beside the team name: a
+     control abutting a 24px title reads as a tag on the name. No fill, no
+     outline: it is a text action of the header's own lineage — the exact
+     `Button` HeaderActionBtn renders for Edit (`link` + `primary`, default
+     size, 4px icon gap), and the tone the search rows' "Ask AI" already wears.
+     Rendered directly rather than through HeaderActionBtn only because that
+     wrapper drops `aria-label`. Beside the outlined Follow pill it is plainly a
+     different kind of control; beside Edit it is a sibling, told apart by the
+     gradient glyph. One object in every seat. */
+  const askAiButton = (seatClass?: string) => (
+    <Button
+      style="link"
+      variant="primary"
+      underline={false}
+      className={clsx(local.askAiBtn, seatClass)}
+      aria-label={`Ask AI about ${team.name}`}
+      onClick={() => setAiOpen(true)}
+    >
+      <AiSearchIcon size={14} />
+      <span>Ask AI</span>
+    </Button>
+  );
+
   if (!mounted) {
     return <div className={shell.teamDetail} />;
   }
@@ -663,7 +726,10 @@ export default function TeamProfilePrototype() {
                 headerAction={
                   !isTeamView ? (
                     <div className={`${local.followHeader} ${local.followClusterMobile}`}>
-                      <FollowPill following={following} onToggle={handleFollowToggle} name={team.name ?? 'this team'} />
+                      <div className={local.headerActionRow}>
+                        {askAiButton()}
+                        <FollowPill following={following} onToggle={handleFollowToggle} name={team.name ?? 'this team'} />
+                      </div>
                       {/* Reserve the caption's height once following so nothing below jumps. */}
                       <p className={`${local.followCaption} ${following ? local.followCaptionHidden : ''}`}>
                         Get updates &amp; announcements
@@ -677,9 +743,22 @@ export default function TeamProfilePrototype() {
                       end up stranded under the logo/tags. TeamFollowBlock (the
                       follower stack) keeps wrapping below on mobile as before. */}
                       <div className={local.adminActionsCorner}>
-                        <TeamAdminActions teamName={team.name ?? 'this team'} />
+                        <TeamAdminActions
+                          teamName={team.name ?? 'this team'}
+                          leading={askAiButton(local.askAiFromTablet)}
+                        />
                       </div>
-                      <TeamFollowBlock count={followCount} followers={MOCK_FOLLOWERS} />
+                      {/* Phone: three actions in the absolute corner run over the
+                          team name, so Ask AI leaves it and joins the row that
+                          wraps under the tags — where the visitor's Ask AI
+                          already sits on a phone. */}
+                      {askAiButton(local.askAiMobileOnly)}
+                      <TeamFollowBlock
+                        count={followCount}
+                        followers={MOCK_FOLLOWERS}
+                        open={followersOpen}
+                        onOpenChange={setFollowersOpen}
+                      />
                     </div>
                   )
                 }
@@ -718,7 +797,7 @@ export default function TeamProfilePrototype() {
             </DetailsSection>
 
             {/* Members */}
-            <div className={shell.teamDetail__container__member}>
+            <div id="team-members" className={`${shell.teamDetail__container__member} ${local.aiAnchor}`}>
               <TeamMembersView team={team} members={MOCK_MEMBERS} />
             </div>
 
@@ -754,7 +833,9 @@ export default function TeamProfilePrototype() {
             {/* Contributions — event-primary tiles; Demo Day featured when present.
               Muted role tags, settled: the vibrant/muted switch was scaffolding
               for choosing between them, and it dies with the choice. */}
-            <TeamContributionsView contributions={MOCK_CONTRIBUTIONS} demoDay={MOCK_TEAM_DEMO_DAY} variant="muted" />
+            <div id="team-contributions" className={local.aiAnchor}>
+              <TeamContributionsView contributions={MOCK_CONTRIBUTIONS} demoDay={MOCK_TEAM_DEMO_DAY} variant="muted" />
+            </div>
 
             {/* Projects */}
             <TeamProjectsView team={team} projects={MOCK_PROJECTS} />
@@ -938,6 +1019,12 @@ export default function TeamProfilePrototype() {
         </FollowToast>
       )}
       {listingToast && <FollowToast>{listingToast}</FollowToast>}
+
+      {/* The AI Search view, opened by "Ask AI about <team>" with the team as
+          its scope — straight to the full screen, past the keyword popover,
+          which has nothing to say about a team you are already on. Every seat
+          has the door; the scope decides what each seat's prompts may read. */}
+      <AiSearchView open={aiOpen} onClose={() => setAiOpen(false)} scope={aiScope} />
 
       {/* Compose and edit. Mounted for anyone on the team's side of the page —
           the compose door is still gated by `canPost`, but a lead or an admin

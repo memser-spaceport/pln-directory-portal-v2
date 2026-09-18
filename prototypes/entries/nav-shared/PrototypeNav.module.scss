@@ -124,8 +124,9 @@
     background: var(--surface-light, #ffffff);
   }
 
-  /* SearchGlyph draws a 20px path filled #475569; the field wants the DS 16px
-     mark in the placeholder's ink. A CSS fill outranks the attribute. */
+  /* SearchGlyph strokes #475569 at 20px; the field wants the DS 16px mark in
+     the placeholder's ink. Its stroke doesn't scale, so it stays 1.5px, the
+     weight of the bar's other icons. A CSS stroke outranks the attribute. */
   svg {
     flex-shrink: 0;
 
@@ -135,9 +136,10 @@
     }
   }
 
+  svg circle,
   svg path {
     @include tablet-landscape {
-      fill: currentColor;
+      stroke: currentColor;
     }
   }
 }
@@ -176,6 +178,61 @@
   &:focus-visible {
     outline: 2px solid var(--foreground-brand-primary, #1b4dff);
     outline-offset: -1px;
+  }
+}
+
+/* A separate AI action on the same desktop field, using the outlined mobile
+   search badge. On smaller screens the header stays the existing glyph box. */
+.navSearchWithAi {
+  position: relative;
+  display: inline-flex;
+
+  @include tablet-landscape {
+    width: 200px;
+  }
+}
+
+.navSearchWithAiTrigger {
+  @include tablet-landscape {
+    width: 100%;
+    height: 36px;
+    padding-right: 64px;
+  }
+}
+
+.navAiBadge {
+  display: none;
+
+  @include tablet-landscape {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    height: 22px;
+    padding: 2px 8px;
+    transform: translateY(-50%);
+    border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    border-radius: 6px;
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-secondary, #455468);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--action-border-neutral-normal, rgba(14, 15, 17, 0.24));
+      background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+      outline-offset: 2px;
+    }
   }
 }
 

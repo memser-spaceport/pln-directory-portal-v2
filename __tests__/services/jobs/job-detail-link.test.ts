@@ -2,6 +2,7 @@ import {
   JOB_DETAIL_PARAM,
   findJobInGroups,
   jobDetailPath,
+  jobBoardShareUrl,
   jobDetailShareUrl,
   writeJobDetailParam,
 } from '@/services/jobs/job-detail-link';
@@ -55,6 +56,35 @@ describe('jobDetailShareUrl', () => {
   it('tags a link meant for someone else with the share channel', () => {
     expect(jobDetailShareUrl('role-1', 'copy_link')).toBe(
       `${window.location.origin}/jobs/openings/role-1?utm_source=job_refer_share&utm_medium=copy_link`,
+    );
+  });
+});
+
+describe('jobBoardShareUrl', () => {
+  it('builds the board deep link, not the opening page', () => {
+    expect(jobBoardShareUrl('role-1', 'copy_link')).toBe(
+      `${window.location.origin}/jobs?job=role-1&utm_source=job_refer_share&utm_medium=copy_link`,
+    );
+  });
+
+  /* `?job=` already opened the query string, so a second `?` would make the
+     UTMs part of the uid and break the arrival attribution. */
+  it('joins the attribution UTMs with & and keeps the uid readable', () => {
+    const url = jobBoardShareUrl('role-1', 'linkedin');
+
+    expect(url).toContain('/jobs?job=role-1&utm_source=');
+    expect(url.match(/\?/g)).toHaveLength(1);
+  });
+
+  it('encodes a uid with URL-significant characters', () => {
+    expect(jobBoardShareUrl('role with space&x', 'copy_link')).toContain('?job=role%20with%20space%26x&utm_source=');
+  });
+
+  it('prefixes the current origin — never location.href, which may carry filters', () => {
+    window.history.replaceState({}, '', '/jobs?roleCategory=Engineering&job=other-role');
+
+    expect(jobBoardShareUrl('role-1', 'copy_link')).toBe(
+      `${window.location.origin}/jobs?job=role-1&utm_source=job_refer_share&utm_medium=copy_link`,
     );
   });
 });

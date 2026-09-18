@@ -81,6 +81,68 @@ export function ProfileNudgeBanner({ onUpdateProfile }: { onUpdateProfile: () =>
 }
 
 /**
+ * A lead whose roles have applicants they have not looked at.
+ *
+ * **Why the board says it at all.** The applicants line rides each of the
+ * lead's own rows, but their team's card sits wherever the sort puts it — on a
+ * board of many teams that is some way down, below Protocol Labs' pinned card.
+ * A fact that only exists once you have scrolled to the right card is a fact
+ * the lead learns by accident. The board has one banner slot and a lead with a
+ * finished profile was leaving it empty, so this takes it: what is new, on
+ * which roles, and one press to the team's applicants page.
+ *
+ * **Only while something is new.** Applicants the lead has already opened are
+ * a count on a row, not news; the banner is for the unread ones, the same
+ * loud-state/resting-state split the applicants list itself draws.
+ *
+ * **The second line names the roles**, because that is the one thing the
+ * headline cannot: a lead with three listings wants to know *which* one drew
+ * people before deciding whether to look now.
+ *
+ * Same shell as the two banners below — production's home `Welcome` card in
+ * the board's brand surface — so the slot holds one kind of object.
+ */
+export function NewApplicantsBanner({
+  teamName,
+  newCount,
+  roles,
+  onReview,
+}: {
+  teamName: string;
+  newCount: number;
+  /** The roles with unread applicants, most first. */
+  roles: Array<{ title: string; newCount: number }>;
+  onReview: () => void;
+}) {
+  return (
+    <div className={s.slot}>
+      <section className={clsx(welcome.welcome, s.brandSurface)}>
+        <div className={welcome.text}>
+          <p className={clsx(welcome.title, s.bannerTitle)}>
+            {newCount} new {newCount === 1 ? 'applicant' : 'applicants'} for your roles at {teamName}
+          </p>
+          <p className={clsx(welcome.sub, s.bannerSub)}>{roles.map((r) => `${r.title} (${r.newCount})`).join(' · ')}</p>
+        </div>
+        <div className={s.ctaGroup}>
+          <button type="button" className={welcome.cta} onClick={onReview}>
+            Review applicants
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M5 12h14M13 6l6 6-6 6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+/**
  * Signed up, waiting on the PL team.
  *
  * **Two cards, because there are two situations.** The waiting window is dead

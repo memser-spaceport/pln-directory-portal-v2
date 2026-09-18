@@ -29,6 +29,17 @@ describe('seo utils', () => {
     expect(metadata.openGraph?.url).toBe('https://os.pl.xyz/jobs');
   });
 
+  it('points home listing metadata at /home, not the site root', () => {
+    process.env.APPLICATION_BASE_URL = 'https://os.pl.xyz';
+    const metadata = listingPageMetadata({
+      title: 'Home | Protocol Labs Directory',
+      description: 'Network home',
+      path: '/home',
+    });
+    expect(metadata.openGraph?.url).toBe('https://os.pl.xyz/home');
+    expect(metadata.alternates).toEqual({ canonical: 'https://os.pl.xyz/home' });
+  });
+
   it('turns HTML into a plain snippet', () => {
     expect(htmlToPlainSnippet('<p>Senior engineer at <strong>Acme</strong></p>')).toBe('Senior engineer at Acme');
     expect(htmlToPlainSnippet('<p>abcdefghij</p>', 8)).toBe('abcdefg…');

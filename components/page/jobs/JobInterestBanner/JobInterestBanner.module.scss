@@ -107,6 +107,24 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+/* The follow offer, under the offer itself. An offer, not a gate — the press
+   works unticked — so it wears the subtitle's quieter voice rather than the
+   title's. The DS Checkbox ships as a button; the label owns the hit area, so
+   the inner control must not swallow the press. */
+.follow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  button {
+    pointer-events: none;
+  }
+}
+
 .error {
   color: var(--foreground-error-primary, #dc2626);
 }

@@ -27,7 +27,9 @@ const memberInfo = {
   teamMemberRoles: [{ teamUid: 't1', role: 'Engineer', mainTeam: true }],
   projectContributions: [{ uid: 'c1', projectName: 'dropped by omit', projectUid: 'p1', role: 'Dev' }],
   skills: [{ id: 's1', name: 'Rust' }],
+  customSkills: ['Zig', 'Nix'],
   bio: 'Original bio',
+  currentCompany: 'Lattice Compute',
 };
 
 // Exactly what every pre-refactor formatPayload produced for the fields it carried through.
@@ -53,7 +55,9 @@ const CARRIED_THROUGH = {
   teamAndRoles: [{ teamUid: 't1', role: 'Engineer', mainTeam: true }],
   projectContributions: [{ uid: 'c1', projectUid: 'p1', role: 'Dev' }],
   skills: [{ title: 'Rust', uid: 's1' }],
+  customSkills: ['Zig', 'Nix'],
   bio: 'Original bio',
+  currentCompany: 'Lattice Compute',
 };
 
 /** What actually reaches the API — `JSON.stringify` drops `undefined` values. */
@@ -77,6 +81,17 @@ describe('buildMemberUpdatePayload', () => {
     expect(payload).toMatchObject({ name: 'Bare', city: '', region: '', country: '' });
     expect(payload.projectContributions).toBeUndefined();
     expect(payload.skills).toBeUndefined();
+  });
+
+  /*
+   * `customSkills` is the one carried field with a default rather than a
+   * pass-through (`?? []`), and it is what broke this suite when it was added:
+   * an empty array is a real value, so `toEqual` sees it where the two
+   * `undefined` fields beside it are ignored. Pinned so the next field added
+   * with a default fails here loudly rather than by surprise.
+   */
+  it('defaults customSkills to an empty array when the member has none', () => {
+    expect(buildMemberUpdatePayload({ name: 'Bare' }).customSkills).toEqual([]);
   });
 
   it('drops a field from the request when an override is undefined', () => {

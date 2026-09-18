@@ -244,9 +244,10 @@ function formatPayload(memberInfo: any, formData: TEditContactForm, isAdmin: boo
       ...omit(contribution, 'projectName'),
     })),
     skills: memberInfo.skills?.map((skill: any) => ({
-      title: skill.name,
-      uid: skill.id,
+      title: skill.name ?? skill.title,
+      uid: skill.id ?? skill.uid,
     })),
+    customSkills: memberInfo.customSkills ?? [],
     bio: memberInfo.bio,
   };
 }

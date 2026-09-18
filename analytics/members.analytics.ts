@@ -623,6 +623,22 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.CV_IMPORT_CANCELLED, { stage });
   }
 
+  function onCvPreviewOpened() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.CV_PREVIEW_OPENED);
+  }
+
+  function onCvRemoved() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.CV_REMOVED);
+  }
+
+  function onCvReplaceStarted() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.CV_REPLACE_STARTED);
+  }
+
+  function onMemberCustomSkillAdded() {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_CUSTOM_SKILL_ADDED);
+  }
+
   function onAddContributionDetailsClicked() {
     captureEvent(MEMBER_ANALYTICS_EVENTS.INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_ADD_CLICKED);
   }
@@ -809,6 +825,10 @@ export const useMemberAnalytics = () => {
     onCvImportSaved,
     onCvImportSaveFailed,
     onCvImportCancelled,
+    onCvPreviewOpened,
+    onCvRemoved,
+    onCvReplaceStarted,
+    onMemberCustomSkillAdded,
     onEditExperienceDetailsClicked,
     onAddContributionDetailsClicked,
     onSaveContributionDetailsClicked,

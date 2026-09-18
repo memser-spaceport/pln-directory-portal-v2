@@ -14,6 +14,9 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import type { IMember } from '@/types/members.types';
 
 import { useSubmitJobApplication } from '@/services/jobs/hooks/useJobApplications';
+import { followTeam } from '@/services/follow/follow.service';
+import { useFollowedTeamUids, useRememberTeamFollowed } from '@/services/follow/hooks/useFollowedTeamUids';
+import { useFollowAnalytics } from '@/analytics/follow.analytics';
 import {
   isAlreadyAppliedError,
   isJobGoneError,
@@ -31,7 +34,7 @@ import {
 } from '@/components/common/profile/UnsavedEdits';
 import { ApplyFlowSteps, type ApplyFlowStep } from '@/components/page/jobs/ApplyFlowSteps/ApplyFlowSteps';
 import { JobDetailPane } from '@/components/page/jobs/JobDetailPane/JobDetailPane';
-import { JobInterestBanner } from '@/components/page/jobs/JobInterestBanner/JobInterestBanner';
+import { JobInterestBanner, teamFollowOfferLabel } from '@/components/page/jobs/JobInterestBanner/JobInterestBanner';
 import { JobUnlockBanner } from '@/components/page/jobs/JobUnlockBanner/JobUnlockBanner';
 import { JobUnlockDisclosure } from '@/components/page/jobs/JobUnlockDisclosure/JobUnlockDisclosure';
 import { JobProfilePane, BackIcon, type ProfileState } from '@/components/page/jobs/JobProfileDrawer/JobProfileDrawer';
@@ -164,7 +167,10 @@ interface JobApplyFlowDrawerProps {
   /** `linkedinProfile` is read only to pick which receipt the send shows — see
    *  the toast in `submit`. It rides on the record the read-back already
    *  fetches, so this is a wider `Pick` rather than a second query. */
-  member: Pick<IMember, 'id' | 'name' | 'role' | 'mainTeam' | 'skills' | 'currentCompany' | 'linkedinProfile'> | null;
+  member: Pick<
+    IMember,
+    'id' | 'name' | 'role' | 'mainTeam' | 'skills' | 'customSkills' | 'currentCompany' | 'linkedinProfile'
+  > | null;
   isLoggedIn: boolean;
   /** Signed up, waiting on the PL team. Says so in the profile lede; gates nothing. */
   pendingApproval: boolean;
@@ -217,13 +223,14 @@ interface JobApplyFlowDrawerProps {
   /**
    * The "I'm interested" signal.
    *
-   * Supplied by the controller only for a signed-in Job Aspirant — the one
-   * persona the light signal exists for. A signed-out visitor and an
-   * established member are both withheld this prop entirely (see
-   * `canShowJobInterest` in `services/jobs/job-board-viewer`), so the banner
-   * never renders for either. Optional here only so that the several suites
-   * which render this drawer to test something else do not have to wire a
-   * signal they never press.
+   * Supplied by the controller only where the full in-app Apply is NOT available
+   * to this viewer — a signed-in Job Aspirant on a role that sends them off-site,
+   * or anyone on a team that takes no in-app applications. A signed-out visitor,
+   * an established member, and a Job Aspirant reading a Protocol Labs role are
+   * all withheld this prop entirely (see `canShowJobInterest` in
+   * `services/jobs/job-board-viewer`), so the banner never renders for them.
+   * Optional here only so that the several suites which render this drawer to
+   * test something else do not have to wire a signal they never press.
    *
    * `isSettled` is not a loading flag to render a spinner from: it says whether
    * the answer is known, and until it is the banner does not draw. An
@@ -234,7 +241,10 @@ interface JobApplyFlowDrawerProps {
     isInterested: boolean;
     isSettled: boolean;
     error: string | null;
-    onToggle: (nextInterested: boolean) => void;
+    /** `followTeam` is the banner's follow tick at press time — true when the
+     *  mark should also follow the team. Meaningless on Undo.
+     *  `followOffered` is whether the tick was on screen for this press. */
+    onToggle: (nextInterested: boolean, followTeam: boolean, followOffered?: boolean) => void;
   };
   viewerState: BoardViewerState;
   source: JobSurface;
@@ -436,6 +446,44 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     setJobProfileReviewed(memberUid, next);
   };
 
+  /* Teams this member already follows — what decides whether the follow tick
+     is offered at all. Same member-scoped whole-map shape as the applied and
+     interested maps, and the same settled rule as the interest banner: an
+     already-following member seeing the tick and losing it a beat after paint
+     is the flash `isSettled` exists to prevent. */
+  const { followedTeamUids, isSettled: followsSettled } = useFollowedTeamUids({
+    memberUid,
+    enabled: open && isLoggedIn,
+  });
+  const rememberTeamFollowed = useRememberTeamFollowed(memberUid);
+  const followAnalytics = useFollowAnalytics();
+
+  /** Checked by default. The RSVP rule: a default keeps adoption, the tick
+   *  keeps consent. Held here rather than in a pane for the same reason the
+   *  letter is — the panes unmount on every step change. One state serves both
+   *  surfaces (the apply footer's tick and the interest banner's row): they
+   *  are the same offer about the same team. */
+  const [followTick, setFollowTick] = useState(true);
+
+  const followsTeam = followedTeamUids.has(target.teamId);
+
+  /** Follow the hiring team when the tick said to. Only ever ADDED — an
+   *  unticked box is not an unfollow, and neither is undoing interest. True
+   *  only when the server confirms the follow, so a failed follow never earns
+   *  the receipt clause. */
+  const followHiringTeam = async (source: 'job-apply' | 'job-interest'): Promise<boolean> => {
+    const result = await followTeam(target.teamId);
+    if (!result?.following) return false;
+    rememberTeamFollowed(target.teamId);
+    followAnalytics.onTeamFollowed({ teamUid: target.teamId, teamName: target.teamName, source });
+    return true;
+  };
+
+  /** Drawn only for someone whose press sends from this board and who does not
+   *  already follow the team — a ticked-and-disabled box reporting a state you
+   *  already have is a mark for the resting state. */
+  const showApplyFollowTick = isLoggedIn && !applyGoesExternal && followsSettled && !followsTeam;
+
   /* The steps this run stops at, in order — all three, for everyone applying in
      app. Back and the footer both walk this, which is what keeps them agreeing
      about where "the step before this one" is. */
@@ -634,11 +682,21 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
       source,
     };
     analytics.onJobApplySubmitted({ ...analyticsBase, cover_letter_length: coverLetter.trim().length });
+    if (showApplyFollowTick && !followTick) {
+      analytics.onJobApplyFollowDeclined(analyticsBase);
+    }
 
     submitMutation.mutate(
       { roleUid: target.role.uid, coverLetter: coverLetter.trim() },
       {
-        onSuccess: () => {
+        onSuccess: async () => {
+          /* The follow tick rides the press: the application is already on
+             record, so a failed follow costs the tick and the receipt clause,
+             never the application. */
+          const followed = showApplyFollowTick && followTick ? await followHiringTeam('job-apply') : false;
+          if (showApplyFollowTick && followTick && !followed) {
+            analytics.onJobApplyFollowFailed(analyticsBase);
+          }
           onSubmitted();
           /**
            * Two receipts, and which one you get is the answer to the question
@@ -654,21 +712,35 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
            * promise is either kept or explained. One sentence for the verified
            * — the thing is done — and two for the unverified, because the second
            * one is news: the note has not reached anybody yet.
+           *
+           * The follow clause is added only when the follow actually happened —
+           * the tick left the screen with the flow, and nothing else on the
+           * board reports a followed team.
            */
           toast.success(
-            member?.linkedinProfile
+            (member?.linkedinProfile
               ? `Applied to ${target.role.roleTitle} at ${target.teamName}. Your profile went with your note.`
-              : `Submitted for ${target.role.roleTitle} at ${target.teamName}. Your note went with your profile. Once we’ve reviewed it, we’ll send it to the recruiter.`,
+              : `Submitted for ${target.role.roleTitle} at ${target.teamName}. Your note went with your profile. Once we’ve reviewed it, we’ll send it to the recruiter.`) +
+              (followed ? ` You're now following ${target.teamName}.` : ''),
           );
         },
-        onError: (error) => {
+        onError: async (error) => {
           if (isAlreadyAppliedError(error)) {
             /* The server already holds this application — the row flips to
                Applied (the hook refetches the map) and the flow closes on the
-               true state rather than arguing with the person's own history. */
+               true state rather than arguing with the person's own history.
+               The tick is still honoured: the press carried it, and the follow
+               was the part that had not happened yet. */
             analytics.onJobApplyFailed({ ...analyticsBase, failure_category: 'already-applied' });
+            const followed = showApplyFollowTick && followTick ? await followHiringTeam('job-apply') : false;
+            if (showApplyFollowTick && followTick && !followed) {
+              analytics.onJobApplyFollowFailed(analyticsBase);
+            }
             onSubmitted();
-            toast.success(`You had already applied to ${target.role.roleTitle} at ${target.teamName}.`);
+            toast.success(
+              `You had already applied to ${target.role.roleTitle} at ${target.teamName}.` +
+                (followed ? ` You're now following ${target.teamName}.` : ''),
+            );
             return;
           }
           analytics.onJobApplyFailed({ ...analyticsBase, failure_category: 'request-failed' });
@@ -1036,6 +1108,19 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     const overLimit = remaining < 0;
     return {
       hint: overLimit ? `Shorten your note to ${COVER_LETTER_MAX_LENGTH} characters to send it.` : null,
+      /* The follow offer takes the hint's slot — `footerInner` renders `lead`
+         or `hint`, never both — so it yields while the over-limit reason is
+         showing: that reason is the only thing explaining a dead Apply, and
+         the tick keeps its state for when the note is back under the limit.
+         The consent row's class without its required mark: an offer, not a
+         gate — Apply stays live whether this is ticked or not. */
+      lead:
+        !overLimit && showApplyFollowTick ? (
+          <label className={d.consentRow}>
+            <Checkbox checked={followTick} onChange={setFollowTick} />
+            <span>{teamFollowOfferLabel(target.teamName)}</span>
+          </label>
+        ) : undefined,
       action: (
         /* "Apply", and this is the press that applies — there is no fourth step
            and no confirmation pane. The rail's last stop is where it happens. */
@@ -1128,14 +1213,14 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                  what keeps them from reading as one journey drawn twice. */
                   banner={
                     <>
-                      {/* Above the unlocks card, not instead of it.
-                      The Figma draws this banner only in the "Signed up" frames
-                      — logged out, this slot holds `JobUnlockBanner` and nothing
-                      else. The ticket asks for the CTA logged out too, so both
-                      render, and the composition below is the one thing here
-                      that no frame shows. It is deliberate, it is reviewable,
-                      and it is one clause to undo if the review goes the other
-                      way: see the plan's D1.
+                      {/* Never both at once, despite the stacking this markup
+                      allows. The Figma draws the interest banner only in the
+                      "Signed up" frames — logged out, this slot holds
+                      `JobUnlockBanner` alone — and that is now also what the
+                      code does: `canShowJobInterest` requires a session, so a
+                      visitor is never wired `interest`. (`d5375bd05` withdrew
+                      the logged-out banner; this comment and a pair of tests
+                      went on describing it for a fortnight afterwards.)
 
                       Withheld once an application exists. "Let them know you're
                       interested" above a footer reading `Applied` is the drawer
@@ -1145,8 +1230,17 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                         <JobInterestBanner
                           teamName={target.teamName}
                           isInterested={interest.isInterested}
-                          isLoggedIn={isLoggedIn}
                           error={interest.error}
+                          /* The same offer the apply footer makes, on the one
+                             other press that sends something to a team from
+                             this board. Absent once the member already
+                             follows — and the banner itself withholds it once
+                             the signal is in. */
+                          follow={
+                            isLoggedIn && followsSettled && !followsTeam
+                              ? { checked: followTick, onChange: setFollowTick }
+                              : undefined
+                          }
                           onToggle={interest.onToggle}
                         />
                       )}

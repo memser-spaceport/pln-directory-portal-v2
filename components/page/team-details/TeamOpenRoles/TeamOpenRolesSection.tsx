@@ -52,12 +52,15 @@ export function TeamOpenRolesSection({ group, isLoggedIn, userInfo }: TeamOpenRo
    * authenticated, and `customFetch` answers a missing session by logging out
    * and reloading — so an ungated one on a team profile, which is a public
    * page, would be a reload loop for every signed-out visitor.
+   *
+   * The whole team goes in rather than `teamUid`: the rule excludes Protocol
+   * Labs, and it reads the name as well as the uid to do that.
    */
   const canReadApplicantCounts = canReadApplicants({
     flagOn: SHOW_TEAM_APPLICANTS,
     isLoggedIn,
     userInfo,
-    teamId: teamUid,
+    team: group?.team,
   });
 
   const { data: counts } = useApplicantCounts({

@@ -44,21 +44,47 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
 
   const { userInfo, isLoggedIn } = await getCookiesFromHeaders();
 
-  /* Before any fetch. With the flag off this route does not exist, and a
+  /* The half of the rule that needs no team, before any fetch: with the flag off
+     this route does not exist, and a signed-out reader can never pass it. A
      redirect is the cheapest way to say so without a 404 page that hints
-     something is coming. */
-  if (!canReadApplicants({ flagOn: SHOW_TEAM_APPLICANTS, isLoggedIn, userInfo, teamId })) {
+     something is coming.
+
+     A necessary condition of `canReadApplicants`, deliberately NOT a second copy
+     of it — the authoritative call is below, once the team is in hand. The rest
+     of the rule cannot be asked yet: excluding Protocol Labs reads the team's
+     name, and all this route has up here is an id out of the URL. */
+  if (!SHOW_TEAM_APPLICANTS || !isLoggedIn) {
     redirect(teamProfile, RedirectType.replace);
   }
 
   const { team, roles, redirectTeamUid, isError, isNotFound } = await getPageData(teamId);
 
+  /* Before the gate: a lead following an old slug is forwarded to the current
+     one, where the rule is then asked about the team they actually meant.
+     Gating first would bounce them to a profile instead. */
   if (redirectTeamUid) {
     redirect(`${PAGE_ROUTES.TEAMS}/${redirectTeamUid}/applicants`, RedirectType.replace);
   }
 
   if (isNotFound || isError) {
     return <Error />;
+  }
+
+  /* `teamId`, not `team.id`: the formatted team detail names its uid `id`, and
+     by this line the airtable-slug hop above has already forwarded anything that
+     was not the canonical uid — so the URL's id is the uid the rest of the rule
+     (and `leadingTeams`) is asked about. The name comes off the fetch, which is
+     the only reason the gate waits for it: excluding Protocol Labs falls back to
+     the name wherever the uid differs by environment seed. */
+  if (
+    !canReadApplicants({
+      flagOn: SHOW_TEAM_APPLICANTS,
+      isLoggedIn,
+      userInfo,
+      team: team ? { uid: teamId, name: team.name } : null,
+    })
+  ) {
+    redirect(teamProfile, RedirectType.replace);
   }
 
   return (

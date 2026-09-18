@@ -1,6 +1,6 @@
 'use client';
 
-import { HTMLProps } from 'react';
+import { HTMLProps, type MouseEvent } from 'react';
 import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
 import { useToggle } from 'react-use';
@@ -13,6 +13,7 @@ import { useRoleApplication } from '@/services/jobs/hooks/useJobApplications';
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 import type { JobDetailTarget } from '@/components/page/jobs/hooks/useJobApplyFlow';
 import { canSeeOriginalPosting } from '@/services/jobs/job-board-viewer';
+import { jobOpeningPath } from '@/services/jobs/job-detail-link';
 import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
 import { jobApplyQueryParams } from './constants';
@@ -72,6 +73,13 @@ interface ReferRoleRowProps {
   team?: IJobTeam;
   onClick?: () => void;
   apply?: RowApplyProps;
+}
+
+/** Left-click stays in-place (drawer / feed new-tab). Modified clicks follow the href. */
+function interceptUnmodifiedClick(event: MouseEvent<HTMLAnchorElement>, onOpen: () => void) {
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  onOpen();
 }
 
 /**
@@ -158,16 +166,18 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
     <div className={`${s.root} ${s.row}`}>
       <div className={s.body}>
         <div className={s.titleRow}>
-          {/* The title opens whatever this surface's canonical reading of the
-              job is. With the in-app description on, that is the drawer — so the
-              title and the View job button are one door with two handles. The
-              alternative was a title going somewhere other than the button
-              beside it. Everywhere without an in-app description the title is
-              still the link out, unchanged. */}
+          {/* Permalink so crawlers (and open-in-new-tab) reach `/jobs/openings/<uid>`.
+              An unmodified click still opens the in-app reading of the job, so the
+              title and View job stay one door. Surfaces without that reading keep
+              the outbound apply link. */}
           {viewJob ? (
-            <button type="button" className={`${s.title} ${s.titleLink} ${ap.titleButton}`} onClick={viewJob}>
+            <a
+              className={`${s.title} ${s.titleLink}`}
+              href={jobOpeningPath(role.uid)}
+              onClick={(event) => interceptUnmodifiedClick(event, viewJob)}
+            >
               {roleTitle}
-            </button>
+            </a>
           ) : hasApplyUrl ? (
             <a className={`${s.title} ${s.titleLink}`} {...linkProps}>
               {roleTitle}

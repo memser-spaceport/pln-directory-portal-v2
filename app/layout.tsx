@@ -46,7 +46,6 @@ export const metadata: Metadata = {
   description: 'The Protocol Labs Directory drives breakthroughs in computing to push humanity forward.',
   openGraph: {
     type: 'website',
-    url: applicationBaseUrl || undefined,
     images: [
       {
         url: SOCIAL_IMAGE_URL,

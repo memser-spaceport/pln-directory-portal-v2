@@ -36,7 +36,7 @@ export default function ScheduleSection(props: any) {
   return (
     <div className={styles.schedule} id="schedule">
       <div className={styles.schedule__hdr}>
-        <h2>Event Calendar</h2>
+        <h1 className={styles.schedule__hdrTitle}>Event Calendar</h1>
         <div className={styles.schedule__hdr__btn}>
           <a
             href={`${process.env.IRL_SUBMIT_FORM_URL}/add`}

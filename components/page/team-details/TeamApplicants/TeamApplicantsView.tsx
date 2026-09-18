@@ -72,7 +72,17 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
   const isNarrow = useIsBelowTabletLandscape();
 
   const [roleUid, setRoleUid] = useState(() => initialRoleUid ?? roles[0]?.uid ?? '');
-  const [tab, setTab] = useState(APPLIED_TAB);
+  /**
+   * `null` until someone picks one — the tab is DERIVED until then.
+   *
+   * Applied was a fixed default, and a role whose whole answer is interest
+   * opened on an empty list saying "No one has applied to this role yet." while
+   * the tab beside it read "Interested (2)". The people were one press away and
+   * the first thing the page said was that there was nobody. Deriving it also
+   * survives the list arriving late, which an effect-and-setState would have to
+   * chase with a flag.
+   */
+  const [pickedTab, setPickedTab] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [paneOpen, setPaneOpen] = useState(false);
@@ -127,6 +137,12 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
     [],
   );
 
+  /* Applied unless it is empty and Interested is not — and only until someone
+     chooses, after which their choice stands even when it empties out under a
+     search. */
+  const tab =
+    pickedTab ?? (!lists.data?.applications.length && lists.data?.interests.length ? INTERESTED_TAB : APPLIED_TAB);
+
   const rows: TeamApplicant[] = useMemo(() => {
     const source = tab === INTERESTED_TAB ? lists.data?.interests : lists.data?.applications;
     return source ?? [];
@@ -142,6 +158,10 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
   const switchRole = (next: string) => {
     if (next === roleUid) return;
     setRoleUid(next);
+    /* The next role gets the same derivation as the first: its own answer may be
+       all interest, and carrying the previous role's tab over would open it on
+       an empty list for the same reason the fixed default did. */
+    setPickedTab(null);
     setSelectedUid(null);
     setQuery('');
     setPaneOpen(false);
@@ -149,7 +169,7 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
 
   const switchTab = (next: string) => {
     if (next === tab) return;
-    setTab(next);
+    setPickedTab(next);
     setSelectedUid(null);
     setQuery('');
     setPaneOpen(false);

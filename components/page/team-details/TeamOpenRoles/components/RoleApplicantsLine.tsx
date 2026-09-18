@@ -30,6 +30,36 @@ interface Props {
  * A `Link`, not a button: it goes to a page, so it should middle-click, open in
  * a new tab, and show its destination on hover like anything else that does.
  */
+/**
+ * What the line calls these people.
+ *
+ * Both lists are on it, because both are the answer a role got — but they are
+ * not the same act, and one noun for both is a lie the page behind it then
+ * contradicts. A role with two interests and no applications read "2
+ * applicants" here and then opened on "No one has applied to this role yet.",
+ * which is the count line and the page calling each other wrong.
+ *
+ * Only what is there is named: no "0 interested" trailing a role nobody has
+ * pressed interest on.
+ */
+function Tally({ applicants, interested }: { applicants: number; interested: number }) {
+  return (
+    <>
+      {applicants > 0 && (
+        <>
+          <strong>{applicants}</strong> {applicants === 1 ? 'applicant' : 'applicants'}
+        </>
+      )}
+      {applicants > 0 && interested > 0 && ' · '}
+      {interested > 0 && (
+        <>
+          <strong>{interested}</strong> interested
+        </>
+      )}
+    </>
+  );
+}
+
 export function RoleApplicantsLine({ teamId, roleUid, count }: Props) {
   const total = (count?.applicantCount ?? 0) + (count?.interestCount ?? 0);
   if (!count || total === 0) return null;
@@ -46,7 +76,7 @@ export function RoleApplicantsLine({ teamId, roleUid, count }: Props) {
         </span>
       )}
       <span className={s.count}>
-        <strong>{total}</strong> {total === 1 ? 'applicant' : 'applicants'}
+        <Tally applicants={count.applicantCount} interested={count.interestCount} />
       </span>
       {count.newCount > 0 && <span className={s.newBadge}>● {count.newCount} new</span>}
     </Link>

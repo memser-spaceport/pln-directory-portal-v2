@@ -143,6 +143,57 @@ beforeEach(() => {
 });
 
 describe('TeamApplicantsView', () => {
+  /**
+   * Which tab a role opens on.
+   *
+   * Applied was fixed, so a role whose whole answer is interest opened on an
+   * empty list reading "No one has applied to this role yet." with "Interested
+   * (2)" sitting beside it — the page's first sentence saying there was nobody
+   * while the people were one press away. Seen on a real role the first time
+   * this screen was opened in a browser.
+   */
+  describe('the tab a role opens on', () => {
+    it('opens on Interested when nobody applied', () => {
+      setLists({ applications: [], interests: [MAYA] });
+
+      renderView();
+
+      expect(screen.getByText('Maya Okonjo')).toBeInTheDocument();
+      expect(screen.queryByText(/No one has applied to this role yet/)).not.toBeInTheDocument();
+    });
+
+    it('still opens on Applied whenever anyone applied', () => {
+      setLists({ applications: [DEVON], interests: [MAYA] });
+
+      renderView();
+
+      expect(screen.getByText('Devon Park')).toBeInTheDocument();
+      expect(screen.queryByText('Maya Okonjo')).not.toBeInTheDocument();
+    });
+
+    /* Both empty is the ordinary empty state, and it belongs to Applied — the
+       tab a lead expects to be looking at. */
+    it('stays on Applied when neither list has anyone', () => {
+      setLists({ applications: [], interests: [] });
+
+      renderView();
+
+      expect(screen.getByText(/No one has applied to this role yet/)).toBeInTheDocument();
+    });
+
+    /* Derived only until someone chooses. A lead who pressed Applied is left on
+       Applied, empty or not — the page must not argue with a press. */
+    it('leaves a chosen tab alone', async () => {
+      setLists({ applications: [], interests: [MAYA] });
+
+      renderView();
+      await userEvent.click(screen.getByText(/Applied/));
+
+      expect(screen.getByText(/No one has applied to this role yet/)).toBeInTheDocument();
+      expect(screen.queryByText('Maya Okonjo')).not.toBeInTheDocument();
+    });
+  });
+
   it('opens on the role the count line was pressed for, not the first one', () => {
     renderView({ initialRoleUid: 'role-2' });
 

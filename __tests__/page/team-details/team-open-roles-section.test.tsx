@@ -12,6 +12,12 @@ import '@testing-library/jest-dom';
 jest.mock('@/services/jobs/constants', () => ({
   ...jest.requireActual('@/services/jobs/constants'),
   SHOW_JOB_BOARD_APPLY: true,
+  /* Pinned OFF for the same reason the one above is pinned ON, and it was read
+     from the ambient environment until a `.env` gained the variable and turned
+     this suite's "while the flag is off" case into an assertion about somebody's
+     local machine. CI, where it is blank, would never have noticed. The
+     flag-ON behaviour has its own file — `team-open-roles-applicants-line`. */
+  SHOW_TEAM_APPLICANTS: false,
 }));
 
 type SurfaceArgs = {

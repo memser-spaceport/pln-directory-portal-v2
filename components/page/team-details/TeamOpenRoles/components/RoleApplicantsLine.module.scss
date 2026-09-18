@@ -6,8 +6,39 @@
   padding: 8px 16px 12px;
   min-width: 0;
 
+  /**
+   * The whole strip lights up, because the whole strip is the press.
+   *
+   * This is a block-level flex `Link`, so its box already spans the role row —
+   * the faces, the count, the badge and the empty space after them all open the
+   * applicants page. Only the count underlined, which advertised a target the
+   * width of one word and left the other ~700px reading as dead space. The
+   * underline stays: it is the text's own affordance, and the fill is the
+   * strip's.
+   *
+   * `--transparent-dark-4` rather than an opaque grey, because this sits on the
+   * role block's own `--background-neutral-subtle` and a second flat colour
+   * would have to be picked to match it. The same token `ReferRoleRow` uses for
+   * the apply arrow one line above.
+   *
+   * Bottom corners only: the line is the last thing in `.roleBlock`, whose
+   * radius is 16px, so a square fill would square off the card's own corners.
+   */
+  border-radius: 0 0 16px 16px;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
   &:hover .count {
     text-decoration: underline;
+  }
+
+  /* Keyboard reaches this link too, and it had no visible focus at all. */
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -2px;
   }
 }
 

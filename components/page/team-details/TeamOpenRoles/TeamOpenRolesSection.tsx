@@ -8,6 +8,7 @@ import { SHOW_JOB_BOARD_APPLY, SHOW_TEAM_APPLICANTS } from '@/services/jobs/cons
 import { useApplicantCounts } from '@/services/jobs/hooks/useTeamApplicants';
 import { useJobApplySurface } from '@/components/page/jobs/hooks/useJobApplySurface';
 import { canReadApplicants } from '@/components/page/team-details/TeamApplicants/canReadApplicants';
+import { isTeamLeaderOrAdmin } from '@/components/page/team-details/utils/isTeamLeaderOrAdmin';
 
 import { RoleApplicantsLine } from './components/RoleApplicantsLine';
 import { TeamOpenRoles } from './TeamOpenRoles';
@@ -63,6 +64,16 @@ export function TeamOpenRolesSection({ group, isLoggedIn, userInfo }: TeamOpenRo
     team: group?.team,
   });
 
+  /**
+   * Whose listings these are.
+   *
+   * `isTeamLeaderOrAdmin`, NOT `canReadApplicants`: that rule excludes Protocol
+   * Labs and is gated on the applicants flag, and neither has anything to do
+   * with who owns a job posting. A PL lead still owns PL's listings; they just
+   * do not read applicants here.
+   */
+  const ownsListings = isTeamLeaderOrAdmin(userInfo, teamUid);
+
   const { data: counts } = useApplicantCounts({
     teamUid,
     viewerUid: userInfo?.uid,
@@ -115,6 +126,7 @@ export function TeamOpenRolesSection({ group, isLoggedIn, userInfo }: TeamOpenRo
           userInfo={userInfo}
           apply={surface.applyProps}
           renderRoleFooter={canReadApplicantCounts ? renderRoleFooter : undefined}
+          ownsListings={ownsListings}
         />
       )}
       {surface.controller}

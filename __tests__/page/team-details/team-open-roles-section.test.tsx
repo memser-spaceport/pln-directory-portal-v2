@@ -45,12 +45,18 @@ jest.mock('@/components/page/jobs/hooks/useJobApplySurface', () => ({
 }));
 
 jest.mock('@/components/page/team-details/TeamOpenRoles/TeamOpenRoles', () => ({
-  TeamOpenRoles: (props: { group: { team: { uid: string } }; apply?: unknown; renderRoleFooter?: unknown }) => (
+  TeamOpenRoles: (props: {
+    group: { team: { uid: string } };
+    apply?: unknown;
+    renderRoleFooter?: unknown;
+    ownsListings?: boolean;
+  }) => (
     <div
       data-testid="roles-list"
       data-team={props.group.team.uid}
       data-has-apply={String(Boolean(props.apply))}
       data-has-footer={String(Boolean(props.renderRoleFooter))}
+      data-owns={String(Boolean((props as { ownsListings?: boolean }).ownsListings))}
     />
   ),
 }));
@@ -135,6 +141,37 @@ describe('TeamOpenRolesSection', () => {
 
     expect(screen.queryByTestId('roles-list')).not.toBeInTheDocument();
     expect(screen.getByTestId('controller')).toBeInTheDocument();
+  });
+
+  /**
+   * Who owns the listings — a different question from who reads applicants.
+   *
+   * `isTeamLeaderOrAdmin`, not `canReadApplicants`: that rule excludes Protocol
+   * Labs and rides the applicants flag, and neither has anything to say about
+   * whose job posting this is. A PL lead still owns PL's listings.
+   */
+  describe('whose listings these are', () => {
+    it('tells the list a lead owns them, even with the applicants flag off', () => {
+      render(
+        <TeamOpenRolesSection group={GROUP} isLoggedIn userInfo={{ uid: 'u1', leadingTeams: ['team-1'] } as any} />,
+      );
+
+      expect(screen.getByTestId('roles-list')).toHaveAttribute('data-owns', 'true');
+    });
+
+    it('does not, for a lead of another team', () => {
+      render(
+        <TeamOpenRolesSection group={GROUP} isLoggedIn userInfo={{ uid: 'u1', leadingTeams: ['team-9'] } as any} />,
+      );
+
+      expect(screen.getByTestId('roles-list')).toHaveAttribute('data-owns', 'false');
+    });
+
+    it('does not, for a signed-out visitor', () => {
+      render(<TeamOpenRolesSection group={GROUP} isLoggedIn={false} userInfo={undefined} />);
+
+      expect(screen.getByTestId('roles-list')).toHaveAttribute('data-owns', 'false');
+    });
   });
 
   /* The applicants flag is off in this suite (only SHOW_JOB_BOARD_APPLY is

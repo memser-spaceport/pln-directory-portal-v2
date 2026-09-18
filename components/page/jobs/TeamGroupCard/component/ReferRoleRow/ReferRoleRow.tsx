@@ -18,6 +18,7 @@ import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel } from '@/
 import { jobApplyQueryParams } from './constants';
 
 import { ReferMenu } from './components/ReferMenu';
+import { RoleOwnerMenu } from './components/RoleOwnerMenu';
 import { ArrowIcon, ClockIcon } from './components/Icons';
 import { ReferModal } from '@/prototypes/entries/job-board/components/ReferModal/ReferModal';
 
@@ -55,6 +56,16 @@ export interface RowApplyProps {
 }
 
 interface ReferRoleRowProps {
+  /**
+   * The viewer is a lead of this team (or a Directory admin) — so this is their
+   * own listing, and every press collapses into one ⋯ at the end of the row.
+   *
+   * Off everywhere by default, including the board: an applicant needs Refer,
+   * Share and the way in at a glance, and the row is unchanged for them. Only
+   * the team's own profile passes it, where a lead reads past the same three
+   * controls on every row of their own page.
+   */
+  ownsListing?: boolean;
   role: IJobRole;
   teamId: string;
   teamName: string;
@@ -88,7 +99,7 @@ interface ReferRoleRowProps {
  * offering again.
  */
 export function ReferRoleRow(props: ReferRoleRowProps) {
-  const { role, teamId, teamName, currentUser, source, onClick, apply, team } = props;
+  const { role, teamId, teamName, currentUser, source, onClick, apply, team, ownsListing } = props;
 
   const goToLogin = useLoginRedirect();
 
@@ -194,7 +205,20 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
         )}
 
         <div className={s.actionButtons}>
-          {inAppApply ? (
+          {ownsListing ? (
+            /* One control instead of three. The same presses are all in here —
+               see `RoleOwnerMenu`, which also explains why the design's
+               `Mark inactive` and `Delete` are not. */
+            <RoleOwnerMenu
+              role={role}
+              teamId={teamId}
+              teamName={teamName}
+              source={source}
+              onRefer={onRefer}
+              onViewJob={viewJob ?? undefined}
+              postingHref={showPosting && hasApplyUrl ? (linkProps.href as string) : undefined}
+            />
+          ) : inAppApply ? (
             /* Quiet text button: with a filled Apply in the row, the two are not
                peers — Apply is what the row is for, Refer is the sideline. */
             <Button size="s" style="link" variant="secondary" className={ap.referTone} onClick={onRefer}>
@@ -206,9 +230,10 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
             </Button>
           )}
 
-          <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />
+          {!ownsListing && <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />}
 
-          {showPosting &&
+          {!ownsListing &&
+            showPosting &&
             hasApplyUrl &&
             !viewJob &&
             (inAppApply ? (
@@ -236,39 +261,42 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
               offer left. And having applied is no reason to stop being able to
               reread the job. The drawer's own footer carries the Applied
               control, where the offer it replaces is. */}
-          {viewJob ? (
-            <Button size="s" style="fill" variant="primary" className={ap.applyButton} onClick={viewJob}>
-              View job
-            </Button>
-          ) : (
-            inAppApply &&
-            (applied ? (
-              /* Same slot, same geometry: a row you've applied to must not
+          {/* Absent for the listing's own team: View job is the first item in
+              their ⋯, and a lead is not applying to their own role. */}
+          {!ownsListing &&
+            (viewJob ? (
+              <Button size="s" style="fill" variant="primary" className={ap.applyButton} onClick={viewJob}>
+                View job
+              </Button>
+            ) : (
+              inAppApply &&
+              (applied ? (
+                /* Same slot, same geometry: a row you've applied to must not
                  resize the list around it. `disabled` is the honest semantics —
                  there is nothing left to press. */
-              <button
-                type="button"
-                disabled
-                className={clsx(btn.root, btn.small, btn.border, btn.neutral, ap.applyButton, ap.appliedButton)}
-              >
-                <CheckIcon width={12} height={12} aria-hidden="true" />
-                Applied
-              </button>
-            ) : (
-              /* A real <button>, not the anchor: the press no longer leaves the
+                <button
+                  type="button"
+                  disabled
+                  className={clsx(btn.root, btn.small, btn.border, btn.neutral, ap.applyButton, ap.appliedButton)}
+                >
+                  <CheckIcon width={12} height={12} aria-hidden="true" />
+                  Applied
+                </button>
+              ) : (
+                /* A real <button>, not the anchor: the press no longer leaves the
                  page. It hands off to the flow, which runs the sign-in gate, the
                  profile check and the cover letter in place. */
-              <Button
-                size="s"
-                style="fill"
-                variant="primary"
-                className={ap.applyButton}
-                onClick={() => apply!.onApply({ role, teamId, teamName, team: team! })}
-              >
-                Apply
-              </Button>
-            ))
-          )}
+                <Button
+                  size="s"
+                  style="fill"
+                  variant="primary"
+                  className={ap.applyButton}
+                  onClick={() => apply!.onApply({ role, teamId, teamName, team: team! })}
+                >
+                  Apply
+                </Button>
+              ))
+            ))}
         </div>
       </div>
 

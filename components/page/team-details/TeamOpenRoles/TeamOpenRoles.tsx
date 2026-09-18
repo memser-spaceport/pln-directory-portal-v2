@@ -47,6 +47,12 @@ interface TeamOpenRolesProps {
    * of the host's renders would defeat that.
    */
   renderRoleFooter?: (roleUid: string) => ReactNode;
+  /**
+   * The viewer leads this team (or is a Directory admin), so these are their own
+   * listings: each row collapses its three controls into one ⋯. See
+   * `RoleOwnerMenu`.
+   */
+  ownsListings?: boolean;
 }
 
 /**
@@ -73,6 +79,7 @@ export const TeamOpenRoles = memo(function TeamOpenRoles({
   userInfo,
   apply,
   renderRoleFooter,
+  ownsListings,
 }: TeamOpenRolesProps) {
   const [expanded, toggleExpanded] = useToggle(false);
   const analytics = useJobsAnalytics();
@@ -152,6 +159,7 @@ export const TeamOpenRoles = memo(function TeamOpenRoles({
                 source="team-profile"
                 apply={rowApply}
                 onClick={trackClick}
+                ownsListing={ownsListings}
               />
               {footer}
             </div>
@@ -166,6 +174,7 @@ export const TeamOpenRoles = memo(function TeamOpenRoles({
               source="team-profile"
               apply={rowApply}
               onClick={trackClick}
+              ownsListing={ownsListings}
             />
           );
         })}

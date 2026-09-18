@@ -152,6 +152,14 @@ interface CastMember {
   email: string | null;
 }
 
+/** `{ city, country }` — the shape the member `select` returns — as one line. */
+function formatLocation(location: unknown): string | null {
+  if (typeof location === 'string') return location || null;
+  if (!location || typeof location !== 'object') return null;
+  const { city, country } = location as { city?: string | null; country?: string | null };
+  return [city, country].filter(Boolean).join(', ') || null;
+}
+
 async function loadMemberPool(): Promise<CastMember[]> {
   try {
     const response = await getMembers(
@@ -168,24 +176,38 @@ async function loadMemberPool(): Promise<CastMember[]> {
     const rows = (response as { data?: { formattedData?: unknown[] } })?.data?.formattedData;
     if (!Array.isArray(rows) || !rows.length) return [];
 
-    return rows
-      .map((row) => row as Record<string, any>)
-      .filter((row) => row?.uid && row?.name)
-      .map((row) => ({
-        uid: String(row.uid),
-        name: String(row.name),
-        headline: row.mainTeam?.role ?? row.teams?.[0]?.role ?? null,
-        company: row.mainTeam?.name ?? row.teams?.[0]?.name ?? null,
-        location: row.location ?? null,
-        tags: Array.isArray(row.skills)
-          ? row.skills
-              .map((skill: any) => skill?.title)
-              .filter(Boolean)
-              .slice(0, 4)
-          : [],
-        avatarUrl: row.profile ?? row.image?.url ?? null,
-        email: row.email ?? null,
-      }));
+    return (
+      rows
+        .map((row) => row as Record<string, any>)
+        /* `id`, not `uid`. `parseMemberDetails` renames it (`utils/member.utils.ts`),
+         and every other field read below is already a formatted one — so filtering
+         on `uid` dropped the whole page of members, left the pool empty, and sent
+         the cast through the invented-people fallback. Which made every row name a
+         `mock-member-###` the directory has never heard of, so the profile beside
+         the list answered "This member's profile could not be loaded." — the exact
+         failure the comment above says the real cast exists to prevent. */
+        .filter((row) => (row?.id || row?.uid) && row?.name)
+        .map((row) => ({
+          uid: String(row.id ?? row.uid),
+          name: String(row.name),
+          headline: row.mainTeam?.role ?? row.teams?.[0]?.role ?? null,
+          company: row.mainTeam?.name ?? row.teams?.[0]?.name ?? null,
+          /* A STRING, because `applicantRowSchema` says so and the row prints it.
+           `parseMemberDetails` hands back whatever the `select` asked for, which
+           here is `location.city,location.country` — an object. Passing it
+           through made every row fail its own schema parse, which React Query
+           then retried, which the list showed as "Loading…" that never ended. */
+          location: formatLocation(row.location),
+          tags: Array.isArray(row.skills)
+            ? row.skills
+                .map((skill: any) => skill?.title)
+                .filter(Boolean)
+                .slice(0, 4)
+            : [],
+          avatarUrl: row.profile ?? row.image?.url ?? null,
+          email: row.email ?? null,
+        }))
+    );
   } catch {
     return [];
   }

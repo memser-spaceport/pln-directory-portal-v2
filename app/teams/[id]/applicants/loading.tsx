@@ -1,3 +1,5 @@
+import { ScrollPageToTop } from '@/components/page/team-details/TeamApplicants/ScrollPageToTop';
+
 import styles from './loading.module.css';
 
 /**
@@ -9,6 +11,10 @@ import styles from './loading.module.css';
 const Loading = () => {
   return (
     <div className={styles.root}>
+      {/* The skeleton is the first thing on screen, and it inherits the scroll
+          position of the page you left — so without this it paints mid-page and
+          the real content jumps to the top underneath you a moment later. */}
+      <ScrollPageToTop />
       <div className={styles.back} />
       <div className={styles.title} />
       <div className={styles.roleBar} />

@@ -36,7 +36,7 @@ import { AccountCreatedView } from '@/components/page/member-details/AccountCrea
 
 import MemberPageLoader from './loading';
 import Head from 'next/head';
-import { MembersQueryKeys, SHOW_CV_IMPORT } from '@/services/members/constants';
+import { MembersQueryKeys } from '@/services/members/constants';
 import { MemberCvSection } from '@/components/page/member-details/MemberCvSection/MemberCvSection';
 import {
   isJobAspirantMember,
@@ -181,7 +181,9 @@ const MemberDetails = (props: { params: Promise<any> }) => {
     });
     const isInvestorOnly =
       isNewInvestor || member.rbac.policies?.every((p: { role: string }) => p.role.toLowerCase() === 'investor');
-    const showCvSection = isLoggedIn && SHOW_CV_IMPORT;
+    /* Signed in, and nothing else. Who may actually see a CV is `assertCanView`'s
+       answer, which arrives with the query. */
+    const showCvSection = isLoggedIn;
     const cvAfterProfile = shouldPlaceCvAfterProfileDetails({
       showCvSection,
       isJobAspirant: jobAspirant,
@@ -296,7 +298,7 @@ const MemberDetails = (props: { params: Promise<any> }) => {
                 userInfo={userInfo}
                 member={member}
                 isLoggedIn={isLoggedIn}
-                cvImportSurface={SHOW_CV_IMPORT ? 'header-only' : 'off'}
+                cvImportSurface="header-only"
               />
             </ProfileSection>
             <ProfileSection name="Project Contributions">

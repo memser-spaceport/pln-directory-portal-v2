@@ -27,7 +27,6 @@ import { useMemberExperience } from '@/services/members/hooks/useMemberExperienc
 import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
 import { isJobSearchStatus, JobSearchStatus } from '@/services/jobs/job-board-viewer';
 import { JobSearchStatusInput } from '@/components/page/jobs/JobSearchStatusInput/JobSearchStatusInput';
-import { SHOW_CV_IMPORT } from '@/services/members/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 
@@ -198,7 +197,6 @@ export function JobProfilePane(props: JobProfilePaneProps) {
   const { data: storedCv, isLoading: storedCvLoading } = useStoredCv(memberUid);
 
   const cvImportHost = pickCvImportHost({
-    enabled: SHOW_CV_IMPORT,
     experienceCount,
     experiencesLoading,
     handedOff,

@@ -375,6 +375,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/kudos-edit/KudosEditPrototype'),
   },
   {
+    key: 'plaa-buyback-banner',
+    title: 'September Buyback Auction banner',
+    description:
+      "Click-through for the new buyback auction banner, styled as a direct sibling of PlaaSnapshotBar (the Current Snapshot bar it sits above) — same background, row height, icon sizes, divider and CTA treatment, and the same desktop/tablet-landscape-only breakpoint, using the real stylesheet and countdown/date-formatting logic. A preset switcher moves it through upcoming, live (days-left and hours-left countdown), ended, and dismissed — production gates this on PLAA RBAC access plus the auction's real UTC window, neither reachable here.",
+    category: 'PLAA',
+    load: () => import('./entries/plaa-buyback-banner/PlaaBuybackBannerPrototype'),
+  },
+  {
     key: 'pl-spotlight-table',
     title: 'PL Spotlight — back-office participants table',
     description:

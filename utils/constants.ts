@@ -928,6 +928,23 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.6.2 - CV Management, Team Follow & Custom Skills',
+    tag: 'New Feature',
+    date: '18, Sep 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Follow hiring teams</span> - When you apply or mark "I'm interested," you can follow the hiring team to hear when they post or hire. The option is checked by default.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Member Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Manage your CV</span> - Preview, replace, or remove your uploaded CV from your profile and during job applications. Hiring leads for roles you apply to can view it.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Custom skills</span> - Add skills to your profile even when they aren't in the catalog.</li>
+        </ul>
+        </div>`,
+  },
+  {
     title: 'Version 4.6.1 - External Referrals, Help Menu & Feed Upgrades',
     tag: 'New Feature',
     date: '11, Sep 2026',

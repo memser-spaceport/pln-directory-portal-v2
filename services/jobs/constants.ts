@@ -16,6 +16,11 @@ export enum JobsQueryKey {
   InterestStatuses = 'job-interest-statuses',
   /** Hiring roll-ups matched to the signed-in member, for the newsfeed's For You. */
   ForYou = 'jobs-for-you',
+  /** How many people answered each of a team's roles. Team-side, so the key is
+   *  scoped by the VIEWER as well as the team — `newCount` is per-lead. */
+  TeamApplicantCounts = 'team-applicant-counts',
+  /** One role's applicants and interested members, as its team reads them. */
+  RoleApplicants = 'role-applicants',
 }
 
 /**
@@ -40,6 +45,33 @@ export enum JobsQueryKey {
  * bundler folds the branch.
  */
 export const SHOW_JOB_BOARD_APPLY: boolean = process.env.NEXT_PUBLIC_SHOW_JOB_BOARD_APPLY === 'true';
+
+/**
+ * The team's own applicants: the count line under each role on the team
+ * profile, and the `/teams/[id]/applicants` page it opens.
+ *
+ * Dark for the same reason in-app apply was dark before it — **the backend does
+ * not exist**. Every other read under `/v1/job-openings` is scoped to the
+ * calling member; there is no team-facing endpoint, and no `reviewed` or
+ * `seen` column for the two things this screen writes. Until LAB-2580 lands,
+ * `services/jobs/team-applicants.mock.ts` stands in, client-side and
+ * session-scoped, and nothing a lead marks here is persisted anywhere.
+ *
+ * Unset means off, so an environment that never heard of this variable does not
+ * ship a mocked hiring inbox.
+ *
+ * NEXT_PUBLIC_ because the page and the count line are client components — the
+ * value is inlined at build time, which is what keeps the guards foldable. That
+ * makes it a BUILD-time flag: changing it in the dashboard needs a redeploy,
+ * not just a restart, and locally it needs the dev server restarted.
+ *
+ * Gate the WORK, not the render: imported only by the two hosts
+ * (`TeamOpenRolesSection` and the applicants page's view), and the query hooks
+ * take it via `enabled:`. That is load-bearing here rather than tidiness —
+ * every applicants query is authenticated, and an ungated one on a page a
+ * signed-out visitor can reach makes `customFetch` reload the page forever.
+ */
+export const SHOW_TEAM_APPLICANTS: boolean = process.env.NEXT_PUBLIC_SHOW_TEAM_APPLICANTS === 'true';
 
 /* (`SHOW_JOB_BOARD_INTEREST` lived here. It gated the "I'm interested" banner
     for two reasons and outlived both: the endpoints did not exist yet, and the

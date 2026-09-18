@@ -1,0 +1,50 @@
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.state {
+  display: flex;
+  padding: 24px;
+  border-radius: 12px;
+  background: var(--background-neutral-primary, #fff);
+  border: 1px solid var(--border-neutral-subtle, #e2e8f0);
+}
+
+.applicationHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.when {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #64748b);
+  white-space: nowrap;
+
+  svg {
+    color: currentColor;
+  }
+}
+
+/* What somebody typed had paragraphs in it; collapsing them misquotes them. */
+.note {
+  white-space: pre-line;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  color: var(--foreground-neutral-primary, #0f172a);
+}
+
+.cv {
+  margin-top: 12px;
+}

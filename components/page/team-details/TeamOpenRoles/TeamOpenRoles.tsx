@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useMemo } from 'react';
+import { memo, useMemo, type ReactNode } from 'react';
 import { useToggle } from 'react-use';
 
 import type { IJobTeamGroup } from '@/types/jobs.types';
@@ -36,6 +36,23 @@ interface TeamOpenRolesProps {
    * The section never reads the feature flag — its host does.
    */
   apply?: RowApplyProps;
+  /**
+   * An extra line under a role's row — the applicants count line, for a lead
+   * reading their own team's profile.
+   *
+   * A render prop rather than data, so this list stays presentational and never
+   * learns who is allowed to see what. **The host must `useCallback` it**: this
+   * component is memoized precisely so that typing a cover letter in the apply
+   * drawer does not re-render every visible row, and a function rebuilt on each
+   * of the host's renders would defeat that.
+   */
+  renderRoleFooter?: (roleUid: string) => ReactNode;
+  /**
+   * The viewer leads this team (or is a Directory admin), so these are their own
+   * listings: each row collapses its three controls into one ⋯. See
+   * `RoleOwnerMenu`.
+   */
+  ownsListings?: boolean;
 }
 
 /**
@@ -57,7 +74,13 @@ interface TeamOpenRolesProps {
  * this list must not re-render with it, or typing a cover letter would re-render every
  * visible row — each one running an applied-map subscription and mounting a refer modal.
  */
-export const TeamOpenRoles = memo(function TeamOpenRoles({ group, userInfo, apply }: TeamOpenRolesProps) {
+export const TeamOpenRoles = memo(function TeamOpenRoles({
+  group,
+  userInfo,
+  apply,
+  renderRoleFooter,
+  ownsListings,
+}: TeamOpenRolesProps) {
   const [expanded, toggleExpanded] = useToggle(false);
   const analytics = useJobsAnalytics();
   const teamAnalytics = useTeamAnalytics();
@@ -118,7 +141,29 @@ export const TeamOpenRoles = memo(function TeamOpenRoles({ group, userInfo, appl
                 }
               : apply;
 
-          return (
+          const footer = renderRoleFooter?.(role.uid);
+
+          /* The footer is the row's SIBLING, inside a wrapper, rather than
+             anything inside `ReferRoleRow`. That row is the job board's,
+             unchanged, and its root is a horizontal `space-between` pill — a
+             line underneath would mean turning it into a column, in a component
+             the board renders too. */
+          return footer ? (
+            <div key={role.uid} className={s.roleBlock}>
+              <ReferRoleRow
+                role={role}
+                teamId={team.uid}
+                teamName={team.name}
+                team={team}
+                currentUser={userInfo ?? null}
+                source="team-profile"
+                apply={rowApply}
+                onClick={trackClick}
+                ownsListing={ownsListings}
+              />
+              {footer}
+            </div>
+          ) : (
             <ReferRoleRow
               key={role.uid}
               role={role}
@@ -129,6 +174,7 @@ export const TeamOpenRoles = memo(function TeamOpenRoles({ group, userInfo, appl
               source="team-profile"
               apply={rowApply}
               onClick={trackClick}
+              ownsListing={ownsListings}
             />
           );
         })}

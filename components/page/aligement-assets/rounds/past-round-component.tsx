@@ -7,8 +7,6 @@ import StatsSection from "./sections/stats-section";
 import { IPastRoundData, LeaderboardEntry } from "./types/current-round.types";
 import PastRoundDescription from "../past-rounds/past-round-description";
 import SupportSection from "./sections/support-section";
-import PointsDashboard from '@/components/page/aligement-assets/points-dashboard/points-dashboard';
-import RightsTokensDashboard from '@/components/page/aligement-assets/rights-tokens-dashboard/rights-tokens-dashboard';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { useIsLoggedIn } from '@/hooks/useIsLoggedIn';
 import { getPastRoundLeaderboardEntries } from '@/services/plaa/leaderboard.utils';
@@ -16,11 +14,9 @@ import { useLeaderboard } from '@/services/plaa/hooks/useLeaderboard';
 
 interface PastRoundComponentProps {
   pastRoundData: IPastRoundData;
-  /** The live current-round number, resolved server-side from the rounds API. */
-  currentRoundNumber: number;
 }
 
-export default function PastRoundComponent({ pastRoundData, currentRoundNumber }: PastRoundComponentProps) {
+export default function PastRoundComponent({ pastRoundData }: PastRoundComponentProps) {
   const data = pastRoundData;
   const isLoggedIn = useIsLoggedIn();
 
@@ -41,12 +37,7 @@ export default function PastRoundComponent({ pastRoundData, currentRoundNumber }
     <>
       <div className="past-round">
         <HeroSection data={data.hero} />
-        {isLoggedIn && <RightsTokensDashboard />}
-        {isLoggedIn && <PointsDashboard
-          currentRound={currentRoundNumber}
-          pageRound={data.meta.roundNumber}
-        />}
-        <PastRoundDescription 
+        <PastRoundDescription
           roundNumber={data.meta.roundNumber} 
           month={data.meta.month} 
           year={data.meta.year}

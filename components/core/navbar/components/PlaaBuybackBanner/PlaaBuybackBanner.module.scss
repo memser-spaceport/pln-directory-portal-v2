@@ -3,10 +3,9 @@
 // Direct sibling of PlaaSnapshotBar.module.scss, not a new style — every rule
 // here is copied from that file's class of the same role (.bar, .period,
 // .divider, .daysLeft, .progressTrack/.progressFill, .points, .summaryBtn),
-// same values, same breakpoint. Only the content differs, plus one addition:
-// a hairline bottom border PlaaSnapshotBar doesn't have, so the seam between
-// this banner and the one stacked below it is visible — without it, two
-// identically-colored bars in a row read as a single tall one.
+// same values, same breakpoint. Only the content differs. The two never
+// render at once — PlaaTopBannerCarousel rotates between them in the same
+// slot — so there's no stacking seam to draw here.
 .bar {
   display: none;
   align-items: center;
@@ -14,7 +13,6 @@
   padding: 11px 24px;
   background: #1b4dff;
   color: #ffffff;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
   flex: none;
   width: 100%;
 
@@ -117,34 +115,6 @@
 
   &:hover {
     background: rgba(255, 255, 255, 0.2);
-  }
-
-  &:focus-visible {
-    outline: 2px solid #ffffff;
-    outline-offset: 2px;
-  }
-}
-
-// No equivalent on PlaaSnapshotBar (it has no dismiss control) — kept to the
-// same small line-icon language as the rest of the bar: transparent until
-// hovered, no border, no circular chip.
-.dismissBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.85);
-  cursor: pointer;
-  flex: none;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
   }
 
   &:focus-visible {

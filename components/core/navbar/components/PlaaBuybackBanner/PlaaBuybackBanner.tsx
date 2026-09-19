@@ -1,18 +1,11 @@
 'use client';
 
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 
-import { CloseIcon } from '@/components/icons/CloseIcon';
 import { usePlaaAccess } from '@/services/rbac/hooks/usePlaaAccess';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
-import {
-  dismissBuybackBanner,
-  getBuybackBannerDismissed,
-  getBuybackBannerDismissedServerSnapshot,
-  subscribeBuybackBannerDismissed,
-} from '@/utils/plaaBuybackBannerDismissed';
 import {
   formatBuybackAuctionEnd,
   formatBuybackCountdown,
@@ -43,21 +36,22 @@ const COUNTDOWN_TICK_MS = 60_000;
 // Never active in production, regardless of what a URL is crafted to say.
 const DEBUG_OVERRIDE_ENABLED = process.env.NODE_ENV !== 'production';
 
-/** PLAA members only, mirroring PlaaSnapshotBar's own gating, which this
- *  banner sits directly above (see SiteHeader). Never claims the auction is
- *  open before it starts, and stops rendering once it ends or is dismissed. */
-export function PlaaBuybackBanner() {
-  const pathname = usePathname();
-  const { canView } = usePlaaAccess();
-
-  if (!pathname?.includes('alignment-asset') || !canView) {
-    return null;
-  }
-
-  return <PlaaBuybackBannerContent />;
+export interface BuybackBannerSlide {
+  debugNow: number | null;
+  progressPct: number;
+  countdownLabel: string;
+  auctionEndLabel: string;
+  onCtaClick: () => void;
 }
 
-function PlaaBuybackBannerContent() {
+/** Render data for the September Buyback Auction banner, or `null` while it
+ *  shouldn't show — not the live phase. Assumes the caller has already gated
+ *  on route/PLAA access (mounting this hook only there), the same contract
+ *  the rest of this module's hooks rely on. Exported so PlaaTopBannerCarousel
+ *  can decide, alongside PlaaSnapshotBar's own status, which slide(s) to
+ *  rotate through without duplicating this timing logic. No dismiss control —
+ *  the carousel already rotates this out of view on its own. */
+export function useBuybackBannerSlide(): BuybackBannerSlide | null {
   const searchParams = useSearchParams();
   const debugNow = DEBUG_OVERRIDE_ENABLED
     ? getBuybackDebugNowOverride(searchParams, AUCTION_START_MS, AUCTION_END_MS)
@@ -67,11 +61,6 @@ function PlaaBuybackBannerContent() {
   // active, so the effect never needs to setState the frozen preset itself.
   const [tickNow, setTickNow] = useState(() => Date.now());
   const { onBannerButtonClicked } = useAlignmentAssetsAnalytics();
-  const isDismissed = useSyncExternalStore(
-    subscribeBuybackBannerDismissed,
-    getBuybackBannerDismissed,
-    getBuybackBannerDismissedServerSnapshot,
-  );
 
   useEffect(() => {
     // A debug preset should sit still to inspect, not drift — skip the ticker.
@@ -82,16 +71,28 @@ function PlaaBuybackBannerContent() {
 
   const now = debugNow ?? tickNow;
   const phase = getBuybackAuctionPhase(now, AUCTION_START_MS, AUCTION_END_MS);
-  const progressPct = getBuybackAuctionProgressPct(now, AUCTION_START_MS, AUCTION_END_MS);
 
-  if (isDismissed || phase !== 'live') {
+  if (phase !== 'live') {
     return null;
   }
 
+  return {
+    debugNow,
+    progressPct: getBuybackAuctionProgressPct(now, AUCTION_START_MS, AUCTION_END_MS),
+    countdownLabel: formatBuybackCountdown(now, AUCTION_END_MS),
+    auctionEndLabel: formatBuybackAuctionEnd(AUCTION_END_ISO),
+    onCtaClick: () => onBannerButtonClicked(CTA_LABEL, AUCTION_URL),
+  };
+}
+
+/** Presentational half of the banner — everything the PLAA gate and the
+ *  auction-phase/dismissed logic decide is worth showing, once decided.
+ *  Reused directly by PlaaTopBannerCarousel as one of its rotating slides. */
+export function PlaaBuybackBannerBar({ slide }: { slide: BuybackBannerSlide }) {
   return (
     <div className={styles.bar}>
-      {DEBUG_OVERRIDE_ENABLED && debugNow !== null && (
-        <span className={styles.debugBadge}>debug: {new Date(debugNow).toISOString()}</span>
+      {DEBUG_OVERRIDE_ENABLED && slide.debugNow !== null && (
+        <span className={styles.debugBadge}>debug: {new Date(slide.debugNow).toISOString()}</span>
       )}
 
       <span className={styles.title}>
@@ -113,34 +114,44 @@ function PlaaBuybackBannerContent() {
           <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.6" />
           <path d="M12 7.5V12l3 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        {formatBuybackCountdown(now, AUCTION_END_MS)}
+        {slide.countdownLabel}
       </span>
 
       <span className={styles.progressTrack} aria-hidden="true">
-        <span className={styles.progressFill} style={{ width: `${progressPct}%` }} />
+        <span className={styles.progressFill} style={{ width: `${slide.progressPct}%` }} />
       </span>
 
-      <span className={styles.auctionEnd}>Auction Ends {formatBuybackAuctionEnd(AUCTION_END_ISO)}</span>
+      <span className={styles.auctionEnd}>Auction Ends {slide.auctionEndLabel}</span>
 
-      <a
-        href={AUCTION_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={styles.cta}
-        onClick={() => onBannerButtonClicked(CTA_LABEL, AUCTION_URL)}
-      >
+      <a href={AUCTION_URL} target="_blank" rel="noopener noreferrer" className={styles.cta} onClick={slide.onCtaClick}>
         {CTA_LABEL}
         <Image src="/icons/arrow-right-white.svg" alt="" width={14} height={14} />
       </a>
-
-      <button
-        type="button"
-        className={styles.dismissBtn}
-        onClick={dismissBuybackBanner}
-        aria-label="Dismiss buyback auction banner"
-      >
-        <CloseIcon />
-      </button>
     </div>
   );
+}
+
+/** PLAA members only, mirroring PlaaSnapshotBar's own gating. Kept as a
+ *  standalone, self-gated banner; the live app now shows this content by way
+ *  of PlaaTopBannerCarousel (see SiteHeader) rather than mounting it here
+ *  directly, so the two banners rotate instead of stacking. */
+export function PlaaBuybackBanner() {
+  const pathname = usePathname();
+  const { canView } = usePlaaAccess();
+
+  if (!pathname?.includes('alignment-asset') || !canView) {
+    return null;
+  }
+
+  return <PlaaBuybackBannerGated />;
+}
+
+function PlaaBuybackBannerGated() {
+  const slide = useBuybackBannerSlide();
+
+  if (!slide) {
+    return null;
+  }
+
+  return <PlaaBuybackBannerBar slide={slide} />;
 }

@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import PastRoundComponent from '@/components/page/aligement-assets/rounds/past-round-component';
 import { currentRoundData } from '@/components/page/aligement-assets/rounds/data';
-import { getCurrentRoundStats, getRoundStats, RoundStatsResponse } from '@/services/plaa/rounds.service';
+import { getRoundStats, RoundStatsResponse } from '@/services/plaa/rounds.service';
 import { IPastRoundData } from '@/components/page/aligement-assets/rounds/types/current-round.types';
 import styles from './page.module.css';
 
@@ -51,20 +51,14 @@ export default async function PastRoundPage({ params }: PastRoundPageProps) {
 
   if (isNaN(roundNumber) || roundNumber < 1) notFound();
 
-  const [{ data: stats }, { data: current }] = await Promise.all([
-    getRoundStats(roundNumber),
-    getCurrentRoundStats(),
-  ]);
+  const { data: stats } = await getRoundStats(roundNumber);
   if (!stats) notFound();
 
   if (stats.isCurrentRound) redirect('/alignment-asset');
 
-  // Falls back to the round already being viewed if the live lookup fails.
-  const currentRoundNumber = current?.roundNumber ?? stats.roundNumber;
-
   return (
     <div className={styles.pastRound}>
-      <PastRoundComponent pastRoundData={mapStatsToPastRoundData(stats)} currentRoundNumber={currentRoundNumber} />
+      <PastRoundComponent pastRoundData={mapStatsToPastRoundData(stats)} />
     </div>
   );
 }

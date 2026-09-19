@@ -1,0 +1,124 @@
+@use 'styles/media';
+
+// Direct sibling of PlaaSnapshotBar.module.scss, not a new style — every rule
+// here is copied from that file's class of the same role (.bar, .period,
+// .divider, .daysLeft, .progressTrack/.progressFill, .points, .summaryBtn),
+// same values, same breakpoint. Only the content differs. The two never
+// render at once — PlaaTopBannerCarousel rotates between them in the same
+// slot — so there's no stacking seam to draw here.
+.bar {
+  display: none;
+  align-items: center;
+  gap: 20px;
+  padding: 11px 24px;
+  background: #1b4dff;
+  color: #ffffff;
+  flex: none;
+  width: 100%;
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
+}
+
+// Dev-only marker shown while ?debugBuybackNow=/?debugBuybackPhase= is
+// overriding the clock, so it's obvious the banner isn't reading real time.
+// Not part of the shared visual language — never renders in production.
+.debugBadge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #1b4dff;
+  background: #ffffff;
+  border-radius: 4px;
+  padding: 2px 6px;
+  flex: none;
+  white-space: nowrap;
+}
+
+// = PlaaSnapshotBar's .period
+.title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+// = PlaaSnapshotBar's .divider
+.divider {
+  width: 1px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.25);
+  flex: none;
+}
+
+// = PlaaSnapshotBar's .daysLeft
+.countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: nowrap;
+}
+
+// = PlaaSnapshotBar's .progressTrack / .progressFill
+.progressTrack {
+  flex: 1;
+  max-width: 260px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  display: block;
+  height: 100%;
+  background: #ffffff;
+  border-radius: 999px;
+}
+
+// Plays .points's layout role (margin-left: auto pushes it, and everything
+// after it, to the far right) but carries one line of text rather than a
+// value+label pair — there's no numeric figure here to give the same
+// emphasis as .pointsValue, so it takes .pointsLabel's weight instead.
+.auctionEnd {
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  flex: none;
+}
+
+// = PlaaSnapshotBar's .summaryBtn
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  flex: none;
+  white-space: nowrap;
+  text-decoration: none;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+  }
+}

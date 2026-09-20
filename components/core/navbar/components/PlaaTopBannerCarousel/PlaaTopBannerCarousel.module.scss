@@ -1,6 +1,13 @@
+@use 'styles/media';
+
 .carousel {
+  display: none;
   position: relative;
   width: 100%;
+
+  @include media.tablet-landscape {
+    display: block;
+  }
 }
 
 .slide {

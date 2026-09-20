@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import Navbar from '@/components/core/navbar/nav-bar';
 import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
 import { DomainMigrationBanner } from '@/components/core/navbar/components/DomainMigrationBanner';
-import { PlaaSnapshotBar } from '@/components/core/navbar/components/PlaaSnapshotBar';
+import { PlaaTopBannerCarousel } from '@/components/core/navbar/components/PlaaTopBannerCarousel';
 import { IUserInfo } from '@/types/shared.types';
 import { isBareRoute } from '@/utils/isBareRoute';
 import { useHeaderHeightVar } from './useHeaderHeightVar';
@@ -29,13 +29,13 @@ export function SiteHeader({ userInfo, isLoggedIn, authToken }: Props) {
   if (isBareRoute(pathname ?? '')) return null;
 
   return (
-    /* The bars below are stacked *inside* this element, so its height is the
-       chrome height the rest of the app offsets from — which is why it is
-       measured rather than assumed. See `useHeaderHeightVar`. */
+    /* The bars below sit *inside* this element, so its height is the chrome
+       height the rest of the app offsets from — which is why it is measured
+       rather than assumed. See `useHeaderHeightVar`. */
     <header className="layout__header" ref={headerRef}>
       <DomainMigrationBanner />
       {/* <DemoDayBanner /> */}
-      <PlaaSnapshotBar />
+      <PlaaTopBannerCarousel />
       {/*<SubscribeToRecoomendations userInfo={userInfo} />*/}
       <CompleteYourProfile />
       <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />

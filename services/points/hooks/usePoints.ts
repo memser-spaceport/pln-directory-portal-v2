@@ -12,10 +12,6 @@ export interface PointsRecord {
   pointsCollectedPerSnapshot: number;
 }
 
-export interface LifetimePointsResponse {
-  totalPoints: number;
-}
-
 export interface SnapshotPointsResponse {
   snapshotPeriod: string;
   records: PointsRecord[];
@@ -28,7 +24,6 @@ export type PointsHistoryResponse = SnapshotPointsResponse[];
 // ---------------------------------------------------------------------------
 
 export const PointsQueryKeys = {
-  LIFETIME: 'points-lifetime',
   SNAPSHOT: 'points-snapshot',
   HISTORY: 'points-history',
 } as const;
@@ -36,29 +31,6 @@ export const PointsQueryKeys = {
 // ---------------------------------------------------------------------------
 // Fetchers (bare async functions – easy to parallelise with Promise.all)
 // ---------------------------------------------------------------------------
-
-async function fetchLifetimePoints(): Promise<LifetimePointsResponse | null> {
-  const { authToken } = getCookiesFromClient();
-  if (!authToken) return null;
-
-  try {
-    const res = await fetch('/api/plaa/points', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${authToken}`,
-      },
-    });
-
-    if (res.status === 403 || res.status === 404) return null;
-    if (!res.ok) throw new Error(`Lifetime points request failed: ${res.status}`);
-
-    return res.json();
-  } catch (error) {
-    console.error('fetchLifetimePoints error:', error);
-    return null;
-  }
-}
 
 export async function fetchSnapshotPoints(
   snapshotPeriod: string
@@ -114,16 +86,6 @@ export async function fetchPointsHistory(): Promise<PointsHistoryResponse | null
 // ---------------------------------------------------------------------------
 // React Query hooks
 // ---------------------------------------------------------------------------
-
-/** Fetches the user's all-time accumulated points. */
-export function useLifetimePoints() {
-  return useQuery<LifetimePointsResponse | null>({
-    queryKey: [PointsQueryKeys.LIFETIME],
-    queryFn: fetchLifetimePoints,
-    staleTime: 2 * 60 * 1000,
-    retry: 1,
-  });
-}
 
 /**
  * Fetches the user's points & activity records for a specific snapshot period.

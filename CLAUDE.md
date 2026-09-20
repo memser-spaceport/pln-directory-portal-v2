@@ -77,6 +77,8 @@ Uses both **Zod** (`schema/`) and **Yup** for form validation, with **react-hook
 
 PostHog integration. Analytics event functions are in `analytics/*.analytics.ts`, organized by feature domain.
 
+To comment current-cycle Linear issues with related PostHog events, run the `posthog-linear-events` skill (`.claude/skills/posthog-linear-events/`). Requires Linear MCP.
+
 ### Testing
 
 - **Jest** with `@testing-library/react` — tests mirror the component structure in `__tests__/` (subdirectories: `core/`, `form/`, `page/`, `utils/`)

@@ -2,6 +2,7 @@ export { linkifyHtml } from './linkifyHtml';
 export { isBlankHtml } from './isBlankHtml';
 export { sanitizeCommentHtml, COMMENT_SANITIZE_CONFIG } from './sanitizeCommentHtml';
 export { sanitizeForumPostHtml, FORUM_POST_SANITIZE_CONFIG } from './sanitizeForumPostHtml';
+export { sanitizeAiAppFeedbackHtml, AI_APP_FEEDBACK_SANITIZE_CONFIG } from './sanitizeAiAppFeedbackHtml';
 export { sanitizeJobDescriptionHtml, JOB_DESCRIPTION_SANITIZE_CONFIG } from './sanitizeJobDescriptionHtml';
 export { normalizeJobDescriptionHtml } from './normalizeJobDescriptionHtml';
 export { countMentions } from './countMentions';

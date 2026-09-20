@@ -13,17 +13,33 @@ import { useUpdateAiAppFeedbackStatus } from '@/services/ai-app-feedback/hooks/u
 import type { AiAppFeedbackStatus } from '@/services/ai-app-feedback/constants';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { QuillContent } from '@/components/ui/QuillContent/QuillContent';
-import { sanitizeForumPostHtml } from '@/utils/html';
+import { sanitizeAiAppFeedbackHtml } from '@/utils/html';
 import { FeedbackStatusSelector } from './FeedbackStatusSelector/FeedbackStatusSelector';
 import { exportAiAppFeedbackCsv } from './utils/exportAiAppFeedbackCsv';
 import { getAvatarColor } from './utils/getAvatarColor';
+import { AnnotationCanvas } from '../components/screenshot-feedback/AnnotationCanvas';
+import { parseAnnotations, type AnnotationState } from '../components/screenshot-feedback/types';
 
 import s from './AiAppFeedbackPage.module.scss';
- 
+
 const ALL_TAB = 'All apps';
+const IMG_TAG = /<img\b[^>]*>/gi;
 
 function looksLikeHtml(text: string): boolean {
   return /^\s*</.test(text);
+}
+
+function hasVisibleAnnotations(raw: string | undefined): boolean {
+  const annotations = parseAnnotations(raw?.replace(/&amp;/g, '&'));
+  return Boolean(annotations && (annotations.strokes.length > 0 || annotations.comments.length > 0));
+}
+
+function wrapAnnotatedScreenshotImgs(html: string, wrapClass: string, badgeClass: string): string {
+  return html.replace(IMG_TAG, (tag) => {
+    const encoded = tag.match(/\bdata-annotations="([^"]*)"/i)?.[1];
+    if (!hasVisibleAnnotations(encoded)) return tag;
+    return `<span class="${wrapClass}" title="View annotations">${tag}<span class="${badgeClass}">View annotations</span></span>`;
+  });
 }
 
 function FeedbackBody({
@@ -31,21 +47,29 @@ function FeedbackBody({
   onImageClick,
 }: {
   text: string;
-  onImageClick: (image: { src: string; alt: string }) => void;
+  onImageClick: (image: { src: string; alt: string; annotations: AnnotationState | null }) => void;
 }) {
   if (!looksLikeHtml(text)) {
     return <div className={s.messageText}>{text}</div>;
   }
 
+  const html = wrapAnnotatedScreenshotImgs(sanitizeAiAppFeedbackHtml(text), s.annotatedShot, s.annotatedBadge);
+
   return (
     <div
       onClick={(event) => {
-        const img = (event.target as HTMLElement).closest('img');
+        const hit = event.target as HTMLElement;
+        const img = (hit.closest('img') ??
+          hit.closest(`.${s.annotatedShot}`)?.querySelector('img')) as HTMLImageElement | null;
         if (!img?.src) return;
-        onImageClick({ src: img.currentSrc || img.src, alt: img.alt });
+        onImageClick({
+          src: img.currentSrc || img.src,
+          alt: img.alt,
+          annotations: parseAnnotations(img.getAttribute('data-annotations')),
+        });
       }}
     >
-      <QuillContent html={sanitizeForumPostHtml(text)} className={s.richMessage} />
+      <QuillContent html={html} className={s.richMessage} />
     </div>
   );
 }
@@ -69,7 +93,11 @@ export function AiAppFeedbackPage() {
   const analytics = useAiAppsAnalytics();
   const hasTrackedView = useRef(false);
   const [activeTab, setActiveTab] = useState(ALL_TAB);
-  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
+  const [lightbox, setLightbox] = useState<{
+    src: string;
+    alt: string;
+    annotations: AnnotationState | null;
+  } | null>(null);
 
   useEffect(() => {
     if (hasTrackedView.current) return;
@@ -240,7 +268,16 @@ export function AiAppFeedbackPage() {
         <h2 id="ai-app-feedback-lightbox-title" className={s.visuallyHidden}>
           Full size image
         </h2>
-        {lightbox && <img src={lightbox.src} alt={lightbox.alt} />}
+        {lightbox?.annotations ? (
+          <AnnotationCanvas
+            className={s.lightboxCanvas}
+            imageSrc={lightbox.src}
+            annotations={lightbox.annotations}
+            readOnly
+          />
+        ) : (
+          lightbox && <img src={lightbox.src} alt={lightbox.alt} />
+        )}
       </Modal>
     </div>
   );

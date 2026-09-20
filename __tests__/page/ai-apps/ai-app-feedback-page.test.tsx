@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AiAppFeedbackPage } from '@/components/page/ai-apps/AiAppFeedbackPage';
+import { serializeAnnotations } from '@/components/page/ai-apps/components/screenshot-feedback/types';
 
 const mockUseAiAppFeedbackList = jest.fn();
 const mockUseAiAppFeedbackReviewAccess = jest.fn();
@@ -213,6 +214,7 @@ describe('AiAppFeedbackPage', () => {
     expect(screen.getByRole('heading', { name: 'Broken screenshot' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'docs' })).toHaveAttribute('href', 'https://example.com/docs');
     expect(screen.getByAltText('shot')).toHaveAttribute('src', 'https://cdn.test/shot.png');
+    expect(screen.queryByText('View annotations')).not.toBeInTheDocument();
   });
 
   it('opens a feedback image fullscreen and closes on Escape or overlay click', async () => {
@@ -248,6 +250,48 @@ describe('AiAppFeedbackPage', () => {
     await waitFor(() => {
       expect(screen.queryByRole('dialog', { name: 'Full size image' })).not.toBeInTheDocument();
     });
+  });
+
+  it('replays drawings and bubble comments in the lightbox', async () => {
+    const encoded = serializeAnnotations({
+      version: 1,
+      strokes: [
+        {
+          color: '#1b4dff',
+          width: 0.006,
+          points: [
+            { x: 0.1, y: 0.1 },
+            { x: 0.4, y: 0.4 },
+          ],
+        },
+      ],
+      comments: [{ id: 'c1', x: 0.5, y: 0.5, text: 'Broken button' }],
+    });
+    mockUseAiAppFeedbackList.mockReturnValue({
+      feedback: [
+        {
+          uid: 'fb-html',
+          appUid: 'app-1',
+          appName: 'Alpha',
+          text: `<p><img src="https://cdn.test/shot.png" alt="shot" class="ai-app-annotated-screenshot" data-annotations="${encoded}"></p>`,
+          status: 'NEW' as const,
+          member: { uid: 'm-1', name: 'Ada Lovelace' },
+          createdAt: '2026-07-01T00:00:00.000Z',
+        },
+      ],
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<AiAppFeedbackPage />);
+
+    expect(screen.getByText('View annotations')).toBeInTheDocument();
+    expect(screen.getByAltText('shot').closest('[title="View annotations"]')).toBeTruthy();
+
+    fireEvent.click(screen.getByText('View annotations'));
+    expect(screen.getByRole('dialog', { name: 'Full size image' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Comment 1' }));
+    expect(screen.getByText('Broken button')).toBeInTheDocument();
   });
 
   it('renders legacy plain-text feedback as text, not HTML', () => {

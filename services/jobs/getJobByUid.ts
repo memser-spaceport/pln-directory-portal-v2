@@ -9,7 +9,7 @@ export async function getJobByUid(jobUid: string): Promise<JobWithTeam | null> {
   const url = `${process.env.DIRECTORY_API_URL}/v1/job-openings?jobUid=${encodeURIComponent(jobUid)}`;
 
   try {
-    const response = await fetch(url, { next: { revalidate: 300 } });
+    const response = await fetch(url, { next: { revalidate: 60 } });
 
     if (!response.ok) {
       return null;

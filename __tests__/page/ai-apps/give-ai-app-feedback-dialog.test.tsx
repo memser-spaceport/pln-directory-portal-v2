@@ -8,6 +8,12 @@ import {
 } from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog';
 import { toast } from '@/components/core/ToastContainer';
 import { clearFormDraft, readFormDraft, writeFormDraft } from '@/utils/formDraftStorage';
+import {
+  CaptureUnavailableError,
+  grabVideoFrame,
+  requestTabCapture,
+  stopCaptureStream,
+} from '@/components/page/ai-apps/components/screenshot-feedback';
 
 const mockUseAiApps = jest.fn();
 const mockMutate = jest.fn();
@@ -93,6 +99,37 @@ jest.mock('@/components/core/ToastContainer', () => ({
   toast: { success: jest.fn(), error: jest.fn() },
 }));
 
+const PIXEL_PNG =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
+jest.mock('@/components/page/ai-apps/components/screenshot-feedback', () => {
+  const actual = jest.requireActual('@/components/page/ai-apps/components/screenshot-feedback');
+  return {
+    ...actual,
+    requestTabCapture: jest.fn(),
+    grabVideoFrame: jest.fn(),
+    stopCaptureStream: jest.fn(),
+    RegionSelectOverlay: ({
+      freezeSrc,
+      onSelect,
+      onCancel,
+    }: {
+      freezeSrc: string;
+      onSelect: (url: string) => void;
+      onCancel: () => void;
+    }) => (
+      <div>
+        <button type="button" onClick={() => onSelect(freezeSrc)}>
+          Select region
+        </button>
+        <button type="button" onClick={onCancel}>
+          Cancel capture
+        </button>
+      </div>
+    ),
+  };
+});
+
 const mockSaveRegistrationImage = jest.fn();
 jest.mock('@/services/registration.service', () => ({
   saveRegistrationImage: (file: File) => mockSaveRegistrationImage(file),
@@ -105,6 +142,9 @@ describe('GiveAiAppFeedbackDialog', () => {
       currentUser: { uid: 'member-1', name: 'Ada Lovelace', email: 'ada@example.com' },
     });
     mockSaveRegistrationImage.mockResolvedValue({ image: { url: 'https://cdn.test/hosted.png' } });
+    (requestTabCapture as jest.Mock).mockReset();
+    (grabVideoFrame as jest.Mock).mockReset();
+    (stopCaptureStream as jest.Mock).mockReset();
   });
 
   afterEach(() => {
@@ -467,5 +507,59 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     inner.remove();
     anchor.remove();
+  });
+
+  it('shows a Take screenshot control', () => {
+    mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} />);
+
+    expect(screen.getByRole('button', { name: 'Take screenshot' })).toBeInTheDocument();
+    expect(screen.getByText(/Drag to capture any area of the page/)).toBeInTheDocument();
+  });
+
+  it('toasts when screenshot capture is unavailable', async () => {
+    (requestTabCapture as jest.Mock).mockRejectedValue(new CaptureUnavailableError());
+    mockUseAiApps.mockReturnValue({
+      apps: [{ uid: 'app-1', name: 'My App' }],
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Screenshots aren’t available in this browser.'));
+  });
+
+  it('attaches an annotated screenshot and submits it with the feedback body', async () => {
+    (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
+    (grabVideoFrame as jest.Mock).mockResolvedValue(PIXEL_PNG);
+    (stopCaptureStream as jest.Mock).mockImplementation(() => undefined);
+    mockUseAiApps.mockReturnValue({
+      apps: [{ uid: 'app-1', name: 'My App' }],
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Select region' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Add to feedback' })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Add to feedback' }));
+    await waitFor(() => expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+    await waitFor(() => expect(mockMutate).toHaveBeenCalled());
+    const payload = (mockMutate as jest.Mock).mock.calls[0][0] as { appUid: string; text: string };
+    expect(payload.appUid).toBe('app-1');
+    expect(payload.text).toContain('https://cdn.test/hosted.png');
+    expect(payload.text).toContain('data-annotations=');
+    expect(payload.text).toContain('ai-app-annotated-screenshot');
+    expect(mockSaveRegistrationImage).toHaveBeenCalled();
   });
 });

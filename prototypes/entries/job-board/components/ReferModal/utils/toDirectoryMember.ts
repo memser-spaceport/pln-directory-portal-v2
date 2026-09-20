@@ -19,5 +19,6 @@ export function toDirectoryMember(member: any, teamUid: string): DirectoryMember
     team: role?.team?.name ?? '',
     image: member?.logo ?? null,
     isTeamLead: roles.some((item: any) => item?.teamLead && item?.team?.uid === teamUid),
+    hasInactiveEmail: !!member?.hasInactiveEmail,
   };
 }

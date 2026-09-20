@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
-import { jobDetailShareUrl } from '@/services/jobs/job-detail-link';
+import { useJobsAnalytics, type JobReferShareNetwork, type JobSurface } from '@/analytics/jobs.analytics';
+import { jobBoardShareUrl, jobDetailShareUrl } from '@/services/jobs/job-detail-link';
 import type { IJobRole } from '@/types/jobs.types';
 
 import { LinkIcon, CheckIcon, ShareIcon } from './components/Icons';
@@ -20,9 +20,11 @@ interface ReferMenuProps {
 /**
  * Share control on each job row: LinkedIn / X intents, or copy link.
  *
- * Always shares the in-app drawer deep link (`/jobs?job=<uid>`), never the
- * company's own posting — recipients should land on the board with that role
- * open, the same destination refer/apply emails now send.
+ * Never shares the company's own posting — recipients land on this role in the
+ * Directory either way. The two social intents point at the crawlable job page
+ * (`/jobs/openings/<uid>`), the destination refer/apply emails send. Copy link
+ * points at the board deep link (`/jobs?job=<uid>`) instead, so a pasted link
+ * opens the role on the board — see `jobBoardShareUrl` for why.
  *
  * NOTE: TeamNews's NewsShareMenu is the hardened adaptation of this component
  * (base-ui Menu, encoded intents, cleared copy timer) — a third share surface
@@ -60,10 +62,10 @@ export function ReferMenu({ role, teamId, teamName, source }: ReferMenuProps) {
     };
   }, [open]);
 
-  const getJobLink = () => jobDetailShareUrl(role.uid);
+  const getJobLink = (channel: JobReferShareNetwork) => jobDetailShareUrl(role.uid, channel);
 
   const share = (network: 'linkedin' | 'x') => {
-    const url = getJobLink();
+    const url = getJobLink(network);
     const text = `Referring a great role - ${role.roleTitle} at ${teamName}. Know someone perfect for it?`;
 
     const encodedUrl = encodeURIComponent(url);
@@ -80,7 +82,7 @@ export function ReferMenu({ role, teamId, teamName, source }: ReferMenuProps) {
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(getJobLink());
+      await navigator.clipboard.writeText(jobBoardShareUrl(role.uid, 'copy_link'));
       analytics.onJobReferShared({ ...referBase, network: 'copy_link' });
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);

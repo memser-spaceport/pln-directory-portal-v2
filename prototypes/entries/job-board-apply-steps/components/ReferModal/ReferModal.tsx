@@ -246,7 +246,7 @@ export function ReferModal({
   const refereeParams = {
     ...referBase,
     referred_member_uid: selectedMember?.uid ?? '',
-    referee_type: selectedMember ? 'network_member' : 'outside_network',
+    referee_type: selectedMember ? ('network_member' as const) : ('outside_network' as const),
   };
 
   // Only fetched while the modal is open — a job board page holds one of these per role.

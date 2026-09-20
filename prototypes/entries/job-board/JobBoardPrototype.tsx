@@ -194,7 +194,7 @@ import { toast } from '@/components/core/ToastContainer';
 import { SortDropdown, type SortOption } from '@/components/common/filters/SortDropdown';
 import { JOBS_SORT_OPTIONS } from '@/services/jobs/constants';
 import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
-import { getJobDate } from '@/utils/jobs.utils';
+import { getJobDate, seniorityDisplayLabel } from '@/utils/jobs.utils';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED } from '@/constants/filters';
 import type { IJobRole, IJobTeam, IJobTeamGroup, JobsSortKey } from '@/types/jobs.types';
@@ -219,7 +219,22 @@ import { useMockJobsFilterStore } from './mockJobsFilterStore';
 import { JobBoardFilterView } from './JobBoardFilterView';
 import { JobBoardMobileFilters } from './JobBoardMobileFilters';
 import { JobTeamGroupCard, type JobCardNewsVariant } from './JobTeamGroupCard';
-import { JobBoardScopeTabs, SCOPE_APPLIED, SCOPE_PARAM } from './JobBoardScopeTabs';
+import { OpenRoleRow } from './OpenRoleRow';
+import { openRoleFor, type OpenInterest } from './openRoles';
+import { JobBoardScopeTabs, SCOPE_APPLIED, SCOPE_PARAM, SCOPE_SAVED } from './JobBoardScopeTabs';
+// Saving — designed and settled in the `saving` entry, ported here the way that
+// entry's own note asks: mount the store, hand the card, the row and the scope
+// tabs the optional props they already take. Same store (`save-shared`), so a
+// role kept here is kept there.
+import { useSavedItems } from '../save-shared/savedItems';
+import { FollowToast } from '../follow-shared/FollowToast';
+// `.toastLink` and the scope strip's +8px gap for a third tab — the saving
+// entry's own two rules, imported rather than restated.
+import sp from '../saving/SavingPrototype.module.scss';
+// The team's applicants page — the team profile's own, mounted here as the
+// destination of the owner rows' count line. See `applicantsView`.
+import { TeamApplicantsPage } from '../team-profile/TeamApplicantsPage';
+import { applicantsForRole, interestedForRole } from './boardApplicants';
 import { SubmitJobModal, type SubmittedJob } from './SubmitJobModal';
 import {
   canManageTeam,
@@ -233,7 +248,7 @@ import {
 } from './listings';
 import { VIEWER_NAME } from './profile/viewerIdentity';
 import { SignInBanner } from './SignInBanner';
-import { ProfileNudgeBanner, PendingApprovalBanner } from './BoardBanners';
+import { ProfileNudgeBanner, PendingApprovalBanner, NewApplicantsBanner } from './BoardBanners';
 import { JobApplyFlowDrawer, type ApplyFlowStepId } from './JobApplyFlowDrawer';
 import { JobSignUpModal, type JobSignUpDetails } from './JobSignUpModal';
 // DELETE WITH: the `design-canvas/` folder.
@@ -244,6 +259,7 @@ import type { ApplicationEmailInput } from './email/applicationEmail';
 import {
   EMPTY_PROFILE,
   isViewerSignedIn,
+  isTeamLeadViewer,
   profileForViewer,
   FILLED_PROFILE,
   type BoardViewer,
@@ -313,7 +329,9 @@ const VIEWER_OPTIONS: Array<{ value: BoardViewer; label: string }> = [
       account step opened pre-filled. Removed: signing up through the header door
       produces an account, and an account waiting on the PL team is the tab
       below. The completeness tick it existed to show went with it, to there. */
-  { value: 'pending-approval', label: 'Signed up, pending approval' },
+  /* (`Signed up, pending approval` stood here as a tab. Removed 2026-09-09: the
+     state survives — the account step's PL-team tick still lands on it — but as
+     a tab it was one more state to explain before the ones under review.) */
   /* Beside `pending-approval`, not after it. These two are the two things
      "signed up" can mean on this board — join a team, or come looking for work —
      and only one of them waits on anyone. Putting the aspirant third would read
@@ -329,6 +347,9 @@ const VIEWER_OPTIONS: Array<{ value: BoardViewer; label: string }> = [
      person, they are the board seen by someone who owns listings on it. See
      `BoardViewer`. */
   { value: 'team-lead', label: 'Team lead' },
+  /* The same lead once people have applied — the next thing that happens to
+     them, the way `applied` follows `profile-ready`. */
+  { value: 'team-lead-applicants', label: 'Team lead, has applicants' },
   { value: 'directory-admin', label: 'Directory admin' },
 ];
 
@@ -336,7 +357,7 @@ const VIEWER_NOTE: Record<BoardViewer, string> = {
   'logged-out':
     'No account. View job opens the posting with no rail: the masthead, a “What your profile unlocks” card, and a footer offering both doors — the team’s own site, or Create profile. Create profile is one form (account details and job search status), and the press lands back on the same job as a job aspirant: an “I’m interested” strip under the masthead and Apply on team site in the footer. Ticking “I work at a PL network startup” still makes a pending account instead.',
   'pending-approval':
-    'Signed up — through the modal or the flow — and waiting on the PL team. Browsing and the profile work exactly as they do for an approved member; applying is the one thing that waits, and the flow sends them to the team’s own site instead. The profile step is the only place in the board that shows the “My profile is complete” tick, because that press is the one that leaves.',
+    'Signed up — through the modal or the flow — and waiting on the PL team. Browsing and the profile work exactly as they do for an approved member; applying is the one thing that waits, and the flow sends them to the team’s own site instead. Both presses that leave carry a tick first, and it is one tick: “I’ve reviewed my profile” beside Continue to apply on the job, “My profile is complete” beside the same press on the profile step.',
   'job-aspirant':
     'Signed up to find work, not to join a team — so there is nothing for the PL team to approve. They do not apply through this board: the posting opens with no rail, an “I’m interested” strip under the masthead (the press flips it to “The team will see it if you’re a match”, with Undo), and one footer button to the team’s own site. The profile they made is what founders are shown when the two match.',
   'profile-incomplete':
@@ -344,9 +365,11 @@ const VIEWER_NOTE: Record<BoardViewer, string> = {
   'profile-ready':
     'Signed in, profile already good. Apply goes straight to the cover letter — the modal reads the profile back, so a drawer in front of it would be showing the same thing twice.',
   applied:
-    'The returning member: two applications already sent. The Applied tab has a count and a list, those rows show “Applied” instead of an offer, and the rest of the board carries on as normal — having applied to two roles is no reason to change what the other eleven look like.',
+    'The returning member: two applications already sent. The Applied tab has a count and a list, and each row reads “Applied Nd ago” in its clock — an application has one state, applied, and wears no pill. The rest of the board carries on as normal.',
   'team-lead':
     'Leads Filecoin Foundation. Two things change and nothing else: “Submit a job” in the toolbar (the Submit a Deal door — a modal, then review by the PL team before it goes live), and their own team’s card showing its listings in every state — one in review, the live ones, one taken down — each row with a status pill when it is not live and a ⋯ menu holding Mark inactive / Bring back and Delete. Every other card is the public board.',
+  'team-lead-applicants':
+    'The same lead of Filecoin Foundation, once people have applied. The banner slot says how many applicants are new and on which roles, with Review applicants leading to the team’s applicants page (the team profile’s own page, mounted here with Back to job board). Their rows carry the applicants line — faces, count, “● N new” — inside the role’s card, including the listing they took down, which keeps the one person who applied while it was live. Everything else is the Team lead view.',
   'directory-admin':
     'The same door and menu, on every team’s card. The form gains one field — which team — and every card shows its listings in every state, so the admin sees libp2p’s pending submission beside Filecoin’s. Open question kept open: whether an admin’s own submission still waits on review, or goes live on submit.',
 };
@@ -369,6 +392,7 @@ const SEEDED_APPLICATION_ROLES = (
 const SEEDED_APPLICATION_LETTERS = [
   'I built the transport layer this role touches — QUIC upgrade paths at Lattice, and the libp2p maintainer seat before that. Ecosystem growth here means talking to the teams already shipping on it, which is the half I have been doing informally for two years.',
   'Most of my last two years has been grants-adjacent: scoping the work, writing the briefs, and chasing the reporting nobody enjoys. I would rather do it somewhere the grants are the product.',
+  'Two years on FVM actors at Lattice, most of it the storage-market contracts. I know the audit surface this role inherits because I wrote half of it.',
 ];
 
 /**
@@ -395,7 +419,11 @@ function seededApplications(): Map<string, JobApplication> {
   return new Map(
     SEEDED_APPLICATION_ROLES.map((role, i) => [
       role.uid,
-      { coverLetter: SEEDED_APPLICATION_LETTERS[i] ?? '', appliedAt: daysAgo(offsets[i] ?? 1), withCv: true },
+      {
+        coverLetter: SEEDED_APPLICATION_LETTERS[i] ?? '',
+        appliedAt: daysAgo(offsets[i] ?? 1),
+        withCv: true,
+      },
     ]),
   );
 }
@@ -443,6 +471,13 @@ const initialUnlisted = (): Map<string, IJobRole[]> => new Map(Object.entries(MO
  * as its owner sees it. Read off the seeds so the three frames name the three
  * roles the Manage tab actually shows.
  */
+/** The network's own org — pinned to the top of the board and given its own
+ *  section heading. One predicate for both, so the pin and the heading cannot
+ *  disagree about which card is first. */
+function isProtocolLabsGroup(group: IJobTeamGroup): boolean {
+  return group.team.name.trim().toLowerCase() === 'protocol labs';
+}
+
 function managedSampleRole(status: ListingStatus): IJobRole | null {
   const meta = initialListings();
   const pool = [
@@ -452,9 +487,17 @@ function managedSampleRole(status: ListingStatus): IJobRole | null {
   return pool.find((r) => meta.get(r.uid)?.status === status) ?? null;
 }
 
-/** One sent application. The letter is what went; `appliedAt` is what the Applied
- *  tab reads to say how long ago it went. ISO, like every other date on the board,
- *  so `getJobDate`'s own formatting helpers can read it. */
+/**
+ * One sent application. The letter is what went; `appliedAt` is what the Applied
+ * tab reads to say how long ago it went. ISO, like every other date on the board,
+ * so `getJobDate`'s own formatting helpers can read it.
+ *
+ * **An application has one state: applied.** Nothing here records whether the
+ * team has opened it or whether the listing is still live, and the row wears no
+ * status pill — the clock's "Applied Nd ago" is the whole report. The team's
+ * applicants page keeps its own unread tint (`seenIds` there); that fact is not
+ * read back to the applicant.
+ */
 interface JobApplication {
   coverLetter: string;
   appliedAt: string;
@@ -511,7 +554,7 @@ export default function JobBoardPrototype() {
          `submitJobHref` for why the profile has a door at all. */
       const submitFor = q.get(SUBMIT_PARAM);
       if (submitFor) {
-        if (asViewer === 'team-lead') setLeadTeamUid(submitFor);
+        if (asViewer && isTeamLeadViewer(asViewer)) setLeadTeamUid(submitFor);
         setSubmitTeamUid(submitFor);
         setSubmitOpen(true);
       }
@@ -607,10 +650,7 @@ export default function JobBoardPrototype() {
   /** Which team the `team-lead` viewer leads — the fixture's, unless they
    *  arrived from another team's profile. See `managedTeamUids`. */
   const [leadTeamUid, setLeadTeamUid] = useState(LEAD_TEAM_UID);
-  const manages = useCallback(
-    (teamUid: string) => canManageTeam(viewer, teamUid, leadTeamUid),
-    [viewer, leadTeamUid],
-  );
+  const manages = useCallback((teamUid: string) => canManageTeam(viewer, teamUid, leadTeamUid), [viewer, leadTeamUid]);
 
   /** Signed up, waiting on the PL team. Browsing is fine; applying is not. */
   const isPendingApproval = viewer === 'pending-approval';
@@ -630,6 +670,9 @@ export default function JobBoardPrototype() {
    * modal is the role-less one — and a nullable object whose only field is always
    * null is just a boolean with a place for a bug to live. */
   const [signUp, setSignUp] = useState(false);
+  /* Armed by either sign-up door, spent when the next drawer run closes: the
+     "I've reviewed my profile" tick is asked on that one run only. */
+  const [askProfileReview, setAskProfileReview] = useState(false);
 
   /* **Submit a job**, and what it produces.
    *
@@ -641,6 +684,22 @@ export default function JobBoardPrototype() {
   const [submitOpen, setSubmitOpen] = useState(false);
   /** The team a `?submit=` arrival is posting for; the form opens on it. */
   const [submitTeamUid, setSubmitTeamUid] = useState<string | undefined>(undefined);
+  /**
+   * The team's applicants page, open on a role — the destination of the count
+   * line on an owner's row.
+   *
+   * **One page, two entrances.** The page is the team profile's
+   * (`TeamApplicantsPage`), not a board version of it: same list, same member
+   * pane, same New and Reviewed marks. In production both doors lead to one
+   * route (`/teams/<id>/applicants`). Here it is mounted in the board's place
+   * rather than linked to, because the team-profile prototype only ever
+   * renders Protocol Labs and the board's lead runs Filecoin Foundation — a
+   * link would land on somebody else's applicants.
+   *
+   * Back returns to the board as it was: filters, scope and scroll are board
+   * state and none of it is touched by opening this.
+   */
+  const [applicantsView, setApplicantsView] = useState<{ teamUid: string; roleUid: string } | null>(null);
   const [unlisted, setUnlisted] = useState<Map<string, IJobRole[]>>(initialUnlisted);
   const [listings, setListings] = useState<Map<string, ListingMeta>>(initialListings);
   /** Listings the owner deleted this session. A set over the mocks rather than
@@ -665,9 +724,15 @@ export default function JobBoardPrototype() {
    * mind. It opens the same drawer on the same profile step and simply draws no
    * rail — a position indicator for a journey nobody is on would be inventing a
    * flow to justify a component. */
-  const [flow, setFlow] = useState<{ job: { role: IJobRole; team: IJobTeam } | null } | null>(null);
+  /* `interestTeamUid` is the third shape: the open role's route — review the
+     profile, write to the team — for a team with no posting behind it. Same
+     drawer, no rail, two steps; see `interest` on the drawer. */
+  const [flow, setFlow] = useState<{ job: { role: IJobRole; team: IJobTeam } | null; interestTeamUid?: string } | null>(
+    null,
+  );
   const [flowStep, setFlowStep] = useState<ApplyFlowStepId>('review');
   const flowJob = flow?.job ?? null;
+  const flowInterestTeamUid = flow?.interestTeamUid ?? null;
 
   /** Opens the profile on its own, with nothing pending — the banners' route. */
   const openProfileEditor = () => {
@@ -708,6 +773,47 @@ export default function JobBoardPrototype() {
       else next.delete(roleUid);
       return next;
     });
+  /* **Open roles: interest in a team that has no posting for you.**
+   *
+   * Kept here for the same reason the applications and the per-role signals are
+   * — it has to survive the dialog closing, and it is the board's fact about the
+   * person rather than the dialog's. Keyed by team uid, because that is what an
+   * open role belongs to: a team has one, or none.
+   *
+   * Session-only, like everything else on this board. Withdrawing is a delete,
+   * which is the only way a signal can honestly be taken back. */
+  const [openInterests, setOpenInterests] = useState<Map<string, OpenInterest>>(() => new Map());
+  /**
+   * An "I'm interested" pressed with no account, waiting on the sign-up modal.
+   * A press aimed at a team should land on that team once there is an account
+   * to land it with, not on the board.
+   *
+   * (`openRoleTeamUid`, `openRoleNote` and `openRoleResumeTeamUid` stood here —
+   * which team's *modal* was open, the message parked while the profile editor
+   * was open over it, and where to reopen. The form is a step of the flow
+   * drawer now, so the message lives in the drawer like the letter does and a
+   * trip to the profile is a step change; none of it needs a home here.)
+   */
+  const [pendingInterestTeamUid, setPendingInterestTeamUid] = useState<string | null>(null);
+
+  /**
+   * Teams this viewer follows.
+   *
+   * **Seeded empty on purpose.** Following is set here by the apply flow's own
+   * tick and nowhere else, so the state is *earned* in the demo rather than
+   * asserted: apply to one Protocol Labs role with the tick on, open the next PL
+   * role, and the tick is gone because you now follow them. Seeding a followed
+   * team instead would have shown the same absence with nothing to explain it —
+   * a reviewer would read a missing checkbox as a bug.
+   *
+   * Session-only, like the applications and the open-role signals. And nothing
+   * on this board renders it: the board has no follow control and is not
+   * getting one for this (production's `TeamFollowButton` lives on the team
+   * profile). The tick's own disappearance is the whole of the receipt here,
+   * plus the clause the apply toast adds.
+   */
+  const [followedTeams, setFollowedTeams] = useState<Set<string>>(() => new Set());
+
   /** The same map, reduced to what the row needs: uid → when. Derived rather than
    *  passed whole, so the row never receives the cover letters — a list of roles
    *  has no business carrying the letters that went with them. */
@@ -721,6 +827,37 @@ export default function JobBoardPrototype() {
   /** Which scope tab is open. A filter-store param like every other narrowing on
    *  this board, so Clear All takes it off with the rest. */
   const appliedScope = params.get(SCOPE_PARAM) === SCOPE_APPLIED;
+
+  /**
+   * Saved roles — the bookmark on every row, and the **Saved** tab between All
+   * and Applied.
+   *
+   * **Offered to everyone, honoured with an account** — the row's own rule for
+   * Refer. A visitor sees the bookmark and the press opens the sign-up door;
+   * nothing is kept for someone with nowhere to keep it, so without an account
+   * no row reads as saved and the scope cannot be on (the strip that would turn
+   * it off is not drawn for them either).
+   *
+   * Owners' rows have no bookmark: their actions all live behind the ⋯, and
+   * nobody bookmarks their own listing.
+   */
+  const saved = useSavedItems();
+  const savedScope = isLoggedIn && params.get(SCOPE_PARAM) === SCOPE_SAVED;
+  const savedRoleUids = useMemo(() => (isLoggedIn ? saved.uidsOf('job') : new Set<string>()), [isLoggedIn, saved]);
+  /* The clock reads "Saved …" only inside the Saved tab — Applied's own move.
+     On the open board the posting age is still the number that decides. */
+  const savedAtByRole = useMemo(
+    () => (savedScope ? new Map([...savedRoleUids].map((uid) => [uid, saved.savedAt(uid) ?? ''])) : undefined),
+    [savedScope, savedRoleUids, saved],
+  );
+  /** The save receipt: the icon fills in place, and the toast adds the one
+   *  thing it cannot say — where the role went. Unsaving is quiet. */
+  const [savedToast, setSavedToast] = useState(false);
+  useEffect(() => {
+    if (!savedToast) return;
+    const t = setTimeout(() => setSavedToast(false), 4000);
+    return () => clearTimeout(t);
+  }, [savedToast]);
 
   /**
    * Every team with every role it has, listed or not — the public groups with
@@ -764,8 +901,15 @@ export default function JobBoardPrototype() {
       const teamMatchesQ = !q || group.team.name.toLowerCase().includes(q);
       const roles = group.roles.filter((role) => {
         /* Status first. The public board is the live listings — for everyone
-           but the team that posted the rest. */
-        if (!owned && statusOf(role) !== 'live') return false;
+           but the team that posted the rest.
+
+           One exception: **your own application survives its listing.** In the
+           Applied scope a role you applied to stays even after the team takes
+           it down — the tab is the record of what you sent, and a row that
+           vanished the day the team closed the role would erase what you sent.
+           The row reads like any other applied row: an application has one
+           state. On All it is still gone, because All is the public board. */
+        if (!owned && statusOf(role) !== 'live' && !(appliedScope && appliedRoleUids.has(role.uid))) return false;
         /* The Applied scope narrows first, and narrows like every other filter:
            it is one more predicate in this list rather than a separate list. So
            the rail, the search box and the sort all keep working inside it — you
@@ -774,6 +918,8 @@ export default function JobBoardPrototype() {
            swapped the data source instead would have had to reimplement all
            three, or quietly drop them. */
         if (appliedScope && !appliedRoleUids.has(role.uid)) return false;
+        // Saved narrows the same way — one more predicate, not a second list.
+        if (savedScope && !savedRoleUids.has(role.uid)) return false;
         // The shared predicate — the same one the match badge runs, so a role that
         // survives the rail is always a role the badge would mark.
         if (!roleMatches(criteria, role)) return false;
@@ -788,7 +934,7 @@ export default function JobBoardPrototype() {
     }
     return groups;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params, criteria, appliedScope, appliedRoleUids, allGroups, listings, manages]);
+  }, [params, criteria, appliedScope, appliedRoleUids, savedScope, savedRoleUids, allGroups, listings, manages]);
 
   const visibleGroups = useMemo<IJobTeamGroup[]>(() => {
     // A copy: the sorts below mutate, and `railGroups` is the memo's own value.
@@ -804,7 +950,7 @@ export default function JobBoardPrototype() {
       groups.sort((a, b) => newest(b) - newest(a));
     }
 
-    const plIndex = groups.findIndex((g) => g.team.name.trim().toLowerCase() === 'protocol labs');
+    const plIndex = groups.findIndex(isProtocolLabsGroup);
     if (plIndex > 0) {
       const [protocolLabs] = groups.splice(plIndex, 1);
       groups.unshift(protocolLabs);
@@ -812,8 +958,43 @@ export default function JobBoardPrototype() {
     return groups;
   }, [railGroups, sort]);
 
+  /* The pin above, said in words: "From Protocol Labs" over the pinned card and
+     "Across the network" over the rest, so first place stops reading as
+     "newest". Only when both halves have something in them — a lone heading
+     over one card restates the card's name, and one over the whole list has
+     nothing to be different from. */
+  const plGroup = visibleGroups.length > 1 && isProtocolLabsGroup(visibleGroups[0]) ? visibleGroups[0] : null;
+  const networkGroups = plGroup ? visibleGroups.slice(1) : visibleGroups;
+
   const totalRoles = visibleGroups.reduce((sum, g) => sum + g.totalRoles, 0);
   const totalGroups = visibleGroups.length;
+
+  /**
+   * The open roles that survive the rail, for the board's nothing-matched state.
+   *
+   * **Why they belong there at all.** The open role's whole reason is the reader
+   * a posting failed, and the sharpest version of that reader is the one who
+   * narrowed the board to nothing — at which point every team card is gone and
+   * with it every open-role row. The empty state used to be a dead end with one
+   * piece of advice on it ("try clearing some"), and clearing the filters is
+   * advice that returns you to the roles you have already rejected.
+   *
+   * **Not narrowed by the rail, and that is not an oversight.** An earlier
+   * version filtered these on the team's hiring areas, so a Design search never
+   * met an Engineering-only door. Those areas are gone — the open role names no
+   * categories any more, because a row whose job is to ask a question stopped
+   * carrying a line of facts — and with them the only axis there was to filter
+   * on. Nothing is lost: the row promises no fit, it asks one question, and
+   * "these teams want to hear from you anyway" is a truthful answer to a rail
+   * that just returned nothing.
+   *
+   * Not shown in the Applied tab, where the list is empty for a reason that has
+   * nothing to do with fit.
+   */
+  const fallbackOpenRoles = useMemo(
+    () => allGroups.filter((g) => openRoleFor(g.team.uid) && !manages(g.team.uid)).map((g) => g.team),
+    [allGroups, manages],
+  );
   /** The teams this viewer may post for — one for a lead, all for an admin. */
   const submittableTeams = useMemo<IJobTeam[]>(
     () => allGroups.filter((g) => manages(g.team.uid)).map((g) => g.team),
@@ -874,6 +1055,92 @@ export default function JobBoardPrototype() {
    * lets you act on this board rather than read it. */
   const onSignUp = () => setSignUp(true);
 
+  /**
+   * The open role's press.
+   *
+   * **Gated on an account and nothing else.** Applying from this board is also
+   * gated on the PL team's review (`canApply`), because an application is a
+   * letter sent from here into a hiring inbox and an unreviewed account is
+   * exactly what that review is for. Expressing interest is not that: it is a
+   * mark on your own record that the team reads when it looks at who is
+   * interested — which is what production's own interest signal is
+   * (`/v1/job-openings/interests`, and `JobInterestBanner` gates it on login
+   * alone). So a pending member may raise their hand; they still may not send
+   * an application.
+   *
+   * Logged out, the press opens the board's sign-up door, exactly as Refer and
+   * Apply do. The row is never hidden and never disabled — see `OpenRoleRow`.
+   */
+  const onOpenRoleInterest = (teamUid: string) => {
+    if (!isLoggedIn) {
+      /* Remember what was pressed. Signing up is the toll, not the errand — a
+         visitor who told us which team they want to hear from and then landed
+         on the board with an account and no form has been made to say it twice.
+         `onSignUpSubmit` picks this up. */
+      setPendingInterestTeamUid(teamUid);
+      onSignUp();
+      return;
+    }
+    openInterestFlow(teamUid);
+  };
+
+  /**
+   * The interest route, opened: the flow drawer with no role, on the profile
+   * review or straight on the message.
+   *
+   * **Where it opens is the apply flow's own skip rule.** A finished profile
+   * lands on the message — showing someone a profile they have already completed
+   * is charging them a step for nothing — and an unfinished one, or a job
+   * aspirant's (whose required answers arrive pre-given, so "complete" says
+   * nothing about whether they have looked), lands on the review first. A
+   * signal already on record opens its read-back. `startOn` overrides the rule
+   * for the two doors that make a profile in the same press and cannot yet
+   * read it back through `profile` (see `onSignUpSubmit`).
+   *
+   * `Edit profile` from the message is a step change inside the drawer; nothing
+   * here has to hold the note or remember the team.
+   */
+  const openInterestFlow = (teamUid: string, startOn?: ApplyFlowStepId) => {
+    const sent = openInterests.has(teamUid);
+    const skipReview = !isJobAspirant && isProfileComplete(profile);
+    setFlow({ job: null, interestTeamUid: teamUid });
+    setFlowStep(startOn ?? (sent || skipReview ? 'interest' : 'profile'));
+  };
+
+  const sendOpenInterest = (teamUid: string, note: string, followTeam: boolean) => {
+    setOpenInterests((prev) => {
+      const next = new Map(prev);
+      next.set(teamUid, { teamUid, note, sentAt: new Date().toISOString() });
+      return next;
+    });
+    /* The footer's follow tick, honoured the way `onSubmitApplication` honours
+       it — same set, same receipt clause below. */
+    if (followTeam) setFollowedTeams((prev) => new Set(prev).add(teamUid));
+    /* The drawer closes onto the row, which flips to "Interested" — the same
+       receipt an application gets. The toast adds only what the board cannot
+       show: that the profile went with the note. Same promise the form made,
+       in the past tense. */
+    onCloseFlow();
+    const teamName = allGroups.find((g) => g.team.uid === teamUid)?.team.name ?? teamUid;
+    toast.success(
+      `We've let ${teamName} know, and sent your profile and CV with it.` +
+        (followTeam ? ` You're now following ${teamName}.` : ''),
+    );
+  };
+
+  const withdrawOpenInterest = (teamUid: string) => {
+    setOpenInterests((prev) => {
+      const next = new Map(prev);
+      next.delete(teamUid);
+      return next;
+    });
+    /* Withdrawing closes the drawer. What is left once the record is gone is
+       the empty form again, under a title that just said the signal was sent —
+       and re-offering the thing someone has this second taken back reads as the
+       product not having heard them. The row goes back to offering it. */
+    onCloseFlow();
+  };
+
   /** Which team posted a role. The card hands the row only the role, so the team
    *  is recovered here rather than threaded through two components that have no
    *  other use for it. */
@@ -908,12 +1175,16 @@ export default function JobBoardPrototype() {
       next.set(job.teamUid, [role, ...(next.get(job.teamUid) ?? [])]);
       return next;
     });
-    setListings((prev) => new Map(prev).set(role.uid, { status: 'in-review', origin: { kind: 'submitted', by: VIEWER_NAME } }));
+    setListings((prev) =>
+      new Map(prev).set(role.uid, { status: 'in-review', origin: { kind: 'submitted', by: VIEWER_NAME } }),
+    );
     /* The receipt names the one thing the screen does not show: where the
        listing went. The person is standing on the All tab, and the new row is
        not on it — by design — so the toast says which tab it is on, and that
        tab's count has just ticked up beside it. */
-    toast.success(`${job.roleTitle} is submitted for review. It's in your team's card, marked In review, until the PL team approves it.`);
+    toast.success(
+      `${job.roleTitle} is submitted for review. It's in your team's card, marked In review, until the PL team approves it.`,
+    );
   };
 
   /**
@@ -997,10 +1268,17 @@ export default function JobBoardPrototype() {
      lands where a brand-new account lands — waiting on the PL team — which is
      now a fact about the account rather than a hold on the board.
 
-     No flow to resume. This door is pressed by someone who has not picked a job,
-     so there is nothing to advance to; they land on the signed-in board and the
-     pending banner picks up from there. The role-carrying door used to end here
-     too, and it is the apply flow's own details step now.
+     No *apply* flow to resume. This door is pressed by someone who has not
+     picked a job, so there is nothing to advance to; they land on the signed-in
+     board and the pending banner picks up from there. The role-carrying door
+     used to end here too, and it is the apply flow's own details step now.
+
+     There is one errand it resumes, and it arrived with the open role: pressing
+     **I'm interested** without an account opens this form, and the press was
+     aimed at a particular team. `openRoleResumeTeamUid` carries that across, and
+     the interest form opens on it below — for both accounts this door makes, a
+     job aspirant and a self-declared PL team member waiting on review, because
+     the gate on expressing interest is having an account and nothing else.
 
      Nothing is persisted beyond the session — this is a mock — but the details
      do seed the profile, because a sign-up that asked for a role and then showed
@@ -1013,11 +1291,22 @@ export default function JobBoardPrototype() {
        into either way. */
     setViewer(details.atPlTeam ? 'pending-approval' : 'job-aspirant');
     setIsLoggedIn(true);
+    setAskProfileReview(true);
     /* `linkedin` comes along now. The modal has always asked for it and the
        answer was dropped here — seeding only `role` meant the one optional
        field on that form spent someone's attention and returned nothing. It is
        a profile link, not an import source; see the note on `MemberProfile`. */
-    setProfile({ ...EMPTY_PROFILE, role: details.role, linkedin: details.linkedin.trim() });
+    /* And the job search status, which this modal asks for too (see
+       `JobSearchStatusField`) and which was dropped here — so the review step the
+       interest route now opens on greeted a person who had just answered it with
+       an amber "required" strip. `onCreateAccount`, the flow's own door, already
+       carries it; the two doors now seed the same record. */
+    setProfile({
+      ...EMPTY_PROFILE,
+      role: details.role,
+      linkedin: details.linkedin.trim(),
+      jobSearchStatus: details.jobSearchStatus ?? '',
+    });
     setSignUp(false);
     /* Says what happened and what is still running — including what the review
        holds, which is the clause that came back with the gate. This door is
@@ -1031,6 +1320,19 @@ export default function JobBoardPrototype() {
         ? `Account created for ${details.email}. The PL team reviews it before applications can be sent.`
         : 'Your Job Aspirant profile created',
     );
+
+    /* The errand the sign-up interrupted, resumed on the team it was aimed at —
+       by way of the profile. The message sends the profile and CV with it, and a
+       profile made one press ago holds only what the sign-up asked for, so the
+       person sees what is about to go before they write. Opened on the review
+       explicitly: `profile` in this closure is still the empty one the render
+       started with, so the skip rule could not read the new account anyway.
+       After the toast, so the account is announced first and the drawer arrives
+       on top of it. */
+    if (pendingInterestTeamUid) {
+      openInterestFlow(pendingInterestTeamUid, 'profile');
+      setPendingInterestTeamUid(null);
+    }
   };
 
   /* The escape for people who already have an account. Straight to the signed-in
@@ -1039,6 +1341,15 @@ export default function JobBoardPrototype() {
     setSignUp(false);
     setViewer('profile-incomplete');
     signIn(false);
+    /* Resumed here too. The two doors on this modal are one ask — "have an
+       account" — so an errand that survives one has to survive the other, or the
+       person who took the *quicker* route is the one who loses their place. On
+       the review, like the other door: `signIn` swaps the profile in this same
+       render, so the skip rule would be reading the signed-out one. */
+    if (pendingInterestTeamUid) {
+      openInterestFlow(pendingInterestTeamUid, 'profile');
+      setPendingInterestTeamUid(null);
+    }
   };
 
   /* The same escape, from the apply flow's details step.
@@ -1090,7 +1401,8 @@ export default function JobBoardPrototype() {
      * Unless there is nothing to read back: experience is optional, so a profile
      * can be saved with only a role and a status in it, and quoting an empty
      * summary would produce "Applications will read .". */
-    if (flowJob) return;
+    /* Nor on the way to the message: the step change is the receipt. */
+    if (flowJob || flowInterestTeamUid) return;
     const summary = summariseProfile(next);
     toast.success(summary ? `Profile saved. Applications will read ${summary}.` : 'Profile saved.');
   };
@@ -1107,6 +1419,7 @@ export default function JobBoardPrototype() {
   const onCloseFlow = () => {
     setFlow(null);
     setFlowStep('review');
+    setAskProfileReview(false);
   };
 
   /**
@@ -1125,20 +1438,30 @@ export default function JobBoardPrototype() {
    * not an orphan — what made the old one an orphan was that it was a side
    * effect of a flow aimed somewhere else.
    */
-  const onSubmitApplication = (coverLetter: string) => {
+  const onSubmitApplication = (coverLetter: string, followTeam: boolean) => {
     if (!flowJob) return;
     const { role, team } = flowJob;
 
     setApplications((prev) =>
       new Map(prev).set(role.uid, { coverLetter, appliedAt: new Date().toISOString(), withCv: !!profile.cv }),
     );
+    if (followTeam) setFollowedTeams((prev) => new Set(prev).add(team.uid));
     onCloseFlow();
 
     /* The board behind the flow already flips this role's button to "Applied",
        so the toast doesn't repeat that. What it adds is the part the board can't
        show: who has it now, and that the profile went with the note rather than
-       the note alone — which is the promise the whole flow was built on. */
-    toast.success(`Applied to ${role.roleTitle} at ${team.name}. Your profile went with your note.`);
+       the note alone — which is the promise the whole flow was built on.
+
+       The follow clause is here for exactly that reason and no other: the tick
+       that set it left the screen with the drawer, and nothing on the board
+       marks a followed team. It is only ever *added* — a press that left the box
+       unticked gets the sentence it always got, because "you are not following
+       them" is not news. */
+    toast.success(
+      `Applied to ${role.roleTitle} at ${team.name}. Your profile went with your note.` +
+        (followTeam ? ` You're now following ${team.name}.` : ''),
+    );
   };
 
   /**
@@ -1184,9 +1507,12 @@ export default function JobBoardPrototype() {
     setIsLoggedIn(true);
     setProfile(seeded);
 
+    /* Armed after `onCloseFlow` below on purpose: a pending member's run closes
+       here, so the tick waits for the next drawer they open. */
     if (joiningTeam) {
       setViewer('pending-approval');
       onCloseFlow();
+      setAskProfileReview(true);
       toast.success(
         roleTitle
           ? `Account created for ${details.email}. We'll email you when it's approved — then you can apply to ${roleTitle}.`
@@ -1196,6 +1522,7 @@ export default function JobBoardPrototype() {
     }
 
     setViewer('job-aspirant');
+    setAskProfileReview(true);
     /* Back to the job, not on to a profile step. The aspirant's flow has no
        letter at the end of it — see `showRail` in the drawer — so the press
        that made the profile lands them where they pressed `Create profile`
@@ -1226,6 +1553,9 @@ export default function JobBoardPrototype() {
     onCloseFlow();
     setApplications(next === 'applied' ? seededApplications() : new Map());
     setInterested(new Set());
+    /* A viewer who manages nothing must not be left standing on a team's
+       applicants. */
+    setApplicantsView(null);
     /* The listings too, and the form: a submission made as the lead must not
        turn up under the admin, and a viewer with no Manage tab must not be left
        standing on it. */
@@ -1306,10 +1636,7 @@ export default function JobBoardPrototype() {
 
             Weight and tone only, no colour — see `.titleCountRoles`. */}
         <span className={contentCss.titleCount}>
-          (
-          <strong className={s.titleCountRoles}>
-            {`${totalRoles} ${totalRoles === 1 ? 'role' : 'roles'}`}
-          </strong>{' '}
+          (<strong className={s.titleCountRoles}>{`${totalRoles} ${totalRoles === 1 ? 'role' : 'roles'}`}</strong>{' '}
           across {totalGroups} {totalGroups === 1 ? 'team' : 'teams'})
         </span>
       </h1>
@@ -1324,7 +1651,13 @@ export default function JobBoardPrototype() {
      slots `DealsToolbar` uses. */
   const submitJobButton = canSubmitJobs(viewer) ? (
     <button type="button" className={deals.submitButton} onClick={() => setSubmitOpen(true)}>
-      <svg className={deals.submitIcon} viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <svg
+        className={deals.submitIcon}
+        viewBox="0 0 18 18"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
         <path d="M9 3.75V14.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         <path d="M3.75 9H14.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
@@ -1351,10 +1684,108 @@ export default function JobBoardPrototype() {
    * a logged-out visitor has no applications, so the tab could only ever open on
    * nothing. */
   const scopeTabs = isLoggedIn ? (
-    <div className={s.scopeTabs}>
-      <JobBoardScopeTabs appliedCount={appliedRoleUids.size} />
+    <div className={`${s.scopeTabs} ${sp.scopeTabs}`}>
+      {/* All · Saved · Applied. */}
+      <JobBoardScopeTabs appliedCount={appliedRoleUids.size} savedCount={saved.countOf('job')} />
     </div>
   ) : null;
+
+  /* One card, rendered in whichever section it lands in — the sections change
+     the list's framing, never the card. */
+  /** The team whose applicants are open — every role it has, in every state,
+   *  because the owner's list is the owner's list. Null once the viewer stops
+   *  managing it. */
+  const applicantsGroup =
+    applicantsView && manages(applicantsView.teamUid)
+      ? (allGroups.find((g) => g.team.uid === applicantsView.teamUid) ?? null)
+      : null;
+
+  const onToggleSave = (role: IJobRole) => {
+    /* No account, nowhere to keep it: the press lands on the sign-up door, the
+       same one a visitor's Refer opens. */
+    if (!isLoggedIn) {
+      onSignUp();
+      return;
+    }
+    const nowSaved = saved.toggle(role.uid, 'job');
+    if (nowSaved) setSavedToast(true);
+  };
+
+  /** Whether this viewer's managed rows have anyone on them. */
+  const showsApplicants = viewer === 'team-lead-applicants' || viewer === 'directory-admin';
+
+  /**
+   * What the lead has not looked at yet, per role — the banner's content and
+   * where its press lands. Read through the same lookup the rows and the page
+   * use (`applicantsForRole`), so the three cannot disagree. A lead only: an
+   * admin manages every team by role and is nobody's hiring team.
+   *
+   * "New" is the record's own `unseen`, as on the rows' count lines. The page
+   * clears it per person for the session and the board does not hear about it —
+   * in production both would read one per-member flag.
+   *
+   * Computed inline, not memoised: this sits below the component's mount gate,
+   * where a hook may not go, and it is a walk over one team's roles.
+   */
+  const leadNewApplicants = (() => {
+    if (viewer !== 'team-lead-applicants') return null;
+    const group = allGroups.find((g) => g.team.uid === leadTeamUid);
+    if (!group) return null;
+    const roles = group.roles
+      .map((r) => ({
+        uid: r.uid,
+        title: r.roleTitle,
+        newCount: applicantsForRole(r.uid).filter((a) => a.unseen).length,
+      }))
+      .filter((r) => r.newCount > 0)
+      .sort((a, b) => b.newCount - a.newCount);
+    const newCount = roles.reduce((n, r) => n + r.newCount, 0);
+    return newCount > 0 ? { teamUid: group.team.uid, teamName: group.team.name, roles, newCount } : null;
+  })();
+
+  const openApplicants = (teamUid: string, roleUid: string) => {
+    setApplicantsView({ teamUid, roleUid });
+    window.scrollTo({ top: 0 });
+    document.body.scrollTo?.({ top: 0 });
+  };
+
+  const renderGroupCard = (group: IJobTeamGroup) => (
+    <JobTeamGroupCard
+      key={group.team.uid}
+      group={group}
+      newsVariant={NEWS_VARIANT}
+      /* The Refer button is on every row for every viewer. Only the
+         modal behind it needs an account — logged out the press opens
+         the sign-up door instead, which carries its own sign-in escape.
+         See the note above `JobReferRoleRow`. */
+      canOpenReferral={isLoggedIn}
+      onReferSignUp={onSignUp}
+      onViewJob={onViewJob}
+      appliedRoleUids={appliedRoleUids}
+      appliedAtByRole={appliedAtByRole}
+      savedRoleUids={savedRoleUids}
+      savedAtByRole={savedAtByRole}
+      onToggleSave={onToggleSave}
+      openInterest={openInterests.get(group.team.uid)}
+      onOpenRoleInterest={onOpenRoleInterest}
+      /* The owner's team: its card carries every state and each row
+         its ⋯ menu — see the note on the row's `manage` prop. */
+      manage={
+        manages(group.team.uid)
+          ? {
+              metaFor: (uid) => listings.get(uid),
+              onSetStatus: setListingStatus,
+              onDelete: deleteListing,
+              yours: viewer !== 'directory-admin',
+              /* Nobody has applied yet in the plain `team-lead` view — that
+                 one is about managing listings. See `BoardViewer`. */
+              applicantsFor: showsApplicants ? applicantsForRole : () => [],
+              openApplicants: (roleUid) => openApplicants(group.team.uid, roleUid),
+            }
+          : undefined
+      }
+    />
+  );
 
   const content = (
     <div className={contentCss.root}>
@@ -1391,6 +1822,18 @@ export default function JobBoardPrototype() {
           the one move that is theirs. */}
       {isPendingApproval && (
         <PendingApprovalBanner profileComplete={isProfileComplete(profile)} onUpdateProfile={openProfileEditor} />
+      )}
+
+      {/* A lead with unread applicants. It never meets the two above: a lead
+          arrives with a finished, approved profile. Lands on the role with the
+          most new — the page's own picker marks the rest. */}
+      {leadNewApplicants && (
+        <NewApplicantsBanner
+          teamName={leadNewApplicants.teamName}
+          newCount={leadNewApplicants.newCount}
+          roles={leadNewApplicants.roles}
+          onReview={() => openApplicants(leadNewApplicants.teamUid, leadNewApplicants.roles[0].uid)}
+        />
       )}
 
       {/* Mobile (< 1024): title + the "⊕ Filters" / sort trigger (desktop toolbar is hidden here). */}
@@ -1436,50 +1879,69 @@ export default function JobBoardPrototype() {
            "you have applied to nothing" and "nothing you applied to survived
            this rail", which is why the filtered case still gets the original
            line. */
-        <div className={s.empty}>
-          {appliedScope && appliedRoleUids.size === 0 ? (
-            <>
-              You haven&apos;t applied to anything yet. Roles you apply to collect here, so you can see what you&apos;ve
-              already gone for.{' '}
-              <button type="button" className={s.emptyLink} onClick={() => setParam(SCOPE_PARAM, undefined)}>
-                Browse all roles
-              </button>
-            </>
-          ) : (
-            <>No roles match your filters. Try clearing some.</>
+        <div className={s.emptyStack}>
+          <div className={s.empty}>
+            {savedScope && savedRoleUids.size === 0 ? (
+              <>
+                You haven&apos;t saved any roles yet. Roles you bookmark collect here, so you can come back to them.{' '}
+                <button type="button" className={s.emptyLink} onClick={() => setParam(SCOPE_PARAM, undefined)}>
+                  Browse all roles
+                </button>
+              </>
+            ) : appliedScope && appliedRoleUids.size === 0 ? (
+              <>
+                You haven&apos;t applied to anything yet. Roles you apply to collect here, so you can see what
+                you&apos;ve already gone for.{' '}
+                <button type="button" className={s.emptyLink} onClick={() => setParam(SCOPE_PARAM, undefined)}>
+                  Browse all roles
+                </button>
+              </>
+            ) : (
+              <>No roles match your filters. Try clearing some.</>
+            )}
+          </div>
+
+          {/* The other half of the answer. "Try clearing some" sends the reader
+            back to the roles they have already turned down; this is the thing
+            they can do instead. See `fallbackOpenRoles` for what it is narrowed
+            by, and why the team's name is on the title here and not on the
+            card. */}
+          {!appliedScope && fallbackOpenRoles.length > 0 && (
+            <div className={s.fallbackOpen}>
+              {/* No heading over these. One stood here — "Teams hiring ahead of
+                their postings" — and once the rows started asking "Didn't find
+                your role at X?" it was the same invitation said three times in
+                four inches. The rows are directly under "No roles match your
+                filters", which is all the framing they need. */}
+              {fallbackOpenRoles.map((team) => (
+                <OpenRoleRow
+                  key={team.uid}
+                  teamName={team.name}
+                  showTeam
+                  interest={openInterests.get(team.uid)}
+                  onExpressInterest={() => onOpenRoleInterest(team.uid)}
+                />
+              ))}
+            </div>
           )}
         </div>
-      ) : (
-        <div className={contentCss.list}>
-          {visibleGroups.map((group) => (
-            <JobTeamGroupCard
-              key={group.team.uid}
-              group={group}
-              newsVariant={NEWS_VARIANT}
-              /* The Refer button is on every row for every viewer. Only the
-                 modal behind it needs an account — logged out the press opens
-                 the sign-up door instead, which carries its own sign-in escape.
-                 See the note above `JobReferRoleRow`. */
-              canOpenReferral={isLoggedIn}
-              onReferSignUp={onSignUp}
-              onViewJob={onViewJob}
-              appliedRoleUids={appliedRoleUids}
-              appliedAtByRole={appliedAtByRole}
-              /* The owner's team: its card carries every state and each row
-                 its ⋯ menu — see the note on the row's `manage` prop. */
-              manage={
-                manages(group.team.uid)
-                  ? {
-                      metaFor: (uid) => listings.get(uid),
-                      onSetStatus: setListingStatus,
-                      onDelete: deleteListing,
-                      yours: viewer !== 'directory-admin',
-                    }
-                  : undefined
-              }
-            />
-          ))}
+      ) : plGroup ? (
+        <div className={s.boardSections}>
+          <section className={s.boardSection} aria-labelledby="board-section-pl">
+            <h2 id="board-section-pl" className={s.boardSectionLabel}>
+              From Protocol Labs
+            </h2>
+            <div className={contentCss.list}>{renderGroupCard(plGroup)}</div>
+          </section>
+          <section className={s.boardSection} aria-labelledby="board-section-network">
+            <h2 id="board-section-network" className={s.boardSectionLabel}>
+              Across the network
+            </h2>
+            <div className={contentCss.list}>{networkGroups.map((group) => renderGroupCard(group))}</div>
+          </section>
         </div>
+      ) : (
+        <div className={contentCss.list}>{visibleGroups.map((group) => renderGroupCard(group))}</div>
       )}
     </div>
   );
@@ -1522,8 +1984,11 @@ export default function JobBoardPrototype() {
         {/* (A `Details step` switch stood here while two drawings of the
             logged-out step 2 were being compared. It is gone with the losing
             one: a review switch left up after the decision invites the decision
-            to be re-litigated every time someone opens the page. The viewer
-            switch above is the only scaffolding on this board again.) */}
+            to be re-litigated every time someone opens the page.) */}
+
+        {/* (A `Role row` switch stood here comparing five ways a posting row
+            offers the job. "Row opens job" won — the row is the press, a chevron
+            says so — and the switch went with the losing four.) */}
       </div>
     </div>
   );
@@ -1532,7 +1997,51 @@ export default function JobBoardPrototype() {
     <>
       {nav}
       {reviewControls}
-      <DashboardPagesLayout filters={<JobBoardFilterView />} content={content} />
+      {applicantsGroup && applicantsView ? (
+        /* In the board's place, under the same navbar. `--applicants-top` tells
+           the page how tall that pinned navbar is — see its stylesheet. */
+        <div className={s.applicantsHost}>
+          <TeamApplicantsPage
+            teamName={applicantsGroup.team.name}
+            roles={applicantsGroup.roles.map((r) => ({
+              uid: r.uid,
+              title: r.roleTitle,
+              postingHref: r.applyUrl ?? undefined,
+              meta: [
+                r.seniority ? seniorityDisplayLabel(r.seniority) : null,
+                r.roleCategory,
+                r.location?.length ? r.location.join(', ') : null,
+              ]
+                .filter(Boolean)
+                .join(' · '),
+              postedAt: getJobDate(r),
+              applicants: applicantsForRole(r.uid),
+              interested: interestedForRole(r.uid),
+            }))}
+            initialRoleUid={applicantsView.roleUid}
+            onBack={() => setApplicantsView(null)}
+            backLabel="Back to job board"
+          />
+        </div>
+      ) : (
+        <DashboardPagesLayout filters={<JobBoardFilterView />} content={content} />
+      )}
+
+      {savedToast && (
+        <FollowToast>
+          Saved.{' '}
+          <button
+            type="button"
+            className={sp.toastLink}
+            onClick={() => {
+              setParam(SCOPE_PARAM, SCOPE_SAVED);
+              setSavedToast(false);
+            }}
+          >
+            View saved roles
+          </button>
+        </FollowToast>
+      )}
 
       {/* The whole application, in one drawer: read the job, fill in what it
           needs, write the note, apply. Three components used to stand here — a
@@ -1549,15 +2058,32 @@ export default function JobBoardPrototype() {
         profile={profile}
         onSaveProfile={onSaveProfile}
         onSubmitApplication={onSubmitApplication}
+        /* The posting's team, or — on the interest route, where there is no
+           posting — the open role's team. Either way the tick is not offered
+           to someone who already follows them. */
+        followsTeam={followedTeams.has(flowJob?.team.uid ?? flowInterestTeamUid ?? '')}
         onCreateAccount={onCreateAccount}
         loggedIn={isLoggedIn}
         onSignIn={onFlowSignIn}
         pendingApproval={isPendingApproval}
         jobAspirant={isJobAspirant}
+        askProfileReview={askProfileReview}
         applied={flowJob ? appliedRoleUids.has(flowJob.role.uid) : false}
         appliedAt={flowJob ? appliedAtByRole.get(flowJob.role.uid) : undefined}
         interested={flowJob ? interested.has(flowJob.role.uid) : false}
         onSetInterested={flowJob ? (on) => setRoleInterest(flowJob.role.uid, on) : undefined}
+        /* The open role's route: profile review, then the message to the team.
+           See `openInterestFlow`. */
+        interest={
+          flowInterestTeamUid
+            ? {
+                teamName: allGroups.find((g) => g.team.uid === flowInterestTeamUid)?.team.name ?? flowInterestTeamUid,
+                sent: openInterests.get(flowInterestTeamUid),
+                onSend: (note, followTeam) => sendOpenInterest(flowInterestTeamUid, note, followTeam),
+                onWithdraw: () => withdrawOpenInterest(flowInterestTeamUid),
+              }
+            : undefined
+        }
         /* The owner's drawer: from the Manage tab, or from All when a lead
            opens one of their own live roles — either way the footer is the
            listing's switch, not Apply. */
@@ -1600,7 +2126,14 @@ export default function JobBoardPrototype() {
           they have picked a job. */}
       <JobSignUpModal
         open={signUp}
-        onClose={() => setSignUp(false)}
+        /* Closing without an account drops the errand. Someone who backed out of
+           the sign-up did not ask to be handed the form they were pressing when
+           it opened — reopening it would be the board finishing a sentence they
+           chose to stop. */
+        onClose={() => {
+          setSignUp(false);
+          setPendingInterestTeamUid(null);
+        }}
         onSignUp={onSignUpSubmit}
         onSignIn={onSignUpModalSignIn}
         // DELETE WITH: the `design-canvas/` folder. See `canvasStates.ts`.
@@ -1622,6 +2155,10 @@ export default function JobBoardPrototype() {
           canvasFilled={canvasPin?.submitJobFilled}
         />
       )}
+
+      {/* (`OpenRoleModal` was mounted here — the open role's form as a dialog
+          over the board. It is the flow drawer's interest route now; see
+          `openInterestFlow` and `JobInterestPane`.) */}
     </>
   );
 }

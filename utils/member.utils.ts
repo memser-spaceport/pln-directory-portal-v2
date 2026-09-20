@@ -91,6 +91,7 @@ export const parseMemberDetails = (members: IMemberResponse[], teamId: string, i
       officeHours: parsedMember.officeHours || null,
       ohStatus: parsedMember.ohStatus,
       skills: parsedMember.skills || [],
+      customSkills: parsedMember.customSkills ?? [],
       teamLead,
       // projectContributions: parsedMember.projectContributions ?? null,
       teams,
@@ -258,7 +259,7 @@ export function getMembersListOptions(options: IMemberListOptions) {
     ...options,
     pagination: true,
     select:
-      'uid,name,openToWork,isRecent,isVerified,image.url,location.metroArea,location.country,location.region,location.city,skills.title,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.role,teamMemberRoles.team.name,teamMemberRoles.team.uid',
+      'uid,name,openToWork,isRecent,isVerified,image.url,location.metroArea,location.country,location.region,location.city,skills.title,customSkills,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.role,teamMemberRoles.team.name,teamMemberRoles.team.uid',
     // 'uid,name,isVerified,image.url,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,teamMemberRoles.role,teamMemberRoles.team.name,teamMemberRoles.team.uid',
   };
 }

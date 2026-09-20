@@ -199,9 +199,7 @@ export function TeamNewsDetails({ member, isLoggedIn, userInfo }: TeamNewsDetail
           </span>
           <span className={s.headerTitleText}>Updates from the team ({total})</span>
         </h2>
-        {canPost && userInfo?.uid && (
-          <PostNewsButton teamName={teamName} memberUid={userInfo.uid} onPost={() => setComposeOpen(true)} />
-        )}
+        {canPost && userInfo?.uid && <PostNewsButton teamName={teamName} onPost={() => setComposeOpen(true)} />}
       </div>
 
       <ul className={s.list}>

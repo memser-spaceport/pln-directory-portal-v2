@@ -28,6 +28,8 @@ import hab from '@/components/common/profile/DetailsSection/components/DetailsSe
 import { JobReferRoleRow } from '../job-board/JobReferRoleRow';
 
 import { SubmitPlusIcon } from './icons';
+import { RoleApplicants } from './RoleApplicants';
+import type { RoleApplicant } from './mocks';
 import l from './TeamOpenRoles.module.scss';
 
 /** Collapsed height. Two rows read as a sample; the count in the header carries the rest. */
@@ -52,6 +54,15 @@ interface TeamOpenRolesViewProps {
     metaFor: (roleUid: string) => ListingMeta | undefined;
     onSetStatus: (roleUid: string, status: ListingStatus) => void;
     onDelete: (roleUid: string) => void;
+    /**
+     * Who has applied to each listing, for the same viewer. Rendered under the
+     * row, on this page — a founder is not expected to visit the board, so the
+     * applicants come to the section rather than the section sending them
+     * there. See `RoleApplicants`.
+     */
+    applicantsFor: (roleUid: string) => RoleApplicant[];
+    /** The count line's press: the team's applicants page, opened on this role. */
+    openApplicants: (roleUid: string) => void;
   };
 }
 
@@ -123,24 +134,31 @@ export function TeamOpenRolesView({ group, submitHref, manage }: TeamOpenRolesVi
         <div className={l.list}>
           {visible.map((role) => {
             const meta = manage?.metaFor(role.uid);
+            const applicants = manage?.applicantsFor(role.uid) ?? [];
             return (
-              <JobReferRoleRow
-                key={role.uid}
-                role={role}
-                teamId={group!.team.uid}
-                teamName={group!.team.name}
-                team={group!.team}
-                source="team-profile"
-                manage={
-                  manage && meta
-                    ? {
-                        meta,
-                        onSetStatus: (status) => manage.onSetStatus(role.uid, status),
-                        onDelete: () => manage.onDelete(role.uid),
-                      }
-                    : undefined
-                }
-              />
+              /* The row and its applicants share one card: `.roleBlock` is the
+                 row's own grey and radius, so a role with nobody applied renders
+                 exactly as before, and one with applicants grows a footer inside
+                 the same shape instead of a second card under it. */
+              <div key={role.uid} className={l.roleBlock}>
+                <JobReferRoleRow
+                  role={role}
+                  teamId={group!.team.uid}
+                  teamName={group!.team.name}
+                  team={group!.team}
+                  source="team-profile"
+                  manage={
+                    manage && meta
+                      ? {
+                          meta,
+                          onSetStatus: (status) => manage.onSetStatus(role.uid, status),
+                          onDelete: () => manage.onDelete(role.uid),
+                        }
+                      : undefined
+                  }
+                />
+                {manage && <RoleApplicants applicants={applicants} onOpen={() => manage.openApplicants(role.uid)} />}
+              </div>
             );
           })}
         </div>

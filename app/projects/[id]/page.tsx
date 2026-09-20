@@ -241,11 +241,17 @@ export async function generateMetadata(props: IGenerateMetadata, parent: Resolvi
   const project = projectResponse?.data?.formattedData;
   const previousImages = (await parent).openGraph?.images || [];
   const logo = project?.logo || SOCIAL_IMAGE_URL;
+  const pageUrl = `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.PROJECTS}/${projectId}`;
+  const description = project?.name
+    ? `${project.name} on Protocol Labs Directory`
+    : 'Explore projects across the Protocol Labs network.';
   return {
     title: `${project?.name} | Protocol Labs Directory`,
+    description,
+    alternates: { canonical: pageUrl },
     openGraph: {
       type: 'website',
-      url: `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.TEAMS}/${projectId}`,
+      url: pageUrl,
       images: [logo, ...previousImages],
     },
   };

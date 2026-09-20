@@ -28,6 +28,10 @@ jest.mock('@/components/core/navbar/components/LoginBtn', () => ({ LoginBtn: () 
 jest.mock('@/components/core/navbar/components/Signup', () => ({ Signup: () => null }));
 jest.mock('@/components/core/application-search', () => ({ ApplicationSearch: () => null }));
 jest.mock('@/components/core/navbar/components/AccountMenu/AccountMenu', () => ({ AccountMenu: () => null }));
+// The (?) menu reads its one-time callout out of IndexedDB, which jsdom does
+// not have. Left unmocked it renders a tooltip on a timer inside a test about
+// the Home entry.
+jest.mock('@/components/core/navbar/components/HelpMenu', () => ({ HelpMenu: () => null }));
 jest.mock('@/components/core/navbar/components/NotificationsMenu', () => ({ NotificationsMenu: () => null }));
 jest.mock('@/components/core/NotificationBell', () => ({ NotificationBell: () => null }));
 jest.mock('@/components/core/navbar/components/navItems/MoreNavItems', () => ({ MoreNavItems: () => null }));

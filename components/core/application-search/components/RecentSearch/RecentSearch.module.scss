@@ -1,14 +1,12 @@
 @use 'styles/mixins';
-@use 'styles/media';
 
-$padding-inline: 16px;
-
+/* Inset only. Vertical spacing is the host's, so every section in the idle
+   list sits on one rhythm instead of each bringing its own. */
 .root {
   display: flex;
   flex-direction: column;
-  margin-top: 12px;
   gap: 8px;
-  padding: 8px 16px;
+  padding: 0 16px;
 
   .label {
     color: #64748b;
@@ -59,12 +57,4 @@ $padding-inline: 16px;
       filter: brightness(0.5);
     }
   }
-}
-
-.divider {
-  height: 1px;
-  width: 100%;
-  //margin-inline: -$padding-inline;
-  margin-block: 8px;
-  background: #e2e8f0;
 }

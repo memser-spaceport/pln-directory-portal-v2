@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 /**
@@ -48,6 +48,9 @@ jest.mock('@/services/jobs/hooks/useJobApplications', () => ({
   useRoleApplication: () => null,
 }));
 
+const mockOnJobApplyFollowDeclined = jest.fn();
+const mockOnJobApplyFollowFailed = jest.fn();
+
 jest.mock('@/analytics/jobs.analytics', () => ({
   useJobsAnalytics: () => ({
     onJobApplySubmitted: jest.fn(),
@@ -56,7 +59,27 @@ jest.mock('@/analytics/jobs.analytics', () => ({
     onJobApplyStepViewed: jest.fn(),
     onJobApplyFlowClosed: jest.fn(),
     onJobApplyExternalRedirected: jest.fn(),
+    onJobApplyFollowDeclined: (...args: unknown[]) => mockOnJobApplyFollowDeclined(...args),
+    onJobApplyFollowFailed: (...args: unknown[]) => mockOnJobApplyFollowFailed(...args),
   }),
+}));
+
+/* Default: the member already follows this team, so no tick is drawn and the
+   receipts below stay the sentences they always were. The follow cases reset
+   this to an empty set. */
+let mockFollowedUids = new Set<string>(['t2']);
+jest.mock('@/services/follow/hooks/useFollowedTeamUids', () => ({
+  useFollowedTeamUids: () => ({ followedTeamUids: mockFollowedUids, isSettled: true }),
+  useRememberTeamFollowed: () => jest.fn(),
+}));
+
+const mockFollowTeam = jest.fn();
+jest.mock('@/services/follow/follow.service', () => ({
+  followTeam: (...args: unknown[]) => mockFollowTeam(...args),
+}));
+
+jest.mock('@/analytics/follow.analytics', () => ({
+  useFollowAnalytics: () => ({ onTeamFollowed: jest.fn(), onTeamUnfollowed: jest.fn(), onTeamFollowFailed: jest.fn() }),
 }));
 
 import { JobApplyFlowDrawer } from '@/components/page/jobs/JobApplyFlowDrawer/JobApplyFlowDrawer';
@@ -97,7 +120,12 @@ const renderApplicationStep = (member: unknown) =>
 const send = () => fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
 
 describe('the receipt a sent application shows', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockFollowedUids = new Set<string>(['t2']);
+    mockOnJobApplyFollowDeclined.mockClear();
+    mockOnJobApplyFollowFailed.mockClear();
+  });
 
   it('tells a verified member it has gone', () => {
     renderApplicationStep({ id: 'm1', linkedinProfile: { id: 'li-1' } });
@@ -128,5 +156,71 @@ describe('the receipt a sent application shows', () => {
     send();
 
     expect(toastSuccess).toHaveBeenCalledWith(expect.stringContaining('Once we’ve reviewed it'));
+  });
+
+  /* The follow tick is checked by default, so a press that leaves it alone
+     follows the team — and the receipt says so, because nothing else on the
+     board will. Async: the clause waits on the follow's answer. */
+  it('says when the press also followed the team', async () => {
+    mockFollowedUids = new Set();
+    mockFollowTeam.mockResolvedValue({ following: true, entityType: 'TEAM', entityUid: 't2', followerCount: 1 });
+
+    renderApplicationStep({ id: 'm1', linkedinProfile: { id: 'li-1' } });
+    send();
+
+    await waitFor(() =>
+      expect(toastSuccess).toHaveBeenCalledWith(
+        "Applied to Founding Backend Engineer at Bacalhau. Your profile went with your note. You're now following Bacalhau.",
+      ),
+    );
+    expect(mockFollowTeam).toHaveBeenCalledWith('t2');
+    expect(mockOnJobApplyFollowDeclined).not.toHaveBeenCalled();
+    expect(mockOnJobApplyFollowFailed).not.toHaveBeenCalled();
+  });
+
+  /* An unticked box is the opt-out: the application still goes, the follow
+     does not, and the receipt is the one it always was. */
+  it('leaves the receipt alone when the tick was removed', () => {
+    mockFollowedUids = new Set();
+
+    renderApplicationStep({ id: 'm1', linkedinProfile: { id: 'li-1' } });
+    fireEvent.click(screen.getByText('Follow Bacalhau to hear when they post or hire'));
+    send();
+
+    expect(toastSuccess).toHaveBeenCalledWith(
+      'Applied to Founding Backend Engineer at Bacalhau. Your profile went with your note.',
+    );
+    expect(mockFollowTeam).not.toHaveBeenCalled();
+    expect(mockOnJobApplyFollowDeclined).toHaveBeenCalledWith({
+      job_id: 'r1',
+      team_id: 't2',
+      viewer_state: 'profile-ready',
+      source: 'job-board',
+    });
+    expect(mockOnJobApplyFollowFailed).not.toHaveBeenCalled();
+  });
+
+  /* A failed follow never earns the clause — the application stands, the
+     receipt stays silent about a follow that did not happen. */
+  it('omits the clause when the follow itself failed', async () => {
+    mockFollowedUids = new Set();
+    mockFollowTeam.mockResolvedValue(null);
+
+    renderApplicationStep({ id: 'm1', linkedinProfile: { id: 'li-1' } });
+    send();
+
+    await waitFor(() =>
+      expect(toastSuccess).toHaveBeenCalledWith(
+        'Applied to Founding Backend Engineer at Bacalhau. Your profile went with your note.',
+      ),
+    );
+    expect(mockFollowTeam).toHaveBeenCalledWith('t2');
+    expect(mockOnJobApplyFollowFailed).toHaveBeenCalledWith({
+      job_id: 'r1',
+      team_id: 't2',
+      viewer_state: 'profile-ready',
+      source: 'job-board',
+    });
+    expect(mockOnJobApplyFollowDeclined).not.toHaveBeenCalled();
   });
 });

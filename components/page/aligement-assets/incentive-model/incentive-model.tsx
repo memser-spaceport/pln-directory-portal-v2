@@ -336,7 +336,7 @@ export default function IncentiveModel({ categoryDataByRound, allRounds, current
           <div className="incentive-model__description">
             <p>
               Each snapshot period, a pool of 10,000 PLAA is available to reward participants who complete verified{' '}
-              <Link href="https://directory.plnetwork.io/alignment-asset/activities" className="incentive-model__link" onClick={handleActivitiesLinkClick}>
+              <Link href="/alignment-asset/activities" className="incentive-model__link" onClick={handleActivitiesLinkClick}>
                 Incentivized Activities
               </Link>
               . Participants collect points for each verified activity they complete during the snapshot period.

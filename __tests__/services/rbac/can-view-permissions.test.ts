@@ -5,6 +5,7 @@ import { canViewFounderDb } from '@/services/rbac/utils/founderDb/canViewFounder
 import { canViewFounderGuide } from '@/services/rbac/utils/founderGuide/canViewFounderGuide';
 import { canViewGantry } from '@/services/rbac/utils/gantry/canViewGantry';
 import { canViewInvestorDb } from '@/services/rbac/utils/investorDb/canViewInvestorDb';
+import { canViewAts } from '@/services/rbac/utils/ats/canViewAts';
 import { FOUNDER_DB_ENABLED } from '@/services/founders/constants';
 
 const perms = (...codes: string[]) => new Set(codes);
@@ -17,6 +18,7 @@ const EVERYTHING_ELSE = perms(
   'code_agent_sessions.view',
   'founder_db.view',
   'founder_guides.view',
+  'ats_user',
 );
 
 describe('canViewAiApps', () => {
@@ -89,6 +91,27 @@ describe('canViewFounderDb — gated by a kill switch as well as a permission', 
   });
 });
 
+describe('canViewAts', () => {
+  it('grants on the ats_user permission', () => {
+    expect(canViewAts(perms(PERMISSIONS.ATS.PERM_USER))).toBe(true);
+  });
+
+  it('denies a member with no permissions at all', () => {
+    expect(canViewAts(NONE)).toBe(false);
+  });
+
+  it('does not accept a scoped variant — the code is matched exactly', () => {
+    expect(canViewAts(perms(`${PERMISSIONS.ATS.PERM_USER}.admin`))).toBe(false);
+  });
+
+  it('denies a member holding every other area but this one', () => {
+    const others = new Set(EVERYTHING_ELSE);
+    others.delete(PERMISSIONS.ATS.PERM_USER);
+
+    expect(canViewAts(others)).toBe(false);
+  });
+});
+
 describe('canViewFounderGuide — takes a list, not a set', () => {
   it('grants on the founder-guides permission', () => {
     expect(canViewFounderGuide([PERMISSIONS.FOUNDER_GUIDE.PERM_VIEW])).toBe(true);
@@ -118,6 +141,7 @@ describe('the checks do not leak into each other', () => {
     expect(canViewGantry(EVERYTHING_ELSE)).toBe(true);
     expect(canViewAgentSessions(EVERYTHING_ELSE)).toBe(true);
     expect(canViewFounderDb(EVERYTHING_ELSE)).toBe(FOUNDER_DB_ENABLED);
+    expect(canViewAts(EVERYTHING_ELSE)).toBe(true);
   });
 
   it('a member with nothing passes none of them', () => {
@@ -127,5 +151,6 @@ describe('the checks do not leak into each other', () => {
     expect(canViewAgentSessions(NONE)).toBe(false);
     expect(canViewFounderDb(NONE)).toBe(false);
     expect(canViewFounderGuide([])).toBe(false);
+    expect(canViewAts(NONE)).toBe(false);
   });
 });

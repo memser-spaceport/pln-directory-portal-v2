@@ -546,3 +546,36 @@
 
 // The sent state needs no styles of its own: it reuses the centred envelope /
 // title / desc stack and drops to a single action button.
+
+// --- Someone outside the network ---------------------------------------------
+//
+// The referee field in its other state. The label line keeps "Who are you
+// referring?" and takes the way back on its right — `.resetLink`, the modal's
+// own quiet text action, the same one the note's label line carries — and three
+// production `FormField`s stand where the search was. The label row is
+// `.templateLabelRow`'s three declarations plus a width: the FormMultiSelect
+// `.field` wrapper it sits in is `align-items: flex-start`, which would shrink
+// the row to its text and park the link mid-card.
+.outsideHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+// 12px between the three, not the form's 20: they are one answer in three parts,
+// and the group has to read tighter than the fields around it — equidistant
+// reads as unrelated. Each FormField brings its own 4px label gap and an 8px
+// error line, so 12 is what lands the next label a readable step below the
+// previous box without the trio splitting into three questions.
+.outsideFields {
+  // 8px on top of the wrapper's own 4: the question and its first part are two
+  // labels in a stack, and at 4px "Full name" read as a second line of "Who are
+  // you referring?" rather than the first of three answers under it.
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}

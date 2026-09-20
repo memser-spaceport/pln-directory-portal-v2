@@ -54,6 +54,7 @@ const mockAnalytics = {
   onCvImportSaved: jest.fn(),
   onCvImportSaveFailed: jest.fn(),
   onCvImportCancelled: jest.fn(),
+  onMemberCustomSkillAdded: jest.fn(),
 };
 
 import { CvFirstCard } from '@/components/page/jobs/JobProfileDrawer/CvFirstCard';

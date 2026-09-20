@@ -51,6 +51,22 @@ jest.mock('@/services/jobs/hooks/useJobApplications', () => ({
   useRoleApplication: () => null,
 }));
 
+/* The drawer asks who this member follows to decide whether the follow tick is
+   offered at all. Default: nobody — the tick is on the table. */
+let mockFollowedUids = new Set<string>();
+jest.mock('@/services/follow/hooks/useFollowedTeamUids', () => ({
+  useFollowedTeamUids: () => ({ followedTeamUids: mockFollowedUids, isSettled: true }),
+  useRememberTeamFollowed: () => jest.fn(),
+}));
+
+jest.mock('@/services/follow/follow.service', () => ({
+  followTeam: jest.fn(),
+}));
+
+jest.mock('@/analytics/follow.analytics', () => ({
+  useFollowAnalytics: () => ({ onTeamFollowed: jest.fn(), onTeamUnfollowed: jest.fn(), onTeamFollowFailed: jest.fn() }),
+}));
+
 jest.mock('@/analytics/jobs.analytics', () => ({
   useJobsAnalytics: () => ({
     onJobApplySubmitted: jest.fn(),
@@ -67,11 +83,11 @@ import { JobApplyFlowDrawer } from '@/components/page/jobs/JobApplyFlowDrawer/Jo
 import {
   INTEREST_CONFIRMED_TITLE,
   INTEREST_CTA_LABEL,
-  INTEREST_SUBTITLE_MEMBER,
-  INTEREST_SUBTITLE_VISITOR,
+  INTEREST_SUBTITLE,
   INTEREST_UNDO_LABEL,
   JobInterestBanner,
   interestPromptTitle,
+  teamFollowOfferLabel,
 } from '@/components/page/jobs/JobInterestBanner/JobInterestBanner';
 import { UNLOCK_TITLE } from '@/components/page/jobs/JobUnlock/unlockCopy';
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
@@ -79,16 +95,7 @@ import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 const TEAM_NAME = 'Filecoin Foundation';
 
 const renderBanner = (props: Partial<React.ComponentProps<typeof JobInterestBanner>> = {}) =>
-  render(
-    <JobInterestBanner
-      teamName={TEAM_NAME}
-      isInterested={false}
-      isLoggedIn
-      error={null}
-      onToggle={jest.fn()}
-      {...props}
-    />,
-  );
+  render(<JobInterestBanner teamName={TEAM_NAME} isInterested={false} error={null} onToggle={jest.fn()} {...props} />);
 
 const action = () => screen.getByRole('button');
 
@@ -97,29 +104,22 @@ describe('the banner itself', () => {
     renderBanner();
 
     expect(screen.getByText(interestPromptTitle(TEAM_NAME))).toBeInTheDocument();
-    expect(screen.getByText(INTEREST_SUBTITLE_MEMBER)).toBeInTheDocument();
+    expect(screen.getByText(INTEREST_SUBTITLE)).toBeInTheDocument();
     expect(action()).toHaveAccessibleName(INTEREST_CTA_LABEL);
   });
 
-  /* The design's sentence names the LabOS profile, which a signed-out visitor
-     does not have. The press really does open an account first, so the visitor's
-     copy says so — the same rewording this drawer has already applied to two
-     other over-promises. Both states still carry the "if you're a match"
-     qualifier; only the profile half differs. */
-  it('does not promise to share a profile the visitor has not got', () => {
-    renderBanner({ isLoggedIn: false });
-
-    expect(screen.getByText(INTEREST_SUBTITLE_VISITOR)).toBeInTheDocument();
-    expect(screen.queryByText(INTEREST_SUBTITLE_MEMBER)).not.toBeInTheDocument();
-  });
+  /* (A second case stood here, asserting a separate sentence for a signed-out
+     visitor. `d5375bd05` withheld the banner from visitors entirely, so that
+     state has been unreachable since — and the test went on passing, because it
+     rendered the component directly rather than through the gate. The one rule
+     that IS reachable is covered in `__tests__/services/jobs/job-board-viewer.test.ts`.) */
 
   it('confirms without a subtitle, because the title is the whole message', () => {
     renderBanner({ isInterested: true });
 
     expect(screen.getByText(INTEREST_CONFIRMED_TITLE)).toBeInTheDocument();
     expect(action()).toHaveAccessibleName(INTEREST_UNDO_LABEL);
-    expect(screen.queryByText(INTEREST_SUBTITLE_MEMBER)).not.toBeInTheDocument();
-    expect(screen.queryByText(INTEREST_SUBTITLE_VISITOR)).not.toBeInTheDocument();
+    expect(screen.queryByText(INTEREST_SUBTITLE)).not.toBeInTheDocument();
   });
 
   it('asks for the state it is not in', () => {
@@ -127,13 +127,11 @@ describe('the banner itself', () => {
 
     const { rerender } = renderBanner({ onToggle });
     fireEvent.click(action());
-    expect(onToggle).toHaveBeenCalledWith(true);
+    expect(onToggle).toHaveBeenCalledWith(true, false, false);
 
-    rerender(
-      <JobInterestBanner teamName={TEAM_NAME} isInterested isLoggedIn error={null} onToggle={onToggle} />,
-    );
+    rerender(<JobInterestBanner teamName={TEAM_NAME} isInterested error={null} onToggle={onToggle} />);
     fireEvent.click(action());
-    expect(onToggle).toHaveBeenLastCalledWith(false);
+    expect(onToggle).toHaveBeenLastCalledWith(false, false, false);
   });
 
   it('puts a refusal where the offer was, and leaves the control pressable', () => {
@@ -141,10 +139,38 @@ describe('the banner itself', () => {
     renderBanner({ error: 'Could not save your interest', onToggle });
 
     expect(screen.getByText('Could not save your interest')).toBeInTheDocument();
-    expect(screen.queryByText(INTEREST_SUBTITLE_MEMBER)).not.toBeInTheDocument();
+    expect(screen.queryByText(INTEREST_SUBTITLE)).not.toBeInTheDocument();
 
     fireEvent.click(action());
-    expect(onToggle).toHaveBeenCalledWith(true);
+    expect(onToggle).toHaveBeenCalledWith(true, false, false);
+  });
+
+  /* The follow offer: one row under the subtitle while the signal is unsent,
+     and the tick as it stands rides the press. */
+  it('carries the follow tick into the press that sends the signal', () => {
+    const onToggle = jest.fn();
+    renderBanner({ follow: { checked: true, onChange: jest.fn() }, onToggle });
+
+    expect(screen.getByText(teamFollowOfferLabel(TEAM_NAME))).toBeInTheDocument();
+
+    fireEvent.click(action());
+    expect(onToggle).toHaveBeenCalledWith(true, true, true);
+  });
+
+  it('sends no follow when the tick was removed', () => {
+    const onToggle = jest.fn();
+    renderBanner({ follow: { checked: false, onChange: jest.fn() }, onToggle });
+
+    fireEvent.click(action());
+    expect(onToggle).toHaveBeenCalledWith(true, false, true);
+  });
+
+  /* Once the signal is in, the footer's press is Undo — and Undo is not an
+     unfollow, so there is no press for the tick to ride. */
+  it('withdraws the offer once the signal is in', () => {
+    renderBanner({ isInterested: true, follow: { checked: true, onChange: jest.fn() } });
+
+    expect(screen.queryByText(teamFollowOfferLabel(TEAM_NAME))).not.toBeInTheDocument();
   });
 
   /* The reason the two states share one `<button>`. If someone splits this into
@@ -157,9 +183,7 @@ describe('the banner itself', () => {
     before.focus();
     expect(document.activeElement).toBe(before);
 
-    rerender(
-      <JobInterestBanner teamName={TEAM_NAME} isInterested isLoggedIn error={null} onToggle={jest.fn()} />,
-    );
+    rerender(<JobInterestBanner teamName={TEAM_NAME} isInterested error={null} onToggle={jest.fn()} />);
 
     expect(action()).toBe(before);
     expect(document.activeElement).toBe(before);
@@ -175,7 +199,11 @@ describe('the banner itself', () => {
   });
 });
 
-const role = { uid: 'r1', roleTitle: 'Protocol Engineer', applyUrl: 'https://example.com/apply' } as unknown as IJobRole;
+const role = {
+  uid: 'r1',
+  roleTitle: 'Protocol Engineer',
+  applyUrl: 'https://example.com/apply',
+} as unknown as IJobRole;
 const team = { uid: 't2', name: TEAM_NAME } as unknown as IJobTeam;
 
 const settledInterest = {
@@ -219,6 +247,10 @@ const renderDrawer = (props: Partial<React.ComponentProps<typeof JobApplyFlowDra
 const bannerTitle = () => screen.queryByText(interestPromptTitle(TEAM_NAME));
 
 describe('when the drawer offers it', () => {
+  beforeEach(() => {
+    mockFollowedUids = new Set();
+  });
+
   it('shows it to a member reading a role', () => {
     renderDrawer();
     expect(bannerTitle()).toBeInTheDocument();
@@ -254,27 +286,35 @@ describe('when the drawer offers it', () => {
     expect(bannerTitle()).not.toBeInTheDocument();
   });
 
-  /* The divergence from Figma, pinned. The design draws this banner only in the
-     "Signed up" frames; logged out, that slot holds `JobUnlockBanner` alone. The
-     ticket asks for the CTA logged out too, so both render — interest first.
-     If a later design review reverses this, it should fail here and be changed
-     deliberately rather than drift. */
-  it('stacks above the unlocks card for a signed-out visitor, in that order', () => {
-    const { container } = renderDrawer({ isLoggedIn: false, memberUid: undefined, viewerState: 'logged-out' });
+  /* A signed-out visitor gets the unlocks card and nothing above it — the
+     composition the Figma draws. The drawer's markup can stack both, and a test
+     here used to assert that it did, by handing the drawer an `interest` prop
+     the controller never supplies without a session. Wiring none is what
+     production does, so that is what this asserts. */
+  it('leaves a signed-out visitor the unlocks card alone', () => {
+    renderDrawer({ isLoggedIn: false, memberUid: undefined, viewerState: 'logged-out', interest: undefined });
 
-    const interest = bannerTitle();
-    const unlocks = screen.getByRole('heading', { name: UNLOCK_TITLE });
-    expect(interest).toBeInTheDocument();
-    expect(unlocks).toBeInTheDocument();
-
-    const order = interest!.compareDocumentPosition(unlocks);
-    expect(order & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(container).toBeTruthy();
+    expect(screen.getByRole('heading', { name: UNLOCK_TITLE })).toBeInTheDocument();
+    expect(bannerTitle()).not.toBeInTheDocument();
   });
 
   it('leaves a signed-in member the interest banner and no unlocks card', () => {
     renderDrawer();
     expect(bannerTitle()).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: UNLOCK_TITLE })).not.toBeInTheDocument();
+  });
+
+  /* The banner's follow row, decided by the drawer: offered to a member who
+     does not follow the team, withheld from one who does — there is nothing
+     left to offer. */
+  it('offers the follow tick when the member does not follow the team', () => {
+    renderDrawer();
+    expect(screen.getByText(teamFollowOfferLabel(TEAM_NAME))).toBeInTheDocument();
+  });
+
+  it('withholds the follow tick when the member already follows the team', () => {
+    mockFollowedUids = new Set(['t2']);
+    renderDrawer();
+    expect(screen.queryByText(teamFollowOfferLabel(TEAM_NAME))).not.toBeInTheDocument();
   });
 });

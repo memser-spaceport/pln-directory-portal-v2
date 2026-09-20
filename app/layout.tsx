@@ -7,6 +7,7 @@ import React, { Suspense } from 'react';
 
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+import { getApplicationBaseUrl } from '@/utils/seo';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import QueryProvider from '@/providers/QueryProvider';
 import StoreInitializer from '@/providers/StoreInitializer';
@@ -37,12 +38,14 @@ import {
 
 const inter = Inter({ subsets: ['latin'] });
 
+const applicationBaseUrl = getApplicationBaseUrl();
+
 export const metadata: Metadata = {
+  metadataBase: applicationBaseUrl ? new URL(applicationBaseUrl) : undefined,
   title: 'Protocol Labs Directory',
   description: 'The Protocol Labs Directory drives breakthroughs in computing to push humanity forward.',
   openGraph: {
     type: 'website',
-    url: process.env.APPLICATION_BASE_URL,
     images: [
       {
         url: SOCIAL_IMAGE_URL,

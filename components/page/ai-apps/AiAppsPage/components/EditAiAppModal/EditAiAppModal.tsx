@@ -13,6 +13,8 @@ import { useUpdateAiAppFile } from '@/services/ai-apps/hooks/useUpdateAiAppFile'
 import { useAiAppPrdSize } from '@/services/ai-apps/hooks/useAiAppPrdSize';
 import { formatFileSize } from '@/utils/file.utils';
 
+import { AiAppTagsSelect } from './components/AiAppTagsSelect';
+
 import s from './EditAiAppModal.module.scss';
 
 /**
@@ -41,7 +43,7 @@ function prdFormatBadge(state: PrdState): string {
 }
 
 /**
- * "Edit details" — name, description, and the optional one-pager. Plain
+ * "Edit details" — name, description, tags, and the optional one-pager. Plain
  * metadata saves are a JSON PATCH; setting or replacing the one-pager is a
  * multipart PATCH carrying the file itself (`-F file=@one-pager.md`) — the
  * backend derives `prd` from the file's contents, so its bytes are never
@@ -59,6 +61,7 @@ export function EditAiAppModal({ app, onClose }: Props) {
 
   const [name, setName] = useState(app.name);
   const [description, setDescription] = useState(app.description);
+  const [tags, setTags] = useState<string[]>(app.tags ?? []);
   const [prd, setPrd] = useState<PrdState | null>(() =>
     hasPrd(app) ? { kind: 'existing', url: app.prd as string } : null,
   );
@@ -101,10 +104,11 @@ export function EditAiAppModal({ app, onClose }: Props) {
     // backend reads the one-pager from the file itself, never from JSON text.
     const result =
       prd?.kind === 'file'
-        ? await saveFile({ name: trimmedName, description: trimmedDescription, file: prd.file })
+        ? await saveFile({ name: trimmedName, description: trimmedDescription, tags, file: prd.file })
         : await savePatch({
             name: trimmedName,
             description: trimmedDescription,
+            tags,
             // Only ship `prd` when clearing a one-pager that existed before —
             // an unchanged `existing` one-pager is never re-sent.
             ...(prd === null && hadInitialPrd ? { prd: null } : {}),
@@ -159,6 +163,14 @@ export function EditAiAppModal({ app, onClose }: Props) {
               disabled={isSaving}
             />
           </label>
+
+          <div className={s.field}>
+            <label className={s.label} htmlFor="ai-app-tags">
+              Tags
+            </label>
+            <AiAppTagsSelect value={tags} onChange={setTags} disabled={isSaving} />
+            <p className={s.helpText}>Members use tags to browse and filter the AI Apps directory.</p>
+          </div>
 
           <div className={s.field}>
             <span className={s.label}>1-pager (HTML or Markdown)</span>

@@ -16,6 +16,7 @@ import {
   ForumIcon,
   PlaaIcon,
   NetworkIntelligenceDashIcon,
+  PlAtsIcon,
 } from '../components/icons';
 import { MagicSparklesIcon } from '@/components/icons';
 import { PL_INFRA_OS_PATH } from '@/services/ai-apps/constants';
@@ -159,5 +160,13 @@ export const NETWORK_INTELLIGENCE_DASH_LINK: ISubItem = {
   href: 'https://intelligence-reports.plnetwork.io/',
   title: 'Network Intelligence Dash',
   description: 'Tracks the core PL network KPIs organized by strategic pillar',
+  external: true,
+};
+
+export const PL_ATS_LINK: ISubItem = {
+  icon: <PlAtsIcon />,
+  href: 'https://ats.os.pl.xyz',
+  title: 'PL ATS',
+  description: 'AI-native sourcing and hiring pipeline for PL Infra',
   external: true,
 };

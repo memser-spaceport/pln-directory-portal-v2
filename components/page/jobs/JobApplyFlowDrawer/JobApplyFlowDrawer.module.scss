@@ -169,6 +169,23 @@
   }
 }
 
+// --- The open section's status, in the bar -----------------------------------
+//
+// The slot the profile step's status row renders into (`SectionStatusRow`): the
+// way back to a card that was scrolled away, and its Save, beside Continue. The
+// drawer already has a bar, so the presses join it rather than floating over it.
+// They take the hint's place, so Continue keeps its end of the bar. Empty — and
+// so not laid out — the rest of the time.
+.footerStatus {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+
+  &:empty {
+    display: none;
+  }
+}
+
 /* The footer's button, in every step of the flow.
 
    `justify-content: space-between` does not stop a flex item shrinking, and a

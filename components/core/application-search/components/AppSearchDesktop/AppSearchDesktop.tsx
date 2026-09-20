@@ -16,6 +16,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { useOnClickOutside } from '@/hooks/useOnClickOutside';
 import { AiConversationHistory } from '@/components/core/application-search/components/AiConversationHistory/AiConversationHistory';
 import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
+import { useRecordRecentSearch } from '@/services/search/hooks/useRecordRecentSearch';
 import { SearchCategories } from '@/components/core/application-search/components/SearchCategories';
 
 interface Props {
@@ -105,6 +106,10 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
 
   const { data, isLoading } = useFullApplicationSearch(searchTerm);
 
+  /* Recent used to be written by that hook's fetcher; it is the caller's job
+     now. See useRecordRecentSearch. */
+  useRecordRecentSearch(searchTerm);
+
   const isOpen = isFocused; //  || !!data;
 
   const handleChange = useCallback((val: string) => {
@@ -134,7 +139,15 @@ export const AppSearchDesktop = ({ isLoggedIn, userInfo, authToken }: Props) => 
     if (!searchTerm) {
       return (
         <>
-          {isLoggedIn && <RecentSearch onSelect={handleChange} />}
+          {isLoggedIn && (
+            <>
+              <div className={s.recentSearchDivider} />
+              <div className={s.recentSearchBody}>
+                <RecentSearch onSelect={handleChange} />
+              </div>
+              <div className={s.recentSearchDivider} />
+            </>
+          )}
           {isLoggedIn && <AiConversationHistory onClick={handleFullSearchClose} isLoggedIn={isLoggedIn} />}
         </>
       );

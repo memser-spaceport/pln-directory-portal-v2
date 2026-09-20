@@ -209,6 +209,7 @@ export const getMember = async (
     scheduleMeetingCount: result.scheduleMeetingCount || 0,
     location: result?.location,
     skills: result.skills || [],
+    customSkills: result.customSkills ?? [],
     teamLead,
     projectContributions: result.projectContributions ?? null,
     teams,
@@ -342,7 +343,7 @@ export const getMembersForProjectForm = async (teamId = null) => {
   let response;
   if (teamId) {
     response = await fetch(
-      `${process.env.DIRECTORY_API_URL}/v1/members?teamMemberRoles.team.uid=${teamId}&&select=uid,name,image.url,preferences,teamMemberRoles.teamLead,isVerified,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&&orderBy=name,asc&isVerified=all`,
+      `${process.env.DIRECTORY_API_URL}/v1/members?teamMemberRoles.team.uid=${teamId}&&select=uid,name,image.url,preferences,teamMemberRoles.teamLead,isVerified,teamMemberRoles.mainTeam,teamMemberRoles.team,teamMemberRoles.role,hasInactiveEmail&&pagination=false&&orderBy=name,asc&isVerified=all`,
       {
         method: 'GET',
         cache: 'no-store',
@@ -350,7 +351,7 @@ export const getMembersForProjectForm = async (teamId = null) => {
     );
   } else {
     response = await fetch(
-      `${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,preferences,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,isVerified,teamMemberRoles.team,teamMemberRoles.role&&pagination=false&orderBy=name,asc&isVerified=all`,
+      `${process.env.DIRECTORY_API_URL}/v1/members?select=uid,name,image.url,preferences,teamMemberRoles.teamLead,teamMemberRoles.mainTeam,isVerified,teamMemberRoles.team,teamMemberRoles.role,hasInactiveEmail&&pagination=false&orderBy=name,asc&isVerified=all`,
       {
         method: 'GET',
         cache: 'no-store',

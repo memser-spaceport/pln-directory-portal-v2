@@ -13,16 +13,27 @@ jest.mock('@/services/ai-apps/hooks/useAiApps', () => ({
 
 const mockFiltersCleared = jest.fn();
 const mockCreatorSelected = jest.fn();
+const mockTagSelected = jest.fn();
 const mockSearchApplied = jest.fn();
 jest.mock('@/analytics/ai-apps.analytics', () => ({
   useAiAppsAnalytics: () => ({
     onFiltersCleared: mockFiltersCleared,
     onCreatorFilterSelected: mockCreatorSelected,
+    onTagFilterSelected: mockTagSelected,
     onSearchApplied: mockSearchApplied,
   }),
 }));
 
-const app = (uid: string, creatorName: string): AiApp => ({
+jest.mock('@/services/ai-apps/hooks/useAiAppTags', () => ({
+  useAiAppTags: () => ({
+    tags: [{ slug: 'venture', label: 'Venture & Portfolio', description: '' }],
+    maxPerApp: 5,
+    getLabel: (slug: string) => (slug === 'venture' ? 'Venture & Portfolio' : slug),
+    isLoading: false,
+  }),
+}));
+
+const app = (uid: string, creatorName: string, tags?: string[]): AiApp => ({
   uid,
   memberUid: 'm',
   appId: 'app-id',
@@ -40,6 +51,7 @@ const app = (uid: string, creatorName: string): AiApp => ({
   createdAt: '2026-07-01T00:00:00.000Z',
   updatedAt: '2026-07-01T00:00:00.000Z',
   member: { uid: `m-${creatorName}`, name: creatorName, image: null },
+  tags,
 });
 
 const resetStore = () => act(() => useAiAppsFilterStore.getState().setAllParams(new URLSearchParams()));
@@ -68,6 +80,28 @@ describe('AiAppsFilter', () => {
     const creators = screen.getAllByText(/Nina Chen|Ada Lovelace/).map((el) => el.textContent);
     expect(creators).toEqual(['Ada Lovelace', 'Nina Chen']);
     expect(screen.getByText('Built by')).toBeInTheDocument();
+  });
+
+  it('hides the Tags section when no app is tagged', () => {
+    render(<AiAppsFilter />);
+
+    expect(screen.queryByText('Tags')).not.toBeInTheDocument();
+  });
+
+  it('offers only tags in use, labelled from the vocabulary, and ticking one writes the param', async () => {
+    mockUseAiApps.mockReturnValue({
+      apps: [app('a1', 'Nina Chen', ['venture']), app('a2', 'Ada Lovelace')],
+      isLoading: false,
+      isError: false,
+    });
+    const user = userEvent.setup();
+    render(<AiAppsFilter />);
+
+    expect(screen.getByText('Tags')).toBeInTheDocument();
+    await user.click(screen.getByText('Venture & Portfolio'));
+
+    expect(useAiAppsFilterStore.getState().params.get('tags')).toBe('venture');
+    expect(mockTagSelected).toHaveBeenCalledWith(expect.objectContaining({ tags: ['venture'] }));
   });
 
   it('ticking a creator writes the facet param', async () => {

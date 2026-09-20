@@ -89,6 +89,8 @@ export const JOBS_ANALYTICS = {
   ON_JOB_REFER_FAILED: 'job-refer-failed',
   ON_JOB_REFER_SHARE_MENU_OPENED: 'job-refer-share-menu-opened',
   ON_JOB_REFER_SHARED: 'job-refer-shared',
+  ON_JOB_REFER_SHARE_LINK_OPENED: 'job-refer-share-link-opened',
+  ON_JOB_EMAIL_PROFILE_LINK_CLICKED: 'job-email-profile-link-clicked',
   ON_JOB_APPLY_CLICKED: 'job-apply-clicked',
   ON_JOB_APPLY_SIGNUP_SUBMITTED: 'job-apply-signup-submitted',
   ON_JOB_APPLY_SIGNUP_FAILED: 'job-apply-signup-failed',
@@ -106,6 +108,19 @@ export const JOBS_ANALYTICS = {
   ON_JOB_INTEREST_MARKED: 'job-interest-marked',
   ON_JOB_INTEREST_UNDONE: 'job-interest-undone',
   ON_JOB_INTEREST_FAILED: 'job-interest-failed',
+  /* The open-role signal — interest in a TEAM, with no role attached. Its own
+     events rather than the role ones with a null job: the two convert
+     differently (one is "this posting", the other "this employer"), and a
+     shared name would make either funnel unreadable. */
+  ON_TEAM_INTEREST_MARKED: 'team-interest-marked',
+  ON_TEAM_INTEREST_FAILED: 'team-interest-failed',
+  /* Follow tick on apply / interest. Accepted follows reuse team-news-team-followed
+     with source job-apply | job-interest. These two are the missing halves:
+     opting out of the default-on offer, and an apply that landed while the
+     follow request did not. */
+  ON_JOB_APPLY_FOLLOW_DECLINED: 'job-apply-follow-declined',
+  ON_JOB_INTEREST_FOLLOW_DECLINED: 'job-interest-follow-declined',
+  ON_JOB_APPLY_FOLLOW_FAILED: 'job-apply-follow-failed',
 };
 
 export const EVENTS = {
@@ -192,6 +207,9 @@ export const JOIN_NETWORK_MENUS = [
 export const COMMON_ANALYTICS_EVENTS = {
   NAVBAR_MENU_ITEM_CLICKED: 'navbar-menu-item-clicked',
   NAVBAR_GET_HELP_ITEM_CLICKED: 'navbar-get-help-item-clicked',
+  NAVBAR_HELP_MENU_OPENED: 'navbar-help-menu-opened',
+  NAVBAR_HELP_CALLOUT_SHOWN: 'navbar-help-callout-shown',
+  NAVBAR_HELP_CALLOUT_DISMISSED: 'navbar-help-callout-dismissed',
   NAVBAR_ACCOUNTMENU_ITEM_CLICKED: 'navbar-accountmenu-item-clicked',
   NAVBAR_JOIN_NETWORK_CLICKED: 'navbar-join-network-menu-clicked',
   NAVBAR_JOIN_NETWORK_OPTION_CLICKED: 'navbar-join-network-option-clicked',
@@ -204,6 +222,7 @@ export const COMMON_ANALYTICS_EVENTS = {
   SUBMIT_A_TEAM_BTN_CLICKED: 'submit_a_team_btn_clicked',
   NAVBAR_HOME_CLICKED: 'navbar-home-clicked',
   NAVBAR_HOME_NEW_NEWS_DOT_SHOWN: 'navbar-home-new-news-dot-shown',
+  CONTACT_SUPPORT_TOPIC_PILL_SELECTED: 'contact-support-topic-pill-selected',
 };
 
 export const NOTIFICATION_ANALYTICS_EVENTS = {
@@ -548,6 +567,10 @@ export const MEMBER_ANALYTICS_EVENTS = {
   CV_IMPORT_SAVED: 'cv-import-saved',
   CV_IMPORT_SAVE_FAILED: 'cv-import-save-failed',
   CV_IMPORT_CANCELLED: 'cv-import-cancelled',
+  CV_PREVIEW_OPENED: 'cv-preview-opened',
+  CV_REMOVED: 'cv-removed',
+  CV_REPLACE_STARTED: 'cv-replace-started',
+  MEMBER_CUSTOM_SKILL_ADDED: 'member-custom-skill-added',
 
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_ADD_CLICKED: 'inline-profile-editor-contribution-details-add-clicked',
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_EDIT_CLICKED: 'inline-profile-editor-contribution-details-edit-clicked',
@@ -688,6 +711,9 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_TOP_STORY_CLICKED: 'team-news-top-story-clicked',
   // Supporting kinds in the feed. Both carry `position` so a card that only
   // ever converts from the first slot can be told from one that converts anywhere.
+  // Denominator for HIRING_ROLE_CLICKED / HIRING_VIEW_ALL_CLICKED — without it a
+  // low click count can't be told apart from a card nobody saw.
+  TEAM_NEWS_FEED_HIRING_CARD_VIEWED: 'team-news-feed-hiring-card-viewed',
   TEAM_NEWS_FEED_HIRING_ROLE_CLICKED: 'team-news-feed-hiring-role-clicked',
   TEAM_NEWS_FEED_HIRING_VIEW_ALL_CLICKED: 'team-news-feed-hiring-view-all-clicked',
   TEAM_NEWS_FEED_DEAL_CLICKED: 'team-news-feed-deal-clicked',
@@ -901,6 +927,45 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.6.2 - CV Management, Team Follow & Custom Skills',
+    tag: 'New Feature',
+    date: '18, Sep 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Follow hiring teams</span> - When you apply or mark "I'm interested," you can follow the hiring team to hear when they post or hire. The option is checked by default.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Member Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Manage your CV</span> - Preview, replace, or remove your uploaded CV from your profile and during job applications. Hiring leads for roles you apply to can view it.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Custom skills</span> - Add skills to your profile even when they aren't in the catalog.</li>
+        </ul>
+        </div>`,
+  },
+  {
+    title: 'Version 4.6.1 - External Referrals, Help Menu & Feed Upgrades',
+    tag: 'New Feature',
+    date: '11, Sep 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Refer outside the network</span> - Refer someone who isn't in the Directory yet by entering their name, email, and LinkedIn profile instead of picking a member.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Help & Feedback</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Help menu</span> - The header (?) now opens a menu with Contact support, Ask a question, Give feedback, Share an idea, and Report a bug.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">For You job matches</span> - Personalized job openings now appear in your feed, matched to your role, skills, and experience.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">All tab</span> - The All tab now shows every story, including news from teams without a listed focus area.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Shared articles</span> - Links to shared news stories now unfurl with a proper title, snippet, and preview image.</li>
+        </ul>
+        </div>`,
+  },
   {
     title: 'Version 4.6.0 - Job Referrals, Team News & AI Apps',
     tag: 'New Feature',
@@ -1686,7 +1751,7 @@ export const ChangeLogList = [
       <div style="font-size: 14px; line-height:23px;">
       <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
       <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-      <li>Enabled events submission capability for <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/events/irl?location=Toronto" target="_blank">IRL Toronto</a>, allowing users to register and manage event entries</li>
+      <li>Enabled events submission capability for <a style="text-decoration:underline; color:#156ff7" href="/events/irl?location=Toronto" target="_blank">IRL Toronto</a>, allowing users to register and manage event entries</li>
       <li>Enhanced user experience by enabling seamless navigation between PL Events and IRL Gatherings allowing access to both event details and attendee information</li>
       <li>Ability for the event participants to claim their attendance for the past events</li>
       <li>Ability for IRL Admins to perform user management for related events</li>
@@ -1701,7 +1766,7 @@ export const ChangeLogList = [
       <div style="font-size: 14px; line-height:23px;">
       <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
       <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-      <li>Enabled events submission capability for <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/events/irl?location=Dubai" target="_blank">IRL Dubai</a>, allowing users to register and manage event entries</li>
+      <li>Enabled events submission capability for <a style="text-decoration:underline; color:#156ff7" href="/events/irl?location=Dubai" target="_blank">IRL Dubai</a>, allowing users to register and manage event entries</li>
       <li>Enhanced user experience by enabling cross-module event visibility between PL Events and IRL Gatherings</li>
       </ul>
   
@@ -1837,13 +1902,13 @@ export const ChangeLogList = [
       <div style="font-size: 14px; line-height:23px;">
       <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features</span><br/>
       <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-      <li>Husky AI is the new LLM-powered chatbot that can respond to your queries for any and all members, teams, and projects within the directory with a faster response time <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/" target="_blank">Use Husky to traverse the network</a></li>
+      <li>Husky AI is the new LLM-powered chatbot that can respond to your queries for any and all members, teams, and projects within the directory with a faster response time <a style="text-decoration:underline; color:#156ff7" href="/" target="_blank">Use Husky to traverse the network</a></li>
       </ul>
   
       <span style="font-size: 14px;line-height:23px; font-weight: 600">Enhancements</span><br/>
       <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-      <li>The process for adding teams to the directory has been revised. Users must now log in and <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/teams/add" target="_blank">submit a team</a> via the Teams landing page. If you see a team that's a good fit, feel free to recommend it to the network.</li>
-      <li>To provide more insights into event information, we have now added the attendee count for every event in the <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/irl" target="_blank">IRL Gatherings page</a>, allowing users to see the number of attendees along with the resources for each event at a quick glance.</li>
+      <li>The process for adding teams to the directory has been revised. Users must now log in and <a style="text-decoration:underline; color:#156ff7" href="/teams/add" target="_blank">submit a team</a> via the Teams landing page. If you see a team that's a good fit, feel free to recommend it to the network.</li>
+      <li>To provide more insights into event information, we have now added the attendee count for every event in the <a style="text-decoration:underline; color:#156ff7" href="/events/irl" target="_blank">IRL Gatherings page</a>, allowing users to see the number of attendees along with the resources for each event at a quick glance.</li>
       </ul>
   
       <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug Fixes</span><br/>
@@ -2636,6 +2701,7 @@ export const AI_APPS_ANALYTICS = {
   DEPLOYMENT_LOGS_EXPORTED: 'ai_apps_deployment_logs_exported',
   SEARCH_APPLIED: 'ai_apps_search_applied',
   CREATOR_FILTER_SELECTED: 'ai_apps_creator_filter_selected',
+  TAG_FILTER_SELECTED: 'ai_apps_tag_filter_selected',
   SORT_CHANGED: 'ai_apps_sort_changed',
   FILTERS_CLEARED: 'ai_apps_filters_cleared',
   EMPTY_RESULTS_SHOWN: 'ai_apps_empty_results_shown',

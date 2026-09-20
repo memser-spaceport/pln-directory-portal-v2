@@ -1,14 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Field } from '@base-ui-components/react/field';
 import clsx from 'clsx';
 import { uniq } from 'lodash';
 import { useFormContext } from 'react-hook-form';
 
 import { CloseIcon } from '@/components/icons';
-// Chrome is `FormTagsInput`'s own stylesheet, imported rather than re-typed —
-// 50px field, 33px chip, 6px radius, the lot. Only the ✕ changes.
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 import s from '@/components/form/FormTagsInput/FormTagsInput.module.scss';
 
 import t from './SkillsTagsInput.module.scss';
@@ -17,110 +16,183 @@ interface SkillsTagsInputProps {
   name: string;
   selectLabel: string;
   placeholder?: string;
+  suggestions?: string[];
 }
 
-/**
- * `FormTagsInput` with one deliberate substitution: the chip's ✕.
- *
- * `FormTagsInput` draws its remove glyph with react-select's bundled `CrossIcon`
- * — a *filled* heavy cross that inherits the chip's near-black text. Every ✕ in
- * the flows this input serves (the Refer modal's recipient chips, the clear
- * indicator, the modal header) is the DS `CloseIcon`: a 1.5px stroked ✕ taking
- * its tone from `currentColor`, rendered muted grey. Two glyphs for one action,
- * one screen apart, reads as two different controls.
- *
- * So the markup, the handlers and the stylesheet are `FormTagsInput`'s verbatim;
- * only the icon and its tone differ. It is a separate component rather than a
- * flag on `FormTagsInput` because the two glyphs are a live inconsistency, not a
- * setting — the day the shared input adopts the DS cross, this collapses back
- * into it.
- *
- * Values are plain strings. The consumer resolves them to whatever its API wants
- * (member skills are `{uid, title}` records server-side).
- */
-export function SkillsTagsInput({ name, selectLabel, placeholder = 'Add keyword' }: SkillsTagsInputProps) {
+export function SkillsTagsInput({
+  name,
+  selectLabel,
+  placeholder = 'Add keyword',
+  suggestions = [],
+}: SkillsTagsInputProps) {
   const [inputText, setInputText] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
   const {
     setValue,
     getValues,
     formState: { errors },
   } = useFormContext();
   const val = (getValues()[name] as string[]) ?? [];
+  const { onMemberCustomSkillAdded } = useMemberAnalytics();
 
-  const commit = (text: string) => {
+  const selectedLower = useMemo(() => new Set(val.map((item) => item.toLowerCase())), [val]);
+
+  const trimmedInput = inputText.trim();
+  const trimmedInputLower = trimmedInput.toLowerCase();
+
+  const filteredSuggestions = useMemo(() => {
+    if (suggestions.length === 0) return [];
+
+    return suggestions
+      .filter((item) => {
+        if (selectedLower.has(item.toLowerCase())) return false;
+        if (!trimmedInputLower) return true;
+        return item.toLowerCase().includes(trimmedInputLower);
+      })
+      .sort((a, b) => a.localeCompare(b));
+  }, [selectedLower, suggestions, trimmedInputLower]);
+
+  const canAddCustom =
+    trimmedInput.length > 0 &&
+    !selectedLower.has(trimmedInputLower) &&
+    !suggestions.some((item) => item.toLowerCase() === trimmedInputLower);
+
+  const resolveTitle = (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed) return '';
+    const match = suggestions.find((item) => item.toLowerCase() === trimmed.toLowerCase());
+    return match ?? trimmed;
+  };
+
+  const commitTitles = (text: string) => {
     const parsed = text
       .trim()
       .split(',')
-      .map((i) => i.trim())
+      .map((item) => resolveTitle(item))
       .filter(Boolean);
 
     if (parsed.length === 0) return;
 
-    setValue(name, uniq([...val, ...parsed]), { shouldValidate: true, shouldDirty: true });
+    const next = [...val];
+    const nextLower = new Set(val.map((item) => item.toLowerCase()));
+    for (const title of parsed) {
+      const key = title.toLowerCase();
+      if (nextLower.has(key)) continue;
+      nextLower.add(key);
+      next.push(title);
+      if (suggestions.length > 0 && !suggestions.some((item) => item.toLowerCase() === key)) {
+        onMemberCustomSkillAdded();
+      }
+    }
+
+    setValue(name, next, { shouldValidate: true, shouldDirty: true });
+    setInputText('');
+  };
+
+  const commitSuggestion = (title: string) => {
+    if (selectedLower.has(title.toLowerCase())) return;
+    setValue(name, uniq([...val, title]), { shouldValidate: true, shouldDirty: true });
     setInputText('');
   };
 
   return (
     <div className={s.Content}>
       <div className={s.inputLabel}>{selectLabel}</div>
-      <div className={clsx(s.input, { [s.error]: errors[name] })}>
-        <div className={s.inputContent}>
-          {val.map((item) => (
-            <div key={item} className={clsx(s.badge, t.badge)}>
-              <span title={item}>{item}</span>{' '}
-              <button
-                type="button"
-                aria-label={`Remove ${item}`}
-                onClick={() =>
-                  setValue(
-                    name,
-                    val.filter((i) => i !== item),
-                    { shouldValidate: true, shouldDirty: true },
-                  )
+      <div
+        className={t.fieldWrap}
+        onFocus={() => setIsFocused(true)}
+        onBlur={(event) => {
+          const next = event.relatedTarget as Node | null;
+          if (next && event.currentTarget.contains(next)) return;
+          setIsFocused(false);
+        }}
+      >
+        <div className={clsx(s.input, { [s.error]: errors[name] })}>
+          <div className={s.inputContent}>
+            {val.map((item) => (
+              <div key={item} className={clsx(s.badge, t.badge)}>
+                <span title={item}>{item}</span>{' '}
+                <button
+                  type="button"
+                  aria-label={`Remove ${item}`}
+                  onClick={() =>
+                    setValue(
+                      name,
+                      val.filter((i) => i !== item),
+                      { shouldValidate: true, shouldDirty: true },
+                    )
+                  }
+                >
+                  <CloseIcon width={14} height={14} />
+                </button>
+              </div>
+            ))}
+            <Field.Control
+              placeholder={val.length > 0 ? '' : placeholder}
+              className={clsx(s.textInput, { [s.hidePlaceholder]: val.length > 0 })}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onBlur={() => {
+                if (inputText.trim() === '') return;
+                commitTitles(inputText);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                  setInputText('');
+                  return;
                 }
-              >
-                <CloseIcon width={14} height={14} />
-              </button>
-            </div>
-          ))}
-          <Field.Control
-            placeholder={val.length > 0 ? '' : placeholder}
-            className={clsx(s.textInput, { [s.hidePlaceholder]: val.length > 0 })}
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onBlur={() => {
-              if (inputText.trim() === '' || val.includes(inputText.trim())) return;
-              commit(inputText);
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Escape') {
-                setInputText('');
-                return;
-              }
 
-              if (event.key === 'Backspace' && inputText === '' && val.length > 0) {
-                setValue(name, val.slice(0, -1), { shouldValidate: true, shouldDirty: true });
-                return;
-              }
+                if (event.key === 'Backspace' && inputText === '' && val.length > 0) {
+                  setValue(name, val.slice(0, -1), { shouldValidate: true, shouldDirty: true });
+                  return;
+                }
 
-              if (event.key === 'Enter') {
-                commit(inputText);
-              }
-            }}
-          />
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  commitTitles(inputText);
+                }
+              }}
+            />
+          </div>
+          {inputText.trim() !== '' && (
+            <button type="button" className={s.addButton} onClick={() => commitTitles(inputText)}>
+              <PlusIcon />
+            </button>
+          )}
         </div>
-        {inputText.trim() !== '' && (
-          <button type="button" className={s.addButton} onClick={() => commit(inputText)}>
-            <PlusIcon />
-          </button>
+        {isFocused && (canAddCustom || filteredSuggestions.length > 0) && (
+          <ul className={t.suggestions} role="listbox">
+            {canAddCustom && (
+              <li>
+                <button
+                  type="button"
+                  className={clsx(t.suggestionItem, t.suggestionItemCustom)}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => commitTitles(trimmedInput)}
+                >
+                  Add &ldquo;{trimmedInput}&rdquo;
+                </button>
+              </li>
+            )}
+            {filteredSuggestions.map((item) => (
+              <li key={item}>
+                <button
+                  type="button"
+                  className={t.suggestionItem}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => commitSuggestion(item)}
+                >
+                  {item}
+                </button>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </div>
   );
 }
 
-// `FormTagsInput`'s own add glyph, copied verbatim so the two ends of the field
-// stay the same pair of icons they are there.
 const PlusIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path

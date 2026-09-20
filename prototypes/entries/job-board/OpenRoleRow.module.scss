@@ -1,0 +1,124 @@
+// Local extras on top of the reused production `ReferRoleRow.module.scss`. The
+// open role borrows the posting row's structure — a body on the left, an action
+// slot on the right, one horizontal inset — and then stops looking like a row.
+
+/* **No slab, and no outline either.**
+ *
+ * It was a `1px dashed` well at `--border-neutral-muted`, the product's own
+ * "a slot waiting to be filled" treatment (`PitchDeckUpload`,
+ * `PitchVideoUpload`), chosen so a reader scanning four filled rows and one
+ * dashed one would not need telling which of them was a job ad.
+ *
+ * That worked, and it cost too much for what it says: a dashed box is a *card*,
+ * so the invitation ended up the same size and weight as the postings it is
+ * offered after — a fifth object in a list of four, with a border drawing a
+ * frame around one short question. Nothing here needs a container. The line and
+ * its button are the whole of it, and the card's own edge is the frame.
+ *
+ * What is left of the row is the inset: 16px of horizontal padding, so the line
+ * starts on the same x as the role titles above it and the button ends on the
+ * same right edge. */
+.openRow {
+  background-color: transparent;
+  border: 0;
+  /* Longhand, so `.attached` below can add a top padding without fighting a
+     shorthand at equal specificity. Vertical padding is down from the posting
+     row's 12px: with no box around it the block is its own content, and the
+     button's own height is the height. */
+  padding-left: 16px;
+  padding-right: 16px;
+  border-radius: 0;
+  /* The row's own `gap: 16px` is drawn for a two-line body against a cluster of
+     four controls. This is one line and one button. */
+  gap: 12px;
+}
+
+/* **The rule above the line**, and the modifier is the right place for it: this
+   only applies inside a team's card, where the block follows a list of postings
+   and has to say it is not one more of them. Where the row stands on its own —
+   the board's nothing-matched state — there is no list above it to be separated
+   from, and a hairline over the first item of a two-item list would be drawing a
+   boundary at the top of a group (lesson: the host declares this, not the
+   component).
+ *
+ * The card's own divider, transcribed: `TeamGroupCard.module.scss` draws
+ * `1px solid #f1f5f9` under the team header, so the two rules in one card render
+ * identically today. Production's raw Tailwind slate is translated to the
+ * token/fallback pair this folder requires — same pixel, wired up for when the
+ * design-system layer lands.
+ *
+ * Full bleed, like the header's rule: the row is a block at the card's content
+ * width and only its *contents* are inset by 16px.
+ *
+ * **The pull-up that used to be here is gone.** `margin-top: -12px` existed
+ * because nothing said this block belonged to the list above it, so it was held
+ * close enough to be read as attached. A rule says it outright, and the
+ * compensation for the old silence goes with it. What is left is asymmetric in
+ * the direction it should be: the card's own 20px above the rule, 12px between
+ * the rule and the line it introduces. */
+.attached {
+  border-top: 1px solid var(--border-neutral-subtle, #f1f5f9);
+  padding-top: 12px;
+}
+
+/* The question. Down from the posting row's `.title` (16/500 primary), which
+   made it a peer of the role titles — it is not one: the roles are the offer,
+   and this is the sentence under them for whoever the offer missed. 14px is the
+   card's own secondary size, the same one the rows' meta line uses. */
+.line {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* The offer, run on after the question on the same line.
+ *
+ * **Two properties, and no third.** It inherits size, line-height and
+ * letter-spacing from `.line` — it lives inside that `<p>` — so the two clauses
+ * share one baseline and one line box. What separates them is weight and ink,
+ * which is all a qualifier needs.
+ *
+ * `--foreground-neutral-tertiary`, the house pair for muted/meta text and one
+ * step quieter than the question above it. An earlier version had both clauses
+ * at `--foreground-neutral-secondary` under an argument that size and weight
+ * were enough to rank them and that a third grey in the block was worth
+ * avoiding. Two greys at the same value are not a rank — the question is the
+ * thing to read and the offer is the thing that qualifies it, and once they
+ * share a line, matching ink makes them one flat run of text.
+ *
+ * The block still never shows more than two tones at once: this and the
+ * `Sent …` clock (also tertiary) are mutually exclusive — the offer is drawn
+ * only before a signal, the clock only after. */
+.sub {
+  font-weight: 400;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* The press, at `xs` rather than the posting rows' `s`.
+ *
+ * It also gives up their 104px slot width (`JobReferRoleRow`'s `.applyButton`),
+ * and that is the point rather than a side effect: that number exists so a list
+ * of postings does not twitch as rows change state, and this block is no longer
+ * in that list — it is the line under it. Sized to its own label, the two states
+ * it takes ("I'm interested" / "Interested") differ by ~20px, which is invisible
+ * on a block that stands alone.
+ *
+ * **It has to restate the box, not just the gap.** `Button`'s root is
+ * `display: block`, so a bare `gap: 6px` computed and did nothing — the check
+ * glyph sat flush against `Interested`. What made that gap work on the posting
+ * rows is `JobReferRoleRow`'s `.applyButton`, which sets `inline-flex` and the
+ * centring *as well as* the 104px width. Dropping that class for the width took
+ * the flex context with it: one class, two jobs, and only one of them was the
+ * reason for removing it.
+ *
+ * Everything else — fill, border, radius, type scale, padding — is still the
+ * design system's. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}

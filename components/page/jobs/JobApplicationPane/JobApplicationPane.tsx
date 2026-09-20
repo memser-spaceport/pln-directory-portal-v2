@@ -71,7 +71,7 @@ export interface JobApplicationPaneProps {
   teamId: string;
   teamName: string;
   /** The member whose profile goes with the application. */
-  member: Pick<IMember, 'id' | 'name' | 'role' | 'mainTeam' | 'skills' | 'currentCompany'> | null;
+  member: Pick<IMember, 'id' | 'name' | 'role' | 'mainTeam' | 'skills' | 'customSkills' | 'currentCompany'> | null;
   memberUid: string | undefined;
   /**
    * The letter, owned by the flow rather than by this pane.
@@ -166,9 +166,12 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
      never looks at) could name a different company than the email carries. */
   const company = (member.currentCompany ?? '').trim() || (member.mainTeam?.name ?? '').trim();
   const summary = roleLine && company ? `${roleLine} at ${company}` : roleLine || company;
-  const skills = (member.skills ?? []).map((skill: { title: string } | string) =>
-    typeof skill === 'string' ? skill : skill.title,
-  );
+  const skills = [
+    ...(member.skills ?? []).map((skill: { title: string } | string) =>
+      typeof skill === 'string' ? skill : skill.title,
+    ),
+    ...(member.customSkills ?? []),
+  ];
 
   const remaining = COVER_LETTER_MAX_LENGTH - typed.length;
   const overLimit = remaining < 0;

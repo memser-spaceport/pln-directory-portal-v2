@@ -79,12 +79,11 @@ export function TeamsTagsListSectionEdit(props: TeamsTagsListSectionEditProps) {
   return (
     <FormProvider {...methods}>
       <form noValidate onSubmit={handleSubmit(onSubmit)}>
-        <EditFormControls title={title} onClose={toggleIsEditMode} isProcessing={isPending} />
-
-        <DetailsSection>
-          <FormMultiSelect name="tags" label={label} options={options} placeholder={placeholder} />
-        </DetailsSection>
-
+        <EditFormControls title={title} onClose={toggleIsEditMode} isProcessing={isPending}>
+          <DetailsSection>
+            <FormMultiSelect name="tags" label={label} options={options} placeholder={placeholder} />
+          </DetailsSection>
+        </EditFormControls>
         <EditFormMobileControls />
       </form>
     </FormProvider>

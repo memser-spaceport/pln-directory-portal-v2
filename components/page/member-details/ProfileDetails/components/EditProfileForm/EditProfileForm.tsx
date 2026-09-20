@@ -12,6 +12,7 @@ import { toast } from '@/components/core/ToastContainer';
 import { updateMemberInfoCookie } from '@/utils/member.utils';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { buildMemberUpdatePayload } from '@/utils/member/buildMemberUpdatePayload';
+import { memberSkillTitles, splitMemberSkillTitles } from '@/utils/member/memberSkillTags';
 import { editProfileSchema } from '@/components/page/member-details/ProfileDetails/components/EditProfileForm/helpers';
 
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -90,6 +91,8 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
     return { team: null, role: '' };
   }, [member.mainTeam?.id, member.mainTeam?.name, member.mainTeam?.role, member.role, member.teams]);
 
+  const { data: memberFormOptions } = useMemberFormOptions();
+
   const methods = useForm<TEditProfileForm>({
     defaultValues: {
       image: null,
@@ -99,11 +102,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
       country: member.location?.country || '',
       state: member.location?.region || '',
       city: member.location?.city || '',
-      skills:
-        member.skills.map((item) => ({
-          value: item.uid,
-          label: item.title,
-        })) ?? [],
+      skills: memberSkillTitles(member),
       openToCollaborate: member.openToWork,
       primaryTeam: mainTeamData.team,
       primaryTeamRole: mainTeamData.team ? mainTeamData.role : member.role,
@@ -290,7 +289,7 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
       referenceUid: member.id,
       uniqueIdentifier: member.email,
       newData: {
-        ...formatPayload(memberData.memberInfo, formData),
+        ...formatPayload(memberData.memberInfo, formData, memberFormOptions?.skills ?? []),
         imageUid: formData.isImageDeleted ? null : image ? image : memberData.memberInfo.imageUid,
         role: formData.primaryTeamRole,
       },
@@ -319,8 +318,6 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
       toast.error(res.errorData.message);
     }
   };
-
-  const { data } = useMemberFormOptions();
 
   // Re-trigger validation when isAddingTeamInline changes (yup context dependency)
   // useEffect(() => {
@@ -352,117 +349,118 @@ export const EditProfileForm = ({ onClose, member, userInfo, generateBio, varian
           }
         }}
       >
-        <EditFormControls onClose={onClose} title="Edit Profile Details" />
-        <div className={s.body}>
-          <div className={s.row}>
-            <ProfileImageInput member={member} allowDelete />
-            <FormField name="name" label="Name" isRequired placeholder="Text" max={MAX_NAME_LENGTH} />
-          </div>
-
-          <div className={s.row}>
-            <ProfileLocationInput />
-          </div>
-          {variant !== 'investor-drawer' && (
+        <EditFormControls onClose={onClose} title="Edit Profile Details">
+          <div className={s.body}>
             <div className={s.row}>
-              <ProfileSkillsInput />
+              <ProfileImageInput member={member} allowDelete />
+              <FormField name="name" label="Name" isRequired placeholder="Text" max={MAX_NAME_LENGTH} />
             </div>
-          )}
-          {variant !== 'investor-drawer' && !v2IsInvestor && v2HasMemberContacts && (
-            <div className={s.row}>
-              <ProfileCollaborateInput />
-            </div>
-          )}
 
-          <div className={s.column}>
-            {!isAddingTeamInline && (
-              <>
-                <div className={s.inputsLabel}>Primary Role & Team</div>
-                <div className={s.inputsWrapper}>
-                  <FormField name="primaryTeamRole" placeholder="Enter your primary role" />
-                  <span>@</span>
-                  <FormSelect
-                    name="primaryTeam"
-                    placeholder="Search or add a team"
-                    backLabel="Teams"
-                    options={
-                      data?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
-                        value: item.teamUid,
-                        label: item.teamTitle,
-                        originalObject: item,
-                      })) ?? []
-                    }
-                    renderOption={({ option, label, description }) => {
-                      return (
-                        <div className={s.teamOption}>
-                          <ImageWithFallback
-                            width={24}
-                            height={24}
-                            alt={option.label}
-                            className={s.optImg}
-                            fallbackSrc="/icons/camera.svg"
-                            src={option.originalObject.logo}
-                          />
-                          <div className={s.optionContent}>
-                            {label}
-                            {description}
-                          </div>
-                        </div>
-                      );
-                    }}
-                    isStickyNoData
-                    notFoundContent={
-                      <div className={s.secondaryLabel}>
-                        Not able to find your project or team?{' '}
-                        <button
-                          type="button"
-                          className={s.link}
-                          onClick={() => {
-                            onAddTeamDropdownClicked('profile-edit');
-                            setValue('newTeamRole', getValues().primaryTeamRole ?? '');
-                            setIsAddingTeamInline(true);
-                          }}
-                        >
-                          Add your team
-                        </button>
-                      </div>
-                    }
-                  />
-                </div>
-              </>
+            <div className={s.row}>
+              <ProfileLocationInput />
+            </div>
+            {variant !== 'investor-drawer' && (
+              <div className={s.row}>
+                <ProfileSkillsInput />
+              </div>
+            )}
+            {variant !== 'investor-drawer' && !v2IsInvestor && v2HasMemberContacts && (
+              <div className={s.row}>
+                <ProfileCollaborateInput />
+              </div>
             )}
 
-            {isAddingTeamInline && (
-              <div style={{ marginTop: '16px' }}>
-                <AddTeamInlineForm
-                  fieldNames={{
-                    role: 'newTeamRole',
-                    name: 'newTeamName',
-                    website: 'newTeamWebsite',
-                  }}
-                  onClose={() => {
-                    setIsAddingTeamInline(false);
-                  }}
-                />
+            <div className={s.column}>
+              {!isAddingTeamInline && (
+                <>
+                  <div className={s.inputsLabel}>Primary Role & Team</div>
+                  <div className={s.inputsWrapper}>
+                    <FormField name="primaryTeamRole" placeholder="Enter your primary role" />
+                    <span>@</span>
+                    <FormSelect
+                      name="primaryTeam"
+                      placeholder="Search or add a team"
+                      backLabel="Teams"
+                      options={
+                        memberFormOptions?.teams.map((item: { teamUid: string; teamTitle: string }) => ({
+                          value: item.teamUid,
+                          label: item.teamTitle,
+                          originalObject: item,
+                        })) ?? []
+                      }
+                      renderOption={({ option, label, description }) => {
+                        return (
+                          <div className={s.teamOption}>
+                            <ImageWithFallback
+                              width={24}
+                              height={24}
+                              alt={option.label}
+                              className={s.optImg}
+                              fallbackSrc="/icons/camera.svg"
+                              src={option.originalObject.logo}
+                            />
+                            <div className={s.optionContent}>
+                              {label}
+                              {description}
+                            </div>
+                          </div>
+                        );
+                      }}
+                      isStickyNoData
+                      notFoundContent={
+                        <div className={s.secondaryLabel}>
+                          Not able to find your project or team?{' '}
+                          <button
+                            type="button"
+                            className={s.link}
+                            onClick={() => {
+                              onAddTeamDropdownClicked('profile-edit');
+                              setValue('newTeamRole', getValues().primaryTeamRole ?? '');
+                              setIsAddingTeamInline(true);
+                            }}
+                          >
+                            Add your team
+                          </button>
+                        </div>
+                      }
+                    />
+                  </div>
+                </>
+              )}
+
+              {isAddingTeamInline && (
+                <div style={{ marginTop: '16px' }}>
+                  <AddTeamInlineForm
+                    fieldNames={{
+                      role: 'newTeamRole',
+                      name: 'newTeamName',
+                      website: 'newTeamWebsite',
+                    }}
+                    onClose={() => {
+                      setIsAddingTeamInline(false);
+                    }}
+                  />
+                </div>
+              )}
+
+              {variant !== 'investor-drawer' && (
+                <div className={s.description}>Add your role and team so others can connect with you.</div>
+              )}
+            </div>
+            {variant !== 'investor-drawer' && (
+              <div className={s.infoBlock}>
+                <InfoIcon />
+                <span className={s.infoText}>Manage additional teams/roles in Teams section below.</span>
               </div>
             )}
 
             {variant !== 'investor-drawer' && (
-              <div className={s.description}>Add your role and team so others can connect with you.</div>
+              <div className={s.row}>
+                <BioInput generateBio={generateBio} onAiContentGenerated={handleAiContentGenerated} simplified />
+              </div>
             )}
           </div>
-          {variant !== 'investor-drawer' && (
-            <div className={s.infoBlock}>
-              <InfoIcon />
-              <span className={s.infoText}>Manage additional teams/roles in Teams section below.</span>
-            </div>
-          )}
-
-          {variant !== 'investor-drawer' && (
-            <div className={s.row}>
-              <BioInput generateBio={generateBio} onAiContentGenerated={handleAiContentGenerated} simplified />
-            </div>
-          )}
-        </div>
+        </EditFormControls>
         <EditFormMobileControls />
       </form>
     </FormProvider>
@@ -478,7 +476,11 @@ const InfoIcon = () => (
   </svg>
 );
 
-function formatPayload(memberInfo: any, formData: TEditProfileForm) {
+function formatPayload(
+  memberInfo: any,
+  formData: TEditProfileForm,
+  catalog: Array<{ id: string; name: string }>,
+) {
   // Update teamAndRoles to set mainTeam based on primaryTeam selection
   let updatedTeamAndRoles = memberInfo.teamMemberRoles;
 
@@ -515,6 +517,8 @@ function formatPayload(memberInfo: any, formData: TEditProfileForm) {
     }));
   }
 
+  const { skills, customSkills } = splitMemberSkillTitles(formData.skills ?? [], catalog);
+
   return buildMemberUpdatePayload(memberInfo, {
     name: formData.name,
     city: formData.city,
@@ -522,10 +526,8 @@ function formatPayload(memberInfo: any, formData: TEditProfileForm) {
     country: formData.country,
     openToWork: formData.openToCollaborate,
     teamAndRoles: updatedTeamAndRoles,
-    skills: formData.skills?.map((skill: any) => ({
-      title: skill.label,
-      uid: skill.value,
-    })),
+    skills,
+    customSkills,
     // bio is saved separately through updateMemberParams, so it must not ride along on the PUT
     bio: undefined,
   });

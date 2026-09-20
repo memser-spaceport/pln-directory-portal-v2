@@ -4,6 +4,7 @@ import { AI_APPS_DEFAULT_SORT, AI_APPS_SORT } from '@/services/ai-apps/constants
 
 import { getAiAppsSort } from '@/services/ai-apps/utils/getAiAppsSort';
 import { getCreatorOptions } from '@/services/ai-apps/utils/getCreatorOptions';
+import { getTagOptions } from '@/services/ai-apps/utils/getTagOptions';
 import { filterAndSortAiApps } from '@/services/ai-apps/utils/filterAndSortAiApps';
 
 const app = (partial: Partial<AiApp> & Pick<AiApp, 'uid'>): AiApp => ({
@@ -94,6 +95,23 @@ describe('getCreatorOptions', () => {
   });
 });
 
+describe('getTagOptions', () => {
+  it('lists only tags in use, most used first, alphabetical on ties', () => {
+    const options = getTagOptions([
+      app({ uid: 'a1', tags: ['venture', 'dashboards'] }),
+      app({ uid: 'a2', tags: ['dashboards'] }),
+      app({ uid: 'a3', tags: ['events'] }),
+      app({ uid: 'a4' }), // older API version: no tags field
+    ]);
+
+    expect(options).toEqual([
+      { value: 'dashboards', disabled: false, count: 2 },
+      { value: 'events', disabled: false, count: 1 },
+      { value: 'venture', disabled: false, count: 1 },
+    ]);
+  });
+});
+
 describe('getAiAppsSort', () => {
   it('falls back to the resting order when the param is absent or unknown', () => {
     expect(getAiAppsSort(params())).toBe(AI_APPS_DEFAULT_SORT);
@@ -167,6 +185,19 @@ describe('filterAndSortAiApps', () => {
   it('ORs multiple creators rather than intersecting them', () => {
     const result = filterAndSortAiApps(all, params({ createdBy: 'Nina Chen|Ada Lovelace' }));
     expect(uids(result)).toEqual(['alpha', 'gamma', 'beta']);
+  });
+
+  it('filters by tag, ORing multiple tags, and drops untagged apps', () => {
+    const tagged = [
+      app({ uid: 'venture-only', tags: ['venture'] }),
+      app({ uid: 'events-only', tags: ['events'] }),
+      app({ uid: 'untagged' }),
+    ];
+    expect(uids(filterAndSortAiApps(tagged, params({ tags: 'venture' })))).toEqual(['venture-only']);
+    expect(uids(filterAndSortAiApps(tagged, params({ tags: 'venture|events' })))).toEqual([
+      'venture-only',
+      'events-only',
+    ]);
   });
 
   it('combines search with the creator facet', () => {

@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import Select, { ClearIndicatorProps, components, SingleValueProps } from 'react-select';
+import Select, { ClearIndicatorProps, components, MenuProps, SingleValueProps } from 'react-select';
 
 import { Field } from '@base-ui-components/react/field';
 
-import { CloseIcon } from '@/components/icons';
+// The plus is the DS icon, the same one the recipients field's own last line uses —
+// see `RecipientInput`, which this row is transcribed from.
+import { CloseIcon, PlusIcon } from '@/components/icons';
 import type { Option } from '@/components/form/FormSelect/types';
 
 // Field wrapper, label, option row and no-results treatment come from the production
@@ -30,6 +32,56 @@ interface MemberSearchSelectProps {
   label: string;
   placeholder: string;
   menuPortalTarget?: HTMLElement | null;
+  /** Leaves the search for the three outside-network inputs, carrying whatever was
+   *  typed so a name that found nobody isn't typed twice. Omitted, the row is not
+   *  rendered and the field is a member search and nothing else. */
+  onReferOutside?: (typed: string) => void;
+}
+
+/** What `MenuWithOutsideRow` needs, handed down through react-select's own
+ *  `selectProps` rather than captured in a closure — see the component below. */
+interface OutsideRowProps {
+  onReferOutside?: (typed: string) => void;
+  /** The live query, so the row can carry it into the outside form. */
+  outsideQuery: string;
+  /** Whether any rows stand above the row, which is what its hairline separates it from. */
+  hasRowsAbove: boolean;
+}
+
+/* Module scope, not an inline arrow in `components`: an inline component has a new
+   identity on every render — every keystroke here, since the query is state — and
+   react-select remounts the menu, which drops the list's scroll position and flickers
+   the row. Its inputs arrive on `selectProps` for the same reason a closure won't do,
+   and refs can't: this component must not be rebuilt to see a new query, and reading a
+   ref during render is what `react-hooks/refs` forbids. The other overrides get away
+   with being inline because remounting an option row costs nothing anyone can see. */
+function MenuWithOutsideRow(menuProps: MenuProps<Option, false>) {
+  const { onReferOutside, outsideQuery, hasRowsAbove } = menuProps.selectProps as unknown as OutsideRowProps;
+
+  return (
+    <components.Menu {...menuProps}>
+      {menuProps.children}
+      {onReferOutside && (
+        <button
+          type="button"
+          className={`${s.outsideRow} ${hasRowsAbove ? '' : s.outsideRowAlone}`}
+          // mousedown, not click: react-select closes the menu when its input blurs, and
+          // a click's mousedown is what blurs it — by the time the click would fire,
+          // this row has been unmounted with the menu.
+          onMouseDown={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onReferOutside(outsideQuery.trim());
+          }}
+        >
+          <span className={s.outsideGlyph}>
+            <PlusIcon width={16} height={16} />
+          </span>
+          Refer someone not in PL network
+        </button>
+      )}
+    </components.Menu>
+  );
 }
 
 const toOption = (member: DirectoryMember): Option => ({
@@ -55,13 +107,29 @@ const toOption = (member: DirectoryMember): Option => ({
  *   2.8k-row list usable on a phone by filtering it in a full-screen view; a 15-row
  *   answer to a query needs no such thing, and that view can only filter options it
  *   already holds.
- * - The menu stays shut until something is typed, matching FormSelect's
- *   `hideOptionsWhenEmpty`: with nothing typed there is nothing to show.
+ * - The menu no longer stays shut until something is typed. It used to, matching
+ *   FormSelect's `hideOptionsWhenEmpty` — with nothing typed there was nothing to show.
+ *   There is now: the row below is a standing offer, and it has to be reachable by
+ *   someone who already knows their friend isn't a member. Before a query the menu holds
+ *   that row alone, which is also why `NoOptionsMessage` is suppressed there — react-select
+ *   would otherwise answer a question nobody asked with "No members found".
+ *
+ * The menu ends in one standing row, **Refer someone not in PL network**, in every
+ * state — an empty field, a result list, a list with nothing in it. It is the same
+ * question this field asks, answered for a person the directory can't return, so it
+ * lives in this field rather than beside it: a second door next to the search would be
+ * two controls for one question.
+ *
+ * Known gap: the row is a button inside a portalled menu, reached by mousedown, so it
+ * is not on the keyboard path — arrow keys walk react-select's options and Tab blurs
+ * the input, which closes the menu. Making it a real option with a sentinel value fixes
+ * that, at the cost of hand-rendering the no-results and loading states, since a
+ * permanently present option suppresses both of react-select's slots.
  *
  * If this graduates, the production change is an async variant of `FormSelect`.
  */
 export function MemberSearchSelect(props: MemberSearchSelectProps) {
-  const { name, label, placeholder, menuPortalTarget } = props;
+  const { name, label, placeholder, menuPortalTarget, onReferOutside } = props;
 
   const { watch, setValue } = useFormContext();
   const value = watch(name);
@@ -86,6 +154,9 @@ export function MemberSearchSelect(props: MemberSearchSelectProps) {
       <Field.Label className={fieldCss.label}>{label}</Field.Label>
 
       <Select<Option, false>
+        // Read off `selectProps` by the menu override above. Spread, because they are
+        // this file's props rather than react-select's.
+        {...({ onReferOutside, outsideQuery: query, hasRowsAbove: hasQuery } as object)}
         inputId={name}
         aria-label={label}
         placeholder={placeholder}
@@ -108,20 +179,25 @@ export function MemberSearchSelect(props: MemberSearchSelectProps) {
         menuPosition={menuPortalTarget ? 'fixed' : undefined}
         styles={selectStyles}
         components={{
-          // Nothing to drop down to before a query — same reasoning as the hidden menu.
+          // The field still reads as a search, not a dropdown: what clicking in reveals
+          // is one row offering a way out, not a chevron's promise of a finite list.
           DropdownIndicator: () => null,
-          Menu: (menuProps) =>
-            hasQuery ? <components.Menu {...menuProps}>{menuProps.children}</components.Menu> : null,
-          NoOptionsMessage: () => (
-            <div className={fieldCss.notFound}>
-              <span>{isUnauthorized ? 'Sign in to search members' : 'No members found'}</span>
-              <span>
-                {isUnauthorized
-                  ? 'Member search needs a signed-in session.'
-                  : 'Only members in the directory can be referred.'}
-              </span>
-            </div>
-          ),
+          Menu: MenuWithOutsideRow,
+          // Only once something has been typed. Before that there is no query for
+          // "No members found" to be the answer to, and the menu is carrying the
+          // outside row alone.
+          //
+          // The second line used to read "Only members in the directory can be
+          // referred." That stopped being true the day the row below it went in, and a
+          // sentence pointing at a visible control only restates it — so the signed-in
+          // arm is a single line now.
+          NoOptionsMessage: () =>
+            hasQuery ? (
+              <div className={fieldCss.notFound}>
+                <span>{isUnauthorized ? 'Sign in to search members' : 'No members found'}</span>
+                {isUnauthorized && <span>Member search needs a signed-in session.</span>}
+              </div>
+            ) : null,
           // react-select shows this in place of the no-results message while a request
           // is out, and its default is a centred "Loading..." — the field's own
           // `.notFound` column keeps the menu from jumping between the two states.

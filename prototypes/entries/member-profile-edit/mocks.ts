@@ -6,37 +6,12 @@
 // other two editing surfaces write. Reading the same mock rather than copying it
 // keeps this page and the read-only profile prototype one person.
 
-import type { ExperienceEntry } from '../job-board/viewerState';
 import { MOCK_AVATAR, MOCK_EXPERIENCE, MOCK_MEMBER } from '../member-profile/mocks';
+// The record's shape lives with the editors that write it, since the
+// new-member page writes the same one.
+import type { ProfileRecord } from '../profile-shared/SectionEditor/types';
 
-export interface ContactHandles {
-  email: string;
-  linkedin: string;
-  telegram: string;
-  github: string;
-  discord: string;
-  twitter: string;
-  bluesky: string;
-}
-
-export interface ProfileRecord {
-  name: string;
-  avatar: string;
-  role: string;
-  /** Production's primary team is a select over the teams API; here it is the team's name. */
-  team: string;
-  location: string;
-  skills: string[];
-  /** Rich text, as production stores it (Quill HTML). */
-  bio: string;
-  openToWork: boolean;
-  officeHours: string;
-  ohInterest: string[];
-  ohHelpWith: string[];
-  contacts: ContactHandles;
-  shareContacts: boolean;
-  experiences: ExperienceEntry[];
-}
+export type { ContactHandles, ProfileRecord } from '../profile-shared/SectionEditor/types';
 
 /** ISO → 'YYYY-MM', the form record's date grain. */
 const ym = (iso: string | null | undefined): string | null => (iso ? iso.slice(0, 7) : null);

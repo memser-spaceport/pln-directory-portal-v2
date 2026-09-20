@@ -20,6 +20,7 @@ import {
   AiAppDetailsModal,
 } from '@/components/page/ai-apps/dynamicActionModals';
 import { FloatingFeedbackButton } from '../components/FloatingFeedbackButton';
+import { AiAppTagChips } from '../components/AiAppTagChips';
 
 import { AppSecretsPanel } from './components/AppSecretsPanel';
 
@@ -27,6 +28,7 @@ import s from './AiAppDetailPage.module.scss';
 
 interface Props {
   uid: string;
+  basePath: string;
 }
 
 type Action = 'edit' | 'deployment' | 'logs' | 'delete';
@@ -55,26 +57,32 @@ type FrameStatus = 'checking' | 'live' | 'down';
 /**
  * Sent by the embedded app (starter kit ≥1.10) on load and on every in-app
  * navigation: `{ type, path, title }`. The frame is cross-origin, so this is
- * the only way to learn which subpage is open.
+ * the only way to learn which subpage is open. Kits ≥1.12 send the pathname
+ * only, addressed to this origin; kits 1.10–1.11 sent pathname + query + hash
+ * to `'*'`, so the listener keeps only the pathname regardless of sender.
  */
 const APP_ROUTE_MESSAGE = 'pln-ai-app:route';
 const MAX_APP_PATH_LENGTH = 2048;
 const MAX_APP_TITLE_LENGTH = 200;
 
 // Accepts only a path on the app's own origin; the origin comparison rejects
-// `//host`, absolute URLs, backslashes and non-http schemes in one go.
+// `//host`, absolute URLs, backslashes and non-http schemes in one go. Keeps
+// the pathname only: it is mirrored into this page's address bar and tab
+// title, and an app's query string is where OAuth callbacks (`?code=…`),
+// magic links and tokens land.
 function resolveAppPath(appOrigin: string, raw: unknown): string | null {
   if (typeof raw !== 'string' || !raw || raw.length > MAX_APP_PATH_LENGTH) return null;
   try {
     const url = new URL(raw, appOrigin);
-    return url.origin === appOrigin ? url.pathname + url.search + url.hash : null;
+    if (url.origin !== appOrigin) return null;
+    return url.pathname;
   } catch {
     return null;
   }
 }
 
 export function AiAppDetailPage(props: Props) {
-  const { uid } = props;
+  const { uid, basePath } = props;
 
   const { app, isLoading, isError } = useAiApp(uid);
   const { currentUser } = useCurrentUserStore();
@@ -91,7 +99,9 @@ export function AiAppDetailPage(props: Props) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   // Latest subpage reported by the app; seeds the frame src on a redeploy remount.
   const appPathRef = useRef<string | null>(null);
-  const [initialPath] = useState(() => searchParams.get('path'));
+  // The app subpage is the URL segment after the route's base path, e.g.
+  // `/pl-infra-os/flywheels` → `/flywheels`.
+  const [initialPath] = useState(() => (pathname.startsWith(`${basePath}/`) ? pathname.slice(basePath.length) : null));
   const [appPageTitle, setAppPageTitle] = useState<string | null>(null);
   const [isRedeploying, setIsRedeploying] = useState(false);
   const [action, setAction] = useState<Action | null>(null);
@@ -190,8 +200,8 @@ export function AiAppDetailPage(props: Props) {
   const frameStatus: FrameStatus = probeResult?.generation === probeGeneration ? probeResult.status : 'checking';
 
   // Recomputed only per deployed version: every route message re-renders this
-  // component through the synced search params, and a changed src would reload
-  // the frame. Reading the ref makes a redeploy remount reopen the same subpage.
+  // component through the synced pathname, and a changed src would reload the
+  // frame. Reading the ref makes a redeploy remount reopen the same subpage.
   const frameSrc = useMemo(() => {
     const path = appOrigin ? resolveAppPath(appOrigin, appPathRef.current ?? initialPath) : null;
     return path && appOrigin ? `${appOrigin}${path}` : (appUrl ?? undefined);
@@ -211,19 +221,12 @@ export function AiAppDetailPage(props: Props) {
       const path = resolveAppPath(appOrigin, event.data.path);
       if (!path) return;
       appPathRef.current = path;
-      const params = new URLSearchParams(window.location.search);
-      if (path === '/') {
-        params.delete('path');
-      } else {
-        params.set('path', path);
-      }
-      const qs = params.toString();
-      window.history.replaceState(null, '', `${pathname}${qs ? `?${qs}` : ''}`);
+      window.history.replaceState(null, '', `${basePath}${path === '/' ? '' : path}${window.location.search}`);
     };
 
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
-  }, [appOrigin, pathname]);
+  }, [appOrigin, basePath]);
 
   // Poll the backend liveness probe until the app answers, then mount the
   // iframe. Runs on first load and again after every successful redeploy
@@ -292,14 +295,15 @@ export function AiAppDetailPage(props: Props) {
 
   // Close a card action; if the deployment modal was opened via the
   // `?settings=deployment` deep link, drop the param so a refresh/back doesn't
-  // reopen it.
+  // reopen it. replaceState rather than router.replace: a soft navigation to
+  // the subpage URL remounts the page subtree and reloads the frame.
   const closeAction = () => {
     setAction(null);
     if (searchParams.get('settings')) {
       const params = new URLSearchParams(searchParams.toString());
       params.delete('settings');
       const qs = params.toString();
-      router.replace(qs ? `?${qs}` : pathname, { scroll: false });
+      window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
     }
   };
 
@@ -324,6 +328,7 @@ export function AiAppDetailPage(props: Props) {
             </span>
           </div>
           {app.description && <p className={s.setupDescription}>{app.description}</p>}
+          <AiAppTagChips tags={app.tags} />
           {/* Failure notes are runner output (stack fragments, image names) — creator/admin only. */}
           {app.status === 'ERROR' && app.notes && isCreator && (
             <p className={s.setupError}>Last deploy failed: {app.notes}</p>

@@ -27,6 +27,26 @@ export interface CvImportControls {
   /** A file collected by the header control, on its way to the same validator
    *  the drop area uses. */
   onPickFile: (file: File) => void;
-  /** Cancel was pressed while reading. Analytics only — see the panel's prop. */
+  /**
+   * Cancel was pressed while reading. Analytics, and — when the host opened
+   * this card for a refresh — leaving it. See `ExperienceDetails.onCancelRead`.
+   */
   onCancelRead: () => void;
+  /**
+   * Whether the **drop area** belongs to this section's empty row, as distinct
+   * from the header's "Update from CV" — which every host that offers the import
+   * at all wants, because it is the only way back to the importer once entries
+   * exist.
+   *
+   * False on `/members/[id]`, where `MemberCvSection` carries a drop area
+   * permanently: two boxes to drop a file into, on one page, is the choice
+   * nobody can get right or wrong that `pickCvImportHost` exists to prevent.
+   * True in the apply drawer, where this section's empty row is one of the two
+   * hosts that picker chooses between.
+   *
+   * In the bundle rather than beside it for the same reason the callbacks are:
+   * one object arrives or it doesn't, and no component between here and the
+   * empty row holds a second opinion about what is being offered.
+   */
+  hostsEmptyRow: boolean;
 }

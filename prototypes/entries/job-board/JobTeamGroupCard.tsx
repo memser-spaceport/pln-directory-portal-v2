@@ -20,6 +20,8 @@ import s from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.scss';
 import js from './JobTeamGroupCard.module.scss';
 
 import { JobReferRoleRow } from './JobReferRoleRow';
+import { OpenRoleRow } from './OpenRoleRow';
+import { openRoleFor, type OpenInterest } from './openRoles';
 import { TeamUpdateStrip, type TeamUpdateVariant } from '../news-shared/TeamUpdateStrip';
 import { TeamNewsCountChip } from '../news-shared/TeamNewsCountChip';
 // The list the chip opens — the teams grid's modal, not a job-board retelling.
@@ -34,6 +36,12 @@ import { BASE_LIKES, PL_TEAM_UID } from '../newsfeed-v0/mocks';
 import fa from '../newsfeed-v0/FeedActions.module.scss';
 
 import type { ListingMeta, ListingStatus } from './listings';
+// The team profile's count line and the card shape it sits in — the same
+// component and the same class, so an owner's role row reads identically on
+// the two surfaces it appears on. See `RoleApplicants`.
+import { RoleApplicants } from '../team-profile/RoleApplicants';
+import type { RoleApplicant } from '../team-profile/mocks';
+import tor from '../team-profile/TeamOpenRoles.module.scss';
 
 const INITIAL_ROLES_SHOWN = 3;
 const MAX_FOCUS_CHIPS = 100;
@@ -66,6 +74,23 @@ interface JobTeamGroupCardProps {
   /** Role uid → when the application went, so an applied row can report its own
    *  date instead of the posting age. Same map the board keys applications by. */
   appliedAtByRole?: Map<string, string>;
+  /** Uids of roles the viewer has saved — the filled bookmark on those rows. */
+  savedRoleUids?: Set<string>;
+  /** Role uid → when it was saved. Handed over only on the saved list; see the
+   *  row's `savedAt`. */
+  savedAtByRole?: Map<string, string>;
+  /** Present = every row offers Save. The board owns the store, one for the
+   *  whole list, the way it owns the applications. */
+  onToggleSave?: (role: IJobRole) => void;
+  /**
+   * The team's open role, once the reader has answered it. Absent means the
+   * offer still stands; the row reads the record itself.
+   */
+  openInterest?: OpenInterest;
+  /** Opens the open role's interest form — the board owns it, one dialog over
+   *  the whole list, the same way it owns the apply drawer. Omitted on a surface
+   *  that has no such dialog, and then the row is not drawn at all. */
+  onOpenRoleInterest?: (teamUid: string) => void;
   /**
    * Present when the viewer owns this team: the card is then the team's own
    * list, in every state. The count block still counts what is *up* and says
@@ -78,6 +103,19 @@ interface JobTeamGroupCardProps {
     /** This is the viewer's *own* team (a lead), not one they manage by role
      *  (an admin). Tints the card — see `.ownedCard`. */
     yours?: boolean;
+    /**
+     * Who applied to a role, and the press that opens the team's applicants
+     * page on it. **A second door, not a second surface**: the page is the one
+     * the team profile opens (`TeamApplicantsPage`), and the line is the one
+     * the profile's Open roles rows wear. A lead's home is their team's page,
+     * but their listings also stand here with the owner's controls — and a row
+     * that knows who applied on one surface and not on the other is the same
+     * object telling two stories. Same audience as the ⋯ beside it: whoever
+     * manages the listing, because the apply step names the leads as the
+     * people an application goes to.
+     */
+    applicantsFor?: (roleUid: string) => RoleApplicant[];
+    openApplicants?: (roleUid: string) => void;
   };
 }
 
@@ -94,6 +132,11 @@ export function JobTeamGroupCard({
   onViewJob,
   appliedRoleUids,
   appliedAtByRole,
+  savedRoleUids,
+  savedAtByRole,
+  onToggleSave,
+  openInterest,
+  onOpenRoleInterest,
   manage,
 }: JobTeamGroupCardProps) {
   const [expanded, toggleExpanded] = useToggle(false);
@@ -119,6 +162,9 @@ export function JobTeamGroupCard({
 
   const focusTags = useGetFocusTags(team);
   const news = getTeamNews(team.uid, team.name);
+  /* Two of the six teams have one — a row on every card would read as board
+     furniture rather than as something a team chose. See `MOCK_OPEN_ROLES`. */
+  const openRole = openRoleFor(team.uid);
 
   /**
    * A story the feed has already carried past opens here instead of sending
@@ -212,19 +258,21 @@ export function JobTeamGroupCard({
           <div className={s.countNumber}>{totalRoles}</div>
           <div className={s.countLabel}>{totalRoles === 1 ? 'open role' : 'open roles'}</div>
           {newCount > 0 && <div className={s.newCount}>+{newCount} new</div>}
-          {inReviewCount > 0 && (
-            <div className={`${s.newCount} ${js.reviewCount}`}>
-              {inReviewCount} in review
-            </div>
-          )}
+          {inReviewCount > 0 && <div className={`${s.newCount} ${js.reviewCount}`}>{inReviewCount} in review</div>}
         </div>
       </header>
 
       <ul className={s.roleList}>
         {visibleRoles.map((role) => {
           const meta = manage?.metaFor(role.uid);
+          const applicants = manage?.applicantsFor?.(role.uid) ?? [];
           return (
-            <li key={role.uid}>
+            /* An owner's row and its applicants share one card — the team
+               profile's `.roleBlock`, the row's own grey and radius — so a role
+               nobody applied to renders exactly as before and one with
+               applicants grows a footer inside the same shape. Everyone else's
+               `<li>` holds the bare row, as it always did. */
+            <li key={role.uid} className={manage ? tor.roleBlock : undefined}>
               <JobReferRoleRow
                 role={role}
                 teamName={team.name}
@@ -235,6 +283,9 @@ export function JobTeamGroupCard({
                 onViewJob={onViewJob}
                 applied={appliedRoleUids?.has(role.uid) ?? false}
                 appliedAt={appliedAtByRole?.get(role.uid)}
+                saved={savedRoleUids?.has(role.uid) ?? false}
+                savedAt={savedAtByRole?.get(role.uid)}
+                onToggleSave={onToggleSave ? () => onToggleSave(role) : undefined}
                 teamId={team.uid}
                 manage={
                   manage && meta
@@ -246,6 +297,9 @@ export function JobTeamGroupCard({
                     : undefined
                 }
               />
+              {manage?.openApplicants && (
+                <RoleApplicants applicants={applicants} onOpen={() => manage.openApplicants?.(role.uid)} />
+              )}
             </li>
           );
         })}
@@ -255,6 +309,27 @@ export function JobTeamGroupCard({
         <button type="button" className={s.expander} onClick={toggleExpanded}>
           {expanded ? 'Show less' : `View all ${roles.length} roles at ${team.name}`}
         </button>
+      )}
+
+      {/* The team's standing invitation, for the reader that all the rows above
+          just failed. It goes after the expander for the same reason the news
+          strip does — the expander belongs to the role list and has to stay
+          attached to it — and it is not one of the roles the expander counts:
+          "View all 4 roles at libp2p" would be wrong the moment a fifth,
+          role-less row joined the list it names.
+
+          Not drawn for the team that owns the card. `manage` means the viewer
+          posted these listings, and "I'm interested" on your own team's open
+          door is a control with nothing behind it. What an owner should see in
+          this slot — who has answered it — is the applicants list, which lives
+          on the team profile; see the note in `openRoles.ts`. */}
+      {openRole && !manage && onOpenRoleInterest && (
+        <OpenRoleRow
+          teamName={team.name}
+          interest={openInterest}
+          onExpressInterest={() => onOpenRoleInterest(team.uid)}
+          attached
+        />
       )}
 
       {/* After the expander, not before it: the expander belongs to the role

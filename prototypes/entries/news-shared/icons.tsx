@@ -18,3 +18,15 @@ export const NewsIcon = () => (
     <path d="M4.25 5.75h5.5M4.25 8h5.5M4.25 10.25h3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
   </svg>
 );
+
+/** Three dots — the trigger of every owner menu on a card here. The product has
+ *  no horizontal-ellipsis glyph of its own (its "More" is a four-square nav
+ *  mark), so this is the plainest one, as drawn for the job board's
+ *  `ListingMenu`: three 1.5px discs in a row. */
+export const DotsIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <circle cx="3" cy="8" r="1.5" fill="currentColor" />
+    <circle cx="8" cy="8" r="1.5" fill="currentColor" />
+    <circle cx="13" cy="8" r="1.5" fill="currentColor" />
+  </svg>
+);

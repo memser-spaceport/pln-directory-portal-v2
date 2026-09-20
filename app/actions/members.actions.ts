@@ -40,6 +40,7 @@ export const getMemberListForQuery = async (query: string, currentPage: number, 
       ohStatus: member.ohStatus,
       scheduleMeetingCount: member.scheduleMeetingCount || 0,
       skills: member.skills || [],
+      customSkills: member.customSkills || [],
       teams,
       location: member?.location,
       mainTeam,
@@ -47,6 +48,7 @@ export const getMemberListForQuery = async (query: string, currentPage: number, 
       isVerified: member.isVerified || false,
       openToWork: member.openToWork || false,
       role: member.role || '',
+      hasInactiveEmail: !!member.hasInactiveEmail,
     };
   });
   return {

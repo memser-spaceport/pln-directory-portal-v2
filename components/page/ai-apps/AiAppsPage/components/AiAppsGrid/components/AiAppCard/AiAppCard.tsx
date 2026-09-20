@@ -12,6 +12,8 @@ import { formatAiAppDate, formatCount } from '@/utils/ai-apps.utils';
 import { DetailsItem } from '@/components/core/UpdatesPanel/NotificationItem/components/NotificationFooter/components/DetailsItem';
 import nf from '@/components/core/UpdatesPanel/NotificationItem/components/NotificationFooter/NotificationFooter.module.scss';
 
+import { AiAppTagChips } from '@/components/page/ai-apps/components/AiAppTagChips';
+
 import { AppActionsMenu } from '../../../AppActionsMenu';
 
 import s from './AiAppCard.module.scss';
@@ -86,17 +88,21 @@ export function AiAppCard(props: Props) {
         {isDeploying && <span className={s.deployingBadge}>Deploying</span>}
       </div>
       <p className={s.description}>{app.description}</p>
-      {metrics.length > 0 ? (
-        <div className={`${nf.details} ${s.metricsRow}`}>
-          {metrics.map((m) => (
-            <DetailsItem key={m.label} data={m} showIcon showLabel />
-          ))}
-        </div>
-      ) : (
-        <p className={s.noMetrics}>No users yet. Be the first in.</p>
-      )}
     </>
   );
+
+  // Lives in the bottom block with the tags and author row (not in the body) so
+  // it sits at the same level on every card, however many lines the description takes.
+  const metricsRow =
+    metrics.length > 0 ? (
+      <div className={`${nf.details} ${s.metricsRow}`}>
+        {metrics.map((m) => (
+          <DetailsItem key={m.label} data={m} showIcon showLabel />
+        ))}
+      </div>
+    ) : (
+      <p className={s.noMetrics}>No users yet. Be the first in.</p>
+    );
 
   // A direct child of .root, never nested in the card's <Link>/<button> —
   // link-inside-link is invalid HTML and breaks keyboard/SR semantics. It sits
@@ -115,48 +121,52 @@ export function AiAppCard(props: Props) {
   );
 
   const footer = (
-    <div className={s.footer}>
-      <div className={s.author}>
-        <img
-          className={s.avatar}
-          src={app.member.image || getDefaultAvatar(app.member.name)}
-          alt=""
-          width={20}
-          height={20}
-        />
-        <div className={s.authorText}>
-          <p className={s.authorLine}>
-            <span className={s.creatorTitle}>by</span>{' '}
-            <Link
-              href={`/members/${app.member.uid}`}
-              className={s.creatorLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={handleAuthorClick}
-            >
-              {app.member.name}
-            </Link>
-          </p>
-          <p className={s.deployed}>Last updated {formatAiAppDate(app.updatedAt)}</p>
+    <div className={s.bottom}>
+      <AiAppTagChips tags={app.tags} />
+      {metricsRow}
+      <div className={s.footer}>
+        <div className={s.author}>
+          <img
+            className={s.avatar}
+            src={app.member.image || getDefaultAvatar(app.member.name)}
+            alt=""
+            width={20}
+            height={20}
+          />
+          <div className={s.authorText}>
+            <p className={s.authorLine}>
+              <span className={s.creatorTitle}>by</span>{' '}
+              <Link
+                href={`/members/${app.member.uid}`}
+                className={s.creatorLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={handleAuthorClick}
+              >
+                {app.member.name}
+              </Link>
+            </p>
+            <p className={s.deployed}>Last updated {formatAiAppDate(app.updatedAt)}</p>
+          </div>
         </div>
-      </div>
 
-      {showDetailsButton && (
-        <Button
-          size="xxs"
-          style="border"
-          variant="neutral"
-          className={s.detailsButton}
-          onClick={(e) => {
-            e.stopPropagation();
-            onViewDetails();
-          }}
-          aria-label={`App details for ${app.name}`}
-        >
-          <DocumentIcon aria-hidden />
-          App Details
-        </Button>
-      )}
+        {showDetailsButton && (
+          <Button
+            size="xxs"
+            style="border"
+            variant="neutral"
+            className={s.detailsButton}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails();
+            }}
+            aria-label={`App details for ${app.name}`}
+          >
+            <DocumentIcon aria-hidden />
+            App Details
+          </Button>
+        )}
+      </div>
     </div>
   );
 

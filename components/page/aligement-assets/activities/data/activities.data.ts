@@ -29,7 +29,7 @@ export const activitiesData: ActivitiesData = {
           'Responses will be reviewed by the PLAA Working Group before points are awarded'
         ],
         links: [
-          { text: 'LabOS Forum', url: 'https://directory.plnetwork.io/forum?cid=0' }
+          { text: 'LabOS Forum', url: '/forum?cid=0' }
         ]
       }
     },
@@ -51,7 +51,7 @@ export const activitiesData: ActivitiesData = {
           'The response must be substantive enough to keep the conversation moving'
         ],
         links: [
-          { text: 'forum post', url: 'https://directory.plnetwork.io/forum?cid=0' }
+          { text: 'forum post', url: '/forum?cid=0' }
         ]
       }
     },
@@ -69,7 +69,7 @@ export const activitiesData: ActivitiesData = {
         overview: 'Host live sessions to share expertise, provide feedback, or collaborate with others in the network. These real-time connections not only share knowledge, but build stronger connections. Set yourself up to host office hours via your profile page.\n\nYou can host office hours through your PL Network profile. For meetings scheduled outside the Directory, add plaa-oh@plrs.xyz as an attendee to make the session eligible for automatic tracking.',
         networkBenefits: 'Makes member expertise accessible and creates lightweight paths for feedback, collaboration, and mentoring across the network.',
         rules: [
-          'Sessions must either be scheduled through directory.plnetwork.io or include plaa-oh@plrs.xyz as an attendee on the calendar invitation',
+          'Sessions must either be scheduled through the Directory or include plaa-oh@plrs.xyz as an attendee on the calendar invitation',
           'Each session must run for at least 15 minutes',
           'The tracking email must be added to the calendar invitation before the session occurs',
           'Cancelled, declined, duplicated, or unverified sessions are not eligible'
@@ -157,22 +157,22 @@ export const activitiesData: ActivitiesData = {
           'Must attend to receive points'
         ],
         links: [
-          { text: 'RSVP on the LabOS site', url: 'https://directory.plnetwork.io/events/irl' }
+          { text: 'RSVP on the LabOS site', url: '/events/irl' }
         ]
       }
     },
     {
-      id: 'give-excellent-survey-feedback',
+      id: 'give-excellent-feedback',
       category: 'Projects',
-      activity: 'Give Excellent Survey Feedback',
+      activity: 'Give Excellent Feedback',
       networkValue: 'You went above and beyond in giving thoughtful and actionable feedback',
       points: '100',
       frequency: 'Repeatable',
       verificationType: 'Auto',
       cta: 'confirm',
       popupContent: {
-        title: 'Give Excellent Survey Feedback',
-        overview: 'Your survey feedback went above and beyond. The insights you provided helped identify new issues or drive real improvements to the Alignment Asset program.',
+        title: 'Give Excellent Feedback',
+        overview: 'Your feedback — whether through a survey, the LabOS Feedback button, or another PLAA channel — went above and beyond. The insights you provided helped identify new issues or drive real improvements to the Alignment Asset program.',
         networkBenefits: 'Rewards feedback that identifies meaningful issues or improvement opportunities, not just completed forms.',
         rules: [
           'Your feedback created meaningful impact, as determined by the PLAA working group',
@@ -198,6 +198,32 @@ export const activitiesData: ActivitiesData = {
           'If completing a PL Network member survey, you are not a member of the organization that submitted it for distribution',
           `Surveys must be completed before the end of the month in which they're sent`,
           'Bot or Spam responses may result in the forfeiture of points'
+        ]
+      }
+    },
+    {
+      id: 'provide-product-testing-feedback',
+      category: 'Projects',
+      activity: 'Provide Product Testing + Feedback',
+      networkValue: 'Test an approved product, tool, or workflow on a real task and share meaningful, actionable feedback',
+      points: '100',
+      frequency: 'Repeatable',
+      isNew: true,
+      verificationType: 'Manual Review',
+      cta: 'confirm',
+      popupContent: {
+        title: 'Provide Product Testing + Feedback',
+        overview: `Test an approved product, tool, workflow, or process on a real work task and provide meaningful, actionable feedback on the experience.\n\nCurrent eligible requests for product testing:\n\nFactorio Weekly Updates — Submit your weekly update, then provide feedback using the LabOS feedback feature in the bottom-right corner of the screen. Collect an additional 100 points for sharing meaningful feedback on the broader UX and the features you would find most useful in your daily workflow. Feedback will be eligible for points through Friday, September 18, 2026.`,
+        networkBenefits: 'Helps teams improve shared products and workflows through real-world use, identifying friction, missing capabilities, and opportunities to improve the user experience.',
+        rules: [
+          'Participate in an eligible product-testing request and complete the defined task',
+          'On the designated feedback form/feature, describe what you tried, what happened, and provide at least one actionable observation',
+          'Feedback may identify friction, bugs, missing capabilities, suggested UX/UI improvements, or something that worked well and should be retained',
+          'Feedback must be meaningful and specific enough for the product owner to act on',
+          'Attendance, account creation, routine use, demos, logins, praise alone, or general reactions do not qualify'
+        ],
+        links: [
+          { text: 'Factorio Weekly Updates', url: 'https://os.pl.xyz/pl-infra/ai-apps/cmst544z7008siz4g1d59fubr/weekly' }
         ]
       }
     },
@@ -261,7 +287,7 @@ export const activitiesData: ActivitiesData = {
           'Kudos may be reviewed or removed if they appear duplicated, coordinated, or otherwise misused.'
         ],
         links: [
-          { text: 'Kudos feature', url: 'https://directory.plnetwork.io/alignment-asset/kudos' }
+          { text: 'Kudos feature', url: '/alignment-asset/kudos' }
         ]
       }
     },
@@ -298,7 +324,7 @@ export const activitiesData: ActivitiesData = {
       cta: 'submit',
       popupContent: {
         title: 'Refer a Potential Team Member to a PL Network Org',
-        overview: 'Refer exceptional talent to the Protocol Labs network by submitting candidates through the designated form. Check out the PL Network Job Board to see open roles: https://directory.plnetwork.io/jobs.',
+        overview: 'Refer exceptional talent to the Protocol Labs network by submitting candidates through the designated form. Check out the PL Network Job Board to see open roles: /jobs.',
         networkBenefits: 'Expands the candidate pipeline for open roles across network companies and organizations.',
         rules: [
           'The referral must be for an open role at a PL Network Member organization or company',
@@ -306,7 +332,7 @@ export const activitiesData: ActivitiesData = {
           'The referral must at least pass the screening interview stage'
         ],
         links: [
-          { text: 'https://directory.plnetwork.io/jobs', url: 'https://directory.plnetwork.io/jobs' }
+          { text: '/jobs', url: '/jobs' }
         ]
       }
     },
@@ -345,13 +371,13 @@ export const activitiesData: ActivitiesData = {
         rules: [
           'The event must be created and published in Luma and included on a live, discoverable calendar or listing',
           'You must add events@plrs.xyz as an Event Manager in Luma so registration and attendance data can be accessed',
-          'Host must submit it to the PL events directory by adding it to https://directory.plnetwork.io/events/irl via https://irl.plnetwork.io/events/',
+          'Host must submit it to the PL events directory by adding it to /events/irl via https://irl.plnetwork.io/events/',
           'To qualify as a Host, your profile must be clearly listed under the Host section of the event',
           'At least 10 people not associated with your organization or company must attend'
         ],
         links: [
           { text: 'events@plrs.xyz', url: 'mailto:events@plrs.xyz' },
-          { text: 'https://directory.plnetwork.io/events/irl', url: 'https://directory.plnetwork.io/events/irl' },
+          { text: '/events/irl', url: '/events/irl' },
           { text: 'https://irl.plnetwork.io/events/', url: 'https://irl.plnetwork.io/events/' }
         ]
       }
@@ -391,13 +417,39 @@ export const activitiesData: ActivitiesData = {
         networkBenefits: 'Expands useful network tooling while driving adoption and feedback for LabOS infrastructure.',
         rules: [
           'Available to PL Infra members only. Other participants may submit qualifying tools through the Share an AI Resource or Tool You Built activity.',
-          'Create and deploy a functional AI application through LabOS via https://directory.plnetwork.io/pl-infra/ai-apps.',
+          'Create and deploy a functional AI application through LabOS via /pl-infra/ai-apps.',
           'The application must be useful to the average PL Infra user.',
           'Include basic documentation and identify any collaborators.',
           'Applications are reviewed by the PLAA Working Group before points are awarded.'
         ],
         links: [
-          { text: 'https://directory.plnetwork.io/pl-infra/ai-apps', url: 'https://directory.plnetwork.io/pl-infra/ai-apps' }
+          { text: '/pl-infra/ai-apps', url: '/pl-infra/ai-apps' }
+        ]
+      }
+    },
+    {
+      id: 'contribute-reusable-prompt-or-skill',
+      category: 'Network Tooling',
+      activity: 'Contribute a Reusable Prompt or Skill',
+      networkValue: 'Contribute a reusable prompt, AI resource, or skill to the PLAAbook or PL Infra Toolkit',
+      points: '350',
+      frequency: 'Recurring',
+      isNew: true,
+      verificationType: 'Manual Review',
+      cta: 'confirm',
+      popupContent: {
+        title: 'Contribute a Reusable Prompt or Skill',
+        overview: 'Contribute a reusable resource, prompt or AI skill to the PLAAbook or PL Infra Toolkit for PL Infra users. Receive 100 points for an approved resource or prompt and also 250 points for an approved skill, up to 350 points total.',
+        networkBenefits: 'Builds a library of useful, reusable AI resources while encouraging PL Infra members to share proven knowledge resources, workflows and tools with the broader network.',
+        rules: [
+          '100 points are awarded for an approved reusable resource or prompt; 250 points are awarded for an approved skill (up to 350 points total)',
+          'Available to current PLAA participants with verified PL Infra membership and Toolkit access',
+          'Submit up to one prompt or AI-related resource and one AI skill',
+          'Contributions must be publication-verified, useful, reproducible, safe, and non-duplicative'
+        ],
+        links: [
+          { text: 'PLAAbook', url: 'https://directory.plnetwork.io/pl-infra/ai-apps/cmthpnpeo059vnz4g9kf55xrv' },
+          { text: 'PL Infra Toolkit', url: 'https://directory.plnetwork.io/pl-infra/ai-apps/cmr2wll3y0a07ot4gjdy8ma6b' }
         ]
       }
     },
@@ -456,13 +508,13 @@ export const activitiesData: ActivitiesData = {
         overview: 'Subscribe to the PL Newsletter to receive network news, opportunities, events, and other important updates directly in your inbox.',
         networkBenefits: 'Keeps more members informed and connected to opportunities across the PL Network.',
         rules: [
-          'Turn on the Subscribe to PL Newsletter toggle in Directory via https://directory.plnetwork.io/settings/email',
+          'Turn on the Subscribe to PL Newsletter toggle in Directory via /settings/email',
           'The toggle must remain enabled when the subscription is verified',
           'Points are awarded after Marketing confirms the subscription',
           'This activity may only be completed once'
         ],
         links: [
-          { text: 'https://directory.plnetwork.io/settings/email', url: 'https://directory.plnetwork.io/settings/email' }
+          { text: '/settings/email', url: '/settings/email' }
         ]
       }
     }

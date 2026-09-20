@@ -1,6 +1,7 @@
 import {
   buildTeamNewsByTeamUrl,
   fetchTeamNewsByTeam,
+  getTeamNewsItemByUid,
   recordTeamNewsImpressions,
   sendTeamNewsImpressionsBeacon,
 } from '@/services/team-news/team-news.service';
@@ -191,5 +192,64 @@ describe('sendTeamNewsImpressionsBeacon', () => {
   it('returns false when the browser has no sendBeacon support', () => {
     (navigator as unknown as { sendBeacon: unknown }).sendBeacon = undefined;
     expect(sendTeamNewsImpressionsBeacon(['n-1'])).toBe(false);
+  });
+});
+
+describe('getTeamNewsItemByUid', () => {
+  const originalEnv = process.env.DIRECTORY_API_URL;
+  const fetchMock = jest.fn();
+
+  const ok = (body: unknown) => ({ ok: true, status: 200, json: async () => body });
+
+  beforeAll(() => {
+    process.env.DIRECTORY_API_URL = 'https://api.example.com';
+    global.fetch = fetchMock;
+  });
+
+  afterAll(() => {
+    process.env.DIRECTORY_API_URL = originalEnv;
+  });
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue(ok({ uid: 'news-1', title: 'Story' }));
+  });
+
+  it('resolves the item in a single request', async () => {
+    await expect(getTeamNewsItemByUid('news-1')).resolves.toMatchObject({ uid: 'news-1', title: 'Story' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('addresses the item by uid rather than filtering a list', async () => {
+    await getTeamNewsItemByUid('news-1');
+
+    const [url] = fetchMock.mock.calls[0];
+    expect(url).toBe('https://api.example.com/v1/team-news/news-1');
+  });
+
+  it('escapes a uid so it cannot break out of the path', async () => {
+    await getTeamNewsItemByUid('../latest');
+
+    const [url] = fetchMock.mock.calls[0];
+    expect(url).toBe('https://api.example.com/v1/team-news/..%2Flatest');
+  });
+
+  it('sends no Authorization header, so the cached response carries no per-viewer state', async () => {
+    await getTeamNewsItemByUid('news-1');
+
+    const [, init] = fetchMock.mock.calls[0];
+    expect(init.headers).toBeUndefined();
+  });
+
+  it('returns null for a uid the API does not know', async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 404 });
+
+    await expect(getTeamNewsItemByUid('missing')).resolves.toBeNull();
+  });
+
+  it('returns null rather than throwing when the request fails', async () => {
+    fetchMock.mockRejectedValue(new Error('network down'));
+
+    await expect(getTeamNewsItemByUid('news-1')).resolves.toBeNull();
   });
 });

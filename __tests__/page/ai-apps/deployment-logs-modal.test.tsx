@@ -96,6 +96,49 @@ describe('DeploymentLogsModal', () => {
     expect(screen.getByRole('tab', { name: /build/i })).toHaveAttribute('aria-selected', 'true');
   });
 
+  it('marks where the newest-first list crosses into an earlier deployment', () => {
+    // Newest-first, as the hook delivers them (order=desc).
+    mockStreams.runtime = loaded([
+      { timestamp: 6, message: 'GET /health 200', deploymentId: 'deploy-new' },
+      { timestamp: 5, message: 'server listening on 3000', deploymentId: 'deploy-new' },
+      { timestamp: 4, message: 'cron: nightly digest sent', deploymentId: 'deploy-old' },
+    ]);
+    render(<DeploymentLogsModal app={buildApp()} onClose={onClose} />);
+
+    const boundary = screen.getByText(/earlier deployment/i);
+    expect(boundary).toHaveTextContent('deploy-old');
+    // Exactly one boundary: same-deployment neighbours never get one.
+    expect(screen.getAllByText(/earlier deployment/i)).toHaveLength(1);
+    // The pre-redeploy line is still shown, below the marker.
+    const rows = screen.getAllByRole('row');
+    const boundaryIndex = rows.findIndex((row) => /earlier deployment/i.test(row.textContent ?? ''));
+    const oldLineIndex = rows.findIndex((row) => /nightly digest/.test(row.textContent ?? ''));
+    expect(oldLineIndex).toBeGreaterThan(boundaryIndex);
+  });
+
+  it('marks each earlier deployment once even when rollover lines interleave', () => {
+    // Old and new pods log concurrently while the old one drains, so sorted
+    // newest-first their lines alternate. One marker per deployment, not per flip.
+    mockStreams.runtime = loaded([
+      { timestamp: 9, message: 'new: ready', deploymentId: 'deploy-new' },
+      { timestamp: 8, message: 'old: draining', deploymentId: 'deploy-old' },
+      { timestamp: 7, message: 'new: starting', deploymentId: 'deploy-new' },
+      { timestamp: 6, message: 'old: serving', deploymentId: 'deploy-old' },
+      { timestamp: 5, message: 'older: cron ran', deploymentId: 'deploy-older' },
+    ]);
+    render(<DeploymentLogsModal app={buildApp()} onClose={onClose} />);
+
+    const markers = screen.getAllByText(/earlier deployment/i);
+    expect(markers).toHaveLength(2);
+    expect(markers[0]).toHaveTextContent('deploy-old');
+    expect(markers[1]).toHaveTextContent('deploy-older');
+  });
+
+  it('shows no deployment marker when lines carry no deploymentId (older backend)', () => {
+    render(<DeploymentLogsModal app={buildApp()} onClose={onClose} />);
+    expect(screen.queryByText(/earlier deployment/i)).not.toBeInTheDocument();
+  });
+
   it('opens on the failing stream when a failed deploy carries failureStream', () => {
     render(
       <DeploymentLogsModal

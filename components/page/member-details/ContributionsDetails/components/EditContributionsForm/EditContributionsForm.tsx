@@ -130,58 +130,59 @@ export const EditContributionsForm = ({ onClose, member, initialData }: Props) =
   return (
     <FormProvider {...methods}>
       <form noValidate onSubmit={handleSubmit(onSubmit)}>
-        <EditFormControls onClose={onClose} title={isNew ? 'Add Project Contribution' : 'Edit Project Contribution'} />
-        <div className={s.body}>
-          <div className={s.row}>
-            <FormSelect
-              name="name"
-              placeholder="Project"
-              backLabel="Projects"
-              label="Project Name"
-              isRequired
-              options={
-                data?.projects.map((item: { projectUid: string; projectName: string }) => ({
-                  value: item.projectUid,
-                  label: item.projectName,
-                })) ?? []
-              }
-              notFoundContent={
-                <div className={s.secondaryLabel}>
-                  If you don&apos;t see your project on this list, please{' '}
-                  <Link href="/projects/add" className={s.link} target="_blank">
-                    add your project
-                  </Link>{' '}
-                  first.
-                </div>
-              }
-            />
-          </div>
-          <div className={s.row}>
-            <FormField name="role" label="Role" isRequired placeholder="Enter role" />
-          </div>
-          <div className={s.row}>
-            <ContributionsDatesInput />
-          </div>
-          <div className={s.row}>
-            <ContributionsDescriptionInput />
-          </div>
-          {!isNew && (
-            <>
-              <button className={s.deleteBtn} type="button" onClick={() => setIsOpenDelete(true)}>
-                <DeleteIcon /> Delete Contribution
-              </button>
-              <ConfirmDialog
-                title="Delete Contribution"
-                desc="Are you sure you want to delete selected contribution?"
-                isOpen={isOpenDelete}
-                onClose={() => setIsOpenDelete(false)}
-                onConfirm={onDelete}
-                disabled={isPending}
-                confirmTitle={isPending ? 'Processing...' : 'Delete'}
+        <EditFormControls onClose={onClose} title={isNew ? 'Add Project Contribution' : 'Edit Project Contribution'}>
+          <div className={s.body}>
+            <div className={s.row}>
+              <FormSelect
+                name="name"
+                placeholder="Project"
+                backLabel="Projects"
+                label="Project Name"
+                isRequired
+                options={
+                  data?.projects.map((item: { projectUid: string; projectName: string }) => ({
+                    value: item.projectUid,
+                    label: item.projectName,
+                  })) ?? []
+                }
+                notFoundContent={
+                  <div className={s.secondaryLabel}>
+                    If you don&apos;t see your project on this list, please{' '}
+                    <Link href="/projects/add" className={s.link} target="_blank">
+                      add your project
+                    </Link>{' '}
+                    first.
+                  </div>
+                }
               />
-            </>
-          )}
-        </div>
+            </div>
+            <div className={s.row}>
+              <FormField name="role" label="Role" isRequired placeholder="Enter role" />
+            </div>
+            <div className={s.row}>
+              <ContributionsDatesInput />
+            </div>
+            <div className={s.row}>
+              <ContributionsDescriptionInput />
+            </div>
+            {!isNew && (
+              <>
+                <button className={s.deleteBtn} type="button" onClick={() => setIsOpenDelete(true)}>
+                  <DeleteIcon /> Delete Contribution
+                </button>
+                <ConfirmDialog
+                  title="Delete Contribution"
+                  desc="Are you sure you want to delete selected contribution?"
+                  isOpen={isOpenDelete}
+                  onClose={() => setIsOpenDelete(false)}
+                  onConfirm={onDelete}
+                  disabled={isPending}
+                  confirmTitle={isPending ? 'Processing...' : 'Delete'}
+                />
+              </>
+            )}
+          </div>
+        </EditFormControls>
         <EditFormMobileControls />
       </form>
     </FormProvider>

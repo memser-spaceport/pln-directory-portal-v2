@@ -2,15 +2,32 @@ import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { PostNewsButton } from '@/components/page/team-details/TeamNews/PostNewsModal/PostNewsButton';
-import { getUiFlag, setUiFlag } from '@/utils/uiFlags';
 
-jest.mock('@/utils/uiFlags', () => ({
-  getUiFlag: jest.fn(),
-  setUiFlag: jest.fn(),
-}));
+/**
+ * The tip's storage lives in `useOneTimeCallout` — local cache, member record
+ * and the reconciliation between them — and is covered by
+ * `__tests__/hooks/use-one-time-callout.test.tsx`. Here the hook is a fake that
+ * is open until dismissed, so these stay tests of the button.
+ */
+const mockDismiss = jest.fn();
+const mockCalloutKey = jest.fn();
 
-const mockGetUiFlag = getUiFlag as jest.MockedFunction<typeof getUiFlag>;
-const mockSetUiFlag = setUiFlag as jest.MockedFunction<typeof setUiFlag>;
+jest.mock('@/hooks/useOneTimeCallout', () => {
+  const { useState } = jest.requireActual('react');
+  return {
+    useOneTimeCallout: (key: string) => {
+      mockCalloutKey(key);
+      const [dismissedHere, setDismissedHere] = useState(false);
+      return {
+        open: !dismissedHere,
+        dismiss: () => {
+          mockDismiss(key);
+          setDismissedHere(true);
+        },
+      };
+    },
+  };
+});
 
 beforeAll(() => {
   global.ResizeObserver = class {
@@ -23,24 +40,22 @@ beforeAll(() => {
 describe('PostNewsButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetUiFlag.mockResolvedValue(false);
-    mockSetUiFlag.mockResolvedValue(undefined);
   });
 
   it('shows the first-visit tooltip until Got it is pressed', async () => {
-    const onPost = jest.fn();
-    render(<PostNewsButton teamName="Protocol Labs" memberUid="member-1" onPost={onPost} />);
+    render(<PostNewsButton teamName="Protocol Labs" onPost={jest.fn()} />);
 
     expect(await screen.findByRole('button', { name: 'Got it' })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Got it' }));
 
-    await waitFor(() => expect(mockSetUiFlag).toHaveBeenCalledWith('team_news_post_tip_dismissed_member-1'));
+    await waitFor(() => expect(mockDismiss).toHaveBeenCalledWith('team_news_post_tip'));
+    expect(screen.queryByRole('button', { name: 'Got it' })).not.toBeInTheDocument();
   });
 
   it('dismisses the tooltip when Post news is clicked', async () => {
     const onPost = jest.fn();
-    render(<PostNewsButton teamName="Protocol Labs" memberUid="member-1" onPost={onPost} />);
+    render(<PostNewsButton teamName="Protocol Labs" onPost={onPost} />);
 
     await screen.findByRole('button', { name: 'Got it' });
 
@@ -48,7 +63,15 @@ describe('PostNewsButton', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Post news' }));
     });
 
-    expect(mockSetUiFlag).toHaveBeenCalledWith('team_news_post_tip_dismissed_member-1');
+    expect(mockDismiss).toHaveBeenCalledWith('team_news_post_tip');
     expect(onPost).toHaveBeenCalled();
+  });
+
+  // The exact string is the contract with the member's stored record: change it
+  // and every member who already dismissed the tip sees it again.
+  it('asks about the tip under its published key', () => {
+    render(<PostNewsButton teamName="Protocol Labs" onPost={jest.fn()} />);
+
+    expect(mockCalloutKey).toHaveBeenCalledWith('team_news_post_tip');
   });
 });

@@ -1,3 +1,9 @@
+// Two consumers, and they want different amounts of this file: the legacy
+// `ChatHistory` beside it (restored with the pre-dialog header search, and the
+// reason the rules the dialog dropped are back) and `prototypes/entries/ai-search`,
+// which imports these classes so its rows sit in the same list production's used
+// to. DELETE WITH: whichever of the two outlives the other.
+
 @use 'styles/mixins';
 
 .root {

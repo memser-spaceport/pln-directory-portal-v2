@@ -83,7 +83,7 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
     !!team?.dataEnrichment?.isAIGenerated &&
     team?.dataEnrichment?.status !== 'Reviewed';
 
-  const isCurrentUserTeamMember = isLoggedIn && members?.some((m) => m.id === userInfo?.uid);
+  const isCurrentUserTeamMember = !!(isLoggedIn && members?.some((m) => m.id === userInfo?.uid));
 
   // Mount for logged-in viewers even when the SSR cookie lacks rbac yet —
   // TeamNewsRail recomputes canPost from the client store (UserInfoChecker).
@@ -140,7 +140,7 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
         <TeamFocusAreas team={team} focusAreas={focusAreas || []} teamFocusAreas={team?.teamFocusAreas || []} />
 
         <TeamProjects
-          isLoggedIn={isLoggedIn}
+          isLoggedIn={!!isLoggedIn}
           projects={teamProjectList}
           team={team}
           hasProjectsEditAccess={hasProjectsEditAccess}
@@ -242,7 +242,7 @@ async function getPageData(teamId: string) {
             'teamMemberRoles.team.uid': teamId,
             isVerified: 'all',
             select:
-              'uid,name,isVerified,image.url,officeHours,ohStatus,skills.title,teamMemberRoles.team.uid,projectContributions,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
+              'uid,name,isVerified,image.url,officeHours,ohStatus,skills.title,customSkills,teamMemberRoles.team.uid,projectContributions,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
             pagination: false,
           },
           teamId,
@@ -381,11 +381,17 @@ export async function generateMetadata(props: IGenerateMetadata, parent: Resolvi
   const team = teamResonse?.data?.formatedData;
   const previousImages = (await parent).openGraph?.images || [];
   const logo = team?.logo || SOCIAL_IMAGE_URL;
+  const pageUrl = `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.TEAMS}/${teamId}`;
+  const description = team?.name
+    ? `${team.name} on Protocol Labs Directory`
+    : 'Explore teams across the Protocol Labs network.';
   return {
     title: `${team?.name} | Protocol Labs Directory`,
+    description,
+    alternates: { canonical: pageUrl },
     openGraph: {
       type: 'website',
-      url: `${process.env.APPLICATION_BASE_URL}${PAGE_ROUTES.TEAMS}/${teamId}`,
+      url: pageUrl,
       images: [logo, ...previousImages],
     },
   };

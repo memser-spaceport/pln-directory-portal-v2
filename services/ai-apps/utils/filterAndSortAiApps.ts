@@ -3,7 +3,7 @@ import { decodeFilterValues } from '@/services/filters/decodeFilterValues';
 import type { AiAppsSortValue } from '../constants';
 import type { AiApp } from '../ai-apps.service';
 
-import { AI_APPS_CREATED_BY_PARAM, AI_APPS_SEARCH_PARAM, AI_APPS_SORT } from '../constants';
+import { AI_APPS_CREATED_BY_PARAM, AI_APPS_SEARCH_PARAM, AI_APPS_SORT, AI_APPS_TAGS_PARAM } from '../constants';
 
 import { getAiAppsSort } from './getAiAppsSort';
 
@@ -37,9 +37,13 @@ function compareAiApps(sort: AiAppsSortValue) {
 export function filterAndSortAiApps(apps: AiApp[], params: URLSearchParams): AiApp[] {
   const query = params.get(AI_APPS_SEARCH_PARAM) ?? '';
   const creators = decodeFilterValues(params.get(AI_APPS_CREATED_BY_PARAM));
+  const tags = decodeFilterValues(params.get(AI_APPS_TAGS_PARAM));
 
   const rows = apps.filter((app) => {
     if (creators.length && !creators.includes(app.member?.name)) {
+      return false;
+    }
+    if (tags.length && !(app.tags ?? []).some((tag) => tags.includes(tag))) {
       return false;
     }
 

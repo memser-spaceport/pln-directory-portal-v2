@@ -54,12 +54,12 @@ async function Page(props: { params: Promise<ITeamDetailParams> }) {
 
           {/* Pitch Deck */}
           <div className={styles?.fundraisingDetail__container__pitchDeck}>
-            <PitchDeckDetails team={team} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            <PitchDeckDetails team={team} isLoggedIn={!!isLoggedIn} userInfo={userInfo} />
           </div>
 
           {/* Video Pitch */}
           <div className={styles?.fundraisingDetail__container__videoPitch}>
-            <VideoPitchDetails team={team} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+            <VideoPitchDetails team={team} isLoggedIn={!!isLoggedIn} userInfo={userInfo} />
           </div>
 
           {/* Funding Information */}
@@ -139,7 +139,7 @@ async function getPageData(teamId: string) {
           'teamMemberRoles.team.uid': teamId,
           isVerified: 'all',
           select:
-            'uid,name,isVerified,image.url,officeHours,ohStatus,skills.title,teamMemberRoles.team.uid,projectContributions,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
+            'uid,name,isVerified,image.url,officeHours,ohStatus,skills.title,customSkills,teamMemberRoles.team.uid,projectContributions,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
           pagination: false,
         },
         teamId,

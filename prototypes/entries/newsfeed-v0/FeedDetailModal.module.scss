@@ -505,3 +505,11 @@
     text-decoration: underline;
   }
 }
+
+/* An owner's menu in the header, between the identity and Close. Close keeps
+   its slot; the menu sits one gap inside it so the two icon buttons don't touch. */
+.headAction {
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
+}

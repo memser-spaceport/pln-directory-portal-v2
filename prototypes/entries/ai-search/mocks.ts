@@ -233,7 +233,7 @@ export function highlight(text: string, tokens: string[]) {
   }, text);
 }
 
-const tokenize = (q: string) =>
+export const tokenize = (q: string) =>
   q
     .toLowerCase()
     .split(/\s+/)
@@ -254,7 +254,7 @@ function hitsFor(item: { name: string; fields: { content: string }[]; keywords?:
  * fall back to either when nothing is both. Mirrors what a reader expects from
  * a directory search rather than what Elasticsearch does by default.
  */
-function pick<T extends { name: string; fields: { content: string }[]; keywords?: string[] }>(
+export function pick<T extends { name: string; fields: { content: string }[]; keywords?: string[] }>(
   items: T[],
   tokens: string[],
 ): T[] {
@@ -369,6 +369,8 @@ export interface DirectoryHit {
    * own result rows would list first for that index.
    */
   meta?: string;
+  /** A real photo, when the record has one (applicants and followers do). */
+  avatar?: string;
 }
 
 export interface CannedAnswer {
@@ -376,6 +378,22 @@ export interface CannedAnswer {
   sources: string[];
   sql: DirectoryHit[];
   followUpQuestions: string[];
+  /** Present when the question was asked inside a scope — see `scope.ts`. */
+  scoped?: ScopedAnswerMeta;
+}
+
+/**
+ * What a scoped answer adds to the network answer's anatomy: the line saying
+ * what was read, who may see it, and the door to the section that owns the
+ * objects. The prose shrinks to a two-sentence summary under the cards.
+ */
+export interface ScopedAnswerMeta {
+  /** "Applications to Senior Distributed Systems Engineer, last 7 days". */
+  retrieved: string;
+  /** The audience sentence for the lock pill, when the records are not public. */
+  restrictedTo?: string;
+  /** The section that owns these objects; `target` is the scope's to resolve. */
+  door?: { label: string; target: string };
 }
 
 const link = (item: CorpusItem) => `/${item.index}/${item.uid}`;
@@ -386,7 +404,7 @@ const META_FIELD: Record<CorpusIndex, string> = {
   projects: 'tags',
   events: 'location',
 };
-const hit = (item: CorpusItem): DirectoryHit => ({
+export const hit = (item: CorpusItem): DirectoryHit => ({
   name: item.name,
   type:
     item.index === 'members'

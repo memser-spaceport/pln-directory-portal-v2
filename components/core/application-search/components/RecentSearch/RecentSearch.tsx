@@ -20,37 +20,36 @@ export const RecentSearch = ({ onSelect }: Props) => {
     return null;
   }
 
+  /* No dividers of its own: the dialog is the only host now, and it owns the
+     rhythm between its sections. Rendering them here put a second line
+     immediately under the field's hairline, with a band of white between. */
   return (
-    <>
-      <div className={s.divider} />
-      <div className={s.root}>
-        <div className={s.label}>Recent</div>
-        <ul className={s.list}>
-          {data?.map((item) => (
-            <li
-              key={item}
-              className={clsx('chat-recent-search', s.searchItem)}
-              onClick={() => {
-                analytics.onRecentSearchClick(item);
-                onSelect(item);
+    <div className={s.root}>
+      <div className={s.label}>Recent</div>
+      <ul className={s.list}>
+        {data?.map((item) => (
+          <li
+            key={item}
+            className={clsx('chat-recent-search', s.searchItem)}
+            onClick={() => {
+              analytics.onRecentSearchClick(item);
+              onSelect(item);
+            }}
+          >
+            <span className={s.searchItemText}>{item}</span>
+            <button
+              className={clsx(s.removeButton)}
+              onClick={(e) => {
+                e.stopPropagation();
+                analytics.onRecentSearchDeleteClick(item);
+                mutate({ item });
               }}
             >
-              <span className={s.searchItemText}>{item}</span>
-              <button
-                className={clsx(s.removeButton)}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  analytics.onRecentSearchDeleteClick(item);
-                  mutate({ item });
-                }}
-              >
-                <Image src="/icons/close-gray.svg" alt="Search" width={20} height={20} />
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className={s.divider} />
-    </>
+              <Image src="/icons/close-gray.svg" alt="Search" width={20} height={20} />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 };

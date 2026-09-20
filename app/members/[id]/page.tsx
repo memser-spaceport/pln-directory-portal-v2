@@ -5,6 +5,12 @@ import styles from './page.module.scss';
 import { getMember } from '@/services/members.service';
 import IrlMemberContribution from '@/components/page/member-details/member-irl-contributions';
 import { UnsavedEditsPageGuard } from '@/components/common/profile/UnsavedEdits';
+import {
+  ProfileSection,
+  SectionEditLockProvider,
+  SectionStatusBar,
+  useSectionEditLockRegistry,
+} from '@/components/common/profile/SectionEditLock';
 import { ProfileDetails } from '@/components/page/member-details/ProfileDetails';
 import { ContactDetails } from '@/components/page/member-details/ContactDetails';
 import { JobSearchStatusDetails } from '@/components/page/member-details/JobSearchStatusDetails';
@@ -25,13 +31,19 @@ import { isDemodaySignUpSource, isMemberAvailableToConnect } from '@/utils/membe
 import { useCurrentUserStore } from '@/services/auth/store';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useQuery } from '@tanstack/react-query';
-import { IMember } from '@/types/members.types';
 import { useSearchParams } from 'next/navigation';
 import { AccountCreatedView } from '@/components/page/member-details/AccountCreatedView';
 
 import MemberPageLoader from './loading';
 import Head from 'next/head';
-import { MembersQueryKeys, SHOW_CV_IMPORT } from '@/services/members/constants';
+import { MembersQueryKeys } from '@/services/members/constants';
+import { MemberCvSection } from '@/components/page/member-details/MemberCvSection/MemberCvSection';
+import {
+  isJobAspirantMember,
+  shouldPlaceCvAfterProfileDetails,
+  shouldPlaceCvInDefaultPosition,
+  shouldShowInvestorProfile,
+} from '@/components/page/member-details/job-aspirant-profile';
 import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
 import { ForumActivity } from '@/components/page/member-details/ForumActivity';
 import { TeamNewsDetails } from '@/components/page/member-details/TeamNewsDetails';
@@ -40,31 +52,17 @@ import { useIsBelowTabletLandscape } from '@/hooks/useIsBelowTabletLandscape';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useAffinityAccess } from '@/services/access-control/hooks/useAffinityAccess';
 import { useAffinityMember } from '@/services/affinity/hooks/useAffinityMember';
+import { useJobEmailProfileLinkEventCapture } from '@/components/page/member-details/hooks';
 import { RelationshipDetails } from '@/components/page/member-details/RelationshipDetails';
 import { useLoginRedirect } from '@/components/core/login/utils';
-
-const shouldShowInvestorProfileForThirdParty = (
-  member: IMember,
-  isOwner: boolean,
-  isAdmin: boolean,
-  isInvestor?: boolean,
-): boolean => {
-  if (!isOwner && !isAdmin) {
-    return false;
-  }
-
-  if (isInvestor === null || isInvestor) {
-    return true;
-  }
-
-  return false;
-};
 
 const MemberDetails = (props: { params: Promise<any> }) => {
   const params = use(props.params);
   const memberId = params?.id;
   const searchParams = useSearchParams();
   const goToLogin = useLoginRedirect();
+
+  useJobEmailProfileLinkEventCapture(memberId);
 
   const { currentUser: userInfo } = useCurrentUserStore();
   const isAdmin = isAdminUser(userInfo);
@@ -94,7 +92,6 @@ const MemberDetails = (props: { params: Promise<any> }) => {
     select: (data) => data?.data?.formattedData,
   });
 
-  // Fetch investor settings to check visibility preference
   const { data: memberInvestorSettings } = useGetMemberInvestorSettings(memberId);
   const { authToken } = getCookiesFromClient();
   const { data: availableToConnectCount } = useQuery({
@@ -115,6 +112,10 @@ const MemberDetails = (props: { params: Promise<any> }) => {
   // otherwise a member whose only rail content is news gets no rail at all.
   // Resolved here and in the card itself; both land on the same query entry.
   const isBelowTabletLandscape = useIsBelowTabletLandscape();
+  /* One open section at a time, and the status bar for it once it has been
+     scrolled away. The sections need no props: the controls row every edit form
+     is built from claims the lock itself. See `SectionEditLock`. */
+  const sectionEditLock = useSectionEditLockRegistry();
   const { visible: showTeamNews } = useMemberTeamNewsCard({ member, isLoggedIn, userInfo });
   const showSidebar = showOtherConnectOptions || hasAffinityContent || (showTeamNews && !isBelowTabletLandscape);
   const status = member?.rbac?.status;
@@ -171,43 +172,86 @@ const MemberDetails = (props: { params: Promise<any> }) => {
       return null;
     }
 
-    const showInvestorProfile = shouldShowInvestorProfileForThirdParty(
-      member,
+    const jobAspirant = isJobAspirantMember(member);
+    const showInvestorProfile = shouldShowInvestorProfile({
       isOwner,
       isAdmin,
-      memberInvestorSettings?.isInvestor,
-    );
+      isInvestor: memberInvestorSettings?.isInvestor,
+      isJobAspirant: jobAspirant,
+    });
     const isInvestorOnly =
       isNewInvestor || member.rbac.policies?.every((p: { role: string }) => p.role.toLowerCase() === 'investor');
+    /* Signed in, and nothing else. Who may actually see a CV is `assertCanView`'s
+       answer, which arrives with the query. */
+    const showCvSection = isLoggedIn;
+    const cvAfterProfile = shouldPlaceCvAfterProfileDetails({
+      showCvSection,
+      isJobAspirant: jobAspirant,
+      isOwner,
+    });
+    const cvInDefaultPosition = shouldPlaceCvInDefaultPosition({
+      showCvSection,
+      isJobAspirant: jobAspirant,
+      isOwner,
+    });
+    const cvSection = showCvSection ? (
+      <ProfileSection name={isOwner ? 'Your CV' : 'CV'}>
+        <MemberCvSection member={member} isOwner={isOwner} />
+      </ProfileSection>
+    ) : null;
 
     return (
       <>
-        <OneClickVerification
-          userInfo={userInfo}
-          member={member}
-          isLoggedIn={isLoggedIn}
-          isNewInvestor={isNewInvestor}
-        />
-        <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-        {showInvestorProfile && (
-          <InvestorProfileDetails
+        {/* Every card is wrapped, the read-only ones too: while one section is
+            being edited the rest of the column is `inert` and faded, and a card
+            nobody can open still has to step back with the others. The name is
+            what the status bar calls the section it is reporting on, so it is
+            the card's own header spelling. See `SectionEditLock`. */}
+        <ProfileSection name="Verification">
+          <OneClickVerification
             userInfo={userInfo}
             member={member}
             isLoggedIn={isLoggedIn}
-            isInvestor={memberInvestorSettings?.isInvestor}
-            useInlineAddTeam
+            isNewInvestor={isNewInvestor}
           />
+        </ProfileSection>
+        <ProfileSection name="Profile Details">
+          <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+        </ProfileSection>
+        {cvAfterProfile && cvSection}
+        {showInvestorProfile && (
+          <ProfileSection name="Investor Profile">
+            <InvestorProfileDetails
+              userInfo={userInfo}
+              member={member}
+              isLoggedIn={isLoggedIn}
+              isInvestor={memberInvestorSettings?.isInvestor}
+              useInlineAddTeam
+            />
+          </ProfileSection>
         )}
-        <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-        <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-        <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
-        <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+        <ProfileSection name="Office Hours">
+          <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+        </ProfileSection>
+        <ProfileSection name="Contact Details">
+          <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+        </ProfileSection>
+        <ProfileSection name="Forum Activity">
+          <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
+        </ProfileSection>
+        <ProfileSection name="Teams">
+          <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+        </ProfileSection>
         {/* Below the two-column breakpoint the rail is hidden, so the card falls
             in here — directly under the teams it describes, as the prototype
             does. Exactly one of the two mounts is ever rendered: two would put
             duplicate data-story-uid nodes on the page and focus restore
             resolves that attribute by querySelector. */}
-        {isBelowTabletLandscape && <TeamNewsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />}
+        {isBelowTabletLandscape && (
+          <ProfileSection name="Team News">
+            <TeamNewsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+          </ProfileSection>
+        )}
         {/* Private to the member, so it is mounted only on their own profile —
             the API omits `jobSearchStatus` for every other viewer anyway, but
             the pill inside promises "only visible to you" and that sentence has
@@ -218,30 +262,61 @@ const MemberDetails = (props: { params: Promise<any> }) => {
             `!isInvestorOnly` block below it: an investor-only member loses the
             Experience and Contributions sections, and their own job search
             status is not one of the things that should go with them. */}
-        {isOwner && <JobSearchStatusDetails member={member} />}
+        {isOwner && (
+          <ProfileSection name="Job Search Status">
+            <JobSearchStatusDetails member={member} />
+          </ProfileSection>
+        )}
+        {/* The document the profile is holding, and the only place it can be
+            previewed, replaced or removed.
+
+            Mounted for every signed-in reader rather than gated on `isOwner`,
+            because who may see a CV is a question only the API can answer:
+            `assertCanView` admits the member, a directory admin, and a lead of a
+            team this member applied to — and that last clause is a
+            `jobApplication` lookup. So the section asks and draws what comes
+            back; everyone else gets `null` and `.section:empty` collapses the
+            wrapper, so a reader with no answer sees no gap.
+
+            The owner always gets the section: the resting card with a CV, the
+            drop area without one. Job Aspirants, and anyone reading another
+            member's CV, pin it under Profile Details. */}
+        {cvInDefaultPosition && cvSection}
         {!isInvestorOnly && (
           <>
-            {/* The CV importer's second host. The section decides *where* to put
-                the offer (empty-state drop area, or the header's "Update from
-                CV") and refuses both to anyone who cannot edit this profile —
-                `canEditMemberProfile`, the same gate its Add and Edit controls
-                use — so this prop only has to say that the host allows it. */}
-            <ExperienceDetails
-              userInfo={userInfo}
-              member={member}
-              isLoggedIn={isLoggedIn}
-              enableCvImport={SHOW_CV_IMPORT}
-            />
-            <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {/* The CV importer's second host, and only half of it: the header's
+                "Update from CV", never a drop area. The section above holds one
+                permanently, and one page carrying two boxes to drop a file into
+                is the choice nobody can get right or wrong.
+
+                The section still refuses even that to anyone who cannot edit
+                this profile — `canEditMemberProfile`, the same gate its Add and
+                Edit controls use — so this prop only has to say what the host
+                offers. */}
+            <ProfileSection name="Experience">
+              <ExperienceDetails
+                userInfo={userInfo}
+                member={member}
+                isLoggedIn={isLoggedIn}
+                cvImportSurface="header-only"
+              />
+            </ProfileSection>
+            <ProfileSection name="Project Contributions">
+              <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            </ProfileSection>
           </>
         )}
 
         {member.eventGuests.length > 0 && (
-          <div className={styles?.memberDetail__irlContribution}>
+          <ProfileSection name="IRL Contributions" className={styles?.memberDetail__irlContribution}>
             <IrlMemberContribution member={member} userInfo={userInfo} />
-          </div>
+          </ProfileSection>
         )}
-        {!isInvestorOnly && <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />}
+        {!isInvestorOnly && (
+          <ProfileSection name="Repositories">
+            <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+          </ProfileSection>
+        )}
       </>
     );
   }
@@ -257,43 +332,46 @@ const MemberDetails = (props: { params: Promise<any> }) => {
       <Head>
         <title>{`${member?.name} | Protocol Labs Directory`}</title>
       </Head>
-      <div className={styles?.memberDetail}>
-        <div
-          className={clsx(styles.container, {
-            [styles.singleColumn]: !showSidebar,
-          })}
-        >
-          <div className={styles.content}>
-            <BackButton to={`/members`} />
-            <div
-              className={clsx(styles?.memberDetail__container, {
-                [styles.centered]: isAvailableToConnect || isOwner,
-              })}
-            >
-              {renderPageContent()}
-            </div>
-          </div>
-          {showSidebar && (
-            <div className={styles.desktopOnly}>
-              <div style={{ visibility: 'hidden' }}>
-                <BackButton to={`/members`} />
+      <SectionEditLockProvider value={sectionEditLock}>
+        <div className={styles?.memberDetail}>
+          <div
+            className={clsx(styles.container, {
+              [styles.singleColumn]: !showSidebar,
+            })}
+          >
+            <div className={styles.content}>
+              <BackButton to={`/members`} />
+              <div
+                className={clsx(styles?.memberDetail__container, {
+                  [styles.centered]: isAvailableToConnect || isOwner,
+                })}
+              >
+                {renderPageContent()}
               </div>
-              {hasAffinityAccess && <RelationshipDetails memberUid={memberId} />}
-              {!isBelowTabletLandscape && (
-                <TeamNewsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-              )}
-              {showOtherConnectOptions && <BookWithOther count={availableToConnectCount} member={member} />}
             </div>
-          )}
-        </div>
+            {showSidebar && (
+              <div className={styles.desktopOnly}>
+                <div style={{ visibility: 'hidden' }}>
+                  <BackButton to={`/members`} />
+                </div>
+                {hasAffinityAccess && <RelationshipDetails memberUid={memberId} />}
+                {!isBelowTabletLandscape && (
+                  <TeamNewsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+                )}
+                {showOtherConnectOptions && <BookWithOther count={availableToConnectCount} member={member} />}
+              </div>
+            )}
+          </div>
 
-        {/* {userInfo.uid === member.id && (
+          {/* {userInfo.uid === member.id && (
           <>
             <SubscribeToRecommendationsWidget userInfo={userInfo} />
             <UpcomingEventsWidget userInfo={userInfo} />
           </>
         )} */}
-      </div>
+        </div>
+        <SectionStatusBar />
+      </SectionEditLockProvider>
     </UnsavedEditsPageGuard>
   );
 };

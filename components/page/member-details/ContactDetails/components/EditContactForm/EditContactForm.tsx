@@ -133,80 +133,79 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
     requestEmailChange();
   };
 
+  const Controls = variant === 'drawer' ? EditOfficeHoursFormControls : EditFormControls;
+
   return (
     <FormProvider {...methods}>
       <form noValidate onSubmit={handleSubmit(onSubmit)}>
-        {variant === 'drawer' ? (
-          <EditOfficeHoursFormControls onClose={onClose} title="Edit Contact Details" />
-        ) : (
-          <EditFormControls onClose={onClose} title="Edit Contact Details" />
-        )}
-        <div className={s.body}>
-          <div className={s.row}>
-            <Image src={getContactLogoByProvider('email')} alt="Email" height={24} width={24} />
-            <FormField name="email" label="Email" placeholder="Enter your email" disabled={isOwner} isRequired>
-              {member.id === userInfo.uid && (
-                <button type="button" className={s.editEmailBtn} onClick={onEmailEdit}>
-                  <EditIcon />
-                </button>
-              )}
-            </FormField>
-          </div>
-          <div className={s.row}>
-            <Image src={getContactLogoByProvider('linkedin')} alt="Linkedin" height={24} width={24} />
-            <FormField
-              name="linkedin"
-              label="LinkedIn"
-              placeholder="eg., johndoe or https://linkedin.com/in/johndoe"
-              isRequired={linkedinRequired}
-            />
-          </div>
-          <div className={s.row}>
-            <Image src={getContactLogoByProvider('telegram')} alt="Telegram" height={24} width={24} />
-            <FormField name="telegram" label="Telegram" placeholder="eg., @username or https://t.me/username" />
-          </div>
-          {variant !== 'drawer' && (
+        <Controls onClose={onClose} title="Edit Contact Details">
+          <div className={s.body}>
             <div className={s.row}>
-              <Image src={getContactLogoByProvider('github')} alt="Github" height={24} width={24} />
-              <FormField name="github" label="Github" placeholder="eg., username or https://github.com/username" />
+              <Image src={getContactLogoByProvider('email')} alt="Email" height={24} width={24} />
+              <FormField name="email" label="Email" placeholder="Enter your email" disabled={isOwner} isRequired>
+                {member.id === userInfo.uid && (
+                  <button type="button" className={s.editEmailBtn} onClick={onEmailEdit}>
+                    <EditIcon />
+                  </button>
+                )}
+              </FormField>
             </div>
-          )}
-          {variant !== 'drawer' && (
             <div className={s.row}>
-              <Image src={getContactLogoByProvider('discord')} alt="Discord" height={24} width={24} />
+              <Image src={getContactLogoByProvider('linkedin')} alt="Linkedin" height={24} width={24} />
               <FormField
-                name="discord"
-                label="Discord"
-                placeholder="eg., username or https://discord.com/users/username"
+                name="linkedin"
+                label="LinkedIn"
+                placeholder="eg., johndoe or https://linkedin.com/in/johndoe"
+                isRequired={linkedinRequired}
               />
             </div>
-          )}
-          <div className={s.row}>
-            <Image src={getContactLogoByProvider('twitter')} alt="Twitter" height={24} width={24} />
-            <FormField
-              name="twitter"
-              label="X (Twitter)"
-              placeholder="eg., @protocollabs or https://twitter.com/protocollabs"
-            />
-          </div>
-          <div className={s.row}>
-            <Image src={getContactLogoByProvider('bluesky')} alt="Bluesky" height={24} width={24} />
-            <FormField
-              name="bluesky"
-              label="Bluesky"
-              placeholder="eg., @protocol.ai, protocol.ai or https://bsky.app/profile/protocol.ai"
-            />
-          </div>
-          {variant !== 'drawer' && (
-            <div className={clsx(s.row, s.center)}>
-              <div className={s.switchLabelWrapper}>
-                <div className={s.switchLabel}>Show contact details to PL network members</div>
-                <div className={s.switchDesc}>Contact details are never displayed publicly</div>
-              </div>
-              <FormSwitch name="shareContacts" />
+            <div className={s.row}>
+              <Image src={getContactLogoByProvider('telegram')} alt="Telegram" height={24} width={24} />
+              <FormField name="telegram" label="Telegram" placeholder="eg., @username or https://t.me/username" />
             </div>
-          )}
-        </div>
+            {variant !== 'drawer' && (
+              <div className={s.row}>
+                <Image src={getContactLogoByProvider('github')} alt="Github" height={24} width={24} />
+                <FormField name="github" label="Github" placeholder="eg., username or https://github.com/username" />
+              </div>
+            )}
+            {variant !== 'drawer' && (
+              <div className={s.row}>
+                <Image src={getContactLogoByProvider('discord')} alt="Discord" height={24} width={24} />
+                <FormField
+                  name="discord"
+                  label="Discord"
+                  placeholder="eg., username or https://discord.com/users/username"
+                />
+              </div>
+            )}
+            <div className={s.row}>
+              <Image src={getContactLogoByProvider('twitter')} alt="Twitter" height={24} width={24} />
+              <FormField
+                name="twitter"
+                label="X (Twitter)"
+                placeholder="eg., @protocollabs or https://twitter.com/protocollabs"
+              />
+            </div>
+            <div className={s.row}>
+              <Image src={getContactLogoByProvider('bluesky')} alt="Bluesky" height={24} width={24} />
+              <FormField
+                name="bluesky"
+                label="Bluesky"
+                placeholder="eg., @protocol.ai, protocol.ai or https://bsky.app/profile/protocol.ai"
+              />
+            </div>
+            {variant !== 'drawer' && (
+              <div className={clsx(s.row, s.center)}>
+                <div className={s.switchLabelWrapper}>
+                  <div className={s.switchLabel}>Show contact details to PL network members</div>
+                  <div className={s.switchDesc}>Contact details are never displayed publicly</div>
+                </div>
+                <FormSwitch name="shareContacts" />
+              </div>
+            )}
+          </div>
+        </Controls>
         {variant === 'drawer' ? <EditOfficeHoursMobileControls /> : <EditFormMobileControls />}
       </form>
     </FormProvider>
@@ -245,9 +244,10 @@ function formatPayload(memberInfo: any, formData: TEditContactForm, isAdmin: boo
       ...omit(contribution, 'projectName'),
     })),
     skills: memberInfo.skills?.map((skill: any) => ({
-      title: skill.name,
-      uid: skill.id,
+      title: skill.name ?? skill.title,
+      uid: skill.id ?? skill.uid,
     })),
+    customSkills: memberInfo.customSkills ?? [],
     bio: memberInfo.bio,
   };
 }

@@ -1,0 +1,209 @@
+// Additions to the shared search-dialog chrome (nav-shared/PrototypeSearchModal
+// .module.scss, imported alongside this). The field row is SearchField's;
+// this holds what is only the AI view's: the answer-state title bar, the
+// prompt and history rows, and the footer. Row geometry comes from
+// production's RecentSearch / TryToSearch stylesheets so the rows sit in the
+// same list as production's.
+
+@use 'styles/media';
+
+/* ------------------------------------------------------------------------ */
+/* Answer state: the field row becomes a title bar                            */
+/* ------------------------------------------------------------------------ */
+
+/* Same row as the field (SearchField's `.headerBar`), with the glyph at the
+   field's 16px inset and the same 12px gutter for the ✕. */
+.titleBar {
+  height: 56px;
+  gap: 8px;
+  padding-left: 16px;
+}
+
+.titleIcon {
+  flex-shrink: 0;
+}
+
+/* The chip in the field is absolutely positioned over the input's padding;
+   in the title bar it is a flex item in the row. */
+.titleChip.titleChip {
+  position: static;
+  transform: none;
+  margin-left: 4px;
+}
+
+/* The thread's first question, in the field's type, one line. */
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--foreground-neutral-primary, #0f172a);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Idle rows                                                                  */
+/* ------------------------------------------------------------------------ */
+
+/* Resets a production row class (`RecentSearch .searchItem`, a <li>) for use
+   on a <button>. */
+.rowButton {
+  width: 100%;
+  border: 0;
+  font: inherit;
+  gap: 8px;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.rowIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+/* A history row's title: one line, so the date on the right stays on the row. */
+.threadTitle {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* When the thread happened — production's history groups by Today /
+   Yesterday; here the bucket rides the row instead of heading a group. */
+.rowWhen {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* "Your AI Search History" with its door on the right. The label keeps
+   RecentSearch's own class; the door wears `ChatSubheader .button` — the
+   12px/500 brand text production uses for exactly this toggle — so the row
+   reads as production's subheader folded into the list. */
+.historyHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.showAll {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* The full-history state. Production's `ChatSubheader` has no horizontal
+   inset of its own (it sat inside a padded panel); the list's 16px is the
+   dialog's. */
+.historySubhead {
+  padding: 0 16px;
+}
+
+/* Production's `ChatHistory .query` is a <div>; on a <button> it needs the
+   button chrome off and a hover, the same one every row in this dialog has. */
+.historyRow {
+  width: 100%;
+  border: 0;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+/* Suggested-prompt glyph: the per-type Husky icon, cropped round like the
+   answer's directory cards draw it. */
+.promptIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.promptButton {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: 0;
+  font: inherit;
+  gap: 8px;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+/* The answer state replaces `shell.body`: same flex slot, but the scroll
+   region lives inside AnswerPanel so its input can be a real footer. */
+.answerBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* The idle sections (Try asking, History) reuse production's RecentSearch /
+   TryToSearch blocks, which carry their own 12px top margin and 8px vertical
+   padding for their place in the overlay's column. Here the body's 16px
+   padding, the stack's 12px gap and the divider's 8px margins already do that
+   job. Zeroed, one rule for both: 16px under the hairline, 20px either side
+   of a divider. Doubled to beat the production `.root` at equal specificity
+   regardless of sheet order. */
+.idleSection.idleSection {
+  margin-top: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* Lines the scope hint up with the section labels (16px inside the body). */
+.hintInset {
+  padding: 0 16px;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Footer                                                                     */
+/* ------------------------------------------------------------------------ */
+
+/* Shortcut hint. Desktop only — the key doesn't exist on a phone. */
+.footer {
+  display: none;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
+}
+
+.footerItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Same key-cap production's chat input draws for "Shift + Enter". */
+.kbd {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-secondary, #455468);
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 14px;
+}

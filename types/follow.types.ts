@@ -14,3 +14,18 @@ export interface ITeamFollowersResponse {
   total: number;
   items: ITeamFollower[];
 }
+
+export interface IFollowedTeam {
+  uid: string;
+  name: string;
+  logoUrl: string | null;
+  followedAt: string;
+  followerCount: number;
+}
+
+export interface IFollowedTeamsResponse {
+  page: number;
+  limit: number;
+  total: number;
+  items: IFollowedTeam[];
+}

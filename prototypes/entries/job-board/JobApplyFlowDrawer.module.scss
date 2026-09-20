@@ -198,6 +198,24 @@
   color: var(--foreground-neutral-primary, #0a0c11);
 }
 
+// --- The open card's status, in the bar --------------------------------------
+//
+// A slot the profile step fills through a portal with the floating bar's own
+// row (`EditorStatusRow`): "Reading <file>…" with its progress while a CV is
+// read, then the way back and the Save for whichever card was scrolled away.
+// *"Put progress bar in the footer, next to Continue to apply."* Empty — and
+// so not laid out — the rest of the time. It takes the hint's place, so
+// Continue keeps its end of the bar.
+.footerStatus {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+
+  &:empty {
+    display: none;
+  }
+}
+
 // --- The drawer's own action -------------------------------------------------
 
 // Sticky to the bottom of the drawer's scroll container (`Drawer`'s `.container`

@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 import { SearchQueryKeys } from '@/services/search/constants';
 import { SearchResult } from '@/services/search/types';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
-import { saveRecentSearch } from '@/services/search/hooks/useRecentSearch';
 import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
 
 async function fetcher(searchTerm: string) {
@@ -15,12 +14,14 @@ async function fetcher(searchTerm: string) {
     },
   });
 
-  if (response?.ok) {
-    const result: SearchResult = await response.json();
-    saveRecentSearch(searchTerm);
-
-    return result;
+  /* A non-ok response used to fall out of here as `undefined`, which React
+     Query records as a *success with no data* — so a 500 rendered as
+     "No results for ..." and nothing anywhere said the search had failed. */
+  if (!response.ok) {
+    throw new Error(`Search failed with status ${response.status}`);
   }
+
+  return (await response.json()) as SearchResult;
 }
 
 export function useFullApplicationSearch(searchTerm: string) {

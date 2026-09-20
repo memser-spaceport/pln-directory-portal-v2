@@ -34,17 +34,15 @@ export interface IJobRole {
   /**
    * Whether THIS viewer has signalled interest.
    *
-   * **Do not read this.** It is on the wire and it is always `false` here.
-   * `getJobsList` fetches the board with `getHeader('')` — no token — and the
-   * endpoint documents this field as false whenever the request is
-   * unauthenticated. So it would report "not interested" for a member who is,
-   * on every role, with no error to notice.
+   * **Still do not read this**, though the reason has changed. The token is now
+   * threaded through `/api/jobs/list` and `getJobsList` (it had to be, for
+   * `IJobTeam.viewerIsInterestedInTeam` below), so the field is no longer
+   * structurally false — but nothing has verified it against the per-role
+   * banner, which reads `GET /v1/job-openings/interests` via `useJobInterests`.
    *
-   * The banner reads `GET /v1/job-openings/interests` instead
-   * (`useJobInterests`), which is authenticated. Making this field usable means
-   * threading the member's token through `getJobsList` and the `/api/jobs/list`
-   * route first — a change to the board's hot path, and a separate piece of
-   * work. Typed here so the field is documented rather than rediscovered.
+   * Two sources for one answer is how they drift. If this field is to become
+   * the banner's source, retire that query in the same change rather than
+   * letting both run.
    */
   viewerIsInterested?: boolean;
 }
@@ -57,6 +55,23 @@ export interface IJobTeam {
   subFocusAreas: string[];
   /** Team-configured inbox for job referrals. When set, the Refer modal skips member pick. */
   jobReferEmail?: string | null;
+  /** False when the backend refuses in-app applications for this team (e.g. inactive lead emails); Apply then leaves the site. */
+  inAppApplyAvailable?: boolean;
+  /**
+   * Whether THIS viewer has signalled interest in the team itself — the
+   * open-role signal, sent when nothing on the card fits.
+   *
+   * Unlike `IJobRole.viewerIsInterested` above, this one **is** readable: the
+   * board's proxy route now forwards the member's token (see
+   * `app/api/jobs/list/route.ts`), and the list endpoint resolves the viewer
+   * when one arrives. It is still `false` for an anonymous request, which is
+   * correct rather than misleading — a signed-out visitor has signalled nothing.
+   */
+  viewerIsInterestedInTeam?: boolean;
+  /** How many members have signalled interest in the team. On the wire, and
+   *  deliberately not rendered — the row says "we'll be in touch", not "you and
+   *  eleven others". Typed so it is documented rather than rediscovered. */
+  interestedInTeamCount?: number;
 }
 
 export interface IJobTeamGroup {
@@ -101,21 +116,39 @@ export type JobsFilterKey = 'roleCategory' | 'seniority' | 'focus' | 'location' 
  *  `email`. */
 export type IJobReferralRecipient = { memberUid: string; name?: string } | { email: string; name?: string };
 
-export interface ICreateJobReferralPayload {
-  referredMemberUid: string;
+/** The person being referred when they have no directory record. Mirrors the backend's
+ *  `ReferredExternalPersonSchema` — all three required, because together they are the
+ *  whole record: the name is who the note is about, the email is how the hiring team
+ *  reaches them, and the LinkedIn profile is the only way a reader can check who they
+ *  are (the job a member's directory page does for a member). */
+export interface IJobReferralExternalPerson {
+  name: string;
+  email: string;
+  /** As typed — a bare slug or a URL. The backend normalises it
+   *  (`normalizeExternalLinkedinUrl`); the frontend only validates the shape. */
+  linkedinUrl: string;
+}
+
+/** Exactly one of the two, mirroring `CreateJobReferralSchema`'s refine. That refine
+ *  rejects both-or-neither with a 400, so the `never` arms turn a wrong payload into a
+ *  type error instead of a toast. */
+type IJobReferralReferee =
+  | { referredMemberUid: string; referredPerson?: never }
+  | { referredPerson: IJobReferralExternalPerson; referredMemberUid?: never };
+
+export type ICreateJobReferralPayload = IJobReferralReferee & {
   /** Omitted entirely when the hiring team has a referral inbox — the backend addresses it. */
   recipients?: IJobReferralRecipient[];
   note: string;
   /**
-   * Whether the referred member is copied on the email.
+   * Whether the referred person is copied on the referral email.
    *
-   * The backend CCs them unconditionally today, and `CreateJobReferralSchema` is a
-   * plain `z.object` — non-strict — so this key is stripped rather than rejected. It
-   * is sent anyway so the referrer's choice starts working the day the API honours
-   * it, with no second frontend change.
+   * Honoured by the backend, which defaults it to `true`. Unchecked, they are left off
+   * the CC and receive a separate "you were referred" notice instead — so the choice is
+   * which email they get, not whether they hear about it.
    */
   includeReferredMember?: boolean;
-}
+};
 
 export interface IJobReferralDraft {
   /** The complete note, ready to show in an editable field. */

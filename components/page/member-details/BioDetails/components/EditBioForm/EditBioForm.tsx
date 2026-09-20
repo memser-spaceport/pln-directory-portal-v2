@@ -127,14 +127,13 @@ export const EditBioForm = ({ onClose, member, userInfo, generateBio }: Props) =
           }
         }}
       >
-        <EditFormControls onClose={onClose} title="Edit Bio" />
-
-        <div className={s.body}>
-          <div className={s.row}>
-            <BioInput generateBio={generateBio} onAiContentGenerated={handleAiContentGenerated} simplified />
+        <EditFormControls onClose={onClose} title="Edit Bio">
+          <div className={s.body}>
+            <div className={s.row}>
+              <BioInput generateBio={generateBio} onAiContentGenerated={handleAiContentGenerated} simplified />
+            </div>
           </div>
-        </div>
-
+        </EditFormControls>
         <EditFormMobileControls />
       </form>
     </FormProvider>

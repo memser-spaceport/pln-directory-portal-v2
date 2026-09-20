@@ -12,11 +12,11 @@ import HuskySourceCard from '@/components/core/husky/husky-source-card';
 import HuskyAnswerLoader from '@/components/core/husky/husky-answer-loader';
 import FollowupQuestions from '@/components/page/husky/followup-questions';
 import ChatInput from '@/components/page/husky/chat-input';
-import { ArrowUpRightIcon, NotePencilIcon, ThumbsUpOutlinedIcon } from '@/components/icons';
+import { NotePencilIcon, ThumbsUpOutlinedIcon } from '@/components/icons';
 
-import btn from '@/components/common/Button/Button.module.scss';
-
+import { PlTeamOnlyPill } from '../profile-shared/PlTeamOnlyPill';
 import { buildAnswer, FEEDBACK_REASONS, type CannedAnswer } from './mocks';
+import type { AiSearchScope } from './scope';
 import { DirectoryResultsCards } from './DirectoryResultsCards';
 import s from './AnswerPanel.module.scss';
 
@@ -34,14 +34,15 @@ export interface Turn extends CannedAnswer {
 
 let nextId = 1;
 
-export function makeTurn(question: string): Turn {
+/** A new turn. Inside a scope the scope answers; otherwise the network does. */
+export function makeTurn(question: string, scope?: AiSearchScope | null): Turn {
   return {
     id: nextId++,
     question,
     shown: '',
     status: 'thinking',
     feedback: 'none',
-    ...buildAnswer(question),
+    ...(scope ? scope.answer(question) : buildAnswer(question)),
   };
 }
 
@@ -53,6 +54,13 @@ interface AnswerPanelProps {
   onBackToResults?: () => void;
   /** What that list was — "results" by default; the full history names itself. */
   backLabel?: string;
+  /** Leaves the thread for the view's idle state, to start another. */
+  onNewQuestion?: () => void;
+  /** Follows a scoped answer's door ("Open applicants"). Only scoped answers have one. */
+  onOpenTarget?: (target: string) => void;
+  /** What was typed into this thread's input and not sent, from the last visit. */
+  draft?: string;
+  onDraftChange?: (text: string) => void;
 }
 
 /**
@@ -88,6 +96,10 @@ export function AnswerPanel({
   onAsk,
   onBackToResults,
   backLabel = 'Back to results',
+  onNewQuestion,
+  onOpenTarget,
+  draft = '',
+  onDraftChange,
 }: AnswerPanelProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -130,6 +142,17 @@ export function AnswerPanel({
     onTurnsChange((prev) => prev.map((x) => (x.id === last.id ? { ...x, status: 'done' } : x)));
   };
 
+  /* `ChatInput` is uncontrolled (production reads its ref on submit), so a
+     restored draft is seeded as the textarea's `defaultValue` and its height
+     is set once on mount — `adjustHeight` only runs on a keystroke, so a
+     two-line draft would come back one line tall. */
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el || !el.value) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight + 1}px`;
+  }, []);
+
   const submit = () => {
     const value = inputRef.current?.value.trim();
     if (!value || busy) return;
@@ -138,6 +161,8 @@ export function AnswerPanel({
       inputRef.current.value = '';
       inputRef.current.style.height = 'auto';
     }
+    /* Asked, so there is nothing left unsent to keep. */
+    onDraftChange?.('');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -158,6 +183,9 @@ export function AnswerPanel({
     if (!inputRef.current) return;
     inputRef.current.value = turn.question;
     inputRef.current.focus();
+    /* Written into the input by us rather than typed, but it is unsent text in
+       the box either way — it keeps like anything else there. */
+    onDraftChange?.(turn.question);
   };
 
   const setFeedback = (turn: Turn, feedback: FeedbackState) => {
@@ -166,9 +194,11 @@ export function AnswerPanel({
 
   return (
     <div className={s.root}>
-      {/* One bar, two exits. Back returns the list this answer was reached from;
-          Continue names the destination (the full AI Search page — Husky in
-          code, "AI Search" to a person) rather than the mechanism ("open full page"). Databricks' palette ends the same way. */}
+      {/* One bar, two exits. Back returns the list this answer was reached
+          from; New question returns to the view's idle state for a fresh
+          thread. ("Continue in AI Search" stood in the second slot when this
+          was a small dialog and the AI Search page was the bigger surface;
+          the view is the bigger surface now, so the link had nowhere to go.) */}
       <div className={s.bar}>
         {onBackToResults ? (
           <Button style="link" variant="neutral" size="xs" onClick={onBackToResults}>
@@ -177,10 +207,11 @@ export function AnswerPanel({
         ) : (
           <span />
         )}
-        <a href="/husky/chat" className={clsx(btn.root, btn.link, btn.primary, btn.xs, s.continueLink)}>
-          Continue in AI Search
-          <ArrowUpRightIcon />
-        </a>
+        {onNewQuestion && (
+          <Button style="link" variant="primary" size="xs" onClick={onNewQuestion}>
+            New question
+          </Button>
+        )}
       </div>
 
       <div className={s.messages}>
@@ -194,6 +225,7 @@ export function AnswerPanel({
             onRegenerate={() => regenerate(turn)}
             onEdit={() => editQuestion(turn)}
             onFeedback={(f) => setFeedback(turn, f)}
+            onOpenTarget={onOpenTarget}
           />
         ))}
         <div ref={endRef} />
@@ -204,6 +236,8 @@ export function AnswerPanel({
           ref={inputRef}
           placeholder="Go ahead, ask anything!"
           rows={1}
+          defaultValue={draft}
+          onChange={(e) => onDraftChange?.(e.target.value)}
           onKeyDown={handleKeyDown}
           onTextSubmit={submit}
           onStopStreaming={stop}
@@ -223,10 +257,12 @@ interface MessageProps {
   onRegenerate: () => void;
   onEdit: () => void;
   onFeedback: (f: FeedbackState) => void;
+  onOpenTarget?: (target: string) => void;
 }
 
-function Message({ turn, isLast, busy, onFollowup, onRegenerate, onEdit, onFeedback }: MessageProps) {
+function Message({ turn, isLast, busy, onFollowup, onRegenerate, onEdit, onFeedback, onOpenTarget }: MessageProps) {
   const streaming = turn.status === 'streaming';
+  const scoped = turn.scoped;
 
   return (
     <div className={s.message}>
@@ -236,7 +272,24 @@ function Message({ turn, isLast, busy, onFollowup, onRegenerate, onEdit, onFeedb
         <HuskyAnswerLoader />
       ) : (
         <div className={s.card}>
-          {turn.sources.length > 0 && !streaming && (
+          {/* A scoped answer leads with what was read, then the objects, then
+              two sentences about them, then the section that owns them (Notion
+              Q&A lists the pages it found; Lightfield leads with "Retrieved:").
+              The line names the query rather than the conclusion, which is how
+              a misread gets caught. The objects stand from the first streamed
+              word, because they are what was retrieved; only the summary streams.
+              External sources are dropped here: the profile is the source. */}
+          {scoped && (
+            <div className={s.retrieved}>
+              <span>
+                <span className={s.retrievedLabel}>Retrieved:</span> {scoped.retrieved}
+              </span>
+              {scoped.restrictedTo && <PlTeamOnlyPill label={scoped.restrictedTo} />}
+            </div>
+          )}
+          {scoped && turn.sql.length > 0 && <DirectoryResultsCards hits={turn.sql} title="Found on the profile" />}
+
+          {!scoped && turn.sources.length > 0 && !streaming && (
             <div className={s.sourcesRow}>
               <PopoverDp.Wrapper>
                 <InfoBox info={`${turn.sources.length} source(s)`} imgUrl="/icons/globe-blue.svg" />
@@ -247,11 +300,21 @@ function Message({ turn, isLast, busy, onFollowup, onRegenerate, onEdit, onFeedb
             </div>
           )}
 
-          <div className={s.content}>
+          <div className={clsx(s.content, scoped && s.summary)}>
             <Markdown>{turn.shown}</Markdown>
           </div>
 
-          {!streaming && turn.sql.length > 0 && <DirectoryResultsCards hits={turn.sql} />}
+          {!scoped && !streaming && turn.sql.length > 0 && <DirectoryResultsCards hits={turn.sql} />}
+
+          {/* A door, not a rival list: the section on the page is where these
+              records are read and acted on, so the answer hands over to it. */}
+          {scoped?.door && !streaming && onOpenTarget && (
+            <div className={s.door}>
+              <Button style="border" variant="neutral" size="xs" onClick={() => onOpenTarget(scoped.door!.target)}>
+                {scoped.door.label}
+              </Button>
+            </div>
+          )}
 
           {!streaming && turn.followUpQuestions.length > 0 && (
             <FollowupQuestions

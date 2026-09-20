@@ -1,18 +1,31 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import '@testing-library/jest-dom';
 
 /**
  * Does the importer appear where it is supposed to, and stay away where it
  * isn't?
  *
- * `ExperienceDetails` is shared with `/members/[id]`, which must not offer this
- * — so "off unless asked" is a contract, not a default. And the two on-states
- * are different controls in different places: the drop area lives in the empty
- * row, the "Update from CV" button lives in the header and only once there is
- * something to update.
+ * `ExperienceDetails` is shared by the apply drawer and `/members/[id]`, and it
+ * offers a different amount to each — so `cvImportSurface` is a contract, not a
+ * default:
+ *
+ *  - `'off'` — neither control. What a host that isn't offering the import passes.
+ *  - `'full'` — the drop area in the empty row **and** "Update from CV" in the
+ *    header once there is something to update. The drawer's Experience host.
+ *  - `'header-only'` — the header control alone, because on the member profile
+ *    `MemberCvSection` carries a drop area permanently and one page must not
+ *    hold two.
+ *
+ * This section no longer reads the stored CV itself. It used to, to stand its
+ * own offer down while the resting "Your CV" card was up; both hosts answer that
+ * above now — the drawer through `pickCvImportHost`, the profile page through
+ * `'header-only'` — so a `useStoredCv` mock here would pin nothing and quietly
+ * hold several of these cases up on a hook the component never calls.
  */
 
 const mockExperiences = jest.fn();
+
 jest.mock('@/services/members/hooks/useMemberExperience', () => ({
   useMemberExperience: () => mockExperiences(),
 }));
@@ -23,6 +36,10 @@ jest.mock('@/services/access-control/hooks/useMemberContactsAccess', () => ({
 
 jest.mock('@/hooks/useMobileNavVisibility', () => ({
   useMobileNavVisibility: jest.fn(),
+}));
+
+jest.mock('@/hooks/useIsBelowTabletLandscape', () => ({
+  useIsBelowTabletLandscape: () => false,
 }));
 
 jest.mock('@/analytics/members.analytics', () => ({
@@ -68,6 +85,7 @@ const mockAnalytics = {
   onCvImportSaved: jest.fn(),
   onCvImportSaveFailed: jest.fn(),
   onCvImportCancelled: jest.fn(),
+  onMemberCustomSkillAdded: jest.fn(),
 };
 
 // The manual editor drags in react-quill and the experience server action;
@@ -77,7 +95,15 @@ jest.mock('@/components/page/member-details/ExperienceDetails/components/EditExp
 }));
 
 import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
+import type { CvImportSurface } from '@/components/page/member-details/ExperienceDetails/ExperienceDetails';
 import type { IMember } from '@/types/members.types';
+import {
+  ProfileSection,
+  SectionEditLockProvider,
+  SectionStatusBar,
+  SectionStatusRow,
+  useSectionEditLockRegistry,
+} from '@/components/common/profile/SectionEditLock';
 
 const member = {
   id: 'member-1',
@@ -104,28 +130,42 @@ const entry = {
   description: '',
 };
 
-const renderSection = (opts: { enableCvImport?: boolean; entries?: unknown[] }) => {
+const renderSection = (opts: { surface?: CvImportSurface; entries?: unknown[] }) => {
   mockExperiences.mockReturnValue({ data: opts.entries ?? [], isLoading: false });
   return render(
-    <ExperienceDetails member={member} userInfo={userInfo as never} isLoggedIn enableCvImport={opts.enableCvImport} />,
+    <ExperienceDetails member={member} userInfo={userInfo as never} isLoggedIn cvImportSurface={opts.surface} />,
   );
 };
+
+const dropArea = () => screen.queryByText('Drag & drop your CV');
+const headerImport = () => screen.queryByRole('button', { name: /update from cv/i });
 
 describe('CV import inside the Experience section', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('offers nothing when the host has not asked for it — the member profile page case', () => {
+  it('offers nothing when the host has not asked for it', () => {
     renderSection({ entries: [] });
 
-    expect(screen.queryByText('Drag & drop your CV')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /update from cv/i })).not.toBeInTheDocument();
+    expect(dropArea()).not.toBeInTheDocument();
+    expect(headerImport()).not.toBeInTheDocument();
     // The section's own empty sentence is still there — turning the importer off
     // must not take the empty state with it.
     expect(screen.getByText(/share your work history and skills/i)).toBeInTheDocument();
   });
 
+  /* With no entries, `'off'` and `'header-only'` draw the same thing — the header
+     control needs a history to refresh before it appears at all. So the case that
+     actually pins `'off'` is this one: a section with rows, offering nothing. */
+  it('offers nothing over an existing history either', () => {
+    renderSection({ entries: [entry] });
+
+    expect(headerImport()).not.toBeInTheDocument();
+    expect(dropArea()).not.toBeInTheDocument();
+    expect(screen.getByText('Protocol Engineer')).toBeInTheDocument();
+  });
+
   it('puts the drop area itself in the empty row, with no pill to press first', () => {
-    renderSection({ enableCvImport: true, entries: [] });
+    renderSection({ surface: 'full', entries: [] });
 
     expect(screen.getByText('Drag & drop your CV')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /upload your cv/i })).not.toBeInTheDocument();
@@ -134,7 +174,7 @@ describe('CV import inside the Experience section', () => {
   });
 
   it('moves the offer to the header once there is a history to refresh', () => {
-    renderSection({ enableCvImport: true, entries: [entry] });
+    renderSection({ surface: 'full', entries: [entry] });
 
     expect(screen.getByRole('button', { name: /update from cv/i })).toBeInTheDocument();
     // The empty row is gone, and its pill with it — an import offer standing
@@ -154,7 +194,7 @@ describe('CV import inside the Experience section', () => {
    * being applied, not what it resolves to.
    */
   it('keeps the CV shortcut quieter than Add', () => {
-    renderSection({ enableCvImport: true, entries: [entry] });
+    renderSection({ surface: 'full', entries: [entry] });
 
     const update = screen.getByRole('button', { name: /update from cv/i });
     expect(update.className).toMatch(/quietHeaderAction/);
@@ -166,18 +206,38 @@ describe('CV import inside the Experience section', () => {
    * range, two punctuations, depending only on whether it had been saved yet.
    */
   it('punctuates a saved date range the way the review card did', () => {
-    renderSection({ enableCvImport: true, entries: [entry] });
+    renderSection({ surface: 'full', entries: [entry] });
 
     expect(screen.getByText(/March 2021 — January 2024/)).toBeInTheDocument();
   });
 
   it('keeps Add reachable in both states', () => {
-    const { unmount } = renderSection({ enableCvImport: true, entries: [] });
+    const { unmount } = renderSection({ surface: 'full', entries: [] });
     expect(screen.getByRole('button', { name: /add/i })).toBeInTheDocument();
     unmount();
 
-    renderSection({ enableCvImport: true, entries: [entry] });
+    renderSection({ surface: 'full', entries: [entry] });
     expect(screen.getByRole('button', { name: /^add$/i })).toBeInTheDocument();
+  });
+
+  it('cancelling a header-driven read returns to the experience list', async () => {
+    mockParse.mockReturnValue(new Promise(() => {}));
+    renderSection({ surface: 'full', entries: [entry] });
+
+    const cv = new File(['x'], 'cv.pdf', { type: 'application/pdf' });
+    Object.defineProperty(cv, 'size', { value: 1024 });
+    const input = document.querySelector('input[accept=".pdf"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [cv] } });
+
+    expect(await screen.findByText(/Reading cv.pdf/)).toBeInTheDocument();
+
+    const cancels = screen.getAllByRole('button', { name: /^cancel$/i });
+    fireEvent.click(cancels[cancels.length - 1]);
+
+    expect(await screen.findByText('Protocol Engineer')).toBeInTheDocument();
+    expect(screen.queryByText(/Reading cv.pdf/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /update from cv/i })).toBeInTheDocument();
+    expect(mockAnalytics.onCvImportCancelled).toHaveBeenCalledWith('reading');
   });
 });
 
@@ -218,7 +278,7 @@ describe('the whole way through: drop a file, review it, save it', () => {
 
   it('posts a payload with no React keys on it, and reports the save', async () => {
     mockParse.mockResolvedValue(parsedProfile);
-    renderSection({ enableCvImport: true, entries: [] });
+    renderSection({ surface: 'full', entries: [] });
 
     dropCv();
 
@@ -256,12 +316,248 @@ describe('the whole way through: drop a file, review it, save it', () => {
 
   it('reports an empty read as empty, not as a failure', async () => {
     mockParse.mockResolvedValue({ ...parsedProfile, experiences: [] });
-    renderSection({ enableCvImport: true, entries: [] });
+    renderSection({ surface: 'full', entries: [] });
 
     dropCv();
 
     expect(await screen.findByText(/couldn’t find any roles in that file/i)).toBeInTheDocument();
     expect(mockAnalytics.onCvImportParseEmpty).toHaveBeenCalledTimes(1);
     expect(mockAnalytics.onCvImportParseFailed).not.toHaveBeenCalled();
+  });
+});
+
+function LockHost({ children }: { children: ReactNode }) {
+  const lock = useSectionEditLockRegistry();
+  return (
+    <SectionEditLockProvider value={lock}>
+      <ProfileSection name="Experience">{children}</ProfileSection>
+      <SectionStatusBar />
+    </SectionEditLockProvider>
+  );
+}
+
+class FakeIntersectionObserver {
+  static instances: FakeIntersectionObserver[] = [];
+  callback: IntersectionObserverCallback;
+  options: IntersectionObserverInit;
+
+  constructor(callback: IntersectionObserverCallback, options: IntersectionObserverInit = {}) {
+    this.callback = callback;
+    this.options = options;
+    FakeIntersectionObserver.instances.push(this);
+  }
+
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords(): IntersectionObserverEntry[] {
+    return [];
+  }
+  get root() {
+    return this.options.root ?? null;
+  }
+  rootMargin = '';
+  thresholds: number[] = [];
+
+  fireAway() {
+    this.callback(
+      [
+        {
+          boundingClientRect: {
+            top: 2000,
+            bottom: 2200,
+            height: 200,
+            left: 0,
+            right: 0,
+            width: 400,
+            x: 0,
+            y: 2000,
+            toJSON: () => ({}),
+          },
+          rootBounds: {
+            top: 0,
+            bottom: 800,
+            height: 800,
+            left: 0,
+            right: 0,
+            width: 1280,
+            x: 0,
+            y: 0,
+            toJSON: () => ({}),
+          },
+          intersectionRatio: 0,
+          intersectionRect: {
+            top: 0,
+            bottom: 0,
+            height: 0,
+            left: 0,
+            right: 0,
+            width: 0,
+            x: 0,
+            y: 0,
+            toJSON: () => ({}),
+          },
+          isIntersecting: false,
+          target: document.body,
+          time: 0,
+        },
+      ],
+      this as unknown as IntersectionObserver,
+    );
+  }
+}
+
+describe('the floating status bar during a CV read', () => {
+  const originalIO = global.IntersectionObserver;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    FakeIntersectionObserver.instances = [];
+    global.IntersectionObserver = FakeIntersectionObserver as unknown as typeof IntersectionObserver;
+    mockParse.mockReturnValue(new Promise(() => {}));
+  });
+
+  afterEach(() => {
+    global.IntersectionObserver = originalIO;
+  });
+
+  const dropCv = () => {
+    const cv = new File(['x'], 'cv.pdf', { type: 'application/pdf' });
+    Object.defineProperty(cv, 'size', { value: 1024 });
+    const box = screen.getByText('Drag & drop your CV').closest('div')!.parentElement!;
+    fireEvent.drop(box, { dataTransfer: { files: [cv] } });
+  };
+
+  it('appears once the Experience card is scrolled away, with Cancel and no Keep editing', async () => {
+    mockExperiences.mockReturnValue({ data: [], isLoading: false });
+    render(
+      <LockHost>
+        <ExperienceDetails member={member} userInfo={userInfo as never} isLoggedIn cvImportSurface="full" />
+      </LockHost>,
+    );
+
+    dropCv();
+
+    expect(await screen.findByText(/Reading cv.pdf/)).toBeInTheDocument();
+    await waitFor(() => expect(FakeIntersectionObserver.instances.length).toBeGreaterThan(0));
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+
+    FakeIntersectionObserver.instances.at(-1)!.fireAway();
+
+    expect(await screen.findByRole('status')).toHaveTextContent(/Reading cv.pdf/);
+    expect(screen.getAllByText(/Usually takes about 10 seconds/).length).toBeGreaterThan(1);
+    expect(screen.queryByRole('button', { name: /keep editing/i })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /^cancel$/i }).length).toBeGreaterThan(1);
+  });
+});
+
+function DrawerLockHost({ children }: { children: ReactNode }) {
+  const lock = useSectionEditLockRegistry();
+  return (
+    <SectionEditLockProvider value={lock}>
+      <div data-testid="drawer-scroll" style={{ overflowY: 'auto', height: 400 }}>
+        <ProfileSection name="Your CV">{children}</ProfileSection>
+      </div>
+      <SectionStatusRow />
+    </SectionEditLockProvider>
+  );
+}
+
+describe('the apply-drawer status row during a CV read', () => {
+  const originalIO = global.IntersectionObserver;
+  const originalStyle = window.getComputedStyle;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    FakeIntersectionObserver.instances = [];
+    global.IntersectionObserver = FakeIntersectionObserver as unknown as typeof IntersectionObserver;
+    mockParse.mockReturnValue(new Promise(() => {}));
+    window.getComputedStyle = (elt: Element) => {
+      if (elt instanceof HTMLElement && elt.dataset.testid === 'drawer-scroll') {
+        return { overflowY: 'auto' } as CSSStyleDeclaration;
+      }
+      return originalStyle(elt);
+    };
+  });
+
+  afterEach(() => {
+    global.IntersectionObserver = originalIO;
+    window.getComputedStyle = originalStyle;
+  });
+
+  const dropCv = () => {
+    const cv = new File(['x'], 'cv.pdf', { type: 'application/pdf' });
+    Object.defineProperty(cv, 'size', { value: 1024 });
+    const box = screen.getByText('Drag & drop your CV').closest('div')!.parentElement!;
+    fireEvent.drop(box, { dataTransfer: { files: [cv] } });
+  };
+
+  it('appears in the footer once the CV card is scrolled away, with Cancel and no Keep editing', async () => {
+    mockExperiences.mockReturnValue({ data: [], isLoading: false });
+    render(
+      <DrawerLockHost>
+        <ExperienceDetails member={member} userInfo={userInfo as never} isLoggedIn cvImportSurface="full" />
+      </DrawerLockHost>,
+    );
+
+    const scroller = screen.getByTestId('drawer-scroll');
+    Object.defineProperty(scroller, 'scrollHeight', { configurable: true, value: 2000 });
+    Object.defineProperty(scroller, 'clientHeight', { configurable: true, value: 400 });
+
+    dropCv();
+
+    expect(await screen.findByText(/Reading cv.pdf/)).toBeInTheDocument();
+    await waitFor(() => expect(FakeIntersectionObserver.instances.length).toBeGreaterThan(0));
+    expect(FakeIntersectionObserver.instances.at(-1)!.root).toBe(scroller);
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+
+    FakeIntersectionObserver.instances.at(-1)!.fireAway();
+
+    expect(await screen.findByRole('status')).toHaveTextContent(/Reading cv.pdf/);
+    expect(screen.getAllByText(/Usually takes about 10 seconds/).length).toBeGreaterThan(1);
+    expect(screen.queryByRole('button', { name: /keep editing/i })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /^cancel$/i }).length).toBeGreaterThan(1);
+  });
+});
+
+/*
+ * The one-door rule, from the Experience section's side.
+ *
+ * On `/members/[id]` the CV section above holds a drop area in every state — the
+ * file when there is one, the box when there isn't — so this section must not
+ * hold a second one. It keeps the header control, which is a different gesture:
+ * a refresh of the history from a newer document, in the slot the section's own
+ * actions live in.
+ */
+describe('the member profile’s half of the importer', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('leaves the empty row to the plain sentence, with no second drop area', () => {
+    renderSection({ surface: 'header-only', entries: [] });
+
+    expect(dropArea()).not.toBeInTheDocument();
+    expect(screen.getByText(/share your work history and skills/i)).toBeInTheDocument();
+  });
+
+  it('still offers the header control once there is a history to refresh', () => {
+    renderSection({ surface: 'header-only', entries: [entry] });
+
+    expect(headerImport()).toBeInTheDocument();
+    expect(dropArea()).not.toBeInTheDocument();
+  });
+
+  /* The header control is the whole importer here, so it has to actually open
+     it — a control that only looks right is the failure this guards. */
+  it('opens the importer from the header press', async () => {
+    mockParse.mockReturnValue(new Promise(() => {}));
+    renderSection({ surface: 'header-only', entries: [entry] });
+
+    const cv = new File(['x'], 'cv.pdf', { type: 'application/pdf' });
+    Object.defineProperty(cv, 'size', { value: 1024 });
+    fireEvent.change(document.querySelector('input[accept=".pdf"]') as HTMLInputElement, {
+      target: { files: [cv] },
+    });
+
+    expect(await screen.findByText(/Reading cv.pdf/)).toBeInTheDocument();
   });
 });

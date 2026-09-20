@@ -8,6 +8,16 @@
   display: grid;
 }
 
+/* One card per role: the row plus, for the owner, its applicants underneath.
+ * Production's `ReferRoleRow.root` paints its own `#f9fafb` at 16px radius; this
+ * wrapper paints the same pair so the row and the footer read as one shape and
+ * a row with no footer is pixel-identical to the reader's. The token is the
+ * pair this folder already uses for that grey (`--background-neutral-soft-surface`). */
+.roleBlock {
+  background: var(--background-neutral-soft-surface, #f9fafb);
+  border-radius: 16px;
+}
+
 /* Projects' and Members' `.showAll` verbatim — same values, same token pair —
  * because this is the team profile's own "reveal the rest" control and a reader
  * has already met it twice further down the page. Re-declared here rather than

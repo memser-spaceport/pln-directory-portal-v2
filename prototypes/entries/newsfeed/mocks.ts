@@ -5,6 +5,7 @@ import { SECTOR_TAGS } from '@/services/investors/constants';
 import type { SectorTag } from '@/services/investors/types';
 
 import { MOCK_GROUPS } from '../newsfeed-v0/mocks';
+import { TEAM_POSTED_SEED } from '../news-shared/teamPosts';
 
 // This prototype builds on the newsfeed-v0 mock corpus rather than re-seeding it:
 // the same 13 team-news items and 4 forum posts, plus three additions that the
@@ -192,8 +193,11 @@ export const OFF_FOCUS_ITEMS: ITeamNewsItem[] = [
   }),
 ];
 
-/** Every item the curated spine carries: grouped + the untagged long tail. */
-export const ALL_CURATED_ITEMS: ITeamNewsItem[] = [...OFF_FOCUS_ITEMS, ...GROUPED_ITEMS];
+/** Every item the curated spine carries: grouped + the untagged long tail —
+ *  plus the two posts the team profile's fixture seeds, so what a team does to
+ *  its own post there (edit, remove) is what this feed shows next. They carry
+ *  no focus area, so like the long tail they ride the All tab. */
+export const ALL_CURATED_ITEMS: ITeamNewsItem[] = [...TEAM_POSTED_SEED, ...OFF_FOCUS_ITEMS, ...GROUPED_ITEMS];
 
 // ---------- Sector, the axis the Monitor path actually queries ----------
 

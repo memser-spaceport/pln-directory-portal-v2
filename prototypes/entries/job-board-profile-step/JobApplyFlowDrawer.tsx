@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm, type Resolver } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import clsx from 'clsx';
@@ -24,7 +24,7 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 
 import { ApplyFlowSteps, type ApplyFlowStep } from './ApplyFlowSteps';
 import { JobDetailPane } from './JobDetailPane';
-import { JobProfilePane, BackIcon, type EditTarget } from './JobProfilePane';
+import { JobProfilePane, BackIcon, type EditTarget, type ProfileEditFlow } from './JobProfilePane';
 import { JobAccountPane } from './JobAccountPane';
 import { JobApplicationPane } from './JobApplicationPane';
 import {
@@ -37,6 +37,8 @@ import {
 import type { ParsedProfile } from '../profile-shared/ExperienceImport/types';
 import { isProfileComplete, type MemberProfile } from './viewerState';
 import d from './JobApplyFlowDrawer.module.scss';
+
+export type { ProfileEditFlow } from './JobProfilePane';
 
 /**
  * The three places the flow stops, in order. Exported because the board pins
@@ -123,6 +125,8 @@ interface JobApplyFlowDrawerProps {
   /** Commits the draft. Called on the way out of the profile step and on close,
    *  never per section — see the note on the footer. */
   onSaveProfile: (next: MemberProfile) => void;
+  /** Prototype switch: section cards with local saves, or one editable drawer committed by Continue. */
+  profileEditFlow?: ProfileEditFlow;
   /**
    * Sends it. Only ever called from an approved account — see `canApply`.
    *
@@ -250,6 +254,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     onStepChange,
     profile,
     onSaveProfile,
+    profileEditFlow = 'sections',
     onSubmitApplication,
     onCreateAccount,
     loggedIn,
@@ -262,6 +267,12 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   } = props;
 
   const isMobile = useIsMobile();
+  /* The drawer's chrome, for the profile step's status row: the sticky header
+     the cards scroll under, and the slot in the footer the row renders into,
+     beside Continue. The slot is state rather than a ref so the step's portal
+     re-renders once the footer has mounted it. See `EditorStatusRow`. */
+  const drawerHeaderRef = useRef<HTMLElement | null>(null);
+  const [footerSlot, setFooterSlot] = useState<HTMLDivElement | null>(null);
 
   /* The flow's working copy of the profile. Section Saves inside the profile
      pane write here; the footer is what hands it to the board. It lives at this
@@ -325,6 +336,10 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  useEffect(() => {
+    if (profileEditFlow === 'whole') setEditing(null);
+  }, [profileEditFlow, setEditing]);
+
   const complete = isProfileComplete(draft);
   /* The rule, for the footer's hint. Read off the draft with the same test
      `isProfileComplete` uses — deliberately not a second definition of
@@ -358,6 +373,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
    * approved. The rule is worth that; pretending it isn't a cost is not.
    */
   const canApply = complete && loggedIn && !pendingApproval;
+  const sectionEditing = profileEditFlow === 'sections' && !!editing;
 
   /* The steps this run actually stops at, in order. The rail always draws all
      three — see the note at the top of the file — but Back and the footer walk
@@ -377,7 +393,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
    *  the footer is disabled there: leaving past an open card drops what is in
    *  it. */
   const canVisit = (id: ApplyFlowStepId): boolean => {
-    if (id === step || editing) return false;
+    if (id === step || sectionEditing) return false;
     if (id === 'review') return true;
     /* Always reachable now. It used to be `loggedIn`, because a visitor without
        an account had nothing to see there — the step opened a modal instead. It
@@ -411,12 +427,13 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
    *  commit *to*: writing their half-typed details into the board's profile
    *  would give a logged-out board a filled-in member. Their answers live in the
    *  flow until the final press creates the account to hold them. */
-  const commitDraft = () => {
-    if (step === 'profile' && loggedIn) onSaveProfile(draft);
+  const commitDraft = (next?: ApplyFlowStepId | null) => {
+    if (step !== 'profile' || !loggedIn) return;
+    if (profileEditFlow === 'sections' || next === 'application') onSaveProfile(draft);
   };
 
   const goTo = (next: ApplyFlowStepId) => {
-    commitDraft();
+    commitDraft(next);
     onStepChange(next);
   };
 
@@ -627,7 +644,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                the footer can't show. */
             "Applying opens once the PL team approves your account — we'll email you."
           : !complete
-            ? editing
+            ? sectionEditing
               ? 'Save this card to continue.'
               : /* Nothing at rest. The instruction that stood here — name the two
                    required answers, then reassure that the rest is optional — was
@@ -635,7 +652,9 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                    amber `Required to continue.` strip, and every optional section
                    is labelled `(Optional)`. */
                 undefined
-            : /* FORK ONLY. This read "Experience, skills and bio are optional —
+            : profileEditFlow === 'whole'
+              ? 'Continue saves this profile and opens your note.'
+              : /* FORK ONLY. This read "Experience, skills and bio are optional —
                  you can add them any time." That sentence was written when those
                  sections were four open cards below it and nothing else on the
                  step said they were optional. The fold says it now, an inch
@@ -649,7 +668,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                  show: that pressing this sends the profile itself, which is the
                  promise the whole flow is built on and the only moment it is
                  true. */
-              'Your profile goes with your note — there is nothing else to fill in.',
+                'Your profile goes with your note — there is nothing else to fill in.',
         action: (
           /* Disabled while a card is open as well as while the profile is
              incomplete: mid-edit there is unsaved work in front of the person,
@@ -667,7 +686,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             style="fill"
             size="m"
             className={d.footerAction}
-            disabled={(!blockedByReview && !complete) || !!editing}
+            disabled={(!blockedByReview && !complete) || sectionEditing}
             onClick={() => {
               onSaveProfile(draft);
               if (blockedByReview) {
@@ -720,7 +739,12 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
       {/* `d.drawerHeaderLift` is what this header adds to production's: a
           stacking order that survives positioned content scrolling past it, and
           the room for a second row. See the notes in the stylesheet. */}
-      <div className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
+      <div
+        ref={(node) => {
+          drawerHeaderRef.current = node;
+        }}
+        className={clsx(s.drawerHeader, d.drawerHeaderLift)}
+      >
         <div className={clsx(s.breadcrumbs, d.headerRow)}>
           <button type="button" className={s.backButton} onClick={onBack}>
             <BackIcon />
@@ -766,6 +790,8 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               setEditing={setEditing}
               pendingRoleTitle={role?.roleTitle ?? null}
               pendingApproval={pendingApproval}
+              editFlow={profileEditFlow}
+              floatingChrome={{ top: drawerHeaderRef, slot: footerSlot }}
               canvasImport={canvasImport}
             />
           ) : (
@@ -813,6 +839,8 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
           makes them read as one screen rather than three. */}
       <div className={d.footer}>
         <div className={d.footerInner}>
+          {/* The open card's status, on the profile step — see `.footerStatus`. */}
+          <div ref={setFooterSlot} className={d.footerStatus} />
           {/* Rendered only when there is something to say. Several arms of the
               footer now hand over `undefined` deliberately, and an empty
               `<p>` left standing in a `gap: 12px` column is a blank line the

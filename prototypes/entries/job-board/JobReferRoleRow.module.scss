@@ -171,3 +171,33 @@
   color: inherit;
   cursor: pointer;
 }
+
+/* The row itself opens the job. The hover is the only thing
+   that says so at a distance, so it has to change the whole slab — production's
+   #f9fafb one step down to the neutral subtle surface — and the title underlines
+   with it, since the title is the door the row is standing in for. */
+.rowPress {
+  cursor: pointer;
+  transition: background-color 120ms ease;
+
+  &:hover {
+    background-color: var(--background-neutral-subtle, #f1f5f9);
+  }
+
+  &:hover .titleButton {
+    text-decoration: underline;
+  }
+}
+
+/* The mark in the button's place. Tertiary at rest like the row's other ambient
+   marks, secondary on hover like its controls — the chevron is a label on the
+   row's press, not a control of its own. */
+.rowChevron {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  .rowPress:hover & {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}

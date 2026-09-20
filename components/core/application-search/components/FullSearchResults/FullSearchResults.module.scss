@@ -1,3 +1,9 @@
+// Two consumers: `FullSearchResults.tsx` beside it (restored with the pre-dialog
+// header search) and `prototypes/entries/ai-search`, which imports these classes
+// so its rows sit in the same list production's used to. It was an orphan while
+// the dialog was the only header search — do not delete on that basis again
+// without checking both.
+
 @use 'styles/media';
 
 .root {

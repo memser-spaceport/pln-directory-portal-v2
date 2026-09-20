@@ -45,6 +45,13 @@
   background: var(--transparent-warning-8, rgba(245, 158, 11, 0.08));
 }
 
+// A step rounder than production's 8px (`--radius-md`): the DS scale's
+// `--radius-xl`. Doubled class so it outranks the production `.card` beneath it;
+// the PL card's gradient ring takes it through `border-radius: inherit`.
+.card.card {
+  border-radius: var(--radius-xl, 12px);
+}
+
 .card .avatar {
   @include media.mobile-only {
     width: 44px;
@@ -81,25 +88,27 @@
   border-color: var(--border-brand-subtle, #aebfff);
 }
 
-// Protocol Labs' card, outlined edge to edge in the PL brand gradient. Doubled
-// class so it outranks the production `.card` it sits on top of.
+// Protocol Labs' card: the standard card, with its hairline drawn in the PL brand
+// gradient. Doubled class so it outranks the production `.card` it sits on.
 //
-// The ring replaces the card's own hairline rather than sitting inside it: the
-// border stays 1px of transparent so the geometry is untouched, and a masked
-// pseudo at `inset: -1px` paints exactly that 1px band. (Production's own recipe
-// — `app/globals.scss .asks__tooltip::before` — and the same one the newsfeed's
-// PL card uses.) The stops are the app-wide PL brand gradient, copied literally:
-// it is hardcoded everywhere in production and has no token.
+// **One mark, and a slight one.** This card used to differ three ways — a 2px
+// gradient ring, the same gradient as an 8% wash behind the content, and white
+// role rows — and each was there to prop up the one before: the ring went to
+// 2px because 1px "read as a slightly different border colour", the wash was
+// raised from 4% to 8% because nobody could see it, and the rows went white
+// because grey rows on a tint read as patches. Asked for plainly: the card as
+// it was, plus a slight gradient border. The section heading above it ("From
+// Protocol Labs") and its place at the top already say whose card this is; the
+// border only has to agree with them, not announce it again.
+//
+// The border stays 1px of transparent so the geometry is untouched, and a masked
+// pseudo at `inset: -1px` paints exactly that pixel. (Production's own recipe —
+// `app/globals.scss .asks__tooltip::before`.) The stops are the app-wide PL
+// brand gradient, copied literally: it is hardcoded everywhere in production
+// and has no token.
 .card.plCard {
   position: relative;
   border-color: transparent;
-  // The ring's own stops again as a wash — same angle, same stop positions, so
-  // fill and outline read as one treatment. 4% alpha (the house subtle-surface
-  // alpha, --transparent-dark-4) over the card's opaque #fff, kept underneath so
-  // the tint can't shift with whatever the page shows behind the card.
-  background:
-    linear-gradient(71.47deg, rgba(66, 125, 255, 0.04) 8.43%, rgba(68, 213, 187, 0.04) 87.45%),
-    #fff;
 
   &::before {
     content: '';
@@ -117,3 +126,7 @@
     pointer-events: none;
   }
 }
+
+// (`.plRoles` and `.plRoles > .ownerRoleBlock` stood here — Protocol Labs' rows
+// in white. They went with the wash they were compensating for; every card's
+// rows are production's grey again, the owner's role blocks included.)

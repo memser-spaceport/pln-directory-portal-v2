@@ -481,3 +481,20 @@
     text-align: center;
   }
 }
+
+// Marks where a newest-first list crosses into an earlier deployment's lines.
+.deploymentBoundary td {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-style: italic;
+  color: #64748b;
+  background: #f8fafc;
+  border-top: 1px dashed #cbd5e1;
+  border-bottom: 1px dashed #cbd5e1;
+
+  code {
+    font-style: normal;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+  }
+}

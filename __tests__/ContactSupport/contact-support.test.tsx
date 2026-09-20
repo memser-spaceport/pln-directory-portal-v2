@@ -23,11 +23,13 @@ jest.mock('@/components/core/ToastContainer', () => ({
 jest.mock('@/components/form/FormEditor', () => ({
   FormEditor: ({
     name,
+    label,
     placeholder,
     toolbarConfig,
     simplified,
   }: {
     name: string;
+    label?: string;
     placeholder: string;
     toolbarConfig?: unknown;
     simplified?: boolean;
@@ -37,6 +39,7 @@ jest.mock('@/components/form/FormEditor', () => ({
     return (
       <textarea
         aria-label="support-message"
+        data-field-label={label}
         data-simplified={String(simplified)}
         data-toolbar={JSON.stringify(toolbarConfig)}
         placeholder={placeholder}
@@ -47,36 +50,13 @@ jest.mock('@/components/form/FormEditor', () => ({
   },
 }));
 
-jest.mock('@/components/form/Dropdown', () => ({
-  Dropdown: ({
-    label,
-    options,
-    onItemSelect,
-    selectedOption,
-  }: {
-    label: string;
-    options: Array<{ label: string; value: string }>;
-    onItemSelect: (option: { label: string; value: string } | null) => void;
-    selectedOption?: { label: string; value: string };
-  }) => (
-    <label>
-      {label}
-      <select
-        aria-label={label}
-        value={selectedOption?.value ?? ''}
-        onChange={(e) => onItemSelect(options.find((opt) => opt.value === e.target.value) ?? null)}
-      >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  ),
-}));
-
 const userInfo = { uid: 'member-1', name: 'Ada Lovelace', email: 'ada@example.com' };
+
+/** The modal title is a plain div, and every topic name is also a pill button —
+ *  so the selector is what tells the two apart. */
+const modalTitle = () => screen.getByText(/^(Contact support|Ask a question|Give feedback|Share an idea|Report a bug)$/, {
+  selector: 'div',
+});
 
 describe('ContactSupport', () => {
   beforeEach(() => {
@@ -219,5 +199,82 @@ describe('ContactSupport', () => {
 
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Image upload failed. Please try again.'));
     expect(mockMutate).not.toHaveBeenCalled();
+  });
+
+  describe('topic pills', () => {
+    it('puts every topic on screen at rest, rather than behind a press', () => {
+      render(<ContactSupport userInfo={userInfo} />);
+
+      expect(screen.getAllByRole('radio')).toHaveLength(5);
+      for (const label of ['Contact support', 'Ask a question', 'Give feedback', 'Share an idea', 'Report a bug']) {
+        expect(screen.getByRole('radio', { name: label })).toBeInTheDocument();
+      }
+      expect(screen.getByRole('radio', { name: 'Contact support' })).toBeChecked();
+    });
+
+    it('moves the title and the field label onto the chosen topic', () => {
+      render(<ContactSupport userInfo={userInfo} />);
+
+      expect(modalTitle()).toHaveTextContent('Contact support');
+      expect(screen.getByLabelText('support-message')).toHaveAttribute('data-field-label', 'Describe the issue');
+
+      fireEvent.click(screen.getByRole('radio', { name: 'Give feedback' }));
+
+      expect(modalTitle()).toHaveTextContent('Give feedback');
+      expect(screen.getByRole('radio', { name: 'Give feedback' })).toBeChecked();
+      expect(screen.getByLabelText('support-message')).toHaveAttribute('data-field-label', 'Your feedback');
+      expect(screen.getByPlaceholderText('Share your thoughts...')).toBeInTheDocument();
+    });
+
+    // The store's topic is what ContactSupportUrlSync turns into `?dialog=`.
+    // A pill that only set form state would leave the URL pointing at whatever
+    // topic the modal was opened on.
+    it('tells the store, so the deep link keeps up', () => {
+      render(<ContactSupport userInfo={userInfo} />);
+
+      fireEvent.click(screen.getByRole('radio', { name: 'Report a bug' }));
+
+      expect(useContactSupportStore.getState().topic).toBe('Report a bug');
+    });
+
+    // The row is one tab stop, so Tab cannot reach the other four and arrow
+    // keys have to.
+    it('lets the arrow keys reach the topics Tab no longer can', () => {
+      render(<ContactSupport userInfo={userInfo} />);
+
+      const first = screen.getByRole('radio', { name: 'Contact support' });
+      expect(first).toHaveAttribute('tabindex', '0');
+      expect(screen.getByRole('radio', { name: 'Ask a question' })).toHaveAttribute('tabindex', '-1');
+
+      fireEvent.keyDown(first, { key: 'ArrowRight' });
+      expect(screen.getByRole('radio', { name: 'Ask a question' })).toBeChecked();
+
+      fireEvent.keyDown(screen.getByRole('radio', { name: 'Ask a question' }), { key: 'ArrowLeft' });
+      expect(screen.getByRole('radio', { name: 'Contact support' })).toBeChecked();
+
+      // Wrapping backwards off the first pill lands on the last.
+      fireEvent.keyDown(screen.getByRole('radio', { name: 'Contact support' }), { key: 'ArrowUp' });
+      expect(screen.getByRole('radio', { name: 'Report a bug' })).toBeChecked();
+    });
+
+    it('submits the topic the pill selected', async () => {
+      render(<ContactSupport userInfo={userInfo} />);
+
+      fireEvent.click(screen.getByRole('radio', { name: 'Share an idea' }));
+      fireEvent.change(screen.getByLabelText('support-message'), {
+        target: { value: '<p>A directory for octopuses</p>' },
+      });
+
+      const submit = screen.getByRole('button', { name: 'Submit' });
+      await waitFor(() => expect(submit).toBeEnabled());
+      fireEvent.click(submit);
+
+      await waitFor(() =>
+        expect(mockMutate).toHaveBeenCalledWith(
+          expect.objectContaining({ topic: 'Share an idea' }),
+          expect.any(Object),
+        ),
+      );
+    });
   });
 });

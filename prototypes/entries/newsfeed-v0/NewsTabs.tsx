@@ -12,11 +12,22 @@ import { ALL_TAB } from '@/components/page/home/TeamNews/constants';
 import s from '@/components/page/home/TeamNews/components/TeamNewsTabs/TeamNewsTabs.module.scss';
 import local from './NewsfeedV0.module.scss';
 
+/** The feed's saved scope, as a tab id. Not a focus area — see `savedCount`. */
+export const SAVED_TAB = 'saved';
+
 interface Props {
   groups: ITeamNewsGroup[];
   allItems: ITeamNewsItem[];
   activeTab: string;
   onTabChange: (id: string) => void;
+  /**
+   * Present = the strip ends in a **Saved** tab with this count (the `saving`
+   * entry). The tab strip is where this product puts a personal scope on a
+   * listing — All / Applied on the board, All / Following on teams — and
+   * Substack's reader does the same beside All. It is a scope, not a focus
+   * area, so it goes last, after the areas, rather than sorted among them.
+   */
+  savedCount?: number;
 }
 
 /**
@@ -26,14 +37,15 @@ interface Props {
  * headings below it. Production `TeamNewsTabs` hardcodes its `classes` and can't
  * be told to do this, hence the local copy.
  */
-export function NewsTabs({ groups, allItems, activeTab, onTabChange }: Props) {
+export function NewsTabs({ groups, allItems, activeTab, onTabChange, savedCount }: Props) {
   const tabs = useMemo(() => {
     const result = [{ id: ALL_TAB, label: 'All', count: allItems.length }];
     for (const g of groups) {
       result.push({ id: g.focusArea.title, label: g.focusArea.title, count: g.total });
     }
+    if (savedCount !== undefined) result.push({ id: SAVED_TAB, label: 'Saved', count: savedCount });
     return result;
-  }, [groups, allItems]);
+  }, [groups, allItems, savedCount]);
 
   return (
     <Tabs

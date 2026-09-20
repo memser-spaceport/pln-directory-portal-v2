@@ -49,8 +49,9 @@ const Section = ({ label = 'section', header = 'plain' }: { label?: string; head
   return (
     <FormProvider {...methods}>
       <form onSubmit={methods.handleSubmit(() => {})}>
-        <Controls onClose={() => methods.reset()} title={`Edit ${label}`} />
-        <input aria-label={`${label} field`} {...methods.register('value')} />
+        <Controls onClose={() => methods.reset()} title={`Edit ${label}`}>
+          <input aria-label={`${label} field`} {...methods.register('value')} />
+        </Controls>
       </form>
     </FormProvider>
   );

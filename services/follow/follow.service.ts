@@ -1,5 +1,5 @@
 import { customFetch } from '@/utils/fetch-wrapper';
-import type { ITeamFollowState, ITeamFollowersResponse } from '@/types/follow.types';
+import type { IFollowedTeamsResponse, ITeamFollowState, ITeamFollowersResponse } from '@/types/follow.types';
 
 export async function followTeam(teamUid: string): Promise<ITeamFollowState | null> {
   const response = await customFetch(
@@ -19,6 +19,19 @@ export async function unfollowTeam(teamUid: string): Promise<ITeamFollowState | 
   );
   if (!response?.ok) return null;
   return (await response.json()) as ITeamFollowState;
+}
+
+const FOLLOWED_TEAMS_PAGE_SIZE = 200;
+
+/** One page of the teams the authenticated member follows. */
+export async function getFollowedTeams(page: number): Promise<IFollowedTeamsResponse | null> {
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/members/me/following/teams?page=${page}&limit=${FOLLOWED_TEAMS_PAGE_SIZE}`,
+    { method: 'GET' },
+    true,
+  );
+  if (!response?.ok) return null;
+  return (await response.json()) as IFollowedTeamsResponse;
 }
 
 export async function getTeamFollowers(

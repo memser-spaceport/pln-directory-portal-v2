@@ -10,10 +10,10 @@ import { pickCvImportHost, type CvImportHostInput } from '@/components/page/jobs
  * negative ones.
  */
 const blank: CvImportHostInput = {
-  enabled: true,
   experienceCount: 0,
   experiencesLoading: false,
   handedOff: false,
+  hasStoredCv: false,
 };
 
 describe('which card hosts the CV importer', () => {
@@ -59,11 +59,6 @@ describe('which card hosts the CV importer', () => {
     expect(pickCvImportHost({ ...blank, experienceCount })).toBe(expected);
   });
 
-  it('offers nothing at all when the flag is down', () => {
-    expect(pickCvImportHost({ ...blank, enabled: false })).toBe('off');
-    expect(pickCvImportHost({ ...blank, enabled: false, experienceCount: 4 })).toBe('off');
-  });
-
   /**
    * The flash this exists to prevent: a profile that *does* have history reads
    * as blank while the row query is in flight, because the count is 0 until it
@@ -86,34 +81,51 @@ describe('which card hosts the CV importer', () => {
     expect(pickCvImportHost({ ...blank, handedOff: true })).toBe('experience-section');
   });
 
-  it('still offers nothing after a hand-off if the flag is down', () => {
-    expect(pickCvImportHost({ ...blank, handedOff: true, enabled: false })).toBe('off');
-  });
-
   /**
-   * The flag is the outermost gate, over every combination of the rest.
-   *
-   * Worth exhausting rather than spot-checking, because this is what keeps an
-   * unshipped feature dark: the endpoints behind the importer
-   * (`/cv-import/parse`, `/cv-import/apply`) are another team's work, so a state
-   * that leaked past the flag would be a door that 404s. A future condition
-   * added below the `!enabled` early return would be caught here.
+   * The in-flight guard is the outermost one now that the flag is gone, so it is
+   * worth exhausting rather than spot-checking: a future condition added below
+   * the `experiencesLoading` early return would be caught here.
    */
-  it('stays off for every profile shape while the flag is down', () => {
-    const flags = [true, false];
-    for (const experiencesLoading of flags) {
-      for (const handedOff of flags) {
-        for (const experienceCount of [0, 5]) {
-          expect(
-            pickCvImportHost({
-              enabled: false,
-              experienceCount,
-              experiencesLoading,
-              handedOff,
-            }),
-          ).toBe('off');
+  it('stays off for every profile shape while the row count is in flight', () => {
+    for (const handedOff of [true, false]) {
+      for (const experienceCount of [0, 5]) {
+        for (const hasStoredCv of [true, false]) {
+          expect(pickCvImportHost({ experienceCount, experiencesLoading: true, handedOff, hasStoredCv })).toBe('off');
         }
       }
     }
+  });
+
+  /**
+   * A kept CV settles the screen on its own.
+   *
+   * Not "an offer for people with no history" plus "a card for people with a
+   * file" — one answer, decided before the offer questions are asked. Someone
+   * who uploaded a CV *and* typed their roles in by hand holds a document, and
+   * `experienceCount` has nothing to say about them.
+   */
+  describe('once a CV is already held', () => {
+    it('draws the kept file instead of offering an upload', () => {
+      expect(pickCvImportHost({ ...blank, hasStoredCv: true })).toBe('stored');
+    });
+
+    it('still draws it for someone who also has work history', () => {
+      expect(pickCvImportHost({ ...blank, hasStoredCv: true, experienceCount: 5 })).toBe('stored');
+    });
+
+    it('still draws it after a hand-off', () => {
+      expect(pickCvImportHost({ ...blank, hasStoredCv: true, handedOff: true })).toBe('stored');
+    });
+
+    /*
+     * The reason `undefined` is its own case rather than falsy. Collapsing it
+     * into "no CV" shows the upload offer for one render to someone who has
+     * already uploaded, then swaps it for their file underneath them — the same
+     * flash `experiencesLoading` exists to prevent.
+     */
+    it('withholds every host until the answer is in', () => {
+      expect(pickCvImportHost({ ...blank, hasStoredCv: undefined })).toBe('off');
+      expect(pickCvImportHost({ ...blank, hasStoredCv: undefined, experienceCount: 5 })).toBe('off');
+    });
   });
 });

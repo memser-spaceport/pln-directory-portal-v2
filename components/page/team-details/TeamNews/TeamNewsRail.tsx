@@ -162,9 +162,7 @@ export function TeamNewsRail({
           })}
         >
           <DetailsSectionHeader title={hasNews ? `${teamName} News (${total})` : `${teamName} News`}>
-            {canPostNow && hasNews && posterUid && (
-              <PostNewsButton teamName={teamName} memberUid={posterUid} onPost={openCompose} />
-            )}
+            {canPostNow && hasNews && posterUid && <PostNewsButton teamName={teamName} onPost={openCompose} />}
           </DetailsSectionHeader>
 
           {canPostNow && !hasNews && <NewsEmptyCard onPost={openCompose} />}

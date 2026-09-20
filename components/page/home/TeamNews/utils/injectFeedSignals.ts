@@ -3,8 +3,9 @@ import type { IJobTeamGroup } from '@/types/jobs.types';
 
 import type { FeedEntry, RankedFeedEntry } from './mergeFeedEntries';
 
-/** Hiring roll-ups per render. Uncapped, a busy window puts more job cards on
- *  the first page than news. */
+/** Hiring roll-ups per render, and the default for `maxHiring` below. Uncapped,
+ *  a busy window puts more job cards on the first page than news. For You passes
+ *  its own cap (`MAX_FOR_YOU_JOB_ENTRIES`) instead. */
 export const MAX_HIRING_ENTRIES = 2;
 export const MAX_DEAL_ENTRIES = 2;
 
@@ -58,22 +59,29 @@ export function hiringGroupDate(group: IJobTeamGroup): string {
  * `hiring`/`deals` undefined ⇒ the entries unchanged. That is the typed shape
  * of "not loaded / no access / request failed", the same accepted pop-in
  * `forumPosts` already has in mergeFeedEntries.
+ *
+ * `maxHiring` lets a caller bound its own stream — the For You pill's roll-ups
+ * are matched to one member and counted on the pill, so its cap is a separate
+ * decision from the resting feed's. Defaults to `MAX_HIRING_ENTRIES`, which is
+ * what every existing caller was already getting.
  */
 export function injectFeedSignals({
   entries,
   hiring,
   deals,
+  maxHiring = MAX_HIRING_ENTRIES,
 }: {
   entries: RankedFeedEntry[];
   hiring: IJobTeamGroup[] | undefined;
   deals: IDeal[] | undefined;
+  maxHiring?: number;
 }): FeedEntry[] {
   // Nothing to lead with — see "A story always leads" above.
   if (entries.length === 0) return entries;
 
   const hiringEntries: FeedEntry[] = [...(hiring ?? [])]
     .sort((a, b) => hiringGroupDate(b).localeCompare(hiringGroupDate(a)))
-    .slice(0, MAX_HIRING_ENTRIES)
+    .slice(0, maxHiring)
     .map((group) => ({ kind: 'hiring', group }));
 
   const dealEntries: FeedEntry[] = [...(deals ?? [])]

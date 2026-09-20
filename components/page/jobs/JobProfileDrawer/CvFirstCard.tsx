@@ -39,13 +39,20 @@ import d from './JobProfileDrawer.module.scss';
 interface CvFirstCardProps {
   member: IMember;
   /**
+   * A document already chosen elsewhere — Replace on the resting "Your CV"
+   * card, which picks the file and hands it here rather than importing it
+   * itself. The panel opens straight into the read instead of showing a drop
+   * area to someone who has already dropped something.
+   */
+  initialFile?: File | null;
+  /**
    * The dead end's way out — see `onAddManually` below for why it hands the
    * importer back rather than opening a form.
    */
   onHandOff: () => void;
 }
 
-export function CvFirstCard({ member, onHandOff }: CvFirstCardProps) {
+export function CvFirstCard({ member, initialFile, onHandOff }: CvFirstCardProps) {
   /** The review is a different card from the drop area; this says which is up. */
   const [reviewing, setReviewing] = useState(false);
   /**
@@ -138,6 +145,7 @@ export function CvFirstCard({ member, onHandOff }: CvFirstCardProps) {
               a drop area that is already the shortcut.) */}
           <p className={d.cvFirstNote}>We will autofill applicable fields.</p>
           <ExperienceImportPanel
+            initialFile={initialFile}
             privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
             onParse={parseAndReport}
             onAbort={abort}

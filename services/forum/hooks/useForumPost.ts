@@ -259,6 +259,7 @@ export function useForumPost(tid: string, isLoggedIn?: boolean) {
   return useQuery({
     queryKey: [ForumQueryKeys.GET_TOPIC, tid],
     queryFn: () => fetcher(tid),
-    enabled: isLoggedIn,
+    // See the note in `useChatHistory`: a falsy non-boolean here throws.
+    enabled: !!isLoggedIn,
   });
 }

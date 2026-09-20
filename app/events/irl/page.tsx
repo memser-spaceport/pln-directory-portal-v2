@@ -98,7 +98,7 @@ export default async function Page(props: any) {
             followers={followers ?? []}
             mySubscriptions={mySubscriptions}
             userInfo={userInfo}
-            isLoggedIn={isLoggedIn}
+            isLoggedIn={!!isLoggedIn}
             searchParams={searchParams}
             eventDetails={eventDetails}
             guestDetails={guestDetails}
@@ -111,7 +111,7 @@ export default async function Page(props: any) {
             showTelegram={showTelegram as boolean}
             eventDetails={guestDetails}
             userInfo={userInfo}
-            isLoggedIn={isLoggedIn}
+            isLoggedIn={!!isLoggedIn}
             isUserGoing={isUserGoing as boolean}
             searchParams={searchParams}
             currentEventNames={currentEventNames}

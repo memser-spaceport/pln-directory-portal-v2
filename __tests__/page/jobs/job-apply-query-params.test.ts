@@ -21,8 +21,23 @@ describe('jobApplyQueryParams', () => {
     expect(jobApplyQueryParams('job-board')).toBe('utm_source=os.pl.xyz&utm_medium=job_board');
   });
 
-  it('falls back to job_board for any other surface rather than emitting an empty medium', () => {
-    expect(jobApplyQueryParams('home-feed' as never)).toBe('utm_source=os.pl.xyz&utm_medium=job_board');
+  /* This used to pin a `job_board` FALLBACK, asserted with `'home-feed' as never`
+     — the placeholder outlived its own premise. 'home-feed' is a real surface
+     now (the newsfeed's For You roll-ups render the board's row), and the
+     builder is an exhaustive Record, so there is no fallback branch left to
+     test: an unmapped surface fails to compile instead of quietly reporting as
+     the board. */
+  it('reports a home-feed click as home_feed, not as board traffic', () => {
+    expect(jobApplyQueryParams('home-feed')).toBe('utm_source=os.pl.xyz&utm_medium=home_feed');
+  });
+
+  it('gives every surface its own medium, so none is double-counted', () => {
+    const mediums = (['job-board', 'team-profile', 'home-feed'] as const).map((surface) =>
+      jobApplyQueryParams(surface),
+    );
+
+    expect(new Set(mediums).size).toBe(mediums.length);
+    expect(mediums.every((medium) => /utm_medium=\w+$/.test(medium))).toBe(true);
   });
 });
 

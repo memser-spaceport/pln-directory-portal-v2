@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
+import type { NewsItemWithPost } from '../news-shared/teamPosts';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { CloseIcon } from '@/components/core/UpdatesPanel/icons';
 
@@ -15,7 +16,13 @@ import s from './TeamProfile.module.scss';
 interface Props {
   title: string;
   count: number;
-  items: ITeamNewsItem[];
+  items: NewsItemWithPost[];
+  /**
+   * The owner's ⋯ for a story, or nothing — the page decides who may act
+   * (see `canManageTeamPost`); this view only puts it on the row and in the
+   * drilled story's header.
+   */
+  menuFor?: (uid: string) => ReactNode;
   /** When set, scroll to + flash this item on open (rail "Show more"). */
   focusUid?: string | null;
   query: string;
@@ -61,6 +68,7 @@ export function NewsFullPageView({
   title,
   count,
   items,
+  menuFor,
   focusUid,
   query,
   onQueryChange,
@@ -128,6 +136,7 @@ export function NewsFullPageView({
           onAddComment={onAddStoryComment}
           isCommentLiked={isCommentLiked}
           onToggleCommentLike={onToggleCommentLike}
+          headerAction={menuFor?.(story.id)}
         />
       </div>
     );
@@ -170,6 +179,7 @@ export function NewsFullPageView({
               // for the same thing — this story, in full — exactly as on the rail.
               onShowMore={onOpenStory && (() => onOpenStory(item))}
               onOpenComments={onOpenStory && (() => onOpenStory(item))}
+              menu={menuFor?.(item.uid)}
             />
           ))}
         </div>

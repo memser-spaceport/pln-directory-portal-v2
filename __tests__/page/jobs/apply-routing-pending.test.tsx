@@ -124,6 +124,19 @@ describe('Apply routing while unapproved', () => {
     expect(result.current.state).toMatchObject({ step: 'flow', at: 'profile' });
   });
 
+  it('sends even an approved member to the employer site when the team refuses in-app applications', async () => {
+    const { result } = setup('approved');
+    const flagged = { ...OTHER, inAppApplyAvailable: false } as IJobTeam;
+
+    await act(async () => {
+      await result.current.onApply(target(flagged));
+    });
+
+    expect(mockOpenExternal).toHaveBeenCalledWith('https://example.com/apply', 'job-board');
+    expect(result.current.state.step).toBe('idle');
+    expect(mockOnJobApplyExternalRedirected).toHaveBeenCalledTimes(1);
+  });
+
   /* An unapproved PL applicant with nothing filled in still gets the middle
      step — the carve-out grants the wizard, not a way past what it collects.
 

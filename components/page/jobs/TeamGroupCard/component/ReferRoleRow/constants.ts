@@ -3,11 +3,21 @@ import type { JobSurface } from '@/analytics/jobs.analytics';
 /**
  * UTM params appended to every outbound apply/share link, so the hiring company can
  * see where the click came from. The medium tracks the surface: the same role card
- * renders on the job board and on a team profile, and a fixed `job_board` would
- * report team-profile traffic as board traffic to the employer.
+ * renders on the job board, on a team profile and in the home feed, and a fixed
+ * `job_board` would report all of it as board traffic to the employer.
+ *
+ * A Record rather than a ternary: the ternary's `else` silently labelled every
+ * surface but one as `job_board`, so adding a third meant a wrong number rather
+ * than a compile error. This way an unmapped surface does not build.
  */
+const UTM_MEDIUM_BY_SURFACE: Record<JobSurface, string> = {
+  'job-board': 'job_board',
+  'team-profile': 'team_profile',
+  'home-feed': 'home_feed',
+};
+
 export const jobApplyQueryParams = (source: JobSurface) =>
-  `utm_source=os.pl.xyz&utm_medium=${source === 'team-profile' ? 'team_profile' : 'job_board'}`;
+  `utm_source=os.pl.xyz&utm_medium=${UTM_MEDIUM_BY_SURFACE[source]}`;
 
 export const jobApplyHref = (applyUrl: string | null | undefined, source: JobSurface): string | null =>
   applyUrl ? `${applyUrl}?${jobApplyQueryParams(source)}` : null;
@@ -34,8 +44,10 @@ export const openExternalApply = (applyUrl: string | null | undefined, source: J
 
 /**
  * The board's params, kept as a constant for the surfaces that link to a role without
- * rendering the full card (the home feed's HiringCard, the prototypes). Those still
- * report as `job_board`, which is only accurate for the board itself — worth revisiting
- * if the home feed's hiring links ever need attributing separately.
+ * rendering the full card (the prototypes).
+ *
+ * No longer used by the home feed: its roll-ups render the real `ReferRoleRow` now
+ * and pass `source: 'home-feed'`, so feed traffic is attributed as itself rather
+ * than mislabelled as the board's.
  */
 export const JOB_QUERY_PARAMS = jobApplyQueryParams('job-board');

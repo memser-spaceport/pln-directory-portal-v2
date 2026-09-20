@@ -265,9 +265,21 @@
 // Not invented: this is the panel production already uses for a read-only block
 // inside a `DetailsSection` — `RelationshipDetails`, `TeamContactInfoView`,
 // `TeamFocusAreasView` and four others.
+// **And an outline on top of the fill**, asked for after the grey landed. Not a
+// return to the border-only version above: that was fill *or* hairline, treated
+// as alternatives, and this is both. The fill is what says *inert*; the border
+// is what gives the panel an edge, which `#f8fafc` on white does not — a 2%
+// difference in lightness is a boundary you infer from where the text stops.
+//
+// `--border-neutral-subtle`, the house value for a resting border, and not the
+// 0.24 muted one: muted is the hover step, and spending it here would both
+// outrank the textarea below (0.16) and leave nothing for a state change to say.
+// `* { box-sizing: border-box }` is global in this app, so the 1px costs the
+// panel no size — checked, not assumed.
 .profileCard {
   display: flex;
   flex-direction: column;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   // 4px: the summary and its dates are one fact in two lines, so they hug. The
   // chips restore the larger gap themselves — see `.skills`.
   gap: 4px;

@@ -216,7 +216,7 @@ import { JobTeamGroupCard, type JobCardNewsVariant } from './JobTeamGroupCard';
 import { JobBoardScopeTabs, SCOPE_APPLIED, SCOPE_PARAM } from './JobBoardScopeTabs';
 import { SignInBanner } from './SignInBanner';
 import { ProfileNudgeBanner, PendingApprovalBanner } from './BoardBanners';
-import { JobApplyFlowDrawer, type ApplyFlowStepId } from './JobApplyFlowDrawer';
+import { JobApplyFlowDrawer, type ApplyFlowStepId, type ProfileEditFlow } from './JobApplyFlowDrawer';
 import { JobSignUpModal, type JobSignUpDetails } from './JobSignUpModal';
 // DELETE WITH: the `design-canvas/` folder.
 import { parseResultFor } from '../profile-shared/ExperienceImport/parseMocks';
@@ -288,7 +288,9 @@ const SAMPLE_APPLICATION_EMAIL: ApplicationEmailInput = {
 /** The five entry states the apply flow branches into — see `BoardViewer`. */
 const VIEWER_OPTIONS: Array<{ value: BoardViewer; label: string }> = [
   { value: 'logged-out', label: 'Logged out' },
-  { value: 'pending-approval', label: 'Signed up, pending approval' },
+  /* (`Signed up, pending approval` stood here as a tab. Removed 2026-09-09: the
+     state survives — the account step's PL-team tick still lands on it — but as
+     a tab it was one more state to explain before the ones under review.) */
   { value: 'profile-incomplete', label: 'Signed in, profile empty' },
   { value: 'profile-ready', label: 'Signed in, profile ready' },
   /* Last, because the row reads as a sequence: no account → waiting → signed in
@@ -308,6 +310,16 @@ const VIEWER_NOTE: Record<BoardViewer, string> = {
     'Signed in, profile already good. Apply goes straight to the cover letter — the modal reads the profile back, so a drawer in front of it would be showing the same thing twice.',
   applied:
     'The returning member: two applications already sent. The Applied tab has a count and a list, those rows show “Applied” instead of an offer, and the rest of the board carries on as normal — having applied to two roles is no reason to change what the other eleven look like.',
+};
+
+const PROFILE_EDIT_FLOW_OPTIONS: Array<{ value: ProfileEditFlow; label: string }> = [
+  { value: 'sections', label: 'Section by section' },
+  { value: 'whole', label: 'Whole drawer' },
+];
+
+const PROFILE_EDIT_FLOW_NOTE: Record<ProfileEditFlow, string> = {
+  sections: 'Edit one profile card at a time. The floating status bar returns to the open card and saves that card.',
+  whole: 'Edit every profile area inline. The drawer saves the profile when Continue opens the application step.',
 };
 
 /**
@@ -517,6 +529,7 @@ export default function JobBoardPrototype() {
   const [viewer, setViewer] = useState<BoardViewer>('logged-out');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [profile, setProfile] = useState<MemberProfile>(EMPTY_PROFILE);
+  const [profileEditFlow, setProfileEditFlow] = useState<ProfileEditFlow>('sections');
 
   /** Signed up, waiting on the PL team. Browsing is fine; applying is not. */
   const isPendingApproval = viewer === 'pending-approval';
@@ -1189,6 +1202,25 @@ export default function JobBoardPrototype() {
           <span className={v0.switchNote}>{VIEWER_NOTE[viewer]}</span>
         </div>
 
+        <div className={v0.switchBar}>
+          <span className={v0.switchLabel}>Profile editing</span>
+          <div className={v0.switch} role="tablist" aria-label="Profile editing flow">
+            {PROFILE_EDIT_FLOW_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                role="tab"
+                aria-selected={profileEditFlow === opt.value}
+                className={`${v0.switchBtn} ${profileEditFlow === opt.value ? v0.switchBtnActive : ''}`}
+                onClick={() => setProfileEditFlow(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <span className={v0.switchNote}>{PROFILE_EDIT_FLOW_NOTE[profileEditFlow]}</span>
+        </div>
+
         {/* (A `Details step` switch stood here while two drawings of the
             logged-out step 2 were being compared. It is gone with the losing
             one: a review switch left up after the decision invites the decision
@@ -1218,6 +1250,7 @@ export default function JobBoardPrototype() {
         onStepChange={setFlowStep}
         profile={profile}
         onSaveProfile={onSaveProfile}
+        profileEditFlow={profileEditFlow}
         onSubmitApplication={onSubmitApplication}
         onCreateAccount={onCreateAccount}
         loggedIn={isLoggedIn}

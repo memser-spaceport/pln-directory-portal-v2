@@ -10,7 +10,6 @@ import { PlaaSnapshotBarBar } from '@/components/core/navbar/components/PlaaSnap
 
 import styles from './PlaaTopBannerCarousel.module.scss';
 
-// How long each slide stays up before auto-advancing to the next one.
 const ROTATE_INTERVAL_MS = 8000;
 
 type SlideKey = 'buyback' | 'snapshot';
@@ -21,10 +20,6 @@ interface Slide {
   node: React.ReactNode;
 }
 
-/** Replaces the old stacked PlaaBuybackBanner + PlaaSnapshotBar (see
- *  SiteHeader) with a single slot that rotates between whichever of the two
- *  currently have something to show. PLAA members only, same gate both of
- *  those banners already used individually. */
 export function PlaaTopBannerCarousel() {
   const pathname = usePathname();
   const { canView } = usePlaaAccess();
@@ -63,9 +58,8 @@ function PlaaTopBannerCarouselContent() {
     return null;
   }
 
-  // A slide can disappear mid-session (auction ends, banner dismissed), leaving
-  // activeIndex pointing past the end until the next rotation — clamp here
-  // rather than in an effect, so the render never reads past the array.
+  // A slide can vanish mid-session (auction ends), leaving activeIndex past
+  // the end until the next rotation, so clamp rather than read out of bounds.
   const active = slides[Math.min(activeIndex, slideCount - 1)];
 
   return (

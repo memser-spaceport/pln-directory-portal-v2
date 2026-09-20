@@ -23,9 +23,6 @@ describe('useIsLoggedIn', () => {
   it('reports signed out from the server snapshot even when an auth cookie exists', () => {
     Cookies.set('authToken', '"a-token"');
 
-    // The server renders with no cookies, so it always produces the signed-out
-    // tree. The hydrating render has to agree or React fails hydration (#418)
-    // and throws away the server HTML for that subtree.
     expect(getIsLoggedInServerSnapshot()).toBe(false);
   });
 

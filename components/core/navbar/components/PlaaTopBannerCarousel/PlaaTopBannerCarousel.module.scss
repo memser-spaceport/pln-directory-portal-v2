@@ -16,9 +16,6 @@
   }
 }
 
-// Overlaid on the bottom edge of whichever bar is active — both PlaaBuybackBannerBar
-// and PlaaSnapshotBarBar center their content with generous vertical padding, so a
-// few px of dots along the bottom never collides with the bar's own text/icons.
 .dots {
   position: absolute;
   left: 50%;

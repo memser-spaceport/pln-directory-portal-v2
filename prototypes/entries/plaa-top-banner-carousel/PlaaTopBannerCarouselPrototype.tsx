@@ -11,10 +11,6 @@ import {
   getBuybackAuctionProgressPct,
 } from '@/utils/plaaBuybackAuction.utils';
 
-// The shipped stylesheets, imported directly — not copied — so this preview
-// can only drift on the JSX shells below, never on spacing, color, or
-// breakpoints. carouselStyles is the actual carousel shell PlaaTopBannerCarousel
-// mounts in SiteHeader (.carousel/.slide/.dots/.dot/.dotActive).
 import buybackStyles from '@/components/core/navbar/components/PlaaBuybackBanner/PlaaBuybackBanner.module.scss';
 import snapshotStyles from '@/components/core/navbar/components/PlaaSnapshotBar/PlaaSnapshotBar.module.scss';
 import carouselStyles from '@/components/core/navbar/components/PlaaTopBannerCarousel/PlaaTopBannerCarousel.module.scss';
@@ -26,7 +22,6 @@ const AUCTION_END_MS = Date.parse(AUCTION_END_ISO);
 const AUCTION_URL = 'https://auction-interface.fly.dev/';
 const CTA_LABEL = 'Place your Bid Now';
 
-// Same cadence as PlaaTopBannerCarousel's own ROTATE_INTERVAL_MS.
 const ROTATE_INTERVAL_MS = 8000;
 
 type PreviewPreset = 'upcoming' | 'live-early' | 'live-ending-soon' | 'ended';
@@ -38,9 +33,6 @@ const PREVIEW_PRESETS: Record<PreviewPreset, { label: string; now: number }> = {
   ended: { label: 'Ended', now: AUCTION_END_MS + 60 * 60 * 1000 },
 };
 
-// Mocked useCurrentSnapshotStatus() reading — the snapshot bar always has
-// something to show once mounted, unlike the buyback banner, so there's no
-// preset switcher for it here.
 const SNAPSHOT_STATUS = {
   periodLabel: 'September 2026',
   daysLeft: 12,
@@ -50,23 +42,6 @@ const SNAPSHOT_STATUS = {
 
 type SlideKey = 'buyback' | 'snapshot';
 
-/**
- * Click-through preview of PlaaTopBannerCarousel — the rotator that replaced
- * the old stacked PlaaBuybackBanner + PlaaSnapshotBar in SiteHeader. Production
- * only ever mounts it on /alignment-asset behind PLAA RBAC access, so seeing it
- * needs a signed-in PLAA member; neither that nor the snapshot bar's backend
- * data (useCurrentSnapshotStatus) is reachable here, so both are mocked.
- *
- * The stylesheets and every number shown (formatBuybackCountdown,
- * formatBuybackAuctionEnd, getBuybackAuctionPhase) are imported straight from
- * production — this can only drift on the JSX shells below, never on the CSS
- * or the countdown/date logic. The two bar shells are transcribed rather than
- * importing the real PlaaBuybackBannerBar/PlaaSnapshotBarBar, because those
- * call real backend-fetching hooks (useCurrentSnapshotStatus, and the
- * "Snapshot summary" button's modal) that need a live PLAA session, which
- * isn't reachable here. The carousel shell itself (.carousel, .slide, .dots)
- * *is* imported from production, since it carries no such dependency.
- */
 export default function PlaaTopBannerCarouselPrototype() {
   const [buybackPreset, setBuybackPreset] = useState<PreviewPreset>('live-early');
   const [autoRotate, setAutoRotate] = useState(true);
@@ -87,8 +62,6 @@ export default function PlaaTopBannerCarouselPrototype() {
     return () => clearInterval(id);
   }, [autoRotate, paused, slideCount]);
 
-  // Same clamp PlaaTopBannerCarousel does at render time — a slide can
-  // disappear mid-session (the phase preset changing underneath it).
   const active = slides[Math.min(activeIndex, slideCount - 1)];
 
   return (

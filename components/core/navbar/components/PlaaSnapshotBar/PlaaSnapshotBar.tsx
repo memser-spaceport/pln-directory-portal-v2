@@ -10,9 +10,6 @@ import { PlaaSnapshotSummaryModal } from './PlaaSnapshotSummaryModal';
 
 import styles from './PlaaSnapshotBar.module.scss';
 
-/** Presentational half of the bar — takes the already-fetched snapshot status
- *  and renders it, plus the summary modal it opens. Reused directly by
- *  PlaaTopBannerCarousel as one of its rotating slides. */
 export function PlaaSnapshotBarBar({ status }: { status: CurrentSnapshotStatus }) {
   const [summaryOpen, setSummaryOpen] = useState(false);
   const { periodLabel, daysLeft, progressPct, pointsCollected } = status;

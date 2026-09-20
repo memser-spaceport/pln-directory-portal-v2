@@ -1,0 +1,50 @@
+.carousel {
+  position: relative;
+  width: 100%;
+}
+
+.slide {
+  animation: plaaBannerFade 220ms ease;
+}
+
+@keyframes plaaBannerFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.dots {
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  z-index: 1;
+}
+
+.dot,
+.dotActive {
+  width: 5px;
+  height: 5px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.dot {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.dot:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.dotActive {
+  background: #ffffff;
+}

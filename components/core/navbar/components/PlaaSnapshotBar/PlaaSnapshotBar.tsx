@@ -4,27 +4,15 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 
-import { useCurrentSnapshotStatus } from '@/services/plaa/hooks/useCurrentSnapshotStatus';
+import { useCurrentSnapshotStatus, CurrentSnapshotStatus } from '@/services/plaa/hooks/useCurrentSnapshotStatus';
 import { usePlaaAccess } from '@/services/rbac/hooks/usePlaaAccess';
 import { PlaaSnapshotSummaryModal } from './PlaaSnapshotSummaryModal';
 
 import styles from './PlaaSnapshotBar.module.scss';
 
-/** PLAA members only: guests and members without PLAA access see nothing, including while access loads. */
-export function PlaaSnapshotBar() {
-  const pathname = usePathname();
-  const { canView } = usePlaaAccess();
-
-  if (!pathname?.includes('alignment-asset') || !canView) {
-    return null;
-  }
-
-  return <PlaaSnapshotBarContent />;
-}
-
-function PlaaSnapshotBarContent() {
+export function PlaaSnapshotBarBar({ status }: { status: CurrentSnapshotStatus }) {
   const [summaryOpen, setSummaryOpen] = useState(false);
-  const { periodLabel, daysLeft, progressPct, pointsCollected } = useCurrentSnapshotStatus();
+  const { periodLabel, daysLeft, progressPct, pointsCollected } = status;
 
   return (
     <div className={styles.bar}>
@@ -68,4 +56,21 @@ function PlaaSnapshotBarContent() {
       <PlaaSnapshotSummaryModal isOpen={summaryOpen} onClose={() => setSummaryOpen(false)} />
     </div>
   );
+}
+
+/** PLAA members only: guests and members without PLAA access see nothing, including while access loads. */
+export function PlaaSnapshotBar() {
+  const pathname = usePathname();
+  const { canView } = usePlaaAccess();
+
+  if (!pathname?.includes('alignment-asset') || !canView) {
+    return null;
+  }
+
+  return <PlaaSnapshotBarContent />;
+}
+
+function PlaaSnapshotBarContent() {
+  const status = useCurrentSnapshotStatus();
+  return <PlaaSnapshotBarBar status={status} />;
 }

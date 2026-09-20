@@ -24,7 +24,7 @@ type History = {
 
 export function AnnotatorModal({ imageSrc, onDiscard, onAdd }: Props) {
   const [tool, setTool] = useState<AnnotatorTool>('draw');
-  const [strokeColor, setStrokeColor] = useState(DEFAULT_DRAW_COLOR);
+  const [strokeColor, setStrokeColor] = useState<(typeof DRAW_COLORS)[number]>(DEFAULT_DRAW_COLOR);
   const [history, setHistory] = useState<History>({ entries: [emptyAnnotations()], index: 0 });
   const annotations = history.entries[history.index];
   const canUndo = history.index > 0;

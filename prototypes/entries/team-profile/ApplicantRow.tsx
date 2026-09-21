@@ -35,7 +35,7 @@ interface Props {
   isNew: boolean;
   /**
    * The team pressed **Mark as reviewed** on this person. Unlike read, this
-   * is a state with a mark of its own — a green check in the right cluster —
+   * is a state with a mark of its own — a green check beside the name —
    * because it is the founder's own press, not something the product inferred
    * from an open. It never meets `● New`: reviewing means having opened, and
    * opening clears New.
@@ -69,7 +69,17 @@ export function ApplicantRow({ applicant: a, isNew, reviewed, last, selected, on
           </div>
           <div className={mcb.text}>
             <div className={mcb.nameRole}>
-              <p className={mcb.name}>{a.name}</p>
+              {/* The mark rides the name, not the date cluster on the far side:
+                  it is a fact about this person, and at the right-hand end it
+                  read as one more of the row's meta glyphs. */}
+              <div className={s.nameLine}>
+                <p className={mcb.name}>{a.name}</p>
+                {reviewed && (
+                  <span className={s.reviewedMark} role="img" aria-label="Reviewed" title="Reviewed">
+                    <ReviewCheckIcon size={16} state="bare" />
+                  </span>
+                )}
+              </div>
               {/* Role · team, and not their location. Wellfound's rows carry
                   "10 years of exp · Austin · Open to remote", and it was tried
                   here as a third clause: at the list's 440px the line then
@@ -87,11 +97,6 @@ export function ApplicantRow({ applicant: a, isNew, reviewed, last, selected, on
 
         <div className={clsx(mcb.right, s.right)}>
           {isNew && <span className={row.newBadge}>● New</span>}
-          {reviewed && (
-            <span className={s.reviewedMark} role="img" aria-label="Reviewed" title="Reviewed">
-              <ReviewCheckIcon size={16} state="soft" />
-            </span>
-          )}
           <span className={clsx(row.relative, rowTone.relativeTone)}>
             <ClockIcon />
             {'appliedAt' in a

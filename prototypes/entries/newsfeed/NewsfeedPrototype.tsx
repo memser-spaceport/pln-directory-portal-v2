@@ -43,7 +43,7 @@
 
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentProps } from 'react';
 import type { FocusEvent, PropsWithChildren, ReactNode } from 'react';
 
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
@@ -365,7 +365,28 @@ function NetworkUpdatesBase({ headerDetails, children }: PropsWithChildren<{ hea
   );
 }
 
-export default function NewsfeedPrototype() {
+/**
+ * All optional, and unused when the registry loads this entry on its own. They
+ * exist so another entry can stand on the real homepage instead of a copy of it
+ * (`guided-tour` does: the page a session starts on is where a tour is met).
+ */
+export interface NewsfeedHostProps {
+  /** Spread over the navbar's props — a host wiring its own search, say. */
+  navExtras?: Partial<ComponentProps<typeof PrototypeNavBar>>;
+  /** False where the host brings its own arrival announcement: two at once is none. */
+  helpCallout?: boolean;
+  /** Extra review scaffolding, after the Preview as switch. */
+  reviewExtras?: ReactNode;
+  /** The Preview as switch, reported: a host's member-only layer must follow it. */
+  onSignedInChange?: (signedIn: boolean) => void;
+}
+
+export default function NewsfeedPrototype({
+  navExtras,
+  helpCallout = true,
+  reviewExtras,
+  onSignedInChange,
+}: NewsfeedHostProps = {}) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   /**
@@ -409,6 +430,7 @@ export default function NewsfeedPrototype() {
    * entry has been looking at and the one the rest of the feed is designed for.
    */
   const [signedIn, setSignedIn] = useState(true);
+  useEffect(() => onSignedInChange?.(signedIn), [signedIn, onSignedInChange]);
   /* The header's (?) menu — null = the support form is closed; otherwise the
      topic the menu item was pressed on. See nav-shared/HelpFeedbackMenu. */
   const [supportTopic, setSupportTopic] = useState<string | null>(null);
@@ -1234,7 +1256,8 @@ export default function NewsfeedPrototype() {
            members page with its demo switches. Same as there, the prototype
            shows the callout on every load — in production dismissal would be a
            member preference, so it is seen once. */
-        helpMenu={{ onPickTopic: setSupportTopic, callout: true }}
+        helpMenu={{ onPickTopic: setSupportTopic, callout: helpCallout }}
+        {...navExtras}
       />
       <PrototypeMobileNav hasUnreadNews={false} active />
     </>
@@ -1269,6 +1292,7 @@ export default function NewsfeedPrototype() {
           </div>
           <span className={clsx(v0.switchNote, local.reviewNote)}>{VIEWER_NOTE[viewer]}</span>
         </div>
+        {reviewExtras}
       </div>
     </div>
   );

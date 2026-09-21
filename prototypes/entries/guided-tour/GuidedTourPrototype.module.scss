@@ -1,0 +1,5 @@
+// Review scaffolding only: the seat switch and Replay sit in the newsfeed's own
+// review band, in newsfeed-v0's switch chrome. This just lets the row wrap.
+.tourControls {
+  flex-wrap: wrap;
+}

@@ -53,27 +53,50 @@ export function EnvelopeIcon({ size = 14, ...rest }: { size?: number } & SVGProp
 }
 
 /**
- * The reviewed mark — one drawing in three states, so the list and the bar can
- * never disagree about what "reviewed" looks like.
+ * The reviewed mark, in two lineages — a ring where the mark *is* a control,
+ * and a bare check where it is a label on a row.
  *
- *   outline — a 1px ring and a thin check in `currentColor`: the press at rest.
- *             Todoist, Asana and Adaline all draw an undone "done" as an
- *             outline; a filled disc before anything is done reads as a blob.
- *   filled  — the ring fills and the check turns white: the press once on.
- *   soft    — a pale tint disc with the check in `currentColor`: the list
- *             row's mark (Remote's completed-row disc). Quiet enough to sit
- *             beside the grey clock without being the loudest thing on the row.
+ *   outline — a 1px ring and a thin check in `currentColor`: the pane bar's
+ *             press at rest. Todoist, Asana and Adaline all draw an undone
+ *             "done" as an outline; a filled disc before anything is done
+ *             reads as a blob.
+ *   filled  — the ring fills and the check turns white: that press once on.
+ *   bare    — the check alone, Phosphor regular, no disc: the list row's mark.
  *
- * Weights follow the row's clock (Phosphor regular, a 1px ring at 16px), not
- * the DS `SuccessCircleIcon`, which is a solid fill and heavier than every
- * glyph around it (design-thinking lesson 22).
+ * The ring is a *button* shape (design-thinking lesson 8): right on the bar,
+ * where the circle is the toggle you press and its hollow/filled pair is what
+ * says on or off, and wrong on a row, where it drew a button around a fact.
+ * The list row's `soft` tint disc was that mistake in its quietest form — it
+ * still read as a small control sitting in the date cluster — so the row now
+ * carries the glyph only, beside the name it is about.
+ *
+ * Weights follow the row's clock (Phosphor regular at 16px), not the DS
+ * `SuccessCircleIcon`, which is a solid fill and heavier than every glyph
+ * around it (design-thinking lesson 22). `bare` is Phosphor's own Check at
+ * that weight, on its 256 grid, so it fills the box a standalone mark gets
+ * instead of the 13px the ring left it.
  */
 export function ReviewCheckIcon({
   size = 16,
   state = 'outline',
   ...rest
-}: { size?: number; state?: 'outline' | 'filled' | 'soft' } & SVGProps<SVGSVGElement>) {
+}: { size?: number; state?: 'outline' | 'filled' | 'bare' } & SVGProps<SVGSVGElement>) {
   const check = 'M5.25 8.25L7.1 10L10.75 6.25';
+  if (state === 'bare') {
+    return (
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 256 256"
+        fill="currentColor"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+        {...rest}
+      >
+        <path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z" />
+      </svg>
+    );
+  }
   return (
     <svg
       width={size}
@@ -86,9 +109,6 @@ export function ReviewCheckIcon({
     >
       {state === 'outline' && <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1" />}
       {state === 'filled' && <circle cx="8" cy="8" r="7" fill="currentColor" />}
-      {state === 'soft' && (
-        <circle cx="8" cy="8" r="8" fill="var(--background-success-subtle, rgba(10, 153, 82, 0.08))" />
-      )}
       <path
         d={check}
         stroke={state === 'filled' ? '#fff' : 'currentColor'}

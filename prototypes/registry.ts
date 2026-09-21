@@ -375,6 +375,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/ai-search/AiSearchPrototype'),
   },
   {
+    key: 'guided-tour',
+    title: 'Guided tour — warm intros in AI Search',
+    description:
+      'The standard guided tour for a new feature, in its first use: warm intros for founders in AI Search, met on Home. A tour is for a new flow that spans more than one place; one new control keeps the blue callout, and the two never share an arrival (the help-menu callout is off here). Three steps: the header search field ("Show me" asks the investor question for you), the intro rows in the answer once it has landed, and Ask for intro. The page is dimmed with a hole around the thing being shown; the white card carries "New in AI Search", a title, one or two sentences, "n of 3" and one button. One exit at every step (✕ or Esc); pressing the highlighted thing ends the tour because the person has taken over; a press on the dimmed page does nothing. Founders only — switch the seat to Member in the review band and no tour opens. Opens on every load in the prototype (once per member in production); Replay tour is in the review band. The rules are written at the top of tour-shared/GuidedTour.tsx.',
+    category: 'Cross-product',
+    load: () => import('./entries/guided-tour/GuidedTourPrototype'),
+  },
+  {
     key: 'kudos-edit',
     title: 'Kudos — edit states',
     description:

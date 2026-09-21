@@ -61,18 +61,35 @@
   flex: 1;
 }
 
-/* The right cluster: the New mark, the reviewed check, the clock — the row's
- * own gap, kept from wrapping under the name on a narrow box. */
+/* The right cluster: the New mark and the clock — the row's own gap, kept from
+ * wrapping under the name on a narrow box. The reviewed check used to sit here
+ * too and moved to the name line: this end of the row is *when* things
+ * happened, and a mark about the person read as one more meta glyph in it. */
 .right {
   gap: 12px;
 }
 
-/* The reviewed tick: a thin green check on a pale green disc (Remote's
- * completed-row mark), not a solid disc — the solid one was the loudest thing
- * on the row, beside a 1px grey clock. The PL success ink the bar's Reviewed
- * button wears, so the state reads the same in the list and above the pane.
- * Glyph only in the list: the word lives on the button, and the accessible
- * name carries it here. */
+/* Name + reviewed check on one line. `mcb.nameRole` is a column (name over
+ * role), so the pair needs its own row; `min-width: 0` hands the ellipsis back
+ * to the name, which would otherwise refuse to shrink as a flex item. 6px is
+ * half the row's own 12px — the mark belongs to the name, not beside it as a
+ * sibling (design-thinking lesson 20). */
+.nameLine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.nameLine > p {
+  min-width: 0;
+}
+
+/* The reviewed tick: Phosphor's check, bare, in the PL success ink the bar's
+ * Reviewed button wears — no disc, because a ring around a glyph is a button
+ * shape and this is a fact, not a press (design-thinking lesson 8). Glyph only
+ * in the list: the word lives on the button, and the accessible name carries
+ * it here. */
 .reviewedMark {
   display: inline-flex;
   align-items: center;

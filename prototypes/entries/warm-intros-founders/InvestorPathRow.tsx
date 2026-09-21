@@ -58,8 +58,12 @@ export function initialsOf(name: string): string {
 
 /**
  * The connector as running text — bold brand blue, no pill or avatar. AI Search
- * uses it (via `plain` on the rows) where the intro is a line of a sentence:
- * "Intro via **Mara Velasquez**".
+ * uses it where the intro IS a line of a sentence: a result row, or the block
+ * about one investor. "Intro via **Mara Velasquez**".
+ *
+ * The table row below keeps the chip. A cell under an "Intro via" column head
+ * is not a sentence, and the chip is what every other Fundraising table draws —
+ * one treatment for the table wherever it is mounted.
  */
 export function ConnectorName({ name }: { name: string }) {
   return <span className={door.connectorName}>{name}</span>;
@@ -88,8 +92,6 @@ interface Props {
   onMarkMet?: () => void;
   /** The investor's profile, when the host has one to open. */
   href?: string;
-  /** AI Search: the connector is bold blue text, not a chip. */
-  plain?: boolean;
 }
 
 /**
@@ -99,12 +101,13 @@ interface Props {
  * No score, no caliber, no proximity code — those rank paths for an analyst;
  * a founder needs "who do I ask", and the list order already carries the rank.
  */
-export function InvestorPathRow({ row, ask, onAsk, onAskAlternate, onMarkMet, href, plain }: Props) {
+export function InvestorPathRow({ row, ask, onAsk, onAskAlternate, onMarkMet, href }: Props) {
   const facts = row.evidence.length ? row.evidence.join(' · ') : `Invests in ${sectorLabels(row)}`;
   const connector = connectorOf(row, ask);
 
   return (
-    <div className={s.row}>
+    /* `data-tour*`: anchors for tour-shared's guided tour (a row that can still be asked); inert otherwise. */
+    <div className={s.row} data-tour="intro-row" data-tour-open={ask ? undefined : ''}>
       <span className={s.avatar} aria-hidden>
         {initialsOf(row.name)}
       </span>
@@ -128,7 +131,7 @@ export function InvestorPathRow({ row, ask, onAsk, onAskAlternate, onMarkMet, hr
           header row and it reads "Intro via [chip] PL team" in one line. */}
       <div className={s.via}>
         <span className={s.viaLabel}>Intro via</span>
-        {plain ? <ConnectorName name={connector.name} /> : <ConnectorChip name={connector.name} />}
+        <ConnectorChip name={connector.name} />
         <span className={s.viaKind}>{CONNECTOR_KIND_LABEL[connectorKindOf(row, ask)]}</span>
       </div>
 
@@ -149,7 +152,7 @@ export function AskAction({ row, ask, onAsk, onAskAlternate, onMarkMet }: Omit<P
   const alternate = ask?.status === 'declined' && !ask.via ? row.alternate : null;
 
   return (
-    <div className={s.action}>
+    <div className={s.action} data-tour="ask-intro" data-tour-open={ask ? undefined : ''}>
       {!ask && (
         <Button style="border" variant="primary" size="xs" onClick={onAsk}>
           Ask for intro

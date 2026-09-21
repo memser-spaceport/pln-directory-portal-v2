@@ -1,32 +1,9 @@
-/**
- * The layer that survives cutover.
- *
- * `team-applicants.mock.ts` is a stand-in backend and will be deleted when
- * LAB-2580 lands, but the schemas it answers through are the contract that
- * outlives it — so these assertions are about shapes and rules, never about the
- * mock's cast of people.
- */
-
-jest.mock('@/utils/fetch-wrapper', () => ({ customFetch: jest.fn() }));
-
-/* The mock derives a team's roles from the real jobs list so its counts line up
-   with the postings the profile shows. That call is not what is under test. */
-jest.mock('@/services/jobs/jobs.service', () => ({ fetchJobsList: jest.fn() }));
-
-/* The mock borrows real members so the profile pane has someone to fetch. Here
-   it must not reach the network at all: an unmocked call would make these
-   assertions depend on whatever the dev directory holds today. Refusing it also
-   exercises the fallback, which is the path a mock without API access takes. */
-jest.mock('@/services/members.service', () => ({
-  getMembers: jest.fn().mockRejectedValue(new Error('offline in tests')),
+const mockFetch = jest.fn();
+jest.mock('@/utils/fetch-wrapper', () => ({
+  customFetch: (...args: unknown[]) => mockFetch(...args),
 }));
 
-import {
-  applicantCountsResponseSchema,
-  applicantRowSchema,
-  roleApplicantsResponseSchema,
-} from '@/schema/team-applicants';
-import { fetchJobsList } from '@/services/jobs/jobs.service';
+import { applicantRowSchema } from '@/schema/team-applicants';
 import {
   fetchApplicantCounts,
   fetchRoleApplicants,
@@ -36,17 +13,39 @@ import {
   TeamApplicantsError,
 } from '@/services/jobs/team-applicants.service';
 
-const asMock = fetchJobsList as jest.MockedFunction<typeof fetchJobsList>;
+/**
+ * The layer that survived cutover.
+ *
+ * This screen shipped against a `// MOCK: delete at cutover` service while the
+ * endpoints were written to these schemas (backend #3438). The mock is gone; the
+ * schemas are not, and they still parse every response — so what is tested here
+ * is the transport and the contract, never a cast of invented people.
+ */
 
-const TEAM = 'team-1';
-const jobsListWith = (teamUid: string, roleUids: string[]) =>
-  ({
-    groups: [{ team: { uid: teamUid }, totalRoles: roleUids.length, roles: roleUids.map((uid) => ({ uid })) }],
-  }) as unknown as Awaited<ReturnType<typeof fetchJobsList>>;
+const ROW = {
+  uid: 'app-1',
+  memberUid: 'm-1',
+  name: 'Devon Park',
+  email: 'devon@example.com',
+  profileUrl: 'https://directory.plnetwork.io/members/m-1',
+  avatarUrl: 'https://example.com/devon.jpg',
+  headline: 'Protocol Engineer',
+  currentCompany: 'Lattice Compute',
+  location: 'Berlin, Germany',
+  tags: ['Go'],
+  createdAt: '2026-09-17T00:00:00.000Z',
+  coverLetter: 'I led the consensus rewrite.',
+  cv: { fileName: 'cv.pdf', size: 184320, uploadedAt: '2026-09-17T00:00:00.000Z' },
+  unseen: true,
+  reviewed: false,
+};
 
-beforeEach(() => {
-  asMock.mockReset();
-});
+const ok = (body: unknown) => ({ ok: true, status: 200, json: async () => body });
+const fail = (status: number, body: unknown = {}) => ({ ok: false, status, json: async () => body });
+
+const lastCall = () => mockFetch.mock.calls[mockFetch.mock.calls.length - 1];
+
+beforeEach(() => mockFetch.mockReset());
 
 describe('the applicant row contract', () => {
   const row = {
@@ -102,123 +101,131 @@ describe('the applicant row contract', () => {
 });
 
 describe('fetchApplicantCounts', () => {
-  it('omits roles nobody answered, so absence is the answer and no line is drawn', async () => {
-    /* Enough roles that the mock's deterministic cast sizes produce both kinds;
-       the assertion is the rule, not which uid lands on which size. */
-    const roleUids = Array.from({ length: 12 }, (_, i) => `role-${i}`);
-    asMock.mockResolvedValue(jobsListWith(TEAM, roleUids));
+  it('asks the team’s own endpoint, authenticated', async () => {
+    mockFetch.mockResolvedValue(ok({ counts: [] }));
 
-    const counts = await fetchApplicantCounts(TEAM);
+    await fetchApplicantCounts('team 1');
 
-    expect(() => applicantCountsResponseSchema.parse({ counts })).not.toThrow();
-    expect(counts.length).toBeGreaterThan(0);
-    expect(counts.length).toBeLessThan(roleUids.length);
-    counts.forEach((count) => {
-      expect(count.applicantCount + count.interestCount).toBeGreaterThan(0);
-      expect(count.newCount).toBeLessThanOrEqual(count.applicantCount + count.interestCount);
-      /* The facepile shows three at most, and a member without a picture
-         contributes none rather than a gap. */
-      expect(count.newestAvatars.length).toBeLessThanOrEqual(3);
-    });
+    const [url, init, authed] = lastCall();
+    expect(url).toContain('/v1/job-openings/teams/team%201/applicant-counts');
+    expect(init.method).toBe('GET');
+    /* Every read here is a lead reading their own team's applicants: without the
+       session `customFetch` cannot add Authorization, and the endpoint answers 403. */
+    expect(authed).toBe(true);
   });
 
-  /* The same guard `selectTeamOpenRoles` makes: `JobsListQueryParams` is a
-     non-strict Zod object, so an API build that predates `teamUid` ignores it
-     and answers with another team's group. Counting that team's applicants for
-     this team would be a plausible wrong answer rather than an error. */
-  it('counts nothing when the jobs API answers with another team', async () => {
-    asMock.mockResolvedValue(jobsListWith('someone-else', ['role-0', 'role-1']));
+  it('hands back the counts array, not the envelope', async () => {
+    const count = { roleUid: 'r-1', applicantCount: 2, interestCount: 1, newCount: 3, newestAvatars: [] };
+    mockFetch.mockResolvedValue(ok({ counts: [count] }));
 
-    await expect(fetchApplicantCounts(TEAM)).resolves.toEqual([]);
+    await expect(fetchApplicantCounts('team-1')).resolves.toEqual([count]);
   });
 
-  it('degrades to no counts when the jobs API is down, rather than taking the page with it', async () => {
-    asMock.mockRejectedValue(new Error('jobs list unavailable'));
+  /* The schemas are still the boundary now that a real server is behind them:
+     drift fails here rather than arriving as `undefined` three components on. */
+  it('throws when the server drifts from the contract', async () => {
+    mockFetch.mockResolvedValue(ok({ counts: [{ roleUid: 'r-1' }] }));
 
-    await expect(fetchApplicantCounts(TEAM)).resolves.toEqual([]);
+    await expect(fetchApplicantCounts('team-1')).rejects.toBeDefined();
   });
 });
 
 describe('fetchRoleApplicants', () => {
-  it('tags every row with the list it came from, because a row loses its envelope', async () => {
-    const { applications, interests } = await fetchRoleApplicants(TEAM, 'role-with-both');
+  it('asks for one role’s two lists', async () => {
+    mockFetch.mockResolvedValue(ok({ applications: [], interests: [] }));
 
-    expect(() =>
-      roleApplicantsResponseSchema.parse({
-        applications: applications.map(({ kind, ...row }) => row),
-        interests: interests.map(({ kind, ...row }) => row),
-      }),
-    ).not.toThrow();
-    applications.forEach((row) => expect(row.kind).toBe('application'));
-    interests.forEach((row) => expect(row.kind).toBe('interest'));
+    await fetchRoleApplicants('team-1', 'role 1');
+
+    const [url, init, authed] = lastCall();
+    expect(url).toContain('/v1/job-openings/teams/team-1/roles/role%201/applicants');
+    expect(init.method).toBe('GET');
+    expect(authed).toBe(true);
   });
 
-  it('gives an interest no note — the press carries no words', async () => {
-    const { interests } = await fetchRoleApplicants(TEAM, 'role-with-both');
+  /**
+   * `kind` is the app's word, not the wire's. The API answers two named arrays;
+   * a row that leaves its array — into the pane, into a `seen` write — has to
+   * keep knowing which list it came from, and the schema rejects `kind` on the
+   * way in precisely so the server cannot be the thing that sets it.
+   */
+  it('tags each row with the list it came from', async () => {
+    mockFetch.mockResolvedValue(
+      ok({ applications: [ROW], interests: [{ ...ROW, uid: 'int-1', coverLetter: null, cv: null }] }),
+    );
 
-    interests.forEach((row) => expect(row.coverLetter).toBeNull());
-  });
+    const { applications, interests } = await fetchRoleApplicants('team-1', 'role-1');
 
-  it('answers the same cast for the same role, so a reload does not reshuffle the list', async () => {
-    const first = await fetchRoleApplicants(TEAM, 'role-stable');
-    const second = await fetchRoleApplicants(TEAM, 'role-stable');
-
-    expect(second.applications.map((row) => row.uid)).toEqual(first.applications.map((row) => row.uid));
-  });
-
-  it('sorts each list newest first', async () => {
-    const { applications } = await fetchRoleApplicants(TEAM, 'role-with-both');
-    const dates = applications.map((row) => row.createdAt);
-
-    expect([...dates].sort((a, b) => b.localeCompare(a))).toEqual(dates);
+    expect(applications[0].kind).toBe('application');
+    expect(interests[0].kind).toBe('interest');
   });
 });
 
 describe('the two writes', () => {
-  it('marks reviewed and undoes it on a second press', async () => {
-    const { applications } = await fetchRoleApplicants(TEAM, 'role-reviewable');
-    const target = applications[0];
+  /**
+   * The URL says `applications` / `interests`; the app says `application` /
+   * `interest`, because a single row is one of them. The mapping is one table in
+   * the service, and getting it backwards is a 404 on every press.
+   */
+  it('pluralises the kind for the path', async () => {
+    mockFetch.mockResolvedValue(ok({ uid: 'app-1', reviewed: true }));
+    await setApplicantReviewed('application', 'app-1', true);
+    expect(lastCall()[0]).toContain('/v1/job-openings/applications/app-1/reviewed');
 
-    await expect(setApplicantReviewed(target.kind, target.uid, true)).resolves.toEqual({
-      uid: target.uid,
-      reviewed: true,
+    mockFetch.mockResolvedValue(ok({ uid: 'int-1', seenAt: '2026-09-21T00:00:00.000Z' }));
+    await markApplicantSeen('interest', 'int-1');
+    expect(lastCall()[0]).toContain('/v1/job-openings/interests/int-1/seen');
+  });
+
+  /**
+   * A JSON content type on both, empty body included.
+   *
+   * Not ceremony: `customFetch` adds Authorization and nothing else, so a
+   * bodyless POST goes out with no `Content-Type` and the API's validation layer
+   * answers 415 before the handler runs. The interest endpoints learned this the
+   * hard way; this pair inherits the fix rather than the bug.
+   */
+  it('declares JSON on a write that carries no payload', async () => {
+    mockFetch.mockResolvedValue(ok({ uid: 'app-1', seenAt: '2026-09-21T00:00:00.000Z' }));
+
+    await markApplicantSeen('application', 'app-1');
+
+    const [, init] = lastCall();
+    expect(init.headers['Content-Type']).toBe('application/json');
+    expect(init.body).toBe('{}');
+  });
+
+  it('sends the tick’s new value and answers with the stored one', async () => {
+    mockFetch.mockResolvedValue(ok({ uid: 'app-1', reviewed: false }));
+
+    const result = await setApplicantReviewed('application', 'app-1', false);
+
+    expect(JSON.parse(lastCall()[1].body)).toEqual({ reviewed: false });
+    /* The server's answer, not the argument: the screen corrects itself from
+       what was stored rather than from what the press assumed. */
+    expect(result).toEqual({ uid: 'app-1', reviewed: false });
+  });
+});
+
+describe('failures', () => {
+  it('surfaces the server’s own message when it sent one', async () => {
+    mockFetch.mockResolvedValue(fail(403, { message: 'You do not lead this team' }));
+
+    await expect(fetchApplicantCounts('team-1')).rejects.toMatchObject({
+      status: 403,
+      message: 'You do not lead this team',
     });
-    await expect(setApplicantReviewed(target.kind, target.uid, false)).resolves.toEqual({
-      uid: target.uid,
-      reviewed: false,
-    });
   });
 
-  it('carries the mark back into the next read, so the tick is not just on screen', async () => {
-    const before = await fetchRoleApplicants(TEAM, 'role-persisting');
-    const target = before.applications[0];
-    await setApplicantReviewed(target.kind, target.uid, true);
+  /**
+   * `customFetch` resolves to `undefined` when it gives up and logs the session
+   * out. There is no response to read and a reload is already under way, so this
+   * has to not throw on the way there — a crash here would replace the reload
+   * with an error screen.
+   */
+  it('reports an expired session rather than throwing on a missing response', async () => {
+    mockFetch.mockResolvedValue(undefined);
 
-    const after = await fetchRoleApplicants(TEAM, 'role-persisting');
-
-    expect(after.applications.find((row) => row.uid === target.uid)?.reviewed).toBe(true);
-  });
-
-  it('clears unseen for the row it is told about, and only that row', async () => {
-    const before = await fetchRoleApplicants(TEAM, 'role-seeable');
-    const target = before.applications[0];
-    expect(target.unseen).toBe(true);
-
-    await markApplicantSeen(target.kind, target.uid);
-    const after = await fetchRoleApplicants(TEAM, 'role-seeable');
-
-    expect(after.applications.find((row) => row.uid === target.uid)?.unseen).toBe(false);
-    after.applications.filter((row) => row.uid !== target.uid).forEach((row) => expect(row.unseen).toBe(true));
-  });
-
-  it('is idempotent about being seen', async () => {
-    const { applications } = await fetchRoleApplicants(TEAM, 'role-idempotent');
-    const target = applications[0];
-
-    const first = await markApplicantSeen(target.kind, target.uid);
-    const second = await markApplicantSeen(target.kind, target.uid);
-
-    expect(second.uid).toBe(first.uid);
+    await expect(markApplicantSeen('application', 'app-1')).rejects.toMatchObject({ status: 401 });
   });
 });
 

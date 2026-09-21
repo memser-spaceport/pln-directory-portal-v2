@@ -15,6 +15,7 @@ interface Props {
   imageSrc: string;
   onDiscard: () => void;
   onAdd: (annotations: AnnotationState) => void;
+  onToolSelected?: (tool: AnnotatorTool) => void;
   /**
    * What this capture already carries, when it is being reopened to edit.
    *
@@ -31,7 +32,7 @@ type History = {
   index: number;
 };
 
-export function AnnotatorModal({ imageSrc, onDiscard, onAdd, initialAnnotations }: Props) {
+export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, initialAnnotations }: Props) {
   /* Reopened rather than fresh — the two differ only in what the footer promises
      and where the history starts. */
   const isEditing = Boolean(initialAnnotations);
@@ -46,6 +47,12 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, initialAnnotations 
   const annotations = history.entries[history.index];
   const canUndo = history.index > 0;
   const canRedo = history.index < history.entries.length - 1;
+
+  const selectTool = (next: AnnotatorTool) => {
+    if (next === tool) return;
+    setTool(next);
+    onToolSelected?.(next);
+  };
 
   const push = (next: AnnotationState) => {
     setHistory((prev) => ({
@@ -114,7 +121,7 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, initialAnnotations 
             type="button"
             className={clsx(s.tool, tool === 'comment' && s.toolActive)}
             aria-pressed={tool === 'comment'}
-            onClick={() => setTool('comment')}
+            onClick={() => selectTool('comment')}
           >
             <CommentIcon />
             Comment
@@ -123,7 +130,7 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, initialAnnotations 
             type="button"
             className={clsx(s.tool, tool === 'draw' && s.toolActive)}
             aria-pressed={tool === 'draw'}
-            onClick={() => setTool('draw')}
+            onClick={() => selectTool('draw')}
           >
             <PencilSimpleLineIcon width={16} height={16} />
             Draw
@@ -140,7 +147,7 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, initialAnnotations 
                 aria-pressed={strokeColor === color}
                 onClick={() => {
                   setStrokeColor(color);
-                  setTool('draw');
+                  selectTool('draw');
                 }}
               />
             ))}

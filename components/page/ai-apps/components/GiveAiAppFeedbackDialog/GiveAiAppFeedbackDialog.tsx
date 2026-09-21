@@ -44,6 +44,10 @@ function hasFeedbackContent(html: string, screenshotCount = 0): boolean {
   return !isBlankHtml(html) || /<img\b/i.test(html) || screenshotCount > 0;
 }
 
+function shotHasAnnotations(annotations: AnnotationState): boolean {
+  return annotations.strokes.length > 0 || annotations.comments.length > 0;
+}
+
 function visibleFeedbackLength(html: string): number {
   return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').length;
 }
@@ -204,14 +208,19 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
   };
 
   const onTakeScreenshot = async () => {
+    analytics.onFeedbackScreenshotClicked();
     let stream: MediaStream;
     try {
       stream = await requestTabCapture();
     } catch (error) {
       if (error instanceof CaptureDeniedError || error instanceof CaptureUnavailableError) {
+        analytics.onFeedbackScreenshotCaptureDenied({
+          reason: error instanceof CaptureDeniedError ? 'denied' : 'unavailable',
+        });
         toast.error(error.message);
         return;
       }
+      analytics.onFeedbackScreenshotCaptureFailed({ stage: 'request' });
       toast.error('Could not capture a screenshot. Please try again.');
       return;
     }
@@ -223,6 +232,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
       setFreezeSrc(frame);
     } catch {
       setIsCapturing(false);
+      analytics.onFeedbackScreenshotCaptureFailed({ stage: 'grab' });
       toast.error('Could not capture a screenshot. Please try again.');
     } finally {
       stopCaptureStream(stream);
@@ -230,9 +240,15 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
   };
 
   const onCropSelected = (croppedDataUrl: string) => {
+    analytics.onFeedbackScreenshotRegionSelected();
     setFreezeSrc(null);
     setIsCapturing(false);
     setCropSrc(croppedDataUrl);
+  };
+
+  const onRegionSelectCancel = () => {
+    analytics.onFeedbackScreenshotCaptureCancelled();
+    resetCapture();
   };
 
   const editingShot = editingShotId ? screenshots.find((shot) => shot.id === editingShotId) : undefined;
@@ -241,27 +257,37 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
      draws on, so an edit points it at the stored image rather than a fresh
      grab. */
   const onEditShot = (shot: ScreenshotAttachment) => {
+    analytics.onFeedbackScreenshotEditOpened();
     setEditingShotId(shot.id);
     setCropSrc(shot.imageDataUrl);
   };
 
   const onAnnotatorDiscard = () => {
+    analytics.onFeedbackScreenshotAnnotatorDiscarded({ isEditing: Boolean(editingShotId) });
     setCropSrc(null);
     setEditingShotId(null);
   };
 
   const onAnnotatorAdd = (annotations: AnnotationState) => {
     if (!cropSrc) return;
+    const hasAnnotations = shotHasAnnotations(annotations);
     /* An edit replaces its own entry IN PLACE — same id, same position. A new
        entry would leave the old drawing in the feedback beside the corrected one,
        and a changed id would remount the chip and lose its place in the strip. */
-    setScreenshots((prev) =>
-      editingShotId
-        ? prev.map((shot) => (shot.id === editingShotId ? { ...shot, annotations } : shot))
-        : [...prev, { id: `shot-${Date.now()}`, imageDataUrl: cropSrc, annotations }],
-    );
+    if (editingShotId) {
+      analytics.onFeedbackScreenshotEditSaved({ hasAnnotations });
+      setScreenshots((prev) => prev.map((shot) => (shot.id === editingShotId ? { ...shot, annotations } : shot)));
+    } else {
+      analytics.onFeedbackScreenshotAdded({ hasAnnotations });
+      setScreenshots((prev) => [...prev, { id: `shot-${Date.now()}`, imageDataUrl: cropSrc, annotations }]);
+    }
     setCropSrc(null);
     setEditingShotId(null);
+  };
+
+  const onRemoveShot = (shotId: string) => {
+    analytics.onFeedbackScreenshotRemoved();
+    setScreenshots((prev) => prev.filter((item) => item.id !== shotId));
   };
 
   const onSubmit = handleSubmit(async ({ app, message: rawMessage }) => {
@@ -315,7 +341,12 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
       { appUid: app.value, text: trimmedMessage },
       {
         onSuccess: () => {
-          analytics.onFeedbackSubmitted(app.value, app.label);
+          analytics.onFeedbackSubmitted({
+            appUid: app.value,
+            appName: app.label,
+            screenshotCount: screenshots.length,
+            hasAnnotations: screenshots.some((shot) => shotHasAnnotations(shot.annotations)),
+          });
           toast.success('Thanks for your feedback!');
           onSubmitSuccess();
         },
@@ -407,7 +438,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
                           type="button"
                           className={s.screenshotRemove}
                           aria-label={`Remove screenshot ${index + 1}`}
-                          onClick={() => setScreenshots((prev) => prev.filter((item) => item.id !== shot.id))}
+                          onClick={() => onRemoveShot(shot.id)}
                         >
                           <CloseIcon width={12} height={12} />
                         </button>
@@ -437,12 +468,15 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
           </div>
         </div>
       </Modal>
-      {freezeSrc && <RegionSelectOverlay freezeSrc={freezeSrc} onSelect={onCropSelected} onCancel={resetCapture} />}
+      {freezeSrc && (
+        <RegionSelectOverlay freezeSrc={freezeSrc} onSelect={onCropSelected} onCancel={onRegionSelectCancel} />
+      )}
       {cropSrc && (
         <AnnotatorModal
           imageSrc={cropSrc}
           onDiscard={onAnnotatorDiscard}
           onAdd={onAnnotatorAdd}
+          onToolSelected={(tool) => analytics.onFeedbackScreenshotToolSelected({ tool })}
           initialAnnotations={editingShot?.annotations}
         />
       )}

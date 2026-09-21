@@ -21,6 +21,17 @@ const mockContactSupportMutate = jest.fn();
 const mockUseCurrentUserStore = jest.fn();
 const mockOnFeedbackSubmitted = jest.fn();
 const mockOnFeedbackSubmitFailed = jest.fn();
+const mockOnFeedbackScreenshotClicked = jest.fn();
+const mockOnFeedbackScreenshotCaptureDenied = jest.fn();
+const mockOnFeedbackScreenshotCaptureFailed = jest.fn();
+const mockOnFeedbackScreenshotCaptureCancelled = jest.fn();
+const mockOnFeedbackScreenshotRegionSelected = jest.fn();
+const mockOnFeedbackScreenshotAdded = jest.fn();
+const mockOnFeedbackScreenshotAnnotatorDiscarded = jest.fn();
+const mockOnFeedbackScreenshotEditOpened = jest.fn();
+const mockOnFeedbackScreenshotEditSaved = jest.fn();
+const mockOnFeedbackScreenshotRemoved = jest.fn();
+const mockOnFeedbackScreenshotToolSelected = jest.fn();
 
 jest.mock('@/components/form/FormEditor', () => ({
   FormEditor: ({ name, placeholder }: { name: string; placeholder: string }) => {
@@ -92,6 +103,17 @@ jest.mock('@/analytics/ai-apps.analytics', () => ({
   useAiAppsAnalytics: () => ({
     onFeedbackSubmitted: mockOnFeedbackSubmitted,
     onFeedbackSubmitFailed: mockOnFeedbackSubmitFailed,
+    onFeedbackScreenshotClicked: mockOnFeedbackScreenshotClicked,
+    onFeedbackScreenshotCaptureDenied: mockOnFeedbackScreenshotCaptureDenied,
+    onFeedbackScreenshotCaptureFailed: mockOnFeedbackScreenshotCaptureFailed,
+    onFeedbackScreenshotCaptureCancelled: mockOnFeedbackScreenshotCaptureCancelled,
+    onFeedbackScreenshotRegionSelected: mockOnFeedbackScreenshotRegionSelected,
+    onFeedbackScreenshotAdded: mockOnFeedbackScreenshotAdded,
+    onFeedbackScreenshotAnnotatorDiscarded: mockOnFeedbackScreenshotAnnotatorDiscarded,
+    onFeedbackScreenshotEditOpened: mockOnFeedbackScreenshotEditOpened,
+    onFeedbackScreenshotEditSaved: mockOnFeedbackScreenshotEditSaved,
+    onFeedbackScreenshotRemoved: mockOnFeedbackScreenshotRemoved,
+    onFeedbackScreenshotToolSelected: mockOnFeedbackScreenshotToolSelected,
   }),
 }));
 
@@ -531,6 +553,8 @@ describe('GiveAiAppFeedbackDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
 
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Screenshots aren’t available in this browser.'));
+    expect(mockOnFeedbackScreenshotClicked).toHaveBeenCalled();
+    expect(mockOnFeedbackScreenshotCaptureDenied).toHaveBeenCalledWith({ reason: 'unavailable' });
   });
 
   /**
@@ -637,6 +661,9 @@ describe('GiveAiAppFeedbackDialog', () => {
       isLoading: false,
       isError: false,
     });
+    mockMutate.mockImplementation((_payload, options) => {
+      options?.onSuccess?.();
+    });
 
     render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
 
@@ -647,6 +674,10 @@ describe('GiveAiAppFeedbackDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Add to feedback' }));
     await waitFor(() => expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument());
 
+    expect(mockOnFeedbackScreenshotClicked).toHaveBeenCalled();
+    expect(mockOnFeedbackScreenshotRegionSelected).toHaveBeenCalled();
+    expect(mockOnFeedbackScreenshotAdded).toHaveBeenCalledWith({ hasAnnotations: false });
+
     fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
 
     await waitFor(() => expect(mockMutate).toHaveBeenCalled());
@@ -656,5 +687,79 @@ describe('GiveAiAppFeedbackDialog', () => {
     expect(payload.text).toContain('data-annotations=');
     expect(payload.text).toContain('ai-app-annotated-screenshot');
     expect(mockSaveRegistrationImage).toHaveBeenCalled();
+    expect(mockOnFeedbackSubmitted).toHaveBeenCalledWith({
+      appUid: 'app-1',
+      appName: 'My App',
+      screenshotCount: 1,
+      hasAnnotations: false,
+    });
+  });
+
+  describe('screenshot analytics', () => {
+    const startCapture = async () => {
+      (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
+      (grabVideoFrame as jest.Mock).mockResolvedValue(PIXEL_PNG);
+      (stopCaptureStream as jest.Mock).mockImplementation(() => undefined);
+      mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
+    };
+
+    it('tracks region cancel', async () => {
+      await startCapture();
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel capture' }));
+      expect(mockOnFeedbackScreenshotCaptureCancelled).toHaveBeenCalled();
+    });
+
+    it('tracks annotator discard on a fresh capture', async () => {
+      await startCapture();
+      fireEvent.click(screen.getByRole('button', { name: 'Select region' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Discard' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Discard' }));
+      expect(mockOnFeedbackScreenshotAnnotatorDiscarded).toHaveBeenCalledWith({ isEditing: false });
+    });
+
+    it('tracks edit opened, saved, discarded, and removed', async () => {
+      await startCapture();
+      fireEvent.click(screen.getByRole('button', { name: 'Select region' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Add to feedback' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Add to feedback' }));
+      await waitFor(() => expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument());
+
+      fireEvent.click(screen.getByRole('button', { name: 'Edit screenshot 1' }));
+      expect(mockOnFeedbackScreenshotEditOpened).toHaveBeenCalled();
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument());
+
+      fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
+      expect(mockOnFeedbackScreenshotToolSelected).toHaveBeenCalledWith({ tool: 'comment' });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
+      expect(mockOnFeedbackScreenshotAnnotatorDiscarded).toHaveBeenCalledWith({ isEditing: true });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Edit screenshot 1' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+      expect(mockOnFeedbackScreenshotEditSaved).toHaveBeenCalledWith({ hasAnnotations: false });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
+      expect(mockOnFeedbackScreenshotRemoved).toHaveBeenCalled();
+    });
+
+    it('tracks capture failure when the frame grab fails', async () => {
+      (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
+      (grabVideoFrame as jest.Mock).mockRejectedValue(new Error('grab failed'));
+      (stopCaptureStream as jest.Mock).mockImplementation(() => undefined);
+      mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+
+      await waitFor(() =>
+        expect(toast.error).toHaveBeenCalledWith('Could not capture a screenshot. Please try again.'),
+      );
+      expect(mockOnFeedbackScreenshotCaptureFailed).toHaveBeenCalledWith({ stage: 'grab' });
+    });
   });
 });

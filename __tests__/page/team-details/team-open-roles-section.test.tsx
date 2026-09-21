@@ -65,6 +65,13 @@ jest.mock('@/components/page/team-details/TeamOpenRoles/TeamOpenRoles', () => ({
    than run: what matters here is whether the host asks for privileged counts at
    all, because every applicants read is authenticated and an ungated one on a
    public team profile makes customFetch reload the page forever. */
+/* The hydrated viewer, which is where permissions actually live — the cookie
+   carries none. `null` unless a case says otherwise. */
+let storeUser: unknown = null;
+jest.mock('@/services/auth/store', () => ({
+  useCurrentUserStore: () => ({ currentUser: storeUser }),
+}));
+
 const countsCalls: { enabled: boolean; teamUid: string }[] = [];
 jest.mock('@/services/jobs/hooks/useTeamApplicants', () => ({
   useApplicantCounts: (args: { enabled: boolean; teamUid: string }) => {
@@ -105,6 +112,7 @@ const GROUP = {
 const lastCall = () => surfaceCalls[surfaceCalls.length - 1];
 
 beforeEach(() => {
+  storeUser = null;
   surfaceCalls.length = 0;
   countsCalls.length = 0;
 });
@@ -165,6 +173,20 @@ describe('TeamOpenRolesSection', () => {
       );
 
       expect(screen.getByTestId('roles-list')).toHaveAttribute('data-owns', 'false');
+    });
+
+    /**
+     * The cookie cannot learn a directory admin's permissions: `UserInfoChecker`
+     * fills it from an endpoint that returns no `rbac`. The store can, which is
+     * why Focus Areas offers Edit to an admin on this very page — so this
+     * section asks both.
+     */
+    it('tells the list an admin owns them, even when only the store knows', () => {
+      storeUser = { uid: 'u1', leadingTeams: [], rbac: { effectivePermissions: [{ code: 'directory.admin.full' }] } };
+
+      render(<TeamOpenRolesSection group={GROUP} isLoggedIn userInfo={{ uid: 'u1', leadingTeams: [] } as any} />);
+
+      expect(screen.getByTestId('roles-list')).toHaveAttribute('data-owns', 'true');
     });
 
     it('does not, for a signed-out visitor', () => {

@@ -4,6 +4,7 @@ import { RedirectType, redirect } from 'next/navigation';
 import Error from '@/components/core/error';
 import { TeamApplicantsView } from '@/components/page/team-details/TeamApplicants';
 import { canReadApplicants } from '@/components/page/team-details/TeamApplicants/canReadApplicants';
+import { knowsPermissions } from '@/components/page/team-details/utils/viewerPermissions';
 import { selectTeamOpenRoles } from '@/components/page/team-details/TeamOpenRoles/selectTeamOpenRoles';
 import { getJobsList } from '@/app/actions/jobs.actions';
 import { SHOW_TEAM_APPLICANTS } from '@/services/jobs/constants';
@@ -76,14 +77,31 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
      (and `leadingTeams`) is asked about. The name comes off the fetch, which is
      the only reason the gate waits for it: excluding Protocol Labs falls back to
      the name wherever the uid differs by environment seed. */
-  if (
-    !canReadApplicants({
-      flagOn: SHOW_TEAM_APPLICANTS,
-      isLoggedIn,
-      userInfo,
-      team: team ? { uid: teamId, name: team.name } : null,
-    })
-  ) {
+  /**
+   * Refuse only when the cookie is in a position to refuse.
+   *
+   * This runs on the server, where the `userInfo` cookie is all there is — and
+   * that cookie carries no `rbac` for anyone today: `UserInfoChecker` fills it
+   * from `GET /v1/members/{uid}`, which omits permissions entirely. Treating
+   * that silence as "not an admin" bounced directory admins off a page built for
+   * them, while the count line that leads here — a client component, which can
+   * read the hydrated store — correctly offered it. A line onto a page you are
+   * thrown off is the exact failure `canReadApplicants` exists to prevent.
+   *
+   * So a cookie that cannot speak to permissions does not get to refuse. The
+   * endpoints enforce the real rule and answer 403 to anyone who is not a lead
+   * or an admin, so the worst this admits is a signed-in stranger who typed the
+   * URL seeing an empty screen instead of a redirect. When the cookie DOES carry
+   * permissions, it is authoritative again and refuses as before.
+   */
+  const viewerCanRead = canReadApplicants({
+    flagOn: SHOW_TEAM_APPLICANTS,
+    isLoggedIn,
+    userInfo,
+    team: team ? { uid: teamId, name: team.name } : null,
+  });
+
+  if (!viewerCanRead && knowsPermissions(userInfo)) {
     redirect(teamProfile, RedirectType.replace);
   }
 

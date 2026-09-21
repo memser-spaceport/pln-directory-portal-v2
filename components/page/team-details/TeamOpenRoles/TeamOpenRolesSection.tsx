@@ -9,6 +9,8 @@ import { useApplicantCounts } from '@/services/jobs/hooks/useTeamApplicants';
 import { useJobApplySurface } from '@/components/page/jobs/hooks/useJobApplySurface';
 import { canReadApplicants } from '@/components/page/team-details/TeamApplicants/canReadApplicants';
 import { isTeamLeaderOrAdmin } from '@/components/page/team-details/utils/isTeamLeaderOrAdmin';
+import { unionViewerInfo } from '@/components/page/team-details/utils/viewerPermissions';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 import { RoleApplicantsLine } from './components/RoleApplicantsLine';
 import { TeamOpenRoles } from './TeamOpenRoles';
@@ -57,10 +59,26 @@ export function TeamOpenRolesSection({ group, isLoggedIn, userInfo }: TeamOpenRo
    * The whole team goes in rather than `teamUid`: the rule excludes Protocol
    * Labs, and it reads the name as well as the uid to do that.
    */
+  /**
+   * The cookie AND the store, because they disagree and each is right about
+   * something.
+   *
+   * `userInfo` arrives from the server-rendered cookie, which carries
+   * `leadingTeams` but — today, for everyone — no permissions at all: the sync
+   * that fills it reads an endpoint that omits `rbac`. The store is hydrated
+   * from the API and has them, which is why Focus Areas offers a directory admin
+   * its Edit control on this very page while this section refused them.
+   *
+   * See `unionViewerInfo`. Both gates below ask the same merged viewer, so the
+   * count line and the ⋯ menu cannot disagree about who this is.
+   */
+  const { currentUser } = useCurrentUserStore();
+  const viewer = useMemo(() => unionViewerInfo(userInfo, currentUser), [userInfo, currentUser]);
+
   const canReadApplicantCounts = canReadApplicants({
     flagOn: SHOW_TEAM_APPLICANTS,
     isLoggedIn,
-    userInfo,
+    userInfo: viewer,
     team: group?.team,
   });
 
@@ -72,11 +90,11 @@ export function TeamOpenRolesSection({ group, isLoggedIn, userInfo }: TeamOpenRo
    * with who owns a job posting. A PL lead still owns PL's listings; they just
    * do not read applicants here.
    */
-  const ownsListings = isTeamLeaderOrAdmin(userInfo, teamUid);
+  const ownsListings = isTeamLeaderOrAdmin(viewer, teamUid);
 
   const { data: counts } = useApplicantCounts({
     teamUid,
-    viewerUid: userInfo?.uid,
+    viewerUid: viewer?.uid,
     enabled: canReadApplicantCounts,
   });
 

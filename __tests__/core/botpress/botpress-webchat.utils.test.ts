@@ -78,4 +78,35 @@ describe('botpress-webchat.utils', () => {
 
     expect(document.getElementById('bp-web-widget')).toBeNull();
   });
+
+  it('removes the widget container rendered by webchat v3', () => {
+    const widget = document.createElement('div');
+    widget.className = 'bpChatContainer';
+    document.body.appendChild(widget);
+
+    unloadBotpressWebchat();
+
+    expect(document.querySelector('.bpChatContainer')).toBeNull();
+  });
+
+  it('reports how many widget nodes it removed', () => {
+    const v3 = document.createElement('div');
+    v3.className = 'bpChatContainer';
+    const v2 = document.createElement('div');
+    v2.id = 'bp-web-widget';
+    document.body.append(v3, v2);
+
+    expect(removeBotpressWebchatWidget()).toBe(2);
+    expect(removeBotpressWebchatWidget()).toBe(0);
+  });
+
+  it('warns when the widget initialised but no node matched, so a vendor markup change is not silent', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    (window as unknown as { botpress?: unknown }).botpress = {};
+
+    unloadBotpressWebchat();
+
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('no widget node matched'));
+    warn.mockRestore();
+  });
 });

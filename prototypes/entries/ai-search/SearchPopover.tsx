@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 
 import { Modal } from '@/components/common/Modal';
@@ -19,9 +19,17 @@ import rl from '@/components/core/application-search/components/SearchResultsSec
 import { SearchField } from './SearchField';
 import { ResultRows } from './ResultRows';
 import { countResults, RECENT_SEARCHES, searchCorpus } from './mocks';
+import { QuerySuggestions } from './QuerySuggestions';
+import { suggestQuestions } from './suggestions';
+import { useAiSearchViewer } from './viewer';
 import s from './SearchPopover.module.scss';
 
 const INPUT_ID = 'search-popover-input';
+
+/* The field has two jobs and the placeholder is the only thing that says so
+   at rest (Evernote and Mintlify: "Search or ask"). Exported for the header
+   field, which is this field from tablet-landscape up. */
+export const SEARCH_PLACEHOLDER = 'Search or ask AI Search a question';
 
 const SECTION_ORDER: (keyof SearchResult)[] = ['top', 'members', 'teams', 'projects', 'forumThreads', 'events'];
 
@@ -35,8 +43,21 @@ interface SearchPopoverProps {
   onAskAi: (term: string) => void;
   /** A team or member row's "Ask AI": opens the AI view with that record as the scope chip. */
   onAskAbout: (item: FoundItem) => void;
+  /** Founder seat: investor rows offer the intro (see `ResultRows`). */
+  intro?: React.ComponentProps<typeof ResultRows>['intro'];
+  /**
+   * The ask form is open over this card. A press inside it is "outside" the
+   * card, and must not close the list the founder is coming back to.
+   */
+  holdOpen?: boolean;
   /** The header control this hangs under. Measured on open. */
   anchor: () => HTMLElement | null;
+  /**
+   * The header field is the real field (from tablet-landscape up), so this
+   * card holds results only there and keeps its own field below that width,
+   * where the header has just a glyph.
+   */
+  fieldInHeader?: boolean;
 }
 
 /**
@@ -69,8 +90,12 @@ export function SearchPopover({
   onTermChange,
   onAskAi,
   onAskAbout,
+  intro,
+  holdOpen = false,
   anchor,
+  fieldInHeader = false,
 }: SearchPopoverProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
   const [activeCategory, setActiveCategory] = useState<keyof SearchResult | null>('top');
   const [recent, setRecent] = useState(RECENT_SEARCHES);
   const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
@@ -84,17 +109,26 @@ export function SearchPopover({
       const el = anchor();
       if (!el) return setPos(null);
       const r = el.getBoundingClientRect();
-      setPos({ top: r.bottom + 8, right: window.innerWidth - r.right });
+      /* Against the overlay's own right edge, not the window's: the overlay
+         stops short of the body's 6px scrollbar, and measured from the window
+         the card hung 6px left of the field it shares a width with. */
+      const overlay = cardRef.current?.parentElement?.parentElement;
+      const edge = overlay ? overlay.getBoundingClientRect().right : window.innerWidth;
+      setPos({ top: r.bottom + 8, right: edge - r.right });
     };
     measure();
     window.addEventListener('resize', measure);
     /* A term kept from the last visit opens selected, so the next keystroke
        replaces it: the words are there to read or re-run, never to delete
-       first. Nothing typed yet, nothing to select. */
+       first. Nothing typed yet, nothing to select. Where the header field is
+       the field, this one is `display: none` (no `offsetParent`) and the
+       header does the same for its own. */
     const raf = requestAnimationFrame(() => {
+      measure(); // once more, now that the overlay is certainly mounted
       const input = document.getElementById(INPUT_ID) as HTMLInputElement | null;
-      input?.focus();
-      if (input?.value) input.select();
+      if (!input || input.offsetParent === null) return;
+      input.focus();
+      if (input.value) input.select();
     });
     return () => {
       window.removeEventListener('resize', measure);
@@ -102,35 +136,66 @@ export function SearchPopover({
     };
   }, [open, anchor]);
 
+  /* With the field in the header, the overlay lets presses through (or a click
+     in the field you are typing in would land on it and close the search), so
+     "a press anywhere else closes it" is done here: anywhere but the card and
+     the header control. */
+  useEffect(() => {
+    if (!open || !fieldInHeader || holdOpen) return;
+    const onDown = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (cardRef.current?.contains(target) || anchor()?.contains(target)) return;
+      onClose();
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [open, fieldInHeader, holdOpen, anchor, onClose]);
+
   const results = useMemo(() => (term ? searchCorpus(term) : undefined), [term]);
+
+  /* Questions offered while typing, in the AI band. Two, not a list: this
+     card is a lookup and the rows under the band are its job — the band only
+     has to show that what you typed is also the start of a question. The AI
+     view, whose field is for questions, offers the full set. */
+  const viewer = useAiSearchViewer();
+  const suggestions = useMemo(() => suggestQuestions(term, { limit: 2, viewer }), [term, viewer]);
   const total = results ? countResults(results) : 0;
 
-  const handleTermChange = (next: string) => {
-    onTermChange(next);
-    setActiveCategory('top');
-  };
+  /* A new term starts on Top Results. Keyed on the term rather than done in a
+     change handler: the term is also typed in the header field, which never
+     passes through this component. */
+  useEffect(() => setActiveCategory('top'), [term]);
+  const handleTermChange = onTermChange;
 
   return (
     <Modal
       isOpen={open}
       onClose={onClose}
-      overlayClassname={s.overlay}
+      overlayClassname={clsx(s.overlay, fieldInHeader && s.overlayUnderField)}
       overlayStyle={
         pos ? ({ '--pop-top': `${pos.top}px`, '--pop-right': `${pos.right}px` } as React.CSSProperties) : undefined
       }
       className={s.container}
     >
-      <div className={s.card} role="dialog" aria-modal="true" aria-label="Search">
-        <SearchField
-          id={INPUT_ID}
-          value={term}
-          onChange={handleTermChange}
-          /* The field has two jobs and the placeholder is the only thing that
-             says so at rest (Evernote and Mintlify: "Search or ask"). */
-          placeholder="Search or ask AI Search a question"
-          onClose={onClose}
-          closeLabel="Close search"
-        />
+      <div
+        ref={cardRef}
+        className={s.card}
+        /* Not modal where the field is outside it: the caret stays in the
+           header and the page behind stays live. */
+        role="dialog"
+        aria-modal={fieldInHeader ? undefined : 'true'}
+        aria-label="Search"
+      >
+        <div className={clsx(fieldInHeader && s.ownFieldCompactOnly)}>
+          <SearchField
+            id={INPUT_ID}
+            value={term}
+            onChange={handleTermChange}
+            placeholder={SEARCH_PLACEHOLDER}
+            onClose={onClose}
+            closeLabel="Close search"
+          />
+        </div>
 
         {/* The one AI door, above the list at every scroll position. At rest
             it names the offer; with a term it names the term. */}
@@ -139,18 +204,17 @@ export function SearchPopover({
             <button type="button" className={clsx(rs.searchItem, s.rowButton)} onClick={() => onAskAi(term)}>
               <AiSearchIcon className={s.rowIcon} />
               <span className={rs.searchItemText}>
-                {term ? (
-                  <>
-                    Chat with AI Search about &ldquo;{term}&rdquo;
-                  </>
-                ) : (
-                  'Ask AI Search a question'
-                )}
+                {term ? <>Chat with AI Search about &ldquo;{term}&rdquo;</> : 'Ask AI Search a question'}
               </span>
               <span className={s.askArrow} aria-hidden="true">
                 <ArrowUpRightIcon />
               </span>
             </button>
+            {/* Whole questions that start where the typing did; a press asks
+                that one, in the AI view, with Back leading here. */}
+            {suggestions.length > 0 && (
+              <QuerySuggestions suggestions={suggestions} query={term} onPick={onAskAi} variant="band" />
+            )}
           </div>
         </div>
 
@@ -186,12 +250,7 @@ export function SearchPopover({
                         forceOpen
                         hideControl
                       >
-                        <ResultRows
-                          grouped={key === 'top'}
-                          items={values}
-                          onSelect={onClose}
-                          onAskAbout={onAskAbout}
-                        />
+                        <ResultRows grouped={key === 'top'} items={values} onSelect={onClose} onAskAbout={onAskAbout} intro={intro} />
                       </CollapsibleSection>
                     );
                   })}

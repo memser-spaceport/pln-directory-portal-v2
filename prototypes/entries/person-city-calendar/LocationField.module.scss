@@ -102,9 +102,8 @@
 
 .stayMain {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 8px;
+  flex-direction: column;
+  gap: 2px;
   flex: 1;
   min-width: 0;
   background: none;
@@ -112,6 +111,28 @@
   padding: 0;
   text-align: left;
   cursor: pointer;
+}
+
+.stayLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+/* Second line of a row: who the stay puts you next to, or — on a suggestion —
+   what adding it does. Indented to the city, past the 16px glyph + 8px gap. */
+.stayMeta {
+  padding-left: 24px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+/* A stay the product guessed from an RSVP. Dashed, like the removed row: both
+   are offers rather than things on your profile. */
+.stayRowSuggested {
+  border-style: dashed;
 }
 
 .stayCity {
@@ -169,20 +190,7 @@
   color: var(--foreground-neutral-primary, #0a0c11);
 }
 
-.confirmBtn {
-  flex-shrink: 0;
-  height: 26px;
-  padding: 0 10px;
-  border: none;
-  border-radius: 8px;
-  background: var(--foreground-brand-primary, #1b4dff);
-  color: var(--background-base-white, #fff);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-/* What Confirm resolves to. Production already ships this exact resolution —
+/* What the suggestion's "Add" (a DS Button, xs / border / neutral) resolves to. Production already ships this exact resolution —
    contributing-team-popup.tsx:156-161 and maintaining-team-popup.tsx:153 swap a
    "Select" button for `/icons/added.svg` + "Added" in #475569 with a 4px gap,
    `cursor: default`, and no pill at all. Copied: grey, chromeless, stated.
@@ -228,50 +236,91 @@
   letter-spacing: -0.2px;
 }
 
-/* ---- the picker, revealed under the list ---- */
+/* ---- the add / edit row, revealed under the list ----
+   Field chrome (border, radius, focus) is the same FormField set `.bioArea`
+   below copies, so the row measures like its neighbours. */
 
-.picker {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   margin-top: 4px;
   padding: 12px;
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   border-radius: 12px;
   background: var(--background-base-white, #fff);
+}
+
+.editorFields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
 
   @include media.tablet-landscape {
-    grid-template-columns: 380px minmax(260px, 1fr);
-    /* stretch, not start: the two cards are a pair, so the calendar's bottom
-       edge lines up with the editor's instead of floating short of it. */
-    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 }
 
-.pickerCol {
+.editorField {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   min-width: 0;
+}
 
-  /* the single card in each column takes the full row height */
-  > * {
-    flex: 1;
+.editorLabel {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.editorOptional {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-weight: 400;
+}
+
+/* One field height across the row. DateRangePicker is production's and 48px
+   tall; the city combobox (a 34px stand-in) and the note are brought up to it
+   so the three don't sit at three heights inside one card. */
+.editorCity input {
+  height: 46px;
+}
+
+.editorInput {
+  width: 100%;
+  height: 48px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-base-white, #fff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--border-brand-subtle, #aebfff);
   }
 }
 
-.pickerHint {
-  padding: 16px;
-  border-radius: 12px;
-  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  font-size: 13px;
-  line-height: 19px;
+.editorError {
+  margin: 0;
+  color: var(--foreground-error-primary, #d21a0e);
+  font-size: 12px;
+  line-height: 18px;
+}
 
-  strong {
-    color: var(--foreground-neutral-secondary, #455468);
-    font-weight: 600;
-  }
+.editorActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 /* Stand-in for production's BioInput (a rich-text editor bound to react-query).
@@ -298,10 +347,14 @@
 /* ---- header chip: upcoming stays, beside the location in MemberDetailHeader ---- */
 
 /* The pin and the chip are one statement — "based in Lisbon, in San Francisco
-   Sep 7-11" — so they sit together. Production's `.location` carries
-   `padding-right: 24px` to separate itself from whatever follows
-   (MemberDetailHeader.module.scss:148-153); that padding belongs to the group
-   now, not between the two halves of the same sentence. */
+   Sep 7-11" — so they sit together, and the group is one item in the strip.
+
+   Production's `.location` carries `padding-right: 24px`
+   (MemberDetailHeader.module.scss:148-153) because it is the last thing in the
+   row, where trailing padding is invisible. Here `+ Add travel dates` follows
+   it behind a divider, so that 24px stacked on `roleAndLocation`'s own 16px gap
+   and put 40px before this divider against 16px before the one after the role.
+   The row's gap governs, like it does for every other item in it. */
 /* 12px: 4px more than the 8px it was. Still tighter than the 16px
    `roleAndLocation` uses between its own items, so the pin and the chip read as
    one pair rather than two entries in the strip. */
@@ -309,7 +362,6 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding-right: 24px;
 }
 
 /* `.location` minus its trailing padding — same 4px icon gap as production. */
@@ -318,6 +370,11 @@
   align-items: center;
   gap: 4px;
 }
+
+/* No class for "+ Add travel dates": it is `MemberDetailHeader.module.scss`'s
+   own `.addButton` behind an `.divider`, the same two elements `+ Your Role`
+   and `+ Your Location` are made of. The blue one this replaced is the whole
+   reason there is nothing here. */
 
 .chipWrap {
   position: relative;
@@ -354,6 +411,26 @@
     min-height: 32px;
     padding: 4px 10px;
   }
+}
+
+/* Same pill, nothing behind it: no pointer, no hover — a label chip, which in
+   this design system never has a hover state. */
+.chipStatic {
+  cursor: default;
+
+  &:hover {
+    background: #f2f5ff;
+  }
+}
+
+/* The visitor's own overlap, stated beside the chip rather than inside it: it
+   is a fact about the reader, not about the person whose profile this is. */
+.chipShared {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
 }
 
 .chipCaret {

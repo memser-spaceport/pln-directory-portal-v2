@@ -22,10 +22,9 @@ interface Props {
  *
  * **Why here and not on the board.** A founder's relationship with hiring runs
  * through their team profile — it is where they posted the role (Submit a job
- * sits in this section's header) and where they take it down (the ⋯ on the
- * row). They have no reason to visit the board, whose drawer is a reader's
- * surface, so the applicants are reached from the section instead of the
- * section sending them to the board. Care.com's "Your jobs" card is the
+ * sits in this section's header) and where they take it down (the card's own
+ * footer switch). They have no reason to visit the board, so the applicants
+ * are reached from the section instead of the section sending them there. Care.com's "Your jobs" card is the
  * reference: a facepile plus "2 new applicants" on each job the owner posted,
  * the list one press away.
  *

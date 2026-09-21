@@ -1,5 +1,20 @@
 import type { FoundItem, ForumFoundItem, SearchResult } from '@/services/search/types';
 
+// The founder's investor graph is the warm-intros-founders prototype's own —
+// same rows, same connectors, same asks — so an intro asked for here is the
+// one its Fundraising section lists.
+import {
+  FOUNDER_TEAM,
+  INVESTOR_ROWS,
+  SHORTLIST,
+  TIE_LABEL,
+  CONNECTOR_KIND_LABEL,
+  investorProfileHref,
+  sectorLabels,
+  type FounderInvestorRow,
+} from '../warm-intros-founders/mocks';
+import type { AiSearchViewer } from './viewer';
+
 /**
  * Mocked corpus for the AI search prototype.
  *
@@ -23,7 +38,25 @@ export interface CorpusItem {
   eventUrl?: string;
 }
 
+/**
+ * The investors a founder can be introduced to are members too — production's
+ * member page carries an Investor Details card — so the keyword lookup, the
+ * type-ahead and Recent all find them. Their uid is the investor graph's, which
+ * is how a result row knows there is a path to offer (see `ResultRows`).
+ */
+const INVESTOR_CORPUS: CorpusItem[] = SHORTLIST.slice(0, 4).map((row) => ({
+  uid: row.uid,
+  index: 'members',
+  name: row.name,
+  fields: [
+    { field: 'teamMemberRoles.role', content: [row.title, row.firm].filter(Boolean).join(' at ') },
+    { field: 'investorProfile.investmentFocus', content: `Invests in ${sectorLabels(row)}` },
+  ],
+  keywords: ['investor', 'investors', 'fund', 'vc'],
+}));
+
 export const CORPUS: CorpusItem[] = [
+  ...INVESTOR_CORPUS,
   {
     uid: 'amara-okafor',
     index: 'members',
@@ -339,7 +372,9 @@ export function countResults(r: SearchResult) {
 /* Idle state                                                                 */
 /* ------------------------------------------------------------------------ */
 
-export const RECENT_SEARCHES = ['libp2p', 'Fenix Labs', 'FIL Dev Summit'];
+/* An investor leads, so a founder's row — the intro line — is one press from
+   opening the search. */
+export const RECENT_SEARCHES = [SHORTLIST[0].name, 'libp2p', 'Fenix Labs', 'FIL Dev Summit'];
 
 /**
  * Prompts phrased as directory *finds*, not questions about the product.
@@ -353,6 +388,9 @@ export const SUGGESTED_PROMPTS: { text: string; icon: string }[] = [
   { text: 'Find teams building on Filecoin in Berlin', icon: '/icons/husky/husky-team.svg' },
   { text: 'Who works on zero-knowledge proofs and offers office hours?', icon: '/icons/husky/husky-member.svg' },
   { text: 'Which events in Lisbon have PL members attending?', icon: '/icons/husky/husky-event.svg' },
+  /* The rich-block example (a comparison table), reachable from idle as well
+     as from the Filecoin answer's follow-ups. */
+  { text: 'Compare Lumen Storage and Saturn Grid', icon: '/icons/husky/husky-team.svg' },
 ];
 
 /* ------------------------------------------------------------------------ */
@@ -380,7 +418,64 @@ export interface CannedAnswer {
   followUpQuestions: string[];
   /** Present when the question was asked inside a scope — see `scope.ts`. */
   scoped?: ScopedAnswerMeta;
+  /**
+   * Structured parts of the answer, drawn after the prose has streamed. Prose
+   * is for a conclusion; a "compare" or "how many" question is answered by a
+   * shape, and the shape is what the backend returns for it.
+   */
+  blocks?: AnswerBlock[];
 }
+
+/* ------------------------------------------------------------------------ */
+/* Rich answer blocks                                                         */
+/* ------------------------------------------------------------------------ */
+
+/**
+ * One kind so far. The backend knows what each retrieved object *is*, so a
+ * block's cells are typed directory content — a tag list, a list of records
+ * that link — rather than markdown pretending to be a table. Perplexity and
+ * Gemini render comparison tables; theirs hold text, ours hold the directory.
+ */
+export type AnswerBlock = ComparisonBlock | IntroPathsBlock;
+
+/**
+ * Investors the answer named, each with the one person who can introduce the
+ * reader and the press to ask them. Founder seat only: the block is built into
+ * the answer for a founder and never for anyone else (see `buildAnswer`), so a
+ * path — who knows whom — is not something a member can ask their way into.
+ * Rows are `warm-intros-founders`' own, keyed by investor uid.
+ */
+export interface IntroPathsBlock {
+  kind: 'intros';
+  investorUids: string[];
+  /**
+   * The answer is ABOUT this one investor, so the offer is a line under the
+   * prose (the connector chip) rather than a table that names them a second time.
+   */
+  compact?: boolean;
+  /**
+   * An investor the graph has no path to. Said in one muted line, with nothing
+   * to press — otherwise a founder cannot tell "nobody knows them" from "this
+   * product doesn't do intros", and the first is worth knowing before a raise.
+   */
+  noPathTo?: string;
+}
+
+export interface ComparisonBlock {
+  kind: 'comparison';
+  /** The entities compared, one column each. */
+  columns: DirectoryHit[];
+  /** One row per fact, one cell per column, in column order. */
+  rows: { label: string; cells: ComparisonCell[] }[];
+}
+
+export type ComparisonCell =
+  /** A fact in words; `muted` for "nothing on record" — grey, never blank. */
+  | { kind: 'text'; value: string; muted?: boolean }
+  /** A tag list, as the record's own page draws it. */
+  | { kind: 'tags'; values: string[] }
+  /** Records that link — people, projects, events — each with its picture. */
+  | { kind: 'entities'; hits: DirectoryHit[] };
 
 /**
  * What a scoped answer adds to the network answer's anatomy: the line saying
@@ -396,7 +491,8 @@ export interface ScopedAnswerMeta {
   door?: { label: string; target: string };
 }
 
-const link = (item: CorpusItem) => `/${item.index}/${item.uid}`;
+const link = (item: CorpusItem) =>
+  item.uid.startsWith('mp-inv-') ? investorProfileHref(item.uid) : `/${item.index}/${item.uid}`;
 const fieldOf = (item: CorpusItem, name: string) => item.fields.find((f) => f.field === name)?.content;
 const META_FIELD: Record<CorpusIndex, string> = {
   members: 'teamMemberRoles.role',
@@ -434,9 +530,74 @@ const CANNED: Record<string, CannedAnswer> = {
       hit,
     ),
     followUpQuestions: [
+      'Compare Lumen Storage and Saturn Grid',
       'Who at Lumen Storage offers office hours?',
-      'Are any of these teams hiring?',
       'Which Filecoin teams are in Lisbon instead?',
+    ],
+  },
+  /* The rich-block example. Every cell is read off the corpus above; a fact
+     the corpus doesn't hold is a muted "None listed", not an invented one. */
+  'compare lumen storage and saturn grid': {
+    answer:
+      'Both are Filecoin teams registered in Berlin. The difference is the layer: **[Lumen Storage](/teams/lumen-storage)** builds tooling for *storing* enterprise archives, **[Saturn Grid](/teams/saturn-grid)** runs the network that *retrieves* Filecoin data. Side by side:',
+    sources: ['https://directory.plnetwork.io/teams/lumen-storage', 'https://directory.plnetwork.io/teams/saturn-grid'],
+    sql: [byUid('lumen-storage'), byUid('saturn-grid'), byUid('filecoin-retrieval-network'), byUid('jonas-weber')].map(
+      hit,
+    ),
+    followUpQuestions: [
+      'Who at Lumen Storage offers office hours?',
+      'What does Saturn Grid work on?',
+      'Are there Filecoin events in Berlin?',
+    ],
+    blocks: [
+      {
+        kind: 'comparison',
+        columns: [hit(byUid('lumen-storage')), hit(byUid('saturn-grid'))],
+        rows: [
+          {
+            label: 'What they build',
+            cells: [
+              { kind: 'text', value: fieldOf(byUid('lumen-storage'), 'shortDescription')! },
+              { kind: 'text', value: fieldOf(byUid('saturn-grid'), 'shortDescription')! },
+            ],
+          },
+          {
+            label: 'Location',
+            cells: [
+              { kind: 'text', value: fieldOf(byUid('lumen-storage'), 'location')! },
+              { kind: 'text', value: fieldOf(byUid('saturn-grid'), 'location')! },
+            ],
+          },
+          {
+            label: 'Focus',
+            cells: [
+              { kind: 'tags', values: fieldOf(byUid('lumen-storage'), 'industryTags')!.split(', ') },
+              { kind: 'tags', values: fieldOf(byUid('saturn-grid'), 'industryTags')!.split(', ') },
+            ],
+          },
+          {
+            label: 'People in the directory',
+            cells: [
+              { kind: 'entities', hits: [hit(byUid('jonas-weber'))] },
+              { kind: 'text', value: 'None listed', muted: true },
+            ],
+          },
+          {
+            label: 'Projects',
+            cells: [
+              { kind: 'entities', hits: [hit(byUid('filecoin-retrieval-network'))] },
+              { kind: 'entities', hits: [hit(byUid('filecoin-retrieval-network'))] },
+            ],
+          },
+          {
+            label: 'Upcoming events',
+            cells: [
+              { kind: 'entities', hits: [hit(byUid('fil-dev-summit-lisbon'))] },
+              { kind: 'text', value: 'None listed', muted: true },
+            ],
+          },
+        ],
+      },
     ],
   },
   'who works on zero-knowledge proofs and offers office hours?': {
@@ -487,6 +648,126 @@ const CANNED: Record<string, CannedAnswer> = {
 
 const norm = (q: string) => q.trim().toLowerCase().replace(/\s+/g, ' ');
 
+/* ------------------------------------------------------------------------ */
+/* Investors, and the founder's way to them                                   */
+/* ------------------------------------------------------------------------ */
+
+const investorHit = (row: FounderInvestorRow): DirectoryHit => ({
+  name: row.name,
+  type: 'member',
+  source: investorProfileHref(row.uid),
+  meta: [row.firm, row.title].filter(Boolean).join(' · ') || undefined,
+});
+
+const INVESTOR_MATCHES = SHORTLIST.slice(0, 4);
+const firstName = (name: string) => name.split(' ')[0];
+
+/** The founder's idle prompt — and a question either seat can ask. */
+export const INVESTORS_QUESTION = 'Which investors in the network back neurotech and DeSci teams?';
+const introQuestion = (row: FounderInvestorRow) => `Who can introduce me to ${row.name}?`;
+
+export const FOUNDER_PROMPTS: { text: string; icon: string }[] = [
+  { text: INVESTORS_QUESTION, icon: '/icons/husky/husky-member.svg' },
+];
+
+/**
+ * One question, answered for two seats. Everyone gets the investors — that is
+ * directory content. A founder's answer adds the intro rows and the follow-up
+ * that asks for a path; nobody else's mentions one.
+ */
+function investorsAnswer(viewer: AiSearchViewer): CannedAnswer {
+  const founder = viewer === 'founder';
+  const lines = INVESTOR_MATCHES.map((row) => {
+    const firm = row.firm ? `, ${row.firm}` : '';
+    const history = row.evidence.length ? `. ${row.evidence[0]}` : '';
+    return `- **[${row.name}](${investorProfileHref(row.uid)})**${firm} — invests in ${sectorLabels(row)}${history}`;
+  });
+  return {
+    answer: [
+      `${INVESTOR_MATCHES.length} investors in the network list neurotech, biotech, DeSci or infrastructure among their sectors:`,
+      '',
+      ...lines,
+      ...(founder ? ['', `Someone in the network can introduce ${FOUNDER_TEAM.name} to each of them:`] : []),
+    ].join('\n'),
+    sources: [],
+    sql: INVESTOR_MATCHES.map(investorHit),
+    followUpQuestions: [
+      ...(founder ? [introQuestion(INVESTOR_MATCHES[0])] : []),
+      'Find teams building on Filecoin in Berlin',
+    ],
+    blocks: founder ? [{ kind: 'intros', investorUids: INVESTOR_MATCHES.map((row) => row.uid) }] : undefined,
+  };
+}
+
+/**
+ * A question that merely NAMES an investor — or their fund, which is how
+ * founders usually search — gets the directory's answer about them, and for a
+ * founder the intro offer under it, unasked. The offer is a suggestion made at
+ * rest: a founder who doesn't know the product can do this won't ask for it.
+ */
+function aboutInvestorAnswer(query: string, viewer: AiSearchViewer): CannedAnswer | null {
+  const q = norm(query);
+  const byFirm = INVESTOR_ROWS.find((r) => r.firm && q.includes(r.firm.toLowerCase()));
+  const row = byFirm ?? INVESTOR_ROWS.find((r) => q.includes(r.name.toLowerCase()));
+  if (!row) return null;
+  const href = investorProfileHref(row.uid);
+  const history = row.evidence.length ? ` ${row.evidence.join('. ')}.` : '';
+  const role = [row.title, row.firm].filter(Boolean).join(' at ');
+  return {
+    answer: byFirm
+      ? `**${row.firm}** invests in ${sectorLabels(row)}.${history} The person from the fund in the network is **[${row.name}](${href})**, ${row.title ?? 'investor'}.`
+      : `**[${row.name}](${href})** is ${role || 'an investor in the network'}, investing in ${sectorLabels(row)}.${history}`,
+    sources: [],
+    sql: [investorHit(row)],
+    followUpQuestions: [INVESTORS_QUESTION],
+    blocks: viewer === 'founder' ? [{ kind: 'intros', investorUids: [row.uid], compact: true }] : undefined,
+  };
+}
+
+/** Invented for the one state the graph's rows can't show: an investor nobody knows. */
+const NO_PATH_INVESTOR = { name: 'Dana Whitfield', firm: 'Harrow Lane Capital', title: 'Partner', focus: 'Neurotech' };
+
+function noPathAnswer(query: string, viewer: AiSearchViewer): CannedAnswer | null {
+  if (!norm(query).includes(NO_PATH_INVESTOR.name.toLowerCase())) return null;
+  const { name, firm, title, focus } = NO_PATH_INVESTOR;
+  return {
+    answer: `**${name}** is ${title} at ${firm}, investing in ${focus}. ${firstName(name)} is in the investor database but has no profile in the directory yet.`,
+    sources: [],
+    sql: [],
+    followUpQuestions: [INVESTORS_QUESTION],
+    blocks: viewer === 'founder' ? [{ kind: 'intros', investorUids: [], noPathTo: name }] : undefined,
+  };
+}
+
+/** The questions the host page's "Founder states" tabs open. */
+export const FOUNDER_STATE_QUESTIONS = {
+  list: INVESTORS_QUESTION,
+  person: `Who is ${SHORTLIST[0].name}?`,
+  fund: `Tell me about ${SHORTLIST[2].firm}`,
+  noPath: `Who is ${NO_PATH_INVESTOR.name}?`,
+};
+
+/** "Who can introduce me to <investor>?" — a founder's question; null for anyone else. */
+function introAnswer(query: string, viewer: AiSearchViewer): CannedAnswer | null {
+  if (viewer !== 'founder') return null;
+  const q = norm(query);
+  if (!/\b(intro|introduce|introduction)\b/.test(q)) return null;
+  const row = SHORTLIST.find((r) => q.includes(r.name.toLowerCase()) || q.includes(firstName(r.name).toLowerCase()));
+  if (!row) return null;
+  const connector = firstName(row.connector.name);
+  const investor = firstName(row.name);
+  return {
+    answer:
+      `The closest path from ${FOUNDER_TEAM.name} to **[${row.name}](${investorProfileHref(row.uid)})** runs through ` +
+      `**${row.connector.name}** (${CONNECTOR_KIND_LABEL[row.connectorKind]}): ${TIE_LABEL[row.tie](connector, investor)}. ` +
+      `${connector} decides whether to make the intro, and ${investor} isn’t contacted until then.`,
+    sources: [],
+    sql: [investorHit(row)],
+    followUpQuestions: [INVESTORS_QUESTION],
+    blocks: [{ kind: 'intros', investorUids: [row.uid] }],
+  };
+}
+
 const TYPE_WORD: Record<CorpusIndex, string> = {
   members: 'member',
   teams: 'team',
@@ -499,9 +780,12 @@ const TYPE_WORD: Record<CorpusIndex, string> = {
  * keyword hits — so any query typed into the prototype gets a grounded reply
  * rather than a canned one that ignores it.
  */
-export function buildAnswer(query: string): CannedAnswer {
+export function buildAnswer(query: string, viewer: AiSearchViewer = 'member'): CannedAnswer {
   const canned = CANNED[norm(query)];
   if (canned) return canned;
+  if (norm(query) === norm(INVESTORS_QUESTION)) return investorsAnswer(viewer);
+  const about = introAnswer(query, viewer) ?? noPathAnswer(query, viewer) ?? aboutInvestorAnswer(query, viewer);
+  if (about) return about;
 
   const tokens = tokenize(query);
   const found = pick(CORPUS, tokens).slice(0, 5);

@@ -105,6 +105,13 @@
   color: var(--foreground-neutral-primary, #0a0c11);
 }
 
+/* Prose that ends in "Side by side:" and hands over to a block: the block is
+   the rest of the sentence, so the paragraph's 16px stands down to the card's
+   own 10px gap. */
+.contentLead {
+  margin-bottom: 0;
+}
+
 /* Scoped answers only. What was read, in one grey line, with the lock pill
    beside it when the records are not public. Secondary ink rather than
    tertiary: the line exists to be checked against the question, so it has to
@@ -150,11 +157,15 @@
   pointer-events: none;
 }
 
-/* .chat-message-actions__container */
+/* .chat-message-actions__container. Production's 16px gap was set for bare 18px
+   glyphs; once each action became a 24px disc the same 16px put 24px of air
+   between marks ("put icons closer"). 4px between discs is the thumbs pair's
+   own spacing, so the row is one rhythm; the pair keeps a wider break before
+   it (see `.thumbs`) because rating is a different job from acting on the text. */
 .actionsRow {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 4px;
 }
 
 /* One treatment for all five actions: a 16px `currentColor` glyph centred in
@@ -184,12 +195,13 @@
   }
 }
 
-/* The pair reads as one control: tighter inside than the 16px between
-   unrelated actions. */
+/* The pair reads as one control: the row's 4px inside, 12px (8 + the row gap)
+   before it and before the receipt after it. */
 .thumbs {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  margin: 0 8px;
 }
 
 .thumbDown svg {

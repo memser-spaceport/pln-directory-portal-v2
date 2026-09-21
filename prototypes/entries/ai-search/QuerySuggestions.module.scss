@@ -1,0 +1,63 @@
+// Suggestion rows (see QuerySuggestions.tsx). Each variant wears a production
+// row class; what is here is the button reset those classes need on a
+// <button> — the same values `AiSearchView .promptButton` and
+// `SearchPopover .rowButton` use for the rows these sit among.
+
+.promptRow,
+.bandRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+/* The arrow keys' row: the same dark wash as hover, one step up the scale.
+   At hover's 4% the row was indistinguishable from its #f8fafc neighbours,
+   and unlike a pointer there is no cursor on it to say which one it is. */
+.active.active {
+  background: var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+}
+
+/* Under the band's "Chat with AI Search about …" row, 4px apart like the
+   Recent list the row class comes from. */
+.bandList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.text {
+  min-width: 0;
+}
+
+/* What you typed, in the blue production's result rows paint their matches
+   (`SearchResultsSection em`) — one highlight on the surface, not two. */
+.match {
+  font-style: normal;
+  color: rgba(21, 111, 247, 0.75);
+}
+
+.arrow {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  line-height: 0;
+}

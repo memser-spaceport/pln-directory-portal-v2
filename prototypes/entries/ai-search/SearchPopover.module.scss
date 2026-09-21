@@ -16,9 +16,33 @@
   overflow: hidden;
 }
 
+/* Where the header field is the field (tablet-landscape up), the overlay must
+   not take presses: it sits over the header, so a click to move the caret
+   would land on it and close the search. The card takes them; closing on an
+   outside press is a document listener in SearchPopover.tsx. */
+.overlayUnderField.overlayUnderField {
+  @include media.tablet-landscape {
+    pointer-events: none;
+
+    .container {
+      pointer-events: auto;
+    }
+  }
+}
+
+/* The card's own field, kept for the widths where the header shows a glyph. */
+.ownFieldCompactOnly {
+  @include media.tablet-landscape {
+    display: none;
+  }
+}
+
 /* Hung off the header control: `--pop-top` / `--pop-right` are measured from
    its box on open. Keep the lookup compact while leaving room for names and
-   the AI action; the list scrolls inside the card when it reaches the fold. */
+   the AI action; the list scrolls inside the card when it reaches the fold.
+   Wider than the open header field it hangs under (400px,
+   nav-shared/PrototypeNav.module.scss `.navSearchFieldOpen`): the two share a
+   right edge, and the card runs further left. */
 .container.container {
   position: absolute;
   top: var(--pop-top, 88px);

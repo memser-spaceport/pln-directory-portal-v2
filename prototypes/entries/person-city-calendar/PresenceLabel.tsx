@@ -24,7 +24,7 @@ interface PresenceLabelProps {
   home: { city: string; country: string };
   /** 'card' matches the production member card exactly; 'header' is the roomier profile treatment */
   variant?: 'card' | 'header' | 'inline';
-  /** show the muted "Home: Lisbon" second line — only the detail page has room */
+  /** show the muted "Based in Lisbon" second line under an away label */
   showHomeHint?: boolean;
   /** omit the date range (used where the surrounding row already states it) */
   hideDates?: boolean;
@@ -61,7 +61,8 @@ export function PresenceLabel(props: PresenceLabelProps) {
           {hideDates ? '' : ` · ${range}`}
         </span>
       </span>
-      {showHomeHint && <span className={s.homeHint}>Home: {home.city}</span>}
+      {/* "Based in", the members filter's own word for a home city. */}
+      {showHomeHint && <span className={s.homeHint}>Based in {home.city}</span>}
     </span>
   );
 }

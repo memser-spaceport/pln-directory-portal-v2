@@ -43,6 +43,8 @@ import {
   keyToDate,
   presenceOn,
   type DateKey,
+  type Overlap,
+  type Presence,
 } from './presence';
 import { MemberCardStatic } from './MemberCardStatic';
 import { LocationFilter, type When } from './LocationFilter';
@@ -68,6 +70,12 @@ const INVESTOR_TYPES = [
   { value: 'angel', label: 'Angel' },
   { value: 'fund', label: 'Fund' },
 ];
+
+interface Row {
+  person: PersonCityMember;
+  presence: Presence;
+  overlap?: Overlap;
+}
 
 interface MembersTabProps {
   me: PersonCityMember;
@@ -111,23 +119,25 @@ export function MembersTab({ me, people, trips, todayKey, onAddDates }: MembersT
   const overlapsByMember = useMemo(() => {
     const index = buildPresenceIndex(people, trips, overlapWindow);
     const found = findOverlaps(me.id, people, index, overlapWindow).filter((o) => o.travelInvolved);
-    const map = new Map<string, (typeof found)[number]>();
-    found.forEach((overlap) => {
-      if (!map.has(overlap.memberId)) map.set(overlap.memberId, overlap);
-    });
+    // Every overlap per person, earliest first — the city filter picks among them.
+    const map = new Map<string, typeof found>();
+    found.forEach((overlap) => map.set(overlap.memberId, [...(map.get(overlap.memberId) ?? []), overlap]));
     return map;
   }, [people, trips, overlapWindow, me.id]);
 
-  const rows = useMemo(() => {
-    // The lens ignores city/when — "wherever we both happen to be" is a
-    // different question, not a narrower one.
+  const rows = useMemo((): Row[] => {
+    // The toggle composes with City like every other toggle in the rail:
+    // on its own it is "anyone whose path crosses mine", with Berlin ticked it
+    // is "…in Berlin". It used to ignore the city filter and needed a paragraph
+    // above the results to say so. The When windows don't apply — the overlap
+    // already carries its own dates.
     if (overlapLens) {
-      return people
-        .filter((person) => overlapsByMember.has(person.id))
-        .map((person) => {
-          const overlap = overlapsByMember.get(person.id)!;
-          return { person, presence: presenceOn(person, trips, overlap.startDate), overlap };
-        });
+      return people.flatMap((person) => {
+        const overlap = (overlapsByMember.get(person.id) ?? []).find(
+          (candidate) => cities.length === 0 || cities.includes(candidate.city),
+        );
+        return overlap ? [{ person, presence: presenceOn(person, trips, overlap.startDate), overlap }] : [];
+      });
     }
 
     // A person matches if *any* ticked window puts them in a selected city.
@@ -156,7 +166,7 @@ export function MembersTab({ me, people, trips, todayKey, onAddDates }: MembersT
 
   const sorted = useMemo(() => {
     const needle = search.trim().toLowerCase();
-    const copy = needle
+    const copy: Row[] = needle
       ? rows.filter(
           (row) => row.person.name.toLowerCase().includes(needle) || row.person.teamName.toLowerCase().includes(needle),
         )
@@ -303,15 +313,6 @@ export function MembersTab({ me, people, trips, todayKey, onAddDates }: MembersT
               </div>
             </div>
           </div>
-
-          {/* Outside the toolbar: it is a fixed 40px bar, so an extra line in it
-              pushes the sort control off-centre. */}
-          {overlapLens && (
-            <p className={s.lensNote}>
-              Showing people whose travel crosses yours. City and date filters don&apos;t apply — the lens already
-              answers &ldquo;wherever we both are&rdquo;.
-            </p>
-          )}
 
           <div className={shell.members__right__membersList} style={{ flex: 1 }}>
             {/* The demand-side entry point.

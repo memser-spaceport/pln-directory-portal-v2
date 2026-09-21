@@ -17,7 +17,9 @@ import { NotePencilIcon, ThumbsUpOutlinedIcon } from '@/components/icons';
 import { PlTeamOnlyPill } from '../profile-shared/PlTeamOnlyPill';
 import { buildAnswer, FEEDBACK_REASONS, type CannedAnswer } from './mocks';
 import type { AiSearchScope } from './scope';
+import type { AiSearchViewer } from './viewer';
 import { DirectoryResultsCards } from './DirectoryResultsCards';
+import { AnswerBlocks } from './AnswerBlocks';
 import s from './AnswerPanel.module.scss';
 
 export type TurnStatus = 'thinking' | 'streaming' | 'done';
@@ -35,14 +37,14 @@ export interface Turn extends CannedAnswer {
 let nextId = 1;
 
 /** A new turn. Inside a scope the scope answers; otherwise the network does. */
-export function makeTurn(question: string, scope?: AiSearchScope | null): Turn {
+export function makeTurn(question: string, scope?: AiSearchScope | null, viewer: AiSearchViewer = 'member'): Turn {
   return {
     id: nextId++,
     question,
     shown: '',
     status: 'thinking',
     feedback: 'none',
-    ...(scope ? scope.answer(question) : buildAnswer(question)),
+    ...(scope ? scope.answer(question) : buildAnswer(question, viewer)),
   };
 }
 
@@ -234,7 +236,7 @@ export function AnswerPanel({
       <form className={s.inputWrap} onSubmit={(e) => e.preventDefault()}>
         <ChatInput
           ref={inputRef}
-          placeholder="Go ahead, ask anything!"
+          placeholder="Ask a follow-up"
           rows={1}
           defaultValue={draft}
           onChange={(e) => onDraftChange?.(e.target.value)}
@@ -300,11 +302,21 @@ function Message({ turn, isLast, busy, onFollowup, onRegenerate, onEdit, onFeedb
             </div>
           )}
 
-          <div className={clsx(s.content, scoped && s.summary)}>
+          <div className={clsx(s.content, scoped && s.summary, turn.blocks?.length && s.contentLead)}>
             <Markdown>{turn.shown}</Markdown>
           </div>
 
-          {!scoped && !streaming && turn.sql.length > 0 && <DirectoryResultsCards hits={turn.sql} />}
+          {/* The shape the prose leads into — a comparison table, for now —
+              lands whole once the sentence introducing it is on screen; a
+              table has nothing to stream. */}
+          {!streaming && turn.blocks && turn.blocks.length > 0 && <AnswerBlocks blocks={turn.blocks} />}
+
+          {/* Intro rows are the same investors as the cards, with the path and
+              the press added — the richer drawing of one list, so the plain
+              one steps aside rather than repeating it underneath. */}
+          {!scoped && !streaming && turn.sql.length > 0 && !turn.blocks?.some((b) => b.kind === 'intros') && (
+            <DirectoryResultsCards hits={turn.sql} />
+          )}
 
           {/* A door, not a rival list: the section on the page is where these
               records are read and acted on, so the answer hands over to it. */}

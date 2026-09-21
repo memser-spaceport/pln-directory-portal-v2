@@ -1,5 +1,8 @@
 .root {
   display: flex;
+  /* Still wrapping: the measure pass needs the tags to fall onto their real rows
+     before it can tell which ones are on the first. The cut is what keeps the
+     rendered list to one row, not `nowrap`. */
   flex-wrap: wrap;
   gap: 6px;
   margin: 0;
@@ -8,13 +11,64 @@
   margin-bottom: 8px;
 }
 
+/* The frame between render and measurement. Hidden rather than absent so the
+   tags occupy their real positions to be measured, and `visibility` rather than
+   `opacity` so nothing animates into place afterwards. */
+.measuring {
+  visibility: hidden;
+}
+
+.overflowList {
+  max-width: 260px;
+}
+
+/* A positioning slot now: the pill itself is the shared `Tag`, which is what
+   makes these read as the teams listing's tags. */
 .chip {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-  color: var(--foreground-neutral-secondary, #455468);
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 18px;
-  white-space: nowrap;
+  display: flex;
+  min-width: 0;
+}
+
+/**
+ * The label reads in full.
+ *
+ * `Tag.primary` caps itself at 74px, which is right on the teams listing — those
+ * are focus areas, and the card is narrow. These are category names:
+ * "AI Agents & Automation" arrived as "AI Agent…", and every tag capped to the
+ * same width also makes the measured row meaningless, since the measurement is
+ * of labels that were all truncated to 74px first.
+ *
+ * The row is what truncates now, not the label: tags are cut from the list by
+ * `visibleTagCount`, and only a tag wider than the whole row ellipsizes — which
+ * is what `max-width: 100%` leaves it free to do.
+ *
+ * Two classes deep to out-specify `.primary`'s own single class, rather than
+ * relying on which stylesheet the bundler happens to emit last.
+ */
+.chip .tagPill {
+  max-width: 100%;
+}
+
+/**
+ * The `+n` chip has to sit above the card's stretched link, or it is never
+ * hovered at all.
+ *
+ * `AiAppCard` draws `.stretchedLink::after { position: absolute; inset: 0 }`
+ * across the whole card so that clicking anywhere opens the app. That overlay is
+ * a positioned element and the tag row is not, so it paints on top and takes
+ * every pointer event over the tags with it: the tooltip's trigger was never
+ * hovered, which is why it appeared to do nothing while the markup said it was
+ * wired correctly.
+ *
+ * Every other control on that card — the ⋯ slot, the failure strip's button, the
+ * details button, the author link — carries exactly this pair for exactly this
+ * reason.
+ *
+ * Only this chip. The plain tags stay under the overlay on purpose: they are not
+ * controls, and lifting them would punch holes in a card whose whole surface is
+ * meant to be one click.
+ */
+.overflowChip {
+  position: relative;
+  z-index: 1;
 }

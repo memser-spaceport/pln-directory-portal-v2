@@ -533,6 +533,101 @@ describe('GiveAiAppFeedbackDialog', () => {
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Screenshots aren’t available in this browser.'));
   });
 
+  /**
+   * A capture used to be frozen the moment it was added: the strip showed a
+   * thumbnail and a ✕, so a misplaced comment meant deleting the screenshot and
+   * taking it again.
+   */
+  describe('reopening an added screenshot', () => {
+    const takeAndAdd = async () => {
+      (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
+      (grabVideoFrame as jest.Mock).mockResolvedValue(PIXEL_PNG);
+      (stopCaptureStream as jest.Mock).mockImplementation(() => undefined);
+      mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Select region' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Add to feedback' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Add to feedback' }));
+      await waitFor(() => expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument());
+    };
+
+    it('opens the annotator again from the thumbnail', async () => {
+      await takeAndAdd();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Edit screenshot 1' }));
+
+      /* Its footer says what this visit is: the CHANGES can be discarded, while
+         the screenshot stays in the feedback either way — and it does not say
+         "Cancel", which the dialog underneath already says about something
+         else. */
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument());
+      expect(screen.getByRole('button', { name: 'Discard changes' })).toBeInTheDocument();
+    });
+
+    /* One screenshot in, one screenshot out. Appending would leave the version
+       with the misplaced comment in the feedback beside the corrected one. */
+    it('replaces the entry rather than adding a second', async () => {
+      await takeAndAdd();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Edit screenshot 1' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+
+      await waitFor(() => expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument());
+      expect(screen.queryByAltText('Screenshot 2')).not.toBeInTheDocument();
+    });
+
+    it('leaves the capture alone when the edit is cancelled', async () => {
+      await takeAndAdd();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Edit screenshot 1' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Discard changes' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
+
+      await waitFor(() => expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument());
+      expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument();
+    });
+
+    /**
+     * The edit has to be forgotten, not just closed.
+     *
+     * Leaving the edited id set means the NEXT capture is treated as an edit of
+     * it — a fresh screenshot silently overwriting an older one, with the strip
+     * showing the same count as before. Nothing on screen says anything went
+     * wrong; the feedback just arrives missing a picture.
+     */
+    it('does not let a discarded edit swallow the next capture', async () => {
+      await takeAndAdd();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Edit screenshot 1' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Discard changes' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
+
+      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Select region' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Add to feedback' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Add to feedback' }));
+
+      await waitFor(() => expect(screen.getByAltText('Screenshot 2')).toBeInTheDocument());
+    });
+
+    /* The ✕ sits inside the thumbnail's hit area. If the two are ever nested as
+       buttons, the browser reparents them and this press opens the editor. */
+    it('removes without opening the editor', async () => {
+      await takeAndAdd();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
+
+      await waitFor(() => expect(screen.queryByAltText('Screenshot 1')).not.toBeInTheDocument());
+      expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
+    });
+  });
+
   it('attaches an annotated screenshot and submits it with the feedback body', async () => {
     (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
     (grabVideoFrame as jest.Mock).mockResolvedValue(PIXEL_PNG);

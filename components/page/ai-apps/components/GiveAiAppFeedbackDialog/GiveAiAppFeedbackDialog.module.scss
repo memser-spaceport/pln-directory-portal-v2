@@ -243,6 +243,37 @@
   }
 }
 
+/* The thumbnail itself, which is now the press that reopens the annotator. */
+.screenshotOpen {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+/* The edit affordance, on hover and on keyboard focus — a control that only
+   announces itself to a mouse is a control keyboard users never find. */
+.screenshotEdit {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: rgba(14, 15, 17, 0.45);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.screenshotChip:hover .screenshotEdit,
+.screenshotOpen:focus-visible .screenshotEdit {
+  opacity: 1;
+}
+
 .screenshotRemove {
   position: absolute;
   top: 4px;
@@ -253,9 +284,19 @@
   width: 18px;
   height: 18px;
   padding: 0;
-  border: none;
+  /* A ring against the screenshot behind it: these sit on arbitrary captures,
+     and a dark disc on a dark screenshot is a control nobody finds. */
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 9999px;
   background: rgba(14, 15, 17, 0.72);
   color: #fff;
   cursor: pointer;
+  /* Above the hover veil, which covers the whole chip. */
+  z-index: 1;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--foreground-error-primary, #dd2c5a);
+    border-color: #fff;
+  }
 }

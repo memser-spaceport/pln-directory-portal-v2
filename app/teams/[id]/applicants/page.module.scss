@@ -11,13 +11,13 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 0 16px;
   padding-bottom: 40px;
   min-height: calc(100vh - 80px);
   background-color: var(--background-neutral-subtle, #f1f5f9);
 
   @include media.tablet-landscape {
-    padding: 24px;
+    padding: 0 4px;
     padding-bottom: 40px;
   }
 }

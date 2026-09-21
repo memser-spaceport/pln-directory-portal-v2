@@ -121,11 +121,18 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
   );
 
   /**
-   * White at rest, not `filterSelectStyles`' blue.
+   * Neutral at rest, not `filterSelectStyles`' blue.
    *
-   * That blue is the control's "a filter is applied" state and it keys off
-   * `hasValue` — which a role picker always has, because choosing which role's
-   * applicants to read is not a filter.
+   * That blue is the toolbar control's "a filter is applied" state: the fill and
+   * the border key off `hasValue`, and the selected text and caret are painted
+   * brand blue outright. A role picker always has a value — choosing whose
+   * applicants to read is not a filter, and a control that is permanently lit
+   * says something is narrowed when nothing is.
+   *
+   * Three overrides for one idea, because the stylesheet expresses it in three
+   * places: the control (via a forced `hasValue: false`), the selected label,
+   * and the caret beside it. Leaving any one blue reads as a half-applied state
+   * rather than a deliberate one.
    */
   const roleSelectStyles = useMemo(
     () =>
@@ -133,6 +140,13 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
         ...filterSelectStyles,
         control: (base: any, state: any) => ({
           ...(filterSelectStyles.control as any)(base, { ...state, hasValue: false }),
+        }),
+        singleValue: (base: any, state: any) => ({
+          ...(filterSelectStyles.singleValue as any)(base, state),
+          color: 'var(--foreground-neutral-primary, #0f172a)',
+        }),
+        dropdownIndicator: (base: any, state: any) => ({
+          ...(filterSelectStyles.dropdownIndicator as any)(base, { ...state, hasValue: false }),
         }),
       }) as unknown as StylesConfig<RoleOption, false>,
     [],

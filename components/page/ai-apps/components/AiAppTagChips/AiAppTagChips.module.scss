@@ -28,3 +28,47 @@
   display: flex;
   min-width: 0;
 }
+
+/**
+ * The label reads in full.
+ *
+ * `Tag.primary` caps itself at 74px, which is right on the teams listing — those
+ * are focus areas, and the card is narrow. These are category names:
+ * "AI Agents & Automation" arrived as "AI Agent…", and every tag capped to the
+ * same width also makes the measured row meaningless, since the measurement is
+ * of labels that were all truncated to 74px first.
+ *
+ * The row is what truncates now, not the label: tags are cut from the list by
+ * `visibleTagCount`, and only a tag wider than the whole row ellipsizes — which
+ * is what `max-width: 100%` leaves it free to do.
+ *
+ * Two classes deep to out-specify `.primary`'s own single class, rather than
+ * relying on which stylesheet the bundler happens to emit last.
+ */
+.chip .tagPill {
+  max-width: 100%;
+}
+
+/**
+ * The `+n` chip has to sit above the card's stretched link, or it is never
+ * hovered at all.
+ *
+ * `AiAppCard` draws `.stretchedLink::after { position: absolute; inset: 0 }`
+ * across the whole card so that clicking anywhere opens the app. That overlay is
+ * a positioned element and the tag row is not, so it paints on top and takes
+ * every pointer event over the tags with it: the tooltip's trigger was never
+ * hovered, which is why it appeared to do nothing while the markup said it was
+ * wired correctly.
+ *
+ * Every other control on that card — the ⋯ slot, the failure strip's button, the
+ * details button, the author link — carries exactly this pair for exactly this
+ * reason.
+ *
+ * Only this chip. The plain tags stay under the overlay on purpose: they are not
+ * controls, and lifting them would punch holes in a card whose whole surface is
+ * meant to be one click.
+ */
+.overflowChip {
+  position: relative;
+  z-index: 1;
+}

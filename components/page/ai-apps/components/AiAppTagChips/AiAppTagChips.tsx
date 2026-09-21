@@ -92,16 +92,16 @@ export function AiAppTagChips({ tags, className }: Props) {
     <ul ref={listRef} className={clsx(s.root, measuring && s.measuring, className)} aria-label="Tags">
       {shown.map((tag) => (
         <li key={tag} data-tag-chip className={s.chip}>
-          <Tag value={getLabel(tag)} variant="primary" tagsLength={total} />
+          <Tag className={s.tagPill} value={getLabel(tag)} variant="primary" tagsLength={total} />
         </li>
       ))}
       {hidden.length > 0 && (
-        <li className={s.chip}>
+        <li className={clsx(s.chip, s.overflowChip)}>
           <Tooltip
             asChild
             trigger={
               <div>
-                <Tag value={`+${hidden.length}`} variant="primary" tagsLength={total} />
+                <Tag className={s.tagPill} value={`+${hidden.length}`} variant="primary" tagsLength={total} />
               </div>
             }
             content={<div className={s.overflowList}>{hidden.map((tag) => getLabel(tag)).join(', ')}</div>}

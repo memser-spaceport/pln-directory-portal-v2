@@ -8,7 +8,9 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  margin-bottom: 8px;
+  /* No `margin-bottom`. The card's `.bottom` is a flex column with `gap: 8px`,
+     so the 8px this used to add landed on top of that one — 16px under the tags
+     where every other gap in that block is 8. */
 }
 
 /* The frame between render and measurement. Hidden rather than absent so the

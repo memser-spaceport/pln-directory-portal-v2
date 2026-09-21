@@ -179,11 +179,28 @@
   border-top: 1px solid rgba(203, 213, 225, 0.5);
 }
 
+/**
+ * The whole offer, hidden on a phone.
+ *
+ * The hint and the button go together: the hint is "Drag to capture any area of
+ * the page", which describes a gesture the button starts, so leaving it behind
+ * would be an instruction for a control that is not there.
+ *
+ * Capture is a desktop mechanism — `getDisplayMedia` is unavailable on mobile
+ * Safari and Android Chrome, so pressing it there can only ever fail. An
+ * attachment already added stays visible and sendable: the list below this is
+ * untouched, so a draft begun on a desktop still carries its screenshots if the
+ * dialog is reopened on a phone.
+ */
 .screenshotRow {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
+
+  @include media.mobile-only {
+    display: none;
+  }
 }
 
 .screenshotHint {

@@ -1,5 +1,8 @@
 .root {
   display: flex;
+  /* Still wrapping: the measure pass needs the tags to fall onto their real rows
+     before it can tell which ones are on the first. The cut is what keeps the
+     rendered list to one row, not `nowrap`. */
   flex-wrap: wrap;
   gap: 6px;
   margin: 0;
@@ -8,13 +11,20 @@
   margin-bottom: 8px;
 }
 
+/* The frame between render and measurement. Hidden rather than absent so the
+   tags occupy their real positions to be measured, and `visibility` rather than
+   `opacity` so nothing animates into place afterwards. */
+.measuring {
+  visibility: hidden;
+}
+
+.overflowList {
+  max-width: 260px;
+}
+
+/* A positioning slot now: the pill itself is the shared `Tag`, which is what
+   makes these read as the teams listing's tags. */
 .chip {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-  color: var(--foreground-neutral-secondary, #455468);
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 18px;
-  white-space: nowrap;
+  display: flex;
+  min-width: 0;
 }

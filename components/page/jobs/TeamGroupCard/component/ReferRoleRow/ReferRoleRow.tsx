@@ -66,6 +66,20 @@ interface ReferRoleRowProps {
    * controls on every row of their own page.
    */
   ownsListing?: boolean;
+  /**
+   * Drop the **View job** button from the action slot.
+   *
+   * The title is the same door — with the in-app description on, both open the
+   * drawer, which is why the row's own note calls them "one door with two
+   * handles". On a team's profile the handle is redundant: every row belongs to
+   * the team whose page you are already reading, so a button per row repeats an
+   * offer the titles already make.
+   *
+   * Only the button. Apply and Applied are different presses and are untouched,
+   * and so is every surface that does not pass this — the board's rows, where
+   * the button is the one action a scanner has.
+   */
+  hideViewJob?: boolean;
   role: IJobRole;
   teamId: string;
   teamName: string;
@@ -99,7 +113,7 @@ interface ReferRoleRowProps {
  * offering again.
  */
 export function ReferRoleRow(props: ReferRoleRowProps) {
-  const { role, teamId, teamName, currentUser, source, onClick, apply, team, ownsListing } = props;
+  const { role, teamId, teamName, currentUser, source, onClick, apply, team, ownsListing, hideViewJob } = props;
 
   const goToLogin = useLoginRedirect();
 
@@ -264,39 +278,39 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
           {/* Absent for the listing's own team: View job is the first item in
               their ⋯, and a lead is not applying to their own role. */}
           {!ownsListing &&
-            (viewJob ? (
-              <Button size="s" style="fill" variant="primary" className={ap.applyButton} onClick={viewJob}>
-                View job
-              </Button>
-            ) : (
-              inAppApply &&
-              (applied ? (
-                /* Same slot, same geometry: a row you've applied to must not
+            (viewJob
+              ? !hideViewJob && (
+                  <Button size="s" style="fill" variant="primary" className={ap.applyButton} onClick={viewJob}>
+                    View job
+                  </Button>
+                )
+              : inAppApply &&
+                (applied ? (
+                  /* Same slot, same geometry: a row you've applied to must not
                  resize the list around it. `disabled` is the honest semantics —
                  there is nothing left to press. */
-                <button
-                  type="button"
-                  disabled
-                  className={clsx(btn.root, btn.small, btn.border, btn.neutral, ap.applyButton, ap.appliedButton)}
-                >
-                  <CheckIcon width={12} height={12} aria-hidden="true" />
-                  Applied
-                </button>
-              ) : (
-                /* A real <button>, not the anchor: the press no longer leaves the
+                  <button
+                    type="button"
+                    disabled
+                    className={clsx(btn.root, btn.small, btn.border, btn.neutral, ap.applyButton, ap.appliedButton)}
+                  >
+                    <CheckIcon width={12} height={12} aria-hidden="true" />
+                    Applied
+                  </button>
+                ) : (
+                  /* A real <button>, not the anchor: the press no longer leaves the
                  page. It hands off to the flow, which runs the sign-in gate, the
                  profile check and the cover letter in place. */
-                <Button
-                  size="s"
-                  style="fill"
-                  variant="primary"
-                  className={ap.applyButton}
-                  onClick={() => apply!.onApply({ role, teamId, teamName, team: team! })}
-                >
-                  Apply
-                </Button>
-              ))
-            ))}
+                  <Button
+                    size="s"
+                    style="fill"
+                    variant="primary"
+                    className={ap.applyButton}
+                    onClick={() => apply!.onApply({ role, teamId, teamName, team: team! })}
+                  >
+                    Apply
+                  </Button>
+                )))}
         </div>
       </div>
 

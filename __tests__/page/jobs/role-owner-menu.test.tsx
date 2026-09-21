@@ -82,6 +82,74 @@ describe('a role row the viewer does not own', () => {
   });
 });
 
+/**
+ * The team profile drops the button; the board keeps it.
+ *
+ * With the in-app description on, the title and **View job** open the same
+ * drawer — "one door with two handles", as the row's own note puts it. On a
+ * team's own page every row belongs to the team being read, so the handle
+ * repeats an offer the titles already make; on the board it is the one action a
+ * scanner has.
+ */
+describe('the View job button', () => {
+  it('is there by default', () => {
+    render(
+      <ReferRoleRow
+        role={ROLE}
+        teamId="team-1"
+        teamName="Acme"
+        team={TEAM}
+        currentUser={MEMBER}
+        source="job-board"
+        apply={{ onApply: jest.fn(), onViewJob: jest.fn(), memberUid: 'm1' }}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'View job' })).toBeInTheDocument();
+  });
+
+  it('is dropped where the host asks', () => {
+    render(
+      <ReferRoleRow
+        role={ROLE}
+        teamId="team-1"
+        teamName="Acme"
+        team={TEAM}
+        currentUser={MEMBER}
+        source="team-profile"
+        apply={{ onApply: jest.fn(), onViewJob: jest.fn(), memberUid: 'm1' }}
+        hideViewJob
+      />,
+    );
+
+    expect(screen.queryByRole('button', { name: 'View job' })).not.toBeInTheDocument();
+    /* The row keeps its other presses — this drops one button, not the slot. */
+    expect(screen.getByRole('button', { name: 'Refer' })).toBeInTheDocument();
+  });
+
+  /* The title is the door that remains, and it has to still open the drawer —
+     dropping the button must not quietly turn the row into a dead end. */
+  it('leaves the title opening the same drawer', async () => {
+    const onViewJob = jest.fn();
+    render(
+      <ReferRoleRow
+        role={ROLE}
+        teamId="team-1"
+        teamName="Acme"
+        team={TEAM}
+        currentUser={MEMBER}
+        source="team-profile"
+        apply={{ onApply: jest.fn(), onViewJob, memberUid: 'm1' }}
+        hideViewJob
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: ROLE.roleTitle }));
+
+    expect(onViewJob).toHaveBeenCalled();
+  });
+});
+
 describe('a role row the viewer owns', () => {
   it('shows one ⋯ and none of the three controls', () => {
     renderRow(true);

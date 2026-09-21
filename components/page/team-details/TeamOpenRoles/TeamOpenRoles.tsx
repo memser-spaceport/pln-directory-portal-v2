@@ -160,6 +160,7 @@ export const TeamOpenRoles = memo(function TeamOpenRoles({
                 apply={rowApply}
                 onClick={trackClick}
                 ownsListing={ownsListings}
+                hideViewJob
               />
               {footer}
             </div>
@@ -175,6 +176,7 @@ export const TeamOpenRoles = memo(function TeamOpenRoles({
               apply={rowApply}
               onClick={trackClick}
               ownsListing={ownsListings}
+              hideViewJob
             />
           );
         })}

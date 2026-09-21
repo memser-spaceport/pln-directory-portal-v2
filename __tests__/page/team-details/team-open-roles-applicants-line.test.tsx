@@ -69,9 +69,17 @@ const group = (team: { uid: string; name: string }) =>
   }) as IJobTeamGroup;
 
 const leadOf = (uid: string) => ({ uid: 'u1', leadingTeams: [uid] }) as never;
+
+/* Permissions live in the hydrated store, not the cookie — see
+   `unionViewerInfo`. `null` unless a case says otherwise. */
+let storeUser: unknown = null;
+jest.mock('@/services/auth/store', () => ({
+  useCurrentUserStore: () => ({ currentUser: storeUser }),
+}));
 const lastCounts = () => countsCalls[countsCalls.length - 1];
 
 beforeEach(() => {
+  storeUser = null;
   countsCalls.length = 0;
 });
 
@@ -83,6 +91,30 @@ describe('the applicants count line', () => {
 
     expect(lastCounts().enabled).toBe(true);
     expect(lastCounts().teamUid).toBe('team-1');
+    expect(screen.getByRole('link')).toBeInTheDocument();
+  });
+
+  /**
+   * The case that sent a directory admin away from a page written for them.
+   *
+   * The `userInfo` cookie carries `leadingTeams` and no permissions, and cannot
+   * gain them: `UserInfoChecker` syncs it from `GET /v1/members/{uid}`, which
+   * returns no `rbac` at all. The store has them — which is why Focus Areas
+   * offered Edit on the same profile while this line refused — so the section
+   * asks both.
+   */
+  it('shows for an admin the store knows about, though the cookie does not', () => {
+    storeUser = { uid: 'u1', leadingTeams: [], rbac: { effectivePermissions: [{ code: 'directory.admin.full' }] } };
+
+    render(
+      <TeamOpenRolesSection
+        group={group({ uid: 'team-1', name: 'Acme' })}
+        isLoggedIn
+        userInfo={{ uid: 'u1', leadingTeams: [] } as never}
+      />,
+    );
+
+    expect(lastCounts().enabled).toBe(true);
     expect(screen.getByRole('link')).toBeInTheDocument();
   });
 

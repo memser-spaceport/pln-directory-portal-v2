@@ -152,45 +152,29 @@ describe('TeamOpenRolesSection', () => {
   });
 
   /**
-   * Who owns the listings — a different question from who reads applicants.
+   * The ⋯ menu is built and deliberately not shown yet.
    *
-   * `isTeamLeaderOrAdmin`, not `canReadApplicants`: that rule excludes Protocol
-   * Labs and rides the applicants flag, and neither has anything to say about
-   * whose job posting this is. A PL lead still owns PL's listings.
+   * `RoleOwnerMenu` works — see its own suite — but turning it on redraws every
+   * role row for leads and admins, which is not what the applicants work is for.
+   * `SHOW_ROLE_OWNER_MENU` holds it, and these cases pin that the holding is
+   * real rather than a prop nobody wired: an admin and a lead both get the
+   * ordinary row.
    */
   describe('whose listings these are', () => {
-    it('tells the list a lead owns them, even with the applicants flag off', () => {
+    it('offers the ⋯ menu to nobody while it is held back', () => {
       render(
         <TeamOpenRolesSection group={GROUP} isLoggedIn userInfo={{ uid: 'u1', leadingTeams: ['team-1'] } as any} />,
-      );
-
-      expect(screen.getByTestId('roles-list')).toHaveAttribute('data-owns', 'true');
-    });
-
-    it('does not, for a lead of another team', () => {
-      render(
-        <TeamOpenRolesSection group={GROUP} isLoggedIn userInfo={{ uid: 'u1', leadingTeams: ['team-9'] } as any} />,
       );
 
       expect(screen.getByTestId('roles-list')).toHaveAttribute('data-owns', 'false');
     });
 
-    /**
-     * The cookie cannot learn a directory admin's permissions: `UserInfoChecker`
-     * fills it from an endpoint that returns no `rbac`. The store can, which is
-     * why Focus Areas offers Edit to an admin on this very page — so this
-     * section asks both.
-     */
-    it('tells the list an admin owns them, even when only the store knows', () => {
+    /* The same for an admin, whose permission only the store carries — so this
+       also pins that the union below is not what is hiding the menu. */
+    it('not even to an admin the store knows about', () => {
       storeUser = { uid: 'u1', leadingTeams: [], rbac: { effectivePermissions: [{ code: 'directory.admin.full' }] } };
 
       render(<TeamOpenRolesSection group={GROUP} isLoggedIn userInfo={{ uid: 'u1', leadingTeams: [] } as any} />);
-
-      expect(screen.getByTestId('roles-list')).toHaveAttribute('data-owns', 'true');
-    });
-
-    it('does not, for a signed-out visitor', () => {
-      render(<TeamOpenRolesSection group={GROUP} isLoggedIn={false} userInfo={undefined} />);
 
       expect(screen.getByTestId('roles-list')).toHaveAttribute('data-owns', 'false');
     });

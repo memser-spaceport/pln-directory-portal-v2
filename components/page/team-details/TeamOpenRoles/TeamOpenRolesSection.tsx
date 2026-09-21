@@ -40,6 +40,19 @@ interface TeamOpenRolesSectionProps {
  * The board reaches the same hook from `JobsContent`; it is one pipeline with two
  * hosts, so the two surfaces cannot drift the way they did before.
  */
+/**
+ * The ⋯ menu is built and held back.
+ *
+ * `RoleOwnerMenu` collapses Refer, Share and View job into one control on a
+ * lead's own rows, and it works — it is just not what this change is for, and
+ * turning it on would redraw every role row on every team profile for leads and
+ * admins alongside a feature about applicants.
+ *
+ * A constant rather than deleted code: the menu, its styles and its tests stay,
+ * so turning it on is this line and nothing else. Grep `SHOW_ROLE_OWNER_MENU`.
+ */
+const SHOW_ROLE_OWNER_MENU = false;
+
 export function TeamOpenRolesSection({ group, isLoggedIn, userInfo }: TeamOpenRolesSectionProps) {
   const groups = useMemo(() => (group ? [group] : []), [group]);
 
@@ -82,15 +95,7 @@ export function TeamOpenRolesSection({ group, isLoggedIn, userInfo }: TeamOpenRo
     team: group?.team,
   });
 
-  /**
-   * Whose listings these are.
-   *
-   * `isTeamLeaderOrAdmin`, NOT `canReadApplicants`: that rule excludes Protocol
-   * Labs and is gated on the applicants flag, and neither has anything to do
-   * with who owns a job posting. A PL lead still owns PL's listings; they just
-   * do not read applicants here.
-   */
-  const ownsListings = isTeamLeaderOrAdmin(viewer, teamUid);
+  const ownsListings = SHOW_ROLE_OWNER_MENU && isTeamLeaderOrAdmin(viewer, teamUid);
 
   const { data: counts } = useApplicantCounts({
     teamUid,

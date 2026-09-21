@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 
 import { AnnotationCanvas } from '@/components/page/ai-apps/components/screenshot-feedback/AnnotationCanvas';
 import { EMPTY_ANNOTATIONS } from '@/components/page/ai-apps/components/screenshot-feedback/types';
+import canvasStyles from '@/components/page/ai-apps/components/screenshot-feedback/AnnotationCanvas.module.scss';
 
 const PIXEL_PNG =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
@@ -190,5 +191,53 @@ describe('AnnotationCanvas comments', () => {
         comments: [expect.objectContaining({ id: 'c1', x: 0.7, y: 0.4, text: 'Hi' })],
       }),
     );
+  });
+});
+
+/**
+ * Which cursor a pin wears, and why the tool decides it.
+ *
+ * A pin is a `<button>`, so its own cursor beats the canvas's crosshair
+ * underneath it — and while someone is placing comments, crossing an existing
+ * pin used to flip the cursor to "press me" over a surface whose whole job at
+ * that moment is "click to place".
+ *
+ * Asserted on class names: jsdom loads no stylesheet, so a computed `cursor`
+ * would be the empty string whatever the rules said. What is pinned here is
+ * which classes are applied; the values live one file away in the stylesheet.
+ */
+describe('AnnotationCanvas pin cursor', () => {
+  const WITH_COMMENT = {
+    ...EMPTY_ANNOTATIONS,
+    comments: [{ id: 'c1', x: 0.5, y: 0.5, text: 'Look here' }],
+  };
+
+  const pin = () => screen.getByRole('button', { name: 'Comment 1' });
+
+  it('holds the crosshair over pins while the comment tool is active', () => {
+    render(<AnnotationCanvas imageSrc={PIXEL_PNG} annotations={WITH_COMMENT} onChange={jest.fn()} tool="comment" />);
+
+    expect(pin().className).toContain(canvasStyles.pinCrosshair);
+    expect(pin().className).not.toContain(canvasStyles.pinMove);
+  });
+
+  /* With the draw tool a pin is an ordinary draggable object and goes on saying
+     so — the crosshair belongs to the mode that places them, not to the canvas
+     for ever. */
+  it('leaves the drag cursor alone under the draw tool', () => {
+    render(<AnnotationCanvas imageSrc={PIXEL_PNG} annotations={WITH_COMMENT} onChange={jest.fn()} tool="draw" />);
+
+    expect(pin().className).toContain(canvasStyles.pinMove);
+    expect(pin().className).not.toContain(canvasStyles.pinCrosshair);
+  });
+
+  /* Nothing is draggable in a read-only view, so neither cursor claims it is. */
+  it('offers no drag cursor when read-only', () => {
+    render(
+      <AnnotationCanvas imageSrc={PIXEL_PNG} annotations={WITH_COMMENT} onChange={jest.fn()} tool="comment" readOnly />,
+    );
+
+    expect(pin().className).not.toContain(canvasStyles.pinMove);
+    expect(pin().className).not.toContain(canvasStyles.pinCrosshair);
   });
 });

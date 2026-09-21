@@ -50,6 +50,14 @@
   cursor: grab;
 }
 
+/* The comment tool's crosshair, held over the pin rather than replaced by it —
+   see `pinKeepsCrosshair`. Declared before `.pinDragging` so a drag that IS
+   under way still says so: losing `grab` at rest is the point, losing
+   `grabbing` mid-drag would leave a moving pin with no feedback at all. */
+.pinCrosshair {
+  cursor: crosshair;
+}
+
 .pinDragging {
   z-index: 4;
   cursor: grabbing;

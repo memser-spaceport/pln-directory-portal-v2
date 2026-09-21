@@ -375,6 +375,20 @@ export function AnnotationCanvas({
   const pinPosition = (comment: Pick<PinComment, 'id' | 'x' | 'y'>) => (dragPos?.id === comment.id ? dragPos : comment);
 
   const canvasCursor = readOnly ? 'default' : 'crosshair';
+
+  /**
+   * The comment tool owns the cursor, pins included.
+   *
+   * A pin is a `<button>`, so its own `pointer` / `grab` beats the canvas's
+   * crosshair underneath it — and while someone is placing comments, crossing an
+   * existing pin flipped the cursor to "press me" over a surface whose whole job
+   * at that moment is "click to place". The mode is the thing being expressed,
+   * so the mode wins.
+   *
+   * Only while the comment tool is active: with the draw tool the pins are
+   * ordinary draggable objects and keep saying so.
+   */
+  const pinKeepsCrosshair = !readOnly && tool === 'comment';
   const isEditingExisting = Boolean(draft && annotations.comments.some((comment) => comment.id === draft.id));
 
   const cancelDraft = () => {
@@ -406,7 +420,12 @@ export function AnnotationCanvas({
           <button
             key={comment.id}
             type="button"
-            className={clsx(s.pin, !readOnly && s.pinMove, draggingId === comment.id && s.pinDragging)}
+            className={clsx(
+              s.pin,
+              !readOnly && !pinKeepsCrosshair && s.pinMove,
+              pinKeepsCrosshair && s.pinCrosshair,
+              draggingId === comment.id && s.pinDragging,
+            )}
             style={{ left: `${pos.x * 100}%`, top: `${pos.y * 100}%` }}
             aria-label={`Comment ${index + 1}`}
             onClick={
@@ -463,7 +482,12 @@ export function AnnotationCanvas({
         <>
           {!isEditingExisting && (
             <span
-              className={clsx(s.pin, s.pinMove, draggingId === draft.id && s.pinDragging)}
+              className={clsx(
+                s.pin,
+                !pinKeepsCrosshair && s.pinMove,
+                pinKeepsCrosshair && s.pinCrosshair,
+                draggingId === draft.id && s.pinDragging,
+              )}
               style={{ left: `${draft.x * 100}%`, top: `${draft.y * 100}%` }}
               aria-hidden
               onPointerDown={(event) => beginPinDrag(event, draft.id, true)}

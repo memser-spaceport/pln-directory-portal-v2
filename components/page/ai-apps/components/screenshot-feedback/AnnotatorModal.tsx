@@ -15,6 +15,15 @@ interface Props {
   imageSrc: string;
   onDiscard: () => void;
   onAdd: (annotations: AnnotationState) => void;
+  /**
+   * What this capture already carries, when it is being reopened to edit.
+   *
+   * Absent for a fresh capture. Present, it is the history's FLOOR rather than
+   * its first change: undo walks back to the state the editor opened on and
+   * stops, because everything before that belongs to a session that was already
+   * saved and is not this editor's to undo.
+   */
+  initialAnnotations?: AnnotationState;
 }
 
 type History = {
@@ -22,10 +31,18 @@ type History = {
   index: number;
 };
 
-export function AnnotatorModal({ imageSrc, onDiscard, onAdd }: Props) {
+export function AnnotatorModal({ imageSrc, onDiscard, onAdd, initialAnnotations }: Props) {
+  /* Reopened rather than fresh — the two differ only in what the footer promises
+     and where the history starts. */
+  const isEditing = Boolean(initialAnnotations);
   const [tool, setTool] = useState<AnnotatorTool>('draw');
   const [strokeColor, setStrokeColor] = useState<(typeof DRAW_COLORS)[number]>(DEFAULT_DRAW_COLOR);
-  const [history, setHistory] = useState<History>({ entries: [emptyAnnotations()], index: 0 });
+  /* Lazy, and seeded once: a later render must not reset an edit in progress,
+     and `emptyAnnotations()` allocates. */
+  const [history, setHistory] = useState<History>(() => ({
+    entries: [initialAnnotations ?? emptyAnnotations()],
+    index: 0,
+  }));
   const annotations = history.entries[history.index];
   const canUndo = history.index > 0;
   const canRedo = history.index < history.entries.length - 1;
@@ -150,10 +167,15 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd }: Props) {
         </div>
 
         <div className={s.footer}>
+          {/* "Discard" alone is honest for a fresh capture and a lie for an edit:
+              it throws away the changes, not the screenshot, which stays in the
+              feedback either way. Not "Cancel" — the dialog underneath has one,
+              and two Cancels on screen do not say which thing is being
+              cancelled. */}
           <Button style="border" variant="neutral" onClick={onDiscard}>
-            Discard
+            {isEditing ? 'Discard changes' : 'Discard'}
           </Button>
-          <Button onClick={() => onAdd(annotations)}>Add to feedback</Button>
+          <Button onClick={() => onAdd(annotations)}>{isEditing ? 'Save changes' : 'Add to feedback'}</Button>
         </div>
       </div>
     </Modal>

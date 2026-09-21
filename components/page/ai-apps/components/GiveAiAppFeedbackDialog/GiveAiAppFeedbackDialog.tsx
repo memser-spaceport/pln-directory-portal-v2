@@ -8,7 +8,7 @@ import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { FormEditor } from '@/components/form/FormEditor';
 import { FormSelect } from '@/components/form/FormSelect/FormSelect';
-import { CloseIcon, CommentIcon } from '@/components/icons';
+import { CloseIcon, CommentIcon, PencilSimpleLineIcon } from '@/components/icons';
 import { toast } from '@/components/core/ToastContainer';
 import { useContactSupport } from '@/components/ContactSupport/hooks/useContactSupport';
 import { useFormDraft } from '@/hooks/useFormDraft';
@@ -150,6 +150,14 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
   const [screenshots, setScreenshots] = useState<ScreenshotAttachment[]>([]);
   const [freezeSrc, setFreezeSrc] = useState<string | null>(null);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
+  /**
+   * Which capture the annotator is open on, when it is an edit.
+   *
+   * `null` for a fresh capture. The id rather than the index: the strip can lose
+   * an entry to the ✕ while the editor is open, and an index would then write
+   * the edit onto somebody else's screenshot.
+   */
+  const [editingShotId, setEditingShotId] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const isBusy = isCapturing || Boolean(freezeSrc) || Boolean(cropSrc);
   const isPending = isAppFeedbackPending || isContactSupportPending || isHostingImages;
@@ -180,6 +188,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
   const onDialogClose = () => {
     resetCapture();
     setScreenshots([]);
+    setEditingShotId(null);
     setSubmitAttempted(false);
     onClose();
   };
@@ -188,6 +197,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
     clearDraft();
     reset(getDefaults());
     setScreenshots([]);
+    setEditingShotId(null);
     resetCapture();
     setSubmitAttempted(false);
     onClose();
@@ -225,14 +235,33 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
     setCropSrc(croppedDataUrl);
   };
 
+  const editingShot = editingShotId ? screenshots.find((shot) => shot.id === editingShotId) : undefined;
+
+  /* Reopens a capture on its own annotations. `cropSrc` is what the annotator
+     draws on, so an edit points it at the stored image rather than a fresh
+     grab. */
+  const onEditShot = (shot: ScreenshotAttachment) => {
+    setEditingShotId(shot.id);
+    setCropSrc(shot.imageDataUrl);
+  };
+
   const onAnnotatorDiscard = () => {
     setCropSrc(null);
+    setEditingShotId(null);
   };
 
   const onAnnotatorAdd = (annotations: AnnotationState) => {
     if (!cropSrc) return;
-    setScreenshots((prev) => [...prev, { id: `shot-${Date.now()}`, imageDataUrl: cropSrc, annotations }]);
+    /* An edit replaces its own entry IN PLACE — same id, same position. A new
+       entry would leave the old drawing in the feedback beside the corrected one,
+       and a changed id would remount the chip and lose its place in the strip. */
+    setScreenshots((prev) =>
+      editingShotId
+        ? prev.map((shot) => (shot.id === editingShotId ? { ...shot, annotations } : shot))
+        : [...prev, { id: `shot-${Date.now()}`, imageDataUrl: cropSrc, annotations }],
+    );
     setCropSrc(null);
+    setEditingShotId(null);
   };
 
   const onSubmit = handleSubmit(async ({ app, message: rawMessage }) => {
@@ -359,7 +388,21 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
                   <ul className={s.screenshotList}>
                     {screenshots.map((shot, index) => (
                       <li key={shot.id} className={s.screenshotChip}>
-                        <img src={shot.imageDataUrl} alt={`Screenshot ${index + 1}`} />
+                        {/* The image is the press, the ✕ is its SIBLING rather
+                            than its child: a button inside a button is invalid
+                            markup that browsers reparent, and the reparenting is
+                            how a Remove press ends up opening the editor. */}
+                        <button
+                          type="button"
+                          className={s.screenshotOpen}
+                          aria-label={`Edit screenshot ${index + 1}`}
+                          onClick={() => onEditShot(shot)}
+                        >
+                          <img src={shot.imageDataUrl} alt={`Screenshot ${index + 1}`} />
+                          <span className={s.screenshotEdit} aria-hidden="true">
+                            <PencilSimpleLineIcon width={14} height={14} />
+                          </span>
+                        </button>
                         <button
                           type="button"
                           className={s.screenshotRemove}
@@ -395,7 +438,14 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
         </div>
       </Modal>
       {freezeSrc && <RegionSelectOverlay freezeSrc={freezeSrc} onSelect={onCropSelected} onCancel={resetCapture} />}
-      {cropSrc && <AnnotatorModal imageSrc={cropSrc} onDiscard={onAnnotatorDiscard} onAdd={onAnnotatorAdd} />}
+      {cropSrc && (
+        <AnnotatorModal
+          imageSrc={cropSrc}
+          onDiscard={onAnnotatorDiscard}
+          onAdd={onAnnotatorAdd}
+          initialAnnotations={editingShot?.annotations}
+        />
+      )}
     </>
   );
 }

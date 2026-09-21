@@ -56,19 +56,12 @@
   min-width: 0;
 }
 
-/* The connector chip in the blue of the chip's own hover state, at rest. Doubled
-   class so it beats `PathProfileChip`'s `.chipStatic:hover` reset. Tokens, with
-   the hover's rendered colours as the fallbacks. */
-.chipBrand.chipBrand {
-  background: var(--transparent-brand-8, rgba(27, 77, 255, 0.08));
-  border-color: var(--border-brand-subtle, #aebfff);
+/* The connector as running text beside the "Intro via" label (same 12/18 size). */
+.connectorName {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
   color: var(--foreground-brand-primary, #1b4dff);
-
-  &:hover {
-    background: var(--transparent-brand-8, rgba(27, 77, 255, 0.08));
-    border-color: var(--border-brand-subtle, #aebfff);
-    color: var(--foreground-brand-primary, #1b4dff);
-  }
 }
 
 .introKind,

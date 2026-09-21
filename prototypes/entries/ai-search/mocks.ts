@@ -450,7 +450,7 @@ export interface IntroPathsBlock {
   investorUids: string[];
   /**
    * The answer is ABOUT this one investor, so the offer is a line under the
-   * prose (the connector chip) rather than a table that names them a second time.
+   * prose ("Intro via …") rather than a table that names them a second time.
    */
   compact?: boolean;
   /**

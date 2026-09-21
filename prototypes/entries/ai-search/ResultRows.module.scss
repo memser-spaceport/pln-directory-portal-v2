@@ -59,9 +59,15 @@
 .intro {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   margin-top: 6px;
   padding-left: 32px;
+}
+
+.introLabel {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
 }
 
 .introAction {

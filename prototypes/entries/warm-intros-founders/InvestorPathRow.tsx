@@ -57,13 +57,17 @@ export function initialsOf(name: string): string {
 }
 
 /**
- * `brand` draws the chip in the blue of its own hover state (see
- * `IntroDoors.module.scss`). AI Search uses it where the chip stands alone with
- * no "Intro via" label: blue is what says "this is the person".
+ * The connector as running text — bold brand blue, no pill or avatar. AI Search
+ * uses it (via `plain` on the rows) where the intro is a line of a sentence:
+ * "Intro via **Mara Velasquez**".
  */
-export function ConnectorChip({ name, brand }: { name: string; brand?: boolean }) {
+export function ConnectorName({ name }: { name: string }) {
+  return <span className={door.connectorName}>{name}</span>;
+}
+
+export function ConnectorChip({ name }: { name: string }) {
   return (
-    <span className={clsx(chip.chip, chip.chipStatic, brand && door.chipBrand)}>
+    <span className={clsx(chip.chip, chip.chipStatic)}>
       <span className={chip.avatarWrap}>
         <span className={chip.avatar} aria-hidden>
           {initialsOf(name) || '?'}
@@ -84,8 +88,8 @@ interface Props {
   onMarkMet?: () => void;
   /** The investor's profile, when the host has one to open. */
   href?: string;
-  /** No "Intro via" label on the row (AI Search): the connector is just the blue chip. */
-  bare?: boolean;
+  /** AI Search: the connector is bold blue text, not a chip. */
+  plain?: boolean;
 }
 
 /**
@@ -95,7 +99,7 @@ interface Props {
  * No score, no caliber, no proximity code — those rank paths for an analyst;
  * a founder needs "who do I ask", and the list order already carries the rank.
  */
-export function InvestorPathRow({ row, ask, onAsk, onAskAlternate, onMarkMet, href, bare }: Props) {
+export function InvestorPathRow({ row, ask, onAsk, onAskAlternate, onMarkMet, href, plain }: Props) {
   const facts = row.evidence.length ? row.evidence.join(' · ') : `Invests in ${sectorLabels(row)}`;
   const connector = connectorOf(row, ask);
 
@@ -123,8 +127,8 @@ export function InvestorPathRow({ row, ask, onAsk, onAskAlternate, onMarkMet, hr
           own label is kept for screen readers only; on a phone there is no
           header row and it reads "Intro via [chip] PL team" in one line. */}
       <div className={s.via}>
-        {!bare && <span className={s.viaLabel}>Intro via</span>}
-        <ConnectorChip name={connector.name} brand={bare} />
+        <span className={s.viaLabel}>Intro via</span>
+        {plain ? <ConnectorName name={connector.name} /> : <ConnectorChip name={connector.name} />}
         <span className={s.viaKind}>{CONNECTOR_KIND_LABEL[connectorKindOf(row, ask)]}</span>
       </div>
 

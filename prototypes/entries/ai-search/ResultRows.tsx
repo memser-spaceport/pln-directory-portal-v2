@@ -21,7 +21,7 @@ import { Badge } from '@/components/common/Badge';
 
 import { investorByUid, investorProfileHref, connectorOf, ASK_STATUS_LABEL } from '../warm-intros-founders/mocks';
 import type { FounderInvestorRow, IntroAsk } from '../warm-intros-founders/mocks';
-import { ConnectorChip } from '../warm-intros-founders/InvestorPathRow';
+import { ConnectorName } from '../warm-intros-founders/InvestorPathRow';
 
 import local from './ResultRows.module.scss';
 
@@ -174,7 +174,8 @@ function Row({
 
       {investor && intro && (
         <div className={local.intro}>
-          <ConnectorChip name={connectorOf(investor, ask).name} brand />
+          <span className={local.introLabel}>Intro via</span>
+          <ConnectorName name={connectorOf(investor, ask).name} />
           <span className={local.introAction}>
             {ask ? (
               <Badge variant={ask.status === 'requested' ? 'brand' : ask.status === 'declined' ? 'default' : 'success'}>

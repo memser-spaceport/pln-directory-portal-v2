@@ -54,7 +54,7 @@ export function IntroPathsRows({ block }: { block: IntroPathsBlock }) {
           onAsk={() => ask(row)}
           onAskAlternate={() => row.alternate && ask(row, row.alternate.connector)}
           onMarkMet={() => setStatus(row.uid, 'met')}
-          bare
+          plain
         />
         {modal}
       </div>
@@ -79,7 +79,7 @@ export function IntroPathsRows({ block }: { block: IntroPathsBlock }) {
             onAsk={() => ask(row)}
             onAskAlternate={() => row.alternate && ask(row, row.alternate.connector)}
             onMarkMet={() => setStatus(row.uid, 'met')}
-            bare
+            plain
           />
         ))}
       </div>

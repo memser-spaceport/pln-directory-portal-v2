@@ -1,6 +1,6 @@
 'use client';
 
-import { AskAction, ConnectorChip } from './InvestorPathRow';
+import { AskAction, ConnectorChip, ConnectorName } from './InvestorPathRow';
 import {
   CONNECTOR_KIND_LABEL,
   connectorKindOf,
@@ -17,8 +17,8 @@ interface Props {
   onAsk: () => void;
   onAskAlternate?: () => void;
   onMarkMet?: () => void;
-  /** No "Intro via" label (AI Search): the connector is just the blue chip. */
-  bare?: boolean;
+  /** AI Search: the connector is bold blue text, not a chip. */
+  plain?: boolean;
 }
 
 /**
@@ -30,15 +30,15 @@ interface Props {
  * who the investor is. Here that would repeat the page, so this is the row
  * minus its first two cells.
  */
-export function IntroViaLine({ row, ask, onAsk, onAskAlternate, onMarkMet, bare }: Props) {
+export function IntroViaLine({ row, ask, onAsk, onAskAlternate, onMarkMet, plain }: Props) {
   const connector = connectorOf(row, ask);
   const tie = tieLine(row, connector);
 
   return (
     <div className={door.introBody}>
       <div className={door.introPath}>
-        {!bare && <span className={door.introKind}>Intro via</span>}
-        <ConnectorChip name={connector.name} brand={bare} />
+        <span className={door.introKind}>Intro via</span>
+        {plain ? <ConnectorName name={connector.name} /> : <ConnectorChip name={connector.name} />}
         <span className={door.introKind}>{CONNECTOR_KIND_LABEL[connectorKindOf(row, ask)]}</span>
         {tie && <p className={door.introTie}>{tie}</p>}
       </div>

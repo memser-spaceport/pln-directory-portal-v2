@@ -2,7 +2,7 @@
 
 /**
  * The whole shortlist + the founder's asks, in the team profile's place — the
- * applicants-page move (`../team-profile/TeamApplicantsPage`): one press from
+ * candidates-page move (`../team-profile/TeamCandidatesPage`): one press from
  * the section, Back returns to the profile as it was. Page chrome (width, back
  * button, title scale) is that page's own stylesheet.
  *
@@ -17,7 +17,7 @@ import clsx from 'clsx';
 import { Tabs } from '@/components/ui/tabs/Tabs';
 import { CaretLeftIcon } from '@/components/icons/CaretLeftIcon';
 import back from '@/components/ui/BackButton/BackButton.module.scss';
-import page from '../team-profile/TeamApplicantsPage.module.scss';
+import page from '../team-profile/TeamCandidatesPage.module.scss';
 
 import { InvestorPathRow, InvestorTableHead } from './InvestorPathRow';
 import { investorProfileHref, type FounderInvestorRow, type IntroAsk } from './mocks';

@@ -39,36 +39,36 @@ import { ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferR
 
 import { CvAttachmentLine } from '../profile-shared/StoredCv/CvAttachmentLine';
 import { EnvelopeIcon, ReviewCheckIcon } from './icons';
-import { ApplicantRow } from './ApplicantRow';
-import { ApplicantMemberPage } from './ApplicantMemberPage';
+import { CandidateRow } from './CandidateRow';
+import { CandidateMemberPage } from './CandidateMemberPage';
 import { Tabs } from '@/components/ui/tabs/Tabs';
 
 import {
   sortSuggested,
   suggestionMatch,
   visibleSuggested,
-  type RoleApplicant,
+  type RoleCandidate,
   type RoleCriterion,
   type RoleInterested,
   type RoleSuggested,
 } from './mocks';
 import { SuggestedWhy } from './SuggestedWhy';
 import { CriteriaModal } from './CriteriaModal';
-import s from './TeamApplicantsPage.module.scss';
+import s from './TeamCandidatesPage.module.scss';
 
 const APPLIED_TAB = 'Applied';
 const INTERESTED_TAB = 'Interested';
 const SUGGESTED_TAB = 'Suggested';
 
-export type ApplicantsTab = typeof APPLIED_TAB | typeof INTERESTED_TAB | typeof SUGGESTED_TAB;
+export type CandidatesTab = typeof APPLIED_TAB | typeof INTERESTED_TAB | typeof SUGGESTED_TAB;
 
-type Person = RoleApplicant | RoleInterested | RoleSuggested;
+type Person = RoleCandidate | RoleInterested | RoleSuggested;
 const isSuggested = (p: Person): p is RoleSuggested => 'reasons' in p;
 /** A picker option with the role's live unopened count, for its `● M new`. */
 type RoleOption = Option & { newCount: number };
-const personDate = (p: RoleApplicant | RoleInterested) => ('appliedAt' in p ? p.appliedAt : p.interestedAt);
+const personDate = (p: RoleCandidate | RoleInterested) => ('appliedAt' in p ? p.appliedAt : p.interestedAt);
 
-export interface ApplicantsRole {
+export interface CandidatesRole {
   uid: string;
   title: string;
   /** The team's own posting — the same link the job board's ⋯ menu calls "View posting". */
@@ -77,7 +77,7 @@ export interface ApplicantsRole {
   meta?: string;
   /** ISO — when the role was posted, for "Posted 2d ago". */
   postedAt?: string;
-  applicants: RoleApplicant[];
+  candidates: RoleCandidate[];
   /** Pressed "I'm interested" on this role instead of applying. */
   interested: RoleInterested[];
   /**
@@ -94,11 +94,11 @@ const NO_CRITERIA_OFF: ReadonlySet<string> = new Set();
 
 interface Props {
   teamName: string;
-  roles: ApplicantsRole[];
+  roles: CandidatesRole[];
   /** The role whose count line was pressed. */
   initialRoleUid: string;
   /** The tab to open on: the count line's "N suggested" clause opens Suggested. */
-  initialTab?: ApplicantsTab;
+  initialTab?: CandidatesTab;
   onBack: () => void;
   /**
    * What Back is called. "Back to <team>" by default — the page's first home is
@@ -110,7 +110,7 @@ interface Props {
 }
 
 /**
- * The team's applicants, as a page of the team's own: the list on the left,
+ * The team's candidates, as a page of the team's own: the list on the left,
  * the selected person's profile on the right.
  *
  * **Why a page, beside the modal.** The modal answers "who applied?"; it does
@@ -118,13 +118,13 @@ interface Props {
  * one means opening each one, and a modal that opens fifty tabs is a list that
  * has stopped helping. Contra's and Deel's per-job candidate views keep the
  * list in place and show the person beside it, so a founder steps through
- * applicants the way they would step through an inbox. This is that, on the
+ * candidates the way they would step through an inbox. This is that, on the
  * team's own surface: reached from the count line on the role row, with Back
  * to the profile, and the team's roles in a picker above the split so all of a
  * team's hiring is one place rather than one modal per role.
  *
  * **The role heads its list.** The role's facts (seniority · category ·
- * location · posted) and **View posting** sit at the top of the applicant
+ * location · posted) and **View posting** sit at the top of the candidate
  * list, above its search, so the list reads "these people answered this".
  * Chosen from five placements compared side by side (beside the picker, the
  * page header, a role summary card, here, and a narrow list).
@@ -134,11 +134,11 @@ interface Props {
  * (`FilterSelect`'s react-select and styles), not a search field bolted into
  * the old `SortDropdown` menu, which has none. It rests white rather than in
  * that control's blue: the blue says "a filter is applied", and choosing which
- * role's applicants to read is not a filter.
+ * role's candidates to read is not a filter.
  *
  * **The right pane is the member's page, not a new object.** It is
  * `/members/<id>` itself — every section, in production's order and with
- * production's visibility rules (`ApplicantMemberPage`) — because the founder
+ * production's visibility rules (`CandidateMemberPage`) — because the founder
  * is judging the same person the directory shows. One section is added, under
  * the profile card: the application — when, what they wrote, and the CV that
  * came with it. The pane used to be a slice (header, skills, experience) with
@@ -146,10 +146,10 @@ interface Props {
  * that link had nothing left to reach, so it went.
  *
  * **One bar above the pane: where you are, next, and the reply.** Wellfound
- * heads its applicant pane with "1 of 26" and Previous / Next applicant;
+ * heads its candidate pane with "1 of 26" and Previous / Next candidate;
  * Workable and Homerun show "2 of 4" with arrows; every ATS reference pins
  * the action (Workable's toolbar, Homerun's top bar, User Interviews' bottom
- * bar). At fifty applicants the founder's question after reading one person
+ * bar). At fifty candidates the founder's question after reading one person
  * is "how many left, and next", and the list beside the pane answers it only
  * by scrolling back to find the row they were on. So the pane opens with a
  * slim sticky row: `2 of 3`, prev / next, and **Email** — the only thing the
@@ -158,12 +158,12 @@ interface Props {
  * out of reach the moment the founder scrolled to Experience to check what
  * the note claimed. It is the page's one bar, above the profile card rather
  * than in it, so the card stays production's. No Shortlist / Reject — see
- * `applicantMocks`.
+ * `candidateMocks`.
  *
  * **The picker says what is new.** The role row on the profile reads
- * "N applicants · M new"; the picker's options used to say only "(3)". A
+ * "N candidates · M new"; the picker's options used to say only "(3)". A
  * founder with ten roles is asking which role has something they haven't
- * looked at (Wellfound's job list: "28 applicants to review"), so each option
+ * looked at (Wellfound's job list: "28 candidates to review"), so each option
  * carries the count line's own `● M new`, live against what was opened here.
  *
  * **New clears per person, on selection.** An unread row is tinted and marked
@@ -181,7 +181,7 @@ interface Props {
  * product reading an open back to the founder as a stage; this is the founder
  * saying they have dealt with someone, which an open cannot say (stepping
  * past a row opens it too). Still one tick, not a pipeline — no Shortlist /
- * Reject, see `applicantMocks`. Seeded from the record, kept here for the
+ * Reject, see `candidateMocks`. Seeded from the record, kept here for the
  * session.
  *
  * **Applied / Interested.** Two tabs above the search, per role: the people who
@@ -198,7 +198,7 @@ interface Props {
  * (raised a hand), suggested (did nothing; the product is proposing them).
  * Braintrust ("Invite Talent" beside Applications), Dribbble (Recommended /
  * Submissions) and Fiverr (Invite freelancers / Offers) all keep matched
- * people in the applicants' own strip rather than on a page of their own.
+ * people in the candidates' own strip rather than on a page of their own.
  * Three differences from the other two tabs, all from that one fact:
  *   - **A percentage over its working.** Each row ends in the match, the
  *     share of the role's requirements the profile meets, and the pane's "Why
@@ -227,7 +227,7 @@ interface Props {
  * back to the list, which is how the members grid and its profile relate on a
  * phone already.
  */
-export function TeamApplicantsPage({ teamName, roles, initialRoleUid, initialTab, onBack, backLabel }: Props) {
+export function TeamCandidatesPage({ teamName, roles, initialRoleUid, initialTab, onBack, backLabel }: Props) {
   const isMobile = useIsMobile();
   const [roleUid, setRoleUid] = useState(initialRoleUid);
   const [tab, setTab] = useState<string>(initialTab ?? APPLIED_TAB);
@@ -236,7 +236,7 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, initialTab
   const [seenIds, setSeenIds] = useState<Set<string>>(() => new Set());
   // Who the team has marked reviewed — starts from the record's own flags.
   const [reviewedIds, setReviewedIds] = useState<Set<string>>(
-    () => new Set(roles.flatMap((r) => [...r.applicants, ...r.interested].filter((p) => p.reviewed).map((p) => p.id))),
+    () => new Set(roles.flatMap((r) => [...r.candidates, ...r.interested].filter((p) => p.reviewed).map((p) => p.id))),
   );
   const toggleReviewed = (id: string) =>
     setReviewedIds((prev) => {
@@ -268,7 +268,7 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, initialTab
     () =>
       tab === SUGGESTED_TAB
         ? sortSuggested(suggestedShown, criteria, off)
-        : [...(tab === INTERESTED_TAB ? role.interested : role.applicants)].sort((a, b) =>
+        : [...(tab === INTERESTED_TAB ? role.interested : role.candidates)].sort((a, b) =>
             personDate(b).localeCompare(personDate(a)),
           ),
     [role, tab, suggestedShown, criteria, off],
@@ -278,7 +278,7 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, initialTab
     ? newest.filter((a) => a.name.toLowerCase().includes(term) || a.role.toLowerCase().includes(term))
     : newest;
 
-  // Desktop opens on the newest applicant so the pane is never blank; mobile
+  // Desktop opens on the newest candidate so the pane is never blank; mobile
   // opens on the list, because the pane is a second screen there.
   useEffect(() => {
     if (!isMobile && !selectedId && newest[0]) {
@@ -316,7 +316,7 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, initialTab
   const showList = !isMobile || !paneOpen;
   const showPane = !isMobile || paneOpen;
 
-  /* The team's roles with their applicant counts, searchable. A tab strip was
+  /* The team's roles with their candidate counts, searchable. A tab strip was
      here first and fitted the four mocked roles exactly (the tell that it would
      not fit ten); then the board's `SortDropdown`, which lists ten but makes
      you read all ten. Typing into the control filters the titles.
@@ -325,10 +325,10 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, initialTab
      wrapper takes no `noOptionsMessage`, and react-select's own "No options"
      is library copy, not ours. Portal and fixed menu are what `FilterSelect`
      passes; the styles are its own too, minus the blue — see below. */
-  const newCountFor = (r: ApplicantsRole) => r.applicants.filter((a) => a.unseen && !seenIds.has(a.id)).length;
+  const newCountFor = (r: CandidatesRole) => r.candidates.filter((a) => a.unseen && !seenIds.has(a.id)).length;
   const roleOptions: RoleOption[] = roles.map((r) => ({
     value: r.uid,
-    label: r.applicants.length ? `${r.title} (${r.applicants.length})` : r.title,
+    label: r.candidates.length ? `${r.title} (${r.candidates.length})` : r.title,
     newCount: newCountFor(r),
   }));
 
@@ -363,18 +363,18 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, initialTab
   };
   const picker = (
     <div className={clsx(sort.sortGroup, s.roleGroup)}>
-      <label htmlFor="applicants-role" className={sort.sortByLabel}>
+      <label htmlFor="candidates-role" className={sort.sortByLabel}>
         Role:
       </label>
       <div className={s.rolePicker}>
         <Select
-          inputId="applicants-role"
+          inputId="candidates-role"
           options={roleOptions}
           value={roleOptions.find((o) => o.value === role.uid) ?? null}
           onChange={(opt) => opt && switchRole(opt.value)}
           isSearchable
           /* The option: the title with its count, then the count line's green
-             `● M new` when any of that role's applicants are unopened. */
+             `● M new` when any of that role's candidates are unopened. */
           formatOptionLabel={(opt) => (
             <span className={s.roleOption}>
               <span className={s.roleOptionLabel}>{opt.label}</span>
@@ -427,14 +427,14 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, initialTab
       : '';
 
   const paneBar = selected && (
-    <div className={s.paneBar} data-tour="applicant-actions">
+    <div className={s.paneBar} data-tour="candidate-actions">
       <div className={s.paneNav}>
         <button
           type="button"
           className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.stepBtn)}
           onClick={() => step(-1)}
           disabled={position <= 0}
-          aria-label="Previous applicant"
+          aria-label="Previous candidate"
         >
           <CaretLeftIcon width={16} height={16} />
         </button>
@@ -443,7 +443,7 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, initialTab
           className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.stepBtn)}
           onClick={() => step(1)}
           disabled={position < 0 || position >= shown.length - 1}
-          aria-label="Next applicant"
+          aria-label="Next candidate"
         >
           <CaretRightIcon width={16} height={16} />
         </button>
@@ -514,18 +514,18 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, initialTab
     <div className={s.page}>
       {/* BackButton's own chrome on a press that unwinds state rather than a
           route: this page is client state inside the profile prototype. The
-          real thing would be /teams/<id>/applicants and the production button. */}
+          real thing would be /teams/<id>/candidates and the production button. */}
       <button
         type="button"
         className={clsx(back.backBtn, s.back)}
         onClick={isMobile && paneOpen ? () => setPaneOpen(false) : onBack}
       >
-        <BackIcon /> {isMobile && paneOpen ? 'All applicants' : (backLabel ?? `Back to ${teamName}`)}
+        <BackIcon /> {isMobile && paneOpen ? 'All candidates' : (backLabel ?? `Back to ${teamName}`)}
       </button>
 
       {showList && (
         <header className={s.head}>
-          <h1 className={s.title}>Applicants</h1>
+          <h1 className={s.title}>Candidates</h1>
           <p className={s.subtitle}>{teamName}</p>
         </header>
       )}
@@ -548,7 +548,7 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, initialTab
                 activeTab={tab}
                 onTabClick={switchTab}
                 tabs={[
-                  { name: APPLIED_TAB, count: role.applicants.length },
+                  { name: APPLIED_TAB, count: role.candidates.length },
                   { name: INTERESTED_TAB, count: role.interested.length },
                   ...(role.suggested ? [{ name: SUGGESTED_TAB, count: suggestedShown.length }] : []),
                 ]}
@@ -577,11 +577,11 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, initialTab
               <SearchInput value={query} onChange={setQuery} placeholder="Search by name or role" />
             </div>
             {shown.length ? (
-              <div className={s.list} data-tour="applicant-list">
+              <div className={s.list} data-tour="candidate-list">
                 {shown.map((a, index) => (
-                  <ApplicantRow
+                  <CandidateRow
                     key={a.id}
-                    applicant={a}
+                    candidate={a}
                     isNew={!isSuggested(a) && a.unseen && !seenIds.has(a.id)}
                     reviewed={reviewedIds.has(a.id)}
                     invitedAt={invitedAt[a.id]}
@@ -601,7 +601,7 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, initialTab
                       ? 'No one to suggest for this role yet.'
                       : tab === INTERESTED_TAB
                         ? 'No one has said they’re interested yet.'
-                        : 'No applicants yet.'}
+                        : 'No candidates yet.'}
                 </NoDataBlock>
               </DetailsSectionGreyContentContainer>
             )}
@@ -611,9 +611,9 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, initialTab
         {showPane && selected && (
           <div className={s.paneCol}>
             {paneBar}
-            <ApplicantMemberPage
+            <CandidateMemberPage
               key={selected.id}
-              applicant={selected}
+              candidate={selected}
               application={
                 isSuggested(selected) ? (
                   /* Why they are here, in full and strongest first — the

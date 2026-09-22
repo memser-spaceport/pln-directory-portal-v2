@@ -17,7 +17,7 @@ import type { ISubItem } from '@/components/core/navbar/type';
  * sourcing and hiring pipeline for PL Infra" — an acronym for the app plus a
  * sentence explaining what the acronym is for. "Hiring" is what the person is
  * going there to do, and it is the word the rest of these prototypes use for
- * this work (the board's owner rows, the applicants pages).
+ * this work (the board's owner rows, the candidates pages).
  *
  * The glyph is production's own hiring mark (`PlAtsIcon` — a person beside a
  * list), not the board's briefcase: `JOBS_LINK` already wears that one in the
@@ -25,7 +25,7 @@ import type { ISubItem } from '@/components/core/navbar/type';
  * as the same destination twice. Nothing new was drawn.
  *
  * The href is the prototypes' job board, because that is where this surface
- * exists today — the owner's listings and the applicants pages hang off it. The
+ * exists today — the owner's listings and the candidates pages hang off it. The
  * other four links keep their production routes, which is the same trade every
  * prototype nav item makes: press it and you leave prototype-land.
  */

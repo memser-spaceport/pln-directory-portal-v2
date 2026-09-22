@@ -602,6 +602,6 @@ export const MOCK_TEAM_ROLES: IJobTeamGroup | null =
   MOCK_JOB_GROUPS.find((g) => g.team.uid === MOCK_TEAM.id) ?? null;
 
 
-// The applicants to this team's roles, in their own file — see the note there.
-export * from './applicantMocks';
+// The candidates for this team's roles, in their own file — see the note there.
+export * from './candidateMocks';
 export * from './suggestedMocks';

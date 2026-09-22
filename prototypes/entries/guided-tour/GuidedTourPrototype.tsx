@@ -5,10 +5,10 @@
  *
  * IMPORTED (prototype folders, nothing redrawn):
  *  - NewsfeedPrototype            the homepage itself, through its optional host props
- *  - TeamProfilePrototype         the lead's team page, whole; it already opens the applicants page
+ *  - TeamProfilePrototype         the lead's team page, whole; it already opens the candidates page
  *  - PrototypeNavBar              the header over the team page, so the bell is one bell across both
  *  - useAiSearchHost              ai-search's popover + AI view, wired into that page's header
- *  - InvestorPathRow / RoleApplicants / TeamApplicantsPage   carry the `data-tour` anchors
+ *  - InvestorPathRow / RoleCandidates / TeamCandidatesPage   carry the `data-tour` anchors
  *  - GuidedTour                   tour-shared — the standard object this entry demonstrates
  *  - newsfeed-v0 switch chrome    the review band's own switch classes
  *  - Button                       @/components/common/Button
@@ -32,14 +32,14 @@ import { GuidedTour, type TourStep } from '../tour-shared/GuidedTour';
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
 import s from './GuidedTourPrototype.module.scss';
 
-type TourId = 'warm-intros' | 'applicants';
+type TourId = 'warm-intros' | 'candidates';
 
 const TOURS: { id: TourId; label: string; feature: string }[] = [
-  { id: 'applicants', label: 'Applicants', feature: 'Hiring' },
+  { id: 'candidates', label: 'Candidates', feature: 'Hiring' },
   { id: 'warm-intros', label: 'Warm intros', feature: 'AI Search' },
 ];
 
-const COUNT_LINE = '[data-tour="applicants-count"]';
+const COUNT_LINE = '[data-tour="candidates-count"]';
 
 /**
  * Guided tours, met on Home.
@@ -50,30 +50,30 @@ const COUNT_LINE = '[data-tour="applicants-count"]';
  * the field, asks the investor question for the founder ("Show me"), waits for
  * the answer to land, and ends on the press that matters.
  *
- * **Applicants on the team page.** Same shape, and the trigger is an event, not
+ * **Candidates on the team page.** Same shape, and the trigger is an event, not
  * a release: a lead's first arrival after someone applied to one of their
- * roles. A lead with no applicants has no count line, so they have no tour
+ * roles. A lead with no candidates has no count line, so they have no tour
  * (rule 4: the target has to exist). It starts on the bell — the homepage holds
- * nothing about applicants, and the bell is where "something happened to you"
+ * nothing about candidates, and the bell is where "something happened to you"
  * already lives and the way back on every later visit — walks to the count
- * line under the role, and ends on the applicants page's pane bar. The job
- * board's second door gets no tour: `NewApplicantsBanner` announces it there.
+ * line under the role, and ends on the candidates page's pane bar. The job
+ * board's second door gets no tour: `NewCandidatesBanner` announces it there.
  *
  * **One arrival, one tour.** Founders and leads are mostly the same people, so
  * both tours can be owed at once. The picker in the review band stands in for
- * the queue: the event-triggered one (applicants waiting) goes first, the
+ * the queue: the event-triggered one (candidates waiting) goes first, the
  * release one waits for the next arrival.
  *
  * Only for the people each feature is for: flip the seat in the review band —
  * a member has no intro rows and no count line, so no tour either way.
  */
 export default function GuidedTourPrototype() {
-  const [tour, setTour] = useState<TourId>('applicants');
+  const [tour, setTour] = useState<TourId>('candidates');
   const [seat, setSeat] = useState<AiSearchViewer>('founder');
   const [signedIn, setSignedIn] = useState(true);
   // PROTOTYPE: open on every load; production shows it once per member.
   const [tourOpen, setTourOpen] = useState(true);
-  /* Where the applicants tour has walked to. The team page is mounted in the
+  /* Where the candidates tour has walked to. The team page is mounted in the
      homepage's place rather than linked: a route change would drop the tour. */
   const [place, setPlace] = useState<'home' | 'team'>('home');
   /* Remounts the tour, so Replay and the picker always start at step 1. */
@@ -121,14 +121,14 @@ export default function GuidedTourPrototype() {
             },
             {
               target: COUNT_LINE,
-              title: 'Applicants, under each role',
+              title: 'Candidates, under each role',
               body: 'Only your team’s leads see this line. It opens everyone who applied, across all your roles.',
               /* The line's own press, so the page opens on the role the hole
                  was around. `click()` sends no pointerdown, which is what rule
                  6 listens for — the tour walks on instead of ending. */
               onNext: () => {
                 document.querySelector<HTMLElement>(COUNT_LINE)?.click();
-                /* The applicants page takes the profile's place at the
+                /* The candidates page takes the profile's place at the
                    profile's scroll position; a new page starts at its top.
                    (This app scrolls the body.) */
                 document.body.scrollTo({ top: 0 });
@@ -141,15 +141,15 @@ export default function GuidedTourPrototype() {
                and says the same two things. */
             isMobile
               ? {
-                  target: '[data-tour="applicant-list"]',
+                  target: '[data-tour="candidate-list"]',
                   title: 'Open anyone to read their application',
-                  body: 'New ones are tinted until you open them. You reply by email, and Reviewed is your own tick: the applicant never sees it.',
+                  body: 'New ones are tinted until you open them. You reply by email, and Reviewed is your own tick: the candidate never sees it.',
                   radius: 10,
                 }
               : {
-                  target: '[data-tour="applicant-actions"]',
+                  target: '[data-tour="candidate-actions"]',
                   title: 'Reply by email, keep your place',
-                  body: 'Email opens a message in your own mail. Reviewed is your own tick: the applicant never sees it.',
+                  body: 'Email opens a message in your own mail. Reviewed is your own tick: the candidate never sees it.',
                   radius: 10,
                 },
           ],
@@ -169,7 +169,7 @@ export default function GuidedTourPrototype() {
   };
 
   const seatLabel = (value: AiSearchViewer) =>
-    value === 'member' ? 'Member' : tour === 'applicants' ? 'Team lead' : 'Founder';
+    value === 'member' ? 'Member' : tour === 'candidates' ? 'Team lead' : 'Founder';
 
   const reviewExtras = (
     <div className={clsx(v0.switchBar, s.tourControls)}>
@@ -209,7 +209,7 @@ export default function GuidedTourPrototype() {
       <span className={v0.switchNote}>
         {seat === 'member'
           ? 'Members get no tour: what it shows is not on their pages.'
-          : tour === 'applicants'
+          : tour === 'candidates'
             ? 'Opens on a lead’s first arrival after someone applies. One tour per arrival: this one goes before Warm intros.'
             : 'The tour is for founders; it opens on arrival.'}
       </span>
@@ -217,8 +217,8 @@ export default function GuidedTourPrototype() {
   );
 
   /* The bell's dot is the feature's standing signal, not the tour's: it is
-     there for a lead with unread applicants whether or not the tour is up. */
-  const bellDot = tour === 'applicants' && eligible;
+     there for a lead with unread candidates whether or not the tour is up. */
+  const bellDot = tour === 'candidates' && eligible;
 
   return (
     <AiSearchViewerContext.Provider value={seat}>
@@ -235,7 +235,7 @@ export default function GuidedTourPrototype() {
       ) : (
         <>
           <PrototypeNavBar hasUnreadNews={false} newsHref="/prototypes/guided-tour" onNewsClick={restart} bellDot={bellDot} />
-          {/* `--applicants-top`: the applicants page's sticky list and bar clear
+          {/* `--candidates-top`: the candidates page's sticky list and bar clear
               the navbar mounted above them here (the job board's own rule). */}
           <div className={s.teamHost}>
             <TeamProfilePrototype newsCallout={false} />

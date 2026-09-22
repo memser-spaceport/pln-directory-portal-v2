@@ -15,20 +15,20 @@ import rowTone from '../job-board/JobReferRoleRow.module.scss';
 // The Members section's row: avatar, name over role, a right cluster. Imported
 // as classes rather than as the component, because `MemberCardBase` takes an
 // `IMember` and derives the role line from the member's teams — an
-// applicant's line is "their role · their team", which that lookup cannot
+// candidate's line is "their role · their team", which that lookup cannot
 // produce.
 import mcb from '@/components/page/team-details/TeamMembers/components/MemberCardBase/MemberCardBase.module.scss';
 import tmvc from '@/components/page/team-details/TeamMembers/components/TeamMembersView/components/TeamMembersViewCard/TeamMembersViewCard.module.scss';
 
 import { Badge } from '@/components/common/Badge';
 
-import type { RoleApplicant, RoleInterested, RoleSuggested, SuggestionMatch } from './mocks';
-import s from './ApplicantRow.module.scss';
+import type { RoleCandidate, RoleInterested, RoleSuggested, SuggestionMatch } from './mocks';
+import s from './CandidateRow.module.scss';
 
 interface Props {
   /** An application, or an "I'm interested" press — the Interested tab's row
    *  is this row with its own date. */
-  applicant: RoleApplicant | RoleInterested | RoleSuggested;
+  candidate: RoleCandidate | RoleInterested | RoleSuggested;
   /**
    * Suggested rows only: when the team pressed **Invite to apply** (ISO).
    */
@@ -56,12 +56,12 @@ interface Props {
 }
 
 /**
- * One application in the applicants page's list, as the Members row from the
+ * One application in the candidates page's list, as the Members row from the
  * team profile draws a member, plus when it came. What they wrote is not on
  * the row; pressing it shows the person, and their note, in the pane beside
  * the list.
  */
-export function ApplicantRow({ applicant: a, isNew, reviewed, last, selected, onSelect, invitedAt, match }: Props) {
+export function CandidateRow({ candidate: a, isNew, reviewed, last, selected, onSelect, invitedAt, match }: Props) {
   return (
     <button type="button" className={clsx(tmvc.root, s.selectable)} onClick={onSelect} aria-pressed={selected}>
       <div
@@ -107,7 +107,7 @@ export function ApplicantRow({ applicant: a, isNew, reviewed, last, selected, on
                   it on the first frame. */}
               <p className={mcb.role}>{a.role}</p>
               {/* A suggested row's third line: the strongest network signal, in
-                  words. Only this row needs one — an applicant is in the list
+                  words. Only this row needs one — an candidate is in the list
                   because they applied — and it is what the percentage at the
                   right cannot say (see `SuggestionReasonKind`). No tick: the
                   green check in this list already means Reviewed. */}

@@ -1,4 +1,4 @@
-import { exp, type RoleApplicant } from './applicantMocks';
+import { exp, type RoleCandidate } from './candidateMocks';
 
 /* ---------------------------------------------------------------------------
    Suggested, per role — members the product proposes, as the team reads them.
@@ -79,7 +79,7 @@ export interface SuggestionReason {
  * member — a percentage about you that you cannot see is the team's working,
  * and one you can see is a grade.
  */
-export type RoleSuggested = Omit<RoleApplicant, 'note' | 'appliedAt' | 'cv' | 'unseen' | 'reviewed'> & {
+export type RoleSuggested = Omit<RoleCandidate, 'note' | 'appliedAt' | 'cv' | 'unseen' | 'reviewed'> & {
   /** Ids of the role's criteria this profile meets. */
   met: string[];
   /** Network signals, strongest first — see `SuggestionReasonKind`. */

@@ -29,11 +29,11 @@ import office from '@/components/page/member-details/OfficeHoursDetails/componen
 import contact from '@/components/page/member-details/contact-details/ContactDetails.module.scss';
 import repo from '@/components/page/member-details/RepositoriesDetails/components/RepositoriesList/RepositoriesList.module.scss';
 
-import type { RoleApplicant, RoleInterested, RoleSuggested } from './mocks';
-import s from './ApplicantMemberPage.module.scss';
+import type { RoleCandidate, RoleInterested, RoleSuggested } from './mocks';
+import s from './CandidateMemberPage.module.scss';
 
 interface Props {
-  applicant: RoleApplicant | RoleInterested | RoleSuggested;
+  candidate: RoleCandidate | RoleInterested | RoleSuggested;
   /** The section only this page has — rendered under the profile card. */
   application: ReactNode;
 }
@@ -53,7 +53,7 @@ const SOCIAL_TO_HANDLE_MAP = {
 const VIEWER = { uid: 'viewer', name: 'Viewer', email: 'viewer@pl.org' } as unknown as IUserInfo;
 
 /**
- * The applicant's member page — `/members/<id>` as a signed-in, approved
+ * The candidate's member page — `/members/<id>` as a signed-in, approved
  * member who is not the owner sees it — with the application added under
  * the profile card.
  *
@@ -72,23 +72,23 @@ const VIEWER = { uid: 'viewer', name: 'Viewer', email: 'viewer@pl.org' } as unkn
  *   production's own "Not provided" empties.
  *
  * Not here, each for the reason production gives: Forum Activity hides with no
- * activity (none of these applicants have any); IRL contributions hide with no
+ * activity (none of these candidates have any); IRL contributions hide with no
  * events; Job search status is owner-only. The desktop rail (Relationship,
- * team news, "book with others") is dropped — the applicant list takes its
+ * team news, "book with others") is dropped — the candidate list takes its
  * side of the page, the way the rail disappears below tablet-landscape.
  *
  * Deviations from production, deliberate: the header's team name is plain
  * text rather than a link to `/teams/<id>` (the mocked teams have no page),
  * and nothing is editable, because the viewer is never the owner.
  */
-export function ApplicantMemberPage({ applicant, application }: Props) {
-  const p = applicant.profile;
+export function CandidateMemberPage({ candidate, application }: Props) {
+  const p = candidate.profile;
 
   // The production components read an `IMember`; cast the fields they use.
   const member = {
-    id: applicant.memberId,
-    name: applicant.name,
-    email: applicant.email,
+    id: candidate.memberId,
+    name: candidate.name,
+    email: candidate.email,
     teams: p.teams.map((t) => ({ ...t, logo: null })),
     projectContributions: p.contributions.map((c) => ({
       uid: c.uid,
@@ -107,7 +107,7 @@ export function ApplicantMemberPage({ applicant, application }: Props) {
     .map((t) => t.name)
     .sort();
   const handles: Record<(typeof SOCIAL_TO_HANDLE_MAP)[keyof typeof SOCIAL_TO_HANDLE_MAP], string | undefined> = {
-    email: applicant.email,
+    email: candidate.email,
     linkedinHandle: p.linkedinHandle,
     telegramHandle: p.telegramHandle,
     twitter: p.twitter,
@@ -122,15 +122,15 @@ export function ApplicantMemberPage({ applicant, application }: Props) {
       <div className={profileCss.root}>
         <div className={h.header}>
           <div className={h.headerProfile}>
-            <img className={h.headerProfileImg} src={applicant.avatar} alt={applicant.name} />
+            <img className={h.headerProfileImg} src={candidate.avatar} alt={candidate.name} />
           </div>
 
           <div className={h.headerDetails}>
             <div>
               <div className={h.specificsHdr}>
                 <CustomTooltip
-                  trigger={<h2 className={h.specificsName}>{applicant.name}</h2>}
-                  content={applicant.name}
+                  trigger={<h2 className={h.specificsName}>{candidate.name}</h2>}
+                  content={candidate.name}
                 />
               </div>
               <div className={h.roleAndLocation}>
@@ -164,11 +164,11 @@ export function ApplicantMemberPage({ applicant, application }: Props) {
                 ) : (
                   <span className={h.teamLinkEmpty}>Team Not Provided</span>
                 )}
-                <CustomTooltip trigger={<p className={h.role}>{applicant.title}</p>} content={applicant.title} />
+                <CustomTooltip trigger={<p className={h.role}>{candidate.title}</p>} content={candidate.title} />
                 <div className={h.divider} />
                 <div className={h.location}>
                   <LocationIcon />
-                  <p className={h.locationName}>{applicant.location}</p>
+                  <p className={h.locationName}>{candidate.location}</p>
                 </div>
               </div>
             </div>
@@ -185,7 +185,7 @@ export function ApplicantMemberPage({ applicant, application }: Props) {
                 <span className={h.fundsLabel}>Team lead</span>
               </div>
             )}
-            <TagsList tags={applicant.skills.map((title) => ({ title }))} />
+            <TagsList tags={candidate.skills.map((title) => ({ title }))} />
           </div>
         </div>
 
@@ -212,7 +212,7 @@ export function ApplicantMemberPage({ applicant, application }: Props) {
                   <div className={office.description}>
                     <div>
                       <span>
-                        {applicant.name} is available for a short 1:1 call to connect or help — no introduction needed.
+                        {candidate.name} is available for a short 1:1 call to connect or help — no introduction needed.
                       </span>
                     </div>
                     <div className={office.keywordsWrapper}>
@@ -291,10 +291,10 @@ export function ApplicantMemberPage({ applicant, application }: Props) {
       {/* ---------- Experience ---------- */}
       <DetailsSection>
         <DetailsSectionHeader
-          title={`Experience ${applicant.experience.length ? `(${applicant.experience.length})` : ''}`}
+          title={`Experience ${candidate.experience.length ? `(${candidate.experience.length})` : ''}`}
         />
         <ExperiencesList
-          data={applicant.experience}
+          data={candidate.experience}
           member={member}
           userInfo={VIEWER}
           isEditable={false}

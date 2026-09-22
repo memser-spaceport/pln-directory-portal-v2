@@ -30,7 +30,7 @@ export function SubmitPlusIcon({ size = 14, ...rest }: { size?: number } & SVGPr
 /**
  * The product's envelope — `public/icons/email.svg`, the glyph the settings
  * menu and the contact rows use — transcribed so it can take `currentColor`:
- * the file bakes in `#455468`, and on the applicants page it sits inside the
+ * the file bakes in `#455468`, and on the candidates page it sits inside the
  * filled primary button, where the text is white.
  */
 export function EnvelopeIcon({ size = 14, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {

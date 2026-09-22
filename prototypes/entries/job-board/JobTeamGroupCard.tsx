@@ -38,10 +38,10 @@ import fa from '../newsfeed-v0/FeedActions.module.scss';
 import type { ListingMeta, ListingStatus } from './listings';
 // The team profile's count line and the card shape it sits in — the same
 // component and the same class, so an owner's role row reads identically on
-// the two surfaces it appears on. See `RoleApplicants`.
-import { RoleApplicants } from '../team-profile/RoleApplicants';
-import type { RoleApplicant, RoleSuggested } from '../team-profile/mocks';
-import type { ApplicantsTab } from '../team-profile/TeamApplicantsPage';
+// the two surfaces it appears on. See `RoleCandidates`.
+import { RoleCandidates } from '../team-profile/RoleCandidates';
+import type { RoleCandidate, RoleSuggested } from '../team-profile/mocks';
+import type { CandidatesTab } from '../team-profile/TeamCandidatesPage';
 import tor from '../team-profile/TeamOpenRoles.module.scss';
 
 const INITIAL_ROLES_SHOWN = 3;
@@ -105,9 +105,9 @@ interface JobTeamGroupCardProps {
      *  (an admin). Tints the card — see `.ownedCard`. */
     yours?: boolean;
     /**
-     * Who applied to a role, and the press that opens the team's applicants
+     * Who applied to a role, and the press that opens the team's candidates
      * page on it. **A second door, not a second surface**: the page is the one
-     * the team profile opens (`TeamApplicantsPage`), and the line is the one
+     * the team profile opens (`TeamCandidatesPage`), and the line is the one
      * the profile's Open roles rows wear. A lead's home is their team's page,
      * but their listings also stand here with the owner's controls — and a row
      * that knows who applied on one surface and not on the other is the same
@@ -115,10 +115,10 @@ interface JobTeamGroupCardProps {
      * manages the listing, because the apply step names the leads as the
      * people an application goes to.
      */
-    applicantsFor?: (roleUid: string) => RoleApplicant[];
+    candidatesFor?: (roleUid: string) => RoleCandidate[];
     /** Members suggested for a role — the count line's second clause. */
     suggestedFor?: (roleUid: string) => RoleSuggested[];
-    openApplicants?: (roleUid: string, tab?: ApplicantsTab) => void;
+    openCandidates?: (roleUid: string, tab?: CandidatesTab) => void;
   };
 }
 
@@ -149,7 +149,7 @@ export function JobTeamGroupCard({
      to float matches to the top; with matching gone there is nothing to rank
      them by, and a team's list of openings has no second opinion to offer. */
   const visibleRoles = expanded ? roles : roles.slice(0, INITIAL_ROLES_SHOWN);
-  /* Managed: "+N new" is an applicant's signal and this reader posted them. The
+  /* Managed: "+N new" is an candidate's signal and this reader posted them. The
      slot reports the review queue instead — the one number on this card that
      changes when a submission goes in, and the one a collapsed card (three of
      four rows shown) would otherwise hide below the expander. */
@@ -268,12 +268,12 @@ export function JobTeamGroupCard({
       <ul className={s.roleList}>
         {visibleRoles.map((role) => {
           const meta = manage?.metaFor(role.uid);
-          const applicants = manage?.applicantsFor?.(role.uid) ?? [];
+          const candidates = manage?.candidatesFor?.(role.uid) ?? [];
           return (
-            /* An owner's row and its applicants share one card — the team
+            /* An owner's row and its candidates share one card — the team
                profile's `.roleBlock`, the row's own grey and radius — so a role
                nobody applied to renders exactly as before and one with
-               applicants grows a footer inside the same shape. Everyone else's
+               candidates grows a footer inside the same shape. Everyone else's
                `<li>` holds the bare row, as it always did. */
             <li key={role.uid} className={manage ? tor.roleBlock : undefined}>
               <JobReferRoleRow
@@ -300,12 +300,12 @@ export function JobTeamGroupCard({
                     : undefined
                 }
               />
-              {manage?.openApplicants && (
-                <RoleApplicants
-                  applicants={applicants}
+              {manage?.openCandidates && (
+                <RoleCandidates
+                  candidates={candidates}
                   /* A listing that is not live has nobody to invite. */
                   suggested={meta && meta.status !== 'live' ? [] : manage.suggestedFor?.(role.uid)}
-                  onOpen={(tab) => manage.openApplicants?.(role.uid, tab)}
+                  onOpen={(tab) => manage.openCandidates?.(role.uid, tab)}
                 />
               )}
             </li>
@@ -329,7 +329,7 @@ export function JobTeamGroupCard({
           Not drawn for the team that owns the card. `manage` means the viewer
           posted these listings, and "I'm interested" on your own team's open
           door is a control with nothing behind it. What an owner should see in
-          this slot — who has answered it — is the applicants list, which lives
+          this slot — who has answered it — is the candidates list, which lives
           on the team profile; see the note in `openRoles.ts`. */}
       {openRole && !manage && onOpenRoleInterest && (
         <OpenRoleRow

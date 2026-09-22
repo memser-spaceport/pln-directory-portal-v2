@@ -14,7 +14,7 @@
  * Imported from sibling prototypes:
  *   team page pieces      ../team-profile (TeamDetailsView, TeamContactView, TeamMembersView,
  *                         TeamProjectsView, layout + demo-bar classes, mocks)
- *   sub-page chrome       ../team-profile/TeamApplicantsPage.module.scss (page / back / head / title)
+ *   sub-page chrome       ../team-profile/TeamCandidatesPage.module.scss (page / back / head / title)
  *   investors, connectors,
  *   PL-history facts      ../warm-intros-v2/mocks (MOCK_PATHS, bridgeOf, plHistoryOf, relationKindOf)
  * New here (token/fallback pairs only): InvestorPathRow, FundraisingSection,

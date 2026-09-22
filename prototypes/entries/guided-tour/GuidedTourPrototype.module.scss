@@ -21,11 +21,11 @@
   box-shadow: 0 4px 12px var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
 }
 
-// The navbar's measured height — see job-board's `.applicantsHost`.
+// The navbar's measured height — see job-board's `.candidatesHost`.
 .teamHost {
-  --applicants-top: 56px;
+  --candidates-top: 56px;
 
   @include media.tablet-landscape {
-    --applicants-top: 80px;
+    --candidates-top: 80px;
   }
 }

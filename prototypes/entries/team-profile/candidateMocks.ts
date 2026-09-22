@@ -1,7 +1,7 @@
 import type { FormattedMemberExperience } from '@/services/members/hooks/useMemberExperience';
 
 /* ---------------------------------------------------------------------------
-   Applicants, per role — what the team sees under its own listings.
+   Candidates, per role — what the team sees under its own listings.
    --------------------------------------------------------------------------- */
 
 /**
@@ -11,7 +11,7 @@ import type { FormattedMemberExperience } from '@/services/members/hooks/useMemb
  * the team (`job-board/email/applicationEmail.ts`) and nothing else; the team's
  * inbox is the only record. This is the smallest shape an in-product record
  * would need: who, what they said, when, and whether the team has looked yet —
- * plus their member record, which the applicants page renders beside the list
+ * plus their member record, which the candidates page renders beside the list
  * as the member page itself (`experience`, `skills`, `location`, `profile`).
  * In production that is a join to the members table, and is only carried
  * inline here because the mock has no members table to join.
@@ -25,9 +25,9 @@ import type { FormattedMemberExperience } from '@/services/members/hooks/useMemb
  * `unseen` is the product's "new": not looked at since the team's last visit.
  * `reviewed` is the team's own tick — see the field.
  * The rows are keyed by the board's role uids (`MOCK_JOB_GROUPS`, `pl-*`), so a
- * role deleted from the section takes its applicants with it.
+ * role deleted from the section takes its candidates with it.
  */
-export interface RoleApplicant {
+export interface RoleCandidate {
   id: string;
   /** `/members/<id>` — the row opens their profile, as the Members rows do. */
   memberId: string;
@@ -49,10 +49,10 @@ export interface RoleApplicant {
   skills: string[];
   experience: FormattedMemberExperience[];
   /** The rest of what `/members/<id>` renders for them. */
-  profile: ApplicantMemberRecord;
+  profile: CandidateMemberRecord;
   unseen: boolean;
   /**
-   * The team's own press — **Mark as reviewed** on the applicants page — not
+   * The team's own press — **Mark as reviewed** on the candidates page — not
    * a derived fact. It is the one stage the list carries: a founder working
    * through fifty people needs to know which ones they have already dealt
    * with, and "opened" (`unseen`) cannot say that, because stepping past a
@@ -69,7 +69,7 @@ export interface RoleApplicant {
  * out: no `officeHours` hides Office Hours, as `OfficeHoursDetails` does for a
  * visitor; a missing handle draws the contact row's empty link.
  */
-export interface ApplicantMemberRecord {
+export interface CandidateMemberRecord {
   bio?: string;
   openToWork?: boolean;
   teamLead?: boolean;
@@ -109,7 +109,7 @@ export const exp = (
   description: '',
 });
 
-export const MOCK_APPLICANTS: Record<string, RoleApplicant[]> = {
+export const MOCK_CANDIDATES: Record<string, RoleCandidate[]> = {
   // Senior Distributed Systems Engineer — the role the board's own demo applies to.
   'pl-1': [
     {
@@ -348,7 +348,7 @@ export const MOCK_APPLICANTS: Record<string, RoleApplicant[]> = {
  * plus a CV when the account keeps one. Same shape as an application
  * otherwise, so the page draws both with one row and one pane.
  */
-export type RoleInterested = Omit<RoleApplicant, 'note' | 'appliedAt'> & {
+export type RoleInterested = Omit<RoleCandidate, 'note' | 'appliedAt'> & {
   /** ISO — when they pressed I'm interested. */
   interestedAt: string;
 };

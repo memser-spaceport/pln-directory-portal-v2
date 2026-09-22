@@ -8,7 +8,7 @@
   display: grid;
 }
 
-/* One card per role: the row plus, for the owner, its applicants underneath.
+/* One card per role: the row plus, for the owner, its candidates underneath.
  * Production's `ReferRoleRow.root` paints its own `#f9fafb` at 16px radius; this
  * wrapper paints the same pair so the row and the footer read as one shape and
  * a row with no footer is pixel-identical to the reader's. The token is the

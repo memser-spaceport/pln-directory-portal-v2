@@ -56,7 +56,7 @@ interface AnswerPanelProps {
   backLabel?: string;
   /** Leaves the thread for the view's idle state, to start another. */
   onNewQuestion?: () => void;
-  /** Follows a scoped answer's door ("Open applicants"). Only scoped answers have one. */
+  /** Follows a scoped answer's door ("Open candidates"). Only scoped answers have one. */
   onOpenTarget?: (target: string) => void;
   /** What was typed into this thread's input and not sent, from the last visit. */
   draft?: string;

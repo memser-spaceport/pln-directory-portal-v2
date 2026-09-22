@@ -90,7 +90,7 @@ interface JobReferRoleRowProps {
    *
    * The managing itself lives on the board, where `manage` puts it behind the
    * row's ⋯. The team's own page is the page everyone reads; the owner's extra
-   * there is the applicants line under the row, not a second cluster of
+   * there is the candidates line under the row, not a second cluster of
    * presses. The card still carries the switch — the drawer's footer is
    * `managed` for this viewer rather than Apply — so nothing became
    * unreachable from this surface except Delete, which the board keeps.
@@ -239,7 +239,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
   /* Nor on a listing of your own: "New" is an invitation to look before it goes
      stale, and the person who posted it is not the one being invited. The status
      pill takes that slot instead. (On the team profile the row also carries
-     "N applicants · 2 new" underneath, where "new" means unread — two marks
+     "N candidates · 2 new" underneath, where "new" means unread — two marks
      reading "new" on one row would be two different facts under one word.) */
   const showNew = isNew(date) && !applied && !owned;
   const locationDisplay = isEmpty(location) ? null : location.join(', ');
@@ -280,7 +280,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
             {showNew && <span className={`${s.newBadge} ${s.newBadgeMobile}`}>● New</span>}
           </div>
           {!isEmpty(metaParts) && <div className={s.meta}>{metaParts.join(' · ')}</div>}
-          {/* Where it came from — the one fact a manager needs that an applicant
+          {/* Where it came from — the one fact a manager needs that an candidate
               never does, and the fact the open question about the inactive
               control turns on (see `ListingOrigin`). */}
         </div>

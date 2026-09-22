@@ -302,4 +302,108 @@ describe('AiAppFeedbackPage', () => {
     expect(screen.getByText('Loved it')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Loved it' })).not.toBeInTheDocument();
   });
+
+  /**
+   * Screenshots are lifted out of the body and given identical tiles.
+   *
+   * Left inline they stack at whatever size each capture happens to be, so one
+   * tall phone screenshot makes a table row hundreds of pixels deep.
+   */
+  describe('screenshot strip', () => {
+    const withBody = (text: string) =>
+      mockUseAiAppFeedbackList.mockReturnValue({
+        feedback: [
+          {
+            uid: 'fb-html',
+            appUid: 'app-1',
+            appName: 'Alpha',
+            text,
+            status: 'NEW' as const,
+            member: { uid: 'm-1', name: 'Ada Lovelace' },
+            createdAt: '2026-07-01T00:00:00.000Z',
+          },
+        ],
+        isLoading: false,
+        isError: false,
+      });
+
+    it('moves every screenshot out of the message text and into one row', () => {
+      withBody(
+        '<p>Two problems</p><p><img src="https://cdn.test/a.png" alt="first"></p><p><img src="https://cdn.test/b.png" alt="second"></p>',
+      );
+
+      render(<AiAppFeedbackPage />);
+
+      const strip = screen.getByRole('list');
+      expect(screen.getByAltText('first').closest('ul')).toBe(strip);
+      expect(screen.getByAltText('second').closest('ul')).toBe(strip);
+      expect(screen.getByText('Two problems').querySelector('img')).toBeNull();
+    });
+
+    it('makes each tile a button, so the lightbox is reachable by keyboard', () => {
+      withBody('<p><img src="https://cdn.test/a.png" alt="shot"></p>');
+
+      render(<AiAppFeedbackPage />);
+
+      const tile = screen.getByAltText('shot').closest('button');
+      expect(tile).toBeInTheDocument();
+
+      fireEvent.click(tile!);
+      expect(screen.getByRole('dialog', { name: 'Full size image' })).toBeInTheDocument();
+    });
+
+    it('names an unlabelled screenshot by its position', () => {
+      withBody('<p><img src="https://cdn.test/a.png"><img src="https://cdn.test/b.png"></p>');
+
+      render(<AiAppFeedbackPage />);
+
+      expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument();
+      expect(screen.getByAltText('Screenshot 2')).toBeInTheDocument();
+    });
+
+    /* Image-only feedback is a supported submission; an empty editor block for
+       it would leave padding under nothing. */
+    it('renders no message block when the feedback is only a screenshot', () => {
+      withBody('<p><img src="https://cdn.test/a.png" alt="shot"></p>');
+
+      const { container } = render(<AiAppFeedbackPage />);
+
+      expect(screen.getByAltText('shot')).toBeInTheDocument();
+      expect(container.querySelector('.ql-editor')).toBeNull();
+    });
+
+    it('badges only the screenshots that carry annotations', () => {
+      const encoded = serializeAnnotations({
+        version: 1,
+        strokes: [],
+        shapes: [],
+        comments: [{ id: 'c1', x: 0.5, y: 0.5, text: 'Here' }],
+      });
+      withBody(
+        `<p><img src="https://cdn.test/plain.png" alt="plain"><img src="https://cdn.test/marked.png" alt="marked" data-annotations="${encoded}"></p>`,
+      );
+
+      render(<AiAppFeedbackPage />);
+
+      expect(screen.getAllByText('View annotations')).toHaveLength(1);
+      expect(screen.getByAltText('marked').closest('[title="View annotations"]')).toBeTruthy();
+      expect(screen.getByAltText('plain').closest('[title="View annotations"]')).toBeNull();
+    });
+
+    /* A shape-only annotation is what a `strokes || comments` check misses: no
+       error, the screenshot just quietly stops looking annotated. */
+    it('badges a screenshot annotated with only a shape', () => {
+      const encoded = serializeAnnotations({
+        version: 1,
+        strokes: [],
+        shapes: [{ kind: 'rect', color: '#dc2626', width: 0.006, x: 0.1, y: 0.1, w: 0.3, h: 0.2 }],
+        comments: [],
+      });
+      withBody(`<p><img src="https://cdn.test/a.png" alt="shot" data-annotations="${encoded}"></p>`);
+
+      render(<AiAppFeedbackPage />);
+
+      expect(screen.getByText('View annotations')).toBeInTheDocument();
+    });
+  });
 });

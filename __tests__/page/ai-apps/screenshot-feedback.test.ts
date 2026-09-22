@@ -28,6 +28,7 @@ const SAMPLE: AnnotationState = {
       ],
     },
   ],
+  shapes: [{ kind: 'rect', color: '#dc2626', width: 0.006, x: 0.2, y: 0.3, w: 0.4, h: 0.25 }],
   comments: [{ id: 'c1', x: 0.5, y: 0.5, text: 'Broken button' }],
 };
 
@@ -40,6 +41,34 @@ describe('annotation serialize/parse', () => {
     expect(parseAnnotations(null)).toBeNull();
     expect(parseAnnotations('not-json')).toBeNull();
     expect(parseAnnotations(encodeURIComponent(JSON.stringify({ version: 2, strokes: [], comments: [] })))).toBeNull();
+  });
+
+  /**
+   * Every annotation stored before shapes existed omits the key. Rejecting those
+   * — or leaving `shapes` undefined for them — would erase the back catalogue
+   * from the review page rather than fail anywhere visible.
+   */
+  it('reads a payload saved before shapes existed, defaulting them to empty', () => {
+    const legacy = encodeURIComponent(
+      JSON.stringify({
+        version: 1,
+        strokes: [{ color: '#dc2626', width: 0.006, points: [{ x: 0.1, y: 0.1 }] }],
+        comments: [{ id: 'c1', x: 0.2, y: 0.2, text: 'Old note' }],
+      }),
+    );
+
+    expect(parseAnnotations(legacy)).toEqual({
+      version: 1,
+      strokes: [{ color: '#dc2626', width: 0.006, points: [{ x: 0.1, y: 0.1 }] }],
+      shapes: [],
+      comments: [{ id: 'c1', x: 0.2, y: 0.2, text: 'Old note' }],
+    });
+  });
+
+  it('ignores a shapes field that is not an array', () => {
+    const malformed = encodeURIComponent(JSON.stringify({ version: 1, strokes: [], comments: [], shapes: 'nope' }));
+
+    expect(parseAnnotations(malformed)?.shapes).toEqual([]);
   });
 });
 

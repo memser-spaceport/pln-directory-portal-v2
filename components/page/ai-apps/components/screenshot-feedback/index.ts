@@ -14,8 +14,11 @@ export {
   ANNOTATION_ATTR,
   EMPTY_ANNOTATIONS,
   emptyAnnotations,
+  hasAnyAnnotation,
   parseAnnotations,
   serializeAnnotations,
   type AnnotationState,
   type ScreenshotAttachment,
+  type Shape,
+  type ShapeKind,
 } from './types';

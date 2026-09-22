@@ -11,6 +11,7 @@ import { useAiAppManageAccess } from '@/services/ai-apps/hooks/useAiAppManageAcc
 
 import {
   EditAiAppModal,
+  ManageAccessModal,
   DeleteAiAppDialog,
   AiAppDetailsModal,
   DeploymentLogsModal,
@@ -24,7 +25,7 @@ import { AiAppCard } from './components/AiAppCard';
 
 import s from './AiAppsGrid.module.scss';
 
-type ActionType = 'edit' | 'deployment' | 'logs' | 'delete';
+type ActionType = 'edit' | 'access' | 'deployment' | 'logs' | 'delete';
 
 interface Props {
   onOpenCreateModal: () => void;
@@ -104,6 +105,7 @@ export function AiAppsGrid({ onOpenCreateModal }: Props) {
               app={app}
               canManage={canLikelyManage(app.member.uid)}
               onEdit={() => setAction({ uid: app.uid, type: 'edit' })}
+              onAccess={() => setAction({ uid: app.uid, type: 'access' })}
               onDeployment={() => setAction({ uid: app.uid, type: 'deployment' })}
               onLogs={(source) => openLogs(app, source)}
               onDelete={() => setAction({ uid: app.uid, type: 'delete' })}
@@ -114,6 +116,13 @@ export function AiAppsGrid({ onOpenCreateModal }: Props) {
       </motion.div>
 
       {actionApp && action?.type === 'edit' && <EditAiAppModal app={actionApp} onClose={closeAction} />}
+      {actionApp && action?.type === 'access' && (
+        <ManageAccessModal
+          app={actionApp}
+          onClose={closeAction}
+          onRedeploy={() => setAction({ uid: actionApp.uid, type: 'deployment' })}
+        />
+      )}
       {actionApp && action?.type === 'deployment' && <DeploymentSettingsModal app={actionApp} onClose={closeAction} />}
       {/* Conditional render is load-bearing: unmounting on close is what aborts
           the modal's in-flight log fetches (its queryFn consumes the signal). */}

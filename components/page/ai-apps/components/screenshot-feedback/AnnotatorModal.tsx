@@ -7,6 +7,7 @@ import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { ConfirmDialog } from '@/components/page/demo-day/FounderPendingView/components/ConfirmDialog';
 import { CloseIcon, CommentIcon, PencilSimpleLineIcon } from '@/components/icons';
+import { ConfirmLayer } from './ConfirmLayer';
 import { AnnotationCanvas, DEFAULT_DRAW_COLOR, DRAW_COLORS, type AnnotatorTool } from './AnnotationCanvas';
 import { emptyAnnotations, type AnnotationState } from './types';
 
@@ -229,32 +230,28 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
         </div>
       </div>
 
-      {/* Rendered INSIDE the modal on purpose. `Modal` portals its children to
-          the body, so from here the confirmation lands inside the annotator's
-          own stacking context and paints above it. Hoisted out to page level it
-          would sit under the overlay — visible through nothing, clickable by
-          nobody.
-
-          "Yes, discard" rather than "Discard": the footer button underneath
+      {/* "Yes, discard" rather than "Discard": the footer button underneath
           already says that, and nothing here hides it from the accessibility
           tree while the confirmation is up. Two buttons, one name, opposite
           consequences. */}
-      <ConfirmDialog
-        isOpen={confirmingDiscard}
-        title={isEditing ? 'Discard changes?' : 'Discard screenshot?'}
-        message={
-          isEditing
-            ? 'Your changes will be lost. The screenshot itself stays in your feedback.'
-            : 'The screenshot and everything you have drawn on it will be lost.'
-        }
-        confirmText="Yes, discard"
-        cancelText="Keep editing"
-        onConfirm={() => {
-          setConfirmingDiscard(false);
-          onDiscard();
-        }}
-        onCancel={() => setConfirmingDiscard(false)}
-      />
+      <ConfirmLayer isOpen={confirmingDiscard}>
+        <ConfirmDialog
+          isOpen
+          title={isEditing ? 'Discard changes?' : 'Discard screenshot?'}
+          message={
+            isEditing
+              ? 'Your changes will be lost. The screenshot itself stays in your feedback.'
+              : 'The screenshot and everything you have drawn on it will be lost.'
+          }
+          confirmText="Yes, discard"
+          cancelText="Keep editing"
+          onConfirm={() => {
+            setConfirmingDiscard(false);
+            onDiscard();
+          }}
+          onCancel={() => setConfirmingDiscard(false)}
+        />
+      </ConfirmLayer>
     </Modal>
   );
 }

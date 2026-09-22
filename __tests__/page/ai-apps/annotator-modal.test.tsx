@@ -221,6 +221,24 @@ describe('AnnotatorModal discard confirmation', () => {
     expect(onDiscard).toHaveBeenCalled();
   });
 
+  /**
+   * The confirmation is portalled to the body rather than nested in the modal.
+   *
+   * `ConfirmDialog` positions itself `fixed`, which is laid out against the
+   * nearest TRANSFORMED ancestor rather than the viewport — and `Modal` animates
+   * its container with framer-motion. Left inside, any surviving transform
+   * (`scale(1)` counts) would confine the confirmation to the modal's own box.
+   */
+  it('mounts the confirmation outside the modal container', () => {
+    renderModal();
+
+    drawSomething();
+    fireEvent.click(screen.getByRole('button', { name: 'Discard' }));
+
+    const dialog = screen.getByText('Discard screenshot?');
+    expect(dialog.closest('[class*="modalContainer"]')).toBeNull();
+  });
+
   it('says the screenshot survives when it is an edit being discarded', () => {
     renderModal({
       initialAnnotations: {

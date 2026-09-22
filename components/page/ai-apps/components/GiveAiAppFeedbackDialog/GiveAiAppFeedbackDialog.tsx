@@ -21,6 +21,7 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import {
   AnnotatorModal,
   CaptureDeniedError,
+  ConfirmLayer,
   CaptureUnavailableError,
   RegionSelectOverlay,
   appendScreenshots,
@@ -477,20 +478,23 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
               </div>
             </FormProvider>
 
-            {/* Inside the dialog, so it inherits the modal's stacking context
-                rather than landing beneath the overlay at page level. */}
-            <ConfirmDialog
-              isOpen={Boolean(pendingRemoveShot)}
-              title="Delete screenshot?"
-              message="This screenshot and the annotations on it will be removed from your feedback."
-              confirmText="Delete"
-              cancelText="Keep"
-              onConfirm={() => {
-                if (pendingRemoveShot) onRemoveShot(pendingRemoveShot.id);
-                setPendingRemoveId(null);
-              }}
-              onCancel={() => setPendingRemoveId(null)}
-            />
+            {/* Portalled out: this panel is a small anchored popover, and a
+                `fixed` child of it is laid out against the popover rather than
+                the viewport wherever a transform survives on the container. */}
+            <ConfirmLayer isOpen={Boolean(pendingRemoveShot)}>
+              <ConfirmDialog
+                isOpen
+                title="Delete screenshot?"
+                message="This screenshot and the annotations on it will be removed from your feedback."
+                confirmText="Delete"
+                cancelText="Keep"
+                onConfirm={() => {
+                  if (pendingRemoveShot) onRemoveShot(pendingRemoveShot.id);
+                  setPendingRemoveId(null);
+                }}
+                onCancel={() => setPendingRemoveId(null)}
+              />
+            </ConfirmLayer>
 
             <div className={s.postingAs}>
               <CommentIcon />

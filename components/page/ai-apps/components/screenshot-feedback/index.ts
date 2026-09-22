@@ -7,6 +7,7 @@ export {
 } from './captureTabFrame';
 export { RegionSelectOverlay } from './RegionSelectOverlay';
 export { AnnotatorModal } from './AnnotatorModal';
+export { ConfirmLayer } from './ConfirmLayer';
 export { AnnotationCanvas, DRAW_COLORS, DEFAULT_DRAW_COLOR } from './AnnotationCanvas';
 export { appendScreenshots, annotatedScreenshotHtml } from './screenshotHtml';
 export {

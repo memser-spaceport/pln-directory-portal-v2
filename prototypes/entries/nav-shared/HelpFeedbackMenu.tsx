@@ -26,6 +26,10 @@ export interface HelpFeedbackMenuProps {
   /** A topic was chosen — open the support form on it. Values are the
    *  production `CONTACT_SUPPORT_TOPICS` values, so they feed the same form. */
   onPickTopic: (topic: string) => void;
+  /** Present → "Give feedback" (the mouse click, and the menu item) switches
+   *  comment mode on instead of opening the form on that topic. The other four
+   *  topics are things you say to a person, so they keep the form. */
+  onGiveFeedback?: () => void;
   /** Present → an "Ask AI" item renders under the topics. Juan's "maybe". */
   onAskAi?: () => void;
   /** One-time announcement on arrival, anchored to the (?). */
@@ -71,7 +75,8 @@ export interface HelpFeedbackMenuProps {
  * is a design-system decision, not this prototype's. Better none than a column
  * that is two-fifths made up.
  */
-export function HelpFeedbackMenu({ onPickTopic, onAskAi, callout = false }: HelpFeedbackMenuProps) {
+export function HelpFeedbackMenu({ onPickTopic, onGiveFeedback, onAskAi, callout = false }: HelpFeedbackMenuProps) {
+  const pick = (topic: string) => (topic === CLICK_TOPIC && onGiveFeedback ? onGiveFeedback() : onPickTopic(topic));
   // PROTOTYPE: the callout opens on every page load and is never persisted as
   // dismissed — reviewers should meet it each time. In production dismissal
   // would be a member preference, so a member sees it once. It also closes
@@ -97,7 +102,7 @@ export function HelpFeedbackMenu({ onPickTopic, onAskAi, callout = false }: Help
     event.preventBaseUIHandler?.();
     setMenuOpen(false);
     dismiss();
-    onPickTopic(CLICK_TOPIC);
+    pick(CLICK_TOPIC);
   };
 
   return (
@@ -167,7 +172,7 @@ export function HelpFeedbackMenu({ onPickTopic, onAskAi, callout = false }: Help
             {/* The modal's own list, in the modal's own order — the menu is a
                 door to that form, so it offers exactly what the form offers. */}
             {CONTACT_SUPPORT_TOPICS.map((topic) => (
-              <Menu.Item key={topic.value} className={menu.Item} onClick={() => onPickTopic(topic.value)}>
+              <Menu.Item key={topic.value} className={menu.Item} onClick={() => pick(topic.value)}>
                 {topic.label}
               </Menu.Item>
             ))}

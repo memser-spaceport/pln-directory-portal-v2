@@ -236,6 +236,150 @@
   }
 }
 
+/* ---------- The field you type in (`searchField`) ---------- */
+
+/* The slot holds the field's place in the row: 200px from tablet-landscape up,
+   the 40px glyph box below it. The popover measures this box, and its right
+   edge is the field's right edge at every width of the field. */
+.navSearchSlot {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+
+  @include tablet-landscape {
+    width: 200px;
+    height: 36px;
+  }
+}
+
+/* The glyph button, for the widths with no room for a field. */
+.navSearchCompact {
+  @include tablet-landscape {
+    display: none;
+  }
+}
+
+/* Same chrome as the button form above (the DS SearchInput's), now on a real
+   input. Anchored right and widened leftward, over the nav items rather than
+   into the row: at 1200px the bar has no spare width at all, and a field that
+   pushed its neighbours would move the control you are typing in. 400px open:
+   at 1440 that is the 200px slot plus the ~200px of free bar beside it, so the
+   field stops short of Demo Day and More there and only covers nav items on
+   narrower bars. The popover under it stays 520px (its rows need the room)
+   and shares the field's right edge. */
+.navSearchField {
+  display: none;
+
+  @include tablet-landscape {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 36px;
+    padding: 0 8px 0 12px;
+    border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    border-radius: 8px;
+    background: var(--surface-light, #ffffff);
+    color: var(--foreground-neutral-tertiary, #8897ae);
+    cursor: text;
+    transition:
+      width 0.18s ease,
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        border-color: var(--action-border-neutral-normal, rgba(14, 15, 17, 0.24));
+      }
+    }
+
+    /* The glyph: the DS 16px mark in the placeholder's ink, non-scaling
+       stroke, as on the button form. */
+    > svg {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+    }
+
+    > svg circle,
+    > svg path {
+      stroke: currentColor;
+    }
+  }
+}
+
+/* Open: the DS SearchInput's focus treatment, held for as long as the popover
+   is up (a press inside the results takes the caret, not the search). */
+.navSearchFieldOpen {
+  @include tablet-landscape {
+    width: 400px;
+    border-color: var(--foreground-brand-primary, #1b4dff);
+    box-shadow: 0 0 0 3px var(--transparent-brand-8, rgba(27, 77, 255, 0.08));
+
+    @media (hover: hover) {
+      &:hover {
+        border-color: var(--foreground-brand-primary, #1b4dff);
+      }
+    }
+  }
+}
+
+/* `min-width: 0` or the input's intrinsic size pushes the AI badge out of the
+   200px box (design-thinking lesson 2, the FilterSearch case). A kept term
+   truncates in the collapsed field. */
+.navSearchInput {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--foreground-neutral-primary, #0f172a);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  text-overflow: ellipsis;
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+    opacity: 1;
+  }
+}
+
+/* Type and colour come from `ChatSubheader .button`; this gives it a hit area. */
+.navSearchClear {
+  flex-shrink: 0;
+  height: 24px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+/* The AI badge as a flex child of the field instead of pinned over a button. */
+.navAiBadgeInline {
+  @include tablet-landscape {
+    position: static;
+    flex-shrink: 0;
+    transform: none;
+  }
+}
+
 .navAvatar {
   display: inline-flex;
   align-items: center;

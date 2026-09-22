@@ -22,7 +22,10 @@ import tt from '@/components/core/application-search/components/TryToSearch/TryT
 import { AnswerPanel, makeTurn, type Turn } from './AnswerPanel';
 import { SearchField } from './SearchField';
 import sf from './SearchField.module.scss';
-import { CHAT_HISTORY_SEED, SUGGESTED_PROMPTS } from './mocks';
+import { CHAT_HISTORY_SEED, FOUNDER_PROMPTS, SUGGESTED_PROMPTS } from './mocks';
+import { useAiSearchViewer } from './viewer';
+import { QuerySuggestions } from './QuerySuggestions';
+import { suggestQuestions } from './suggestions';
 import type { AiSearchScope } from './scope';
 import s from './AiSearchView.module.scss';
 
@@ -157,6 +160,7 @@ function groupHistory(threads: ChatThread[]): Array<[string, ChatThread[]]> {
  * was a small dialog, and this is the bigger page now.
  */
 export function AiSearchView({ open, onClose, request, onBackToResults, scope = null }: AiSearchViewProps) {
+  const viewer = useAiSearchViewer();
   const [question, setQuestion] = useState('');
   const [view, setView] = useState<'idle' | 'answer' | 'history'>('idle');
   const [threads, setThreads] = useState<ChatThread[]>(seedThreads);
@@ -195,7 +199,11 @@ export function AiSearchView({ open, onClose, request, onBackToResults, scope = 
     (q: string, from?: AiOrigin | 'history', inScope: AiSearchScope | null = activeScope) => {
       const text = q.trim();
       if (!text) return;
-      const thread: ChatThread = { id: nextThreadId++, createdAt: new Date(), turns: [makeTurn(text, inScope)] };
+      const thread: ChatThread = {
+        id: nextThreadId++,
+        createdAt: new Date(),
+        turns: [makeTurn(text, inScope, viewer)],
+      };
       setThreads((prev) => [thread, ...prev]);
       setActiveThreadId(thread.id);
       /* A visit that came from the popover keeps its way back through every
@@ -204,7 +212,7 @@ export function AiSearchView({ open, onClose, request, onBackToResults, scope = 
       setView('answer');
       setQuestion('');
     },
-    [activeScope, origin],
+    [activeScope, origin, viewer],
   );
 
   /* What the opener asked for, once per open: the popover's term as the first
@@ -261,7 +269,7 @@ export function AiSearchView({ open, onClose, request, onBackToResults, scope = 
   /* A follow-up in the open thread. */
   const ask = useCallback(
     (q: string) => {
-      setTurns((prev) => [...prev, makeTurn(q, activeScope)]);
+      setTurns((prev) => [...prev, makeTurn(q, activeScope, viewer)]);
       setView('answer');
     },
     [setTurns, activeScope],
@@ -285,7 +293,27 @@ export function AiSearchView({ open, onClose, request, onBackToResults, scope = 
     : undefined;
 
   const showAnswer = view === 'answer' && turns.length > 0;
-  const prompts = activeScope?.prompts ?? SUGGESTED_PROMPTS;
+
+  /* Suggestions follow the typing, so they read the keystrokes (`live`) rather
+     than `question`, which production's debounce delivers 700ms late. Scoped,
+     only the scope's own questions are on offer. ↓/↑ walk the list and Enter
+     asks the row they are on; with no row chosen Enter asks what was typed,
+     as before. */
+  const [live, setLive] = useState('');
+  const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  const suggestions = useMemo(
+    () => (view === 'idle' ? suggestQuestions(live, { viewer, pool: activeScope?.prompts }) : []),
+    [view, live, viewer, activeScope],
+  );
+  useEffect(() => setActiveSuggestion(-1), [live]);
+  const pickSuggestion = (text: string) => {
+    setLive('');
+    startThread(text);
+  };
+  /* A founder's first prompt is the question only their seat gets a fuller
+     answer to — the offer leads, as the prompts lead history. */
+  const prompts =
+    activeScope?.prompts ?? (viewer === 'founder' ? [...FOUNDER_PROMPTS, ...SUGGESTED_PROMPTS] : SUGGESTED_PROMPTS);
 
   return (
     <Modal isOpen={open} onClose={handleClose} overlayClassname={shell.overlay} className={shell.container} lockScroll>
@@ -318,8 +346,31 @@ export function AiSearchView({ open, onClose, request, onBackToResults, scope = 
           <SearchField
             id={INPUT_ID}
             value={question}
-            onChange={setQuestion}
-            onSubmit={(q) => startThread(q)}
+            onChange={(next) => {
+              setQuestion(next);
+              setLive(next); // Clear lands here without a keystroke
+            }}
+            onLiveChange={setLive}
+            onSubmit={(q) => {
+              setLive('');
+              startThread(q);
+            }}
+            /* -1 is the field itself: ↓ past the last row and ↑ past the first
+               both come back to what was typed, as every suggestion list does. */
+            onArrow={(dir) =>
+              setActiveSuggestion((i) => {
+                const next = i + dir;
+                if (!suggestions.length || next >= suggestions.length) return -1;
+                return next < -1 ? suggestions.length - 1 : next;
+              })
+            }
+            onEnter={() => {
+              const chosen = suggestions[activeSuggestion];
+              if (!chosen) return false;
+              pickSuggestion(chosen.text);
+              return true;
+            }}
+            activeDescendant={activeSuggestion >= 0 ? `ai-suggestion-${activeSuggestion}` : undefined}
             /* One job now, so the placeholder names it. Scoped, the chip
                already names the team. */
             placeholder={activeScope ? `Ask about ${activeScope.name}` : 'Ask AI Search a question'}
@@ -407,23 +458,40 @@ export function AiSearchView({ open, onClose, request, onBackToResults, scope = 
                     Scoped, the prompts are the reader's own questions, one per
                     section the page has (ClickUp and Deel seed with the
                     user's records, not with capabilities). */}
-                <div className={clsx(tt.root, s.idleSection)}>
-                  <div className={tt.label}>Try asking</div>
-                  <ul className={tt.list}>
-                    {prompts.map((p) => (
-                      <li key={p.text}>
-                        <button
-                          type="button"
-                          className={clsx(tt.suggestionButton, s.promptButton)}
-                          onClick={() => startThread(p.text)}
-                        >
-                          <img src={p.icon} alt="" className={s.promptIcon} />
-                          {p.text}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                {/* While you type, the same slot holds the questions that match
+                    it, in the same rows: a suggestion is a prompt that fits
+                    what is in the field. No match, and the prompts stay. */}
+                {suggestions.length > 0 ? (
+                  <div className={clsx(tt.root, s.idleSection)}>
+                    <div className={tt.label}>Suggestions</div>
+                    <QuerySuggestions
+                      suggestions={suggestions}
+                      query={live}
+                      onPick={pickSuggestion}
+                      variant="prompts"
+                      activeIndex={activeSuggestion}
+                      idPrefix="ai-suggestion"
+                    />
+                  </div>
+                ) : (
+                  <div className={clsx(tt.root, s.idleSection)}>
+                    <div className={tt.label}>Try asking</div>
+                    <ul className={tt.list}>
+                      {prompts.map((p) => (
+                        <li key={p.text}>
+                          <button
+                            type="button"
+                            className={clsx(tt.suggestionButton, s.promptButton)}
+                            onClick={() => startThread(p.text)}
+                          >
+                            <img src={p.icon} alt="" className={s.promptIcon} />
+                            {p.text}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 {/* Past AI Search threads, in production's own words
                     (`ChatSubheader` / `ChatHistory`: "Your AI Search

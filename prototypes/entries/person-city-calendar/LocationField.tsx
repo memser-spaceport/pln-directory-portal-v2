@@ -10,25 +10,41 @@
  * what's near them — so travel belongs *inside* it, not in a second section
  * competing with it. This component drops into the same slot
  * (EditProfileForm.tsx:360-362) and keeps the label, the control and the hint
- * byte-identical; everything new sits below the divider.
+ * byte-identical; everything new sits below it.
  *
  * `LocationSelect` itself is react-query bound (/v1/locations/autocomplete), so
  * `CityCombobox` stands in for it per the copy-simplify rule. The label and hint
  * classes are imported from production's own module so they can't drift.
+ *
+ * No calendar grid. It opened on the current month while the stays sat two
+ * months out, so it was a blank page-height block whose only instruction was
+ * "drag" — and the list above it already states every stay. Adding one is now
+ * three inline fields, with the same `DateRangePicker` the members filter uses,
+ * so the feature has one way to pick a range rather than two.
  */
 
 import { useState } from 'react';
+import { Button } from '@/components/common/Button';
+import { DateRangePicker } from '@/components/form/DateRangePicker';
 import { getFormattedDateString } from '@/utils/irl.utils';
 
 import loc from '@/components/page/member-details/ProfileDetails/components/ProfileLocationInput/ProfileLocationInput.module.scss';
 
-import type { Trip } from './mocks';
-import { dateToKey, keyToDate } from './presence';
+import { MOCK_PEOPLE, type Trip } from './mocks';
+import { companionsFor, dateToKey, keyToDate, nameList } from './presence';
 import { CityCombobox } from './CityCombobox';
-import { TripCalendar } from './TripCalendar';
-import { TripEditor, type TripDraft } from './TripEditor';
 import { CalendarIcon, PlaneIcon, TrashIcon } from './icons';
 import s from './LocationField.module.scss';
+
+interface StayDraft {
+  id?: string;
+  city: string;
+  country: string;
+  range: [Date, Date] | null;
+  note: string;
+}
+
+const EMPTY_DRAFT: StayDraft = { city: '', country: '', range: null, note: '' };
 
 interface LocationFieldProps {
   home: { city: string; country: string };
@@ -36,9 +52,11 @@ interface LocationFieldProps {
   /** this member's stays only, already filtered */
   stays: Trip[];
   onStaysChange: (next: Trip[]) => void;
+  /** everyone's stays other people can see — what "who else is there" reads */
+  networkTrips: Trip[];
   memberId: string;
   todayKey: string;
-  /** open the picker on mount — the RSVP hand-off lands here */
+  /** open the add row on mount — the members-page hand-off lands here */
   autoOpen?: boolean;
 }
 
@@ -47,17 +65,12 @@ export function LocationField({
   onHomeChange,
   stays,
   onStaysChange,
+  networkTrips,
   memberId,
   todayKey,
   autoOpen = false,
 }: LocationFieldProps) {
-  const [picking, setPicking] = useState(autoOpen);
-  const [draft, setDraft] = useState<TripDraft | null>(null);
-  const [selection, setSelection] = useState<[Date, Date] | null>(null);
-  const [activeStartDate, setActiveStartDate] = useState<Date>(() => {
-    const today = keyToDate(todayKey);
-    return new Date(today.getFullYear(), today.getMonth(), 1);
-  });
+  const [draft, setDraft] = useState<StayDraft | null>(autoOpen ? EMPTY_DRAFT : null);
 
   // Removing an event-derived stay does not un-RSVP you — you are still on that
   // attendee list, so the dates are still a known fact about you and the offer
@@ -72,7 +85,7 @@ export function LocationField({
     if (stay.source === 'event') {
       setRemovedFromRsvp((current) => (current.some((t) => t.id === stay.id) ? current : [...current, stay]));
     }
-    if (draft?.id === stay.id) closeDraft();
+    if (draft?.id === stay.id) setDraft(null);
   };
 
   const restoreStay = (stay: Trip) => {
@@ -80,42 +93,28 @@ export function LocationField({
     setRemovedFromRsvp((current) => current.filter((candidate) => candidate.id !== stay.id));
   };
 
-  const closeDraft = () => {
-    setDraft(null);
-    setSelection(null);
-  };
-
-  /** Cancel backs out of the whole thing, calendar included — leaving the grid
-   *  open after a cancel makes it look like the form is still expecting input. */
-  const cancelPicking = () => {
-    closeDraft();
-    setPicking(false);
-  };
-
-  const startFromSelection = (range: [Date, Date] | null) => {
-    setSelection(range);
-    if (!range) return;
-    setDraft({ city: '', country: '', startDate: dateToKey(range[0]), endDate: dateToKey(range[1]), note: '' });
-  };
-
-  const openStay = (stay: Trip) => {
-    setPicking(true);
-    setSelection(null);
+  const openStay = (stay: Trip) =>
     setDraft({
       id: stay.id,
       city: stay.city,
       country: stay.country,
-      startDate: stay.startDate,
-      endDate: stay.endDate,
+      range: [keyToDate(stay.startDate), keyToDate(stay.endDate)],
       note: stay.note ?? '',
-      eventName: stay.eventName,
     });
-    const start = keyToDate(stay.startDate);
-    setActiveStartDate(new Date(start.getFullYear(), start.getMonth(), 1));
-  };
+
+  const draftStart = draft?.range ? dateToKey(draft.range[0]) : '';
+  const draftEnd = draft?.range ? dateToKey(draft.range[1]) : '';
+
+  // You can only be in one place. Say which stay is in the way rather than
+  // letting the second one silently lose.
+  const clash =
+    draft?.range &&
+    stays.find((stay) => stay.id !== draft.id && stay.startDate <= draftEnd && stay.endDate >= draftStart);
+
+  const canSave = Boolean(draft?.city && draft.range && !clash);
 
   const saveDraft = () => {
-    if (!draft) return;
+    if (!draft || !draft.range || !canSave) return;
     if (draft.id) {
       onStaysChange(
         stays.map((stay) =>
@@ -124,11 +123,10 @@ export function LocationField({
                 ...stay,
                 city: draft.city,
                 country: draft.country,
-                startDate: draft.startDate,
-                endDate: draft.endDate,
+                startDate: draftStart,
+                endDate: draftEnd,
                 note: draft.note || undefined,
-                // Editing an event-derived stay detaches it from the RSVP and
-                // counts as confirmation — the one-way link rule.
+                // Editing a suggested stay is accepting it.
                 confirmed: true,
               }
             : stay,
@@ -138,19 +136,19 @@ export function LocationField({
       onStaysChange([
         ...stays,
         {
-          id: `t-${draft.city.toLowerCase().replace(/\s+/g, '-')}-${draft.startDate}`,
+          id: `t-${draft.city.toLowerCase().replace(/\s+/g, '-')}-${draftStart}`,
           memberId,
           city: draft.city,
           country: draft.country,
-          startDate: draft.startDate,
-          endDate: draft.endDate,
+          startDate: draftStart,
+          endDate: draftEnd,
           source: 'manual',
           note: draft.note || undefined,
           confirmed: true,
         },
       ]);
     }
-    closeDraft();
+    setDraft(null);
   };
 
   return (
@@ -174,91 +172,113 @@ export function LocationField({
       ) : (
         <div className={s.stays}>
           <div className={s.staysHead}>
-            {/* A plain noun phrase, like every other field label on this form
-                ("Location", "Professional skills", "Bio") — the sentence
-                fragment read as instructions. It borrows the parent field's own
-                word, so the two halves are tied lexically as well as spatially,
-                and it makes no claim about tense: the list holds a stay already
-                in progress as well as future ones, which "Upcoming locations"
-                would get wrong. */}
+            {/* "Other locations" is the one noun for this everywhere — here, on
+                the header chip's list and in the members prompt. It borrows the
+                parent field's own word and makes no claim about tense: the list
+                holds a stay already in progress as well as future ones. */}
             <span className={loc.label}>Other locations</span>
-            <button
-              type="button"
-              className={s.addBtn}
-              onClick={() => {
-                setPicking(true);
-                closeDraft();
-              }}
-            >
-              + Add dates
-            </button>
+            {!draft && (
+              <button type="button" className={s.addBtn} onClick={() => setDraft(EMPTY_DRAFT)}>
+                + Add dates
+              </button>
+            )}
           </div>
 
-          {/* No empty-state copy: "+ Add dates" already says what to do, and the
-              calendar's own legend says the rest ("Unmarked days mean you're in
-              Lisbon"). */}
           {(upcoming.length > 0 || removedFromRsvp.length > 0) && (
             <ul className={s.stayList}>
-              {upcoming.map((stay) => (
-                <li key={stay.id}>
-                  <div className={`${s.stayRow} ${draft?.id === stay.id ? s.stayRowActive : ''}`}>
-                    <button type="button" className={s.stayMain} onClick={() => openStay(stay)}>
-                      <PlaneIcon fill={stay.confirmed ? '#1B4DFF' : '#8897AE'} />
-                      <span className={s.stayCity}>{stay.city}</span>
-                      <span className={s.stayDates}>
-                        <CalendarIcon fill="#8897AE" />
-                        {getFormattedDateString(stay.startDate, stay.endDate)}
-                      </span>
-                      {stay.note && <span className={s.stayNote}>{stay.note}</span>}
-                      {/* Name only. The team page's badge carries a month under
-                          the name because it stands alone there; here the row
-                          states the exact dates two items to the left, so the
-                          month was the same fact twice. */}
-                      {stay.eventName && (
-                        <span className={s.eventBadge} title={stay.eventName}>
-                          <span className={s.eventBadgeTitle}>{stay.eventName}</span>
-                        </span>
-                      )}
-                    </button>
+              {upcoming.map((stay) => {
+                // The reward for the row existing: who it puts you next to.
+                const companions = companionsFor(
+                  stay.city,
+                  stay.startDate,
+                  stay.endDate,
+                  MOCK_PEOPLE,
+                  networkTrips,
+                  memberId,
+                );
+                const suggested = stay.source === 'event' && !stay.confirmed;
 
-                    {/* Confirm resolves to "Added" rather than disappearing.
-                        A control that vanishes on click leaves you guessing
-                        whether it worked, and the row reflows under the cursor.
-                        Only event-derived stays get either state — a manual one
-                        was never unconfirmed, so "Added" would be noise. */}
-                    {stay.source === 'event' &&
-                      (stay.confirmed ? (
-                        <span className={s.addedTag}>
-                          <img src="/icons/added.svg" alt="" width={14} height={14} />
-                          Added
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          className={s.confirmBtn}
-                          onClick={() =>
-                            onStaysChange(
-                              stays.map((candidate) =>
-                                candidate.id === stay.id ? { ...candidate, confirmed: true } : candidate,
-                              ),
-                            )
-                          }
-                        >
-                          Confirm
-                        </button>
-                      ))}
-
-                    <button
-                      type="button"
-                      className={s.removeBtn}
-                      aria-label={`Remove ${stay.city}`}
-                      onClick={() => removeStay(stay)}
+                return (
+                  <li key={stay.id}>
+                    <div
+                      className={`${s.stayRow} ${draft?.id === stay.id ? s.stayRowActive : ''} ${suggested ? s.stayRowSuggested : ''}`}
                     >
-                      <TrashIcon />
-                    </button>
-                  </div>
-                </li>
-              ))}
+                      <button type="button" className={s.stayMain} onClick={() => openStay(stay)}>
+                        <span className={s.stayLine}>
+                          <PlaneIcon fill={suggested ? '#8897AE' : '#1B4DFF'} />
+                          <span className={s.stayCity}>{stay.city}</span>
+                          <span className={s.stayDates}>
+                            <CalendarIcon fill="#8897AE" />
+                            {getFormattedDateString(stay.startDate, stay.endDate)}
+                          </span>
+                          {stay.note && <span className={s.stayNote}>{stay.note}</span>}
+                          {/* Name only. The team page's badge carries a month
+                              under the name because it stands alone there; here
+                              the row states the exact dates beside it. */}
+                          {stay.eventName && (
+                            <span className={s.eventBadge} title={stay.eventName}>
+                              <span className={s.eventBadgeTitle}>{stay.eventName}</span>
+                            </span>
+                          )}
+                        </span>
+
+                        {/* A suggestion says what accepting it does; an accepted
+                            stay says what it bought you. Never both. */}
+                        {suggested ? (
+                          <span className={s.stayMeta}>
+                            From your RSVP — not on your profile until you add it.
+                          </span>
+                        ) : (
+                          companions.length > 0 && (
+                            <span className={s.stayMeta}>
+                              {nameList(companions.map((c) => c.member.name))}{' '}
+                              {companions.length === 1 ? 'is' : 'are'} there then.
+                            </span>
+                          )
+                        )}
+                      </button>
+
+                      {/* Only a stay the product guessed needs accepting — one
+                          you ticked the box for at RSVP arrives accepted. Quiet
+                          and bordered: the form's primary is Save, and a filled
+                          brand button in a row competes with it. It resolves to
+                          "Added" rather than vanishing, so the press visibly
+                          worked and the row doesn't reflow under the cursor. */}
+                      {stay.source === 'event' &&
+                        (suggested ? (
+                          <Button
+                            size="xs"
+                            style="border"
+                            variant="neutral"
+                            onClick={() =>
+                              onStaysChange(
+                                stays.map((candidate) =>
+                                  candidate.id === stay.id ? { ...candidate, confirmed: true } : candidate,
+                                ),
+                              )
+                            }
+                          >
+                            Add
+                          </Button>
+                        ) : (
+                          <span className={s.addedTag}>
+                            <img src="/icons/added.svg" alt="" width={14} height={14} />
+                            Added
+                          </span>
+                        ))}
+
+                      <button
+                        type="button"
+                        className={s.removeBtn}
+                        aria-label={`Remove ${stay.city}`}
+                        onClick={() => removeStay(stay)}
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
 
               {/* Deleting an event-derived stay removes it from your profile,
                   not from the event — you are still on that attendee list. So
@@ -268,12 +288,14 @@ export function LocationField({
                 <li key={`removed-${stay.id}`}>
                   <div className={`${s.stayRow} ${s.stayRowRemoved}`}>
                     <span className={s.stayMain}>
-                      <span className={s.stayCity}>{stay.city}</span>
-                      <span className={s.stayDates}>
-                        <CalendarIcon fill="#8897AE" />
-                        {getFormattedDateString(stay.startDate, stay.endDate)}
+                      <span className={s.stayLine}>
+                        <span className={s.stayCity}>{stay.city}</span>
+                        <span className={s.stayDates}>
+                          <CalendarIcon fill="#8897AE" />
+                          {getFormattedDateString(stay.startDate, stay.endDate)}
+                        </span>
+                        <span className={s.stayNote}>Removed — you&apos;re still going to {stay.eventName}</span>
                       </span>
-                      <span className={s.stayNote}>Removed — you&apos;re still going to {stay.eventName}</span>
                     </span>
                     <button type="button" className={s.addBackBtn} onClick={() => restoreStay(stay)}>
                       Add back
@@ -284,43 +306,54 @@ export function LocationField({
             </ul>
           )}
 
-          {picking && (
-            <div className={s.picker}>
-              <div className={s.pickerCol}>
-                <TripCalendar
-                  trips={stays}
-                  activeStartDate={activeStartDate}
-                  onActiveStartDateChange={setActiveStartDate}
-                  selection={selection}
-                  onSelect={startFromSelection}
-                  todayKey={todayKey}
-                  homeCity={home.city}
+          {draft && (
+            <div className={s.editor}>
+              <div className={s.editorFields}>
+                <div className={`${s.editorField} ${s.editorCity}`}>
+                  <span className={s.editorLabel}>City</span>
+                  <CityCombobox
+                    value={draft.city ? { city: draft.city, country: draft.country } : null}
+                    onChange={(option) => setDraft({ ...draft, city: option.city, country: option.country })}
+                  />
+                </div>
+                <div className={s.editorField}>
+                  <DateRangePicker
+                    label="Dates"
+                    placeholder="When will you be there?"
+                    value={draft.range}
+                    onChange={(range) => setDraft({ ...draft, range })}
+                    minDate={keyToDate(todayKey)}
+                  />
+                </div>
+              </div>
+
+              <div className={s.editorField}>
+                <label className={s.editorLabel} htmlFor="stay-note">
+                  Note <span className={s.editorOptional}>(Optional)</span>
+                </label>
+                <input
+                  id="stay-note"
+                  className={s.editorInput}
+                  placeholder="Open for coffee, here for LabWeek…"
+                  value={draft.note}
+                  onChange={(event) => setDraft({ ...draft, note: event.target.value })}
                 />
               </div>
 
-              <div className={s.pickerCol}>
-                {draft ? (
-                  <TripEditor
-                    draft={draft}
-                    onChange={setDraft}
-                    onSave={saveDraft}
-                    onCancel={cancelPicking}
-                    onDelete={
-                      draft.id
-                        ? () => {
-                            const target = stays.find((stay) => stay.id === draft.id);
-                            if (target) removeStay(target);
-                            closeDraft();
-                          }
-                        : undefined
-                    }
-                  />
-                ) : (
-                  <div className={s.pickerHint}>
-                    <strong>Drag across the calendar</strong>{' '}
-                    <span>to add the dates you&apos;ll be away, or pick one of the rows above to change it.</span>
-                  </div>
-                )}
+              {clash && (
+                <p className={s.editorError}>
+                  You&apos;re already in {clash.city} {getFormattedDateString(clash.startDate, clash.endDate)}. Pick
+                  other dates or change that one.
+                </p>
+              )}
+
+              <div className={s.editorActions}>
+                <Button size="xs" style="border" variant="neutral" onClick={() => setDraft(null)}>
+                  Cancel
+                </Button>
+                <Button size="xs" disabled={!canSave} onClick={saveDraft}>
+                  {draft.id ? 'Update' : 'Add'}
+                </Button>
               </div>
             </div>
           )}

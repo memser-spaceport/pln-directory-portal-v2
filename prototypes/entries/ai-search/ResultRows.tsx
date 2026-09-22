@@ -17,6 +17,12 @@ import { getGroupTitleByGroupName } from '@/components/core/application-search/c
 import s from '@/components/core/application-search/components/SearchResultsSection/SearchResultsSection.module.scss';
 import top from '@/components/core/application-search/components/SearchResultsSection/components/Top50Results/Top50Results.module.scss';
 
+import { Badge } from '@/components/common/Badge';
+
+import { investorByUid, investorProfileHref, connectorOf, ASK_STATUS_LABEL } from '../warm-intros-founders/mocks';
+import type { FounderInvestorRow, IntroAsk } from '../warm-intros-founders/mocks';
+import { ConnectorName } from '../warm-intros-founders/InvestorPathRow';
+
 import local from './ResultRows.module.scss';
 
 type AnyItem = FoundItem | ForumFoundItem;
@@ -28,6 +34,11 @@ interface ResultRowsProps {
   onSelect?: () => void;
   /** A team or member row's action: ask the AI view about that record. */
   onAskAbout?: (item: FoundItem) => void;
+  /**
+   * Founder seat only: an investor's row offers the intro. Absent for anyone
+   * else, and then the row is production's row.
+   */
+  intro?: { askFor: (uid: string) => IntroAsk | undefined; onAsk: (row: FounderInvestorRow) => void };
 }
 
 const GROUP_ORDER = ['members', 'teams', 'projects', 'events', 'forumThreads'];
@@ -52,18 +63,25 @@ const GROUP_ORDER = ['members', 'teams', 'projects', 'events', 'forumThreads'];
  * at the end of its header, so the badge (and a long name) stop short of it
  * beside the persistent action without overlapping it.
  *
+ * **The intro line.** For a founder, an investor's row ends with who can make
+ * the intro and "Ask for intro" — the suggestion made where the person was
+ * found, without first asking the AI anything. It is a sibling under the link
+ * (a press can't live inside the anchor), one line tall: the Fundraising row's
+ * status cluster stacks three lines, which is a table cell's height, not a
+ * lookup row's. Once asked, the press gives way to the same status Badge.
+ *
  * What is dropped from the source: `useUnifiedSearchAnalytics` (no PostHog
  * here) and `useRouter` (unused there too). Forum rows are production's own
  * `ForumResultItem`, via `SearchResultsItem`, untouched. The Top group's
  * "show all" past five per index is not carried: the mocked corpus never
  * reaches it.
  */
-export function ResultRows({ items, grouped = false, onSelect, onAskAbout }: ResultRowsProps) {
+export function ResultRows({ items, grouped = false, onSelect, onAskAbout, intro }: ResultRowsProps) {
   if (!grouped) {
     return (
       <ul className={s.list}>
         {items.map((item) => (
-          <Row key={item.uid} item={item} onSelect={onSelect} onAskAbout={onAskAbout} />
+          <Row key={item.uid} item={item} onSelect={onSelect} onAskAbout={onAskAbout} intro={intro} />
         ))}
       </ul>
     );
@@ -79,7 +97,7 @@ export function ResultRows({ items, grouped = false, onSelect, onAskAbout }: Res
           <div className={top.groupTitle}>{getGroupTitleByGroupName(group)}</div>
           <ul className={s.list}>
             {list.map((item) => (
-              <Row key={item.uid} item={item} onSelect={onSelect} onAskAbout={onAskAbout} />
+              <Row key={item.uid} item={item} onSelect={onSelect} onAskAbout={onAskAbout} intro={intro} />
             ))}
           </ul>
         </div>
@@ -92,17 +110,26 @@ function Row({
   item,
   onSelect,
   onAskAbout,
+  intro,
 }: {
   item: AnyItem;
   onSelect?: () => void;
   onAskAbout?: (item: FoundItem) => void;
+  intro?: ResultRowsProps['intro'];
 }) {
   if (item.index === 'forumThreads') return <SearchResultsItem item={item} onSelect={onSelect} />;
 
   const found = item as FoundItem;
   const avatar = found.image || getDefaultAvatar(found.name);
   const matchedName = found.matches.find((m) => m.field === 'name');
-  const link = found.index === 'events' ? found.source?.eventUrl || '' : `/${found.index}/${found.uid}`;
+  const investor = found.index === 'members' ? investorByUid(found.uid) : undefined;
+  const link =
+    found.index === 'events'
+      ? found.source?.eventUrl || ''
+      : investor
+        ? investorProfileHref(investor.uid)
+        : `/${found.index}/${found.uid}`;
+  const ask = investor && intro ? intro.askFor(investor.uid) : undefined;
   const external = link.startsWith('http');
   const askable = (found.index === 'teams' || found.index === 'members') && !!onAskAbout;
 
@@ -144,6 +171,24 @@ function Row({
             ))}
         </ul>
       </Link>
+
+      {investor && intro && (
+        <div className={local.intro}>
+          <span className={local.introLabel}>Intro via</span>
+          <ConnectorName name={connectorOf(investor, ask).name} />
+          <span className={local.introAction}>
+            {ask ? (
+              <Badge variant={ask.status === 'requested' ? 'brand' : ask.status === 'declined' ? 'default' : 'success'}>
+                {ASK_STATUS_LABEL[ask.status]}
+              </Badge>
+            ) : (
+              <button type="button" className={local.introAsk} onClick={() => intro.onAsk(investor)}>
+                Ask for intro
+              </button>
+            )}
+          </span>
+        </div>
+      )}
 
       {askable && (
         <button

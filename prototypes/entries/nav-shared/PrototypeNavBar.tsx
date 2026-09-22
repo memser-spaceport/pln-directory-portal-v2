@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { NavigationMenu } from '@base-ui-components/react';
 
@@ -27,6 +27,8 @@ import {
 import s from '@/components/core/navbar/NavBar.module.scss';
 import signup from '@/components/core/navbar/components/Signup/Signup.module.scss';
 import login from '@/components/core/navbar/components/LoginBtn/LoginButton.module.scss';
+// The 12px/500 brand text button the search surfaces' "Clear" wears.
+import sub from '@/components/core/application-search/components/AiChatPanel/components/ChatSubheader/ChatSubheader.module.scss';
 import local from './PrototypeNav.module.scss';
 import help from './HelpFeedbackMenu.module.scss';
 
@@ -34,6 +36,7 @@ import { HomeIcon, BellIcon, SearchGlyph } from './icons';
 import { LOGO_LABEL, scrollToTop } from './home';
 import { PrototypeSearchModal } from './PrototypeSearchModal';
 import { HelpFeedbackMenu, type HelpFeedbackMenuProps } from './HelpFeedbackMenu';
+import { PageCommentMode } from '../feedback-shared/PageCommentMode';
 
 /**
  * Copy of the production `Navbar` (components/core/navbar/nav-bar.tsx) with the
@@ -125,7 +128,22 @@ interface PrototypeNavBarProps {
   renderSearchModal?: (open: boolean, close: () => void) => React.ReactNode;
   /** Optional AI shortcut inside the desktop search field. */
   onAiSearchClick?: () => void;
+  /**
+   * Makes the desktop header field the **real** field: you type here, it widens
+   * over the nav while search is open, and whatever `renderSearchModal` draws
+   * hangs under it holding only results. Without it the field is a button that
+   * opens a dialog whose first row is a second field — two fields in a row for
+   * one search, which is why production shrank its own to a glyph.
+   *
+   * The host owns the term (it outlives the popover). Below tablet-landscape
+   * the header has no room for a field, so the glyph button stays and the
+   * popover keeps its own. Only read while `searchable`.
+   */
+  searchField?: { value: string; onChange: (value: string) => void; placeholder?: string };
 }
+
+/** What the popover hangs under, in both the glyph and the field form. */
+export const SEARCH_ANCHOR_SELECTOR = 'header [data-search-anchor]';
 
 export function PrototypeNavBar({
   hasUnreadNews,
@@ -142,13 +160,43 @@ export function PrototypeNavBar({
   onSearchOpenChange,
   renderSearchModal,
   onAiSearchClick,
+  searchField,
 }: PrototypeNavBarProps) {
   const [internalOpen, setInternalOpen] = useState(false);
+  /* Giving feedback is a mode of the page, not a form over it: the header's
+     door switches on comment mode (feedback-shared/PageCommentMode) — point at
+     the thing, a pin drops, the composer opens with that element's picture
+     attached. Owned here so every entry wearing this bar gets it, the way the
+     real header would give it to every page. */
+  const [commenting, setCommenting] = useState(false);
   const searchOpen = controlledOpen ?? internalOpen;
   const setSearchOpen = (open: boolean) => {
     setInternalOpen(open);
     onSearchOpenChange?.(open);
   };
+
+  /* Open and focused are one state for the header field. Search can open from
+     elsewhere (⌘K, a page button, the AI view's Back), so the caret follows the
+     flag rather than the other way round; a term kept from the last visit opens
+     selected, so the next keystroke replaces it. Closing by Escape leaves focus
+     in the field, which would make the collapsed field a live one: blur it.
+     `offsetParent` is null below tablet-landscape, where the field isn't drawn
+     and the popover focuses its own. */
+  const fieldRef = useRef<HTMLInputElement>(null);
+  const hasSearchField = Boolean(searchField);
+  useEffect(() => {
+    const input = fieldRef.current;
+    if (!hasSearchField || !input || input.offsetParent === null) return;
+    if (!searchOpen) {
+      if (document.activeElement === input) input.blur();
+      return;
+    }
+    const raf = requestAnimationFrame(() => {
+      input.focus();
+      if (input.value) input.select();
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [searchOpen, hasSearchField]);
   const label = hasUnreadNews ? 'Home, new items since your last visit' : 'Home';
   const inner = (
     <>
@@ -256,8 +304,79 @@ export function PrototypeNavBar({
                 it to `ApplicationSearch` — an inline field in this row that grows
                 a dropdown, then promotes itself to an overlay on Enter. Here the
                 icon opens that overlay directly; see PrototypeSearchModal. */}
-            {searchable ? (
-              <div className={clsx(onAiSearchClick && local.navSearchWithAi)}>
+            {searchable && searchField ? (
+              <div className={local.navSearchSlot} data-search-anchor>
+                {/* Below tablet-landscape: the glyph box, opening the popover
+                    with its own field. */}
+                <button
+                  type="button"
+                  className={clsx(local.navSearch, local.navSearchTrigger, local.navSearchCompact)}
+                  onClick={() => setSearchOpen(true)}
+                  aria-label="Search"
+                >
+                  <SearchGlyph />
+                </button>
+                {/* From tablet-landscape up: the field itself. The slot keeps
+                    its 200px in the row; the field is anchored to the slot's
+                    right edge and widens leftward over the nav, so nothing in
+                    the bar reflows while you search. */}
+                <div
+                  className={clsx(local.navSearchField, searchOpen && local.navSearchFieldOpen)}
+                  /* The glyph and the padding are the field too. */
+                  onMouseDown={(e) => {
+                    if ((e.target as HTMLElement).closest('input, button')) return;
+                    e.preventDefault();
+                    fieldRef.current?.focus();
+                  }}
+                >
+                  <SearchGlyph />
+                  <input
+                    ref={fieldRef}
+                    type="text"
+                    className={local.navSearchInput}
+                    value={searchField.value}
+                    onChange={(e) => {
+                      searchField.onChange(e.target.value);
+                      if (!searchOpen) setSearchOpen(true);
+                    }}
+                    onFocus={() => !searchOpen && setSearchOpen(true)}
+                    onClick={() => !searchOpen && setSearchOpen(true)}
+                    placeholder={searchOpen ? (searchField.placeholder ?? 'Search') : 'Search'}
+                    aria-label="Search"
+                    aria-expanded={searchOpen}
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                  {/* The word, as in the AI view's field: one text-button
+                      lineage for emptying a search. Only while open — the
+                      collapsed field has no room for it beside a kept term. */}
+                  {searchOpen && searchField.value && (
+                    <button
+                      type="button"
+                      className={clsx(sub.button, local.navSearchClear)}
+                      onClick={() => {
+                        searchField.onChange('');
+                        fieldRef.current?.focus();
+                      }}
+                    >
+                      Clear
+                    </button>
+                  )}
+                  {onAiSearchClick && (
+                    <button
+                      type="button"
+                      className={clsx(local.navAiBadge, local.navAiBadgeInline)}
+                      onClick={onAiSearchClick}
+                      aria-label="Open AI Search"
+                    >
+                      <AiSearchIcon size={16} />
+                      AI
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : searchable ? (
+              <div className={clsx(onAiSearchClick && local.navSearchWithAi)} data-search-anchor>
                 <button
                   type="button"
                   className={clsx(
@@ -293,14 +412,22 @@ export function PrototypeNavBar({
               <HelpFeedbackMenu
                 key={helpMenu.key}
                 onPickTopic={helpMenu.onPickTopic}
+                onGiveFeedback={() => setCommenting(true)}
                 callout={helpMenu.callout}
                 onAskAi={helpMenu.askAi ? () => setSearchOpen(true) : undefined}
               />
             ) : (
-              <span className={help.contact} aria-hidden="true">
+              /* No topic menu on this entry, so the door has its one job: a
+                 press switches comment mode on. */
+              <button
+                type="button"
+                className={clsx(help.contact, help.trigger)}
+                aria-label="Give feedback"
+                onClick={() => setCommenting(true)}
+              >
                 <HelpIcon />
                 <span className={help.contactLabel}>Contact us</span>
-              </span>
+              </button>
             )}
             {/* Logged out, the bell goes with the account: notifications with
                 nobody to notify is a control that can't mean anything. Same shape
@@ -337,6 +464,8 @@ export function PrototypeNavBar({
         ) : (
           <PrototypeSearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
         ))}
+
+      <PageCommentMode active={commenting} onExit={() => setCommenting(false)} />
     </header>
   );
 }

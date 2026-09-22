@@ -15,8 +15,9 @@
  * State is shared across tabs: RSVP on the Gathering tab and the trip shows up
  * on the profile and in the directory.
  *
- * The route already renders the real SiteHeader (app/layout.tsx:78), so there
- * is deliberately no navbar here.
+ * Who sees what: a stay is public once its owner has accepted it. The one
+ * still-suggested stay in the mocks (Singapore, from an old RSVP) shows only in
+ * Maya's own edit list until she adds it.
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -70,6 +71,9 @@ export default function PersonCityCalendarPrototype() {
   const me = MOCK_PEOPLE.find((person) => person.id === ME_ID) ?? MOCK_PEOPLE[0];
   const other = MOCK_PEOPLE.find((person) => person.id === 'lucas-moreau') ?? MOCK_PEOPLE[1];
   const goingToBerlin = trips.some((trip) => trip.id === 't-me-berlin');
+  // What other people can see: a stay the product guessed from an old RSVP
+  // stays private until its owner adds it.
+  const publicTrips = useMemo(() => trips.filter((trip) => trip.confirmed), [trips]);
 
   const tabs = useMemo(
     () => [
@@ -105,7 +109,7 @@ export default function PersonCityCalendarPrototype() {
           onGoToCalendar={() => setTab('profile')}
           onTripAdded={(trip) => setTrips((current) => [...current, trip])}
           people={MOCK_PEOPLE}
-          trips={trips}
+          trips={publicTrips}
         />
       )}
 
@@ -119,7 +123,10 @@ export default function PersonCityCalendarPrototype() {
           todayKey={TODAY}
           onTripsChange={setTrips}
           isOwner
-          startEditing={goingToBerlin || openLocationEditor}
+          // Only the members prompt opens the editor. The RSVP already added
+          // its stay with consent, so arriving from there lands on the profile
+          // as other people see it — with Berlin on it.
+          startEditing={openLocationEditor}
         />
       )}
 
@@ -127,7 +134,7 @@ export default function PersonCityCalendarPrototype() {
         <MembersTab
           me={me}
           people={MOCK_PEOPLE}
-          trips={trips}
+          trips={publicTrips}
           todayKey={TODAY}
           onAddDates={() => {
             setOpenLocationEditor(true);
@@ -136,7 +143,14 @@ export default function PersonCityCalendarPrototype() {
         />
       )}
 
-      {tab === 'other' && <ProfileTab member={other} trips={trips} todayKey={LABEL_DATE} />}
+      {tab === 'other' && (
+        <ProfileTab
+          member={other}
+          trips={publicTrips}
+          todayKey={LABEL_DATE}
+          viewer={{ homeCity: me.home.city, stays: publicTrips.filter((trip) => trip.memberId === me.id) }}
+        />
+      )}
 
       {tab === 'firstrun' && (
         <ProfileTab
@@ -144,6 +158,7 @@ export default function PersonCityCalendarPrototype() {
           trips={newMemberTrips}
           todayKey={TODAY}
           onTripsChange={setNewMemberTrips}
+          networkTrips={publicTrips}
           isOwner
         />
       )}

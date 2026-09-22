@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import clsx from 'clsx';
 
 import { CloseIcon } from '@/components/icons';
-import { type AnnotationState, type PinComment, type Point, type Stroke } from './types';
+import { type AnnotationState, type PinComment, type Point, type Shape, type ShapeKind, type Stroke } from './types';
 
 import s from './AnnotationCanvas.module.scss';
 
@@ -14,7 +14,30 @@ export const DEFAULT_DRAW_COLOR = DRAW_COLORS[0];
 const STROKE_WIDTH_RATIO = 0.006;
 const DRAG_THRESHOLD_PX = 4;
 
-export type AnnotatorTool = 'draw' | 'comment';
+export type AnnotatorTool = 'draw' | 'comment' | ShapeKind;
+
+const SHAPE_TOOLS: AnnotatorTool[] = ['rect', 'ellipse', 'arrow'];
+
+/**
+ * How much room a comment panel needs below and to the right of its pin.
+ *
+ * Mirrors `.bubble` / `.composer` in the stylesheet — 240px wide plus its 8px
+ * offset, and roughly the tallest the composer gets with its textarea and
+ * Remove link. Constants rather than a measurement because the flip has to be
+ * decided before paint: measuring would mean rendering the panel in the wrong
+ * place first and letting the user watch it jump.
+ */
+const PANEL_WIDTH = 248;
+const PANEL_HEIGHT = 150;
+
+/** Arrowhead length, as a fraction of the image's short side. */
+const ARROW_HEAD_RATIO = 0.035;
+/** How far the head is splayed from the shaft. */
+const ARROW_HEAD_ANGLE = Math.PI / 7;
+
+function isShapeTool(tool: AnnotatorTool): tool is ShapeKind {
+  return SHAPE_TOOLS.includes(tool);
+}
 
 interface Props {
   imageSrc: string;
@@ -27,6 +50,12 @@ interface Props {
 }
 
 type DraftComment = PinComment & { input: string };
+
+type ShapeDrag = {
+  kind: ShapeKind;
+  from: Point;
+  to: Point;
+};
 
 type PinDrag = {
   id: string;
@@ -45,23 +74,102 @@ function fromNorm(point: Point, width: number, height: number): Point {
   return { x: point.x * width, y: point.y * height };
 }
 
-function drawStrokes(ctx: CanvasRenderingContext2D, strokes: Stroke[], width: number, height: number) {
-  ctx.clearRect(0, 0, width, height);
-  for (const stroke of strokes) {
-    if (stroke.points.length === 0) continue;
-    ctx.strokeStyle = stroke.color;
-    ctx.lineWidth = Math.max(1.5, stroke.width * Math.min(width, height));
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.beginPath();
-    const first = fromNorm(stroke.points[0], width, height);
-    ctx.moveTo(first.x, first.y);
-    for (let i = 1; i < stroke.points.length; i++) {
-      const p = fromNorm(stroke.points[i], width, height);
-      ctx.lineTo(p.x, p.y);
-    }
-    ctx.stroke();
+function lineWidthFor(width: number, canvasWidth: number, canvasHeight: number): number {
+  return Math.max(1.5, width * Math.min(canvasWidth, canvasHeight));
+}
+
+function traceStroke(ctx: CanvasRenderingContext2D, stroke: Stroke, width: number, height: number) {
+  if (stroke.points.length === 0) return;
+  ctx.strokeStyle = stroke.color;
+  ctx.lineWidth = lineWidthFor(stroke.width, width, height);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  const first = fromNorm(stroke.points[0], width, height);
+  ctx.moveTo(first.x, first.y);
+  for (let i = 1; i < stroke.points.length; i++) {
+    const p = fromNorm(stroke.points[i], width, height);
+    ctx.lineTo(p.x, p.y);
   }
+  ctx.stroke();
+}
+
+/** Outline only: a filled callout hides the very thing it is pointing at. */
+function traceShape(ctx: CanvasRenderingContext2D, shape: Shape, width: number, height: number) {
+  const x = shape.x * width;
+  const y = shape.y * height;
+  const w = shape.w * width;
+  const h = shape.h * height;
+  ctx.strokeStyle = shape.color;
+  ctx.lineWidth = lineWidthFor(shape.width, width, height);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  if (shape.kind === 'arrow') {
+    /* x/y is the tail and w/h a signed delta, so the head is simply the far end
+       of that delta — no min/abs anywhere, or the arrow loses its direction. */
+    const tipX = x + w;
+    const tipY = y + h;
+    const angle = Math.atan2(h, w);
+    /* Scaled to the image rather than fixed in pixels, so an arrow drawn on a
+       full-size capture still looks like an arrow in the strip's 120px tile.
+       Capped at a third of the shaft: a short arrow whose head outruns it reads
+       as a blob. */
+    const shaft = Math.hypot(w, h);
+    const head = Math.min(ARROW_HEAD_RATIO * Math.min(width, height), shaft / 3);
+    ctx.moveTo(x, y);
+    ctx.lineTo(tipX, tipY);
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(tipX - head * Math.cos(angle - ARROW_HEAD_ANGLE), tipY - head * Math.sin(angle - ARROW_HEAD_ANGLE));
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(tipX - head * Math.cos(angle + ARROW_HEAD_ANGLE), tipY - head * Math.sin(angle + ARROW_HEAD_ANGLE));
+  } else if (shape.kind === 'ellipse') {
+    ctx.ellipse(x + w / 2, y + h / 2, Math.abs(w) / 2, Math.abs(h) / 2, 0, 0, Math.PI * 2);
+  } else {
+    ctx.rect(x, y, w, h);
+  }
+  ctx.stroke();
+}
+
+/**
+ * One clear, then everything.
+ *
+ * Strokes and shapes share a canvas, so each must NOT clear on its own: a second
+ * clearing pass wipes whatever the first one drew, and on the live-preview path
+ * it wipes the in-progress line every frame.
+ */
+function renderAnnotations(
+  ctx: CanvasRenderingContext2D,
+  annotations: Pick<AnnotationState, 'strokes' | 'shapes'>,
+  width: number,
+  height: number,
+) {
+  ctx.clearRect(0, 0, width, height);
+  for (const stroke of annotations.strokes) traceStroke(ctx, stroke, width, height);
+  for (const shape of annotations.shapes ?? []) traceShape(ctx, shape, width, height);
+}
+
+function shapeFromDrag(kind: ShapeKind, color: string, from: Point, to: Point, width: number, height: number): Shape {
+  const a = toNorm(from, width, height);
+  const b = toNorm(to, width, height);
+  const base = { kind, color, width: STROKE_WIDTH_RATIO };
+
+  /* An arrow keeps the drag as it was made — tail, then signed delta. Folding it
+     into a positive box the way the outlines below are folded would point every
+     up-left arrow down-right, at whatever happens to sit in the opposite corner. */
+  if (kind === 'arrow') {
+    return { ...base, x: a.x, y: a.y, w: b.x - a.x, h: b.y - a.y };
+  }
+
+  /* Outlines have no direction to lose, so a drag in any direction collapses to
+     the same non-negative box and every reader gets one shape to handle. */
+  return {
+    ...base,
+    x: Math.min(a.x, b.x),
+    y: Math.min(a.y, b.y),
+    w: Math.abs(b.x - a.x),
+    h: Math.abs(b.y - a.y),
+  };
 }
 
 export function AnnotationCanvas({
@@ -77,6 +185,7 @@ export function AnnotationCanvas({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const drawing = useRef<Point[] | null>(null);
+  const shaping = useRef<ShapeDrag | null>(null);
   const pendingComment = useRef<Point | null>(null);
   const ignoreBlur = useRef(false);
   const annotationsRef = useRef(annotations);
@@ -106,7 +215,7 @@ export function AnnotationCanvas({
       canvas.height = height;
     }
     const ctx = canvas.getContext('2d');
-    if (ctx) drawStrokes(ctx, annotationsRef.current.strokes, width, height);
+    if (ctx) renderAnnotations(ctx, annotationsRef.current, width, height);
   };
 
   useEffect(() => {
@@ -143,12 +252,15 @@ export function AnnotationCanvas({
     return () => observer.disconnect();
   }, [imageSrc]);
 
+  /* Destructured so the effect depends on exactly the two arrays it paints,
+     rather than on every identity change of the whole annotation object. */
+  const { strokes, shapes } = annotations;
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || size.width === 0) return;
     const ctx = canvas.getContext('2d');
-    if (ctx) drawStrokes(ctx, annotations.strokes, canvas.width, canvas.height);
-  }, [annotations.strokes, size]);
+    if (ctx) renderAnnotations(ctx, { strokes, shapes }, canvas.width, canvas.height);
+  }, [strokes, shapes, size]);
 
   const localPoint = (event: React.PointerEvent<HTMLCanvasElement>): Point => {
     const bounds = event.currentTarget.getBoundingClientRect();
@@ -163,6 +275,29 @@ export function AnnotationCanvas({
       points: points.map((p) => toNorm(p, size.width, size.height)),
     };
     onChange({ ...annotations, strokes: [...annotations.strokes, stroke] });
+  };
+
+  const commitShape = (drag: ShapeDrag, canvas: HTMLCanvasElement) => {
+    if (!onChange) return;
+    /* A click that never became a drag is not a shape. Left in, every stray tap
+       with a shape tool active would push a zero-size box onto the history,
+       drawing nothing and giving undo something invisible to walk back through. */
+    const dx = drag.to.x - drag.from.x;
+    const dy = drag.to.y - drag.from.y;
+    if (Math.abs(dx) < DRAG_THRESHOLD_PX && Math.abs(dy) < DRAG_THRESHOLD_PX) {
+      /* Wipe whatever preview the drag painted; no state changed, so the redraw
+         effect will not run on its own. */
+      const ctx = canvas.getContext('2d');
+      if (ctx) renderAnnotations(ctx, annotations, canvas.width, canvas.height);
+      return;
+    }
+    const width = canvas.width || size.width;
+    const height = canvas.height || size.height;
+    if (width === 0 || height === 0) return;
+    onChange({
+      ...annotations,
+      shapes: [...annotations.shapes, shapeFromDrag(drag.kind, strokeColor, drag.from, drag.to, width, height)],
+    });
   };
 
   const openCommentAt = (point: Point, width: number, height: number) => {
@@ -219,6 +354,11 @@ export function AnnotationCanvas({
       drawing.current = [point];
       return;
     }
+    if (isShapeTool(tool)) {
+      event.currentTarget.setPointerCapture(event.pointerId);
+      shaping.current = { kind: tool, from: point, to: point };
+      return;
+    }
     if (tool === 'comment') {
       if (draftRef.current) {
         event.preventDefault();
@@ -232,12 +372,40 @@ export function AnnotationCanvas({
   };
 
   const onPointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!drawing.current) return;
-    drawing.current.push(localPoint(event));
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
+
+    if (shaping.current) {
+      shaping.current.to = localPoint(event);
+      if (!ctx || !canvas) return;
+      /* The preview is the committed state plus one more shape, rendered in the
+         same single-clear pass — never a second clear of its own. */
+      renderAnnotations(
+        ctx,
+        {
+          strokes: annotations.strokes,
+          shapes: [
+            ...annotations.shapes,
+            shapeFromDrag(
+              shaping.current.kind,
+              strokeColor,
+              shaping.current.from,
+              shaping.current.to,
+              canvas.width,
+              canvas.height,
+            ),
+          ],
+        },
+        canvas.width,
+        canvas.height,
+      );
+      return;
+    }
+
+    if (!drawing.current) return;
+    drawing.current.push(localPoint(event));
     if (!ctx || !canvas) return;
-    drawStrokes(ctx, annotations.strokes, canvas.width, canvas.height);
+    renderAnnotations(ctx, annotations, canvas.width, canvas.height);
     ctx.strokeStyle = strokeColor;
     ctx.lineWidth = Math.max(1.5, STROKE_WIDTH_RATIO * Math.min(canvas.width, canvas.height));
     ctx.lineCap = 'round';
@@ -251,6 +419,12 @@ export function AnnotationCanvas({
   };
 
   const onPointerUp = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    if (shaping.current) {
+      const drag = shaping.current;
+      shaping.current = null;
+      commitShape(drag, event.currentTarget);
+      return;
+    }
     if (pendingComment.current) {
       const bounds = event.currentTarget.getBoundingClientRect();
       const img = imgRef.current;
@@ -374,6 +548,25 @@ export function AnnotationCanvas({
 
   const pinPosition = (comment: Pick<PinComment, 'id' | 'x' | 'y'>) => (dragPos?.id === comment.id ? dragPos : comment);
 
+  /**
+   * Where a comment panel should sit relative to its pin, as CSS variables.
+   *
+   * A pin near the right edge would otherwise push its panel past the image and
+   * give the whole editor a horizontal scrollbar, since `.stage` scrolls. The
+   * guards keep an image narrower than the panel itself from flipping, where
+   * both sides overflow and the default at least stays predictable.
+   */
+  const panelPlacement = (point: { x: number; y: number }): CSSProperties => {
+    const flipX = size.width > PANEL_WIDTH && point.x * size.width + PANEL_WIDTH > size.width;
+    const flipY = size.height > PANEL_HEIGHT && point.y * size.height + PANEL_HEIGHT > size.height;
+    return {
+      left: `${point.x * 100}%`,
+      top: `${point.y * 100}%`,
+      '--flip-x': flipX ? 1 : 0,
+      '--flip-y': flipY ? 1 : 0,
+    } as CSSProperties;
+  };
+
   const canvasCursor = readOnly ? 'default' : 'crosshair';
 
   /**
@@ -411,6 +604,7 @@ export function AnnotationCanvas({
         onPointerUp={onPointerUp}
         onPointerCancel={() => {
           drawing.current = null;
+          shaping.current = null;
           pendingComment.current = null;
         }}
       />
@@ -452,14 +646,7 @@ export function AnnotationCanvas({
       })}
       {annotations.comments.map((comment) =>
         activeCommentId === comment.id ? (
-          <div
-            key={`${comment.id}-body`}
-            className={s.bubble}
-            style={{
-              left: `${pinPosition(comment).x * 100}%`,
-              top: `${pinPosition(comment).y * 100}%`,
-            }}
-          >
+          <div key={`${comment.id}-body`} className={s.bubble} style={panelPlacement(pinPosition(comment))}>
             {!readOnly && (
               <button
                 type="button"
@@ -497,11 +684,7 @@ export function AnnotationCanvas({
               +
             </span>
           )}
-          <div
-            className={s.composer}
-            style={{ left: `${draft.x * 100}%`, top: `${draft.y * 100}%` }}
-            onPointerDown={(event) => event.stopPropagation()}
-          >
+          <div className={s.composer} style={panelPlacement(draft)} onPointerDown={(event) => event.stopPropagation()}>
             <button
               type="button"
               className={s.remove}

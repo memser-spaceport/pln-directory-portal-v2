@@ -6,6 +6,7 @@ import clsx from 'clsx';
 import { useForm, FormProvider } from 'react-hook-form';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
+import { ConfirmDialog } from '@/components/page/demo-day/FounderPendingView/components/ConfirmDialog';
 import { FormEditor } from '@/components/form/FormEditor';
 import { FormSelect } from '@/components/form/FormSelect/FormSelect';
 import { CloseIcon, CommentIcon, PencilSimpleLineIcon } from '@/components/icons';
@@ -20,10 +21,12 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import {
   AnnotatorModal,
   CaptureDeniedError,
+  ConfirmLayer,
   CaptureUnavailableError,
   RegionSelectOverlay,
   appendScreenshots,
   grabVideoFrame,
+  hasAnyAnnotation,
   requestTabCapture,
   stopCaptureStream,
   type AnnotationState,
@@ -42,10 +45,6 @@ export const FEEDBACK_PLACEHOLDER = 'What worked, what didn’t, and what would 
 
 function hasFeedbackContent(html: string, screenshotCount = 0): boolean {
   return !isBlankHtml(html) || /<img\b/i.test(html) || screenshotCount > 0;
-}
-
-function shotHasAnnotations(annotations: AnnotationState): boolean {
-  return annotations.strokes.length > 0 || annotations.comments.length > 0;
 }
 
 function visibleFeedbackLength(html: string): number {
@@ -162,6 +161,8 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
    * the edit onto somebody else's screenshot.
    */
   const [editingShotId, setEditingShotId] = useState<string | null>(null);
+  /** Which capture the delete confirmation is open on, by id for the same reason. */
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const isBusy = isCapturing || Boolean(freezeSrc) || Boolean(cropSrc);
   const isPending = isAppFeedbackPending || isContactSupportPending || isHostingImages;
@@ -193,6 +194,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
     resetCapture();
     setScreenshots([]);
     setEditingShotId(null);
+    setPendingRemoveId(null);
     setSubmitAttempted(false);
     onClose();
   };
@@ -202,6 +204,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
     reset(getDefaults());
     setScreenshots([]);
     setEditingShotId(null);
+    setPendingRemoveId(null);
     resetCapture();
     setSubmitAttempted(false);
     onClose();
@@ -270,7 +273,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
 
   const onAnnotatorAdd = (annotations: AnnotationState) => {
     if (!cropSrc) return;
-    const hasAnnotations = shotHasAnnotations(annotations);
+    const hasAnnotations = hasAnyAnnotation(annotations);
     /* An edit replaces its own entry IN PLACE — same id, same position. A new
        entry would leave the old drawing in the feedback beside the corrected one,
        and a changed id would remount the chip and lose its place in the strip. */
@@ -289,6 +292,23 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
     analytics.onFeedbackScreenshotRemoved();
     setScreenshots((prev) => prev.filter((item) => item.id !== shotId));
   };
+
+  /**
+   * Only an annotated capture is worth asking about.
+   *
+   * A plain screenshot is one drag away from being retaken, so a dialog there is
+   * pure friction. One carrying drawings or comments is minutes of work that
+   * nothing else on screen can bring back.
+   */
+  const requestRemoveShot = (shot: ScreenshotAttachment) => {
+    if (hasAnyAnnotation(shot.annotations)) {
+      setPendingRemoveId(shot.id);
+      return;
+    }
+    onRemoveShot(shot.id);
+  };
+
+  const pendingRemoveShot = pendingRemoveId ? screenshots.find((shot) => shot.id === pendingRemoveId) : undefined;
 
   const onSubmit = handleSubmit(async ({ app, message: rawMessage }) => {
     setSubmitAttempted(true);
@@ -345,7 +365,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
             appUid: app.value,
             appName: app.label,
             screenshotCount: screenshots.length,
-            hasAnnotations: screenshots.some((shot) => shotHasAnnotations(shot.annotations)),
+            hasAnnotations: screenshots.some((shot) => hasAnyAnnotation(shot.annotations)),
           });
           toast.success('Thanks for your feedback!');
           onSubmitSuccess();
@@ -364,7 +384,16 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
         isOpen={isOpen}
         onClose={onDialogClose}
         closeOnBackdropClick={false}
-        closeOnEscape={!isBusy}
+        /* `pendingRemoveId` is in here but NOT in `isBusy`, which also hides this
+           overlay: while the delete confirmation is up, Escape has to stop
+           reaching this dialog, but the dialog it is asking about must stay
+           visible behind it.
+
+           Without the guard, Escape closes the whole feedback panel and takes
+           the typed draft with it — `Modal` registers its handler on `document`
+           in the capture phase and calls `stopImmediatePropagation`, so nothing
+           the confirmation registers later could ever intercept it. */
+        closeOnEscape={!isBusy && !pendingRemoveId}
         overlayClassname={clsx(s.overlay, placement === 'above' && s.overlayAbove, isBusy && s.overlayHidden)}
         overlayStyle={overlayStyle}
         className={s.modalContainer}
@@ -438,7 +467,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
                           type="button"
                           className={s.screenshotRemove}
                           aria-label={`Remove screenshot ${index + 1}`}
-                          onClick={() => onRemoveShot(shot.id)}
+                          onClick={() => requestRemoveShot(shot)}
                         >
                           <CloseIcon width={12} height={12} />
                         </button>
@@ -448,6 +477,24 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
                 )}
               </div>
             </FormProvider>
+
+            {/* Portalled out: this panel is a small anchored popover, and a
+                `fixed` child of it is laid out against the popover rather than
+                the viewport wherever a transform survives on the container. */}
+            <ConfirmLayer isOpen={Boolean(pendingRemoveShot)}>
+              <ConfirmDialog
+                isOpen
+                title="Delete screenshot?"
+                message="This screenshot and the annotations on it will be removed from your feedback."
+                confirmText="Delete"
+                cancelText="Keep"
+                onConfirm={() => {
+                  if (pendingRemoveShot) onRemoveShot(pendingRemoveShot.id);
+                  setPendingRemoveId(null);
+                }}
+                onCancel={() => setPendingRemoveId(null)}
+              />
+            </ConfirmLayer>
 
             <div className={s.postingAs}>
               <CommentIcon />

@@ -30,25 +30,48 @@
  *  - NothingFound, TryAiSearch              both AI doors folded into one row in the popover
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/common/Button';
 
-import { PrototypeNavBar } from '../nav-shared/PrototypeNavBar';
+import { PrototypeNavBar, SEARCH_ANCHOR_SELECTOR } from '../nav-shared/PrototypeNavBar';
 import { PrototypeMobileNav } from '../nav-shared/PrototypeMobileNav';
 import type { FoundItem } from '@/services/search/types';
 
-import { SearchPopover } from './SearchPopover';
+import { SearchPopover, SEARCH_PLACEHOLDER } from './SearchPopover';
 import { AiSearchView, type AiSearchRequest } from './AiSearchView';
 import { buildCorpusScope } from './corpusScope';
 import type { AiSearchScope } from './scope';
+import { AiSearchViewerContext, type AiSearchViewer } from './viewer';
+import { FOUNDER_STATE_QUESTIONS, INVESTORS_QUESTION } from './mocks';
+import demo from '../team-profile/TeamProfile.module.scss';
+import { useAskIntro } from '../warm-intros-founders/useAskIntro';
 import s from './AiSearchPrototype.module.scss';
+
+interface FounderState {
+  key: string;
+  label: string;
+  question: string;
+  seat: AiSearchViewer;
+}
+
+/** What a founder can meet in an answer. "Member view" is the control: the person question, asked by someone who isn't one. */
+const FOUNDER_STATES: FounderState[] = [
+  { key: 'list', label: 'Investor list', question: FOUNDER_STATE_QUESTIONS.list, seat: 'founder' },
+  { key: 'person', label: 'A person', question: FOUNDER_STATE_QUESTIONS.person, seat: 'founder' },
+  { key: 'fund', label: 'A fund', question: FOUNDER_STATE_QUESTIONS.fund, seat: 'founder' },
+  { key: 'noPath', label: 'No warm path', question: FOUNDER_STATE_QUESTIONS.noPath, seat: 'founder' },
+  { key: 'member', label: 'Member view', question: FOUNDER_STATE_QUESTIONS.person, seat: 'member' },
+];
 
 /**
  * Search in two sizes — one field, two surfaces.
  *
- * The page is only a host: the proposal is the pair. The header control opens
- * the **keyword popover** (a lookup, sized as one); its AI row grows into the
+ * The page is only a host: the proposal is the pair. The header field is the
+ * field: it widens in the bar and you type there, with the **keyword popover**
+ * (a lookup, sized as one) hanging under it as results only — a field that
+ * opens a second field is the thing production shrank its own to a glyph to
+ * avoid. The popover's AI row grows into the
  * **AI Search view** (a takeover, sized for reading an answer). The seam is the
  * handoff: the term travels forward as the first question, and Back reopens
  * the popover with the term still in it. This page owns the term and the two
@@ -65,6 +88,8 @@ export default function AiSearchPrototype() {
   const [request, setRequest] = useState<AiSearchRequest | null>(null);
   /** Set by a result row's "Ask AI": the view opens with that team or person as its chip. */
   const [scope, setScope] = useState<AiSearchScope | null>(null);
+  /** Demo seat. A founder's investor answers carry "Ask for intro"; a member's don't. */
+  const [viewer, setViewer] = useState<AiSearchViewer>('founder');
 
   /* ⌘K everywhere on the page. Production has no keyboard route into search;
      every palette in the reference set (Bonsai, Apollo, Databricks) has this. */
@@ -105,14 +130,37 @@ export default function AiSearchPrototype() {
     setAiOpen(true);
   }, []);
 
+  /* A "Founder states" tab: set the seat the state belongs to, then ask its
+     question. Both land in one render, so the thread is built for that seat. */
+  const [founderState, setFounderState] = useState<string | null>(null);
+  const openState = useCallback((state: FounderState) => {
+    setFounderState(state.key);
+    setViewer(state.seat);
+    setSearchOpen(false);
+    setScope(null);
+    setRequest({ question: state.question, origin: null, nonce: Date.now() });
+    setAiOpen(true);
+  }, []);
+
   const backToResults = useCallback(() => {
     setAiOpen(false);
     setScope(null);
     setSearchOpen(true);
   }, []);
 
-  /* The header's search control, which the popover hangs under. */
-  const anchor = useCallback(() => document.querySelector<HTMLElement>('header button[aria-label="Search"]'), []);
+  /* The header's search control, which the popover hangs under: the field you
+     type in from tablet-landscape up, the glyph below that. */
+  const anchor = useCallback(() => document.querySelector<HTMLElement>(SEARCH_ANCHOR_SELECTOR), []);
+
+  const searchField = useMemo(() => ({ value: term, onChange: setTerm, placeholder: SEARCH_PLACEHOLDER }), [term]);
+
+  /* The popover's investor rows ask through the page's own form: the popover
+     can unmount (Esc, a close) while the form is still being filled in. */
+  const { askFor, ask: askIntro, asking, modal: askModal } = useAskIntro();
+  const intro = useMemo(
+    () => (viewer === 'founder' ? { askFor, onAsk: askIntro } : undefined),
+    [viewer, askFor, askIntro],
+  );
 
   const renderSearchModal = useCallback(
     (open: boolean, close: () => void) => (
@@ -123,16 +171,19 @@ export default function AiSearchPrototype() {
         onTermChange={setTerm}
         onAskAi={askAi}
         onAskAbout={askAbout}
+        intro={intro}
+        holdOpen={asking}
         anchor={anchor}
+        fieldInHeader
       />
     ),
-    [term, askAi, askAbout, anchor],
+    [term, askAi, askAbout, anchor, intro, asking],
   );
 
   if (!mounted) return <div />;
 
   return (
-    <>
+    <AiSearchViewerContext.Provider value={viewer}>
       <PrototypeNavBar
         hasUnreadNews={false}
         newsHref="/prototypes/newsfeed"
@@ -140,6 +191,7 @@ export default function AiSearchPrototype() {
         searchOpen={searchOpen}
         onSearchOpenChange={(open) => (open ? setSearchOpen(true) : closeSearch())}
         renderSearchModal={renderSearchModal}
+        searchField={searchField}
         onAiSearchClick={() => askAi('')}
       />
 
@@ -151,28 +203,68 @@ export default function AiSearchPrototype() {
         scope={scope}
       />
 
+      {/* Demo scaffolding, in the prototypes' own demo-bar chrome. The seat is a
+          switch; the states are presses — each opens the AI view on the question
+          that produces that state, in the seat it belongs to. */}
+      <div className={demo.demoBar}>
+        <div className={demo.demoGroup}>
+          <span className={demo.demoLabel}>Signed in as</span>
+          <div className={demo.demoSwitch}>
+            {(['founder', 'member'] as const).map((seat) => (
+              <button
+                key={seat}
+                type="button"
+                className={`${demo.demoBtn} ${viewer === seat ? demo.demoBtnActive : ''}`}
+                onClick={() => setViewer(seat)}
+              >
+                {seat === 'founder' ? 'Founder' : 'Member'}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className={demo.demoGroup}>
+          <span className={demo.demoLabel}>Founder states</span>
+          <div className={demo.demoSwitch}>
+            {FOUNDER_STATES.map((state) => (
+              <button
+                key={state.key}
+                type="button"
+                className={`${demo.demoBtn} ${founderState === state.key ? demo.demoBtnActive : ''}`}
+                onClick={() => openState(state)}
+              >
+                {state.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <main className={s.page}>
         <h1 className={s.title}>Search in two sizes</h1>
         <p className={s.lede}>
-          General search as a popover under the header field, and AI Search as a full-screen view. One field, one AI
-          door; the popover&apos;s row grows into the view with your term carried over, and Back brings the popover
+          General search typed straight into the header field, with the results in a popover under it, and AI Search
+          as a full-screen view. One field, one AI door; the popover&apos;s row grows into the view with your term carried over, and Back brings the popover
           back with the term still in it. Everything is mocked; the corpus is a dozen invented members, teams, projects
           and events.
         </p>
         <ol className={s.steps}>
           <li>
-            <strong>Open search</strong> from the header control or ⌘K. A card hangs under it: an <em>Ask AI Search a
-            question</em> row, then your recent searches.
+            <strong>Click the header field</strong> or press ⌘K. The field widens in the bar with the caret in it, and
+            a card hangs under it: an <em>Ask AI Search a question</em> row, then your recent searches.
           </li>
           <li>
             <strong>Type</strong> a name — <em>filecoin</em>, <em>zk berlin</em>, <em>lisbon</em> — and the results
             list in the card, with <em>Chat with AI Search about “…”</em> pinned above them, also when nothing matches.
+            Under that row, up to two whole questions that start where your typing did (<em>fil ber</em> offers{' '}
+            <em>Find teams building on Filecoin in Berlin</em>); the AI view&apos;s own field offers the full list as you
+            type, walkable with ↓ ↑ and Enter.
             Use the <em>Ask AI</em> action on a team or member row: it opens the AI view about that team or person, not
             about the words.
           </li>
           <li>
             <strong>Press that row</strong> and the AI view takes the screen: a streamed answer with sources, directory
-            results and follow-ups. Rate it with the thumbs; a thumbs-down asks why, inline. <em>Back to results</em>{' '}
+            results and follow-ups. Ask <em>Compare Lumen Storage and Saturn Grid</em> (a prompt, and a follow-up of the
+            Filecoin answer) for an answer that is a table. Rate it with the thumbs; a thumbs-down asks why, inline. <em>Back to results</em>{' '}
             returns to the popover; <em>New question</em> returns to the view&apos;s prompts and history. Close and
             reopen: the chat is kept under history, and anything typed but not sent — the search term, a half-written
             follow-up — is still in its field.
@@ -183,6 +275,17 @@ export default function AiSearchPrototype() {
             AI view with the team as a chip in the field. The prompts come from the profile&apos;s own sections,
             and each answer shows what it read, the people it found, and a button to the section they belong to.
             Remove the chip to ask the whole network.
+          </li>
+          <li>
+            <strong>Founders — ask for an intro:</strong> the <em>Founder states</em> tabs above the page open each
+            case: a list of investors, an answer about one person or one fund (the intro is offered unasked, as a line
+            under the answer), an investor nobody in the network knows, and the same question as a member. Or, signed in
+            as a founder, ask{' '}
+            <em>{INVESTORS_QUESTION}</em> — it is the first prompt. The answer lists the investors as your Fundraising
+            rows: who can introduce you, and <em>Ask for intro</em>. The request goes to that person, never to the
+            investor, and shows up on your{' '}
+            <a href="/prototypes/warm-intros-founders">team page&apos;s Fundraising section</a> and on the investor&apos;s
+            profile. As a member the same question returns the investors only.
           </li>
         </ol>
         <div className={s.cta}>
@@ -197,6 +300,7 @@ export default function AiSearchPrototype() {
       </main>
 
       <PrototypeMobileNav hasUnreadNews={false} newsHref="/prototypes/newsfeed" active={false} />
-    </>
+      {askModal}
+    </AiSearchViewerContext.Provider>
   );
 }

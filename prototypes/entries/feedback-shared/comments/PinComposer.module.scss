@@ -1,0 +1,5 @@
+/* The card itself is the thread's popover (`pt.card`), same width, so the layer
+   places both with one rule; only the field's inset is the composer's own. */
+.field {
+  padding: 12px 12px 0;
+}

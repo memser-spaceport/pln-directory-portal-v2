@@ -230,7 +230,6 @@ export default function AiAppsPrototype() {
           onLogs={() => setAction({ uid: selected.uid, type: 'logs' })}
           onDelete={() => setAction({ uid: selected.uid, type: 'delete' })}
           onViewOnePager={() => setViewerUid(selected.uid)}
-          apps={apps}
           onSubmitFeedback={submitFeedback}
         />
         {actionSurfaces}

@@ -24,6 +24,7 @@ import {
   RegionSelectOverlay,
   appendScreenshots,
   grabVideoFrame,
+  hasAnyAnnotation,
   requestTabCapture,
   stopCaptureStream,
   type AnnotationState,
@@ -42,10 +43,6 @@ export const FEEDBACK_PLACEHOLDER = 'What worked, what didn’t, and what would 
 
 function hasFeedbackContent(html: string, screenshotCount = 0): boolean {
   return !isBlankHtml(html) || /<img\b/i.test(html) || screenshotCount > 0;
-}
-
-function shotHasAnnotations(annotations: AnnotationState): boolean {
-  return annotations.strokes.length > 0 || annotations.comments.length > 0;
 }
 
 function visibleFeedbackLength(html: string): number {
@@ -270,7 +267,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
 
   const onAnnotatorAdd = (annotations: AnnotationState) => {
     if (!cropSrc) return;
-    const hasAnnotations = shotHasAnnotations(annotations);
+    const hasAnnotations = hasAnyAnnotation(annotations);
     /* An edit replaces its own entry IN PLACE — same id, same position. A new
        entry would leave the old drawing in the feedback beside the corrected one,
        and a changed id would remount the chip and lose its place in the strip. */
@@ -345,7 +342,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
             appUid: app.value,
             appName: app.label,
             screenshotCount: screenshots.length,
-            hasAnnotations: screenshots.some((shot) => shotHasAnnotations(shot.annotations)),
+            hasAnnotations: screenshots.some((shot) => hasAnyAnnotation(shot.annotations)),
           });
           toast.success('Thanks for your feedback!');
           onSubmitSuccess();

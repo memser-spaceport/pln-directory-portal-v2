@@ -116,7 +116,7 @@ describe('AnnotationCanvas comments', () => {
     render(
       <AnnotationCanvas
         imageSrc={PIXEL_PNG}
-        annotations={{ version: 1, strokes: [], comments: [{ id: 'c1', x: 0.5, y: 0.5, text: 'Hi' }] }}
+        annotations={{ version: 1, strokes: [], shapes: [], comments: [{ id: 'c1', x: 0.5, y: 0.5, text: 'Hi' }] }}
         onChange={onChange}
         tool="comment"
       />,
@@ -142,7 +142,7 @@ describe('AnnotationCanvas comments', () => {
     render(
       <AnnotationCanvas
         imageSrc={PIXEL_PNG}
-        annotations={{ version: 1, strokes: [], comments: [{ id: 'c1', x: 0.5, y: 0.5, text: 'Hi' }] }}
+        annotations={{ version: 1, strokes: [], shapes: [], comments: [{ id: 'c1', x: 0.5, y: 0.5, text: 'Hi' }] }}
         onChange={onChange}
         tool="comment"
       />,
@@ -161,7 +161,7 @@ describe('AnnotationCanvas comments', () => {
     const { container } = render(
       <AnnotationCanvas
         imageSrc={PIXEL_PNG}
-        annotations={{ version: 1, strokes: [], comments: [{ id: 'c1', x: 0.5, y: 0.5, text: 'Hi' }] }}
+        annotations={{ version: 1, strokes: [], shapes: [], comments: [{ id: 'c1', x: 0.5, y: 0.5, text: 'Hi' }] }}
         onChange={onChange}
         tool="comment"
       />,
@@ -239,5 +239,208 @@ describe('AnnotationCanvas pin cursor', () => {
 
     expect(pin().className).not.toContain(canvasStyles.pinMove);
     expect(pin().className).not.toContain(canvasStyles.pinCrosshair);
+  });
+});
+
+/**
+ * Shapes are asserted through `onChange`, never through pixels: jsdom has no 2D
+ * context and `jest-canvas-mock` is not installed, so `getContext('2d')` returns
+ * null here and every drawing call is a no-op.
+ */
+describe('AnnotationCanvas shapes', () => {
+  const BOUNDS = {
+    x: 0,
+    y: 0,
+    top: 0,
+    left: 0,
+    bottom: 200,
+    right: 200,
+    width: 200,
+    height: 200,
+    toJSON: () => ({}),
+  };
+
+  beforeEach(() => {
+    HTMLCanvasElement.prototype.setPointerCapture = jest.fn();
+    HTMLCanvasElement.prototype.releasePointerCapture = jest.fn();
+    jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(BOUNDS);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  const dragOn = (
+    tool: 'rect' | 'ellipse',
+    from: { x: number; y: number },
+    to: { x: number; y: number },
+    annotations = EMPTY_ANNOTATIONS,
+  ) => {
+    const onChange = jest.fn();
+    const { container } = render(
+      <AnnotationCanvas imageSrc={PIXEL_PNG} annotations={annotations} onChange={onChange} tool={tool} />,
+    );
+    const canvas = container.querySelector('canvas')!;
+    jest.spyOn(canvas, 'getBoundingClientRect').mockReturnValue(BOUNDS);
+    /* The canvas is sized from the image's client box, which jsdom reports as 0.
+       Commit falls back to the canvas's own width/height, so state them. */
+    Object.defineProperty(canvas, 'width', { value: 200, configurable: true });
+    Object.defineProperty(canvas, 'height', { value: 200, configurable: true });
+
+    fireEvent(
+      canvas,
+      new MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0, clientX: from.x, clientY: from.y }),
+    );
+    fireEvent(
+      canvas,
+      new MouseEvent('pointermove', { bubbles: true, cancelable: true, button: 0, clientX: to.x, clientY: to.y }),
+    );
+    fireEvent(
+      canvas,
+      new MouseEvent('pointerup', { bubbles: true, cancelable: true, button: 0, clientX: to.x, clientY: to.y }),
+    );
+
+    return onChange;
+  };
+
+  it('commits a normalized box from a drag', () => {
+    const onChange = dragOn('rect', { x: 20, y: 40 }, { x: 100, y: 140 });
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        shapes: [
+          expect.objectContaining({
+            kind: 'rect',
+            x: expect.closeTo(0.1),
+            y: expect.closeTo(0.2),
+            w: expect.closeTo(0.4),
+            h: expect.closeTo(0.5),
+          }),
+        ],
+      }),
+    );
+  });
+
+  it('commits an oval from a drag', () => {
+    const onChange = dragOn('ellipse', { x: 20, y: 40 }, { x: 100, y: 140 });
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ shapes: [expect.objectContaining({ kind: 'ellipse' })] }),
+    );
+  });
+
+  /* Dragging up-and-left is the same box as dragging down-and-right. Left
+     un-normalized it stores a negative extent, which every later reader — the
+     replay, the badge, a future hit test — has to remember to handle. */
+  it('normalizes a drag made up and to the left', () => {
+    const onChange = dragOn('rect', { x: 100, y: 140 }, { x: 20, y: 40 });
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        shapes: [
+          expect.objectContaining({
+            x: expect.closeTo(0.1),
+            y: expect.closeTo(0.2),
+            w: expect.closeTo(0.4),
+            h: expect.closeTo(0.5),
+          }),
+        ],
+      }),
+    );
+  });
+
+  it('ignores a tap that never became a drag', () => {
+    const onChange = dragOn('rect', { x: 50, y: 50 }, { x: 52, y: 51 });
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  /* Strokes and shapes share one canvas. The thing this guards is a second
+     clearing pass wiping whatever the first one drew — invisible to jsdom, so
+     what is asserted instead is that committing a shape carries the strokes
+     through rather than replacing them. */
+  it('keeps existing strokes when a shape is added', () => {
+    const withStroke = {
+      ...EMPTY_ANNOTATIONS,
+      strokes: [{ color: '#dc2626', width: 0.006, points: [{ x: 0.1, y: 0.1 }] }],
+    };
+
+    const onChange = dragOn('rect', { x: 20, y: 40 }, { x: 100, y: 140 }, withStroke);
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ strokes: withStroke.strokes, shapes: [expect.anything()] }),
+    );
+  });
+
+  it('appends to shapes already on the screenshot', () => {
+    const withShape = {
+      ...EMPTY_ANNOTATIONS,
+      shapes: [{ kind: 'ellipse' as const, color: '#dc2626', width: 0.006, x: 0, y: 0, w: 0.1, h: 0.1 }],
+    };
+
+    const onChange = dragOn('rect', { x: 20, y: 40 }, { x: 100, y: 140 }, withShape);
+
+    expect(onChange.mock.calls[0][0].shapes).toHaveLength(2);
+  });
+
+  it('draws the shape in the selected color', () => {
+    const onChange = jest.fn();
+    const { container } = render(
+      <AnnotationCanvas
+        imageSrc={PIXEL_PNG}
+        annotations={EMPTY_ANNOTATIONS}
+        onChange={onChange}
+        tool="rect"
+        strokeColor="#0a9952"
+      />,
+    );
+    const canvas = container.querySelector('canvas')!;
+    jest.spyOn(canvas, 'getBoundingClientRect').mockReturnValue(BOUNDS);
+    Object.defineProperty(canvas, 'width', { value: 200, configurable: true });
+    Object.defineProperty(canvas, 'height', { value: 200, configurable: true });
+
+    fireEvent(
+      canvas,
+      new MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0, clientX: 20, clientY: 20 }),
+    );
+    fireEvent(
+      canvas,
+      new MouseEvent('pointermove', { bubbles: true, cancelable: true, button: 0, clientX: 120, clientY: 120 }),
+    );
+    fireEvent(
+      canvas,
+      new MouseEvent('pointerup', { bubbles: true, cancelable: true, button: 0, clientX: 120, clientY: 120 }),
+    );
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ shapes: [expect.objectContaining({ color: '#0a9952' })] }),
+    );
+  });
+
+  /**
+   * A pointerup that never saw a pointermove is a tap, wherever it lands.
+   *
+   * The drag extent is measured from what the move handler recorded, not from
+   * the up event's coordinates — so a press at one corner and a release at
+   * another, with no move between, stores nothing.
+   */
+  it('ignores a press and release with no movement between them', () => {
+    const onChange = jest.fn();
+    const { container } = render(
+      <AnnotationCanvas imageSrc={PIXEL_PNG} annotations={EMPTY_ANNOTATIONS} onChange={onChange} tool="rect" />,
+    );
+    const canvas = container.querySelector('canvas')!;
+    jest.spyOn(canvas, 'getBoundingClientRect').mockReturnValue(BOUNDS);
+
+    fireEvent(
+      canvas,
+      new MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0, clientX: 20, clientY: 20 }),
+    );
+    fireEvent(
+      canvas,
+      new MouseEvent('pointerup', { bubbles: true, cancelable: true, button: 0, clientX: 120, clientY: 120 }),
+    );
+
+    expect(onChange).not.toHaveBeenCalled();
   });
 });

@@ -135,6 +135,24 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
             <PencilSimpleLineIcon width={16} height={16} />
             Draw
           </button>
+          <button
+            type="button"
+            className={clsx(s.tool, tool === 'rect' && s.toolActive)}
+            aria-pressed={tool === 'rect'}
+            onClick={() => selectTool('rect')}
+          >
+            <BoxIcon />
+            Box
+          </button>
+          <button
+            type="button"
+            className={clsx(s.tool, tool === 'ellipse' && s.toolActive)}
+            aria-pressed={tool === 'ellipse'}
+            onClick={() => selectTool('ellipse')}
+          >
+            <OvalIcon />
+            Oval
+          </button>
 
           <div className={s.colors} role="group" aria-label="Draw color">
             {DRAW_COLORS.map((color) => (
@@ -147,7 +165,11 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
                 aria-pressed={strokeColor === color}
                 onClick={() => {
                   setStrokeColor(color);
-                  selectTool('draw');
+                  /* Only the comment tool draws nothing, so only it has to be
+                     swapped out to make the new color mean something. Reaching
+                     for a color while Box is active is choosing the box's color,
+                     not asking to go back to freehand. */
+                  if (tool === 'comment') selectTool('draw');
                 }}
               />
             ))}
@@ -186,6 +208,22 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
         </div>
       </div>
     </Modal>
+  );
+}
+
+function BoxIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <rect x="2.7" y="4" width="10.6" height="8" rx="1.2" stroke="currentColor" strokeWidth="1.4" />
+    </svg>
+  );
+}
+
+function OvalIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <ellipse cx="8" cy="8" rx="5.3" ry="4" stroke="currentColor" strokeWidth="1.4" />
+    </svg>
   );
 }
 

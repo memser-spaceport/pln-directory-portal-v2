@@ -255,6 +255,7 @@ describe('AiAppFeedbackPage', () => {
   it('replays drawings and bubble comments in the lightbox', async () => {
     const encoded = serializeAnnotations({
       version: 1,
+      shapes: [],
       strokes: [
         {
           color: '#1b4dff',

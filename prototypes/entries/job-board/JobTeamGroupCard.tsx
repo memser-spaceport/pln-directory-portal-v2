@@ -40,7 +40,8 @@ import type { ListingMeta, ListingStatus } from './listings';
 // component and the same class, so an owner's role row reads identically on
 // the two surfaces it appears on. See `RoleApplicants`.
 import { RoleApplicants } from '../team-profile/RoleApplicants';
-import type { RoleApplicant } from '../team-profile/mocks';
+import type { RoleApplicant, RoleSuggested } from '../team-profile/mocks';
+import type { ApplicantsTab } from '../team-profile/TeamApplicantsPage';
 import tor from '../team-profile/TeamOpenRoles.module.scss';
 
 const INITIAL_ROLES_SHOWN = 3;
@@ -115,7 +116,9 @@ interface JobTeamGroupCardProps {
      * people an application goes to.
      */
     applicantsFor?: (roleUid: string) => RoleApplicant[];
-    openApplicants?: (roleUid: string) => void;
+    /** Members suggested for a role — the count line's second clause. */
+    suggestedFor?: (roleUid: string) => RoleSuggested[];
+    openApplicants?: (roleUid: string, tab?: ApplicantsTab) => void;
   };
 }
 
@@ -298,7 +301,12 @@ export function JobTeamGroupCard({
                 }
               />
               {manage?.openApplicants && (
-                <RoleApplicants applicants={applicants} onOpen={() => manage.openApplicants?.(role.uid)} />
+                <RoleApplicants
+                  applicants={applicants}
+                  /* A listing that is not live has nobody to invite. */
+                  suggested={meta && meta.status !== 'live' ? [] : manage.suggestedFor?.(role.uid)}
+                  onOpen={(tab) => manage.openApplicants?.(role.uid, tab)}
+                />
               )}
             </li>
           );

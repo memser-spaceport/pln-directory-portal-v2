@@ -219,6 +219,16 @@ export interface MemberProfile {
   bluesky: string;
   /** Private — see `JobSearchStatus`. Empty until answered. */
   jobSearchStatus: JobSearchStatus | '';
+  /**
+   * "Let hiring teams in the network find me" — the tick under the status.
+   * What makes a member eligible for a team's **Suggested** tab
+   * (`team-profile/suggestedMocks.ts`). Off unless they turn it on: being
+   * proposed to founders is exposure the member did not ask for by answering a
+   * private question, so it is theirs to switch on. The status itself stays
+   * private either way — a suggestion carries the public profile and its
+   * reasons, never this answer.
+   */
+  discoverable?: boolean;
 }
 
 export const EMPTY_PROFILE: MemberProfile = {

@@ -20,13 +20,21 @@ import rowTone from '../job-board/JobReferRoleRow.module.scss';
 import mcb from '@/components/page/team-details/TeamMembers/components/MemberCardBase/MemberCardBase.module.scss';
 import tmvc from '@/components/page/team-details/TeamMembers/components/TeamMembersView/components/TeamMembersViewCard/TeamMembersViewCard.module.scss';
 
-import type { RoleApplicant, RoleInterested } from './mocks';
+import { Badge } from '@/components/common/Badge';
+
+import type { RoleApplicant, RoleInterested, RoleSuggested, SuggestionMatch } from './mocks';
 import s from './ApplicantRow.module.scss';
 
 interface Props {
   /** An application, or an "I'm interested" press — the Interested tab's row
    *  is this row with its own date. */
-  applicant: RoleApplicant | RoleInterested;
+  applicant: RoleApplicant | RoleInterested | RoleSuggested;
+  /**
+   * Suggested rows only: when the team pressed **Invite to apply** (ISO).
+   */
+  invitedAt?: string;
+  /** Suggested rows only: the percentage, at the row's right end. */
+  match?: SuggestionMatch;
   /**
    * Not looked at yet: the row is tinted and carries `● New`. Opening it
    * returns the row to the plain grey every other row wears — read is the row
@@ -53,7 +61,7 @@ interface Props {
  * the row; pressing it shows the person, and their note, in the pane beside
  * the list.
  */
-export function ApplicantRow({ applicant: a, isNew, reviewed, last, selected, onSelect }: Props) {
+export function ApplicantRow({ applicant: a, isNew, reviewed, last, selected, onSelect, invitedAt, match }: Props) {
   return (
     <button type="button" className={clsx(tmvc.root, s.selectable)} onClick={onSelect} aria-pressed={selected}>
       <div
@@ -61,6 +69,7 @@ export function ApplicantRow({ applicant: a, isNew, reviewed, last, selected, on
           [tmvc.memberBorder]: !last,
           [s.unread]: isNew,
           [s.selected]: selected,
+          [s.suggestedRow]: 'reasons' in a,
         })}
       >
         <div className={clsx(mcb.left, s.left)}>
@@ -79,6 +88,15 @@ export function ApplicantRow({ applicant: a, isNew, reviewed, last, selected, on
                     <ReviewCheckIcon size={16} state="bare" />
                   </span>
                 )}
+                {/* Invited: a fact about this person, so it rides the name like
+                    the Reviewed tick. At the right end it shared 75px with the
+                    percentage and ellipsised the role and the reason. */}
+                {invitedAt && (
+                  <span className={clsx(row.relative, rowTone.relativeTone, s.invitedMark)}>
+                    <ClockIcon />
+                    Invited {formatRelativeDays(invitedAt)}
+                  </span>
+                )}
               </div>
               {/* Role · team, and not their location. Wellfound's rows carry
                   "10 years of exp · Austin · Open to remote", and it was tried
@@ -88,6 +106,29 @@ export function ApplicantRow({ applicant: a, isNew, reviewed, last, selected, on
                   itself survived on one row in three. The pane's header shows
                   it on the first frame. */}
               <p className={mcb.role}>{a.role}</p>
+              {/* A suggested row's third line: the strongest network signal, in
+                  words. Only this row needs one — an applicant is in the list
+                  because they applied — and it is what the percentage at the
+                  right cannot say (see `SuggestionReasonKind`). No tick: the
+                  green check in this list already means Reviewed. */}
+              {'reasons' in a && (
+                <p className={s.reason}>
+                  {a.reasons[0] ? (
+                    <>
+                      <span className={s.reasonText}>{a.reasons[0].text}</span>
+                      {a.reasons.length > 1 && <span className={s.reasonMore}>+{a.reasons.length - 1}</span>}
+                    </>
+                  ) : (
+                    /* No network signal: the line says what the percentage is
+                       made of instead of leaving a gap under the role. */
+                    match && (
+                      <span className={s.reasonText}>
+                        {match.met} of {match.total} requirements
+                      </span>
+                    )
+                  )}
+                </p>
+              )}
             </div>
             {/* No excerpt of the application note. A two-line quote was here and
                 was removed: the row is for finding the person, and the note is
@@ -97,12 +138,19 @@ export function ApplicantRow({ applicant: a, isNew, reviewed, last, selected, on
 
         <div className={clsx(mcb.right, s.right)}>
           {isNew && <span className={row.newBadge}>● New</span>}
-          <span className={clsx(row.relative, rowTone.relativeTone)}>
-            <ClockIcon />
-            {'appliedAt' in a
-              ? `Applied ${formatRelativeDays(a.appliedAt)}`
-              : `Interested ${formatRelativeDays(a.interestedAt)}`}
-          </span>
+          {'reasons' in a ? (
+            /* The number, in the slot a suggestion has no date for. One tone
+               for every value: a hue would grade people, and the floor already
+               means nobody here is a low match. */
+            match && <Badge className={s.percent}>{match.percent}%</Badge>
+          ) : (
+            <span className={clsx(row.relative, rowTone.relativeTone)}>
+              <ClockIcon />
+              {'appliedAt' in a
+                ? `Applied ${formatRelativeDays(a.appliedAt)}`
+                : `Interested ${formatRelativeDays(a.interestedAt)}`}
+            </span>
+          )}
         </div>
       </div>
     </button>

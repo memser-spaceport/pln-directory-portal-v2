@@ -29,7 +29,8 @@ import { JobReferRoleRow } from '../job-board/JobReferRoleRow';
 
 import { SubmitPlusIcon } from './icons';
 import { RoleApplicants } from './RoleApplicants';
-import type { RoleApplicant } from './mocks';
+import type { RoleApplicant, RoleSuggested } from './mocks';
+import type { ApplicantsTab } from './TeamApplicantsPage';
 import l from './TeamOpenRoles.module.scss';
 
 /** Collapsed height. Two rows read as a sample; the count in the header carries the rest. */
@@ -88,8 +89,10 @@ interface TeamOpenRolesViewProps {
      * `RoleApplicants`.
      */
     applicantsFor: (roleUid: string) => RoleApplicant[];
-    /** The count line's press: the team's applicants page, opened on this role. */
-    openApplicants: (roleUid: string) => void;
+    /** Members suggested for each listing — the count line's second clause. */
+    suggestedFor?: (roleUid: string) => RoleSuggested[];
+    /** The count line's press: the team's applicants page, opened on this role (and tab). */
+    openApplicants: (roleUid: string, tab?: ApplicantsTab) => void;
   };
 }
 
@@ -209,7 +212,14 @@ export function TeamOpenRolesView({
                      and no ⋯ — see `owner` above. */
                   ownListing={meta}
                 />
-                {owner && <RoleApplicants applicants={applicants} onOpen={() => owner.openApplicants(role.uid)} />}
+                {owner && (
+                  <RoleApplicants
+                    applicants={applicants}
+                    /* A listing that is not live has nobody to invite. */
+                    suggested={meta && meta.status !== 'live' ? [] : owner.suggestedFor?.(role.uid)}
+                    onOpen={(tab) => owner.openApplicants(role.uid, tab)}
+                  />
+                )}
               </div>
             );
           })}

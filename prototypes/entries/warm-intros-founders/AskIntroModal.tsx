@@ -112,7 +112,6 @@ function AskForm({ target, onClose, onSend }: { target: AskTarget } & Omit<Props
               </div>
             </div>
             <div className={t.descriptionRow}>
-              <span className={m.helperText}>Written so it can be forwarded as is.</span>
               <span className={t.counter}>
                 {blurb.length} / {BLURB_MAX}
               </span>

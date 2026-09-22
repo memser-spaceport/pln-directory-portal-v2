@@ -1,10 +1,16 @@
 import {
   MOCK_APPLICANTS,
   MOCK_INTERESTED,
+  MOCK_ROLE_CRITERIA,
+  MOCK_SUGGESTED,
+  visibleSuggested,
   daysAgo,
   exp,
   type RoleApplicant,
   type RoleInterested,
+  type RoleCriterion,
+  type RoleSuggested,
+  type SuggestionReason,
 } from '../team-profile/mocks';
 
 /**
@@ -217,6 +223,85 @@ const BOARD_APPLICANTS: Record<string, RoleApplicant[]> = {
 const BOARD_INTERESTED: Record<string, RoleInterested[]> = {
   'ff-1': [{ ...HANNA, id: 'ff-int-1', interestedAt: daysAgo(1, 8), unseen: true, reviewed: false }],
 };
+
+/* Suggested members for the lead's live roles — see `RoleSuggested`. Nobody
+   here has applied or pressed I'm interested on the role they are suggested
+   for, and `ff-3` / `ff-4` have none: a listing that is not up has nobody to
+   invite. `person()` gives every record a CV, which a suggestion does not
+   carry (nothing was sent), so it is dropped. */
+const suggestion = (p: ReturnType<typeof person>, met: string[], reasons: SuggestionReason[]): RoleSuggested => {
+  const { cv: _cv, ...rest } = p;
+  return { ...rest, met, reasons };
+};
+
+/* What each of the lead's live roles is matched against — see `RoleCriterion`. */
+const BOARD_CRITERIA: Record<string, RoleCriterion[]> = {
+  // Head of Ecosystem Growth
+  'ff-1': [
+    { id: 'eco', group: 'Skills', label: 'Ecosystem or partnerships experience' },
+    { id: 'dev', group: 'Skills', label: 'Developer ecosystem background' },
+    { id: 'prog', group: 'Skills', label: 'Program or grants operations' },
+    { id: 'lead', group: 'Seniority', label: 'Lead or above' },
+    { id: 'tz', group: 'Location', label: 'US or Europe working hours' },
+  ],
+  // Grants Program Operations Lead
+  'ff-2': [
+    { id: 'prog', group: 'Skills', label: 'Grants or program operations' },
+    { id: 'rep', group: 'Skills', label: 'Reporting and analytics' },
+    { id: 'lead', group: 'Seniority', label: 'Lead or above' },
+    { id: 'tz', group: 'Location', label: 'US or Europe working hours' },
+  ],
+};
+
+const IMANI = person({
+  id: 'ff-sug-1',
+  memberId: 'imani-clarke',
+  name: 'Imani Clarke',
+  title: 'Ecosystem Lead',
+  team: 'Livepeer',
+  location: 'London, UK',
+  email: 'imani@livepeer.org',
+  avatar: 'https://i.pravatar.cc/96?img=38',
+  skills: ['Ecosystem Strategy', 'Partnerships', 'Developer Ecosystems'],
+  bio: 'Ecosystem lead for a video infrastructure network. I spend most weeks with the ten teams whose success decides ours.',
+  history: [
+    ['ic1', 'Ecosystem Lead', 'Livepeer', '2022-01', null],
+    ['ic2', 'Partnerships Manager', 'Protocol Labs', '2019-04', '2021-12'],
+  ],
+});
+
+const BOARD_SUGGESTED: Record<string, RoleSuggested[]> = {
+  'ff-1': [
+    suggestion(
+      IMANI,
+      ['eco', 'dev', 'lead', 'tz'],
+      [{ kind: 'vouch', text: 'Worked with 2 of your teammates while at Protocol Labs' }],
+    ),
+    suggestion(
+      { ...TARIQ, id: 'ff-sug-2' },
+      ['eco', 'prog', 'tz'],
+      [{ kind: 'interest', text: 'Applied to your Grants Program Operations Lead role' }],
+    ),
+  ],
+  'ff-2': [
+    suggestion(
+      { ...SOFIA, id: 'ff-sug-3' },
+      ['rep', 'lead', 'tz'],
+      [{ kind: 'interest', text: 'Applied to your Head of Ecosystem Growth role' }],
+    ),
+  ],
+};
+
+/** Everyone matched to the role, below the floor or not — the applicants page filters. */
+export const suggestedForRole = (roleUid: string): RoleSuggested[] =>
+  BOARD_SUGGESTED[roleUid] ?? MOCK_SUGGESTED[roleUid] ?? [];
+
+export const criteriaForRole = (roleUid: string): RoleCriterion[] =>
+  BOARD_CRITERIA[roleUid] ?? MOCK_ROLE_CRITERIA[roleUid] ?? [];
+
+/** Who the count line counts: at or above the floor with every criterion on. */
+export const visibleSuggestedForRole = (roleUid: string): RoleSuggested[] =>
+  visibleSuggested(suggestedForRole(roleUid), criteriaForRole(roleUid));
 
 export const applicantsForRole = (roleUid: string): RoleApplicant[] =>
   BOARD_APPLICANTS[roleUid] ?? MOCK_APPLICANTS[roleUid] ?? [];

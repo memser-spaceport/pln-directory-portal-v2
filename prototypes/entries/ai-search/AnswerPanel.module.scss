@@ -90,13 +90,6 @@
   background: #fff;
 }
 
-/* .preview-message__header */
-.sourcesRow {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
 /* .preview-message__content */
 .content {
   font-size: 14px;
@@ -145,12 +138,16 @@
   gap: 8px;
 }
 
-/* .chat-message-actions */
+/* .chat-message-actions. Production's fixed 42px is a minimum here: the row
+   now ends in the sources pill, and on a phone pill + receipt + five discs
+   wrap to a second line rather than squeeze. */
 .actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  height: 42px;
+  gap: 4px 12px;
+  min-height: 42px;
 }
 
 .actionsBusy {

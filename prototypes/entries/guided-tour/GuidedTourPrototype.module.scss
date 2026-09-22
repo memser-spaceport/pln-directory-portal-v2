@@ -1,5 +1,31 @@
+@use 'styles/media';
+
 // Review scaffolding only: the seat switch and Replay sit in the newsfeed's own
 // review band, in newsfeed-v0's switch chrome. This just lets the row wrap.
 .tourControls {
   flex-wrap: wrap;
+}
+
+// Review scaffolding on the team page, where the newsfeed's band is not
+// mounted. Bottom-centre: the review Comment tab owns the right edge.
+.replayDock {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 16px;
+  z-index: 20;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--background-neutral-primary, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  box-shadow: 0 4px 12px var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+// The navbar's measured height — see job-board's `.applicantsHost`.
+.teamHost {
+  --applicants-top: 56px;
+
+  @include media.tablet-landscape {
+    --applicants-top: 80px;
+  }
 }

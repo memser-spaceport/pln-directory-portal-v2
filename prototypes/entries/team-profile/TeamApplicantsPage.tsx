@@ -43,16 +43,30 @@ import { ApplicantRow } from './ApplicantRow';
 import { ApplicantMemberPage } from './ApplicantMemberPage';
 import { Tabs } from '@/components/ui/tabs/Tabs';
 
-import type { RoleApplicant, RoleInterested } from './mocks';
+import {
+  sortSuggested,
+  suggestionMatch,
+  visibleSuggested,
+  type RoleApplicant,
+  type RoleCriterion,
+  type RoleInterested,
+  type RoleSuggested,
+} from './mocks';
+import { SuggestedWhy } from './SuggestedWhy';
+import { CriteriaModal } from './CriteriaModal';
 import s from './TeamApplicantsPage.module.scss';
 
 const APPLIED_TAB = 'Applied';
 const INTERESTED_TAB = 'Interested';
+const SUGGESTED_TAB = 'Suggested';
 
-type Person = RoleApplicant | RoleInterested;
+export type ApplicantsTab = typeof APPLIED_TAB | typeof INTERESTED_TAB | typeof SUGGESTED_TAB;
+
+type Person = RoleApplicant | RoleInterested | RoleSuggested;
+const isSuggested = (p: Person): p is RoleSuggested => 'reasons' in p;
 /** A picker option with the role's live unopened count, for its `● M new`. */
 type RoleOption = Option & { newCount: number };
-const personDate = (p: Person) => ('appliedAt' in p ? p.appliedAt : p.interestedAt);
+const personDate = (p: RoleApplicant | RoleInterested) => ('appliedAt' in p ? p.appliedAt : p.interestedAt);
 
 export interface ApplicantsRole {
   uid: string;
@@ -66,13 +80,25 @@ export interface ApplicantsRole {
   applicants: RoleApplicant[];
   /** Pressed "I'm interested" on this role instead of applying. */
   interested: RoleInterested[];
+  /**
+   * Members the product proposes for this role — see `RoleSuggested`. Left
+   * out entirely by a host that has no suggestions to make, and the tab is
+   * then not drawn.
+   */
+  suggested?: RoleSuggested[];
+  /** What the suggestions are matched against — see `RoleCriterion`. */
+  criteria?: RoleCriterion[];
 }
+
+const NO_CRITERIA_OFF: ReadonlySet<string> = new Set();
 
 interface Props {
   teamName: string;
   roles: ApplicantsRole[];
   /** The role whose count line was pressed. */
   initialRoleUid: string;
+  /** The tab to open on: the count line's "N suggested" clause opens Suggested. */
+  initialTab?: ApplicantsTab;
   onBack: () => void;
   /**
    * What Back is called. "Back to <team>" by default — the page's first home is
@@ -167,15 +193,44 @@ interface Props {
  * than Application. It is production's `Tabs` `variant="secondary"` with a
  * count, which is the board's own Applied scope strip.
  *
+ * **Suggested — the third tab, and the weakest signal.** The strip reads left
+ * to right down a scale of intent: applied (sent something), interested
+ * (raised a hand), suggested (did nothing; the product is proposing them).
+ * Braintrust ("Invite Talent" beside Applications), Dribbble (Recommended /
+ * Submissions) and Fiverr (Invite freelancers / Offers) all keep matched
+ * people in the applicants' own strip rather than on a page of their own.
+ * Three differences from the other two tabs, all from that one fact:
+ *   - **A percentage over its working.** Each row ends in the match, the
+ *     share of the role's requirements the profile meets, and the pane's "Why
+ *     suggested" lists every requirement with a check or a fade so the number
+ *     can be checked. Requirements come from the posting; the lead can switch
+ *     them off in **Edit criteria** (Workable's "Manage matching criteria"),
+ *     and nobody under the floor is suggested at all. What the network knows
+ *     (an interest press, shared work) is *not* in the number: it is the row's
+ *     third line and the pane's first block. See `suggestedMocks.ts`.
+ *   - **Sorted by the number the row shows, not by date** — nothing happened,
+ *     so there is no date, and a displayed percentage that is not the sort key
+ *     reads as a bug. One spine, no top-N band; ties go to the stronger
+ *     network signal. Applied and Interested stay newest-first: those people
+ *     chose to be here, and re-ranking them by our guess would bury someone
+ *     the founder owes a look.
+ *   - **The press is Invite to apply**, not Email or Mark as reviewed. It is
+ *     the one thing a team does with a suggestion, and it cannot be taken back
+ *     (the member is notified), so it turns into the state and stays.
+ * The note under the tabs says the one thing nothing else on the page can:
+ * these members agreed to be found. No "Not a fit" dismissal — a short list
+ * needs no pruning, and hidden negative marks on members are the score's
+ * problem again.
+ *
  * **Mobile: one column at a time.** The split needs ~900px; below the tablet
  * breakpoint the list shows alone and a row opens the pane full-width with a
  * back to the list, which is how the members grid and its profile relate on a
  * phone already.
  */
-export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack, backLabel }: Props) {
+export function TeamApplicantsPage({ teamName, roles, initialRoleUid, initialTab, onBack, backLabel }: Props) {
   const isMobile = useIsMobile();
   const [roleUid, setRoleUid] = useState(initialRoleUid);
-  const [tab, setTab] = useState(APPLIED_TAB);
+  const [tab, setTab] = useState<string>(initialTab ?? APPLIED_TAB);
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [seenIds, setSeenIds] = useState<Set<string>>(() => new Set());
@@ -190,16 +245,33 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack, ba
       else next.add(id);
       return next;
     });
+  // Who the team has invited to apply, and when — session-local, like `seenIds`.
+  const [invitedAt, setInvitedAt] = useState<Record<string, string>>({});
+  const invite = (id: string) =>
+    setInvitedAt((prev) => (prev[id] ? prev : { ...prev, [id]: new Date().toISOString() }));
   // Mobile only: whether the pane is showing instead of the list.
   const [paneOpen, setPaneOpen] = useState(false);
+  // Criteria the lead has switched off, per role — session-local; production
+  // would keep it on the listing.
+  const [criteriaOff, setCriteriaOff] = useState<Record<string, ReadonlySet<string>>>({});
+  const [criteriaOpen, setCriteriaOpen] = useState(false);
 
   const role = roles.find((r) => r.uid === roleUid) ?? roles[0];
+  const criteria = role.criteria ?? [];
+  const off = criteriaOff[role.uid] ?? NO_CRITERIA_OFF;
+  // Members at or above the floor against the criteria that are on.
+  const suggestedShown = useMemo(
+    () => visibleSuggested(role.suggested ?? [], criteria, off),
+    [role.suggested, criteria, off],
+  );
   const newest = useMemo<Person[]>(
     () =>
-      [...(tab === INTERESTED_TAB ? role.interested : role.applicants)].sort((a, b) =>
-        personDate(b).localeCompare(personDate(a)),
-      ),
-    [role, tab],
+      tab === SUGGESTED_TAB
+        ? sortSuggested(suggestedShown, criteria, off)
+        : [...(tab === INTERESTED_TAB ? role.interested : role.applicants)].sort((a, b) =>
+            personDate(b).localeCompare(personDate(a)),
+          ),
+    [role, tab, suggestedShown, criteria, off],
   );
   const term = query.trim().toLowerCase();
   const shown = term
@@ -347,14 +419,15 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack, ba
     const next = shown[position + delta];
     if (next) select(next);
   };
-  const emailHref = selected
-    ? `mailto:${selected.email}?subject=${encodeURIComponent(
-        'note' in selected ? `Your application for ${role.title}` : `Your interest in ${role.title}`,
-      )}`
-    : '';
+  const emailHref =
+    selected && !isSuggested(selected)
+      ? `mailto:${selected.email}?subject=${encodeURIComponent(
+          'note' in selected ? `Your application for ${role.title}` : `Your interest in ${role.title}`,
+        )}`
+      : '';
 
   const paneBar = selected && (
-    <div className={s.paneBar}>
+    <div className={s.paneBar} data-tour="applicant-actions">
       <div className={s.paneNav}>
         <button
           type="button"
@@ -380,33 +453,60 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack, ba
           </span>
         )}
       </div>
-      <div className={s.paneActions}>
-        {/* The status as a switch: press to mark, press again to unmark. Email
+      {isSuggested(selected) ? (
+        <div className={s.paneActions}>
+          {/* One press, and it stays pressed: the member is notified, so there
+              is no second press that takes it back. At rest it is the page's
+              filled primary; once sent it is the Reviewed state's own success
+              pair, as a status and no longer a button. */}
+          {invitedAt[selected.id] ? (
+            <span
+              className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.reviewBtn, s.isReviewed, s.invited)}
+              role="status"
+            >
+              <ReviewCheckIcon size={16} state="filled" className={s.reviewIcon} />
+              Invited to apply
+            </span>
+          ) : (
+            <button
+              type="button"
+              className={clsx(btn.root, btn.small, btn.fill, btn.primary, fb.glossy, s.actionLink)}
+              onClick={() => invite(selected.id)}
+            >
+              <EnvelopeIcon size={14} />
+              Invite {selected.name.split(' ')[0]} to apply
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className={s.paneActions}>
+          {/* The status as a switch: press to mark, press again to unmark. Email
             stays the bar's only brand press; this one is bordered neutral at
             rest and wears the success pair once on. */}
-        <button
-          type="button"
-          className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.reviewBtn, {
-            [s.isReviewed]: reviewedIds.has(selected.id),
-          })}
-          onClick={() => toggleReviewed(selected.id)}
-          aria-pressed={reviewedIds.has(selected.id)}
-          title={reviewedIds.has(selected.id) ? 'Press to unmark' : undefined}
-        >
-          <ReviewCheckIcon
-            size={16}
-            state={reviewedIds.has(selected.id) ? 'filled' : 'outline'}
-            className={s.reviewIcon}
-          />
-          {reviewedIds.has(selected.id) ? 'Reviewed' : 'Mark as reviewed'}
-        </button>
-        {/* The page's one filled press, so it wears the product's headline-primary
+          <button
+            type="button"
+            className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.reviewBtn, {
+              [s.isReviewed]: reviewedIds.has(selected.id),
+            })}
+            onClick={() => toggleReviewed(selected.id)}
+            aria-pressed={reviewedIds.has(selected.id)}
+            title={reviewedIds.has(selected.id) ? 'Press to unmark' : undefined}
+          >
+            <ReviewCheckIcon
+              size={16}
+              state={reviewedIds.has(selected.id) ? 'filled' : 'outline'}
+              className={s.reviewIcon}
+            />
+            {reviewedIds.has(selected.id) ? 'Reviewed' : 'Mark as reviewed'}
+          </button>
+          {/* The page's one filled press, so it wears the product's headline-primary
             treatment (`fb.glossy`) — see the import. */}
-        <a href={emailHref} className={clsx(btn.root, btn.small, btn.fill, btn.primary, fb.glossy, s.actionLink)}>
-          <EnvelopeIcon size={14} />
-          Email {selected.name.split(' ')[0]}
-        </a>
-      </div>
+          <a href={emailHref} className={clsx(btn.root, btn.small, btn.fill, btn.primary, fb.glossy, s.actionLink)}>
+            <EnvelopeIcon size={14} />
+            Email {selected.name.split(' ')[0]}
+          </a>
+        </div>
+      )}
     </div>
   );
 
@@ -450,20 +550,42 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack, ba
                 tabs={[
                   { name: APPLIED_TAB, count: role.applicants.length },
                   { name: INTERESTED_TAB, count: role.interested.length },
+                  ...(role.suggested ? [{ name: SUGGESTED_TAB, count: suggestedShown.length }] : []),
                 ]}
               />
             </div>
+            {/* What this list is, in the one sentence nothing else here can
+                say: nobody on it did anything, and all of them agreed to be
+                on it. */}
+            {tab === SUGGESTED_TAB && (
+              <div className={s.tabNoteRow}>
+                <p className={s.tabNote}>
+                  Members who let hiring teams find them, matched to this role on their profile. They haven’t applied.
+                </p>
+                {criteria.length > 0 && (
+                  <button
+                    type="button"
+                    className={clsx(btn.root, btn.xs, btn.link, btn.primary)}
+                    onClick={() => setCriteriaOpen(true)}
+                  >
+                    Edit criteria
+                  </button>
+                )}
+              </div>
+            )}
             <div className={s.searchWrap}>
               <SearchInput value={query} onChange={setQuery} placeholder="Search by name or role" />
             </div>
             {shown.length ? (
-              <div className={s.list}>
+              <div className={s.list} data-tour="applicant-list">
                 {shown.map((a, index) => (
                   <ApplicantRow
                     key={a.id}
                     applicant={a}
-                    isNew={a.unseen && !seenIds.has(a.id)}
+                    isNew={!isSuggested(a) && a.unseen && !seenIds.has(a.id)}
                     reviewed={reviewedIds.has(a.id)}
+                    invitedAt={invitedAt[a.id]}
+                    match={isSuggested(a) ? suggestionMatch(a, criteria, off) : undefined}
                     last={index === shown.length - 1}
                     selected={!isMobile && a.id === selectedId}
                     onSelect={() => select(a)}
@@ -475,9 +597,11 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack, ba
                 <NoDataBlock>
                   {term
                     ? `No one matches “${query.trim()}”.`
-                    : tab === INTERESTED_TAB
-                      ? 'No one has said they’re interested yet.'
-                      : 'No applicants yet.'}
+                    : tab === SUGGESTED_TAB
+                      ? 'No one to suggest for this role yet.'
+                      : tab === INTERESTED_TAB
+                        ? 'No one has said they’re interested yet.'
+                        : 'No applicants yet.'}
                 </NoDataBlock>
               </DetailsSectionGreyContentContainer>
             )}
@@ -491,7 +615,18 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack, ba
               key={selected.id}
               applicant={selected}
               application={
-                !('note' in selected) ? (
+                isSuggested(selected) ? (
+                  /* Why they are here, in full and strongest first — the
+                     section this tab has where the others have Application or
+                     Interest. Plain sentences off profile facts; the sections
+                     below are where each one can be checked. */
+                  <SuggestedWhy
+                    person={selected}
+                    criteria={criteria}
+                    off={off}
+                    match={suggestionMatch(selected, criteria, off)}
+                  />
+                ) : !('note' in selected) ? (
                   /* The interest press: no note to quote, so the section is its
                    date, the CV when one went with the profile, and the reply. */
                   <DetailsSection>
@@ -545,6 +680,22 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack, ba
           </div>
         )}
       </div>
+
+      {role.suggested && criteria.length > 0 && (
+        <CriteriaModal
+          open={criteriaOpen}
+          onClose={() => setCriteriaOpen(false)}
+          roleTitle={role.title}
+          criteria={criteria}
+          people={role.suggested}
+          off={off}
+          onSave={(next) => {
+            setCriteriaOff((prev) => ({ ...prev, [role.uid]: next }));
+            // The person in the pane may have dropped below the floor.
+            setSelectedId(null);
+          }}
+        />
+      )}
     </div>
   );
 }

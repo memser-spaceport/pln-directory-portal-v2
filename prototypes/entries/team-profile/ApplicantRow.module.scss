@@ -96,3 +96,68 @@
   flex-shrink: 0;
   color: var(--foreground-success-primary, #0a9952);
 }
+
+/* A suggested row's reason, under the role. The role line's own 12/18, in the
+ * primary ink: same size, so it is one more line of the row and not a caption,
+ * and one step darker than the role because it is the row's argument. One
+ * line, ellipsised — the full list is the pane's first section — with the
+ * "+2" kept outside the ellipsis so a long reason cannot swallow it. */
+.reason {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.reasonText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reasonMore {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* The match badge at the row's right end. Tabular figures so 80% and 100%
+ * share a width down the list. */
+.percent {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* "Invited today" beside the name: the row's clock + date in its own type, on
+ * the name line so the right end is the percentage alone. `flex-shrink: 0` so
+ * the name ellipsises before the date does. */
+.invitedMark {
+  flex-shrink: 0;
+}
+
+/* Phone: production stacks the Members row into a column and drops the right
+ * cluster under the content, which left the percentage floating under the
+ * avatar and let the reason line run past the edge. The row's own precedent for
+ * something that belongs at the end of a stacked row is `.actionIcon`, pinned
+ * to the top-right corner — the badge takes that place, and the content column
+ * is held to the row so the reason line ellipsises. Suggested rows only: the
+ * Applied and Interested rows keep production's stack for their date. */
+@include media.mobile-only {
+  .suggestedRow {
+    .right {
+      position: absolute;
+      top: 12px;
+      right: 32px;
+    }
+
+    .left {
+      max-width: 100%;
+    }
+  }
+}

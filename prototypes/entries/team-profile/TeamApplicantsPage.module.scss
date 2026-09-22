@@ -389,3 +389,45 @@
   text-decoration: none;
   color: inherit;
 }
+
+/* The Suggested tab's one sentence, between the tabs and the search. The
+ * caption pair the forms use (12/18, secondary): it annotates the list, it is
+ * not an offer, so no tint, no icon and no box. */
+.tabNote {
+  flex-shrink: 0;
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Invited to apply: the Reviewed state's paint on a status, not a press. */
+.invited {
+  cursor: default;
+  user-select: none;
+}
+
+/* The note and its one control on a wrapping row: the sentence, then Edit
+ * criteria after it, or on a line of its own when the sentence fills the width
+ * (design-thinking lesson 12, sixth example). The note's own bottom margin
+ * moves to the row. */
+.tabNoteRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  flex-shrink: 0;
+  margin: 0 0 12px;
+
+  .tabNote {
+    margin: 0;
+  }
+}
+
+/* `.tabNote` is `flex-shrink: 0` for the capped column; inside the wrapping row
+ * that pinned the sentence at its full one-line width and clipped it at the
+ * card. It has to give way so the row can wrap Edit criteria under it. */
+.tabNoteRow .tabNote {
+  flex: 0 1 auto;
+  min-width: 0;
+}

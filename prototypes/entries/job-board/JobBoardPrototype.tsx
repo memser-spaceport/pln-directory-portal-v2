@@ -233,8 +233,14 @@ import { FollowToast } from '../follow-shared/FollowToast';
 import sp from '../saving/SavingPrototype.module.scss';
 // The team's applicants page — the team profile's own, mounted here as the
 // destination of the owner rows' count line. See `applicantsView`.
-import { TeamApplicantsPage } from '../team-profile/TeamApplicantsPage';
-import { applicantsForRole, interestedForRole } from './boardApplicants';
+import { TeamApplicantsPage, type ApplicantsTab } from '../team-profile/TeamApplicantsPage';
+import {
+  applicantsForRole,
+  criteriaForRole,
+  interestedForRole,
+  suggestedForRole,
+  visibleSuggestedForRole,
+} from './boardApplicants';
 import { SubmitJobModal, type SubmittedJob } from './SubmitJobModal';
 import {
   canManageTeam,
@@ -699,7 +705,11 @@ export default function JobBoardPrototype() {
    * Back returns to the board as it was: filters, scope and scroll are board
    * state and none of it is touched by opening this.
    */
-  const [applicantsView, setApplicantsView] = useState<{ teamUid: string; roleUid: string } | null>(null);
+  const [applicantsView, setApplicantsView] = useState<{
+    teamUid: string;
+    roleUid: string;
+    tab?: ApplicantsTab;
+  } | null>(null);
   const [unlisted, setUnlisted] = useState<Map<string, IJobRole[]>>(initialUnlisted);
   const [listings, setListings] = useState<Map<string, ListingMeta>>(initialListings);
   /** Listings the owner deleted this session. A set over the mocks rather than
@@ -1596,7 +1606,12 @@ export default function JobBoardPrototype() {
       {/* No auth prop: the mobile bottom bar carries no account cluster in
           production either, so there is nothing for it to switch. PL Infra is
           the exception — it's signed-in-only, so the slot follows the viewer. */}
-      <PrototypeMobileNav hasUnreadNews={hasNewsUpdates} newsHref="/prototypes/newsfeed" active={false} />
+      <PrototypeMobileNav
+        hasUnreadNews={hasNewsUpdates}
+        newsHref="/prototypes/newsfeed"
+        active={false}
+        plInfra={isLoggedIn}
+      />
     </>
   );
 
@@ -1743,8 +1758,8 @@ export default function JobBoardPrototype() {
     return newCount > 0 ? { teamUid: group.team.uid, teamName: group.team.name, roles, newCount } : null;
   })();
 
-  const openApplicants = (teamUid: string, roleUid: string) => {
-    setApplicantsView({ teamUid, roleUid });
+  const openApplicants = (teamUid: string, roleUid: string, tab?: ApplicantsTab) => {
+    setApplicantsView({ teamUid, roleUid, tab });
     window.scrollTo({ top: 0 });
     document.body.scrollTo?.({ top: 0 });
   };
@@ -1780,7 +1795,10 @@ export default function JobBoardPrototype() {
               /* Nobody has applied yet in the plain `team-lead` view — that
                  one is about managing listings. See `BoardViewer`. */
               applicantsFor: showsApplicants ? applicantsForRole : () => [],
-              openApplicants: (roleUid) => openApplicants(group.team.uid, roleUid),
+              /* Same gate as the applicants: the plain `team-lead` view is
+                 about managing listings, and keeps its rows bare. */
+              suggestedFor: showsApplicants ? visibleSuggestedForRole : () => [],
+              openApplicants: (roleUid, tab) => openApplicants(group.team.uid, roleUid, tab),
             }
           : undefined
       }
@@ -2017,8 +2035,12 @@ export default function JobBoardPrototype() {
               postedAt: getJobDate(r),
               applicants: applicantsForRole(r.uid),
               interested: interestedForRole(r.uid),
+              // Only a live listing has anyone to invite.
+              suggested: (listings.get(r.uid)?.status ?? 'live') === 'live' ? suggestedForRole(r.uid) : [],
+              criteria: criteriaForRole(r.uid),
             }))}
             initialRoleUid={applicantsView.roleUid}
+            initialTab={applicantsView.tab}
             onBack={() => setApplicantsView(null)}
             backLabel="Back to job board"
           />

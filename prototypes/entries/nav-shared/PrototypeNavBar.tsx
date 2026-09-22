@@ -15,6 +15,7 @@ import {
 } from '@/components/core/navbar/constants/navLinks';
 import {
   AppLogo,
+  CPUIcons,
   HelpIcon,
   ForumIcon,
   EventsIcon,
@@ -36,6 +37,7 @@ import { HomeIcon, BellIcon, SearchGlyph } from './icons';
 import { LOGO_LABEL, scrollToTop } from './home';
 import { PrototypeSearchModal } from './PrototypeSearchModal';
 import { HelpFeedbackMenu, type HelpFeedbackMenuProps } from './HelpFeedbackMenu';
+import { PL_INFRA_LINKS } from './plInfraLinks';
 import { PageCommentMode } from '../feedback-shared/PageCommentMode';
 
 /**
@@ -86,6 +88,18 @@ interface PrototypeNavBarProps {
    * account avatar over a "sign in" page makes the state incoherent.
    */
   isLoggedIn?: boolean;
+  /**
+   * The **PL Infra** selector, last in the row as in production
+   * (`nav-bar.tsx:183`, after More). Defaults to on, the same way Demo Day and
+   * More render their un-gated variants here: RBAC is not what these prototypes
+   * are asking about. It still hides while `isLoggedIn` is false — nobody sees
+   * PL Infra logged out, and a locked door with your name off it is not a
+   * preview — so a page reviewing the signed-out state needs no extra prop.
+   *
+   * The bottom bar's `plInfra` is the same slot and a different decision: there
+   * it costs Events its place, so the host has to ask for it.
+   */
+  plInfra?: boolean;
   /** What Sign in does while `isLoggedIn` is false — and Sign up too, unless
    *  `onSignUp` is given. */
   onSignIn?: () => void;
@@ -140,10 +154,17 @@ interface PrototypeNavBarProps {
    * popover keeps its own. Only read while `searchable`.
    */
   searchField?: { value: string; onChange: (value: string) => void; placeholder?: string };
+  /**
+   * Unread dot on the bell — the news item's own 6px marker, on the control
+   * that holds what happened to *you*. The bell itself stays static.
+   */
+  bellDot?: boolean;
 }
 
 /** What the popover hangs under, in both the glyph and the field form. */
 export const SEARCH_ANCHOR_SELECTOR = 'header [data-search-anchor]';
+/** The bell, for a guided tour that starts from a notification. */
+export const BELL_ANCHOR_SELECTOR = 'header [data-tour="bell"]';
 
 export function PrototypeNavBar({
   hasUnreadNews,
@@ -152,6 +173,7 @@ export function PrototypeNavBar({
   active = false,
   onHomeReselect,
   isLoggedIn = true,
+  plInfra = true,
   onSignIn,
   onSignUp,
   searchable = false,
@@ -161,6 +183,7 @@ export function PrototypeNavBar({
   renderSearchModal,
   onAiSearchClick,
   searchField,
+  bellDot = false,
 }: PrototypeNavBarProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   /* Giving feedback is a mode of the page, not a form over it: the header's
@@ -298,6 +321,20 @@ export function PrototypeNavBar({
             items={[JOBS_LINK, DEALS_LINK, FOUNDER_GUIDES_LINK]}
             onNavItemClickHandler={() => {}}
           />
+
+          {/* PL Infra, holding the proposed **Hiring** entry (plInfraLinks.tsx).
+              Last in the row and `CPUIcons`, both production's: the desktop bar
+              renders `PLInfraNavItems` after More, and only the bottom bar uses
+              StarFour for the same selector — so each bar keeps the mark its own
+              production copy has. */}
+          {plInfra && isLoggedIn ? (
+            <NavItemWithMenu
+              icon={<CPUIcons />}
+              label="PL Infra"
+              items={PL_INFRA_LINKS}
+              onNavItemClickHandler={() => {}}
+            />
+          ) : null}
 
           <div className={s.right}>
             {/* The one item in this cluster that does something. Production wires
@@ -437,8 +474,9 @@ export function PrototypeNavBar({
                 real login would navigate away from the thing under review. */}
             {isLoggedIn ? (
               <>
-                <span className={local.navIconButton} aria-hidden="true">
+                <span className={clsx(local.navIconButton, local.navBell)} data-tour="bell" aria-hidden="true">
                   <BellIcon />
+                  {bellDot && <span className={local.bellDot} />}
                 </span>
                 <span className={local.navAvatar} aria-hidden="true">
                   PB
@@ -456,6 +494,23 @@ export function PrototypeNavBar({
             )}
           </div>
         </NavigationMenu.List>
+        {/* Where every menu in this bar is drawn. `NavItemWithMenu` renders its
+            links into the Root's viewport, so without this block the triggers
+            open — chevron flips, the item tints — and paint nothing: Directory,
+            Events and More have all been inert here, not just the new PL Infra
+            item. Production's own block, verbatim (nav-bar.tsx:213), classes and
+            offsets included. */}
+        <NavigationMenu.Portal>
+          <NavigationMenu.Positioner
+            className={s.Positioner}
+            sideOffset={10}
+            collisionPadding={{ top: 5, bottom: 5, left: 20, right: 20 }}
+          >
+            <NavigationMenu.Popup className={s.Popup}>
+              <NavigationMenu.Viewport className={s.Viewport} />
+            </NavigationMenu.Popup>
+          </NavigationMenu.Positioner>
+        </NavigationMenu.Portal>
       </NavigationMenu.Root>
 
       {searchable &&

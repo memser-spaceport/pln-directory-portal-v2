@@ -6,9 +6,6 @@ import clsx from 'clsx';
 import { Markdown } from '@/components/common/Markdown';
 import { Button } from '@/components/common/Button';
 import { Tag } from '@/components/ui/Tag';
-import InfoBox from '@/components/ui/info-box';
-import { PopoverDp } from '@/components/core/popover-dp';
-import HuskySourceCard from '@/components/core/husky/husky-source-card';
 import HuskyAnswerLoader from '@/components/core/husky/husky-answer-loader';
 import FollowupQuestions from '@/components/page/husky/followup-questions';
 import ChatInput from '@/components/page/husky/chat-input';
@@ -20,6 +17,7 @@ import type { AiSearchScope } from './scope';
 import type { AiSearchViewer } from './viewer';
 import { DirectoryResultsCards } from './DirectoryResultsCards';
 import { AnswerBlocks } from './AnswerBlocks';
+import { AnswerSources } from './AnswerSources';
 import s from './AnswerPanel.module.scss';
 
 export type TurnStatus = 'thinking' | 'streaming' | 'done';
@@ -71,8 +69,10 @@ interface AnswerPanelProps {
  *
  * Copy-simplify of production's `AiChatPanel` (components/core/application-search)
  * and the Husky page's `Messages` → `PreviewMessage` → `ChatMessageActions`.
- * The answer anatomy is production's, imported: `InfoBox` + `HuskySourceCard`
- * for sources, the local `DirectoryResultsCards` for "Results from the
+ * The answer anatomy is production's, imported — except sources: production's
+ * "N source(s)" `InfoBox` above the prose, over a popover of raw URLs, is the
+ * local `AnswerSources` pill at the end of the actions row (see that file).
+ * The rest: the local `DirectoryResultsCards` for "Results from the
  * directory" (production's `DirectoryResults` redrawn — see that file),
  * `FollowupQuestions`, `HuskyAnswerLoader`, `ChatInput`, `Markdown`. What is
  * transcribed rather than imported is `PreviewMessage`'s card (its styles are
@@ -291,17 +291,6 @@ function Message({ turn, isLast, busy, onFollowup, onRegenerate, onEdit, onFeedb
           )}
           {scoped && turn.sql.length > 0 && <DirectoryResultsCards hits={turn.sql} title="Found on the profile" />}
 
-          {!scoped && turn.sources.length > 0 && !streaming && (
-            <div className={s.sourcesRow}>
-              <PopoverDp.Wrapper>
-                <InfoBox info={`${turn.sources.length} source(s)`} imgUrl="/icons/globe-blue.svg" />
-                <PopoverDp.Pane position="bottom">
-                  <HuskySourceCard sources={turn.sources as any} />
-                </PopoverDp.Pane>
-              </PopoverDp.Wrapper>
-            </div>
-          )}
-
           <div className={clsx(s.content, scoped && s.summary, turn.blocks?.length && s.contentLead)}>
             <Markdown>{turn.shown}</Markdown>
           </div>
@@ -461,6 +450,10 @@ function Actions({ turn, isLast, busy, onRegenerate, onEdit, onFeedback }: Actio
             </span>
           )}
         </div>
+
+        {/* What the answer was read from, after it: a receipt, in the row's
+            own grey. A scoped answer has none — the profile is the source. */}
+        {!turn.scoped && <AnswerSources sources={turn.sources} />}
       </div>
 
       {/* The "why" only after a thumbs-down, only for this answer, and never

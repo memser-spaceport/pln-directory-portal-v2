@@ -154,7 +154,11 @@ export function AskAction({ row, ask, onAsk, onAskAlternate, onMarkMet }: Omit<P
   return (
     <div className={s.action} data-tour="ask-intro" data-tour-open={ask ? undefined : ''}>
       {!ask && (
-        <Button style="border" variant="primary" size="xs" onClick={onAsk}>
+        /* Filled, not bordered: this is the one press every surface that draws
+           a path exists for — the row's other cells are what you read to
+           decide it. `xs` keeps it the size of a row action (lesson: paint
+           sets the kind, size sets the rank). */
+        <Button style="fill" variant="primary" size="xs" onClick={onAsk}>
           Ask for intro
         </Button>
       )}

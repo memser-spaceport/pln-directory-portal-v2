@@ -23,3 +23,24 @@
 .newCount {
   margin-left: 4px;
 }
+
+/* The dot between the two clauses, in the meta ink. The two presses each carry
+ * 6px of hit padding, so the dot needs no margin of its own to clear them. */
+.sep {
+  align-self: center;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* "N suggested": the count line's own type, after the dot. It follows another
+ * press, so it does not take the first avatar's negative margin. */
+.suggested {
+  margin-left: 0;
+}
+
+/* Alone on the line (a role nobody has applied to): it is then the first thing
+ * in the column, and lines up with the row's title the way the count does. */
+.suggestedAlone {
+  margin-left: -6px;
+}

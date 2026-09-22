@@ -38,7 +38,7 @@ import { TeamMembersView } from './TeamMembersView';
 import { TeamContributionsView } from './TeamContributionsView';
 import { TeamProjectsView } from './TeamProjectsView';
 import { TeamOpenRolesView } from './TeamOpenRolesView';
-import { TeamApplicantsPage } from './TeamApplicantsPage';
+import { TeamApplicantsPage, type ApplicantsTab } from './TeamApplicantsPage';
 import { getJobDate, seniorityDisplayLabel } from '@/utils/jobs.utils';
 import { seedListingMeta, submitJobHref, type ListingMeta, type ListingStatus } from '../job-board/listings';
 /* The board's apply flow, mounted here so a role read from its team's page is
@@ -100,6 +100,9 @@ import {
   MOCK_TEAM_ROLES,
   MOCK_APPLICANTS,
   MOCK_INTERESTED,
+  MOCK_SUGGESTED,
+  MOCK_ROLE_CRITERIA,
+  visibleSuggested,
   MOCK_TEAM_FACTS,
   type TeamStatus,
 } from './mocks';
@@ -108,7 +111,11 @@ const team = MOCK_TEAM as unknown as ITeam;
 
 const NEWS_PREVIEW_COUNT = 3;
 
-export default function TeamProfilePrototype() {
+/**
+ * `newsCallout` — a host that mounts this page mid-tour (guided-tour) turns the
+ * Post news callout off: a tour and a callout on one arrival is two announcements.
+ */
+export default function TeamProfilePrototype({ newsCallout = true }: { newsCallout?: boolean } = {}) {
   // Several reused leaf components are base-ui / client-only (Tooltip, Tag
   // popovers). Gate render on mount so SSR === first client render.
   const [mounted, setMounted] = useState(false);
@@ -179,6 +186,8 @@ export default function TeamProfilePrototype() {
    * `RoleApplicants`).
    */
   const [applicantsRole, setApplicantsRole] = useState<string | null>(null);
+  // The tab the count line asked for: its "N suggested" clause opens Suggested.
+  const [applicantsTab, setApplicantsTab] = useState<ApplicantsTab | undefined>(undefined);
 
   /**
    * THE APPLY FLOW, on this page.
@@ -759,8 +768,12 @@ export default function TeamProfilePrototype() {
             postedAt: getJobDate(r),
             applicants: MOCK_APPLICANTS[r.uid] ?? [],
             interested: MOCK_INTERESTED[r.uid] ?? [],
+            // Only a live listing has anyone to invite.
+            suggested: (roleListings.get(r.uid)?.status ?? 'live') === 'live' ? (MOCK_SUGGESTED[r.uid] ?? []) : [],
+            criteria: MOCK_ROLE_CRITERIA[r.uid] ?? [],
           }))}
           initialRoleUid={applicantsRole}
+          initialTab={applicantsTab}
           onBack={() => setApplicantsRole(null)}
         />
       ) : (
@@ -883,7 +896,13 @@ export default function TeamProfilePrototype() {
                     ? {
                         metaFor: (uid) => roleListings.get(uid),
                         applicantsFor: (uid) => MOCK_APPLICANTS[uid] ?? [],
-                        openApplicants: setApplicantsRole,
+                        // The count line counts who the page will list: at or above the floor.
+                        suggestedFor: (uid) =>
+                          visibleSuggested(MOCK_SUGGESTED[uid] ?? [], MOCK_ROLE_CRITERIA[uid] ?? []),
+                        openApplicants: (uid, tab) => {
+                          setApplicantsTab(tab);
+                          setApplicantsRole(uid);
+                        },
                       }
                     : undefined
                 }
@@ -939,7 +958,11 @@ export default function TeamProfilePrototype() {
                     a new feature is found by being announced, not by taking
                     more of the list. */}
                   {canPost && displayNews.length > 0 && (
-                    <PostNewsButton teamName={team.name ?? 'this team'} onPost={() => setComposeOpen(true)} />
+                    <PostNewsButton
+                      teamName={team.name ?? 'this team'}
+                      onPost={() => setComposeOpen(true)}
+                      callout={newsCallout}
+                    />
                   )}
                 </DetailsSectionHeader>
                 {canPost && displayNews.length === 0 && <NewsEmptyCard onPost={() => setComposeOpen(true)} />}

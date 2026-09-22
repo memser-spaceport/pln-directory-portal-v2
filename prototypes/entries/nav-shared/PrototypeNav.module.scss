@@ -90,6 +90,21 @@
   border-radius: 8px;
 }
 
+/* The bell's unread dot: `.navDot`'s marker, riding the glyph's top-right. */
+.navBell {
+  position: relative;
+}
+
+.bellDot {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--foreground-brand-primary, #1b4dff);
+}
+
 /* Search as a small field: glyph + "Search" placeholder inside the DS
    SearchInput's chrome (pl-design-system/components/SearchInput — 40px, subtle
    border, 8px radius, white surface, 16px tertiary glyph at 12px, 14px

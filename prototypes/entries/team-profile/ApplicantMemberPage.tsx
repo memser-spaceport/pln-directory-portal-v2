@@ -29,11 +29,11 @@ import office from '@/components/page/member-details/OfficeHoursDetails/componen
 import contact from '@/components/page/member-details/contact-details/ContactDetails.module.scss';
 import repo from '@/components/page/member-details/RepositoriesDetails/components/RepositoriesList/RepositoriesList.module.scss';
 
-import type { RoleApplicant, RoleInterested } from './mocks';
+import type { RoleApplicant, RoleInterested, RoleSuggested } from './mocks';
 import s from './ApplicantMemberPage.module.scss';
 
 interface Props {
-  applicant: RoleApplicant | RoleInterested;
+  applicant: RoleApplicant | RoleInterested | RoleSuggested;
   /** The section only this page has — rendered under the profile card. */
   application: ReactNode;
 }

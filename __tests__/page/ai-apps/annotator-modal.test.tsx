@@ -24,11 +24,12 @@ describe('AnnotatorModal toolbar', () => {
     HTMLCanvasElement.prototype.setPointerCapture = jest.fn();
   });
 
-  it('offers a box and an oval beside freehand drawing', () => {
+  it('offers a box, an oval and an arrow beside freehand drawing', () => {
     renderModal();
 
     expect(tool('Box')).toBeInTheDocument();
     expect(tool('Oval')).toBeInTheDocument();
+    expect(tool('Arrow')).toBeInTheDocument();
     expect(tool('Draw')).toBeInTheDocument();
     expect(tool('Comment')).toBeInTheDocument();
   });
@@ -63,6 +64,9 @@ describe('AnnotatorModal toolbar', () => {
 
     fireEvent.click(tool('Oval'));
     expect(onToolSelected).toHaveBeenCalledWith('ellipse');
+
+    fireEvent.click(tool('Arrow'));
+    expect(onToolSelected).toHaveBeenCalledWith('arrow');
   });
 
   /**

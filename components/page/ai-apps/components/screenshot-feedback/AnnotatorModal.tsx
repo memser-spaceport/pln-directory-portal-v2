@@ -175,6 +175,15 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
             <OvalIcon />
             Oval
           </button>
+          <button
+            type="button"
+            className={clsx(s.tool, tool === 'arrow' && s.toolActive)}
+            aria-pressed={tool === 'arrow'}
+            onClick={() => selectTool('arrow')}
+          >
+            <ArrowIcon />
+            Arrow
+          </button>
 
           <div className={s.colors} role="group" aria-label="Draw color">
             {DRAW_COLORS.map((color) => (
@@ -268,6 +277,20 @@ function OvalIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
       <ellipse cx="8" cy="8" rx="5.3" ry="4" stroke="currentColor" strokeWidth="1.4" />
+    </svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M3 13 13 3M13 3H8.2M13 3v4.8"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

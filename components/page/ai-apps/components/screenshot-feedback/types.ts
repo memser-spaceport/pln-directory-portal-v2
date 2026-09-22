@@ -9,12 +9,20 @@ export type Stroke = {
   points: Point[];
 };
 
-export type ShapeKind = 'rect' | 'ellipse';
+export type ShapeKind = 'rect' | 'ellipse' | 'arrow';
 
 /**
- * A dragged outline. `x`/`y` are the top-left corner and `w`/`h` the extent,
- * all normalized to the image, all non-negative: a drag up-and-left is
- * normalized at commit so nothing downstream has to reason about a negative box.
+ * A dragged outline, normalized to the image.
+ *
+ * `w`/`h` mean different things either side of a line the kind draws:
+ *
+ * - **Box shapes** (`rect`, `ellipse`) — `x`/`y` is the top-left corner and
+ *   `w`/`h` a non-negative extent. A drag made up-and-left is normalized at
+ *   commit, so nothing downstream has to reason about a negative box.
+ * - **`arrow`** — `x`/`y` is the TAIL and `w`/`h` a SIGNED delta to the head.
+ *   Direction is the entire content of an arrow; normalizing it would make one
+ *   pointing up-left identical to one pointing down-right, and the annotation
+ *   would silently come back pointing at the wrong thing.
  */
 export type Shape = {
   kind: ShapeKind;

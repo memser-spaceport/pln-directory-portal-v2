@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import clsx from 'clsx';
 
 import { CloseIcon } from '@/components/icons';
@@ -16,7 +16,24 @@ const DRAG_THRESHOLD_PX = 4;
 
 export type AnnotatorTool = 'draw' | 'comment' | ShapeKind;
 
-const SHAPE_TOOLS: AnnotatorTool[] = ['rect', 'ellipse'];
+const SHAPE_TOOLS: AnnotatorTool[] = ['rect', 'ellipse', 'arrow'];
+
+/**
+ * How much room a comment panel needs below and to the right of its pin.
+ *
+ * Mirrors `.bubble` / `.composer` in the stylesheet — 240px wide plus its 8px
+ * offset, and roughly the tallest the composer gets with its textarea and
+ * Remove link. Constants rather than a measurement because the flip has to be
+ * decided before paint: measuring would mean rendering the panel in the wrong
+ * place first and letting the user watch it jump.
+ */
+const PANEL_WIDTH = 248;
+const PANEL_HEIGHT = 150;
+
+/** Arrowhead length, as a fraction of the image's short side. */
+const ARROW_HEAD_RATIO = 0.035;
+/** How far the head is splayed from the shaft. */
+const ARROW_HEAD_ANGLE = Math.PI / 7;
 
 function isShapeTool(tool: AnnotatorTool): tool is ShapeKind {
   return SHAPE_TOOLS.includes(tool);
@@ -88,7 +105,25 @@ function traceShape(ctx: CanvasRenderingContext2D, shape: Shape, width: number, 
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.beginPath();
-  if (shape.kind === 'ellipse') {
+  if (shape.kind === 'arrow') {
+    /* x/y is the tail and w/h a signed delta, so the head is simply the far end
+       of that delta — no min/abs anywhere, or the arrow loses its direction. */
+    const tipX = x + w;
+    const tipY = y + h;
+    const angle = Math.atan2(h, w);
+    /* Scaled to the image rather than fixed in pixels, so an arrow drawn on a
+       full-size capture still looks like an arrow in the strip's 120px tile.
+       Capped at a third of the shaft: a short arrow whose head outruns it reads
+       as a blob. */
+    const shaft = Math.hypot(w, h);
+    const head = Math.min(ARROW_HEAD_RATIO * Math.min(width, height), shaft / 3);
+    ctx.moveTo(x, y);
+    ctx.lineTo(tipX, tipY);
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(tipX - head * Math.cos(angle - ARROW_HEAD_ANGLE), tipY - head * Math.sin(angle - ARROW_HEAD_ANGLE));
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(tipX - head * Math.cos(angle + ARROW_HEAD_ANGLE), tipY - head * Math.sin(angle + ARROW_HEAD_ANGLE));
+  } else if (shape.kind === 'ellipse') {
     ctx.ellipse(x + w / 2, y + h / 2, Math.abs(w) / 2, Math.abs(h) / 2, 0, 0, Math.PI * 2);
   } else {
     ctx.rect(x, y, w, h);
@@ -114,14 +149,22 @@ function renderAnnotations(
   for (const shape of annotations.shapes ?? []) traceShape(ctx, shape, width, height);
 }
 
-/** Normalizes a drag in any direction to a non-negative box. */
 function shapeFromDrag(kind: ShapeKind, color: string, from: Point, to: Point, width: number, height: number): Shape {
   const a = toNorm(from, width, height);
   const b = toNorm(to, width, height);
+  const base = { kind, color, width: STROKE_WIDTH_RATIO };
+
+  /* An arrow keeps the drag as it was made — tail, then signed delta. Folding it
+     into a positive box the way the outlines below are folded would point every
+     up-left arrow down-right, at whatever happens to sit in the opposite corner. */
+  if (kind === 'arrow') {
+    return { ...base, x: a.x, y: a.y, w: b.x - a.x, h: b.y - a.y };
+  }
+
+  /* Outlines have no direction to lose, so a drag in any direction collapses to
+     the same non-negative box and every reader gets one shape to handle. */
   return {
-    kind,
-    color,
-    width: STROKE_WIDTH_RATIO,
+    ...base,
     x: Math.min(a.x, b.x),
     y: Math.min(a.y, b.y),
     w: Math.abs(b.x - a.x),
@@ -505,6 +548,25 @@ export function AnnotationCanvas({
 
   const pinPosition = (comment: Pick<PinComment, 'id' | 'x' | 'y'>) => (dragPos?.id === comment.id ? dragPos : comment);
 
+  /**
+   * Where a comment panel should sit relative to its pin, as CSS variables.
+   *
+   * A pin near the right edge would otherwise push its panel past the image and
+   * give the whole editor a horizontal scrollbar, since `.stage` scrolls. The
+   * guards keep an image narrower than the panel itself from flipping, where
+   * both sides overflow and the default at least stays predictable.
+   */
+  const panelPlacement = (point: { x: number; y: number }): CSSProperties => {
+    const flipX = size.width > PANEL_WIDTH && point.x * size.width + PANEL_WIDTH > size.width;
+    const flipY = size.height > PANEL_HEIGHT && point.y * size.height + PANEL_HEIGHT > size.height;
+    return {
+      left: `${point.x * 100}%`,
+      top: `${point.y * 100}%`,
+      '--flip-x': flipX ? 1 : 0,
+      '--flip-y': flipY ? 1 : 0,
+    } as CSSProperties;
+  };
+
   const canvasCursor = readOnly ? 'default' : 'crosshair';
 
   /**
@@ -584,14 +646,7 @@ export function AnnotationCanvas({
       })}
       {annotations.comments.map((comment) =>
         activeCommentId === comment.id ? (
-          <div
-            key={`${comment.id}-body`}
-            className={s.bubble}
-            style={{
-              left: `${pinPosition(comment).x * 100}%`,
-              top: `${pinPosition(comment).y * 100}%`,
-            }}
-          >
+          <div key={`${comment.id}-body`} className={s.bubble} style={panelPlacement(pinPosition(comment))}>
             {!readOnly && (
               <button
                 type="button"
@@ -629,11 +684,7 @@ export function AnnotationCanvas({
               +
             </span>
           )}
-          <div
-            className={s.composer}
-            style={{ left: `${draft.x * 100}%`, top: `${draft.y * 100}%` }}
-            onPointerDown={(event) => event.stopPropagation()}
-          >
+          <div className={s.composer} style={panelPlacement(draft)} onPointerDown={(event) => event.stopPropagation()}>
             <button
               type="button"
               className={s.remove}

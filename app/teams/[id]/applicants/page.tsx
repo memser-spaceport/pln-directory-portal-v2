@@ -177,7 +177,9 @@ export async function generateMetadata(props: IGenerateMetadata): Promise<Metada
   const team = teamResponse?.error ? null : teamResponse?.data?.formatedData;
 
   return {
-    title: team?.name ? `${team.name} - Applicants | Protocol Labs Directory` : 'Applicants',
+    /* "Candidates", though the route stays `/applicants`: the URL is shared in
+       links and bookmarked, and renaming it would break both to match a word. */
+    title: team?.name ? `${team.name} - Candidates | Protocol Labs Directory` : 'Candidates',
     robots: { index: false, follow: false },
   };
 }

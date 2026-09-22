@@ -1,8 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { CvAttachmentLine } from '@/components/common/profile/StoredCv';
+import { CvPreviewModal } from '@/components/common/profile/StoredCv/CvPreviewModal';
+import { useStoredCv } from '@/services/members/hooks/useStoredCv';
 import {
   DetailsSection,
   DetailsSectionGreyContentContainer,
@@ -144,6 +147,33 @@ export function ApplicantPane({ applicant, isLoggedIn }: Props) {
 function ApplicationSection({ applicant }: { applicant: TeamApplicant }) {
   const isApplication = applicant.kind === 'application';
   const acted = isApplication ? 'Applied' : 'Interested';
+  const [previewing, setPreviewing] = useState(false);
+
+  /**
+   * The document itself, which the application row does not carry.
+   *
+   * The row names the file — `fileName`, `size`, `uploadedAt` — and stops there,
+   * because signing a URL per row would mint links for fifty people to read one.
+   * The signed link lives on the member's own CV endpoint, and a lead of a team
+   * this member applied to is exactly who `assertCanView` admits.
+   *
+   * Fetched on selection rather than on the press: the request is already in
+   * flight by the time someone reaches for the file, so the preview opens on a
+   * page rather than on a spinner. Skipped entirely for an application with no
+   * CV — most interests — so nothing is asked for a document that is not there.
+   */
+  const { data: storedCv } = useStoredCv(applicant.cv ? applicant.memberUid : undefined);
+
+  /* The row's own metadata until the signed link lands, so the header names the
+     right file from the first frame. `CvPreviewModal` draws its page only once
+     there is a `url`. */
+  const previewCv = applicant.cv
+    ? (storedCv ?? {
+        fileName: applicant.cv.fileName,
+        size: applicant.cv.size,
+        uploadedAt: applicant.cv.uploadedAt,
+      })
+    : null;
 
   return (
     <DetailsSection>
@@ -161,15 +191,26 @@ function ApplicationSection({ applicant }: { applicant: TeamApplicant }) {
               collapsing them is a quiet way of misquoting them. */}
           {applicant.coverLetter && <p className={s.note}>{applicant.coverLetter}</p>}
           {applicant.cv && (
-            <CvAttachmentLine
-              cv={{
-                fileName: applicant.cv.fileName,
-                size: applicant.cv.size,
-                uploadedAt: applicant.cv.uploadedAt,
-              }}
-              variant="chip"
-              className={s.cv}
-            />
+            /* The chip stays what it is — `CvAttachmentLine` is deliberately
+               inert, because the same component renders inside the email preview
+               where nothing is pressable. The press belongs to this surface, so
+               this surface wraps it. */
+            <button
+              type="button"
+              className={s.cvButton}
+              onClick={() => setPreviewing(true)}
+              aria-label={`Preview ${applicant.cv.fileName}`}
+            >
+              <CvAttachmentLine
+                cv={{
+                  fileName: applicant.cv.fileName,
+                  size: applicant.cv.size,
+                  uploadedAt: applicant.cv.uploadedAt,
+                }}
+                variant="chip"
+                className={s.cv}
+              />
+            </button>
           )}
         </DetailsSectionGreyContentContainer>
       ) : (
@@ -184,6 +225,8 @@ function ApplicationSection({ applicant }: { applicant: TeamApplicant }) {
           </NoDataBlock>
         </DetailsSectionGreyContentContainer>
       )}
+
+      {previewCv && <CvPreviewModal cv={previewCv} isOpen={previewing} onClose={() => setPreviewing(false)} />}
     </DetailsSection>
   );
 }

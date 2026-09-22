@@ -271,7 +271,7 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
 
       {showList && (
         <header className={s.head}>
-          <h1 className={s.title}>Applicants</h1>
+          <h1 className={s.title}>Candidates</h1>
           <p className={s.subtitle}>{teamName}</p>
         </header>
       )}

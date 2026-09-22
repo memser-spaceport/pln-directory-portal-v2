@@ -32,8 +32,21 @@
   background: var(--background-brand-subtle, #f5f8ff);
 }
 
+/**
+ * Selection draws a whole box, so it takes its corners back.
+ *
+ * `.bordered` squares the radius off because a stacked row's hairline is a line
+ * between rows, not a box around one — but a selected row IS a box, and it was
+ * inheriting the flattening. The last row in the list has no `.bordered` and
+ * kept its 8px, which is what made the difference visible: the same selection
+ * looked rounded at the bottom of the list and square everywhere above it.
+ *
+ * The hairline goes with it. Two borders meeting at a rounded corner is where
+ * the seam shows.
+ */
 .selected {
   border-color: var(--border-brand-normal, #1b4dff);
+  border-radius: 8px;
   background: var(--background-brand-subtle, #f5f8ff);
 }
 

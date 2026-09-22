@@ -652,6 +652,146 @@ describe('GiveAiAppFeedbackDialog', () => {
     });
   });
 
+  /**
+   * Deleting asks first, but only when the capture carries annotations.
+   *
+   * A plain screenshot is one drag away from being retaken; an annotated one is
+   * minutes of work nothing on screen can bring back. Note that `takeAndAdd`
+   * above produces an UNANNOTATED capture, which is why every older removal test
+   * still takes the immediate path.
+   */
+  describe('deleting a screenshot', () => {
+    beforeEach(() => {
+      HTMLCanvasElement.prototype.setPointerCapture = jest.fn();
+      HTMLCanvasElement.prototype.releasePointerCapture = jest.fn();
+    });
+
+    const takeAndAnnotate = async () => {
+      (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
+      (grabVideoFrame as jest.Mock).mockResolvedValue(PIXEL_PNG);
+      (stopCaptureStream as jest.Mock).mockImplementation(() => undefined);
+      mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Select region' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Add to feedback' })).toBeInTheDocument());
+
+      const canvas = document.querySelector('canvas')!;
+      const bounds = {
+        x: 0,
+        y: 0,
+        top: 0,
+        left: 0,
+        bottom: 200,
+        right: 200,
+        width: 200,
+        height: 200,
+        toJSON: () => ({}),
+      };
+      jest.spyOn(canvas, 'getBoundingClientRect').mockReturnValue(bounds);
+      Object.defineProperty(canvas, 'width', { value: 200, configurable: true });
+      Object.defineProperty(canvas, 'height', { value: 200, configurable: true });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Box' }));
+      fireEvent(
+        canvas,
+        new MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0, clientX: 20, clientY: 20 }),
+      );
+      fireEvent(
+        canvas,
+        new MouseEvent('pointermove', { bubbles: true, cancelable: true, button: 0, clientX: 120, clientY: 120 }),
+      );
+      fireEvent(
+        canvas,
+        new MouseEvent('pointerup', { bubbles: true, cancelable: true, button: 0, clientX: 120, clientY: 120 }),
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Add to feedback' }));
+      await waitFor(() => expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument());
+    };
+
+    it('asks before deleting an annotated capture', async () => {
+      await takeAndAnnotate();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
+
+      expect(screen.getByText('Delete screenshot?')).toBeInTheDocument();
+      expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument();
+    });
+
+    it('keeps the capture when the confirmation is declined', async () => {
+      await takeAndAnnotate();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Keep' }));
+
+      expect(screen.queryByText('Delete screenshot?')).not.toBeInTheDocument();
+      expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument();
+    });
+
+    it('deletes once the confirmation is accepted', async () => {
+      await takeAndAnnotate();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+
+      await waitFor(() => expect(screen.queryByAltText('Screenshot 1')).not.toBeInTheDocument());
+      expect(mockOnFeedbackScreenshotRemoved).toHaveBeenCalled();
+    });
+
+    it('does not report a removal that was never confirmed', async () => {
+      await takeAndAnnotate();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Keep' }));
+
+      expect(mockOnFeedbackScreenshotRemoved).not.toHaveBeenCalled();
+    });
+
+    /**
+     * `Modal` registers its Escape handler on `document` in the CAPTURE phase and
+     * calls `stopImmediatePropagation`, so a handler the confirmation registers
+     * later could never intercept the key. Unguarded, Escape over the delete
+     * confirmation closed the whole feedback panel and took the typed draft
+     * with it.
+     */
+    it('does not close the feedback dialog when Escape is pressed over the confirmation', async () => {
+      await takeAndAnnotate();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      expect(screen.getByText('Give feedback')).toBeInTheDocument();
+      expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument();
+    });
+
+    /* And the guard has to lift again, or the panel is left unable to close by
+       keyboard for the rest of its life. */
+    it('lets Escape close the dialog again once the confirmation is gone', async () => {
+      const onClose = jest.fn();
+      (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
+      (grabVideoFrame as jest.Mock).mockResolvedValue(PIXEL_PNG);
+      (stopCaptureStream as jest.Mock).mockImplementation(() => undefined);
+      mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+
+      render(<GiveAiAppFeedbackDialog isOpen onClose={onClose} appUid="app-1" appName="My App" />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Select region' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Add to feedback' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Add to feedback' }));
+      await waitFor(() => expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument());
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      expect(onClose).toHaveBeenCalled();
+    });
+  });
+
   it('attaches an annotated screenshot and submits it with the feedback body', async () => {
     (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
     (grabVideoFrame as jest.Mock).mockResolvedValue(PIXEL_PNG);

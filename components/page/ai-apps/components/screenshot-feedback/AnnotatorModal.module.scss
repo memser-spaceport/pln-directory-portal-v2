@@ -52,6 +52,10 @@
 
 .toolbar {
   display: flex;
+  /* Four tools plus five swatches already ran close to the edge on a narrow
+     viewport; six tools pass it. Wrapping keeps every control reachable —
+     `.history`'s auto margin still pushes undo/redo right on each line. */
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   padding: 12px 20px;

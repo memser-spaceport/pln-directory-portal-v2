@@ -63,13 +63,28 @@
   cursor: grabbing;
 }
 
+/**
+ * The panel hangs down-and-right of its pin by default, and flips to the other
+ * side of either axis when that would put it past the image's edge.
+ *
+ * `--flip-x` / `--flip-y` are set to 0 or 1 by the component, which is the only
+ * place that knows how much room is left. Driving both the transform and the
+ * offset's sign from the same variable keeps the gap to the pin equal on
+ * whichever side the panel ends up.
+ *
+ * It has to flip rather than simply overhang: `.stage` scrolls, so a panel that
+ * spills off the right adds a horizontal scrollbar to the whole editor.
+ */
 .bubble,
 .composer {
+  --flip-x: 0;
+  --flip-y: 0;
   position: absolute;
   z-index: 3;
   box-sizing: border-box;
-  margin-top: 14px;
-  margin-left: 8px;
+  margin-top: calc(14px - var(--flip-y) * 28px);
+  margin-left: calc(8px - var(--flip-x) * 16px);
+  transform: translate(calc(var(--flip-x) * -100%), calc(var(--flip-y) * -100%));
   width: 240px;
   max-width: calc(100% - 16px);
   padding: 8px 32px 8px 10px;

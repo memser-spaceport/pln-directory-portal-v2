@@ -17,59 +17,54 @@ import { sanitizeAiAppFeedbackHtml } from '@/utils/html';
 import { FeedbackStatusSelector } from './FeedbackStatusSelector/FeedbackStatusSelector';
 import { exportAiAppFeedbackCsv } from './utils/exportAiAppFeedbackCsv';
 import { getAvatarColor } from './utils/getAvatarColor';
+import { splitFeedbackMedia, type FeedbackImage } from './utils/splitFeedbackMedia';
 import { AnnotationCanvas } from '../components/screenshot-feedback/AnnotationCanvas';
-import { parseAnnotations, type AnnotationState } from '../components/screenshot-feedback/types';
 
 import s from './AiAppFeedbackPage.module.scss';
 
 const ALL_TAB = 'All apps';
-const IMG_TAG = /<img\b[^>]*>/gi;
 
 function looksLikeHtml(text: string): boolean {
   return /^\s*</.test(text);
 }
 
-function hasVisibleAnnotations(raw: string | undefined): boolean {
-  const annotations = parseAnnotations(raw?.replace(/&amp;/g, '&'));
-  return Boolean(annotations && (annotations.strokes.length > 0 || annotations.comments.length > 0));
-}
-
-function wrapAnnotatedScreenshotImgs(html: string, wrapClass: string, badgeClass: string): string {
-  return html.replace(IMG_TAG, (tag) => {
-    const encoded = tag.match(/\bdata-annotations="([^"]*)"/i)?.[1];
-    if (!hasVisibleAnnotations(encoded)) return tag;
-    return `<span class="${wrapClass}" title="View annotations">${tag}<span class="${badgeClass}">View annotations</span></span>`;
-  });
-}
-
-function FeedbackBody({
-  text,
-  onImageClick,
-}: {
-  text: string;
-  onImageClick: (image: { src: string; alt: string; annotations: AnnotationState | null }) => void;
-}) {
+/**
+ * The message, then its screenshots as a uniform strip.
+ *
+ * Screenshots arrive as `<p><img></p>` siblings inside the body, so left in
+ * place they stack at whatever size each capture happens to be — one tall phone
+ * screenshot makes a table row hundreds of pixels deep. They are lifted out and
+ * given identical tiles instead; the full image stays one click away.
+ */
+function FeedbackBody({ text, onImageClick }: { text: string; onImageClick: (image: FeedbackImage) => void }) {
   if (!looksLikeHtml(text)) {
     return <div className={s.messageText}>{text}</div>;
   }
 
-  const html = wrapAnnotatedScreenshotImgs(sanitizeAiAppFeedbackHtml(text), s.annotatedShot, s.annotatedBadge);
+  const { textHtml, images } = splitFeedbackMedia(sanitizeAiAppFeedbackHtml(text));
 
   return (
-    <div
-      onClick={(event) => {
-        const hit = event.target as HTMLElement;
-        const img = (hit.closest('img') ??
-          hit.closest(`.${s.annotatedShot}`)?.querySelector('img')) as HTMLImageElement | null;
-        if (!img?.src) return;
-        onImageClick({
-          src: img.currentSrc || img.src,
-          alt: img.alt,
-          annotations: parseAnnotations(img.getAttribute('data-annotations')),
-        });
-      }}
-    >
-      <QuillContent html={html} className={s.richMessage} />
+    <div className={s.messageBlock}>
+      {/* Image-only feedback is a supported submission, and an empty ql-editor
+          block for it would add padding under nothing. */}
+      {textHtml.trim() && <QuillContent html={textHtml} className={s.richMessage} />}
+      {images.length > 0 && (
+        <ul className={s.shotStrip}>
+          {images.map((image, index) => (
+            <li key={`${image.src}-${index}`}>
+              <button
+                type="button"
+                className={clsx(s.shotTile, image.hasVisibleAnnotations && s.shotTileAnnotated)}
+                title={image.hasVisibleAnnotations ? 'View annotations' : undefined}
+                onClick={() => onImageClick(image)}
+              >
+                <img src={image.src} alt={image.alt || `Screenshot ${index + 1}`} />
+                {image.hasVisibleAnnotations && <span className={s.shotBadge}>View annotations</span>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -93,11 +88,7 @@ export function AiAppFeedbackPage() {
   const analytics = useAiAppsAnalytics();
   const hasTrackedView = useRef(false);
   const [activeTab, setActiveTab] = useState(ALL_TAB);
-  const [lightbox, setLightbox] = useState<{
-    src: string;
-    alt: string;
-    annotations: AnnotationState | null;
-  } | null>(null);
+  const [lightbox, setLightbox] = useState<FeedbackImage | null>(null);
 
   useEffect(() => {
     if (hasTrackedView.current) return;

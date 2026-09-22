@@ -74,7 +74,7 @@ export function useAiAppsAnalytics() {
     onFeedbackScreenshotEditSaved: (params: { hasAnnotations: boolean }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_EDIT_SAVED, params),
     onFeedbackScreenshotRemoved: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_REMOVED),
-    onFeedbackScreenshotToolSelected: (params: { tool: 'draw' | 'comment' }) =>
+    onFeedbackScreenshotToolSelected: (params: { tool: 'draw' | 'comment' | 'rect' | 'ellipse' | 'arrow' }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_TOOL_SELECTED, params),
     onViewFeedbackClicked: (params: { feedbackCount: number }) =>
       capture(AI_APPS_ANALYTICS.VIEW_FEEDBACK_CLICKED, params),

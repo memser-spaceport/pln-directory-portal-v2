@@ -13,8 +13,13 @@
   text-align: left;
   cursor: pointer;
 
-  &:hover {
-    background: var(--background-neutral-subtle, #f1f5f9);
+  /* Not on the selected row. `:hover` is a class plus a pseudo-class, so it
+     outranks `.selected` on specificity — unguarded, pointing at the one row
+     whose fill is carrying meaning repaints it as though it were any other.
+     Fainter than the selected fill, too, so a hovered neighbour never reads as
+     a second selection. */
+  &:hover:not(.selected) {
+    background: var(--background-neutral-soft-surface, #f9fafb);
   }
 }
 
@@ -33,21 +38,27 @@
 }
 
 /**
- * Selection draws a whole box, so it takes its corners back.
+ * Selection marks an edge, not a box.
  *
- * `.bordered` squares the radius off because a stacked row's hairline is a line
- * between rows, not a box around one — but a selected row IS a box, and it was
- * inheriting the flattening. The last row in the list has no `.bordered` and
- * kept its 8px, which is what made the difference visible: the same selection
- * looked rounded at the bottom of the list and square everywhere above it.
+ * A brand bar down the row's left on a darker grey fill — the mail-list selected
+ * row. It replaces a blue 1px ring with an 8px radius, which had to fight the
+ * stack it sat in: these rows are square and share hairlines, so a box drawn
+ * around one of them cut across its neighbours' corners, and the ring had to
+ * take the radius back to look like a box at all. That made selection a change
+ * of geometry — the row grew corners and swapped its divider for a border, and
+ * the last row, which keeps its own 8px, looked different again.
  *
- * The hairline goes with it. Two borders meeting at a rounded corner is where
- * the seam shows.
+ * The bar is an inset shadow precisely so none of that happens: the row keeps
+ * its height, its radius and its hairline, and only its fill changes. Nothing
+ * here sets `border-radius`, so selecting never moves an edge.
+ *
+ * The fill is neutral rather than brand-tinted because `.unseen` above is
+ * already the brand tint. Two brand-tinted states in one column stop answering
+ * "which of these is unread" and "which of these am I looking at" separately.
  */
 .selected {
-  border-color: var(--border-brand-normal, #1b4dff);
-  border-radius: 8px;
-  background: var(--background-brand-subtle, #f5f8ff);
+  background: var(--background-neutral-subtle, #f1f5f9);
+  box-shadow: inset 3px 0 0 var(--foreground-brand-primary, #1b4dff);
 }
 
 .left {

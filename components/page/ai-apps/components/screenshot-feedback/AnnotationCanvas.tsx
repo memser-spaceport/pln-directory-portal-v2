@@ -209,12 +209,15 @@ export function AnnotationCanvas({
     return () => observer.disconnect();
   }, [imageSrc]);
 
+  /* Destructured so the effect depends on exactly the two arrays it paints,
+     rather than on every identity change of the whole annotation object. */
+  const { strokes, shapes } = annotations;
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || size.width === 0) return;
     const ctx = canvas.getContext('2d');
-    if (ctx) renderAnnotations(ctx, annotations, canvas.width, canvas.height);
-  }, [annotations.strokes, annotations.shapes, size]);
+    if (ctx) renderAnnotations(ctx, { strokes, shapes }, canvas.width, canvas.height);
+  }, [strokes, shapes, size]);
 
   const localPoint = (event: React.PointerEvent<HTMLCanvasElement>): Point => {
     const bounds = event.currentTarget.getBoundingClientRect();

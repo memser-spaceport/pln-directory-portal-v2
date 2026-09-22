@@ -4,6 +4,7 @@ import { serializeAnnotations } from '@/components/page/ai-apps/components/scree
 const encoded = serializeAnnotations({
   version: 1,
   strokes: [],
+  shapes: [],
   comments: [{ id: 'c1', x: 0.2, y: 0.3, text: 'here' }],
 });
 const html = `<p><img src="https://cdn.test/shot.png" alt="Screenshot" class="ai-app-annotated-screenshot" data-annotations="${encoded}"></p>`;

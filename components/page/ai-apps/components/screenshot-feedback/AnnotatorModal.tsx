@@ -5,6 +5,7 @@ import clsx from 'clsx';
 
 import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
+import { ConfirmDialog } from '@/components/page/demo-day/FounderPendingView/components/ConfirmDialog';
 import { CloseIcon, CommentIcon, PencilSimpleLineIcon } from '@/components/icons';
 import { AnnotationCanvas, DEFAULT_DRAW_COLOR, DRAW_COLORS, type AnnotatorTool } from './AnnotationCanvas';
 import { emptyAnnotations, type AnnotationState } from './types';
@@ -47,6 +48,26 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
   const annotations = history.entries[history.index];
   const canUndo = history.index > 0;
   const canRedo = history.index < history.entries.length - 1;
+  const [confirmingDiscard, setConfirmingDiscard] = useState(false);
+
+  /**
+   * Whether discarding would actually throw anything away.
+   *
+   * The same test as `canUndo`, and deliberately so: index 0 is the state this
+   * editor opened on, so anyone who has undone their way back to it has nothing
+   * left to lose either. Asking them to confirm would be asking about nothing —
+   * and a dialog that fires when nothing is at stake is one people learn to
+   * dismiss without reading, which is the habit that loses real work later.
+   */
+  const hasUnsavedWork = history.index > 0;
+
+  const requestDiscard = () => {
+    if (hasUnsavedWork) {
+      setConfirmingDiscard(true);
+      return;
+    }
+    onDiscard();
+  };
 
   const selectTool = (next: AnnotatorTool) => {
     if (next === tool) return;
@@ -98,7 +119,7 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
   return (
     <Modal
       isOpen
-      onClose={onDiscard}
+      onClose={requestDiscard}
       closeOnBackdropClick={false}
       closeOnEscape={false}
       lockScroll
@@ -111,7 +132,7 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
           <h2 id="ai-app-screenshot-annotator-title" className={s.title}>
             Annotate screenshot
           </h2>
-          <button type="button" className={s.close} onClick={onDiscard} aria-label="Discard screenshot">
+          <button type="button" className={s.close} onClick={requestDiscard} aria-label="Discard screenshot">
             <CloseIcon width={16} height={16} />
           </button>
         </div>
@@ -201,12 +222,39 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
               feedback either way. Not "Cancel" — the dialog underneath has one,
               and two Cancels on screen do not say which thing is being
               cancelled. */}
-          <Button style="border" variant="neutral" onClick={onDiscard}>
+          <Button style="border" variant="neutral" onClick={requestDiscard}>
             {isEditing ? 'Discard changes' : 'Discard'}
           </Button>
           <Button onClick={() => onAdd(annotations)}>{isEditing ? 'Save changes' : 'Add to feedback'}</Button>
         </div>
       </div>
+
+      {/* Rendered INSIDE the modal on purpose. `Modal` portals its children to
+          the body, so from here the confirmation lands inside the annotator's
+          own stacking context and paints above it. Hoisted out to page level it
+          would sit under the overlay — visible through nothing, clickable by
+          nobody.
+
+          "Yes, discard" rather than "Discard": the footer button underneath
+          already says that, and nothing here hides it from the accessibility
+          tree while the confirmation is up. Two buttons, one name, opposite
+          consequences. */}
+      <ConfirmDialog
+        isOpen={confirmingDiscard}
+        title={isEditing ? 'Discard changes?' : 'Discard screenshot?'}
+        message={
+          isEditing
+            ? 'Your changes will be lost. The screenshot itself stays in your feedback.'
+            : 'The screenshot and everything you have drawn on it will be lost.'
+        }
+        confirmText="Yes, discard"
+        cancelText="Keep editing"
+        onConfirm={() => {
+          setConfirmingDiscard(false);
+          onDiscard();
+        }}
+        onCancel={() => setConfirmingDiscard(false)}
+      />
     </Modal>
   );
 }

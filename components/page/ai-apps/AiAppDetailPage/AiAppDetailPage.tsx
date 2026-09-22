@@ -8,12 +8,19 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
 import { useAiAppManageAccess } from '@/services/ai-apps/hooks/useAiAppManageAccess';
-import { checkAiAppLive, deployFailureKind, hasPrd, recordAiAppView } from '@/services/ai-apps/ai-apps.service';
+import {
+  checkAiAppLive,
+  deployFailureKind,
+  hasPrd,
+  isPrivateAiApp,
+  recordAiAppView,
+} from '@/services/ai-apps/ai-apps.service';
 import { DocumentIcon } from '@/components/icons';
 import { Button } from '@/components/common/Button';
 import { AppActionsMenu } from '@/components/page/ai-apps/AiAppsPage/components/AppActionsMenu';
 import {
   EditAiAppModal,
+  ManageAccessModal,
   DeploymentSettingsModal,
   DeploymentLogsModal,
   DeleteAiAppDialog,
@@ -21,6 +28,7 @@ import {
 } from '@/components/page/ai-apps/dynamicActionModals';
 import { FloatingFeedbackButton } from '../components/FloatingFeedbackButton';
 import { AiAppTagChips } from '../components/AiAppTagChips';
+import { LockIcon } from '../AiAppsPage/components/ManageAccessModal/icons';
 
 import { AppSecretsPanel } from './components/AppSecretsPanel';
 
@@ -31,7 +39,7 @@ interface Props {
   basePath: string;
 }
 
-type Action = 'edit' | 'deployment' | 'logs' | 'delete';
+type Action = 'edit' | 'access' | 'deployment' | 'logs' | 'delete';
 
 const SETUP_STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Draft',
@@ -166,7 +174,7 @@ function mirroredAppUrl(basePath: string, appPath: string): string {
 export function AiAppDetailPage(props: Props) {
   const { uid, basePath } = props;
 
-  const { app, isLoading, isError } = useAiApp(uid);
+  const { app, errorKind, isLoading, isError } = useAiApp(uid);
   const { currentUser } = useCurrentUserStore();
   const { canLikelyManage } = useAiAppManageAccess();
   const router = useRouter();
@@ -397,6 +405,25 @@ export function AiAppDetailPage(props: Props) {
     return <div className={s.state}>Unable to load this app. Please try again later.</div>;
   }
 
+  if (errorKind === 'forbidden' && !app) {
+    return (
+      <div className={s.state}>
+        <div className={s.privateState}>
+          <span className={s.privateStateIcon}>
+            <LockIcon size={20} />
+          </span>
+          <h1 className={s.privateStateTitle}>This app is private</h1>
+          <p className={s.privateStateText}>
+            Only its owner and the people they add can open it. Ask the owner to add you.
+          </p>
+          <Link href="/pl-infra/ai-apps" className={s.privateStateLink}>
+            Back to AI Apps
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if ((!isLoading && !appUrl) || !app) {
     return <div className={s.state}>App not found.</div>;
   }
@@ -446,6 +473,7 @@ export function AiAppDetailPage(props: Props) {
             <span className={s.statusBadge} data-status={app.status}>
               {SETUP_STATUS_LABELS[app.status] ?? app.status}
             </span>
+            {isPrivateAiApp(app) && <span className={s.privateBadge}>Private</span>}
           </div>
           {app.description && <p className={s.setupDescription}>{app.description}</p>}
           <AiAppTagChips tags={app.tags} />
@@ -568,6 +596,12 @@ export function AiAppDetailPage(props: Props) {
           Back
         </Link>
         <div className={s.topBarActions}>
+          {isPrivateAiApp(app) && (
+            <span className={s.privateBadge} title="Only the owner and people they add can see this app">
+              <LockIcon size={12} />
+              Private
+            </span>
+          )}
           {hasPrd(app) && (
             <Button
               style="border"
@@ -585,6 +619,7 @@ export function AiAppDetailPage(props: Props) {
             <AppActionsMenu
               app={app}
               onEdit={() => setAction('edit')}
+              onAccess={() => setAction('access')}
               onDeployment={() => setAction('deployment')}
               onLogs={() => {
                 analytics.onDeploymentLogsOpened({ appUid: app.uid, appName: app.name, source: 'menu' });
@@ -631,6 +666,9 @@ export function AiAppDetailPage(props: Props) {
         />
       )}
       {action === 'edit' && <EditAiAppModal app={app} onClose={closeAction} />}
+      {action === 'access' && (
+        <ManageAccessModal app={app} onClose={closeAction} onRedeploy={() => setAction('deployment')} />
+      )}
       {action === 'deployment' && (
         <DeploymentSettingsModal app={app} onClose={closeAction} onDeployingChange={setIsRedeploying} />
       )}

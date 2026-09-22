@@ -18,6 +18,9 @@ const TYPE_META: Record<string, { label: string; icon: string; round: boolean }>
   project: { label: 'Project', icon: '/icons/husky/husky-project.svg', round: false },
   event: { label: 'Event', icon: '/icons/husky/husky-event.svg', round: false },
   'irl-event': { label: 'Event', icon: '/icons/husky/husky-event.svg', round: false },
+  job: { label: 'Job', icon: '/icons/husky/husky-project.svg', round: false },
+  news: { label: 'News', icon: '/icons/husky/husky-event.svg', round: false },
+  forum: { label: 'Forum', icon: '/icons/husky/husky-member.svg', round: true },
 };
 
 interface Props {
@@ -54,7 +57,8 @@ export const DirectoryResultCards = ({ actions, onSelect }: Props) => {
       <div className={s.title}>Results from the directory</div>
       <ul className={s.grid}>
         {shown.map((action, index) => {
-          const meta = TYPE_META[action.type?.toLowerCase()] ?? {
+          const type = action.type?.toLowerCase();
+          const meta = TYPE_META[type] ?? {
             label: action.type,
             icon: '/icons/husky/husky-member.svg',
             round: true,
@@ -79,7 +83,7 @@ export const DirectoryResultCards = ({ actions, onSelect }: Props) => {
                   height={32}
                 />
                 <span className={s.text}>
-                  <span className={s.name} title={action.name}>
+                  <span className={type === 'news' ? `${s.name} ${s.nameFull}` : s.name} title={action.name}>
                     {action.name}
                   </span>
                   <span className={s.meta}>{meta.label}</span>

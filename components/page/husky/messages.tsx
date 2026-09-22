@@ -20,7 +20,6 @@ interface MessagesProps {
   onCopyAnswer: (answer: string) => Promise<void>;
   onFollowupClicked: (question: string) => void;
   isLoadingObject: boolean;
-  threadId?: string;
 }
 
 const Messages: React.FC<MessagesProps> = ({
@@ -32,7 +31,6 @@ const Messages: React.FC<MessagesProps> = ({
   onQuestionEdit,
   onCopyAnswer,
   isLoadingObject,
-  threadId,
 }) => {
   return (
     <>
@@ -49,7 +47,6 @@ const Messages: React.FC<MessagesProps> = ({
             onCopyAnswer={onCopyAnswer}
             isLoadingObject={isLoadingObject}
             isAnswerLoading={isAnswerLoading}
-            threadId={threadId}
           />
         ))}
         {isAnswerLoading && <HuskyAnswerLoader data-testid="chat-answer-loader" />}

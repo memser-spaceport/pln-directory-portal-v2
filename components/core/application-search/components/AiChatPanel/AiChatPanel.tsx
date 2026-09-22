@@ -6,6 +6,7 @@ import { EmptyChatView } from '@/components/core/application-search/components/A
 import { ChatSubheader } from '@/components/core/application-search/components/AiChatPanel/components/ChatSubheader';
 import { experimental_useObject as useObject } from '@ai-sdk/react';
 import { z } from 'zod';
+import { huskySourceRefSchema } from '@/services/husky/hooks/useHuskyChat';
 import HuskyLimitStrip from '@/components/core/husky/husky-limit-strip';
 import { DAILY_CHAT_LIMIT, TOAST_MESSAGES } from '@/utils/constants';
 import { checkRefreshToken, getChatCount, updateChatCount, updateLimitType } from '@/utils/husky.utlils';
@@ -81,6 +82,7 @@ export const AiChatPanel = ({
       content: z.string(),
       followUpQuestions: z.array(z.string()),
       sources: z.array(z.string()).optional(),
+      sourceRefs: z.array(huskySourceRefSchema).optional(),
       actions: z
         .array(
           z.object({
@@ -109,6 +111,7 @@ export const AiChatPanel = ({
           answer: '',
           followUpQuestions: [],
           sources: [],
+          sourceRefs: [],
           actions: [],
           sql: [],
         },
@@ -163,6 +166,7 @@ export const AiChatPanel = ({
           answer: chatObject?.content || newMessages[lastIndex]?.answer || '',
           followUpQuestions: chatObject?.followUpQuestions || newMessages[lastIndex]?.followUpQuestions || [],
           sources: chatObject?.sources || newMessages[lastIndex]?.sources || [],
+          sourceRefs: chatObject?.sourceRefs || newMessages[lastIndex]?.sourceRefs || [],
           actions: chatObject?.actions || newMessages[lastIndex]?.actions || [],
           sql: [],
         };
@@ -449,7 +453,6 @@ export const AiChatPanel = ({
                 onRegenerate={onRegenerate}
                 onCopyAnswer={onCopyAnswer}
                 onQuestionEdit={onQuestionEdit}
-                threadId={threadUidRef.current}
               />
               <div ref={endRef} />
             </div>

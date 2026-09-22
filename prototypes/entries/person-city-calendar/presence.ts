@@ -211,89 +211,42 @@ export function findOverlaps(
   return overlaps.sort((a, b) => compareKeys(a.startDate, b.startDate));
 }
 
-/** Overlaps grouped into one card per city + window, for the rail. */
-export interface OverlapGroup {
-  city: string;
-  country: string;
+/* ------------------------------------------------------- who else is there */
+
+export interface Companion {
+  member: PersonCityMember;
+  /** the days you share, clipped to your own stay */
   startDate: DateKey;
   endDate: DateKey;
-  memberIds: string[];
 }
 
-export function groupOverlaps(overlaps: Overlap[]): OverlapGroup[] {
-  const groups = new Map<string, OverlapGroup>();
-
-  for (const overlap of overlaps) {
-    if (!overlap.travelInvolved) continue;
-    const existing = groups.get(overlap.city);
-    if (existing) {
-      // Two separate runs in the same city are still one person on the card.
-      if (!existing.memberIds.includes(overlap.memberId)) existing.memberIds.push(overlap.memberId);
-      if (overlap.startDate < existing.startDate) existing.startDate = overlap.startDate;
-      if (overlap.endDate > existing.endDate) existing.endDate = overlap.endDate;
-    } else {
-      groups.set(overlap.city, {
-        city: overlap.city,
-        country: overlap.country,
-        startDate: overlap.startDate,
-        endDate: overlap.endDate,
-        memberIds: [overlap.memberId],
-      });
-    }
-  }
-
-  return [...groups.values()].sort((a, b) => compareKeys(a.startDate, b.startDate));
-}
-
-/** Everyone present in a city at any point in the window, with their span there. */
-export interface CityStay {
-  memberId: string;
-  startDate: DateKey;
-  endDate: DateKey;
-  viaTrip: boolean;
-}
-
-export interface CityPresence {
-  city: string;
-  country: string;
-  stays: CityStay[];
-}
-
-export function buildCityPresence(people: PersonCityMember[], index: PresenceIndex, days: DateKey[]): CityPresence[] {
-  const cities = new Map<string, CityPresence>();
-
+/**
+ * Everyone else in `city` at any point between `start` and `end` — visiting or
+ * based there. This is the payoff for entering dates at all, so every surface
+ * that shows a stay can also say who it puts you next to.
+ */
+export function companionsFor(
+  city: string,
+  start: DateKey,
+  end: DateKey,
+  people: PersonCityMember[],
+  trips: Trip[],
+  excludeId: string,
+): Companion[] {
+  const days = eachDay(start, end);
+  const found: Companion[] = [];
   for (const member of people) {
-    const byDay = index.get(member.id);
-    if (!byDay) continue;
-
-    let run: { city: string; country: string; start: DateKey; end: DateKey; viaTrip: boolean } | null = null;
-
-    const flush = () => {
-      if (!run) return;
-      const entry = cities.get(run.city) ?? { city: run.city, country: run.country, stays: [] };
-      entry.stays.push({ memberId: member.id, startDate: run.start, endDate: run.end, viaTrip: run.viaTrip });
-      cities.set(run.city, entry);
-      run = null;
-    };
-
-    for (const key of days) {
-      const presence = byDay.get(key);
-      if (!presence) continue;
-      if (run && run.city === presence.city) {
-        run.end = key;
-      } else {
-        flush();
-        run = {
-          city: presence.city,
-          country: presence.country,
-          start: key,
-          end: key,
-          viaTrip: Boolean(presence.trip),
-        };
-      }
-    }
-    flush();
+    if (member.id === excludeId) continue;
+    const shared = days.filter((day) => presenceOn(member, trips, day).city === city);
+    if (shared.length === 0) continue;
+    found.push({ member, startDate: shared[0], endDate: shared[shared.length - 1] });
   }
+  return found;
+}
 
-  return [...cities.values()].sort((a, b) => b.stays.length - a.stays.length || a.city.localeCompare(b.city));
+/** "Lucas Moreau" · "Lucas Moreau and Nadia Haddad" · "Lucas Moreau, Nadia Haddad and 2 others". */
+export function nameList(names: string[]): string {
+  if (names.length <= 2) return names.join(' and ');
+  const rest = names.length - 2;
+  return `${names[0]}, ${names[1]} and ${rest} ${rest === 1 ? 'other' : 'others'}`;
 }

@@ -179,7 +179,15 @@ const MembersToolbar = (props: IMembersToolbar) => {
           }
 
           .toolbar__left__title-container {
-            display: none;
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+            border: 0;
           }
 
           .toolbar__left__search-container {
@@ -292,7 +300,13 @@ const MembersToolbar = (props: IMembersToolbar) => {
             }
 
             .toolbar__left__title-container {
-              display: unset;
+              position: static;
+              width: auto;
+              height: auto;
+              margin: 0;
+              overflow: visible;
+              clip: auto;
+              white-space: normal;
               display: flex;
               gap: 8px;
               align-items: baseline;

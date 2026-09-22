@@ -472,6 +472,18 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_TEAM_INTEREST_FAILED, { ...args });
   };
 
+  const onJobApplyFollowDeclined = (args: JobApplyBaseParams) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_FOLLOW_DECLINED, { ...args });
+  };
+
+  const onJobInterestFollowDeclined = (args: JobApplyBaseParams) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_INTEREST_FOLLOW_DECLINED, { ...args });
+  };
+
+  const onJobApplyFollowFailed = (args: JobApplyBaseParams) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_FOLLOW_FAILED, { ...args });
+  };
+
   return {
     onJobsPageViewed,
     onJobsFiltersApplied,
@@ -523,5 +535,8 @@ export const useJobsAnalytics = () => {
     onJobInterestFailed,
     onTeamInterestMarked,
     onTeamInterestFailed,
+    onJobApplyFollowDeclined,
+    onJobInterestFollowDeclined,
+    onJobApplyFollowFailed,
   };
 };

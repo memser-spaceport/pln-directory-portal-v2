@@ -114,6 +114,13 @@ export const JOBS_ANALYTICS = {
      shared name would make either funnel unreadable. */
   ON_TEAM_INTEREST_MARKED: 'team-interest-marked',
   ON_TEAM_INTEREST_FAILED: 'team-interest-failed',
+  /* Follow tick on apply / interest. Accepted follows reuse team-news-team-followed
+     with source job-apply | job-interest. These two are the missing halves:
+     opting out of the default-on offer, and an apply that landed while the
+     follow request did not. */
+  ON_JOB_APPLY_FOLLOW_DECLINED: 'job-apply-follow-declined',
+  ON_JOB_INTEREST_FOLLOW_DECLINED: 'job-interest-follow-declined',
+  ON_JOB_APPLY_FOLLOW_FAILED: 'job-apply-follow-failed',
 };
 
 export const EVENTS = {
@@ -560,6 +567,10 @@ export const MEMBER_ANALYTICS_EVENTS = {
   CV_IMPORT_SAVED: 'cv-import-saved',
   CV_IMPORT_SAVE_FAILED: 'cv-import-save-failed',
   CV_IMPORT_CANCELLED: 'cv-import-cancelled',
+  CV_PREVIEW_OPENED: 'cv-preview-opened',
+  CV_REMOVED: 'cv-removed',
+  CV_REPLACE_STARTED: 'cv-replace-started',
+  MEMBER_CUSTOM_SKILL_ADDED: 'member-custom-skill-added',
 
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_ADD_CLICKED: 'inline-profile-editor-contribution-details-add-clicked',
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_EDIT_CLICKED: 'inline-profile-editor-contribution-details-edit-clicked',
@@ -916,6 +927,23 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.6.2 - CV Management, Team Follow & Custom Skills',
+    tag: 'New Feature',
+    date: '18, Sep 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Follow hiring teams</span> - When you apply or mark "I'm interested," you can follow the hiring team to hear when they post or hire. The option is checked by default.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Member Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Manage your CV</span> - Preview, replace, or remove your uploaded CV from your profile and during job applications. Hiring leads for roles you apply to can view it.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Custom skills</span> - Add skills to your profile even when they aren't in the catalog.</li>
+        </ul>
+        </div>`,
+  },
   {
     title: 'Version 4.6.1 - External Referrals, Help Menu & Feed Upgrades',
     tag: 'New Feature',
@@ -2650,6 +2678,17 @@ export const AI_APPS_ANALYTICS = {
   FEEDBACK_EXPORTED: 'ai_apps_feedback_exported',
   FEEDBACK_STATUS_CHANGED: 'ai_apps_feedback_status_changed',
   FEEDBACK_DIALOG_OPENED: 'ai_apps_feedback_dialog_opened',
+  FEEDBACK_SCREENSHOT_CLICKED: 'ai_apps_feedback_screenshot_clicked',
+  FEEDBACK_SCREENSHOT_CAPTURE_DENIED: 'ai_apps_feedback_screenshot_capture_denied',
+  FEEDBACK_SCREENSHOT_CAPTURE_FAILED: 'ai_apps_feedback_screenshot_capture_failed',
+  FEEDBACK_SCREENSHOT_CAPTURE_CANCELLED: 'ai_apps_feedback_screenshot_capture_cancelled',
+  FEEDBACK_SCREENSHOT_REGION_SELECTED: 'ai_apps_feedback_screenshot_region_selected',
+  FEEDBACK_SCREENSHOT_ADDED: 'ai_apps_feedback_screenshot_added',
+  FEEDBACK_SCREENSHOT_ANNOTATOR_DISCARDED: 'ai_apps_feedback_screenshot_annotator_discarded',
+  FEEDBACK_SCREENSHOT_EDIT_OPENED: 'ai_apps_feedback_screenshot_edit_opened',
+  FEEDBACK_SCREENSHOT_EDIT_SAVED: 'ai_apps_feedback_screenshot_edit_saved',
+  FEEDBACK_SCREENSHOT_REMOVED: 'ai_apps_feedback_screenshot_removed',
+  FEEDBACK_SCREENSHOT_TOOL_SELECTED: 'ai_apps_feedback_screenshot_tool_selected',
   VIEW_FEEDBACK_CLICKED: 'ai_apps_view_feedback_clicked',
   SECRETS_PANEL_OPENED: 'ai_apps_secrets_panel_opened',
   SECRETS_DEPLOY_CLICKED: 'ai_apps_secrets_deploy_clicked',

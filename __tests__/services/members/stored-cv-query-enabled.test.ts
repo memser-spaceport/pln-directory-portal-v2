@@ -1,3 +1,5 @@
+import { storedCvQueryEnabled } from '@/services/members/hooks/useStoredCv';
+
 /**
  * The guard that stopped every member profile reloading forever.
  *
@@ -7,46 +9,31 @@
  * does not fail — it reloads the page, remounts, fires again, and loops. This
  * predicate is what keeps it from running.
  *
- * `SHOW_CV_IMPORT` is read from the environment at module load and is NOT set in
- * jest, so the real constant is `false` here and every case below would pass
- * against a broken implementation. The module is mocked per-case instead, and
- * the flag-off case is asserted explicitly rather than inherited.
+ * It used to carry `SHOW_CV_IMPORT` as well, and this file loaded the module
+ * through `jest.isolateModules` to control it: the flag was read from the
+ * environment at module load and is unset in jest, so the real constant was
+ * `false` and every case here would have passed against a broken implementation.
+ * The flag is gone and so is that machinery — but the trap is worth remembering
+ * the next time a module-load constant lands in a predicate.
  */
-
-const loadWithFlag = (showCvImport: boolean) => {
-  let enabled: typeof import('@/services/members/hooks/useStoredCv').storedCvQueryEnabled;
-  jest.isolateModules(() => {
-    jest.doMock('@/services/members/constants', () => ({
-      ...jest.requireActual('@/services/members/constants'),
-      SHOW_CV_IMPORT: showCvImport,
-    }));
-    enabled = require('@/services/members/hooks/useStoredCv').storedCvQueryEnabled;
-  });
-  return enabled!;
-};
-
 describe('storedCvQueryEnabled', () => {
   const uid = 'member-1';
   const authToken = 'token';
 
   it('runs for a signed-in member on a profile', () => {
-    expect(loadWithFlag(true)({ uid, authToken })).toBe(true);
+    expect(storedCvQueryEnabled({ uid, authToken })).toBe(true);
   });
 
   /* The regression. A signed-out reader on a member profile used to fire this,
      and customFetch turned the refusal into a reload loop. */
   it('does not run without a session', () => {
-    expect(loadWithFlag(true)({ uid, authToken: undefined })).toBe(false);
-    expect(loadWithFlag(true)({ uid, authToken: '' })).toBe(false);
+    expect(storedCvQueryEnabled({ uid, authToken: undefined })).toBe(false);
+    expect(storedCvQueryEnabled({ uid, authToken: '' })).toBe(false);
   });
 
   it('does not run without a member', () => {
-    expect(loadWithFlag(true)({ uid: undefined, authToken })).toBe(false);
-    expect(loadWithFlag(true)({ uid: '', authToken })).toBe(false);
-  });
-
-  it('does not run behind a dark flag', () => {
-    expect(loadWithFlag(false)({ uid, authToken })).toBe(false);
+    expect(storedCvQueryEnabled({ uid: undefined, authToken })).toBe(false);
+    expect(storedCvQueryEnabled({ uid: '', authToken })).toBe(false);
   });
 
   /* React Query v5 validates `enabled` and throws on a falsy non-boolean, which
@@ -54,9 +41,9 @@ describe('storedCvQueryEnabled', () => {
      boolean, never a coincidentally-falsy `undefined` or `''`. */
   it('always answers with a boolean', () => {
     for (const result of [
-      loadWithFlag(true)({ uid, authToken }),
-      loadWithFlag(true)({ uid: undefined, authToken: undefined }),
-      loadWithFlag(false)({ uid, authToken }),
+      storedCvQueryEnabled({ uid, authToken }),
+      storedCvQueryEnabled({ uid: undefined, authToken: undefined }),
+      storedCvQueryEnabled({ uid: '', authToken: '' }),
     ]) {
       expect(typeof result).toBe('boolean');
     }

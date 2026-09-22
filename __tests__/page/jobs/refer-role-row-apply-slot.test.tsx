@@ -235,9 +235,24 @@ describe('ReferRoleRow with the in-app description on', () => {
   it('opens the same drawer from the role title', () => {
     renderDetailRow();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Community Manager' }));
+    fireEvent.click(screen.getByRole('link', { name: 'Community Manager' }));
 
     expect(onViewJob).toHaveBeenCalledTimes(1);
+  });
+
+  it('exposes the crawlable opening page on the title', () => {
+    renderDetailRow();
+
+    expect(screen.getByRole('link', { name: 'Community Manager' })).toHaveAttribute('href', '/jobs/openings/role-1');
+  });
+
+  it('lets a modified click follow the opening page instead of the drawer', () => {
+    renderDetailRow();
+
+    const title = screen.getByRole('link', { name: 'Community Manager' });
+    fireEvent.click(title, { metaKey: true });
+
+    expect(onViewJob).not.toHaveBeenCalled();
   });
 
   /**

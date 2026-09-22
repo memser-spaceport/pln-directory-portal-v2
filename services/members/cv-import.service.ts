@@ -404,10 +404,19 @@ async function readErrorMessage(response: Response): Promise<string | undefined>
  * profiles, and a throw would make React Query report every new member as an
  * error. Note `request` resolves for *any* status and rejects only when no
  * response arrives, so 404 is read off the response rather than caught.
+ *
+ * **403 is `null` too, and that is not swallowing an error.** The API guards this
+ * read with `assertCanView` — the member, a directory admin, or a lead of a team
+ * this member applied to — and the frontend cannot compute that last clause, so
+ * it asks and renders what comes back. To every caller "there is no CV" and "not
+ * yours to see" are the same instruction: draw nothing. Keeping them apart would
+ * buy an error state nobody renders, three retries per refused profile, and a
+ * console line on every member page a reader opens. The owner can never be the
+ * 403 case, so nothing diagnostic is lost where it would matter.
  */
 export async function getStoredCv(uid: string, signal?: AbortSignal): Promise<StoredCv | null> {
   const response = await request(`${BASE}/${uid}/cv-imports/latest`, { method: 'GET', signal }, signal);
-  if (response.status === 404) return null;
+  if (response.status === 404 || response.status === 403) return null;
   if (!response.ok) throw new CvParseError('server', response.status);
 
   const body = (await response.json()) as { file?: StoredCv };

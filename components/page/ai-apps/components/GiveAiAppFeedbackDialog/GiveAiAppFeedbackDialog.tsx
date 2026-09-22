@@ -1,13 +1,14 @@
 'use client';
 
 import { type CSSProperties, type RefObject, useCallback, useLayoutEffect, useState } from 'react';
+import { flushSync } from 'react-dom';
 import clsx from 'clsx';
 import { useForm, FormProvider } from 'react-hook-form';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { FormEditor } from '@/components/form/FormEditor';
 import { FormSelect } from '@/components/form/FormSelect/FormSelect';
-import { CloseIcon, CommentIcon } from '@/components/icons';
+import { CloseIcon, CommentIcon, PencilSimpleLineIcon } from '@/components/icons';
 import { toast } from '@/components/core/ToastContainer';
 import { useContactSupport } from '@/components/ContactSupport/hooks/useContactSupport';
 import { useFormDraft } from '@/hooks/useFormDraft';
@@ -16,6 +17,18 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApps } from '@/services/ai-apps/hooks/useAiApps';
 import { useSubmitAiAppFeedback } from '@/services/ai-app-feedback/hooks/useSubmitAiAppFeedback';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
+import {
+  AnnotatorModal,
+  CaptureDeniedError,
+  CaptureUnavailableError,
+  RegionSelectOverlay,
+  appendScreenshots,
+  grabVideoFrame,
+  requestTabCapture,
+  stopCaptureStream,
+  type AnnotationState,
+  type ScreenshotAttachment,
+} from '../screenshot-feedback';
 
 import s from './GiveAiAppFeedbackDialog.module.scss';
 
@@ -27,8 +40,12 @@ const FEEDBACK_TOOLBAR: (string | Record<string, unknown>)[][] = [
 export const AI_APP_FEEDBACK_DRAFT_KEY = 'form-draft:ai-app-feedback';
 export const FEEDBACK_PLACEHOLDER = 'What worked, what didn’t, and what would make this more useful?';
 
-function hasFeedbackContent(html: string): boolean {
-  return !isBlankHtml(html) || /<img\b/i.test(html);
+function hasFeedbackContent(html: string, screenshotCount = 0): boolean {
+  return !isBlankHtml(html) || /<img\b/i.test(html) || screenshotCount > 0;
+}
+
+function shotHasAnnotations(annotations: AnnotationState): boolean {
+  return annotations.strokes.length > 0 || annotations.comments.length > 0;
 }
 
 function visibleFeedbackLength(html: string): number {
@@ -134,6 +151,19 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
   const message = watch('message') ?? '';
   const isOverLimit = visibleFeedbackLength(message) > MAX_LENGTH;
   const [isHostingImages, setIsHostingImages] = useState(false);
+  const [screenshots, setScreenshots] = useState<ScreenshotAttachment[]>([]);
+  const [freezeSrc, setFreezeSrc] = useState<string | null>(null);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  /**
+   * Which capture the annotator is open on, when it is an edit.
+   *
+   * `null` for a fresh capture. The id rather than the index: the strip can lose
+   * an entry to the ✕ while the editor is open, and an index would then write
+   * the edit onto somebody else's screenshot.
+   */
+  const [editingShotId, setEditingShotId] = useState<string | null>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const isBusy = isCapturing || Boolean(freezeSrc) || Boolean(cropSrc);
   const isPending = isAppFeedbackPending || isContactSupportPending || isHostingImages;
   const [submitAttempted, setSubmitAttempted] = useState(false);
 
@@ -153,7 +183,16 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
     };
   }, [isOpen, anchorRef, placement]);
 
+  const resetCapture = () => {
+    setIsCapturing(false);
+    setFreezeSrc(null);
+    setCropSrc(null);
+  };
+
   const onDialogClose = () => {
+    resetCapture();
+    setScreenshots([]);
+    setEditingShotId(null);
     setSubmitAttempted(false);
     onClose();
   };
@@ -161,21 +200,108 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
   const onSubmitSuccess = () => {
     clearDraft();
     reset(getDefaults());
+    setScreenshots([]);
+    setEditingShotId(null);
+    resetCapture();
     setSubmitAttempted(false);
     onClose();
+  };
+
+  const onTakeScreenshot = async () => {
+    analytics.onFeedbackScreenshotClicked();
+    let stream: MediaStream;
+    try {
+      stream = await requestTabCapture();
+    } catch (error) {
+      if (error instanceof CaptureDeniedError || error instanceof CaptureUnavailableError) {
+        analytics.onFeedbackScreenshotCaptureDenied({
+          reason: error instanceof CaptureDeniedError ? 'denied' : 'unavailable',
+        });
+        toast.error(error.message);
+        return;
+      }
+      analytics.onFeedbackScreenshotCaptureFailed({ stage: 'request' });
+      toast.error('Could not capture a screenshot. Please try again.');
+      return;
+    }
+
+    flushSync(() => setIsCapturing(true));
+    try {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      const frame = await grabVideoFrame(stream);
+      setFreezeSrc(frame);
+    } catch {
+      setIsCapturing(false);
+      analytics.onFeedbackScreenshotCaptureFailed({ stage: 'grab' });
+      toast.error('Could not capture a screenshot. Please try again.');
+    } finally {
+      stopCaptureStream(stream);
+    }
+  };
+
+  const onCropSelected = (croppedDataUrl: string) => {
+    analytics.onFeedbackScreenshotRegionSelected();
+    setFreezeSrc(null);
+    setIsCapturing(false);
+    setCropSrc(croppedDataUrl);
+  };
+
+  const onRegionSelectCancel = () => {
+    analytics.onFeedbackScreenshotCaptureCancelled();
+    resetCapture();
+  };
+
+  const editingShot = editingShotId ? screenshots.find((shot) => shot.id === editingShotId) : undefined;
+
+  /* Reopens a capture on its own annotations. `cropSrc` is what the annotator
+     draws on, so an edit points it at the stored image rather than a fresh
+     grab. */
+  const onEditShot = (shot: ScreenshotAttachment) => {
+    analytics.onFeedbackScreenshotEditOpened();
+    setEditingShotId(shot.id);
+    setCropSrc(shot.imageDataUrl);
+  };
+
+  const onAnnotatorDiscard = () => {
+    analytics.onFeedbackScreenshotAnnotatorDiscarded({ isEditing: Boolean(editingShotId) });
+    setCropSrc(null);
+    setEditingShotId(null);
+  };
+
+  const onAnnotatorAdd = (annotations: AnnotationState) => {
+    if (!cropSrc) return;
+    const hasAnnotations = shotHasAnnotations(annotations);
+    /* An edit replaces its own entry IN PLACE — same id, same position. A new
+       entry would leave the old drawing in the feedback beside the corrected one,
+       and a changed id would remount the chip and lose its place in the strip. */
+    if (editingShotId) {
+      analytics.onFeedbackScreenshotEditSaved({ hasAnnotations });
+      setScreenshots((prev) => prev.map((shot) => (shot.id === editingShotId ? { ...shot, annotations } : shot)));
+    } else {
+      analytics.onFeedbackScreenshotAdded({ hasAnnotations });
+      setScreenshots((prev) => [...prev, { id: `shot-${Date.now()}`, imageDataUrl: cropSrc, annotations }]);
+    }
+    setCropSrc(null);
+    setEditingShotId(null);
+  };
+
+  const onRemoveShot = (shotId: string) => {
+    analytics.onFeedbackScreenshotRemoved();
+    setScreenshots((prev) => prev.filter((item) => item.id !== shotId));
   };
 
   const onSubmit = handleSubmit(async ({ app, message: rawMessage }) => {
     setSubmitAttempted(true);
     let trimmedMessage = (rawMessage ?? '').trim();
 
-    if (!app?.value || !hasFeedbackContent(trimmedMessage)) {
+    if (!app?.value || !hasFeedbackContent(trimmedMessage, screenshots.length)) {
       return;
     }
 
     try {
       setIsHostingImages(true);
       trimmedMessage = await hostDataUriImages(trimmedMessage);
+      trimmedMessage = await appendScreenshots(trimmedMessage, screenshots);
     } catch {
       toast.error('Image upload failed. Please try again.');
       return;
@@ -215,7 +341,12 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
       { appUid: app.value, text: trimmedMessage },
       {
         onSuccess: () => {
-          analytics.onFeedbackSubmitted(app.value, app.label);
+          analytics.onFeedbackSubmitted({
+            appUid: app.value,
+            appName: app.label,
+            screenshotCount: screenshots.length,
+            hasAnnotations: screenshots.some((shot) => shotHasAnnotations(shot.annotations)),
+          });
           toast.success('Thanks for your feedback!');
           onSubmitSuccess();
         },
@@ -228,72 +359,140 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
   });
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onDialogClose}
-      closeOnBackdropClick={false}
-      overlayClassname={clsx(s.overlay, placement === 'above' && s.overlayAbove)}
-      overlayStyle={overlayStyle}
-      className={s.modalContainer}
-    >
-      <div className={s.root}>
-        <div className={s.header}>
-          <h2 className={s.title}>Give feedback</h2>
-          <button type="button" className={s.closeButton} onClick={onDialogClose} aria-label="Close">
-            <CloseIcon width={16} height={16} />
-          </button>
-        </div>
+    <>
+      <Modal
+        isOpen={isOpen}
+        onClose={onDialogClose}
+        closeOnBackdropClick={false}
+        closeOnEscape={!isBusy}
+        overlayClassname={clsx(s.overlay, placement === 'above' && s.overlayAbove, isBusy && s.overlayHidden)}
+        overlayStyle={overlayStyle}
+        className={s.modalContainer}
+      >
+        <div className={s.root}>
+          <div className={s.header}>
+            <h2 className={s.title}>Give feedback</h2>
+            <button type="button" className={s.closeButton} onClick={onDialogClose} aria-label="Close">
+              <CloseIcon width={16} height={16} />
+            </button>
+          </div>
 
-        <div className={s.content}>
-          <FormProvider {...methods}>
-            <div className={s.form}>
-              <FormSelect
-                name="app"
-                label="Which app is this about?"
-                placeholder="Select an app…"
-                options={appOptions}
-                disabled={isAppsLoading}
-                isRequired
-                // Portalled + fixed so the menu escapes `.root`'s overflow mask and
-                // `auto` can measure viewport space below the control. Forcing
-                // `top` made the list open upward over the nav even though the
-                // field sits at the top of this panel.
-                menuPortalTarget={typeof document === 'undefined' ? null : document.body}
-              />
-              {submitAttempted && !watch('app') && <p className={s.fieldError}>Please select an app</p>}
+          <div className={s.content}>
+            <FormProvider {...methods}>
+              <div className={s.form}>
+                <FormSelect
+                  name="app"
+                  label="Which app is this about?"
+                  placeholder="Select an app…"
+                  options={appOptions}
+                  disabled={isAppsLoading}
+                  isRequired
+                  // Portalled + fixed so the menu escapes `.root`'s overflow mask and
+                  // `auto` can measure viewport space below the control. Forcing
+                  // `top` made the list open upward over the nav even though the
+                  // field sits at the top of this panel.
+                  menuPortalTarget={typeof document === 'undefined' ? null : document.body}
+                />
+                {submitAttempted && !watch('app') && <p className={s.fieldError}>Please select an app</p>}
 
-              <FormEditor
-                name="message"
-                label="Your feedback"
-                placeholder={FEEDBACK_PLACEHOLDER}
-                simplified
-                toolbarConfig={FEEDBACK_TOOLBAR}
-                maxLength={MAX_LENGTH}
-                showCharCount
-                minHeight={120}
-                className={s.editor}
-              />
+                <FormEditor
+                  name="message"
+                  label="Your feedback"
+                  placeholder={FEEDBACK_PLACEHOLDER}
+                  simplified
+                  toolbarConfig={FEEDBACK_TOOLBAR}
+                  maxLength={MAX_LENGTH}
+                  showCharCount
+                  minHeight={120}
+                  className={s.editor}
+                />
+
+                <div className={s.screenshotRow}>
+                  <p className={s.screenshotHint}>Drag to capture any area of the page, including the app.</p>
+                  <button type="button" className={s.screenshotButton} onClick={onTakeScreenshot} disabled={isPending}>
+                    <CameraIcon />
+                    Take screenshot
+                  </button>
+                </div>
+
+                {screenshots.length > 0 && (
+                  <ul className={s.screenshotList}>
+                    {screenshots.map((shot, index) => (
+                      <li key={shot.id} className={s.screenshotChip}>
+                        {/* The image is the press, the ✕ is its SIBLING rather
+                            than its child: a button inside a button is invalid
+                            markup that browsers reparent, and the reparenting is
+                            how a Remove press ends up opening the editor. */}
+                        <button
+                          type="button"
+                          className={s.screenshotOpen}
+                          aria-label={`Edit screenshot ${index + 1}`}
+                          onClick={() => onEditShot(shot)}
+                        >
+                          <img src={shot.imageDataUrl} alt={`Screenshot ${index + 1}`} />
+                          <span className={s.screenshotEdit} aria-hidden="true">
+                            <PencilSimpleLineIcon width={14} height={14} />
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          className={s.screenshotRemove}
+                          aria-label={`Remove screenshot ${index + 1}`}
+                          onClick={() => onRemoveShot(shot.id)}
+                        >
+                          <CloseIcon width={12} height={12} />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </FormProvider>
+
+            <div className={s.postingAs}>
+              <CommentIcon />
+              <span>
+                Posting as <strong>{currentUser?.name ?? 'you'}</strong> · visible to the app&apos;s author and LabOS
+                admins
+              </span>
             </div>
-          </FormProvider>
+          </div>
 
-          <div className={s.postingAs}>
-            <CommentIcon />
-            <span>
-              Posting as <strong>{currentUser?.name ?? 'you'}</strong> · visible to the app&apos;s author and LabOS
-              admins
-            </span>
+          <div className={s.footer}>
+            <Button style="border" variant="neutral" onClick={onDialogClose}>
+              Cancel
+            </Button>
+            <Button onClick={onSubmit} disabled={isPending || isOverLimit}>
+              {isPending ? 'Sending…' : 'Send feedback'}
+            </Button>
           </div>
         </div>
+      </Modal>
+      {freezeSrc && (
+        <RegionSelectOverlay freezeSrc={freezeSrc} onSelect={onCropSelected} onCancel={onRegionSelectCancel} />
+      )}
+      {cropSrc && (
+        <AnnotatorModal
+          imageSrc={cropSrc}
+          onDiscard={onAnnotatorDiscard}
+          onAdd={onAnnotatorAdd}
+          onToolSelected={(tool) => analytics.onFeedbackScreenshotToolSelected({ tool })}
+          initialAnnotations={editingShot?.annotations}
+        />
+      )}
+    </>
+  );
+}
 
-        <div className={s.footer}>
-          <Button style="border" variant="neutral" onClick={onDialogClose}>
-            Cancel
-          </Button>
-          <Button onClick={onSubmit} disabled={isPending || isOverLimit}>
-            {isPending ? 'Sending…' : 'Send feedback'}
-          </Button>
-        </div>
-      </div>
-    </Modal>
+function CameraIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M5.2 3.5 5.7 2.6A1 1 0 0 1 6.55 2.1h2.9a1 1 0 0 1 .85.5l.5.9H12.5A1.5 1.5 0 0 1 14 5v6.5A1.5 1.5 0 0 1 12.5 13h-9A1.5 1.5 0 0 1 2 11.5V5a1.5 1.5 0 0 1 1.5-1.5h1.7ZM8 11a2.75 2.75 0 1 0 0-5.5A2.75 2.75 0 0 0 8 11Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

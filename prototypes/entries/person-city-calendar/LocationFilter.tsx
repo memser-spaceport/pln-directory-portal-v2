@@ -94,18 +94,33 @@ export function LocationFilter(props: LocationFilterProps) {
 
   const peak = density ? Math.max(...density.map((week) => week.count), 1) : 1;
 
+  const peakIndex = density ? density.findIndex((week) => week.count === peak) : -1;
+
   return (
     <>
-      {/* Checkboxes, not chips. The chip row was a Klook-style control I brought
-          in from outside; every other facet in this rail is a
-          GenericCheckboxList, and a filter that looks unlike its neighbours
-          reads as a different kind of thing. Nothing is ticked by default —
-          with no window selected the City list matches declared home cities,
-          which is exactly what /members does today, so the facet starts as a
-          no-op and only the additions are new. */}
+      {/* Where, then when, then the picture of it. "Based here" and "Right now"
+          mean nothing until a city is named, and the chart is *about* the city —
+          so the city list leads and both follow it. */}
+      <div className={s.cityBlock}>
+        {/* Production component; counts come from FilterOption.count. */}
+        <GenericCheckboxList
+          label="City"
+          paramKey="city"
+          filterStore={useMockFilterStore}
+          placeholder="E.g. Berlin, Lisbon"
+          defaultItemsToShow={6}
+          useGetDataHook={staticOptions(cityOptions)}
+        />
+      </div>
+
+      {/* Checkboxes, like every other facet in this rail. Nothing is ticked by
+          default — with no window selected the City list matches declared home
+          cities, which is exactly what /members does today, so the facet starts
+          as a no-op. Labelled "When": the options are times, and the old
+          "Who's there" asked a who-question of a list of whens. */}
       <div className={s.whenBlock}>
         <GenericCheckboxList
-          label="Who's there"
+          label="When"
           paramKey="presence"
           filterStore={useMockFilterStore}
           useGetDataHook={staticOptions(WHEN_PRESETS.map((preset) => ({ value: preset.value, label: preset.label })))}
@@ -121,45 +136,47 @@ export function LocationFilter(props: LocationFilterProps) {
         )}
       </div>
 
-      {/* Week-by-week headcount for the selected city — click to set the window. */}
+      {/* Week-by-week headcount for the selected city — click to set the window.
+          An empty week is a tick on the baseline, not a short bar: a bar is a
+          claim that someone is there. Weeks inside the ticked window are drawn
+          solid, so the chart shows what the filter is currently asking. */}
       {density && (
         <div className={s.density}>
           <div className={s.densityHead}>
-            <span className={s.densityTitle}>{selectedCities[0]} over the next 12 weeks</span>
-            <span className={s.densityPeak}>peak {peak}</span>
+            <span className={s.densityTitle}>People in {selectedCities[0]}, by week</span>
           </div>
           <div className={s.densityBars}>
-            {density.map((week) => (
-              <button
-                key={week.start}
-                type="button"
-                className={clsx(s.densityBar, { [s.densityBarEmpty]: week.count === 0 })}
-                style={{ ['--h' as string]: `${Math.max(6, (week.count / peak) * 100)}%` }}
-                title={`${week.count} ${week.count === 1 ? 'person' : 'people'} · week of ${shortMonth(week.start)} ${parseKey(week.start).day}`}
-                onClick={() => onWeekPick(week.start, week.end)}
-              >
-                <span className={s.densityFill} />
-              </button>
-            ))}
+            {density.map((week, index) => {
+              const inWindow = window.some((day) => day >= week.start && day <= week.end);
+              return (
+                <button
+                  key={week.start}
+                  type="button"
+                  className={clsx(s.densityBar, {
+                    [s.densityBarEmpty]: week.count === 0,
+                    [s.densityBarOn]: inWindow && week.count > 0,
+                  })}
+                  style={{ ['--h' as string]: `${(week.count / peak) * 100}%` }}
+                  aria-label={`${week.count} ${week.count === 1 ? 'person' : 'people'}, week of ${shortMonth(week.start)} ${parseKey(week.start).day}`}
+                  title={`${week.count} ${week.count === 1 ? 'person' : 'people'} · week of ${shortMonth(week.start)} ${parseKey(week.start).day}`}
+                  onClick={() => onWeekPick(week.start, week.end)}
+                >
+                  {index === peakIndex && week.count > 0 && <span className={s.densityCount}>{week.count}</span>}
+                  <span className={s.densityFill} />
+                </button>
+              );
+            })}
           </div>
           <div className={s.densityAxis}>
-            <span>{shortMonth(density[0].start)}</span>
-            <span>{shortMonth(density[density.length - 1].start)}</span>
+            <span>
+              {shortMonth(density[0].start)} {parseKey(density[0].start).day}
+            </span>
+            <span>
+              {shortMonth(density[density.length - 1].end)} {parseKey(density[density.length - 1].end).day}
+            </span>
           </div>
         </div>
       )}
-
-      <div className={s.cityBlock}>
-        {/* Production component; counts come from FilterOption.count. */}
-        <GenericCheckboxList
-          label="City"
-          paramKey="city"
-          filterStore={useMockFilterStore}
-          placeholder="E.g. Berlin, Lisbon"
-          defaultItemsToShow={6}
-          useGetDataHook={staticOptions(cityOptions)}
-        />
-      </div>
     </>
   );
 }

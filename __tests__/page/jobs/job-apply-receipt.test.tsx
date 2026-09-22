@@ -48,6 +48,9 @@ jest.mock('@/services/jobs/hooks/useJobApplications', () => ({
   useRoleApplication: () => null,
 }));
 
+const mockOnJobApplyFollowDeclined = jest.fn();
+const mockOnJobApplyFollowFailed = jest.fn();
+
 jest.mock('@/analytics/jobs.analytics', () => ({
   useJobsAnalytics: () => ({
     onJobApplySubmitted: jest.fn(),
@@ -56,6 +59,8 @@ jest.mock('@/analytics/jobs.analytics', () => ({
     onJobApplyStepViewed: jest.fn(),
     onJobApplyFlowClosed: jest.fn(),
     onJobApplyExternalRedirected: jest.fn(),
+    onJobApplyFollowDeclined: (...args: unknown[]) => mockOnJobApplyFollowDeclined(...args),
+    onJobApplyFollowFailed: (...args: unknown[]) => mockOnJobApplyFollowFailed(...args),
   }),
 }));
 
@@ -118,6 +123,8 @@ describe('the receipt a sent application shows', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFollowedUids = new Set<string>(['t2']);
+    mockOnJobApplyFollowDeclined.mockClear();
+    mockOnJobApplyFollowFailed.mockClear();
   });
 
   it('tells a verified member it has gone', () => {
@@ -167,6 +174,8 @@ describe('the receipt a sent application shows', () => {
       ),
     );
     expect(mockFollowTeam).toHaveBeenCalledWith('t2');
+    expect(mockOnJobApplyFollowDeclined).not.toHaveBeenCalled();
+    expect(mockOnJobApplyFollowFailed).not.toHaveBeenCalled();
   });
 
   /* An unticked box is the opt-out: the application still goes, the follow
@@ -182,6 +191,13 @@ describe('the receipt a sent application shows', () => {
       'Applied to Founding Backend Engineer at Bacalhau. Your profile went with your note.',
     );
     expect(mockFollowTeam).not.toHaveBeenCalled();
+    expect(mockOnJobApplyFollowDeclined).toHaveBeenCalledWith({
+      job_id: 'r1',
+      team_id: 't2',
+      viewer_state: 'profile-ready',
+      source: 'job-board',
+    });
+    expect(mockOnJobApplyFollowFailed).not.toHaveBeenCalled();
   });
 
   /* A failed follow never earns the clause — the application stands, the
@@ -199,5 +215,12 @@ describe('the receipt a sent application shows', () => {
       ),
     );
     expect(mockFollowTeam).toHaveBeenCalledWith('t2');
+    expect(mockOnJobApplyFollowFailed).toHaveBeenCalledWith({
+      job_id: 'r1',
+      team_id: 't2',
+      viewer_state: 'profile-ready',
+      source: 'job-board',
+    });
+    expect(mockOnJobApplyFollowDeclined).not.toHaveBeenCalled();
   });
 });

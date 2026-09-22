@@ -45,8 +45,12 @@ export function useAiAppsAnalytics() {
     onIframeLoaded: (appUid: string, appName: string) => capture(AI_APPS_ANALYTICS.IFRAME_LOADED, { appUid, appName }),
     onIframeLoadFailed: (appUid: string, appName: string) =>
       capture(AI_APPS_ANALYTICS.IFRAME_LOAD_FAILED, { appUid, appName }),
-    onFeedbackSubmitted: (appUid: string, appName: string) =>
-      capture(AI_APPS_ANALYTICS.FEEDBACK_SUBMITTED, { appUid, appName }),
+    onFeedbackSubmitted: (params: {
+      appUid: string;
+      appName: string;
+      screenshotCount: number;
+      hasAnnotations: boolean;
+    }) => capture(AI_APPS_ANALYTICS.FEEDBACK_SUBMITTED, params),
     onFeedbackSubmitFailed: (appUid: string) => capture(AI_APPS_ANALYTICS.FEEDBACK_SUBMIT_FAILED, { appUid }),
     onFeedbackReviewViewed: () => capture(AI_APPS_ANALYTICS.FEEDBACK_REVIEW_VIEWED),
     onFeedbackTabFiltered: (appName: string) => capture(AI_APPS_ANALYTICS.FEEDBACK_TAB_FILTERED, { appName }),
@@ -55,6 +59,23 @@ export function useAiAppsAnalytics() {
       capture(AI_APPS_ANALYTICS.FEEDBACK_STATUS_CHANGED, params),
     onFeedbackDialogOpened: (params: { appUid?: string; appName?: string } = {}) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_DIALOG_OPENED, params),
+    onFeedbackScreenshotClicked: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_CLICKED),
+    onFeedbackScreenshotCaptureDenied: (params: { reason: 'denied' | 'unavailable' }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_CAPTURE_DENIED, params),
+    onFeedbackScreenshotCaptureFailed: (params: { stage: 'request' | 'grab' }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_CAPTURE_FAILED, params),
+    onFeedbackScreenshotCaptureCancelled: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_CAPTURE_CANCELLED),
+    onFeedbackScreenshotRegionSelected: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_REGION_SELECTED),
+    onFeedbackScreenshotAdded: (params: { hasAnnotations: boolean }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_ADDED, params),
+    onFeedbackScreenshotAnnotatorDiscarded: (params: { isEditing: boolean }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_ANNOTATOR_DISCARDED, params),
+    onFeedbackScreenshotEditOpened: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_EDIT_OPENED),
+    onFeedbackScreenshotEditSaved: (params: { hasAnnotations: boolean }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_EDIT_SAVED, params),
+    onFeedbackScreenshotRemoved: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_REMOVED),
+    onFeedbackScreenshotToolSelected: (params: { tool: 'draw' | 'comment' }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_TOOL_SELECTED, params),
     onViewFeedbackClicked: (params: { feedbackCount: number }) =>
       capture(AI_APPS_ANALYTICS.VIEW_FEEDBACK_CLICKED, params),
     onSecretsPanelOpened: (params: { appUid: string; isDraft: boolean }) =>

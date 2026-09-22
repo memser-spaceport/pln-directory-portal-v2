@@ -7,6 +7,7 @@ import { uniq } from 'lodash';
 import { useFormContext } from 'react-hook-form';
 
 import { CloseIcon } from '@/components/icons';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
 import s from '@/components/form/FormTagsInput/FormTagsInput.module.scss';
 
 import t from './SkillsTagsInput.module.scss';
@@ -25,12 +26,14 @@ export function SkillsTagsInput({
   suggestions = [],
 }: SkillsTagsInputProps) {
   const [inputText, setInputText] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
   const {
     setValue,
     getValues,
     formState: { errors },
   } = useFormContext();
   const val = (getValues()[name] as string[]) ?? [];
+  const { onMemberCustomSkillAdded } = useMemberAnalytics();
 
   const selectedLower = useMemo(() => new Set(val.map((item) => item.toLowerCase())), [val]);
 
@@ -77,6 +80,9 @@ export function SkillsTagsInput({
       if (nextLower.has(key)) continue;
       nextLower.add(key);
       next.push(title);
+      if (suggestions.length > 0 && !suggestions.some((item) => item.toLowerCase() === key)) {
+        onMemberCustomSkillAdded();
+      }
     }
 
     setValue(name, next, { shouldValidate: true, shouldDirty: true });
@@ -92,7 +98,15 @@ export function SkillsTagsInput({
   return (
     <div className={s.Content}>
       <div className={s.inputLabel}>{selectLabel}</div>
-      <div className={t.fieldWrap}>
+      <div
+        className={t.fieldWrap}
+        onFocus={() => setIsFocused(true)}
+        onBlur={(event) => {
+          const next = event.relatedTarget as Node | null;
+          if (next && event.currentTarget.contains(next)) return;
+          setIsFocused(false);
+        }}
+      >
         <div className={clsx(s.input, { [s.error]: errors[name] })}>
           <div className={s.inputContent}>
             {val.map((item) => (
@@ -146,7 +160,7 @@ export function SkillsTagsInput({
             </button>
           )}
         </div>
-        {(canAddCustom || filteredSuggestions.length > 0) && (
+        {isFocused && (canAddCustom || filteredSuggestions.length > 0) && (
           <ul className={t.suggestions} role="listbox">
             {canAddCustom && (
               <li>

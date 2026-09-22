@@ -127,11 +127,11 @@ describe('the banner itself', () => {
 
     const { rerender } = renderBanner({ onToggle });
     fireEvent.click(action());
-    expect(onToggle).toHaveBeenCalledWith(true, false);
+    expect(onToggle).toHaveBeenCalledWith(true, false, false);
 
     rerender(<JobInterestBanner teamName={TEAM_NAME} isInterested error={null} onToggle={onToggle} />);
     fireEvent.click(action());
-    expect(onToggle).toHaveBeenLastCalledWith(false, false);
+    expect(onToggle).toHaveBeenLastCalledWith(false, false, false);
   });
 
   it('puts a refusal where the offer was, and leaves the control pressable', () => {
@@ -142,7 +142,7 @@ describe('the banner itself', () => {
     expect(screen.queryByText(INTEREST_SUBTITLE)).not.toBeInTheDocument();
 
     fireEvent.click(action());
-    expect(onToggle).toHaveBeenCalledWith(true, false);
+    expect(onToggle).toHaveBeenCalledWith(true, false, false);
   });
 
   /* The follow offer: one row under the subtitle while the signal is unsent,
@@ -154,7 +154,7 @@ describe('the banner itself', () => {
     expect(screen.getByText(teamFollowOfferLabel(TEAM_NAME))).toBeInTheDocument();
 
     fireEvent.click(action());
-    expect(onToggle).toHaveBeenCalledWith(true, true);
+    expect(onToggle).toHaveBeenCalledWith(true, true, true);
   });
 
   it('sends no follow when the tick was removed', () => {
@@ -162,7 +162,7 @@ describe('the banner itself', () => {
     renderBanner({ follow: { checked: false, onChange: jest.fn() }, onToggle });
 
     fireEvent.click(action());
-    expect(onToggle).toHaveBeenCalledWith(true, false);
+    expect(onToggle).toHaveBeenCalledWith(true, false, true);
   });
 
   /* Once the signal is in, the footer's press is Undo — and Undo is not an

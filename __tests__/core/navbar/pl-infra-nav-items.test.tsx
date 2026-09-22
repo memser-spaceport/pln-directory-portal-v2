@@ -45,6 +45,16 @@ describe('useGetPlInfraNavItems', () => {
       'Network Intelligence Dash',
     ]);
     expect(titlesOf(plInfra(PERMISSIONS.INVESTOR_DB.PERM_VIEW))).toEqual(['Network Intelligence Dash', 'Investor DB']);
+    expect(titlesOf(plInfra(PERMISSIONS.ATS.PERM_USER))).toEqual(['PL ATS']);
+  });
+
+  it('does not show PL ATS without ats_user', () => {
+    expect(titlesOf(plInfra(PERMISSIONS.GANTRY.PERM_VIEW))).not.toContain('PL ATS');
+    expect(titlesOf(plInfra(PERMISSIONS.AI_APPS.PERM_VIEW))).not.toContain('PL ATS');
+  });
+
+  it('does not let ats_user open Network Intelligence Dash on its own', () => {
+    expect(titlesOf(plInfra(PERMISSIONS.ATS.PERM_USER))).not.toContain('Network Intelligence Dash');
   });
 
   it('does not show PL Infra OS without AI Apps access', () => {
@@ -67,6 +77,7 @@ describe('useGetPlInfraNavItems', () => {
       PERMISSIONS.AI_APPS.PERM_VIEW,
       PERMISSIONS.INVESTOR_DB.PERM_VIEW,
       PERMISSIONS.GANTRY.PERM_VIEW,
+      PERMISSIONS.ATS.PERM_USER,
     );
 
     expect(titlesOf(all)).toEqual([
@@ -74,6 +85,7 @@ describe('useGetPlInfraNavItems', () => {
       'Gantry',
       'PL Infra OS / Factorio',
       'Network Intelligence Dash',
+      'PL ATS',
       'Investor DB',
       'Agent Sessions',
     ]);
@@ -91,6 +103,7 @@ describe('useGetPlInfraNavItems', () => {
       PERMISSIONS.INVESTOR_DB.PERM_VIEW,
       PERMISSIONS.AI_APPS.PERM_VIEW,
       PERMISSIONS.AGENT_SESSIONS.PERM_VIEW,
+      PERMISSIONS.ATS.PERM_USER,
     );
 
     all
@@ -104,6 +117,19 @@ describe('useGetPlInfraNavItems', () => {
 
     expect(link?.href).toBe('https://intelligence-reports.plnetwork.io/');
     expect(link).toMatchObject({ external: true });
+  });
+
+  it('sends PL ATS to the LabOS ATS host, marked to open in a new tab', () => {
+    const link = plInfra(PERMISSIONS.ATS.PERM_USER).find((item) => item.title === 'PL ATS');
+
+    expect(link?.href).toBe('https://ats.os.pl.xyz');
+    expect(link).toMatchObject({ external: true });
+  });
+
+  it('places PL ATS immediately after Network Intelligence Dash when both are present', () => {
+    const titles = titlesOf(plInfra(PERMISSIONS.INVESTOR_DB.PERM_VIEW, PERMISSIONS.ATS.PERM_USER));
+
+    expect(titles.indexOf('PL ATS')).toBe(titles.indexOf('Network Intelligence Dash') + 1);
   });
 
   it('keeps the same array while permissions are unchanged', () => {

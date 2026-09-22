@@ -248,10 +248,9 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
      either, opening a second role after a failed toggle carries the red line
      across to a banner that never failed at anything. */
   const [interestError, setInterestError] = useState<{ roleUid: string; message: string } | null>(null);
-  const interestErrorForRole =
-    interestError && interestError.roleUid === flowRole?.uid ? interestError.message : null;
+  const interestErrorForRole = interestError && interestError.roleUid === flowRole?.uid ? interestError.message : null;
 
-  const handleToggleInterest = (nextInterested: boolean, followRequested = false) => {
+  const handleToggleInterest = (nextInterested: boolean, followRequested = false, followOffered = false) => {
     if (state.step !== 'flow') return;
     const target = state.target;
     const analyticsBase = {
@@ -297,6 +296,8 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
                   });
                 }
               });
+            } else if (nextInterested && followOffered) {
+              analytics.onJobInterestFollowDeclined(analyticsBase);
             }
           } else {
             analytics.onJobInterestUndone(analyticsBase);

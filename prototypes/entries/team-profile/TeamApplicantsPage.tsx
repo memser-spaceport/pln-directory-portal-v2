@@ -57,7 +57,7 @@ const personDate = (p: Person) => ('appliedAt' in p ? p.appliedAt : p.interested
 export interface ApplicantsRole {
   uid: string;
   title: string;
-  /** The team's own posting — the same link the role row's ⋯ menu calls "View posting". */
+  /** The team's own posting — the same link the job board's ⋯ menu calls "View posting". */
   postingHref?: string;
   /** The role row's meta line: seniority · category · location. */
   meta?: string;
@@ -319,7 +319,7 @@ export function TeamApplicantsPage({ teamName, roles, initialRoleUid, onBack, ba
   );
 
   /* The posting itself, one press from the people who answered it — the same
-     link, and the same words, as the row's ⋯ menu on the profile, so the exit
+     link, and the same words, as the board's own ⋯ menu, so the exit
      reads the same on both surfaces. */
   const postingButton = role.postingHref ? (
     <a

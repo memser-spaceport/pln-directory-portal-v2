@@ -31,14 +31,19 @@ import { isDemodaySignUpSource, isMemberAvailableToConnect } from '@/utils/membe
 import { useCurrentUserStore } from '@/services/auth/store';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useQuery } from '@tanstack/react-query';
-import { IMember } from '@/types/members.types';
 import { useSearchParams } from 'next/navigation';
 import { AccountCreatedView } from '@/components/page/member-details/AccountCreatedView';
 
 import MemberPageLoader from './loading';
 import Head from 'next/head';
-import { MembersQueryKeys, SHOW_CV_IMPORT } from '@/services/members/constants';
+import { MembersQueryKeys } from '@/services/members/constants';
 import { MemberCvSection } from '@/components/page/member-details/MemberCvSection/MemberCvSection';
+import {
+  isJobAspirantMember,
+  shouldPlaceCvAfterProfileDetails,
+  shouldPlaceCvInDefaultPosition,
+  shouldShowInvestorProfile,
+} from '@/components/page/member-details/job-aspirant-profile';
 import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
 import { ForumActivity } from '@/components/page/member-details/ForumActivity';
 import { TeamNewsDetails } from '@/components/page/member-details/TeamNewsDetails';
@@ -50,23 +55,6 @@ import { useAffinityMember } from '@/services/affinity/hooks/useAffinityMember';
 import { useJobEmailProfileLinkEventCapture } from '@/components/page/member-details/hooks';
 import { RelationshipDetails } from '@/components/page/member-details/RelationshipDetails';
 import { useLoginRedirect } from '@/components/core/login/utils';
-
-const shouldShowInvestorProfileForThirdParty = (
-  member: IMember,
-  isOwner: boolean,
-  isAdmin: boolean,
-  isInvestor?: boolean,
-): boolean => {
-  if (!isOwner && !isAdmin) {
-    return false;
-  }
-
-  if (isInvestor === null || isInvestor) {
-    return true;
-  }
-
-  return false;
-};
 
 const MemberDetails = (props: { params: Promise<any> }) => {
   const params = use(props.params);
@@ -104,7 +92,6 @@ const MemberDetails = (props: { params: Promise<any> }) => {
     select: (data) => data?.data?.formattedData,
   });
 
-  // Fetch investor settings to check visibility preference
   const { data: memberInvestorSettings } = useGetMemberInvestorSettings(memberId);
   const { authToken } = getCookiesFromClient();
   const { data: availableToConnectCount } = useQuery({
@@ -185,14 +172,33 @@ const MemberDetails = (props: { params: Promise<any> }) => {
       return null;
     }
 
-    const showInvestorProfile = shouldShowInvestorProfileForThirdParty(
-      member,
+    const jobAspirant = isJobAspirantMember(member);
+    const showInvestorProfile = shouldShowInvestorProfile({
       isOwner,
       isAdmin,
-      memberInvestorSettings?.isInvestor,
-    );
+      isInvestor: memberInvestorSettings?.isInvestor,
+      isJobAspirant: jobAspirant,
+    });
     const isInvestorOnly =
       isNewInvestor || member.rbac.policies?.every((p: { role: string }) => p.role.toLowerCase() === 'investor');
+    /* Signed in, and nothing else. Who may actually see a CV is `assertCanView`'s
+       answer, which arrives with the query. */
+    const showCvSection = isLoggedIn;
+    const cvAfterProfile = shouldPlaceCvAfterProfileDetails({
+      showCvSection,
+      isJobAspirant: jobAspirant,
+      isOwner,
+    });
+    const cvInDefaultPosition = shouldPlaceCvInDefaultPosition({
+      showCvSection,
+      isJobAspirant: jobAspirant,
+      isOwner,
+    });
+    const cvSection = showCvSection ? (
+      <ProfileSection name={isOwner ? 'Your CV' : 'CV'}>
+        <MemberCvSection member={member} isOwner={isOwner} />
+      </ProfileSection>
+    ) : null;
 
     return (
       <>
@@ -212,6 +218,7 @@ const MemberDetails = (props: { params: Promise<any> }) => {
         <ProfileSection name="Profile Details">
           <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
         </ProfileSection>
+        {cvAfterProfile && cvSection}
         {showInvestorProfile && (
           <ProfileSection name="Investor Profile">
             <InvestorProfileDetails
@@ -261,30 +268,37 @@ const MemberDetails = (props: { params: Promise<any> }) => {
           </ProfileSection>
         )}
         {/* The document the profile is holding, and the only place it can be
-            previewed, replaced or removed. Drawn only once there is one — with
-            no CV this renders nothing and the Experience section keeps the offer
-            it has always made, so the page never carries two upload doors.
+            previewed, replaced or removed.
 
-            Owner-only: the CV is theirs, its controls act on their record, and
-            nothing about it belongs on a visitor's view of the profile. */}
-        {isOwner && SHOW_CV_IMPORT && (
-          <ProfileSection name="Your CV">
-            <MemberCvSection member={member} />
-          </ProfileSection>
-        )}
+            Mounted for every signed-in reader rather than gated on `isOwner`,
+            because who may see a CV is a question only the API can answer:
+            `assertCanView` admits the member, a directory admin, and a lead of a
+            team this member applied to — and that last clause is a
+            `jobApplication` lookup. So the section asks and draws what comes
+            back; everyone else gets `null` and `.section:empty` collapses the
+            wrapper, so a reader with no answer sees no gap.
+
+            The owner always gets the section: the resting card with a CV, the
+            drop area without one. Job Aspirants, and anyone reading another
+            member's CV, pin it under Profile Details. */}
+        {cvInDefaultPosition && cvSection}
         {!isInvestorOnly && (
           <>
-            {/* The CV importer's second host. The section decides *where* to put
-                the offer (empty-state drop area, or the header's "Update from
-                CV") and refuses both to anyone who cannot edit this profile —
-                `canEditMemberProfile`, the same gate its Add and Edit controls
-                use — so this prop only has to say that the host allows it. */}
+            {/* The CV importer's second host, and only half of it: the header's
+                "Update from CV", never a drop area. The section above holds one
+                permanently, and one page carrying two boxes to drop a file into
+                is the choice nobody can get right or wrong.
+
+                The section still refuses even that to anyone who cannot edit
+                this profile — `canEditMemberProfile`, the same gate its Add and
+                Edit controls use — so this prop only has to say what the host
+                offers. */}
             <ProfileSection name="Experience">
               <ExperienceDetails
                 userInfo={userInfo}
                 member={member}
                 isLoggedIn={isLoggedIn}
-                enableCvImport={SHOW_CV_IMPORT}
+                cvImportSurface="header-only"
               />
             </ProfileSection>
             <ProfileSection name="Project Contributions">

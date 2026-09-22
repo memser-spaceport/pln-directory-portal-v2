@@ -127,8 +127,15 @@ describe('the View job button', () => {
     expect(screen.getByRole('button', { name: 'Refer' })).toBeInTheDocument();
   });
 
-  /* The title is the door that remains, and it has to still open the drawer —
-     dropping the button must not quietly turn the row into a dead end. */
+  /**
+   * The title is the door that remains, and it has to still open the drawer —
+   * dropping the button must not quietly turn the row into a dead end.
+   *
+   * It is a `<a href="/jobs/openings/…">` rather than a button now: a permalink
+   * crawlers and open-in-new-tab can reach, whose unmodified click is
+   * intercepted into the in-app reading. So the assertion is that a plain click
+   * still lands in the drawer, not that the element is a button.
+   */
   it('leaves the title opening the same drawer', async () => {
     const onViewJob = jest.fn();
     render(
@@ -144,7 +151,7 @@ describe('the View job button', () => {
       />,
     );
 
-    await userEvent.click(screen.getByRole('button', { name: ROLE.roleTitle }));
+    await userEvent.click(screen.getByRole('link', { name: ROLE.roleTitle }));
 
     expect(onViewJob).toHaveBeenCalled();
   });

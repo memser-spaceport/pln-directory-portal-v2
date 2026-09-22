@@ -256,9 +256,56 @@
   }
 }
 
+.annotatedShot {
+  position: relative;
+  display: inline-block;
+  max-width: min(100%, 280px);
+  vertical-align: top;
+  cursor: zoom-in;
+
+  :global(img) {
+    max-width: 100%;
+    box-shadow: 0 0 0 1.5px var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:hover .annotatedBadge {
+    background: rgba(10, 12, 17, 0.92);
+  }
+}
+
+.annotatedBadge {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px 3px 6px;
+  border-radius: 9999px;
+  background: rgba(10, 12, 17, 0.78);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  pointer-events: none;
+  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.2);
+
+  &::before {
+    content: '';
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    background: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='black' d='M13.5 3h-11A1 1 0 0 0 1.5 4v10l2.16-1.74A1 1 0 0 1 4.28 12H13.5a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1Z'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='black' d='M13.5 3h-11A1 1 0 0 0 1.5 4v10l2.16-1.74A1 1 0 0 1 4.28 12H13.5a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1Z'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+  }
+}
+
 .lightboxOverlay {
   background: rgba(14, 15, 17, 0.72);
-  cursor: zoom-out;
 }
 
 .lightboxContent {
@@ -274,6 +321,15 @@
     height: auto;
     object-fit: contain;
     border-radius: 8px;
+  }
+}
+
+.lightboxCanvas {
+  display: block;
+  max-width: 90vw;
+
+  img {
+    max-height: 90vh;
   }
 }
 

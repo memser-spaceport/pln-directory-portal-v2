@@ -96,9 +96,4 @@ To add a prototype: create `prototypes/entries/<key>/` (component + `mocks.ts`),
 - **Event names:** kebab-case in format `{domain}-{action}` or `{domain}-{context}-{action}` (e.g., `job-clicked`, `jobs-page-viewed`, `jobs-filters-applied`)
 - **Constants:** `ON_{DOMAIN}_{ACTION}` in `utils/constants.ts` (e.g., `ON_JOBS_PAGE_VIEWED: 'jobs-page-viewed'`)
 - **Analytics hooks:** Create in `analytics/{domain}.analytics.ts`, prefix handlers with `on` (e.g., `onJobClicked`), include user properties (`is_authenticated`, `loggedInUserUid`, etc.)
-
-## Analytics/Event Tracking Conventions
-
-- **Event names:** kebab-case (`jobs-page-viewed`, `job-clicked`, `jobs-filters-applied`)
-- **Constants:** `ON_{DOMAIN}_{ACTION}` in `utils/constants.ts` (e.g., `ON_JOBS_PAGE_VIEWED: 'jobs-page-viewed'`)
-- **Analytics hooks:** Create in `analytics/{domain}.analytics.ts`, prefix handlers with `on` (e.g., `onJobClicked`), include user properties (`is_authenticated`, `loggedInUserUid`, etc.)
+- **Linear comments:** skill `posthog-linear-events` documents current-cycle tickets (past In Progress) with events from call sites. Requires Linear MCP. Dry-run supported.

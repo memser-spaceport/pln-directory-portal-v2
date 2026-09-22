@@ -1,0 +1,170 @@
+// Rich answer blocks (see AnswerBlocks.tsx). Table values are the design
+// system's `Table` (pl-design-system/components/Table/Table.module.scss),
+// whose tokens this app doesn't load, so each is written as token + fallback.
+// Pictures follow DirectoryResultsCards: circle for a person, rounded square
+// with a hairline for everything else.
+
+@use 'styles/media';
+
+/* The DS wrapper is a bare horizontal scroller; inside the answer card the
+   block gets the card-inside-a-card edge the directory cards wear (8px
+   hairline box) so it reads as one object among the answer's parts. It still
+   scrolls sideways when a phone can't hold three columns. */
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  line-height: 20px;
+
+  /* Three columns don't fit a phone: rather than crush every cell to one word
+     a line, the table keeps a readable width and the wrapper scrolls it. */
+  @include media.mobile-only {
+    min-width: 560px;
+  }
+
+  thead tr {
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+/* DS `.th`: 8/16 padding, 12px/500 tertiary, on the soft surface. */
+.th {
+  padding: 8px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  white-space: nowrap;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+}
+
+/* Row labels: the header treatment, on white, wide enough for the longest
+   label ("People in the directory") so the fact columns share the rest. */
+.rowHead {
+  width: 176px;
+  padding: 16px;
+  vertical-align: top;
+  background: transparent;
+
+  @include media.mobile-only {
+    width: 136px;
+  }
+}
+
+.corner {
+  width: 176px;
+
+  @include media.mobile-only {
+    width: 136px;
+  }
+}
+
+/* A column head is the entity: its picture and name, linking to its page.
+   14px/500 primary — the directory cards' name line — because the column is
+   about that record, not a label over it. */
+.colHead {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-decoration: none;
+
+  &:hover .colName {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.colName {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+/* DS `.td`: 16px padding, primary ink. Top-aligned here (see the component). */
+.td {
+  padding: 16px;
+  vertical-align: top;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* "None listed": a fact about the record, in the ink the product uses for
+   what is absent, so the empty cell is an answer rather than a gap. */
+.muted {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.picture {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.pictureLg {
+  width: 24px;
+  height: 24px;
+}
+
+.logo {
+  border-radius: 5px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  padding: 2px;
+  object-fit: contain;
+}
+
+/* Records in a cell: one per line, picture and name, the name a link. */
+.entities {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entity {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover .entityName {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.entityName {
+  font-weight: 500;
+}

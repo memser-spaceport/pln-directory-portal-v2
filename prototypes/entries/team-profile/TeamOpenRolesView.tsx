@@ -4,9 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import clsx from 'clsx';
 
-import type { IJobTeamGroup } from '@/types/jobs.types';
+import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
 
-import type { ListingMeta, ListingStatus } from '../job-board/listings';
+import type { ListingMeta } from '../job-board/listings';
 
 import {
   DetailsSection,
@@ -45,20 +45,47 @@ interface TeamOpenRolesViewProps {
    */
   submitHref?: string;
   /**
-   * The owner's handles on each listing, for the same viewer `submitHref` is
-   * for. Every row then carries its status, the switch and Delete — the
-   * board's Manage row, on the team's own page — so taking a listing down or
-   * removing it never needs the board, or the card, opened first.
+   * Opens the role's in-app description — the board's apply flow drawer, on its
+   * reading step. With it the row becomes the press and wears the board's
+   * chevron; without it the row falls back to the link out it used to be.
+   *
+   * See the note on the component for why this stopped being optional in
+   * practice: a role read from its team's page and the same role read from the
+   * board must be the same job to apply to.
    */
-  manage?: {
+  onViewJob?: (role: IJobRole) => void;
+  /** Roles this viewer has kept. Drawn as the filled bookmark. */
+  savedRoleUids?: Set<string>;
+  /** Present = the row offers Save. The list it lands in is the board's Saved
+   *  tab — one kept set across the two surfaces, not a second one here. */
+  onToggleSave?: (role: IJobRole) => void;
+  /** Roles this viewer has already applied to, and when: the row reports it in
+   *  the clock instead of offering the job again. */
+  appliedRoleUids?: Set<string>;
+  appliedAtByRole?: Map<string, string>;
+  /**
+   * Present for the viewer `submitHref` is for: these listings are this team's
+   * own.
+   *
+   * **No owner's controls on the row.** The rows carried the board's ⋯ for a
+   * while — status, `Mark inactive` / `Bring back`, Delete, with the reader's
+   * presses folded in beside them — and that came off: this is the page
+   * everyone reads, so the row stays the row everyone reads, and managing
+   * lives on the board where the owner's ⋯ still is. What the team's own view
+   * adds here is the *applicants*, which exist nowhere else.
+   *
+   * The card is still the owner's: the drawer the row opens carries the
+   * listing's switch in its footer instead of Apply, so taking a role down
+   * from this page is one press deeper rather than gone.
+   */
+  owner?: {
+    /** Drives the row's status pill — a listing that isn't live says so. */
     metaFor: (roleUid: string) => ListingMeta | undefined;
-    onSetStatus: (roleUid: string, status: ListingStatus) => void;
-    onDelete: (roleUid: string) => void;
     /**
-     * Who has applied to each listing, for the same viewer. Rendered under the
-     * row, on this page — a founder is not expected to visit the board, so the
-     * applicants come to the section rather than the section sending them
-     * there. See `RoleApplicants`.
+     * Who has applied to each listing. Rendered under the row, on this page —
+     * a founder is not expected to visit the board, so the applicants come to
+     * the section rather than the section sending them there. See
+     * `RoleApplicants`.
      */
     applicantsFor: (roleUid: string) => RoleApplicant[];
     /** The count line's press: the team's applicants page, opened on this role. */
@@ -99,15 +126,38 @@ interface TeamOpenRolesViewProps {
  * not this team's — `?team=` isn't consumed server-side — so the label would
  * misname where it goes. The section answers in place, and so does its expander.
  *
- * **Apply leads the row.** This section is where that ranking was first argued:
- * once you're on a team's profile you have already chosen the team, so applying
- * is the point of the row and should look like it, with referring someone else
- * as the sideline rather than its peer. The board has since agreed — the row
- * ranks its actions that way everywhere — so there is no prop to pass here any
- * more. What stays different is the destination: the board applies in-app, this
- * keeps Apply as a plain link out to the team's own posting.
+ * **The row is the press, and it opens the same job the board opens.** This
+ * section is where the row's action ranking was first argued — once you're on a
+ * team's profile you have already chosen the team, so applying is the point of
+ * the row and referring someone else is the sideline. That ranking stands and
+ * the board has since adopted it everywhere. What changed is the *destination*,
+ * and it changed on the board first: Apply moved into the flow drawer's footer,
+ * where it sends your profile in one press, and the row's own button became a
+ * chevron because a title, a seniority and a location are not enough to decide
+ * with.
+ *
+ * This section kept the old shape for a while — a filled **Apply** that was a
+ * plain link to the team's careers page — which left the same role with two
+ * different applications depending on where it was found. The team's own page
+ * was the weaker of the two doors to its own roles, and the tell was one line
+ * up in this very section: the owner's applicants count can only count in-app
+ * applications, so the reader's Apply here produced candidates the owner's own
+ * section could not show them. The row now takes `onViewJob` and the surfaces
+ * agree.
+ *
+ * The external posting is not lost — it is the drawer's masthead link
+ * (`Original posting`), the same place the board keeps it.
  */
-export function TeamOpenRolesView({ group, submitHref, manage }: TeamOpenRolesViewProps) {
+export function TeamOpenRolesView({
+  group,
+  submitHref,
+  onViewJob,
+  savedRoleUids,
+  onToggleSave,
+  appliedRoleUids,
+  appliedAtByRole,
+  owner,
+}: TeamOpenRolesViewProps) {
   const [expanded, setExpanded] = useState(false);
 
   const roles = group?.roles ?? [];
@@ -133,8 +183,8 @@ export function TeamOpenRolesView({ group, submitHref, manage }: TeamOpenRolesVi
       {roles.length ? (
         <div className={l.list}>
           {visible.map((role) => {
-            const meta = manage?.metaFor(role.uid);
-            const applicants = manage?.applicantsFor(role.uid) ?? [];
+            const meta = owner?.metaFor(role.uid);
+            const applicants = owner?.applicantsFor(role.uid) ?? [];
             return (
               /* The row and its applicants share one card: `.roleBlock` is the
                  row's own grey and radius, so a role with nobody applied renders
@@ -147,17 +197,19 @@ export function TeamOpenRolesView({ group, submitHref, manage }: TeamOpenRolesVi
                   teamName={group!.team.name}
                   team={group!.team}
                   source="team-profile"
-                  manage={
-                    manage && meta
-                      ? {
-                          meta,
-                          onSetStatus: (status) => manage.onSetStatus(role.uid, status),
-                          onDelete: () => manage.onDelete(role.uid),
-                        }
-                      : undefined
-                  }
+                  onViewJob={onViewJob}
+                  /* No `savedAt` here: this is the team's open list, not a saved
+                     list, so the clock keeps the posting's age — the number that
+                     decides anything. Same rule the open board follows. */
+                  saved={savedRoleUids?.has(role.uid) ?? false}
+                  onToggleSave={onToggleSave ? () => onToggleSave(role) : undefined}
+                  applied={appliedRoleUids?.has(role.uid) ?? false}
+                  appliedAt={appliedAtByRole?.get(role.uid)}
+                  /* Yours, but drawn as everyone's: the pill and no "New",
+                     and no ⋯ — see `owner` above. */
+                  ownListing={meta}
                 />
-                {manage && <RoleApplicants applicants={applicants} onOpen={() => manage.openApplicants(role.uid)} />}
+                {owner && <RoleApplicants applicants={applicants} onOpen={() => owner.openApplicants(role.uid)} />}
               </div>
             );
           })}

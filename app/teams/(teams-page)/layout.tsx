@@ -14,7 +14,6 @@ export default function Layout({ filters, content }: { filters: ReactNode; conte
 
 export const metadata = listingPageMetadata({
   title: 'Teams | Protocol Labs Directory',
-  description:
-    'The Protocol Labs Directory helps network members orient themselves within the network by making it easy to learn about other teams and members, including their roles, capabilities, and experiences.',
+  description: 'Browse Protocol Labs network teams — their focus areas, capabilities, and the people on them.',
   path: PAGE_ROUTES.TEAMS,
 });

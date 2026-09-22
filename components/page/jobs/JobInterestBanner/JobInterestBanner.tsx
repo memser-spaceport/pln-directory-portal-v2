@@ -99,8 +99,9 @@ interface JobInterestBannerProps {
     onChange: (next: boolean) => void;
   };
   /** `followTeam` is the follow row's tick at press time: true when marking
-   *  interest should also follow the team. Meaningless on Undo. */
-  onToggle: (nextInterested: boolean, followTeam: boolean) => void;
+   *  interest should also follow the team. Meaningless on Undo.
+   *  `followOffered` is whether the tick was on screen for this press. */
+  onToggle: (nextInterested: boolean, followTeam: boolean, followOffered?: boolean) => void;
 }
 
 export function JobInterestBanner(props: JobInterestBannerProps) {
@@ -111,7 +112,11 @@ export function JobInterestBanner(props: JobInterestBannerProps) {
   return (
     <div className={clsx(s.root, isInterested && s.confirmed)}>
       <span className={s.iconTile} aria-hidden="true">
-        {isInterested ? <SuccessCircleIcon width={24} height={24} /> : <InfoCircleIconOutlined width={20} height={20} />}
+        {isInterested ? (
+          <SuccessCircleIcon width={24} height={24} />
+        ) : (
+          <InfoCircleIconOutlined width={20} height={20} />
+        )}
       </span>
 
       <div className={s.text} aria-live="polite">
@@ -134,10 +139,14 @@ export function JobInterestBanner(props: JobInterestBannerProps) {
 
       <button
         type="button"
-        onClick={() => onToggle(!isInterested, !isInterested && (follow?.checked ?? false))}
+        onClick={() =>
+          onToggle(!isInterested, !isInterested && (follow?.checked ?? false), Boolean(follow) && !isInterested)
+        }
         className={clsx(
           s.action,
-          isInterested ? clsx(btn.root, btn.small, btn.link, btn.success, btn.underline) : clsx(btn.root, btn.medium, btn.border, btn.primary),
+          isInterested
+            ? clsx(btn.root, btn.small, btn.link, btn.success, btn.underline)
+            : clsx(btn.root, btn.medium, btn.border, btn.primary),
         )}
       >
         {isInterested ? INTEREST_UNDO_LABEL : INTEREST_CTA_LABEL}

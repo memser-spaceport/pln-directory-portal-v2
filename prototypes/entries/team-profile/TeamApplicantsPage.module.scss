@@ -121,6 +121,10 @@
   background: var(--background-base-white, #fff);
   border-radius: 12px;
   padding: 16px;
+  /* Clips the list's full-bleed rows to the card's own corners: the last row
+     runs into the bottom padding (see `.list`), so its square fill would
+     otherwise poke out past the 12px curve. */
+  overflow: hidden;
 
   /* `--applicants-top` is the height of whatever the host pins above the
      page. The team profile pins nothing (its header scrolls away), so it is
@@ -148,9 +152,13 @@
   flex-shrink: 0;
 }
 
+/* Full-bleed: the rows run to the card's left, right and bottom edges, so the
+ * negative margins cancel `.listCol`'s 16px padding on those three sides.
+ * Everything above the list (role facts, tabs, search) keeps the padding. */
 .list {
   display: flex;
   flex-direction: column;
+  margin: 0 -16px -16px;
 
   @include media.tablet-landscape {
     overflow-y: auto;

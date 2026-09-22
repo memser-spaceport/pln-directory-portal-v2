@@ -27,7 +27,6 @@ import { useMemberExperience } from '@/services/members/hooks/useMemberExperienc
 import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
 import { isJobSearchStatus, JobSearchStatus } from '@/services/jobs/job-board-viewer';
 import { JobSearchStatusInput } from '@/components/page/jobs/JobSearchStatusInput/JobSearchStatusInput';
-import { SHOW_CV_IMPORT } from '@/services/members/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 
@@ -190,7 +189,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
   const [replacementFile, setReplacementFile] = React.useState<File | null>(null);
 
   /* One call, two props: the host is picked once and both the card below and the
-     section's `enableCvImport` read the same answer, so "never both doors" is
+     section's `cvImportSurface` read the same answer, so "never both doors" is
      structural rather than a rule two expressions have to keep agreeing on. */
   /* `isLoading` rather than "no data": an in-flight answer is `undefined` here
      on purpose, and the host rule treats it as "withhold every door" so nobody
@@ -198,7 +197,6 @@ export function JobProfilePane(props: JobProfilePaneProps) {
   const { data: storedCv, isLoading: storedCvLoading } = useStoredCv(memberUid);
 
   const cvImportHost = pickCvImportHost({
-    enabled: SHOW_CV_IMPORT,
     experienceCount,
     experiencesLoading,
     handedOff,
@@ -449,7 +447,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
               userInfo={userInfo}
               member={member}
               isLoggedIn={isLoggedIn}
-              enableCvImport={cvImportHost === 'experience-section'}
+              cvImportSurface={cvImportHost === 'experience-section' ? 'full' : 'off'}
             />
           </ProfileSection>
           <ProfileSection name="Project Contributions">

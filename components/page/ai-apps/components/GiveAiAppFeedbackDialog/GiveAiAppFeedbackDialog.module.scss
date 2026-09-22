@@ -50,6 +50,11 @@
   }
 }
 
+.overlayHidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .modalContainer {
   max-width: 480px;
   margin: 0;
@@ -172,4 +177,143 @@
   gap: 8px;
   padding: 16px 24px;
   border-top: 1px solid rgba(203, 213, 225, 0.5);
+}
+
+/**
+ * The whole offer, hidden on a phone.
+ *
+ * The hint and the button go together: the hint is "Drag to capture any area of
+ * the page", which describes a gesture the button starts, so leaving it behind
+ * would be an instruction for a control that is not there.
+ *
+ * Capture is a desktop mechanism — `getDisplayMedia` is unavailable on mobile
+ * Safari and Android Chrome, so pressing it there can only ever fail. An
+ * attachment already added stays visible and sendable: the list below this is
+ * untouched, so a draft begun on a desktop still carries its screenshots if the
+ * dialog is reopened on a phone.
+ */
+.screenshotRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.screenshotHint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.screenshotButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: #fff;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.screenshotList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.screenshotChip {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+/* The thumbnail itself, which is now the press that reopens the annotator. */
+.screenshotOpen {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+/* The edit affordance, on hover and on keyboard focus — a control that only
+   announces itself to a mouse is a control keyboard users never find. */
+.screenshotEdit {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: rgba(14, 15, 17, 0.45);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.screenshotChip:hover .screenshotEdit,
+.screenshotOpen:focus-visible .screenshotEdit {
+  opacity: 1;
+}
+
+.screenshotRemove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  /* A ring against the screenshot behind it: these sit on arbitrary captures,
+     and a dark disc on a dark screenshot is a control nobody finds. */
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 9999px;
+  background: rgba(14, 15, 17, 0.72);
+  color: #fff;
+  cursor: pointer;
+  /* Above the hover veil, which covers the whole chip. */
+  z-index: 1;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--foreground-error-primary, #dd2c5a);
+    border-color: #fff;
+  }
 }

@@ -28,6 +28,18 @@ interface SearchFieldProps {
   closeLabel?: string;
   /** The leading mark. The magnifier by default; the AI view wears its own glyph. */
   glyph?: React.ReactNode;
+  /**
+   * Every keystroke, undebounced. `onChange` arrives 700ms after typing stops
+   * (production's debounce, right for a search request); suggestions that
+   * follow the typing can't wait for it.
+   */
+  onLiveChange?: (value: string) => void;
+  /** ↓ / ↑ in the field, for a suggestion list under it. */
+  onArrow?: (direction: 1 | -1) => void;
+  /** Enter, before the field's own submit. Return true to take it (a suggestion was picked). */
+  onEnter?: () => boolean;
+  /** The suggestion the arrow keys are on, for assistive tech. */
+  activeDescendant?: string;
 }
 
 /**
@@ -63,6 +75,10 @@ export function SearchField({
   onClose,
   closeLabel,
   glyph,
+  onLiveChange,
+  onArrow,
+  onEnter,
+  activeDescendant,
 }: SearchFieldProps) {
   const chipRef = useRef<HTMLSpanElement>(null);
   const [chipWidth, setChipWidth] = useState(0);
@@ -89,9 +105,22 @@ export function SearchField({
            before it reaches the input. */
         onKeyUpCapture={(e) => {
           if (e.key === 'Escape') e.stopPropagation();
+          /* `DebouncedInput` submits on Enter *keyup*; a picked suggestion
+             takes the key before it gets there, or both would be asked. */
+          if (e.key === 'Enter' && (e.target as HTMLElement).id === id && onEnter?.()) e.stopPropagation();
+        }}
+        /* React's change event bubbles, so the host hears each keystroke the
+           debounced input is still sitting on. */
+        onChange={(e) => {
+          const target = e.target as unknown as HTMLInputElement;
+          if (target.id === id) onLiveChange?.(target.value);
         }}
         onKeyDown={(e) => {
           const target = e.target as HTMLInputElement;
+          if (onArrow && target.id === id && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+            e.preventDefault(); // or ↑ sends the caret to the start of the text
+            onArrow(e.key === 'ArrowDown' ? 1 : -1);
+          }
           if (e.key === 'Backspace' && scope && onRemoveScope && target.id === id && !target.value) onRemoveScope();
         }}
       >
@@ -118,6 +147,9 @@ export function SearchField({
           </span>
         )}
         <DebouncedInput
+          /* `DebouncedInput` spreads unknown props onto its <input>; its Props
+             type just doesn't list ARIA attributes. */
+          {...((activeDescendant ? { 'aria-activedescendant': activeDescendant } : {}) as object)}
           ids={{ root: `${id}-root`, input: id }}
           value={value}
           onChange={(next) => {

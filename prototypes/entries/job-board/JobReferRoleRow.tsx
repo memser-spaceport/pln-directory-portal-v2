@@ -81,8 +81,24 @@ interface JobReferRoleRowProps {
   /** Present = the row offers Save. Absent = no bookmark at all. */
   onToggleSave?: () => void;
   /**
-   * Present for a viewer who owns this listing — on the board, in their own
-   * team's card, and on the team profile's Open roles in the team's own view.
+   * The viewer's own listing, *without* the owner's controls — the team
+   * profile's Open roles in the team's own view. The row is the public row
+   * everyone else sees, plus two things that follow from it being yours: the
+   * status pill when it is not live, and no "New" badge (that badge invites a
+   * reader to look before the posting goes stale, and the person who posted it
+   * is not the one being invited).
+   *
+   * The managing itself lives on the board, where `manage` puts it behind the
+   * row's ⋯. The team's own page is the page everyone reads; the owner's extra
+   * there is the applicants line under the row, not a second cluster of
+   * presses. The card still carries the switch — the drawer's footer is
+   * `managed` for this viewer rather than Apply — so nothing became
+   * unreachable from this surface except Delete, which the board keeps.
+   */
+  ownListing?: ListingMeta;
+  /**
+   * Present for a viewer who owns this listing and manages it here — the board,
+   * and their own team's card on it.
    *
    * **The row keeps its title, meta and clock, and its actions all fold into
    * one ⋯** (`ListingMenu`: View job / View posting, Refer, Share ▸, then
@@ -174,8 +190,11 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
     saved = false,
     savedAt,
     onToggleSave,
+    ownListing,
     manage,
   } = props;
+  /** The listing as its owner sees it, however the owner's controls are drawn. */
+  const owned = manage?.meta ?? ownListing;
   const [referOpen, setReferOpen] = useState(false);
 
   /* The row is the press wherever there is an in-app job to open — no View job
@@ -217,10 +236,12 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
       : formatRelativeDays(date);
   /* No "New" on a row you have applied to. The badge is an invitation to look at
      something before it goes stale, and that has already happened. */
-  /* Nor on a listing you manage: "New" is an invitation to look before it goes
+  /* Nor on a listing of your own: "New" is an invitation to look before it goes
      stale, and the person who posted it is not the one being invited. The status
-     pill takes that slot instead. */
-  const showNew = isNew(date) && !applied && !manage;
+     pill takes that slot instead. (On the team profile the row also carries
+     "N applicants · 2 new" underneath, where "new" means unread — two marks
+     reading "new" on one row would be two different facts under one word.) */
+  const showNew = isNew(date) && !applied && !owned;
   const locationDisplay = isEmpty(location) ? null : location.join(', ');
 
   const metaParts = [seniority ? seniorityDisplayLabel(seniority) : null, roleCategory, locationDisplay].filter(
@@ -273,11 +294,13 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
             </span>
           )}
 
-          {/* The owner's row shows no actions at rest: a status pill when the
-              listing is not live (the only rows All shows an owner that it
-              shows no one else), and the ⋯ at the end, holding everything —
-              the reader's presses and the owner's. See `ListingMenu`. */}
-          {manage && manage.meta.status !== 'live' && <ListingStatusBadge status={manage.meta.status} />}
+          {/* A status pill when the listing is not live — the only rows All
+              shows an owner that it shows no one else. On the board the owner's
+              row shows nothing else at rest: everything folds into the ⋯ at the
+              end, the reader's presses and the owner's alike (`ListingMenu`).
+              On the team profile there is no ⋯ and the row is the public one
+              (`ownListing`). */}
+          {owned && owned.status !== 'live' && <ListingStatusBadge status={owned.status} />}
           {/* An application has one state, and the clock already reports it
               ("Applied 2d ago") — so an applied row wears no pill. */}
           <div className={s.actionButtons}>

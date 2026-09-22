@@ -3,6 +3,7 @@
 import React, { useCallback, useState } from 'react';
 
 import { DetailsSection } from '@/components/common/profile/DetailsSection/DetailsSection';
+import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { StoredCvSection } from '@/components/common/profile/StoredCv';
 import {
   ExperienceImportPanel,
@@ -17,34 +18,54 @@ import { IMember } from '@/types/members.types';
 
 interface MemberCvSectionProps {
   member: IMember;
+  /** Whether the reader is the member. Decides everything this card offers. */
+  isOwner: boolean;
 }
 
+/** The note the owner reads before handing over a document. */
+const PRIVACY_NOTE = "We read the file to fill in your experience. It isn't sent with your applications.";
+
 /**
- * The CV this profile holds, on the member's own page.
+ * The CV this profile holds.
  *
- * **Only drawn once there is one.** With no CV this renders nothing and the
- * Experience section keeps the offer it has always made — which is the ticket's
- * own first scenario, and the reason this is not a permanent card: a second
- * upload door standing open beside Experience's would be two entrances to one
- * mechanism, and the profile already has a rule against that.
+ * **Who sees it is the API's answer, not ours.** `GET /cv-imports/latest` is
+ * guarded by `assertCanView`: the member, a directory admin, or a lead of a team
+ * this member applied to — and that last clause is a `jobApplication` lookup no
+ * client can perform. So this mounts for every signed-in reader, asks, and draws
+ * what comes back; a refusal arrives as `null` (see `getStoredCv`) and is
+ * indistinguishable here from "there is no CV", which is what it should be.
+ *
+ * **For the owner the section is permanent.** With a CV it is the resting card;
+ * without one it is the drop area. A document needs one home rather than an
+ * offer that appears in the Experience section and vanishes the moment somebody
+ * types a job in by hand.
  *
  * **It owns the importer for its own Replace.** The alternative was to hand the
  * file down to the Experience section's panel, which would make a replace a
  * conversation between two sections about whose editor is open. Here the card
- * that offers Replace is the card that reads the file, and the Experience
- * section's "Update from CV" stands down for as long as this is on screen —
- * `ExperienceDetails` asks the same query, so the two cannot disagree about
- * whether a CV exists.
+ * that offers Replace is the card that reads the file.
  *
- * Mounted only on the owner's own profile. The document is theirs; nothing about
- * it belongs on a visitor's view, and the card's controls act on their record.
+ * Only the owner is offered anything: Replace and Remove answer to
+ * `assertCanManage`, which is narrower than the read, so a lead or an admin gets
+ * the document and none of the controls.
  */
-export function MemberCvSection({ member }: MemberCvSectionProps) {
-  const { data: storedCv } = useStoredCv(member.id);
+export function MemberCvSection({ member, isOwner }: MemberCvSectionProps) {
+  const { data: storedCv, isError, isFetching } = useStoredCv(member.id);
 
   /** A replacement on its way to the panel — the card stands aside while it is set. */
   const [replacementFile, setReplacementFile] = useState<File | null>(null);
   const [reviewing, setReviewing] = useState(false);
+  /**
+   * Remounts the resting drop area.
+   *
+   * The Replace panel leaves by being unmounted, and the Experience section's
+   * empty-row panel leaves by the section switching to its Add form. This one
+   * has nowhere to go: it *is* the resting state, so after a failed read its
+   * "Add manually" — whose destination is the Experience section below — would
+   * press against a dead end that stays on screen. Bumping the key puts the box
+   * back.
+   */
+  const [panelKey, setPanelKey] = useState(0);
 
   const { onCvImportCancelled } = useMemberAnalytics();
   const {
@@ -68,11 +89,8 @@ export function MemberCvSection({ member }: MemberCvSectionProps) {
     setParsed(null);
     setReviewing(false);
     setReplacementFile(null);
+    setPanelKey((key) => key + 1);
   }, [abort, setParsed]);
-
-  if (!storedCv && !replacementFile) {
-    return null;
-  }
 
   if (reviewing && parsed) {
     return (
@@ -105,7 +123,7 @@ export function MemberCvSection({ member }: MemberCvSectionProps) {
       <DetailsSection editView>
         <ExperienceImportPanel
           initialFile={replacementFile}
-          privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
+          privacyNote={PRIVACY_NOTE}
           onParse={parseAndReport}
           onAbort={abort}
           onParsed={(result) => {
@@ -127,5 +145,64 @@ export function MemberCvSection({ member }: MemberCvSectionProps) {
     );
   }
 
-  return <StoredCvSection cv={storedCv!} memberUid={member.id} onReplace={setReplacementFile} />;
+  if (storedCv) {
+    return (
+      <StoredCvSection
+        cv={storedCv}
+        memberUid={member.id}
+        title={isOwner ? 'Your CV' : 'CV'}
+        canManage={isOwner}
+        onReplace={setReplacementFile}
+      />
+    );
+  }
+
+  /* No CV to draw, and nothing to offer someone who cannot upload one. Returning
+     `null` rather than an empty wrapper is what lets `.section:empty` collapse
+     the `ProfileSection` around this and spare the column a gap. */
+  if (!isOwner) {
+    return null;
+  }
+
+  /**
+   * The answer is not in yet — the header, and nothing under it.
+   *
+   * `undefined` is a third state and must not read as "no CV": the drop area
+   * would appear for a beat on every profile that has one and then swap for the
+   * file under the reader. `isFetching` covers the same flash on the way back,
+   * when an upload has invalidated the query and the last answer — `null` — is
+   * still what the cache holds until the refetch lands.
+   */
+  const answered = storedCv !== undefined || isError;
+  if (!answered || isFetching) {
+    return (
+      <DetailsSection>
+        <DetailsSectionHeader title="Your CV" />
+      </DetailsSection>
+    );
+  }
+
+  /* No CV, and this is whose profile it is. A read that failed lands here too:
+     the upload replaces whatever is up there anyway, so offering it costs
+     nothing, while withholding it would strand the owner behind a bad request. */
+  return (
+    <DetailsSection>
+      <DetailsSectionHeader title="Your CV" />
+      <ExperienceImportPanel
+        key={panelKey}
+        privacyNote={PRIVACY_NOTE}
+        onParse={parseAndReport}
+        onAbort={abort}
+        onParsed={(result) => {
+          setParsed(result);
+          setReviewing(true);
+        }}
+        onAddManually={closeImport}
+        onCancelRead={() => {
+          onCvImportCancelled('reading');
+          closeImport();
+        }}
+      />
+    </DetailsSection>
+  );
 }

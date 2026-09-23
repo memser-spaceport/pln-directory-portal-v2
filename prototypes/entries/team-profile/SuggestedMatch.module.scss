@@ -1,0 +1,170 @@
+@use 'styles/media';
+
+/* The Suggested tab's match: the pane's requirements section and the criteria
+ * editor, which share a vocabulary (groups, a marker column, a label). */
+
+/* "4 of 5 requirements", in the header slot beside the percentage. The
+ * percentage is the claim; this is its working, in the caption ink. */
+.count {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+  white-space: nowrap;
+}
+
+.headerRight {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Tabular figures on the badge so 80% and 100% share a width down a column. */
+.percent {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Workable's card: a small group label on the left, its items on the right.
+ * The label column is 96px — "In the network" is the longest and fits on one
+ * line — and stacks above the items on a phone. */
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.group {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+
+  @include media.mobile-only {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+.groupLabel {
+  margin: 0;
+  font-size: 12px;
+  line-height: 22px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* The marker column: a check for a met requirement, the DS grey ✕ for one
+ * that is not, a dot for a network signal. One 16px column so the three read
+ * as one list. Met is drawn in the primary ink and unmet in the tertiary, and
+ * the row's text fades with it (Workable fades the unmet line the same way) —
+ * hue is not used: green already means Reviewed on this page. */
+.mark {
+  flex: 0 0 16px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.unmet {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  .mark {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---- Criteria editor ---- */
+
+/* The DS modal's own footer is `space-between`: the count on the left, the two
+ * presses on the right. */
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.editGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.editGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.editGroupLabel {
+  margin: 0 0 4px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* One requirement: the tick and its label, the whole row the hit area (the DS
+ * Checkbox ships as a button, so the inner control must not swallow the
+ * press — the drawer footer's tick has the same guard). */
+.editRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+
+  button {
+    pointer-events: none;
+    flex-shrink: 0;
+  }
+}
+
+.editRowLocked {
+  cursor: default;
+}
+
+.footerNote {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}

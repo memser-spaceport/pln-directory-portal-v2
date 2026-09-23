@@ -28,8 +28,9 @@ import hab from '@/components/common/profile/DetailsSection/components/DetailsSe
 import { JobReferRoleRow } from '../job-board/JobReferRoleRow';
 
 import { SubmitPlusIcon } from './icons';
-import { RoleApplicants } from './RoleApplicants';
-import type { RoleApplicant } from './mocks';
+import { RoleCandidates } from './RoleCandidates';
+import type { RoleCandidate, RoleSuggested } from './mocks';
+import type { CandidatesTab } from './TeamCandidatesPage';
 import l from './TeamOpenRoles.module.scss';
 
 /** Collapsed height. Two rows read as a sample; the count in the header carries the rest. */
@@ -72,7 +73,7 @@ interface TeamOpenRolesViewProps {
    * presses folded in beside them — and that came off: this is the page
    * everyone reads, so the row stays the row everyone reads, and managing
    * lives on the board where the owner's ⋯ still is. What the team's own view
-   * adds here is the *applicants*, which exist nowhere else.
+   * adds here is the *candidates*, which exist nowhere else.
    *
    * The card is still the owner's: the drawer the row opens carries the
    * listing's switch in its footer instead of Apply, so taking a role down
@@ -83,13 +84,15 @@ interface TeamOpenRolesViewProps {
     metaFor: (roleUid: string) => ListingMeta | undefined;
     /**
      * Who has applied to each listing. Rendered under the row, on this page —
-     * a founder is not expected to visit the board, so the applicants come to
+     * a founder is not expected to visit the board, so the candidates come to
      * the section rather than the section sending them there. See
-     * `RoleApplicants`.
+     * `RoleCandidates`.
      */
-    applicantsFor: (roleUid: string) => RoleApplicant[];
-    /** The count line's press: the team's applicants page, opened on this role. */
-    openApplicants: (roleUid: string) => void;
+    candidatesFor: (roleUid: string) => RoleCandidate[];
+    /** Members suggested for each listing — the count line's second clause. */
+    suggestedFor?: (roleUid: string) => RoleSuggested[];
+    /** The count line's press: the team's candidates page, opened on this role (and tab). */
+    openCandidates: (roleUid: string, tab?: CandidatesTab) => void;
   };
 }
 
@@ -140,7 +143,7 @@ interface TeamOpenRolesViewProps {
  * plain link to the team's careers page — which left the same role with two
  * different applications depending on where it was found. The team's own page
  * was the weaker of the two doors to its own roles, and the tell was one line
- * up in this very section: the owner's applicants count can only count in-app
+ * up in this very section: the owner's candidates count can only count in-app
  * applications, so the reader's Apply here produced candidates the owner's own
  * section could not show them. The row now takes `onViewJob` and the surfaces
  * agree.
@@ -184,11 +187,11 @@ export function TeamOpenRolesView({
         <div className={l.list}>
           {visible.map((role) => {
             const meta = owner?.metaFor(role.uid);
-            const applicants = owner?.applicantsFor(role.uid) ?? [];
+            const candidates = owner?.candidatesFor(role.uid) ?? [];
             return (
-              /* The row and its applicants share one card: `.roleBlock` is the
+              /* The row and its candidates share one card: `.roleBlock` is the
                  row's own grey and radius, so a role with nobody applied renders
-                 exactly as before, and one with applicants grows a footer inside
+                 exactly as before, and one with candidates grows a footer inside
                  the same shape instead of a second card under it. */
               <div key={role.uid} className={l.roleBlock}>
                 <JobReferRoleRow
@@ -209,7 +212,14 @@ export function TeamOpenRolesView({
                      and no ⋯ — see `owner` above. */
                   ownListing={meta}
                 />
-                {owner && <RoleApplicants applicants={applicants} onOpen={() => owner.openApplicants(role.uid)} />}
+                {owner && (
+                  <RoleCandidates
+                    candidates={candidates}
+                    /* A listing that is not live has nobody to invite. */
+                    suggested={meta && meta.status !== 'live' ? [] : owner.suggestedFor?.(role.uid)}
+                    onOpen={(tab) => owner.openCandidates(role.uid, tab)}
+                  />
+                )}
               </div>
             );
           })}

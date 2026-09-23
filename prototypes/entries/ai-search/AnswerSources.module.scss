@@ -1,0 +1,150 @@
+// Sources pill + list for an AI answer. New UI (production has only a raw-URL
+// popover), so sizes are on the type scale and colours are token/fallback pairs.
+
+@use 'styles/mixins';
+
+/* Same height as the actions row's 24px icon discs, same inks: tertiary at
+   rest would be too faint for a word, so the label takes secondary and the
+   pill borrows the discs' 4% hover tint. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  height: 24px;
+  padding: 0 8px 0 4px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 999px;
+  background: #fff;
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  cursor: pointer;
+
+  &:hover,
+  &[data-popup-open] {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.stack {
+  display: inline-flex;
+
+  .mark + .mark {
+    margin-left: -5px;
+  }
+}
+
+/* Stands in for a favicon: the wire has URLs only, and a prototype makes no
+   network calls for icons. 16px in the pill, 24px in a row. */
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px #fff;
+  background: var(--background-brand-subtle, #eef2ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* The popup is portalled to <body>, and the search takeover it opens from is
+   production's Modal overlay at 9999 — one above it, or it opens underneath. */
+.positioner {
+  z-index: 10000;
+}
+
+.popup {
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  padding: 4px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(14, 15, 17, 0.1);
+  outline: none;
+}
+
+.title {
+  margin: 0;
+  padding: 8px 8px 4px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 264px;
+  overflow-y: auto;
+
+  @include mixins.hide-scrollbar;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 8px;
+  text-decoration: none;
+
+  .mark {
+    width: 24px;
+    height: 24px;
+    box-shadow: none;
+    font-size: 12px;
+  }
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+
+    .out {
+      color: var(--foreground-neutral-secondary, #455468);
+    }
+  }
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.rowTitle,
+.origin {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowTitle {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.origin {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.out {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

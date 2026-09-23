@@ -126,14 +126,14 @@
      otherwise poke out past the 12px curve. */
   overflow: hidden;
 
-  /* `--applicants-top` is the height of whatever the host pins above the
+  /* `--candidates-top` is the height of whatever the host pins above the
      page. The team profile pins nothing (its header scrolls away), so it is
      0 there; the job board pins an 80px navbar and sets it, or the list and
      the bar would stick underneath it. */
   @include media.tablet-landscape {
     position: sticky;
-    top: calc(var(--applicants-top, 0px) + 16px);
-    max-height: calc(100vh - 32px - var(--applicants-top, 0px));
+    top: calc(var(--candidates-top, 0px) + 16px);
+    max-height: calc(100vh - 32px - var(--candidates-top, 0px));
     display: flex;
     flex-direction: column;
   }
@@ -172,7 +172,7 @@
 }
 
 /* The picker's option: the title with its count, and the count line's
- * `● M new` at the end of the line when the role has unopened applicants. */
+ * `● M new` at the end of the line when the role has unopened candidates. */
 .roleOption {
   display: flex;
   align-items: center;
@@ -188,7 +188,7 @@
   white-space: nowrap;
 }
 
-/* The pane: its bar, then `ApplicantMemberPage`'s own column. `min-width: 0`
+/* The pane: its bar, then `CandidateMemberPage`'s own column. `min-width: 0`
  * so the grid track can shrink the member column instead of being forced by
  * it. */
 .paneCol {
@@ -208,7 +208,7 @@
  * the ATS references (Workable, Homerun, Wellfound) all pin theirs. */
 .paneBar {
   position: sticky;
-  top: calc(var(--applicants-top, 0px) + 8px);
+  top: calc(var(--candidates-top, 0px) + 8px);
   z-index: 2;
   display: flex;
   align-items: center;
@@ -220,7 +220,7 @@
   box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.08);
 
   @include media.tablet-landscape {
-    top: calc(var(--applicants-top, 0px) + 16px);
+    top: calc(var(--candidates-top, 0px) + 16px);
   }
 }
 
@@ -388,4 +388,46 @@
   margin-top: 12px;
   text-decoration: none;
   color: inherit;
+}
+
+/* The Suggested tab's one sentence, between the tabs and the search. The
+ * caption pair the forms use (12/18, secondary): it annotates the list, it is
+ * not an offer, so no tint, no icon and no box. */
+.tabNote {
+  flex-shrink: 0;
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Invited to apply: the Reviewed state's paint on a status, not a press. */
+.invited {
+  cursor: default;
+  user-select: none;
+}
+
+/* The note and its one control on a wrapping row: the sentence, then Edit
+ * criteria after it, or on a line of its own when the sentence fills the width
+ * (design-thinking lesson 12, sixth example). The note's own bottom margin
+ * moves to the row. */
+.tabNoteRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  flex-shrink: 0;
+  margin: 0 0 12px;
+
+  .tabNote {
+    margin: 0;
+  }
+}
+
+/* `.tabNote` is `flex-shrink: 0` for the capped column; inside the wrapping row
+ * that pinned the sentence at its full one-line width and clipped it at the
+ * card. It has to give way so the row can wrap Edit criteria under it. */
+.tabNoteRow .tabNote {
+  flex: 0 1 auto;
+  min-width: 0;
 }

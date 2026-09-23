@@ -38,14 +38,14 @@ import { TeamMembersView } from './TeamMembersView';
 import { TeamContributionsView } from './TeamContributionsView';
 import { TeamProjectsView } from './TeamProjectsView';
 import { TeamOpenRolesView } from './TeamOpenRolesView';
-import { TeamApplicantsPage } from './TeamApplicantsPage';
+import { TeamCandidatesPage, type CandidatesTab } from './TeamCandidatesPage';
 import { getJobDate, seniorityDisplayLabel } from '@/utils/jobs.utils';
 import { seedListingMeta, submitJobHref, type ListingMeta, type ListingStatus } from '../job-board/listings';
 /* The board's apply flow, mounted here so a role read from its team's page is
    the same job to apply to as the same role read from the board. Before this
    the row's Apply was a plain link to the team's careers site, which made the
    team's own page the weaker of the two doors to its own roles — and produced
-   applications the applicants count in this very section could never show.
+   applications the candidates count in this very section could never show.
    See the note on `TeamOpenRolesView`. */
 import { JobApplyFlowDrawer, type ApplyFlowStepId } from '../job-board/JobApplyFlowDrawer';
 import { FILLED_PROFILE, type MemberProfile } from '../job-board/viewerState';
@@ -98,8 +98,11 @@ import {
   TEAM_FOLLOWER_COUNT,
   MOCK_TEAM_DEMO_DAY,
   MOCK_TEAM_ROLES,
-  MOCK_APPLICANTS,
+  MOCK_CANDIDATES,
   MOCK_INTERESTED,
+  MOCK_SUGGESTED,
+  MOCK_ROLE_CRITERIA,
+  visibleSuggested,
   MOCK_TEAM_FACTS,
   type TeamStatus,
 } from './mocks';
@@ -108,7 +111,11 @@ const team = MOCK_TEAM as unknown as ITeam;
 
 const NEWS_PREVIEW_COUNT = 3;
 
-export default function TeamProfilePrototype() {
+/**
+ * `newsCallout` — a host that mounts this page mid-tour (guided-tour) turns the
+ * Post news callout off: a tour and a callout on one arrival is two announcements.
+ */
+export default function TeamProfilePrototype({ newsCallout = true }: { newsCallout?: boolean } = {}) {
   // Several reused leaf components are base-ui / client-only (Tooltip, Tag
   // popovers). Gate render on mount so SSR === first client render.
   const [mounted, setMounted] = useState(false);
@@ -173,12 +180,14 @@ export default function TeamProfilePrototype() {
   // see the owner's empty Open roles section is to take its roles away.
   const [rolesSeed, setRolesSeed] = useState<'some' | 'none'>('some');
   /**
-   * The applicants page, open on a role — client state here; the real thing
-   * would be a route under the team (`/teams/<id>/applicants`). A modal was
+   * The candidates page, open on a role — client state here; the real thing
+   * would be a route under the team (`/teams/<id>/candidates`). A modal was
    * built beside it and compared; the page is what stayed (see
-   * `RoleApplicants`).
+   * `RoleCandidates`).
    */
-  const [applicantsRole, setApplicantsRole] = useState<string | null>(null);
+  const [candidatesRole, setCandidatesRole] = useState<string | null>(null);
+  // The tab the count line asked for: its "N suggested" clause opens Suggested.
+  const [candidatesTab, setCandidatesTab] = useState<CandidatesTab | undefined>(undefined);
 
   /**
    * THE APPLY FLOW, on this page.
@@ -578,7 +587,7 @@ export default function TeamProfilePrototype() {
    * It opens the AI Search view with the team as a chip in the field.
    *
    * The scope reads the page's own state, so its prompts follow what is drawn
-   * for this seat: no applicants prompt for a member, no followers prompt or
+   * for this seat: no candidates prompt for a member, no followers prompt or
    * "our" for a visitor, no roles prompt once the roles are gone, no news
    * prompt on an empty rail.
    */
@@ -591,15 +600,15 @@ export default function TeamProfilePrototype() {
     logo: teamLogo,
     members: MOCK_MEMBERS as unknown as TeamScopeInput['members'],
     roles: teamRoles?.roles ?? null,
-    applicantsFor: (uid) => MOCK_APPLICANTS[uid] ?? [],
-    canSeeApplicants: canSubmitJobs,
+    candidatesFor: (uid) => MOCK_CANDIDATES[uid] ?? [],
+    canSeeCandidates: canSubmitJobs,
     isTeamView,
     followers: MOCK_FOLLOWERS,
     contributions: MOCK_CONTRIBUTIONS,
     news: displayNews,
     commentsFor: threadFor,
     onOpen: (target) => {
-      if (target.startsWith('applicants:')) setApplicantsRole(target.slice('applicants:'.length));
+      if (target.startsWith('candidates:')) setCandidatesRole(target.slice('candidates:'.length));
       else if (target === 'followers') setFollowersOpen(true);
       else if (target === 'news') openNewsFeed(null);
       else scrollToSection(`team-${target}`);
@@ -733,16 +742,16 @@ export default function TeamProfilePrototype() {
           </div>
         </div>
 
-        {/* (A "Layout" group stood here while the applicants page compared five
+        {/* (A "Layout" group stood here while the candidates page compared five
             placements for View posting. Top of list won, so the group and
-            `applicantsLayouts.ts` went — a review switch left up after the
+            `candidatesLayouts.ts` went — a review switch left up after the
             decision invites it to be re-litigated.) */}
       </div>
 
-      {applicantsRole && teamRoles ? (
-        /* The applicants page, in the profile's place — one press from the
+      {candidatesRole && teamRoles ? (
+        /* The candidates page, in the profile's place — one press from the
            role row, Back returns here with the profile as it was. */
-        <TeamApplicantsPage
+        <TeamCandidatesPage
           teamName={team.name ?? 'the team'}
           roles={teamRoles.roles.map((r) => ({
             uid: r.uid,
@@ -757,11 +766,15 @@ export default function TeamProfilePrototype() {
               .filter(Boolean)
               .join(' · '),
             postedAt: getJobDate(r),
-            applicants: MOCK_APPLICANTS[r.uid] ?? [],
+            candidates: MOCK_CANDIDATES[r.uid] ?? [],
             interested: MOCK_INTERESTED[r.uid] ?? [],
+            // Only a live listing has anyone to invite.
+            suggested: (roleListings.get(r.uid)?.status ?? 'live') === 'live' ? (MOCK_SUGGESTED[r.uid] ?? []) : [],
+            criteria: MOCK_ROLE_CRITERIA[r.uid] ?? [],
           }))}
-          initialRoleUid={applicantsRole}
-          onBack={() => setApplicantsRole(null)}
+          initialRoleUid={candidatesRole}
+          initialTab={candidatesTab}
+          onBack={() => setCandidatesRole(null)}
         />
       ) : (
         <div className={local.layout}>
@@ -882,8 +895,14 @@ export default function TeamProfilePrototype() {
                   canSubmitJobs
                     ? {
                         metaFor: (uid) => roleListings.get(uid),
-                        applicantsFor: (uid) => MOCK_APPLICANTS[uid] ?? [],
-                        openApplicants: setApplicantsRole,
+                        candidatesFor: (uid) => MOCK_CANDIDATES[uid] ?? [],
+                        // The count line counts who the page will list: at or above the floor.
+                        suggestedFor: (uid) =>
+                          visibleSuggested(MOCK_SUGGESTED[uid] ?? [], MOCK_ROLE_CRITERIA[uid] ?? []),
+                        openCandidates: (uid, tab) => {
+                          setCandidatesTab(tab);
+                          setCandidatesRole(uid);
+                        },
                       }
                     : undefined
                 }
@@ -939,7 +958,11 @@ export default function TeamProfilePrototype() {
                     a new feature is found by being announced, not by taking
                     more of the list. */}
                   {canPost && displayNews.length > 0 && (
-                    <PostNewsButton teamName={team.name ?? 'this team'} onPost={() => setComposeOpen(true)} />
+                    <PostNewsButton
+                      teamName={team.name ?? 'this team'}
+                      onPost={() => setComposeOpen(true)}
+                      callout={newsCallout}
+                    />
                   )}
                 </DetailsSectionHeader>
                 {canPost && displayNews.length === 0 && <NewsEmptyCard onPost={() => setComposeOpen(true)} />}

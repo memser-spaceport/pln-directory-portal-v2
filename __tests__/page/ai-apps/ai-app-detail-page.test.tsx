@@ -12,7 +12,12 @@ const mockAnalytics = {
   onDeploymentLogsOpened: jest.fn(),
 };
 
-let mockUseAiAppReturn: { app: AiApp | null; isLoading: boolean; isError: boolean };
+let mockUseAiAppReturn: {
+  app: AiApp | null;
+  isLoading: boolean;
+  isError: boolean;
+  errorKind?: 'forbidden' | 'not-found' | 'network' | null;
+};
 
 jest.mock('@/services/ai-apps/hooks/useAiApp', () => ({
   useAiApp: () => mockUseAiAppReturn,
@@ -50,16 +55,19 @@ jest.mock('@/services/ai-apps/hooks/useAiAppManageAccess', () => ({
 jest.mock('@/components/page/ai-apps/AiAppsPage/components/AppActionsMenu', () => ({
   AppActionsMenu: ({
     onEdit,
+    onAccess,
     onDeployment,
     onDelete,
   }: {
     onEdit: () => void;
+    onAccess: () => void;
     onDeployment: () => void;
     onDelete: () => void;
   }) => (
     <div>
       <span>AppActionsMenu</span>
       <button onClick={onEdit}>Edit details</button>
+      <button onClick={onAccess}>Manage access</button>
       <button onClick={onDeployment}>Deployment settings</button>
       <button onClick={onDelete}>Delete app</button>
     </div>
@@ -71,6 +79,13 @@ jest.mock('@/components/page/ai-apps/dynamicActionModals', () => ({
     <div>
       <span>EditAiAppModal</span>
       <button onClick={onClose}>Close edit</button>
+    </div>
+  ),
+  ManageAccessModal: ({ onClose, onRedeploy }: { onClose: () => void; onRedeploy?: () => void }) => (
+    <div>
+      <span>ManageAccessModal</span>
+      <button onClick={onRedeploy}>Redeploy from access</button>
+      <button onClick={onClose}>Close access</button>
     </div>
   ),
   DeploymentSettingsModal: ({
@@ -427,6 +442,41 @@ describe('AiAppDetailPage', () => {
       expect(screen.queryByText('DeploymentSettingsModal')).not.toBeInTheDocument();
       expect(window.location.pathname).toBe(`${BASE_PATH}/reports/42`);
       expect(window.location.search).toBe('');
+    });
+  });
+
+  describe('private apps', () => {
+    it('shows a private state instead of "App not found" when the API answers 403', () => {
+      mockUseAiAppReturn = { app: null, isLoading: false, isError: false, errorKind: 'forbidden' };
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
+
+      expect(screen.getByRole('heading', { name: 'This app is private' })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Back to AI Apps' })).toHaveAttribute('href', '/pl-infra/ai-apps');
+      expect(screen.queryByText('App not found.')).not.toBeInTheDocument();
+      expect(document.querySelector('iframe')).toBeNull();
+    });
+
+    it('badges a private app and hides the badge for an open one', () => {
+      mockUseAiAppReturn = { app: buildApp({ access: 'PRIVATE' }), isLoading: false, isError: false };
+      const { unmount } = render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
+      expect(screen.getByText('Private')).toBeInTheDocument();
+      unmount();
+
+      mockUseAiAppReturn = { app: buildApp({ access: 'OPEN' }), isLoading: false, isError: false };
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
+      expect(screen.queryByText('Private')).not.toBeInTheDocument();
+    });
+
+    it('opens Manage access from the menu and hands a redeploy to Deployment settings', () => {
+      mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
+
+      fireEvent.click(screen.getByText('Manage access'));
+      expect(screen.getByText('ManageAccessModal')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByText('Redeploy from access'));
+      expect(screen.queryByText('ManageAccessModal')).not.toBeInTheDocument();
+      expect(screen.getByText('DeploymentSettingsModal')).toBeInTheDocument();
     });
   });
 

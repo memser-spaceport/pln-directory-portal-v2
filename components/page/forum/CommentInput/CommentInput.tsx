@@ -8,7 +8,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormEditor } from '@/components/form/FormEditor';
 import { FormField } from '@/components/form/FormField';
-import { extractTextWithImages } from '@/utils/decode';
+import { convertMarkdownImagesToHtml, extractTextWithImages } from '@/utils/decode';
 import { useGetMemberNotificationSettings } from '@/services/notifications/hooks/useGetMemberNotificationSettings';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useForumAnalytics } from '@/analytics/forum.analytics';
@@ -45,7 +45,11 @@ export const CommentInput = ({ tid, toPid, replyToName, onReset, isEdit, initial
 
   const methods = useForm({
     defaultValues: {
-      comment: initialContent ? extractTextWithImages(initialContent) : '',
+      // Markdown first: a stored comment keeps its images as `![alt](src)`, and
+      // extractTextWithImages only carries an image across when it is already
+      // an <img> — so without this the editor shows the markdown as text, and
+      // an image loses both itself and the size and wrap in its URL fragment.
+      comment: initialContent ? extractTextWithImages(convertMarkdownImagesToHtml(initialContent)) : '',
       emailMe: true,
     },
     resolver: yupResolver(schema),

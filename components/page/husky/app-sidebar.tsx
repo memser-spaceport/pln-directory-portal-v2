@@ -29,7 +29,6 @@ interface ThreadItemProps {
 const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteModalOpen }: ThreadItemProps) => {
   const analytics = useHuskyAnalytics();
   const router = useRouter();
-  const [copied, setCopied] = useState(false);
 
   const handleClick = useCallback(() => {
     if (!isActive) {
@@ -51,19 +50,6 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
     [thread, handleDeleteModalOpen],
   );
 
-  const handleShareClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      navigator.clipboard.writeText(`${window.location.origin}/husky/chat/${thread.threadId}`);
-      setCopied(true);
-      setTimeout(() => {
-        setCopied(false);
-      }, 1500);
-      analytics.trackThreadShareClicked({ threadId: thread.threadId, title: thread.title });
-    },
-    [thread, analytics],
-  );
-
   return (
     <li
       key={thread.threadId}
@@ -75,13 +61,6 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
       <div className="sidebar__body__history__list__ul__li__actions">
         <button onClick={handleDeleteClick} className="sidebar__body__history__list__ul__li__actions__button">
           <img width={20} height={20} src="/icons/delete-icon.svg" alt="delete" />
-        </button>
-        <button
-          onClick={handleShareClick}
-          className="sidebar__body__history__list__ul__li__actions__button share-button"
-        >
-          <img width={20} height={20} src="/icons/share-blue.svg" alt="share" />
-          {copied && <span className="copied-tooltip">Copied!</span>}
         </button>
       </div>
       <style jsx>{`
@@ -113,7 +92,6 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
           align-items: center;
           justify-content: space-between;
           gap: 4px;
-          width: 44px;
           opacity: 0;
           transition: opacity 0.2s ease;
         }
@@ -135,24 +113,6 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
 
         .sidebar__body__history__list__ul__li__actions__button {
           display: flex;
-        }
-
-        .share-button {
-          position: relative;
-        }
-
-        .copied-tooltip {
-          position: absolute;
-          bottom: -25px;
-          left: 50%;
-          transform: translateX(-50%);
-          padding: 4px 8px;
-          font-size: 12px;
-          background: black;
-          color: white;
-          border-radius: 8px;
-          white-space: nowrap;
-          z-index: 10;
         }
 
         button {

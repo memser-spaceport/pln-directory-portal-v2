@@ -8,6 +8,10 @@ export const EditAiAppModal = dynamic(
   () => import('@/components/page/ai-apps/AiAppsPage/components/EditAiAppModal').then((m) => m.EditAiAppModal),
   { ssr: false },
 );
+export const ManageAccessModal = dynamic(
+  () => import('@/components/page/ai-apps/AiAppsPage/components/ManageAccessModal').then((m) => m.ManageAccessModal),
+  { ssr: false },
+);
 export const DeploymentSettingsModal = dynamic(
   () =>
     import('@/components/page/ai-apps/AiAppsPage/components/DeploymentSettingsModal').then(

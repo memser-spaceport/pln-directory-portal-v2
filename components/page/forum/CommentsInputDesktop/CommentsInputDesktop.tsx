@@ -6,7 +6,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { FormEditor } from '@/components/form/FormEditor';
-import { extractTextWithImages } from '@/utils/decode';
+import { convertMarkdownImagesToHtml, extractTextWithImages } from '@/utils/decode';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useGetMemberNotificationSettings } from '@/services/notifications/hooks/useGetMemberNotificationSettings';
 import { FormField } from '@/components/form/FormField';
@@ -47,7 +47,11 @@ export const CommentsInputDesktop = (props: Props) => {
 
   const methods = useForm({
     defaultValues: {
-      comment: initialContent ? extractTextWithImages(initialContent) : '',
+      // Markdown first: a stored comment keeps its images as `![alt](src)`, and
+      // extractTextWithImages only carries an image across when it is already
+      // an <img> — so without this the editor shows the markdown as text, and
+      // an image loses both itself and the size and wrap in its URL fragment.
+      comment: initialContent ? extractTextWithImages(convertMarkdownImagesToHtml(initialContent)) : '',
       emailMe: true,
     },
     resolver: yupResolver(schema),

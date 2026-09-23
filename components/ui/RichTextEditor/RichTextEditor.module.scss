@@ -76,6 +76,13 @@
       line-height: 24px; /* 150% */
       letter-spacing: -0.3px;
     }
+
+    img {
+      // A width alone keeps the aspect ratio, which is what the resize
+      // overlay assumes when it draws itself from the image's box.
+      height: auto;
+      cursor: pointer;
+    }
   }
 
   :global(.ql-formats.ql-formats) {

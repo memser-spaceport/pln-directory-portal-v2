@@ -262,6 +262,7 @@ export const getHuskyThreadById = async (id: string, authToken: string) => {
       question: item?.question,
       answer: item?.response,
       sources: item?.sources,
+      sourceRefs: item?.sourceRefs,
       actions: item?.actions,
       followUpQuestions: item?.followUpQuestions,
       sql: item?.sqlData,

@@ -136,9 +136,6 @@
 /* Scaffolding. It narrates, which product copy may not — see the entry's doc. */
 
 .band {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
   padding: 12px 16px;
   background: #fff;
   border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
@@ -147,46 +144,6 @@
     padding: 12px 48px;
   }
 }
-
-.bandRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-}
-
-.bandLabel {
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-}
-
-.segmented {
-  display: flex;
-  gap: 2px;
-  padding: 2px;
-  border-radius: 8px;
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-}
-
-.segment {
-  padding: 4px 10px;
-  border: 0;
-  border-radius: 6px;
-  background: none;
-  cursor: pointer;
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
-  color: var(--foreground-neutral-secondary, #455468);
-}
-
-.segmentOn {
-  background: #fff;
-  color: var(--foreground-neutral-primary, #0a0c11);
-  box-shadow: 0 1px 2px var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-}
-
 
 .readout {
   margin: 0;
@@ -326,7 +283,7 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-/* ------------------------------------------------------------ the toasts --- */
+/* ------------------------------------------------------------- the toast --- */
 
 /**
  * The sentence and its button on one row.
@@ -357,7 +314,7 @@
  * 18px is the size `InfoCircleIconOutlined` ships at, and it sits a step above
  * the 16px ✕ — the mark that says what this message is still outweighs the one
  * that gets rid of it, without being the largest thing on a 40px card. Takes
- * the card's `currentColor`, so each toast type keeps its own ink.
+ * the card's `currentColor`, so it keeps the info card's brand ink.
  */
 .toastIcon {
   width: 18px;

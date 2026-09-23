@@ -8,18 +8,11 @@ import { toast as rtToast } from 'react-toastify';
 import { toast } from '@/components/core/ToastContainer';
 import { Button } from '@/components/common/Button';
 import { UnsavedChangesPrompt } from '@/components/core/UnsavedChangesPrompt';
-import { ErrorCircle, InfoCircleIconOutlined } from '@/components/icons';
+import { InfoCircleIconOutlined } from '@/components/icons';
 
 import { PrototypeNavBar } from '../nav-shared/PrototypeNavBar';
 
-import {
-  DEMO_STATES,
-  mockAboutDraft,
-  mockFillerSections,
-  mockHalfTypedDraft,
-  mockMember,
-  type DemoState,
-} from './mocks';
+import { mockAboutDraft, mockFillerSections, mockMember, reviewNote } from './mocks';
 import s from './AppUpdateToastPrototype.module.scss';
 
 /**
@@ -41,32 +34,27 @@ import s from './AppUpdateToastPrototype.module.scss';
  * | The mid-flow question | `core/UnsavedChangesPrompt` | Already the app's answer to "you are about to lose edits" |
  * | The header | `nav-shared/PrototypeNavBar` | The real bar, so the toast is judged under real chrome |
  *
- * ## Every state appears where it really appears
+ * ## One toast, and it is on screen when the page opens
  *
- * There is no states sheet. Both toasts are fired by the band and land in the
- * real container at the foot of the page — a static copy pinned mid-page is a
- * second, larger, unreal version of the subject competing with it, and every
- * state it could draw is one press away. The page is long enough to scroll on
- * purpose: holding position while the content moves is half of what makes a
- * toast the right object here, and a page that fits the viewport cannot show it.
- *
- * **And it opens on the toast.** The band is a *review* control, so its resting
- * state is the thing under review — not the product's commonest state, which is
- * the silent one and draws nothing. Opening on Optional meant this entry's whole
- * subject was two presses away behind a segmented control, with an empty page
- * and a readout congratulating itself for being empty; the first thing anyone
- * saw was nothing. Silent is now a state you switch *to* and check.
+ * There is no states sheet and no state picker. The page renders the one thing
+ * this entry is asking about, in the real container at the foot of a page long
+ * enough to scroll — a static copy pinned mid-page would be a second, larger,
+ * unreal version of the subject competing with it. Holding position while the
+ * content moves is half of what makes a toast the right object here, and a page
+ * that fits the viewport cannot show that.
  *
  * ## The decisions this entry is asking about
  *
  * **Silent is the default and draws nothing.** A version bump changes nothing
  * the person can see, so a toast confirming one answers a question nobody
- * asked. The update is armed and applied at the next full navigation — the
- * person was already paying that page load — and they are never told. Set the
- * band to *Optional* and ship a build to see the whole of it: nothing.
+ * asked. The ordinary deploy is armed and applied at the next full navigation —
+ * the person was already paying that page load — and they are never told. That
+ * is the case this page cannot show, because there is nothing to show: it is
+ * the empty page you would get by not shipping the toast at all.
  *
- * **The toast is only for the case where staying put costs something.** Two:
- * an update the deploy marks required, and a chunk that has already failed.
+ * **The toast is only for the case where staying put costs something** — here,
+ * an update the deploy marks required. It is the exception, not the reporting
+ * channel for deploys.
  *
  * **It is the small end of the house card**, not the default one — see the
  * note on `--toast-default-width` in the stylesheet. A standing, passive notice
@@ -99,23 +87,25 @@ import s from './AppUpdateToastPrototype.module.scss';
  * every tab: a logged-out tab still showing private data is a leak, a stale UI
  * is not. Not demonstrable in one window; stated here so it is not lost.
  *
- * **Accessibility.** No focus trap on either toast: a trap is for a modal you
- * must answer now, and this is a standing condition you may ignore until you
- * have finished a sentence. The container is announced politely
- * (`role="status"`), never assertively — it must not interrupt a task it is not
- * blocking.
+ * **Accessibility.** No focus trap: a trap is for a modal you must answer now,
+ * and this is a standing condition you may ignore until you have finished a
+ * sentence. The container is announced politely (`role="status"`), never
+ * assertively — it must not interrupt a task it is not blocking.
  *
  * ## Deliberately simplified
  *
- * - **Detection is a button.** In production it is a same-origin build-id
- *   check on `visibilitychange` plus a slow interval. Which transport is an
- *   engineering call and changes none of the states here.
+ * - **Detection is assumed, not performed.** The page opens with the condition
+ *   already true. In production it is a same-origin build-id check on
+ *   `visibilitychange` plus a slow interval; which transport is an engineering
+ *   call and changes nothing about the card.
  * - **Dirtiness is one textarea**, not the real `UnsavedEditsContext`
  *   registry. That registry is the right production wiring — but it is
  *   currently mounted only in the two job drawers, so covering the forum
  *   composer and the profile editors is the work item, not a design question.
- * - **Reload really reloads.** The page comes back in the silent state, which
- *   is what production does, so the press is honest rather than mimed.
+ * - **Reload really reloads**, so the press is honest rather than mimed — but
+ *   the toast comes back with the page, because there is no actual new build
+ *   for the reload to apply. In production that press is the end of it: the
+ *   fresh document is the new build, and the condition is gone.
  *
  * ## Two notes about mobile
  *
@@ -131,8 +121,7 @@ import s from './AppUpdateToastPrototype.module.scss';
  * sits on the bottom bar — that is the placement to judge, not this gap.
  */
 
-const INFO_TOAST_ID = 'app-update-available';
-const ERROR_TOAST_ID = 'app-update-chunk-failed';
+const TOAST_ID = 'app-update-available';
 
 /**
  * Run `fire` once the toast container is actually in the DOM, and return the
@@ -191,11 +180,6 @@ function whenContainerReady(fire: () => void) {
  * The filled thing should be the action; the mark that says what kind of
  * message this is can be a line.
  *
- * **The failure keeps its filled `ErrorCircle`** — the one judgement call here,
- * since there is no outlined error icon in the set and inventing one is a
- * bigger decision than this change. It is also arguably right: an alarm may be
- * heavier than a notice. Say the word and it becomes a ring.
- *
  * **A bordered `Button`, at the smallest size on the scale.** The product draws
  * an action inside a tinted info band two ways: `JobAlertIndicator` — a quiet
  * one-line strip, the closest thing to this card — makes it a text link, and
@@ -215,27 +199,11 @@ function whenContainerReady(fire: () => void) {
  * on top of it — that treatment is for a page's own CTA, and three shadows
  * under a 26px button inside a floating card is a third object's worth of
  * depth in something already lifted off the page.
- *
- * **Brand on both cards, not each card's own colour.** A red button would read
- * as a destructive action, and reloading is the way *out* of the failure rather
- * than part of it. Same act on both cards, so the same button — and on the red
- * one the single blue thing is the way forward. (The DS could not have drawn
- * the alternative anyway: `style="border"` defines only `primary`, `secondary`
- * and `neutral`, so a bordered `error` falls through to the browser's default
- * button colour and renders black.)
  */
-function ToastBody({
-  icon: Icon,
-  sentence,
-  onReload,
-}: {
-  icon: typeof InfoCircleIconOutlined;
-  sentence: string;
-  onReload: () => void;
-}) {
+function ToastBody({ sentence, onReload }: { sentence: string; onReload: () => void }) {
   return (
     <span className={s.toastBody}>
-      <Icon className={s.toastIcon} />
+      <InfoCircleIconOutlined className={s.toastIcon} />
       <span className={s.toastSentence}>{sentence}</span>
       <Button size="xxs" style="fill" variant="primary" onClick={onReload}>
         Reload
@@ -245,9 +213,6 @@ function ToastBody({
 }
 
 export default function AppUpdateToastPrototype() {
-  /* What the page is showing. Opens on the state that draws the subject. */
-  const [demo, setDemo] = useState<DemoState>('required');
-
   const [draft, setDraft] = useState(mockAboutDraft);
   const [editing, setEditing] = useState(false);
   const [leaving, setLeaving] = useState(false);
@@ -270,7 +235,7 @@ export default function AppUpdateToastPrototype() {
   }, []);
 
   /**
-   * Both toasts stand down while the leave prompt is up.
+   * The toast stands down while the leave prompt is up.
    *
    * Found by rendering, not by reading: `ToastContainer.module.scss` sets
    * `z-index: 10000` and `UnsavedChangesPrompt`'s overlay is below it, so the
@@ -283,77 +248,24 @@ export default function AppUpdateToastPrototype() {
    * z-index change — raising the modal above 10000 would put it over every
    * other toast too, including the ones that report why a save failed.
    */
-  const showUpdateToast = demo === 'required' && !leaving;
-
   useEffect(() => {
-    if (!showUpdateToast) {
-      rtToast.dismiss(INFO_TOAST_ID);
+    if (leaving) {
+      rtToast.dismiss(TOAST_ID);
       return;
     }
     return whenContainerReady(() =>
-      toast.info(<ToastBody icon={InfoCircleIconOutlined} sentence="The Directory has been updated." onReload={handleReload} />, {
-        toastId: INFO_TOAST_ID,
+      toast.info(<ToastBody sentence="The Directory has been updated." onReload={handleReload} />, {
+        toastId: TOAST_ID,
         autoClose: false,
         closeOnClick: false,
         draggable: false,
       }),
     );
-  }, [showUpdateToast, handleReload]);
-
-  const showChunkToast = demo === 'chunk' && !leaving;
-
-  useEffect(() => {
-    if (!showChunkToast) {
-      rtToast.dismiss(ERROR_TOAST_ID);
-      return;
-    }
-    return whenContainerReady(() =>
-      toast.error(<ToastBody icon={ErrorCircle} sentence="Part of this page didn't load." onReload={handleReload} />, {
-        toastId: ERROR_TOAST_ID,
-        autoClose: false,
-        closeOnClick: false,
-        draggable: false,
-      }),
-    );
-  }, [showChunkToast, handleReload]);
+  }, [leaving, handleReload]);
 
   /* The container is the app's, not this page's — a toast left behind would
      follow the reviewer onto the next prototype. */
-  useEffect(
-    () => () => {
-      rtToast.dismiss(INFO_TOAST_ID);
-      rtToast.dismiss(ERROR_TOAST_ID);
-    },
-    [],
-  );
-
-  /**
-   * The failed-chunk toast only exists in one branch — the tab that *can't*
-   * heal itself, because reloading would take unsaved edits with it. So picking
-   * that state opens the editor half-typed, rather than drawing a toast for a
-   * situation the page is not in.
-   */
-  const pick = (next: DemoState) => {
-    setDemo(next);
-    if (next === 'chunk' && !dirtyRef.current) {
-      setDraft(mockHalfTypedDraft);
-      setEditing(true);
-      return;
-    }
-    /* Leaving that state takes its half-typed draft with it — but only if it is
-       still untouched. Anything the reviewer typed themselves is theirs. */
-    if (next !== 'chunk' && draft === mockHalfTypedDraft) {
-      setDraft(mockAboutDraft);
-      setEditing(false);
-    }
-  };
-
-  const readout =
-    demo === 'required'
-      ? 'A new build is live and the deploy marked it required. The toast stands until it is reloaded or dismissed — try Reload, and try it again after typing in About.'
-      : demo === 'optional'
-        ? 'A new build is live, published the ordinary way. Nothing is drawn and nobody is told: it is armed, and applies at the next full navigation. This is what almost every deploy does.'
-        : "A lazy chunk 404'd on the old build, and About is half-typed — so this tab can't do what a clean one does, which is reload once, silently, and heal. It asks instead.";
+  useEffect(() => () => rtToast.dismiss(TOAST_ID), []);
 
   return (
     /* The marker the stylesheet's container rules key off — the size override
@@ -363,29 +275,11 @@ export default function AppUpdateToastPrototype() {
       <PrototypeNavBar hasUnreadNews={false} />
 
       {/* Review instrument, not product UI — it narrates, which product copy
-          may not. At the top because the subject is pinned to the bottom. */}
+          may not. At the top because the subject is pinned to the bottom. One
+          sentence and no control: there is a single state, and it is the one
+          already on screen. */}
       <div className={s.band}>
-        <div className={s.bandRow}>
-          <span className={s.bandLabel}>Showing</span>
-          {/* One control, and every option is a thing you can see. The previous
-              band was a mode plus three verbs naming the *mechanism* ("Ship a
-              new build", "Fail a lazy chunk"), which needed two presses in the
-              right order before anything appeared. */}
-          <div className={s.segmented} role="group" aria-label="Which state the page is showing">
-            {DEMO_STATES.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={`${s.segment} ${demo === option.value ? s.segmentOn : ''}`}
-                onClick={() => pick(option.value)}
-                aria-pressed={demo === option.value}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <p className={s.readout}>{readout}</p>
+        <p className={s.readout}>{reviewNote}</p>
       </div>
 
       <main className={s.page}>

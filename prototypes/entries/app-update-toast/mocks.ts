@@ -42,20 +42,10 @@ export const mockFillerSections = [
 ];
 
 /**
- * What the page is showing.
+ * What the review line says the page is in the middle of.
  *
- * A *review* state, not a product one — which is why it opens on `required`,
- * the state that draws the thing this entry exists to judge, rather than on
- * `optional`, which is what almost every real deploy is and draws nothing.
+ * One state, so it is a sentence rather than a picker: the page is always
+ * showing the toast, which is the thing this entry exists to judge.
  */
-export type DemoState = 'required' | 'optional' | 'chunk';
-
-export const DEMO_STATES: { value: DemoState; label: string }[] = [
-  { value: 'required', label: 'Required update' },
-  { value: 'optional', label: 'Optional update' },
-  { value: 'chunk', label: 'Failed chunk' },
-];
-
-/** What the editor is filled with when the failed-chunk state opens it. */
-export const mockHalfTypedDraft =
-  'Working on transport encryption and NAT traversal. Previously on the networking team at Filecoin, where I looked after relay reservations. Currently writing up the QUIC';
+export const reviewNote =
+  'A new build is live and the deploy marked it required. The toast stands until it is reloaded or dismissed — try Reload, and try it again after typing in About.';

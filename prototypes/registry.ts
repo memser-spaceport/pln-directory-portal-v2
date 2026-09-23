@@ -383,6 +383,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/guided-tour/GuidedTourPrototype'),
   },
   {
+    key: 'app-update-toast',
+    title: 'App updates — the refresh toast',
+    description:
+      "How a deploy reaches someone who already has the tab open. Today it doesn't: there is no service worker, no build-id check and no ChunkLoadError handling, so a deploy lands, the tab keeps running the old JS, and the first symptom is a lazy route falling into the \"Oh snap!\" error page. The proposal is one mechanism and one surface. The mechanism: a new build is armed and applied at the next full navigation, so the ordinary case is silent — nothing is drawn and nobody is told, because a version bump changes nothing the person can see. The surface: the house toast (production's own container and card, bottom-centre, info blue, its own ✕), fired only when staying put costs something — an update the deploy marks required, or a chunk that has already 404'd. It is the small end of the house card rather than the default one — 380px wide, 14px type, the card's own sub-960 values — because a standing, passive notice should not arrive at the size of \"Something went wrong\". It does not auto-close and it cannot stack: autoClose false, closeOnClick false, one toastId, so a prompt that expires is not a prompt nobody can answer. The action is an inline 600-weight underlined Reload inside the sentence, the treatment DomainMigrationBanner already uses for an announcement with an action, rather than a boxed button inside the card. Mid-flow protection needs no second string — type in the About card and press Reload to see the real UnsavedChangesPrompt ask first. The page opens with the toast already on screen: the band is one picker (Required update · Optional update · Failed chunk) whose resting state is the thing under review, not the product's commonest state, which is the silent one and draws nothing. Optional is a state you switch to and check. Failed chunk opens About half-typed, because a clean tab reloads once and heals silently, so that toast only exists for the branch where it can't. There is no states sheet: both toasts land in the real container at the foot of a page long enough to scroll, because a static copy pinned mid-page is a second, larger, unreal version of the subject competing with it. Multi-tab is stated rather than shown: detection broadcasts on a second BroadcastChannel (the shape logout already uses) so one tab's discovery saves the others from polling, but each tab decides for itself, because dirtiness is per-tab — deliberately unlike logout, which force-reloads every tab.",
+    category: 'Cross-product',
+    load: () => import('./entries/app-update-toast/AppUpdateToastPrototype'),
+  },
+  {
     key: 'kudos-edit',
     title: 'Kudos — edit states',
     description:

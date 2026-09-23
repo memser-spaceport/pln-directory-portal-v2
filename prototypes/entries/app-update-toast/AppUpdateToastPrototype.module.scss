@@ -1,0 +1,367 @@
+@use 'styles/media';
+
+.root {
+  min-height: 100vh;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+}
+
+/**
+ * DEVIATION — a production bug, fixed here so this entry does not demonstrate
+ * a toast nobody can dismiss. Scoped to this prototype by the marker on
+ * `.root`; production is untouched, and every other prototype still renders
+ * the container exactly as it ships.
+ *
+ * `ToastContainer.module.scss` declares
+ *   min-width: var(--toast-default-width);   // 430px
+ *   max-width: min(500px, 100vw);
+ * and **min-width always beats max-width**, so the cap never fires. On any
+ * phone narrower than 430px the container keeps its 430 and overflows the
+ * viewport: measured at a 360px width the card runs from x=16 to x=414, which
+ * puts its right border and the ✕ off-screen. `document.scrollWidth` stays
+ * under the client width, so nothing scrolls sideways to reveal it — the close
+ * control is simply unreachable, on every toast the product fires.
+ *
+ * That matters more here than elsewhere: this toast's whole dismissal story is
+ * "the ✕ comes with the card". The one-line fix is the cap the stylesheet
+ * already intended, expressed where it can take effect.
+ */
+:global(body:has([data-app-update-toast]) .Toastify__toast-container) {
+  /**
+   * Smaller than the house default, scoped the same way. 430px is the size of
+   * "Something went wrong"; a standing, passive notice should not arrive at the
+   * same weight as a failure.
+   *
+   * A **floor**, not the width: the container is already `width: fit-content`,
+   * so with the card released to `auto` below it hugs its one line and the real
+   * width is whatever that needs — 342px for this copy.
+   */
+  --toast-default-width: 320px;
+
+  /* The cap the stylesheet already intended — see DEVIATION above. The
+     viewport wins on a phone, where the container's own `padding-inline: 16px`
+     then draws the gutters. */
+  min-width: min(var(--toast-default-width), 100vw);
+}
+
+/* Released from the fixed 430px so the card can be as wide as its one line and
+   no wider. The stylesheet's own `mobile-only { width: 100% }` still wins below
+   640px, which is what a phone wants. */
+:global(body:has([data-app-update-toast]) .Toastify__toast) {
+  width: auto;
+}
+
+/**
+ * The card, smaller.
+ *
+ * Three values change from the desktop card, and all three are that same
+ * stylesheet's **base** (sub-960) values: 16px type → 14px, `min-height`
+ * 52px → 32px, radius 12px → 10px. Nothing invented.
+ *
+ * The padding is the one value with no house answer. Both of that stylesheet's
+ * blocks spend 16px horizontally (`12px 16px` on a phone, `8px 16px` above it),
+ * which is right for a 52px card and loose on a 38px one — the inset read as
+ * wider than the gap between the glyph and its sentence. 12px is the next step
+ * down the same scale and leaves the ✕ its clearance.
+ *
+ * The vertical went 8px → 6px when the action became a `Button`. A `xxs`
+ * button is 26px (12/16 type, `4px 8px`), so it — not the 20px glyph — now
+ * sets the card's height, and the desktop block's 8px took the card from 38px
+ * to 44. 6px holds it at 40, near where it was before the button arrived. It
+ * is not the stylesheet's own value, but neither is the horizontal; both are
+ * the price of a 38px card, and the DS spends 6px vertically on `Button`'s own
+ * `xs`. Height is what reads as size.
+ *
+ * Keyed to the rendered tree, because every class on that card is a hashed
+ * module name this file cannot spell. Verified by dumping the DOM rather than
+ * assumed — react-toastify puts an **unclassed wrapper** between its body and
+ * the content it was handed, so the card is two levels down, not one:
+ *
+ *   .Toastify__toast-body > div          ← react-toastify's wrapper
+ *     > div                              ← the card (Toast.tsx root)
+ *       > div > svg                      ← the status glyph, inside .body
+ *       > svg                            ← the ✕
+ *
+ * If that wrapper ever goes, these rules stop matching and the toast returns
+ * to the house size — a visible regression, not a broken layout.
+ */
+:global(body:has([data-app-update-toast]) .Toastify__toast-body) > div > div {
+  min-height: 32px;
+  font-size: 14px;
+  border-radius: 10px;
+  padding: 6px 12px;
+
+  /**
+   * The card's own status glyph, suppressed.
+   *
+   * `Toast.tsx` picks it with `getToastIcon(type)` and exposes no prop, so
+   * hiding the slot is the only way to change the mark. `ToastBody` renders the
+   * replacement inside the content instead — see the note there. Hidden rather
+   * than resized: a `display: none` flex item also drops the `.body` gap that
+   * followed it, so nothing is left behind.
+   */
+  > div > svg {
+    display: none;
+  }
+
+  /**
+   * The ✕, down from 20px to the 16px `CloseIcon` actually ships at.
+   *
+   * `Toast.module.scss` scales it *up* in its `tablet-landscape` block, which
+   * makes dismissal exactly as heavy as the status mark and as loud as the
+   * Reload beside it — and a close control is secondary to the thing it
+   * closes. Production has already made and fixed this call once elsewhere:
+   * `JobSignUpModal.module.scss` carries the note "16px, which is the size
+   * `CloseIcon` ships at" after the same glyph had been blown up to 24.
+   */
+  > svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /**
+   * The status glyph sits closer to its sentence than the ✕ does.
+   *
+   * Both gaps were the card's one `gap: 10px`, which says the three things are
+   * equally related. They are not: the ⓘ is the sentence's own mark and reads
+   * as part of it, while the ✕ is a separate control that happens to share the
+   * row. Same distinction as a glyph inside a button versus the space between
+   * two buttons — 8px inside, the card's 10px between.
+   */
+  > div {
+    gap: 8px;
+  }
+}
+
+/* ------------------------------------------------------------- review band --- */
+/* Scaffolding. It narrates, which product copy may not — see the entry's doc. */
+
+.band {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include media.tablet-landscape {
+    padding: 12px 48px;
+  }
+}
+
+.bandRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.bandLabel {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.segmented {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.segment {
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.segmentOn {
+  background: #fff;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  box-shadow: 0 1px 2px var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+
+.readout {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* -------------------------------------------------------------- the page --- */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 720px;
+  /* Room under the last card so the toast never rests on top of content that
+     has nowhere left to scroll. */
+  padding: 24px 16px 160px;
+  margin: 0 auto;
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.name {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.meta {
+  margin: 2px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+}
+
+.cardEditing {
+  border-color: var(--border-brand-subtle, #aebfff);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  &:focus {
+    outline: none;
+    border-color: var(--border-brand-subtle, #aebfff);
+  }
+}
+
+.cardActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.dirtyNote {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* ------------------------------------------------------------ the toasts --- */
+
+/**
+ * The sentence and its button on one row.
+ *
+ * `gap: 8px` rather than the card's 10px: the button belongs to the sentence it
+ * answers, the way the ⓘ belongs to the sentence it marks. The card's own 10px
+ * still separates this whole unit from the ✕, which is the one thing in the row
+ * that is not about this message (see the gap note on the card above).
+ *
+ * Wraps, because a phone is narrower than this line — the button then takes its
+ * own row rather than being pushed out of the card.
+ */
+.toastBody {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.toastSentence {
+  /* The card supplies size, colour and weight. */
+  min-width: 0;
+}
+
+/**
+ * The status mark, in place of the card's hidden slot glyph.
+ *
+ * 18px is the size `InfoCircleIconOutlined` ships at, and it sits a step above
+ * the 16px ✕ — the mark that says what this message is still outweighs the one
+ * that gets rid of it, without being the largest thing on a 40px card. Takes
+ * the card's `currentColor`, so each toast type keeps its own ink.
+ */
+.toastIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+

@@ -124,6 +124,10 @@ export function AppActionsMenu({ app, onEdit, onAccess, onDeployment, onLogs, on
   // if (accessDenied) return null;
 
   const verifying = confirmedCanManage !== true;
+  // Owner only — stricter than canManage (directory admins manage everything
+  // else, but who may open an app is the owner's call). Rendered only once the
+  // server confirms, so a non-owner never sees it flash in.
+  const showAccessItem = detail?.isOwner === true;
   const verifyFailed = errorKind === 'network';
 
   const handleOpenChange = (open: boolean) => {
@@ -147,10 +151,12 @@ export function AppActionsMenu({ app, onEdit, onAccess, onDeployment, onLogs, on
               <PencilIcon />
               Edit details
             </Menu.Item>
-            <Menu.Item className={s.item} disabled={verifying} onClick={onAccess}>
-              <LockIcon />
-              Manage access
-            </Menu.Item>
+            {showAccessItem && (
+              <Menu.Item className={s.item} onClick={onAccess}>
+                <LockIcon />
+                Manage access
+              </Menu.Item>
+            )}
             <Menu.Item className={s.item} disabled={verifying} onClick={onDeployment}>
               <TerminalIcon />
               Deployment settings

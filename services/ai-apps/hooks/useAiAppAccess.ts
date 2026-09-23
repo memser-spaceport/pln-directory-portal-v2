@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AiAppsQueryKeys } from '@/services/ai-apps/constants';
 import { AiAppAccessResult, fetchAiAppAccess } from '@/services/ai-apps/ai-apps.service';
 
-/** Access mode + whitelist for the Manage access modal (creator or directory admin only). */
+/** Access mode + whitelist for the Manage access modal (app owner only). */
 export function useAiAppAccess(uid: string, options?: { enabled?: boolean }) {
   const { data, isLoading } = useQuery<AiAppAccessResult>({
     queryKey: [AiAppsQueryKeys.AI_APP_ACCESS, uid],

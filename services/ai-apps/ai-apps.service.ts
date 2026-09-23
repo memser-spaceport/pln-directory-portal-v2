@@ -62,6 +62,8 @@ export interface AiApp {
   providedEnvVars: string[];
   /** Server-computed on the detail endpoint: requester is the creator or a directory admin. */
   canManage?: boolean;
+  /** Server-computed on the detail endpoint: requester owns the app. Gates owner-only actions (Manage access). */
+  isOwner?: boolean;
   /** URL to the stored one-pager file (Markdown or HTML) in S3 (LAB-2101). Null/absent = no one-pager. */
   prd?: string | null;
   /** Slugs from the controlled vocabulary (see `fetchAiAppTags`). Absent on older API versions. */
@@ -429,7 +431,7 @@ async function parseAccessResponse(response: Response | undefined, fallback: str
   if (!response.ok) {
     let message = fallback;
     if (response.status === 403) {
-      message = 'Only the app creator or a directory admin can manage access.';
+      message = 'Only the app owner can manage access.';
     } else if (response.status === 404) {
       message = 'This app no longer exists.';
     } else {

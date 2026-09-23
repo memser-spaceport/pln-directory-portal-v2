@@ -222,3 +222,105 @@
     flex-direction: column-reverse;
   }
 }
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  code {
+    padding: 0 4px;
+    border-radius: 4px;
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    font-family: 'SF Mono', 'Roboto Mono', ui-monospace, monospace;
+    font-size: 12px;
+  }
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// Same amber palette as the Draft badge and the Manage access notices.
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fef3c7;
+}
+
+.noticeTitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.noticeText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: #92400e;
+}
+
+.pathList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pathItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .input {
+    font-family: 'SF Mono', 'Roboto Mono', ui-monospace, monospace;
+  }
+}
+
+.removeBtn {
+  display: flex;
+  flex-shrink: 0;
+  padding: 6px;
+  border: none;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.sectionFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sectionActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.savedText {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-success-primary, #0a9952);
+}

@@ -12,6 +12,7 @@ import { AiApp, deployAiApp } from '@/services/ai-apps/ai-apps.service';
 import { AiAppsQueryKeys } from '@/services/ai-apps/constants';
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
 
+import { PublicEndpointsSection } from './PublicEndpointsSection';
 import s from './DeploymentSettingsModal.module.scss';
 
 type Phase = 'form' | 'deploying' | 'done';
@@ -29,7 +30,7 @@ interface Props {
 
 /**
  * Deployment settings from the list card: update/replace secrets and
- * redeploy. Secrets are write-only — a stored value can never be read back,
+ * redeploy, plus the app's public endpoints (saved on their own, no redeploy). Secrets are write-only — a stored value can never be read back,
  * so a provided var shows as masked "Stored" until the creator chooses to
  * Replace it, and leaving it stored means "keep the stored value". Apps with
  * no secrets can still redeploy (plain restart of the stored bundle).
@@ -60,6 +61,7 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
   const { app: liveApp } = useAiApp(app.uid);
   const liveStatus = liveApp?.status ?? app.status;
   const liveNotes = liveApp?.notes ?? null;
+  const canManage = liveApp?.canManage ?? app.canManage ?? false;
 
   const isDraft = app.status === 'DRAFT';
   const hasSecrets = requiredEnvVars.length > 0;
@@ -269,6 +271,16 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
 
               {externalDeployInFlight && <p className={s.intro}>A deploy is already in progress for this app.</p>}
               {error && <p className={s.error}>{error}</p>}
+
+              {canManage && (
+                <PublicEndpointsSection
+                  uid={app.uid}
+                  lastDeployedAt={liveApp?.lastDeployedAt ?? app.lastDeployedAt}
+                  disabled={isSubmitting}
+                  onRedeploy={handleRedeploy}
+                  redeployDisabled={isSubmitting || externalDeployInFlight}
+                />
+              )}
             </div>
 
             <div className={s.footer}>

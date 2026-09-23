@@ -86,6 +86,16 @@ export interface AiApp {
    * stays open to PL Infra members until the next deploy.
    */
   directLinkGateReady?: boolean;
+  /**
+   * Managers only. Path patterns (e.g. `/api/*`) the deployed app serves to
+   * anyone without LabOS sign-in. Absent for non-managers and older API versions.
+   */
+  publicPaths?: string[];
+  /**
+   * Managers only. False while the app still runs an auth sidecar that doesn't
+   * forward the request path — its public paths take effect after one redeploy.
+   */
+  publicPathsGateReady?: boolean;
 }
 
 export function isPrivateAiApp(app: Pick<AiApp, 'access'>): boolean {
@@ -468,6 +478,69 @@ export async function saveAiAppAccess(
     true,
   );
   return parseAccessResponse(response, 'Saving failed. Please try again.');
+}
+
+export interface AiAppPublicPathsSettings {
+  publicPaths: string[];
+  publicPathsGateReady: boolean;
+}
+
+export interface AiAppPublicPathsResult {
+  data: AiAppPublicPathsSettings | null;
+  /** On a 400 the backend's message names each invalid pattern and why. */
+  error: string | null;
+}
+
+async function parsePublicPathsResponse(
+  response: Response | undefined,
+  fallback: string,
+): Promise<AiAppPublicPathsResult> {
+  if (!response) {
+    return { data: null, error: fallback };
+  }
+  if (!response.ok) {
+    let message = fallback;
+    if (response.status === 403) {
+      message = 'Only the app creator or a directory admin can manage public endpoints.';
+    } else if (response.status === 404) {
+      message = 'This app no longer exists.';
+    } else {
+      try {
+        const body = await response.json();
+        if (typeof body?.message === 'string' && body.message) {
+          message = body.message;
+        }
+      } catch {
+        // Non-JSON error body — keep the generic message.
+      }
+    }
+    return { data: null, error: message };
+  }
+  return { data: await response.json(), error: null };
+}
+
+/** Public path patterns of one app. Creator or directory admin only. */
+export async function fetchAiAppPublicPaths(uid: string): Promise<AiAppPublicPathsResult> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/public-paths`,
+    { method: 'GET' },
+    true,
+  );
+  return parsePublicPathsResponse(response, 'Could not load public endpoints. Please try again.');
+}
+
+/** Replaces the WHOLE public path list (`[]` clears it). Applies on the next request — no redeploy. */
+export async function saveAiAppPublicPaths(uid: string, publicPaths: string[]): Promise<AiAppPublicPathsResult> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/public-paths`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ publicPaths }),
+    },
+    true,
+  );
+  return parsePublicPathsResponse(response, 'Saving failed. Please try again.');
 }
 
 /** Member name search for the whitelist picker; an empty list on any failure. */

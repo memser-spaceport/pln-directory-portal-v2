@@ -57,6 +57,14 @@ export const MODAL_INTRO =
 
 export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = [
   {
+    version: '1.13',
+    items: [
+      'New apps are private by default — only you can see and open them until you share. Your agent reminds you after the first deploy',
+      '(Via UI) Manage access from your app’s ⋮ menu: keep it private and add specific members, or open it to all PL Infra members. Switch anytime — your list of people is kept',
+      'Members you haven’t added don’t see a private app in the catalog, and get a “no access” page if they open its link',
+    ],
+  },
+  {
     version: '1.12',
     items: [
       '(Via UI) You can now see logs from your previous deploy too — Deployment logs cover everything your app printed in the chosen time window, with a marker where the earlier deployment starts',

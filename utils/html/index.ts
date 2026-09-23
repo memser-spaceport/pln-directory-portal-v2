@@ -8,3 +8,5 @@ export { normalizeJobDescriptionHtml } from './normalizeJobDescriptionHtml';
 export { countMentions } from './countMentions';
 export { classifyAnchor, type AnchorTarget } from './classifyAnchor';
 export { hostDataUriImages } from './hostDataUriImages';
+export { encodeImageLayoutInSrc } from './encodeImageLayoutInSrc';
+export { decodeImageLayoutFromSrc } from './decodeImageLayoutFromSrc';

@@ -14,10 +14,18 @@ import { toast } from '@/components/core/ToastContainer';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { useMembersSearch } from '@/services/members/hooks/useMembersSearch';
 
-import { useMentionDetection, useMentionKeyboard, useMentionClickHandler } from './hooks';
+import {
+  useMentionDetection,
+  useMentionKeyboard,
+  useMentionClickHandler,
+  useImageLayout,
+  useImageDragMove,
+} from './hooks';
 
+import { registerImageBlot } from './ImageBlot';
 import { registerMentionBlot } from './MentionBlot';
 import { MentionDropdown, MentionDropdownRef } from './MentionDropdown';
+import { ImageLayoutOverlay } from './ImageLayoutOverlay';
 
 import s from './RichTextEditor.module.scss';
 
@@ -69,6 +77,9 @@ function ignoreQuillNativeUpload() {}
 // Register mention blot
 registerMentionBlot();
 
+// Replaces Quill's Image blot with the one that also carries a text wrap.
+registerImageBlot();
+
 // Register icons
 (Quill.import('ui/icons') as Record<string, unknown>)['officeHours'] = officeHours;
 (Quill.import('ui/icons') as Record<string, unknown>)['mention'] = mentionIcon;
@@ -106,6 +117,7 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
   const quillRef = useRef<any>(null);
   const mentionDropdownRef = useRef<MentionDropdownRef>(null);
   const editorContainerRef = useRef<HTMLDivElement>(null);
+  const imageOverlayRef = useRef<HTMLDivElement>(null);
 
   const [mentionState, setMentionState] = useState<{
     isOpen: boolean;
@@ -418,6 +430,18 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
     qlEditorClass: QL_EDITOR_CLASS,
   });
 
+  // Select an image to resize it or wrap text around it, drag it to move it.
+  // Not gated on the toolbar carrying an image button: an editor without one
+  // can still be handed content that already has images in it.
+  const imageLayout = useImageLayout({
+    quillRef,
+    editorContainerRef,
+    overlayRef: imageOverlayRef,
+    qlEditorClass: QL_EDITOR_CLASS,
+  });
+
+  useImageDragMove({ quillRef });
+
   const handleChange = (content: string) => {
     const { editor } = quillRef.current || {};
 
@@ -465,6 +489,18 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
         modules={modules}
         placeholder={placeholder}
       />
+      {imageLayout.overlay && (
+        <ImageLayoutOverlay
+          ref={imageOverlayRef}
+          rect={imageLayout.overlay.rect}
+          float={imageLayout.overlay.float}
+          canMoveUp={imageLayout.overlay.canMoveUp}
+          canMoveDown={imageLayout.overlay.canMoveDown}
+          onHandlePointerDown={imageLayout.onHandlePointerDown}
+          onFloatChange={imageLayout.onFloatChange}
+          onMove={imageLayout.onMove}
+        />
+      )}
       {errorMessage && <div className={s.error}>{errorMessage}</div>}
       {enableMentions && mentionState.isOpen && (
         <MentionDropdown

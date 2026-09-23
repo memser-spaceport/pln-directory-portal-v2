@@ -98,5 +98,13 @@ export function useMentionDetection({
       editor.off('text-change', handleTextChange);
       editor.off('selection-change', handleTextChange);
     };
-  }, [enableMentions, mentionState.isOpen, closeMentionDropdown, quillRef, editorContainerRef, setMentionState, qlEditorClass]);
+  }, [
+    enableMentions,
+    mentionState.isOpen,
+    closeMentionDropdown,
+    quillRef,
+    editorContainerRef,
+    setMentionState,
+    qlEditorClass,
+  ]);
 }

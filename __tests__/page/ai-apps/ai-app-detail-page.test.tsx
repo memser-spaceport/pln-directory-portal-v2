@@ -432,8 +432,8 @@ describe('AiAppDetailPage', () => {
     });
 
     it('closing the deep-linked deployment modal drops ?settings without navigating away from the subpage', () => {
-      mockSearchParams = new URLSearchParams('settings=deployment');
-      window.history.replaceState(null, '', `${BASE_PATH}/reports/42?settings=deployment`);
+      mockSearchParams = new URLSearchParams('tab=weekly&settings=deployment');
+      window.history.replaceState(null, '', `${BASE_PATH}/reports/42?tab=weekly&settings=deployment`);
       mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
       render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
@@ -441,7 +441,7 @@ describe('AiAppDetailPage', () => {
 
       expect(screen.queryByText('DeploymentSettingsModal')).not.toBeInTheDocument();
       expect(window.location.pathname).toBe(`${BASE_PATH}/reports/42`);
-      expect(window.location.search).toBe('');
+      expect(window.location.search).toBe('?tab=weekly');
     });
   });
 
@@ -580,23 +580,87 @@ describe('AiAppDetailPage', () => {
       expect(window.location.search).toBe('?settings=deployment');
     });
 
-    it('never mirrors a reported query string or hash — an OAuth callback code must not reach this URL', async () => {
+    it('mirrors a safe query param and drops an OAuth code and hash', async () => {
       render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
       const iframe = await mountIframe();
+      const initialSrc = iframe.getAttribute('src');
 
-      // Kits 1.10–1.11 report pathname + search + hash; the app's query string
-      // is where a live authorization code lands.
+      // Kits 1.10–1.11 report pathname + search + hash; `code` is where a live
+      // authorization code lands and must not reach this URL.
       postRoute(iframe, {
         type: 'pln-ai-app:route',
-        path: '/oauth/gdrive/callback?code=live-auth-code&state=s#frag',
+        path: '/oauth/gdrive/callback?code=live-auth-code&tab=done#frag',
         title: 'Connecting…',
       });
 
       expect(window.location.pathname).toBe(`${BASE_PATH}/oauth/gdrive/callback`);
-      expect(window.location.search).toBe('');
+      expect(window.location.search).toBe('?tab=done');
       expect(window.location.href).not.toContain('live-auth-code');
       expect(window.location.hash).toBe('');
       expect(document.title).toBe('Connecting… · News Summarizer');
+      expect(iframe.getAttribute('src')).toBe(initialSrc);
+    });
+
+    it('forwards app query params on a deep link and keeps portal params off the iframe', async () => {
+      mockPathname = `${BASE_PATH}/reports/42`;
+      window.history.replaceState(null, '', `${BASE_PATH}/reports/42?tab=weekly&settings=deployment&code=live-auth-code`);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
+
+      const iframe = await mountIframe();
+      expect(iframe.getAttribute('src')).toBe(`${APP_ORIGIN}/reports/42?tab=weekly`);
+      expect(iframe.getAttribute('src')).not.toContain('settings');
+      expect(iframe.getAttribute('src')).not.toContain('live-auth-code');
+      expect(window.location.search).toBe('?tab=weekly&settings=deployment');
+    });
+
+    it('drops app query params when the app reports none, and keeps reserved portal params', async () => {
+      window.history.replaceState(null, '', `${BASE_PATH}?settings=deployment`);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
+      const iframe = await mountIframe();
+
+      postRoute(iframe, { type: 'pln-ai-app:route', path: '/reports?tab=a', title: 'Reports' });
+
+      expect(window.location.pathname).toBe(`${BASE_PATH}/reports`);
+      expect(window.location.search).toBe('?tab=a&settings=deployment');
+
+      postRoute(iframe, { type: 'pln-ai-app:route', path: '/reports', title: 'Reports' });
+
+      expect(window.location.pathname).toBe(`${BASE_PATH}/reports`);
+      expect(window.location.search).toBe('?settings=deployment');
+    });
+
+    it('does not let an app overwrite reserved portal params', async () => {
+      window.history.replaceState(null, '', `${BASE_PATH}?settings=deployment`);
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
+      const iframe = await mountIframe();
+
+      postRoute(iframe, {
+        type: 'pln-ai-app:route',
+        path: '/reports?settings=from-app&tab=a',
+        title: 'Reports',
+      });
+
+      expect(window.location.pathname).toBe(`${BASE_PATH}/reports`);
+      expect(window.location.search).toBe('?tab=a&settings=deployment');
+      expect(iframe.getAttribute('src')).not.toContain('from-app');
+    });
+
+    it('reopens the last reported subpage and query when the frame remounts after a deploy', async () => {
+      const { rerender } = render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
+      const iframe = await mountIframe();
+
+      postRoute(iframe, { type: 'pln-ai-app:route', path: '/reports/42?tab=weekly', title: 'Reports' });
+
+      mockUseAiAppReturn = {
+        app: buildApp({ lastDeployedAt: '2026-08-01T00:00:00.000Z' }),
+        isLoading: false,
+        isError: false,
+      };
+      rerender(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
+
+      const remounted = await mountIframe();
+      expect(remounted).not.toBe(iframe);
+      expect(remounted.getAttribute('src')).toBe(`${APP_ORIGIN}/reports/42?tab=weekly`);
     });
 
     it('ignores messages from another origin, another window, or of another type', async () => {

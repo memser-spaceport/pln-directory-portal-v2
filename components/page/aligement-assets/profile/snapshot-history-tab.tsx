@@ -31,10 +31,11 @@ export default function SnapshotHistoryTab({ entries }: SnapshotHistoryTabProps)
     );
   }
 
-  const totalPoints = entries.some((e) => e.points === null)
-    ? null
-    : entries.reduce((sum, e) => sum + (e.points ?? 0), 0);
-  const totalPlaa = entries.reduce((sum, e) => sum + e.plaaTotal, 0);
+  // Sums what is known: a snapshot with no points yet is left out rather than voiding the total.
+  const withPoints = entries.filter((e) => e.points !== null);
+  const totalPoints = withPoints.length === 0 ? null : withPoints.reduce((sum, e) => sum + (e.points ?? 0), 0);
+  // An open snapshot's PLAA is not final, so it stays out of the total until it closes.
+  const totalPlaa = entries.filter((e) => !e.isPending).reduce((sum, e) => sum + e.plaaTotal, 0);
 
   return (
     <div className={styles.card}>
@@ -59,9 +60,7 @@ export default function SnapshotHistoryTab({ entries }: SnapshotHistoryTabProps)
               <span className={styles.period}>{entry.period}</span>
               <span className={styles.cell}>{entry.activities ?? '—'}</span>
               <span className={styles.cell}>{entry.categories ?? '—'}</span>
-              <span className={styles.pointsCell}>
-                {entry.isPending ? PENDING_LABEL : dashOr(entry.points, ' points')}
-              </span>
+              <span className={styles.pointsCell}>{dashOr(entry.points, ' points')}</span>
               <span className={styles.plaaCell}>
                 {entry.isPending ? PENDING_LABEL : entry.plaaTotal.toLocaleString()}
               </span>
@@ -93,21 +92,27 @@ export default function SnapshotHistoryTab({ entries }: SnapshotHistoryTabProps)
                     <span className={styles.conversionValue}>
                       <span className={styles.conversionPoints}>{dashOr(entry.points, ' points')}</span>
                       <span className={styles.conversionArrow}> &rarr; </span>
-                      <span className={styles.conversionPlaa}>+{entry.activityPlaa.toLocaleString()} PLAA</span>
+                      <span className={styles.conversionPlaa}>
+                        {entry.isPending ? PENDING_LABEL : `+${entry.activityPlaa.toLocaleString()} PLAA`}
+                      </span>
                     </span>
                   </div>
 
                   {entry.hasInfra && (
                     <div className={styles.infraRow}>
-                      <span className={styles.infraBadge}>Infra Member</span>
+                      <span className={styles.infraBadge}>Infra</span>
                       <span className={styles.infraLabel}>Infra rewards, granted in PLAA</span>
-                      <span className={styles.infraValue}>+{entry.infra.toLocaleString()} PLAA</span>
+                      <span className={styles.infraValue}>
+                        {entry.isPending ? PENDING_LABEL : `+${entry.infra.toLocaleString()} PLAA`}
+                      </span>
                     </div>
                   )}
 
                   <div className={styles.totalRow}>
                     <span className={styles.totalLabel}>{entry.period} total</span>
-                    <span className={styles.totalValue}>{entry.plaaTotal.toLocaleString()} PLAA</span>
+                    <span className={styles.totalValue}>
+                      {entry.isPending ? PENDING_LABEL : `${entry.plaaTotal.toLocaleString()} PLAA`}
+                    </span>
                   </div>
                 </div>
               </div>

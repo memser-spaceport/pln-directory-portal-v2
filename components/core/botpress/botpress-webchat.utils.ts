@@ -1,7 +1,14 @@
 export const BOTPRESS_INJECT_SCRIPT_ID = 'botpress-webchat-inject';
 export const BOTPRESS_CONFIG_SCRIPT_ID = 'botpress-webchat-config';
 
-const BOTPRESS_WIDGET_SELECTORS = ['#bp-web-widget-container', '#bp-web-widget', '[id^="bp-web-widget"]'];
+// webchat v3 renders a class and no id; the id selectors below are v2's and
+// match nothing on v3, which is what let the widget survive unmount.
+const BOTPRESS_WIDGET_SELECTORS = [
+  '.bpChatContainer',
+  '#bp-web-widget-container',
+  '#bp-web-widget',
+  '[id^="bp-web-widget"]',
+];
 
 interface LoadScriptOptions {
   id: string;
@@ -51,19 +58,33 @@ export async function loadBotpressWebchat(injectScriptUrl: string, configScriptU
   await loadScript(configScriptUrl, { id: BOTPRESS_CONFIG_SCRIPT_ID, defer: true });
 }
 
-export function removeBotpressWebchatWidget(): void {
+export function removeBotpressWebchatWidget(): number {
+  let removed = 0;
+
   BOTPRESS_WIDGET_SELECTORS.forEach((selector) => {
-    document.querySelectorAll(selector).forEach((element) => element.remove());
+    document.querySelectorAll(selector).forEach((element) => {
+      element.remove();
+      removed += 1;
+    });
   });
+
+  return removed;
 }
 
 export function unloadBotpressWebchat(): void {
-  removeBotpressWebchatWidget();
+  const wasInitialised = 'botpress' in window;
+  const removed = removeBotpressWebchatWidget();
 
   document.getElementById(BOTPRESS_INJECT_SCRIPT_ID)?.remove();
   document.getElementById(BOTPRESS_CONFIG_SCRIPT_ID)?.remove();
 
   if ('botpress' in window) {
     delete window.botpress;
+  }
+
+  // Removing nothing from an initialised widget means the selectors no longer
+  // match what the vendor renders, and the widget is now orphaned on the page.
+  if (wasInitialised && removed === 0) {
+    console.warn('[BotpressWebchat] unload removed the scripts but no widget node matched; check BOTPRESS_WIDGET_SELECTORS against the loaded webchat version.');
   }
 }

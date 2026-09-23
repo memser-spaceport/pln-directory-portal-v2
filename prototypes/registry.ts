@@ -399,6 +399,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/kudos-edit/KudosEditPrototype'),
   },
   {
+    key: 'plaa-top-banner-carousel',
+    title: 'Top banner carousel (Buyback + Snapshot)',
+    description:
+      "Click-through for PlaaTopBannerCarousel, which replaced the old stacked PlaaBuybackBanner + PlaaSnapshotBar in SiteHeader: the two now rotate through one slot (8s auto-advance, pause on hover, dot navigation, no dismiss control) instead of doubling the header's height when both apply. Uses the real carousel and bar stylesheets plus the real countdown/date-formatting logic; the buyback preset switcher moves it through upcoming/live/ending-soon/ended to show the carousel dropping to a single dot-less slide when only the snapshot bar applies. Production gates this on PLAA RBAC access, the auction's real UTC window, and a live snapshot-status backend call, none reachable here, so the snapshot data is mocked with local state rather than the real network hook.",
+    category: 'PLAA',
+    load: () => import('./entries/plaa-top-banner-carousel/PlaaTopBannerCarouselPrototype'),
+  },
+  {
     key: 'pl-spotlight-table',
     title: 'PL Spotlight — back-office participants table',
     description:

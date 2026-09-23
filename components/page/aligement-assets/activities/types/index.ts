@@ -89,6 +89,10 @@ export interface Activity {
   cta?: 'submit' | 'confirm';
   isAutoTracked?: boolean;
   hasFormLink?: boolean;
+  /**
+   * Shows a generic "New" outline badge on the activity card.
+   */
+  isNew?: boolean;
   popupContent: ActivityPopupContent;
 }
 

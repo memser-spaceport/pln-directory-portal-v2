@@ -13,6 +13,10 @@ jest.mock('@/components/core/navbar/nav-bar', () => ({
   default: () => <div data-testid="navbar" />,
 }));
 
+jest.mock('@/components/core/navbar/components/PlaaTopBannerCarousel', () => ({
+  PlaaTopBannerCarousel: () => <div data-testid="plaa-top-banner-carousel" />,
+}));
+
 jest.mock('@/components/core/navbar/components/CompleteYourProfile', () => ({
   CompleteYourProfile: () => <div data-testid="complete-your-profile" />,
 }));
@@ -39,10 +43,12 @@ describe('SiteHeader', () => {
     render(<SiteHeader {...props} />);
 
     expect(screen.getByTestId('navbar')).toBeInTheDocument();
+    // The carousel decides for itself whether to show (PLAA routes, PLAA members only).
+    expect(screen.getByTestId('plaa-top-banner-carousel')).toBeInTheDocument();
     expect(screen.getByTestId('complete-your-profile')).toBeInTheDocument();
   });
 
-  /* The bars stack *inside* this element, so its height is the chrome height
+  /* The bars sit *inside* this element, so its height is the chrome height
      the rest of the app offsets from. Measuring the wrong node — or forgetting
      to measure at all — is invisible in jsdom, so it is pinned here rather than
      left to the hook's own tests. */

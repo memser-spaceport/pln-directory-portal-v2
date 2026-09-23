@@ -11,11 +11,9 @@ import BuybackAuctionSection from './sections/buyback-auction-section';
 import LearnMoreSection from './sections/learn-more-section';
 import DisclaimerSection from './sections/disclaimer-section';
 import SupportSection from './sections/support-section';
-import PointsDashboard from '@/components/page/aligement-assets/points-dashboard/points-dashboard';
-import RightsTokensDashboard from '@/components/page/aligement-assets/rights-tokens-dashboard/rights-tokens-dashboard';
 import { CurrentRoundData, LeaderboardSectionData } from './types';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { useIsLoggedIn } from '@/hooks/useIsLoggedIn';
 import {
   LeaderboardApiResponse,
   splitLeaderboardEntries,
@@ -34,7 +32,7 @@ export default function CurrentRoundComponent({
   data,
   leaderboardResponse,
 }: CurrentRoundComponentProps) {
-  const [isLoggedIn] = useState(() => typeof window !== 'undefined' && !!getCookiesFromClient().authToken);
+  const isLoggedIn = useIsLoggedIn();
   const [leaderboardView, setLeaderboardView] = useState<'current' | 'alltime'>('current');
 
   const leaderboardData: LeaderboardSectionData = useMemo(() => {
@@ -60,10 +58,6 @@ export default function CurrentRoundComponent({
     <>
       <div className="current-round">
         <HeroSection data={data.hero} />
-
-        {isLoggedIn && <RightsTokensDashboard />}
-
-        {isLoggedIn && <PointsDashboard currentRound={data.meta.roundNumber} />}
 
         <RoundDescriptionSection
           data={data.roundDescription}

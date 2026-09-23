@@ -34,7 +34,7 @@ describe('ContributionProfileTab', () => {
   it('renders the chart axis labels and every period', () => {
     render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
 
-    expect(screen.getByText('Points and PLAA earned over time')).toBeInTheDocument();
+    expect(screen.getByText('Points and PLAA balance over time')).toBeInTheDocument();
     // Each period appears twice: once as a chart x-axis label, once as a table row.
     expect(screen.getAllByText('May 2026')).toHaveLength(2);
     expect(screen.getAllByText('Jun 2026')).toHaveLength(2);
@@ -115,27 +115,27 @@ describe('ContributionProfileTab', () => {
     expect(rightAxisTexts.length).toBeGreaterThan(0);
   });
 
-  it('shows a tooltip with the month, points collected, and PLAA earned when hovering a snapshot, hidden otherwise', () => {
+  it('shows a tooltip with the month, points collected, and PLAA balance when hovering a snapshot, hidden otherwise', () => {
     const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
 
     const hoverZones = Array.from(container.querySelectorAll('rect[fill="transparent"]'));
     expect(hoverZones).toHaveLength(3);
-    expect(screen.queryByText(/PLAA earned:/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/PLAA balance:/)).not.toBeInTheDocument();
 
     const tooltipTitle = () => container.querySelector('svg text[font-weight="700"][fill="#ffffff"]');
 
     fireEvent.mouseEnter(hoverZones[0]);
     expect(tooltipTitle()?.textContent).toBe('May 2026');
     expect(screen.getByText('Points collected: 350')).toBeInTheDocument();
-    expect(screen.getByText('PLAA earned: 35')).toBeInTheDocument();
+    expect(screen.getByText('PLAA balance: 35')).toBeInTheDocument();
 
     fireEvent.mouseLeave(hoverZones[0]);
-    expect(screen.queryByText(/PLAA earned:/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/PLAA balance:/)).not.toBeInTheDocument();
 
     fireEvent.mouseEnter(hoverZones[2]);
     expect(tooltipTitle()?.textContent).toBe('Jul 2026');
-    expect(screen.getByText('PLAA earned: 112')).toBeInTheDocument();
-    expect(screen.queryByText('PLAA earned: 35')).not.toBeInTheDocument();
+    expect(screen.getByText('PLAA balance: 112')).toBeInTheDocument();
+    expect(screen.queryByText('PLAA balance: 35')).not.toBeInTheDocument();
   });
 
   describe('a period with no points data (still loading or settled empty)', () => {
@@ -148,7 +148,7 @@ describe('ContributionProfileTab', () => {
     it('hides the points bars and left axis, keeps the real PLAA balance line and right axis', () => {
       const { container } = render(<ContributionProfileTab entries={realEntries} currentBalance={1050} totalRedeemed={null} />);
 
-      expect(screen.getByText('PLAA earned over time')).toBeInTheDocument();
+      expect(screen.getByText('PLAA balance over time')).toBeInTheDocument();
       expect(screen.queryByText('Points collected')).not.toBeInTheDocument();
       expect(screen.queryByText('Points per snapshot')).not.toBeInTheDocument();
 
@@ -176,7 +176,7 @@ describe('ContributionProfileTab', () => {
       fireEvent.mouseEnter(hoverZones[0]);
 
       expect(screen.queryByText(/Points collected:/)).not.toBeInTheDocument();
-      expect(screen.getByText('PLAA earned: 1,000')).toBeInTheDocument();
+      expect(screen.getByText('PLAA balance: 1,000')).toBeInTheDocument();
     });
   });
 
@@ -216,36 +216,64 @@ describe('ContributionProfileTab', () => {
     }
   });
 
+  it('never uses "earned" or "cumulative" wording anywhere in the tab, including the tooltip', () => {
+    const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+
+    for (const zone of Array.from(container.querySelectorAll('rect[fill="transparent"]'))) {
+      fireEvent.mouseEnter(zone);
+      expect(container.textContent).not.toMatch(/earned|cumulative/i);
+      fireEvent.mouseLeave(zone);
+    }
+  });
+
   describe('an open snapshot (not yet closed)', () => {
+    // cum on the open row carries the confirmed balance forward; its own PLAA is not in it yet.
     const withPending: ContributionHistoryEntry[] = [
       { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: null, isPending: false, cum: 35 },
-      { period: 'Jun 2026', points: 220, plaa: 22, infra: 30, redeemed: null, isPending: true, cum: 87 },
+      { period: 'Jun 2026', points: 220, plaa: 22, infra: 30, redeemed: null, isPending: true, cum: 35 },
     ];
 
-    it('shows Pending in place of the snapshot\'s own points and PLAA figures', () => {
-      const { container } = render(
-        <ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />
-      );
+    const pendingRow = () => screen.getAllByText('Jun 2026')[1].closest('[class*="dataRow"]') as HTMLElement;
 
-      const pendingRow = (screen.getAllByText('Jun 2026')[1].closest('[class*="dataRow"]')) as HTMLElement;
-      expect(within(pendingRow).getAllByText('Pending')).toHaveLength(3);
-      expect(within(pendingRow).queryByText('220')).not.toBeInTheDocument();
-      expect(within(pendingRow).queryByText('22')).not.toBeInTheDocument();
+    it('shows Pending for the snapshot\'s own PLAA figures and balance', () => {
+      render(<ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />);
+
+      expect(within(pendingRow()).getAllByText('Pending')).toHaveLength(3);
+      expect(within(pendingRow()).queryByText('22')).not.toBeInTheDocument();
+      expect(within(pendingRow()).queryByText('30')).not.toBeInTheDocument();
+      expect(within(pendingRow()).queryByText('35')).not.toBeInTheDocument();
+    });
+
+    it('still shows the open snapshot\'s points as they come in', () => {
+      render(<ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />);
+
+      expect(within(pendingRow()).getByText('220')).toBeInTheDocument();
+    });
+
+    it('shows Pending for the balance in the open snapshot\'s tooltip', () => {
+      const { container } = render(<ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />);
+
+      fireEvent.mouseEnter(container.querySelectorAll('rect[fill="transparent"]')[1]);
+      expect(screen.getByText('PLAA balance: Pending')).toBeInTheDocument();
+      expect(screen.getByText('Points collected: 220')).toBeInTheDocument();
     });
 
     it('leaves a closed snapshot\'s own figures untouched', () => {
       render(<ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />);
 
-      const closedRow = (screen.getAllByText('May 2026')[1].closest('[class*="dataRow"]')) as HTMLElement;
+      const closedRow = screen.getAllByText('May 2026')[1].closest('[class*="dataRow"]') as HTMLElement;
       expect(within(closedRow).queryByText('Pending')).not.toBeInTheDocument();
       expect(within(closedRow).getByText('350')).toBeInTheDocument();
     });
 
-    it('does not mark the footer balance pending — it only ever reflects closed snapshots', () => {
+    it('keeps the open snapshot\'s PLAA out of the footer totals, but counts its points', () => {
       render(<ContributionProfileTab entries={withPending} currentBalance={35} totalRedeemed={null} />);
 
       const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
       expect(within(totalRow).queryByText('Pending')).not.toBeInTheDocument();
+      expect(within(totalRow).getByText('570')).toBeInTheDocument(); // points 350 + 220
+      expect(within(totalRow).getAllByText('35')).toHaveLength(2); // activity PLAA and balance, May only
+      expect(within(totalRow).getByText('0')).toBeInTheDocument(); // infra, May only
     });
   });
 
@@ -264,5 +292,31 @@ describe('ContributionProfileTab', () => {
     render(<ContributionProfileTab entries={[]} currentBalance={null} totalRedeemed={null} />);
 
     expect(screen.getByText('No snapshot history yet.')).toBeInTheDocument();
+  });
+
+  it('totals the points it has, rather than blanking the whole total when one month has none', () => {
+    const someMissing: ContributionHistoryEntry[] = [
+      { period: 'May 2026', points: 350, plaa: 35, infra: 0, redeemed: null, isPending: false, cum: 35 },
+      { period: 'Jun 2026', points: null, plaa: 22, infra: 30, redeemed: null, isPending: false, cum: 87 },
+      { period: 'Jul 2026', points: 450, plaa: 45, infra: 30, redeemed: null, isPending: false, cum: 112 },
+    ];
+    render(<ContributionProfileTab entries={someMissing} currentBalance={112} totalRedeemed={null} />);
+
+    const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
+    expect(within(totalRow).getByText('800')).toBeInTheDocument();
+  });
+
+  it('shows a dash for the points total only when no month has any points', () => {
+    const noneAtAll: ContributionHistoryEntry[] = entries.map((e) => ({ ...e, points: null }));
+    render(<ContributionProfileTab entries={noneAtAll} currentBalance={112} totalRedeemed={null} />);
+
+    const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
+    expect(within(totalRow).getAllByText('—').length).toBeGreaterThan(0);
+  });
+
+  it('describes the balance as after redemptions, with no before-redemptions disclaimer', () => {
+    const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} totalRedeemed={50} />);
+
+    expect(container.textContent).not.toMatch(/before redemptions/i);
   });
 });

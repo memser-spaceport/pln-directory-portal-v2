@@ -162,17 +162,17 @@ export const activitiesData: ActivitiesData = {
       }
     },
     {
-      id: 'give-excellent-survey-feedback',
+      id: 'give-excellent-feedback',
       category: 'Projects',
-      activity: 'Give Excellent Survey Feedback',
+      activity: 'Give Excellent Feedback',
       networkValue: 'You went above and beyond in giving thoughtful and actionable feedback',
       points: '100',
       frequency: 'Repeatable',
       verificationType: 'Auto',
       cta: 'confirm',
       popupContent: {
-        title: 'Give Excellent Survey Feedback',
-        overview: 'Your survey feedback went above and beyond. The insights you provided helped identify new issues or drive real improvements to the Alignment Asset program.',
+        title: 'Give Excellent Feedback',
+        overview: 'Your feedback — whether through a survey, the LabOS Feedback button, or another PLAA channel — went above and beyond. The insights you provided helped identify new issues or drive real improvements to the Alignment Asset program.',
         networkBenefits: 'Rewards feedback that identifies meaningful issues or improvement opportunities, not just completed forms.',
         rules: [
           'Your feedback created meaningful impact, as determined by the PLAA working group',
@@ -198,6 +198,32 @@ export const activitiesData: ActivitiesData = {
           'If completing a PL Network member survey, you are not a member of the organization that submitted it for distribution',
           `Surveys must be completed before the end of the month in which they're sent`,
           'Bot or Spam responses may result in the forfeiture of points'
+        ]
+      }
+    },
+    {
+      id: 'provide-product-testing-feedback',
+      category: 'Projects',
+      activity: 'Provide Product Testing + Feedback',
+      networkValue: 'Test an approved product, tool, or workflow on a real task and share meaningful, actionable feedback',
+      points: '100',
+      frequency: 'Repeatable',
+      isNew: true,
+      verificationType: 'Manual Review',
+      cta: 'confirm',
+      popupContent: {
+        title: 'Provide Product Testing + Feedback',
+        overview: `Test an approved product, tool, workflow, or process on a real work task and provide meaningful, actionable feedback on the experience.\n\nCurrent eligible requests for product testing:\n\nFactorio Weekly Updates — Submit your weekly update, then provide feedback using the LabOS feedback feature in the bottom-right corner of the screen. Collect an additional 100 points for sharing meaningful feedback on the broader UX and the features you would find most useful in your daily workflow. Feedback will be eligible for points through Friday, September 18, 2026.`,
+        networkBenefits: 'Helps teams improve shared products and workflows through real-world use, identifying friction, missing capabilities, and opportunities to improve the user experience.',
+        rules: [
+          'Participate in an eligible product-testing request and complete the defined task',
+          'On the designated feedback form/feature, describe what you tried, what happened, and provide at least one actionable observation',
+          'Feedback may identify friction, bugs, missing capabilities, suggested UX/UI improvements, or something that worked well and should be retained',
+          'Feedback must be meaningful and specific enough for the product owner to act on',
+          'Attendance, account creation, routine use, demos, logins, praise alone, or general reactions do not qualify'
+        ],
+        links: [
+          { text: 'Factorio Weekly Updates', url: 'https://os.pl.xyz/pl-infra/ai-apps/cmst544z7008siz4g1d59fubr/weekly' }
         ]
       }
     },
@@ -398,6 +424,32 @@ export const activitiesData: ActivitiesData = {
         ],
         links: [
           { text: '/pl-infra/ai-apps', url: '/pl-infra/ai-apps' }
+        ]
+      }
+    },
+    {
+      id: 'contribute-reusable-prompt-or-skill',
+      category: 'Network Tooling',
+      activity: 'Contribute a Reusable Prompt or Skill',
+      networkValue: 'Contribute a reusable prompt, AI resource, or skill to the PLAAbook or PL Infra Toolkit',
+      points: '350',
+      frequency: 'Recurring',
+      isNew: true,
+      verificationType: 'Manual Review',
+      cta: 'confirm',
+      popupContent: {
+        title: 'Contribute a Reusable Prompt or Skill',
+        overview: 'Contribute a reusable resource, prompt or AI skill to the PLAAbook or PL Infra Toolkit for PL Infra users. Receive 100 points for an approved resource or prompt and also 250 points for an approved skill, up to 350 points total.',
+        networkBenefits: 'Builds a library of useful, reusable AI resources while encouraging PL Infra members to share proven knowledge resources, workflows and tools with the broader network.',
+        rules: [
+          '100 points are awarded for an approved reusable resource or prompt; 250 points are awarded for an approved skill (up to 350 points total)',
+          'Available to current PLAA participants with verified PL Infra membership and Toolkit access',
+          'Submit up to one prompt or AI-related resource and one AI skill',
+          'Contributions must be publication-verified, useful, reproducible, safe, and non-duplicative'
+        ],
+        links: [
+          { text: 'PLAAbook', url: 'https://directory.plnetwork.io/pl-infra/ai-apps/cmthpnpeo059vnz4g9kf55xrv' },
+          { text: 'PL Infra Toolkit', url: 'https://directory.plnetwork.io/pl-infra/ai-apps/cmr2wll3y0a07ot4gjdy8ma6b' }
         ]
       }
     },

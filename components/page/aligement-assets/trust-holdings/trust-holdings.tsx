@@ -18,6 +18,7 @@ import {
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { BuybackMetric, DonutSlice, NavPoint, TrustHoldingsData } from '@/services/plaa/trust-holdings.service';
+import NavSummaryCard from '../nav-summary-card/nav-summary-card';
 import { BuybackSimulationSectionData } from '../rounds/types/current-round.types';
 import { MONTHLY_WINDOW, takeRecentMonths } from './nav-window';
 
@@ -592,6 +593,9 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
   const buybackMarkers = buybackMarkersByPeriod(buybacks);
   const metrics = capstoneMetrics(data, buybacks);
 
+
+  const latestMonthly = data.monthly[data.monthly.length - 1];
+
   return (
     <div className="th">
       {/* Header */}
@@ -606,52 +610,51 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
 
       {/* Trust NAV Over Time */}
       <section className="th-card th-card--nav">
-        <div className="th-nav-summary">
-          <span className="th-nav-summary__label">NAV / PLAA</span>
-          <span className="th-nav-summary__value">{data.navPerPlaaHeadline}</span>
-          <span className="th-nav-summary__caption">Est. Net Asset Value per PLAA as of {data.asOfDate}</span>
-        </div>
+        <NavSummaryCard navUsd={latestMonthly?.nav ?? null} totalUnits={latestMonthly?.totalPlaa ?? null} />
 
-        <p className="th-card__eyebrow">Est. AS OF {data.asOfDate.toUpperCase()}</p>
-        <p className="th-card__lead">
-          Trust Total Net Asset Value
-          <span className="th-card__note">
-            **PLVH portfolio holdings were added in Q2 2026, crypto assets were added in Q4 2025.
-          </span>
-        </p>
-
-        {/* Controls */}
-        <div className="th-controls">
-          <div className="th-toggle" role="group" aria-label="NAV view">
-            {VIEW_OPTIONS.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                aria-pressed={view === option.id}
-                className={`th-toggle__btn ${view === option.id ? 'th-toggle__btn--active' : ''}`}
-                onClick={() => setView(option.id)}
-              >
-                {option.label}
-              </button>
-            ))}
+        <div className="th-card__body">
+          <div className="th-nav-meta-block">
+            <h2 className="th-heading th-heading--title-weight">Trust Total Net Asset Value</h2>
+            <p className="th-heading__sub th-heading__sub--muted">Estimated as of {data.asOfDate}</p>
           </div>
 
-          <ul className="th-key">
-            {KEY_ITEMS.map((item) => (
-              <li key={item.label} className="th-key__item">
-                <span
-                  className={`th-key__marker ${item.line ? 'th-key__marker--line' : ''}`}
-                  style={keyMarkerStyle(item)}
-                />
-                {item.label}
-              </li>
-            ))}
-          </ul>
-        </div>
+          <p className="th-card__note th-card__note--standalone">
+            **PLVH portfolio holdings were added in Q2 2026, crypto assets were added in Q4 2025.
+          </p>
 
-        {view === 'quarterly-graph' && <NavChart data={data.quarterly} markers={buybackMarkers} showPreliminaryNote />}
-        {view === 'monthly-graph' && <NavChart data={monthlyWindow} markers={buybackMarkers} />}
-        {view === 'table' && <NavTable data={data.monthly} />}
+          {/* Controls */}
+          <div className="th-controls">
+            <div className="th-toggle" role="group" aria-label="NAV view">
+              {VIEW_OPTIONS.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  aria-pressed={view === option.id}
+                  className={`th-toggle__btn ${view === option.id ? 'th-toggle__btn--active' : ''}`}
+                  onClick={() => setView(option.id)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+
+            <ul className="th-key">
+              {KEY_ITEMS.map((item) => (
+                <li key={item.label} className="th-key__item">
+                  <span
+                    className={`th-key__marker ${item.line ? 'th-key__marker--line' : ''}`}
+                    style={keyMarkerStyle(item)}
+                  />
+                  {item.label}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {view === 'quarterly-graph' && <NavChart data={data.quarterly} markers={buybackMarkers} showPreliminaryNote />}
+          {view === 'monthly-graph' && <NavChart data={monthlyWindow} markers={buybackMarkers} />}
+          {view === 'table' && <NavTable data={data.monthly} />}
+        </div>
       </section>
 
       {/* Buybacks & Past Results */}
@@ -819,9 +822,17 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           padding: 34px 40px;
         }
 
-        /* NAV section uses slightly taller vertical padding per Figma (36 vs 34). */
+        /* NAV section's own padding moved onto .th-card__body — NavSummaryCard
+           needs to bleed flush to this card's own top-left corner, which a
+           uniform padding here would block. overflow: hidden keeps that bleed
+           clipped to the card's rounded corners. */
         .th-card--nav {
-          padding: 36px 40px;
+          padding: 0;
+          overflow: hidden;
+        }
+
+        .th-card__body {
+          padding: 24px 40px 36px;
         }
 
         /* Padded sections space their heading/subtitle/content by ~18px (Figma). */
@@ -829,57 +840,6 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           display: flex;
           flex-direction: column;
           gap: 18px;
-        }
-
-        /* NAV summary */
-        .th-nav-summary {
-          display: flex;
-          flex-direction: column;
-          gap: 14px;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          padding: 16px 20px;
-          background-color: #ffffff;
-          margin-bottom: 20px;
-        }
-
-        .th-nav-summary__label {
-          font-size: 16px;
-          font-weight: 700;
-          line-height: 17px;
-          letter-spacing: 0.6px;
-          color: #156ff7;
-        }
-
-        .th-nav-summary__value {
-          font-size: 42px;
-          font-weight: 700;
-          line-height: 59px;
-          color: #0f172a;
-        }
-
-        .th-nav-summary__caption {
-          font-size: 16px;
-          font-weight: 500;
-          line-height: 22px;
-          color: #94a3b8;
-        }
-
-        .th-card__eyebrow {
-          margin: 0 0 20px;
-          font-size: 11px;
-          font-weight: 500;
-          line-height: 15px;
-          letter-spacing: 0.4px;
-          color: #94a3b8;
-        }
-
-        .th-card__lead {
-          margin: 0 0 20px;
-          font-size: 24px;
-          font-weight: 600;
-          line-height: 34px;
-          color: #0f172a;
         }
 
         /* Figma puts the note on its own line (U+2028 U+2028) with a blank line above it,
@@ -891,6 +851,10 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           font-weight: 400;
           line-height: 18px;
           color: #94a3b8;
+        }
+
+        .th-card__note--standalone {
+          margin: 0 0 20px;
         }
 
         /* Controls */
@@ -1283,6 +1247,13 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           color: #0f172a;
         }
 
+        /* Matches .th__title's weight/line-height (the page's own topline) instead
+           of the bolder weight the other section headings on this page use. */
+        .th-heading--title-weight {
+          font-weight: 600;
+          line-height: 28px;
+        }
+
         .th-heading__sub {
           margin: 0;
           font-size: 15px;
@@ -1292,6 +1263,13 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
 
         .th-heading__sub--muted {
           color: #64748b;
+        }
+
+        .th-nav-meta-block {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          margin: 20px 0;
         }
 
         /* Donut + legend split */

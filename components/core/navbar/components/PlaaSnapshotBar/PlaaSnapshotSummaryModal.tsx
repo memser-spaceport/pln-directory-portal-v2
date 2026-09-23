@@ -75,13 +75,19 @@ export function PlaaSnapshotSummaryModal({ isOpen, onClose }: PlaaSnapshotSummar
 
           <div className={styles.activities}>
             <div className={styles.activitiesHeader}>Activities this snapshot</div>
-            {activities.map((activity, index) => (
-              <div key={index} className={styles.activityRow}>
-                <span className={styles.activityCategory}>{activity.category}</span>
-                <span className={styles.activityTitle}>{activity.title}</span>
-                <span className={styles.activityPoints}>+{activity.points} points</span>
+            {activities.length === 0 ? (
+              <div className={styles.activityRow}>
+                <span className={styles.activityTitle}>No activities recorded yet this snapshot</span>
               </div>
-            ))}
+            ) : (
+              activities.map((activity, index) => (
+                <div key={index} className={styles.activityRow}>
+                  <span className={styles.activityCategory}>{activity.category}</span>
+                  <span className={styles.activityTitle}>{activity.title}</span>
+                  <span className={styles.activityPoints}>+{activity.points} points</span>
+                </div>
+              ))
+            )}
             <div className={styles.totalRow}>
               <span className={styles.totalLabel}>So far this snapshot</span>
               <span className={styles.totalValue}>{pointsCollected.toLocaleString()} points</span>

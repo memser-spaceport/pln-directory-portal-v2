@@ -92,8 +92,7 @@ describe('ManageAccessModal', () => {
 
     const search = screen.getByRole('combobox');
     fireEvent.change(search, { target: { value: 'ca' } });
-    expect(screen.getByText('No AI Apps access')).toBeInTheDocument();
-    fireEvent.mouseDown(screen.getByRole('option', { name: /dan/i }));
+    expect(screen.queryByRole('option', { name: /dan/i })).not.toBeInTheDocument();
     fireEvent.mouseDown(screen.getByRole('option', { name: /cara/i }));
     fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
 

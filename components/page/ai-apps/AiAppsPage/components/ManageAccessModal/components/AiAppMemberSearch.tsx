@@ -21,8 +21,8 @@ interface Props {
 
 /**
  * Name search over directory members for an app's whitelist. Members without
- * AI Apps access are listed but disabled: they could never open the app, and
- * the backend rejects them on save.
+ * AI Apps access are hidden: they could never open the app, and the backend
+ * rejects them on save.
  */
 export function AiAppMemberSearch({ appUid, addedUids, onAdd, disabled, onDropdownChange }: Props) {
   const listId = useId();
@@ -30,10 +30,11 @@ export function AiAppMemberSearch({ appUid, addedUids, onAdd, disabled, onDropdo
   const [term, setTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const { results, isSearching, isIdle } = useAiAppAccessCandidates(appUid, term);
+  const { results: candidates, isSearching, isIdle } = useAiAppAccessCandidates(appUid, term);
+  const results = candidates.filter((candidate) => candidate.hasAiAppsAccess);
 
   const added = new Set(addedUids);
-  const isSelectable = (candidate: AiAppAccessCandidate) => candidate.hasAiAppsAccess && !added.has(candidate.uid);
+  const isSelectable = (candidate: AiAppAccessCandidate) => !added.has(candidate.uid);
 
   const select = (candidate: AiAppAccessCandidate) => {
     if (!isSelectable(candidate)) return;
@@ -137,11 +138,7 @@ export function AiAppMemberSearch({ appUid, addedUids, onAdd, disabled, onDropdo
                   <span className={s.name}>{candidate.name}</span>
                   {candidate.teamName && <span className={s.team}>{candidate.teamName}</span>}
                 </span>
-                {isAdded ? (
-                  <span className={s.hint}>Added</span>
-                ) : (
-                  !candidate.hasAiAppsAccess && <span className={s.hint}>No AI Apps access</span>
-                )}
+                {isAdded && <span className={s.hint}>Added</span>}
               </li>
             );
           })}

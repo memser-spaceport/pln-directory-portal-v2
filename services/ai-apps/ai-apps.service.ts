@@ -422,7 +422,7 @@ export interface AiAppAccessCandidate {
   name: string;
   image: string | null;
   teamName: string | null;
-  /** Members without AI Apps access could never open the app, so the picker disables them. */
+  /** Members without AI Apps access could never open the app, so the picker hides them. */
   hasAiAppsAccess: boolean;
   alreadyAdded: boolean;
 }

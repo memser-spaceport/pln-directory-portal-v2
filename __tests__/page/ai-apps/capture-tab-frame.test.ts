@@ -10,8 +10,21 @@ const setMediaDevices = (value: unknown) => {
   Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value });
 };
 
+/**
+ * jsdom is inconsistent about `isSecureContext`: on the version this runs on
+ * locally the property does not exist at all (it reads `undefined`, which the
+ * code correctly treats as insecure), while CI's build defines it. A plain
+ * `defineProperty` with a `value` was enough locally and was not enough there,
+ * which surfaced as two failures blaming the code under test.
+ *
+ * A getter shadows an existing accessor cleanly whichever shape it has, and the
+ * read-back turns a refusal by the environment into a message that says so.
+ */
 const setSecureContext = (value: boolean) => {
-  Object.defineProperty(window, 'isSecureContext', { configurable: true, value });
+  Object.defineProperty(window, 'isSecureContext', { configurable: true, get: () => value });
+  if (window.isSecureContext !== value) {
+    throw new Error(`test environment would not let isSecureContext be set to ${value}`);
+  }
 };
 
 /** The reason a rejection carried, or the thrown value if it wasn't ours. */

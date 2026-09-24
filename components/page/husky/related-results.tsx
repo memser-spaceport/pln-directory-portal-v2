@@ -48,9 +48,22 @@ function RelatedResults({ actions }: RelatedResultsProps) {
                   {action.type?.toLowerCase() === 'event' && (
                     <img className="actions__cn__item__name__icon" src="/icons/husky/husky-event.svg" alt="icon" />
                   )}
+                  {action.type?.toLowerCase() === 'job' && (
+                    <img className="actions__cn__item__name__icon" src="/icons/husky/husky-project.svg" alt="icon" />
+                  )}
+                  {action.type?.toLowerCase() === 'news' && (
+                    <img className="actions__cn__item__name__icon" src="/icons/husky/husky-event.svg" alt="icon" />
+                  )}
+                  {action.type?.toLowerCase() === 'forum' && (
+                    <img className="actions__cn__item__name__icon" src="/icons/husky/husky-member.svg" alt="icon" />
+                  )}
                 </div>
                 <div className="related-results__cn__item__content">
-                  <p className="related-results__cn__item__name">
+                  <p
+                    className={`related-results__cn__item__name${
+                      action.type?.toLowerCase() === 'news' ? ' related-results__cn__item__name--full' : ''
+                    }`}
+                  >
                     <span>{action.name}</span>
                   </p>
                   <p className="action-type">{action.type || ''}</p>
@@ -142,8 +155,14 @@ function RelatedResults({ actions }: RelatedResultsProps) {
             white-space: nowrap;
             text-overflow: ellipsis;
             overflow: hidden;
-            //width: 90%;
             display: block;
+          }
+
+          .related-results__cn__item__name--full {
+            white-space: normal;
+            text-overflow: unset;
+            overflow: visible;
+            text-transform: none;
           }
 
           .actions__cn__item__name__iconWrpr {

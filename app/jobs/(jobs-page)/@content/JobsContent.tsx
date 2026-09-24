@@ -12,6 +12,9 @@ import { useMarkTeamInterest } from '@/services/jobs/hooks/useTeamInterest';
 import { OpenRoleInterestModal } from '@/components/page/jobs/OpenRoleInterestModal/OpenRoleInterestModal';
 import { isJobGoneError } from '@/services/jobs/job-interests.service';
 import { useJobsParamsUpdater } from '@/services/jobs/hooks/useJobsParamsUpdater';
+import { useSavedJobs } from '@/services/jobs/hooks/savedJobs/useSavedJobs';
+import { useSavedScopeStore } from '@/services/jobs/saved-scope.store';
+import { useMemberTeamUids } from '@/components/page/jobs/hooks/useMemberTeamUids';
 import { useCreateJobAlert } from '@/services/job-alerts/hooks/useCreateJobAlert';
 import { useJobAlertMatch } from '@/services/job-alerts/hooks/useJobAlertMatch';
 import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
@@ -31,6 +34,8 @@ import TeamGroupCard from '@/components/page/jobs/TeamGroupCard';
 import { JobAlertBanner } from '@/components/page/jobs/JobAlertBanner';
 import JobAlertEmptyState from '@/components/page/jobs/JobAlertEmptyState/JobAlertEmptyState';
 import { JobAlertIndicator } from '@/components/page/jobs/JobAlertIndicator';
+import { JobsScopeTabs } from '@/components/page/jobs/JobsScopeTabs';
+import { SavedJobsEmptyState } from '@/components/page/jobs/SavedJobsEmptyState/SavedJobsEmptyState';
 
 import JobsMobileFilters from '@/components/page/jobs/JobsMobileFilters';
 import { TeamNewsModal } from '@/components/page/team-details/TeamNews';
@@ -202,6 +207,19 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
     [onExpressTeamInterest, markTeamInterest.isPending, markTeamInterest.variables],
   );
 
+  /* Bookmarking (LAB-2629). Independent of the apply flow — hence `userInfo.uid`
+     rather than its viewer: a member awaiting approval can still keep roles. */
+  const memberUid = userInfo?.uid;
+  const savedScope = useSavedScopeStore((store) => store.savedScope);
+  const { data: savedJobs } = useSavedJobs({ memberUid, enabled: isLoggedIn });
+  const savedCount = savedJobs?.length ?? 0;
+  const memberTeamUids = useMemberTeamUids(memberUid);
+
+  /* ONE stable object for every card — `TeamGroupCard` is memoized. Passed
+     signed out too, with no `memberUid`: the press then opens the sign-in door
+     and saves nothing. */
+  const saveProps = useMemo(() => ({ memberUid, savedScope, memberTeamUids }), [memberUid, savedScope, memberTeamUids]);
+
   /* ONE stable callback for every card — `TeamGroupCard` is memoized, and a
      closure minted per group re-renders every scrolled-in card on each host
      state change (every modal open/close, every submit). */
@@ -365,6 +383,12 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
         <SortDropdown options={JOBS_SORT_OPTIONS} currentSort={sort} onSortChange={onSort} sortByLabel="Sort by:" />
       </div>
 
+      {isLoggedIn && (
+        <div className={s.scopeTabs}>
+          <JobsScopeTabs savedCount={savedCount} />
+        </div>
+      )}
+
       {showIndicator && userAlert && (
         <JobAlertIndicator alert={userAlert} onDismiss={() => setIndicatorDismissed(true)} />
       )}
@@ -374,7 +398,11 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
       )}
 
       {groups.length === 0 ? (
-        <JobAlertEmptyState filterState={alertFilterState} isLoggedIn={isLoggedIn} />
+        savedScope ? (
+          <SavedJobsEmptyState hasNoSavedJobs={savedCount === 0} />
+        ) : (
+          <JobAlertEmptyState filterState={alertFilterState} isLoggedIn={isLoggedIn} />
+        )
       ) : (
         <InfiniteScroll
           scrollableTarget="body"
@@ -393,6 +421,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
                 onOpenTeamNews={openTeamNews}
                 onRoleClick={onRoleClick}
                 apply={applyProps}
+                save={saveProps}
                 openRole={openRoleProps}
               />
             ))}

@@ -9,6 +9,7 @@ import { Button } from '@/components/common/Button';
 import { CheckIcon } from '@/components/icons';
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 import { useRoleApplication } from '@/services/jobs/hooks/useJobApplications';
+import { useRoleSavedJob } from '@/services/jobs/hooks/savedJobs/useRoleSavedJob';
 
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 import type { JobDetailTarget } from '@/components/page/jobs/hooks/useJobApplyFlow';
@@ -19,6 +20,8 @@ import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel } from '@/
 import { jobApplyQueryParams } from './constants';
 
 import { ReferMenu } from './components/ReferMenu';
+import { RoleOwnerMenu } from './components/RoleOwnerMenu';
+import { SaveRoleButton } from './components/SaveRoleButton';
 import { ArrowIcon, ClockIcon } from './components/Icons';
 import { ReferModal } from '@/prototypes/entries/job-board/components/ReferModal/ReferModal';
 
@@ -55,7 +58,45 @@ export interface RowApplyProps {
   onViewJob?: (target: { role: IJobRole; teamId: string; teamName: string; team: IJobTeam }) => void;
 }
 
+/**
+ * Bookmarking, switched on by prop PRESENCE as `apply` is. Here it gates a
+ * surface rather than a flag: the board passes it, the team profile does not,
+ * because only the board has a Saved tab to find the role again in.
+ */
+export interface RowSaveProps {
+  /** Scopes the saved-map subscription; undefined while logged out, which is
+   *  also what makes the press open the sign-in door instead of writing. */
+  memberUid: string | undefined;
+  /** Inside the Saved tab the clock reports the save instead of the posting's
+   *  age — there, "9d ago" reads as when you saved it. */
+  savedScope: boolean;
+}
+
 interface ReferRoleRowProps {
+  /**
+   * The viewer is a lead of this team (or a Directory admin) — so this is their
+   * own listing, and every press collapses into one ⋯ at the end of the row.
+   *
+   * Off everywhere by default, including the board: an applicant needs Refer,
+   * Share and the way in at a glance, and the row is unchanged for them. Only
+   * the team's own profile passes it, where a lead reads past the same three
+   * controls on every row of their own page.
+   */
+  ownsListing?: boolean;
+  /**
+   * Drop the **View job** button from the action slot.
+   *
+   * The title is the same door — with the in-app description on, both open the
+   * drawer, which is why the row's own note calls them "one door with two
+   * handles". On a team's profile the handle is redundant: every row belongs to
+   * the team whose page you are already reading, so a button per row repeats an
+   * offer the titles already make.
+   *
+   * Only the button. Apply and Applied are different presses and are untouched,
+   * and so is every surface that does not pass this — the board's rows, where
+   * the button is the one action a scanner has.
+   */
+  hideViewJob?: boolean;
   role: IJobRole;
   teamId: string;
   teamName: string;
@@ -73,6 +114,7 @@ interface ReferRoleRowProps {
   team?: IJobTeam;
   onClick?: () => void;
   apply?: RowApplyProps;
+  save?: RowSaveProps;
 }
 
 /** Left-click stays in-place (drawer / feed new-tab). Modified clicks follow the href. */
@@ -96,7 +138,7 @@ function interceptUnmodifiedClick(event: MouseEvent<HTMLAnchorElement>, onOpen: 
  * offering again.
  */
 export function ReferRoleRow(props: ReferRoleRowProps) {
-  const { role, teamId, teamName, currentUser, source, onClick, apply, team } = props;
+  const { role, teamId, teamName, currentUser, source, onClick, apply, team, save, ownsListing, hideViewJob } = props;
 
   const goToLogin = useLoginRedirect();
 
@@ -114,6 +156,8 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
   // exactly this row, never the list. Inert (enabled: false) without apply props.
   const application = useRoleApplication(role.uid, { memberUid: apply?.memberUid, enabled: Boolean(apply?.memberUid) });
   const applied = Boolean(application);
+  // Same per-row subscription as the application above, on the saved map.
+  const savedJob = useRoleSavedJob(role.uid, { memberUid: save?.memberUid, enabled: Boolean(save?.memberUid) });
   const onViewJob = apply?.onViewJob;
   /* Both, or neither — see the `team` prop. */
   const viewJob = onViewJob && team ? () => onViewJob({ role, teamId, teamName, team }) : null;
@@ -123,6 +167,9 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
   const date = getJobDate(role);
   const relative = formatRelativeDays(date);
   const showNew = isNew(date);
+  const savedRelative = save?.savedScope && savedJob ? `Saved ${formatRelativeDays(savedJob.savedAt)}` : null;
+  /* Applied outranks saved: a role you both kept and sent is, to you, sent. */
+  const clockLabel = application ? `Applied ${formatRelativeDays(application.appliedAt)}` : (savedRelative ?? relative);
   const locationDisplay = isEmpty(location) ? null : location.join(', ');
 
   const metaParts = [seniority ? seniorityDisplayLabel(seniority) : null, roleCategory, locationDisplay].filter(
@@ -196,15 +243,28 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
         {/* Once applied, the clock reports the application rather than the
             posting's age — which is what makes a second "Applied" chip in the
             action slot unnecessary below. */}
-        {(relative || application) && (
+        {clockLabel && (
           <span className={clsx(s.relative, inAppApply && ap.relativeTone)}>
             <ClockIcon />
-            {application ? `Applied ${formatRelativeDays(application.appliedAt)}` : relative}
+            {clockLabel}
           </span>
         )}
 
         <div className={s.actionButtons}>
-          {inAppApply ? (
+          {ownsListing ? (
+            /* One control instead of three. The same presses are all in here —
+               see `RoleOwnerMenu`, which also explains why the design's
+               `Mark inactive` and `Delete` are not. */
+            <RoleOwnerMenu
+              role={role}
+              teamId={teamId}
+              teamName={teamName}
+              source={source}
+              onRefer={onRefer}
+              onViewJob={viewJob ?? undefined}
+              postingHref={showPosting && hasApplyUrl ? (linkProps.href as string) : undefined}
+            />
+          ) : inAppApply ? (
             /* Quiet text button: with a filled Apply in the row, the two are not
                peers — Apply is what the row is for, Refer is the sideline. */
             <Button size="s" style="link" variant="secondary" className={ap.referTone} onClick={onRefer}>
@@ -216,9 +276,12 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
             </Button>
           )}
 
-          <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />
+          {!ownsListing && <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />}
 
-          {showPosting &&
+          {save && <SaveRoleButton role={role} memberUid={save.memberUid} saved={Boolean(savedJob)} />}
+
+          {!ownsListing &&
+            showPosting &&
             hasApplyUrl &&
             !viewJob &&
             (inAppApply ? (
@@ -246,39 +309,42 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
               offer left. And having applied is no reason to stop being able to
               reread the job. The drawer's own footer carries the Applied
               control, where the offer it replaces is. */}
-          {viewJob ? (
-            <Button size="s" style="fill" variant="primary" className={ap.applyButton} onClick={viewJob}>
-              View job
-            </Button>
-          ) : (
-            inAppApply &&
-            (applied ? (
-              /* Same slot, same geometry: a row you've applied to must not
-                 resize the list around it. `disabled` is the honest semantics —
-                 there is nothing left to press. */
-              <button
-                type="button"
-                disabled
-                className={clsx(btn.root, btn.small, btn.border, btn.neutral, ap.applyButton, ap.appliedButton)}
-              >
-                <CheckIcon width={12} height={12} aria-hidden="true" />
-                Applied
-              </button>
-            ) : (
-              /* A real <button>, not the anchor: the press no longer leaves the
-                 page. It hands off to the flow, which runs the sign-in gate, the
-                 profile check and the cover letter in place. */
-              <Button
-                size="s"
-                style="fill"
-                variant="primary"
-                className={ap.applyButton}
-                onClick={() => apply!.onApply({ role, teamId, teamName, team: team! })}
-              >
-                Apply
-              </Button>
-            ))
-          )}
+          {/* Absent for the listing's own team: View job is the first item in
+              their ⋯, and a lead is not applying to their own role. */}
+          {!ownsListing &&
+            (viewJob
+              ? !hideViewJob && (
+                  <Button size="s" style="fill" variant="primary" className={ap.applyButton} onClick={viewJob}>
+                    View job
+                  </Button>
+                )
+              : inAppApply &&
+                (applied ? (
+                  /* Same slot, same geometry: a row you've applied to must not
+               resize the list around it. `disabled` is the honest semantics —
+               there is nothing left to press. */
+                  <button
+                    type="button"
+                    disabled
+                    className={clsx(btn.root, btn.small, btn.border, btn.neutral, ap.applyButton, ap.appliedButton)}
+                  >
+                    <CheckIcon width={12} height={12} aria-hidden="true" />
+                    Applied
+                  </button>
+                ) : (
+                  /* A real <button>, not the anchor: the press no longer leaves the
+               page. It hands off to the flow, which runs the sign-in gate, the
+               profile check and the cover letter in place. */
+                  <Button
+                    size="s"
+                    style="fill"
+                    variant="primary"
+                    className={ap.applyButton}
+                    onClick={() => apply!.onApply({ role, teamId, teamName, team: team! })}
+                  >
+                    Apply
+                  </Button>
+                )))}
         </div>
       </div>
 

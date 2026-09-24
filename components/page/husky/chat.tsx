@@ -20,6 +20,7 @@ import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { toast } from '@/components/core/ToastContainer';
 import { experimental_useObject as useObject } from '@ai-sdk/react';
 import { z } from 'zod';
+import { huskySourceRefSchema } from '@/services/husky/hooks/useHuskyChat';
 import { useRouter } from 'next/navigation';
 interface ChatProps {
   id?: string;
@@ -77,6 +78,7 @@ const Chat: React.FC<ChatProps> = ({
       content: z.string(),
       followUpQuestions: z.array(z.string()),
       sources: z.array(z.string()).optional(),
+      sourceRefs: z.array(huskySourceRefSchema).optional(),
       actions: z
         .array(
           z.object({
@@ -105,6 +107,7 @@ const Chat: React.FC<ChatProps> = ({
           answer: '',
           followUpQuestions: [],
           sources: [],
+          sourceRefs: [],
           actions: [],
           sql: [],
         },
@@ -159,6 +162,7 @@ const Chat: React.FC<ChatProps> = ({
           answer: chatObject?.content || newMessages[lastIndex]?.answer || '',
           followUpQuestions: chatObject?.followUpQuestions || newMessages[lastIndex]?.followUpQuestions || [],
           sources: chatObject?.sources || newMessages[lastIndex]?.sources || [],
+          sourceRefs: chatObject?.sourceRefs || newMessages[lastIndex]?.sourceRefs || [],
           actions: chatObject?.actions || newMessages[lastIndex]?.actions || [],
           sql: [],
         };
@@ -473,7 +477,6 @@ const Chat: React.FC<ChatProps> = ({
               onRegenerate={onRegenerate}
               onCopyAnswer={onCopyAnswer}
               onQuestionEdit={onQuestionEdit}
-              threadId={threadUidRef.current}
             />
           </div>
 

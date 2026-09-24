@@ -7,7 +7,7 @@
   --app-navbar-height: 56px;
 
   /* The height of the *whole* site chrome: the navbar plus whatever bars
-     `SiteHeader` has stacked above it (domain migration, complete-your-profile,
+     `SiteHeader` has stacked above it (PLAA carousel, complete-your-profile,
      and the two currently commented out). Everything that positions itself
      below the chrome — sticky sub-headers, the search overlay, full-height
      panes — reads this one.
@@ -603,4 +603,44 @@ dialog {
 html.drawer-scroll-lock {
   overflow: hidden;
   scrollbar-gutter: stable;
+}
+
+// Rich text written in RichTextEditor carries Quill's own alignment classes on
+// the block, and Quill's stylesheet only styles them under `.ql-editor` — a
+// class the read-only views that drop this HTML into a plain <div> (a team's
+// about, a member's bio, an experience description) don't have. Without these
+// an image or paragraph the author centred renders left-aligned everywhere but
+// the composer it was written in.
+.ql-align-center {
+  text-align: center;
+}
+
+.ql-align-right {
+  text-align: right;
+}
+
+.ql-align-justify {
+  text-align: justify;
+}
+
+// An image the author asked text to wrap around. The float has to escape its
+// own paragraph for the text that follows to run beside it, so the content
+// root contains it instead — otherwise an image taller than the text overhangs
+// whatever comes after the rich text. `:has()` picks that root out: only the
+// element whose direct child holds the image matches, and floats stay inside
+// the block formatting context it establishes while sibling paragraphs still
+// wrap.
+img.ql-img-float-left {
+  float: left;
+  margin: 4px 8px 8px 0;
+}
+
+img.ql-img-float-right {
+  float: right;
+  margin: 4px 0 8px 8px;
+}
+
+div:has(> p > img.ql-img-float-left),
+div:has(> p > img.ql-img-float-right) {
+  display: flow-root;
 }

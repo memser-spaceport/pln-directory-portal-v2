@@ -1,0 +1,132 @@
+@use 'styles/media';
+
+.root {
+  position: sticky;
+  top: calc(var(--app-header-height, 80px) + 8px);
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, #e2e8f0);
+  background: var(--background-neutral-primary, #fff);
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.06);
+
+  @include media.tablet-landscape {
+    top: calc(var(--app-header-height, 80px) + 16px);
+    flex-wrap: nowrap;
+  }
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.stepBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-normal, #cbd5e1);
+  background: var(--background-neutral-primary, #fff);
+  color: var(--foreground-neutral-primary, #0f172a);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--background-neutral-subtle, #f1f5f9);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.position {
+  margin-left: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.reviewBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-normal, #cbd5e1);
+  background: var(--background-neutral-primary, #fff);
+  color: var(--foreground-neutral-primary, #0f172a);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--background-neutral-subtle, #f1f5f9);
+  }
+}
+
+/* The on state is the success pair, so the bar and the row's tick agree about
+ * what reviewed looks like. */
+.isReviewed {
+  border-color: var(--border-success-subtle, #a7f3c8);
+  background: var(--background-success-subtle, rgba(10, 153, 82, 0.08));
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+.emailBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--transparent-dark-12, rgba(15, 23, 42, 0.12));
+  background: var(--action-background-brand-normal, #1b4dff);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+
+  /* The headline-primary treatment production hand-rolls on its own leading
+   * actions: inset light highlights over the flat fill, plus a brand glow. */
+  box-shadow:
+    0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
+    0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
+    0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+
+  &:hover {
+    background: var(--action-background-brand-hover, #1740db);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reviewBtn,
+  .emailBtn,
+  .stepBtn {
+    transition: none;
+  }
+}

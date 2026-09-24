@@ -6,6 +6,7 @@ import Image from 'next/image';
 import PlaaRoundSelector from './plaa-round-selector';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { getCurrentRoundNumber } from '@/utils/plaa-round.utils';
+import { usePlaaAccess } from '@/services/rbac/hooks/usePlaaAccess';
 
 /* ==========================================================================
    PlaaMenu Component
@@ -41,7 +42,7 @@ const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string; isExt
   { name: 'overview', label: 'Overview', url: '/alignment-asset/overview' },
   { name: 'incentive-model', label: 'Incentive Model', url: '/alignment-asset/incentive-model' },
   { name: 'activities', label: 'Activities', url: '/alignment-asset/activities' },
-  // { name: 'profile', label: 'Profile', url: '/alignment-asset/profile' },
+  { name: 'profile', label: 'Profile', url: '/alignment-asset/profile' },
   { name: 'kudos', label: 'Kudos', url: '/alignment-asset/kudos', badge: 'new' },
   { name: 'trust-holdings', label: 'Trust & Holdings', url: '/alignment-asset/trust-holdings' },
   { name: 'product-versions', label: 'Product Versions', url: '/alignment-asset/product-versions' },
@@ -65,7 +66,15 @@ function PlaaMenu({
 
   // Guests (no LabOS session) can't give kudos and shouldn't see the feature
   // exists; a signed-in non-PLAA member can still read the board.
-  const visibleItems = isLoggedIn ? menuItems : menuItems.filter((item) => item.name !== 'kudos');
+  //
+  // Profile is PLAA-members-only, matching the page's own gate, so nobody is
+  // offered a link that would turn them away. Hidden while access is unknown.
+  const { canView: canViewPlaa } = usePlaaAccess();
+  const visibleItems = menuItems.filter((item) => {
+    if (item.name === 'kudos') return !!isLoggedIn;
+    if (item.name === 'profile') return canViewPlaa;
+    return true;
+  });
 
   const onItemClicked = (label: string, url: string, isExternal?: boolean) => {
     onNavMenuClicked(label, url);

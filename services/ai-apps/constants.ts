@@ -7,10 +7,13 @@ export enum AiAppsQueryKeys {
   // ships, sinceMinutes must join the key or windows cross-contaminate the cache.
   AI_APP_LOGS = 'ai-app-logs',
   AI_APP_TAGS = 'ai-app-tags',
+  AI_APP_ACCESS = 'ai-app-access',
+  AI_APP_ACCESS_CANDIDATES = 'ai-app-access-candidates',
+  AI_APP_PUBLIC_PATHS = 'ai-app-public-paths',
 }
 
 /** Keep in sync with `AI_APPS_STARTER_KIT_VERSION` in pln-directory-portal web-api. */
-export const AI_APPS_STARTER_KIT_VERSION = '1.12';
+export const AI_APPS_STARTER_KIT_VERSION = '1.13';
 
 export const PL_INFRA_OS_APP_UID = 'cmst544z7008siz4g1d59fubr';
 export const PL_INFRA_OS_PATH = '/pl-infra-os';

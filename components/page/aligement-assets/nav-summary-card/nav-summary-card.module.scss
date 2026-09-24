@@ -1,0 +1,100 @@
+// Local palette: the shared Slate tokens sit at different values than this design.
+$ink: #101828;
+$brand-blue: #2563eb;
+$card-border: #e4e7ec;
+$hairline: #edf0f4;
+$tint: #f7f9fc;
+$stack-breakpoint: 720px; // set by the design, not one of the shared breakpoints
+
+.root {
+  width: 100%;
+  // No top or left padding: the gray panel bleeds to the container's corner.
+  padding: 0 40px 0 0;
+  border-bottom: 1px solid $card-border;
+  font-family: 'Inter', sans-serif;
+  color: $ink;
+}
+
+.card {
+  display: flex;
+
+  @media (max-width: $stack-breakpoint - 1) {
+    flex-direction: column;
+  }
+}
+
+.panelPrimary {
+  flex: 0 0 432px;
+  display: flex;
+  align-items: center;
+  padding: 28px 32px;
+  background-color: $tint;
+  border-top-left-radius: 16px;
+
+  @media (max-width: $stack-breakpoint - 1) {
+    flex-basis: auto;
+    width: 100%;
+    border-top-right-radius: 16px;
+  }
+}
+
+.panelSecondary {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  padding: 28px 32px;
+  border-left: 1px solid $card-border;
+
+  @media (max-width: $stack-breakpoint - 1) {
+    border-left: none;
+    border-top: 1px solid $card-border;
+  }
+}
+
+.fieldGroup {
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: $brand-blue;
+}
+
+.hero {
+  margin: 0;
+  font-size: 64px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  color: $ink;
+  font-variant-numeric: tabular-nums;
+  @media (max-width: 480px) {
+    font-size: 40px;
+  }
+}
+
+.secondaryValue {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: $ink;
+  font-variant-numeric: tabular-nums;
+}
+
+.divider {
+  height: 1px;
+  background-color: $hairline;
+}

@@ -222,12 +222,15 @@ export const AnswerView = ({
             <div key={turn.chatId} className={s.turn}>
               <div className={s.question}>{turn.question}</div>
 
-              {!!turn.sources.length && (
+              {!!(turn.sourceRefs?.length || turn.sources.length) && (
                 <div className={s.sources}>
                   <PopoverDp.Wrapper>
-                    <InfoBox info={`${turn.sources.length} source(s)`} imgUrl="/icons/globe-blue.svg" />
+                    <InfoBox
+                      info={`${turn.sourceRefs?.length || turn.sources.length} source(s)`}
+                      imgUrl="/icons/globe-blue.svg"
+                    />
                     <PopoverDp.Pane position="bottom">
-                      <HuskySourceCard sources={turn.sources} />
+                      <HuskySourceCard sources={turn.sources} sourceRefs={turn.sourceRefs} />
                     </PopoverDp.Pane>
                   </PopoverDp.Wrapper>
                 </div>
@@ -235,7 +238,7 @@ export const AnswerView = ({
 
               {!!turn.answer && (
                 <div className={s.answer}>
-                  <Markdown>{turn.answer}</Markdown>
+                  <Markdown sourceRefs={turn.sourceRefs}>{turn.answer}</Markdown>
                 </div>
               )}
 

@@ -1,21 +1,34 @@
-import { FC } from 'react';
+import { FC, type ReactNode } from 'react';
 import MarkdownToJSX from 'markdown-to-jsx';
 import HuskyCodeBlock from '../core/husky/husky-code-block';
+
+interface CitationRef {
+  index: number;
+  title: string;
+  directoryLink?: string;
+  externalUrl?: string;
+}
 
 interface MarkdownProps {
   children: string;
   className?: string;
+  sourceRefs?: CitationRef[];
 }
 
-const anchorWrapper = (props: any) => (
-  <a style={{ color: 'blue' }} target="_blank" href={props.href}>
-    {isNaN(props.children) ? props.children : `[${props.children}]`}
-  </a>
-);
+export const Markdown: FC<MarkdownProps> = ({ children, className = '', sourceRefs }) => {
+  const anchorWrapper = (props: { href?: string; children?: unknown }) => {
+    const cited = !Number.isNaN(Number(props.children));
+    const ref = cited ? sourceRefs?.find((item) => item.index === Number(props.children)) : undefined;
+    const href = (ref && (ref.directoryLink || ref.externalUrl)) || props.href;
+    return (
+      <a style={{ color: 'blue' }} target="_blank" rel="noreferrer" href={href} title={ref?.title}>
+        {cited ? `[${props.children}]` : (props.children as ReactNode)}
+      </a>
+    );
+  };
 
-export const Markdown: FC<MarkdownProps> = ({ children, className = '' }) => {
   return (
-    <div className={className}>
+    <div className={`husky-md ${className}`.trim()}>
       <MarkdownToJSX
         options={{
           overrides: {
@@ -25,8 +38,6 @@ export const Markdown: FC<MarkdownProps> = ({ children, className = '' }) => {
             h2: { props: { style: { marginTop: '12px', marginBottom: '12px', fontSize: '20px' } } },
             h3: { props: { style: { marginTop: '10px', marginBottom: '10px', fontSize: '18px' } } },
             h4: { props: { style: { marginTop: '8px', marginBottom: '8px', fontSize: '16px' } } },
-            ol: { props: { style: { marginLeft: '16px' } } },
-            ul: { props: { style: { marginLeft: '16px' } } },
             code: { component: HuskyCodeBlock },
             table: { props: { style: { borderCollapse: 'collapse', width: '100%', marginBottom: '16px' } } },
             thead: { props: { style: { backgroundColor: '#f5f5f5' } } },
@@ -37,6 +48,22 @@ export const Markdown: FC<MarkdownProps> = ({ children, className = '' }) => {
       >
         {children}
       </MarkdownToJSX>
+      <style>{`
+        .husky-md ul {
+          margin: 4px 0 6px;
+          padding-inline-start: 1.25em;
+          list-style-type: disc;
+        }
+        .husky-md ul ul {
+          list-style-type: circle;
+          margin-bottom: 0;
+        }
+        .husky-md ol {
+          margin: 4px 0 6px;
+          padding-inline-start: 1.25em;
+          list-style-type: decimal;
+        }
+      `}</style>
     </div>
   );
 };

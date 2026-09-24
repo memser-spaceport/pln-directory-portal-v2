@@ -17,10 +17,19 @@ import { useDailyChatLimit, type LimitLevel } from './useDailyChatLimit';
 /* The wire shape, declared once. Everything downstream derives from it rather
    than restating it — the previous two hosts each kept their own copy of this
    schema *and* their own `any[]` for the messages it produced. */
+export const huskySourceRefSchema = z.object({
+  index: z.number(),
+  title: z.string(),
+  type: z.string(),
+  directoryLink: z.string().optional(),
+  externalUrl: z.string().optional(),
+});
+
 const huskyChatSchema = z.object({
   content: z.string(),
   followUpQuestions: z.array(z.string()),
   sources: z.array(z.string()).optional(),
+  sourceRefs: z.array(huskySourceRefSchema).optional(),
   actions: z
     .array(
       z.object({
@@ -34,6 +43,14 @@ const huskyChatSchema = z.object({
 
 export type HuskyChunk = z.infer<typeof huskyChatSchema>;
 export type HuskyAction = NonNullable<HuskyChunk['actions']>[number];
+export type HuskySourceRef = z.infer<typeof huskySourceRefSchema>;
+
+function readySourceRefs(refs: Array<Partial<HuskySourceRef> | undefined> | undefined): HuskySourceRef[] | undefined {
+  const ready = refs?.filter(
+    (ref): ref is HuskySourceRef => Boolean(ref?.index) && Boolean(ref?.title) && Boolean(ref?.type),
+  );
+  return ready?.length ? ready : undefined;
+}
 
 export interface HuskyTurn {
   /** Identity, so a chunk can only ever land on the turn that asked for it. */
@@ -41,6 +58,7 @@ export interface HuskyTurn {
   question: string;
   answer: string;
   sources: string[];
+  sourceRefs?: HuskySourceRef[];
   followUpQuestions: string[];
   actions: HuskyAction[];
   isError?: boolean;
@@ -251,6 +269,7 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
               answer: chatObject.content ?? turn.answer,
               followUpQuestions: (chatObject.followUpQuestions?.filter(Boolean) as string[]) ?? turn.followUpQuestions,
               sources: (chatObject.sources?.filter(Boolean) as string[]) ?? turn.sources,
+              sourceRefs: readySourceRefs(chatObject.sourceRefs) ?? turn.sourceRefs,
               actions: (chatObject.actions?.filter(Boolean) as HuskyAction[]) ?? turn.actions,
             }
           : turn,
@@ -314,7 +333,7 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
 
       setTurns((prev) => [
         ...(newThread ? [] : prev),
-        { chatId, question: trimmed, answer: '', sources: [], followUpQuestions: [], actions: [] },
+        { chatId, question: trimmed, answer: '', sources: [], sourceRefs: [], followUpQuestions: [], actions: [] },
       ]);
 
       try {

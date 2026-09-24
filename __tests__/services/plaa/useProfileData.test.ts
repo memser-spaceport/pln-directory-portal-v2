@@ -35,6 +35,11 @@ jest.mock('@/services/plaa/hooks/useSnapshotLifecycle', () => ({
   useSnapshotLifecycle: () => mockUseSnapshotLifecycle(),
 }));
 
+const mockUseIsInfraMember = jest.fn();
+jest.mock('@/services/plaa/hooks/useIsInfraMember', () => ({
+  useIsInfraMember: () => mockUseIsInfraMember(),
+}));
+
 import { useProfileData as useProfileDataDefault } from '@/services/plaa/hooks/useProfileData';
 
 const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
@@ -60,6 +65,7 @@ describe('useProfileData', () => {
     mockUseSnapshotPointsHistory.mockReturnValue({});
     mockUseRedemptionHistory.mockReturnValue({ data: undefined });
     mockUseSnapshotLifecycle.mockReturnValue({ data: undefined });
+    mockUseIsInfraMember.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -97,12 +103,13 @@ describe('useProfileData', () => {
     expect(result.current.identity.avatarUrl).toBe('https://example.com/a.png');
   });
 
-  it('passes through the current snapshot points collected', () => {
+  it('passes through the current snapshot points collected and its month', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
-    mockUseCurrentSnapshotStatus.mockReturnValue({ pointsCollected: 777 });
+    mockUseCurrentSnapshotStatus.mockReturnValue({ pointsCollected: 777, periodLabel: 'September 2026' });
     const { result } = renderHook(() => useProfileDataDefault());
 
     expect(result.current.pointsThisSnapshot).toBe(777);
+    expect(result.current.currentSnapshotLabel).toBe('September 2026');
   });
 
   it('wires balance from useProfileBalance and reports balanceStatus "ready", independent of history', () => {
@@ -305,8 +312,22 @@ describe('useProfileData', () => {
       { period: '2026-06-26', iaPlaa: 0, irPlaa: 0, plaaTotal: 0 },
     ];
 
-    it('reports isInfraMember false — no real RBAC source is wired yet', () => {
+    it('reports isInfraMember from the member\'s Infra policy', () => {
       mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+
+      mockUseIsInfraMember.mockReturnValue(true);
+      expect(renderHook(() => useProfileDataDefault()).result.current.identity.isInfraMember).toBe(true);
+
+      mockUseIsInfraMember.mockReturnValue(false);
+      expect(renderHook(() => useProfileDataDefault()).result.current.identity.isInfraMember).toBe(false);
+    });
+
+    it('does not derive isInfraMember from infra rewards in the balance', () => {
+      mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+      mockUseProfileBalance.mockReturnValue({
+        data: { plaaBalance: 1200, activities: 500, infraRewards: 700, redeemed: 0 },
+        isLoading: false,
+      });
       const { result } = renderHook(() => useProfileDataDefault());
 
       expect(result.current.identity.isInfraMember).toBe(false);
@@ -413,11 +434,168 @@ describe('useProfileData', () => {
       expect(byPeriod['Jul 2026']).toBe(true);
     });
 
+    it('does not add an open snapshot\'s PLAA to the running balance until it closes', () => {
+      mockUseSnapshotLifecycle.mockReturnValue({
+        data: [
+          { roundNumber: 1, period: '2026-05-01', status: 'Snapshot Closed', plaaLocked: true, isClosed: true },
+          { roundNumber: 2, period: '2026-06-01', status: 'Snapshot Closed', plaaLocked: true, isClosed: true },
+          { roundNumber: 3, period: '2026-07-01', status: 'Appeal Window', plaaLocked: false, isClosed: false },
+        ],
+      });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      expect(result.current.contributionHistory.map((e) => e.cum)).toEqual([1000, 1000, 1000]);
+    });
+
     it('marks nothing pending while the lifecycle request has not resolved', () => {
       mockUseSnapshotLifecycle.mockReturnValue({ data: undefined });
       const { result } = renderHook(() => useProfileDataDefault());
 
       expect(result.current.contributionHistory.every((e) => e.isPending === false)).toBe(true);
+    });
+  });
+
+  describe('open snapshots not yet in the PLAA history', () => {
+    // History only gains a row once a snapshot's PLAA is calculated.
+    const HISTORY_TO_JULY = [
+      { period: '2026-06-26', iaPlaa: 276, irPlaa: 0, plaaTotal: 276 },
+      { period: '2026-07-26', iaPlaa: 205, irPlaa: 0, plaaTotal: 205 },
+    ];
+    const LIFECYCLE = [
+      { roundNumber: 17, period: '2026-06-01', status: 'Snapshot Closed', plaaLocked: true, isClosed: true },
+      { roundNumber: 18, period: '2026-07-01', status: 'Snapshot Closed', plaaLocked: true, isClosed: true },
+      { roundNumber: 19, period: '2026-08-01', status: 'Appeal Window', plaaLocked: false, isClosed: false },
+      { roundNumber: 20, period: '2026-09-01', status: 'Current Snapshot', plaaLocked: false, isClosed: false },
+    ];
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2026-09-14T12:00:00'));
+      mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+      mockUseProfilePlaaHistory.mockReturnValue({ data: HISTORY_TO_JULY, isLoading: false });
+      mockUseSnapshotLifecycle.mockReturnValue({ data: LIFECYCLE });
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('lists the appeal-window and current snapshots as Pending rows, newest first', () => {
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      expect(result.current.snapshotHistory.map((e) => [e.period, e.isPending])).toEqual([
+        ['Sep 2026', true],
+        ['Aug 2026', true],
+        ['Jul 2026', false],
+        ['Jun 2026', false],
+      ]);
+    });
+
+    it('requests points for the open snapshots so their activity shows as it comes in', () => {
+      mockUseSnapshotPointsHistory.mockImplementation((periods: string[]) =>
+        Object.fromEntries(
+          periods.map((p) => [
+            p,
+            p.startsWith('2026-08')
+              ? { snapshotPeriod: '2026-08-01', records: [{ category: 'Category A', activityName: 'Activity 1', description: '', pointsCollectedPerSnapshot: 120 }] }
+              : null,
+          ]),
+        ),
+      );
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      const aug = result.current.snapshotHistory.find((e) => e.period === 'Aug 2026')!;
+      expect(aug.points).toBe(120);
+      expect(aug.activities).toBe(1);
+      expect(mockUseSnapshotPointsHistory).toHaveBeenCalledWith(['2026-06-26', '2026-07-26', '2026-08-01', '2026-09-01']);
+    });
+
+    it('carries the confirmed balance forward through open snapshots in the contribution history', () => {
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      expect(result.current.contributionHistory.map((e) => [e.period, e.isPending, e.cum])).toEqual([
+        ['Jun 2026', false, 276],
+        ['Jul 2026', false, 481],
+        ['Aug 2026', true, 481],
+        ['Sep 2026', true, 481],
+      ]);
+    });
+
+    it('fills a closed snapshot the member has no history row for, as a zero month', () => {
+      mockUseSnapshotLifecycle.mockReturnValue({
+        data: [
+          ...LIFECYCLE.slice(0, 2),
+          { roundNumber: 19, period: '2026-08-01', status: 'Snapshot Closed', plaaLocked: true, isClosed: true },
+          LIFECYCLE[3],
+        ],
+      });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      const aug = result.current.snapshotHistory.find((e) => e.period === 'Aug 2026')!;
+      expect(aug).toBeDefined();
+      expect(aug.isPending).toBe(false);
+      expect(aug.plaaTotal).toBe(0);
+      expect(aug.activityPlaa).toBe(0);
+    });
+
+    it('does not invent months from before the member\'s first snapshot', () => {
+      mockUseSnapshotLifecycle.mockReturnValue({
+        data: [
+          { roundNumber: 15, period: '2026-04-01', status: 'Snapshot Closed', plaaLocked: true, isClosed: true },
+          { roundNumber: 16, period: '2026-05-01', status: 'Snapshot Closed', plaaLocked: true, isClosed: true },
+          ...LIFECYCLE,
+        ],
+      });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      const periods = result.current.snapshotHistory.map((e) => e.period);
+      expect(periods).not.toContain('Apr 2026');
+      expect(periods).not.toContain('May 2026');
+      expect(periods[periods.length - 1]).toBe('Jun 2026');
+    });
+
+    it('skips a snapshot staged ahead of its month', () => {
+      jest.setSystemTime(new Date('2026-08-31T23:00:00'));
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      expect(result.current.snapshotHistory.map((e) => e.period)).toEqual(['Aug 2026', 'Jul 2026', 'Jun 2026']);
+    });
+
+    it('does not duplicate an open snapshot that already has a history row', () => {
+      mockUseProfilePlaaHistory.mockReturnValue({
+        data: [...HISTORY_TO_JULY, { period: '2026-08-26', iaPlaa: 90, irPlaa: 0, plaaTotal: 90 }],
+        isLoading: false,
+      });
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      expect(result.current.snapshotHistory.filter((e) => e.period === 'Aug 2026')).toHaveLength(1);
+    });
+
+    it('adds nothing while the history or the lifecycle has not loaded', () => {
+      mockUseSnapshotLifecycle.mockReturnValue({ data: undefined });
+      expect(renderHook(() => useProfileDataDefault()).result.current.snapshotHistory).toHaveLength(2);
+
+      mockUseSnapshotLifecycle.mockReturnValue({ data: LIFECYCLE });
+      mockUseProfilePlaaHistory.mockReturnValue({ data: undefined, isLoading: true });
+      expect(renderHook(() => useProfileDataDefault()).result.current.snapshotHistory).toEqual([]);
+    });
+
+    it('gives a member with no history yet an open-snapshot row only once they have points in it', () => {
+      mockUseProfilePlaaHistory.mockReturnValue({ data: [], isLoading: false });
+      mockUseSnapshotPointsHistory.mockImplementation((periods: string[]) =>
+        Object.fromEntries(
+          periods.map((p) => [
+            p,
+            p.startsWith('2026-09')
+              ? { snapshotPeriod: '2026-09-01', records: [{ category: 'PLAA', activityName: 'Onboarding', description: '', pointsCollectedPerSnapshot: 0 }] }
+              : null,
+          ]),
+        ),
+      );
+      const { result } = renderHook(() => useProfileDataDefault());
+
+      expect(result.current.snapshotHistory.map((e) => e.period)).toEqual(['Sep 2026']);
+      expect(result.current.identity.memberSince).toBe('Sep 2026');
     });
   });
 });

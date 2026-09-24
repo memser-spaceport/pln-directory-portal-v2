@@ -33,6 +33,7 @@ const NOT_ONBOARDED_DATA = {
   balance: {},
   balanceStatus: 'unavailable',
   pointsThisSnapshot: 0,
+  currentSnapshotLabel: 'September 2026',
   snapshotHistory: [],
   contributionHistory: [],
 };
@@ -42,6 +43,7 @@ const ONBOARDED_DATA = {
   balance: { plaaBalance: 112, activities: 102, infraRewards: 60, redeemed: 50 },
   balanceStatus: 'ready',
   pointsThisSnapshot: 420,
+  currentSnapshotLabel: 'September 2026',
   snapshotHistory: [],
   contributionHistory: [],
 };

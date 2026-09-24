@@ -6,6 +6,9 @@ import {
   hasRenderableContent,
 } from '@/components/page/home/TeamNews/components/FeedCommentsThread/FeedCommentContent';
 
+/** Where the forum composer's uploads live. */
+const IMAGE_SRC = 'https://images.example.com/uploads/shot.png';
+
 /** The exact anchor RichTextEditor's MentionBlot emits. */
 const MENTION =
   '<a class="ql-mention" href="/members/m_7fa2" data-uid="m_7fa2" data-external-id="ext-1" ' +
@@ -88,12 +91,13 @@ describe('FeedCommentContent — sanitizing', () => {
     expect(container.querySelector('[onmouseover]')).toBeNull();
   });
 
-  it('drops tags outside the three-tag allowlist, keeping their text', () => {
-    // A forum post can carry images and headings; a feed card renders neither.
-    const { container } = render(<FeedCommentContent html="<h1>Title</h1><img src='x.png'><p>body</p>" />);
+  it('drops tags outside the allowlist, keeping their text', () => {
+    // A forum post can carry headings; a feed card renders none. Images are the
+    // exception — see the image suite below.
+    const { container } = render(<FeedCommentContent html="<h1>Title</h1><blockquote>q</blockquote><p>body</p>" />);
 
     expect(container.querySelector('h1')).toBeNull();
-    expect(container.querySelector('img')).toBeNull();
+    expect(container.querySelector('blockquote')).toBeNull();
     expect(container.textContent).toContain('body');
   });
 
@@ -105,10 +109,11 @@ describe('FeedCommentContent — sanitizing', () => {
 });
 
 describe('hasRenderableContent', () => {
-  it('is false for an image-only forum comment', () => {
-    // Truthy raw, but nothing survives the allowlist — the caller must fall
-    // back to "shared an image or file" instead of rendering a blank row.
-    expect(hasRenderableContent('<img src="https://example.com/a.png">')).toBe(false);
+  it('is true for an image-only forum comment', () => {
+    // An image carries no text, so isBlankHtml alone calls this blank and the
+    // caller renders "shared an image or file" INSTEAD of the image.
+    expect(hasRenderableContent(`![shot.png](${IMAGE_SRC})`)).toBe(true);
+    expect(hasRenderableContent('<img src="https://example.com/a.png">')).toBe(true);
   });
 
   it('is false for Quill’s empty value', () => {
@@ -125,5 +130,75 @@ describe('hasRenderableContent', () => {
 
   it('is true for legacy plain text', () => {
     expect(hasRenderableContent('just text')).toBe(true);
+  });
+});
+
+/**
+ * NodeBB stores a forum comment as plain text with its images left as
+ * `![alt](src)` — there is no <img> and no <p> anywhere in it. Rendering that
+ * string as-is is what showed members the markdown instead of the picture.
+ */
+describe('FeedCommentContent — forum images', () => {
+  it('renders a markdown image as an image', () => {
+    const { container } = render(<FeedCommentContent html={`Nice work ![shot.png](${IMAGE_SRC}) see above`} />);
+
+    const img = container.querySelector('img');
+    expect(img).toHaveAttribute('src', IMAGE_SRC);
+    expect(img).toHaveAttribute('alt', 'shot.png');
+    expect(container.textContent).toContain('Nice work');
+    expect(container.textContent).not.toContain('![shot.png]');
+  });
+
+  it('keeps the size and text wrap the author saved on the forum', () => {
+    // Both survive NodeBB's markdown storage in the src fragment, and both are
+    // easy to lose again: `width` is dropped unless the sanitizer is told the
+    // attribute is not a URL, and the fragment must come off the src.
+    const { container } = render(<FeedCommentContent html={`![shot.png](${IMAGE_SRC}#w=50,f=right)`} />);
+
+    const img = container.querySelector('img');
+    expect(img).toHaveAttribute('width', '50%');
+    expect(img).toHaveClass('ql-img-float-right');
+    expect(img).toHaveAttribute('src', IMAGE_SRC);
+  });
+
+  it('renders an image served from a root-relative forum path', () => {
+    // The allowlist used to admit only /members/ among relative URLs, which is
+    // not where an upload lives.
+    const { container } = render(<FeedCommentContent html="![diagram](/assets/uploads/files/diagram.png)" />);
+
+    expect(container.querySelector('img')).toHaveAttribute('src', '/assets/uploads/files/diagram.png');
+  });
+
+  it('does not also render the image URL as a link', () => {
+    // Convert before linkify, or the URL is still bare text when linkify runs
+    // and the member gets an anchor pointing at a .png next to the picture.
+    const { container } = render(<FeedCommentContent html={`![shot.png](${IMAGE_SRC})`} />);
+
+    expect(container.querySelector('a')).toBeNull();
+  });
+
+  it('still linkifies a URL that is not an image', () => {
+    render(<FeedCommentContent html={`![shot.png](${IMAGE_SRC}) and https://example.com/docs`} />);
+
+    expect(screen.getByRole('link', { name: 'https://example.com/docs' })).toBeInTheDocument();
+  });
+
+  it('renders nothing executable from a hostile markdown image', () => {
+    // The converter interpolates alt and src into an attribute unescaped; the
+    // sanitizer running AFTER it is what makes that safe.
+    const { container } = render(
+      <FeedCommentContent html={'![" onerror="alert(1)](x.png) ![evil](javascript:alert(1))'} />,
+    );
+
+    expect(container.querySelector('[onerror]')).toBeNull();
+    expect(container.querySelector('img[src^="javascript:"]')).toBeNull();
+  });
+
+  it('leaves a comment with no image untouched', () => {
+    const { container } = render(<FeedCommentContent html={`<p>plain ${MENTION} comment</p>`} />);
+
+    expect(container.querySelector('img')).toBeNull();
+    expect(container.querySelector('.ql-mention')).toHaveAttribute('data-uid', 'm_7fa2');
+    expect(container.textContent).toContain('plain');
   });
 });

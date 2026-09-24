@@ -766,10 +766,10 @@ function CommentRow(props: CommentRowProps) {
               </button>
             ))}
         </div>
-        {/* A forum comment that was only an image or a file sanitizes to
-            nothing under the feed's three-tag allowlist. Say so and point at
-            where it can be seen, rather than rendering a blank row. Asked of
-            the sanitized string: the raw one is a truthy `<img src=…>`. */}
+        {/* Images render inline now, so this is what's left: a comment that is
+            only a FILE, or one whose content sanitizes away entirely. Say so
+            and point at where it can be seen, rather than rendering a blank
+            row. */}
         {hasRenderableContent(comment.text) ? (
           <FeedCommentContent html={comment.text} onAnchorClick={onAnchorClick} />
         ) : (

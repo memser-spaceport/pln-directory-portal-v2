@@ -40,6 +40,8 @@ interface Props {
   roles: IJobRole[];
   /** `?role=` — the role whose count line was pressed. */
   initialRoleUid: string | null;
+  /** `?candidate=` — a member uid, from the application email's link to the person. */
+  initialCandidateUid: string | null;
   /**
    * The signed-in lead, handed down rather than read from the user store.
    *
@@ -66,7 +68,15 @@ type RoleOption = Option & { newCount: number };
  * has to carry the gate, because an early `return null` in a host does not stop
  * a hook that already ran.
  */
-export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, viewerUid, isLoggedIn }: Props) {
+export function TeamApplicantsView({
+  teamId,
+  teamName,
+  roles,
+  initialRoleUid,
+  initialCandidateUid,
+  viewerUid,
+  isLoggedIn,
+}: Props) {
   /* The tablet-landscape hook, not `useIsMobile`. `useIsMobile` switches at
      768px and this layout goes two-column at 960 — between the two the pane
      would render under the list with nothing to go back to. */
@@ -87,6 +97,7 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
   const [query, setQuery] = useState('');
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [paneOpen, setPaneOpen] = useState(false);
+  const [pendingCandidateUid, setPendingCandidateUid] = useState(initialCandidateUid);
 
   const role = roles.find((r) => r.uid === roleUid) ?? roles[0] ?? null;
 
@@ -222,8 +233,14 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
    * is the conservative read, not a behaviour the tests can tell apart.
    */
   useEffect(() => {
-    if (isNarrow || selectedUid || !rows.length) return;
-    select(rows[0]);
+    if (selectedUid || !rows.length) return;
+    /* A lead arriving from the email came for one person, so that person opens
+       on a narrow screen too. Consumed on first use: switching back to this
+       tab later should not pull them back to it. */
+    const candidate = pendingCandidateUid ? rows.find((row) => row.memberUid === pendingCandidateUid) : undefined;
+    if (pendingCandidateUid) setPendingCandidateUid(null);
+    if (candidate) select(candidate);
+    else if (!isNarrow) select(rows[0]);
     /* `select` is rebuilt every render and is deliberately not a dependency;
        the guards above are what stop this running twice. */
     // eslint-disable-next-line react-hooks/exhaustive-deps

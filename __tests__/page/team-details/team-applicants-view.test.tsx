@@ -130,6 +130,7 @@ const renderView = (props: Partial<React.ComponentProps<typeof TeamApplicantsVie
       teamName="Filecoin Foundation"
       roles={ROLES}
       initialRoleUid={null}
+      initialCandidateUid={null}
       viewerUid="u1"
       isLoggedIn
       {...props}
@@ -260,6 +261,27 @@ describe('TeamApplicantsView', () => {
 
       expect(screen.queryByTestId('pane')).not.toBeInTheDocument();
       expect(markSeen).not.toHaveBeenCalled();
+    });
+
+    it('opens on the candidate the email linked to', () => {
+      renderView({ initialCandidateUid: LINA.memberUid });
+
+      expect(screen.getByTestId('pane')).toHaveTextContent('Lina Suarez');
+      expect(screen.getByRole('button', { pressed: true }).textContent).toContain('Lina Suarez');
+    });
+
+    it('opens on the linked candidate on a narrow screen too', () => {
+      isNarrow = true;
+
+      renderView({ initialCandidateUid: LINA.memberUid });
+
+      expect(screen.getByTestId('pane')).toHaveTextContent('Lina Suarez');
+    });
+
+    it('falls back to the first row when the linked candidate is not in the list', () => {
+      renderView({ initialCandidateUid: 'm-unknown' });
+
+      expect(screen.getByTestId('pane')).toHaveTextContent('Devon Park');
     });
   });
 

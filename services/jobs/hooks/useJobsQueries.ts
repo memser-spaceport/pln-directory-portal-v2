@@ -11,6 +11,7 @@ import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { JobsQueryKey } from '../constants';
 import { FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED } from '@/constants/filters';
 
+import { useSavedScopeStore } from '../saved-scope.store';
 import { fetchJobsFilters, fetchJobsList } from '../jobs.service';
 
 const SINGLE_VALUE_KEYS = ['q', 'sort'] as const;
@@ -39,8 +40,29 @@ export function useJobsSearchParams(): URLSearchParams {
   return useMemo(() => pickJobsParams(new URLSearchParams(raw.toString())), [raw]);
 }
 
-export function useInfiniteJobsList() {
+/**
+ * The board's params, plus the Saved tab's `saved=true`. Read from the store
+ * rather than taken as an argument because `useInfiniteJobsList` runs in four
+ * places that must describe the same list. It lands in the query string and,
+ * through it, in the React Query key — without that the saved list and the
+ * whole board would share one cache entry.
+ */
+function useScopedJobsParams(): URLSearchParams {
   const params = useJobsSearchParams();
+  const savedScope = useSavedScopeStore((store) => store.savedScope);
+
+  return useMemo(() => {
+    if (!savedScope) {
+      return params;
+    }
+    const scoped = new URLSearchParams(params.toString());
+    scoped.set('saved', 'true');
+    return scoped;
+  }, [params, savedScope]);
+}
+
+export function useInfiniteJobsList() {
+  const params = useScopedJobsParams();
   const key = params.toString();
 
   const query = useInfiniteQuery<IJobsListResponse>({
@@ -64,7 +86,7 @@ export function useInfiniteJobsList() {
 }
 
 export function useJobsFilters() {
-  const params = useJobsSearchParams();
+  const params = useScopedJobsParams();
   const key = params.toString();
 
   return useQuery({

@@ -16,7 +16,7 @@ import { TeamNewsCountChip } from '@/components/page/team-news/TeamNewsCountChip
 
 import { useGetFocusTags } from './hooks/useGetFocusTags';
 
-import { ReferRoleRow, type RowApplyProps } from './component/ReferRoleRow';
+import { ReferRoleRow, type RowApplyProps, type RowSaveProps } from './component/ReferRoleRow';
 import { OpenRoleRow } from './component/OpenRoleRow';
 import { isProtocolLabsTeam } from '@/services/jobs/protocol-labs-team';
 
@@ -37,6 +37,17 @@ interface TeamGroupCardProps {
   onOpenTeamNews?: (teamUid: string, teamName: string) => void;
   /** In-app apply wiring, threaded to rows. Presence is the gate — see RowApplyProps. */
   apply?: RowApplyProps;
+  /**
+   * Bookmarking, threaded to rows. Presence is the gate, as with `apply`.
+   *
+   * Which rows offer it is decided here rather than by the host, as with
+   * `openRole`: it turns on a fact about the team, and a member does not
+   * bookmark their own team's postings.
+   */
+  save?: RowSaveProps & {
+    /** Every team the member belongs to, as a member or a lead. */
+    memberTeamUids: Set<string>;
+  };
   /**
    * The open-role signal — "I want to work here, and none of these fit".
    *
@@ -59,6 +70,7 @@ function TeamGroupCardImpl({
   onRoleClick,
   onOpenTeamNews,
   apply,
+  save,
   openRole,
 }: TeamGroupCardProps) {
   const [expanded, toggleExpanded] = useToggle(false);
@@ -74,6 +86,8 @@ function TeamGroupCardImpl({
   const isProtocolLabs = isProtocolLabsTeam(team);
   const showOpenRole = Boolean(openRole) && isProtocolLabs;
   const currentUser = useCurrentUserStore((state) => state.currentUser);
+  const rowSave =
+    save && !save.memberTeamUids.has(team.uid) ? { memberUid: save.memberUid, savedScope: save.savedScope } : undefined;
 
   return (
     <article className={clsx(s.card, isProtocolLabs && s.plCard)}>
@@ -127,6 +141,7 @@ function TeamGroupCardImpl({
             role={role}
             source="job-board"
             apply={apply}
+            save={rowSave}
             onClick={() => {
               onRoleClick(role, idx, group, groupIndex);
             }}

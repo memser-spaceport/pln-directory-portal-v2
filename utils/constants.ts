@@ -2718,6 +2718,16 @@ export const AI_APPS_ANALYTICS = {
   SORT_CHANGED: 'ai_apps_sort_changed',
   FILTERS_CLEARED: 'ai_apps_filters_cleared',
   EMPTY_RESULTS_SHOWN: 'ai_apps_empty_results_shown',
+  MANAGE_ACCESS_OPENED: 'ai_apps_manage_access_opened',
+  ACCESS_SAVED: 'ai_apps_access_saved',
+  ACCESS_SAVE_FAILED: 'ai_apps_access_save_failed',
+  PRIVATE_BLOCKED: 'ai_apps_private_blocked',
+  ACCESS_REDEPLOY_PROMPTED: 'ai_apps_access_redeploy_prompted',
+  ACCESS_REDEPLOY_CLICKED: 'ai_apps_access_redeploy_clicked',
+  ACCESS_REDEPLOY_DISMISSED: 'ai_apps_access_redeploy_dismissed',
+  PUBLIC_ENDPOINTS_SAVED: 'ai_apps_public_endpoints_saved',
+  PUBLIC_ENDPOINTS_SAVE_FAILED: 'ai_apps_public_endpoints_save_failed',
+  PUBLIC_ENDPOINTS_REDEPLOY_CLICKED: 'ai_apps_public_endpoints_redeploy_clicked',
 };
 
 export const MCP_ANALYTICS_EVENTS = {

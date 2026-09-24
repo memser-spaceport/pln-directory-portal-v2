@@ -9,7 +9,9 @@ import {
 import { toast } from '@/components/core/ToastContainer';
 import { clearFormDraft, readFormDraft, writeFormDraft } from '@/utils/formDraftStorage';
 import {
-  CaptureUnavailableError,
+  AttachImageError,
+  CaptureError,
+  attachImageFile,
   grabVideoFrame,
   requestTabCapture,
   stopCaptureStream,
@@ -32,6 +34,7 @@ const mockOnFeedbackScreenshotEditOpened = jest.fn();
 const mockOnFeedbackScreenshotEditSaved = jest.fn();
 const mockOnFeedbackScreenshotRemoved = jest.fn();
 const mockOnFeedbackScreenshotToolSelected = jest.fn();
+const mockOnFeedbackImageAttached = jest.fn();
 
 jest.mock('@/components/form/FormEditor', () => ({
   FormEditor: ({ name, placeholder }: { name: string; placeholder: string }) => {
@@ -114,6 +117,7 @@ jest.mock('@/analytics/ai-apps.analytics', () => ({
     onFeedbackScreenshotEditSaved: mockOnFeedbackScreenshotEditSaved,
     onFeedbackScreenshotRemoved: mockOnFeedbackScreenshotRemoved,
     onFeedbackScreenshotToolSelected: mockOnFeedbackScreenshotToolSelected,
+    onFeedbackImageAttached: mockOnFeedbackImageAttached,
   }),
 }));
 
@@ -131,6 +135,10 @@ jest.mock('@/components/page/ai-apps/components/screenshot-feedback', () => {
     requestTabCapture: jest.fn(),
     grabVideoFrame: jest.fn(),
     stopCaptureStream: jest.fn(),
+    /* Decodes through `new Image()` and a 2D canvas, neither of which jsdom
+       implements. Its own guards are unit-tested in attach-image-file.test.ts;
+       here the subject is the wiring around it. */
+    attachImageFile: jest.fn(),
     RegionSelectOverlay: ({
       freezeSrc,
       onSelect,
@@ -157,8 +165,24 @@ jest.mock('@/services/registration.service', () => ({
   saveRegistrationImage: (file: File) => mockSaveRegistrationImage(file),
 }));
 
+/**
+ * jsdom ships no `navigator.mediaDevices`, so without this the dialog correctly
+ * decides the browser cannot screen-capture and renders the upload fallback —
+ * which is a real behaviour, just not the one most of these tests are about.
+ * Declaring a capable browser keeps every existing case on the capture path;
+ * the fallback gets its own describe block below, where it is the subject.
+ */
+const asCapableBrowser = () => {
+  Object.defineProperty(window, 'isSecureContext', { configurable: true, value: true });
+  Object.defineProperty(navigator, 'mediaDevices', {
+    configurable: true,
+    value: { getDisplayMedia: jest.fn() },
+  });
+};
+
 describe('GiveAiAppFeedbackDialog', () => {
   beforeEach(() => {
+    asCapableBrowser();
     window.localStorage.clear();
     mockUseCurrentUserStore.mockReturnValue({
       currentUser: { uid: 'member-1', name: 'Ada Lovelace', email: 'ada@example.com' },
@@ -537,11 +561,17 @@ describe('GiveAiAppFeedbackDialog', () => {
     render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} />);
 
     expect(screen.getByRole('button', { name: 'Take screenshot' })).toBeInTheDocument();
-    expect(screen.getByText(/Drag to capture any area of the page/)).toBeInTheDocument();
+    /* The hint names the browser picker, which is the moment people got lost —
+       the old copy jumped straight to "drag to capture" and never mentioned
+       that a permission dialog would appear first. */
+    expect(screen.getByText(/ask which tab to share/)).toBeInTheDocument();
+    expect(screen.getByText(/drag to capture any area of the page/)).toBeInTheDocument();
   });
 
   it('toasts when screenshot capture is unavailable', async () => {
-    (requestTabCapture as jest.Mock).mockRejectedValue(new CaptureUnavailableError());
+    (requestTabCapture as jest.Mock).mockRejectedValue(
+      new CaptureError('unsupported', 'Screenshots aren’t available in this browser.', 'NotSupportedError'),
+    );
     mockUseAiApps.mockReturnValue({
       apps: [{ uid: 'app-1', name: 'My App' }],
       isLoading: false,
@@ -554,7 +584,10 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Screenshots aren’t available in this browser.'));
     expect(mockOnFeedbackScreenshotClicked).toHaveBeenCalled();
-    expect(mockOnFeedbackScreenshotCaptureDenied).toHaveBeenCalledWith({ reason: 'unavailable' });
+    expect(mockOnFeedbackScreenshotCaptureDenied).toHaveBeenCalledWith({
+      reason: 'unsupported',
+      errorName: 'NotSupportedError',
+    });
   });
 
   /**
@@ -901,5 +934,167 @@ describe('GiveAiAppFeedbackDialog', () => {
       );
       expect(mockOnFeedbackScreenshotCaptureFailed).toHaveBeenCalledWith({ stage: 'grab' });
     });
+  });
+});
+
+/**
+ * The way out for anyone the capture path cannot serve.
+ *
+ * A picked image is handed to the same `freezeSrc` a captured frame lands on,
+ * so region select and the annotator run unchanged — a blocked user keeps the
+ * pin-and-draw tools rather than getting a plain inline image.
+ */
+describe('GiveAiAppFeedbackDialog capture fallback', () => {
+  const asIncapableBrowser = () => {
+    Object.defineProperty(window, 'isSecureContext', { configurable: true, value: true });
+    Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: {} });
+  };
+
+  const asCapable = () => {
+    Object.defineProperty(window, 'isSecureContext', { configurable: true, value: true });
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: { getDisplayMedia: jest.fn() },
+    });
+  };
+
+  beforeEach(() => {
+    window.localStorage.clear();
+    mockUseCurrentUserStore.mockReturnValue({
+      currentUser: { uid: 'member-1', name: 'Ada Lovelace', email: 'ada@example.com' },
+    });
+    mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+    (requestTabCapture as jest.Mock).mockReset();
+    (grabVideoFrame as jest.Mock).mockReset();
+    (stopCaptureStream as jest.Mock).mockReset();
+    (attachImageFile as jest.Mock).mockReset();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    clearFormDraft(AI_APP_FEEDBACK_DRAFT_KEY);
+  });
+
+  /* Detected at render, so a browser that cannot capture never shows a button
+     that cannot work — the old code let you press it and then apologised. */
+  it('offers Attach image instead of Take screenshot on an unsupported browser', () => {
+    asIncapableBrowser();
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+    expect(screen.getByRole('button', { name: 'Attach image' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Take screenshot' })).not.toBeInTheDocument();
+    expect(screen.getByText(/Screenshots need a desktop browser/)).toBeInTheDocument();
+  });
+
+  it('keeps Take screenshot on a browser that can capture', () => {
+    asCapable();
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+    expect(screen.getByRole('button', { name: 'Take screenshot' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Attach image' })).not.toBeInTheDocument();
+  });
+
+  /**
+   * A policy block will still be a policy block on the next press, so the row
+   * stops offering a door that is shut. Cancelling and a lost activation are
+   * transient and must NOT swap — see the two cases below.
+   */
+  it.each([
+    ['blocked', 'Screen sharing is turned off in this browser'],
+    ['unreadable', 'couldn’t read the screen'],
+  ])('swaps to Attach image after a %s failure', async (reason, hint) => {
+    asCapable();
+    (requestTabCapture as jest.Mock).mockRejectedValue(
+      new CaptureError(reason as 'blocked', 'nope', 'NotAllowedError'),
+    );
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Attach image' })).toBeInTheDocument());
+    expect(screen.getByText(new RegExp(hint))).toBeInTheDocument();
+  });
+
+  it.each([
+    ['cancelled', 'AbortError'],
+    ['retry', 'InvalidStateError'],
+  ])('leaves the button alone after a transient %s failure', async (reason, errorName) => {
+    asCapable();
+    (requestTabCapture as jest.Mock).mockRejectedValue(
+      new CaptureError(reason as 'cancelled', reason === 'retry' ? 'Click Take screenshot again.' : '', errorName),
+    );
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+
+    await waitFor(() => expect(mockOnFeedbackScreenshotCaptureDenied).toHaveBeenCalled());
+    expect(screen.getByRole('button', { name: 'Take screenshot' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Attach image' })).not.toBeInTheDocument();
+  });
+
+  /* Cancelling the picker is a decision, not an error. It used to raise a red
+     toast and be counted as a denial. */
+  it('says nothing when the user cancels the picker', async () => {
+    asCapable();
+    (requestTabCapture as jest.Mock).mockRejectedValue(new CaptureError('cancelled', '', 'AbortError'));
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+
+    await waitFor(() =>
+      expect(mockOnFeedbackScreenshotCaptureDenied).toHaveBeenCalledWith({
+        reason: 'cancelled',
+        errorName: 'AbortError',
+      }),
+    );
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it('records the DOMException name so the cause is visible in analytics', async () => {
+    asCapable();
+    (requestTabCapture as jest.Mock).mockRejectedValue(new CaptureError('blocked', 'nope', 'NotAllowedError'));
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+
+    await waitFor(() =>
+      expect(mockOnFeedbackScreenshotCaptureDenied).toHaveBeenCalledWith({
+        reason: 'blocked',
+        errorName: 'NotAllowedError',
+      }),
+    );
+  });
+
+  /* The picked file enters the pipeline exactly where a captured frame does,
+     which is what keeps the annotator available to a blocked user. */
+  it('sends an attached image into the region-select flow', async () => {
+    asIncapableBrowser();
+    (attachImageFile as jest.Mock).mockResolvedValue(PIXEL_PNG);
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+    const input = screen.getByLabelText('Attach image') as HTMLInputElement;
+    const file = new File(['x'], 'shot.png', { type: 'image/png' });
+    fireEvent.change(input, { target: { files: [file] } });
+
+    /* The same overlay a captured frame opens — that reuse is the point. */
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
+    expect(attachImageFile).toHaveBeenCalledWith(file);
+    expect(mockOnFeedbackImageAttached).toHaveBeenCalledWith({ trigger: 'unsupported' });
+  });
+
+  it('toasts and stays put when the file cannot be read', async () => {
+    asIncapableBrowser();
+    (attachImageFile as jest.Mock).mockRejectedValue(new AttachImageError('Choose an image file.'));
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+    const input = screen.getByLabelText('Attach image') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [new File(['x'], 'notes.txt', { type: 'text/plain' })] } });
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Choose an image file.'));
+    expect(screen.queryByRole('button', { name: 'Select region' })).not.toBeInTheDocument();
   });
 });

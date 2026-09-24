@@ -60,9 +60,21 @@ export function useAiAppsAnalytics() {
     onFeedbackDialogOpened: (params: { appUid?: string; appName?: string } = {}) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_DIALOG_OPENED, params),
     onFeedbackScreenshotClicked: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_CLICKED),
-    onFeedbackScreenshotCaptureDenied: (params: { reason: 'denied' | 'unavailable' }) =>
-      capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_CAPTURE_DENIED, params),
-    onFeedbackScreenshotCaptureFailed: (params: { stage: 'request' | 'grab' }) =>
+    /**
+     * `reason` used to be `denied | unavailable`, which collapsed six distinct
+     * causes into two and made the real distribution unknowable — the reason a
+     * "users can't screenshot" report could not be diagnosed from the data.
+     * The event name is unchanged so existing dashboards keep working; the new
+     * values and `errorName` are additive.
+     */
+    onFeedbackScreenshotCaptureDenied: (params: {
+      reason: 'denied' | 'unavailable' | 'unsupported' | 'blocked' | 'cancelled' | 'retry' | 'unreadable' | 'failed';
+      errorName?: string;
+    }) => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_CAPTURE_DENIED, params),
+    /** The upload fallback was used — how many people the capture path loses. */
+    onFeedbackImageAttached: (params: { trigger: 'unsupported' | 'blocked' | 'unreadable' }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_IMAGE_ATTACHED, params),
+    onFeedbackScreenshotCaptureFailed: (params: { stage: 'request' | 'grab'; errorName?: string }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_CAPTURE_FAILED, params),
     onFeedbackScreenshotCaptureCancelled: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_CAPTURE_CANCELLED),
     onFeedbackScreenshotRegionSelected: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_REGION_SELECTED),

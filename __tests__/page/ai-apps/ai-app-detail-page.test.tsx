@@ -10,6 +10,7 @@ const mockAnalytics = {
   onIframeLoadFailed: jest.fn(),
   onIframeLoaded: jest.fn(),
   onDeploymentLogsOpened: jest.fn(),
+  onPrivateBlocked: jest.fn(),
 };
 
 let mockUseAiAppReturn: {
@@ -451,6 +452,7 @@ describe('AiAppDetailPage', () => {
       render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       expect(screen.getByRole('heading', { name: 'This app is private' })).toBeInTheDocument();
+      expect(mockAnalytics.onPrivateBlocked).toHaveBeenCalledWith('app-1');
       expect(screen.getByRole('link', { name: 'Back to AI Apps' })).toHaveAttribute('href', '/pl-infra/ai-apps');
       expect(screen.queryByText('App not found.')).not.toBeInTheDocument();
       expect(document.querySelector('iframe')).toBeNull();

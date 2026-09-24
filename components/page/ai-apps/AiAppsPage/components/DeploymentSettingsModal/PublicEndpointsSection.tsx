@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { Button } from '@/components/common/Button/Button';
 import { CloseIcon } from '@/components/icons';
 import { useAiAppPublicPaths } from '@/services/ai-apps/hooks/useAiAppPublicPaths';
@@ -33,6 +34,7 @@ const toRows = (paths: string[]): Row[] => paths.map((value) => ({ id: nextRowId
  * the warning is always shown.
  */
 export function PublicEndpointsSection({ uid, lastDeployedAt, disabled, onRedeploy, redeployDisabled }: Props) {
+  const analytics = useAiAppsAnalytics();
   const { settings, error: loadError, isLoading } = useAiAppPublicPaths(uid);
   const { mutateAsync, isPending: isSaving } = useSaveAiAppPublicPaths(uid);
 
@@ -92,8 +94,18 @@ export function PublicEndpointsSection({ uid, lastDeployedAt, disabled, onRedepl
     const result = await mutateAsync(values);
     if (result.error || !result.data) {
       setSaveError(result.error ?? 'Saving failed. Please try again.');
+      analytics.onPublicEndpointsSaveFailed(uid);
       return;
     }
+    const previous = new Set(settings.publicPaths);
+    const next = new Set(result.data.publicPaths);
+    analytics.onPublicEndpointsSaved({
+      appUid: uid,
+      pathCount: result.data.publicPaths.length,
+      addedCount: result.data.publicPaths.filter((path) => !previous.has(path)).length,
+      removedCount: settings.publicPaths.filter((path) => !next.has(path)).length,
+      hasWildcard: result.data.publicPaths.some((path) => path.includes('*')),
+    });
     setRows(toRows(result.data.publicPaths));
     setJustSaved(true);
   };
@@ -125,7 +137,10 @@ export function PublicEndpointsSection({ uid, lastDeployedAt, disabled, onRedepl
               style="border"
               variant="neutral"
               size="s"
-              onClick={onRedeploy}
+              onClick={() => {
+                analytics.onPublicEndpointsRedeployClicked(uid);
+                onRedeploy();
+              }}
               disabled={redeployDisabled || locked}
             >
               Redeploy now

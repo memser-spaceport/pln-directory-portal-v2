@@ -185,6 +185,7 @@ export function AiAppDetailPage(props: Props) {
   const openedSettingsFromUrl = useRef(false);
   const trackedAppUid = useRef<string | null>(null);
   const trackedDraftSetupUid = useRef<string | null>(null);
+  const trackedPrivateBlockUid = useRef<string | null>(null);
   const iframeTracked = useRef<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   // Latest subpage reported by the app; seeds the frame src on a redeploy remount.
@@ -256,6 +257,12 @@ export function AiAppDetailPage(props: Props) {
   // While OUR deploy runs (isRedeploying) the secrets panel or the deployment
   // settings modal owns the UI instead, so neither is unmounted mid-flight.
   const deployInProgress = app?.status === 'DEPLOYING' && !isRedeploying;
+
+  useEffect(() => {
+    if (errorKind !== 'forbidden' || app || trackedPrivateBlockUid.current === uid) return;
+    trackedPrivateBlockUid.current = uid;
+    analytics.onPrivateBlocked(uid);
+  }, [errorKind, app, uid, analytics]);
 
   useEffect(() => {
     if (!app || app.status !== 'DRAFT' || !needsSetup || trackedDraftSetupUid.current === app.uid) return;

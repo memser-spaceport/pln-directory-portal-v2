@@ -35,6 +35,7 @@ const mockOnFeedbackScreenshotEditSaved = jest.fn();
 const mockOnFeedbackScreenshotRemoved = jest.fn();
 const mockOnFeedbackScreenshotToolSelected = jest.fn();
 const mockOnFeedbackImageAttached = jest.fn();
+const mockOnFeedbackTooLarge = jest.fn();
 
 jest.mock('@/components/form/FormEditor', () => ({
   FormEditor: ({ name, placeholder }: { name: string; placeholder: string }) => {
@@ -118,6 +119,7 @@ jest.mock('@/analytics/ai-apps.analytics', () => ({
     onFeedbackScreenshotRemoved: mockOnFeedbackScreenshotRemoved,
     onFeedbackScreenshotToolSelected: mockOnFeedbackScreenshotToolSelected,
     onFeedbackImageAttached: mockOnFeedbackImageAttached,
+    onFeedbackTooLarge: mockOnFeedbackTooLarge,
   }),
 }));
 
@@ -1096,5 +1098,78 @@ describe('GiveAiAppFeedbackDialog capture fallback', () => {
 
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Choose an image file.'));
     expect(screen.queryByRole('button', { name: 'Select region' })).not.toBeInTheDocument();
+  });
+});
+
+/**
+ * A submission too large to send is refused here, with a reason.
+ *
+ * The server caps the SERIALIZED string; the editor caps VISIBLE characters
+ * with markup stripped. Those measure different things, so the editor's limit
+ * never fires first and the member used to meet a raw validation error naming a
+ * character count for text they did not write.
+ */
+describe('GiveAiAppFeedbackDialog oversized submission', () => {
+  beforeEach(() => {
+    Object.defineProperty(window, 'isSecureContext', { configurable: true, value: true });
+    Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getDisplayMedia: jest.fn() } });
+    window.localStorage.clear();
+    mockUseCurrentUserStore.mockReturnValue({
+      currentUser: { uid: 'member-1', name: 'Ada Lovelace', email: 'ada@example.com' },
+    });
+    mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    clearFormDraft(AI_APP_FEEDBACK_DRAFT_KEY);
+  });
+
+  const submitText = async (text: string) => {
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: text } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+  };
+
+  /**
+   * The real shape of the failure: two words of prose and an enormous
+   * `data-annotations` attribute.
+   *
+   * It has to be this shape rather than 200k of plain text — 200k of prose is
+   * over the editor's own 5000 visible-character limit, so Send is disabled and
+   * the payload guard is never reached. Only markup can be small to the editor
+   * and huge to the server, which is exactly why the server used to be the one
+   * refusing it.
+   */
+  const bigDrawing = `<p>it broke</p><img src="https://cdn.test/s.png" data-annotations="${'A'.repeat(200_000)}">`;
+
+  it('refuses a payload past the server cap instead of letting the server reject it', async () => {
+    await submitText(bigDrawing);
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/too large to send/)));
+    expect(mockMutate).not.toHaveBeenCalled();
+  });
+
+  /* The editor's own limit cannot catch this: the visible text is two words. */
+  it('is not caught by the visible-character limit', async () => {
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: bigDrawing } });
+
+    expect(screen.getByRole('button', { name: 'Send feedback' })).not.toBeDisabled();
+  });
+
+  it('records the length, so we learn whether 200k was the right number', async () => {
+    await submitText(bigDrawing);
+
+    await waitFor(() => expect(mockOnFeedbackTooLarge).toHaveBeenCalled());
+    expect(mockOnFeedbackTooLarge.mock.calls[0][0].length).toBeGreaterThan(199_000);
+  });
+
+  it('lets an ordinary submission through untouched', async () => {
+    await submitText('Something went wrong on the settings page.');
+
+    await waitFor(() => expect(mockMutate).toHaveBeenCalled());
+    expect(mockOnFeedbackTooLarge).not.toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
   });
 });

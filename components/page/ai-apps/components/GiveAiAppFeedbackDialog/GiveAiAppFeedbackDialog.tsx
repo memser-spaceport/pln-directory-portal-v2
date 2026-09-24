@@ -39,7 +39,24 @@ import {
 
 import s from './GiveAiAppFeedbackDialog.module.scss';
 
+/** Visible characters the member may type, counted with the markup stripped. */
 const MAX_LENGTH = 5000;
+
+/**
+ * Serialized length the server will accept, mirroring `SubmitFeedbackSchema`'s
+ * `.max(200000)` in the web-api.
+ *
+ * A second, larger cap is needed because `MAX_LENGTH` counts the one thing that
+ * is never the problem. What fills a submission is the drawing: each annotated
+ * screenshot carries its strokes in a `data-annotations` attribute as
+ * URL-encoded JSON. Without this check the server rejects the request with
+ * "String must contain at most 200000 character(s)" — a number about text the
+ * member never wrote and cannot see.
+ *
+ * Kept slightly under the server's own limit so a request that passes here is
+ * never refused there for a rounding difference in how the body is counted.
+ */
+const MAX_PAYLOAD = 199_000;
 const FEEDBACK_TOOLBAR: (string | Record<string, unknown>)[][] = [
   [{ header: [1, 2, 3, false] }],
   ['bold', 'link', 'image'],
@@ -396,6 +413,20 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
       return;
     } finally {
       setIsHostingImages(false);
+    }
+
+    /* Checked here rather than as you type, because until the images are hosted
+       the payload is bigger than what actually gets sent — a data URI in the
+       editor is megabytes that become a short URL. Measuring earlier would
+       refuse submissions that would have fit. */
+    if (trimmedMessage.length > MAX_PAYLOAD) {
+      analytics.onFeedbackTooLarge({ length: trimmedMessage.length, screenshotCount: screenshots.length });
+      toast.error(
+        screenshots.length > 0
+          ? 'This feedback is too large to send. Try removing a screenshot, or redrawing with fewer strokes.'
+          : 'This feedback is too large to send. Try shortening it.',
+      );
+      return;
     }
 
     if (app.value === LABOS_AI_APPS_OPTION.value) {

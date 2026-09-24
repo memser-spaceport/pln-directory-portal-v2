@@ -2690,6 +2690,7 @@ export const AI_APPS_ANALYTICS = {
   FEEDBACK_SCREENSHOT_REMOVED: 'ai_apps_feedback_screenshot_removed',
   FEEDBACK_SCREENSHOT_TOOL_SELECTED: 'ai_apps_feedback_screenshot_tool_selected',
   FEEDBACK_IMAGE_ATTACHED: 'ai_apps_feedback_image_attached',
+  FEEDBACK_TOO_LARGE: 'ai_apps_feedback_too_large',
   VIEW_FEEDBACK_CLICKED: 'ai_apps_view_feedback_clicked',
   SECRETS_PANEL_OPENED: 'ai_apps_secrets_panel_opened',
   SECRETS_DEPLOY_CLICKED: 'ai_apps_secrets_deploy_clicked',

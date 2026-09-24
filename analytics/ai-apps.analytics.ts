@@ -71,6 +71,15 @@ export function useAiAppsAnalytics() {
       reason: 'denied' | 'unavailable' | 'unsupported' | 'blocked' | 'cancelled' | 'retry' | 'unreadable' | 'failed';
       errorName?: string;
     }) => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_CAPTURE_DENIED, params),
+    /**
+     * A submission was refused for size before it reached the server.
+     *
+     * Worth its own event because the cap was just raised from 50k to 200k on
+     * an estimate: this says whether 200k was enough, and `length` says by how
+     * much when it was not.
+     */
+    onFeedbackTooLarge: (params: { length: number; screenshotCount: number }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_TOO_LARGE, params),
     /** The upload fallback was used — how many people the capture path loses. */
     onFeedbackImageAttached: (params: { trigger: 'unsupported' | 'blocked' | 'unreadable' }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_IMAGE_ATTACHED, params),

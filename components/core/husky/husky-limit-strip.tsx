@@ -59,9 +59,9 @@ const HuskyLimitStrip = ({ type, count, onDialogClose, mode, from }: HuskyLimitS
             {' '}
             <span className="seperator">|</span>{' '}
             {type === 'info' ? (
-              <span className="husky-limit-strip__text__huskyMsg">Husky is running out of bones!</span>
+              <span className="husky-limit-strip__text__huskyMsg">You are running out of free requests!</span>
             ) : (
-              <span className="husky-limit-strip__text__huskyMsg">Husky is done fetching for the day!</span>
+              <span className="husky-limit-strip__text__huskyMsg">You've used all free requests for today!</span>
             )}{' '}
             <span>
               <span onClick={onLoginClickHandler} role="a" className="link">

@@ -38,6 +38,7 @@ import { LOGO_LABEL, scrollToTop } from './home';
 import { PrototypeSearchModal } from './PrototypeSearchModal';
 import { HelpFeedbackMenu, type HelpFeedbackMenuProps } from './HelpFeedbackMenu';
 import { PL_INFRA_LINKS } from './plInfraLinks';
+import { PrototypeAccountMenu } from './PrototypeAccountMenu';
 import { PageCommentMode } from '../feedback-shared/PageCommentMode';
 
 /**
@@ -62,8 +63,9 @@ import { PageCommentMode } from '../feedback-shared/PageCommentMode';
  *
  * Deliberately simplified — the real navbar reads the auth store, RBAC access
  * hooks and the notifications query to decide what to render; none of that
- * changes what this prototype is asking about, so the right-hand cluster
- * (bell, account) is static and the Demo Day / More items render their
+ * changes what this prototype is asking about, so the bell is static, the
+ * avatar opens a mocked copy of the account menu (PrototypeAccountMenu, with
+ * the proposed labels), and the Demo Day / More items render their
  * un-gated variants. Search is the exception, and only where an entry asks for
  * it: `searchable` makes the glyph open `PrototypeSearchModal`, which runs the
  * real global search. Everything on the left is the real component (
@@ -478,9 +480,7 @@ export function PrototypeNavBar({
                   <BellIcon />
                   {bellDot && <span className={local.bellDot} />}
                 </span>
-                <span className={local.navAvatar} aria-hidden="true">
-                  PB
-                </span>
+                <PrototypeAccountMenu initials="PB" />
               </>
             ) : (
               <div className={s.signInWrapper}>

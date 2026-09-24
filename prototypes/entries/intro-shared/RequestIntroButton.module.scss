@@ -1,0 +1,34 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 6px;
+  white-space: nowrap;
+  /* No shadow ("Remove shadow from Request an intro"): the glossy primary
+     beside it keeps its gloss and is the only lifted press in the row. */
+}
+
+/* The sent receipt: the pill's own type (14/20 500), ink and 34px line, with
+   no box — a fact, not a control. */
+.sent {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 2px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: default;
+}
+
+/* The phone row's `s` height. */
+.sentS {
+  min-height: 38px;
+  justify-content: center;
+}
+

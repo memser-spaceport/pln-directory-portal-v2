@@ -45,6 +45,8 @@ interface SearchPopoverProps {
   onAskAbout: (item: FoundItem) => void;
   /** Founder seat: investor rows offer the intro (see `ResultRows`). */
   intro?: React.ComponentProps<typeof ResultRows>['intro'];
+  /** Every member row offers an intro through the PL team (see `ResultRows`). */
+  requestIntro?: React.ComponentProps<typeof ResultRows>['requestIntro'];
   /**
    * The ask form is open over this card. A press inside it is "outside" the
    * card, and must not close the list the founder is coming back to.
@@ -91,6 +93,7 @@ export function SearchPopover({
   onAskAi,
   onAskAbout,
   intro,
+  requestIntro,
   holdOpen = false,
   anchor,
   fieldInHeader = false,
@@ -250,7 +253,14 @@ export function SearchPopover({
                         forceOpen
                         hideControl
                       >
-                        <ResultRows grouped={key === 'top'} items={values} onSelect={onClose} onAskAbout={onAskAbout} intro={intro} />
+                        <ResultRows
+                          grouped={key === 'top'}
+                          items={values}
+                          onSelect={onClose}
+                          onAskAbout={onAskAbout}
+                          intro={intro}
+                          requestIntro={requestIntro}
+                        />
                       </CollapsibleSection>
                     );
                   })}

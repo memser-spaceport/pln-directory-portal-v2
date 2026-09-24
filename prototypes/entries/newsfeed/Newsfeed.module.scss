@@ -963,7 +963,8 @@
   border-radius: 10px;
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-  font-size: 13px;
+  /* 14/20, dev's `ForYouHint` size (it was 13px, off the type scale). */
+  font-size: 14px;
   line-height: 20px;
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-secondary, #455468);
@@ -1548,4 +1549,84 @@
 .signedOutBanner {
   padding-top: 24px;
   padding-bottom: 24px;
+}
+
+/* Post news after Sort, in the sort row: not pushed or stretched; the row's
+   own gap spaces it from the dropdown. */
+.postNewsSlot {
+  /* No `display` here: the slot also carries `v0.sortDesktop`, whose
+     inline-flex / mobile none must win. Setting display in this later-loaded
+     sheet overrode the phone hide and pushed Sort off-screen ("Fix for
+     mobile"). */
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Phone's Post news: end of the Network Updates header row, pushed to the
+   right edge past the N-new count. */
+.postNewsHeaderSlot {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Production's glossy `primaryButton` (see FeedPostNewsButton), reset for a
+   control row the way the member page's `.scheduleBtn` resets it: natural
+   width, no card margin or grid area, 7px vertical pad → 36px, the Sort
+   dropdown's measured height, so the two stand level, and the DS fill/primary hover the
+   glossy class lacks. The plus is white via currentColor. */
+.postNewsGlossy {
+  width: auto;
+  margin-left: 0;
+  grid-area: auto;
+  padding: 7px 10px;
+
+  /* Phone header: title, N-new count and this share ~330px; 8px sides keep
+     the row inside a 360px screen (10px ran 2px over). */
+  @include mobile-only {
+    padding: 7px 8px;
+  }
+  white-space: nowrap;
+  cursor: pointer;
+  font-family: inherit;
+
+  &:hover {
+    background: var(--action-background-brand-hover, #0f3cd9);
+  }
+
+  &:active {
+    background: var(--action-background-brand-normal, #1b4dff);
+  }
+}
+
+/* The For You note (dev's wording; see ForYouBanner). */
+.forYouLabel {
+  margin-right: 6px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* The action sentence stays whole: it follows the explanation or wraps as one
+   piece, never leaving "relevant." on a line of its own. */
+.forYouAction {
+  white-space: nowrap;
+
+  /* A phone line is barely wider than the sentence itself: wrap normally. */
+  @include mobile-only {
+    white-space: normal;
+  }
+}
+
+/* Dev's `ForYouHint` link, on a button because it opens settings in place. */
+.forYouLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }

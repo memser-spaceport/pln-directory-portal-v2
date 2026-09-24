@@ -34,18 +34,21 @@ interface Props {
  *
  * Workable's "Manage matching criteria" (a checkbox per criterion, grouped
  * Education / Experience / Skills, with Save and Discard) is the reference, and
- * it is the part that makes a percentage defensible: the team, not the
- * product, decides what a fit is. Criteria arrive from the posting (skills it
- * names, its seniority, its hours); this only switches them off or on. It does
- * not add new ones — a free-text criterion is a matching engine, and the
- * postings already say what the role asks for.
+ * it is the part that makes a match defensible: the team, not the product,
+ * decides what a fit is. Criteria arrive from the posting (skills it names,
+ * its seniority, its hours); this only switches them off or on. It does not
+ * add new ones — a free-text criterion is a matching engine, and the postings
+ * already say what the role asks for.
  *
- * **The footer says what the change does.** "3 members at 60% or above" moves
- * as boxes are ticked, so turning off "Senior or above" visibly brings someone
- * in, and it is also the one place the floor is stated — the interface has
- * nowhere else to tell a lead why a member they expected is not listed. **The
- * last criterion cannot be switched off**: with none, every percentage is 0,
- * so the box is inert rather than the Save dead for a reason on another line.
+ * **The footer says what the change does.** "3 members meet at least 3 of the
+ * 5 requirements" moves as boxes are ticked, so turning off "Senior or above"
+ * visibly brings someone in, and it is also the one place the floor is stated
+ * — the interface has nowhere else to tell a lead why a member they expected
+ * is not listed. It is stated as a count, not a percentage, because the page
+ * shows bands (Strong / Good match) and never a number; the count is the
+ * floor in the units the lead is ticking. **The last criterion cannot be
+ * switched off**: with none, every share is 0, so the box is inert rather than
+ * the Save dead for a reason on another line.
  */
 export function CriteriaModal({ open, onClose, roleTitle, criteria, people, off, onSave }: Props) {
   const [draft, setDraft] = useState<Set<string>>(() => new Set(off));
@@ -66,6 +69,9 @@ export function CriteriaModal({ open, onClose, roleTitle, criteria, people, off,
   const onCount = criteria.filter((c) => !draft.has(c.id)).length;
   const changed = criteria.some((c) => draft.has(c.id) !== off.has(c.id));
   const shown = visibleSuggested(people, criteria, draft).length;
+  // The floor in the lead's own units: the fewest switched-on requirements a
+  // member can meet and still be a Good match (3 of 5, 3 of 4, 2 of 3).
+  const need = Math.ceil((onCount * MATCH_FLOOR) / 100);
 
   return (
     <Modal isOpen={open} onClose={onClose}>
@@ -106,7 +112,8 @@ export function CriteriaModal({ open, onClose, roleTitle, criteria, people, off,
 
         <div className={dealModalStyles.footer}>
           <span className={s.footerNote}>
-            {shown} {shown === 1 ? 'member' : 'members'} at {MATCH_FLOOR}% or above
+            {shown} {shown === 1 ? 'member meets' : 'members meet'} at least {need} of the {onCount}{' '}
+            {onCount === 1 ? 'requirement' : 'requirements'}
           </span>
           <div className={s.footerActions}>
             <Button style="border" variant="neutral" onClick={onClose}>

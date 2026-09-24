@@ -1289,17 +1289,148 @@
     padding-right: 0;
   }
 
-  /* Mobile drops the hairlines and separates on space alone. Three facts can't
-     fit one line at 390px, and a divider that ends up at a wrap boundary dangles
-     at the edge of the line pointing at nothing. This is the same call the DS's
-     own `Divider` makes — it ships `display: none` below tablet-portrait, which
-     is why the tag row underneath loses its separators at this width too. */
+  /* Phone: two lines. Founded and headcount share the first, separated by a
+     middot rather than a hairline (a 20px bar between two short facts in a
+     14px line reads as a third column); the location takes the second line,
+     with its own divider gone. */
   @include media.mobile-only {
-    column-gap: 20px;
+    margin-top: 0;
+    column-gap: 8px;
+    row-gap: 4px;
 
-    > span[class*='divider'] {
+    > .factDivider {
+      display: inline-flex;
+      width: auto;
+      height: auto;
+      background: none;
+      color: var(--foreground-neutral-tertiary, #8897ae);
+
+      &::after {
+        content: '·';
+      }
+    }
+
+    > .factDivider:has(+ .factLocation) {
       display: none;
     }
+
+    > .factLocation {
+      flex-basis: 100%;
+    }
+  }
+}
+
+.factDivider,
+.factLocation {
+  /* class hooks only; see `.factsRow` */
+}
+
+/* ---- Phone header layout (the mock's): logo beside name + facts, tags and
+   the action row full width under both, a hairline before About. ---- */
+
+.fromTablet {
+  @include media.mobile-only {
+    display: none !important;
+  }
+}
+
+.mobileOnly {
+  @include media.tablet-portrait {
+    display: none !important;
+  }
+}
+
+/* The DS `Tag` caps a default chip at 80px; "Stage: Growth" is a label, not a
+   keyword, and is not cut. */
+.stageTag {
+  max-width: none;
+}
+
+/* Phone: two whole chips, not three cut ones ("Investm…", "Infrastru…"). The
+   80px cap is production's for a row of three at 55px-logo widths; with two
+   shown under a full-width row the words fit, and they are the point. */
+.tagFullMobile {
+  @include media.mobile-only {
+    max-width: none;
+  }
+}
+
+@include media.mobile-only {
+  .logoTagsGrow {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+    column-gap: 12px;
+    row-gap: 4px;
+    align-items: start;
+  }
+
+  .nameTagCol {
+    display: contents;
+  }
+
+  /* 72px, the mock's and the desktop's own 74 rounded; production's phone
+     logo is 55. Spans the name and the facts. */
+  .logoCell {
+    width: 72px !important;
+    height: 72px !important;
+    grid-row: 1 / span 2;
+  }
+
+  .nameRowWrap {
+    grid-column: 2;
+  }
+
+  .teamNameMobile {
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .factsRow {
+    grid-column: 2;
+  }
+
+  .tagsBlock {
+    grid-column: 1 / -1;
+    margin-top: 12px;
+  }
+
+  /* The visitor's actions ("Put Ask AI on top of Follow for mobile"): the
+     Ask AI badge first, at its own width on a line of its own, then Follow
+     across the card with its caption under it. The badge is a small outlined
+     tool, so sharing Follow's row stretched it into a second button. */
+  .followHeader.followClusterMobile {
+    width: 100%;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .headerActionRow {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 12px;
+
+    /* Width, not just stretch: the DS Button holds its own width. */
+    > * {
+      width: 100%;
+      justify-content: center;
+    }
+
+    > .askAiBadge {
+      order: -1;
+      align-self: flex-start;
+      width: auto;
+    }
+  }
+
+  .followCaption {
+    text-align: left;
+  }
+
+  .aboutSpacing {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   }
 }
 
@@ -1411,6 +1542,15 @@
   flex-shrink: 0;
   gap: 4px;
   white-space: nowrap;
+
+  /* Desktop a step up ("Ask AI on desktop should be a bit bigger"): 16/24
+     type, the next rung above the header's 14px actions. The glyph is 18px
+     ("Make search icon for Ask AI a bit bigger"), passed as the icon's `size`
+     prop — it sizes itself inline, so no CSS rule can: the gradient mark draws
+     inside its box with air around it, so at the type's 16px it read a size
+     smaller than the word. The phone badge sets its own 12px values. */
+  font-size: 16px;
+  line-height: 24px;
 }
 
 /* Visitor's header: Ask AI and Follow on one row, the Follow caption under
@@ -1425,10 +1565,7 @@
      Ask AI stands the same distance from its neighbour in every seat. A bare
      text action needs the air a boxed one carried in its padding. */
   gap: 12px;
-
-  @include media.mobile-only {
-    flex-direction: row-reverse;
-  }
+  /* Phone layout: see the mobile block at the end of this file. */
 }
 
 /* Owner's seat: Ask AI rides the Edit/Delete row from tablet up, and the
@@ -1447,9 +1584,34 @@
   }
 }
 
+/* Phone Ask AI, both seats: the member profile's outlined badge, same values
+   ("Use the same badge for team profile as well"). DS Button `xxs` geometry
+   (12/16 type, 4x8 pad, 26px with the hairline), a brand-subtle hairline,
+   fully rounded, white; the glyph at 12px. Desktop keeps the text action. */
+@include media.mobile-only {
+  .askAiBadge.askAiBadge {
+    min-height: 26px;
+    padding: 4px 8px;
+    margin: 0;
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: -0.2px;
+    border: 1px solid var(--border-brand-subtle, #aebfff);
+    border-radius: 999px;
+    background: var(--background-base-white, #fff);
+  }
+}
+
 /* Sections an AI answer's door scrolls to. The prototype has no pinned
    header, so the section lands with a little air above it rather than
    flush against the viewport edge. */
 .aiAnchor {
   scroll-margin-top: 16px;
+}
+
+/* PostNewsModal's "Post as" picker (the feed's door, for a member of more
+   than one team): one field above the post's own form, the form's 24px gap
+   below it so it reads as the first field of the stack. */
+.postAsField {
+  margin-bottom: 24px;
 }

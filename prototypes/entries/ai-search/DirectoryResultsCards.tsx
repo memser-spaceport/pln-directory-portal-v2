@@ -9,8 +9,17 @@ import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 // AI panel — the same class the idle state's history door wears.
 import sub from '@/components/core/application-search/components/AiChatPanel/components/ChatSubheader/ChatSubheader.module.scss';
 
+import { IntroIconAction } from '../intro-shared/IntroIconAction';
+import type { RequestIntroApi } from '../intro-shared/introRequests';
+
 import type { DirectoryHit } from './mocks';
 import s from './DirectoryResultsCards.module.scss';
+
+/* A member hit's uid, read off its destination: `/members/<uid>`, or the
+   investor profile's `?investor=<uid>`. The same uid the search rows carry, so
+   a request made on a card is "requested" on the row. */
+export const hitUid = (hit: DirectoryHit) =>
+  /[?&]investor=([^&]+)/.exec(hit.source)?.[1] ?? hit.source.split('/').filter(Boolean).pop() ?? hit.source;
 
 /** How many cards show before "Show all" — two rows of the two-column grid. */
 const SHOWN = 4;
@@ -70,10 +79,17 @@ const FALLBACK_LOGO: Record<Exclude<DirectoryHit['type'], 'member'>, string> = {
 export function DirectoryResultsCards({
   hits,
   title = 'Results from the directory',
+  requestIntro,
 }: {
   hits: DirectoryHit[];
   /** A scoped answer says where it looked ("Found on the profile"). */
   title?: string;
+  /**
+   * Member cards offer an intro through the PL team: the envelope in the
+   * arrow's slot, since the card is a link either way and the arrow only said
+   * so. Absent, the card is as above.
+   */
+  requestIntro?: RequestIntroApi;
 }) {
   const [expanded, setExpanded] = useState(false);
   const shown = expanded ? hits : hits.slice(0, SHOWN);
@@ -97,10 +113,12 @@ export function DirectoryResultsCards({
         {shown.map((hit) => {
           const external = /^https?:/i.test(hit.source);
           const picture = hit.avatar ?? (hit.type === 'member' ? getDefaultAvatar(hit.name) : FALLBACK_LOGO[hit.type]);
+          const introable = hit.type === 'member' && !!requestIntro;
+          const uid = introable ? hitUid(hit) : '';
           return (
-            <li key={`${hit.type}-${hit.source}`}>
+            <li key={`${hit.type}-${hit.source}`} className={s.item}>
               <a
-                className={s.card}
+                className={clsx(s.card, introable && s.cardHasAction)}
                 href={hit.source}
                 target={external ? '_blank' : undefined}
                 rel={external ? 'noreferrer' : undefined}
@@ -124,8 +142,17 @@ export function DirectoryResultsCards({
                     {hit.meta ? ` · ${hit.meta}` : ''}
                   </span>
                 </span>
-                <ArrowUpRightIcon className={s.arrow} />
+                {!introable && <ArrowUpRightIcon className={s.arrow} />}
               </a>
+              {/* Beside the link, not inside it: a press can't live inside an anchor. */}
+              {introable && (
+                <IntroIconAction
+                  name={hit.name}
+                  requested={requestIntro!.requested(uid)}
+                  onRequest={() => requestIntro!.onRequest({ uid, name: hit.name, kind: 'member' })}
+                  className={s.introMark}
+                />
+              )}
             </li>
           );
         })}

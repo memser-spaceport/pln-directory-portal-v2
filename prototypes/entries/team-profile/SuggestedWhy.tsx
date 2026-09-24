@@ -11,7 +11,14 @@ import {
 } from '@/components/common/profile/DetailsSection';
 
 import { ReviewCheckIcon } from './icons';
-import { CRITERION_GROUPS, type RoleCriterion, type RoleSuggested, type SuggestionMatch } from './mocks';
+import {
+  CRITERION_GROUPS,
+  SUGGESTION_BAND_LABEL,
+  SUGGESTION_BAND_VARIANT,
+  type RoleCriterion,
+  type RoleSuggested,
+  type SuggestionMatch,
+} from './mocks';
 import s from './SuggestedMatch.module.scss';
 
 interface Props {
@@ -26,22 +33,23 @@ interface Props {
  * The suggested tab's pane section, in the place the other tabs have
  * Application or Interest.
  *
- * **The percentage sits over its working.** The header carries the number and
- * "4 of 5 requirements"; the body lists every requirement with a check beside
- * the ones the profile meets and a faded ✕ beside the ones it does not, so the
- * number can be checked against the line under it. Workable draws its match
- * card the same way (a score ring, then Education / Experience / Skills with
- * ✓ and a faded ✗ per criterion), with the group name in a left column.
+ * **The band sits over its working.** The header carries "Strong match" or
+ * "Good match" (see `STRONG_MATCH`) and "4 of 5 requirements"; the body lists
+ * every requirement with a check beside the ones the profile meets and a
+ * faded ✕ beside the ones it does not, so the claim can be checked against the
+ * line under it. Workable draws its match card the same way (a score, then
+ * Education / Experience / Skills with ✓ and a faded ✗ per criterion), with the
+ * group name in a left column.
  *
  * **The network block leads and is not in the count.** "In the network" is what
  * only this product knows — an interest press, a project they worked on, people
- * they have worked with — and there is no honest weight for it in a percentage.
- * It heads the section because it is the reason a 60% can be worth opening
- * before a 100%, and it has no check or ✕ because it is a fact, not a
+ * they have worked with — and there is no honest weight for it in a band. It
+ * heads the section because it is the reason a Good match can be worth opening
+ * before a Strong one, and it has no check or ✕ because it is a fact, not a
  * requirement. Absent when the member has none.
  *
  * **Only requirements that are switched on.** The lead can turn criteria off in
- * Edit criteria; a switched-off one is not part of the number, so listing it
+ * Edit criteria; a switched-off one is not part of the count, so listing it
  * with a mark would show a working that does not add up.
  */
 export function SuggestedWhy({ person, criteria, off, match }: Props) {
@@ -52,7 +60,9 @@ export function SuggestedWhy({ person, criteria, off, match }: Props) {
           <span className={s.count}>
             {match.met} of {match.total} requirements
           </span>
-          <Badge className={s.percent}>{match.percent}% match</Badge>
+          <Badge variant={SUGGESTION_BAND_VARIANT[match.band]} className={s.matchBadge}>
+            {SUGGESTION_BAND_LABEL[match.band]}
+          </Badge>
         </span>
       </DetailsSectionHeader>
       <DetailsSectionGreyContentContainer>

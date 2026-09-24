@@ -1,0 +1,15 @@
+.saveTrigger {
+  appearance: none;
+  border: none;
+  background: none;
+  font: inherit;
+  margin: 0;
+}
+
+.saved.saved {
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}

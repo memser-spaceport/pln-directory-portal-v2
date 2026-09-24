@@ -14,6 +14,9 @@ export enum JobsQueryKey {
   /** The viewer's complete interested-roles list. Same whole-map shape as
    *  `ApplicationStatuses`, scoped by member uid for the same reason. */
   InterestStatuses = 'job-interest-statuses',
+  /** The viewer's complete saved-roles list. Same whole-map shape again, and
+   *  member-scoped for the same reason — a bookmark is private. */
+  SavedJobs = 'job-saved-jobs',
   /** Hiring roll-ups matched to the signed-in member, for the newsfeed's For You. */
   ForYou = 'jobs-for-you',
   /** How many people answered each of a team's roles. Team-side, so the key is

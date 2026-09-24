@@ -89,6 +89,14 @@ export interface IJobsListResponse {
   totalRoles: number;
 }
 
+export interface ISavedJob {
+  /** The save's own id, not the job's. */
+  uid: string;
+  /** Named `jobUid` server-side; the board calls the same identifier a role uid. */
+  jobUid: string;
+  savedAt: string;
+}
+
 export interface IJobsFacetItem {
   value: string;
   count: number;

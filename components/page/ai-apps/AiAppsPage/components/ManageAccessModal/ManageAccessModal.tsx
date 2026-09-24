@@ -32,16 +32,16 @@ interface Props {
 
 const MODE_OPTIONS: Array<{ value: AiAppAccessMode; title: string; description: string; icon: ReactNode }> = [
   {
-    value: 'PRIVATE',
-    title: 'Private',
-    description: 'Only you and the people you add can find and open this app.',
-    icon: <LockIcon />,
-  },
-  {
     value: 'OPEN',
     title: 'All PL Infra members',
     description: 'Anyone with AI Apps access can find and open it.',
     icon: <GlobeIcon />,
+  },
+  {
+    value: 'PRIVATE',
+    title: 'Private',
+    description: 'Only you and the people you add can find and open this app.',
+    icon: <LockIcon />,
   },
 ];
 

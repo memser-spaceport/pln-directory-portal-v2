@@ -1,3 +1,10 @@
+export interface IJobPay {
+  min: number;
+  max: number;
+  currency: string;
+  period: 'year' | 'month' | 'hour';
+}
+
 export interface IJobRole {
   uid: string;
   roleTitle: string;
@@ -25,6 +32,7 @@ export interface IJobRole {
   lastUpdated: string;
   postedDate: string | null;
   detectionDate: string | null;
+  pay?: IJobPay | null;
   /**
    * How many members have signalled interest in this role. Nothing renders it —
    * the banner says the team will be notified, not how many others got there

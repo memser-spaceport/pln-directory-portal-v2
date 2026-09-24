@@ -562,6 +562,8 @@ function ScheduleMeetingButton({ size, className }: { size: 'xs' | 's'; classNam
       className={clsx(office.primaryButton, s.scheduleBtn, size === 's' && s.scheduleBtnS, className)}
       onClick={() => window.open(MOCK_MEMBER.officeHours, '_blank', 'noopener')}
     >
+      {/* The DS calendar glyph ("add calendar icon"). */}
+      <CalendarBlankIcon className={s.scheduleGlyph} aria-hidden="true" />
       Schedule Meeting
     </button>
   );

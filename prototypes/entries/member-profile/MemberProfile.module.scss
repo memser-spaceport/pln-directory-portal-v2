@@ -396,6 +396,11 @@
    in height read as two kinds (lesson 8). Phone: the DS `s` height, 38px —
    production's own 8px pad. */
 .scheduleBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
   width: auto;
   margin-left: 0;
   grid-area: auto;
@@ -417,6 +422,13 @@
   @include media.tablet-landscape {
     width: auto;
   }
+}
+
+/* 16px, the size of the envelope on Request an intro beside it. */
+.scheduleGlyph {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .scheduleBtnS {

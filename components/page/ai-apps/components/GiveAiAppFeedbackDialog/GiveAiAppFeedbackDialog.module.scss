@@ -210,6 +210,21 @@
   color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
+/* The button beside it is the control; this input only exists to open the OS
+   file picker. Hidden with clip rather than `display: none` so it keeps a
+   layout box — a display:none input cannot be `.click()`ed in every browser. */
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .screenshotButton {
   display: inline-flex;
   align-items: center;

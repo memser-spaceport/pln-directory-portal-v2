@@ -200,16 +200,19 @@ interface Props {
  * Submissions) and Fiverr (Invite freelancers / Offers) all keep matched
  * people in the candidates' own strip rather than on a page of their own.
  * Three differences from the other two tabs, all from that one fact:
- *   - **A percentage over its working.** Each row ends in the match, the
- *     share of the role's requirements the profile meets, and the pane's "Why
- *     suggested" lists every requirement with a check or a fade so the number
- *     can be checked. Requirements come from the posting; the lead can switch
- *     them off in **Edit criteria** (Workable's "Manage matching criteria"),
- *     and nobody under the floor is suggested at all. What the network knows
- *     (an interest press, shared work) is *not* in the number: it is the row's
- *     third line and the pane's first block. See `suggestedMocks.ts`.
- *   - **Sorted by the number the row shows, not by date** — nothing happened,
- *     so there is no date, and a displayed percentage that is not the sort key
+ *   - **A band over its working.** Each row ends in the match — *Strong
+ *     match* or *Good match*, read off the share of the role's requirements
+ *     the profile meets (a percentage was shown first and corrected: on a
+ *     five-item checklist it is a grade with four possible values) — and the
+ *     pane's "Why suggested" lists every requirement with a check or a fade
+ *     so the claim can be checked. Requirements come from the posting; the
+ *     lead can switch them off in **Edit criteria** (Workable's "Manage
+ *     matching criteria"), and nobody under the floor is suggested at all.
+ *     What the network knows (an interest press, shared work) is *not* in the
+ *     band: it is the row's third line and the pane's first block. See
+ *     `suggestedMocks.ts`.
+ *   - **Sorted by the share the band is read off, not by date** — nothing
+ *     happened, so there is no date, and a Good match above a Strong one
  *     reads as a bug. One spine, no top-N band; ties go to the stronger
  *     network signal. Applied and Interested stay newest-first: those people
  *     chose to be here, and re-ranking them by our guess would bury someone

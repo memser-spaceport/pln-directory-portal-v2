@@ -2,8 +2,6 @@
 
 import clsx from 'clsx';
 
-import { Button } from '@/components/common/Button';
-
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
 import local from './Newsfeed.module.scss';
 
@@ -95,6 +93,25 @@ interface ForYouBannerProps {
  * affordance, and a line under a phrase that already ends in an arrow is two
  * signals for one link.
  */
+/*
+ * 2026-09-25 — dev's wording, verbatim ("We have this message on dev - use this
+ * wording and improve layout"): production's `ForYouHint` reads "For you:
+ * Curated based on your profile, primary team attributes, and the teams you
+ * follow. Update your profile to make it more relevant." The notes above argue
+ * for the earlier prototype copy and are kept as history; the words are now
+ * production's so the prototype and dev say one thing.
+ *
+ * What changed is the layout, not the words:
+ * - "For you" is a label (500, primary ink) rather than a "For you:" prefix in
+ *   the sentence's grey, so the note names its view at a glance.
+ * - Explanation and action are two flex items in `.noteRow`. The action
+ *   sentence — link plus "to make it more relevant." — never breaks inside
+ *   (`.forYouAction`), so it follows the explanation or starts the next line
+ *   at the content edge; dev's paragraph leaves "relevant." alone on line two.
+ * - The link is dev's: brand, 500, underline on hover, no arrow — it sits
+ *   inside a sentence now, and an arrow mid-sentence reads as a second object.
+ *   It opens profile settings, as before; dev opens the member page in a tab.
+ */
 export function ForYouBanner({ onUpdateProfile }: ForYouBannerProps) {
   return (
     <div
@@ -106,30 +123,16 @@ export function ForYouBanner({ onUpdateProfile }: ForYouBannerProps) {
         local.noteRow,
       )}
     >
-      {/* Same three inputs `SignedOutBanner` names for a visitor. The wording
-          differs because this is a label on a feed you already have. */}
-      <span>Your feed is based on your skills, your focus areas, and the teams you follow.</span>
-      <Button
-        size="s"
-        type="button"
-        style="link"
-        variant="primary"
-        className={local.noteAction}
-        onClick={onUpdateProfile}
-      >
-        Update profile
-        {/* `ProfileNudgeBanner`'s arrow, verbatim — same 14px box, same path,
-            same `currentColor` stroke, so the two CTAs are one control. */}
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path
-            d="M5 12h14M13 6l6 6-6 6"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </Button>
+      <span>
+        <span className={local.forYouLabel}>For you</span>
+        Curated based on your profile, primary team attributes, and the teams you follow.
+      </span>
+      <span className={local.forYouAction}>
+        <button type="button" className={local.forYouLink} onClick={onUpdateProfile}>
+          Update your profile
+        </button>{' '}
+        to make it more relevant.
+      </span>
     </div>
   );
 }

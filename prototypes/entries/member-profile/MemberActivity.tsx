@@ -17,6 +17,8 @@ import { CommentCard } from '@/components/page/member-details/ForumActivity/comp
 
 // Production stylesheet, imported verbatim.
 import list from '@/components/page/member-details/ForumActivity/components/ForumActivityCardsList/ForumActivityCardsList.module.scss';
+// The page's wider card padding (`.card` there): this card is one of the column's white sections.
+import pageStyles from './MemberProfile.module.scss';
 
 import { MOCK_FORUM_COMMENTS, MOCK_FORUM_POSTS } from './activityMocks';
 import { MOCK_MEMBER } from './mocks';
@@ -62,7 +64,7 @@ export function MemberActivity() {
   );
 
   return (
-    <DetailsSection>
+    <DetailsSection classes={{ root: pageStyles.card }}>
       <DetailsSectionHeader title="Forum Activity">
         {/* Production opens a modal here. That modal is out of scope for this
             prototype, so the control renders disabled rather than lying. */}

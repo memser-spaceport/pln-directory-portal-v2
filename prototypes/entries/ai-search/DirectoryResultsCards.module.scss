@@ -136,3 +136,22 @@
   height: 14px;
   color: var(--foreground-neutral-tertiary, #8897ae);
 }
+
+/* A card with the intro mark beside it: the `<li>` hosts both. */
+.item {
+  position: relative;
+}
+
+/* Room for a 24px disc at the card's 12px inset, plus 8px before the text. */
+.cardHasAction {
+  padding-right: 44px;
+}
+
+/* The intro mark (`intro-shared/IntroIconAction`) in the arrow's place,
+   centred on the card's height. Only the position is local. */
+.introMark {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+}

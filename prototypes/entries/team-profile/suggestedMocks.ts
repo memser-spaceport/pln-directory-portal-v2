@@ -5,22 +5,30 @@ import { exp, type RoleCandidate } from './candidateMocks';
    --------------------------------------------------------------------------- */
 
 /**
- * **A match is a count, not a guess.** Every suggestion carries a percentage
- * that is exactly the share of *this role's requirements* the member's profile
- * meets — "4 of 5" is 80% — and the pane lists the requirements with a tick or
- * a fade beside each, so the number can be checked against its own working.
- * Workable draws it that way ("How Cindy matches this job": a score ring over a
- * ✓/✗ checklist) and lets the team choose which criteria count ("Manage
- * matching criteria"), which is the part that makes a number defensible: the
- * team, not the product, decided what a fit is. User Interviews' "100% match"
- * is the same idea over screener answers. Wrangle's is the failure mode — a
- * weighted score nobody can inspect, and every card in its own screenshots
- * reads 100%.
+ * **A match is a count, not a guess.** Every suggestion is measured as the
+ * share of *this role's requirements* the member's profile meets — "4 of 5" —
+ * and the pane lists the requirements with a tick or a fade beside each, so
+ * the claim can be checked against its own working. Workable draws it that way
+ * ("How Cindy matches this job": a score over a ✓/✗ checklist) and lets the
+ * team choose which criteria count ("Manage matching criteria"), which is the
+ * part that makes a match defensible: the team, not the product, decided what
+ * a fit is. Wrangle's is the failure mode — a weighted score nobody can
+ * inspect, and every card in its own screenshots reads 100%.
+ *
+ * **Shown as a band, not a percentage.** The page said "80%" and "100%" and
+ * was corrected to *Strong match* / *Good match* (2026-09-23). A percentage
+ * over a five-item checklist has the precision of a grade and the information
+ * of a coin: 80 and 100 are one requirement apart, and 60 is the floor, so
+ * every value the list can show is one of four. A founder scanning the list
+ * is deciding whether to open a profile, and two words answer that; the count
+ * ("4 of 5 requirements") stays beside the band as its working, where the
+ * arithmetic is wanted. Employment Hero and Wrangle both draw bands
+ * (Strong / Good / Low); Low never appears here because of the floor.
  *
  * **Requirements are posting facts and nothing else** — skills the posting
  * names, its seniority, its working hours. Anything the *network* knows is a
- * `reason`, below, and is never folded into the percentage: there is no honest
- * weight for "worked with three of your people", and a number that quietly
+ * `reason`, below, and is never folded into the match: there is no honest
+ * weight for "worked with three of your people", and a band that quietly
  * blends the two can't be checked at all.
  */
 export type CriterionGroup = 'Skills' | 'Seniority' | 'Location';
@@ -37,8 +45,23 @@ export interface RoleCriterion {
  * Nobody under this is suggested, so "low match" is never a state the team
  * sees. Employment Hero and Wrangle both draw a Low band; on a list of tens of
  * members that band is only ever a person the product should not have offered.
+ * Whole percent of the switched-on requirements met.
  */
 export const MATCH_FLOOR = 60;
+
+/**
+ * At or above this share the band is *Strong match*; between the floor and it,
+ * *Good match*. 80 is "at most one requirement short" on the four- and
+ * five-item lists the postings carry, which is what a founder means by strong.
+ */
+export const STRONG_MATCH = 80;
+
+export type SuggestionBand = 'strong' | 'good';
+
+export const SUGGESTION_BAND_LABEL: Record<SuggestionBand, string> = {
+  strong: 'Strong match',
+  good: 'Good match',
+};
 
 /**
  * What only this network knows about a member, one plain sentence off a fact
@@ -49,8 +72,8 @@ export const MATCH_FLOOR = 60;
  *   vouch         has worked with people on the hiring team
  *
  * These are the row's third line and the pane's first block. They are *not*
- * part of the percentage (see above) — they are why a lower-percentage member
- * can still be worth opening.
+ * part of the match (see above) — they are why a Good match can still be
+ * worth opening before a Strong one.
  */
 export type SuggestionReasonKind = 'interest' | 'contribution' | 'vouch';
 
@@ -76,8 +99,8 @@ export interface SuggestionReason {
  * member is eligible only once they tick "Let hiring teams in the network find
  * me" under that field; nothing here mentions the status itself, only public
  * profile facts. And the match is shown to the hiring team only, never to the
- * member — a percentage about you that you cannot see is the team's working,
- * and one you can see is a grade.
+ * member — a band about you that you cannot see is the team's working, and one
+ * you can see is a grade.
  */
 export type RoleSuggested = Omit<RoleCandidate, 'note' | 'appliedAt' | 'cv' | 'unseen' | 'reviewed'> & {
   /** Ids of the role's criteria this profile meets. */
@@ -87,8 +110,10 @@ export type RoleSuggested = Omit<RoleCandidate, 'note' | 'appliedAt' | 'cv' | 'u
 };
 
 export interface SuggestionMatch {
-  /** Whole percent — `met / total`, rounded. */
+  /** Whole percent — `met / total`, rounded. The floor, the band and the sort read it; nothing draws it. */
   percent: number;
+  /** What the badge says — see `STRONG_MATCH`. */
+  band: SuggestionBand;
   met: number;
   total: number;
 }
@@ -101,7 +126,8 @@ export const suggestionMatch = (
 ): SuggestionMatch => {
   const on = criteria.filter((c) => !off?.has(c.id));
   const met = on.filter((c) => person.met.includes(c.id)).length;
-  return { percent: on.length ? Math.round((met / on.length) * 100) : 0, met, total: on.length };
+  const percent = on.length ? Math.round((met / on.length) * 100) : 0;
+  return { percent, band: percent >= STRONG_MATCH ? 'strong' : 'good', met, total: on.length };
 };
 
 /** Only members at or above the floor, against the criteria that are on. */
@@ -112,9 +138,10 @@ export const visibleSuggested = (
 ): RoleSuggested[] => people.filter((p) => suggestionMatch(p, criteria, off).percent >= MATCH_FLOOR);
 
 /**
- * One spine, sorted by the number the row shows: a displayed percentage that
- * is not the sort key reads as a bug (71% above 94% looks broken). Ties go to
- * whoever has the stronger network signal, then by name so the order is stable.
+ * One spine, sorted by the share the band is read off: a Good match above a
+ * Strong one would read as a bug, and inside a band the count still orders
+ * (4 of 5 before 3 of 5 — the pane shows it). Ties go to whoever has the
+ * stronger network signal, then by name so the order is stable.
  */
 export const sortSuggested = (
   people: RoleSuggested[],

@@ -50,6 +50,7 @@
 
 .demoSwitchRow {
   display: inline-flex;
+  flex-wrap: wrap; /* the four Bluesky states overflowed a 340px screen */
   gap: 4px;
   padding: 4px;
   border-radius: 9999px;
@@ -291,6 +292,244 @@
   font-weight: 400;
   line-height: 22px;
   letter-spacing: -0.2px;
+}
+
+/* The header's actions: top of the name row, where production's Edit stands.
+   Ask AI (text), Request an intro bordered, Schedule Meeting filled, 8px
+   apart — the DS Button's own sibling gap. */
+.headerActions {
+  display: flex;
+  /* `.headerDetails` stretches this to the facts column's 88px, so anything
+     centred here floats mid-column; every member sits at the top instead. */
+  align-items: flex-start;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* The team profile's `.askAiBtn`, verbatim, plus the pill's height: a bare
+   text action is 20px tall, so it takes the xs Button's 34px and centres its
+   label on the pills' line. A bare text action needs the air a boxed one
+   carried in its padding: 12px to the pill beside it (production's `.actions`
+   gap on the team header), so 4px on top of the cluster's 8px. */
+.askAiBtn {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 4px;
+  white-space: nowrap;
+  margin-right: 4px;
+  min-height: 34px;
+
+  /* Desktop a step up ("Ask AI on desktop should be a bit bigger"): 16/24
+     type, the next rung above the header's 14px actions. The glyph is 18px
+     ("Make search icon for Ask AI a bit bigger"), passed as the icon's `size`
+     prop — it sizes itself inline, so no CSS rule can: the gradient mark draws
+     inside its box with air around it, so at the type's 16px it read a size
+     smaller than the word. The phone badge sets its own 12px values. */
+  font-size: 16px;
+  line-height: 24px;
+}
+
+/* Follow beside the reach presses: no shadow at all ("LETS remove shadow",
+   after a flattened 8% and a 16% drop were both tried). The DS neutral
+   bordered Button ships an inset bottom shadow plus a 1px drop, which read
+   as an embossed pill next to the outlined intro; the intro keeps its brand
+   drop, the filled press its gloss, and Follow is the flat one. Scoped to
+   this page; the team page keeps the DS default. */
+.followFlat.followFlat {
+  box-shadow: none;
+}
+
+/* The bio 8px nearer the badges ("Put bio closer to badges"): the header
+   card's own 24px gap made the badges and the bio read as two cards' worth
+   apart. Pulled up on the bio alone so the card's other gaps stay 24. */
+.bioCloser {
+  margin-top: -8px;
+}
+
+/* The presses fill the row below 960 ("Make buttons full width"), labels
+   centred; desktop keeps regular widths. On a tablet the row is a grid of
+   equal columns (see `.actionsBelowBio`): the pair splits it in half, Follow
+   makes it thirds, the intro alone takes all of it. */
+.rowPress,
+.rowPressFull {
+  justify-content: center;
+}
+
+/* Phone: the pair shares the first line equally; Follow takes a line of its
+   own, because three labels in 322px would truncate. */
+@include media.mobile-only {
+  .rowPress {
+    /* 50% basis, not 0: the glossy button and the DS pill carry different
+       padding, and a zero basis hands each its own padding back as width. */
+    flex: 1 1 calc(50% - 4px);
+    min-width: 0;
+  }
+
+  .rowPressFull {
+    flex: 0 0 100%;
+  }
+}
+
+/* The one-line note under the presses: caption size, one tertiary grey
+   throughout ("make request an intro caption all the same grey"). 8px under
+   the row — it belongs to the row, not to the strip. */
+.introNote {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* Sections an AI answer's door scrolls to — a little air above the card
+   rather than flush against the viewport edge. */
+.aiAnchor {
+  scroll-margin-top: 16px;
+}
+
+/* Production's `OfficeHoursView.primaryButton`, reset for the header cluster:
+   it was written for the Office Hours card's grid (full width, auto margin,
+   a named area) and none of that applies beside the intro pill. Height comes
+   down to the DS xs Button's 34px (6px pad + 20px line + 1px borders) so the
+   pair share a line — production's 8px pad is 38px, and two buttons 4px apart
+   in height read as two kinds (lesson 8). Phone: the DS `s` height, 38px —
+   production's own 8px pad. */
+.scheduleBtn {
+  width: auto;
+  margin-left: 0;
+  grid-area: auto;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-family: inherit;
+
+  /* Production's glossy button declares no hover; the DS fill/primary
+     Button's one step deeper (#0f3cd9) is the house answer, and back to
+     base on press. */
+  &:hover {
+    background: var(--action-background-brand-hover, #0f3cd9);
+  }
+
+  &:active {
+    background: var(--action-background-brand-normal, #1b4dff);
+  }
+
+  @include media.tablet-landscape {
+    width: auto;
+  }
+}
+
+.scheduleBtnS {
+  padding: 8px 12px;
+}
+
+.fromTablet {
+  @include media.mobile-only {
+    display: none !important;
+  }
+}
+
+/* The phone's full-width intro row: a grid item spanning the header's five
+   columns (production's `.tags` spans the same five), hidden from tablet up. */
+.introMobileRow {
+  display: none;
+
+  @include media.mobile-only {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    grid-column: 1 / span 5;
+    margin-top: 16px;
+  }
+}
+
+/* Phone: the text actions (Ask AI, Follow) on a line of their own before
+   the pills, at their natural 20px — nothing beside them to line up with —
+   12px apart, production's `.actions` gap for text actions in a row. */
+.mobileLinkRow {
+  flex: 0 0 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  /* An outlined badge on a phone ("Let's do it in an outlined badge for
+     mobile"): a brand hairline, fully rounded. The brand subtle border, not
+     the brand ink: it labels a tool, it is not a press competing with the two
+     below. Sized to the DS Button's `xxs` ("Make Ask AI badge smaller"):
+     12/16 type, 4×8 padding, 26px with the hairline; 36px made a side tool as
+     tall as the presses under the bio. The glyph comes down
+     with it, 14 → 12px, the team profile's own xs → xxs step. */
+  .askAiBtn {
+    min-height: 26px;
+    padding: 4px 8px;
+    margin: 0;
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: -0.2px;
+    border: 1px solid var(--border-brand-subtle, #aebfff);
+    border-radius: 999px;
+    background: var(--background-base-white, #fff);
+  }
+}
+
+/* ---- Phone header (the mock's): 72px picture, name over stacked role / team
+   / city, the intro row, the tags, a hairline, then the bio. Overrides on
+   production's MemberDetailHeader grid, mobile only. ---- */
+@include media.mobile-only {
+  .mHeader {
+    grid-template-columns: 72px auto;
+    column-gap: 12px;
+  }
+
+  .mAvatar {
+    width: 72px;
+    height: 72px;
+  }
+
+  .mDetails {
+    margin-bottom: 0;
+  }
+
+  .mName {
+    max-width: 100%;
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  /* Role, team, city as three lines; the hairlines between them go. */
+  .mRole {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin-top: 4px;
+
+    > div[class*='divider'] {
+      display: none;
+    }
+  }
+
+  .mRoleFirst {
+    order: -1;
+  }
+
+  /* Two whole skills, not five cut ones: the DS Tag caps a phone chip at 80px
+     ("Distribut…"), which is the cap for a row of five. With two shown, the
+     words fit and are the point. */
+  .skillTag {
+    max-width: none;
+  }
+
+  /* The tags no longer open the row under a rule; the rule moves to the bio. */
+  .mTags {
+    border-top: 0;
+    padding-top: 16px;
+  }
+
+  .mBio {
+    padding-top: 16px;
+    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
 }
 
 .bioLabel {
@@ -655,4 +894,125 @@
   font-weight: 400;
   line-height: 18px;
   letter-spacing: -0.2px;
+}
+
+/* The hairline before the location: the location wraps to its own line
+   beside the header's two actions, so the divider has nothing to divide. */
+.dividerBeforeWrap {
+  display: none !important;
+}
+
+/* ---- Actions under the bio (the member-actions-under-bio entry) ----
+   The header's three presses as a row where the reading ends, the buttons at their header size, wrapping on a phone. The Ask AI
+   strip, when present, follows it with its own hairline. */
+.actionsBelowBio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px; /* 16 → 12 ("closer to bio") → 16 ("+4px spacing above the request intro") */
+  /* No hairline above ("Remove divider between bio and buttons"): the row
+     belongs to the bio it follows; the Ask AI strip under it keeps its own. */
+
+  /* Tablet (640-959): equal columns across the full row ("Make buttons full
+     width"). A grid rather than flex so the glossy button and the DS pill,
+     which carry different padding, still come out the same width. Desktop
+     keeps each press at its own width ("On desktop should be regular width
+     buttons"): at 960+ the card is wide enough that a stretched pair reads
+     as two bars, not two buttons. */
+  @include media.tablet-portrait-only {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---- Office Hours body (see OfficeHoursCard) ----
+   Inside production's grey inset container, like the sibling cards. */
+.ohBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ohLede {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* The one fact: label over value, no hairline. */
+.ohFact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ohFactLabel {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.ohFactValue {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* Two columns of tags under uppercase labels, no hairlines ("remove dividers
+   from office hours"). Stacked on a phone. */
+.ohGroups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+
+  @include media.mobile-only {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+.ohGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ohGroupLabel {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.ohChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px; /* production `badgesWrapper` gap for these tags */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The main column's white cards: 20px of side padding instead of production's
+   16 ("increase left and right paddings of the white sections"). The phone
+   keeps 16 — at 342px the extra 16 costs a chip per row. Applied to the
+   header card (ProfileDetails' root) and every DetailsSection in the column
+   through its `classes.root`; the rail's cards are not "sections". */
+.card.card {
+  padding-left: 20px; /* 24 → 20: "Make paddings a bit smaller" */
+  padding-right: 20px;
+
+  @include media.mobile-only {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
 }

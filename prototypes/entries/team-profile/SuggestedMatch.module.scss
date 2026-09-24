@@ -3,8 +3,8 @@
 /* The Suggested tab's match: the pane's requirements section and the criteria
  * editor, which share a vocabulary (groups, a marker column, a label). */
 
-/* "4 of 5 requirements", in the header slot beside the percentage. The
- * percentage is the claim; this is its working, in the caption ink. */
+/* "4 of 5 requirements", in the header slot beside the band. The band is the
+ * claim; this is its working, in the caption ink. */
 .count {
   font-size: 12px;
   line-height: 18px;
@@ -18,9 +18,8 @@
   gap: 8px;
 }
 
-/* Tabular figures on the badge so 80% and 100% share a width down a column. */
-.percent {
-  font-variant-numeric: tabular-nums;
+/* The band badge: "Strong match" / "Good match". */
+.matchBadge {
   white-space: nowrap;
 }
 

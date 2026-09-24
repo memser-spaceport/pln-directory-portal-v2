@@ -22,7 +22,7 @@ import tmvc from '@/components/page/team-details/TeamMembers/components/TeamMemb
 
 import { Badge } from '@/components/common/Badge';
 
-import type { RoleCandidate, RoleInterested, RoleSuggested, SuggestionMatch } from './mocks';
+import { SUGGESTION_BAND_LABEL, type RoleCandidate, type RoleInterested, type RoleSuggested, type SuggestionMatch } from './mocks';
 import s from './CandidateRow.module.scss';
 
 interface Props {
@@ -33,7 +33,7 @@ interface Props {
    * Suggested rows only: when the team pressed **Invite to apply** (ISO).
    */
   invitedAt?: string;
-  /** Suggested rows only: the percentage, at the row's right end. */
+  /** Suggested rows only: the match band, at the row's right end. */
   match?: SuggestionMatch;
   /**
    * Not looked at yet: the row is tinted and carries `● New`. Opening it
@@ -90,7 +90,7 @@ export function CandidateRow({ candidate: a, isNew, reviewed, last, selected, on
                 )}
                 {/* Invited: a fact about this person, so it rides the name like
                     the Reviewed tick. At the right end it shared 75px with the
-                    percentage and ellipsised the role and the reason. */}
+                    match badge and ellipsised the role and the reason. */}
                 {invitedAt && (
                   <span className={clsx(row.relative, rowTone.relativeTone, s.invitedMark)}>
                     <ClockIcon />
@@ -108,9 +108,9 @@ export function CandidateRow({ candidate: a, isNew, reviewed, last, selected, on
               <p className={mcb.role}>{a.role}</p>
               {/* A suggested row's third line: the strongest network signal, in
                   words. Only this row needs one — an candidate is in the list
-                  because they applied — and it is what the percentage at the
-                  right cannot say (see `SuggestionReasonKind`). No tick: the
-                  green check in this list already means Reviewed. */}
+                  because they applied — and it is what the band at the right
+                  cannot say (see `SuggestionReasonKind`). No tick: the green
+                  check in this list already means Reviewed. */}
               {'reasons' in a && (
                 <p className={s.reason}>
                   {a.reasons[0] ? (
@@ -119,8 +119,8 @@ export function CandidateRow({ candidate: a, isNew, reviewed, last, selected, on
                       {a.reasons.length > 1 && <span className={s.reasonMore}>+{a.reasons.length - 1}</span>}
                     </>
                   ) : (
-                    /* No network signal: the line says what the percentage is
-                       made of instead of leaving a gap under the role. */
+                    /* No network signal: the line says what the band is made
+                       of instead of leaving a gap under the role. */
                     match && (
                       <span className={s.reasonText}>
                         {match.met} of {match.total} requirements
@@ -139,10 +139,11 @@ export function CandidateRow({ candidate: a, isNew, reviewed, last, selected, on
         <div className={clsx(mcb.right, s.right)}>
           {isNew && <span className={row.newBadge}>● New</span>}
           {'reasons' in a ? (
-            /* The number, in the slot a suggestion has no date for. One tone
-               for every value: a hue would grade people, and the floor already
-               means nobody here is a low match. */
-            match && <Badge className={s.percent}>{match.percent}%</Badge>
+            /* The band, in the slot a suggestion has no date for. One tone for
+               both values: the word already tells Strong from Good, a hue on
+               top would grade people, and the floor already means nobody here
+               is a low match. */
+            match && <Badge className={s.matchBadge}>{SUGGESTION_BAND_LABEL[match.band]}</Badge>
           ) : (
             <span className={clsx(row.relative, rowTone.relativeTone)}>
               <ClockIcon />

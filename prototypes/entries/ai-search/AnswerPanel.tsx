@@ -61,6 +61,8 @@ interface AnswerPanelProps {
   /** What was typed into this thread's input and not sent, from the last visit. */
   draft?: string;
   onDraftChange?: (text: string) => void;
+  /** Member cards offer an intro through the PL team (see `DirectoryResultsCards`). */
+  requestIntro?: React.ComponentProps<typeof DirectoryResultsCards>['requestIntro'];
 }
 
 /**
@@ -102,6 +104,7 @@ export function AnswerPanel({
   onOpenTarget,
   draft = '',
   onDraftChange,
+  requestIntro,
 }: AnswerPanelProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -228,6 +231,7 @@ export function AnswerPanel({
             onEdit={() => editQuestion(turn)}
             onFeedback={(f) => setFeedback(turn, f)}
             onOpenTarget={onOpenTarget}
+            requestIntro={requestIntro}
           />
         ))}
         <div ref={endRef} />
@@ -260,9 +264,20 @@ interface MessageProps {
   onEdit: () => void;
   onFeedback: (f: FeedbackState) => void;
   onOpenTarget?: (target: string) => void;
+  requestIntro?: AnswerPanelProps['requestIntro'];
 }
 
-function Message({ turn, isLast, busy, onFollowup, onRegenerate, onEdit, onFeedback, onOpenTarget }: MessageProps) {
+function Message({
+  turn,
+  isLast,
+  busy,
+  onFollowup,
+  onRegenerate,
+  onEdit,
+  onFeedback,
+  onOpenTarget,
+  requestIntro,
+}: MessageProps) {
   const streaming = turn.status === 'streaming';
   const scoped = turn.scoped;
 
@@ -289,7 +304,9 @@ function Message({ turn, isLast, busy, onFollowup, onRegenerate, onEdit, onFeedb
               {scoped.restrictedTo && <PlTeamOnlyPill label={scoped.restrictedTo} />}
             </div>
           )}
-          {scoped && turn.sql.length > 0 && <DirectoryResultsCards hits={turn.sql} title="Found on the profile" />}
+          {scoped && turn.sql.length > 0 && (
+            <DirectoryResultsCards hits={turn.sql} title="Found on the profile" requestIntro={requestIntro} />
+          )}
 
           <div className={clsx(s.content, scoped && s.summary, turn.blocks?.length && s.contentLead)}>
             <Markdown>{turn.shown}</Markdown>
@@ -304,7 +321,7 @@ function Message({ turn, isLast, busy, onFollowup, onRegenerate, onEdit, onFeedb
               the press added — the richer drawing of one list, so the plain
               one steps aside rather than repeating it underneath. */}
           {!scoped && !streaming && turn.sql.length > 0 && !turn.blocks?.some((b) => b.kind === 'intros') && (
-            <DirectoryResultsCards hits={turn.sql} />
+            <DirectoryResultsCards hits={turn.sql} requestIntro={requestIntro} />
           )}
 
           {/* A door, not a rival list: the section on the page is where these

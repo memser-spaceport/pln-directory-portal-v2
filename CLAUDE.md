@@ -99,3 +99,13 @@ Copy `.env.example` to `.env` for local setup. Key env vars: `DIRECTORY_API_URL`
 - Prettier: single quotes, 120 char print width
 - Dynamic imports with `{ ssr: false }` are used for client-only components in the root layout
 - React Query hooks follow the pattern: fetcher function + `useQuery`/`useMutation` wrapper with query keys from domain constants
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues on this repo (`memser-spaceport/pln-directory-portal-v2`), via the `gh` CLI. Planned work is specced in Linear as `LAB-####`. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context: `CONTEXT.md` and `docs/adr/` at the repo root, neither of which exists yet — the skills create them lazily. See `docs/agents/domain.md`.

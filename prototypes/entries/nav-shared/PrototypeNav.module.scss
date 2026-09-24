@@ -407,4 +407,17 @@
   font-size: 12px;
   font-weight: 600;
   letter-spacing: -0.2px;
+  /* It is the account menu's trigger (PrototypeAccountMenu) — a button. */
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* The account menu's group dividers without their labels. Production's
+   `.SeparatorWrapper` row is 14px tall (the label's line-height) with the 1px
+   line centred in it; this keeps that footprint so items don't move. */
+.accountSeparator {
+  height: 1px;
+  margin-block: 6.5px;
+  background-color: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }

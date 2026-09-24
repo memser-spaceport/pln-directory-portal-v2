@@ -7,7 +7,7 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { DocumentIcon, EyeIcon, UsersThreeIcon } from '@/components/icons';
 import { Button } from '@/components/common/Button';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { AiApp, deployFailureKind, hasPrd } from '@/services/ai-apps/ai-apps.service';
+import { AiApp, deployFailureKind, hasPrd, isPrivateAiApp } from '@/services/ai-apps/ai-apps.service';
 import { formatAiAppDate, formatCount } from '@/utils/ai-apps.utils';
 import { DetailsItem } from '@/components/core/UpdatesPanel/NotificationItem/components/NotificationFooter/components/DetailsItem';
 import nf from '@/components/core/UpdatesPanel/NotificationItem/components/NotificationFooter/NotificationFooter.module.scss';
@@ -28,6 +28,7 @@ interface Props {
    */
   canManage?: boolean;
   onEdit?: () => void;
+  onAccess?: () => void;
   onDeployment?: () => void;
   onDelete?: () => void;
   /** Open the deployment-logs modal; `source` says which affordance was used. */
@@ -37,7 +38,7 @@ interface Props {
 }
 
 export function AiAppCard(props: Props) {
-  const { app, onSelect, canManage, onEdit, onDeployment, onDelete, onLogs, onViewDetails } = props;
+  const { app, onSelect, canManage, onEdit, onAccess, onDeployment, onDelete, onLogs, onViewDetails } = props;
   const analytics = useAiAppsAnalytics();
 
   const handleAuthorClick = (e: MouseEvent) => {
@@ -53,7 +54,7 @@ export function AiAppCard(props: Props) {
   const isDeploying = app.status === 'DEPLOYING';
   const failureKind = deployFailureKind(app);
 
-  const showManageMenu = !!canManage && !!onEdit && !!onDeployment && !!onDelete;
+  const showManageMenu = !!canManage && !!onEdit && !!onAccess && !!onDeployment && !!onDelete;
   const showDetailsButton = !!onViewDetails && hasPrd(app);
   // Failure UI is manager-only: a visitor's card must be indistinguishable from
   // a healthy one, whatever the deploy state. A rolled-back app ('warning')
@@ -86,6 +87,11 @@ export function AiAppCard(props: Props) {
         <h3 className={s.name}>{app.name}</h3>
         {isDraft && <span className={s.draftBadge}>Draft</span>}
         {isDeploying && <span className={s.deployingBadge}>Deploying</span>}
+        {isPrivateAiApp(app) && (
+          <span className={s.privateBadge} title="Only the owner and people they add can see this app">
+            Private
+          </span>
+        )}
       </div>
       <p className={s.description}>{app.description}</p>
     </>
@@ -175,6 +181,7 @@ export function AiAppCard(props: Props) {
       <AppActionsMenu
         app={app}
         onEdit={onEdit}
+        onAccess={onAccess}
         onDeployment={onDeployment}
         onLogs={() => onLogs?.('menu')}
         onDelete={onDelete}

@@ -28,6 +28,13 @@ export interface AiAppDeploymentInfo {
   failureStream?: AiAppLogStream;
 }
 
+/**
+ * Who may find and open an app. OPEN = every PL Infra member; PRIVATE = the
+ * owner, directory admins, and the members on its whitelist. New apps start
+ * PRIVATE.
+ */
+export type AiAppAccessMode = 'OPEN' | 'PRIVATE';
+
 export interface AiApp {
   uid: string;
   memberUid: string;
@@ -71,6 +78,28 @@ export interface AiApp {
   viewCount?: number;
   /** Distinct signed-in members who loaded the iframe in the last 7 days. */
   weeklyActiveUsers?: number;
+  /** Absent on older API versions — treat as OPEN (every app was open before access control). */
+  access?: AiAppAccessMode;
+  /**
+   * Managers only. False while the app still runs an auth sidecar from before
+   * per-app access: a PRIVATE setting hides it in LabOS, but its direct URL
+   * stays open to PL Infra members until the next deploy.
+   */
+  directLinkGateReady?: boolean;
+  /**
+   * Managers only. Path patterns (e.g. `/api/*`) the deployed app serves to
+   * anyone without LabOS sign-in. Absent for non-managers and older API versions.
+   */
+  publicPaths?: string[];
+  /**
+   * Managers only. False while the app still runs an auth sidecar that doesn't
+   * forward the request path — its public paths take effect after one redeploy.
+   */
+  publicPathsGateReady?: boolean;
+}
+
+export function isPrivateAiApp(app: Pick<AiApp, 'access'>): boolean {
+  return app.access === 'PRIVATE';
 }
 
 export type AiAppFailureKind = 'warning' | 'danger' | 'legacy';
@@ -373,6 +402,162 @@ export async function fetchAiAppLogsPage(
   }
 
   return { events: [], nextToken: sentToken };
+}
+
+export interface AiAppAllowedMember {
+  uid: string;
+  name: string;
+  image: string | null;
+  addedAt: string;
+}
+
+export interface AiAppAccessSettings {
+  access: AiAppAccessMode;
+  directLinkGateReady: boolean;
+  members: AiAppAllowedMember[];
+}
+
+export interface AiAppAccessCandidate {
+  uid: string;
+  name: string;
+  image: string | null;
+  teamName: string | null;
+  /** Members without AI Apps access could never open the app, so the picker disables them. */
+  hasAiAppsAccess: boolean;
+  alreadyAdded: boolean;
+}
+
+export interface AiAppAccessResult {
+  data: AiAppAccessSettings | null;
+  error: string | null;
+}
+
+async function parseAccessResponse(response: Response | undefined, fallback: string): Promise<AiAppAccessResult> {
+  if (!response) {
+    return { data: null, error: fallback };
+  }
+  if (!response.ok) {
+    let message = fallback;
+    if (response.status === 403) {
+      message = 'Only the app creator or a directory admin can manage access.';
+    } else if (response.status === 404) {
+      message = 'This app no longer exists.';
+    } else {
+      try {
+        const body = await response.json();
+        if (typeof body?.message === 'string' && body.message) {
+          message = body.message;
+        }
+      } catch {
+        // Non-JSON error body — keep the generic message.
+      }
+    }
+    return { data: null, error: message };
+  }
+  return { data: await response.json(), error: null };
+}
+
+/** Access mode + whitelist. Creator or directory admin only. */
+export async function fetchAiAppAccess(uid: string): Promise<AiAppAccessResult> {
+  const response = await customFetch(`${AI_APPS_API_URL}/${encodeURIComponent(uid)}/access`, { method: 'GET' }, true);
+  return parseAccessResponse(response, 'Could not load who has access. Please try again.');
+}
+
+/** Replaces the access mode and the WHOLE whitelist (the backend keeps the list while the app is OPEN). */
+export async function saveAiAppAccess(
+  uid: string,
+  input: { access: AiAppAccessMode; memberUids: string[] },
+): Promise<AiAppAccessResult> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/access`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    },
+    true,
+  );
+  return parseAccessResponse(response, 'Saving failed. Please try again.');
+}
+
+export interface AiAppPublicPathsSettings {
+  publicPaths: string[];
+  publicPathsGateReady: boolean;
+}
+
+export interface AiAppPublicPathsResult {
+  data: AiAppPublicPathsSettings | null;
+  /** On a 400 the backend's message names each invalid pattern and why. */
+  error: string | null;
+}
+
+async function parsePublicPathsResponse(
+  response: Response | undefined,
+  fallback: string,
+): Promise<AiAppPublicPathsResult> {
+  if (!response) {
+    return { data: null, error: fallback };
+  }
+  if (!response.ok) {
+    let message = fallback;
+    if (response.status === 403) {
+      message = 'Only the app creator or a directory admin can manage public endpoints.';
+    } else if (response.status === 404) {
+      message = 'This app no longer exists.';
+    } else {
+      try {
+        const body = await response.json();
+        if (typeof body?.message === 'string' && body.message) {
+          message = body.message;
+        }
+      } catch {
+        // Non-JSON error body — keep the generic message.
+      }
+    }
+    return { data: null, error: message };
+  }
+  return { data: await response.json(), error: null };
+}
+
+/** Public path patterns of one app. Creator or directory admin only. */
+export async function fetchAiAppPublicPaths(uid: string): Promise<AiAppPublicPathsResult> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/public-paths`,
+    { method: 'GET' },
+    true,
+  );
+  return parsePublicPathsResponse(response, 'Could not load public endpoints. Please try again.');
+}
+
+/** Replaces the WHOLE public path list (`[]` clears it). Applies on the next request — no redeploy. */
+export async function saveAiAppPublicPaths(uid: string, publicPaths: string[]): Promise<AiAppPublicPathsResult> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/public-paths`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ publicPaths }),
+    },
+    true,
+  );
+  return parsePublicPathsResponse(response, 'Saving failed. Please try again.');
+}
+
+/** Member name search for the whitelist picker; an empty list on any failure. */
+export async function searchAiAppAccessCandidates(uid: string, search: string): Promise<AiAppAccessCandidate[]> {
+  try {
+    const response = await customFetch(
+      `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/access/candidates?search=${encodeURIComponent(search)}`,
+      { method: 'GET' },
+      true,
+    );
+    if (!response || !response.ok) {
+      return [];
+    }
+    return response.json();
+  } catch {
+    return [];
+  }
 }
 
 export interface UpdateAiAppPatch {

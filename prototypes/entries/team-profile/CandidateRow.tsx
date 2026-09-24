@@ -22,7 +22,10 @@ import tmvc from '@/components/page/team-details/TeamMembers/components/TeamMemb
 
 import { Badge } from '@/components/common/Badge';
 
-import { SUGGESTION_BAND_LABEL, type RoleCandidate, type RoleInterested, type RoleSuggested, type SuggestionMatch } from './mocks';
+import {
+  SUGGESTION_BAND_LABEL,
+  SUGGESTION_BAND_VARIANT,
+  type RoleCandidate, type RoleInterested, type RoleSuggested, type SuggestionMatch } from './mocks';
 import s from './CandidateRow.module.scss';
 
 interface Props {
@@ -143,7 +146,11 @@ export function CandidateRow({ candidate: a, isNew, reviewed, last, selected, on
                both values: the word already tells Strong from Good, a hue on
                top would grade people, and the floor already means nobody here
                is a low match. */
-            match && <Badge className={s.matchBadge}>{SUGGESTION_BAND_LABEL[match.band]}</Badge>
+            match && (
+              <Badge variant={SUGGESTION_BAND_VARIANT[match.band]} className={s.matchBadge}>
+                {SUGGESTION_BAND_LABEL[match.band]}
+              </Badge>
+            )
           ) : (
             <span className={clsx(row.relative, rowTone.relativeTone)}>
               <ClockIcon />

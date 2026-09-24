@@ -126,11 +126,17 @@
   color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
-/* The match badge at the row's right end: "Strong match" / "Good match", one
- * tone for both. */
-.matchBadge {
+/* The match badge at the row's right end: "Strong match" / "Good match",
+ * colour-coded by band (see SUGGESTION_BAND_VARIANT). */
+.matchBadge.matchBadge {
   white-space: nowrap;
   flex-shrink: 0;
+  /* Smaller than the DS Badge's 14/20 ("Make matches badges smaller"): 12/16
+     type in 2x6 padding, ~22px with the border, a tag's size beside the name
+     rather than a second heading. */
+  font-size: 12px;
+  line-height: 16px;
+  padding: 2px 6px;
 }
 
 /* "Invited today" beside the name: the row's clock + date in its own type, on

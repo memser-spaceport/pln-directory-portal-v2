@@ -64,6 +64,17 @@ export const SUGGESTION_BAND_LABEL: Record<SuggestionBand, string> = {
 };
 
 /**
+ * The band's DS `Badge` tone ("color code them"): Strong in success green,
+ * Good in brand blue. Both bands are recommendations, so neither takes amber
+ * or red — the colour ranks two good answers, it does not flag a bad one.
+ * One map so the row and the pane can never disagree.
+ */
+export const SUGGESTION_BAND_VARIANT: Record<SuggestionBand, 'success' | 'brand'> = {
+  strong: 'success',
+  good: 'brand',
+};
+
+/**
  * What only this network knows about a member, one plain sentence off a fact
  * their profile already holds. Strongest first:
  *

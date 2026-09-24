@@ -14,6 +14,7 @@ import { ReviewCheckIcon } from './icons';
 import {
   CRITERION_GROUPS,
   SUGGESTION_BAND_LABEL,
+  SUGGESTION_BAND_VARIANT,
   type RoleCriterion,
   type RoleSuggested,
   type SuggestionMatch,
@@ -59,7 +60,9 @@ export function SuggestedWhy({ person, criteria, off, match }: Props) {
           <span className={s.count}>
             {match.met} of {match.total} requirements
           </span>
-          <Badge className={s.matchBadge}>{SUGGESTION_BAND_LABEL[match.band]}</Badge>
+          <Badge variant={SUGGESTION_BAND_VARIANT[match.band]} className={s.matchBadge}>
+            {SUGGESTION_BAND_LABEL[match.band]}
+          </Badge>
         </span>
       </DetailsSectionHeader>
       <DetailsSectionGreyContentContainer>

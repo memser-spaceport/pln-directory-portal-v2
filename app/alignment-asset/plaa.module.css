@@ -29,7 +29,7 @@
   height: 40px;
   z-index: 5;
   background-color: #FFFFFF;
-  border: 1px solid #156FF7;
+  border: 1px solid #0B4F66;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
@@ -37,7 +37,7 @@
   justify-content: center;
   box-shadow: 0px 2px 6px 0px #0F172A29;
   transition: all 0.3s ease;
-  color: #156FF7;
+  color: #0B4F66;
 }
 
 /* --------------------------------------------------------------------------
@@ -74,12 +74,17 @@
   border-right: 1px solid var(--plaa-border-light);
   background-color: var(--plaa-neutral-white);
   position: sticky;
-  top: calc(var(--app-header-height) + 56px); /* Navbar + Banner */
+  /* The snapshot bar scrolls away with the page, so the rail pins directly
+     under the LabOS header rather than reserving a banner strip that is no
+     longer there. */
+  top: var(--app-header-height);
   left: 0;
-  height: calc(100vh - var(--app-header-height) - 56px); /* Navbar + Banner */
+  height: calc(100vh - var(--app-header-height));
   overflow-y: auto;
   align-self: flex-start;
 }
+
+
 
 /* --------------------------------------------------------------------------
      Element: plaa__content
@@ -99,6 +104,18 @@
   max-width: 1170px;
   margin: 0 auto;
   overflow-x: clip;
+}
+
+/* The home page manages its own fluid gutters, so it opts out of the shared
+   reading-width cap and fills the content column at every viewport. */
+.plaa__content--fluid {
+  padding: 0;
+}
+
+.plaa__content--fluid .plaa__content-inner,
+.plaa__content-inner--fluid {
+  max-width: none;
+  margin: 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -322,6 +339,14 @@
 
   .plaa__content {
     padding: 20px 48px 225px 48px;
+  }
+
+  /* Must sit after the rule above: equal specificity, so source order decides.
+     Without this the home page's fluid opt-out is silently defeated at >=960px,
+     leaving a 48px white frame around the full-bleed hero and 225px of dead
+     space under the footer. */
+  .plaa__content--fluid {
+    padding: 0;
     flex: 1;
   }
   

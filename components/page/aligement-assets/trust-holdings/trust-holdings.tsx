@@ -848,7 +848,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           font-weight: 700;
           line-height: 17px;
           letter-spacing: 0.6px;
-          color: #156ff7;
+          color: #0b4f66;
         }
 
         .th-nav-summary__value {
@@ -1075,7 +1075,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           line-height: 17px;
           letter-spacing: 0.5px;
           text-transform: uppercase;
-          color: #156ff7;
+          color: #0b4f66;
         }
 
         .th-buyback-panel {
@@ -1215,7 +1215,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
         }
 
         .th-metric:nth-child(2) .th-metric__label {
-          color: #156ff7;
+          color: #0b4f66;
         }
 
         .th-metric__value {

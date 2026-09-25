@@ -109,6 +109,26 @@ body {
   top: 0;
   background-color: white;
   z-index: 5;
+
+  /* PLAA snapshot bar: sits above the navbar and collapses out of the sticky
+     header once the page scrolls, so it reads as "hugs the top, then gone"
+     while the navbar itself stays pinned. Height, not display, so the
+     ResizeObserver behind `--app-header-height` sees the change. */
+  .layout__snapshotBar {
+    overflow: hidden;
+    max-height: 80px;
+    transition: max-height 180ms ease;
+  }
+
+  .layout__snapshotBar--collapsed {
+    max-height: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .layout__snapshotBar {
+      transition: none;
+    }
+  }
   //
   //@include media.tablet-landscape {
   //  min-height: var(--app-header-height);

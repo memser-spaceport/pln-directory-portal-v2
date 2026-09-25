@@ -123,7 +123,7 @@ export default function PointsRoundSelector({ currentRound, viewingRound }: Poin
               <button className="prs__go-current" onClick={() => navigateTo(currentRound)}>
                 <span>Go to current round</span>
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <path d="M2.5 6H9.5M9.5 6L6.5 3M9.5 6L6.5 9" stroke="#156FF7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M2.5 6H9.5M9.5 6L6.5 3M9.5 6L6.5 9" stroke="#0B4F66" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
             </>
@@ -308,7 +308,7 @@ export default function PointsRoundSelector({ currentRound, viewingRound }: Poin
           cursor: pointer;
           font-size: 12px;
           font-weight: 500;
-          color: #156FF7;
+          color: #0b4f66;
           transition: background-color 0.15s ease;
         }
 

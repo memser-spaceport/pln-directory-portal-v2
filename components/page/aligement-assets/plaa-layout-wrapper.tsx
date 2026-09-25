@@ -7,7 +7,7 @@ import PlaaMenu, { PlaaActiveItem } from './plaa-menu';
 import PlaaBackButton from './plaa-back-btn';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import styles from '@/app/alignment-asset/plaa.module.css';
-import { getCurrentRoundNumber } from '@/utils/plaa-round.utils';
+
 
 const GuestAccessModalController = dynamic(
   () => import('./guest-access-modal/GuestAccessModalController').then((m) => m.GuestAccessModalController),
@@ -34,14 +34,15 @@ const getPageInfo = (
     }
   }
 
-  // Check if on main alignment-asset page (current round) or /alignment-asset/rounds (legacy)
+  // /alignment-asset is the PLAA home page; /alignment-asset/rounds is legacy.
   if (pathSegment === 'alignment-asset' || pathSegment === 'rounds') {
-    return { activeItem: undefined, title: 'Rounds', viewingRound: undefined };
+    return { activeItem: 'home', title: 'Home', viewingRound: undefined };
   }
 
   const pageMap: Record<string, { activeItem: PlaaActiveItem; title: string }> = {
     overview: { activeItem: 'overview', title: 'Overview' },
     activities: { activeItem: 'activities', title: 'Activities' },
+    leaderboard: { activeItem: 'leaderboard', title: 'Leaderboard' },
     profile: { activeItem: 'profile', title: 'Profile' },
     kudos: { activeItem: 'kudos', title: 'Kudos' },
     'incentive-model': { activeItem: 'incentive-model', title: 'Incentive Model' },
@@ -58,8 +59,7 @@ const getPageInfo = (
 
 export default function PlaaLayoutWrapper({ children, isLoggedIn }: PlaaLayoutWrapperProps) {
   const pathname = usePathname();
-  const { activeItem, title, viewingRound } = getPageInfo(pathname ?? '');
-  const currentRoundNumber = getCurrentRoundNumber();
+  const { activeItem, title } = getPageInfo(pathname ?? '');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const { onMobileNavMenuClicked, onMobileNavMenuClosed } = useAlignmentAssetsAnalytics();
@@ -92,6 +92,9 @@ export default function PlaaLayoutWrapper({ children, isLoggedIn }: PlaaLayoutWr
   return (
     <>
       <div className={styles.plaa}>
+        {/* The PLAA snapshot bar lives in SiteHeader, above the LabOS navbar,
+            matching the live site. It gates itself to /alignment-asset. */}
+
         {/* Mobile Menu Button */}
         <button
           className={styles.plaa__menuBtn}
@@ -106,17 +109,12 @@ export default function PlaaLayoutWrapper({ children, isLoggedIn }: PlaaLayoutWr
         <div className={styles.plaa__main}>
           {/* Fixed Sidebar */}
           <aside className={styles.plaa__sidebar}>
-            <PlaaMenu
-              activeItem={activeItem}
-              totalRounds={currentRoundNumber}
-              currentRound={currentRoundNumber}
-              viewingRound={viewingRound}
-              isLoggedIn={isLoggedIn}
-            />
+            <PlaaMenu activeItem={activeItem} isLoggedIn={isLoggedIn} />
           </aside>
 
-          {/* Scrollable Content */}
-          <div className={styles.plaa__content}>
+          {/* Scrollable Content. The home page opts out of the shared
+              reading-width cap and sets its own fluid gutters. */}
+          <div className={`${styles.plaa__content} ${activeItem === 'home' ? styles['plaa__content--fluid'] : ''}`}>
             <div className={styles['plaa__content-inner']}>{children}</div>
           </div>
         </div>
@@ -139,14 +137,7 @@ export default function PlaaLayoutWrapper({ children, isLoggedIn }: PlaaLayoutWr
                 </button>
               </div>
 
-              <PlaaMenu
-                activeItem={activeItem}
-                totalRounds={18}
-                currentRound={18}
-                viewingRound={viewingRound}
-                onMenuItemClick={handleCloseMenu}
-                isLoggedIn={isLoggedIn}
-              />
+              <PlaaMenu activeItem={activeItem} onMenuItemClick={handleCloseMenu} isLoggedIn={isLoggedIn} />
             </div>
           </div>
         )}

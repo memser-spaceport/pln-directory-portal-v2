@@ -1214,7 +1214,7 @@ export default function IncentiveModel({ categoryDataByRound, allRounds, current
 
       <style jsx global>{`
         .incentive-model__link {
-          color: #156ff7;
+          color: #0b4f66;
           text-decoration: underline;
           text-underline-position: from-font;
         }
@@ -1224,7 +1224,7 @@ export default function IncentiveModel({ categoryDataByRound, allRounds, current
         }
 
         .incentive-model__learn-more-link {
-          color: #156ff7;
+          color: #0b4f66;
           text-decoration: underline;
           text-underline-position: from-font;
           font-weight: 500;
@@ -1235,7 +1235,7 @@ export default function IncentiveModel({ categoryDataByRound, allRounds, current
         }
 
         .incentive-model__tip-link {
-          color: #156ff7;
+          color: #0b4f66;
           text-decoration: underline;
           text-underline-position: from-font;
           font-weight: 400;

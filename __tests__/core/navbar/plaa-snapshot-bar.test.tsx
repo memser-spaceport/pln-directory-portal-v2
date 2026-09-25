@@ -26,6 +26,7 @@ const STATUS = {
   daysLeft: 16,
   progressPct: 52,
   pointsCollected: 420,
+  hasPointsData: true,
   activitiesCount: 7,
   categoriesCount: 4,
   activities: [{ category: 'Programs', title: 'Make a Network Introduction', points: 50 }],
@@ -55,6 +56,29 @@ describe('PlaaSnapshotBar', () => {
     mockUseCurrentSnapshotStatus.mockReturnValue({ ...STATUS, daysLeft: 1, progressPct: 100 });
     render(<PlaaSnapshotBar />);
     expect(screen.getByText('1 day left to contribute')).toBeInTheDocument();
+  });
+
+  /* The points call returns nothing when there is no session, which reduces to
+     0 — indistinguishable from a real zero. The home page is public now, so a
+     prospect would otherwise be told they had collected 0 points. */
+  it('hides the points total and personal summary when there is no points data', () => {
+    mockUseCurrentSnapshotStatus.mockReturnValue({
+      ...STATUS,
+      pointsCollected: 0,
+      hasPointsData: false,
+      activities: [],
+      activitiesCount: 0,
+      categoriesCount: 0,
+    });
+    render(<PlaaSnapshotBar />);
+
+    // The snapshot period and countdown are public facts and still render.
+    expect(screen.getByText('August 2026 snapshot')).toBeInTheDocument();
+    expect(screen.getByText('16 days left to contribute')).toBeInTheDocument();
+
+    expect(screen.queryByText('points collected this snapshot')).not.toBeInTheDocument();
+    expect(screen.queryByText('0')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /snapshot summary/i })).not.toBeInTheDocument();
   });
 
   it('opens the snapshot summary modal on click, closed by default', () => {

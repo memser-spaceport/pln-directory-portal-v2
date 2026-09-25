@@ -628,7 +628,7 @@ const Overview = () => {
           }
 
           .overview__content__who__details__list li:last-child::marker {
-            color: #156FF7;
+            color: #0b4f66;
           }
 
           .overview__content__how__section {
@@ -744,7 +744,7 @@ const Overview = () => {
           .overview__content__text__link {
             text-decoration: underline;
             text-decoration-style: solid;
-            color: #156ff7;
+            color: #0b4f66;
             cursor: pointer;
           }
 

@@ -712,7 +712,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
 
       <style jsx global>{`
         .activity-modal__link {
-          color: #156ff7;
+          color: #0b4f66;
           text-decoration: underline;
           text-underline-position: from-font;
         }

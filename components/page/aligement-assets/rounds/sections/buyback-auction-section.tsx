@@ -135,7 +135,7 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
                 <button className="buyback-section__show-more-btn" onClick={handleShowMore}>
                   <span>Show +{Math.min(10, remainingCount)} more</span>
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 6L8 10L12 6" stroke="#156FF7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M4 6L8 10L12 6" stroke="#0B4F66" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
               </div>
@@ -413,7 +413,7 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;
-          color: #156ff7;
+          color: #0b4f66;
           cursor: pointer;
         }
 

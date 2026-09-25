@@ -12,7 +12,7 @@ import styles from './PlaaSnapshotBar.module.scss';
 export function PlaaSnapshotBar() {
   const pathname = usePathname();
   const [summaryOpen, setSummaryOpen] = useState(false);
-  const { periodLabel, daysLeft, progressPct, pointsCollected } = useCurrentSnapshotStatus();
+  const { periodLabel, daysLeft, progressPct, pointsCollected, hasPointsData } = useCurrentSnapshotStatus();
 
   if (!pathname?.includes('alignment-asset')) {
     return null;
@@ -47,15 +47,22 @@ export function PlaaSnapshotBar() {
         <span className={styles.progressFill} style={{ width: `${progressPct}%` }} />
       </span>
 
-      <span className={styles.points}>
-        <span className={styles.pointsValue}>{pointsCollected.toLocaleString()}</span>
-        <span className={styles.pointsLabel}>points collected this snapshot</span>
-      </span>
+      {/* Without a points payload the total is 0 by construction, which reads as
+         a real score. Signed-out visitors have no points at all, so the cluster
+         and the personal summary are dropped rather than showing a made-up zero. */}
+      {hasPointsData && (
+        <span className={styles.points}>
+          <span className={styles.pointsValue}>{pointsCollected.toLocaleString()}</span>
+          <span className={styles.pointsLabel}>points collected this snapshot</span>
+        </span>
+      )}
 
-      <button className={styles.summaryBtn} onClick={() => setSummaryOpen(true)}>
-        Snapshot summary
-        <Image src="/icons/arrow-right-white.svg" alt="" width={14} height={14} />
-      </button>
+      {hasPointsData && (
+        <button className={styles.summaryBtn} onClick={() => setSummaryOpen(true)}>
+          Snapshot summary
+          <Image src="/icons/arrow-right-white.svg" alt="" width={14} height={14} />
+        </button>
+      )}
 
       <PlaaSnapshotSummaryModal isOpen={summaryOpen} onClose={() => setSummaryOpen(false)} />
     </div>

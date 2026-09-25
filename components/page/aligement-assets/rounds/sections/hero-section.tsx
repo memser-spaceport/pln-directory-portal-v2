@@ -111,7 +111,7 @@ export default function HeroSection({ data }: HeroSectionProps) {
         }
 
         .hero-section__btn--primary {
-          background-color: #156ff7;
+          background-color: #0b4f66;
           color: white;
           border: 1px solid #cbd5e1;
         }
@@ -122,8 +122,8 @@ export default function HeroSection({ data }: HeroSectionProps) {
 
         .hero-section__btn--secondary {
           background-color: transparent;
-          color: #156ff7;
-          border: 1px solid #156ff7;
+          color: #0b4f66;
+          border: 1px solid #0b4f66;
         }
 
         .hero-section__btn--secondary:hover {

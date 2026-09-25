@@ -8,8 +8,18 @@ describe('isProtectedRoute', () => {
     }
   });
 
+  // The bare /alignment-asset route is the program's public front door; the
+  // nested assertions above still cover the rest of the section.
+
   it('protects a section root written without a trailing slash', () => {
-    expect(isProtectedRoute('/alignment-asset')).toBe(true);
+    expect(isProtectedRoute('/investors')).toBe(true);
+  });
+
+  it('leaves the PLAA home public but keeps every sub-page gated (PLAA-94)', () => {
+    expect(isProtectedRoute('/alignment-asset')).toBe(false);
+    expect(isProtectedRoute('/alignment-asset/')).toBe(false);
+    expect(isProtectedRoute('/alignment-asset/profile')).toBe(true);
+    expect(isProtectedRoute('/alignment-asset/leaderboard')).toBe(true);
   });
 
   it('does not protect a sibling path that merely shares the prefix', () => {
@@ -35,7 +45,7 @@ describe('isProtectedRoute', () => {
     expect(isProtectedRoute('/')).toBe(false);
   });
 
-  it('covers the alignment-asset section, so no PLAA page can be reached without a login', () => {
+  it('keeps the alignment-asset sub-tree gated', () => {
     expect(PROTECTED_ROUTES).toContain('/alignment-asset');
   });
 });

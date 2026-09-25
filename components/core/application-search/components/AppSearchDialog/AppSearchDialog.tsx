@@ -413,6 +413,7 @@ export const AppSearchDialog = ({
             onRegenerate={chat.regenerate}
             onStop={chat.stop}
             onClose={onClose}
+            statusLine={chat.statusLine}
           />
         ) : (
           <div className={s.body}>

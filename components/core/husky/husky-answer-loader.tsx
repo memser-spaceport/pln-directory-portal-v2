@@ -1,6 +1,6 @@
 import { memo } from 'react';
 
-function HuskyAnswerLoader() {
+function HuskyAnswerLoader({ label = 'Fetching your response...' }: { label?: string }) {
   return (
     <>
       <div id="answer-loader" className="husky-loader">
@@ -17,7 +17,7 @@ function HuskyAnswerLoader() {
             <div className="husky-loader__info__text--mob">
               <span className="husky-loader__info__text__icon__wrpr">
                 <img className="husky-loader__info__text__icon" src="/icons/husky-bone.svg" />
-                Fetching your response...
+                {label}
               </span>
               <p>
                 This may take a moment. Please verify sources for accuracy, as responses may sometimes be inaccurate.

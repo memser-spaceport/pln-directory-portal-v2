@@ -16,6 +16,7 @@ jest.mock('@/analytics/jobs.analytics', () => ({
 const goToLogin = jest.fn();
 jest.mock('@/components/core/login/utils', () => ({
   useLoginRedirect: () => goToLogin,
+  authStatus: { isLoggedIn: () => true },
 }));
 
 const mutate = jest.fn();

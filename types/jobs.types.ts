@@ -98,8 +98,6 @@ export interface IJobsListResponse {
 }
 
 export interface ISavedJob {
-  /** The save's own id, not the job's. */
-  uid: string;
   /** Named `jobUid` server-side; the board calls the same identifier a role uid. */
   jobUid: string;
   savedAt: string;
@@ -120,6 +118,8 @@ export interface IJobsFiltersResponse {
   focus: IJobsFacetTreeItem[];
   location: IJobsFacetItem[];
   workMode: IJobsFacetItem[];
+  // number of saved jobs
+  saved?: number;
 }
 
 export type JobsSortKey = 'newest' | 'company_az';

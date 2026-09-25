@@ -5,12 +5,5 @@ export function toggleSavedJobInCache(current: ISavedJob[], roleUid: string, sav
     return current.filter((savedJob) => savedJob.jobUid !== roleUid);
   }
 
-  return [
-    {
-      uid: `pending-${roleUid}`,
-      jobUid: roleUid,
-      savedAt: new Date().toISOString(),
-    },
-    ...current,
-  ];
+  return [{ jobUid: roleUid, savedAt: new Date().toISOString() }, ...current];
 }

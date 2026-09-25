@@ -1,0 +1,67 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+  padding: 2px 0;
+}
+
+.mark {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  background: linear-gradient(285deg, #45d8ff 0%, #005bea 82.52%);
+  mask: url('/icons/ai-search.svg') center / contain no-repeat;
+  animation: breathe 1.6s ease-in-out infinite;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: #455468;
+  background: linear-gradient(90deg, #455468 0%, #455468 35%, #c9d2de 50%, #455468 65%, #455468 100%) 0 0 / 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation:
+    enter 240ms ease-out,
+    sweep 1.6s linear infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes sweep {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mark,
+  .label {
+    animation: none;
+  }
+
+  .label {
+    -webkit-text-fill-color: currentColor;
+  }
+}

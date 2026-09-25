@@ -150,6 +150,7 @@ interface Props {
   chat: {
     turns: HuskyTurn[];
     status: StreamStatus;
+    statusLine: string | null;
     isBusy: boolean;
     threadId: string | null;
     isThreadPersisted: boolean;

@@ -79,6 +79,11 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: '/alignment-asset/incentive-model',
+        destination: '/alignment-asset/overview',
+        permanent: true,
+      },
+      {
         source: '/pitch/:slug',
         destination: '/spotlight/:slug',
         permanent: true,

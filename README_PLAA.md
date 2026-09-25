@@ -88,7 +88,6 @@ app/alignment-asset/
 ├── plaa.module.css            # Shared layout styles (sidebar, mobile menu)
 ├── overview/page.tsx
 ├── activities/page.tsx
-├── incentive-model/page.tsx
 ├── faqs/page.tsx
 ├── product-versions/page.tsx
 ├── terms-of-use/page.tsx
@@ -120,7 +119,6 @@ components/page/aligement-assets/
 │   └── points-round-selector.tsx
 ├── overview/overview-page.tsx
 ├── faqs/faqs.tsx
-├── incentive-model/incentive-model.tsx
 ├── product-versions/product-versions.tsx
 ├── terms-of-use/terms-of-use.tsx
 ├── privacy-policy/privacy-policy.tsx
@@ -150,7 +148,6 @@ components/core/navbar/components/PlaaBanner/   # In-module promo carousel
 |-------|-------|-------|
 | *(Round selector)* | `/alignment-asset` or `/alignment-asset/rounds/{n}` | Current round uses root URL |
 | Overview | `/alignment-asset/overview` | Program introduction |
-| Incentive Model | `/alignment-asset/incentive-model` | Point-to-token mechanics |
 | Activities | `/alignment-asset/activities` | Searchable activity catalog |
 | Product Versions | `/alignment-asset/product-versions` | Release history |
 | FAQ | `/alignment-asset/faqs` | Searchable accordion |

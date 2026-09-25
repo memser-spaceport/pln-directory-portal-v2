@@ -12,8 +12,6 @@ import { useMarkTeamInterest } from '@/services/jobs/hooks/useTeamInterest';
 import { OpenRoleInterestModal } from '@/components/page/jobs/OpenRoleInterestModal/OpenRoleInterestModal';
 import { isJobGoneError } from '@/services/jobs/job-interests.service';
 import { useJobsParamsUpdater } from '@/services/jobs/hooks/useJobsParamsUpdater';
-import { useSavedJobs } from '@/services/jobs/hooks/savedJobs/useSavedJobs';
-import { useSavedScopeStore } from '@/services/jobs/saved-scope.store';
 import { useMemberTeamUids } from '@/components/page/jobs/hooks/useMemberTeamUids';
 import { useCreateJobAlert } from '@/services/job-alerts/hooks/useCreateJobAlert';
 import { useJobAlertMatch } from '@/services/job-alerts/hooks/useJobAlertMatch';
@@ -34,8 +32,6 @@ import TeamGroupCard from '@/components/page/jobs/TeamGroupCard';
 import { JobAlertBanner } from '@/components/page/jobs/JobAlertBanner';
 import JobAlertEmptyState from '@/components/page/jobs/JobAlertEmptyState/JobAlertEmptyState';
 import { JobAlertIndicator } from '@/components/page/jobs/JobAlertIndicator';
-import { JobsScopeTabs } from '@/components/page/jobs/JobsScopeTabs';
-import { SavedJobsEmptyState } from '@/components/page/jobs/SavedJobsEmptyState/SavedJobsEmptyState';
 
 import JobsMobileFilters from '@/components/page/jobs/JobsMobileFilters';
 import { TeamNewsModal } from '@/components/page/team-details/TeamNews';
@@ -210,10 +206,10 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
   /* Bookmarking (LAB-2629). Independent of the apply flow — hence `userInfo.uid`
      rather than its viewer: a member awaiting approval can still keep roles. */
   const memberUid = userInfo?.uid;
-  const savedScope = useSavedScopeStore((store) => store.savedScope);
-  const { data: savedJobs } = useSavedJobs({ memberUid, enabled: isLoggedIn });
-  const savedCount = savedJobs?.length ?? 0;
   const memberTeamUids = useMemberTeamUids(memberUid);
+  /* The Saved filter, read back off the URL it lives in. The row's clock uses
+     it to report the save instead of the posting's age. */
+  const savedScope = isLoggedIn && searchParams.get('saved') === 'true';
 
   /* ONE stable object for every card — `TeamGroupCard` is memoized. Passed
      signed out too, with no `memberUid`: the press then opens the sign-in door
@@ -368,7 +364,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
         </h1>
       </div>
       <div className={s.mobileFilters}>
-        <JobsMobileFilters />
+        <JobsMobileFilters isLoggedIn={isLoggedIn} />
       </div>
       <div className={s.toolbar}>
         <div className={s.titleGroup}>
@@ -383,12 +379,6 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
         <SortDropdown options={JOBS_SORT_OPTIONS} currentSort={sort} onSortChange={onSort} sortByLabel="Sort by:" />
       </div>
 
-      {isLoggedIn && (
-        <div className={s.scopeTabs}>
-          <JobsScopeTabs savedCount={savedCount} />
-        </div>
-      )}
-
       {showIndicator && userAlert && (
         <JobAlertIndicator alert={userAlert} onDismiss={() => setIndicatorDismissed(true)} />
       )}
@@ -398,11 +388,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
       )}
 
       {groups.length === 0 ? (
-        savedScope ? (
-          <SavedJobsEmptyState hasNoSavedJobs={savedCount === 0} />
-        ) : (
-          <JobAlertEmptyState filterState={alertFilterState} isLoggedIn={isLoggedIn} />
-        )
+        <JobAlertEmptyState filterState={alertFilterState} isLoggedIn={isLoggedIn} />
       ) : (
         <InfiniteScroll
           scrollableTarget="body"

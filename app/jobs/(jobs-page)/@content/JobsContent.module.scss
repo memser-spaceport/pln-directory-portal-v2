@@ -64,16 +64,6 @@
   letter-spacing: 0;
 }
 
-.scopeTabs {
-  padding: 0 8px;
-}
-
-@include media.breakpoint-1024 {
-  .scopeTabs {
-    padding: 0;
-  }
-}
-
 .list {
   display: flex;
   flex-direction: column;

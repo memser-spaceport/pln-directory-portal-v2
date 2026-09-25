@@ -2,6 +2,8 @@
 
 import { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
+
+import { authStatus } from '@/components/core/login/utils';
 import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 import type { IJobTeamGroup, IJobsListResponse } from '@/types/jobs.types';
@@ -9,12 +11,12 @@ import type { IJobTeamGroup, IJobsListResponse } from '@/types/jobs.types';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 
 import { JobsQueryKey } from '../constants';
+import { SAVED_PARAM } from '../savedParam';
 import { FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED } from '@/constants/filters';
 
-import { useSavedScopeStore } from '../saved-scope.store';
 import { fetchJobsFilters, fetchJobsList } from '../jobs.service';
 
-const SINGLE_VALUE_KEYS = ['q', 'sort'] as const;
+const SINGLE_VALUE_KEYS = ['q', 'sort', SAVED_PARAM] as const;
 const MULTI_VALUE_KEYS = ['roleCategory', 'seniority', 'focus', 'location', 'workplaceType'] as const;
 
 export const pickJobsParams = (searchParams: URLSearchParams): URLSearchParams => {
@@ -37,32 +39,22 @@ export const pickJobsParams = (searchParams: URLSearchParams): URLSearchParams =
 
 export function useJobsSearchParams(): URLSearchParams {
   const raw = useSearchParams();
-  return useMemo(() => pickJobsParams(new URLSearchParams(raw.toString())), [raw]);
-}
-
-/**
- * The board's params, plus the Saved tab's `saved=true`. Read from the store
- * rather than taken as an argument because `useInfiniteJobsList` runs in four
- * places that must describe the same list. It lands in the query string and,
- * through it, in the React Query key — without that the saved list and the
- * whole board would share one cache entry.
- */
-function useScopedJobsParams(): URLSearchParams {
-  const params = useJobsSearchParams();
-  const savedScope = useSavedScopeStore((store) => store.savedScope);
 
   return useMemo(() => {
-    if (!savedScope) {
-      return params;
+    const picked = pickJobsParams(new URLSearchParams(raw.toString()));
+    /* The saved scope is the one filter the API refuses without a session — it
+       answers 401 rather than widening, which would put the whole board on the
+       error state. A shared link, or a logout that left the box ticked, is how
+       a signed-out visitor gets here. */
+    if (!authStatus.isLoggedIn()) {
+      picked.delete(SAVED_PARAM);
     }
-    const scoped = new URLSearchParams(params.toString());
-    scoped.set('saved', 'true');
-    return scoped;
-  }, [params, savedScope]);
+    return picked;
+  }, [raw]);
 }
 
 export function useInfiniteJobsList() {
-  const params = useScopedJobsParams();
+  const params = useJobsSearchParams();
   const key = params.toString();
 
   const query = useInfiniteQuery<IJobsListResponse>({
@@ -86,7 +78,7 @@ export function useInfiniteJobsList() {
 }
 
 export function useJobsFilters() {
-  const params = useScopedJobsParams();
+  const params = useJobsSearchParams();
   const key = params.toString();
 
   return useQuery({

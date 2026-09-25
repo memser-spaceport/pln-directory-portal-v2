@@ -334,4 +334,16 @@ describe('useHuskyChat', () => {
     expect(result.current.turns[0].question).toBe('an unrelated search');
     expect(result.current.threadId).not.toBe(firstThreadId);
   });
+
+  it('keeps the latest status line while the answer is still empty', async () => {
+    const { result } = renderHook(() => useHuskyChat({ isLoggedIn: true }));
+
+    await act(async () => {
+      await result.current.startThread('who works on storage');
+    });
+    emit({ steps: ['Understanding your question', 'Found 2 members'] });
+
+    expect(result.current.statusLine).toBe('Found 2 members');
+    expect(result.current.turns[0].answer).toBe('');
+  });
 });

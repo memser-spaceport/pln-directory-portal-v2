@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { clsx } from 'clsx';
 
+import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { CloseIcon } from '@/components/icons';
@@ -31,16 +32,16 @@ interface Props {
 
 const MODE_OPTIONS: Array<{ value: AiAppAccessMode; title: string; description: string; icon: ReactNode }> = [
   {
-    value: 'PRIVATE',
-    title: 'Private',
-    description: 'Only you and the people you add can find and open this app.',
-    icon: <LockIcon />,
-  },
-  {
     value: 'OPEN',
     title: 'All PL Infra members',
     description: 'Anyone with AI Apps access can find and open it.',
     icon: <GlobeIcon />,
+  },
+  {
+    value: 'PRIVATE',
+    title: 'Private',
+    description: 'Only you and the people you add can find and open this app.',
+    icon: <LockIcon />,
   },
 ];
 
@@ -57,6 +58,7 @@ function sameMembers(a: Person[], b: Person[]): boolean {
  * so switching back to Private restores it.
  */
 export function ManageAccessModal({ app, onClose, onRedeploy }: Props) {
+  const analytics = useAiAppsAnalytics();
   const { settings, error: loadError, isLoading } = useAiAppAccess(app.uid);
   const saveAccess = useSaveAiAppAccess(app.uid);
 
@@ -66,6 +68,12 @@ export function ManageAccessModal({ app, onClose, onRedeploy }: Props) {
   // After a Private save on an app still running a pre-access sidecar.
   const [needsRedeploy, setNeedsRedeploy] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  useEffect(() => {
+    analytics.onManageAccessOpened(app.uid);
+    // Open-event only — analytics identity is stable across renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Seed the form once, from the first fresh load (adjusting state during
   // render, so the form never paints empty first).
@@ -102,10 +110,22 @@ export function ManageAccessModal({ app, onClose, onRedeploy }: Props) {
     const result = await saveAccess.mutateAsync({ access: mode, memberUids: members.map((member) => member.uid) });
     if (result.error || !result.data) {
       setSaveError(result.error ?? 'Saving failed. Please try again.');
+      analytics.onAccessSaveFailed(app.uid);
       return;
     }
+    const previousUids = new Set((settings?.members ?? []).map((member) => member.uid));
+    const nextUids = new Set(members.map((member) => member.uid));
+    analytics.onAccessSaved({
+      appUid: app.uid,
+      from: settings?.access ?? mode,
+      to: result.data.access,
+      addedCount: members.filter((member) => !previousUids.has(member.uid)).length,
+      removedCount: [...previousUids].filter((uid) => !nextUids.has(uid)).length,
+      whitelistSize: members.length,
+    });
     if (result.data.access === 'PRIVATE' && gateNotReady && onRedeploy) {
       setNeedsRedeploy(true);
+      analytics.onAccessRedeployPrompted(app.uid);
       return;
     }
     onClose();
@@ -237,10 +257,26 @@ export function ManageAccessModal({ app, onClose, onRedeploy }: Props) {
         <div className={s.footer}>
           {needsRedeploy ? (
             <>
-              <Button style="border" variant="neutral" size="s" onClick={onClose}>
+              <Button
+                style="border"
+                variant="neutral"
+                size="s"
+                onClick={() => {
+                  analytics.onAccessRedeployDismissed(app.uid);
+                  onClose();
+                }}
+              >
                 Later
               </Button>
-              <Button style="fill" variant="primary" size="s" onClick={onRedeploy}>
+              <Button
+                style="fill"
+                variant="primary"
+                size="s"
+                onClick={() => {
+                  analytics.onAccessRedeployClicked(app.uid);
+                  onRedeploy?.();
+                }}
+              >
                 Redeploy now
               </Button>
             </>

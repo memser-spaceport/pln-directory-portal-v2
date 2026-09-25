@@ -357,8 +357,6 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
       <Sidebar>
         <div data-state={state} className="sidebar__header">
           <div className="sidebar__header__logo-container">
-            <img className="sidebar__header__logo" src="/images/husky-logo.svg" alt="logo" />
-            <img className="sidebar__header__logo-icon" src="/icons/husky-face.svg" alt="logo" />
             <button className="sidebar__header__logo-icon-button" onClick={handleSidebarToggle}>
               <img src="/icons/sidenav-close.svg" alt="toggle sidebar" />
             </button>
@@ -453,7 +451,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           height: 35px;
           display: flex;
           align-items: center;
-          justify-content: space-between;
+          justify-content: flex-end;
           padding-bottom: 12px;
         }
 
@@ -481,10 +479,6 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           font-size: 13px;
           line-height: 14px;
           color: #156ff7;
-        }
-
-        .sidebar__header__logo-icon {
-          display: none;
         }
 
         .sidebar__body {
@@ -641,22 +635,6 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         }
 
         @media (min-width: 768px) {
-          .sidebar__header__logo-icon {
-            display: block;
-          }
-          .sidebar__header[data-state='collapsed'] .sidebar__header__logo-container {
-            height: 60px;
-            padding-bottom: 0px;
-          }
-
-          .sidebar__header[data-state='collapsed'] .sidebar__header__logo {
-            display: none;
-          }
-
-          .sidebar__header[data-state='expanded'] .sidebar__header__logo-icon {
-            display: none;
-          }
-
           .sidebar__header[data-state='collapsed'] {
             padding: unset;
           }
@@ -705,12 +683,8 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
             display: flex;
           }
 
-          .sidebar__header__logo-icon-button {
-            display: none;
-          }
-
           .sidebar__header__logo-container {
-            justify-content: center;
+            display: none;
           }
         }
       `}</style>

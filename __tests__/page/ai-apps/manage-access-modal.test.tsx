@@ -23,6 +23,18 @@ jest.mock('@/services/ai-apps/hooks/useAiAppAccessCandidates', () => ({
   }),
 }));
 
+const mockAnalytics = {
+  onManageAccessOpened: jest.fn(),
+  onAccessSaved: jest.fn(),
+  onAccessSaveFailed: jest.fn(),
+  onAccessRedeployPrompted: jest.fn(),
+  onAccessRedeployClicked: jest.fn(),
+  onAccessRedeployDismissed: jest.fn(),
+};
+jest.mock('@/analytics/ai-apps.analytics', () => ({
+  useAiAppsAnalytics: () => mockAnalytics,
+}));
+
 function buildApp(overrides: Partial<AiApp> = {}): AiApp {
   return {
     uid: 'app-1',
@@ -80,8 +92,7 @@ describe('ManageAccessModal', () => {
 
     const search = screen.getByRole('combobox');
     fireEvent.change(search, { target: { value: 'ca' } });
-    expect(screen.getByText('No AI Apps access')).toBeInTheDocument();
-    fireEvent.mouseDown(screen.getByRole('option', { name: /dan/i }));
+    expect(screen.queryByRole('option', { name: /dan/i })).not.toBeInTheDocument();
     fireEvent.mouseDown(screen.getByRole('option', { name: /cara/i }));
     fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
 
@@ -89,6 +100,14 @@ describe('ManageAccessModal', () => {
       expect(mockMutateAsync).toHaveBeenCalledWith({ access: 'PRIVATE', memberUids: ['bob', 'cara'] }),
     );
     expect(onClose).toHaveBeenCalled();
+    expect(mockAnalytics.onAccessSaved).toHaveBeenCalledWith({
+      appUid: 'app-1',
+      from: 'PRIVATE',
+      to: 'PRIVATE',
+      addedCount: 1,
+      removedCount: 0,
+      whitelistSize: 2,
+    });
   });
 
   it('removes a member', async () => {
@@ -123,6 +142,7 @@ describe('ManageAccessModal', () => {
 
     expect(await screen.findByText('Some members cannot be added to this app')).toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
+    expect(mockAnalytics.onAccessSaveFailed).toHaveBeenCalledWith('app-1');
   });
 
   it('offers a redeploy after saving Private on an app deployed before per-app access', async () => {
@@ -140,6 +160,8 @@ describe('ManageAccessModal', () => {
     fireEvent.click(await screen.findByRole('button', { name: /redeploy now/i }));
     expect(onRedeploy).toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
+    expect(mockAnalytics.onAccessRedeployPrompted).toHaveBeenCalledWith('app-1');
+    expect(mockAnalytics.onAccessRedeployClicked).toHaveBeenCalledWith('app-1');
   });
 
   it('never warns about the direct link for an app that has not shipped yet', () => {

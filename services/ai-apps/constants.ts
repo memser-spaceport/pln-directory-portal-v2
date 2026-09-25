@@ -9,6 +9,7 @@ export enum AiAppsQueryKeys {
   AI_APP_TAGS = 'ai-app-tags',
   AI_APP_ACCESS = 'ai-app-access',
   AI_APP_ACCESS_CANDIDATES = 'ai-app-access-candidates',
+  AI_APP_PUBLIC_PATHS = 'ai-app-public-paths',
 }
 
 /** Keep in sync with `AI_APPS_STARTER_KIT_VERSION` in pln-directory-portal web-api. */

@@ -65,28 +65,110 @@ type FrameStatus = 'checking' | 'live' | 'down';
 /**
  * Sent by the embedded app (starter kit ≥1.10) on load and on every in-app
  * navigation: `{ type, path, title }`. The frame is cross-origin, so this is
- * the only way to learn which subpage is open. Kits ≥1.12 send the pathname
- * only, addressed to this origin; kits 1.10–1.11 sent pathname + query + hash
- * to `'*'`, so the listener keeps only the pathname regardless of sender.
+ * the only way to learn which subpage is open. Kits ≥1.14 send pathname +
+ * query (never the hash), addressed to this origin. Kits 1.12–1.13 sent the
+ * pathname only; kits 1.10–1.11 sent pathname + query + hash to `'*'`. The
+ * listener drops the hash, reserved portal params, and secret-like query keys
+ * no matter what the sender included.
  */
 const APP_ROUTE_MESSAGE = 'pln-ai-app:route';
 const MAX_APP_PATH_LENGTH = 2048;
 const MAX_APP_TITLE_LENGTH = 200;
 
+/**
+ * Portal-owned keys on this page's query string. They stay on the parent URL
+ * and are never forwarded into the iframe (`?settings=deployment` opens a
+ * LabOS modal; `path` is the legacy deep-link param).
+ */
+const RESERVED_PORTAL_PARAMS = new Set(['settings', 'path']);
+
+/**
+ * Exact, case-insensitive. These names are where OAuth callbacks (`?code=`),
+ * magic links and tokens land — they must not be mirrored into a shareable
+ * URL or replayed as the iframe's initial query. `state` is ordinary UI state
+ * in apps, so it is not listed.
+ */
+const DENIED_APP_PARAMS = new Set([
+  'code',
+  'token',
+  'access_token',
+  'id_token',
+  'refresh_token',
+  'secret',
+  'client_secret',
+  'key',
+  'api_key',
+  'apikey',
+  'auth',
+  'authorization',
+  'password',
+  'passwd',
+  'pwd',
+  'jwt',
+  'bearer',
+  'otp',
+]);
+
+function isReservedPortalParam(key: string): boolean {
+  return RESERVED_PORTAL_PARAMS.has(key.toLowerCase());
+}
+
+function isDeniedAppParam(key: string): boolean {
+  return DENIED_APP_PARAMS.has(key.toLowerCase());
+}
+
+/** App-owned query string: reserved portal keys and the secret denylist are dropped. */
+function filterAppSearch(params: URLSearchParams): string {
+  const kept = new URLSearchParams();
+  for (const [key, value] of params) {
+    if (isReservedPortalParam(key) || isDeniedAppParam(key)) continue;
+    kept.append(key, value);
+  }
+  const qs = kept.toString();
+  return qs ? `?${qs}` : '';
+}
+
 // Accepts only a path on the app's own origin; the origin comparison rejects
-// `//host`, absolute URLs, backslashes and non-http schemes in one go. Keeps
-// the pathname only: it is mirrored into this page's address bar and tab
-// title, and an app's query string is where OAuth callbacks (`?code=…`),
-// magic links and tokens land.
+// `//host`, absolute URLs, backslashes and non-http schemes in one go.
+// Returns pathname + safe query. The hash is never kept.
 function resolveAppPath(appOrigin: string, raw: unknown): string | null {
   if (typeof raw !== 'string' || !raw || raw.length > MAX_APP_PATH_LENGTH) return null;
   try {
     const url = new URL(raw, appOrigin);
     if (url.origin !== appOrigin) return null;
-    return url.pathname;
+    const path = `${url.pathname}${filterAppSearch(url.searchParams)}`;
+    if (path.length > MAX_APP_PATH_LENGTH) return null;
+    return path;
   } catch {
     return null;
   }
+}
+
+/** Pathname segment plus the query captured on first load, if either is present. */
+function initialAppRoute(path: string | null, search: string): string | null {
+  if (!path && !search) return null;
+  return `${path ?? '/'}${search}`;
+}
+
+/**
+ * Parent query after a route report: the app's filtered params, then reserved
+ * portal params copied from the current address bar so they win and survive
+ * an in-app navigation that reports no query.
+ */
+function parentSearchForAppRoute(appPath: string): string {
+  const merged = new URLSearchParams(new URL(appPath, 'https://placeholder.invalid').search);
+  for (const [key, value] of new URLSearchParams(window.location.search)) {
+    if (isReservedPortalParam(key)) merged.append(key, value);
+  }
+  const qs = merged.toString();
+  return qs ? `?${qs}` : '';
+}
+
+function mirroredAppUrl(basePath: string, appPath: string): string {
+  const queryAt = appPath.indexOf('?');
+  const appPathname = queryAt === -1 ? appPath : appPath.slice(0, queryAt);
+  const segment = appPathname === '/' ? '' : appPathname;
+  return `${basePath}${segment}${parentSearchForAppRoute(appPath)}`;
 }
 
 export function AiAppDetailPage(props: Props) {
@@ -103,13 +185,22 @@ export function AiAppDetailPage(props: Props) {
   const openedSettingsFromUrl = useRef(false);
   const trackedAppUid = useRef<string | null>(null);
   const trackedDraftSetupUid = useRef<string | null>(null);
+  const trackedPrivateBlockUid = useRef<string | null>(null);
   const iframeTracked = useRef<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   // Latest subpage reported by the app; seeds the frame src on a redeploy remount.
   const appPathRef = useRef<string | null>(null);
   // The app subpage is the URL segment after the route's base path, e.g.
-  // `/pl-infra-os/flywheels` → `/flywheels`.
+  // `/pl-infra-os/flywheels` → `/flywheels`. Captured once: later replaceState
+  // updates must not recompute the iframe src (that reloads the frame).
   const [initialPath] = useState(() => (pathname.startsWith(`${basePath}/`) ? pathname.slice(basePath.length) : null));
+  // window is the source of truth in the browser. On the server (no window)
+  // fall back to the router snapshot so a deep link's query survives SSR.
+  const [initialSearch, setInitialSearch] = useState(() => {
+    if (typeof window !== 'undefined') return window.location.search;
+    const qs = searchParams.toString();
+    return qs ? `?${qs}` : '';
+  });
   const [appPageTitle, setAppPageTitle] = useState<string | null>(null);
   const [isRedeploying, setIsRedeploying] = useState(false);
   const [action, setAction] = useState<Action | null>(null);
@@ -168,6 +259,12 @@ export function AiAppDetailPage(props: Props) {
   const deployInProgress = app?.status === 'DEPLOYING' && !isRedeploying;
 
   useEffect(() => {
+    if (errorKind !== 'forbidden' || app || trackedPrivateBlockUid.current === uid) return;
+    trackedPrivateBlockUid.current = uid;
+    analytics.onPrivateBlocked(uid);
+  }, [errorKind, app, uid, analytics]);
+
+  useEffect(() => {
     if (!app || app.status !== 'DRAFT' || !needsSetup || trackedDraftSetupUid.current === app.uid) return;
     trackedDraftSetupUid.current = app.uid;
     analytics.onDraftSetupViewed({ appUid: app.uid, appName: app.name });
@@ -209,12 +306,40 @@ export function AiAppDetailPage(props: Props) {
 
   // Recomputed only per deployed version: every route message re-renders this
   // component through the synced pathname, and a changed src would reload the
-  // frame. Reading the ref makes a redeploy remount reopen the same subpage.
+  // frame. Reading the ref makes a redeploy remount reopen the same subpage
+  // and query. Reserved and denylisted keys never reach the iframe.
   const frameSrc = useMemo(() => {
-    const path = appOrigin ? resolveAppPath(appOrigin, appPathRef.current ?? initialPath) : null;
-    return path && appOrigin ? `${appOrigin}${path}` : (appUrl ?? undefined);
+    if (!appOrigin) return appUrl ?? undefined;
+    const seed = appPathRef.current ?? initialAppRoute(initialPath, initialSearch);
+    const path = seed ? resolveAppPath(appOrigin, seed) : null;
+    if (!path || path === '/') return appUrl ?? undefined;
+    return `${appOrigin}${path}`;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [appUrl, appOrigin, initialPath, deployGeneration]);
+  }, [appUrl, appOrigin, initialPath, initialSearch, deployGeneration]);
+
+  // A pasted link can already carry `?code=` / `?token=`. Drop those before the
+  // app reports a route so they don't sit in the address bar.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    let removed = false;
+    for (const key of [...params.keys()]) {
+      if (!isDeniedAppParam(key)) continue;
+      params.delete(key);
+      removed = true;
+    }
+    if (!removed) return;
+    const qs = params.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
+  }, []);
+
+  // A server render has no window, and useState does not re-run on hydration.
+  // If that left the query empty, pick it up before the liveness probe mounts
+  // the iframe (the probe is async) so the deep link is the first src.
+  useEffect(() => {
+    if (initialSearch) return;
+    const live = window.location.search;
+    if (live) setInitialSearch(live);
+  }, [initialSearch]);
 
   useEffect(() => {
     if (!appOrigin) return;
@@ -229,7 +354,7 @@ export function AiAppDetailPage(props: Props) {
       const path = resolveAppPath(appOrigin, event.data.path);
       if (!path) return;
       appPathRef.current = path;
-      window.history.replaceState(null, '', `${basePath}${path === '/' ? '' : path}${window.location.search}`);
+      window.history.replaceState(null, '', mirroredAppUrl(basePath, path));
     };
 
     window.addEventListener('message', onMessage);
@@ -326,12 +451,14 @@ export function AiAppDetailPage(props: Props) {
   // the subpage URL remounts the page subtree and reloads the frame.
   const closeAction = () => {
     setAction(null);
-    if (searchParams.get('settings')) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete('settings');
-      const qs = params.toString();
-      window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
-    }
+    // Live URL, not the hook snapshot: route sync writes app params via
+    // replaceState, which does not update useSearchParams. Reading the hook
+    // here would drop those params when the modal closes.
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('settings')) return;
+    params.delete('settings');
+    const qs = params.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
   };
 
   const openFailureLogs = (source: 'detail-banner' | 'detail-error-card') => {

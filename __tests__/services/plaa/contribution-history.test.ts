@@ -12,6 +12,7 @@ function snapshot(periodIso: string, period: string, activityPlaa: number, infra
     infra,
     plaaTotal: activityPlaa + infra,
     items: null,
+    isPending: false,
   };
 }
 
@@ -28,6 +29,19 @@ describe('buildContributionHistory', () => {
 
     expect(result.map((e) => e.period)).toEqual(['Jan 2026', 'Feb 2026', 'Mar 2026']);
     expect(result.map((e) => e.cum)).toEqual([10, 60, 110]);
+  });
+
+  it('subtracts a redemption from the running balance, from its month onward', () => {
+    const result = buildContributionHistory(history, { '2026-02': 25 }, {});
+
+    // Jan 10, Feb +50 -25, Mar +50.
+    expect(result.map((e) => e.cum)).toEqual([10, 35, 85]);
+  });
+
+  it('keeps subtracting earlier redemptions from every later month', () => {
+    const result = buildContributionHistory(history, { '2026-01': 5, '2026-03': 20 }, {});
+
+    expect(result.map((e) => e.cum)).toEqual([5, 55, 85]);
   });
 
   it('attributes a redemption to the month its auction closed in', () => {

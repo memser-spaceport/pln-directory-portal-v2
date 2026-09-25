@@ -12,6 +12,7 @@ import { useMarkTeamInterest } from '@/services/jobs/hooks/useTeamInterest';
 import { OpenRoleInterestModal } from '@/components/page/jobs/OpenRoleInterestModal/OpenRoleInterestModal';
 import { isJobGoneError } from '@/services/jobs/job-interests.service';
 import { useJobsParamsUpdater } from '@/services/jobs/hooks/useJobsParamsUpdater';
+import { useMemberTeamUids } from '@/components/page/jobs/hooks/useMemberTeamUids';
 import { useCreateJobAlert } from '@/services/job-alerts/hooks/useCreateJobAlert';
 import { useJobAlertMatch } from '@/services/job-alerts/hooks/useJobAlertMatch';
 import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
@@ -202,6 +203,19 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
     [onExpressTeamInterest, markTeamInterest.isPending, markTeamInterest.variables],
   );
 
+  /* Bookmarking (LAB-2629). Independent of the apply flow — hence `userInfo.uid`
+     rather than its viewer: a member awaiting approval can still keep roles. */
+  const memberUid = userInfo?.uid;
+  const memberTeamUids = useMemberTeamUids(memberUid);
+  /* The Saved filter, read back off the URL it lives in. The row's clock uses
+     it to report the save instead of the posting's age. */
+  const savedScope = isLoggedIn && searchParams.get('saved') === 'true';
+
+  /* ONE stable object for every card — `TeamGroupCard` is memoized. Passed
+     signed out too, with no `memberUid`: the press then opens the sign-in door
+     and saves nothing. */
+  const saveProps = useMemo(() => ({ memberUid, savedScope, memberTeamUids }), [memberUid, savedScope, memberTeamUids]);
+
   /* ONE stable callback for every card — `TeamGroupCard` is memoized, and a
      closure minted per group re-renders every scrolled-in card on each host
      state change (every modal open/close, every submit). */
@@ -350,7 +364,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
         </h1>
       </div>
       <div className={s.mobileFilters}>
-        <JobsMobileFilters />
+        <JobsMobileFilters isLoggedIn={isLoggedIn} />
       </div>
       <div className={s.toolbar}>
         <div className={s.titleGroup}>
@@ -393,6 +407,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
                 onOpenTeamNews={openTeamNews}
                 onRoleClick={onRoleClick}
                 apply={applyProps}
+                save={saveProps}
                 openRole={openRoleProps}
               />
             ))}

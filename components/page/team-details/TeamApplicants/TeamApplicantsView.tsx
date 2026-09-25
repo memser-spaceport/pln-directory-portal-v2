@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import Select, { type StylesConfig } from 'react-select';
 
+import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 import { BackButton } from '@/components/ui/BackButton';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { Tabs } from '@/components/ui/tabs/Tabs';
@@ -40,6 +41,8 @@ interface Props {
   roles: IJobRole[];
   /** `?role=` — the role whose count line was pressed. */
   initialRoleUid: string | null;
+  /** `?candidate=` — a member uid, from the application email's link to the person. */
+  initialCandidateUid: string | null;
   /**
    * The signed-in lead, handed down rather than read from the user store.
    *
@@ -66,11 +69,21 @@ type RoleOption = Option & { newCount: number };
  * has to carry the gate, because an early `return null` in a host does not stop
  * a hook that already ran.
  */
-export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, viewerUid, isLoggedIn }: Props) {
+export function TeamApplicantsView({
+  teamId,
+  teamName,
+  roles,
+  initialRoleUid,
+  initialCandidateUid,
+  viewerUid,
+  isLoggedIn,
+}: Props) {
   /* The tablet-landscape hook, not `useIsMobile`. `useIsMobile` switches at
      768px and this layout goes two-column at 960 — between the two the pane
      would render under the list with nothing to go back to. */
   const isNarrow = useIsBelowTabletLandscape();
+  const analytics = useJobsAnalytics();
+  const hiringViewed = useRef(false);
 
   const [roleUid, setRoleUid] = useState(() => initialRoleUid ?? roles[0]?.uid ?? '');
   /**
@@ -87,6 +100,7 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
   const [query, setQuery] = useState('');
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [paneOpen, setPaneOpen] = useState(false);
+  const [pendingCandidateUid, setPendingCandidateUid] = useState(initialCandidateUid);
 
   const role = roles.find((r) => r.uid === roleUid) ?? roles[0] ?? null;
 
@@ -188,16 +202,32 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
     setSelectedUid(null);
     setQuery('');
     setPaneOpen(false);
+    analytics.onJobHiringTabChanged({
+      team_id: teamId,
+      job_id: role?.uid ?? null,
+      tab: next === INTERESTED_TAB ? 'interested' : 'applied',
+    });
   };
 
   const select = (row: TeamApplicant) => {
     setSelectedUid(row.uid);
+    analytics.onJobApplicantOpened({
+      team_id: teamId,
+      job_id: role?.uid ?? null,
+      kind: row.kind,
+    });
     if (isNarrow) setPaneOpen(true);
     /* Opening a row IS reading it, so the tint clears on selection rather than
        on some later "mark as read". Fire-and-forget: a failed write costs a
        badge that comes back, which is not worth interrupting anyone over. */
     if (row.unseen) markSeen.mutate({ kind: row.kind, uid: row.uid });
   };
+
+  useEffect(() => {
+    if (hiringViewed.current) return;
+    hiringViewed.current = true;
+    analytics.onJobHiringViewed({ team_id: teamId, job_id: role?.uid ?? null });
+  }, [analytics, teamId, role]);
 
   /**
    * The pane opens on someone, rather than on an instruction to pick someone.
@@ -222,8 +252,14 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
    * is the conservative read, not a behaviour the tests can tell apart.
    */
   useEffect(() => {
-    if (isNarrow || selectedUid || !rows.length) return;
-    select(rows[0]);
+    if (selectedUid || !rows.length) return;
+    /* A lead arriving from the email came for one person, so that person opens
+       on a narrow screen too. Consumed on first use: switching back to this
+       tab later should not pull them back to it. */
+    const candidate = pendingCandidateUid ? rows.find((row) => row.memberUid === pendingCandidateUid) : undefined;
+    if (pendingCandidateUid) setPendingCandidateUid(null);
+    if (candidate) select(candidate);
+    else if (!isNarrow) select(rows[0]);
     /* `select` is rebuilt every render and is deliberately not a dependency;
        the guards above are what stop this running twice. */
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -364,11 +400,26 @@ export function TeamApplicantsView({ teamId, teamName, roles, initialRoleUid, vi
                   position={position}
                   total={shown.length}
                   onStep={step}
-                  onToggleReviewed={() =>
-                    toggleReviewed.mutate({
+                  onToggleReviewed={() => {
+                    const reviewed = !selected.reviewed;
+                    const base = { team_id: teamId, job_id: role?.uid ?? null, kind: selected.kind };
+                    toggleReviewed.mutate(
+                      { kind: selected.kind, uid: selected.uid, reviewed },
+                      {
+                        onSuccess: () => {
+                          if (reviewed) analytics.onJobApplicantReviewed(base);
+                          else analytics.onJobApplicantReviewUndone(base);
+                        },
+                        onError: () =>
+                          analytics.onJobApplicantReviewFailed({ ...base, action: reviewed ? 'mark' : 'undo' }),
+                      },
+                    );
+                  }}
+                  onEmailClick={() =>
+                    analytics.onJobApplicantEmailClicked({
+                      team_id: teamId,
+                      job_id: role?.uid ?? null,
                       kind: selected.kind,
-                      uid: selected.uid,
-                      reviewed: !selected.reviewed,
                     })
                   }
                 />

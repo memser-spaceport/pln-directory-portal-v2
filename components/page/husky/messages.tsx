@@ -14,6 +14,7 @@ interface MessagesProps {
     sql: Array<{ name: string; type: string; source: string }>;
   }[];
   isAnswerLoading: boolean;
+  statusLine?: string;
   onFeedback: (question: string, answer: string) => Promise<void>;
   onRegenerate: (question: string) => void;
   onQuestionEdit: (question: string) => void;
@@ -26,6 +27,7 @@ const Messages: React.FC<MessagesProps> = ({
   messages,
   onFollowupClicked,
   isAnswerLoading,
+  statusLine,
   onFeedback,
   onRegenerate,
   onQuestionEdit,
@@ -49,7 +51,7 @@ const Messages: React.FC<MessagesProps> = ({
             isAnswerLoading={isAnswerLoading}
           />
         ))}
-        {isAnswerLoading && <HuskyAnswerLoader data-testid="chat-answer-loader" />}
+        {isAnswerLoading && <HuskyAnswerLoader label={statusLine} />}
       </div>
       <style jsx>{`
         .chat__messages {

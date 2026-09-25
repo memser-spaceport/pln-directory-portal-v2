@@ -113,7 +113,7 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
     <>
       <div className="chat-home">
         <div className="chat-home__header">
-          <h3 className="chat-home__title">Explore Protocol Labs with Husky, an LLM-powered chatbot</h3>
+          <h3 className="chat-home__title">Explore Protocol Labs with AI</h3>
         </div>
         <form className="chat-home__form">
           <TextArea

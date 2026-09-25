@@ -27,6 +27,7 @@ export const huskySourceRefSchema = z.object({
 
 const huskyChatSchema = z.object({
   content: z.string(),
+  steps: z.array(z.string()).optional(),
   followUpQuestions: z.array(z.string()),
   sources: z.array(z.string()).optional(),
   sourceRefs: z.array(huskySourceRefSchema).optional(),
@@ -115,6 +116,7 @@ interface Options {
 export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmitParams }: Options) {
   const [turns, setTurns] = useState<HuskyTurn[]>([]);
   const [status, setStatus] = useState<StreamStatus>('idle');
+  const [statusLine, setStatusLine] = useState<string | null>(null);
   const [threadId, setThreadId] = useState<string | null>(null);
   /**
    * Whether a thread *document* exists for `threadId`, server-side.
@@ -251,16 +253,17 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
     const active = activeStreamRef.current;
     if (!active || active.canceled) return;
     if (active.threadId !== threadIdRef.current) return;
-    if (!chatObject?.content) return;
+    if (!chatObject?.content) {
+      const latest = chatObject?.steps?.filter(Boolean).at(-1);
+      if (latest) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- external stream, see below
+        setStatusLine(latest);
+      }
+      return;
+    }
 
-    /* eslint-disable-next-line react-hooks/set-state-in-effect --
-       `chatObject` is a network stream surfacing through useObject, not React
-       state; folding its chunks into turns is exactly the "subscribe to an
-       external system" case. There is no render-time derivation available:
-       turns accumulate across streams, and a superseded stream must be dropped
-       by identity rather than recomputed. */
     setStatus((prev) => (prev === 'submitting' ? 'streaming' : prev));
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- see above
+
     setTurns((prev) =>
       prev.map((turn) =>
         turn.chatId === active.chatId
@@ -290,7 +293,7 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
     activeStreamRef.current = null;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- external stream, see the fold effect above
     setStatus('errored');
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- external stream, see the fold effect above
+
     setTurns((prev) => prev.map((turn) => (turn.chatId === active.chatId ? { ...turn, isError: true } : turn)));
   }, [chatError]);
 
@@ -319,6 +322,7 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
 
       inFlightRef.current = true;
       setStatus('submitting');
+      setStatusLine(null);
 
       const nextThreadId = newThread || !threadIdRef.current ? getUniqueId() : threadIdRef.current;
       const isFirstTurn = newThread || turnsRef.current.length === 0;
@@ -436,6 +440,7 @@ export function useHuskyChat({ isLoggedIn, isOwnThread = true, from, buildSubmit
     threadId,
     isThreadPersisted,
     status,
+    statusLine,
     isBusy,
     limitLevel: limit.level as LimitLevel,
     limitRemaining: limit.remaining,

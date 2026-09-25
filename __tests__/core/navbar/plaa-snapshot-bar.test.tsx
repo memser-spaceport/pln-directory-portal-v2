@@ -13,6 +13,11 @@ jest.mock('@/services/plaa/hooks/useCurrentSnapshotStatus', () => ({
   useCurrentSnapshotStatus: () => mockUseCurrentSnapshotStatus(),
 }));
 
+const mockUsePlaaAccess = jest.fn();
+jest.mock('@/services/rbac/hooks/usePlaaAccess', () => ({
+  usePlaaAccess: () => mockUsePlaaAccess(),
+}));
+
 // Bypasses framer-motion/portal machinery, same pattern as team-news-modal.test.tsx.
 jest.mock('@/components/common/Modal/Modal', () => ({
   Modal: ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) =>
@@ -26,7 +31,6 @@ const STATUS = {
   daysLeft: 16,
   progressPct: 52,
   pointsCollected: 420,
-  hasPointsData: true,
   activitiesCount: 7,
   categoriesCount: 4,
   activities: [{ category: 'Programs', title: 'Make a Network Introduction', points: 50 }],
@@ -37,6 +41,7 @@ describe('PlaaSnapshotBar', () => {
     jest.clearAllMocks();
     mockUsePathname.mockReturnValue('/alignment-asset/activities');
     mockUseCurrentSnapshotStatus.mockReturnValue(STATUS);
+    mockUsePlaaAccess.mockReturnValue({ canView: true, isLoading: false, isError: false });
   });
 
   it('renders nothing off alignment-asset routes', () => {
@@ -45,7 +50,23 @@ describe('PlaaSnapshotBar', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('renders for every visitor on PLAA routes — no login required', () => {
+  it('renders nothing for a guest or a signed-in member without PLAA access', () => {
+    mockUsePlaaAccess.mockReturnValue({ canView: false, isLoading: false, isError: false });
+    const { container } = render(<PlaaSnapshotBar />);
+
+    expect(container).toBeEmptyDOMElement();
+    expect(mockUseCurrentSnapshotStatus).not.toHaveBeenCalled();
+  });
+
+  it('renders nothing while access is still loading or failed to load', () => {
+    mockUsePlaaAccess.mockReturnValue({ canView: false, isLoading: true, isError: false });
+    expect(render(<PlaaSnapshotBar />).container).toBeEmptyDOMElement();
+
+    mockUsePlaaAccess.mockReturnValue({ canView: false, isLoading: false, isError: true });
+    expect(render(<PlaaSnapshotBar />).container).toBeEmptyDOMElement();
+  });
+
+  it('renders for PLAA members on PLAA routes', () => {
     render(<PlaaSnapshotBar />);
     expect(screen.getByText('August 2026 snapshot')).toBeInTheDocument();
     expect(screen.getByText('16 days left to contribute')).toBeInTheDocument();
@@ -56,29 +77,6 @@ describe('PlaaSnapshotBar', () => {
     mockUseCurrentSnapshotStatus.mockReturnValue({ ...STATUS, daysLeft: 1, progressPct: 100 });
     render(<PlaaSnapshotBar />);
     expect(screen.getByText('1 day left to contribute')).toBeInTheDocument();
-  });
-
-  /* The points call returns nothing when there is no session, which reduces to
-     0 — indistinguishable from a real zero. The home page is public now, so a
-     prospect would otherwise be told they had collected 0 points. */
-  it('hides the points total and personal summary when there is no points data', () => {
-    mockUseCurrentSnapshotStatus.mockReturnValue({
-      ...STATUS,
-      pointsCollected: 0,
-      hasPointsData: false,
-      activities: [],
-      activitiesCount: 0,
-      categoriesCount: 0,
-    });
-    render(<PlaaSnapshotBar />);
-
-    // The snapshot period and countdown are public facts and still render.
-    expect(screen.getByText('August 2026 snapshot')).toBeInTheDocument();
-    expect(screen.getByText('16 days left to contribute')).toBeInTheDocument();
-
-    expect(screen.queryByText('points collected this snapshot')).not.toBeInTheDocument();
-    expect(screen.queryByText('0')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /snapshot summary/i })).not.toBeInTheDocument();
   });
 
   it('opens the snapshot summary modal on click, closed by default', () => {

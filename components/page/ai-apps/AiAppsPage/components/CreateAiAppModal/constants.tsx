@@ -59,9 +59,11 @@ export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = 
   {
     version: '1.13',
     items: [
-      'New apps are private by default — only you can see and open them until you share. Your agent reminds you after the first deploy',
-      '(Via UI) Manage access from your app’s ⋮ menu: keep it private and add specific members, or open it to all PL Infra members. Switch anytime — your list of people is kept',
+      'Choose who can open your app: all PL Infra members (the default) or private to you. Your agent asks before the first deploy',
+      '(Via UI) Manage access from your app’s ⋮ menu: make it private and add specific members, or open it to all PL Infra members again. Switch anytime — your list of people is kept',
       'Members you haven’t added don’t see a private app in the catalog, and get a “no access” page if they open its link',
+      'Public endpoints: make selected paths (e.g. /api/* or a webhook) reachable without LabOS sign-in. Your agent sets them up at deploy with your approval — LabOS doesn’t check sign-in there, so your app must protect them',
+      '(Via UI) Add, edit, or remove public endpoints anytime in Deployment settings — changes apply right away, no redeploy',
     ],
   },
   {

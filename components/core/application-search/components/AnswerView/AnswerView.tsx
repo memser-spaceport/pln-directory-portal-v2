@@ -58,6 +58,8 @@ interface Props {
   onRegenerate: (question: string) => void;
   onStop: () => void;
   onClose: () => void;
+  /** Latest tool-phase line, shown until the first word of the answer. */
+  statusLine?: string | null;
 }
 
 /**
@@ -87,6 +89,7 @@ export const AnswerView = ({
   onRegenerate,
   onStop,
   onClose,
+  statusLine,
 }: Props) => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -387,7 +390,7 @@ export const AnswerView = ({
           );
         })}
 
-        {showLoader && <HuskyAnswerLoader />}
+        {showLoader && <HuskyAnswerLoader label={statusLine ?? undefined} />}
         <div ref={endRef} />
       </div>
 

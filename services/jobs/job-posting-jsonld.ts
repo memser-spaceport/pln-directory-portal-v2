@@ -1,4 +1,4 @@
-import type { IJobRole, IJobTeam } from '@/types/jobs.types';
+import type { IJobPay, IJobRole, IJobTeam } from '@/types/jobs.types';
 import { PAGE_ROUTES } from '@/utils/constants';
 import { isBlankHtml, normalizeJobDescriptionHtml, sanitizeJobDescriptionHtml } from '@/utils/html';
 import { getJobDate } from '@/utils/jobs.utils';
@@ -17,6 +17,12 @@ const REMOTE_LOCATION_TOKENS = new Set([
 ]);
 
 const WORLDWIDE = { '@type': 'Country', name: 'Worldwide' };
+const JOB_POSTING_VALID_DAYS = 90;
+const PAY_UNIT_TEXT: Record<IJobPay['period'], string> = {
+  year: 'YEAR',
+  month: 'MONTH',
+  hour: 'HOUR',
+};
 
 type ParsedPlace = { locality?: string; country?: string };
 
@@ -42,6 +48,8 @@ export function buildJobPostingJsonLd(args: {
     description: descriptionHtml || role.roleTitle,
     url: pageUrl,
     datePosted: getJobDate(role),
+    validThrough: addUtcDays(getJobDate(role), JOB_POSTING_VALID_DAYS),
+    employmentType: 'FULL_TIME',
     identifier: {
       '@type': 'PropertyValue',
       name: 'uid',
@@ -66,7 +74,33 @@ export function buildJobPostingJsonLd(args: {
     jsonLd.applicantLocationRequirements = applicantLocationRequirements(countries);
   }
 
+  const salary = baseSalary(role.pay);
+  if (salary) {
+    jsonLd.baseSalary = salary;
+  }
+
   return jsonLd;
+}
+
+function addUtcDays(iso: string, days: number): string {
+  const date = new Date(iso);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString();
+}
+
+function baseSalary(pay: IJobPay | null | undefined) {
+  const unitText = pay ? PAY_UNIT_TEXT[pay.period] : undefined;
+  if (!pay || !unitText) return undefined;
+  return {
+    '@type': 'MonetaryAmount',
+    currency: pay.currency,
+    value: {
+      '@type': 'QuantitativeValue',
+      minValue: pay.min,
+      maxValue: pay.max,
+      unitText,
+    },
+  };
 }
 
 function resolveJobLocation(role: IJobRole): { remote: boolean; places: ParsedPlace[] } {

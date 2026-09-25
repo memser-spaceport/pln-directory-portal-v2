@@ -21,15 +21,17 @@ const balance: ProfileBalance = {
 
 describe('ProfileHero', () => {
   it('renders identity and collapsed balance state by default', () => {
-    render(<ProfileHero identity={identity} balance={balance} balanceStatus="ready" pointsThisSnapshot={420} />);
+    render(<ProfileHero identity={identity} balance={balance} balanceStatus="ready" pointsThisSnapshot={420} currentSnapshotLabel="September 2026" />);
 
     expect(screen.getByText('Alex Rivera')).toBeInTheDocument();
     expect(screen.getByText('Member since January 2025')).toBeInTheDocument();
     expect(screen.getByText('Onboarded')).toBeInTheDocument();
-    expect(screen.getByText('Infra Member')).toBeInTheDocument();
+    expect(screen.getByText('Infra')).toBeInTheDocument();
     expect(screen.getByText('420')).toBeInTheDocument();
     expect(screen.getByText('Points this snapshot')).toBeInTheDocument();
+    expect(screen.getByText('September 2026')).toBeInTheDocument();
     expect(screen.getByText('112')).toBeInTheDocument();
+    expect(screen.getByText('PLAA Balance')).toBeInTheDocument();
     expect(screen.queryByText('Activities')).not.toBeInTheDocument();
   });
 
@@ -40,15 +42,16 @@ describe('ProfileHero', () => {
         balance={balance}
         balanceStatus="ready"
         pointsThisSnapshot={420}
+        currentSnapshotLabel="September 2026"
       />
     );
-    expect(screen.queryByText('Infra Member')).not.toBeInTheDocument();
+    expect(screen.queryByText('Infra')).not.toBeInTheDocument();
   });
 
   it('hides the infra rewards row when the real balance has none, regardless of isInfraMember', () => {
     const zeroInfra: ProfileBalance = { ...balance, infraRewards: 0 };
     render(
-      <ProfileHero identity={{ ...identity, isInfraMember: false }} balance={zeroInfra} balanceStatus="ready" pointsThisSnapshot={420} />
+      <ProfileHero identity={{ ...identity, isInfraMember: false }} balance={zeroInfra} balanceStatus="ready" pointsThisSnapshot={420} currentSnapshotLabel="September 2026" />
     );
 
     fireEvent.click(screen.getByRole('button', { name: /show plaa balance breakdown/i }));
@@ -57,7 +60,7 @@ describe('ProfileHero', () => {
 
   it('shows the infra rewards row whenever the real balance has some, even when isInfraMember is false', () => {
     render(
-      <ProfileHero identity={{ ...identity, isInfraMember: false }} balance={balance} balanceStatus="ready" pointsThisSnapshot={420} />
+      <ProfileHero identity={{ ...identity, isInfraMember: false }} balance={balance} balanceStatus="ready" pointsThisSnapshot={420} currentSnapshotLabel="September 2026" />
     );
 
     fireEvent.click(screen.getByRole('button', { name: /show plaa balance breakdown/i }));
@@ -65,7 +68,7 @@ describe('ProfileHero', () => {
   });
 
   it('swaps points-this-snapshot for the balance breakdown when toggled open', async () => {
-    render(<ProfileHero identity={identity} balance={balance} balanceStatus="ready" pointsThisSnapshot={420} />);
+    render(<ProfileHero identity={identity} balance={balance} balanceStatus="ready" pointsThisSnapshot={420} currentSnapshotLabel="September 2026" />);
 
     fireEvent.click(screen.getByRole('button', { name: /show plaa balance breakdown/i }));
 
@@ -85,7 +88,7 @@ describe('ProfileHero', () => {
   });
 
   it('shows a hover tooltip on the PLAA balance toggle, independent of expand/collapse', () => {
-    render(<ProfileHero identity={identity} balance={balance} balanceStatus="ready" pointsThisSnapshot={420} />);
+    render(<ProfileHero identity={identity} balance={balance} balanceStatus="ready" pointsThisSnapshot={420} currentSnapshotLabel="September 2026" />);
     const toggle = screen.getByRole('button', { name: /show plaa balance breakdown/i });
 
     expect(screen.queryByText('Show PLAA balance breakdown', { selector: 'span' })).not.toBeInTheDocument();
@@ -98,7 +101,7 @@ describe('ProfileHero', () => {
   });
 
   it('uses an SVG caret icon that rotates on expand, not a text arrow character', () => {
-    const { container } = render(<ProfileHero identity={identity} balance={balance} balanceStatus="ready" pointsThisSnapshot={420} />);
+    const { container } = render(<ProfileHero identity={identity} balance={balance} balanceStatus="ready" pointsThisSnapshot={420} currentSnapshotLabel="September 2026" />);
 
     expect(container.textContent).not.toMatch(/[▲▼]/);
     // Hero uses the horizontal chevron variant (points right, rotates to left).
@@ -111,7 +114,7 @@ describe('ProfileHero', () => {
   });
 
   it('renders the real balance with "Confirmed by Surus" only when balanceStatus is ready', () => {
-    render(<ProfileHero identity={identity} balance={balance} balanceStatus="ready" pointsThisSnapshot={420} />);
+    render(<ProfileHero identity={identity} balance={balance} balanceStatus="ready" pointsThisSnapshot={420} currentSnapshotLabel="September 2026" />);
 
     expect(screen.getByText('112')).toBeInTheDocument();
     expect(screen.getByText('Confirmed by Surus')).toBeInTheDocument();
@@ -119,7 +122,7 @@ describe('ProfileHero', () => {
 
   it('shows a loading placeholder, not a fabricated zero or the "Confirmed by Surus" badge, while balanceStatus is loading', () => {
     const zeroBalance: ProfileBalance = { plaaBalance: 0, activities: 0, infraRewards: 0, redeemed: 0 };
-    render(<ProfileHero identity={identity} balance={zeroBalance} balanceStatus="loading" pointsThisSnapshot={420} />);
+    render(<ProfileHero identity={identity} balance={zeroBalance} balanceStatus="loading" pointsThisSnapshot={420} currentSnapshotLabel="September 2026" />);
 
     expect(screen.queryByText('0')).not.toBeInTheDocument();
     expect(screen.queryByText('Confirmed by Surus')).not.toBeInTheDocument();
@@ -127,14 +130,14 @@ describe('ProfileHero', () => {
 
   it('shows an unavailable placeholder, not a fabricated zero or the "Confirmed by Surus" badge, when balanceStatus is unavailable', () => {
     const zeroBalance: ProfileBalance = { plaaBalance: 0, activities: 0, infraRewards: 0, redeemed: 0 };
-    render(<ProfileHero identity={identity} balance={zeroBalance} balanceStatus="unavailable" pointsThisSnapshot={420} />);
+    render(<ProfileHero identity={identity} balance={zeroBalance} balanceStatus="unavailable" pointsThisSnapshot={420} currentSnapshotLabel="September 2026" />);
 
     expect(screen.queryByText('0')).not.toBeInTheDocument();
     expect(screen.queryByText('Confirmed by Surus')).not.toBeInTheDocument();
   });
 
   it('omits the "Member since" line entirely when memberSince is null, rather than showing a blank date', () => {
-    render(<ProfileHero identity={{ ...identity, memberSince: null }} balance={balance} balanceStatus="ready" pointsThisSnapshot={420} />);
+    render(<ProfileHero identity={{ ...identity, memberSince: null }} balance={balance} balanceStatus="ready" pointsThisSnapshot={420} currentSnapshotLabel="September 2026" />);
 
     expect(screen.queryByText(/Member since/)).not.toBeInTheDocument();
   });

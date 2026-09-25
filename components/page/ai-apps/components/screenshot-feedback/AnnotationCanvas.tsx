@@ -66,8 +66,29 @@ type PinDrag = {
   moved: boolean;
 };
 
+/**
+ * Decimal places kept on a normalized coordinate.
+ *
+ * A raw `point.x / width` carries full float precision — `0.08498677248677249`,
+ * eighteen characters — and a freehand stroke is hundreds of those. Serialized
+ * into `data-annotations` and URL-encoded, five strokes of 250 points reach
+ * roughly 87,000 characters, which is most of a feedback submission's entire
+ * size budget spent on digits nobody can see.
+ *
+ * Four places is 1/10000 of the image's width: a third of a pixel on a 4K
+ * display, well under the width of the line being drawn. It costs the drawing
+ * nothing and takes about a third off the payload.
+ */
+const COORD_DP = 4;
+const COORD_SCALE = 10 ** COORD_DP;
+
+/** Rounds a 0..1 coordinate to `COORD_DP`, dropping precision that cannot be seen. */
+function roundNorm(value: number): number {
+  return Math.round(value * COORD_SCALE) / COORD_SCALE;
+}
+
 function toNorm(point: Point, width: number, height: number): Point {
-  return { x: point.x / width, y: point.y / height };
+  return { x: roundNorm(point.x / width), y: roundNorm(point.y / height) };
 }
 
 function fromNorm(point: Point, width: number, height: number): Point {
@@ -157,8 +178,11 @@ function shapeFromDrag(kind: ShapeKind, color: string, from: Point, to: Point, w
   /* An arrow keeps the drag as it was made — tail, then signed delta. Folding it
      into a positive box the way the outlines below are folded would point every
      up-left arrow down-right, at whatever happens to sit in the opposite corner. */
+  /* Rounded again after the arithmetic: subtracting two rounded values puts the
+     noise straight back (0.4127 - 0.085 is 0.32769999999999994), and an extent
+     is just as unreadable at that precision as a coordinate. */
   if (kind === 'arrow') {
-    return { ...base, x: a.x, y: a.y, w: b.x - a.x, h: b.y - a.y };
+    return { ...base, x: a.x, y: a.y, w: roundNorm(b.x - a.x), h: roundNorm(b.y - a.y) };
   }
 
   /* Outlines have no direction to lose, so a drag in any direction collapses to
@@ -167,8 +191,8 @@ function shapeFromDrag(kind: ShapeKind, color: string, from: Point, to: Point, w
     ...base,
     x: Math.min(a.x, b.x),
     y: Math.min(a.y, b.y),
-    w: Math.abs(b.x - a.x),
-    h: Math.abs(b.y - a.y),
+    w: roundNorm(Math.abs(b.x - a.x)),
+    h: roundNorm(Math.abs(b.y - a.y)),
   };
 }
 
@@ -306,8 +330,8 @@ export function AnnotationCanvas({
     setActiveCommentId(null);
     const next = {
       id: `c-${++nextCommentId.current}`,
-      x: point.x / width,
-      y: point.y / height,
+      x: roundNorm(point.x / width),
+      y: roundNorm(point.y / height),
       text: '',
       input: '',
     };
@@ -460,8 +484,8 @@ export function AnnotationCanvas({
     const bounds = wrap.getBoundingClientRect();
     if (bounds.width === 0 || bounds.height === 0) return null;
     return {
-      x: Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width)),
-      y: Math.min(1, Math.max(0, (event.clientY - bounds.top) / bounds.height)),
+      x: roundNorm(Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width))),
+      y: roundNorm(Math.min(1, Math.max(0, (event.clientY - bounds.top) / bounds.height))),
     };
   };
 

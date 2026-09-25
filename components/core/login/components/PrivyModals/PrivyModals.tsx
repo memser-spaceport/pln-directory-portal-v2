@@ -394,6 +394,14 @@ export function PrivyModals() {
         localStorage.clear();
         toast.info(TOAST_MESSAGES.LOGOUT_MSG);
         broadcastLogout();
+        /* This tab too, not just the ones `broadcastLogout` reaches — a
+           BroadcastChannel never delivers to its own sender. Without it the tab
+           you signed out of keeps the module-scope QueryClient, so every
+           authenticated list it had cached (saved jobs, applications,
+           interests) stays in memory, and the server-rendered `isLoggedIn`
+           props stay true until something navigates. Delayed like the login
+           path's own reload, so the toast and the broadcast land first. */
+        setTimeout(() => window.location.reload(), 300);
       }
     }
 

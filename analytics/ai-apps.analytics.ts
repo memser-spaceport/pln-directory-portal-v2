@@ -60,9 +60,30 @@ export function useAiAppsAnalytics() {
     onFeedbackDialogOpened: (params: { appUid?: string; appName?: string } = {}) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_DIALOG_OPENED, params),
     onFeedbackScreenshotClicked: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_CLICKED),
-    onFeedbackScreenshotCaptureDenied: (params: { reason: 'denied' | 'unavailable' }) =>
-      capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_CAPTURE_DENIED, params),
-    onFeedbackScreenshotCaptureFailed: (params: { stage: 'request' | 'grab' }) =>
+    /**
+     * `reason` used to be `denied | unavailable`, which collapsed six distinct
+     * causes into two and made the real distribution unknowable — the reason a
+     * "users can't screenshot" report could not be diagnosed from the data.
+     * The event name is unchanged so existing dashboards keep working; the new
+     * values and `errorName` are additive.
+     */
+    onFeedbackScreenshotCaptureDenied: (params: {
+      reason: 'denied' | 'unavailable' | 'unsupported' | 'blocked' | 'cancelled' | 'retry' | 'unreadable' | 'failed';
+      errorName?: string;
+    }) => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_CAPTURE_DENIED, params),
+    /**
+     * A submission was refused for size before it reached the server.
+     *
+     * Worth its own event because the cap was just raised from 50k to 200k on
+     * an estimate: this says whether 200k was enough, and `length` says by how
+     * much when it was not.
+     */
+    onFeedbackTooLarge: (params: { length: number; screenshotCount: number }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_TOO_LARGE, params),
+    /** The upload fallback was used — how many people the capture path loses. */
+    onFeedbackImageAttached: (params: { trigger: 'unsupported' | 'blocked' | 'unreadable' }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_IMAGE_ATTACHED, params),
+    onFeedbackScreenshotCaptureFailed: (params: { stage: 'request' | 'grab'; errorName?: string }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_CAPTURE_FAILED, params),
     onFeedbackScreenshotCaptureCancelled: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_CAPTURE_CANCELLED),
     onFeedbackScreenshotRegionSelected: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_REGION_SELECTED),
@@ -140,5 +161,29 @@ export function useAiAppsAnalytics() {
       capture(AI_APPS_ANALYTICS.SORT_CHANGED, params),
     onFiltersCleared: (params: { source: 'rail' | 'mobile' }) => capture(AI_APPS_ANALYTICS.FILTERS_CLEARED, params),
     onEmptyResultsShown: (params: { filterCount: number }) => capture(AI_APPS_ANALYTICS.EMPTY_RESULTS_SHOWN, params),
+    onManageAccessOpened: (appUid: string) => capture(AI_APPS_ANALYTICS.MANAGE_ACCESS_OPENED, { appUid }),
+    onAccessSaved: (params: {
+      appUid: string;
+      from: string;
+      to: string;
+      addedCount: number;
+      removedCount: number;
+      whitelistSize: number;
+    }) => capture(AI_APPS_ANALYTICS.ACCESS_SAVED, params),
+    onAccessSaveFailed: (appUid: string) => capture(AI_APPS_ANALYTICS.ACCESS_SAVE_FAILED, { appUid }),
+    onPrivateBlocked: (appUid: string) => capture(AI_APPS_ANALYTICS.PRIVATE_BLOCKED, { appUid }),
+    onAccessRedeployPrompted: (appUid: string) => capture(AI_APPS_ANALYTICS.ACCESS_REDEPLOY_PROMPTED, { appUid }),
+    onAccessRedeployClicked: (appUid: string) => capture(AI_APPS_ANALYTICS.ACCESS_REDEPLOY_CLICKED, { appUid }),
+    onAccessRedeployDismissed: (appUid: string) => capture(AI_APPS_ANALYTICS.ACCESS_REDEPLOY_DISMISSED, { appUid }),
+    onPublicEndpointsSaved: (params: {
+      appUid: string;
+      pathCount: number;
+      addedCount: number;
+      removedCount: number;
+      hasWildcard: boolean;
+    }) => capture(AI_APPS_ANALYTICS.PUBLIC_ENDPOINTS_SAVED, params),
+    onPublicEndpointsSaveFailed: (appUid: string) => capture(AI_APPS_ANALYTICS.PUBLIC_ENDPOINTS_SAVE_FAILED, { appUid }),
+    onPublicEndpointsRedeployClicked: (appUid: string) =>
+      capture(AI_APPS_ANALYTICS.PUBLIC_ENDPOINTS_REDEPLOY_CLICKED, { appUid }),
   };
 }

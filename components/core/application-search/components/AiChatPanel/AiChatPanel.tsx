@@ -80,6 +80,7 @@ export const AiChatPanel = ({
     },
     schema: z.object({
       content: z.string(),
+      steps: z.array(z.string()).optional(),
       followUpQuestions: z.array(z.string()),
       sources: z.array(z.string()).optional(),
       sourceRefs: z.array(huskySourceRefSchema).optional(),
@@ -448,6 +449,7 @@ export const AiChatPanel = ({
                 messages={messages}
                 onFollowupClicked={onFollowupClicked}
                 isAnswerLoading={isAnswerLoading}
+                statusLine={chatObject?.steps?.filter(Boolean).at(-1)}
                 isLoadingObject={chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')}
                 onFeedback={onFeedback}
                 onRegenerate={onRegenerate}

@@ -1,12 +1,13 @@
 'use client';
 
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import clsx from 'clsx';
 
 import type { IMember } from '@/types/members.types';
 import type { IUserInfo } from '@/types/shared.types';
 
 import { BackButton } from '@/components/ui/BackButton';
+import { Button } from '@/components/common/Button';
 import {
   DetailsSection,
   DetailsSectionHeader,
@@ -26,6 +27,7 @@ import { ContributionsList } from '@/components/page/member-details/Contribution
 import { ExperiencesList } from '@/components/page/member-details/ExperienceDetails/components/ExperienceDetailsView/components/ExperiencesList';
 import { ProfileSocialLink } from '@/components/page/member-details/profile-social-link';
 import { getProfileFromURL } from '@/utils/common.utils';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
 
 // Reuse production page + section styling so the prototype tracks production 1:1.
@@ -42,6 +44,14 @@ import { BlueskyRailCard } from './BlueskyRailCard';
 import { ACTIVITY_SCENARIOS } from './activityMocks';
 
 import { PlTeamOnlyPill } from '../profile-shared/PlTeamOnlyPill';
+import { RequestIntroButton } from '../intro-shared/RequestIntroButton';
+import { useRequestIntro } from '../intro-shared/useRequestIntro';
+import { FollowPill } from '../follow-shared/FollowPill';
+import { FollowToast } from '../follow-shared/FollowToast';
+import { AiSearchView, type AiSearchRequest } from '../ai-search/AiSearchView';
+import { AiSearchIcon } from '@/prototypes/components/AiSearchIcon/AiSearchIcon';
+import { AskAboutStrip } from '../member-ask-ai/AskAboutStrip';
+import { buildMemberAiScope } from './aiSearchScope';
 import s from './MemberProfile.module.scss';
 import {
   MOCK_MEMBER,
@@ -83,13 +93,75 @@ const CARD_ACCENTS: { key: CardAccent; label: string }[] = [
   { key: 'blue', label: 'Blue' },
 ];
 
+/**
+ * Where the page's AI door lives. `header`: a text link in the action cluster
+ * (the team profile's door). `strip`: the scope's questions as chips under the
+ * bio, no header link — the `member-ask-ai` entry, built to compare against
+ * this one (Delphi's "Ask me about" block).
+ */
+export type AskAiPlacement = 'header' | 'strip';
+
 export default function MemberProfilePrototype() {
+  return <MemberProfilePage askAi="header" />;
+}
+
+/**
+ * @param follow  Draw Follow for a person — the team page's own FollowPill,
+ *                beside Request an intro under the bio. Following a member
+ *                ranks their forum posts and their teams' news first in For
+ *                You and the digest (follow-shared `MEMBER_PREFS`).
+ *
+ * The presses (Schedule Meeting · Request an intro, and Follow on the
+ * member-follow entry only — "Hide Follow button" took it off the others) sit
+ * in a row under the bio, where the reading ends — Delphi puts "Start a call" under
+ * the name and bio the same way. Only Ask AI keeps the header's corner. A
+ * corner placement and a review-band switch between the two were built and
+ * compared, then cut ("Keep only button in the bottom, remove in the corner").
+ */
+export function MemberProfilePage({ askAi, follow = false }: { askAi: AskAiPlacement; follow?: boolean }) {
   // Reusing interactive production components — gate on a mounted flag so SSR ===
   // first client render and we avoid hydration drift.
   const [mounted, setMounted] = useState(false);
+  /* Whether the member has a booking link. Without one production renders
+     no Office Hours card for a visitor, so here: no card, no Schedule
+     Meeting (the intro stands alone), and the AI scope drops its office
+     hours question. A review-band state ("add a state when no office hours
+     available") flips it. */
+  const [hasOfficeHours, setHasOfficeHours] = useState(true);
+  /* Follow, session-local, with the team page's green receipt. */
+  const [following, setFollowing] = useState(false);
+  const [followToast, setFollowToast] = useState(false);
+  const toggleFollow = () =>
+    setFollowing((prev) => {
+      const next = !prev;
+      setFollowToast(next);
+      if (next) setTimeout(() => setFollowToast(false), 4000);
+      return next;
+    });
   const [scenarioKey, setScenarioKey] = useState(RELATIONSHIP_SCENARIOS[0].key);
   const [cardAccent, setCardAccent] = useState<CardAccent>('slate');
   const [activityKey, setActivityKey] = useState(ACTIVITY_SCENARIOS[0].key);
+  /* The viewer is a founder on someone else's page: the header offers an intro
+     through the PL team. Shared with the team profile and search, so a request
+     sent from any of them reads "Intro requested" here. */
+  const intro = useRequestIntro();
+  /* "Ask AI about Maya": the AI Search view scoped to this profile, the team
+     profile's door on a person's page. The scope reads the same fixtures the
+     cards draw, and each answer's door scrolls to the card it came from. */
+  const [aiOpen, setAiOpen] = useState(false);
+  /* A chip in the strip opens the view already answering its question; the
+     header link and "Ask your own question" open it idle (request null). */
+  const [aiRequest, setAiRequest] = useState<AiSearchRequest | null>(null);
+  const openAi = (question?: string) => {
+    setAiRequest(question ? { question, origin: null, nonce: Date.now() } : null);
+    setAiOpen(true);
+  };
+  const aiScope = buildMemberAiScope({
+    member: { ...MOCK_MEMBER, officeHours: hasOfficeHours ? MOCK_MEMBER.officeHours : null },
+    experience: MOCK_EXPERIENCE,
+    onOpen: (target) =>
+      document.getElementById(`member-${target}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+  });
 
   useEffect(() => setMounted(true), []);
 
@@ -159,6 +231,32 @@ export default function MemberProfilePrototype() {
             ))}
           </div>
         </div>
+
+        {/* Where the header's presses sit: the corner beside the name, or a
+            row under the bio ("Add tab with buttons sitting under bio instead
+            of in the corner"). One page, one switch, so the two placements
+            are compared without leaving it. */}
+        <div className={s.demoSwitchGroup}>
+          <span className={s.demoSwitchLabel}>Office hours</span>
+          <div className={s.demoSwitchRow}>
+            {(
+              [
+                [true, 'Available'],
+                [false, 'None'],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={label}
+                type="button"
+                className={clsx(s.demoSwitchBtn, { [s.active]: value === hasOfficeHours })}
+                onClick={() => setHasOfficeHours(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
       </div>
 
       <div className={page.memberDetail}>
@@ -166,12 +264,35 @@ export default function MemberProfilePrototype() {
           <div className={page.content}>
             <BackButton to="/members" />
             <div className={page.memberDetail__container}>
-              <ProfileHeaderCard />
+              <ProfileHeaderCard
+                introRequested={intro.requested(MOCK_MEMBER.id)}
+                onRequestIntro={() => intro.request({ uid: MOCK_MEMBER.id, name: MOCK_MEMBER.name, kind: 'member' })}
+                onAskAi={askAi === 'header' ? () => openAi() : undefined}
+                follow={follow ? { following, onToggle: toggleFollow } : undefined}
+                hasOfficeHours={hasOfficeHours}
+                askAbout={
+                  askAi === 'strip' ? (
+                    <AskAboutStrip
+                      firstName={MOCK_MEMBER.name.split(' ')[0]}
+                      prompts={aiScope.prompts}
+                      onAsk={(q) => openAi(q)}
+                      onAskOwn={() => openAi()}
+                    />
+                  ) : null
+                }
+              />
               {/* Inline Affinity copy — only shown below tablet-landscape, where the rail is hidden. */}
               <div className={s.affinityMobile}>
                 <AffinityCard relationship={scenario.relationship} empty={scenario.empty} accent={cardAccent} />
               </div>
-              <OfficeHoursCard />
+              {/* `member-*` ids: where an AI answer's door lands (see aiSearchScope). */}
+              {/* Production renders no card for a visitor when there is no
+                  booking link (OfficeHoursDetails returns null). */}
+              {hasOfficeHours && (
+                <div id="member-office-hours" className={s.aiAnchor}>
+                  <OfficeHoursCard />
+                </div>
+              )}
               <ContactCard />
               {/* Production's slot for this section: after Contact details,
                   before Teams. Reproduced so the rail card is judged against a
@@ -189,15 +310,23 @@ export default function MemberProfilePrototype() {
                   />
                 </div>
               )}
-              <TeamsCard />
+              <div id="member-teams" className={s.aiAnchor}>
+                <TeamsCard />
+              </div>
               {/* Below tablet-landscape the rail is hidden, so the updates card
                   falls in here — directly under the teams it describes. */}
               <div className={s.updatesMobile}>
                 <MemberTeamUpdates teams={MOCK_MEMBER.teams} />
               </div>
-              <ExperienceCard />
-              <ContributionsCard />
-              <RepositoriesCard />
+              <div id="member-experience" className={s.aiAnchor}>
+                <ExperienceCard />
+              </div>
+              <div id="member-contributions" className={s.aiAnchor}>
+                <ContributionsCard />
+              </div>
+              <div id="member-repositories" className={s.aiAnchor}>
+                <RepositoriesCard />
+              </div>
             </div>
           </div>
 
@@ -237,28 +366,61 @@ export default function MemberProfilePrototype() {
           </div>
         </div>
       </div>
+      {intro.layer}
+      {followToast && (
+        <FollowToast>
+          You&apos;re following <strong>{MOCK_MEMBER.name}</strong> — their posts and their teams&apos; news rank
+          first in your feed.
+        </FollowToast>
+      )}
+      {/* The AI Search view, opened by "Ask AI about Maya" with her profile as
+          its scope — straight to the full screen, as the team profile does. */}
+      <AiSearchView open={aiOpen} onClose={() => setAiOpen(false)} scope={aiScope} request={aiRequest} />
     </div>
   );
 }
 
 /* ---------- Profile header (mirrors ProfileDetails + MemberDetailHeader) ---------- */
-function ProfileHeaderCard() {
+function ProfileHeaderCard({
+  introRequested,
+  onRequestIntro,
+  onAskAi,
+  askAbout,
+  follow,
+  hasOfficeHours,
+}: {
+  introRequested: boolean;
+  onRequestIntro: () => void;
+  /** Without a booking link there is no Schedule Meeting; the intro stands alone. */
+  hasOfficeHours: boolean;
+  /** The header's Ask AI link; absent when the page offers the strip instead. */
+  onAskAi?: () => void;
+  /** Follow, beside Request an intro under the bio; absent on the entries without it. */
+  follow?: { following: boolean; onToggle: () => void };
+  /** The "Ask AI about <name>" strip, rendered under the bio; null for the header link. */
+  askAbout?: ReactNode;
+}) {
+  const isMobile = useIsMobile();
   return (
-    <div className={profile.root}>
-      <div className={h.header}>
+    <div className={clsx(profile.root, s.card)}>
+      {/* Phone (the mock's layout): a 72px picture beside the name with role,
+          team and city stacked under it; the intro as a full-width row; the
+          tags; a hairline; the bio. The `m*` classes are the phone overrides
+          on production's header grid — see MemberProfile.module.scss. */}
+      <div className={clsx(h.header, s.mHeader)}>
         <div className={h.headerProfile}>
-          <img className={h.headerProfileImg} src={MOCK_MEMBER.profile} alt={MOCK_MEMBER.name} />
+          <img className={clsx(h.headerProfileImg, s.mAvatar)} src={MOCK_MEMBER.profile} alt={MOCK_MEMBER.name} />
         </div>
 
-        <div className={h.headerDetails}>
+        <div className={clsx(h.headerDetails, s.mDetails)}>
           <div>
             <div className={h.specificsHdr}>
               <CustomTooltip
-                trigger={<h1 className={h.specificsName}>{MOCK_MEMBER.name}</h1>}
+                trigger={<h1 className={clsx(h.specificsName, s.mName)}>{MOCK_MEMBER.name}</h1>}
                 content={MOCK_MEMBER.name}
               />
             </div>
-            <div className={h.roleAndLocation}>
+            <div className={clsx(h.roleAndLocation, s.mRole)}>
               <div className={h.teams}>
                 <p className={h.teamsName}>{MOCK_MEMBER.teams[0].name}</p>
                 {MOCK_MEMBER.teams.length > 1 && (
@@ -268,17 +430,44 @@ function ProfileHeaderCard() {
                 )}
               </div>
               <div className={clsx(h.divider, h.desktopOnly)} />
-              <p className={h.role}>{MOCK_MEMBER.role}</p>
-              <div className={h.divider} />
+              {/* Phone stacks these and puts the role first: it is the headline
+                  fact about a person, the team is where they do it. */}
+              <p className={clsx(h.role, s.mRoleFirst)}>{MOCK_MEMBER.role}</p>
+              {/* With two actions beside it the facts column is too narrow for
+                  three facts on a line, so the location always wraps; a hairline
+                  left at the end of the first line points at nothing. */}
+              <div className={clsx(h.divider, s.dividerBeforeWrap)} />
               <div className={h.location}>
                 <LocationIcon />
                 <p className={h.locationName}>{MOCK_MEMBER.locationLabel}</p>
               </div>
             </div>
           </div>
+          {/* Production's header keeps its one action here, as `.headerDetails`'
+              second child (Edit, for the owner). Here it holds only Ask AI —
+              the team profile's door, in the same paint: a text action of the
+              header's own lineage (`link` + `primary`, the Button
+              HeaderActionBtn renders for Edit). It reads the profile rather
+              than acting on the person, so it stays in the corner while the
+              presses sit under the bio ("put Ask AI in the corner"). */}
+          {onAskAi && (
+            <div className={clsx(s.headerActions, s.fromTablet)}>
+              <AskAiButton onClick={onAskAi} />
+            </div>
+          )}
         </div>
 
-        <div className={h.tags}>
+        {/* Phone: Ask AI on a line of its own between the facts and the tags —
+            a control beside a 20px name has nowhere to stand at 390px. */}
+        {onAskAi && (
+          <div className={s.introMobileRow}>
+            <div className={s.mobileLinkRow}>
+              <AskAiButton onClick={onAskAi} iconSize={12} />
+            </div>
+          </div>
+        )}
+
+        <div className={clsx(h.tags, s.mTags)}>
           <span className={s.founderTag}>Founder</span>
           {MOCK_MEMBER.openToWork && (
             <div className={h.funds}>
@@ -290,61 +479,186 @@ function ProfileHeaderCard() {
               <span className={h.fundsLabel}>Team lead</span>
             </div>
           )}
-          <TagsList tags={MOCK_MEMBER.skills.map((sk) => ({ title: sk.title }))} tagsToShow={5} />
+          {/* Phone shows two skills and "+n" (the teams list's own phone count);
+              five 80px-capped chips would be three lines of cut words. */}
+          <TagsList
+            tags={MOCK_MEMBER.skills.map((sk) => ({ title: sk.title }))}
+            tagsToShow={isMobile ? 2 : 5}
+            classes={{ tag: s.skillTag }}
+          />
         </div>
       </div>
 
-      <div className={profile.bioContainer}>
+      <div className={clsx(profile.bioContainer, s.mBio, s.bioCloser)}>
         <div className={s.bioLabel}>Bio</div>
-        <div className={s.bio}>{MOCK_MEMBER.bio}</div>
+        {/* The description in the grey inset every other section's content
+            sits in ("Bio description should be in grey box"). */}
+        <DetailsSectionGreyContentContainer>
+          <div className={s.bio}>{MOCK_MEMBER.bio}</div>
+        </DetailsSectionGreyContentContainer>
+        {/* Under the bio: the two ways to reach the person and Follow after
+            them, at the header's size on every width — a row where the
+            reading ends, wrapping on a phone. Schedule Meeting leads ("put
+            schedule on the left"): in a left-aligned row the first press is
+            the primary. Request an intro is bordered brand with the glossy
+            press's drop shadow; Follow is the team page's own pill, bordered
+            neutral and flat ("Put Follow next to request an intro, make it
+            outlined grey"), its sent sibling a text receipt so the row never
+            shows two check-pills. With no office hours the intro leads. */}
+        {/* Every width ("Make buttons full width"): the presses fill the row
+            in equal columns, or the intro alone fills it. Phone ("Make buttons
+            on mobile adaptive"): the DS `s` height (38px, a finger's target),
+            and Follow on a full line of its own. */}
+        <div className={s.actionsBelowBio}>
+          {hasOfficeHours && <ScheduleMeetingButton size={isMobile ? 's' : 'xs'} className={s.rowPress} />}
+          <RequestIntroButton
+            requested={introRequested}
+            onClick={onRequestIntro}
+            name={MOCK_MEMBER.name}
+            size={isMobile ? 's' : 'xs'}
+            className={s.rowPress}
+          />
+          {follow && (
+            <FollowPill
+              following={follow.following}
+              onToggle={follow.onToggle}
+              name={MOCK_MEMBER.name}
+              size={isMobile ? 's' : 'xs'}
+              className={clsx(s.followFlat, s.rowPressFull)}
+            />
+          )}
+        </div>
+        {/* What the intro press does, in one line under the row ("add a small
+            note about what request an intro mean"): the modal's own sentence,
+            so the offer and the form say the same thing. Once sent, the row
+            already reads "Intro requested" and the note steps aside. */}
+        {!introRequested && (
+          <p className={s.introNote}>Request an intro — the PL team makes the introduction.</p>
+        )}
+        {askAbout}
       </div>
     </div>
   );
 }
 
-/* ---------- Office Hours (copy-simplified from OfficeHoursView, viewer state) ---------- */
-function OfficeHoursCard() {
+/**
+ * Schedule Meeting, in the header's action cluster. Production's press lives
+ * on the Office Hours card as its glossy `primaryButton`; here it is the DS
+ * Button in the cluster's own size, so it and the bordered intro beside it
+ * are one pair. The press is production's: the member's booking link, in a
+ * new tab.
+ */
+function ScheduleMeetingButton({ size, className }: { size: 'xs' | 's'; className?: string }) {
   return (
-    <DetailsSection>
+    /* Production's own button, by class: OfficeHoursView's glossy
+       `primaryButton` (brand fill, three inset/drop token shadows, hairline
+       border, 14/20 500 label, no icon). It was the flat DS `Button` with a
+       calendar glyph first — "Make schedule meeting button with the same
+       style as we have on production". The class carries card-layout values
+       (100% width, auto margin, a grid area) that `.scheduleBtn` resets for
+       the header cluster, and takes the cluster's height (see the stylesheet). */
+    <button
+      type="button"
+      className={clsx(office.primaryButton, s.scheduleBtn, size === 's' && s.scheduleBtnS, className)}
+      onClick={() => window.open(MOCK_MEMBER.officeHours, '_blank', 'noopener')}
+    >
+      {/* The DS calendar glyph ("add calendar icon"). */}
+      <CalendarBlankIcon className={s.scheduleGlyph} aria-hidden="true" />
+      Schedule Meeting
+    </button>
+  );
+}
+
+/**
+ * "Ask AI about Maya" — the team profile's `askAiButton`, on a person. No fill,
+ * no outline: the exact `Button` HeaderActionBtn renders for Edit, rendered
+ * directly only because that wrapper drops `aria-label`. The gradient glyph is
+ * what tells it from Edit.
+ */
+// `iconSize`: 18 on desktop, 12 in the phone badge. `AiSearchIcon` sizes
+// itself inline, so CSS cannot resize it — each seat passes it.
+function AskAiButton({ onClick, iconSize = 18 }: { onClick: () => void; iconSize?: number }) {
+  return (
+    <Button
+      style="link"
+      variant="primary"
+      underline={false}
+      className={s.askAiBtn}
+      aria-label={`Ask AI about ${MOCK_MEMBER.name}`}
+      onClick={onClick}
+    >
+      <AiSearchIcon size={iconSize} />
+      <span>Ask AI</span>
+    </Button>
+  );
+}
+
+/* ---------- Office Hours (production's OfficeHoursView, with the facts the mock asked for) ---------- */
+/**
+ * Production's card, carrying more: the same `DetailsSection` header with the
+ * DS `Badge` (success) "Open" in its action slot, the same grey
+ * `officeHoursSection`, the same one-line description, and the same
+ * label-led rows (`keywordsLabel` + `badge` tags) — with one more row of
+ * label:value facts in front of the tag rows: session length, format,
+ * availability, past bookings. Every class is OfficeHoursView's own.
+ *
+ * A first pass drew the user's mock literally — an initials disc, a masthead,
+ * a four-cell facts grid with hairlines, uppercase group labels, white chips
+ * on a grey band — in ~200 lines of new SCSS. "Simplify it, use our existing
+ * components only." The facts survived; the chrome that carried them did not
+ * (design-thinking lesson 2: the shell is the cheapest half of a pattern, and
+ * lesson 12's ninth: fill only the slots this object has content for).
+ *
+ * Where the facts come from: the session length is read off the booking
+ * link's own slug (cal.com/<user>/15min); the format is what that link books;
+ * past bookings is production's `scheduleMeetingCount`. Availability has no
+ * field in the product — the calendar owns it — so it is mocked and marked in
+ * `mocks.ts`. Open = the member has a booking link; without one there is no
+ * card.
+ */
+function OfficeHoursCard() {
+  /* Production's card (DetailsSection + its header, no badge) with the body
+     in the same grey inset container the Contact, Teams and Experience cards
+     use ("put them partially on the grey background as the rest of the
+     sections"), not bleeding to the card's edges. Inside: the lede, one fact
+     — Past bookings; session length, format and availability were drawn
+     first and cut, which also retires the two mocked fields — then the two
+     columns of DS tags under uppercase labels. */
+  return (
+    <DetailsSection classes={{ root: s.card }}>
       <div className={office.root}>
         <DetailsSectionHeader title="Office Hours" />
-        <div className={office.content}>
-          <div className={office.officeHoursSection}>
-            <div className={office.col}>
-              <div className={office.description}>
-                <div>
-                  <span>
-                    {MOCK_MEMBER.name} is available for a short 1:1 call to connect or help — no introduction needed.
-                  </span>
-                </div>
-                <div className={office.keywordsWrapper}>
-                  <span className={office.keywordsLabel}>Topics of Interest:</span>
-                  <span className={office.badgesWrapper}>
-                    {MOCK_MEMBER.ohInterest.map((item) => (
-                      <div key={item} className={office.badge}>
-                        {item}
-                      </div>
-                    ))}
-                  </span>
-                </div>
-                <div className={office.keywordsWrapper}>
-                  <span className={office.keywordsLabel}>I Can Help With:</span>
-                  <span className={office.badgesWrapper}>
-                    {MOCK_MEMBER.ohHelpWith.map((item) => (
-                      <div key={item} className={office.badge}>
-                        {item}
-                      </div>
-                    ))}
-                  </span>
-                </div>
-              </div>
+        <DetailsSectionGreyContentContainer>
+          <div className={s.ohBody}>
+            <p className={s.ohLede}>Short 1:1 calls with {MOCK_MEMBER.name} — no introduction needed.</p>
+            <div className={s.ohFact}>
+              <span className={s.ohFactLabel}>Past bookings</span>
+              <span className={s.ohFactValue}>{MOCK_MEMBER.scheduleMeetingCount}</span>
             </div>
-            <div className={office.primaryButtonWrapper}>
-              <button className={office.primaryButton}>Schedule Meeting</button>
-              <span className={office.subtext}>{MOCK_MEMBER.scheduleMeetingCount} past bookings</span>
+            <div className={s.ohGroups}>
+            {(
+              [
+                ['Interested in', MOCK_MEMBER.ohInterest],
+                ['Can help with', MOCK_MEMBER.ohHelpWith],
+              ] as const
+            ).map(([label, items]) => (
+              <div key={label} className={s.ohGroup}>
+                <p className={s.ohGroupLabel}>{label}</p>
+                <ul className={s.ohChips}>
+                  {/* The DS tag — production's own `badge` class for these
+                      very topics — not the mock's white bordered chip ("Make
+                      badges in the same style we had in DS"). */}
+                  {items.map((item) => (
+                    <li key={item} className={office.badge}>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
             </div>
           </div>
-        </div>
+        </DetailsSectionGreyContentContainer>
       </div>
     </DetailsSection>
   );
@@ -353,7 +667,7 @@ function OfficeHoursCard() {
 /* ---------- Contact details (copy-simplified, unlocked viewer state) ---------- */
 function ContactCard() {
   return (
-    <DetailsSection>
+    <DetailsSection classes={{ root: s.card }}>
       {/* Anchor target for the Activity section's owner note — the Bluesky
           handle and its visibility both live in this section. */}
       <div id="contact-details" className={contact.contentRoot}>
@@ -391,7 +705,7 @@ function ContactCard() {
 /* ---------- Teams ---------- */
 function TeamsCard() {
   return (
-    <DetailsSection>
+    <DetailsSection classes={{ root: s.card }}>
       <DetailsSectionHeader title={`Teams (${MOCK_MEMBER.teams.length})`} />
       {/* Production's list, unmodified: the per-row "N updates" badge came out
           when the rail card arrived — one page saying the same thing twice, and
@@ -404,7 +718,7 @@ function TeamsCard() {
 /* ---------- Experience ---------- */
 function ExperienceCard() {
   return (
-    <DetailsSection>
+    <DetailsSection classes={{ root: s.card }}>
       <DetailsSectionHeader title={`Experience (${MOCK_EXPERIENCE.length})`} />
       <ExperiencesList
         data={MOCK_EXPERIENCE}
@@ -421,7 +735,7 @@ function ExperienceCard() {
 /* ---------- Project contributions ---------- */
 function ContributionsCard() {
   return (
-    <DetailsSection>
+    <DetailsSection classes={{ root: s.card }}>
       <ContributionsList member={member} userInfo={userInfo} isEditable={false} onAdd={() => {}} onEdit={() => {}} />
     </DetailsSection>
   );
@@ -431,7 +745,7 @@ function ContributionsCard() {
 function RepositoriesCard() {
   const repos = MOCK_MEMBER.repositories;
   return (
-    <DetailsSection>
+    <DetailsSection classes={{ root: s.card }}>
       <DetailsSectionHeader title="Repositories">
         <a
           href={`https://github.com/${MOCK_MEMBER.githubHandle}`}

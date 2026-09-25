@@ -22,13 +22,26 @@
   padding-right: 64px;
 }
 
-/* "Ask AI" on the row's top-right, level with the name (the header's 24px
-   avatar row, 8px from the row's top). The same 12px/500 brand text the
-   dialog's other text buttons wear, with the AI glyph from the band above. */
-.ask {
+/* Two actions (Ask AI + the intro mark): 64 + a 24px disc + the 4px gap. */
+.headerTwoActions {
+  padding-right: 92px;
+}
+
+/* The row's actions, on its top-right, level with the name (the header's 24px
+   avatar row, 8px from the row's top). One cluster, one rhythm: 4px between
+   discs, the AI answer's actions row. */
+.rowActions {
   position: absolute;
   top: 8px;
   right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* "Ask AI": the same 12px/500 brand text the dialog's other text buttons
+   wear, with the AI glyph from the band above. */
+.ask {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -52,6 +65,9 @@
   outline: 2px solid var(--foreground-brand-primary, #1b4dff);
   outline-offset: 1px;
 }
+
+/* The intro mark beside Ask AI is `intro-shared/IntroIconAction` — its own
+   geometry and paint, nothing local. */
 
 /* The intro line (founder seat, investor rows). Indented to the text column —
    production's header is a 24px avatar + 8px gap — so it reads as the row's

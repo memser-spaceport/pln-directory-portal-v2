@@ -20,13 +20,6 @@ export interface CurrentSnapshotStatus {
   /** 0-100. */
   progressPct: number;
   pointsCollected: number;
-  /**
-   * False when the points call returned nothing — signed out, or the request
-   * failed. `pointsCollected` is 0 in that case, which is indistinguishable
-   * from a real zero, so anything user-facing must check this before printing
-   * the number. A signed-out visitor has no points concept at all.
-   */
-  hasPointsData: boolean;
   activitiesCount: number;
   categoriesCount: number;
   activities: SnapshotActivityItem[];
@@ -36,10 +29,9 @@ export interface CurrentSnapshotStatus {
 function usePeriodStatus() {
   const { data: roundStats } = useCurrentRoundStats();
 
-  // `period` is the only field this branch needs, and the response is consumed
-  // unvalidated (`res.json()`), so a payload without it must fall through to the
-  // calendar path rather than throwing — the bar renders in the site header on
-  // every PLAA route, so a bad shape would take the whole header down.
+  // `period` is the only field this branch needs and the response is consumed
+  // unvalidated, so a payload without it must fall through to the calendar path
+  // rather than throw: the bar renders in the site header on every PLAA route.
   if (roundStats?.period) {
     // roundStats.period is "YYYY-MM-DD"; useSnapshotPoints wants "YYYY-MM".
     const snapshotPeriod = roundStats.period.slice(0, 7);
@@ -86,7 +78,6 @@ export function useCurrentSnapshotStatus(): CurrentSnapshotStatus {
     daysLeft,
     progressPct,
     pointsCollected,
-    hasPointsData: Array.isArray(snapshotData?.records),
     activitiesCount: activities.length,
     categoriesCount,
     activities,

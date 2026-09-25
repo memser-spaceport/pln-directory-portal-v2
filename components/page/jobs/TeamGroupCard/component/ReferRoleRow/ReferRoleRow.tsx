@@ -9,6 +9,7 @@ import { Button } from '@/components/common/Button';
 import { CheckIcon } from '@/components/icons';
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 import { useRoleApplication } from '@/services/jobs/hooks/useJobApplications';
+import { useRoleSavedJob } from '@/services/jobs/hooks/savedJobs/useRoleSavedJob';
 
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 import type { JobDetailTarget } from '@/components/page/jobs/hooks/useJobApplyFlow';
@@ -20,6 +21,7 @@ import { jobApplyQueryParams } from './constants';
 
 import { ReferMenu } from './components/ReferMenu';
 import { RoleOwnerMenu } from './components/RoleOwnerMenu';
+import { SaveRoleButton } from './components/SaveRoleButton';
 import { ArrowIcon, ClockIcon } from './components/Icons';
 import { ReferModal } from '@/prototypes/entries/job-board/components/ReferModal/ReferModal';
 
@@ -54,6 +56,20 @@ export interface RowApplyProps {
    * step 1 of the flow. A surface that omits it keeps the direct Apply.
    */
   onViewJob?: (target: { role: IJobRole; teamId: string; teamName: string; team: IJobTeam }) => void;
+}
+
+/**
+ * Bookmarking, switched on by prop PRESENCE as `apply` is. Here it gates a
+ * surface rather than a flag: the board passes it, the team profile does not,
+ * because only the board has a Saved tab to find the role again in.
+ */
+export interface RowSaveProps {
+  /** Scopes the saved-map subscription; undefined while logged out, which is
+   *  also what makes the press open the sign-in door instead of writing. */
+  memberUid: string | undefined;
+  /** Inside the Saved tab the clock reports the save instead of the posting's
+   *  age — there, "9d ago" reads as when you saved it. */
+  savedScope: boolean;
 }
 
 interface ReferRoleRowProps {
@@ -98,6 +114,7 @@ interface ReferRoleRowProps {
   team?: IJobTeam;
   onClick?: () => void;
   apply?: RowApplyProps;
+  save?: RowSaveProps;
 }
 
 /** Left-click stays in-place (drawer / feed new-tab). Modified clicks follow the href. */
@@ -121,7 +138,7 @@ function interceptUnmodifiedClick(event: MouseEvent<HTMLAnchorElement>, onOpen: 
  * offering again.
  */
 export function ReferRoleRow(props: ReferRoleRowProps) {
-  const { role, teamId, teamName, currentUser, source, onClick, apply, team, ownsListing, hideViewJob } = props;
+  const { role, teamId, teamName, currentUser, source, onClick, apply, team, save, ownsListing, hideViewJob } = props;
 
   const goToLogin = useLoginRedirect();
 
@@ -139,6 +156,8 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
   // exactly this row, never the list. Inert (enabled: false) without apply props.
   const application = useRoleApplication(role.uid, { memberUid: apply?.memberUid, enabled: Boolean(apply?.memberUid) });
   const applied = Boolean(application);
+  // Same per-row subscription as the application above, on the saved map.
+  const savedJob = useRoleSavedJob(role.uid, { memberUid: save?.memberUid, enabled: Boolean(save?.memberUid) });
   const onViewJob = apply?.onViewJob;
   /* Both, or neither — see the `team` prop. */
   const viewJob = onViewJob && team ? () => onViewJob({ role, teamId, teamName, team }) : null;
@@ -148,6 +167,9 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
   const date = getJobDate(role);
   const relative = formatRelativeDays(date);
   const showNew = isNew(date);
+  const savedRelative = save?.savedScope && savedJob ? `Saved ${formatRelativeDays(savedJob.savedAt)}` : null;
+  /* Applied outranks saved: a role you both kept and sent is, to you, sent. */
+  const clockLabel = application ? `Applied ${formatRelativeDays(application.appliedAt)}` : (savedRelative ?? relative);
   const locationDisplay = isEmpty(location) ? null : location.join(', ');
 
   const metaParts = [seniority ? seniorityDisplayLabel(seniority) : null, roleCategory, locationDisplay].filter(
@@ -221,10 +243,10 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
         {/* Once applied, the clock reports the application rather than the
             posting's age — which is what makes a second "Applied" chip in the
             action slot unnecessary below. */}
-        {(relative || application) && (
+        {clockLabel && (
           <span className={clsx(s.relative, inAppApply && ap.relativeTone)}>
             <ClockIcon />
-            {application ? `Applied ${formatRelativeDays(application.appliedAt)}` : relative}
+            {clockLabel}
           </span>
         )}
 
@@ -255,6 +277,16 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
           )}
 
           {!ownsListing && <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />}
+
+          {save && (
+            <SaveRoleButton
+              role={role}
+              teamId={teamId}
+              source={source}
+              memberUid={save.memberUid}
+              saved={Boolean(savedJob)}
+            />
+          )}
 
           {!ownsListing &&
             showPosting &&
@@ -297,8 +329,8 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
               : inAppApply &&
                 (applied ? (
                   /* Same slot, same geometry: a row you've applied to must not
-                 resize the list around it. `disabled` is the honest semantics —
-                 there is nothing left to press. */
+               resize the list around it. `disabled` is the honest semantics —
+               there is nothing left to press. */
                   <button
                     type="button"
                     disabled
@@ -309,8 +341,8 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
                   </button>
                 ) : (
                   /* A real <button>, not the anchor: the press no longer leaves the
-                 page. It hands off to the flow, which runs the sign-in gate, the
-                 profile check and the cover letter in place. */
+               page. It hands off to the flow, which runs the sign-in gate, the
+               profile check and the cover letter in place. */
                   <Button
                     size="s"
                     style="fill"

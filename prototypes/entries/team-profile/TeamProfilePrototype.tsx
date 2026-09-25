@@ -145,8 +145,8 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
    *   public — everyone else
    * The first three are production's "team view" (`isCurrentUserTeamMember ||
    * isAdmin`): the follower stack in the header card's corner instead of the
-   * Follow pill, the Asks, posting news. Jobs are narrower (lead or admin), and
-   * editing someone else's news post narrower still — see `canManageTeamPost`.
+   * Follow pill, the Asks, posting news, and editing or removing the team's
+   * posts (see `canManageTeamPost`). Jobs are narrower (lead or admin).
    */
   const [view, setView] = useState<TeamPostRole>('lead');
   const isTeamView = view !== 'public';
@@ -330,8 +330,8 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
   };
 
   /**
-   * WHO MAY EDIT OR REMOVE. A directory admin, a lead of this team, or the
-   * person who posted it — and only a post the team wrote here; enriched
+   * WHO MAY EDIT OR REMOVE. Whoever may post: a directory admin, a lead or any
+   * member of this team — and only a post the team wrote here; enriched
    * coverage has no author on this page. One rule, asked by every surface (the
    * rail, the archive, the story modal) through `menuFor`, so a reader who may
    * not act meets no control anywhere rather than a disabled one somewhere.
@@ -623,7 +623,9 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
      wrapper drops `aria-label`. Beside the outlined Follow pill it is plainly a
      different kind of control; beside Edit it is a sibling, told apart by the
      gradient glyph. One object in every seat. */
-  const askAiButton = (seatClass?: string) => (
+  // Glyph size per seat: 18 on desktop, 12 in the phone badge. `AiSearchIcon`
+  // sizes itself inline, so CSS cannot resize it — the seat passes it.
+  const askAiButton = (seatClass?: string, iconSize = 18) => (
     <Button
       style="link"
       variant="primary"
@@ -632,7 +634,7 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
       aria-label={`Ask AI about ${team.name}`}
       onClick={() => setAiOpen(true)}
     >
-      <AiSearchIcon size={14} />
+      <AiSearchIcon size={iconSize} />
       <span>Ask AI</span>
     </Button>
   );
@@ -797,16 +799,24 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                     !isTeamView ? (
                       <div className={`${local.followHeader} ${local.followClusterMobile}`}>
                         <div className={local.headerActionRow}>
-                          {askAiButton()}
+                          {askAiButton(local.fromTablet)}
                           <FollowPill
                             following={following}
                             onToggle={handleFollowToggle}
                             name={team.name ?? 'this team'}
+                            size={isMobile ? 's' : 'xs'}
                           />
+                          {/* Phone: Ask AI beside Follow as the member page's
+                              outlined badge ("Use the same badge for team
+                              profile as well"): the same object in every seat
+                              and on both profile pages. */}
+                          {askAiButton(clsx(local.mobileOnly, local.askAiBadge), 12)}
                         </div>
-                        {/* Reserve the caption's height once following so nothing below jumps. */}
+                        {/* Reserve the caption's height once following so nothing below jumps.
+                            With two buttons on the row the caption names its
+                            button; under Follow alone it needn't. */}
                         <p className={`${local.followCaption} ${following ? local.followCaptionHidden : ''}`}>
-                          Get updates &amp; announcements
+                          {isMobile ? 'Follow to get updates & announcements' : 'Get updates & announcements'}
                         </p>
                       </div>
                     ) : (
@@ -826,7 +836,7 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                           team name, so Ask AI leaves it and joins the row that
                           wraps under the tags — where the visitor's Ask AI
                           already sits on a phone. */}
-                        {askAiButton(local.askAiMobileOnly)}
+                        {askAiButton(clsx(local.askAiMobileOnly, local.askAiBadge), 12)}
                         <TeamFollowBlock
                           count={followCount}
                           followers={MOCK_FOLLOWERS}

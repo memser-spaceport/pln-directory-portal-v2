@@ -126,23 +126,28 @@
   color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
-/* The match badge at the row's right end. Tabular figures so 80% and 100%
- * share a width down the list. */
-.percent {
-  font-variant-numeric: tabular-nums;
+/* The match badge at the row's right end: "Strong match" / "Good match",
+ * colour-coded by band (see SUGGESTION_BAND_VARIANT). */
+.matchBadge.matchBadge {
   white-space: nowrap;
   flex-shrink: 0;
+  /* Smaller than the DS Badge's 14/20 ("Make matches badges smaller"): 12/16
+     type in 2x6 padding, ~22px with the border, a tag's size beside the name
+     rather than a second heading. */
+  font-size: 12px;
+  line-height: 16px;
+  padding: 2px 6px;
 }
 
 /* "Invited today" beside the name: the row's clock + date in its own type, on
- * the name line so the right end is the percentage alone. `flex-shrink: 0` so
+ * the name line so the right end is the match badge alone. `flex-shrink: 0` so
  * the name ellipsises before the date does. */
 .invitedMark {
   flex-shrink: 0;
 }
 
 /* Phone: production stacks the Members row into a column and drops the right
- * cluster under the content, which left the percentage floating under the
+ * cluster under the content, which left the match badge floating under the
  * avatar and let the reason line run past the edge. The row's own precedent for
  * something that belongs at the end of a stacked row is `.actionIcon`, pinned
  * to the top-right corner — the badge takes that place, and the content column

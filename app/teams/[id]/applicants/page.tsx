@@ -37,7 +37,10 @@ import styles from './page.module.scss';
  * None of this is a security boundary — the endpoints enforce the same rule
  * server-side. This is the affordance.
  */
-async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: Promise<{ role?: string }> }) {
+async function Page(props: {
+  params: Promise<ITeamDetailParams>;
+  searchParams: Promise<{ role?: string; candidate?: string }>;
+}) {
   const params = await props.params;
   const searchParams = await props.searchParams;
   const teamId: string = params?.id;
@@ -112,6 +115,7 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
         teamName={team?.name ?? ''}
         roles={roles}
         initialRoleUid={searchParams?.role ?? null}
+        initialCandidateUid={searchParams?.candidate ?? null}
         viewerUid={userInfo?.uid}
         isLoggedIn={!!isLoggedIn}
       />

@@ -4,6 +4,7 @@ import { triggerLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
+import { usePlaaAccess } from '@/services/rbac/hooks/usePlaaAccess';
 
 /*
  * Rail glyphs, drawn inline on Phosphor's 256 grid to match the icons the
@@ -199,7 +200,7 @@ const menuItems: Array<{
   // Not in the design's rail, so no icon.
   { name: 'incentive-model', label: 'Incentive Model', url: '/alignment-asset/incentive-model' },
   { name: 'activities', label: 'Activities', url: '/alignment-asset/activities', icon: 'lightning' },
-  // { name: 'profile', label: 'Profile', url: '/alignment-asset/profile', icon: 'user-circle' },
+  { name: 'profile', label: 'Profile', url: '/alignment-asset/profile', icon: 'user-circle' },
   { name: 'kudos', label: 'Kudos', url: '/alignment-asset/kudos', badge: 'new', icon: 'hands-clapping' },
   // The design calls this "Portfolio & Holdings"; same entry, so it takes that
   // row's chart-pie-slice icon while keeping the current label.
@@ -221,7 +222,15 @@ function PlaaMenu({ activeItem, onMenuItemClick, isLoggedIn }: PlaaMenuProps) {
 
   // Guests (no LabOS session) can't give kudos and shouldn't see the feature
   // exists; a signed-in non-PLAA member can still read the board.
-  const visibleItems = isLoggedIn ? menuItems : menuItems.filter((item) => item.name !== 'kudos');
+  //
+  // Profile is PLAA-members-only, matching the page's own gate, so nobody is
+  // offered a link that would turn them away. Hidden while access is unknown.
+  const { canView: canViewPlaa } = usePlaaAccess();
+  const visibleItems = menuItems.filter((item) => {
+    if (item.name === 'kudos') return !!isLoggedIn;
+    if (item.name === 'profile') return canViewPlaa;
+    return true;
+  });
 
   const onItemClicked = (label: string, url: string, isExternal?: boolean) => {
     onNavMenuClicked(label, url);

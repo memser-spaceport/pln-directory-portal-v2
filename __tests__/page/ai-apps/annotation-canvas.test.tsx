@@ -568,3 +568,118 @@ describe('AnnotationCanvas shapes', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * Coordinates are rounded where they are created, not where they are counted.
+ *
+ * A raw `point.x / width` is eighteen characters of float, and a freehand
+ * stroke is hundreds of them; serialized into `data-annotations` that is most
+ * of a submission's size budget spent on digits below the width of the line.
+ * These assert the component's own output — a size test that rebuilds the
+ * rounding itself would pass whether or not the component still did it.
+ */
+describe('AnnotationCanvas coordinate precision', () => {
+  const BOUNDS = {
+    x: 0,
+    y: 0,
+    top: 0,
+    left: 0,
+    bottom: 982,
+    right: 1512,
+    width: 1512,
+    height: 982,
+    toJSON: () => ({}),
+  };
+
+  const decimals = (n: number) => {
+    const s = String(n);
+    return s.includes('.') ? s.split('.')[1].length : 0;
+  };
+
+  beforeEach(() => {
+    HTMLCanvasElement.prototype.setPointerCapture = jest.fn();
+    HTMLCanvasElement.prototype.releasePointerCapture = jest.fn();
+  });
+
+  afterEach(() => jest.restoreAllMocks());
+
+  const canvasIn = (container: HTMLElement) => {
+    /* `commitStroke` bails when `size.width` is 0, and `size` comes from the
+       image's client box — which jsdom reports as 0 until it is told otherwise. */
+    jest.spyOn(HTMLImageElement.prototype, 'clientWidth', 'get').mockReturnValue(1512);
+    jest.spyOn(HTMLImageElement.prototype, 'clientHeight', 'get').mockReturnValue(982);
+    fireEvent.load(container.querySelector('img')!);
+
+    const canvas = container.querySelector('canvas')!;
+    jest.spyOn(canvas, 'getBoundingClientRect').mockReturnValue(BOUNDS);
+    Object.defineProperty(canvas, 'width', { value: 1512, configurable: true });
+    Object.defineProperty(canvas, 'height', { value: 982, configurable: true });
+    return canvas;
+  };
+
+  const pointer = (canvas: HTMLElement, type: string, x: number, y: number) =>
+    fireEvent(canvas, new MouseEvent(type, { bubbles: true, cancelable: true, button: 0, clientX: x, clientY: y }));
+
+  /* Pixel positions chosen so the raw division is a long repeating float:
+     127/1512 = 0.08399470899470899. */
+  it('rounds every point of a freehand stroke', () => {
+    const onChange = jest.fn();
+    const { container } = render(
+      <AnnotationCanvas imageSrc={PIXEL_PNG} annotations={EMPTY_ANNOTATIONS} onChange={onChange} tool="draw" />,
+    );
+    const canvas = canvasIn(container);
+
+    pointer(canvas, 'pointerdown', 127, 313);
+    pointer(canvas, 'pointermove', 271, 457);
+    pointer(canvas, 'pointermove', 419, 601);
+    pointer(canvas, 'pointerup', 419, 601);
+
+    const points = onChange.mock.calls[0][0].strokes[0].points;
+    expect(points.length).toBeGreaterThan(1);
+    for (const point of points) {
+      expect(decimals(point.x)).toBeLessThanOrEqual(4);
+      expect(decimals(point.y)).toBeLessThanOrEqual(4);
+    }
+  });
+
+  /* 100px and 402px on a 1512px box specifically: they round to 0.0661 and
+     0.2659, whose difference in floating point is 0.19980000000000003. A pair
+     that happens to subtract cleanly would let an unrounded extent through. */
+  it('rounds a shape, extents included', () => {
+    const onChange = jest.fn();
+    const { container } = render(
+      <AnnotationCanvas imageSrc={PIXEL_PNG} annotations={EMPTY_ANNOTATIONS} onChange={onChange} tool="rect" />,
+    );
+    const canvas = canvasIn(container);
+
+    pointer(canvas, 'pointerdown', 100, 313);
+    pointer(canvas, 'pointermove', 402, 601);
+    pointer(canvas, 'pointerup', 402, 601);
+
+    const shape = onChange.mock.calls[0][0].shapes[0];
+    /* w and h come from subtracting two rounded values, which is its own way to
+       put the float noise straight back. */
+    for (const key of ['x', 'y', 'w', 'h'] as const) {
+      expect(decimals(shape[key])).toBeLessThanOrEqual(4);
+    }
+  });
+
+  it('rounds a comment pin', () => {
+    const onChange = jest.fn();
+    const { container } = render(
+      <AnnotationCanvas imageSrc={PIXEL_PNG} annotations={EMPTY_ANNOTATIONS} onChange={onChange} tool="comment" />,
+    );
+    const canvas = canvasIn(container);
+
+    pointer(canvas, 'pointerdown', 127, 313);
+    pointer(canvas, 'pointerup', 127, 313);
+
+    const input = screen.getByPlaceholderText('Add a comment');
+    fireEvent.change(input, { target: { value: 'here' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    const comment = onChange.mock.calls[0][0].comments[0];
+    expect(decimals(comment.x)).toBeLessThanOrEqual(4);
+    expect(decimals(comment.y)).toBeLessThanOrEqual(4);
+  });
+});

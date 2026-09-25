@@ -219,6 +219,16 @@ export interface MemberProfile {
   bluesky: string;
   /** Private — see `JobSearchStatus`. Empty until answered. */
   jobSearchStatus: JobSearchStatus | '';
+  /**
+   * "Let hiring teams in the network find me" — the tick under the status.
+   * What makes a member eligible for a team's **Suggested** tab
+   * (`team-profile/suggestedMocks.ts`). Off unless they turn it on: being
+   * proposed to founders is exposure the member did not ask for by answering a
+   * private question, so it is theirs to switch on. The status itself stays
+   * private either way — a suggestion carries the public profile and its
+   * reasons, never this answer.
+   */
+  discoverable?: boolean;
 }
 
 export const EMPTY_PROFILE: MemberProfile = {
@@ -295,7 +305,7 @@ export const FILLED_PROFILE: MemberProfile = {
      row looks like, which is what almost every real profile is. */
   /* `VIEWER_EMAIL`, not a second literal. `viewerIdentity` is explicit that the
      board, the sign-up form and the application email must all name one
-     applicant rather than three near-identical addresses; a contact card
+     candidate rather than three near-identical addresses; a contact card
      showing a fourth would be the same mistake on the same screen. */
   email: VIEWER_EMAIL,
   telegram: 'polinabublii',
@@ -378,17 +388,17 @@ export type BoardViewer =
   | 'team-lead'
   /* The same lead, on a day when people have applied. A state of its own
      because the board *changes* for it — a banner in the board's one banner
-     slot, and the applicants line on their rows — and because the plain
+     slot, and the candidates line on their rows — and because the plain
      `team-lead` view is the one that shows listing management with nothing
      else competing for the eye. Two moments of one person, like
      `profile-ready` and `applied`. */
-  | 'team-lead-applicants'
+  | 'team-lead-candidates'
   | 'directory-admin';
 
 /** Leads a team — either moment of it. One test, so the listings, the profile
  *  seed and the board cannot disagree about who a lead is. */
 export const isTeamLeadViewer = (viewer: BoardViewer): boolean =>
-  viewer === 'team-lead' || viewer === 'team-lead-applicants';
+  viewer === 'team-lead' || viewer === 'team-lead-candidates';
 
 /**
  * Signed up to look for work rather than to join a team — see `BoardViewer`.
@@ -508,7 +518,7 @@ export function primaryExperience(profile: MemberProfile): ExperienceEntry | nul
 
 /**
  * "Senior Protocol Engineer at Lattice Compute" — the line the hiring team sees,
- * read back to the applicant before they send it. Reading back what will be sent
+ * read back to the candidate before they send it. Reading back what will be sent
  * is the whole reason the apply modal isn't one button.
  *
  * **The title comes from `profile.role` first, then from the experience entry.**

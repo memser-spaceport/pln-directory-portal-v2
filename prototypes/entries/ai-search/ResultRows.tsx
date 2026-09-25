@@ -22,6 +22,8 @@ import { Badge } from '@/components/common/Badge';
 import { investorByUid, investorProfileHref, connectorOf, ASK_STATUS_LABEL } from '../warm-intros-founders/mocks';
 import type { FounderInvestorRow, IntroAsk } from '../warm-intros-founders/mocks';
 import { ConnectorName } from '../warm-intros-founders/InvestorPathRow';
+import { IntroIconAction } from '../intro-shared/IntroIconAction';
+import type { RequestIntroApi } from '../intro-shared/introRequests';
 
 import local from './ResultRows.module.scss';
 
@@ -39,6 +41,11 @@ interface ResultRowsProps {
    * else, and then the row is production's row.
    */
   intro?: { askFor: (uid: string) => IntroAsk | undefined; onAsk: (row: FounderInvestorRow) => void };
+  /**
+   * Any member's row offers an intro through the PL team, as an icon beside
+   * Ask AI (the `ai-search-intros` entry). Absent, the row is as above.
+   */
+  requestIntro?: RequestIntroApi;
 }
 
 const GROUP_ORDER = ['members', 'teams', 'projects', 'events', 'forumThreads'];
@@ -76,12 +83,19 @@ const GROUP_ORDER = ['members', 'teams', 'projects', 'events', 'forumThreads'];
  * "show all" past five per index is not carried: the mocked corpus never
  * reaches it.
  */
-export function ResultRows({ items, grouped = false, onSelect, onAskAbout, intro }: ResultRowsProps) {
+export function ResultRows({ items, grouped = false, onSelect, onAskAbout, intro, requestIntro }: ResultRowsProps) {
   if (!grouped) {
     return (
       <ul className={s.list}>
         {items.map((item) => (
-          <Row key={item.uid} item={item} onSelect={onSelect} onAskAbout={onAskAbout} intro={intro} />
+          <Row
+            key={item.uid}
+            item={item}
+            onSelect={onSelect}
+            onAskAbout={onAskAbout}
+            intro={intro}
+            requestIntro={requestIntro}
+          />
         ))}
       </ul>
     );
@@ -97,7 +111,14 @@ export function ResultRows({ items, grouped = false, onSelect, onAskAbout, intro
           <div className={top.groupTitle}>{getGroupTitleByGroupName(group)}</div>
           <ul className={s.list}>
             {list.map((item) => (
-              <Row key={item.uid} item={item} onSelect={onSelect} onAskAbout={onAskAbout} intro={intro} />
+              <Row
+                key={item.uid}
+                item={item}
+                onSelect={onSelect}
+                onAskAbout={onAskAbout}
+                intro={intro}
+                requestIntro={requestIntro}
+              />
             ))}
           </ul>
         </div>
@@ -111,11 +132,13 @@ function Row({
   onSelect,
   onAskAbout,
   intro,
+  requestIntro,
 }: {
   item: AnyItem;
   onSelect?: () => void;
   onAskAbout?: (item: FoundItem) => void;
   intro?: ResultRowsProps['intro'];
+  requestIntro?: RequestIntroApi;
 }) {
   if (item.index === 'forumThreads') return <SearchResultsItem item={item} onSelect={onSelect} />;
 
@@ -132,6 +155,7 @@ function Row({
   const ask = investor && intro ? intro.askFor(investor.uid) : undefined;
   const external = link.startsWith('http');
   const askable = (found.index === 'teams' || found.index === 'members') && !!onAskAbout;
+  const introable = found.index === 'members' && !!requestIntro;
 
   /* Production: `<Link><li class="foundItem">…</li></Link>`. Here the `<li>`
      is the host and the link is a block inside it, so the action can be a
@@ -147,7 +171,7 @@ function Row({
           if (found.index !== 'events') onSelect?.();
         }}
       >
-        <div className={clsx(s.header, askable && local.headerAskable)}>
+        <div className={clsx(s.header, askable && local.headerAskable, askable && introable && local.headerTwoActions)}>
           <div className={s.avatar}>
             <Image src={avatar} alt={found.name} width={24} height={24} />
           </div>
@@ -190,16 +214,28 @@ function Row({
         </div>
       )}
 
-      {askable && (
-        <button
-          type="button"
-          className={local.ask}
-          onClick={() => onAskAbout!(found)}
-          aria-label={`Ask AI about ${found.name}`}
-        >
-          <AiSearchIcon size={16} />
-          Ask AI
-        </button>
+      {(askable || introable) && (
+        <div className={local.rowActions}>
+          {askable && (
+            <button
+              type="button"
+              className={local.ask}
+              onClick={() => onAskAbout!(found)}
+              aria-label={`Ask AI about ${found.name}`}
+            >
+              <AiSearchIcon size={16} />
+              Ask AI
+            </button>
+          )}
+          {/* The intro mark — the shared icon-only action (see `IntroIconAction`). */}
+          {introable && (
+            <IntroIconAction
+              name={found.name}
+              requested={requestIntro!.requested(found.uid)}
+              onRequest={() => requestIntro!.onRequest({ uid: found.uid, name: found.name, kind: 'member' })}
+            />
+          )}
+        </div>
       )}
     </li>
   );

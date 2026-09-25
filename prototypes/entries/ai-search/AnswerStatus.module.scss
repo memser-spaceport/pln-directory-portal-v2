@@ -1,0 +1,246 @@
+// The answer's waiting states. `text`: a line whose type is the answer
+// prose's own size (14/20 in the message card), one ink step quieter, so it
+// reads as the answer's slot being busy rather than as a heading. `build`:
+// the answer card's own box, drawing its outline (see BuildStatus).
+
+@use 'styles/media';
+
+.root {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+  padding: 2px 0;
+}
+
+/* The AI Search mark, breathing: present the whole time, never spinning. */
+.mark {
+  animation: breathe 1.6s ease-in-out infinite;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* A light band sweeps across the words while the step is running
+   (Copilot's "Searching the web", Perplexity's "Thinking"). */
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+  background: linear-gradient(
+      90deg,
+      var(--foreground-neutral-secondary, #455468) 0%,
+      var(--foreground-neutral-secondary, #455468) 35%,
+      var(--foreground-neutral-quaternary, #c9d2de) 50%,
+      var(--foreground-neutral-secondary, #455468) 65%,
+      var(--foreground-neutral-secondary, #455468) 100%
+    )
+    0 0 / 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation:
+    enter 240ms ease-out,
+    sweep 1.6s linear infinite;
+}
+
+/* ---------------------------------------------------------------------- */
+/* build                                                                   */
+/* ---------------------------------------------------------------------- */
+
+/* The answer card's box (AnswerPanel .card: 20px pad, 12px radius, subtle
+   border), with two soft grey washes drifting across it. The washes are the
+   neutral-50/neutral-25 surfaces, so the card stays white enough to be the same
+   object the answer lands in. */
+.build {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background:
+    radial-gradient(60% 120% at 0% 0%, var(--background-neutral-subtle, #f0f3f9) 0%, transparent 70%),
+    radial-gradient(50% 100% at 100% 100%, var(--background-neutral-soft-surface, #f9fafb) 0%, transparent 70%), #fff;
+  background-size:
+    200% 200%,
+    200% 200%,
+    auto;
+  animation: drift 6s ease-in-out infinite alternate;
+  overflow: hidden;
+}
+
+.buildMark {
+  animation: breathe 1.6s ease-in-out infinite;
+}
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  &:empty {
+    display: none;
+  }
+}
+
+/* A line draws in from the left, then keeps a light shimmer running through
+   it — the alive signal once the outline is complete. */
+.line {
+  display: block;
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(
+      90deg,
+      var(--border-neutral-subtle, rgba(27, 56, 96, 0.12)) 0%,
+      var(--background-neutral-soft-muted, #e9eff6) 50%,
+      var(--border-neutral-subtle, rgba(27, 56, 96, 0.12)) 100%
+    )
+    0 0 / 300% 100%;
+  transform-origin: left center;
+  animation:
+    draw 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both,
+    sweep 2.4s linear infinite;
+}
+
+/* One placeholder per directory result, in the result cards' own geometry
+   (DirectoryResultsCards .card: 8px radius, 10/12 pad, subtle border). */
+.hits {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+
+  @include media.mobile-only {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.hit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+  animation: pop 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.hitAvatar,
+.hitLogo {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  background: var(--background-neutral-soft-muted, #e9eff6);
+}
+
+.hitAvatar {
+  border-radius: 50%;
+}
+
+.hitLogo {
+  border-radius: 6px;
+}
+
+.hitText {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.hitBar,
+.hitBarShort {
+  display: block;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--background-neutral-soft-muted, #e9eff6);
+}
+
+.hitBarShort {
+  width: 55%;
+  background: var(--background-neutral-subtle, #f0f3f9);
+}
+
+/* ---------------------------------------------------------------------- */
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes sweep {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+}
+
+@keyframes draw {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+}
+
+@keyframes drift {
+  from {
+    background-position:
+      0% 0%,
+      100% 100%,
+      0 0;
+  }
+  to {
+    background-position:
+      100% 60%,
+      0% 40%,
+      0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mark,
+  .buildMark,
+  .label,
+  .build,
+  .line,
+  .hit {
+    animation: none;
+  }
+
+  .label {
+    -webkit-text-fill-color: currentColor;
+  }
+}

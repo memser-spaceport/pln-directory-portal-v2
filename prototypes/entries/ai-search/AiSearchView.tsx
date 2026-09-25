@@ -54,6 +54,8 @@ interface AiSearchViewProps {
    * The team profile passes its team; the header search passes nothing.
    */
   scope?: AiSearchScope | null;
+  /** Member cards in an answer offer an intro through the PL team (see `DirectoryResultsCards`). */
+  requestIntro?: React.ComponentProps<typeof AnswerPanel>['requestIntro'];
 }
 
 /** One AI Search conversation. Its title is its first question. */
@@ -159,7 +161,14 @@ function groupHistory(threads: ChatThread[]): Array<[string, ChatThread[]]> {
  * "Continue in AI Search" is gone: that link led to a bigger page when this
  * was a small dialog, and this is the bigger page now.
  */
-export function AiSearchView({ open, onClose, request, onBackToResults, scope = null }: AiSearchViewProps) {
+export function AiSearchView({
+  open,
+  onClose,
+  request,
+  onBackToResults,
+  scope = null,
+  requestIntro,
+}: AiSearchViewProps) {
   const viewer = useAiSearchViewer();
   const [question, setQuestion] = useState('');
   const [view, setView] = useState<'idle' | 'answer' | 'history'>('idle');
@@ -411,6 +420,7 @@ export function AiSearchView({ open, onClose, request, onBackToResults, scope = 
                 requestAnimationFrame(() => document.getElementById(INPUT_ID)?.focus());
               }}
               onOpenTarget={openTarget}
+              requestIntro={requestIntro}
             />
           </div>
         ) : (

@@ -1,0 +1,168 @@
+@use 'styles/media';
+
+/* The Members row, with the two states production's row never needs because
+ * its press leaves the page.
+ *
+ * Unread is the loud one: the section's resting-blue card (the tint the
+ * profile uses for the card you are editing) under the `● New` mark, so a
+ * founder sees from across the list which rows they haven't opened. Opening a
+ * row is reading it, and the row returns to the plain grey — read has no paint
+ * of its own (design-thinking lesson 21).
+ *
+ * Selected is a brand bar on the left edge over a darker grey. Selecting *is*
+ * reading, so the bar and the unread tint never meet on one row and the bar
+ * can stand alone. */
+/* Square all round: the list runs edge to edge in its card, and a rounded outer
+ * corner against the card's side would leave a white notch. `.selectable` in
+ * the selector outranks `MemberCardBase`'s 12px radius.
+ *
+ * The side padding is the card's 16px plus the row's own 16px, so the avatar
+ * and the date stay on the edge the search field above them starts at, and the
+ * content keeps the width it had before the fill went full-bleed. */
+.selectable .row {
+  border-radius: 0;
+  padding-left: 32px;
+  padding-right: 32px;
+  transition: background-color 120ms ease;
+}
+
+.unread {
+  background: var(--background-brand-subtle, #eef2ff);
+}
+
+/* A brand bar down the row's left edge on a darker grey fill: the mail-list
+ * selected row (Mobbin's inbox), which suits a stack whose rows are square and
+ * share hairlines — a ring around one of them fights the rows' own corners.
+ * The bar is an inset shadow so the row keeps its height and its divider. */
+.selected {
+  background: var(--background-neutral-subtle, #f1f5f9);
+  box-shadow: inset 3px 0 0 var(--foreground-brand-primary, #1b4dff);
+}
+
+/* The row as a <button>: takes off what the UA adds and keeps the stacked
+ * geometry `tmvc.root` gives an <a>. `text-align` because a button centres. */
+.selectable {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* The left column takes what the right cluster leaves: `mcb.left` only sets
+ * `min-width: 0`, which lets the name and role ellipsise but gives them no
+ * width to fill. */
+.left {
+  flex: 1;
+}
+
+/* The right cluster: the New mark and the clock — the row's own gap, kept from
+ * wrapping under the name on a narrow box. The reviewed check used to sit here
+ * too and moved to the name line: this end of the row is *when* things
+ * happened, and a mark about the person read as one more meta glyph in it. */
+.right {
+  gap: 12px;
+}
+
+/* Name + reviewed check on one line. `mcb.nameRole` is a column (name over
+ * role), so the pair needs its own row; `min-width: 0` hands the ellipsis back
+ * to the name, which would otherwise refuse to shrink as a flex item. 6px is
+ * half the row's own 12px — the mark belongs to the name, not beside it as a
+ * sibling (design-thinking lesson 20). */
+.nameLine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.nameLine > p {
+  min-width: 0;
+}
+
+/* The reviewed tick: Phosphor's check, bare, in the PL success ink the bar's
+ * Reviewed button wears — no disc, because a ring around a glyph is a button
+ * shape and this is a fact, not a press (design-thinking lesson 8). Glyph only
+ * in the list: the word lives on the button, and the accessible name carries
+ * it here. */
+.reviewedMark {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+/* A suggested row's reason, under the role. The role line's own 12/18, in the
+ * primary ink: same size, so it is one more line of the row and not a caption,
+ * and one step darker than the role because it is the row's argument. One
+ * line, ellipsised — the full list is the pane's first section — with the
+ * "+2" kept outside the ellipsis so a long reason cannot swallow it. */
+.reason {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.reasonText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reasonMore {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* The match badge at the row's right end: "Strong match" / "Good match",
+ * colour-coded by band (see SUGGESTION_BAND_VARIANT). */
+.matchBadge.matchBadge {
+  white-space: nowrap;
+  flex-shrink: 0;
+  /* Smaller than the DS Badge's 14/20 ("Make matches badges smaller"): 12/16
+     type in 2x6 padding, ~22px with the border, a tag's size beside the name
+     rather than a second heading. */
+  font-size: 12px;
+  line-height: 16px;
+  padding: 2px 6px;
+}
+
+/* "Invited today" beside the name: the row's clock + date in its own type, on
+ * the name line so the right end is the match badge alone. `flex-shrink: 0` so
+ * the name ellipsises before the date does. */
+.invitedMark {
+  flex-shrink: 0;
+}
+
+/* Phone: production stacks the Members row into a column and drops the right
+ * cluster under the content, which left the match badge floating under the
+ * avatar and let the reason line run past the edge. The row's own precedent for
+ * something that belongs at the end of a stacked row is `.actionIcon`, pinned
+ * to the top-right corner — the badge takes that place, and the content column
+ * is held to the row so the reason line ellipsises. Suggested rows only: the
+ * Applied and Interested rows keep production's stack for their date. */
+@include media.mobile-only {
+  .suggestedRow {
+    .right {
+      position: absolute;
+      top: 12px;
+      right: 32px;
+    }
+
+    .left {
+      max-width: 100%;
+    }
+  }
+}

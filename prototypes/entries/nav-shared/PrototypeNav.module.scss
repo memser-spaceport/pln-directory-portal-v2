@@ -90,6 +90,21 @@
   border-radius: 8px;
 }
 
+/* The bell's unread dot: `.navDot`'s marker, riding the glyph's top-right. */
+.navBell {
+  position: relative;
+}
+
+.bellDot {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--foreground-brand-primary, #1b4dff);
+}
+
 /* Search as a small field: glyph + "Search" placeholder inside the DS
    SearchInput's chrome (pl-design-system/components/SearchInput — 40px, subtle
    border, 8px radius, white surface, 16px tertiary glyph at 12px, 14px
@@ -392,4 +407,17 @@
   font-size: 12px;
   font-weight: 600;
   letter-spacing: -0.2px;
+  /* It is the account menu's trigger (PrototypeAccountMenu) — a button. */
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* The account menu's group dividers without their labels. Production's
+   `.SeparatorWrapper` row is 14px tall (the label's line-height) with the 1px
+   line centred in it; this keeps that footprint so items don't move. */
+.accountSeparator {
+  height: 1px;
+  margin-block: 6.5px;
+  background-color: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }

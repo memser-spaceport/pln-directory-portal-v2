@@ -1,0 +1,53 @@
+@use 'styles/media';
+
+// What this modal adds to Demo Day's `ReferCompanyModal.module.scss`: the
+// masthead as a row (envelope beside the headline), the title and description
+// left-aligned as the form's column. Values are the job board's ReferModal, which
+// made the same move on the same chrome.
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+// The top space is the title's: the envelope stays at the card's own 20px and
+// the title drops past it, which lands the 52px disc nearer a two-line title.
+.headerText {
+  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+// Production's `.iconWrapper` centres itself (`margin: 0 auto`) for the stacked
+// masthead; in a row it is the first item.
+.icon {
+  margin: 0;
+  flex-shrink: 0;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.left {
+  text-align: left;
+}
+
+// Both footer presses share the row, as the source's hand-rolled pair did.
+.action {
+  flex: 1;
+}
+
+// Wider than Demo Day's 400px card ("Make this modal bigger"): 560px, the
+// deals modal's width, so the title stays on one line and the message field
+// reads as a place to write a few sentences rather than a note. The phone
+// keeps the source's full-bleed page.
+.card.card {
+  max-width: 560px;
+  padding: 24px;
+
+  @include media.mobile-only {
+    max-width: none;
+    padding: 20px;
+  }
+}

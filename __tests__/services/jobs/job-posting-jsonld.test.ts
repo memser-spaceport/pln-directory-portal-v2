@@ -1,5 +1,5 @@
 import { buildJobPostingJsonLd, jobDescriptionHtml } from '@/services/jobs/job-posting-jsonld';
-import type { IJobRole, IJobTeam } from '@/types/jobs.types';
+import type { IJobPay, IJobRole, IJobTeam } from '@/types/jobs.types';
 
 const role = (overrides: Partial<IJobRole> = {}): IJobRole => ({
   uid: 'role-1',
@@ -59,6 +59,9 @@ describe('buildJobPostingJsonLd', () => {
     expect(jsonLd.title).toBe('Protocol Engineer');
     expect(jsonLd.url).toBe('https://os.pl.xyz/jobs/openings/role-1');
     expect(jsonLd.datePosted).toBe('2026-05-01T00:00:00.000Z');
+    expect(jsonLd.validThrough).toBe('2026-07-30T00:00:00.000Z');
+    expect(jsonLd.employmentType).toBe('FULL_TIME');
+    expect(jsonLd.baseSalary).toBeUndefined();
     expect(jsonLd.jobLocationType).toBe('TELECOMMUTE');
     expect(jsonLd.applicantLocationRequirements).toEqual({ '@type': 'Country', name: 'Worldwide' });
     expect(jsonLd.jobLocation).toEqual([
@@ -93,7 +96,43 @@ describe('buildJobPostingJsonLd', () => {
 
   it('falls back to detectionDate then lastUpdated when postedDate is empty', () => {
     expect(build({ postedDate: null }).datePosted).toBe('2026-04-01T00:00:00.000Z');
+    expect(build({ postedDate: null }).validThrough).toBe('2026-06-30T00:00:00.000Z');
     expect(build({ postedDate: null, detectionDate: null }).datePosted).toBe('2026-05-02T00:00:00.000Z');
+    expect(build({ postedDate: null, detectionDate: null }).validThrough).toBe('2026-07-31T00:00:00.000Z');
+  });
+
+  it('emits the public pay range as baseSalary', () => {
+    const pay = (period: IJobPay['period'], min: number, max: number): IJobPay => ({
+      min,
+      max,
+      currency: 'USD',
+      period,
+    });
+
+    expect(build({ pay: pay('year', 180000, 220000), workMode: 'in-office' }).baseSalary).toEqual({
+      '@type': 'MonetaryAmount',
+      currency: 'USD',
+      value: {
+        '@type': 'QuantitativeValue',
+        minValue: 180000,
+        maxValue: 220000,
+        unitText: 'YEAR',
+      },
+    });
+    expect(build({ pay: pay('month', 10000, 12000) }).baseSalary).toMatchObject({
+      value: { minValue: 10000, maxValue: 12000, unitText: 'MONTH' },
+    });
+    expect(build({ pay: pay('hour', 40, 60) }).baseSalary).toMatchObject({
+      value: { minValue: 40, maxValue: 60, unitText: 'HOUR' },
+    });
+    expect(build({ pay: pay('year', 180000, 220000), workMode: 'hybrid' }).employmentType).toBe('FULL_TIME');
+  });
+
+  it('omits baseSalary when pay is absent or the period is not a known unit', () => {
+    expect(build({ pay: null }).baseSalary).toBeUndefined();
+    expect(
+      build({ pay: { min: 1, max: 2, currency: 'USD', period: 'week' as IJobPay['period'] } }).baseSalary,
+    ).toBeUndefined();
   });
 
   it('emits a physical jobLocation without TELECOMMUTE for in-office roles', () => {

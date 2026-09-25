@@ -2,9 +2,13 @@ export {
   requestTabCapture,
   grabVideoFrame,
   stopCaptureStream,
-  CaptureDeniedError,
-  CaptureUnavailableError,
+  isCaptureSupported,
+  isPersistentReason,
+  CaptureError,
+  type CaptureFailureReason,
+  type PersistentCaptureReason,
 } from './captureTabFrame';
+export { attachImageFile, AttachImageError } from './attachImageFile';
 export { RegionSelectOverlay } from './RegionSelectOverlay';
 export { AnnotatorModal } from './AnnotatorModal';
 export { ConfirmLayer } from './ConfirmLayer';

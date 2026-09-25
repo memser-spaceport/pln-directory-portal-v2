@@ -48,7 +48,9 @@ storybook-static
 
 #Other
 approve-pr.sh
-/docs
+/docs/*
+!/docs/agents/
+!/docs/adr/
 .graphifyignore
 graphify-out
 openspec

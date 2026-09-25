@@ -77,10 +77,7 @@ export async function fetchJobApplications(): Promise<JobApplication[]> {
  * shows — approval, a current role, an answered job search status, and one
  * application per job — so a client that drifts out of sync fails safe.
  */
-export async function submitJobApplication(
-  roleUid: string,
-  input: SubmitJobApplicationInput,
-): Promise<JobApplication> {
+export async function submitJobApplication(roleUid: string, input: SubmitJobApplicationInput): Promise<JobApplication> {
   const body = submitJobApplicationInputSchema.parse(input);
 
   const response = await customFetch(

@@ -1,6 +1,8 @@
 'use client';
 
-import { Button } from '@/components/common/Button';
+import clsx from 'clsx';
+
+import { Button, type ButtonProps } from '@/components/common/Button';
 
 import s from './FollowPill.module.scss';
 
@@ -9,6 +11,16 @@ interface Props {
   onToggle: () => void;
   /** What you're following — used in the accessible label. */
   name: string;
+  /** DS size; `xs` is the header's. A phone row of shared-width buttons takes `s`. */
+  /**
+   * DS size; `xs` is the team header's. A phone row of shared-width buttons
+   * takes `s`. The member profile's corner takes `xxs` — the secondary pill
+   * at the height of the Ask AI text action beside it (2026-09-24: tried as
+   * a link, then "Make it secondary but smaller, same size as Ask AI"); the
+   * glyph steps down to 12px with it.
+   */
+  size?: ButtonProps['size'];
+  className?: string;
 }
 
 /**
@@ -19,14 +31,15 @@ interface Props {
  * rather than a bold CTA / quiet-following pair. Safe inside a card link — it
  * stops navigation itself.
  */
-export function FollowPill({ following, onToggle, name }: Props) {
+export function FollowPill({ following, onToggle, name, size = 'xs', className }: Props) {
+  const glyph = size === 'xxs' ? 12 : 14;
   return (
     <Button
-      size="xs"
+      size={size}
       style="border"
       variant="neutral"
       underline={false}
-      className={s.btn}
+      className={clsx(s.btn, className)}
       aria-pressed={following}
       aria-label={following ? `Unfollow ${name}` : `Follow ${name}`}
       title={following ? 'Following — click to unfollow' : `Follow ${name} to get its updates in your feed`}
@@ -36,21 +49,27 @@ export function FollowPill({ following, onToggle, name }: Props) {
         onToggle();
       }}
     >
-      {following ? <CheckGlyph /> : <PlusGlyph />}
+      {following ? <CheckGlyph size={glyph} /> : <PlusGlyph size={glyph} />}
       <span>{following ? 'Following' : 'Follow'}</span>
     </Button>
   );
 }
 
 // Compact glyphs matching the DS Button's icon-slot scale.
-const PlusGlyph = () => (
-  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+const PlusGlyph = ({ size = 14 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
     <path d="M8 3.5v9M3.5 8h9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
   </svg>
 );
 
-const CheckGlyph = () => (
-  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-    <path d="M13.25 4.75 6.5 11.5 2.75 7.75" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+const CheckGlyph = ({ size = 14 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path
+      d="M13.25 4.75 6.5 11.5 2.75 7.75"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );

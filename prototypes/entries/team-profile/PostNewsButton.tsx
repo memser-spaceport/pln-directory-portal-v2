@@ -17,6 +17,8 @@ import local from './TeamProfile.module.scss';
 interface Props {
   teamName: string;
   onPost: () => void;
+  /** False when the host is already announcing something: one announcement per arrival. */
+  callout?: boolean;
 }
 
 /**
@@ -43,12 +45,12 @@ interface Props {
  * since the production component only opens on hover. One sentence of copy:
  * what's new and where a post goes — the part the button can't say.
  */
-export function PostNewsButton({ teamName, onPost }: Props) {
+export function PostNewsButton({ teamName, onPost, callout = true }: Props) {
   // PROTOTYPE: the callout opens on every page load and is never persisted
   // as dismissed — reviewers should meet it each time. In production dismissal
   // would be a member preference, the way `showForumBanner` is, so a member
   // sees it once.
-  const [tipOpen, setTipOpen] = useState(true);
+  const [tipOpen, setTipOpen] = useState(callout);
   const dismiss = () => setTipOpen(false);
 
   return (

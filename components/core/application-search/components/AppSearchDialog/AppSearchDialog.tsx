@@ -150,6 +150,7 @@ interface Props {
   chat: {
     turns: HuskyTurn[];
     status: StreamStatus;
+    statusLine: string | null;
     isBusy: boolean;
     threadId: string | null;
     isThreadPersisted: boolean;
@@ -413,6 +414,7 @@ export const AppSearchDialog = ({
             onRegenerate={chat.regenerate}
             onStop={chat.stop}
             onClose={onClose}
+            statusLine={chat.statusLine}
           />
         ) : (
           <div className={s.body}>

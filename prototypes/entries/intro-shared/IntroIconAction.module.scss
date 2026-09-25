@@ -1,0 +1,44 @@
+/* The search row's "Ask AI" geometry and paint — 24px, brand, the 8% wash on
+   hover — with a glyph and no label. */
+.btn,
+.done {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.btn {
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-brand-8, rgba(27, 77, 255, 0.08));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+/* Beside a name: the row's meta grey at rest, brand on hover — the DS control
+   chip's grey→brand, which is what says "a press" without a filled mark. */
+.muted {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+/* Sent: the check in the row's secondary ink — a fact now, not a press. */
+.done {
+  color: var(--foreground-neutral-secondary, #455468);
+}

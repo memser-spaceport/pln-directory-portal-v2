@@ -1,0 +1,711 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import clsx from 'clsx';
+import Select, { type StylesConfig } from 'react-select';
+
+import { formatRelativeDays } from '@/utils/jobs.utils';
+import { useIsMobile } from '@/hooks/useIsMobile';
+
+import { SearchInput } from '@/components/common/filters/SearchInput';
+import type { Option } from '@/components/form/FormSelect/types';
+// Production's searchable toolbar select — `FilterSelect`'s own styles.
+import { filterSelectStyles } from '@/components/common/filters/FilterSelect/filterSelectStyles';
+// "Role:" keeps the label treatment it had beside the old dropdown.
+import sort from '@/components/common/filters/SortDropdown/SortDropdown.module.scss';
+import { ArrowUpRightIcon } from '@/components/icons/ArrowUpRightIcon';
+import { CaretLeftIcon } from '@/components/icons/CaretLeftIcon';
+import { CaretRightIcon } from '@/components/icons/CaretRightIcon';
+import {
+  DetailsSection,
+  DetailsSectionHeader,
+  DetailsSectionGreyContentContainer,
+  NoDataBlock,
+} from '@/components/common/profile/DetailsSection';
+
+import btn from '@/components/common/Button/Button.module.scss';
+// The highlighted primary — inset light highlights and a brand glow over the
+// flat DS fill. Production hand-rolls it on its headline presses (Demo Day's
+// primary action, Office Hours' Schedule Meeting, the forum's Post) in design-
+// system tokens; the coded DS `Button` does not carry it. The prototypes keep
+// one transcription, on the Follow button, and this imports that class rather
+// than writing a second copy.
+import fb from '../follow-shared/FollowButton.module.scss';
+import back from '@/components/ui/BackButton/BackButton.module.scss';
+// The role row's clock + relative date, and its tone override.
+import row from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow.module.scss';
+import rowTone from '../job-board/JobReferRoleRow.module.scss';
+import { ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
+
+import { CvAttachmentLine } from '../profile-shared/StoredCv/CvAttachmentLine';
+import { EnvelopeIcon, ReviewCheckIcon } from './icons';
+import { CandidateRow } from './CandidateRow';
+import { CandidateMemberPage } from './CandidateMemberPage';
+import { Tabs } from '@/components/ui/tabs/Tabs';
+
+import {
+  sortSuggested,
+  suggestionMatch,
+  visibleSuggested,
+  type RoleCandidate,
+  type RoleCriterion,
+  type RoleInterested,
+  type RoleSuggested,
+} from './mocks';
+import { SuggestedWhy } from './SuggestedWhy';
+import { CriteriaModal } from './CriteriaModal';
+import s from './TeamCandidatesPage.module.scss';
+
+const APPLIED_TAB = 'Applied';
+const INTERESTED_TAB = 'Interested';
+const SUGGESTED_TAB = 'Suggested';
+
+export type CandidatesTab = typeof APPLIED_TAB | typeof INTERESTED_TAB | typeof SUGGESTED_TAB;
+
+type Person = RoleCandidate | RoleInterested | RoleSuggested;
+const isSuggested = (p: Person): p is RoleSuggested => 'reasons' in p;
+/** A picker option with the role's live unopened count, for its `● M new`. */
+type RoleOption = Option & { newCount: number };
+const personDate = (p: RoleCandidate | RoleInterested) => ('appliedAt' in p ? p.appliedAt : p.interestedAt);
+
+export interface CandidatesRole {
+  uid: string;
+  title: string;
+  /** The team's own posting — the same link the job board's ⋯ menu calls "View posting". */
+  postingHref?: string;
+  /** The role row's meta line: seniority · category · location. */
+  meta?: string;
+  /** ISO — when the role was posted, for "Posted 2d ago". */
+  postedAt?: string;
+  candidates: RoleCandidate[];
+  /** Pressed "I'm interested" on this role instead of applying. */
+  interested: RoleInterested[];
+  /**
+   * Members the product proposes for this role — see `RoleSuggested`. Left
+   * out entirely by a host that has no suggestions to make, and the tab is
+   * then not drawn.
+   */
+  suggested?: RoleSuggested[];
+  /** What the suggestions are matched against — see `RoleCriterion`. */
+  criteria?: RoleCriterion[];
+}
+
+const NO_CRITERIA_OFF: ReadonlySet<string> = new Set();
+
+interface Props {
+  teamName: string;
+  roles: CandidatesRole[];
+  /** The role whose count line was pressed. */
+  initialRoleUid: string;
+  /** The tab to open on: the count line's "N suggested" clause opens Suggested. */
+  initialTab?: CandidatesTab;
+  onBack: () => void;
+  /**
+   * What Back is called. "Back to <team>" by default — the page's first home is
+   * the team profile. The job board mounts the same page from its owner rows
+   * and passes "Back to job board": a Back control names where it goes, and a
+   * lead who came from the board is not going to the team's profile.
+   */
+  backLabel?: string;
+}
+
+/**
+ * The team's candidates, as a page of the team's own: the list on the left,
+ * the selected person's profile on the right.
+ *
+ * **Why a page, beside the modal.** The modal answers "who applied?"; it does
+ * not answer "which of these fifty should I write to?", because judging each
+ * one means opening each one, and a modal that opens fifty tabs is a list that
+ * has stopped helping. Contra's and Deel's per-job candidate views keep the
+ * list in place and show the person beside it, so a founder steps through
+ * candidates the way they would step through an inbox. This is that, on the
+ * team's own surface: reached from the count line on the role row, with Back
+ * to the profile, and the team's roles in a picker above the split so all of a
+ * team's hiring is one place rather than one modal per role.
+ *
+ * **The role heads its list.** The role's facts (seniority · category ·
+ * location · posted) and **View posting** sit at the top of the candidate
+ * list, above its search, so the list reads "these people answered this".
+ * Chosen from five placements compared side by side (beside the picker, the
+ * page header, a role summary card, here, and a narrow list).
+ *
+ * **The picker is searchable**, because a team can carry ten or more roles and
+ * a menu of ten titles is a scan. It is production's searchable toolbar select
+ * (`FilterSelect`'s react-select and styles), not a search field bolted into
+ * the old `SortDropdown` menu, which has none. It rests white rather than in
+ * that control's blue: the blue says "a filter is applied", and choosing which
+ * role's candidates to read is not a filter.
+ *
+ * **The right pane is the member's page, not a new object.** It is
+ * `/members/<id>` itself — every section, in production's order and with
+ * production's visibility rules (`CandidateMemberPage`) — because the founder
+ * is judging the same person the directory shows. One section is added, under
+ * the profile card: the application — when, what they wrote, and the CV that
+ * came with it. The pane used to be a slice (header, skills, experience) with
+ * a "View full profile ↗" link out for the rest; with the whole page here,
+ * that link had nothing left to reach, so it went.
+ *
+ * **One bar above the pane: where you are, next, and the reply.** Wellfound
+ * heads its candidate pane with "1 of 26" and Previous / Next candidate;
+ * Workable and Homerun show "2 of 4" with arrows; every ATS reference pins
+ * the action (Workable's toolbar, Homerun's top bar, User Interviews' bottom
+ * bar). At fifty candidates the founder's question after reading one person
+ * is "how many left, and next", and the list beside the pane answers it only
+ * by scrolling back to find the row they were on. So the pane opens with a
+ * slim sticky row: `2 of 3`, prev / next, and **Email** — the only thing the
+ * team does with an application in this product (`{team} can reply to you
+ * directly`). It used to sit at the foot of the Application section, and went
+ * out of reach the moment the founder scrolled to Experience to check what
+ * the note claimed. It is the page's one bar, above the profile card rather
+ * than in it, so the card stays production's. No Shortlist / Reject — see
+ * `candidateMocks`.
+ *
+ * **The picker says what is new.** The role row on the profile reads
+ * "N candidates · M new"; the picker's options used to say only "(3)". A
+ * founder with ten roles is asking which role has something they haven't
+ * looked at (Wellfound's job list: "28 candidates to review"), so each option
+ * carries the count line's own `● M new`, live against what was opened here.
+ *
+ * **New clears per person, on selection.** An unread row is tinted and marked
+ * `● New`; the look is opening the person, so selecting a row returns it to
+ * the plain grey and the others keep their tint. Read is the row at rest, not
+ * a state with a mark of its own. Session-local here; production would keep
+ * it per team member.
+ *
+ * **Reviewed is the team's own press.** Beside Email in the bar: **Mark as
+ * reviewed**, a bordered neutral button that turns into the state itself
+ * (`✓ Reviewed`, the DS success pair) and back on a second press — the same
+ * switch shape as a listing's Mark inactive / Bring back, no confirm because
+ * the undo is the button it turns into. The row in the list carries the same
+ * green check. This is not the "viewed" mark lesson 21 removed: that was the
+ * product reading an open back to the founder as a stage; this is the founder
+ * saying they have dealt with someone, which an open cannot say (stepping
+ * past a row opens it too). Still one tick, not a pipeline — no Shortlist /
+ * Reject, see `candidateMocks`. Seeded from the record, kept here for the
+ * session.
+ *
+ * **Applied / Interested.** Two tabs above the search, per role: the people who
+ * applied, and the people who pressed **I'm interested** on the board
+ * (`InterestStrip`) instead. They sit in tabs, not one merged list, because
+ * they are two different acts. An application has a note and asks for a
+ * reply. An interest press is a bare signal. Same row and same pane for both:
+ * the interested row has no note, and its pane's section is Interest rather
+ * than Application. It is production's `Tabs` `variant="secondary"` with a
+ * count, which is the board's own Applied scope strip.
+ *
+ * **Suggested — the third tab, and the weakest signal.** The strip reads left
+ * to right down a scale of intent: applied (sent something), interested
+ * (raised a hand), suggested (did nothing; the product is proposing them).
+ * Braintrust ("Invite Talent" beside Applications), Dribbble (Recommended /
+ * Submissions) and Fiverr (Invite freelancers / Offers) all keep matched
+ * people in the candidates' own strip rather than on a page of their own.
+ * Three differences from the other two tabs, all from that one fact:
+ *   - **A band over its working.** Each row ends in the match — *Strong
+ *     match* or *Good match*, read off the share of the role's requirements
+ *     the profile meets (a percentage was shown first and corrected: on a
+ *     five-item checklist it is a grade with four possible values) — and the
+ *     pane's "Why suggested" lists every requirement with a check or a fade
+ *     so the claim can be checked. Requirements come from the posting; the
+ *     lead can switch them off in **Edit criteria** (Workable's "Manage
+ *     matching criteria"), and nobody under the floor is suggested at all.
+ *     What the network knows (an interest press, shared work) is *not* in the
+ *     band: it is the row's third line and the pane's first block. See
+ *     `suggestedMocks.ts`.
+ *   - **Sorted by the share the band is read off, not by date** — nothing
+ *     happened, so there is no date, and a Good match above a Strong one
+ *     reads as a bug. One spine, no top-N band; ties go to the stronger
+ *     network signal. Applied and Interested stay newest-first: those people
+ *     chose to be here, and re-ranking them by our guess would bury someone
+ *     the founder owes a look.
+ *   - **The press is Invite to apply**, not Email or Mark as reviewed. It is
+ *     the one thing a team does with a suggestion, and it cannot be taken back
+ *     (the member is notified), so it turns into the state and stays.
+ * The note under the tabs says the one thing nothing else on the page can:
+ * these members agreed to be found. No "Not a fit" dismissal — a short list
+ * needs no pruning, and hidden negative marks on members are the score's
+ * problem again.
+ *
+ * **Mobile: one column at a time.** The split needs ~900px; below the tablet
+ * breakpoint the list shows alone and a row opens the pane full-width with a
+ * back to the list, which is how the members grid and its profile relate on a
+ * phone already.
+ */
+export function TeamCandidatesPage({ teamName, roles, initialRoleUid, initialTab, onBack, backLabel }: Props) {
+  const isMobile = useIsMobile();
+  const [roleUid, setRoleUid] = useState(initialRoleUid);
+  const [tab, setTab] = useState<string>(initialTab ?? APPLIED_TAB);
+  const [query, setQuery] = useState('');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [seenIds, setSeenIds] = useState<Set<string>>(() => new Set());
+  // Who the team has marked reviewed — starts from the record's own flags.
+  const [reviewedIds, setReviewedIds] = useState<Set<string>>(
+    () => new Set(roles.flatMap((r) => [...r.candidates, ...r.interested].filter((p) => p.reviewed).map((p) => p.id))),
+  );
+  const toggleReviewed = (id: string) =>
+    setReviewedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  // Who the team has invited to apply, and when — session-local, like `seenIds`.
+  const [invitedAt, setInvitedAt] = useState<Record<string, string>>({});
+  const invite = (id: string) =>
+    setInvitedAt((prev) => (prev[id] ? prev : { ...prev, [id]: new Date().toISOString() }));
+  // Mobile only: whether the pane is showing instead of the list.
+  const [paneOpen, setPaneOpen] = useState(false);
+  // Criteria the lead has switched off, per role — session-local; production
+  // would keep it on the listing.
+  const [criteriaOff, setCriteriaOff] = useState<Record<string, ReadonlySet<string>>>({});
+  const [criteriaOpen, setCriteriaOpen] = useState(false);
+
+  const role = roles.find((r) => r.uid === roleUid) ?? roles[0];
+  const criteria = role.criteria ?? [];
+  const off = criteriaOff[role.uid] ?? NO_CRITERIA_OFF;
+  // Members at or above the floor against the criteria that are on.
+  const suggestedShown = useMemo(
+    () => visibleSuggested(role.suggested ?? [], criteria, off),
+    [role.suggested, criteria, off],
+  );
+  const newest = useMemo<Person[]>(
+    () =>
+      tab === SUGGESTED_TAB
+        ? sortSuggested(suggestedShown, criteria, off)
+        : [...(tab === INTERESTED_TAB ? role.interested : role.candidates)].sort((a, b) =>
+            personDate(b).localeCompare(personDate(a)),
+          ),
+    [role, tab, suggestedShown, criteria, off],
+  );
+  const term = query.trim().toLowerCase();
+  const shown = term
+    ? newest.filter((a) => a.name.toLowerCase().includes(term) || a.role.toLowerCase().includes(term))
+    : newest;
+
+  // Desktop opens on the newest candidate so the pane is never blank; mobile
+  // opens on the list, because the pane is a second screen there.
+  useEffect(() => {
+    if (!isMobile && !selectedId && newest[0]) {
+      // Opening on someone is looking at them: the pane shows the person, so
+      // the row's mark goes the same way it would on a press.
+      setSelectedId(newest[0].id);
+      setSeenIds((prev) => new Set(prev).add(newest[0].id));
+    }
+  }, [isMobile, selectedId, newest]);
+
+  const selected = shown.find((a) => a.id === selectedId) ?? newest.find((a) => a.id === selectedId) ?? null;
+
+  const select = (a: Person) => {
+    setSelectedId(a.id);
+    setSeenIds((prev) => new Set(prev).add(a.id));
+    if (isMobile) setPaneOpen(true);
+  };
+
+  const switchRole = (uid: string) => {
+    if (uid === role.uid) return;
+    setRoleUid(uid);
+    setSelectedId(null);
+    setQuery('');
+    setPaneOpen(false);
+  };
+
+  const switchTab = (next: string) => {
+    if (next === tab) return;
+    setTab(next);
+    setSelectedId(null);
+    setQuery('');
+    setPaneOpen(false);
+  };
+
+  const showList = !isMobile || !paneOpen;
+  const showPane = !isMobile || paneOpen;
+
+  /* The team's roles with their candidate counts, searchable. A tab strip was
+     here first and fitted the four mocked roles exactly (the tell that it would
+     not fit ten); then the board's `SortDropdown`, which lists ten but makes
+     you read all ten. Typing into the control filters the titles.
+
+     Transcribed from `FilterSelect` rather than imported for one reason: that
+     wrapper takes no `noOptionsMessage`, and react-select's own "No options"
+     is library copy, not ours. Portal and fixed menu are what `FilterSelect`
+     passes; the styles are its own too, minus the blue — see below. */
+  const newCountFor = (r: CandidatesRole) => r.candidates.filter((a) => a.unseen && !seenIds.has(a.id)).length;
+  const roleOptions: RoleOption[] = roles.map((r) => ({
+    value: r.uid,
+    label: r.candidates.length ? `${r.title} (${r.candidates.length})` : r.title,
+    newCount: newCountFor(r),
+  }));
+
+  /* White at rest, not `filterSelectStyles`' blue. That blue is its "a filter is
+     applied" state, and it keys off `hasValue` — which a role picker always
+     has, so the control would be permanently blue for a choice that is not a
+     filter. Every value here is that same stylesheet's own *unselected* branch
+     (white fill, the pale border, #5E718D + ring on hover/focus/open, neutral
+     text and caret), which is also exactly how production's founder-guides
+     "Viewing as:" scope select — the one `filterSelectStyles` says it matches —
+     draws a select that always holds a value. Menu, options and portal stay
+     `filterSelectStyles`'. */
+  const roleSelectStyles: StylesConfig<RoleOption, false> = {
+    ...(filterSelectStyles as unknown as StylesConfig<RoleOption, false>),
+    control: (base, state) => ({
+      ...base,
+      borderRadius: '8px',
+      border: `1px solid ${state.isFocused || state.menuIsOpen ? '#5E718D' : 'rgba(203, 213, 225, 0.50)'}`,
+      boxShadow: state.isFocused || state.menuIsOpen ? '0 0 0 4px rgba(27, 56, 96, 0.12)' : 'none',
+      background: 'var(--background-base-white, #fff)',
+      fontSize: '14px',
+      color: 'var(--foreground-neutral-secondary, #455468)',
+      minHeight: '40px',
+      cursor: 'pointer',
+      '&:hover': {
+        borderColor: '#5E718D',
+        boxShadow: '0 0 0 4px rgba(27, 56, 96, 0.12)',
+      },
+    }),
+    singleValue: (base) => ({ ...base, color: 'var(--foreground-neutral-secondary, #455468)', fontWeight: 400 }),
+    dropdownIndicator: (base) => ({ ...base, color: 'var(--foreground-neutral-secondary, #455468)', padding: '0 8px' }),
+  };
+  const picker = (
+    <div className={clsx(sort.sortGroup, s.roleGroup)}>
+      <label htmlFor="candidates-role" className={sort.sortByLabel}>
+        Role:
+      </label>
+      <div className={s.rolePicker}>
+        <Select
+          inputId="candidates-role"
+          options={roleOptions}
+          value={roleOptions.find((o) => o.value === role.uid) ?? null}
+          onChange={(opt) => opt && switchRole(opt.value)}
+          isSearchable
+          /* The option: the title with its count, then the count line's green
+             `● M new` when any of that role's candidates are unopened. */
+          formatOptionLabel={(opt) => (
+            <span className={s.roleOption}>
+              <span className={s.roleOptionLabel}>{opt.label}</span>
+              {opt.newCount > 0 && <span className={row.newBadge}>● {opt.newCount} new</span>}
+            </span>
+          )}
+          noOptionsMessage={({ inputValue }) => `No roles match “${inputValue.trim()}”`}
+          styles={roleSelectStyles}
+          menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+          menuPosition="fixed"
+        />
+      </div>
+    </div>
+  );
+
+  /* The posting itself, one press from the people who answered it — the same
+     link, and the same words, as the board's own ⋯ menu, so the exit
+     reads the same on both surfaces. */
+  const postingButton = role.postingHref ? (
+    <a
+      href={role.postingHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.actionLink)}
+    >
+      View posting
+      <ArrowUpRightIcon width={14} height={14} />
+    </a>
+  ) : null;
+
+  /* The role row's own facts, at the head of the list beside the posting:
+     seniority · category · location, then its age. */
+  const roleFacts = [role.meta, role.postedAt ? `Posted ${formatRelativeDays(role.postedAt)}` : null]
+    .filter(Boolean)
+    .join(' · ');
+
+  /* Where the selected person sits in the list as shown (the search narrows
+     it), for "2 of 3" and the two steps. Stepping is selecting, so it marks
+     the row opened the same way a press does. */
+  const position = selected ? shown.findIndex((a) => a.id === selected.id) : -1;
+  const step = (delta: number) => {
+    const next = shown[position + delta];
+    if (next) select(next);
+  };
+  const emailHref =
+    selected && !isSuggested(selected)
+      ? `mailto:${selected.email}?subject=${encodeURIComponent(
+          'note' in selected ? `Your application for ${role.title}` : `Your interest in ${role.title}`,
+        )}`
+      : '';
+
+  const paneBar = selected && (
+    <div className={s.paneBar} data-tour="candidate-actions">
+      <div className={s.paneNav}>
+        <button
+          type="button"
+          className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.stepBtn)}
+          onClick={() => step(-1)}
+          disabled={position <= 0}
+          aria-label="Previous candidate"
+        >
+          <CaretLeftIcon width={16} height={16} />
+        </button>
+        <button
+          type="button"
+          className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.stepBtn)}
+          onClick={() => step(1)}
+          disabled={position < 0 || position >= shown.length - 1}
+          aria-label="Next candidate"
+        >
+          <CaretRightIcon width={16} height={16} />
+        </button>
+        {position >= 0 && (
+          <span className={s.position}>
+            {position + 1} of {shown.length}
+          </span>
+        )}
+      </div>
+      {isSuggested(selected) ? (
+        <div className={s.paneActions}>
+          {/* One press, and it stays pressed: the member is notified, so there
+              is no second press that takes it back. At rest it is the page's
+              filled primary; once sent it is the Reviewed state's own success
+              pair, as a status and no longer a button. */}
+          {invitedAt[selected.id] ? (
+            <span
+              className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.reviewBtn, s.isReviewed, s.invited)}
+              role="status"
+            >
+              <ReviewCheckIcon size={16} state="filled" className={s.reviewIcon} />
+              Invited to apply
+            </span>
+          ) : (
+            <button
+              type="button"
+              className={clsx(btn.root, btn.small, btn.fill, btn.primary, fb.glossy, s.actionLink)}
+              onClick={() => invite(selected.id)}
+            >
+              <EnvelopeIcon size={14} />
+              Invite {selected.name.split(' ')[0]} to apply
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className={s.paneActions}>
+          {/* The status as a switch: press to mark, press again to unmark. Email
+            stays the bar's only brand press; this one is bordered neutral at
+            rest and wears the success pair once on. */}
+          <button
+            type="button"
+            className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.reviewBtn, {
+              [s.isReviewed]: reviewedIds.has(selected.id),
+            })}
+            onClick={() => toggleReviewed(selected.id)}
+            aria-pressed={reviewedIds.has(selected.id)}
+            title={reviewedIds.has(selected.id) ? 'Press to unmark' : undefined}
+          >
+            <ReviewCheckIcon
+              size={16}
+              state={reviewedIds.has(selected.id) ? 'filled' : 'outline'}
+              className={s.reviewIcon}
+            />
+            {reviewedIds.has(selected.id) ? 'Reviewed' : 'Mark as reviewed'}
+          </button>
+          {/* The page's one filled press, so it wears the product's headline-primary
+            treatment (`fb.glossy`) — see the import. */}
+          <a href={emailHref} className={clsx(btn.root, btn.small, btn.fill, btn.primary, fb.glossy, s.actionLink)}>
+            <EnvelopeIcon size={14} />
+            Email {selected.name.split(' ')[0]}
+          </a>
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className={s.page}>
+      {/* BackButton's own chrome on a press that unwinds state rather than a
+          route: this page is client state inside the profile prototype. The
+          real thing would be /teams/<id>/candidates and the production button. */}
+      <button
+        type="button"
+        className={clsx(back.backBtn, s.back)}
+        onClick={isMobile && paneOpen ? () => setPaneOpen(false) : onBack}
+      >
+        <BackIcon /> {isMobile && paneOpen ? 'All candidates' : (backLabel ?? `Back to ${teamName}`)}
+      </button>
+
+      {showList && (
+        <header className={s.head}>
+          <h1 className={s.title}>Candidates</h1>
+          <p className={s.subtitle}>{teamName}</p>
+        </header>
+      )}
+
+      {showList && <div className={s.roleBar}>{picker}</div>}
+
+      <div className={s.split}>
+        {showList && (
+          <div className={s.listCol}>
+            {/* The role heads the list of people who answered it. */}
+            {(roleFacts || postingButton) && (
+              <div className={s.listHead}>
+                {roleFacts && <p className={s.roleFacts}>{roleFacts}</p>}
+                {postingButton}
+              </div>
+            )}
+            <div className={s.tabs}>
+              <Tabs
+                variant="secondary"
+                activeTab={tab}
+                onTabClick={switchTab}
+                tabs={[
+                  { name: APPLIED_TAB, count: role.candidates.length },
+                  { name: INTERESTED_TAB, count: role.interested.length },
+                  ...(role.suggested ? [{ name: SUGGESTED_TAB, count: suggestedShown.length }] : []),
+                ]}
+              />
+            </div>
+            {/* What this list is, in the one sentence nothing else here can
+                say: nobody on it did anything, and all of them agreed to be
+                on it. */}
+            {tab === SUGGESTED_TAB && (
+              <div className={s.tabNoteRow}>
+                <p className={s.tabNote}>
+                  Members who let hiring teams find them, matched to this role on their profile. They haven’t applied.
+                </p>
+                {criteria.length > 0 && (
+                  <button
+                    type="button"
+                    className={clsx(btn.root, btn.xs, btn.link, btn.primary)}
+                    onClick={() => setCriteriaOpen(true)}
+                  >
+                    Edit criteria
+                  </button>
+                )}
+              </div>
+            )}
+            <div className={s.searchWrap}>
+              <SearchInput value={query} onChange={setQuery} placeholder="Search by name or role" />
+            </div>
+            {shown.length ? (
+              <div className={s.list} data-tour="candidate-list">
+                {shown.map((a, index) => (
+                  <CandidateRow
+                    key={a.id}
+                    candidate={a}
+                    isNew={!isSuggested(a) && a.unseen && !seenIds.has(a.id)}
+                    reviewed={reviewedIds.has(a.id)}
+                    invitedAt={invitedAt[a.id]}
+                    match={isSuggested(a) ? suggestionMatch(a, criteria, off) : undefined}
+                    last={index === shown.length - 1}
+                    selected={!isMobile && a.id === selectedId}
+                    onSelect={() => select(a)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <DetailsSectionGreyContentContainer>
+                <NoDataBlock>
+                  {term
+                    ? `No one matches “${query.trim()}”.`
+                    : tab === SUGGESTED_TAB
+                      ? 'No one to suggest for this role yet.'
+                      : tab === INTERESTED_TAB
+                        ? 'No one has said they’re interested yet.'
+                        : 'No candidates yet.'}
+                </NoDataBlock>
+              </DetailsSectionGreyContentContainer>
+            )}
+          </div>
+        )}
+
+        {showPane && selected && (
+          <div className={s.paneCol}>
+            {paneBar}
+            <CandidateMemberPage
+              key={selected.id}
+              candidate={selected}
+              application={
+                isSuggested(selected) ? (
+                  /* Why they are here, in full and strongest first — the
+                     section this tab has where the others have Application or
+                     Interest. Plain sentences off profile facts; the sections
+                     below are where each one can be checked. */
+                  <SuggestedWhy
+                    person={selected}
+                    criteria={criteria}
+                    off={off}
+                    match={suggestionMatch(selected, criteria, off)}
+                  />
+                ) : !('note' in selected) ? (
+                  /* The interest press: no note to quote, so the section is its
+                   date, the CV when one went with the profile, and the reply. */
+                  <DetailsSection>
+                    <DetailsSectionHeader title="Interest">
+                      <span className={clsx(row.relative, rowTone.relativeTone)}>
+                        <ClockIcon />
+                        Interested {formatRelativeDays(selected.interestedAt)}
+                      </span>
+                    </DetailsSectionHeader>
+                    {selected.cv && (
+                      <DetailsSectionGreyContentContainer>
+                        <a href={selected.cv.url} target="_blank" rel="noopener noreferrer" className={s.cvLink}>
+                          <CvAttachmentLine
+                            cv={{
+                              fileName: selected.cv.name,
+                              size: selected.cv.size,
+                              uploadedAt: selected.interestedAt,
+                            }}
+                            variant="chip"
+                          />
+                        </a>
+                      </DetailsSectionGreyContentContainer>
+                    )}
+                  </DetailsSection>
+                ) : (
+                  /* The application — the only section this page has that the
+                 member page doesn't. The reply lives here, under what it
+                 answers, so the profile card above stays production's. */
+                  <DetailsSection>
+                    <DetailsSectionHeader title="Application">
+                      <span className={clsx(row.relative, rowTone.relativeTone)}>
+                        <ClockIcon />
+                        Applied {formatRelativeDays(selected.appliedAt)}
+                      </span>
+                    </DetailsSectionHeader>
+                    <DetailsSectionGreyContentContainer>
+                      <p className={s.noteFull}>{selected.note}</p>
+                      {selected.cv && (
+                        <a href={selected.cv.url} target="_blank" rel="noopener noreferrer" className={s.cvLink}>
+                          <CvAttachmentLine
+                            cv={{ fileName: selected.cv.name, size: selected.cv.size, uploadedAt: selected.appliedAt }}
+                            variant="chip"
+                          />
+                        </a>
+                      )}
+                    </DetailsSectionGreyContentContainer>
+                  </DetailsSection>
+                )
+              }
+            />
+          </div>
+        )}
+      </div>
+
+      {role.suggested && criteria.length > 0 && (
+        <CriteriaModal
+          open={criteriaOpen}
+          onClose={() => setCriteriaOpen(false)}
+          roleTitle={role.title}
+          criteria={criteria}
+          people={role.suggested}
+          off={off}
+          onSave={(next) => {
+            setCriteriaOff((prev) => ({ ...prev, [role.uid]: next }));
+            // The person in the pane may have dropped below the floor.
+            setSelectedId(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+/* BackButton's glyph, which it doesn't export. */
+const BackIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M11 14L5 8L11 2" stroke="#5E718D" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);

@@ -9,7 +9,7 @@
  *    invitation goes to the people the invitation is for.
  *  - Two rows as a sample, then "View all N" — but unlike roles (2–8) a
  *    shortlist runs to ~20, so the rest opens as a page in the profile's
- *    place (the applicants-page move), not an in-place expander.
+ *    place (the candidates-page move), not an in-place expander.
  *
  * No intake form. Stage and sectors are the team profile's existing fields,
  * so the section says what it matched on instead of asking again.

@@ -1,6 +1,6 @@
 'use client';
 
-import { type CSSProperties, type RefObject, useCallback, useLayoutEffect, useState } from 'react';
+import { type CSSProperties, type RefObject, useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import clsx from 'clsx';
 import { useForm, FormProvider } from 'react-hook-form';
@@ -20,28 +20,62 @@ import { useSubmitAiAppFeedback } from '@/services/ai-app-feedback/hooks/useSubm
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import {
   AnnotatorModal,
-  CaptureDeniedError,
+  AttachImageError,
+  CaptureError,
   ConfirmLayer,
-  CaptureUnavailableError,
   RegionSelectOverlay,
   appendScreenshots,
+  attachImageFile,
   grabVideoFrame,
   hasAnyAnnotation,
+  isCaptureSupported,
+  isPersistentReason,
   requestTabCapture,
   stopCaptureStream,
   type AnnotationState,
+  type PersistentCaptureReason,
   type ScreenshotAttachment,
 } from '../screenshot-feedback';
 
 import s from './GiveAiAppFeedbackDialog.module.scss';
 
+/** Visible characters the member may type, counted with the markup stripped. */
 const MAX_LENGTH = 5000;
+
+/**
+ * Serialized length the server will accept, mirroring `SubmitFeedbackSchema`'s
+ * `.max(200000)` in the web-api.
+ *
+ * A second, larger cap is needed because `MAX_LENGTH` counts the one thing that
+ * is never the problem. What fills a submission is the drawing: each annotated
+ * screenshot carries its strokes in a `data-annotations` attribute as
+ * URL-encoded JSON. Without this check the server rejects the request with
+ * "String must contain at most 200000 character(s)" — a number about text the
+ * member never wrote and cannot see.
+ *
+ * Kept slightly under the server's own limit so a request that passes here is
+ * never refused there for a rounding difference in how the body is counted.
+ */
+const MAX_PAYLOAD = 199_000;
 const FEEDBACK_TOOLBAR: (string | Record<string, unknown>)[][] = [
   [{ header: [1, 2, 3, false] }],
   ['bold', 'link', 'image'],
 ];
 export const AI_APP_FEEDBACK_DRAFT_KEY = 'form-draft:ai-app-feedback';
 export const FEEDBACK_PLACEHOLDER = 'What worked, what didn’t, and what would make this more useful?';
+
+/**
+ * What the line above the button says, keyed by why the capture path is shut.
+ *
+ * `open` names the browser picker, which the old copy never did — the picker is
+ * the moment people got lost, because nothing had told them to expect it.
+ */
+const SCREENSHOT_HINTS: Record<PersistentCaptureReason | 'open', string> = {
+  open: 'Your browser will ask which tab to share — choose this one, then drag to capture any area of the page.',
+  unsupported: 'Screenshots need a desktop browser — take one on your device and attach it here.',
+  blocked: 'Screen sharing is turned off in this browser — attach a screenshot instead.',
+  unreadable: 'Your browser couldn’t read the screen — attach a screenshot instead.',
+};
 
 function hasFeedbackContent(html: string, screenshotCount = 0): boolean {
   return !isBlankHtml(html) || /<img\b/i.test(html) || screenshotCount > 0;
@@ -164,6 +198,20 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
   /** Which capture the delete confirmation is open on, by id for the same reason. */
   const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
+  /**
+   * Why the capture path is closed, if it is — and therefore whether the row
+   * offers Take screenshot or Attach image.
+   *
+   * Seeded from a render-time feature check so an iPad or an in-app browser
+   * never shows a button that cannot work, and re-set when a click proves the
+   * path is shut for a reason that will still hold next time (see
+   * `CaptureError.isPersistent`: policy blocks and a denied OS grant stick;
+   * cancelling and a lost user-activation do not).
+   */
+  const [captureClosedBy, setCaptureClosedBy] = useState<PersistentCaptureReason | null>(() =>
+    isCaptureSupported() ? null : 'unsupported',
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const isBusy = isCapturing || Boolean(freezeSrc) || Boolean(cropSrc);
   const isPending = isAppFeedbackPending || isContactSupportPending || isHostingImages;
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -210,17 +258,29 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
     onClose();
   };
 
+  /**
+   * One place to land a failed capture: report it, say the right thing, and
+   * close the capture path when the reason will still be true next time.
+   */
+  const handleCaptureFailure = (error: CaptureError, stage: 'request' | 'grab') => {
+    analytics.onFeedbackScreenshotCaptureDenied({ reason: error.reason, errorName: error.errorName });
+    if (stage === 'grab') {
+      analytics.onFeedbackScreenshotCaptureFailed({ stage, errorName: error.errorName });
+    }
+    /* Cancelling is a decision, not a failure — the old code toasted it in red
+       and counted it as denied. An empty message says "nothing to report". */
+    if (error.message) toast.error(error.message);
+    if (isPersistentReason(error.reason)) setCaptureClosedBy(error.reason);
+  };
+
   const onTakeScreenshot = async () => {
     analytics.onFeedbackScreenshotClicked();
     let stream: MediaStream;
     try {
       stream = await requestTabCapture();
     } catch (error) {
-      if (error instanceof CaptureDeniedError || error instanceof CaptureUnavailableError) {
-        analytics.onFeedbackScreenshotCaptureDenied({
-          reason: error instanceof CaptureDeniedError ? 'denied' : 'unavailable',
-        });
-        toast.error(error.message);
+      if (error instanceof CaptureError) {
+        handleCaptureFailure(error, 'request');
         return;
       }
       analytics.onFeedbackScreenshotCaptureFailed({ stage: 'request' });
@@ -233,12 +293,38 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       const frame = await grabVideoFrame(stream);
       setFreezeSrc(frame);
-    } catch {
+    } catch (error) {
       setIsCapturing(false);
-      analytics.onFeedbackScreenshotCaptureFailed({ stage: 'grab' });
-      toast.error('Could not capture a screenshot. Please try again.');
+      if (error instanceof CaptureError) {
+        handleCaptureFailure(error, 'grab');
+      } else {
+        analytics.onFeedbackScreenshotCaptureFailed({ stage: 'grab' });
+        toast.error('Could not capture a screenshot. Please try again.');
+      }
     } finally {
       stopCaptureStream(stream);
+    }
+  };
+
+  /**
+   * The fallback for anyone the capture path cannot serve.
+   *
+   * The picked image is handed to `setFreezeSrc`, which is exactly where a
+   * captured frame lands — so region select and the annotator run unchanged and
+   * a blocked user keeps the pin-and-draw tools rather than getting a plain
+   * inline image.
+   */
+  const onAttachImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    /* Cleared immediately so picking the same file twice still fires a change. */
+    event.target.value = '';
+    if (!file) return;
+
+    analytics.onFeedbackImageAttached({ trigger: captureClosedBy ?? 'unsupported' });
+    try {
+      setFreezeSrc(await attachImageFile(file));
+    } catch (error) {
+      toast.error(error instanceof AttachImageError ? error.message : 'Could not read that image.');
     }
   };
 
@@ -327,6 +413,20 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
       return;
     } finally {
       setIsHostingImages(false);
+    }
+
+    /* Checked here rather than as you type, because until the images are hosted
+       the payload is bigger than what actually gets sent — a data URI in the
+       editor is megabytes that become a short URL. Measuring earlier would
+       refuse submissions that would have fit. */
+    if (trimmedMessage.length > MAX_PAYLOAD) {
+      analytics.onFeedbackTooLarge({ length: trimmedMessage.length, screenshotCount: screenshots.length });
+      toast.error(
+        screenshots.length > 0
+          ? 'This feedback is too large to send. Try removing a screenshot, or redrawing with fewer strokes.'
+          : 'This feedback is too large to send. Try shortening it.',
+      );
+      return;
     }
 
     if (app.value === LABOS_AI_APPS_OPTION.value) {
@@ -437,11 +537,38 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
                 />
 
                 <div className={s.screenshotRow}>
-                  <p className={s.screenshotHint}>Drag to capture any area of the page, including the app.</p>
-                  <button type="button" className={s.screenshotButton} onClick={onTakeScreenshot} disabled={isPending}>
-                    <CameraIcon />
-                    Take screenshot
-                  </button>
+                  <p className={s.screenshotHint}>{SCREENSHOT_HINTS[captureClosedBy ?? 'open']}</p>
+                  {captureClosedBy ? (
+                    <>
+                      <button
+                        type="button"
+                        className={s.screenshotButton}
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isPending}
+                      >
+                        <ImageIcon />
+                        Attach image
+                      </button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className={s.fileInput}
+                        onChange={onAttachImage}
+                        aria-label="Attach image"
+                      />
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      className={s.screenshotButton}
+                      onClick={onTakeScreenshot}
+                      disabled={isPending}
+                    >
+                      <CameraIcon />
+                      Take screenshot
+                    </button>
+                  )}
                 </div>
 
                 {screenshots.length > 0 && (
@@ -528,6 +655,22 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
         />
       )}
     </>
+  );
+}
+
+function ImageIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
+      <path
+        d="M2.6 11.2 6 8l2.2 2.1L10.3 8l3.1 3"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="6.1" cy="6" r="1" fill="currentColor" />
+    </svg>
   );
 }
 

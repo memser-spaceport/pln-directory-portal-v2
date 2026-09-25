@@ -11,6 +11,7 @@ export const useHuskyAnalytics = () => {
     husky_followup_ques_clicked: 'husky_followup_ques_clicked',
     husky_blog_url_copied: 'husky_blog_url_copied',
     husky_source_link_clicked: 'husky_source_link_clicked',
+    husky_citation_clicked: 'husky_citation_clicked',
     husky_user_feedback_clicked: 'husky_user_feedback_clicked',
     husky_user_feedback_status: 'husky_user_feedback_status',
     husky_ai_response: 'husky_ai_response',
@@ -76,6 +77,10 @@ export const useHuskyAnalytics = () => {
 
   function trackHuskySourceLinkClicked(link: string) {
     captureEvent(events.husky_source_link_clicked, { link });
+  }
+
+  function trackHuskyCitationClicked(link: string) {
+    captureEvent(events.husky_citation_clicked, { link });
   }
 
   function trackHuskyActionCardClicked(action: any) {
@@ -223,6 +228,7 @@ export const useHuskyAnalytics = () => {
     trackHuskyLogin,
     trackUploadData,
     trackHuskySourceLinkClicked,
+    trackHuskyCitationClicked,
     trackHuskyActionCardClicked,
     trackTabSelection,
     trackPromptSelection,

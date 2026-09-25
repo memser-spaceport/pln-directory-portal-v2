@@ -1,0 +1,433 @@
+@use 'styles/media';
+
+/* The team page's own width and ground: the profile column plus the rail is
+ * 1264px at the demo bar, and the shell paints #f1f5f9 behind the cards. */
+.page {
+  width: 100%;
+  max-width: 1264px;
+  margin: 0 auto;
+  padding: 0 16px 40px;
+}
+
+.back {
+  margin: 8px 0 16px;
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* The section title scale the profile's H2s use, one step up for a page. */
+.title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* The role picker, one row above the split. A select rather than tabs: a team
+ * can carry ten or more roles, and ten titles in a tab strip is a scroll with
+ * no end in sight, where a searchable menu lists and filters them. */
+.roleBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+/* The select's slot. `filterSelectStyles` makes the container 100% wide, so
+ * the width is set here: room for "Senior Distributed Systems Engineer (3)"
+ * without the ellipsis react-select would otherwise draw, capped so it does
+ * not stretch the toolbar on a wide screen. The "Role:" group is a flex row,
+ * so the slot also has to be allowed to shrink on a phone. */
+.rolePicker {
+  width: 360px;
+  max-width: 100%;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+/* The "Role:" group around it (`SortDropdown`'s `.sortGroup`, a flex row). As a
+ * flex item of `.roleBar` it defaults to `min-width: auto`, so it refused to
+ * shrink below label + 360px and pushed the select off a phone's right edge.
+ * Holding it to the row lets `.rolePicker` give way instead. */
+.roleGroup {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* The role row's meta line, verbatim (`ReferRoleRow .meta`: 14/22, -0.2px,
+ * secondary), since it is the same facts about the same role. */
+.roleFacts {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* The role's facts and the posting head the list, above the search. The rule
+ * under it is the card's divider (the one the job board's team card draws under
+ * its header), so the role reads as the list's heading rather than as one more
+ * row. */
+.listHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  flex-shrink: 0;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-neutral-subtle, #f1f5f9);
+}
+
+/* List beside pane. 440px keeps "Protocol Engineer · Lattice Compute" whole
+ * beside a New mark and a date — at 400 the row ellipsised the team, which is
+ * the half of the line a founder scans for; the pane takes the rest. */
+.split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+
+  @include media.tablet-landscape {
+    grid-template-columns: 440px minmax(0, 1fr);
+  }
+}
+
+/* The list is a white card, like every section on the profile; the rows
+ * inside carry the section's grey. Sticky on desktop so the list stays under
+ * the hand while a long profile scrolls in the pane. */
+.listCol {
+  background: var(--background-base-white, #fff);
+  border-radius: 12px;
+  padding: 16px;
+  /* Clips the list's full-bleed rows to the card's own corners: the last row
+     runs into the bottom padding (see `.list`), so its square fill would
+     otherwise poke out past the 12px curve. */
+  overflow: hidden;
+
+  /* `--candidates-top` is the height of whatever the host pins above the
+     page. The team profile pins nothing (its header scrolls away), so it is
+     0 there; the job board pins an 80px navbar and sets it, or the list and
+     the bar would stick underneath it. */
+  @include media.tablet-landscape {
+    position: sticky;
+    top: calc(var(--candidates-top, 0px) + 16px);
+    max-height: calc(100vh - 32px - var(--candidates-top, 0px));
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+/* Applied / Interested, between the role's head and the search: the tabs pick
+ * which list of people answered this role. `flex-shrink: 0` because the column
+ * is a capped flex column on desktop. */
+.tabs {
+  flex-shrink: 0;
+  margin-bottom: 12px;
+}
+
+.searchWrap {
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+/* Full-bleed: the rows run to the card's left, right and bottom edges, so the
+ * negative margins cancel `.listCol`'s 16px padding on those three sides.
+ * Everything above the list (role facts, tabs, search) keeps the padding. */
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0 -16px -16px;
+
+  @include media.tablet-landscape {
+    overflow-y: auto;
+    min-height: 0;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+
+/* The picker's option: the title with its count, and the count line's
+ * `● M new` at the end of the line when the role has unopened candidates. */
+.roleOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.roleOptionLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The pane: its bar, then `CandidateMemberPage`'s own column. `min-width: 0`
+ * so the grid track can shrink the member column instead of being forced by
+ * it. */
+.paneCol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+
+  @include media.tablet-landscape {
+    gap: 16px;
+  }
+}
+
+/* The page's one bar, on the list's card: where you are in the list, the two
+ * steps, and the reply. Sticky at the list's own offset, so the way to the
+ * next person and the one action stay in reach while the profile scrolls —
+ * the ATS references (Workable, Homerun, Wellfound) all pin theirs. */
+.paneBar {
+  position: sticky;
+  top: calc(var(--candidates-top, 0px) + 8px);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--background-base-white, #fff);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.08);
+
+  @include media.tablet-landscape {
+    top: calc(var(--candidates-top, 0px) + 16px);
+  }
+}
+
+.paneNav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The DS bordered neutral button holding one glyph: the small size's height,
+ * square, without the label's minimum width. */
+.stepBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 8px;
+}
+
+/* "2 of 3", in the row's secondary tone — a fact about the list, not a press. */
+.position {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  white-space: nowrap;
+}
+
+/* The bar's two presses on the person: the status switch, then the reply.
+ * Under 640px the five controls need ~440px in a ~340px bar (measured), so
+ * the bar wraps and the two presses take a row of their own under the
+ * stepper, each half the width — the product's mobile footer shape. */
+.paneActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+@include media.mobile-only {
+  .paneBar {
+    flex-wrap: wrap;
+  }
+
+  .paneActions {
+    width: 100%;
+
+    > * {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+}
+
+/* Mark as reviewed / Reviewed — shaped from Mobbin references.
+ *
+ * Rest: the DS bordered neutral button with an *outline* check (Todoist,
+ * Asana, Adaline draw an undone "done" as a ring), the ring in the tertiary
+ * grey so the word leads. Hover previews the result: the ring and check turn
+ * green before anything is pressed, so the press explains itself.
+ *
+ * On: Juicebox's Approve shape — a soft green tint, a green hairline and green
+ * ink on the same box, with the ring filling to a solid disc and the check
+ * popping in. The PL success pair the product uses most (`#0a9952` ink, its
+ * 8% tint and 24% border), not `Badge`'s Tailwind green. No shadow once on:
+ * a tinted press sitting flat reads as a state, a raised one as a button
+ * still waiting.
+ *
+ * Label and glyph keep a 6px gap, not the bar's 8px, so the check reads as
+ * the word's mark and not a third control. */
+.reviewBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.reviewIcon {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  transition: color 160ms ease;
+}
+
+.reviewBtn:hover:not(:disabled) .reviewIcon,
+.reviewBtn:focus-visible .reviewIcon {
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+/* Written under `.paneActions` for specificity: the DS `.border.neutral` rules
+ * are four simple selectors deep and were winning the hover background
+ * (measured: the neutral grey, not the success tint). */
+.paneActions .reviewBtn.isReviewed {
+  &,
+  &:hover:not(:disabled),
+  &:active:not(:disabled) {
+    color: var(--foreground-success-primary, #0a9952);
+    border-color: var(--border-success-subtle, rgba(10, 153, 82, 0.24));
+    background: var(--background-success-subtle, rgba(10, 153, 82, 0.08));
+    box-shadow: none;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: var(--border-success-muted, rgba(10, 153, 82, 0.4));
+  }
+
+  .reviewIcon {
+    color: var(--foreground-success-primary, #0a9952);
+    animation: reviewPop 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+/* Settles in, no overshoot: ease-out-quint from a slightly smaller, fainter
+ * disc, so the fill reads as arriving rather than bouncing. */
+@keyframes reviewPop {
+  from {
+    transform: scale(0.72);
+    opacity: 0.4;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reviewBtn,
+  .reviewIcon {
+    transition: none;
+  }
+
+  .paneActions .reviewBtn.isReviewed .reviewIcon {
+    animation: none;
+  }
+}
+
+/* DS Button's classes on an <a>: box layout and no underline, nothing else. */
+.actionLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+/* The note in full — the profile's body size, paragraphs kept. */
+.noteFull {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  white-space: pre-line;
+}
+
+.cvLink {
+  display: inline-flex;
+  margin-top: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* The Suggested tab's one sentence, between the tabs and the search. The
+ * caption pair the forms use (12/18, secondary): it annotates the list, it is
+ * not an offer, so no tint, no icon and no box. */
+.tabNote {
+  flex-shrink: 0;
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Invited to apply: the Reviewed state's paint on a status, not a press. */
+.invited {
+  cursor: default;
+  user-select: none;
+}
+
+/* The note and its one control on a wrapping row: the sentence, then Edit
+ * criteria after it, or on a line of its own when the sentence fills the width
+ * (design-thinking lesson 12, sixth example). The note's own bottom margin
+ * moves to the row. */
+.tabNoteRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  flex-shrink: 0;
+  margin: 0 0 12px;
+
+  .tabNote {
+    margin: 0;
+  }
+}
+
+/* `.tabNote` is `flex-shrink: 0` for the capped column; inside the wrapping row
+ * that pinned the sentence at its full one-line width and clipped it at the
+ * card. It has to give way so the row can wrap Edit criteria under it. */
+.tabNoteRow .tabNote {
+  flex: 0 1 auto;
+  min-width: 0;
+}

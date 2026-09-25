@@ -43,16 +43,20 @@
 
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentProps } from 'react';
 import type { FocusEvent, PropsWithChildren, ReactNode } from 'react';
 
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 import {
   applyTeamPostOverrides,
   readTeamPostOverrides,
+  TEAM_POST_VIEWER,
   type NewsItemWithPost,
   type TeamPostOverrides,
 } from '../news-shared/teamPosts';
+import { FeedPostNewsButton } from './FeedPostNewsButton';
+import { PostNewsModal, type PostNewsSubmission } from '../team-profile/PostNewsModal';
+import { deriveDomain } from '../team-profile/newsUrl';
 
 import { Button } from '@/components/common/Button';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
@@ -249,6 +253,31 @@ const VIEWER_OPTIONS = [
 
 type FeedViewer = (typeof VIEWER_OPTIONS)[number]['value'];
 
+/**
+ * The teams the signed-in reviewer belongs to, for the Post news door. The
+ * first is the primary team (production's member-page door posts as it). Both
+ * are teams this week's fixture covers, so a new post lands among its own
+ * team's stories (names as the fixture spells them; the shared `teamNameFor`
+ * roster doesn't hold these two). Review switch: one team (no picker, the common case) or two
+ * (the modal asks "Post as", opened on the primary).
+ */
+const VIEWER_TEAMS = [
+  { uid: 'lattice-compute', name: 'Lattice Compute' },
+  { uid: 'prime-intellect', name: 'Prime Intellect' },
+];
+
+const TEAMS_OPTIONS = [
+  { value: 'one', label: 'One team' },
+  { value: 'two', label: 'Two teams' },
+] as const;
+
+type ViewerTeams = (typeof TEAMS_OPTIONS)[number]['value'];
+
+const TEAMS_NOTE: Record<ViewerTeams, string> = {
+  one: 'Post news opens straight on your team.',
+  two: 'Post news asks which team the post is from, starting on your primary team.',
+};
+
 const VIEWER_NOTE: Record<FeedViewer, string> = {
   member: 'Quick Actions, For You as the view you land in, the Following ranking, and the email subscribe banner.',
   'logged-out':
@@ -365,7 +394,28 @@ function NetworkUpdatesBase({ headerDetails, children }: PropsWithChildren<{ hea
   );
 }
 
-export default function NewsfeedPrototype() {
+/**
+ * All optional, and unused when the registry loads this entry on its own. They
+ * exist so another entry can stand on the real homepage instead of a copy of it
+ * (`guided-tour` does: the page a session starts on is where a tour is met).
+ */
+export interface NewsfeedHostProps {
+  /** Spread over the navbar's props — a host wiring its own search, say. */
+  navExtras?: Partial<ComponentProps<typeof PrototypeNavBar>>;
+  /** False where the host brings its own arrival announcement: two at once is none. */
+  helpCallout?: boolean;
+  /** Extra review scaffolding, after the Preview as switch. */
+  reviewExtras?: ReactNode;
+  /** The Preview as switch, reported: a host's member-only layer must follow it. */
+  onSignedInChange?: (signedIn: boolean) => void;
+}
+
+export default function NewsfeedPrototype({
+  navExtras,
+  helpCallout = true,
+  reviewExtras,
+  onSignedInChange,
+}: NewsfeedHostProps = {}) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   /**
@@ -377,7 +427,62 @@ export default function NewsfeedPrototype() {
    */
   const [postOverrides, setPostOverrides] = useState<TeamPostOverrides>({});
   useEffect(() => setPostOverrides(readTeamPostOverrides()), []);
-  const curatedItems = useMemo(() => applyTeamPostOverrides(ALL_CURATED_ITEMS, postOverrides), [postOverrides]);
+  /**
+   * POST NEWS FROM THE FEED. The same door and the same modal as the team
+   * profile's rail — one form, two entrances, one label. Shown only to a
+   * signed-in member of an active team: a visitor, or a member with no team,
+   * gets no button rather than a disabled one. No arrival callout here — the
+   * help menu's callout already opens on this page, and two announcements on
+   * one load is none (`callout={false}`). What is posted lands in this feed,
+   * newest first, under the team it was posted as.
+   */
+  const [viewerTeams, setViewerTeams] = useState<ViewerTeams>('one');
+  const postTeams = viewerTeams === 'two' ? VIEWER_TEAMS : VIEWER_TEAMS.slice(0, 1);
+  const [composeOpen, setComposeOpen] = useState(false);
+  const [postTeamUid, setPostTeamUid] = useState(VIEWER_TEAMS[0].uid);
+  const [postedItems, setPostedItems] = useState<NewsItemWithPost[]>([]);
+  const [postedToast, setPostedToast] = useState<string | null>(null);
+  useEffect(() => {
+    if (!postedToast) return;
+    const id = setTimeout(() => setPostedToast(null), 4000);
+    return () => clearTimeout(id);
+  }, [postedToast]);
+  const curatedItems = useMemo(
+    () => applyTeamPostOverrides([...postedItems, ...ALL_CURATED_ITEMS], postOverrides),
+    [postOverrides, postedItems],
+  );
+  const postTeam = VIEWER_TEAMS.find((tm) => tm.uid === postTeamUid) ?? VIEWER_TEAMS[0];
+  const openCompose = () => {
+    setPostTeamUid(postTeams[0].uid);
+    setComposeOpen(true);
+  };
+  const publishNews = ({ title, body, url, summary }: PostNewsSubmission) => {
+    const now = new Date().toISOString();
+    const item: NewsItemWithPost = {
+      uid: `news-feed-${Date.now()}`,
+      teamUid: postTeam.uid,
+      teamName: postTeam.name,
+      teamLogoUrl: null,
+      // A team's own post is an announcement by construction (see the team
+      // profile's publishNews): the author picks no type.
+      eventType: 'ANNOUNCEMENT',
+      eventDate: now,
+      title,
+      summary,
+      contentHtml: body || undefined,
+      sourceUrl: url,
+      sourceDomain: deriveDomain(url),
+      tags: [],
+      focusAreas: [],
+      subFocusAreas: [],
+      createdAt: now,
+      discussion: { count: 0, latestTopicUrl: null },
+      isTeamPosted: true,
+      post: { posterUid: TEAM_POST_VIEWER.uid, posterName: TEAM_POST_VIEWER.name },
+    };
+    setPostedItems((prev) => [item, ...prev]);
+    setPostedToast(postTeam.name);
+  };
 
   // Feed state.
   const [activeFocus, setActiveFocus] = useState<string>(ALL_TAB);
@@ -409,6 +514,7 @@ export default function NewsfeedPrototype() {
    * entry has been looking at and the one the rest of the feed is designed for.
    */
   const [signedIn, setSignedIn] = useState(true);
+  useEffect(() => onSignedInChange?.(signedIn), [signedIn, onSignedInChange]);
   /* The header's (?) menu — null = the support form is closed; otherwise the
      topic the menu item was pressed on. See nav-shared/HelpFeedbackMenu. */
   const [supportTopic, setSupportTopic] = useState<string | null>(null);
@@ -891,7 +997,14 @@ export default function NewsfeedPrototype() {
 
   const categoriesWithCounts = useMemo(() => {
     const activeDiscussionsCount = scopedItems.filter((i) => hasExistingDiscussion(i.discussion)).length;
-    const base = CATEGORIES.map((c) => ({
+    // Fewer pills ("On homepage should be less badges"): For You · All ·
+    // Funding · Launch · Discussions · Hiring, the row the user named for the
+    // feed. Partnership, Announcement, Milestone and Other still show under All
+    // and For You; they just stop being a pill each. The HIRING and DEALS event
+    // types are dropped too — they were greyed-out duplicates of the synthetic
+    // Hiring pill below and of the Deals pill that went with them.
+    const PILL_TYPES = new Set<string>([ALL_CAT, 'FUNDING', 'LAUNCH']);
+    const base = CATEGORIES.filter((c) => PILL_TYPES.has(c.id)).map((c) => ({
       ...c,
       count: c.id === ALL_CAT ? scopedItems.length : scopedItems.filter((i) => i.eventType === c.id).length,
     }));
@@ -911,12 +1024,8 @@ export default function NewsfeedPrototype() {
     if (!teamFilter && signedIn) {
       out.push({ ...FOR_YOU_CATEGORY, count: forYouItems.length + forYouForumPosts.length });
     }
-    for (const c of base) {
-      out.push(c);
-      if (c.id === ALL_CAT && activeDiscussionsCount > 0) {
-        out.push({ ...DISCUSSIONS_CATEGORY, count: activeDiscussionsCount });
-      }
-    }
+    for (const c of base) out.push(c);
+    if (activeDiscussionsCount > 0) out.push({ ...DISCUSSIONS_CATEGORY, count: activeDiscussionsCount });
     // Hiring joins the same pill row as a synthetic category, the way production
     // already injects "Active Discussions". Deals follows the same pattern — and
     // its count is deliberately the full set, so the gap between what exists and
@@ -927,9 +1036,10 @@ export default function NewsfeedPrototype() {
       ? HIRING_SIGNALS.filter((h) => h.teamUid === teamFilter).length
       : HIRING_SIGNALS.length;
     if (showHiring && hiringCount > 0) out.push({ id: HIRING_CAT, label: 'Hiring', count: hiringCount });
-    if (showPerks && !teamFilter) out.push({ id: DEALS_CAT, label: 'Deals', count: PERK_SIGNALS.length });
+    // No Deals pill: cut with the rest of the row. Perk cards still reach the
+    // spine through their weekly cap.
     return out;
-  }, [scopedItems, forYouItems, forYouForumPosts, showHiring, showPerks, teamFilter, signedIn]);
+  }, [scopedItems, forYouItems, forYouForumPosts, showHiring, teamFilter, signedIn]);
 
   /**
    * The same list the pills rendered, shaped for a dropdown.
@@ -1234,7 +1344,8 @@ export default function NewsfeedPrototype() {
            members page with its demo switches. Same as there, the prototype
            shows the callout on every load — in production dismissal would be a
            member preference, so it is seen once. */
-        helpMenu={{ onPickTopic: setSupportTopic, callout: true }}
+        helpMenu={{ onPickTopic: setSupportTopic, callout: helpCallout }}
+        {...navExtras}
       />
       <PrototypeMobileNav hasUnreadNews={false} active />
     </>
@@ -1269,6 +1380,27 @@ export default function NewsfeedPrototype() {
           </div>
           <span className={clsx(v0.switchNote, local.reviewNote)}>{VIEWER_NOTE[viewer]}</span>
         </div>
+        {signedIn && (
+          <div className={v0.switchBar}>
+            <span className={v0.switchLabel}>Your teams</span>
+            <div className={v0.switch} role="tablist" aria-label="How many teams the viewer belongs to">
+              {TEAMS_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  role="tab"
+                  aria-selected={viewerTeams === opt.value}
+                  className={clsx(v0.switchBtn, viewerTeams === opt.value && v0.switchBtnActive)}
+                  onClick={() => setViewerTeams(opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <span className={clsx(v0.switchNote, local.reviewNote)}>{TEAMS_NOTE[viewerTeams]}</span>
+          </div>
+        )}
+        {reviewExtras}
       </div>
     </div>
   );
@@ -1333,6 +1465,13 @@ export default function NewsfeedPrototype() {
                     onBlur={handleFieldBlur}
                     fieldRef={desktopFieldRef}
                   />
+                  {/* Phone: Post news at the end of the header row, beside the
+                      title — the sort row has no room for a third control. */}
+                  {signedIn && (
+                    <span className={clsx(local.postNewsHeaderSlot, v0.sortMobile)}>
+                      <FeedPostNewsButton onPost={openCompose} />
+                    </span>
+                  )}
                 </div>
               }
             >
@@ -1435,6 +1574,16 @@ export default function NewsfeedPrototype() {
                       }}
                     />
                   </span>
+                  {/* Post news after the Sort selector ("put after following
+                      selector"): it closes the row the reader acts on the feed
+                      with. Desktop only — on a phone this row already holds
+                      Type and Sort edge to edge, so the button stands in the
+                      header instead (see there). */}
+                  {signedIn && (
+                    <span className={clsx(local.postNewsSlot, v0.sortDesktop)}>
+                      <FeedPostNewsButton onPost={openCompose} />
+                    </span>
+                  )}
                   <span className={v0.sortMobile}>
                     <MobileFeedSort
                       options={sortOptions}
@@ -1608,6 +1757,27 @@ export default function NewsfeedPrototype() {
         )}
 
         {subscribeToast}
+
+        {/* The press's visible outcome: the post is at the top of the feed,
+            and this says whose name it went out under and where else it goes. */}
+        {postedToast && (
+          <FollowToast>
+            Posted as <strong>{postedToast}</strong>. It&apos;s on the team&apos;s page and in the network feed.
+          </FollowToast>
+        )}
+
+        {signedIn && (
+          <PostNewsModal
+            open={composeOpen}
+            onClose={() => setComposeOpen(false)}
+            teamUid={postTeam.uid}
+            teamName={postTeam.name}
+            existing={curatedItems.filter((i) => i.teamUid === postTeam.uid)}
+            onPublish={publishNews}
+            teamChoices={postTeams}
+            onTeamChange={setPostTeamUid}
+          />
+        )}
 
         {/* The support form behind the (?) menu. Production prefills Email /
             Name from the session; signed out, the fields start empty. */}

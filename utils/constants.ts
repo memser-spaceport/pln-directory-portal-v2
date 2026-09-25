@@ -121,6 +121,17 @@ export const JOBS_ANALYTICS = {
   ON_JOB_APPLY_FOLLOW_DECLINED: 'job-apply-follow-declined',
   ON_JOB_INTEREST_FOLLOW_DECLINED: 'job-interest-follow-declined',
   ON_JOB_APPLY_FOLLOW_FAILED: 'job-apply-follow-failed',
+  ON_JOB_HIRING_VIEWED: 'job-hiring-viewed',
+  ON_JOB_APPLICANT_OPENED: 'job-applicant-opened',
+  ON_JOB_APPLICANT_REVIEWED: 'job-applicant-reviewed',
+  ON_JOB_APPLICANT_REVIEW_UNDONE: 'job-applicant-review-undone',
+  ON_JOB_APPLICANT_REVIEW_FAILED: 'job-applicant-review-failed',
+  ON_JOB_APPLICANT_EMAIL_CLICKED: 'job-applicant-email-clicked',
+  ON_JOB_HIRING_TAB_CHANGED: 'job-hiring-tab-changed',
+  ON_JOB_SAVED: 'job-saved',
+  ON_JOB_UNSAVED: 'job-unsaved',
+  ON_JOB_SAVE_FAILED: 'job-save-failed',
+  ON_JOBS_SAVED_FILTER_APPLIED: 'jobs-saved-filter-applied',
 };
 
 export const EVENTS = {
@@ -927,6 +938,28 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.6.3 - Candidates, Saved Roles & AI Search',
+    tag: 'New Feature',
+    date: '25, Sep 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Candidates</span> - Team leads can see who applied and who's interested on each open role, open a profile, and mark them reviewed.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Save a role</span> - Bookmark a role to find it later under Saved on the board.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">AI Search</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Sources</span> - Sources for a team, member, news story, or job open inside the Directory and show the title.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Top teams</span> - Asking for the top or best teams returns the teams that do that work.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Forum & Deals</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Images</span> - Resize an image and wrap text around it when you add one.</li>
+        </ul>
+        </div>`,
+  },
   {
     title: 'Version 4.6.2 - CV Management, Team Follow & Custom Skills',
     tag: 'New Feature',
@@ -2689,6 +2722,8 @@ export const AI_APPS_ANALYTICS = {
   FEEDBACK_SCREENSHOT_EDIT_SAVED: 'ai_apps_feedback_screenshot_edit_saved',
   FEEDBACK_SCREENSHOT_REMOVED: 'ai_apps_feedback_screenshot_removed',
   FEEDBACK_SCREENSHOT_TOOL_SELECTED: 'ai_apps_feedback_screenshot_tool_selected',
+  FEEDBACK_IMAGE_ATTACHED: 'ai_apps_feedback_image_attached',
+  FEEDBACK_TOO_LARGE: 'ai_apps_feedback_too_large',
   VIEW_FEEDBACK_CLICKED: 'ai_apps_view_feedback_clicked',
   SECRETS_PANEL_OPENED: 'ai_apps_secrets_panel_opened',
   SECRETS_DEPLOY_CLICKED: 'ai_apps_secrets_deploy_clicked',
@@ -2743,4 +2778,8 @@ export const MCP_ANALYTICS_EVENTS = {
   WARM_PATH_NOTE_OPENED: 'mcp-warm-path-note-opened',
   WARM_PATH_NOTE_SUBMITTED: 'mcp-warm-path-note-submitted',
   WARM_PATH_NOTE_CLEARED: 'mcp-warm-path-note-cleared',
+};
+
+export const EDITOR_ANALYTICS = {
+  IMAGE_RESIZED: 'editor-image-resized',
 };

@@ -1,0 +1,310 @@
+import {
+  MOCK_CANDIDATES,
+  MOCK_INTERESTED,
+  MOCK_ROLE_CRITERIA,
+  MOCK_SUGGESTED,
+  visibleSuggested,
+  daysAgo,
+  exp,
+  type RoleCandidate,
+  type RoleInterested,
+  type RoleCriterion,
+  type RoleSuggested,
+  type SuggestionReason,
+} from '../team-profile/mocks';
+
+/**
+ * Who applied to the roles the board's owners see — the team profile's
+ * candidates, plus Filecoin Foundation's.
+ *
+ * **Why the board needs its own.** The candidates page was built on the team
+ * profile, whose prototype is Protocol Labs, so its records are keyed to
+ * `pl-*`. The board's `team-lead` viewer leads Filecoin Foundation
+ * (`LEAD_TEAM_UID`), and a count line that only ever appeared for the admin,
+ * on one other team's card, would be a feature the default demo path cannot
+ * render. These are the same record shape (`RoleCandidate`), for `ff-*`.
+ *
+ * `ff-3` is in review and has nobody: a listing that is not up yet cannot have
+ * been applied to. `ff-4` was taken down and keeps the one person who applied
+ * while it was live — an application does not disappear with its listing, on
+ * this side either.
+ *
+ * One lookup for both hosts' data, so the board's count line and the page it
+ * opens cannot disagree about who applied.
+ */
+
+const person = (
+  p: Pick<RoleCandidate, 'id' | 'memberId' | 'name' | 'title' | 'team' | 'location' | 'email' | 'avatar' | 'skills'> & {
+    bio: string;
+    history: Array<[uid: string, title: string, company: string, start: string, end: string | null]>;
+    cv?: boolean;
+  },
+): Omit<RoleCandidate, 'appliedAt' | 'note' | 'unseen' | 'reviewed'> => ({
+  id: p.id,
+  memberId: p.memberId,
+  name: p.name,
+  role: `${p.title} · ${p.team}`,
+  title: p.title,
+  team: p.team,
+  location: p.location,
+  email: p.email,
+  avatar: p.avatar,
+  cv: p.cv === false ? undefined : { name: `${p.memberId}-cv.pdf`, url: '#', size: 196608 },
+  skills: p.skills,
+  experience: p.history.map(([uid, title, company, start, end]) =>
+    exp(p.memberId, uid, title, company, start, end, p.location),
+  ),
+  profile: {
+    bio: `<p>${p.bio}</p>`,
+    openToWork: true,
+    linkedinHandle: p.memberId.replace('-', ''),
+    teams: [{ id: p.team.toLowerCase().replace(/\s+/g, '-'), name: p.team, role: p.title, mainTeam: true }],
+    contributions: [],
+    repositories: [],
+  },
+});
+
+const NOOR = person({
+  id: 'ff-app-1',
+  memberId: 'noor-haddad',
+  name: 'Noor Haddad',
+  title: 'Head of Partnerships',
+  team: 'Fleek',
+  location: 'New York, NY',
+  email: 'noor@fleek.xyz',
+  avatar: 'https://i.pravatar.cc/96?img=45',
+  skills: ['Partnerships', 'Developer Ecosystems', 'Go-to-market'],
+  bio: 'Partnerships lead for developer infrastructure. I have spent six years signing and then actually supporting the teams that build on a platform, which are two different jobs.',
+  history: [
+    ['nh1', 'Head of Partnerships', 'Fleek', '2022-04', null],
+    ['nh2', 'Ecosystem Manager', 'Textile', '2019-01', '2022-03'],
+  ],
+});
+
+const ELIAS = person({
+  id: 'ff-app-2',
+  memberId: 'elias-brandt',
+  name: 'Elias Brandt',
+  title: 'Developer Relations Lead',
+  team: 'Chainsafe',
+  location: 'Berlin, Germany',
+  email: 'elias@chainsafe.io',
+  avatar: 'https://i.pravatar.cc/96?img=12',
+  skills: ['Developer Relations', 'Community', 'Technical Writing'],
+  bio: 'DevRel lead with an engineering background. I run the programs that turn a first hackathon project into a team that is still shipping a year later.',
+  history: [
+    ['eb1', 'Developer Relations Lead', 'Chainsafe', '2021-09', null],
+    ['eb2', 'Software Engineer', 'Chainsafe', '2018-06', '2021-08'],
+  ],
+});
+
+const SOFIA = person({
+  id: 'ff-app-3',
+  memberId: 'sofia-marchetti',
+  name: 'Sofia Marchetti',
+  title: 'Growth Lead',
+  team: 'Lattice Compute',
+  location: 'Lisbon, Portugal',
+  email: 'sofia@lattice.compute',
+  avatar: 'https://i.pravatar.cc/96?img=47',
+  skills: ['Growth', 'Ecosystem Strategy', 'Analytics'],
+  bio: 'Growth lead for a compute network. Most of my work is finding which ten teams matter this quarter and making sure they get what they need from us.',
+  history: [
+    ['sm1', 'Growth Lead', 'Lattice Compute', '2023-01', null],
+    ['sm2', 'Strategy Associate', 'Outlier Ventures', '2020-02', '2022-12'],
+  ],
+});
+
+const TARIQ = person({
+  id: 'ff-app-4',
+  memberId: 'tariq-osei',
+  name: 'Tariq Osei',
+  title: 'Grants Manager',
+  team: 'Gitcoin',
+  location: 'Accra, Ghana',
+  email: 'tariq@gitcoin.co',
+  avatar: 'https://i.pravatar.cc/96?img=68',
+  skills: ['Grants Operations', 'Program Management', 'Reporting'],
+  bio: 'Grants manager. I have run four funding rounds end to end, from the brief to the milestone reports nobody enjoys chasing.',
+  history: [
+    ['to1', 'Grants Manager', 'Gitcoin', '2022-06', null],
+    ['to2', 'Program Coordinator', 'Mozilla Foundation', '2019-03', '2022-05'],
+  ],
+});
+
+const HANNA = person({
+  id: 'ff-app-5',
+  memberId: 'hanna-lindqvist',
+  name: 'Hanna Lindqvist',
+  title: 'Operations Manager',
+  team: 'Textile',
+  location: 'Stockholm, Sweden',
+  email: 'hanna@textile.io',
+  avatar: 'https://i.pravatar.cc/96?img=25',
+  skills: ['Operations', 'Finance Ops', 'Process Design'],
+  bio: 'Operations manager for a fifteen-person infrastructure team. I build the process once so the team stops rebuilding it every quarter.',
+  history: [
+    ['hl1', 'Operations Manager', 'Textile', '2021-02', null],
+    ['hl2', 'Operations Analyst', 'Klarna', '2017-08', '2021-01'],
+  ],
+});
+
+const MARCUS = person({
+  id: 'ff-app-6',
+  memberId: 'marcus-vale',
+  name: 'Marcus Vale',
+  title: 'Smart Contract Engineer',
+  team: 'Glif',
+  location: 'Remote',
+  email: 'marcus@glif.io',
+  avatar: 'https://i.pravatar.cc/96?img=59',
+  skills: ['Solidity', 'FVM', 'Security Reviews'],
+  bio: 'Smart contract engineer on the FVM since it launched. Mostly storage-market actors and the tooling around auditing them.',
+  history: [
+    ['mv1', 'Smart Contract Engineer', 'Glif', '2022-10', null],
+    ['mv2', 'Blockchain Engineer', 'ConsenSys', '2019-05', '2022-09'],
+  ],
+});
+
+const BOARD_CANDIDATES: Record<string, RoleCandidate[]> = {
+  // Head of Ecosystem Growth
+  'ff-1': [
+    {
+      ...NOOR,
+      appliedAt: daysAgo(0, 3),
+      note: 'I signed and supported most of the storage integrations Fleek ships today, so I know which Filecoin ecosystem teams are thriving and which are quietly stuck. I would start by talking to the stuck ones.',
+      unseen: true,
+      reviewed: false,
+    },
+    {
+      ...ELIAS,
+      appliedAt: daysAgo(1, 2),
+      note: 'Ecosystem growth is what my DevRel work has turned into. I have both halves this role asks for: I can read the code a team is shipping and I can hold the conversation with its founder.',
+      unseen: true,
+      reviewed: false,
+    },
+    {
+      ...SOFIA,
+      appliedAt: daysAgo(4),
+      note: 'I ran the same function at Lattice with a smaller ecosystem. Happy to share the scorecard we used to decide where support went. It is the part I would bring on day one.',
+      unseen: false,
+      reviewed: true,
+    },
+  ],
+  // Grants Program Operations Lead
+  'ff-2': [
+    {
+      ...TARIQ,
+      appliedAt: daysAgo(2, 6),
+      note: 'Four grant rounds at Gitcoin, end to end. The reporting side is where most programs fall over, and it is the part I have built tooling for.',
+      unseen: true,
+      reviewed: false,
+    },
+    {
+      ...HANNA,
+      appliedAt: daysAgo(6),
+      note: 'I have not run grants specifically, but I have run the operations around a program of similar size. I would rather be direct about that than dress it up.',
+      unseen: false,
+      reviewed: false,
+    },
+  ],
+  // Senior Smart Contract Engineer (FVM) — taken down; the application stays.
+  'ff-4': [
+    {
+      ...MARCUS,
+      appliedAt: daysAgo(24),
+      note: 'Two years on FVM actors at Glif, most of it the storage-market contracts. I know the audit surface this role inherits.',
+      unseen: false,
+      reviewed: true,
+    },
+  ],
+};
+
+const BOARD_INTERESTED: Record<string, RoleInterested[]> = {
+  'ff-1': [{ ...HANNA, id: 'ff-int-1', interestedAt: daysAgo(1, 8), unseen: true, reviewed: false }],
+};
+
+/* Suggested members for the lead's live roles — see `RoleSuggested`. Nobody
+   here has applied or pressed I'm interested on the role they are suggested
+   for, and `ff-3` / `ff-4` have none: a listing that is not up has nobody to
+   invite. `person()` gives every record a CV, which a suggestion does not
+   carry (nothing was sent), so it is dropped. */
+const suggestion = (p: ReturnType<typeof person>, met: string[], reasons: SuggestionReason[]): RoleSuggested => {
+  const { cv: _cv, ...rest } = p;
+  return { ...rest, met, reasons };
+};
+
+/* What each of the lead's live roles is matched against — see `RoleCriterion`. */
+const BOARD_CRITERIA: Record<string, RoleCriterion[]> = {
+  // Head of Ecosystem Growth
+  'ff-1': [
+    { id: 'eco', group: 'Skills', label: 'Ecosystem or partnerships experience' },
+    { id: 'dev', group: 'Skills', label: 'Developer ecosystem background' },
+    { id: 'prog', group: 'Skills', label: 'Program or grants operations' },
+    { id: 'lead', group: 'Seniority', label: 'Lead or above' },
+    { id: 'tz', group: 'Location', label: 'US or Europe working hours' },
+  ],
+  // Grants Program Operations Lead
+  'ff-2': [
+    { id: 'prog', group: 'Skills', label: 'Grants or program operations' },
+    { id: 'rep', group: 'Skills', label: 'Reporting and analytics' },
+    { id: 'lead', group: 'Seniority', label: 'Lead or above' },
+    { id: 'tz', group: 'Location', label: 'US or Europe working hours' },
+  ],
+};
+
+const IMANI = person({
+  id: 'ff-sug-1',
+  memberId: 'imani-clarke',
+  name: 'Imani Clarke',
+  title: 'Ecosystem Lead',
+  team: 'Livepeer',
+  location: 'London, UK',
+  email: 'imani@livepeer.org',
+  avatar: 'https://i.pravatar.cc/96?img=38',
+  skills: ['Ecosystem Strategy', 'Partnerships', 'Developer Ecosystems'],
+  bio: 'Ecosystem lead for a video infrastructure network. I spend most weeks with the ten teams whose success decides ours.',
+  history: [
+    ['ic1', 'Ecosystem Lead', 'Livepeer', '2022-01', null],
+    ['ic2', 'Partnerships Manager', 'Protocol Labs', '2019-04', '2021-12'],
+  ],
+});
+
+const BOARD_SUGGESTED: Record<string, RoleSuggested[]> = {
+  'ff-1': [
+    suggestion(
+      IMANI,
+      ['eco', 'dev', 'lead', 'tz'],
+      [{ kind: 'vouch', text: 'Worked with 2 of your teammates while at Protocol Labs' }],
+    ),
+    suggestion(
+      { ...TARIQ, id: 'ff-sug-2' },
+      ['eco', 'prog', 'tz'],
+      [{ kind: 'interest', text: 'Applied to your Grants Program Operations Lead role' }],
+    ),
+  ],
+  'ff-2': [
+    suggestion(
+      { ...SOFIA, id: 'ff-sug-3' },
+      ['rep', 'lead', 'tz'],
+      [{ kind: 'interest', text: 'Applied to your Head of Ecosystem Growth role' }],
+    ),
+  ],
+};
+
+/** Everyone matched to the role, below the floor or not — the candidates page filters. */
+export const suggestedForRole = (roleUid: string): RoleSuggested[] =>
+  BOARD_SUGGESTED[roleUid] ?? MOCK_SUGGESTED[roleUid] ?? [];
+
+export const criteriaForRole = (roleUid: string): RoleCriterion[] =>
+  BOARD_CRITERIA[roleUid] ?? MOCK_ROLE_CRITERIA[roleUid] ?? [];
+
+/** Who the count line counts: at or above the floor with every criterion on. */
+export const visibleSuggestedForRole = (roleUid: string): RoleSuggested[] =>
+  visibleSuggested(suggestedForRole(roleUid), criteriaForRole(roleUid));
+
+export const candidatesForRole = (roleUid: string): RoleCandidate[] =>
+  BOARD_CANDIDATES[roleUid] ?? MOCK_CANDIDATES[roleUid] ?? [];
+
+export const interestedForRole = (roleUid: string): RoleInterested[] =>
+  BOARD_INTERESTED[roleUid] ?? MOCK_INTERESTED[roleUid] ?? [];

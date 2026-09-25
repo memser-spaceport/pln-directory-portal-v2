@@ -288,7 +288,7 @@ export default function PastRoundDescription({
 
       <style jsx global>{`
         .past-round-description__link {
-          color: #156ff7;
+          color: #0b4f66;
           text-decoration: underline;
           text-underline-position: from-font;
         }

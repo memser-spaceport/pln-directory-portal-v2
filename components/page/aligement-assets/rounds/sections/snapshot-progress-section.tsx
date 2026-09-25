@@ -246,7 +246,7 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
         }
 
         .snapshot-section__tip-arrow {
-          color: #156ff7;
+          color: #0b4f66;
         }
 
         .snapshot-section__tip-bottom {
@@ -267,7 +267,7 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
 
       <style jsx global>{`
         .snapshot-section__tip-link {
-          color: #156ff7;
+          color: #0b4f66;
           text-decoration: underline;
           text-underline-position: from-font;
         }

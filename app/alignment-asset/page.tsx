@@ -1,72 +1,38 @@
 import { notFound } from 'next/navigation';
-import CurrentRoundComponent from '@/components/page/aligement-assets/rounds/current-round-component';
-import styles from './plaa.module.css';
-import { currentRoundData } from '@/components/page/aligement-assets/rounds/data';
-import { getLeaderboard } from '@/services/plaa/leaderboard.service';
-import { getCurrentRoundStats, RoundStatsResponse } from '@/services/plaa/rounds.service';
-import { CurrentRoundData } from '@/components/page/aligement-assets/rounds/types/current-round.types';
+import { getCurrentRoundStats } from '@/services/plaa/rounds.service';
+import { getTrustHoldings } from '@/services/plaa/trust-holdings.service';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import PlaaHomeTokens from '@/components/page/aligement-assets/home/plaa-home-tokens';
+import PlaaHome from '@/components/page/aligement-assets/home/plaa-home';
+import PlaaHomeFooter from '@/components/page/aligement-assets/home/plaa-home-footer';
 
-// The data file keeps only editorial content that never varies by round —
-// it's a template, not a fallback: this page 404s if the API has nothing,
-// rather than rendering stale numbers as if live.
-function mergeRoundStats(stats: RoundStatsResponse): CurrentRoundData {
-  // stats.period is 'YYYY-MM-DD', the first of the round's calendar month.
-  const [year, month] = stats.period.split('-').map(Number);
-  const lastDayOfMonth = new Date(year, month, 0).getDate();
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const startDate = `${stats.period}T00:00:00`;
-  const endDate = `${year}-${pad(month)}-${pad(lastDayOfMonth)}T23:59:59`;
+/**
+ * PLAA home. Round content lives on the Leaderboard (PLAA-95); every round is
+ * reachable at /alignment-asset/leaderboard?round=N.
+ *
+ * One page, two personas. The design serves the same marketing home to
+ * prospects and to onboarded members and varies only the hero calls to action
+ * and one heading, so the two states cannot drift apart.
+ *
+ * Trust & holdings is optional: if it fails the page still renders and the
+ * blocks that depend on it drop out, rather than falling back to fixed numbers.
+ */
+export default async function PlaaHomePage() {
+  const [{ data: round }, { data: trust }, { isLoggedIn }] = await Promise.all([
+    getCurrentRoundStats(),
+    getTrustHoldings(),
+    getCookiesFromHeaders(),
+  ]);
 
-  return {
-    ...currentRoundData,
-    meta: {
-      ...currentRoundData.meta,
-      roundNumber: stats.roundNumber,
-      isCurrentRound: stats.isCurrentRound,
-      lastUpdated: stats.lastUpdated,
-    },
-    roundDescription: {
-      ...currentRoundData.roundDescription,
-      roundNumber: stats.roundNumber,
-      monthYear: `${stats.month} ${stats.year}`,
-    },
-    snapshotProgress: {
-      ...currentRoundData.snapshotProgress,
-      startDate,
-      endDate,
-      tipContent: {
-        ...currentRoundData.snapshotProgress.tipContent,
-        bottomLink: {
-          ...currentRoundData.snapshotProgress.tipContent.bottomLink,
-          text: `See what happened in the last round (Round ${stats.roundNumber - 1})`,
-          url: `/alignment-asset/rounds/${stats.roundNumber - 1}`,
-        },
-      },
-    },
-    chart: {
-      ...currentRoundData.chart,
-      chartData: stats.chart,
-      maxValue: Math.max(...stats.chart.map((c) => c.value), 0),
-    },
-    stats: {
-      ...currentRoundData.stats,
-      onboardedParticipants: stats.onboardedParticipants,
-      incentivizedActivities: stats.incentivizedActivities,
-      regionsUnlocked: stats.regionsUnlocked,
-      totalPointsCollected: stats.totalPointsCollected.toLocaleString('en-US'),
-    },
-  };
-}
-
-export default async function PlaaPage() {
-  const { data: stats } = await getCurrentRoundStats();
-  if (!stats) notFound();
-  const data = mergeRoundStats(stats);
-  const { data: leaderboardResponse } = await getLeaderboard(data.meta.roundNumber);
+  if (!round) notFound();
 
   return (
-    <div className={styles.rounds}>
-      <CurrentRoundComponent data={data} leaderboardResponse={leaderboardResponse} />
+    <div className="plaa-home">
+      <PlaaHomeTokens />
+      {/* The onboarded snapshot bar is rendered by SiteHeader, above the LabOS
+          navbar, matching the live site. */}
+      <PlaaHome round={round} trust={trust} variant={isLoggedIn ? 'member' : 'prospect'} />
+      <PlaaHomeFooter />
     </div>
   );
 }

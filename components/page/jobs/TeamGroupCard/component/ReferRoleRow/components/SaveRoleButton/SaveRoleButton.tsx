@@ -3,8 +3,9 @@
 import clsx from 'clsx';
 
 import type { IJobRole } from '@/types/jobs.types';
-import { useSavedScopeStore } from '@/services/jobs/saved-scope.store';
 import { useToggleSavedJob } from '@/services/jobs/hooks/savedJobs/useToggleSavedJob';
+import { SAVED_PARAM } from '@/services/jobs/savedParam';
+import { useJobsFilterStore } from '@/services/jobs/store';
 import { useLoginRedirect } from '@/components/core/login/utils';
 import { toast } from '@/components/core/ToastContainer';
 import { Button } from '@/components/common/Button';
@@ -24,7 +25,7 @@ interface SaveRoleButtonProps {
 export function SaveRoleButton({ role, memberUid, saved }: SaveRoleButtonProps) {
   const goToLogin = useLoginRedirect();
   const toggleSaved = useToggleSavedJob();
-  const setSavedScope = useSavedScopeStore((store) => store.setSavedScope);
+  const setParam = useJobsFilterStore((store) => store.setParam);
 
   function onToggle() {
     if (!memberUid) {
@@ -44,7 +45,7 @@ export function SaveRoleButton({ role, memberUid, saved }: SaveRoleButtonProps) 
               Saved.{' '}
               {/* `success`, not `primary`: the toast's own ink. Brand blue on
                   the green success surface is a third colour in a 14px line. */}
-              <Button style="link" variant="success" size="s" underline onClick={() => setSavedScope(true)}>
+              <Button style="link" variant="success" size="s" underline onClick={() => setParam(SAVED_PARAM, 'true')}>
                 View saved roles
               </Button>
             </>,

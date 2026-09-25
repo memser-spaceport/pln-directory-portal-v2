@@ -1,6 +1,7 @@
 import { Quill } from 'react-quill-new';
 import { MutableRefObject, PointerEvent, RefObject, useCallback, useEffect, useRef, useState } from 'react';
 
+import { useEditorAnalytics } from '@/analytics/editor.analytics';
 import { IMAGE_FLOATS, ImageFloat } from '@/utils/richText/imageFloats';
 import { imageFloatClass } from '@/utils/richText/imageFloatClass';
 
@@ -189,6 +190,7 @@ function referenceWidthOf(image: HTMLImageElement, editorRoot: HTMLElement): num
  */
 export function useImageLayout(options: Options) {
   const { quillRef, editorContainerRef, overlayRef, qlEditorClass } = options;
+  const { onImageResized } = useEditorAnalytics();
 
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [overlay, setOverlay] = useState<Overlay | null>(null);
@@ -347,8 +349,10 @@ export function useImageLayout(options: Options) {
         }
 
         const widthPx = drag.image.getBoundingClientRect().width;
+        const widthPercent = imageWidthPercent(widthPx, drag.referenceWidth);
         drag.image.style.removeProperty('width');
-        formatImage(drag.image, 'width', `${imageWidthPercent(widthPx, drag.referenceWidth)}%`);
+        formatImage(drag.image, 'width', `${widthPercent}%`);
+        onImageResized(widthPercent);
         syncOverlay();
       }
 
@@ -363,7 +367,7 @@ export function useImageLayout(options: Options) {
       window.addEventListener('pointercancel', onPointerCancel);
       endDragRef.current = onPointerCancel;
     },
-    [image, quillRef, syncOverlay, formatImage],
+    [image, quillRef, syncOverlay, formatImage, onImageResized],
   );
 
   /**

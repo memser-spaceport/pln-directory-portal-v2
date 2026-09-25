@@ -6,8 +6,10 @@ jest.mock('@/components/core/husky/husky-code-block', () => ({
   default: ({ children }: { children?: React.ReactNode }) => <code>{children}</code>,
 }));
 
+const trackHuskyCitationClicked = jest.fn();
 jest.mock('@/analytics/husky.analytics', () => ({
   useHuskyAnalytics: () => ({
+    trackHuskyCitationClicked,
     trackHuskySourceLinkClicked: jest.fn(),
     trackDirectoryResultsCardClicked: jest.fn(),
     trackMobileHeaderToggleClicked: jest.fn(),
@@ -75,6 +77,18 @@ describe('AI search citations and sources', () => {
     expect(link).toHaveAttribute('href', '/home?news=news-1');
     expect(link).toHaveAttribute('title', 'Acme raises Series A');
     expect(link).toHaveAttribute('target', '_blank');
+
+    fireEvent.click(link);
+    expect(trackHuskyCitationClicked).toHaveBeenCalledWith('/home?news=news-1');
+  });
+
+  it('does not record an ordinary link as a citation', () => {
+    trackHuskyCitationClicked.mockClear();
+    render(<Markdown>{'[docs](https://example.com/docs)'}</Markdown>);
+
+    fireEvent.click(screen.getByRole('link', { name: 'docs' }));
+
+    expect(trackHuskyCitationClicked).not.toHaveBeenCalled();
   });
 
   it('indents a nested list under its parent point', () => {

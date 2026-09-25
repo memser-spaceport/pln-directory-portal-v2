@@ -67,6 +67,9 @@ export function SaveRoleButton({ role, teamId, source, memberUid, saved }: SaveR
                 View saved roles
               </Button>
             </>,
+            {
+              className: s.toast,
+            },
           );
         },
         onError: () => analytics.onJobSaveFailed({ ...savedEvent, action: saved ? 'unsave' : 'save' }),

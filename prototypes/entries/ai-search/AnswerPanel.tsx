@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 
 import { Markdown } from '@/components/common/Markdown';
 import { Button } from '@/components/common/Button';
 import { Tag } from '@/components/ui/Tag';
-import HuskyAnswerLoader from '@/components/core/husky/husky-answer-loader';
 import FollowupQuestions from '@/components/page/husky/followup-questions';
 import ChatInput from '@/components/page/husky/chat-input';
 import { NotePencilIcon, ThumbsUpOutlinedIcon } from '@/components/icons';
@@ -18,6 +17,7 @@ import type { AiSearchViewer } from './viewer';
 import { DirectoryResultsCards } from './DirectoryResultsCards';
 import { AnswerBlocks } from './AnswerBlocks';
 import { AnswerSources } from './AnswerSources';
+import { AnswerStatus, AnswerStatusVariantContext, thinkingMsFor } from './AnswerStatus';
 import s from './AnswerPanel.module.scss';
 
 export type TurnStatus = 'thinking' | 'streaming' | 'done';
@@ -76,7 +76,8 @@ interface AnswerPanelProps {
  * local `AnswerSources` pill at the end of the actions row (see that file).
  * The rest: the local `DirectoryResultsCards` for "Results from the
  * directory" (production's `DirectoryResults` redrawn — see that file),
- * `FollowupQuestions`, `HuskyAnswerLoader`, `ChatInput`, `Markdown`. What is
+ * `FollowupQuestions`, `ChatInput`, `Markdown`. The wait before the first
+ * word is the local `AnswerStatus`, not `HuskyAnswerLoader` (see that file). What is
  * transcribed rather than imported is `PreviewMessage`'s card (its styles are
  * styled-jsx, so the values are copied into AnswerPanel.module.scss verbatim)
  * and the actions row, which this prototype changes on purpose:
@@ -110,8 +111,9 @@ export function AnswerPanel({
   const endRef = useRef<HTMLDivElement>(null);
   const last = turns[turns.length - 1];
   const busy = !!last && last.status !== 'done';
+  const loader = useContext(AnswerStatusVariantContext);
 
-  /* Simulated stream. `thinking` shows the skeleton for a beat, then words
+  /* Simulated stream. `thinking` walks `AnswerStatus` through its steps, then words
      arrive in small bursts until the whole answer is on screen. */
   useEffect(() => {
     if (!last || last.status === 'done') return;
@@ -120,7 +122,7 @@ export function AnswerPanel({
     if (last.status === 'thinking') {
       const t = setTimeout(() => {
         onTurnsChange((prev) => prev.map((x) => (x.id === id ? { ...x, status: 'streaming' } : x)));
-      }, 700);
+      }, thinkingMsFor(loader));
       return () => clearTimeout(t);
     }
 
@@ -135,7 +137,7 @@ export function AnswerPanel({
       onTurnsChange((prev) => prev.map((x) => (x.id === id ? { ...x, shown: next } : x)));
     }, 45);
     return () => clearTimeout(t);
-  }, [last, onTurnsChange]);
+  }, [last, onTurnsChange, loader]);
 
   /* Keep the newest turn in view as it grows. */
   useEffect(() => {
@@ -286,7 +288,7 @@ function Message({
       <h2 className={s.question}>{turn.question}</h2>
 
       {turn.status === 'thinking' ? (
-        <HuskyAnswerLoader />
+        <AnswerStatus hits={turn.sql} sourceCount={turn.sources.length} scoped={scoped} />
       ) : (
         <div className={s.card}>
           {/* A scoped answer leads with what was read, then the objects, then

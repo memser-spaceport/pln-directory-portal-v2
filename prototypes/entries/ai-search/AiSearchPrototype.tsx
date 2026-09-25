@@ -11,7 +11,7 @@
  *                                            `SearchResult` data (services/search/types shape)
  *  - getGroupTitleByGroupName                production's Title Case helper for section titles
  *  - FollowupQuestions, HuskySourceCard,     Husky answer anatomy (components/page/husky,
- *    HuskyAnswerLoader, ChatInput, InfoBox,  components/core/husky) — analytics hooks inside
+ *    ChatInput, InfoBox,                     components/core/husky) — analytics hooks inside
  *    PopoverDp, Markdown                     them no-op without a PostHog client
  *  - ChatSubheader                           production's history subheader (import-safe)
  *  - Stylesheets: PrototypeSearchModal (the AI view's sheet), FullSearchResults, RecentSearch,
@@ -43,6 +43,8 @@ import { AiSearchView, type AiSearchRequest } from './AiSearchView';
 import { buildCorpusScope } from './corpusScope';
 import type { AiSearchScope } from './scope';
 import { AiSearchViewerContext, type AiSearchViewer } from './viewer';
+import { AnswerStatusVariantContext, type AnswerStatusVariant } from './AnswerStatus';
+import { LoaderSpecimens } from './LoaderSpecimens';
 import { FOUNDER_STATE_QUESTIONS, INVESTORS_QUESTION } from './mocks';
 import demo from '../team-profile/TeamProfile.module.scss';
 import { useAskIntro } from '../warm-intros-founders/useAskIntro';
@@ -90,6 +92,7 @@ export default function AiSearchPrototype() {
   const [scope, setScope] = useState<AiSearchScope | null>(null);
   /** Demo seat. A founder's investor answers carry "Ask for intro"; a member's don't. */
   const [viewer, setViewer] = useState<AiSearchViewer>('founder');
+  const [loader, setLoader] = useState<AnswerStatusVariant>('text');
 
   /* ⌘K everywhere on the page. Production has no keyboard route into search;
      every palette in the reference set (Bonsai, Apollo, Databricks) has this. */
@@ -195,13 +198,15 @@ export default function AiSearchPrototype() {
         onAiSearchClick={() => askAi('')}
       />
 
-      <AiSearchView
-        open={aiOpen}
-        onClose={() => setAiOpen(false)}
-        request={request}
-        onBackToResults={backToResults}
-        scope={scope}
-      />
+      <AnswerStatusVariantContext.Provider value={loader}>
+        <AiSearchView
+          open={aiOpen}
+          onClose={() => setAiOpen(false)}
+          request={request}
+          onBackToResults={backToResults}
+          scope={scope}
+        />
+      </AnswerStatusVariantContext.Provider>
 
       {/* Demo scaffolding, in the prototypes' own demo-bar chrome. The seat is a
           switch; the states are presses — each opens the AI view on the question
@@ -218,6 +223,26 @@ export default function AiSearchPrototype() {
                 onClick={() => setViewer(seat)}
               >
                 {seat === 'founder' ? 'Founder' : 'Member'}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className={demo.demoGroup}>
+          <span className={demo.demoLabel}>Loader</span>
+          <div className={demo.demoSwitch}>
+            {(
+              [
+                ['text', 'With text'],
+                ['build', 'No text'],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                className={`${demo.demoBtn} ${loader === key ? demo.demoBtnActive : ''}`}
+                onClick={() => setLoader(key)}
+              >
+                {label}
               </button>
             ))}
           </div>
@@ -247,6 +272,7 @@ export default function AiSearchPrototype() {
           back with the term still in it. Everything is mocked; the corpus is a dozen invented members, teams, projects
           and events.
         </p>
+        <LoaderSpecimens />
         <ol className={s.steps}>
           <li>
             <strong>Click the header field</strong> or press ⌘K. The field widens in the bar with the caret in it, and

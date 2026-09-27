@@ -29,7 +29,10 @@ export interface CurrentSnapshotStatus {
 function usePeriodStatus() {
   const { data: roundStats } = useCurrentRoundStats();
 
-  if (roundStats) {
+  // `period` is the only field this branch needs and the response is consumed
+  // unvalidated, so a payload without it must fall through to the calendar path
+  // rather than throw: the bar renders in the site header on every PLAA route.
+  if (roundStats?.period) {
     // roundStats.period is "YYYY-MM-DD"; useSnapshotPoints wants "YYYY-MM".
     const snapshotPeriod = roundStats.period.slice(0, 7);
     const { startDate, endDate } = getSnapshotDatesFromPeriod(roundStats.period);

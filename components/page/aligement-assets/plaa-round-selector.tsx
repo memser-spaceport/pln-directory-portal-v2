@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { triggerLoader } from '@/utils/common.utils';
 
-const CURRENT_ROUND_PATH = '/alignment-asset';
+// /alignment-asset is the PLAA home page. The round selector's "current"
+// position is therefore Home; individual rounds live at /alignment-asset/rounds/N.
+const HOME_PATH = '/alignment-asset';
 
 /* ==========================================================================
    PlaaRoundSelector Component
@@ -128,7 +130,7 @@ function PlaaRoundSelector({
     // Check if we're already on the target URL
     const currentPath = window.location.pathname;
     
-    if (currentPath === CURRENT_ROUND_PATH) {
+    if (currentPath === HOME_PATH) {
       // Already on this page, no need to navigate or show loader
       return;
     }
@@ -138,7 +140,7 @@ function PlaaRoundSelector({
       triggerLoader(true);
     }
     
-    router.push(CURRENT_ROUND_PATH);
+    router.push(HOME_PATH);
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -175,7 +177,7 @@ function PlaaRoundSelector({
     let targetPath: string;
     
     if (isCurrentRound) {
-      targetPath = CURRENT_ROUND_PATH;
+      targetPath = HOME_PATH;
     } else {
       targetPath = `/alignment-asset/rounds/${selectedRound}`;
     }
@@ -207,7 +209,8 @@ function PlaaRoundSelector({
   };
 
   const isCurrentRound = selectedRound === currentRound;
-  const displayText = isCurrentRound ? 'Current Round' : `Round ${selectedRound}`;
+  // The current-round slot is the home page now, so it reads "Home".
+  const displayText = isCurrentRound ? 'Home' : `Round ${selectedRound}`;
 
   return (
     <div className="round-selector-container">
@@ -341,9 +344,9 @@ function PlaaRoundSelector({
                 <button
                   className="round-selector__dropdown-go-current"
                   onClick={handleGoToCurrent}
-                  aria-label="Go to current round"
+                  aria-label="Go to home"
                 >
-                  <span>Go to current round</span>
+                  <span>Go to home</span>
                   <svg
                     width="12"
                     height="12"
@@ -354,7 +357,7 @@ function PlaaRoundSelector({
                   >
                     <path
                       d="M2.5 6H9.5M9.5 6L6.5 3M9.5 6L6.5 9"
-                      stroke="#156FF7"
+                      stroke="#0B4F66"
                       strokeWidth="1.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -369,8 +372,8 @@ function PlaaRoundSelector({
 
        {/* Go to Current Round Link */}
       {!isCurrentRound && (
-        <button className="round-selector__go-current" onClick={handleGoToCurrent} aria-label="Go to current round">
-          <span>Go to current round</span>
+        <button className="round-selector__go-current" onClick={handleGoToCurrent} aria-label="Go to home">
+          <span>Go to home</span>
           <svg
             width="12"
             height="12"
@@ -381,7 +384,7 @@ function PlaaRoundSelector({
           >
             <path
               d="M2.5 6H9.5M9.5 6L6.5 3M9.5 6L6.5 9"
-              stroke="#156FF7"
+              stroke="#0B4F66"
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -588,7 +591,7 @@ function PlaaRoundSelector({
 
           .round-selector__nav-input:focus {
             outline: none;
-            border-color: #156ff7;
+            border-color: #0b4f66;
           }
 
           .round-selector__nav-of {
@@ -655,7 +658,7 @@ function PlaaRoundSelector({
             font-weight: 500;
             font-size: 12px;
             line-height: 100%;
-            color: #156FF7;
+            color: #0B4F66;
             transition: background-color 0.15s ease;
           }
 

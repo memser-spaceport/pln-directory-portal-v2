@@ -172,7 +172,7 @@ export default function RoundDescriptionSection({ data, tokensAllocated }: Round
           font-size: 12px;
           font-weight: 500;
           line-height: 14px;
-          color: #156ff7;
+          color: #0b4f66;
         }
 
         .round-description__content {
@@ -280,7 +280,7 @@ export default function RoundDescriptionSection({ data, tokensAllocated }: Round
 
       <style jsx global>{`
         .round-description__link {
-          color: #156ff7;
+          color: #0b4f66;
           text-decoration: underline;
           text-underline-position: from-font;
         }

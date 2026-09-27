@@ -3,21 +3,24 @@
 import { triggerLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import PlaaRoundSelector from './plaa-round-selector';
+import {
+  ChartPieSlice,
+  Compass,
+  HandsClapping,
+  House,
+  Lightning,
+  Question,
+  Ranking,
+  UserCircle,
+} from '@phosphor-icons/react';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
-import { getCurrentRoundNumber } from '@/utils/plaa-round.utils';
 import { usePlaaAccess } from '@/services/rbac/hooks/usePlaaAccess';
 
-/* ==========================================================================
-   PlaaMenu Component
-   Pixel-perfect implementation based on Figma design
-   Figma: https://www.figma.com/design/xrvyUEqgZ0oRNT0spUruMW/Untitled?node-id=1-5250
-   ========================================================================== */
-
 export type PlaaActiveItem =
+  | 'home'
   | 'overview'
   | 'activities'
-  | 'incentive-model'
+  | 'leaderboard'
   | 'profile'
   | 'kudos'
   | 'terms-of-use'
@@ -30,37 +33,60 @@ export type PlaaActiveItem =
 
 interface PlaaMenuProps {
   activeItem?: PlaaActiveItem;
-  currentRound?: number;
-  totalRounds?: number;
-  viewingRound?: number; // The round being viewed on the current page
-  onMenuItemClick?: () => void; // Callback to handle menu item clicks (e.g., close mobile menu)
-  /** Server-resolved LabOS session. Undefined (not yet known) hides Kudos same as false. */
+  onMenuItemClick?: () => void;
   isLoggedIn?: boolean;
 }
 
-const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string; isExternal?: boolean; badge?: 'new' }> = [
-  { name: 'overview', label: 'Overview', url: '/alignment-asset/overview' },
-  { name: 'incentive-model', label: 'Incentive Model', url: '/alignment-asset/incentive-model' },
-  { name: 'activities', label: 'Activities', url: '/alignment-asset/activities' },
-  { name: 'profile', label: 'Profile', url: '/alignment-asset/profile' },
-  { name: 'kudos', label: 'Kudos', url: '/alignment-asset/kudos', badge: 'new' },
-  { name: 'trust-holdings', label: 'Trust & Holdings', url: '/alignment-asset/trust-holdings' },
-  { name: 'product-versions', label: 'Product Versions', url: '/alignment-asset/product-versions' },
-  { name: 'faqs', label: 'FAQ', url: '/alignment-asset/faqs' },
-  { name: 'feedback', label: 'Feedback', url: 'https://forms.gle/NAKxJ8RUqmUf9fmQ9', isExternal: true },
-  { name: 'terms-of-use', label: 'Terms of Use', url: '/alignment-asset/terms-of-use' },
-  { name: 'privacy-policy', label: 'Privacy Policy', url: '/alignment-asset/privacy-policy' },
-  { name: 'disclosure', label: 'Disclosure', url: '/alignment-asset/disclosure' },
+const ICONS = {
+  house: House,
+  compass: Compass,
+  lightning: Lightning,
+  'user-circle': UserCircle,
+  'hands-clapping': HandsClapping,
+  'chart-pie-slice': ChartPieSlice,
+  ranking: Ranking,
+  question: Question,
+} as const;
+
+type MenuIcon = keyof typeof ICONS;
+
+const menuItems: Array<{
+  name: PlaaActiveItem;
+  label: string;
+  url: string;
+  isExternal?: boolean;
+  badge?: 'new';
+  icon?: MenuIcon;
+  secondary?: true;
+}> = [
+  { name: 'home', label: 'Home', url: '/alignment-asset', icon: 'house' },
+  { name: 'overview', label: 'Overview', url: '/alignment-asset/overview', icon: 'compass' },
+  { name: 'activities', label: 'Activities', url: '/alignment-asset/activities', icon: 'lightning' },
+  { name: 'profile', label: 'Profile', url: '/alignment-asset/profile', icon: 'user-circle' },
+  { name: 'kudos', label: 'Kudos', url: '/alignment-asset/kudos', badge: 'new', icon: 'hands-clapping' },
+  {
+    name: 'trust-holdings',
+    label: 'Trust & Holdings',
+    url: '/alignment-asset/trust-holdings',
+    icon: 'chart-pie-slice',
+  },
+  { name: 'leaderboard', label: 'Leaderboard', url: '/alignment-asset/leaderboard', icon: 'ranking' },
+  { name: 'faqs', label: 'FAQ', url: '/alignment-asset/faqs', icon: 'question' },
+
+  { name: 'product-versions', label: 'Product Versions', url: '/alignment-asset/product-versions', secondary: true },
+  {
+    name: 'feedback',
+    label: 'Feedback',
+    url: 'https://forms.gle/NAKxJ8RUqmUf9fmQ9',
+    isExternal: true,
+    secondary: true,
+  },
+  { name: 'terms-of-use', label: 'Terms of Use', url: '/alignment-asset/terms-of-use', secondary: true },
+  { name: 'privacy-policy', label: 'Privacy Policy', url: '/alignment-asset/privacy-policy', secondary: true },
+  { name: 'disclosure', label: 'Disclosure', url: '/alignment-asset/disclosure', secondary: true },
 ];
 
-function PlaaMenu({
-  activeItem,
-  currentRound = getCurrentRoundNumber(),
-  totalRounds = getCurrentRoundNumber(),
-  viewingRound,
-  onMenuItemClick,
-  isLoggedIn,
-}: PlaaMenuProps) {
+function PlaaMenu({ activeItem, onMenuItemClick, isLoggedIn }: PlaaMenuProps) {
   const router = useRouter();
   const { onNavMenuClicked } = useAlignmentAssetsAnalytics();
 
@@ -106,25 +132,22 @@ function PlaaMenu({
   return (
     <>
       <nav className="plaa-menu" role="navigation" aria-label="PLAA navigation">
-        {/* Round Selector - Commented out for now */}
-        <div className="plaa-menu__selector">
-          <PlaaRoundSelector
-            currentRound={currentRound}
-            totalRounds={totalRounds}
-            viewingRound={viewingRound}
-            onRoundNavigation={onMenuItemClick}
-          />
-        </div>
-
-        {/* Navigation Items */}
         <ul className="plaa-menu__list" role="list">
-          {visibleItems.map((item) => (
+          {visibleItems.map((item, index) => (
             <li key={`plaa-${item.name}`} role="listitem">
+              {item.secondary && !visibleItems[index - 1]?.secondary && <hr className="plaa-menu__divider" />}
               <button
                 onClick={() => onItemClicked(item.label, item.url, item.isExternal)}
-                className={`plaa-menu__item ${activeItem === item.name ? 'plaa-menu__item--active' : ''}`}
+                className={`plaa-menu__item ${activeItem === item.name ? 'plaa-menu__item--active' : ''} ${
+                  item.secondary ? 'plaa-menu__item--secondary' : ''
+                }`}
                 aria-current={activeItem === item.name ? 'page' : undefined}
               >
+                {item.icon &&
+                  (() => {
+                    const Icon = ICONS[item.icon];
+                    return <Icon size={16} weight={activeItem === item.name ? 'fill' : 'regular'} aria-hidden />;
+                  })()}
                 <span className="plaa-menu__item-text">{item.label}</span>
                 {item.badge === 'new' && <span className="plaa-menu__badge">NEW</span>}
                 {item.isExternal && <Image src="/icons/external-link.svg" alt="external link" width={11} height={11} />}
@@ -187,16 +210,41 @@ function PlaaMenu({
             background-color: #f8fafc;
           }
 
+          .plaa-menu__divider {
+            border: none;
+            border-top: 1px solid var(--plaa-border-light, #e2e8f0);
+            margin: 8px 8px 10px;
+          }
+
+          .plaa-menu__item--secondary {
+            height: 30px;
+          }
+
+          .plaa-menu__item--secondary .plaa-menu__item-text {
+            font-size: 11px;
+            color: #64748b;
+          }
+
           /* ---------------------------------------------------------------
              Menu Item - Active State
-             Figma: background #f1f5f9, text #156ff7
+             Figma: background #f1f5f9, text #0b4f66
              --------------------------------------------------------------- */
           .plaa-menu__item--active {
-            background-color: #f1f5f9;
+            background-color: #e6f1f5;
+            box-shadow: inset 3px 0 0 0 #0b4f66;
           }
 
           .plaa-menu__item--active .plaa-menu__item-text {
-            color: #156ff7;
+            color: #0b4f66;
+          }
+
+          .plaa-menu__item :global(svg) {
+            flex: none;
+            color: #475569;
+          }
+
+          .plaa-menu__item--active :global(svg) {
+            color: #0b4f66;
           }
 
           /* ---------------------------------------------------------------
@@ -219,8 +267,8 @@ function PlaaMenu({
             font-size: 9px;
             font-weight: 700;
             letter-spacing: 0.04em;
-            color: #156ff7;
-            background: #e5edff;
+            color: #0b4f66;
+            background: #e6f1f5;
             border-radius: 4px;
             padding: 2px 5px;
             line-height: 1;

@@ -1,4 +1,4 @@
-import { isProtectedRoute, PROTECTED_ROUTES } from '@/utils/isProtectedRoute';
+import { isProtectedRoute, PLAA_PUBLIC_EXACT_PATHS, PROTECTED_ROUTES } from '@/utils/isProtectedRoute';
 
 describe('isProtectedRoute', () => {
   it('protects every configured route, and everything nested under it', () => {
@@ -12,11 +12,31 @@ describe('isProtectedRoute', () => {
     expect(isProtectedRoute('/investors')).toBe(true);
   });
 
-  it('leaves the PLAA home public but keeps every sub-page gated (PLAA-94)', () => {
-    expect(isProtectedRoute('/alignment-asset')).toBe(false);
-    expect(isProtectedRoute('/alignment-asset/')).toBe(false);
-    expect(isProtectedRoute('/alignment-asset/profile')).toBe(true);
-    expect(isProtectedRoute('/alignment-asset/leaderboard')).toBe(true);
+  describe('the PLAA public list', () => {
+    it('leaves only the listed PLAA pages open', () => {
+      for (const route of PLAA_PUBLIC_EXACT_PATHS) {
+        expect(isProtectedRoute(route)).toBe(false);
+        expect(isProtectedRoute(`${route}/`)).toBe(false);
+      }
+    });
+
+    it('keeps every other PLAA page gated, including ones added later', () => {
+      expect(isProtectedRoute('/alignment-asset/profile')).toBe(true);
+      expect(isProtectedRoute('/alignment-asset/leaderboard')).toBe(true);
+      expect(isProtectedRoute('/alignment-asset/some-new-page')).toBe(true);
+    });
+
+    it('matches public PLAA pages exactly, never as a prefix', () => {
+      for (const route of PLAA_PUBLIC_EXACT_PATHS) {
+        expect(isProtectedRoute(`${route}/child`)).toBe(true);
+      }
+    });
+
+    it('only lists pages inside the PLAA section', () => {
+      for (const route of PLAA_PUBLIC_EXACT_PATHS) {
+        expect(route === '/alignment-asset' || route.startsWith('/alignment-asset/')).toBe(true);
+      }
+    });
   });
 
   it('does not protect a sibling path that merely shares the prefix', () => {
@@ -42,7 +62,7 @@ describe('isProtectedRoute', () => {
     expect(isProtectedRoute('/')).toBe(false);
   });
 
-  it('keeps the alignment-asset sub-tree gated', () => {
+  it('gates the whole alignment-asset section by default', () => {
     expect(PROTECTED_ROUTES).toContain('/alignment-asset');
   });
 });

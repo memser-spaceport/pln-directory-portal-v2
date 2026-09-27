@@ -14,9 +14,7 @@ function toCategoryStats(data: RoundStatsResponse | undefined, categories: strin
   }));
 }
 
-// One request per round, no cache — same tradeoff the old Incentive Model
-// page made: self-maintaining as new rounds appear, at the cost of a
-// request per round.
+// No rounds index endpoint: one uncached request per round.
 async function getRoundHistory(totalRounds: number): Promise<RoundHistoryEntry[]> {
   const results = await Promise.all(Array.from({ length: totalRounds }, (_, i) => getRoundStats(i + 1)));
 

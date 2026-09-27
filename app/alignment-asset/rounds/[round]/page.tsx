@@ -4,13 +4,7 @@ interface PastRoundPageProps {
   params: Promise<{ round: string }>;
 }
 
-/**
- * PLAA-95: round (snapshot) content lives only on the Leaderboard page now, so
- * every `/alignment-asset/rounds/:n` link — including the ones already out in
- * snapshot emails and cross-page deep links — is permanently redirected to the
- * Leaderboard with that round preselected. Covers rounds 1..N and any future
- * round; the Leaderboard itself decides whether the round actually exists.
- */
+/** Old round links (including snapshot emails) redirect to the Leaderboard with that round selected. */
 export default async function PastRoundPage({ params }: PastRoundPageProps) {
   const { round: roundParam } = await params;
   const roundNumber = parseInt(roundParam, 10);

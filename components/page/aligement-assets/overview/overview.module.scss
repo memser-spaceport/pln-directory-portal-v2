@@ -1,9 +1,6 @@
 @import '../../../../styles/media.scss';
 
-// Scoped design tokens for the PLAA Overview page (Claude Design "Profile Page +
-// Overview" project — Active Member view). Kept local to this module rather than
-// added to the global palette so this rebrand doesn't leak into other PLAA pages
-// that haven't been redesigned yet.
+// Scoped tokens, kept out of the global palette so PLAA pages not yet redesigned keep their look.
 .wrapper {
   --ov-blue-500: #1b4dff;
   --ov-blue-subtle: #e8edff;
@@ -64,7 +61,6 @@
   max-width: 900px;
 }
 
-// ── Shared section primitives ──────────────────────────────────────────────
 .sectionTitle {
   font-size: 18px;
   font-weight: 600;
@@ -97,7 +93,6 @@
   }
 }
 
-// ── Topline stats ───────────────────────────────────────────────────────────
 .statGrid {
   display: grid;
   grid-template-columns: 1fr;
@@ -144,7 +139,6 @@
   }
 }
 
-// ── How It Works ─────────────────────────────────────────────────────────
 .section {
   display: flex;
   flex-direction: column;
@@ -234,7 +228,6 @@
   }
 }
 
-// ── Who It's For ─────────────────────────────────────────────────────────
 .whoCard {
   display: flex;
   flex-direction: column;
@@ -329,7 +322,6 @@
   color: var(--ov-text-secondary);
 }
 
-// ── Snapshots & Points ──────────────────────────────────────────────────
 .snapshotHeader {
   display: flex;
   align-items: flex-start;
@@ -493,7 +485,6 @@
   }
 }
 
-// ── Snapshot history (accordion) ───────────────────────────────────────
 .historySection {
   padding-top: 24px;
   margin-top: 24px;
@@ -538,9 +529,7 @@
 
 .historyTableWrap {
   overflow-x: auto;
-  // Overlay scrollbars (macOS default) hide any indication that a wider
-  // table is scrollable, so an overflowed row just looks cut off. Force a
-  // slim, always-visible scrollbar instead.
+  // Overlay scrollbars hide that a wide table scrolls; keep a slim one visible.
   scrollbar-width: thin;
   scrollbar-color: var(--ov-border-subtle) transparent;
 
@@ -558,9 +547,7 @@
   width: 100%;
   border-collapse: collapse;
   min-width: 760px;
-  // Fixed layout + an explicit width on the Snapshot column only means every
-  // KPI category column shares the remaining space equally, regardless of
-  // how long its name or values are.
+  // Only the Snapshot column has a width, so KPI columns share the rest equally.
   table-layout: fixed;
 }
 
@@ -605,11 +592,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-// Points stacked directly over the PLAA they convert to, connected by a
-// straight-down arrow — same idea as the profile page's Snapshot History
-// tab conversion row (components/page/aligement-assets/profile), adapted
-// to a compact per-cell footprint so a full category row still fits
-// without scrolling.
 .historyConversion {
   display: inline-flex;
   flex-direction: column;
@@ -637,7 +619,6 @@
   background: var(--ov-surface-page);
 }
 
-// ── KPI emissions table ─────────────────────────────────────────────────
 .kpiSection {
   padding-top: 24px;
   margin-top: 24px;
@@ -685,7 +666,6 @@
   }
 }
 
-// ── Points → PLAA conversion ────────────────────────────────────────────
 .conversionLabel {
   font-size: 11px;
   font-weight: 600;
@@ -804,7 +784,6 @@
   margin-top: 12px;
 }
 
-// ── Redeeming PLAA ──────────────────────────────────────────────────────
 .redeemCard {
   border-radius: var(--ov-radius-2xl);
   background: linear-gradient(135deg, #eaf0ff 0%, #f6f9ff 46%, #eaf7f4 100%);
@@ -910,7 +889,6 @@
   }
 }
 
-// ── CTA banner ──────────────────────────────────────────────────────────
 .ctaBanner {
   border-radius: var(--ov-radius-2xl);
   background: linear-gradient(135deg, var(--ov-blue-500) 0%, var(--ov-teal-500) 100%);
@@ -969,7 +947,6 @@
   }
 }
 
-// ── Legal + footer ──────────────────────────────────────────────────────
 .legalDisclaimer {
   font-size: 12px;
   line-height: 18px;
@@ -997,7 +974,6 @@
   }
 }
 
-// ── Prospective Visitor: onboarding walkthrough ─────────────────────────
 .prospectHero {
   display: grid;
   grid-template-columns: 1fr;
@@ -1164,8 +1140,7 @@
   line-height: 1;
 }
 
-// Step 3 (accreditation, skippable for non-US participants) renders as an
-// outline instead of the filled circle the other steps use.
+// Step 3 (accreditation) is optional for non-US participants.
 .onboardingStepBadgeOutlined {
   background: var(--ov-surface-card);
   color: var(--ov-blue-500);

@@ -24,9 +24,6 @@ export default function ActivitiesComponent() {
   const { onActivitiesRowClicked, onActivitiesModalClosed } = useAlignmentAssetsAnalytics();
   useScrollDepthTracking('activities');
 
-  // `?category=` deep link, used by the Leaderboard's underutilized-category
-  // cards (PLAA-95). An unknown category matches nothing, so fall back to the
-  // full list rather than showing an empty page.
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoryParam = searchParams?.get('category') ?? null;
@@ -40,9 +37,7 @@ export default function ActivitiesComponent() {
   const hash = useHash();
   const activityId = hash ? (hash.startsWith('#') ? hash.slice(1) : hash) : null;
   const selectedActivity =
-    activityId && activityId !== 'login'
-      ? activitiesData.activities.find((a) => a.id === activityId) ?? null
-      : null;
+    activityId && activityId !== 'login' ? (activitiesData.activities.find((a) => a.id === activityId) ?? null) : null;
   const isModalOpen = selectedActivity !== null;
 
   // Update the hash and notify useHash (pushState alone doesn't emit 'hashchange').
@@ -95,21 +90,14 @@ export default function ActivitiesComponent() {
         )}
 
         {/* Activities Table */}
-        <ActivityTable
-          activities={visibleActivities}
-          onRowClick={handleRowClick}
-        />
+        <ActivityTable activities={visibleActivities} onRowClick={handleRowClick} />
 
         {/* Support Section */}
         <SupportSection />
       </div>
 
       {/* Activity Detail Modal */}
-      <ActivityDetailModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        activity={selectedActivity}
-      />
+      <ActivityDetailModal isOpen={isModalOpen} onClose={handleCloseModal} activity={selectedActivity} />
 
       <style jsx>{`
         .activities-component {

@@ -24,13 +24,8 @@ import OverviewTopline from './overview-topline';
 import styles from './overview.module.scss';
 import type { CSSProperties } from 'react';
 
-// CSSProperties doesn't type custom properties, so scoped `--ov-*` values
-// (per-card accent colors, bar widths, etc.) need this cast at the call site.
 const cssVars = (vars: Record<string, string>) => vars as CSSProperties;
 
-// Illustrative fallback for the KPI emissions schedule, matching the Claude
-// Design mock 1:1 — shown only until the kpi-weights API returns data (same
-// pattern as components/page/aligement-assets/faqs/faqs.tsx).
 const KPI_WEIGHTS_FALLBACK: KpiWeightEntry[] = [
   { category: 'Knowledge Sharing', weight: null, percentOfTotal: 21.43, emissionsPerSnapshot: 2143 },
   { category: 'Projects', weight: null, percentOfTotal: 20.0, emissionsPerSnapshot: 2000 },
@@ -57,10 +52,7 @@ interface CategoryStat {
   plaa: number;
 }
 
-// Illustrative fallback for the points/PLAA-by-category chart — same
-// categories as KPI_WEIGHTS_FALLBACK, shown only until the rounds API
-// returns a current snapshot. PLAA mirrors the emissions schedule; points
-// are a rough illustrative multiplier, not a claim about any real snapshot.
+// Illustrative; shown until the rounds API returns a current snapshot.
 const CATEGORY_STATS_FALLBACK: CategoryStat[] = KPI_WEIGHTS_FALLBACK.map((row) => ({
   name: row.category,
   points: (row.emissionsPerSnapshot ?? 0) * 6,
@@ -122,7 +114,6 @@ export default function ActiveMemberOverview({
     <div className={styles.wrapper}>
       <OverviewTopline trustHoldings={trustHoldings} />
 
-      {/* ── Snapshots & Points ── */}
       <div className={styles.section}>
         <div className={styles.sectionIntro}>
           <h2 className={styles.sectionTitle}>Snapshots &amp; Points</h2>
@@ -318,7 +309,6 @@ export default function ActiveMemberOverview({
         </div>
       </div>
 
-      {/* ── Points → PLAA Conversion ── */}
       <div className={styles.section}>
         <div className={styles.sectionIntro}>
           <h2 className={styles.sectionTitle}>Points → PLAA Conversion</h2>
@@ -448,7 +438,6 @@ export default function ActiveMemberOverview({
         </div>
       </div>
 
-      {/* ── Redeeming PLAA ── */}
       <div className={styles.redeemCard}>
         <div>
           <h2 className={styles.sectionTitle}>Redeeming PLAA</h2>
@@ -483,7 +472,6 @@ export default function ActiveMemberOverview({
         </div>
       </div>
 
-      {/* ── CTA ── */}
       <div className={styles.ctaBanner}>
         <div className={styles.ctaBannerText}>
           <h2 className={styles.ctaBannerTitle}>Collect points this snapshot.</h2>
@@ -491,11 +479,7 @@ export default function ActiveMemberOverview({
             Browse the incentivized activities open now and see what each one is worth.
           </p>
         </div>
-        <Link
-          href="/alignment-asset/activities"
-          className={styles.ctaBannerButton}
-          onClick={handleActivitiesClick}
-        >
+        <Link href="/alignment-asset/activities" className={styles.ctaBannerButton} onClick={handleActivitiesClick}>
           View activities <ArrowRight size={16} weight="bold" />
         </Link>
       </div>

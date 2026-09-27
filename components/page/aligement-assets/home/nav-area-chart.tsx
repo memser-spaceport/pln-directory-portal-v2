@@ -5,7 +5,6 @@ import type { NavPoint } from '@/services/plaa/trust-holdings.service';
 interface NavAreaChartProps {
   readonly points: NavPoint[];
   readonly gradientId: string;
-  /** Which figure on each NavPoint to plot. */
   readonly field: 'navPerPlaa' | 'nav';
   readonly height?: number;
   readonly showAxisLabels?: boolean;
@@ -18,18 +17,7 @@ const PAD_R = 56;
 const PAD_T = 18;
 const PAD_B = 34;
 
-/**
- * Area chart over the live monthly NAV series. The prototype hard-codes an SVG
- * path; every coordinate here is computed from the points passed in, so the
- * curve is whatever the backend reports.
- */
-export default function NavAreaChart({
-  points,
-  gradientId,
-  field,
-  height,
-  showAxisLabels = true,
-}: NavAreaChartProps) {
+export default function NavAreaChart({ points, gradientId, field, height, showAxisLabels = true }: NavAreaChartProps) {
   if (points.length < 2) return null;
 
   const values = points.map((p) => p[field]);
@@ -53,7 +41,12 @@ export default function NavAreaChart({
   const format = (v: number) => (field === 'navPerPlaa' ? `$${v.toFixed(2)}` : `$${(v / 1_000_000).toFixed(2)}M`);
 
   return (
-    <svg viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} style={{ width: '100%', height: height ? `${height}px` : 'auto', display: 'block' }} role="img" aria-label="NAV history">
+    <svg
+      viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+      style={{ width: '100%', height: height ? `${height}px` : 'auto', display: 'block' }}
+      role="img"
+      aria-label="NAV history"
+    >
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="var(--color-chart)" stopOpacity="0.16" />
@@ -62,7 +55,15 @@ export default function NavAreaChart({
       </defs>
 
       {gridLines.map((gy) => (
-        <line key={`grid-${gy}`} x1={PAD_L} x2={VIEW_W - PAD_R} y1={gy} y2={gy} stroke="var(--border-faint)" strokeWidth="1" />
+        <line
+          key={`grid-${gy}`}
+          x1={PAD_L}
+          x2={VIEW_W - PAD_R}
+          y1={gy}
+          y2={gy}
+          stroke="var(--border-faint)"
+          strokeWidth="1"
+        />
       ))}
 
       <polygon points={area} fill={`url(#${gradientId})`} />
@@ -74,20 +75,51 @@ export default function NavAreaChart({
         strokeLinejoin="round"
         strokeLinecap="round"
       />
-      <circle cx={x(points.length - 1)} cy={y(last[field])} r="5" fill="var(--color-chart)" stroke="#fff" strokeWidth="2" />
+      <circle
+        cx={x(points.length - 1)}
+        cy={y(last[field])}
+        r="5"
+        fill="var(--color-chart)"
+        stroke="#fff"
+        strokeWidth="2"
+      />
 
       {showAxisLabels && (
         <>
-          <text x={PAD_L - 10} y={y(max) + 4} textAnchor="end" fill="var(--text-tertiary)" style={{ fontSize: '10px', fontWeight: 500 }}>
+          <text
+            x={PAD_L - 10}
+            y={y(max) + 4}
+            textAnchor="end"
+            fill="var(--text-tertiary)"
+            style={{ fontSize: '10px', fontWeight: 500 }}
+          >
             {format(max)}
           </text>
-          <text x={PAD_L - 10} y={y(min) + 4} textAnchor="end" fill="var(--text-tertiary)" style={{ fontSize: '10px', fontWeight: 500 }}>
+          <text
+            x={PAD_L - 10}
+            y={y(min) + 4}
+            textAnchor="end"
+            fill="var(--text-tertiary)"
+            style={{ fontSize: '10px', fontWeight: 500 }}
+          >
             {format(min)}
           </text>
-          <text x={PAD_L} y={VIEW_H - 8} textAnchor="start" fill="var(--text-tertiary)" style={{ fontSize: '10px', fontWeight: 500 }}>
+          <text
+            x={PAD_L}
+            y={VIEW_H - 8}
+            textAnchor="start"
+            fill="var(--text-tertiary)"
+            style={{ fontSize: '10px', fontWeight: 500 }}
+          >
             {points[0].label}
           </text>
-          <text x={VIEW_W - PAD_R} y={VIEW_H - 8} textAnchor="end" fill="var(--text-tertiary)" style={{ fontSize: '10px', fontWeight: 500 }}>
+          <text
+            x={VIEW_W - PAD_R}
+            y={VIEW_H - 8}
+            textAnchor="end"
+            fill="var(--text-tertiary)"
+            style={{ fontSize: '10px', fontWeight: 500 }}
+          >
             {last.label}
           </text>
         </>

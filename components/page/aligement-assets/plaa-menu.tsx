@@ -6,22 +6,7 @@ import Image from 'next/image';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { usePlaaAccess } from '@/services/rbac/hooks/usePlaaAccess';
 
-/*
- * Rail glyphs, drawn inline on Phosphor's 256 grid to match the icons the
- * design names in `railDef` (.design-src/Home Page.dc.html):
- *   Home house · Overview compass · Activities lightning · Profile user-circle
- *   Kudos hands-clapping · Portfolio & Holdings chart-pie-slice
- *   Leaderboard ranking · FAQ question
- * The design's `RESOURCES` group (Product Versions, Terms of Use, Privacy
- * Policy, Disclosure) carries no icons, and nav entries the design does not
- * show at all (Incentive Model, Feedback) are left bare rather than invented.
- *
- * Inlined rather than using the `ph-*` classes the prototype writes: the
- * Phosphor webfont is not a dependency of this app, so those classes render
- * nothing at all.
- *
- * `filled` swaps the outline for the solid variant on the active row.
- */
+/** Inline Phosphor glyphs: the Phosphor webfont isn't a dependency, so `ph-*` classes render nothing. */
 type IconProps = { filled: boolean };
 
 const svgProps = {
@@ -32,7 +17,6 @@ const svgProps = {
   focusable: 'false',
 } as const;
 
-/** Outline by default, solid when the row is active. */
 const paint = (filled: boolean) => ({
   fill: filled ? 'currentColor' : 'none',
   stroke: 'currentColor',
@@ -55,7 +39,12 @@ function HouseIcon({ filled }: IconProps) {
 function RankingIcon({ filled }: IconProps) {
   return (
     <svg {...svgProps}>
-      <g fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={filled ? 0 : 16} strokeLinejoin="round">
+      <g
+        fill={filled ? 'currentColor' : 'none'}
+        stroke="currentColor"
+        strokeWidth={filled ? 0 : 16}
+        strokeLinejoin="round"
+      >
         <rect x="32" y="144" width="56" height="72" rx="4" />
         <rect x="100" y="96" width="56" height="120" rx="4" />
         <rect x="168" y="48" width="56" height="168" rx="4" />
@@ -76,7 +65,10 @@ function CompassIcon({ filled }: IconProps) {
 function LightningIcon({ filled }: IconProps) {
   return (
     <svg {...svgProps}>
-      <path d="M96 240a8 8 0 0 1-7.8-9.8L104.6 152H48a8 8 0 0 1-6.1-13.2l112-128a8 8 0 0 1 13.9 7l-16.4 78.2H208a8 8 0 0 1 6.1 13.2l-112 128A8 8 0 0 1 96 240Z" {...paint(filled)} />
+      <path
+        d="M96 240a8 8 0 0 1-7.8-9.8L104.6 152H48a8 8 0 0 1-6.1-13.2l112-128a8 8 0 0 1 13.9 7l-16.4 78.2H208a8 8 0 0 1 6.1 13.2l-112 128A8 8 0 0 1 96 240Z"
+        {...paint(filled)}
+      />
     </svg>
   );
 }
@@ -85,7 +77,14 @@ function UserCircleIcon({ filled }: IconProps) {
   return (
     <svg {...svgProps}>
       <circle cx="128" cy="128" r="96" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="16" />
-      <circle cx="128" cy="112" r="32" fill="none" stroke={filled ? 'var(--plaa-neutral-white, #fff)' : 'currentColor'} strokeWidth="16" />
+      <circle
+        cx="128"
+        cy="112"
+        r="32"
+        fill="none"
+        stroke={filled ? 'var(--plaa-neutral-white, #fff)' : 'currentColor'}
+        strokeWidth="16"
+      />
       <path
         d="M64 200a72 72 0 0 1 128 0"
         fill="none"
@@ -178,12 +177,6 @@ const ICONS = {
 
 type MenuIcon = keyof typeof ICONS;
 
-/* PLAA-96: the rail opens on Home and no longer surfaces the current round.
-   Leaderboard sits after Trust & Holdings and before FAQ, as in the design.
-   Icons follow the design's `railDef`. Entries the design does not show
-   (Incentive Model, Feedback) and its icon-less RESOURCES group keep no icon.
-   The RESOURCES grouping and the Portfolio & Holdings rename remain open
-   questions on the ticket and are not applied here. */
 const menuItems: Array<{
   name: PlaaActiveItem;
   label: string;
@@ -191,7 +184,6 @@ const menuItems: Array<{
   isExternal?: boolean;
   badge?: 'new';
   icon?: MenuIcon;
-  /** Secondary group under the FAQ divider — the design's RESOURCES rail. */
   secondary?: true;
 }> = [
   { name: 'home', label: 'Home', url: '/alignment-asset', icon: 'house' },
@@ -199,15 +191,23 @@ const menuItems: Array<{
   { name: 'activities', label: 'Activities', url: '/alignment-asset/activities', icon: 'lightning' },
   { name: 'profile', label: 'Profile', url: '/alignment-asset/profile', icon: 'user-circle' },
   { name: 'kudos', label: 'Kudos', url: '/alignment-asset/kudos', badge: 'new', icon: 'hands-clapping' },
-  // The design calls this "Portfolio & Holdings"; same entry, so it takes that
-  // row's chart-pie-slice icon while keeping the current label.
-  { name: 'trust-holdings', label: 'Trust & Holdings', url: '/alignment-asset/trust-holdings', icon: 'chart-pie-slice' },
+  {
+    name: 'trust-holdings',
+    label: 'Trust & Holdings',
+    url: '/alignment-asset/trust-holdings',
+    icon: 'chart-pie-slice',
+  },
   { name: 'leaderboard', label: 'Leaderboard', url: '/alignment-asset/leaderboard', icon: 'ranking' },
   { name: 'faqs', label: 'FAQ', url: '/alignment-asset/faqs', icon: 'question' },
 
-  /* Everything below sits under the divider in the smaller secondary style. */
   { name: 'product-versions', label: 'Product Versions', url: '/alignment-asset/product-versions', secondary: true },
-  { name: 'feedback', label: 'Feedback', url: 'https://forms.gle/NAKxJ8RUqmUf9fmQ9', isExternal: true, secondary: true },
+  {
+    name: 'feedback',
+    label: 'Feedback',
+    url: 'https://forms.gle/NAKxJ8RUqmUf9fmQ9',
+    isExternal: true,
+    secondary: true,
+  },
   { name: 'terms-of-use', label: 'Terms of Use', url: '/alignment-asset/terms-of-use', secondary: true },
   { name: 'privacy-policy', label: 'Privacy Policy', url: '/alignment-asset/privacy-policy', secondary: true },
   { name: 'disclosure', label: 'Disclosure', url: '/alignment-asset/disclosure', secondary: true },
@@ -259,13 +259,9 @@ function PlaaMenu({ activeItem, onMenuItemClick, isLoggedIn }: PlaaMenuProps) {
   return (
     <>
       <nav className="plaa-menu" role="navigation" aria-label="PLAA navigation">
-        {/* Navigation Items. The round dropdown was removed here (PLAA-96) —
-            round selection now lives only on the Leaderboard page. */}
         <ul className="plaa-menu__list" role="list">
           {visibleItems.map((item, index) => (
             <li key={`plaa-${item.name}`} role="listitem">
-              {/* Rule above the first secondary entry, separating the product
-                  pages from the resources/legal links. */}
               {item.secondary && !visibleItems[index - 1]?.secondary && <hr className="plaa-menu__divider" />}
               <button
                 onClick={() => onItemClicked(item.label, item.url, item.isExternal)}
@@ -341,9 +337,6 @@ function PlaaMenu({ activeItem, onMenuItemClick, isLoggedIn }: PlaaMenuProps) {
             background-color: #f8fafc;
           }
 
-          /* ---------------------------------------------------------------
-             Divider + secondary group (resources / legal)
-             --------------------------------------------------------------- */
           .plaa-menu__divider {
             border: none;
             border-top: 1px solid var(--plaa-border-light, #e2e8f0);
@@ -364,7 +357,6 @@ function PlaaMenu({ activeItem, onMenuItemClick, isLoggedIn }: PlaaMenuProps) {
              Figma: background #f1f5f9, text #0b4f66
              --------------------------------------------------------------- */
           .plaa-menu__item--active {
-            /* PLAA-96: brand-subtle background plus a 3px brand left bar. */
             background-color: #e6f1f5;
             box-shadow: inset 3px 0 0 0 #0b4f66;
           }
@@ -373,7 +365,6 @@ function PlaaMenu({ activeItem, onMenuItemClick, isLoggedIn }: PlaaMenuProps) {
             color: #0b4f66;
           }
 
-          /* Icons inherit the row colour, so the active row tints them too. */
           .plaa-menu__item :global(svg) {
             flex: none;
             color: #475569;

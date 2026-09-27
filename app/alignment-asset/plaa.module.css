@@ -6,7 +6,7 @@
   width: 100%;
   min-height: 100vh;
 }
-  
+
 /* --------------------------------------------------------------------------
    Block: plaa
    -------------------------------------------------------------------------- */
@@ -23,21 +23,21 @@
 .plaa__menuBtn {
   display: none;
   position: fixed;
-  bottom: 65px; 
+  bottom: 65px;
   right: 24px;
   width: 40px;
   height: 40px;
   z-index: 5;
-  background-color: #FFFFFF;
-  border: 1px solid #0B4F66;
+  background-color: #ffffff;
+  border: 1px solid #0b4f66;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0px 2px 6px 0px #0F172A29;
+  box-shadow: 0px 2px 6px 0px #0f172a29;
   transition: all 0.3s ease;
-  color: #0B4F66;
+  color: #0b4f66;
 }
 
 /* --------------------------------------------------------------------------
@@ -74,17 +74,12 @@
   border-right: 1px solid var(--plaa-border-light);
   background-color: var(--plaa-neutral-white);
   position: sticky;
-  /* The snapshot bar scrolls away with the page, so the rail pins directly
-     under the LabOS header rather than reserving a banner strip that is no
-     longer there. */
   top: var(--app-header-height);
   left: 0;
   height: calc(100vh - var(--app-header-height));
   overflow-y: auto;
   align-self: flex-start;
 }
-
-
 
 /* --------------------------------------------------------------------------
      Element: plaa__content
@@ -106,8 +101,6 @@
   overflow-x: clip;
 }
 
-/* The home page manages its own fluid gutters, so it opts out of the shared
-   reading-width cap and fills the content column at every viewport. */
 .plaa__content--fluid {
   padding: 0;
 }
@@ -181,13 +174,12 @@
   z-index: 1;
 }
 
-
 /* Menu Title */
 .plaa__menuTitle {
   font-size: 16px;
   font-weight: 600;
   line-height: 1;
-  color: #0F172A;
+  color: #0f172a;
 }
 
 /* Close Button */
@@ -341,15 +333,12 @@
     padding: 20px 48px 225px 48px;
   }
 
-  /* Must sit after the rule above: equal specificity, so source order decides.
-     Without this the home page's fluid opt-out is silently defeated at >=960px,
-     leaving a 48px white frame around the full-bleed hero and 225px of dead
-     space under the footer. */
+  /* After the rule above on purpose: equal specificity, so source order decides. */
   .plaa__content--fluid {
     padding: 0;
     flex: 1;
   }
-  
+
   .plaa__menuBtn {
     display: none;
   }

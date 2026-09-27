@@ -4,10 +4,8 @@ import { TrophyIcon } from './leaderboard-icons';
 import { getInitials } from './leaderboard.mapper';
 import type { LeaderboardRow } from './leaderboard.types';
 
-/** Medal fills for the top three ranks, from the design. */
 const MEDALS = ['#E8A53D', '#9CA8B8', '#C8884B'];
 
-/** Avatar palette, cycled by row index (design: lbColors). */
 const AVATAR_COLORS = [
   '#F2792B',
   '#8B5CF6',
@@ -28,8 +26,6 @@ interface LeaderboardTableProps {
 }
 
 export default function LeaderboardTable({ caption, rows, error }: LeaderboardTableProps) {
-  // The category column only exists when the API actually resolved categories
-  // for these entries — an all-empty column is worse than no column.
   const showCategory = rows.some((row) => row.topCategory);
 
   return (
@@ -109,9 +105,6 @@ export default function LeaderboardTable({ caption, rows, error }: LeaderboardTa
           text-transform: uppercase;
           color: var(--text-tertiary);
         }
-        /* Columns share one flex track set between the header row and the data
-           rows, so they stay aligned while flexing with the container instead
-           of sitting at fixed pixel widths. */
         .lb-rank-col {
           flex: 0 0 34px;
           text-align: center;
@@ -170,8 +163,6 @@ export default function LeaderboardTable({ caption, rows, error }: LeaderboardTa
           font-weight: 600;
           flex: none;
         }
-        /* Long names and categories truncate rather than forcing the row to
-           overflow its card. */
         .lb-name {
           font: var(--text-label-lg);
           font-weight: 600;

@@ -1,17 +1,10 @@
 'use client';
 
 interface PlaaProspectBannerProps {
-  /** Live venture count; the prototype's "190+" is a fixture and is not used. */
   readonly portfolioCompanies?: number;
   readonly onGetStarted: () => void;
 }
 
-/**
- * Dark "New to PLAA?" top banner for visitors who are not signed in or not
- * onboarded — PLAA-94. The onboarded counterpart is the existing blue snapshot
- * bar (`components/core/navbar/components/PlaaSnapshotBar`), which is reused
- * rather than rebuilt.
- */
 export default function PlaaProspectBanner({ portfolioCompanies, onGetStarted }: PlaaProspectBannerProps) {
   return (
     <div className="ppb">
@@ -37,9 +30,6 @@ export default function PlaaProspectBanner({ portfolioCompanies, onGetStarted }:
           background: var(--pl-slate-900);
           color: #fff;
           flex-wrap: wrap;
-          /* Bleeds by the page's real gutter tokens, not fixed px: the old
-             -40px over-bled below ~1333px (clipped by overflow-x: hidden) and
-             under-bled above it, so the banner never lined up with the hero. */
           margin: calc(clamp(20px, 2.4vw, 36px) * -1) calc(var(--plaa-home-gutter) * -1) 32px;
         }
         .ppb__label {

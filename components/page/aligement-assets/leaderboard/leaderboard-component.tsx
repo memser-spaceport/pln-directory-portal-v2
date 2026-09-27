@@ -12,7 +12,6 @@ type LeaderboardTab = 'current' | 'alltime';
 
 interface LeaderboardComponentProps {
   readonly leaderboard: LeaderboardViewData;
-  /** Newest round first. */
   readonly snapshots: LeaderboardSnapshot[];
   readonly categoryWeights: LeaderboardCategoryWeight[];
   /** `?round=N` deep link, and the target of the `/rounds/N` redirect (PLAA-95). */
@@ -108,8 +107,6 @@ export default function LeaderboardComponent({
 
       <style jsx>{`
         .lb-page {
-          /* Design-system tokens the prototype assumes; this app does not ship
-             them globally, so they are scoped to this page. */
           --surface-card: #ffffff;
           --surface-page: rgb(249, 250, 251);
           --text-primary: rgb(10, 12, 17);
@@ -117,10 +114,8 @@ export default function LeaderboardComponent({
           --text-tertiary: rgb(136, 151, 174);
           --border-subtle: rgba(27, 56, 96, 0.12);
           --border-faint: rgba(27, 56, 96, 0.06);
-          /* Headings, icons and accents. */
           --color-brand: #0b4f66;
           --color-brand-text: #094157;
-          /* Charts keep their own blue — see plaa-home-tokens.tsx. */
           --color-chart: #365a83;
           --pl-blue-25: #f5f8fb;
           --pl-green-600: rgb(4, 135, 70);
@@ -144,9 +139,6 @@ export default function LeaderboardComponent({
           --text-label-md: 500 12px/16px var(--font-sans);
           --text-label-sm: 500 11px/16px var(--font-sans);
 
-          /* Fills the content column instead of sitting in a fixed 900px box;
-             the reading measure is held by .lb-sub / .lb-cta-copy instead, so
-             the cards and table still use the full width. */
           width: 100%;
           font-family: var(--font-sans);
           color: var(--text-primary);
@@ -253,8 +245,6 @@ export default function LeaderboardComponent({
         .lb-cta-btn:hover {
           background: var(--pl-blue-25);
         }
-        /* The wrapping above handles the narrow cases on its own; these only
-           realign what has already wrapped. */
         @media (max-width: 860px) {
           .lb-header,
           .lb-cta {

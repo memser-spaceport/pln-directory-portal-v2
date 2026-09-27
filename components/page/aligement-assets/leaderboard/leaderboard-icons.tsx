@@ -1,8 +1,3 @@
-/**
- * The design calls Phosphor icon classes (`ph-fill ph-trophy`). This app does
- * not load the Phosphor webfont, so the same glyphs ship as inline SVG rather
- * than pulling in an icon dependency for seven marks.
- */
 interface IconProps {
   readonly size?: number;
   readonly color?: string;

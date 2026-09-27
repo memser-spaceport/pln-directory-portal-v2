@@ -2,23 +2,16 @@
 
 import { UNDERUTILIZED_RATIO } from './leaderboard.mapper';
 
-/** Geometry from the design prototype. */
 const CX = 160;
 const CY = 150;
 const R = 96;
 const GRID_RINGS = [0.25, 0.5, 0.75, 1];
 
 interface CategoryRadarProps {
-  /** Live points per category this snapshot (stats.chart) — any length. */
   readonly categories: Array<{ name: string; value: number }>;
 }
 
-/**
- * Splits the long category names onto two lines, as the design does.
- * The break is cosmetic only — the API's own spelling is preserved, so a
- * category reads identically here and in the boost cards below (the API says
- * "People/Talent", not the design's "People / Talent").
- */
+/** Cosmetic line break only; the API spelling is kept so labels match the boost cards. */
 const splitLabel = (name: string): [string, string] => {
   const parts = name.split(/\s*\/\s*|\s+/);
   if (name.length <= 12 || parts.length < 2) return [name, ''];
@@ -53,15 +46,19 @@ export default function CategoryRadar({ categories }: CategoryRadarProps) {
     <svg viewBox="0 0 320 300" className="lb-radar" role="img" aria-label="Points collected per activity category">
       <defs>
         <linearGradient id="lbGold" x1="0" y1="0" x2="1" y2="0">
-          {/* Underutilised highlight: the PLAA primary, not green, so the
-              callout reads as part of the page rather than a status colour. */}
           <stop offset="0%" stopColor="#12708F" />
           <stop offset="100%" stopColor="#0B4F66" />
         </linearGradient>
       </defs>
 
       {GRID_RINGS.map((factor) => (
-        <polygon key={factor} points={ring(R * factor, false)} fill="none" stroke="var(--border-subtle)" strokeWidth="1" />
+        <polygon
+          key={factor}
+          points={ring(R * factor, false)}
+          fill="none"
+          stroke="var(--border-subtle)"
+          strokeWidth="1"
+        />
       ))}
 
       {categories.map((category, index) => {
@@ -81,9 +78,6 @@ export default function CategoryRadar({ categories }: CategoryRadarProps) {
 
       <polygon
         points={ring(R, true)}
-        /* Brand, not --color-chart: this plots activity categories, not the
-           Trust's holdings, so it follows the PLAA primary. The NAV series and
-           the portfolio charts stay on --color-chart. */
         fill="rgba(11, 79, 102, 0.16)"
         stroke="var(--color-brand)"
         strokeWidth="2"

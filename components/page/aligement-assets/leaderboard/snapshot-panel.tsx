@@ -15,13 +15,7 @@ import { UNDERUTILIZED_RATIO } from './leaderboard.mapper';
 import type { LeaderboardCategoryWeight, LeaderboardSnapshot } from './leaderboard.types';
 import { activitiesData } from '../activities/data';
 
-/**
- * The design's boost card names a suggested activity and its points. There is
- * no "suggested activity" endpoint, so the suggestion is read from the same
- * activities catalogue the Activities page renders — the highest-value activity
- * in that category. Catalogue-sourced, not invented, and it moves when the
- * catalogue does.
- */
+/** No suggested-activity endpoint: use the highest-value catalogue activity in the category. */
 const suggestionFor = (category: string): { title: string; points: string } | null => {
   const normalise = (value: string) => value.toLowerCase().replace(/[^a-z]/g, '');
   const best = activitiesData.activities
@@ -30,14 +24,11 @@ const suggestionFor = (category: string): { title: string; points: string } | nu
   return best ? { title: best.activity, points: best.points } : null;
 };
 
-const activitiesHref = (category: string) =>
-  `/alignment-asset/activities?category=${encodeURIComponent(category)}`;
+const activitiesHref = (category: string) => `/alignment-asset/activities?category=${encodeURIComponent(category)}`;
 
-/** At most this many boost cards, so the column stays readable. */
 const MAX_UNDER_CARDS = 4;
 
 interface SnapshotPanelProps {
-  /** Newest round first. */
   readonly snapshots: LeaderboardSnapshot[];
   readonly index: number;
   readonly onIndexChange: (index: number) => void;
@@ -82,7 +73,9 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
 
   const max = Math.max(...snapshot.categories.map((category) => category.value), 0);
   const weightFor = (name: string) =>
-    categoryWeights.find((weight) => weight.category.toLowerCase().replace(/[^a-z]/g, '') === name.toLowerCase().replace(/[^a-z]/g, ''));
+    categoryWeights.find(
+      (weight) => weight.category.toLowerCase().replace(/[^a-z]/g, '') === name.toLowerCase().replace(/[^a-z]/g, ''),
+    );
 
   const under = snapshot.categories
     .filter((category) => max > 0 && category.value < max * UNDERUTILIZED_RATIO)
@@ -171,7 +164,9 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
         <div>
           <div className="snap-under-title">Underutilized — boost these</div>
           <div className="snap-under-list">
-            {under.length === 0 && <p className="snap-copy snap-copy--muted">Every category is tracking evenly this snapshot.</p>}
+            {under.length === 0 && (
+              <p className="snap-copy snap-copy--muted">Every category is tracking evenly this snapshot.</p>
+            )}
             {under.map((category) => {
               const weight = weightFor(category.name);
               const suggestion = suggestionFor(category.name);
@@ -308,8 +303,6 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
           margin-bottom: 24px;
         }
         .snap-metric {
-          /* Tiles share the row evenly and drop to a single column only when
-             they can no longer hold their basis. */
           flex: 1 1 220px;
           min-width: 0;
           background: var(--surface-page);
@@ -376,8 +369,6 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
         .snap-copy a {
           color: var(--color-brand-text);
         }
-        /* The underutilised highlight now uses the PLAA primary rather than
-           green, so the copy no longer names a colour. */
         .snap-green {
           color: var(--color-brand-text);
           font-weight: 700;
@@ -388,16 +379,10 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
           gap: 24px;
           align-items: center;
         }
-        /* Radar and the boost cards: both flex, both allowed to shrink, so the
-           chart scales with the panel rather than pinning its track width.
-           :global — the radar is rendered by CategoryRadar, so it carries that
-           component's styled-jsx scope, not this one's, and a plain child
-           selector never matches it. */
+        /* :global — the radar carries CategoryRadar's styled-jsx scope, not this one's. */
         .snap-grid > :global(:first-child) {
           flex: 1 1 280px;
           min-width: 0;
-          /* A radar wider than this stops reading as a chart and starts reading
-             as wallpaper. */
           max-width: 420px;
         }
         .snap-grid > :global(:last-child) {
@@ -426,11 +411,15 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
           background: linear-gradient(135deg, rgba(11, 79, 102, 0.12), rgba(18, 112, 143, 0.05));
           box-shadow: inset 0 0 0 1.5px rgba(11, 79, 102, 0.32);
           cursor: pointer;
-          transition: transform var(--duration-base), box-shadow var(--duration-base);
+          transition:
+            transform var(--duration-base),
+            box-shadow var(--duration-base);
         }
         .snap-under:hover {
           transform: translateY(-2px);
-          box-shadow: inset 0 0 0 1.5px rgba(11, 79, 102, 0.5), var(--shadow-md);
+          box-shadow:
+            inset 0 0 0 1.5px rgba(11, 79, 102, 0.5),
+            var(--shadow-md);
         }
         .snap-under-icon {
           width: 38px;
@@ -464,7 +453,6 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
         .snap-under-hint b {
           color: var(--color-brand-text);
         }
-        /* Wrapping is handled by the flex bases above; nothing to override. */
       `}</style>
     </div>
   );

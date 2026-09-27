@@ -1,14 +1,22 @@
 'use client';
 
 import Link from 'next/link';
-import { HandHeart, Coins, ArrowsLeftRight, TrendUp, RocketLaunch, Flask, Code, Strategy, Check } from '@phosphor-icons/react';
+import {
+  HandHeart,
+  Coins,
+  ArrowsLeftRight,
+  TrendUp,
+  RocketLaunch,
+  Flask,
+  Code,
+  Strategy,
+  Check,
+} from '@phosphor-icons/react';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import type { TrustHoldingsData } from '@/services/plaa/trust-holdings.service';
 import styles from './overview.module.scss';
 import type { CSSProperties, ReactNode } from 'react';
 
-// CSSProperties doesn't type custom properties, so scoped `--ov-*` values
-// (per-card accent colors) need this cast at the call site.
 const cssVars = (vars: Record<string, string>) => vars as CSSProperties;
 
 interface HowItem {
@@ -22,10 +30,6 @@ interface HowItem {
   withActivitiesLink: boolean;
 }
 
-// Per the source design, the badge circle and border/icon share one accent
-// for Contribute/Collect, but Convert/Capitalize use a second, darker
-// accent for the badge only — see Overview - Active Member.dc.html's How
-// It Works cards (border-top + icon vs. the numbered circle).
 const HOW_ITEMS: HowItem[] = [
   {
     number: 1,
@@ -86,12 +90,6 @@ export interface OverviewToplineProps {
   trustHoldings?: TrustHoldingsData;
 }
 
-/**
- * Header, topline stats, How It Works, and Who It's For — identical for
- * both Active Member and Prospective Visitor personas per the "shared
- * topline" comment in the source design, so both persona components render
- * this rather than duplicating it.
- */
 export default function OverviewTopline({ trustHoldings }: OverviewToplineProps) {
   const { onOverviewPortfolioLinkClicked, onOverviewActivitiesLinkClicked } = useAlignmentAssetsAnalytics();
 
@@ -109,7 +107,6 @@ export default function OverviewTopline({ trustHoldings }: OverviewToplineProps)
         </p>
       </div>
 
-      {/* ── Topline stats ── */}
       <div className={styles.statGrid}>
         <div className={styles.statCard} style={cssVars({ '--ov-accent': '#1b4dff' })}>
           <div className={styles.statValue}>
@@ -128,7 +125,6 @@ export default function OverviewTopline({ trustHoldings }: OverviewToplineProps)
         </div>
       </div>
 
-      {/* ── How It Works ── */}
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>How It Works</h2>
         <div className={styles.howGrid}>
@@ -150,7 +146,11 @@ export default function OverviewTopline({ trustHoldings }: OverviewToplineProps)
               {item.withActivitiesLink ? (
                 <div className={styles.howCardFooter}>
                   <span className={styles.howCardIcon}>{item.icon}</span>
-                  <Link href="/alignment-asset/activities" className={styles.howCardLink} onClick={handleActivitiesClick}>
+                  <Link
+                    href="/alignment-asset/activities"
+                    className={styles.howCardLink}
+                    onClick={handleActivitiesClick}
+                  >
                     See activities →
                   </Link>
                 </div>
@@ -162,7 +162,6 @@ export default function OverviewTopline({ trustHoldings }: OverviewToplineProps)
         </div>
       </div>
 
-      {/* ── Who It's For ── */}
       <div className={`${styles.card} ${styles.whoCard}`}>
         <div className={styles.whoTop}>
           <h2 className={styles.sectionTitle}>Who It’s For</h2>

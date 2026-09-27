@@ -1,5 +1,9 @@
 import LeaderboardComponent from '@/components/page/aligement-assets/leaderboard/leaderboard-component';
-import { toCategoryWeights, toRows, toSnapshot } from '@/components/page/aligement-assets/leaderboard/leaderboard.mapper';
+import {
+  toCategoryWeights,
+  toRows,
+  toSnapshot,
+} from '@/components/page/aligement-assets/leaderboard/leaderboard.mapper';
 import type {
   LeaderboardSnapshot,
   LeaderboardViewData,
@@ -26,15 +30,16 @@ export default async function LeaderboardPage({ searchParams }: LeaderboardPageP
     );
   }
 
-  // Snapshot navigation walks the real rounds; there is no rounds index
-  // endpoint, so rounds 1..current are resolved individually (same approach as
-  // getCompletedBuybacks). The current round is already in hand.
+  // No rounds index endpoint, so rounds 1..current are fetched one by one.
   const [olderRounds, leaderboardResult] = await Promise.all([
     Promise.all(Array.from({ length: current.roundNumber - 1 }, (_, i) => getRoundStats(i + 1))),
     getLeaderboard(current.roundNumber),
   ]);
 
-  const snapshots: LeaderboardSnapshot[] = [current, ...olderRounds.flatMap((result) => (result.data ? [result.data] : []))]
+  const snapshots: LeaderboardSnapshot[] = [
+    current,
+    ...olderRounds.flatMap((result) => (result.data ? [result.data] : [])),
+  ]
     .map(toSnapshot)
     .sort((a, b) => b.roundNumber - a.roundNumber);
 
@@ -42,8 +47,6 @@ export default async function LeaderboardPage({ searchParams }: LeaderboardPageP
   const entries = leaderboardResult.data?.entries ?? [];
   const { currentSnapshotData, cumulativeData } = splitLeaderboardEntries(entries);
 
-  // A 401 here is the signed-out case, which the table renders as its own
-  // state rather than as empty rows.
   const leaderboard: LeaderboardViewData = {
     currentSnapshot: toRows(currentSnapshotData, categories),
     cumulative: toRows(cumulativeData, categories),

@@ -1,12 +1,9 @@
 'use client';
-
+import { Info } from '@phosphor-icons/react';
 export default function PlaaDisclaimerBox() {
   return (
     <div className="pdb">
-      <i
-        className="ph ph-info"
-        style={{ fontSize: '18px', color: 'var(--text-tertiary)', marginTop: '1px', flex: 'none' }}
-      />
+      <Info size={18} style={{ color: 'var(--text-tertiary)', marginTop: '1px', flex: 'none' }} aria-hidden />
       <p>
         PLAA are a regulated security and are not ownership interests. PLAA are not offered for sale and cannot be
         purchased; they are collected through contribution to the network. Nothing here is an offer, solicitation, or

@@ -2,20 +2,11 @@
 
 import { useRouter } from 'next/navigation';
 import CategoryRadar from './category-radar';
-import {
-  ArrowRightIcon,
-  CaretLeftIcon,
-  CaretRightIcon,
-  CoinsIcon,
-  StarIcon,
-  TrendIcon,
-  UsersThreeIcon,
-} from './leaderboard-icons';
+import { ArrowRight, CaretLeft, CaretRight, Coins, Star, TrendDown, TrendUp, UsersThree } from '@phosphor-icons/react';
 import { UNDERUTILIZED_RATIO } from './leaderboard.mapper';
 import type { LeaderboardCategoryWeight, LeaderboardSnapshot } from './leaderboard.types';
 import { activitiesData } from '../activities/data';
 
-/** No suggested-activity endpoint: use the highest-value catalogue activity in the category. */
 const suggestionFor = (category: string): { title: string; points: string } | null => {
   const normalise = (value: string) => value.toLowerCase().replace(/[^a-z]/g, '');
   const best = activitiesData.activities
@@ -51,20 +42,17 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
   const canOlder = index < snapshots.length - 1;
   const canNewer = index > 0;
 
-  // "Activities completed" from the design has no live equivalent — the API
-  // publishes a catalogue of available activities, not a completion count — so
-  // that tile is not rendered.
   const metrics = [
     {
       key: 'points',
-      icon: <CoinsIcon size={16} color="var(--color-brand-text)" />,
+      icon: <Coins size={16} color="var(--color-brand-text)" />,
       label: 'Points awarded',
       value: snapshot.points,
       previous: previous?.points ?? null,
     },
     {
       key: 'participants',
-      icon: <UsersThreeIcon size={16} color="var(--color-brand-text)" />,
+      icon: <UsersThree size={16} color="var(--color-brand-text)" />,
       label: 'Participants',
       value: snapshot.participants,
       previous: previous?.participants ?? null,
@@ -105,7 +93,7 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
             disabled={!canOlder}
             className="snap-arrow"
           >
-            <CaretLeftIcon size={18} />
+            <CaretLeft size={18} />
           </button>
           <span className="snap-position">
             {snapshots.length - index} / {snapshots.length}
@@ -117,7 +105,7 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
             disabled={!canNewer}
             className="snap-arrow"
           >
-            <CaretRightIcon size={18} />
+            <CaretRight size={18} />
           </button>
         </div>
       </div>
@@ -136,7 +124,7 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
                 <span className="snap-metric-value">{metric.value.toLocaleString('en-US')}</span>
                 {delta && (
                   <span className={`snap-delta${up ? '' : ' snap-delta--down'}`}>
-                    <TrendIcon size={12} up={up} />
+                    {up ? <TrendUp size={12} /> : <TrendDown size={12} />}
                     {delta}
                   </span>
                 )}
@@ -181,11 +169,11 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
                   className="snap-under"
                 >
                   <span className="snap-under-icon">
-                    <StarIcon size={18} color="#fff" />
+                    <Star weight="fill" size={18} color="#fff" />
                   </span>
                   <div className="snap-under-body">
                     <div className="snap-under-name-row">
-                      <StarIcon size={12} color="var(--color-brand)" />
+                      <Star weight="fill" size={12} color="var(--color-brand)" />
                       <span className="snap-under-name">{category.name}</span>
                     </div>
                     <div className="snap-under-hint">
@@ -206,7 +194,7 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
                       )}
                     </div>
                   </div>
-                  <ArrowRightIcon size={16} color="var(--color-brand)" />
+                  <ArrowRight size={16} color="var(--color-brand)" />
                 </div>
               );
             })}
@@ -379,7 +367,6 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
           gap: 24px;
           align-items: center;
         }
-        /* :global — the radar carries CategoryRadar's styled-jsx scope, not this one's. */
         .snap-grid > :global(:first-child) {
           flex: 1 1 280px;
           min-width: 0;

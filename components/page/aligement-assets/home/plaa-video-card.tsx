@@ -1,6 +1,5 @@
 'use client';
-
-/** Placeholder until the video exists (PLAA-94); runtime and captions return with the asset. */
+import { Play, PlayCircle } from '@phosphor-icons/react';
 
 export default function PlaaVideoCard() {
   return (
@@ -9,7 +8,7 @@ export default function PlaaVideoCard() {
       <div className="pvc">
         <div>
           <span className="pvc__pill">
-            <i className="ph-fill ph-play-circle" style={{ fontSize: '14px' }} />
+            <PlayCircle weight="fill" size={14} aria-hidden />
             Watch
           </span>
           <h3 className="pvc__title">How the PL Network compounds</h3>
@@ -21,7 +20,7 @@ export default function PlaaVideoCard() {
 
         <div className="pvc__frame" role="img" aria-label="Explainer video placeholder — asset pending">
           <span className="pvc__play">
-            <i className="ph-fill ph-play" style={{ fontSize: '30px', marginLeft: '4px' }} />
+            <Play weight="fill" size={30} style={{ marginLeft: '4px' }} aria-hidden />
           </span>
           <span className="pvc__tag">video placeholder</span>
         </div>

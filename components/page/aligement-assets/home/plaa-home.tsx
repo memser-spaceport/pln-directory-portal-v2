@@ -10,6 +10,16 @@ import { activitiesData } from '../activities/data';
 import { UNDERUTILIZED_RATIO } from '../leaderboard/leaderboard.mapper';
 import PlaaProspectBanner from './plaa-prospect-banner';
 import PlaaDisclaimerBox from './plaa-disclaimer-box';
+import {
+  ArrowRight,
+  ArrowsClockwise,
+  CaretRight,
+  CheckCircle,
+  PaperPlaneTilt,
+  TrendDown,
+  TrendUp,
+  type Icon,
+} from '@phosphor-icons/react';
 
 const ACTIVITIES_URL = '/alignment-asset/activities';
 const TRUST_URL = '/alignment-asset/trust-holdings';
@@ -23,13 +33,12 @@ const COLLAPSE_SETTLE_MS = 420;
 
 const TEASER_ACTIVITY_COUNT = 3;
 
-const MODES: Record<string, { label: string; icon: string; tone: string }> = {
-  Auto: { label: 'Auto-tracked', icon: 'ph ph-arrows-clockwise', tone: 'auto' },
-  Submission: { label: 'Proof of work', icon: 'ph ph-paper-plane-tilt', tone: 'proof' },
-  'Manual Review': { label: 'Reviewed', icon: 'ph ph-check-circle', tone: 'confirm' },
+const MODES: Record<string, { label: string; icon: Icon; tone: string }> = {
+  Auto: { label: 'Auto-tracked', icon: ArrowsClockwise, tone: 'auto' },
+  Submission: { label: 'Proof of work', icon: PaperPlaneTilt, tone: 'proof' },
+  'Manual Review': { label: 'Reviewed', icon: CheckCircle, tone: 'confirm' },
 };
 
-/** `People/Talent` here vs `People / Talent` there — compare on letters only. */
 const normaliseCategory = (value: string) => value.toLowerCase().replace(/[^a-z]/g, '');
 const NAV_DELTA_MONTHS = 3;
 
@@ -64,8 +73,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    /* Aim below whatever the header currently occupies. It is sticky over the
-       scroller, so a raw scrollIntoView tucks the heading under it. */
     const align = (behavior: ScrollBehavior) => {
       const headerBottom = document.querySelector('.layout__header')?.getBoundingClientRect().bottom ?? 0;
       const delta = target.getBoundingClientRect().top - headerBottom - SCROLL_GAP;
@@ -80,8 +87,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
     window.setTimeout(() => align('auto'), COLLAPSE_SETTLE_MS);
   };
 
-  // The design shows four hero proof points. Only the ones the backend can
-  // answer are rendered — "750+ Network Organizations" has no endpoint.
   const heroStats: { value: string; label: string }[] = [];
   if (trust) {
     heroStats.push({
@@ -97,9 +102,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
   const prior = monthly.length > NAV_DELTA_MONTHS ? monthly[monthly.length - 1 - NAV_DELTA_MONTHS] : undefined;
   const navDelta = latest && prior && prior.nav !== 0 ? ((latest.nav - prior.nav) / prior.nav) * 100 : undefined;
 
-  // From the activities catalogue, not round.incentivizedActivities: that field holds
-  // programme labels with no category or points. Underutilized categories first, as on
-  // the Leaderboard.
   const categoryPoints = new Map(round.chart.map((entry) => [normaliseCategory(entry.name), entry.value]));
   const busiestCategory = Math.max(...round.chart.map((entry) => entry.value), 0);
   const isUnderutilised = (category: string) =>
@@ -115,8 +117,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
 
   return (
     <div>
-      {/* Prospects get the dark "New to PLAA?" banner; members already have the
-          snapshot bar above the LabOS navbar, so they do not get a second one. */}
       {!isMember && (
         <>
           <PlaaProspectBanner portfolioCompanies={trust?.portfolioCompanies} onGetStarted={openSignin} />
@@ -138,12 +138,12 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
                 {isMember ? (
                   <button type="button" onClick={() => go('Contribute now', ACTIVITIES_URL)} className="ph-btn-white">
                     Contribute now
-                    <i className="ph-bold ph-arrow-right" style={{ fontSize: '17px' }} />
+                    <ArrowRight weight="bold" size={17} aria-hidden />
                   </button>
                 ) : (
                   <button type="button" onClick={openSignin} className="ph-btn-white">
                     Get started
-                    <i className="ph-bold ph-arrow-right" style={{ fontSize: '17px' }} />
+                    <ArrowRight weight="bold" size={17} aria-hidden />
                   </button>
                 )}
                 {isMember ? (
@@ -209,10 +209,11 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
                   </div>
                   {navDelta !== undefined && (
                     <span className={`ph-delta ${navDelta >= 0 ? 'ph-delta--up' : 'ph-delta--down'}`}>
-                      <i
-                        className={navDelta >= 0 ? 'ph-bold ph-trend-up' : 'ph-bold ph-trend-down'}
-                        style={{ fontSize: '14px' }}
-                      />
+                      {navDelta >= 0 ? (
+                        <TrendUp weight="bold" size={14} aria-hidden />
+                      ) : (
+                        <TrendDown weight="bold" size={14} aria-hidden />
+                      )}
                       {navDelta >= 0 ? '+' : ''}
                       {navDelta.toFixed(1)}% (90d)
                     </span>
@@ -327,13 +328,16 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
                       {activity.category}
                       {isUnderutilised(activity.category) && (
                         <b className="ph-tag__boost">
-                          <i className="ph-fill ph-trend-up" style={{ fontSize: '12px' }} />
+                          <TrendUp weight="fill" size={12} aria-hidden />
                         </b>
                       )}
                     </span>
                     {activity.verificationType && (
                       <span className={`ph-tag ph-tag--mode ph-tag--${MODES[activity.verificationType].tone}`}>
-                        <i className={MODES[activity.verificationType].icon} style={{ fontSize: '13px' }} />
+                        {(() => {
+                          const ModeIcon = MODES[activity.verificationType].icon;
+                          return <ModeIcon size={13} aria-hidden />;
+                        })()}
                         {MODES[activity.verificationType].label}
                       </span>
                     )}
@@ -341,23 +345,17 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
                   <span className="ph-teaser__title">{activity.activity}</span>
                 </span>
                 <span className="ph-teaser__pts">{activity.points} pts</span>
-                <i className="ph ph-caret-right" style={{ fontSize: '16px', color: 'var(--text-tertiary)' }} />
+                <CaretRight size={16} style={{ color: 'var(--text-tertiary)' }} aria-hidden />
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* "Learn more" / explainer video section is pulled for now — the video
-          asset does not exist yet. `plaa-video-card.tsx` is kept intact; render
-          it here again when the asset lands (PLAA-94). */}
-
       <PlaaDisclaimerBox />
 
       <style jsx>{`
         .ph-hero {
-          /* Bleeds out of the page gutter so the brand panel spans the full
-             content column, then re-applies the gutter as its own padding. */
           margin: calc(clamp(20px, 2.4vw, 36px) * -1) calc(var(--plaa-home-gutter) * -1) 56px;
           padding: clamp(48px, 5vw, 76px) var(--plaa-home-gutter) 0;
           background: var(--color-brand);

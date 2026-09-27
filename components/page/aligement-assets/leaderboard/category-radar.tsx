@@ -11,7 +11,6 @@ interface CategoryRadarProps {
   readonly categories: Array<{ name: string; value: number }>;
 }
 
-/** Cosmetic line break only; the API spelling is kept so labels match the boost cards. */
 const splitLabel = (name: string): [string, string] => {
   const parts = name.split(/\s*\/\s*|\s+/);
   if (name.length <= 12 || parts.length < 2) return [name, ''];
@@ -23,7 +22,6 @@ const splitLabel = (name: string): [string, string] => {
 };
 
 export default function CategoryRadar({ categories }: CategoryRadarProps) {
-  // Scaled to the busiest live category, not the prototype's fixed 340.
   const max = Math.max(...categories.map((category) => category.value), 0);
   const step = (2 * Math.PI) / Math.max(categories.length, 1);
   const angle = (index: number) => -Math.PI / 2 + index * step;

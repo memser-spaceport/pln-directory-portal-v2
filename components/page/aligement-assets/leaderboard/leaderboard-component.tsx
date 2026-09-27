@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import LeaderboardTable from './leaderboard-table';
 import SnapshotPanel from './snapshot-panel';
-import { ArrowsClockwiseIcon, LightningIcon, RankingIcon } from './leaderboard-icons';
+import { ArrowsClockwise, Lightning, Ranking } from '@phosphor-icons/react';
 import type { LeaderboardCategoryWeight, LeaderboardSnapshot, LeaderboardViewData } from './leaderboard.types';
 
 type LeaderboardTab = 'current' | 'alltime';
@@ -14,7 +14,6 @@ interface LeaderboardComponentProps {
   readonly leaderboard: LeaderboardViewData;
   readonly snapshots: LeaderboardSnapshot[];
   readonly categoryWeights: LeaderboardCategoryWeight[];
-  /** `?round=N` deep link, and the target of the `/rounds/N` redirect (PLAA-95). */
   readonly initialRound?: number;
 }
 
@@ -26,8 +25,6 @@ export default function LeaderboardComponent({
 }: LeaderboardComponentProps) {
   const router = useRouter();
   const [tab, setTab] = useState<LeaderboardTab>('current');
-  // An unknown or absent round falls back to the live snapshot rather than 404ing
-  // a link that was valid when it was sent.
   const requestedIndex = snapshots.findIndex((snapshot) => snapshot.roundNumber === initialRound);
   const [snapshotIndex, setSnapshotIndex] = useState(requestedIndex >= 0 ? requestedIndex : 0);
   const { onLeaderboardViewToggleClicked } = useAlignmentAssetsAnalytics();
@@ -52,7 +49,7 @@ export default function LeaderboardComponent({
       <div className="lb-header">
         <div>
           <h1 className="lb-h1">
-            Leaderboard <RankingIcon size={24} color="var(--color-brand-text)" />
+            Leaderboard <Ranking size={24} color="var(--color-brand-text)" />
           </h1>
           <p className="lb-sub">
             Top contributors recognized for the work that strengthens
@@ -82,7 +79,7 @@ export default function LeaderboardComponent({
       <LeaderboardTable caption={caption} rows={rows} error={leaderboard.error} />
 
       <div className="lb-cta">
-        <ArrowsClockwiseIcon size={40} color="#fff" />
+        <ArrowsClockwise size={40} color="#fff" />
         <div className="lb-cta-body">
           <h3 className="lb-cta-title">The network grows because people contribute.</h3>
           <p className="lb-cta-copy">
@@ -91,7 +88,7 @@ export default function LeaderboardComponent({
           </p>
         </div>
         <button type="button" className="lb-cta-btn" onClick={() => router.push('/alignment-asset/activities')}>
-          <LightningIcon size={17} color="var(--color-brand-text)" />
+          <Lightning size={17} color="var(--color-brand-text)" />
           Explore how to contribute
         </button>
       </div>

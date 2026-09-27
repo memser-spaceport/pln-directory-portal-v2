@@ -14,7 +14,6 @@ function toCategoryStats(data: RoundStatsResponse | undefined, categories: strin
   }));
 }
 
-// No rounds index endpoint: one uncached request per round.
 async function getRoundHistory(totalRounds: number): Promise<RoundHistoryEntry[]> {
   const results = await Promise.all(Array.from({ length: totalRounds }, (_, i) => getRoundStats(i + 1)));
 

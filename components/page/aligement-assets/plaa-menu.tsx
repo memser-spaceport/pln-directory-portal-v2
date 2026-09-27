@@ -3,144 +3,18 @@
 import { triggerLoader } from '@/utils/common.utils';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import {
+  ChartPieSlice,
+  Compass,
+  HandsClapping,
+  House,
+  Lightning,
+  Question,
+  Ranking,
+  UserCircle,
+} from '@phosphor-icons/react';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { usePlaaAccess } from '@/services/rbac/hooks/usePlaaAccess';
-
-/** Inline Phosphor glyphs: the Phosphor webfont isn't a dependency, so `ph-*` classes render nothing. */
-type IconProps = { filled: boolean };
-
-const svgProps = {
-  width: 16,
-  height: 16,
-  viewBox: '0 0 256 256',
-  'aria-hidden': true,
-  focusable: 'false',
-} as const;
-
-const paint = (filled: boolean) => ({
-  fill: filled ? 'currentColor' : 'none',
-  stroke: 'currentColor',
-  strokeWidth: filled ? 0 : 16,
-  strokeLinecap: 'round' as const,
-  strokeLinejoin: 'round' as const,
-});
-
-function HouseIcon({ filled }: IconProps) {
-  return (
-    <svg {...svgProps}>
-      <path
-        d="M216 115.5V208a8 8 0 0 1-8 8h-48a8 8 0 0 1-8-8v-48a8 8 0 0 0-8-8h-32a8 8 0 0 0-8 8v48a8 8 0 0 1-8 8H48a8 8 0 0 1-8-8v-92.5a8 8 0 0 1 2.6-5.9l80-72.7a8 8 0 0 1 10.8 0l80 72.7a8 8 0 0 1 2.6 5.9Z"
-        {...paint(filled)}
-      />
-    </svg>
-  );
-}
-
-function RankingIcon({ filled }: IconProps) {
-  return (
-    <svg {...svgProps}>
-      <g
-        fill={filled ? 'currentColor' : 'none'}
-        stroke="currentColor"
-        strokeWidth={filled ? 0 : 16}
-        strokeLinejoin="round"
-      >
-        <rect x="32" y="144" width="56" height="72" rx="4" />
-        <rect x="100" y="96" width="56" height="120" rx="4" />
-        <rect x="168" y="48" width="56" height="168" rx="4" />
-      </g>
-    </svg>
-  );
-}
-
-function CompassIcon({ filled }: IconProps) {
-  return (
-    <svg {...svgProps}>
-      <circle cx="128" cy="128" r="96" fill="none" stroke="currentColor" strokeWidth="16" />
-      <path d="m176 80-32 64-64 32 32-64Z" {...paint(filled)} />
-    </svg>
-  );
-}
-
-function LightningIcon({ filled }: IconProps) {
-  return (
-    <svg {...svgProps}>
-      <path
-        d="M96 240a8 8 0 0 1-7.8-9.8L104.6 152H48a8 8 0 0 1-6.1-13.2l112-128a8 8 0 0 1 13.9 7l-16.4 78.2H208a8 8 0 0 1 6.1 13.2l-112 128A8 8 0 0 1 96 240Z"
-        {...paint(filled)}
-      />
-    </svg>
-  );
-}
-
-function UserCircleIcon({ filled }: IconProps) {
-  return (
-    <svg {...svgProps}>
-      <circle cx="128" cy="128" r="96" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="16" />
-      <circle
-        cx="128"
-        cy="112"
-        r="32"
-        fill="none"
-        stroke={filled ? 'var(--plaa-neutral-white, #fff)' : 'currentColor'}
-        strokeWidth="16"
-      />
-      <path
-        d="M64 200a72 72 0 0 1 128 0"
-        fill="none"
-        stroke={filled ? 'var(--plaa-neutral-white, #fff)' : 'currentColor'}
-        strokeWidth="16"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function HandsClappingIcon({ filled }: IconProps) {
-  return (
-    <svg {...svgProps}>
-      <g {...paint(filled)}>
-        <path d="M96 144 62 110a20 20 0 0 1 28-28l46 46" />
-        <path d="M136 128 106 98a20 20 0 0 1 28-28l44 44a72 72 0 0 1-40 122 72 72 0 0 1-72-72" />
-      </g>
-      <g fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round">
-        <path d="M180 44 196 28M204 84h24M156 28V8" />
-      </g>
-    </svg>
-  );
-}
-
-function ChartPieSliceIcon({ filled }: IconProps) {
-  return (
-    <svg {...svgProps}>
-      <circle cx="128" cy="128" r="96" fill="none" stroke="currentColor" strokeWidth="16" />
-      <path d="M128 32v96h96A96 96 0 0 0 128 32Z" {...paint(filled)} />
-    </svg>
-  );
-}
-
-function QuestionIcon({ filled }: IconProps) {
-  return (
-    <svg {...svgProps}>
-      <circle cx="128" cy="128" r="96" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="16" />
-      <g
-        fill="none"
-        stroke={filled ? 'var(--plaa-neutral-white, #fff)' : 'currentColor'}
-        strokeWidth="16"
-        strokeLinecap="round"
-      >
-        <path d="M100 100a28 28 0 1 1 28 28v12" />
-      </g>
-      <circle cx="128" cy="180" r="10" fill={filled ? 'var(--plaa-neutral-white, #fff)' : 'currentColor'} />
-    </svg>
-  );
-}
-
-/* ==========================================================================
-   PlaaMenu Component
-   Pixel-perfect implementation based on Figma design
-   Figma: https://www.figma.com/design/xrvyUEqgZ0oRNT0spUruMW/Untitled?node-id=1-5250
-   ========================================================================== */
 
 export type PlaaActiveItem =
   | 'home'
@@ -159,20 +33,19 @@ export type PlaaActiveItem =
 
 interface PlaaMenuProps {
   activeItem?: PlaaActiveItem;
-  onMenuItemClick?: () => void; // Callback to handle menu item clicks (e.g., close mobile menu)
-  /** Server-resolved LabOS session. Undefined (not yet known) hides Kudos same as false. */
+  onMenuItemClick?: () => void;
   isLoggedIn?: boolean;
 }
 
 const ICONS = {
-  house: HouseIcon,
-  compass: CompassIcon,
-  lightning: LightningIcon,
-  'user-circle': UserCircleIcon,
-  'hands-clapping': HandsClappingIcon,
-  'chart-pie-slice': ChartPieSliceIcon,
-  ranking: RankingIcon,
-  question: QuestionIcon,
+  house: House,
+  compass: Compass,
+  lightning: Lightning,
+  'user-circle': UserCircle,
+  'hands-clapping': HandsClapping,
+  'chart-pie-slice': ChartPieSlice,
+  ranking: Ranking,
+  question: Question,
 } as const;
 
 type MenuIcon = keyof typeof ICONS;
@@ -273,7 +146,7 @@ function PlaaMenu({ activeItem, onMenuItemClick, isLoggedIn }: PlaaMenuProps) {
                 {item.icon &&
                   (() => {
                     const Icon = ICONS[item.icon];
-                    return <Icon filled={activeItem === item.name} />;
+                    return <Icon size={16} weight={activeItem === item.name ? 'fill' : 'regular'} aria-hidden />;
                   })()}
                 <span className="plaa-menu__item-text">{item.label}</span>
                 {item.badge === 'new' && <span className="plaa-menu__badge">NEW</span>}

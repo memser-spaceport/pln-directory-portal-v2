@@ -1,6 +1,6 @@
 'use client';
 
-import { TrophyIcon } from './leaderboard-icons';
+import { Trophy } from '@phosphor-icons/react';
 import { getInitials } from './leaderboard.mapper';
 import type { LeaderboardRow } from './leaderboard.types';
 
@@ -31,7 +31,7 @@ export default function LeaderboardTable({ caption, rows, error }: LeaderboardTa
   return (
     <div className="lb-card">
       <div className="lb-caption">
-        <TrophyIcon size={18} color="#E8A53D" />
+        <Trophy weight="fill" size={18} color="#E8A53D" />
         <span>{caption}</span>
       </div>
 

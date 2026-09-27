@@ -21,7 +21,6 @@ export const toSnapshot = (stats: RoundStatsResponse): LeaderboardSnapshot => ({
   categories: stats.chart.map((entry) => ({ name: entry.name, value: entry.value })),
 });
 
-/** No category field in the API: claim one only when `activities` names a kpi-weights category. */
 export const resolveTopCategory = (entry: MappedLeaderboardEntry, categories: string[]): string | null => {
   const haystack = normalizeCategory(entry.activities);
   if (!haystack) return null;
@@ -40,7 +39,6 @@ export const toCategoryWeights = (
     emissionsPerSnapshot: item.emissionsPerSnapshot,
   }));
 
-/** The design's 100/340 cut, made relative to the busiest category this snapshot. */
 export const UNDERUTILIZED_RATIO = 0.3;
 
 export const getInitials = (name: string): string =>

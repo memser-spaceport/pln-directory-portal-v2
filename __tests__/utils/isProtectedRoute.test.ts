@@ -1,4 +1,4 @@
-import { isProtectedRoute, PLAA_PUBLIC_EXACT_PATHS, PROTECTED_ROUTES } from '@/utils/isProtectedRoute';
+import { isProtectedRoute, ALIGNMENT_ASSET_PUBLIC_ROUTES, PROTECTED_ROUTES } from '@/utils/isProtectedRoute';
 
 describe('isProtectedRoute', () => {
   it('protects every configured route, and everything nested under it', () => {
@@ -12,9 +12,9 @@ describe('isProtectedRoute', () => {
     expect(isProtectedRoute('/investors')).toBe(true);
   });
 
-  describe('the PLAA public list', () => {
+  describe('the alignment-asset public routes', () => {
     it('leaves only the listed PLAA pages open', () => {
-      for (const route of PLAA_PUBLIC_EXACT_PATHS) {
+      for (const route of ALIGNMENT_ASSET_PUBLIC_ROUTES) {
         expect(isProtectedRoute(route)).toBe(false);
         expect(isProtectedRoute(`${route}/`)).toBe(false);
       }
@@ -27,13 +27,13 @@ describe('isProtectedRoute', () => {
     });
 
     it('matches public PLAA pages exactly, never as a prefix', () => {
-      for (const route of PLAA_PUBLIC_EXACT_PATHS) {
+      for (const route of ALIGNMENT_ASSET_PUBLIC_ROUTES) {
         expect(isProtectedRoute(`${route}/child`)).toBe(true);
       }
     });
 
     it('only lists pages inside the PLAA section', () => {
-      for (const route of PLAA_PUBLIC_EXACT_PATHS) {
+      for (const route of ALIGNMENT_ASSET_PUBLIC_ROUTES) {
         expect(route === '/alignment-asset' || route.startsWith('/alignment-asset/')).toBe(true);
       }
     });

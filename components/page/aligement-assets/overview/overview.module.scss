@@ -1,6 +1,5 @@
 @import '../../../../styles/media.scss';
 
-// Scoped tokens, kept out of the global palette so PLAA pages not yet redesigned keep their look.
 .wrapper {
   --ov-blue-500: #1b4dff;
   --ov-blue-subtle: #e8edff;
@@ -529,7 +528,6 @@
 
 .historyTableWrap {
   overflow-x: auto;
-  // Overlay scrollbars hide that a wide table scrolls; keep a slim one visible.
   scrollbar-width: thin;
   scrollbar-color: var(--ov-border-subtle) transparent;
 
@@ -547,7 +545,6 @@
   width: 100%;
   border-collapse: collapse;
   min-width: 760px;
-  // Only the Snapshot column has a width, so KPI columns share the rest equally.
   table-layout: fixed;
 }
 
@@ -1140,7 +1137,6 @@
   line-height: 1;
 }
 
-// Step 3 (accreditation) is optional for non-US participants.
 .onboardingStepBadgeOutlined {
   background: var(--ov-surface-card);
   color: var(--ov-blue-500);

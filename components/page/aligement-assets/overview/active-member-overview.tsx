@@ -52,7 +52,6 @@ interface CategoryStat {
   plaa: number;
 }
 
-// Illustrative; shown until the rounds API returns a current snapshot.
 const CATEGORY_STATS_FALLBACK: CategoryStat[] = KPI_WEIGHTS_FALLBACK.map((row) => ({
   name: row.category,
   points: (row.emissionsPerSnapshot ?? 0) * 6,

@@ -30,7 +30,6 @@ export default async function LeaderboardPage({ searchParams }: LeaderboardPageP
     );
   }
 
-  // No rounds index endpoint, so rounds 1..current are fetched one by one.
   const [olderRounds, leaderboardResult] = await Promise.all([
     Promise.all(Array.from({ length: current.roundNumber - 1 }, (_, i) => getRoundStats(i + 1))),
     getLeaderboard(current.roundNumber),

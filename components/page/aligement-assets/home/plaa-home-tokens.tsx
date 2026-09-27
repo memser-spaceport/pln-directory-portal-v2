@@ -11,7 +11,6 @@ export default function PlaaHomeTokens() {
         --color-brand: #0b4f66;
         --color-brand-text: #094157;
         --color-brand-subtle: #e6f1f5;
-        /* Deliberately not the brand colour: charts keep their signed-off palette. */
         --color-chart: #365a83;
         --surface-card: #ffffff;
         --surface-page: #f8fafc;

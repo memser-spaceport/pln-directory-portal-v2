@@ -4,7 +4,6 @@
  */
 export const PROTECTED_ROUTES = ['/deals/', '/founder-guides', '/investors', '/pl-infra-os', '/alignment-asset'];
 
-/** PLAA-94: the home page is public for prospects; every sub-page stays protected. */
 const PUBLIC_EXACT_ROUTES = ['/alignment-asset'];
 
 /**

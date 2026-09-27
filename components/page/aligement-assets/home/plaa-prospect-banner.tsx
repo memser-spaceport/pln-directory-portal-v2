@@ -1,5 +1,5 @@
 'use client';
-
+import { ArrowRight, Sparkle } from '@phosphor-icons/react';
 interface PlaaProspectBannerProps {
   readonly portfolioCompanies?: number;
   readonly onGetStarted: () => void;
@@ -9,7 +9,7 @@ export default function PlaaProspectBanner({ portfolioCompanies, onGetStarted }:
   return (
     <div className="ppb">
       <span className="ppb__label">
-        <i className="ph-fill ph-sparkle" style={{ fontSize: '16px', color: 'var(--pl-blue-300)' }} />
+        <Sparkle weight="fill" size={16} style={{ color: 'var(--pl-blue-300)' }} aria-hidden />
         New to PLAA?
       </span>
       <span className="ppb__copy">
@@ -18,7 +18,7 @@ export default function PlaaProspectBanner({ portfolioCompanies, onGetStarted }:
       </span>
       <button type="button" className="ppb__cta" onClick={onGetStarted}>
         Get started
-        <i className="ph-bold ph-arrow-right" style={{ fontSize: '14px' }} />
+        <ArrowRight weight="bold" size={14} aria-hidden />
       </button>
 
       <style jsx>{`

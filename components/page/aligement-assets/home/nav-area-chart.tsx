@@ -23,7 +23,6 @@ export default function NavAreaChart({ points, gradientId, field, height, showAx
   const values = points.map((p) => p[field]);
   const max = Math.max(...values);
   const min = Math.min(...values);
-  // A flat series would divide by zero; fall back to a band around the value.
   const span = max - min || Math.abs(max) || 1;
   const top = max + span * 0.12;
   const bottom = min - span * 0.12;

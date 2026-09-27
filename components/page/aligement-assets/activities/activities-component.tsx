@@ -9,6 +9,7 @@ import { Activity } from './types';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import useHash from '@/hooks/useHash';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 /**
  * ActivitiesComponent - Main component for displaying activities and points collection
@@ -22,6 +23,18 @@ import useHash from '@/hooks/useHash';
 export default function ActivitiesComponent() {
   const { onActivitiesRowClicked, onActivitiesModalClosed } = useAlignmentAssetsAnalytics();
   useScrollDepthTracking('activities');
+
+  // `?category=` deep link, used by the Leaderboard's underutilized-category
+  // cards (PLAA-95). An unknown category matches nothing, so fall back to the
+  // full list rather than showing an empty page.
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams?.get('category') ?? null;
+  const matching = categoryParam
+    ? activitiesData.activities.filter((a) => a.category.toLowerCase() === categoryParam.toLowerCase())
+    : [];
+  const activeCategory = matching.length > 0 ? categoryParam : null;
+  const visibleActivities = activeCategory ? matching : activitiesData.activities;
 
   // Derive the open activity from the URL hash rather than syncing it into state.
   const hash = useHash();
@@ -66,9 +79,24 @@ export default function ActivitiesComponent() {
         {/* Hero Section with Title and Submit Button */}
         <HeroSection data={activitiesData.hero} />
 
+        {activeCategory && (
+          <div className="activities-filter">
+            <span className="activities-filter__label">
+              Showing <b>{activeCategory}</b> activities
+            </span>
+            <button
+              type="button"
+              className="activities-filter__clear"
+              onClick={() => router.push('/alignment-asset/activities')}
+            >
+              Show all activities
+            </button>
+          </div>
+        )}
+
         {/* Activities Table */}
         <ActivityTable
-          activities={activitiesData.activities}
+          activities={visibleActivities}
           onRowClick={handleRowClick}
         />
 
@@ -90,6 +118,30 @@ export default function ActivitiesComponent() {
           flex-direction: column;
           gap: 48px;
           padding: 0;
+        }
+
+        .activities-filter {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+          padding: 10px 14px;
+          border-radius: 8px;
+          background: #f1f5f9;
+          font-family: 'Inter', sans-serif;
+          font-size: 13px;
+          color: #475569;
+        }
+
+        .activities-filter__clear {
+          border: none;
+          background: none;
+          padding: 0;
+          cursor: pointer;
+          color: #0b4f66;
+          font-weight: 600;
+          font-size: 13px;
+          font-family: 'Inter', sans-serif;
         }
 
         @media (max-width: 768px) {

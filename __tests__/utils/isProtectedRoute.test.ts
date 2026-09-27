@@ -1,4 +1,4 @@
-import { isProtectedRoute, PROTECTED_ROUTES } from '@/utils/isProtectedRoute';
+import { isProtectedRoute, ALIGNMENT_ASSET_PUBLIC_ROUTES, PROTECTED_ROUTES } from '@/utils/isProtectedRoute';
 
 describe('isProtectedRoute', () => {
   it('protects every configured route, and everything nested under it', () => {
@@ -9,7 +9,34 @@ describe('isProtectedRoute', () => {
   });
 
   it('protects a section root written without a trailing slash', () => {
-    expect(isProtectedRoute('/alignment-asset')).toBe(true);
+    expect(isProtectedRoute('/investors')).toBe(true);
+  });
+
+  describe('the alignment-asset public routes', () => {
+    it('leaves only the listed PLAA pages open', () => {
+      for (const route of ALIGNMENT_ASSET_PUBLIC_ROUTES) {
+        expect(isProtectedRoute(route)).toBe(false);
+        expect(isProtectedRoute(`${route}/`)).toBe(false);
+      }
+    });
+
+    it('keeps every other PLAA page gated, including ones added later', () => {
+      expect(isProtectedRoute('/alignment-asset/profile')).toBe(true);
+      expect(isProtectedRoute('/alignment-asset/leaderboard')).toBe(true);
+      expect(isProtectedRoute('/alignment-asset/some-new-page')).toBe(true);
+    });
+
+    it('matches public PLAA pages exactly, never as a prefix', () => {
+      for (const route of ALIGNMENT_ASSET_PUBLIC_ROUTES) {
+        expect(isProtectedRoute(`${route}/child`)).toBe(true);
+      }
+    });
+
+    it('only lists pages inside the PLAA section', () => {
+      for (const route of ALIGNMENT_ASSET_PUBLIC_ROUTES) {
+        expect(route === '/alignment-asset' || route.startsWith('/alignment-asset/')).toBe(true);
+      }
+    });
   });
 
   it('does not protect a sibling path that merely shares the prefix', () => {
@@ -35,7 +62,7 @@ describe('isProtectedRoute', () => {
     expect(isProtectedRoute('/')).toBe(false);
   });
 
-  it('covers the alignment-asset section, so no PLAA page can be reached without a login', () => {
+  it('gates the whole alignment-asset section by default', () => {
     expect(PROTECTED_ROUTES).toContain('/alignment-asset');
   });
 });

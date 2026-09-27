@@ -1039,7 +1039,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           line-height: 17px;
           letter-spacing: 0.5px;
           text-transform: uppercase;
-          color: #156ff7;
+          color: #0b4f66;
         }
 
         .th-buyback-panel {
@@ -1179,7 +1179,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
         }
 
         .th-metric:nth-child(2) .th-metric__label {
-          color: #156ff7;
+          color: #0b4f66;
         }
 
         .th-metric__value {

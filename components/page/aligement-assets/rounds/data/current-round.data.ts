@@ -54,12 +54,12 @@ export const currentRoundData: CurrentRoundData = {
         text: 'Some categories update in real time, while others rely on participants submitting information. Consequently, the point totals may not always reflect the most recent activity — especially for activities such as Custom Incentive Experiments, Talent Referrals, Curate X Spaces, and Referral Program submissions. Our new activity assistant bot streamlines most submissions, though some activities will still require submission via a Google form or manual updates. We\'ll continue updating as new submissions come in and are working toward more automations this year.'
       },
       {
-        text: 'Each round represents a single monthly snapshot period. View the PLAA allocations and activity levels for the current round below. You can also view the point-to-PLAA conversion results across previous rounds {previousRounds}.',
+        text: 'Each round represents a single monthly snapshot period. View the PLAA allocations and activity levels for the current round below. You can also see how points convert to PLAA on the {overviewPage}.',
         links: [
           {
-            placeholder: '{previousRounds}',
-            text: 'on the Incentive Model page',
-            url: '/alignment-asset/incentive-model'
+            placeholder: '{overviewPage}',
+            text: 'Overview page',
+            url: '/alignment-asset/overview'
           }
         ]
       }
@@ -85,10 +85,10 @@ export const currentRoundData: CurrentRoundData = {
           url: '/alignment-asset/faqs#point-to-token-conversion'
         },
         {
-          prefix: 'Review the full',
-          linkText: 'Incentive Model',
-          suffix: 'and see how point collection mapped to PLAA distribution in previous rounds',
-          url: '/alignment-asset/incentive-model'
+          prefix: 'Review the',
+          linkText: 'Overview page',
+          suffix: 'for how points and PLAA map to each other by category this snapshot',
+          url: '/alignment-asset/overview'
         }
       ],
       bottomLink: {

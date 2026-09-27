@@ -217,7 +217,7 @@ export default function StatsSection({ data }: StatsSectionProps) {
           font-size: 14px;
           font-weight: 500;
           line-height: 20px;
-          color: #156ff7;
+          color: #0b4f66;
           cursor: pointer;
           transition: color 0.2s ease;
         }
@@ -231,7 +231,7 @@ export default function StatsSection({ data }: StatsSectionProps) {
         }
 
         .stats-section__show-more:focus-visible {
-          outline: 2px solid #156ff7;
+          outline: 2px solid #0b4f66;
           outline-offset: 2px;
           border-radius: 4px;
         }

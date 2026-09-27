@@ -118,7 +118,7 @@ export default function SupportSection() {
 
       <style jsx global>{`
         .support-section__link {
-          color: #156ff7;
+          color: #0b4f66;
           text-decoration: underline;
           text-underline-position: from-font;
           text-decoration-skip-ink: none;

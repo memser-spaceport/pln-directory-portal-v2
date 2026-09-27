@@ -8,7 +8,6 @@ import PlaaBackButton from './plaa-back-btn';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import styles from '@/app/alignment-asset/plaa.module.css';
 
-
 const GuestAccessModalController = dynamic(
   () => import('./guest-access-modal/GuestAccessModalController').then((m) => m.GuestAccessModalController),
   { ssr: false },
@@ -34,7 +33,6 @@ const getPageInfo = (
     }
   }
 
-  // /alignment-asset is the PLAA home page; /alignment-asset/rounds is legacy.
   if (pathSegment === 'alignment-asset' || pathSegment === 'rounds') {
     return { activeItem: 'home', title: 'Home', viewingRound: undefined };
   }
@@ -91,9 +89,6 @@ export default function PlaaLayoutWrapper({ children, isLoggedIn }: PlaaLayoutWr
   return (
     <>
       <div className={styles.plaa}>
-        {/* The PLAA snapshot bar lives in SiteHeader, above the LabOS navbar,
-            matching the live site. It gates itself to /alignment-asset. */}
-
         {/* Mobile Menu Button */}
         <button
           className={styles.plaa__menuBtn}
@@ -111,8 +106,6 @@ export default function PlaaLayoutWrapper({ children, isLoggedIn }: PlaaLayoutWr
             <PlaaMenu activeItem={activeItem} isLoggedIn={isLoggedIn} />
           </aside>
 
-          {/* Scrollable Content. The home page opts out of the shared
-              reading-width cap and sets its own fluid gutters. */}
           <div className={`${styles.plaa__content} ${activeItem === 'home' ? styles['plaa__content--fluid'] : ''}`}>
             <div className={styles['plaa__content-inner']}>{children}</div>
           </div>

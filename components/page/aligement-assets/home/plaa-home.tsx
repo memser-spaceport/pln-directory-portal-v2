@@ -16,21 +16,13 @@ const TRUST_URL = '/alignment-asset/trust-holdings';
 const PROFILE_URL = '/alignment-asset/profile';
 const OVERVIEW_URL = '/alignment-asset/overview';
 
-/** Scroll target for the prospect hero's second CTA. */
 const INCENTIVE_SECTION_ID = 'plaa-incentive';
-/** Breathing room above the section heading once it is scrolled to. */
 const SCROLL_GAP = 24;
 /** Longer than the header's 180ms collapse transition in globals.scss. */
 const COLLAPSE_SETTLE_MS = 420;
 
-/** Teaser count in the design. */
 const TEASER_ACTIVITY_COUNT = 3;
 
-/**
- * The design's submission-mode pill (modeMeta() in the prototype), keyed off
- * the catalogue's verificationType. `Manual Review` has no prototype
- * equivalent, so it reuses the proof-of-work treatment.
- */
 const MODES: Record<string, { label: string; icon: string; tone: string }> = {
   Auto: { label: 'Auto-tracked', icon: 'ph ph-arrows-clockwise', tone: 'auto' },
   Submission: { label: 'Proof of work', icon: 'ph ph-paper-plane-tilt', tone: 'proof' },
@@ -39,25 +31,11 @@ const MODES: Record<string, { label: string; icon: string; tone: string }> = {
 
 /** `People/Talent` here vs `People / Talent` there — compare on letters only. */
 const normaliseCategory = (value: string) => value.toLowerCase().replace(/[^a-z]/g, '');
-/** 90-day NAV delta = 3 monthly closes back, per the design's "(90d)" pill. */
 const NAV_DELTA_MONTHS = 3;
 
-/**
- * The PLAA home — transcribed from .design-src/_views/00-prospect-home.html.
- *
- * One page serves both personas, as the prototype does
- * (`showProspect: !onboarded || persona === 'active'`). Only the hero calls to
- * action and the "ways to contribute" heading differ; everything else is
- * identical, so the two states cannot drift apart.
- *
- * Every figure comes from getTrustHoldings()/getCurrentRoundStats(); the
- * prototype's $6.74M, "750+", "190+" and the illustrative NAV path are fixtures
- * and are not reproduced.
- */
 export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
   const router = useRouter();
   const { onNavMenuClicked } = useAlignmentAssetsAnalytics();
-
 
   const isMember = variant === 'member';
 
@@ -66,27 +44,13 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
     router.push(url);
   };
 
-  /**
-   * Overview is a protected route, so the proxy bounces a signed-out visitor to
-   * `/members?backlink=/alignment-asset/overview#login` and PrivyModals returns
-   * them to Overview once authenticated. Someone who already has a session just
-   * lands on Overview directly.
-   *
-   * A full navigation, not router.push: the client router drops the `#login`
-   * fragment the proxy attaches, and that fragment is what opens the login
-   * dialog. Without it the visitor arrives at /members with no prompt.
-   */
+  // Full navigation, not router.push: the client router drops the `#login`
+  // fragment the proxy adds, and that fragment is what opens the login dialog.
   const openSignin = () => {
     onNavMenuClicked('Get started', OVERVIEW_URL);
     window.location.assign(OVERVIEW_URL);
   };
 
-  /**
-   * Same-page jump to the incentive section. The app scrolls an inner container
-   * and the site header is sticky over it, so `scrollIntoView` alone parks the
-   * heading underneath the header — the offset is applied by hand against the
-   * real scroller. Honours reduced-motion.
-   */
   const scrollToIncentive = () => {
     onNavMenuClicked('See how you can contribute', `#${INCENTIVE_SECTION_ID}`);
     const target = document.getElementById(INCENTIVE_SECTION_ID);
@@ -94,8 +58,7 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
 
     const scroller =
       (Array.from(document.querySelectorAll('*')) as HTMLElement[]).find(
-        (node) =>
-          /(auto|scroll)/.test(getComputedStyle(node).overflowY) && node.scrollHeight > node.clientHeight + 50,
+        (node) => /(auto|scroll)/.test(getComputedStyle(node).overflowY) && node.scrollHeight > node.clientHeight + 50,
       ) ?? document.scrollingElement;
     if (!scroller) return;
 
@@ -121,7 +84,10 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
   // answer are rendered — "750+ Network Organizations" has no endpoint.
   const heroStats: { value: string; label: string }[] = [];
   if (trust) {
-    heroStats.push({ value: `${formatNumber(trust.portfolioCompanies)}`, label: 'Investments in Frontier-tech Ventures' });
+    heroStats.push({
+      value: `${formatNumber(trust.portfolioCompanies)}`,
+      label: 'Investments in Frontier-tech Ventures',
+    });
     heroStats.push({ value: trust.navPerPlaaHeadline, label: 'NAV per PLAA' });
   }
   heroStats.push({ value: formatNumber(round.onboardedParticipants), label: 'Onboarded participants' });
@@ -131,22 +97,14 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
   const prior = monthly.length > NAV_DELTA_MONTHS ? monthly[monthly.length - 1 - NAV_DELTA_MONTHS] : undefined;
   const navDelta = latest && prior && prior.nav !== 0 ? ((latest.nav - prior.nav) / prior.nav) * 100 : undefined;
 
-  /*
-   * Teasers come from the activities catalogue, not round.incentivizedActivities:
-   * that field lists programme labels ("AA Program Contribution", "Buyback"),
-   * and only 2 of its 26 entries correspond to a real activity, so it cannot
-   * supply a category or a points value. The catalogue is the same source the
-   * Activities page renders, so a card here can never disagree with the page it
-   * links to.
-   *
-   * Ordering is live: categories running below UNDERUTILIZED_RATIO of the
-   * busiest one this snapshot surface first — those are where points go
-   * furthest — then by points. Same rule the Leaderboard's boost cards use.
-   */
+  // From the activities catalogue, not round.incentivizedActivities: that field holds
+  // programme labels with no category or points. Underutilized categories first, as on
+  // the Leaderboard.
   const categoryPoints = new Map(round.chart.map((entry) => [normaliseCategory(entry.name), entry.value]));
   const busiestCategory = Math.max(...round.chart.map((entry) => entry.value), 0);
   const isUnderutilised = (category: string) =>
-    busiestCategory > 0 && (categoryPoints.get(normaliseCategory(category)) ?? 0) < busiestCategory * UNDERUTILIZED_RATIO;
+    busiestCategory > 0 &&
+    (categoryPoints.get(normaliseCategory(category)) ?? 0) < busiestCategory * UNDERUTILIZED_RATIO;
 
   const teaserActivities = [...activitiesData.activities]
     .sort((a, b) => {
@@ -162,11 +120,9 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
       {!isMember && (
         <>
           <PlaaProspectBanner portfolioCompanies={trust?.portfolioCompanies} onGetStarted={openSignin} />
-
         </>
       )}
 
-      {/* ===== MARKETING HERO (full bleed) ===== */}
       <div className="ph-hero">
         <div className="ph-hero__inner">
           <div className="ph-hero__grid">
@@ -178,7 +134,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
                 {trust ? `${formatNumber(trust.portfolioCompanies)} ` : ''}frontier-tech ventures &mdash; built by the
                 people behind the Protocol Labs Network.
               </p>
-              {/* Persona split #1: the prototype's heroCta1/heroCta2. */}
               <div className="ph-hero__ctas">
                 {isMember ? (
                   <button type="button" onClick={() => go('Contribute now', ACTIVITIES_URL)} className="ph-btn-white">
@@ -203,16 +158,8 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
               </div>
             </div>
 
-            {/* The design's hero image slot. v2 of the artwork ships as a
-                transparent cutout, so it composites straight onto the brand
-                panel — no backdrop repaint needed. Its transparent border is
-                trimmed so the artwork fills the slot instead of floating inside
-                ~12% of empty frame.
-
-                Versioned filename on purpose: replacing an image in place
-                leaves Next's optimizer, CDNs and browsers serving the previous
-                bytes under the same URL. Decorative — the headline carries the
-                meaning. */}
+            {/* Versioned filename: replacing an image in place leaves Next's optimizer,
+                CDNs and browsers serving the old bytes under the same URL. */}
             <div className="ph-hero__art">
               <Image
                 src="/images/alignment-assets/hero-v2.png"
@@ -243,7 +190,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
         </div>
       </div>
 
-      {/* ===== what backs PLAA ===== */}
       <div style={{ marginBottom: '48px' }}>
         <div className="ph-eyebrow">What backs PLAA</div>
         <h2 className="ph-h2">PLAA is backed by a broad base of assets.</h2>
@@ -263,7 +209,10 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
                   </div>
                   {navDelta !== undefined && (
                     <span className={`ph-delta ${navDelta >= 0 ? 'ph-delta--up' : 'ph-delta--down'}`}>
-                      <i className={navDelta >= 0 ? 'ph-bold ph-trend-up' : 'ph-bold ph-trend-down'} style={{ fontSize: '14px' }} />
+                      <i
+                        className={navDelta >= 0 ? 'ph-bold ph-trend-up' : 'ph-bold ph-trend-down'}
+                        style={{ fontSize: '14px' }}
+                      />
                       {navDelta >= 0 ? '+' : ''}
                       {navDelta.toFixed(1)}% (90d)
                     </span>
@@ -285,10 +234,7 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
                   Trust composition
                 </h3>
                 <div className="ph-comp">
-                  <div
-                    className="ph-donut"
-                    style={{ background: buildConicGradient(trust.trustComposition) }}
-                  >
+                  <div className="ph-donut" style={{ background: buildConicGradient(trust.trustComposition) }}>
                     <div className="ph-donut__hole" />
                   </div>
                   <div className="ph-comp__legend">
@@ -330,7 +276,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
         )}
       </div>
 
-      {/* ===== how you get it ===== */}
       <div id={INCENTIVE_SECTION_ID} style={{ marginBottom: '24px', scrollMarginTop: '24px' }}>
         <div className="ph-eyebrow">PLAA AS THE NEXT GEN INCENTIVE</div>
         <h2 className="ph-h2">PLAA powers the Network&apos;s long-term alignment</h2>
@@ -341,11 +286,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
       </div>
 
       <div className="ph-ways">
-        {/* The supplied artwork carries the heading, the body copy and the
-            cycle labels itself, so the card is the image — repeating them in
-            markup would show them twice. The <h3> is kept for the document
-            outline and screen readers but hidden visually, and the alt text
-            restates the copy that now only exists as pixels. */}
         <div className="ph-flywheel" style={{ alignSelf: 'start' }}>
           <h3 className="ph-visually-hidden">The contribution flywheel</h3>
           <Image
@@ -360,7 +300,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
         <div>
           <div className="ph-ways__head">
             <h3 className="ph-h3" style={{ font: 'var(--text-heading-md)' }}>
-              {/* Persona split #2: the prototype's waysHeading. */}
               {isMember ? 'A few ways to collect more points' : 'A few ways members contribute'}
             </h3>
             <button type="button" className="ph-linkbtn" onClick={() => go('Browse all activities', ACTIVITIES_URL)}>
@@ -429,7 +368,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
         }
         .ph-hero__grid {
           display: grid;
-          /* The design's two-track hero: copy left, artwork right. */
           grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
           gap: 48px;
           align-items: center;
@@ -439,8 +377,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
           display: flex;
           justify-content: center;
         }
-        /* :global — next/image renders its own <img>, which styled-jsx cannot
-           scope a class onto. */
         .ph-hero__art :global(img) {
           width: 100%;
           max-width: 460px;
@@ -546,10 +482,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
           font: var(--text-body-lg);
           color: var(--text-secondary);
           margin: 12px 0 24px;
-          /* Reaches into the second card below without running the full width,
-             which pushed lines past 150 characters on a wide monitor.
-             Percentage so it tracks the column, with a 700px floor so the
-             measure never collapses at the narrow end of the desktop range. */
           max-width: max(700px, 70%);
         }
         .ph-card {
@@ -560,7 +492,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
         }
         .ph-backs-grid {
           display: grid;
-          /* minmax(0,…) so a wide chart can't push the track past the column. */
           grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
           gap: 24px;
           margin-bottom: 16px;
@@ -751,8 +682,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
           margin-bottom: 5px;
         }
 
-        /* Pills transcribed from the prototype's catPill / pill() / points
-           span (.design-src/Home Page.dc.html). */
         .ph-tag {
           display: inline-flex;
           align-items: center;
@@ -765,9 +694,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
           box-shadow: var(--ring-hairline);
           white-space: nowrap;
         }
-        /* shareMeta('open'): a lightly contributed category this snapshot.
-           Tinted with the PLAA primary rather than the prototype's green, so
-           the highlight belongs to the page instead of reading as a status. */
         .ph-tag--boost {
           font-weight: 600;
           color: var(--color-brand-text);
@@ -781,7 +707,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
           margin-left: 3px;
           font-weight: 700;
         }
-        /* modeMeta(): one colour per submission mode. */
         .ph-tag--mode {
           gap: 5px;
           padding: 3px 9px;
@@ -821,8 +746,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
           font-variant-numeric: tabular-nums;
         }
         .ph-flywheel {
-          /* The artwork is the whole card: it brings its own brand panel, so
-             there is no white plate around it, just the rounded corners. */
           width: 100%;
           border-radius: var(--radius-2xl);
           overflow: hidden;
@@ -840,9 +763,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
           white-space: nowrap;
           border: 0;
         }
-        /* :global — styled-jsx scopes classes to elements in this component's
-           own JSX, and next/image renders the <img> itself, so the scoped
-           selector would never match it. */
         .ph-flywheel :global(img) {
           width: 100%;
           height: auto;
@@ -854,14 +774,10 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
           .ph-ways {
             grid-template-columns: 1fr;
           }
-          /* Below this the copy column gets too narrow to sit beside the
-             artwork, so the hero stacks and the image caps its own width. */
           .ph-hero__grid {
             grid-template-columns: minmax(0, 1fr);
             gap: 32px;
           }
-          /* Once the cards stack there is no second card to align to, so the
-             intro goes full width instead of leaving a ragged gap. */
           .ph-lede {
             max-width: none;
           }
@@ -899,7 +815,6 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
   );
 }
 
-/** Donut slices, in order, from the live composition percentages. */
 function buildConicGradient(slices: { color: string; value: number }[]): string {
   let cursor = 0;
   const stops = slices.map((slice) => {

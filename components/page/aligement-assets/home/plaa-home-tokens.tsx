@@ -1,31 +1,17 @@
 'use client';
 
 /**
- * The prototype (.design-src/Home Page.dc.html) is written against design-system
- * custom properties that this app does not ship. Rather than inline the raw hex
- * at every call site, the home page scopes the tokens it uses here, so the
- * component markup can stay a literal transcription of the design.
- *
- * EVERY token referenced anywhere under .plaa-home must be declared here.
- * `pl-design-system/` is excluded from the build (tsconfig.json), so an
- * undeclared `var(--pl-…)` is invalid at computed-value time: non-inherited
- * properties reset to their initial value and inherited ones take the parent's.
- * That is how the prospect banner ended up white-on-white — `--pl-slate-900`
- * was referenced but never defined, so its background dropped to transparent
- * while the button text inherited #fff.
+ * Every token used under .plaa-home must be declared here: pl-design-system/ is not built,
+ * so an undeclared var(--pl-…) silently resets (the prospect banner once went white-on-white).
  */
 export default function PlaaHomeTokens() {
   return (
     <style jsx global>{`
       .plaa-home {
-        /* PLAA brand. Headers, hero panel, buttons and text only. */
         --color-brand: #0b4f66;
         --color-brand-text: #094157;
         --color-brand-subtle: #e6f1f5;
-        /* Data-visualisation blue, deliberately NOT the brand colour: the NAV
-           series, portfolio/holdings charts and the category radar keep the
-           palette they were designed and signed off with, so a brand change
-           never silently restates a chart. */
+        /* Deliberately not the brand colour: charts keep their signed-off palette. */
         --color-chart: #365a83;
         --surface-card: #ffffff;
         --surface-page: #f8fafc;
@@ -72,9 +58,6 @@ export default function PlaaHomeTokens() {
 
         color: var(--text-primary);
         font-family: 'Inter', sans-serif;
-        /* Fluid: the home page fills the content column at every width instead
-           of parking inside a fixed 1160px box. Gutters grow with the viewport
-           so the content never runs edge-to-edge on a wide monitor. */
         width: 100%;
         max-width: none;
         margin: 0;

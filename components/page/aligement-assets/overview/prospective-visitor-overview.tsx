@@ -33,7 +33,6 @@ import type { CSSProperties, ReactNode } from 'react';
 
 const cssVars = (vars: Record<string, string>) => vars as CSSProperties;
 
-// Same Surus account URL used elsewhere (components/page/aligement-assets/rounds/data/current-round.data.ts).
 const SURUS_URL = 'https://app.surus.io/';
 
 const AT_GLANCE_STATS = [
@@ -61,8 +60,8 @@ const ONBOARDING_STEPS = [
     title: 'Complete accreditation',
     description: (
       <>
-        If you’re US-based, Surus routes you through accreditation. Non-US participants can skip this step. Start
-        ahead of time by obtaining a free accreditation letter through{' '}
+        If you’re US-based, Surus routes you through accreditation. Non-US participants can skip this step. Start ahead
+        of time by obtaining a free accreditation letter through{' '}
         <a href="https://parallelmarkets.com/passport" target="_blank" rel="noopener noreferrer">
           Parallel Markets
         </a>
@@ -110,10 +109,6 @@ interface HowItem {
   withActivitiesLink: boolean;
 }
 
-// Per the source design, the badge circle and border/icon share one accent
-// for Contribute/Collect, but Convert/Capitalize use a second, darker
-// accent for the badge only — see Overview - Prospective Visitor.dc.html's
-// How It Works cards (border-top + icon vs. the numbered circle).
 const HOW_ITEMS: HowItem[] = [
   {
     number: 1,
@@ -174,18 +169,6 @@ export interface ProspectiveVisitorOverviewProps {
   trustHoldings?: TrustHoldingsData;
 }
 
-/**
- * Prospective Visitor variant of the Overview page — a not-yet-onboarded
- * member sees the Surus onboarding walkthrough here instead of the live
- * snapshot/points mechanics ActiveMemberOverview renders. Matches
- * `Overview - Prospective Visitor.dc.html`'s `ovIsProspect` branch of the
- * "Profile Page + Overview" Claude Design project.
- *
- * Section order/copy diverges from ActiveMemberOverview enough (different
- * hero, Who It's For before How It Works, a "How the PLAA Program Works"
- * intro instead of a top header) that this stays fully self-contained
- * rather than sharing overview-topline.tsx.
- */
 export default function ProspectiveVisitorOverview({ trustHoldings }: ProspectiveVisitorOverviewProps) {
   const {
     onOverviewOnboardingLinkClicked,
@@ -206,14 +189,13 @@ export default function ProspectiveVisitorOverview({ trustHoldings }: Prospectiv
 
   return (
     <div className={styles.wrapper}>
-      {/* ── Hero ── */}
       <div className={styles.prospectHero}>
         <div className={styles.prospectHeroCopy}>
           <h1 className={styles.headerTitle}>Participate in the network’s growth.</h1>
           <p className={styles.headerDesc}>
             Onboarding to the PL Alignment Asset is handled through Surus, our compliance and custody platform. This
-            page outlines the onboarding steps and technical requirements. Once verified, you will have the
-            foundation to collect PLAA based on your contributions to the network.
+            page outlines the onboarding steps and technical requirements. Once verified, you will have the foundation
+            to collect PLAA based on your contributions to the network.
           </p>
           <div className={styles.prospectHeroActions}>
             <a
@@ -256,7 +238,6 @@ export default function ProspectiveVisitorOverview({ trustHoldings }: Prospectiv
         </div>
       </div>
 
-      {/* ── How onboarding works ── */}
       <div id="overview-steps" className={styles.section}>
         <div className={styles.sectionIntro}>
           <h2 className={styles.sectionTitle}>How onboarding works</h2>
@@ -269,8 +250,8 @@ export default function ProspectiveVisitorOverview({ trustHoldings }: Prospectiv
         <div className={styles.onboardingHighlight}>
           <CheckCircle size={16} weight="bold" />
           <span>
-            <strong>Fast setup</strong> — Most participants complete their core application in under 15 minutes. KYC
-            and accreditation reviews typically follow within 1–2 business days.
+            <strong>Fast setup</strong> — Most participants complete their core application in under 15 minutes. KYC and
+            accreditation reviews typically follow within 1–2 business days.
           </span>
         </div>
 
@@ -296,7 +277,6 @@ export default function ProspectiveVisitorOverview({ trustHoldings }: Prospectiv
         </div>
       </div>
 
-      {/* ── Who It's For ── */}
       <div className={`${styles.card} ${styles.whoCard}`}>
         <div className={styles.whoTop}>
           <h2 className={styles.sectionTitle}>Who It’s For</h2>
@@ -324,7 +304,6 @@ export default function ProspectiveVisitorOverview({ trustHoldings }: Prospectiv
         </div>
       </div>
 
-      {/* ── How the PLAA Program Works ── */}
       <div className={styles.section}>
         <div className={styles.sectionIntro}>
           <h2 className={styles.sectionTitle}>How the PLAA Program Works</h2>
@@ -374,7 +353,11 @@ export default function ProspectiveVisitorOverview({ trustHoldings }: Prospectiv
                 {item.withActivitiesLink ? (
                   <div className={styles.howCardFooter}>
                     <span className={styles.howCardIcon}>{item.icon}</span>
-                    <Link href="/alignment-asset/activities" className={styles.howCardLink} onClick={handleActivitiesClick}>
+                    <Link
+                      href="/alignment-asset/activities"
+                      className={styles.howCardLink}
+                      onClick={handleActivitiesClick}
+                    >
                       See activities →
                     </Link>
                   </div>
@@ -387,12 +370,11 @@ export default function ProspectiveVisitorOverview({ trustHoldings }: Prospectiv
         </div>
       </div>
 
-      {/* ── Important details to know ── */}
       <div className={styles.card}>
         <h2 className={styles.sectionTitle}>Important details to know</h2>
         <p className={styles.sectionDesc}>
-          Surus acts as the Trustee for the PLAA1 Trust. They manage the compliance and custody infrastructure for
-          your onboarding journey.
+          Surus acts as the Trustee for the PLAA1 Trust. They manage the compliance and custody infrastructure for your
+          onboarding journey.
           <br />
           Verification also grants investor-level access to PL Demo Day.
         </p>
@@ -421,7 +403,6 @@ export default function ProspectiveVisitorOverview({ trustHoldings }: Prospectiv
         </div>
       </div>
 
-      {/* ── CTA ── */}
       <div className={styles.ctaBanner}>
         <div className={styles.ctaBannerText}>
           <h2 className={styles.ctaBannerTitle}>Unlock your path to PLAA.</h2>
@@ -458,8 +439,8 @@ export default function ProspectiveVisitorOverview({ trustHoldings }: Prospectiv
       <div className={styles.geoNotice}>
         <MapPin size={17} weight="fill" className={styles.geoNoticeIcon} />
         <div className={styles.geoNoticeText}>
-          Currently, the PL Alignment Asset is available to Germany, Switzerland, Portugal, and accredited investors
-          in the US. To be notified as it becomes more widely available, please email{' '}
+          Currently, the PL Alignment Asset is available to Germany, Switzerland, Portugal, and accredited investors in
+          the US. To be notified as it becomes more widely available, please email{' '}
           <a href={`mailto:${SUPPORT_EMAIL}`} onClick={handleEmailClick}>
             {SUPPORT_EMAIL}
           </a>{' '}

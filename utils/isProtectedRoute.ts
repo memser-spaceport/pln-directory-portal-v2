@@ -4,13 +4,7 @@
  */
 export const PROTECTED_ROUTES = ['/deals/', '/founder-guides', '/investors', '/pl-infra-os', '/alignment-asset'];
 
-/**
- * The PLAA home page is the program's public front door: PLAA-94 requires it to
- * render for visitors who are not signed in or not onboarded, and its "Get
- * started" eligibility modal exists for exactly those people. Gating it sent
- * every prospect to the login screen instead. Only the bare route is public —
- * every /alignment-asset/* sub-page stays protected.
- */
+/** PLAA-94: the home page is public for prospects; every sub-page stays protected. */
 const PUBLIC_EXACT_ROUTES = ['/alignment-asset'];
 
 /**

@@ -1,17 +1,6 @@
 'use client';
 
-/**
- * "Learn more" explainer card — PLAA-94.
- *
- * The video asset is TBD in the ticket, so the player is a placeholder slot:
- * the chrome (WATCH pill, title, blurb, duration, captions, 16:9 frame with a
- * play button) is built, but there is no video URL and the frame is inert.
- *
- * The runtime and captions row are deliberately NOT rendered: "2:14" and
- * "Captions" are claims about an asset that does not exist, and the prototype's
- * figure is a fixture like every other number in it. They come back with the
- * asset, carrying its real values.
- */
+/** Placeholder until the video exists (PLAA-94); runtime and captions return with the asset. */
 
 export default function PlaaVideoCard() {
   return (
@@ -30,8 +19,6 @@ export default function PlaaVideoCard() {
           </p>
         </div>
 
-        {/* Inert until an asset exists — a button here would promise playback
-            this card cannot deliver. */}
         <div className="pvc__frame" role="img" aria-label="Explainer video placeholder — asset pending">
           <span className="pvc__play">
             <i className="ph-fill ph-play" style={{ fontSize: '30px', marginLeft: '4px' }} />

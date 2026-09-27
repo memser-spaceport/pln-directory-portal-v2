@@ -8,9 +8,6 @@ describe('isProtectedRoute', () => {
     }
   });
 
-  // The bare /alignment-asset route is the program's public front door; the
-  // nested assertions above still cover the rest of the section.
-
   it('protects a section root written without a trailing slash', () => {
     expect(isProtectedRoute('/investors')).toBe(true);
   });

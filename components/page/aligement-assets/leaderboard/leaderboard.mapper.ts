@@ -2,14 +2,8 @@ import type { RoundStatsResponse } from '@/services/plaa/rounds.service';
 import type { MappedLeaderboardEntry } from '@/services/plaa/leaderboard.utils';
 import type { LeaderboardCategoryWeight, LeaderboardRow, LeaderboardSnapshot } from './leaderboard.types';
 
-/** "People/Talent" and "People / Talent" are the same category to a reader. */
 const normalizeCategory = (value: string) => value.toLowerCase().replace(/[^a-z]/g, '');
 
-/**
- * Renders the round's calendar month as the design's period line
- * ("September 1–30, 2026"). `period` is the first of the month, so the end day
- * is that month's length — no separate end date is published.
- */
 export const formatSnapshotPeriod = (stats: RoundStatsResponse): string => {
   const [year, month] = stats.period.split('-').map(Number);
   if (!year || !month) return `${stats.month} ${stats.year}`;
@@ -27,11 +21,7 @@ export const toSnapshot = (stats: RoundStatsResponse): LeaderboardSnapshot => ({
   categories: stats.chart.map((entry) => ({ name: entry.name, value: entry.value })),
 });
 
-/**
- * The leaderboard API has no category field. `activities` is free text, so a
- * category is only claimed when that text actually names one from kpi-weights;
- * anything else resolves to null and the column is dropped by the table.
- */
+/** No category field in the API: claim one only when `activities` names a kpi-weights category. */
 export const resolveTopCategory = (entry: MappedLeaderboardEntry, categories: string[]): string | null => {
   const haystack = normalizeCategory(entry.activities);
   if (!haystack) return null;
@@ -50,12 +40,7 @@ export const toCategoryWeights = (
     emissionsPerSnapshot: item.emissionsPerSnapshot,
   }));
 
-/**
- * The prototype hard-coded "under 100 points" against a fixed 340 max. Live
- * category totals are not on that scale, so the same *relative* cut is used:
- * a category is underutilized when it holds less than 30% of the busiest
- * category this snapshot (100/340 ≈ 0.29 in the design).
- */
+/** The design's 100/340 cut, made relative to the busiest category this snapshot. */
 export const UNDERUTILIZED_RATIO = 0.3;
 
 export const getInitials = (name: string): string =>

@@ -12,6 +12,7 @@ import { LinkedInVerificationCard } from './LinkedInVerificationCard';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 import { toast } from '@/components/core/ToastContainer';
 import { useCookie } from 'react-use';
+import { expireSharedCookie } from '@/utils/third-party.helper';
 
 interface Props {
   member: IMember;
@@ -76,9 +77,8 @@ export const OneClickVerification = ({ userInfo, member, isNewInvestor }: Props)
                   if (userInfoCookie) {
                     try {
                       const _userInfo = JSON.parse(userInfoCookie);
-                      setUserInfoCookie(JSON.stringify({ ..._userInfo, accessLevel: 'L1' }), {
-                        domain: process.env.COOKIE_DOMAIN || '',
-                      });
+                      expireSharedCookie('userInfo');
+                      setUserInfoCookie(JSON.stringify({ ..._userInfo, accessLevel: 'L1' }));
                     } catch (e) {
                       console.error('Failed to parse userInfo cookie: ', e);
                     }

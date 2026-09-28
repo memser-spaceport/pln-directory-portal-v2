@@ -12,6 +12,7 @@ import { TeamAndSkillsInfoSchema, basicInfoSchema, projectContributionSchema } f
 import { validatePariticipantsEmail } from '@/services/participants-request.service';
 import { validateLocation } from '@/services/location.service';
 import Cookies from 'js-cookie';
+import { setSessionCookie } from './third-party.helper';
 
 export const isDemodaySignUpSource = (signUpSource?: string, demoDaySlug = ''): boolean =>
   !!signUpSource?.startsWith(`demoday-${demoDaySlug}`);
@@ -359,10 +360,9 @@ export const parseMemberFilters = (filtersValues: any, query: any, isUserLoggedI
 export const getMemberInfoFormValues = async () => {
   const [teamsInfo, projectsInfo, skillsInfo] = await Promise.all([
     fetch(`${process.env.DIRECTORY_API_URL}/v1/teams?pagination=false`, { method: 'GET' }),
-    fetch(
-      `${process.env.DIRECTORY_API_URL}/v1/projects?pagination=false&with=contributingTeams,logo`,
-      { method: 'GET' },
-    ),
+    fetch(`${process.env.DIRECTORY_API_URL}/v1/projects?pagination=false&with=contributingTeams,logo`, {
+      method: 'GET',
+    }),
     fetch(`${process.env.DIRECTORY_API_URL}/v1/skills?pagination=false`, { method: 'GET' }),
   ]);
   if (!teamsInfo.ok || !projectsInfo.ok || !skillsInfo.ok) {
@@ -825,7 +825,7 @@ export function updateMemberInfoCookie(url: string) {
         profileImageUrl: url,
       };
 
-      Cookies.set('userInfo', JSON.stringify(updatedUserInfo), {
+      setSessionCookie('userInfo', JSON.stringify(updatedUserInfo), {
         path: '/',
       });
     }

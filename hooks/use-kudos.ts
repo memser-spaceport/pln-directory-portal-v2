@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import {
@@ -19,8 +20,14 @@ export const kudosKeys = {
 
 // Every kudos endpoint is authenticated, so each query is gated on the session
 // token: without it a signed-out visitor fires three requests that can only 401.
+const noSubscription = () => () => {};
+
 function useIsAuthenticated() {
-  return Boolean(getCookiesFromClient()?.authToken);
+  return useSyncExternalStore(
+    noSubscription,
+    () => Boolean(getCookiesFromClient()?.authToken),
+    () => false,
+  );
 }
 
 export function useKudosFeed(params: IGetKudosFeedParams) {

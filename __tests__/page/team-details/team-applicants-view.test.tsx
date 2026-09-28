@@ -71,6 +71,19 @@ const useApplicantCounts = jest.fn();
 const useRoleApplicants = jest.fn();
 const markSeen = jest.fn();
 const toggleReviewed = jest.fn();
+const analytics = {
+  onJobHiringViewed: jest.fn(),
+  onJobApplicantOpened: jest.fn(),
+  onJobApplicantReviewed: jest.fn(),
+  onJobApplicantReviewUndone: jest.fn(),
+  onJobApplicantReviewFailed: jest.fn(),
+  onJobApplicantEmailClicked: jest.fn(),
+  onJobHiringTabChanged: jest.fn(),
+};
+jest.mock('@/analytics/jobs.analytics', () => ({
+  useJobsAnalytics: () => analytics,
+}));
+
 jest.mock('@/services/jobs/hooks/useTeamApplicants', () => ({
   useApplicantCounts: (...args: unknown[]) => useApplicantCounts(...args),
   useRoleApplicants: (...args: unknown[]) => useRoleApplicants(...args),
@@ -147,6 +160,7 @@ const rowFor = (name: string) => screen.getAllByRole('button').find((b) => b.tex
 
 beforeEach(() => {
   isNarrow = false;
+  Object.values(analytics).forEach((fn) => fn.mockReset());
   useApplicantCounts.mockReset();
   useRoleApplicants.mockReset();
   markSeen.mockReset();
@@ -429,7 +443,7 @@ describe('TeamApplicantsView', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /Mark as reviewed/ }));
 
-    expect(toggleReviewed).toHaveBeenCalledWith({ kind: 'application', uid: 'a1', reviewed: true });
+    expect(toggleReviewed.mock.calls.at(-1)?.[0]).toEqual({ kind: 'application', uid: 'a1', reviewed: true });
   });
 
   /* The undo is the button it turned into, which is why there is no confirm. */
@@ -440,7 +454,7 @@ describe('TeamApplicantsView', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Reviewed' }));
 
-    expect(toggleReviewed).toHaveBeenCalledWith({ kind: 'application', uid: 'a1', reviewed: false });
+    expect(toggleReviewed.mock.calls.at(-1)?.[0]).toEqual({ kind: 'application', uid: 'a1', reviewed: false });
   });
 
   it('writes a mail link naming the act, not just the role', async () => {
@@ -473,5 +487,56 @@ describe('TeamApplicantsView', () => {
     /* The chosen person does not follow the role. The new role's list opens on
        its own first person, the same way the page opened in the first place. */
     expect(screen.getByRole('button', { pressed: true }).textContent).toContain('Devon Park');
+  });
+
+  describe('analytics', () => {
+    const base = { team_id: 'team-1', job_id: 'role-1', kind: 'application' as const };
+
+    it('records the page and the person it opens on', () => {
+      renderView();
+
+      expect(analytics.onJobHiringViewed).toHaveBeenCalledWith({ team_id: 'team-1', job_id: 'role-1' });
+      expect(analytics.onJobApplicantOpened).toHaveBeenCalledWith(base);
+    });
+
+    it('records a tab change', async () => {
+      renderView();
+
+      await userEvent.click(screen.getByText(/Interested/));
+
+      expect(analytics.onJobHiringTabChanged).toHaveBeenCalledWith({
+        team_id: 'team-1',
+        job_id: 'role-1',
+        tab: 'interested',
+      });
+    });
+
+    it('records a review when it lands, and a failure when it does not', async () => {
+      renderView();
+      await userEvent.click(screen.getByRole('button', { name: /Mark as reviewed/ }));
+
+      const [, options] = toggleReviewed.mock.calls.at(-1);
+      options.onSuccess();
+      expect(analytics.onJobApplicantReviewed).toHaveBeenCalledWith(base);
+
+      options.onError();
+      expect(analytics.onJobApplicantReviewFailed).toHaveBeenCalledWith({ ...base, action: 'mark' });
+    });
+
+    it('records clearing a review', async () => {
+      setLists({ applications: [{ ...DEVON, reviewed: true }], interests: [] });
+      renderView();
+      await userEvent.click(screen.getByRole('button', { name: 'Reviewed' }));
+
+      toggleReviewed.mock.calls.at(-1)[1].onSuccess();
+      expect(analytics.onJobApplicantReviewUndone).toHaveBeenCalledWith(base);
+    });
+
+    it('records Email', async () => {
+      renderView();
+      await userEvent.click(screen.getByRole('link', { name: /Email Devon/ }));
+
+      expect(analytics.onJobApplicantEmailClicked).toHaveBeenCalledWith(base);
+    });
   });
 });

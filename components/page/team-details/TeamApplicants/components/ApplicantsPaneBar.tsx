@@ -17,6 +17,7 @@ interface Props {
   total: number;
   onStep: (delta: number) => void;
   onToggleReviewed: () => void;
+  onEmailClick: () => void;
 }
 
 /**
@@ -37,7 +38,15 @@ interface Props {
  * promise is that the team can reply directly — so the list is a record of who
  * applied, not a board to move people across.
  */
-export function ApplicantsPaneBar({ applicant, roleTitle, position, total, onStep, onToggleReviewed }: Props) {
+export function ApplicantsPaneBar({
+  applicant,
+  roleTitle,
+  position,
+  total,
+  onStep,
+  onToggleReviewed,
+  onEmailClick,
+}: Props) {
   const firstName = applicant.name.split(' ')[0] || applicant.name;
   const subject =
     applicant.kind === 'application' ? `Your application for ${roleTitle}` : `Your interest in ${roleTitle}`;
@@ -89,7 +98,11 @@ export function ApplicantsPaneBar({ applicant, roleTitle, position, total, onSte
             is worse than the absence, because it looks like the team has a way
             to reach this person. */}
         {applicant.email && (
-          <a className={s.emailBtn} href={`mailto:${applicant.email}?subject=${encodeURIComponent(subject)}`}>
+          <a
+            className={s.emailBtn}
+            href={`mailto:${applicant.email}?subject=${encodeURIComponent(subject)}`}
+            onClick={onEmailClick}
+          >
             <EnvelopeIcon size={14} />
             Email {firstName}
           </a>

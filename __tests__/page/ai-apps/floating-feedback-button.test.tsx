@@ -13,13 +13,27 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
     isOpen,
     anchorRef,
     placement,
+    appName,
+    onSubmitted,
+    onClose,
   }: {
     isOpen: boolean;
     anchorRef?: { current: HTMLElement | null };
     placement?: string;
+    appName?: string;
+    onSubmitted?: (app: { label: string; value: string }) => void;
+    onClose?: () => void;
   }) =>
     isOpen ? (
-      <div data-placement={placement}>{anchorRef?.current ? 'Feedback dialog open' : 'Feedback dialog unanchored'}</div>
+      <div data-placement={placement} data-app-name={appName ?? ''}>
+        {anchorRef?.current ? 'Feedback dialog open' : 'Feedback dialog unanchored'}
+        <button type="button" onClick={() => onSubmitted?.({ label: 'Chosen App', value: 'chosen-app' })}>
+          Complete submit
+        </button>
+        <button type="button" onClick={() => onClose?.()}>
+          Close feedback
+        </button>
+      </div>
     ) : null,
 }));
 
@@ -155,6 +169,53 @@ describe('FloatingFeedbackButton', () => {
 
       expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
       expect(wrapOf(container)).toHaveAttribute('data-collapsed', 'false');
+    });
+  });
+
+  describe('keyboard shortcuts', () => {
+    const openChord = () => fireEvent.keyDown(window, { key: 'Enter', ctrlKey: true, altKey: true });
+
+    it('opens from the shortcut, and shows it on the trigger', () => {
+      withAccess();
+
+      render(<FloatingFeedbackButton />);
+
+      expect(screen.getByRole('button', { name: 'Give feedback' })).toHaveAttribute(
+        'aria-keyshortcuts',
+        expect.stringMatching(/Enter/),
+      );
+      openChord();
+
+      expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', '');
+    });
+
+    it('reopens the submitted app once, then returns to the picker', () => {
+      withAccess();
+
+      render(<FloatingFeedbackButton />);
+      openChord();
+      fireEvent.click(screen.getByRole('button', { name: 'Complete submit' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Close feedback' }));
+
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+      expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', '');
+      fireEvent.click(screen.getByRole('button', { name: 'Close feedback' }));
+
+      openChord();
+      expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', 'Chosen App');
+      fireEvent.click(screen.getByRole('button', { name: 'Close feedback' }));
+
+      openChord();
+      expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', '');
+    });
+
+    it('opens a detail page on that page’s app', () => {
+      withAccess();
+
+      render(<FloatingFeedbackButton appUid="app-a" appName="App A" />);
+      openChord();
+
+      expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', 'App A');
     });
   });
 });

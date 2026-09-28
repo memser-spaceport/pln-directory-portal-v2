@@ -7,6 +7,7 @@ import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { ConfirmDialog } from '@/components/page/demo-day/FounderPendingView/components/ConfirmDialog';
 import { CloseIcon, CommentIcon, PencilSimpleLineIcon } from '@/components/icons';
+import { useShortcutLabels } from '@/components/page/ai-apps/shortcutKeys';
 import { ConfirmLayer } from './ConfirmLayer';
 import { AnnotationCanvas, DEFAULT_DRAW_COLOR, DRAW_COLORS, type AnnotatorTool } from './AnnotationCanvas';
 import { emptyAnnotations, type AnnotationState } from './types';
@@ -29,6 +30,22 @@ interface Props {
   initialAnnotations?: AnnotationState;
 }
 
+const TOOL_KEYS: Record<string, AnnotatorTool> = {
+  p: 'draw',
+  r: 'rect',
+  o: 'ellipse',
+  a: 'arrow',
+  c: 'comment',
+};
+
+const TOOL_LETTERS: Record<AnnotatorTool, string> = {
+  draw: 'P',
+  rect: 'R',
+  ellipse: 'O',
+  arrow: 'A',
+  comment: 'C',
+};
+
 type History = {
   entries: AnnotationState[];
   index: number;
@@ -38,6 +55,7 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
   /* Reopened rather than fresh — the two differ only in what the footer promises
      and where the history starts. */
   const isEditing = Boolean(initialAnnotations);
+  const shortcuts = useShortcutLabels();
   const [tool, setTool] = useState<AnnotatorTool>('draw');
   const [strokeColor, setStrokeColor] = useState<(typeof DRAW_COLORS)[number]>(DEFAULT_DRAW_COLOR);
   /* Lazy, and seeded once: a later render must not reset an edit in progress,
@@ -62,19 +80,22 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
    */
   const hasUnsavedWork = history.index > 0;
 
-  const requestDiscard = () => {
+  const requestDiscard = useCallback(() => {
     if (hasUnsavedWork) {
       setConfirmingDiscard(true);
       return;
     }
     onDiscard();
-  };
+  }, [hasUnsavedWork, onDiscard]);
 
-  const selectTool = (next: AnnotatorTool) => {
-    if (next === tool) return;
-    setTool(next);
-    onToolSelected?.(next);
-  };
+  const selectTool = useCallback(
+    (next: AnnotatorTool) => {
+      if (next === tool) return;
+      setTool(next);
+      onToolSelected?.(next);
+    },
+    [tool, onToolSelected],
+  );
 
   const push = (next: AnnotationState) => {
     setHistory((prev) => ({
@@ -93,29 +114,73 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (target?.closest('textarea, input, [contenteditable="true"]')) return;
+      if (event.isComposing) return;
+      const target = event.target;
+      const typing = target instanceof Element && Boolean(target.closest('textarea, input, [contenteditable="true"]'));
+
+      if (confirmingDiscard) {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          setConfirmingDiscard(false);
+          return;
+        }
+        if (event.key === 'Enter' && !event.shiftKey && !event.metaKey && !event.ctrlKey && !event.altKey) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          setConfirmingDiscard(false);
+          onDiscard();
+        }
+        return;
+      }
+
+      if (event.key === 'Escape') {
+        if (typing) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        requestDiscard();
+        return;
+      }
+
       const mod = event.metaKey || event.ctrlKey;
-      if (!mod) return;
-      const key = event.key.toLowerCase();
-      if (key === 'z' && event.shiftKey) {
+      if (mod && event.key === 'Enter' && !event.altKey && !event.shiftKey) {
+        if (typing) return;
         event.preventDefault();
-        redo();
+        event.stopImmediatePropagation();
+        onAdd(annotations);
         return;
       }
-      if (key === 'z') {
-        event.preventDefault();
-        undo();
+
+      if (typing) return;
+
+      if (mod) {
+        const key = event.key.toLowerCase();
+        if (key === 'z' && event.shiftKey) {
+          event.preventDefault();
+          redo();
+          return;
+        }
+        if (key === 'z' && !event.altKey) {
+          event.preventDefault();
+          undo();
+          return;
+        }
+        if (key === 'y' && !event.shiftKey && !event.altKey) {
+          event.preventDefault();
+          redo();
+        }
         return;
       }
-      if (key === 'y') {
-        event.preventDefault();
-        redo();
-      }
+
+      if (event.altKey || event.shiftKey) return;
+      const next = TOOL_KEYS[event.key.toLowerCase()];
+      if (!next) return;
+      event.preventDefault();
+      selectTool(next);
     };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [undo, redo]);
+    document.addEventListener('keydown', onKey, true);
+    return () => document.removeEventListener('keydown', onKey, true);
+  }, [undo, redo, confirmingDiscard, annotations, onAdd, onDiscard, requestDiscard, selectTool]);
 
   return (
     <Modal
@@ -143,46 +208,71 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
             type="button"
             className={clsx(s.tool, tool === 'comment' && s.toolActive)}
             aria-pressed={tool === 'comment'}
+            aria-keyshortcuts="C"
+            title="Comment (C)"
             onClick={() => selectTool('comment')}
           >
             <CommentIcon />
             Comment
+            <kbd className={s.toolKey} aria-hidden="true">
+              {TOOL_LETTERS.comment}
+            </kbd>
           </button>
           <button
             type="button"
             className={clsx(s.tool, tool === 'draw' && s.toolActive)}
             aria-pressed={tool === 'draw'}
+            aria-keyshortcuts="P"
+            title="Draw (P)"
             onClick={() => selectTool('draw')}
           >
             <PencilSimpleLineIcon width={16} height={16} />
             Draw
+            <kbd className={s.toolKey} aria-hidden="true">
+              {TOOL_LETTERS.draw}
+            </kbd>
           </button>
           <button
             type="button"
             className={clsx(s.tool, tool === 'rect' && s.toolActive)}
             aria-pressed={tool === 'rect'}
+            aria-keyshortcuts="R"
+            title="Box (R)"
             onClick={() => selectTool('rect')}
           >
             <BoxIcon />
             Box
+            <kbd className={s.toolKey} aria-hidden="true">
+              {TOOL_LETTERS.rect}
+            </kbd>
           </button>
           <button
             type="button"
             className={clsx(s.tool, tool === 'ellipse' && s.toolActive)}
             aria-pressed={tool === 'ellipse'}
+            aria-keyshortcuts="O"
+            title="Oval (O)"
             onClick={() => selectTool('ellipse')}
           >
             <OvalIcon />
             Oval
+            <kbd className={s.toolKey} aria-hidden="true">
+              {TOOL_LETTERS.ellipse}
+            </kbd>
           </button>
           <button
             type="button"
             className={clsx(s.tool, tool === 'arrow' && s.toolActive)}
             aria-pressed={tool === 'arrow'}
+            aria-keyshortcuts="A"
+            title="Arrow (A)"
             onClick={() => selectTool('arrow')}
           >
             <ArrowIcon />
             Arrow
+            <kbd className={s.toolKey} aria-hidden="true">
+              {TOOL_LETTERS.arrow}
+            </kbd>
           </button>
 
           <div className={s.colors} role="group" aria-label="Draw color">
@@ -207,10 +297,26 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
           </div>
 
           <div className={s.history}>
-            <button type="button" className={s.iconTool} onClick={undo} disabled={!canUndo} aria-label="Undo">
+            <button
+              type="button"
+              className={s.iconTool}
+              onClick={undo}
+              disabled={!canUndo}
+              aria-label="Undo"
+              aria-keyshortcuts={shortcuts.undoAria}
+              title={`Undo (${shortcuts.mod}+Z)`}
+            >
               <UndoIcon />
             </button>
-            <button type="button" className={s.iconTool} onClick={redo} disabled={!canRedo} aria-label="Redo">
+            <button
+              type="button"
+              className={s.iconTool}
+              onClick={redo}
+              disabled={!canRedo}
+              aria-label="Redo"
+              aria-keyshortcuts={shortcuts.redoAria}
+              title={`Redo (${shortcuts.mod}+Shift+Z)`}
+            >
               <RedoIcon />
             </button>
           </div>
@@ -232,10 +338,27 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
               feedback either way. Not "Cancel" — the dialog underneath has one,
               and two Cancels on screen do not say which thing is being
               cancelled. */}
-          <Button style="border" variant="neutral" onClick={requestDiscard}>
+          <Button
+            style="border"
+            variant="neutral"
+            className={s.action}
+            aria-keyshortcuts="Escape"
+            onClick={requestDiscard}
+          >
             {isEditing ? 'Discard changes' : 'Discard'}
+            <kbd className={s.kbd} aria-hidden="true">
+              Esc
+            </kbd>
           </Button>
-          <Button onClick={() => onAdd(annotations)}>{isEditing ? 'Save changes' : 'Add to feedback'}</Button>
+          <Button className={s.action} aria-keyshortcuts={shortcuts.sendAria} onClick={() => onAdd(annotations)}>
+            {isEditing ? 'Save changes' : 'Add to feedback'}
+            <kbd className={s.kbdOnFill} aria-hidden="true">
+              {shortcuts.mod}
+            </kbd>
+            <kbd className={s.kbdOnFill} aria-hidden="true">
+              {shortcuts.enter}
+            </kbd>
+          </Button>
         </div>
       </div>
 

@@ -13,3 +13,7 @@
     color: var(--foreground-brand-primary, #1b4dff);
   }
 }
+
+.toast.toast {
+  width: fit-content;
+}

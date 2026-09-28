@@ -5,6 +5,7 @@ import { usePermissions } from '@/services/rbac/hooks/usePermissions';
 import { canViewAiApps } from '@/services/rbac/utils/aiApps/canViewAiApps';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { CommentIcon } from '@/components/icons';
+import { isOpenFeedbackChord, useShortcutLabels } from '@/components/page/ai-apps/shortcutKeys';
 import { GiveAiAppFeedbackDialog } from '../GiveAiAppFeedbackDialog';
 
 import s from './FloatingFeedbackButton.module.scss';
@@ -38,12 +39,19 @@ export function FloatingFeedbackButton(props: Props) {
   return <FeedbackFab key={props.appUid ?? 'list'} {...props} />;
 }
 
+type SubmittedApp = { label: string; value: string };
+
 function FeedbackFab({ appUid, appName }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  /** App from the last successful send. The next open-shortcut consumes it. */
+  const [reopenApp, setReopenApp] = useState<SubmittedApp | null>(null);
+  /** Prefill for the open that the shortcut just started. A button click leaves this empty. */
+  const [shortcutApp, setShortcutApp] = useState<SubmittedApp | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const introStartedAtRef = useRef<number | null>(null);
   const analytics = useAiAppsAnalytics();
+  const shortcuts = useShortcutLabels();
   const { permsSet, isLoading } = usePermissions();
   const isVisible = !isLoading && canViewAiApps(permsSet);
 
@@ -73,6 +81,25 @@ function FeedbackFab({ appUid, appName }: Props) {
     return () => clearTimeout(timer);
   }, [isVisible, isOpen, isCollapsed]);
 
+  useEffect(() => {
+    if (!isVisible || isOpen) return;
+
+    const onKey = (event: KeyboardEvent) => {
+      if (!isOpenFeedbackChord(event)) return;
+      event.preventDefault();
+      const prefill = reopenApp;
+      setShortcutApp(prefill);
+      setReopenApp(null);
+      const uid = prefill?.value ?? appUid;
+      const name = prefill?.label ?? appName;
+      analytics.onFeedbackDialogOpened(uid ? { appUid: uid, appName: name } : {});
+      setIsOpen(true);
+    };
+
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isVisible, isOpen, reopenApp, appUid, appName, analytics]);
+
   if (!isVisible) {
     return null;
   }
@@ -84,7 +111,9 @@ function FeedbackFab({ appUid, appName }: Props) {
           type="button"
           className={s.button}
           aria-label="Give feedback"
+          aria-keyshortcuts={shortcuts.openAria}
           onClick={() => {
+            setShortcutApp(null);
             analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
             setIsOpen(true);
           }}
@@ -92,7 +121,8 @@ function FeedbackFab({ appUid, appName }: Props) {
           {/* CommentIcon hardcodes its own 16px box and ignores props. */}
           <CommentIcon />
           <span className={s.label} aria-hidden>
-            Give feedback
+            <span>Give feedback</span>
+            <kbd className={s.labelKbd}>{shortcuts.open}</kbd>
           </span>
         </button>
       </div>
@@ -100,8 +130,9 @@ function FeedbackFab({ appUid, appName }: Props) {
       <GiveAiAppFeedbackDialog
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        appUid={appUid}
-        appName={appName}
+        onSubmitted={setReopenApp}
+        appUid={shortcutApp?.value ?? appUid}
+        appName={shortcutApp?.label ?? appName}
         anchorRef={wrapRef}
         placement="above"
       />

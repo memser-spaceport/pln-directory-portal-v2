@@ -47,6 +47,11 @@ const CONTENT_WIDTH = 600;
 const START_WIDTH = 300;
 const SRC = 'https://images.example.com/diagram.png';
 
+const mockOnImageResized = jest.fn();
+jest.mock('@/analytics/editor.analytics', () => ({
+  useEditorAnalytics: () => ({ onImageResized: mockOnImageResized }),
+}));
+
 const formatText = jest.fn();
 const deleteText = jest.fn();
 const insertEmbed = jest.fn();
@@ -190,6 +195,7 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
+  mockOnImageResized.mockClear();
   [formatText, deleteText, insertEmbed, insertText, setSelection].forEach((mock) => mock.mockClear());
   imageBlot.index = 7;
   // Three blocks: 0-2, 3-12 (the image's, its newline at 12), 13-17.
@@ -252,6 +258,7 @@ describe('resizing', () => {
 
     // 400 of 600 content pixels.
     expect(formatText).toHaveBeenCalledWith(7, 1, 'width', '67%', 'user');
+    expect(mockOnImageResized).toHaveBeenCalledWith(67);
     expect(image.style.width).toBe('');
   });
 
@@ -275,6 +282,7 @@ describe('resizing', () => {
     fireEvent.pointerUp(window, { clientX: 41 });
 
     expect(formatText).not.toHaveBeenCalled();
+    expect(mockOnImageResized).not.toHaveBeenCalled();
     expect(image.style.width).toBe('');
   });
 

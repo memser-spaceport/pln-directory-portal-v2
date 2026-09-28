@@ -9,6 +9,9 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
 import { useAiAppManageAccess } from '@/services/ai-apps/hooks/useAiAppManageAccess';
 import {
+  AiAppTargetEnvironment,
+  aiAppStatusLabel,
+  aiAppTarget,
   checkAiAppLive,
   deployFailureKind,
   hasPrd,
@@ -207,6 +210,7 @@ export function AiAppDetailPage(props: Props) {
   const [showDetails, setShowDetails] = useState(false);
   // Bumped by "Try again" to restart the polling effect after it gave up.
   const [retryToken, setRetryToken] = useState(0);
+  const [previewEnv, setPreviewEnv] = useState<AiAppTargetEnvironment>('prod');
   // Result of the liveness polling, tagged with the generation it probed. A new
   // generation (fresh deploy or retry) makes the derived status fall back to
   // 'checking' without the effect having to reset any state synchronously.
@@ -276,7 +280,16 @@ export function AiAppDetailPage(props: Props) {
     }
   }, [isError, uid, analytics]);
 
-  const appUrl = app?.url ?? null;
+  const prodTarget = app ? aiAppTarget(app, 'prod') : null;
+  const devTarget = app ? aiAppTarget(app, 'dev') : null;
+  const previewDefaulted = useRef(false);
+  useEffect(() => {
+    if (!app || previewDefaulted.current) return;
+    previewDefaulted.current = true;
+    if (!aiAppTarget(app, 'prod').url && aiAppTarget(app, 'dev').url) setPreviewEnv('dev');
+  }, [app]);
+  const previewTarget = previewEnv === 'dev' ? devTarget : prodTarget;
+  const appUrl = previewTarget?.url ?? (previewEnv === 'prod' ? app?.url ?? null : null);
   const appOrigin = useMemo(() => {
     if (!appUrl) return null;
     try {
@@ -297,7 +310,7 @@ export function AiAppDetailPage(props: Props) {
   // updatedAt would remount a visitor's working previous version whenever a
   // FAILED deploy bumps the row (warning state). updatedAt stays as the
   // fallback for pre-contract API responses that lack the field.
-  const deployGeneration = app?.lastDeployedAt ?? app?.updatedAt ?? '';
+  const deployGeneration = previewTarget?.lastDeployedAt ?? app?.updatedAt ?? '';
   // One probe "generation" per deployed version and per manual retry; probe
   // results from older generations are ignored, so a fresh deploy always
   // re-checks.
@@ -373,7 +386,7 @@ export function AiAppDetailPage(props: Props) {
     let timer: ReturnType<typeof setTimeout> | undefined;
 
     const probe = async () => {
-      const live = await checkAiAppLive(uid);
+      const live = await checkAiAppLive(uid, previewEnv);
       if (cancelled) return;
       if (live) {
         setProbeResult({ generation: probeGeneration, status: 'live' });
@@ -478,7 +491,7 @@ export function AiAppDetailPage(props: Props) {
           <div className={s.setupHeader}>
             <h1 className={s.setupTitle}>{app.name}</h1>
             <span className={s.statusBadge} data-status={app.status}>
-              {SETUP_STATUS_LABELS[app.status] ?? app.status}
+              Prod {aiAppStatusLabel(prodTarget?.status ?? app.status)} · Dev {aiAppStatusLabel(devTarget?.status ?? 'IN_DEVELOPMENT')}
             </span>
             {isPrivateAiApp(app) && <span className={s.privateBadge}>Private</span>}
           </div>
@@ -603,6 +616,22 @@ export function AiAppDetailPage(props: Props) {
           Back
         </Link>
         <div className={s.topBarActions}>
+          <span className={s.envMeta}>
+            Prod {aiAppStatusLabel(prodTarget?.status ?? '')} · Dev {aiAppStatusLabel(devTarget?.status ?? '')}
+          </span>
+          {prodTarget?.url && (
+            <a className={s.envLink} href={prodTarget.url} target="_blank" rel="noreferrer">
+              Prod URL
+            </a>
+          )}
+          {devTarget?.url && (
+            <a className={s.envLink} href={devTarget.url} target="_blank" rel="noreferrer">
+              Dev URL
+            </a>
+          )}
+          <button type="button" className={s.envLink} onClick={() => setPreviewEnv(previewEnv === 'prod' ? 'dev' : 'prod')}>
+            Preview {previewEnv === 'prod' ? 'dev' : 'prod'}
+          </button>
           {isPrivateAiApp(app) && (
             <span className={s.privateBadge} title="Only the owner and people they add can see this app">
               <LockIcon size={12} />

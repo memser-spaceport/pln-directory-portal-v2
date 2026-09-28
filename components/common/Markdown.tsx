@@ -1,5 +1,10 @@
+'use client';
+
 import { FC, type ReactNode } from 'react';
 import MarkdownToJSX from 'markdown-to-jsx';
+
+import { useHuskyAnalytics } from '@/analytics/husky.analytics';
+
 import HuskyCodeBlock from '../core/husky/husky-code-block';
 
 interface CitationRef {
@@ -16,12 +21,23 @@ interface MarkdownProps {
 }
 
 export const Markdown: FC<MarkdownProps> = ({ children, className = '', sourceRefs }) => {
+  const { trackHuskyCitationClicked } = useHuskyAnalytics();
+
   const anchorWrapper = (props: { href?: string; children?: unknown }) => {
     const cited = !Number.isNaN(Number(props.children));
     const ref = cited ? sourceRefs?.find((item) => item.index === Number(props.children)) : undefined;
     const href = (ref && (ref.directoryLink || ref.externalUrl)) || props.href;
     return (
-      <a style={{ color: 'blue' }} target="_blank" rel="noreferrer" href={href} title={ref?.title}>
+      <a
+        style={{ color: 'blue' }}
+        target="_blank"
+        rel="noreferrer"
+        href={href}
+        title={ref?.title}
+        onClick={() => {
+          if (cited && sourceRefs && href) trackHuskyCitationClicked(href);
+        }}
+      >
         {cited ? `[${props.children}]` : (props.children as ReactNode)}
       </a>
     );

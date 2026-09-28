@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import Select, { type StylesConfig } from 'react-select';
 
+import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 import { BackButton } from '@/components/ui/BackButton';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { Tabs } from '@/components/ui/tabs/Tabs';
@@ -81,6 +82,8 @@ export function TeamApplicantsView({
      768px and this layout goes two-column at 960 — between the two the pane
      would render under the list with nothing to go back to. */
   const isNarrow = useIsBelowTabletLandscape();
+  const analytics = useJobsAnalytics();
+  const hiringViewed = useRef(false);
 
   const [roleUid, setRoleUid] = useState(() => initialRoleUid ?? roles[0]?.uid ?? '');
   /**
@@ -199,16 +202,32 @@ export function TeamApplicantsView({
     setSelectedUid(null);
     setQuery('');
     setPaneOpen(false);
+    analytics.onJobHiringTabChanged({
+      team_id: teamId,
+      job_id: role?.uid ?? null,
+      tab: next === INTERESTED_TAB ? 'interested' : 'applied',
+    });
   };
 
   const select = (row: TeamApplicant) => {
     setSelectedUid(row.uid);
+    analytics.onJobApplicantOpened({
+      team_id: teamId,
+      job_id: role?.uid ?? null,
+      kind: row.kind,
+    });
     if (isNarrow) setPaneOpen(true);
     /* Opening a row IS reading it, so the tint clears on selection rather than
        on some later "mark as read". Fire-and-forget: a failed write costs a
        badge that comes back, which is not worth interrupting anyone over. */
     if (row.unseen) markSeen.mutate({ kind: row.kind, uid: row.uid });
   };
+
+  useEffect(() => {
+    if (hiringViewed.current) return;
+    hiringViewed.current = true;
+    analytics.onJobHiringViewed({ team_id: teamId, job_id: role?.uid ?? null });
+  }, [analytics, teamId, role]);
 
   /**
    * The pane opens on someone, rather than on an instruction to pick someone.
@@ -381,11 +400,26 @@ export function TeamApplicantsView({
                   position={position}
                   total={shown.length}
                   onStep={step}
-                  onToggleReviewed={() =>
-                    toggleReviewed.mutate({
+                  onToggleReviewed={() => {
+                    const reviewed = !selected.reviewed;
+                    const base = { team_id: teamId, job_id: role?.uid ?? null, kind: selected.kind };
+                    toggleReviewed.mutate(
+                      { kind: selected.kind, uid: selected.uid, reviewed },
+                      {
+                        onSuccess: () => {
+                          if (reviewed) analytics.onJobApplicantReviewed(base);
+                          else analytics.onJobApplicantReviewUndone(base);
+                        },
+                        onError: () =>
+                          analytics.onJobApplicantReviewFailed({ ...base, action: reviewed ? 'mark' : 'undo' }),
+                      },
+                    );
+                  }}
+                  onEmailClick={() =>
+                    analytics.onJobApplicantEmailClicked({
+                      team_id: teamId,
+                      job_id: role?.uid ?? null,
                       kind: selected.kind,
-                      uid: selected.uid,
-                      reviewed: !selected.reviewed,
                     })
                   }
                 />

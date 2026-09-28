@@ -7,7 +7,14 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { CloseIcon } from '@/components/icons';
-import { AiApp, AiAppLogEvent, AiAppLogStream } from '@/services/ai-apps/ai-apps.service';
+import {
+  AiApp,
+  AiAppLogEvent,
+  AiAppLogStream,
+  AiAppTargetEnvironment,
+  aiAppStatusLabel,
+  aiAppTarget,
+} from '@/services/ai-apps/ai-apps.service';
 import {
   deriveLogLevel,
   formatLogTimestamp,
@@ -105,6 +112,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
   // failing stream, in-flight on build, healthy on runtime. Never switched by
   // effects — the tab must not move under the reader when a status poll lands.
   const [stream, setStream] = useState<AiAppLogStream>(() => initialLogStream(app));
+  const [environment, setEnvironment] = useState<AiAppTargetEnvironment>('prod');
   const [query, setQuery] = useState('');
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -120,8 +128,8 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
     build: stream === 'build',
     runtime: stream === 'runtime',
   }));
-  const build = useAiAppLogs(app.uid, 'build', { enabled: visited.build });
-  const runtime = useAiAppLogs(app.uid, 'runtime', { enabled: visited.runtime });
+  const build = useAiAppLogs(app.uid, 'build', { enabled: visited.build, environment });
+  const runtime = useAiAppLogs(app.uid, 'runtime', { enabled: visited.runtime, environment });
   const active = stream === 'build' ? build : runtime;
 
   const buildLines = useMemo(() => prepareLines(build.events), [build.events]);
@@ -223,12 +231,15 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
 
   const isEmpty = !!active.events && active.events.length === 0 && !active.hasMore && !active.errorKind;
 
+  const targetStatus = aiAppTarget(app, environment).status;
   const statusChip =
-    app.status === 'ERROR'
+    targetStatus === 'ERROR'
       ? { label: 'Deploy failed', className: s.statusFailed }
-      : app.status === 'DEPLOYING'
+      : targetStatus === 'DEPLOYING'
         ? { label: 'Deploying', className: s.statusDeploying }
-        : { label: 'Live', className: s.statusLive };
+        : targetStatus === 'READY'
+          ? { label: 'Live', className: s.statusLive }
+          : { label: aiAppStatusLabel(targetStatus), className: s.statusLive };
 
   const tabs: { key: AiAppLogStream; label: string; count: string | null; ref: typeof buildTabRef }[] = [
     // A trailing + marks "more pages remain" — the count is lines loaded, not the log's size.
@@ -425,6 +436,17 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
             </h2>
             <div className={s.metaRow}>
               <span className={s.appName}>{app.name}</span>
+              {(['prod', 'dev'] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={s.appName}
+                  aria-pressed={environment === value}
+                  onClick={() => setEnvironment(value)}
+                >
+                  {value === 'prod' ? 'Production' : 'Dev'}
+                </button>
+              ))}
               <span className={`${s.status} ${statusChip.className}`}>{statusChip.label}</span>
             </div>
           </div>
@@ -479,7 +501,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
             </button>
           </div>
 
-          {app.status === 'DEPLOYING' && (
+          {targetStatus === 'DEPLOYING' && (
             <p className={s.deployingNote}>Deploy in progress — use Refresh to pull the latest lines.</p>
           )}
 

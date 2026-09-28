@@ -260,3 +260,110 @@ describe('AnnotatorModal discard confirmation', () => {
     expect(screen.getByText(/stays in your feedback/)).toBeInTheDocument();
   });
 });
+
+describe('AnnotatorModal keyboard shortcuts', () => {
+  beforeEach(() => {
+    HTMLElement.prototype.setPointerCapture = jest.fn();
+    HTMLCanvasElement.prototype.setPointerCapture = jest.fn();
+  });
+
+  it('discards an untouched capture on Escape', () => {
+    const onDiscard = jest.fn();
+    renderModal({ onDiscard });
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(onDiscard).toHaveBeenCalledTimes(1);
+  });
+
+  it('asks before discarding drawn work, then confirms on Enter and keeps on Escape', () => {
+    const onDiscard = jest.fn();
+    renderModal({ onDiscard });
+
+    fireEvent.click(tool('Box'));
+    const canvas = document.querySelector('canvas')!;
+    const bounds = {
+      x: 0,
+      y: 0,
+      top: 0,
+      left: 0,
+      bottom: 200,
+      right: 200,
+      width: 200,
+      height: 200,
+      toJSON: () => ({}),
+    };
+    jest.spyOn(canvas, 'getBoundingClientRect').mockReturnValue(bounds as DOMRect);
+    Object.defineProperty(canvas, 'width', { value: 200, configurable: true });
+    Object.defineProperty(canvas, 'height', { value: 200, configurable: true });
+    fireEvent(
+      canvas,
+      new MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0, clientX: 20, clientY: 20 }),
+    );
+    fireEvent(
+      canvas,
+      new MouseEvent('pointermove', { bubbles: true, cancelable: true, button: 0, clientX: 120, clientY: 120 }),
+    );
+    fireEvent(
+      canvas,
+      new MouseEvent('pointerup', { bubbles: true, cancelable: true, button: 0, clientX: 120, clientY: 120 }),
+    );
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.getByText('Discard screenshot?')).toBeInTheDocument();
+    expect(onDiscard).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByText('Discard screenshot?')).not.toBeInTheDocument();
+    expect(onDiscard).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    fireEvent.keyDown(document, { key: 'Enter' });
+    expect(onDiscard).toHaveBeenCalledTimes(1);
+  });
+
+  it('confirms the annotator on Cmd/Ctrl+Enter without discarding', () => {
+    const onAdd = jest.fn();
+    const onDiscard = jest.fn();
+    renderModal({ onAdd, onDiscard });
+
+    fireEvent.keyDown(document, { key: 'Enter', ctrlKey: true });
+
+    expect(onAdd).toHaveBeenCalledTimes(1);
+    expect(onDiscard).not.toHaveBeenCalled();
+  });
+
+  it('switches tools from the drawing-tool letters', () => {
+    renderModal();
+
+    fireEvent.keyDown(document, { key: 'r' });
+    expect(tool('Box')).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.keyDown(document, { key: 'o' });
+    expect(tool('Oval')).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.keyDown(document, { key: 'a' });
+    expect(tool('Arrow')).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.keyDown(document, { key: 'c' });
+    expect(tool('Comment')).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.keyDown(document, { key: 'p' });
+    expect(tool('Draw')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('does not change tools or confirm while a comment is being typed', () => {
+    const onAdd = jest.fn();
+    renderModal({ onAdd });
+    const textarea = document.createElement('textarea');
+    document.body.appendChild(textarea);
+
+    fireEvent.keyDown(textarea, { key: 'r' });
+    fireEvent.keyDown(textarea, { key: 'Enter', ctrlKey: true });
+
+    expect(tool('Draw')).toHaveAttribute('aria-pressed', 'true');
+    expect(tool('Box')).toHaveAttribute('aria-pressed', 'false');
+    expect(onAdd).not.toHaveBeenCalled();
+    textarea.remove();
+  });
+});

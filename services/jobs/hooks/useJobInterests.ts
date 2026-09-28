@@ -9,6 +9,7 @@ import {
   JobInterest,
   markJobInterest,
 } from '@/services/jobs/job-interests.service';
+import type { MemberScopedOptions } from '@/services/types/memberScopedOptions';
 
 /**
  * The interested map, built the same way as the applied map next door
@@ -26,11 +27,6 @@ import {
  */
 
 export const jobInterestsQueryKey = (memberUid: string) => [JobsQueryKey.InterestStatuses, memberUid] as const;
-
-interface MemberScopedOptions {
-  memberUid: string | undefined;
-  enabled: boolean;
-}
 
 export function useJobInterests({ memberUid, enabled }: MemberScopedOptions) {
   return useQuery<JobInterest[]>({
@@ -128,7 +124,11 @@ export function useToggleJobInterest(memberUid: string | undefined) {
         const existing = old.find((interest) => interest.jobUid === result.jobUid);
         return [
           ...without,
-          existing ?? { uid: `pending:${result.jobUid}`, jobUid: result.jobUid, interestedAt: new Date().toISOString() },
+          existing ?? {
+            uid: `pending:${result.jobUid}`,
+            jobUid: result.jobUid,
+            interestedAt: new Date().toISOString(),
+          },
         ];
       });
     },

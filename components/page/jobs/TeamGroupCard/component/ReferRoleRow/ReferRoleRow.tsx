@@ -278,7 +278,15 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
 
           {!ownsListing && <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />}
 
-          {save && <SaveRoleButton role={role} memberUid={save.memberUid} saved={Boolean(savedJob)} />}
+          {save && (
+            <SaveRoleButton
+              role={role}
+              teamId={teamId}
+              source={source}
+              memberUid={save.memberUid}
+              saved={Boolean(savedJob)}
+            />
+          )}
 
           {!ownsListing &&
             showPosting &&

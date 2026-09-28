@@ -5,8 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { ISavedJob } from '@/types/jobs.types';
 import { JobsQueryKey } from '@/services/jobs/constants';
 import { fetchSavedJobs } from '@/services/jobs/saved-jobs.service';
-
-import type { MemberScopedOptions } from './types/memberScopedOptions';
+import type { MemberScopedOptions } from '@/services/types/memberScopedOptions';
 
 /** Per-row subscription on the shared saved map: `select` narrows to this
  *  row's save, so one press re-renders one row rather than the list. */

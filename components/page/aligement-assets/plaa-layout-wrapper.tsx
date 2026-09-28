@@ -2,16 +2,10 @@
 
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
 import PlaaMenu, { PlaaActiveItem } from './plaa-menu';
 import PlaaBackButton from './plaa-back-btn';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import styles from '@/app/alignment-asset/plaa.module.css';
-
-const GuestAccessModalController = dynamic(
-  () => import('./guest-access-modal/GuestAccessModalController').then((m) => m.GuestAccessModalController),
-  { ssr: false },
-);
 
 interface PlaaLayoutWrapperProps {
   readonly children: React.ReactNode;
@@ -134,8 +128,6 @@ export default function PlaaLayoutWrapper({ children, isLoggedIn }: PlaaLayoutWr
           </div>
         )}
       </div>
-
-      <GuestAccessModalController />
     </>
   );
 }

@@ -38,6 +38,17 @@ describe('LabOS session cookie helpers', () => {
     expect(mockedCookies.remove).not.toHaveBeenCalled();
   });
 
+  it('writes authToken host-only once LabOS stops sharing it (AI_APPS_SHARE_AUTH_TOKEN=false)', () => {
+    process.env.AI_APPS_SHARE_AUTH_TOKEN = 'false';
+    try {
+      setSessionCookie('authToken', '"jwt"', { expires: EXPIRES });
+      expect(mockedCookies.remove).toHaveBeenCalledWith('authToken', { path: '/', domain: DOMAIN });
+      expect(mockedCookies.set).toHaveBeenCalledWith('authToken', '"jwt"', { path: '/', expires: EXPIRES });
+    } finally {
+      delete process.env.AI_APPS_SHARE_AUTH_TOKEN;
+    }
+  });
+
   it('touches no domain when COOKIE_DOMAIN is empty (local dev)', () => {
     process.env.COOKIE_DOMAIN = '';
 
@@ -46,6 +57,35 @@ describe('LabOS session cookie helpers', () => {
 
     expect(mockedCookies.remove).not.toHaveBeenCalled();
     expect(mockedCookies.set).toHaveBeenCalledWith('refreshToken', '"r"', { path: '/', expires: EXPIRES });
+  });
+
+  it('logout revokes the member’s AI App sessions with the current token, fire-and-forget', () => {
+    process.env.DIRECTORY_API_URL = 'https://api.test';
+    mockedCookies.get.mockImplementation(((name: string) => (name === 'authToken' ? '"jwt"' : undefined)) as any);
+    const fetchMock = jest.fn().mockRejectedValue(new Error('offline'));
+    (global as any).fetch = fetchMock;
+    Object.defineProperty(window, 'localStorage', { value: { clear: jest.fn() }, configurable: true });
+
+    expect(() => clearAllAuthCookies()).not.toThrow();
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.test/v1/ai-apps/sessions/revoke',
+      expect.objectContaining({
+        method: 'POST',
+        keepalive: true,
+        headers: { Authorization: 'Bearer jwt', 'Content-Type': 'application/json' },
+      }),
+    );
+    expect(mockedCookies.remove).toHaveBeenCalledWith('authToken', { path: '/' });
+  });
+
+  it('logout without a token makes no revoke call', () => {
+    mockedCookies.get.mockReturnValue(undefined as any);
+    const fetchMock = jest.fn();
+    (global as any).fetch = fetchMock;
+    Object.defineProperty(window, 'localStorage', { value: { clear: jest.fn() }, configurable: true });
+
+    clearAllAuthCookies();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('logout clears host-only and shared copies, including the migration marker', () => {

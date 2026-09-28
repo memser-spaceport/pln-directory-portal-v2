@@ -5,9 +5,10 @@ import { isAiAppsRoute, isProtectedRoute } from './utils/isProtectedRoute';
 import {
   clearSessionCookies,
   expireSharedCookies,
-  HOST_ONLY_SESSION_COOKIES,
+  hostOnlySessionCookies,
   SESSION_SCOPE_COOKIE,
-  SESSION_SCOPE_HOST,
+  sessionScopeValue,
+  shareAuthTokenWithApps,
 } from './utils/sessionCookies';
 
 export const config = {
@@ -56,9 +57,11 @@ function createLoginRedirect(req: NextRequest, pathname: string): NextResponse {
  * token only skips the move (it must never end the session).
  */
 function migrateSessionCookiesToHost(req: NextRequest, response: NextResponse, authToken: string) {
-  if (req.cookies.get(SESSION_SCOPE_COOKIE)?.value === SESSION_SCOPE_HOST) return;
+  const scope = sessionScopeValue();
+  if (req.cookies.get(SESSION_SCOPE_COOKIE)?.value === scope) return;
   const refreshToken = req.cookies.get('refreshToken')?.value;
   const userInfo = req.cookies.get('userInfo')?.value;
+  const authTokenCookie = req.cookies.get('authToken')?.value;
   if (!refreshToken || !userInfo) return;
   try {
     const refreshExpiry = calculateExpiry((decodeToken(refreshToken.replace(/"/g, '')) as any)?.exp);
@@ -66,8 +69,11 @@ function migrateSessionCookiesToHost(req: NextRequest, response: NextResponse, a
     if (!(refreshExpiry > 0) || !(accessExpiry > 0)) return;
     response.cookies.set('refreshToken', refreshToken, { maxAge: refreshExpiry, path: '/' });
     response.cookies.set('userInfo', userInfo, { maxAge: accessExpiry, path: '/' });
-    response.cookies.set(SESSION_SCOPE_COOKIE, SESSION_SCOPE_HOST, { maxAge: refreshExpiry, path: '/' });
-    expireSharedCookies(response, HOST_ONLY_SESSION_COOKIES);
+    if (!shareAuthTokenWithApps() && authTokenCookie) {
+      response.cookies.set('authToken', authTokenCookie, { maxAge: accessExpiry, path: '/' });
+    }
+    response.cookies.set(SESSION_SCOPE_COOKIE, scope, { maxAge: refreshExpiry, path: '/' });
+    expireSharedCookies(response, hostOnlySessionCookies());
   } catch (err) {
     console.error('Session cookie migration skipped', err);
   }
@@ -155,24 +161,25 @@ export async function proxy(req: NextRequest) {
       const refreshTokenExpiry = decodeToken(refreshToken) as any;
       if (accessToken && refreshToken && userInfo && userInfo.uid) {
         // Only set logged in if userInfo has a valid uid
-        // refreshToken/userInfo stay on LabOS's own host; authToken is still shared with AI Apps.
+        // refreshToken/userInfo stay on LabOS's own host; authToken is shared with AI Apps while the switch is on.
         response.cookies.set('refreshToken', JSON.stringify(refreshToken), {
           maxAge: calculateExpiry(refreshTokenExpiry?.exp),
           path: '/',
         });
         response.cookies.set('authToken', JSON.stringify(accessToken), {
           maxAge: calculateExpiry(accessTokenExpiry?.exp),
-          domain: process.env.COOKIE_DOMAIN,
+          // Shared with AI Apps until every app's auth gate issues its own sessions (AI_APPS_SHARE_AUTH_TOKEN).
+          ...(shareAuthTokenWithApps() ? { domain: process.env.COOKIE_DOMAIN } : { path: '/' }),
         });
         response.cookies.set('userInfo', JSON.stringify(userInfo), {
           maxAge: calculateExpiry(accessTokenExpiry?.exp),
           path: '/',
         });
-        response.cookies.set(SESSION_SCOPE_COOKIE, SESSION_SCOPE_HOST, {
+        response.cookies.set(SESSION_SCOPE_COOKIE, sessionScopeValue(), {
           maxAge: calculateExpiry(refreshTokenExpiry?.exp),
           path: '/',
         });
-        expireSharedCookies(response, HOST_ONLY_SESSION_COOKIES);
+        expireSharedCookies(response, hostOnlySessionCookies());
         response.headers.set('refreshToken', JSON.stringify(refreshToken));
         response.headers.set('authToken', JSON.stringify(accessToken));
         response.headers.set('userInfo', encodeURIComponent(JSON.stringify(userInfo)));

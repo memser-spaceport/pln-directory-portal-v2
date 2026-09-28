@@ -2,7 +2,27 @@ import Cookies from 'js-cookie';
 import { z } from 'zod';
 import { isHostOnlySessionCookie, SESSION_SCOPE_COOKIE } from './sessionCookies';
 
+/**
+ * Ends the member's app-scoped sessions in deployed AI Apps (LAB-2695). Fire-and-forget, so sign-out never waits
+ * on or fails because of it; `keepalive` lets it finish when the page navigates away right after.
+ */
+export const revokeAiAppSessions = () => {
+  const token = Cookies.get('authToken')?.replace(/"/g, '');
+  if (!token || !process.env.DIRECTORY_API_URL || typeof fetch === 'undefined') return;
+  try {
+    fetch(`${process.env.DIRECTORY_API_URL}/v1/ai-apps/sessions/revoke`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: '{}',
+      keepalive: true,
+    }).catch(() => undefined);
+  } catch {
+    // Never let session revocation break sign-out.
+  }
+};
+
 export const clearAllAuthCookies = () => {
+  revokeAiAppSessions();
   removeCookie('directory_idToken');
   removeCookie('verified');
   removeCookie('directory_isEmailVerification');

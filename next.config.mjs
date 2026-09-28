@@ -96,6 +96,7 @@ const nextConfig = {
     APPLICATION_BASE_URL: process.env.APPLICATION_BASE_URL,
     AUTH_API_URL: process.env.AUTH_API_URL,
     COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
+    AI_APPS_SHARE_AUTH_TOKEN: process.env.AI_APPS_SHARE_AUTH_TOKEN,
     HUSKY_API_URL: process.env.HUSKY_API_URL,
     TEXT_EDITOR_API_KEY: process.env.TEXT_EDITOR_API_KEY,
     GOOGLE_SITE_KEY: process.env.GOOGLE_SITE_KEY,

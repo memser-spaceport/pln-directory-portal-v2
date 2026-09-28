@@ -31,6 +31,65 @@
   color: var(--foreground-neutral-primary, #0a0c11);
 }
 
+.envSwitch {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.envSwitchOn,
+.envSwitchOff {
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.envSwitchOn {
+  border: 1px solid #1d4ed8;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.envSwitchOff {
+  border: 1px solid rgba(27, 56, 96, 0.16);
+  background: #fff;
+  color: #334155;
+}
+
+.keys {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.keyList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.keyList li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.keyOnce {
+  margin: 0;
+  padding: 8px;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  word-break: break-all;
+}
+
 .close {
   display: flex;
   padding: 4px;

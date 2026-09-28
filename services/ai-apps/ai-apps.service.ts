@@ -35,6 +35,23 @@ export interface AiAppDeploymentInfo {
  */
 export type AiAppAccessMode = 'OPEN' | 'PRIVATE';
 
+export type AiAppTargetEnvironment = 'prod' | 'dev';
+
+export interface AiAppTargetView {
+  environment: AiAppTargetEnvironment;
+  status: string;
+  url: string | null;
+  httpUrl: string | null;
+  host: string | null;
+  lastDeployedAt?: string | null;
+  serving: AiAppServing;
+  requiredEnvVars: string[];
+  providedEnvVars: string[];
+  hasBuild: boolean;
+  failureReason?: string;
+  failureStream?: AiAppLogStream;
+}
+
 export interface AiApp {
   uid: string;
   memberUid: string;
@@ -96,6 +113,57 @@ export interface AiApp {
    * forward the request path — its public paths take effect after one redeploy.
    */
   publicPathsGateReady?: boolean;
+  /** Per-environment deploy targets. Absent on older API versions — prod is the app itself. */
+  deployments?: { prod: AiAppTargetView; dev: AiAppTargetView | null };
+}
+
+export function aiAppTarget(app: AiApp, environment: AiAppTargetEnvironment): AiAppTargetView {
+  const fromApi = app.deployments?.[environment];
+  if (fromApi) return fromApi;
+  if (environment === 'dev') {
+    return {
+      environment: 'dev',
+      status: 'IN_DEVELOPMENT',
+      url: null,
+      httpUrl: null,
+      host: null,
+      lastDeployedAt: null,
+      serving: 'none',
+      requiredEnvVars: [],
+      providedEnvVars: [],
+      hasBuild: false,
+    };
+  }
+  const shipped = app.status === 'DRAFT' || app.status === 'DEPLOYING' || app.status === 'READY' || app.status === 'ERROR';
+  return {
+    environment: 'prod',
+    status: app.status,
+    url: app.url,
+    httpUrl: app.httpUrl,
+    host: app.host,
+    lastDeployedAt: app.lastDeployedAt ?? null,
+    serving: app.deployment?.serving ?? (shipped ? 'previous' : 'none'),
+    requiredEnvVars: app.requiredEnvVars ?? [],
+    providedEnvVars: app.providedEnvVars ?? [],
+    hasBuild: shipped,
+    failureReason: app.notes ?? undefined,
+    failureStream: app.deployment?.failureStream,
+  };
+}
+
+export function aiAppStatusLabel(status: string): string {
+  switch (status) {
+    case 'READY':
+      return 'Live';
+    case 'DEPLOYING':
+      return 'Deploying';
+    case 'DRAFT':
+      return 'Draft';
+    case 'ERROR':
+      return 'Failed';
+    default:
+      return 'Not deployed';
+  }
 }
 
 export function isPrivateAiApp(app: Pick<AiApp, 'access'>): boolean {
@@ -136,13 +204,20 @@ export interface DeployAiAppResult {
  * persisted in the directory DB). A 400 (e.g. missing required vars) surfaces
  * its message so the page can show it.
  */
-export async function deployAiApp(uid: string, secrets: Record<string, string>): Promise<DeployAiAppResult> {
+export async function deployAiApp(
+  uid: string,
+  secrets: Record<string, string>,
+  environment: AiAppTargetEnvironment = 'prod',
+): Promise<DeployAiAppResult> {
   const response = await customFetch(
     `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/deploy`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(Object.keys(secrets).length ? { secrets } : {}),
+      body: JSON.stringify({
+        ...(Object.keys(secrets).length ? { secrets } : {}),
+        environment,
+      }),
     },
     true,
   );
@@ -166,15 +241,78 @@ export async function deployAiApp(uid: string, secrets: Record<string, string>):
   return { app: await response.json(), error: null };
 }
 
+export interface AiAppDeployKeySummary {
+  uid: string;
+  environment: AiAppTargetEnvironment;
+  tokenPrefix: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+}
+
+export async function fetchAiAppDeployKeys(uid: string): Promise<AiAppDeployKeySummary[]> {
+  const response = await customFetch(`${AI_APPS_API_URL}/${encodeURIComponent(uid)}/deploy-keys`, { method: 'GET' }, true);
+  if (!response?.ok) return [];
+  const body = await response.json();
+  return Array.isArray(body?.keys) ? body.keys : [];
+}
+
+export async function createAiAppDeployKey(
+  uid: string,
+  environment: AiAppTargetEnvironment,
+): Promise<{ token: string; tokenPrefix: string; uid: string } | { error: string }> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/deploy-keys`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ environment }),
+    },
+    true,
+  );
+  if (!response?.ok) return { error: 'Could not create a deployment key.' };
+  return response.json();
+}
+
+export async function revokeAiAppDeployKey(uid: string, keyUid: string): Promise<boolean> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/deploy-keys/${encodeURIComponent(keyUid)}/revoke`,
+    { method: 'POST' },
+    true,
+  );
+  return !!response?.ok;
+}
+
+export async function deleteAiAppTarget(uid: string, environment: AiAppTargetEnvironment): Promise<string | null> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/deployments/${environment}`,
+    { method: 'DELETE' },
+    true,
+  );
+  if (!response?.ok) {
+    try {
+      const body = await response?.json();
+      if (typeof body?.message === 'string' && body.message) return body.message;
+    } catch {
+      // keep the generic message
+    }
+    return 'Could not tear down this environment.';
+  }
+  return null;
+}
+
 /**
  * Server-side reachability probe of the app's public URL (one attempt per call).
  * The detail page polls this before mounting/remounting the iframe so the user
  * sees our own loading/error state instead of a raw gateway error page. Any
  * failure (network, 404, …) is treated as "not live yet".
  */
-export async function checkAiAppLive(uid: string): Promise<boolean> {
+export async function checkAiAppLive(uid: string, environment: AiAppTargetEnvironment = 'prod'): Promise<boolean> {
   try {
-    const response = await customFetch(`${AI_APPS_API_URL}/${encodeURIComponent(uid)}/live`, { method: 'GET' }, true);
+    const response = await customFetch(
+      `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/live?environment=${environment}`,
+      { method: 'GET' },
+      true,
+    );
     if (!response || !response.ok) {
       return false;
     }
@@ -338,9 +476,9 @@ function sortLogEvents(events: AiAppLogEvent[]): AiAppLogEvent[] {
 export async function fetchAiAppLogsPage(
   uid: string,
   stream: AiAppLogStream,
-  opts: { signal?: AbortSignal; sinceMinutes?: number; nextToken?: string } = {},
+  opts: { signal?: AbortSignal; sinceMinutes?: number; nextToken?: string; environment?: AiAppTargetEnvironment } = {},
 ): Promise<AiAppLogsPage> {
-  const { signal, sinceMinutes } = opts;
+  const { signal, sinceMinutes, environment } = opts;
   const startedAt = Date.now();
   let sentToken = opts.nextToken;
 
@@ -351,6 +489,7 @@ export async function fetchAiAppLogsPage(
     // with numeric timestamps.
     const params = new URLSearchParams({ order: 'desc', limit: String(AI_APP_LOGS_PAGE_SIZE) });
     if (sinceMinutes !== undefined) params.set('sinceMinutes', String(sinceMinutes));
+    if (environment) params.set('environment', environment);
     if (sentToken !== undefined) params.set('nextToken', sentToken);
 
     let response: Response | undefined;

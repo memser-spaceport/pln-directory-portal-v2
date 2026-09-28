@@ -382,6 +382,21 @@
   flex-shrink: 0;
 }
 
+.envMeta,
+.envLink {
+  font-size: 12px;
+  line-height: 16px;
+  color: #475569;
+}
+
+.envLink {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 // "App Details" action; mirrors AiAppCard's (AiAppCard.module.scss) so the two
 // entry points read the same. Colors/typography come from the shared Button
 // (border / neutral / xxs).

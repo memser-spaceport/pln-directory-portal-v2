@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { Button } from '@/components/common/Button/Button';
-import { AiApp, deployAiApp } from '@/services/ai-apps/ai-apps.service';
+import { AiApp, AiAppTargetEnvironment, aiAppTarget, deployAiApp } from '@/services/ai-apps/ai-apps.service';
 import { AiAppsQueryKeys } from '@/services/ai-apps/constants';
 
 import { clearSecretsDraft, readSecretsDraft, writeSecretsDraft } from './secretsDraftCache';
@@ -14,6 +14,7 @@ import s from './AppSecretsPanel.module.scss';
 
 interface Props {
   app: AiApp;
+  environment?: AiAppTargetEnvironment;
   /** Fires while a deploy is in flight, so the parent can hide the stale iframe. */
   onDeployingChange?: (deploying: boolean) => void;
   /** Fires once a deploy succeeds and the refreshed app record is in the cache. */
@@ -28,7 +29,8 @@ interface Props {
  * stored value".
  */
 export function AppSecretsPanel(props: Props) {
-  const { app, onDeployingChange, onDeploySucceeded } = props;
+  const { app, environment = 'prod', onDeployingChange, onDeploySucceeded } = props;
+  const target = aiAppTarget(app, environment);
 
   const analytics = useAiAppsAnalytics();
   const queryClient = useQueryClient();
@@ -50,11 +52,10 @@ export function AppSecretsPanel(props: Props) {
     onDeployingChange?.(deploying);
   };
 
-  const provided = new Set(app.providedEnvVars);
-  const isDraft = app.status === 'DRAFT';
-  // No env vars to collect — the panel is a plain retry of the stored bundle
-  // (shown after a failed/stuck deploy of a non-secrets app).
-  const isRetry = app.requiredEnvVars.length === 0;
+  const provided = new Set(target.providedEnvVars);
+  const isDraft = target.status === 'DRAFT' || target.status === 'IN_DEVELOPMENT';
+  const isRetry = target.requiredEnvVars.length === 0;
+  const canDeploy = target.hasBuild;
 
   const onChange = (name: string, value: string) => {
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -78,9 +79,13 @@ export function AppSecretsPanel(props: Props) {
       }
     }
 
-    const missing = app.requiredEnvVars.filter((name) => !provided.has(name) && !secrets[name]);
+    const missing = target.requiredEnvVars.filter((name) => !provided.has(name) && !secrets[name]);
     if (missing.length) {
       setError(`Enter a value for: ${missing.join(', ')}`);
+      return;
+    }
+    if (!canDeploy) {
+      setError('This environment has no build yet. Ask your AI agent to deploy here first.');
       return;
     }
 
@@ -88,17 +93,17 @@ export function AppSecretsPanel(props: Props) {
     for (const [name, value] of Object.entries(secrets)) {
       if (value.trim()) willProvide.add(name);
     }
-    const varsProvidedCount = app.requiredEnvVars.filter((name) => willProvide.has(name)).length;
+    const varsProvidedCount = target.requiredEnvVars.filter((name) => willProvide.has(name)).length;
 
     setError(null);
     setDeploying(true);
     analytics.onSecretsDeployClicked({
       appUid: app.uid,
       isDraft,
-      varsRequiredCount: app.requiredEnvVars.length,
+      varsRequiredCount: target.requiredEnvVars.length,
       varsProvidedCount,
     });
-    const result = await deployAiApp(app.uid, secrets);
+    const result = await deployAiApp(app.uid, secrets, environment);
 
     if (result.error) {
       setError(result.error);
@@ -144,7 +149,7 @@ export function AppSecretsPanel(props: Props) {
 
       {!isRetry && (
         <div className={s.fields}>
-          {app.requiredEnvVars.map((name) => {
+          {target.requiredEnvVars.map((name) => {
             const stored = provided.has(name);
             const isEditing = !!editing[name];
             const inputId = `secret-${name}`;
@@ -211,7 +216,7 @@ export function AppSecretsPanel(props: Props) {
       {error && <p className={s.error}>{error}</p>}
 
       <div className={s.actions}>
-        <Button variant="primary" size="m" onClick={onDeploy} disabled={isDeploying}>
+        <Button variant="primary" size="m" onClick={onDeploy} disabled={isDeploying || !canDeploy}>
           {isDeploying
             ? isRetry
               ? 'Retrying…'

@@ -47,7 +47,10 @@ function FeedbackBody({ text, onImageClick }: { text: string; onImageClick: (ima
     <div className={s.messageBlock}>
       {/* Image-only feedback is a supported submission, and an empty ql-editor
           block for it would add padding under nothing. */}
-      {textHtml.trim() && <QuillContent html={textHtml} className={s.richMessage} />}
+      {/* Sanitized again after the image split and QuillContent's linkify, which both edit the markup. */}
+      {textHtml.trim() && (
+        <QuillContent html={textHtml} className={s.richMessage} sanitize={sanitizeAiAppFeedbackHtml} />
+      )}
       {images.length > 0 && (
         <ul className={s.shotStrip}>
           {images.map((image, index) => (

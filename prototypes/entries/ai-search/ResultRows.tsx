@@ -22,7 +22,7 @@ import { Badge } from '@/components/common/Badge';
 import { investorByUid, investorProfileHref, connectorOf, ASK_STATUS_LABEL } from '../warm-intros-founders/mocks';
 import type { FounderInvestorRow, IntroAsk } from '../warm-intros-founders/mocks';
 import { ConnectorName } from '../warm-intros-founders/InvestorPathRow';
-import { IntroIconAction } from '../intro-shared/IntroIconAction';
+import { RequestIntroButton } from '../intro-shared/RequestIntroButton';
 import type { RequestIntroApi } from '../intro-shared/introRequests';
 
 import local from './ResultRows.module.scss';
@@ -171,7 +171,14 @@ function Row({
           if (found.index !== 'events') onSelect?.();
         }}
       >
-        <div className={clsx(s.header, askable && local.headerAskable, askable && introable && local.headerTwoActions)}>
+        <div
+          className={clsx(
+            s.header,
+            askable && local.headerAskable,
+            askable && introable && local.headerTwoActions,
+            !askable && introable && local.headerIntroOnly,
+          )}
+        >
           <div className={s.avatar}>
             <Image src={avatar} alt={found.name} width={24} height={24} />
           </div>
@@ -216,6 +223,18 @@ function Row({
 
       {(askable || introable) && (
         <div className={local.rowActions}>
+          {/* "Request an intro" at the badge's exact size (`size="compact"`),
+              painted as a press. It goes first so it stands beside the badge it
+              is measured against, and Ask AI keeps the far-right slot it has
+              on every askable row, team rows included. */}
+          {introable && (
+            <RequestIntroButton
+              size="compact"
+              name={found.name}
+              requested={requestIntro!.requested(found.uid)}
+              onClick={() => requestIntro!.onRequest({ uid: found.uid, name: found.name, kind: 'member' })}
+            />
+          )}
           {askable && (
             <button
               type="button"
@@ -226,14 +245,6 @@ function Row({
               <AiSearchIcon size={16} />
               Ask AI
             </button>
-          )}
-          {/* The intro mark — the shared icon-only action (see `IntroIconAction`). */}
-          {introable && (
-            <IntroIconAction
-              name={found.name}
-              requested={requestIntro!.requested(found.uid)}
-              onRequest={() => requestIntro!.onRequest({ uid: found.uid, name: found.name, kind: 'member' })}
-            />
           )}
         </div>
       )}

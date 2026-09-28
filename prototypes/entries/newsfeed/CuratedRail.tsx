@@ -13,6 +13,8 @@ import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
 import local from './Newsfeed.module.scss';
 
 import { FollowTeamsCard } from './FollowTeamsCard';
+import { UpcomingEventsCard, selectRailEvents } from './UpcomingEventsCard';
+import { UPCOMING_EVENTS, VIEWER_FOLLOWED_CITIES } from './mocks';
 import { UPVOTES } from '../newsfeed-v0/mocks';
 
 interface CuratedRailProps {
@@ -49,7 +51,7 @@ interface CuratedRailProps {
 }
 
 /**
- * Right rail. Same three modules as newsfeed-v0, with one change.
+ * Right rail. newsfeed-v0's three modules plus Upcoming events, with one change.
  *
  * Every follow suggestion states a *reason*, not a tagline. Production's
  * `ISuggestedTeam` has carried a `reason` field all along — newsfeed-v0's mock
@@ -72,6 +74,12 @@ export function CuratedRail({
       {/* First in the rail, so on desktop it sits level with the top of the
           block and everything below follows straight after it. */}
       <FollowTeamsCard followedTeams={followedTeams} onToggleFollow={onToggleFollow} className={followCardClassName} />
+
+      {/* The rail's only forward-looking module, so it sits high. Shown at every
+          width: it has no in-feed stand-in, so below 960px it stacks under the feed. */}
+      <UpcomingEventsCard
+        events={selectRailEvents(UPCOMING_EVENTS, { signedIn, followedCities: VIEWER_FOLLOWED_CITIES })}
+      />
 
       {/* Desktop only: below 960px the rail stacks under the whole feed, so the
           strip spliced into the feed column carries this module instead. */}

@@ -159,14 +159,6 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/demoday-tag-placements/DemodayTagPlacementsPrototype'),
   },
   {
-    key: 'follow-team',
-    title: 'Follow — team profile',
-    description:
-      'Duplicate of the team profile with the follow feature: two layout variants (button + "why" card, or inline-with-title grouped pill), notification settings, social proof, and a personalized news rail.',
-    category: 'Ideation',
-    load: () => import('./entries/follow-team/FollowTeamPrototype'),
-  },
-  {
     key: 'onboarding',
     title: 'New member profile — first fill',
     description:
@@ -189,46 +181,6 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'The member-ask-ai page with Follow for a person. Under the bio the row reads Schedule Meeting · Request an intro · Follow: the primary first, then the second route to the person, then the standing relationship (the team page\'s own FollowPill, turning into "Following ✓" with the same green receipt); the header keeps only the facts and the Ask AI door. Following a member ranks their forum posts and their teams\' news first in For You and the Monday digest. Ask AI stays the strip of questions under the bio, since the slot cannot hold four, and shows two chips on a phone. The intro\'s sent state became a line of text, "Intro requested · with the PL team", so the row never shows two grey check-pills that mean different things. On a phone the row wraps. A visitor sees no follower count: that is the member\'s own number.',
     category: 'Members',
     load: () => import('./entries/member-follow/MemberFollowPrototype'),
-  },
-  {
-    key: 'profile-settings',
-    title: 'Profile settings',
-    description:
-      'Mocked recreation of the production settings shell (back bar, left preferences/admin menu, content) with a Profile edit form — basic info, team & skills, experience, contact, and availability — plus a sticky save bar. Experience is a list here rather than a single entry, and carries the same CV importer as the apply drawer on the job board: an “Upload your CV” pill in the empty state, “Update from CV” beside the heading once there are entries (opening the file dialog on the press), and the same review card — positions to tick or drop, a pencil that corrects one of them in place, already-present ones labelled and unticked, skills as editable tags. Name and email are on this page two sections up, so the review never offers to overwrite them. It shares ExperienceList and ExperienceForm with the drawer rather than re-typing them, because the two pages are two windows onto one record. While the review is open the sticky Save on this page stands down, the way the drawer footer does.',
-    category: 'Ideation',
-    load: () => import('./entries/profile-settings/ProfileSettingsPrototype'),
-  },
-  {
-    key: 'following-popover',
-    title: 'Follow — Following / Followers',
-    description:
-      'Manage who you follow from the profile avatar popover: Following (split into People / Teams, each row unfollowable) and Followers (with Follow-back and network proof).',
-    category: 'Ideation',
-    load: () => import('./entries/following-popover/FollowingPopoverPrototype'),
-  },
-  {
-    key: 'teams-following',
-    title: 'Follow — teams you follow (manage page)',
-    description:
-      'LinkedIn-style "Pages you follow" list for the directory: one centered card with Teams/People tabs, search within the list, follower counts + follow recency per row, and a Following/Follow toggle that keeps unfollowed rows in place for easy undo.',
-    category: 'Ideation',
-    load: () => import('./entries/teams-following/TeamsFollowingPrototype'),
-  },
-  {
-    key: 'news-feed',
-    title: 'Follow — network news feed',
-    description:
-      'Faithful copy of the production homepage "News from the network" feed (focus-area tabs, category filters, card grid, Show All) with a small follow/following button next to each team name.',
-    category: 'Ideation',
-    load: () => import('./entries/news-feed/NewsFeedPrototype'),
-  },
-  {
-    key: 'home-news',
-    title: 'Follow — personalized feed',
-    description:
-      'The news feed silently personalized by who you follow: followed teams & people surface first under a subtle marker, with a SubscribeBanner empty state and one-tap follow suggestions. Switch between following none / a few / many to see it re-sort live.',
-    category: 'Ideation',
-    load: () => import('./entries/home-news/HomeNewsPrototype'),
   },
   {
     key: 'job-board',
@@ -282,7 +234,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'newsfeed',
     title: 'Newsfeed — curated feed + weekly email',
     description:
-      'Quality for an investor audience, in two surfaces. The feed opens on "For You" — the default production itself uses — so the personalization is what a reader lands in rather than something they have to go find. (The network-wide Top Story block that used to lead the week is hidden for now behind `SHOW_TOP_STORIES`; its three picks are ordinary feed cards while it is off.) The "For You" pill production ships on /home leads the category row here too — the same teams-you-match slice, with a one-line note under it ("Your feed is based on your skills, your focus areas, and the teams you follow") and an Update profile link onto the settings page that owns the first of the three; a personalized view that never states its inputs leaves a reader unable to tell a thin week from a thin profile — and naming follows as an input is what makes the Follow buttons already on the page read as personalization controls. A **Preview as** switch under the navbar (or `?viewer=logged-out`) opens the page as the visitor with no account: production tells that person nothing about any of this (its For You hint only renders behind the pill, and the pill only exists once there is an auth token), so here the signed-out home banner carries the offer and the same sentence, with Sign in inside it. A Sourcing switch demonstrates the recall bug behind it: production builds the All tab as the union of the focus-area groups, so an untagged story — including this week\'s top story — reaches no tab at all; flipping to "One stream" demotes focus area to a filter beside Sort and the untagged long tail comes back. Job-board activity joins the feed as a per-team hiring signal rather than pasted listings, and follow suggestions carry the relational `reason` production already returns. The Email digest view is the same curation as the Monday send — client chrome, subject line, top story with its why-line, the week in one line each, who started hiring — because the editorial bet is cheaper and more measurable to test in an inbox than in a hero card. The (?) in the header is the proposed help & feedback menu (see the Help & feedback menu entry), announced on arrival by the same one-time brand-blue callout the team profile uses for Post news — this is the page a session starts on, so it is where the announcement is met; shown on every load in the prototype. Team-posted stories (the two the team profile seeds) reflect what the team did to them on its profile this session: an edit shows the new text with an "Edited" mark beside the time and the author\'s own body in the story, a removed one is gone — read once at mount from the same session-scoped mock; the feed itself offers no edit control.',
+      'Quality for an investor audience, in two surfaces. The feed opens on "For You" — the default production itself uses — so the personalization is what a reader lands in rather than something they have to go find. (The network-wide Top Story block that used to lead the week is hidden for now behind `SHOW_TOP_STORIES`; its three picks are ordinary feed cards while it is off.) The "For You" pill production ships on /home leads the category row here too — the same teams-you-match slice, with a one-line note under it ("Your feed is based on your skills, your focus areas, and the teams you follow") and an Update profile link onto the settings page that owns the first of the three; a personalized view that never states its inputs leaves a reader unable to tell a thin week from a thin profile — and naming follows as an input is what makes the Follow buttons already on the page read as personalization controls. A **Preview as** switch under the navbar (or `?viewer=logged-out`) opens the page as the visitor with no account: production tells that person nothing about any of this (its For You hint only renders behind the pill, and the pill only exists once there is an auth token), so here the signed-out home banner carries the offer and the same sentence, with Sign in inside it. A Sourcing switch demonstrates the recall bug behind it: production builds the All tab as the union of the focus-area groups, so an untagged story — including this week\'s top story — reaches no tab at all; flipping to "One stream" demotes focus area to a filter beside Sort and the untagged long tail comes back. Job-board activity joins the feed as a per-team hiring signal rather than pasted listings, and follow suggestions carry the relational `reason` production already returns. The rail adds an Upcoming events card under Teams to follow: three gatherings (a start-date tile, name, city, how many are going) and a View all events link. It leaves out events you already attend and invite-only ones you have no invite to, and saves places for cities you follow before filling with the soonest, shown in date order (signed out: the next three open events) — dated events rather than location cards, because the old home Featured row\'s event cards drew 4–5% of monthly visitors to its city cards\' ~1%. The Email digest view is the same curation as the Monday send — client chrome, subject line, top story with its why-line, the week in one line each, who started hiring — because the editorial bet is cheaper and more measurable to test in an inbox than in a hero card. The (?) in the header is the proposed help & feedback menu (see the Help & feedback menu entry), announced on arrival by the same one-time brand-blue callout the team profile uses for Post news — this is the page a session starts on, so it is where the announcement is met; shown on every load in the prototype. Team-posted stories (the two the team profile seeds) reflect what the team did to them on its profile this session: an edit shows the new text with an "Edited" mark beside the time and the author\'s own body in the story, a removed one is gone — read once at mount from the same session-scoped mock; the feed itself offers no edit control.',
     category: 'Newsfeed',
     load: () => import('./entries/newsfeed/NewsfeedPrototype'),
   },
@@ -394,7 +346,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'ai-search-intros',
     title: 'Search — request an intro',
     description:
-      'The search-in-two-sizes prototype with the founder-only warm-intro rows replaced by an intro on every member: an envelope beside Ask AI on member rows in the popover, and in the arrow\'s slot on the member cards under an AI answer. It opens the Demo Day "Make an intro" form pointed at the PL team — the person named in the title, one required message, Cancel / Send request — and the request goes to the PL team, who makes the intro. Sent, the row shows a check. One shared store with the member profile\'s "Request an intro" button (intro-shared/), so a request made anywhere reads "Intro requested" everywhere for the rest of the tab.',
+      'The search-in-two-sizes prototype with the founder-only warm-intro rows replaced by an intro on every member: a small "Request an intro" button (the exact size of production\'s "Available to connect" badge, but a solid brand press rather than a tinted status chip) before Ask AI on member rows in the popover, and in the arrow\'s slot on the member cards under an AI answer. It opens the Demo Day "Make an intro" form pointed at the PL team — the person named in the title, one required message, Cancel / Send request — and the request goes to the PL team, who makes the intro. Sent, it reads "Intro requested" at the same size. One shared store with the member profile\'s "Request an intro" button (intro-shared/), so a request made anywhere reads "Intro requested" everywhere for the rest of the tab.',
     category: 'Cross-product',
     load: () => import('./entries/ai-search-intros/AiSearchIntrosPrototype'),
   },
@@ -437,6 +389,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Recreation of the PL Spotlight participants table from the Back Office Figma file (node 750:690): the ten-column grid — select, member (name + email + avatar), team link, investor-type badge (Angel / Fund / not provided), invite-accepted check or cross, follow-up count over its date, the clipped Template vars JSON, the purple Type pill, the wide blue Access pill, and the three action buttons. Column widths, row heights, badge ramps and the Send-vs-Resend state of every button are transcribed from the frame; the controls are real, so checkboxes select (with an indeterminate header), both dropdowns change, invites and follow-ups update the row they act on, and removing a participant is undoable. Type and Access take their option sets from production enums rather than invented ones, since the frame renders native selects and the canvas cannot draw their labels. The envelope button no longer fires on click: it opens a compose modal — the portal referral modal chrome, not the back-office confirm sheet — carrying the recipient card, an editable subject and body drafted from a template, a note saying which template vars filled in and which line was dropped for want of one, the list of what the send adds on its own, and the amber already-invited warning. The navbar’s Settings item is a working destination: it opens Settings → Email templates, the org-wide list of what the back office sends (the spotlight invite and the follow-up), each row carrying where it is sent from, whether it still says what shipped, which records keep their own version of it, and an Edit button onto the same template editor the Overview card uses. That makes the wording three-level and the levels visible: Settings holds the default, a spotlight overrides it for itself, one send drafts from whichever applies — saving a spotlight template identical to the default drops the override rather than freezing a copy, and the Settings row reports the override so editing a default cannot silently miss the record that stopped listening.',
     category: 'Back office',
     load: () => import('./entries/pl-spotlight-table/PlSpotlightTablePrototype'),
+  },
+  {
+    key: 'spv-spotlight',
+    title: 'SPV Spotlight — investor page',
+    description:
+      'LAB-2669. The investor-facing /spv-spotlight/[slug] page for a Spotlight that holds many teams, built on the completed Demo Day template: status badge and hero, a teams grid with Show All, partner logos, an “About PL Spotlight” FAQ that explains what Spotlight is, and the Demo Day footer. The page is chromeless (a wordmark, no navigation). A preview bar switches Spotlight status (Draft / Open / Closed) and viewer (signed out, signed in without an application, pending, approved, rejected). Apply to invest is the primary button and Discover PL Network the fixed secondary. Sign-in is a text link for people who already applied or were invited. The apply modal is Demo Day’s, trimmed to email, name, organization and the accreditation tick. An email that already applied (try applied@example.com) turns it into a sign-in prompt, and a new application closes onto a three-step success sheet and then the pending page. Every team has its own DocSend. Approved + Open gives each team card a View materials button and turns the hero’s primary button into Browse teams. A card opens the Demo Day team drawer holding the dev team page for that team: details and about, contact, membership source, community affiliations, events, members, focus areas, projects and news (open roles left out). The drawer steps through the list with prev / next, and its footer carries the team’s CTA: View materials when approved, Apply to view materials when not applied. Applicants can edit their profile as on Demo Day: the success sheet’s middle step and button are “Set up investor profile”, and the pending, opening-soon and approved states carry PitchSpotlightHero’s investor-profile line (“set it up” until filled, “keep it up to date” after). Both open Demo Day’s EditInvestorProfileDrawer: the profile header card, Investor Details (how you invest: the SEC-rules angel tick with stages, check size and focus; the through-a-fund tick with a fund picker) and Contact Details, edited one card at a time with the shared section editor. Decisions on the open questions: pending gets its own message; the teams grid and drawers show to everyone while the Spotlight is open, because the team page is public directory info and approval unlocks the materials; Draft and Closed show no teams; rejected investors see a plain message with no Apply.',
+    category: 'Demo Day',
+    load: () => import('./entries/spv-spotlight/SpvSpotlightPrototype'),
   },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).

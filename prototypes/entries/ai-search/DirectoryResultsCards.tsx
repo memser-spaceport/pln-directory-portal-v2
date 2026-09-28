@@ -9,7 +9,7 @@ import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 // AI panel — the same class the idle state's history door wears.
 import sub from '@/components/core/application-search/components/AiChatPanel/components/ChatSubheader/ChatSubheader.module.scss';
 
-import { IntroIconAction } from '../intro-shared/IntroIconAction';
+import { RequestIntroButton } from '../intro-shared/RequestIntroButton';
 import type { RequestIntroApi } from '../intro-shared/introRequests';
 
 import type { DirectoryHit } from './mocks';
@@ -146,10 +146,11 @@ export function DirectoryResultsCards({
               </a>
               {/* Beside the link, not inside it: a press can't live inside an anchor. */}
               {introable && (
-                <IntroIconAction
+                <RequestIntroButton
+                  size="compact"
                   name={hit.name}
                   requested={requestIntro!.requested(uid)}
-                  onRequest={() => requestIntro!.onRequest({ uid, name: hit.name, kind: 'member' })}
+                  onClick={() => requestIntro!.onRequest({ uid, name: hit.name, kind: 'member' })}
                   className={s.introMark}
                 />
               )}

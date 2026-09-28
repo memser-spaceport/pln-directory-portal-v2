@@ -137,7 +137,6 @@ export function HelpFeedbackMenu({ onPickTopic, onGiveFeedback, onAskAi, callout
                 onClick={onTriggerClick}
               >
                 <HelpIcon />
-                <span className={local.contactLabel}>Contact us</span>
               </Menu.Trigger>
             </span>
           </TooltipPrimitive.Trigger>

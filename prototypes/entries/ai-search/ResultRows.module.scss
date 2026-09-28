@@ -22,9 +22,17 @@
   padding-right: 64px;
 }
 
-/* Two actions (Ask AI + the intro mark): 64 + a 24px disc + the 4px gap. */
+/* Two actions: the compact "Request an intro" (100.5px measured, at the
+   badge's 10px type and its 4px inner gap) + the 4px gap + Ask AI, plus 8px
+   so the badge stops one gap short of the button (measured in the browser,
+   2026-09-28). */
 .headerTwoActions {
-  padding-right: 92px;
+  padding-right: 169px;
+}
+
+/* The intro alone (a host with no Ask AI): its width and the same 8px gap. */
+.headerIntroOnly {
+  padding-right: 109px;
 }
 
 /* The row's actions, on its top-right, level with the name (the header's 24px
@@ -66,8 +74,10 @@
   outline-offset: 1px;
 }
 
-/* The intro mark beside Ask AI is `intro-shared/IntroIconAction` — its own
-   geometry and paint, nothing local. */
+/* The intro press before Ask AI is `intro-shared/RequestIntroButton` at
+   `size="compact"` — the "Available to connect" badge's box, its own paint,
+   nothing local. The 24px cluster centres it on the name line, where the
+   badge is centred too. */
 
 /* The intro line (founder seat, investor rows). Indented to the text column —
    production's header is a 24px avatar + 8px gap — so it reads as the row's

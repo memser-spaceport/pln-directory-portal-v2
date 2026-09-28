@@ -1630,3 +1630,62 @@
     text-decoration: underline;
   }
 }
+
+/* Upcoming events rows: the thumbnail + text pairing of Teams to follow's
+   `.railRow` (same 10px gap, top-aligned), without its dividers — the card keeps
+   Popular this week's 12px row rhythm. The whole row is the link, so the name
+   takes the brand ink on hover the way `.railStory` does. */
+.eventRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  &:hover .eventName {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.eventText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* The date as the row's thumbnail: start day over month, on the quiet grey the
+   rail's icon badges use. 40px is the height of the name + meta pair beside it;
+   the 8px radius is the news card logo's, so it reads as the same slot. */
+.dateTile {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.dateDay {
+  font-size: 16px;
+  line-height: 18px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.dateMonth {
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

@@ -73,8 +73,7 @@ export default function KudosBoardComponent({
               </p>
               <p className="pool__sub">
                 You&rsquo;ve given {poolUsed} of {poolTotal} points so far. Distribute in {pool.data!.pointsStep}
-                -point increments ({pool.data!.pointsMin} pts minimum, {pool.data!.pointsMax} pts maximum per
-                gift).
+                -point increments ({pool.data!.pointsMin} pts minimum, {pool.data!.pointsMax} pts maximum per gift).
               </p>
               <div className="pool__progress" aria-hidden>
                 <div className="pool__progress-bar" style={{ width: `${poolPct}%` }} />
@@ -103,7 +102,7 @@ export default function KudosBoardComponent({
         </div>
 
         <div className="feed-heading">Shared Board</div>
-        {feed.isLoading ? (
+        {feed.isPending ? (
           <FeedSkeleton />
         ) : feed.isError ? (
           <FeedError onRetry={() => feed.refetch()} />

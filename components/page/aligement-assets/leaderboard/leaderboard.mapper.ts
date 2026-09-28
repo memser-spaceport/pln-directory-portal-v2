@@ -27,8 +27,13 @@ export const resolveTopCategory = (entry: MappedLeaderboardEntry, categories: st
   return categories.find((category) => haystack.includes(normalizeCategory(category))) ?? null;
 };
 
+export const LEADERBOARD_SIZE = 10;
+
 export const toRows = (entries: MappedLeaderboardEntry[], categories: string[]): LeaderboardRow[] =>
-  entries.map((entry) => ({ ...entry, topCategory: resolveTopCategory(entry, categories) }));
+  entries
+    .filter((entry) => entry.points > 0)
+    .slice(0, LEADERBOARD_SIZE)
+    .map((entry) => ({ ...entry, topCategory: resolveTopCategory(entry, categories) }));
 
 export const toCategoryWeights = (
   items: Array<{ category: string; percentOfTotal: number | null; emissionsPerSnapshot: number | null }>,

@@ -144,7 +144,9 @@ describe('AppSecretsPanel', () => {
     fireEvent.change(screen.getByPlaceholderText('Enter new value'), { target: { value: 'new-secret' } });
     fireEvent.click(screen.getByRole('button', { name: 'Re-deploy' }));
 
-    await waitFor(() => expect(mockDeployAiApp).toHaveBeenCalledWith('app-1', { PERPLEXITY_API_KEY: 'new-secret' }));
+    await waitFor(() =>
+      expect(mockDeployAiApp).toHaveBeenCalledWith('app-1', { PERPLEXITY_API_KEY: 'new-secret' }, 'prod'),
+    );
     await waitFor(() => expect(screen.getByText('••••••••••••••••')).toBeInTheDocument());
     expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
   });

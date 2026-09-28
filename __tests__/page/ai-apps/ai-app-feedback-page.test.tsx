@@ -1,7 +1,9 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { AiAppFeedbackPage } from '@/components/page/ai-apps/AiAppFeedbackPage';
+
 import { serializeAnnotations } from '@/components/page/ai-apps/components/screenshot-feedback/types';
+
+import { AiAppFeedbackPage } from '@/components/page/ai-apps/AiAppFeedbackPage';
 
 const mockUseAiAppFeedbackList = jest.fn();
 const mockUseAiAppFeedbackReviewAccess = jest.fn();

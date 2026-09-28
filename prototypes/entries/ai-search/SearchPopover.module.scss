@@ -40,8 +40,8 @@
 /* Hung off the header control: `--pop-top` / `--pop-right` are measured from
    its box on open. Keep the lookup compact while leaving room for names and
    the AI action; the list scrolls inside the card when it reaches the fold.
-   Wider than the open header field it hangs under (400px,
-   nav-shared/PrototypeNav.module.scss `.navSearchFieldOpen`): the two share a
+   Wider than the header field it hangs under (200/278px,
+   nav-shared/PrototypeNav.module.scss `.navSearchSlot`): the two share a
    right edge, and the card runs further left. */
 .container.container {
   position: absolute;

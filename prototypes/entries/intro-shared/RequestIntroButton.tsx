@@ -12,8 +12,12 @@ interface Props {
   onClick: () => void;
   /** Who the intro is to — the accessible label. */
   name: string;
-  /** DS size; `xs` is the header's. A phone's full-width row takes `s`. */
-  size?: ButtonProps['size'];
+  /**
+   * DS size; `xs` is the header's. A phone's full-width row takes `s`.
+   * `compact` is AI search's: the exact box of production's "Available to
+   * connect" badge (`OhBadge`), painted as a press — see the stylesheet.
+   */
+  size?: ButtonProps['size'] | 'compact';
   className?: string;
 }
 
@@ -33,10 +37,11 @@ interface Props {
  * so the row does not move when it lands. One request per person.
  */
 export function RequestIntroButton({ requested, onClick, name, size = 'xs', className }: Props) {
+  const compact = size === 'compact';
   if (requested) {
     return (
       <span
-        className={clsx(s.sent, size === 's' && s.sentS, className)}
+        className={clsx(s.sent, size === 's' && s.sentS, compact && s.sentCompact, className)}
         role="status"
         aria-label={`Intro to ${name} requested`}
         title="Your request is with the PL team"
@@ -44,9 +49,30 @@ export function RequestIntroButton({ requested, onClick, name, size = 'xs', clas
         {/* Two words. "· with the PL team" was drawn after them and cost the
             header's facts column 100px — the role wrapped under the team. The
             toast and the title carry where the request went. */}
-        <CheckGlyph />
+        <CheckGlyph size={compact ? 12 : 14} />
         <span>Intro requested</span>
       </span>
+    );
+  }
+  if (compact) {
+    /* A plain button, not the DS Button: the badge's 16px box is under the
+       DS scale's smallest size (xxs, 24px), and overriding every size rule of
+       it would be a fork by another name. */
+    return (
+      <button
+        type="button"
+        className={clsx(s.compact, className)}
+        aria-label={`Request an intro to ${name}`}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onClick();
+        }}
+      >
+        {/* 12px: the badge's calendar glyph. */}
+        <EnvelopeGlyph size={12} />
+        <span>Request an intro</span>
+      </button>
     );
   }
   return (
@@ -54,7 +80,7 @@ export function RequestIntroButton({ requested, onClick, name, size = 'xs', clas
        intro blue outlined"): with Follow now the grey pill in the corner, the
        reach press wants the brand line so the two do not read as one kind. */
     <Button
-      size={size}
+      size={size as ButtonProps['size']}
       style="border"
       variant="primary"
       className={clsx(s.btn, className)}
@@ -73,8 +99,8 @@ export function RequestIntroButton({ requested, onClick, name, size = 'xs', clas
 }
 
 // FollowPill's check, so the two resting states in one header match.
-const CheckGlyph = () => (
-  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+const CheckGlyph = ({ size = 14 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
     <path
       d="M13.25 4.75 6.5 11.5 2.75 7.75"
       stroke="currentColor"

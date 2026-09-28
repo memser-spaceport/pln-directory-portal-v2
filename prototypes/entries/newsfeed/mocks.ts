@@ -596,3 +596,89 @@ export const CURATED_SUGGESTED_TEAMS: CuratedSuggestedTeam[] = [
  * meaning anything.
  */
 export const FOR_YOU_TEAM_UIDS: readonly string[] = ['libp2p', 'drand', 'lattice-compute', 'prime-intellect'];
+
+/**
+ * Upcoming gatherings for the rail's events card, soonest first, already
+ * filtered to upcoming. Shaped like the slice of production's IRL event the card
+ * reads. More than three on purpose: the card chooses which three, and each rule
+ * has an event here to act on (see `selectRailEvents` in UpcomingEventsCard).
+ */
+export interface UpcomingEvent {
+  slug: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  /** "City, Country" — production's `location` string; the card shows the city. */
+  location: string;
+  /** Production's `attendees` count (the old home event card showed "N Attending"). */
+  attendees: number;
+  /** Production's `type`; `INVITE_ONLY` is the value the events table marks. */
+  type?: 'INVITE_ONLY';
+  /** Whether the signed-in viewer is on the attendee list. */
+  viewerGoing?: boolean;
+  /** Whether the signed-in viewer has an invite (only meaningful for INVITE_ONLY). */
+  viewerInvited?: boolean;
+}
+
+export const UPCOMING_EVENTS: UpcomingEvent[] = [
+  {
+    slug: 'desci-summit-26',
+    name: 'DeSci Summit',
+    startDate: '2026-10-06T09:00:00.000Z',
+    endDate: '2026-10-07T18:00:00.000Z',
+    location: 'Berlin, Germany',
+    attendees: 38,
+  },
+  {
+    // Invite-only, no invite: never shown, signed in or out.
+    slug: 'founders-forum-paris',
+    name: 'PL Founders Forum',
+    startDate: '2026-10-12T09:00:00.000Z',
+    endDate: '2026-10-12T18:00:00.000Z',
+    location: 'Paris, France',
+    attendees: 24,
+    type: 'INVITE_ONLY',
+  },
+  {
+    // The viewer is going: left out for them, shown to everyone else.
+    slug: 'labweek-26',
+    name: 'LabWeek26: Protocol Labs network gathering',
+    startDate: '2026-10-19T09:00:00.000Z',
+    endDate: '2026-10-23T18:00:00.000Z',
+    location: 'Lisbon, Portugal',
+    attendees: 212,
+    viewerGoing: true,
+  },
+  {
+    slug: 'funding-the-commons-sg',
+    name: 'Funding the Commons',
+    startDate: '2026-11-14T09:00:00.000Z',
+    endDate: '2026-11-15T18:00:00.000Z',
+    location: 'Singapore, Singapore',
+    attendees: 91,
+  },
+  {
+    slug: 'fil-dev-summit-ba',
+    name: 'FIL Dev Summit',
+    startDate: '2026-11-30T09:00:00.000Z',
+    endDate: '2026-12-02T18:00:00.000Z',
+    location: 'Buenos Aires, Argentina',
+    attendees: 64,
+  },
+  {
+    // In a city the viewer follows: the latest event here, yet it makes their
+    // three (bumping FIL Dev Summit) and shows last, in date order.
+    slug: 'ipfs-camp-tokyo',
+    name: 'IPFS Camp',
+    startDate: '2026-12-09T09:00:00.000Z',
+    endDate: '2026-12-10T18:00:00.000Z',
+    location: 'Tokyo, Japan',
+    attendees: 47,
+  },
+];
+
+/**
+ * Cities the signed-in viewer follows — production's location subscriptions
+ * (`useMyLocationSubscriptions`), matched on the city part of `location`.
+ */
+export const VIEWER_FOLLOWED_CITIES: readonly string[] = ['Tokyo'];

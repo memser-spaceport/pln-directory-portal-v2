@@ -142,13 +142,15 @@
   position: relative;
 }
 
-/* Room for a 24px disc at the card's 12px inset, plus 8px before the text. */
+/* Room for the compact "Request an intro" (~100px) at the card's 12px inset,
+   plus 8px before the text. */
 .cardHasAction {
-  padding-right: 44px;
+  padding-right: 121px;
 }
 
-/* The intro mark (`intro-shared/IntroIconAction`) in the arrow's place,
-   centred on the card's height. Only the position is local. */
+/* The intro press (`intro-shared/RequestIntroButton`, `size="compact"` — the
+   "Available to connect" badge's box) in the arrow's place, centred on the
+   card's height. Only the position is local. */
 .introMark {
   position: absolute;
   top: 50%;

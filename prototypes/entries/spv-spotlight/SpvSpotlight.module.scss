@@ -1,0 +1,406 @@
+@use 'styles/media';
+
+// Page chrome for the SPV Spotlight prototype. The hero, sections, teams grid,
+// FAQ, footer and modals all use production stylesheets (the completed Demo Day
+// and its apply modal); this file only holds what those don't have: the
+// chromeless wordmark, the two-button row, and the preview bar.
+
+.page {
+  min-height: 100vh;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+// DemodayCompletedView .root has no side gutter below its 1344px max; the
+// production page gets one from the app layout, which a chromeless page lacks.
+.root {
+  padding-inline: 16px;
+  padding-top: 24px;
+}
+
+// ---- Chromeless brand mark -------------------------------------------------
+// No navigation on this page — just the wordmark, not a link, so an unlisted
+// deal page doesn't hand visitors a route into the rest of the app.
+.brand {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 24px;
+
+  svg {
+    height: 28px;
+    width: auto;
+  }
+}
+
+// Green "live" dot for OPEN — the completed page's `.dot`, drawn inside the
+// same 16px slot as its grey circle so the badge doesn't change width.
+.openDot {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--foreground-success-primary, #0a9952);
+  }
+}
+
+// ---- Buttons ----------------------------------------------------------------
+.buttonRow {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    max-width: 320px;
+
+    a,
+    button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  a {
+    text-decoration: none;
+  }
+}
+
+// Doubled class: the completed page's `.buttons button { display: flex }` would
+// otherwise turn these inline text buttons into blocks.
+.inlineLink.inlineLink {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font: inherit;
+  font-weight: 500;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+// The completed page's `.info` box carries a 32px top margin meant for a
+// standalone section; inside the buttons column the column gap already spaces it.
+.infoTight {
+  margin-top: 0;
+  max-width: 600px;
+}
+
+// ---- Team card ----------------------------------------------------------------
+// Surface, border and radius are PastTeamCard's .root; the layout becomes a
+// column (head / description / tags / footer) instead of its logo|body grid,
+// so the footer can run the card's full width. The card opens a drawer, so it
+// gets the hover production's own clickable team card uses
+// (TeamProfileCard .profileCardClickable: border up a step, lifted shadow).
+.teamCard.teamCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 16px 16px 0;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow:
+      0 0 1px 0 rgba(15, 23, 42, 0.16),
+      0 8px 16px 0 rgba(15, 23, 42, 0.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.cardLogo {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.cardIdentity {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cardMeta {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+}
+
+// Up from PastTeamCard's 12/18: that card carries a 5-word one-liner, this one
+// three lines of real description, which is what the reader decides on.
+// 14/20 is the teams list's own description size.
+.cardDescription.cardDescription {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 20px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// Bottom padding is the minimum gap above the footer rule; the footer's
+// margin-top: auto adds the rest when a neighbour's one-liner runs longer.
+.cardTags {
+  padding: 12px 0 16px;
+}
+
+// Hairline-divided footer, pinned to the card's foot so a row of cards lines
+// up however long each one-liner runs. Full card width: the border meets the
+// card's edges, so the footer carries the card's side padding itself.
+.cardFooter {
+  margin-top: auto;
+  margin-inline: -16px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+}
+
+.cardFounders {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.cardFounderNames {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.cardMaterials {
+  flex-shrink: 0;
+  display: inline-flex;
+  text-decoration: none;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+.cardChevron {
+  flex-shrink: 0;
+  display: inline-flex;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  transition: transform 0.15s ease, color 0.15s ease;
+
+  .teamCard:hover & {
+    color: var(--foreground-neutral-secondary, #455468);
+    transform: translateX(2px);
+  }
+}
+
+// ---- Team drawer --------------------------------------------------------------
+.drawerHeaderRow.drawerHeaderRow {
+  justify-content: space-between;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+    background: none;
+  }
+}
+
+.stepperCount {
+  margin-right: 6px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+// The team page's sections are white cards on the page's slate background;
+// keep that ground inside the drawer so the cards still read as cards.
+.drawerBody {
+  background: var(--background-neutral-subtle, #f1f5f9);
+
+  @include media.mobile-only {
+    padding: 16px;
+  }
+}
+
+// teamDetail__container is 900px wide from 1024px up; the drawer body is 898px.
+.teamColumn.teamColumn {
+  width: 100%;
+}
+
+.newsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.drawerFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  background: var(--Neutral-White, #fff);
+
+  a {
+    text-decoration: none;
+  }
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    gap: 8px;
+
+    a,
+    button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}
+
+.footerNote {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+// ---- Preview bar (prototype only) -------------------------------------------
+.demoBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 16px;
+  background: var(--Neutral-White, #fff);
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.demoLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.segment {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.segmentActive {
+  background: var(--Neutral-White, #fff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+}
+
+.demoHint {
+  flex-basis: 100%;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+
+  @include media.desktop {
+    flex-basis: auto;
+    margin-left: auto;
+  }
+}
+
+// ---- Investor profile drawer -------------------------------------------------
+// The drawer's column centres its children (Demo Day's .drawerContent), so the
+// shared Section wrapper states its width — see Section's own note.
+.drawerSection {
+  width: 100%;
+}
+
+// Hero message: the investor-profile line under the state sentence.
+.profileLine {
+  display: block;
+  margin-top: 4px;
+}
+
+// Demo Day's applied-investor stepper sits under the hero's buttons at its
+// landing's width (the card is full-width; the landing's column is ~600px).
+.appliedSteps {
+  width: 100%;
+  max-width: 600px;
+  margin-top: 8px;
+}
+
+// Step 2's pair: profile CTA over Discover, the stepper's own 8px rhythm.
+.stepActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+// An <a> wearing the stepper's button class: no underline, no inherited ink.
+.linkButton.linkButton {
+  text-decoration: none;
+  box-sizing: border-box;
+}

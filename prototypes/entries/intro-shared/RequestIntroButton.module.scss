@@ -1,3 +1,59 @@
+/* `size="compact"` — AI search's rows and cards. The box is production's
+   "Available to connect" badge (`components/core/OhBadge/OhBadge.module.scss`
+   `.root`) copied value for value, so the two stand at one height on one line:
+   1px border + 14px line = 16px, 0 4px padding, 12px glyph, 10/14 type at
+   -0.2px, fully round. The one size change is the gap: 4px, not the badge's
+   8px ("make spacing inside smaller") — on a 16px pill 8px parted the
+   envelope from its label, and 4px is the compact receipt's gap too, so the
+   press and "Intro requested" match. Only the paint differs, and it is what says
+   "press": the DS `fill` + `primary` pair (solid brand, white ink) against the
+   badge's brand wash — the row's other brand press, "Ask for intro", wears the
+   same — with the pointer, a hover step, an active return and a focus ring.
+   Weight 500 is the DS Button's; the badge's 400 is a label's. */
+.compact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  gap: 4px;
+  min-height: 16px;
+  margin: 0;
+  padding: var(--spacing-zero, 0) var(--spacing-4xs, 4px);
+  border: 1px solid var(--action-background-brand-normal, #1b4dff);
+  border-radius: var(--corner-radius-Full-round, 9999px);
+  background: var(--action-background-brand-normal, #1b4dff);
+  color: var(--foreground-light-primary, #fff);
+  font-family: inherit;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 14px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    background: var(--action-background-brand-hover, #0f3cd9);
+    border-color: var(--action-background-brand-hover, #0f3cd9);
+  }
+
+  /* Back to base on press — the DS primary's own active step. */
+  &:active {
+    background: var(--action-background-brand-normal, #1b4dff);
+    border-color: var(--action-background-brand-normal, #1b4dff);
+  }
+
+  /* 2px of offset: the ring is the fill's own ink, so it needs a band of
+     white between them to be seen. */
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -26,9 +82,20 @@
   cursor: default;
 }
 
+/* The compact receipt: still no box, but the compact button's own 16px line,
+   type and padding (a transparent 1px border holds the box's size), so the
+   row does not move when the request lands. */
+.sentCompact {
+  gap: 4px;
+  min-height: 16px;
+  padding: var(--spacing-zero, 0) var(--spacing-4xs, 4px);
+  border: 1px solid transparent;
+  font-size: 10px;
+  line-height: 14px;
+}
+
 /* The phone row's `s` height. */
 .sentS {
   min-height: 38px;
   justify-content: center;
 }
-

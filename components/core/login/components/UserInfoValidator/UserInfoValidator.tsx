@@ -6,7 +6,7 @@ import Cookies from 'js-cookie';
 import { usePostHog } from 'posthog-js/react';
 
 import { renewAccessToken } from '@/services/auth.service';
-import { clearAllAuthCookies } from '@/utils/third-party.helper';
+import { clearAllAuthCookies, setSessionCookie } from '@/utils/third-party.helper';
 import { authEvents } from '@/components/core/login/utils';
 import { broadcastLogout } from '../BroadcastChannel';
 import { SessionExpiredModal } from '../modals/SessionExpiredModal';
@@ -88,19 +88,16 @@ export function UserInfoValidator({ userInfo, isLoggedIn, authToken }: UserInfoV
               const accessTokenExpiry = decodeToken(accessToken) as any;
               const refreshTokenExpiry = decodeToken(newRefreshToken) as any;
 
-              Cookies.set('refreshToken', JSON.stringify(newRefreshToken), {
+              setSessionCookie('refreshToken', JSON.stringify(newRefreshToken), {
                 expires: new Date(refreshTokenExpiry.exp * 1000),
-                domain: process.env.COOKIE_DOMAIN,
                 path: '/',
               });
-              Cookies.set('authToken', JSON.stringify(accessToken), {
+              setSessionCookie('authToken', JSON.stringify(accessToken), {
                 expires: new Date(accessTokenExpiry.exp * 1000),
-                domain: process.env.COOKIE_DOMAIN,
                 path: '/',
               });
-              Cookies.set('userInfo', JSON.stringify(newUserInfo), {
+              setSessionCookie('userInfo', JSON.stringify(newUserInfo), {
                 expires: new Date(accessTokenExpiry.exp * 1000),
-                domain: process.env.COOKIE_DOMAIN,
                 path: '/',
               });
 

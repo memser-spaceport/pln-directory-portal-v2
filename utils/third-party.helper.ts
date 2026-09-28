@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie';
 import { z } from 'zod';
+import { isHostOnlySessionCookie, SESSION_SCOPE_COOKIE } from './sessionCookies';
 
 export const clearAllAuthCookies = () => {
   removeCookie('directory_idToken');
@@ -8,6 +9,7 @@ export const clearAllAuthCookies = () => {
   removeCookie('authToken');
   removeCookie('refreshToken');
   removeCookie('userInfo');
+  removeCookie(SESSION_SCOPE_COOKIE);
   removeCookie('page_params');
   removeCookie('privy-token');
   removeCookie('privy-session');
@@ -28,6 +30,28 @@ export const removeCookie = (name: string) => {
       domain: process.env.COOKIE_DOMAIN,
     });
   }
+};
+
+/** Removes the COOKIE_DOMAIN (shared) copy of a cookie; a host-only cookie with the same name is left alone. */
+export const expireSharedCookie = (name: string) => {
+  if (process.env.COOKIE_DOMAIN) {
+    Cookies.remove(name, { path: '/', domain: process.env.COOKIE_DOMAIN });
+  }
+};
+
+/**
+ * Sets a LabOS session cookie. refreshToken/userInfo are written host-only and their old shared copy is removed, so
+ * deployed AI Apps on sibling subdomains never receive them; authToken stays on COOKIE_DOMAIN, where apps read it.
+ */
+export const setSessionCookie = (name: string, value: string, options: Cookies.CookieAttributes = {}) => {
+  const attributes: Cookies.CookieAttributes = { path: '/', ...options };
+  delete attributes.domain;
+  if (isHostOnlySessionCookie(name)) {
+    expireSharedCookie(name);
+    Cookies.set(name, value, attributes);
+    return;
+  }
+  Cookies.set(name, value, { ...attributes, domain: process.env.COOKIE_DOMAIN || '' });
 };
 
 export const isLink = (text: string): boolean => {

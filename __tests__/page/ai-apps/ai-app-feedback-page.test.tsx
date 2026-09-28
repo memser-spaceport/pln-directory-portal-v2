@@ -217,6 +217,44 @@ describe('AiAppFeedbackPage', () => {
     expect(screen.queryByText('View annotations')).not.toBeInTheDocument();
   });
 
+  describe('rendered markup is sanitizer output', () => {
+    const renderFeedbackText = (text: string) => {
+      mockUseAiAppFeedbackList.mockReturnValue({
+        feedback: [{ ...FEEDBACK[0], uid: 'fb-xss', text }],
+        isLoading: false,
+        isError: false,
+      });
+      return render(<AiAppFeedbackPage />);
+    };
+
+    const eventHandlerAttributes = (root: HTMLElement) =>
+      Array.from(root.querySelectorAll('*')).flatMap((el) =>
+        Array.from(el.attributes)
+          .filter((attr) => attr.name.toLowerCase().startsWith('on'))
+          .map((attr) => `${el.tagName.toLowerCase()}[${attr.name}]`),
+      );
+
+    it('does not let the image split turn a data-* value into an event handler', () => {
+      const { container } = renderFeedbackText(
+        '<p data-x="<img a=">x&quot; onmouseover=&quot;alert(1)&quot; y=&quot;</p>',
+      );
+      expect(eventHandlerAttributes(container)).toEqual([]);
+    });
+
+    it('does not let linkify turn a data-* value into an event handler', () => {
+      const { container } = renderFeedbackText('<p data-x="a>https://x.test/onmouseover=alert(1)//">text</p>');
+      expect(eventHandlerAttributes(container)).toEqual([]);
+    });
+
+    it('still renders linkified bare URLs as new-tab links', () => {
+      renderFeedbackText('<p>See https://example.com/page for details</p>');
+      const link = screen.getByRole('link', { name: 'https://example.com/page' });
+      expect(link).toHaveAttribute('href', 'https://example.com/page');
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    });
+  });
+
   it('opens a feedback image fullscreen and closes on Escape or overlay click', async () => {
     mockUseAiAppFeedbackList.mockReturnValue({
       feedback: [

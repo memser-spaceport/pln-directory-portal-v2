@@ -777,6 +777,21 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(mockOnFeedbackScreenshotRemoved).toHaveBeenCalled();
     });
 
+    it('deletes on Enter and keeps the screenshot on Escape', async () => {
+      await takeAndAnnotate();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      expect(screen.queryByText('Delete screenshot?')).not.toBeInTheDocument();
+      expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
+      fireEvent.keyDown(document, { key: 'Enter' });
+
+      await waitFor(() => expect(screen.queryByAltText('Screenshot 1')).not.toBeInTheDocument());
+    });
+
     it('does not report a removal that was never confirmed', async () => {
       await takeAndAnnotate();
 
@@ -935,6 +950,143 @@ describe('GiveAiAppFeedbackDialog', () => {
         expect(toast.error).toHaveBeenCalledWith('Could not capture a screenshot. Please try again.'),
       );
       expect(mockOnFeedbackScreenshotCaptureFailed).toHaveBeenCalledWith({ stage: 'grab' });
+    });
+  });
+
+  describe('keyboard shortcuts', () => {
+    const apps = () =>
+      mockUseAiApps.mockReturnValue({
+        apps: [{ uid: 'app-1', name: 'My App' }],
+        isLoading: false,
+        isError: false,
+      });
+
+    const sendChord = () => fireEvent.keyDown(document, { key: 'Enter', ctrlKey: true });
+
+    it('starts a screenshot from Cmd/Ctrl+Shift+S', async () => {
+      (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
+      (grabVideoFrame as jest.Mock).mockResolvedValue(PIXEL_PNG);
+      (stopCaptureStream as jest.Mock).mockImplementation(() => undefined);
+      apps();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      expect(screen.getByRole('button', { name: 'Take screenshot' })).toHaveAttribute(
+        'aria-keyshortcuts',
+        expect.stringMatching(/Shift\+S/),
+      );
+      fireEvent.keyDown(document, { key: 's', ctrlKey: true, shiftKey: true });
+
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
+      expect(mockOnFeedbackScreenshotClicked).toHaveBeenCalled();
+    });
+
+    it('does not treat Cmd/Ctrl+S as a screenshot', () => {
+      apps();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      fireEvent.keyDown(document, { key: 's', ctrlKey: true });
+
+      expect(mockOnFeedbackScreenshotClicked).not.toHaveBeenCalled();
+    });
+
+    it('shows the send and close hints', () => {
+      apps();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      expect(screen.getByText(/to send/)).toBeInTheDocument();
+      expect(screen.getByText(/to close/)).toBeInTheDocument();
+    });
+
+    it('submits on Cmd/Ctrl+Enter', async () => {
+      apps();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Nice app!' } });
+      sendChord();
+
+      await waitFor(() =>
+        expect(mockMutate).toHaveBeenCalledWith(
+          { appUid: 'app-1', text: 'Nice app!' },
+          expect.objectContaining({ onSuccess: expect.any(Function) }),
+        ),
+      );
+    });
+
+    it('shows validation instead of sending when the form is invalid', async () => {
+      apps();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} />);
+
+      sendChord();
+
+      await waitFor(() => expect(screen.getByText('Please select an app')).toBeInTheDocument());
+      expect(mockMutate).not.toHaveBeenCalled();
+    });
+
+    it('does not send on the open chord', () => {
+      apps();
+      const onClose = jest.fn();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={onClose} appUid="app-1" appName="My App" />);
+
+      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Nice app!' } });
+      fireEvent.keyDown(document, { key: 'Enter', ctrlKey: true, altKey: true });
+
+      expect(mockMutate).not.toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('reports the submitted app so the next shortcut can reopen it', async () => {
+      apps();
+      const onSubmitted = jest.fn();
+      mockMutate.mockImplementation((_payload, options) => options?.onSuccess?.());
+      render(
+        <GiveAiAppFeedbackDialog
+          isOpen
+          onClose={jest.fn()}
+          onSubmitted={onSubmitted}
+          appUid="app-1"
+          appName="My App"
+        />,
+      );
+
+      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Nice app!' } });
+      sendChord();
+
+      await waitFor(() => expect(onSubmitted).toHaveBeenCalledWith({ label: 'My App', value: 'app-1' }));
+    });
+
+    it('ignores the send chord while a capture is in progress', async () => {
+      (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
+      (grabVideoFrame as jest.Mock).mockResolvedValue(PIXEL_PNG);
+      (stopCaptureStream as jest.Mock).mockImplementation(() => undefined);
+      apps();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Nice app!' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
+
+      sendChord();
+
+      expect(mockMutate).not.toHaveBeenCalled();
+    });
+
+    it('adds the screenshot from the annotator instead of sending the feedback', async () => {
+      (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
+      (grabVideoFrame as jest.Mock).mockResolvedValue(PIXEL_PNG);
+      (stopCaptureStream as jest.Mock).mockImplementation(() => undefined);
+      apps();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Nice app!' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Select region' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Add to feedback' })).toBeInTheDocument());
+
+      sendChord();
+
+      await waitFor(() => expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument());
+      expect(mockMutate).not.toHaveBeenCalled();
     });
   });
 });

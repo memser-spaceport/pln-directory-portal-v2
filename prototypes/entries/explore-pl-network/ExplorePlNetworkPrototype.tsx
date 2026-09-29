@@ -31,8 +31,9 @@ import s from './ExplorePlNetwork.module.scss';
  * top: the name card links to the team's directory profile, and a List view
  * scans names.
  *
- * Two directions for the 2026-09-29 sync, picked in the preview bar; both keep
- * the logo wall, FAQ and footer below:
+ * Two directions for the 2026-09-29 sync, as two prototype entries sharing this
+ * page (explore-pl-network = Editorial, explore-pl-network-visual = Visual);
+ * both keep the logo wall, FAQ and footer below:
  * - Editorial (EditorialSections): official, typographic, links to PL Capital,
  *   PL R&D, PLVS and the rest; the portfolio section (cube / islands / list).
  * - Visual (VisualSections): the logo cube as a full-width dark hero, then
@@ -40,17 +41,7 @@ import s from './ExplorePlNetwork.module.scss';
  *   portfolio (the user, 2026-09-29), so the hero has to say it is clickable.
  */
 
-type Direction = 'editorial' | 'visual';
-
-const DIRECTIONS: { value: Direction; label: string }[] = [
-  { value: 'editorial', label: 'Editorial' },
-  { value: 'visual', label: 'Visual' },
-];
-
-const DIRECTION_HINT: Record<Direction, string> = {
-  editorial: 'Official, like an About page: statement, figures, focus areas, entity cards.',
-  visual: 'Motion first: the cube as a dark hero, then Protocol Labs context and a video.',
-};
+export type Direction = 'editorial' | 'visual';
 
 // The team's production profile when teamInfo.ts matched it to a directory uid; otherwise
 // production team search by marketing's name.
@@ -59,31 +50,13 @@ const directoryUrl = (logo: PortfolioLogo) => {
   return uid ? `https://os.pl.xyz/teams/${uid}` : `https://os.pl.xyz/teams?searchBy=${encodeURIComponent(logo.name)}`;
 };
 
-export default function ExplorePlNetworkPrototype() {
+export function ExplorePlNetworkPage({ direction }: { direction: Direction }) {
   const [mounted, setMounted] = useState(false);
-  const [direction, setDirection] = useState<Direction>('editorial');
   useEffect(() => setMounted(true), []);
   if (!mounted) return <div className={spv.page} />;
 
   return (
     <div className={spv.page}>
-      <div className={spv.demoBar} role="group" aria-label="Prototype preview controls">
-        <span className={spv.demoLabel}>Direction</span>
-        <div className={spv.segmented}>
-          {DIRECTIONS.map((o) => (
-            <button
-              key={o.value}
-              type="button"
-              className={clsx(spv.segment, { [spv.segmentActive]: direction === o.value })}
-              onClick={() => setDirection(o.value)}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
-        <span className={spv.demoHint}>{DIRECTION_HINT[direction]}</span>
-      </div>
-
       <SpvNavBar
         label="PL Network"
         supportEmail={EXPLORE_COPY.supportEmail}
@@ -151,4 +124,9 @@ export default function ExplorePlNetworkPrototype() {
       </div>
     </div>
   );
+}
+
+// The Editorial direction; the Visual one is its own entry (ExplorePlNetworkVisualPrototype).
+export default function ExplorePlNetworkPrototype() {
+  return <ExplorePlNetworkPage direction="editorial" />;
 }

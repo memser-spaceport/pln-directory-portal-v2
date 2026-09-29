@@ -1,3 +1,5 @@
+import { plaaApiHeaders } from '@/services/plaa/plaa-api';
+
 export interface RoundStatsChartEntry {
   name: string;
   value: number;
@@ -57,7 +59,7 @@ export const getCurrentRoundStats = async (): Promise<{
   try {
     const response = await fetch(`${process.env.PLAA_API_URL}/api/v1/rounds/current/stats`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: plaaApiHeaders(),
       cache: 'no-store',
     });
 
@@ -87,9 +89,7 @@ export const getCompletedBuybacks = async (): Promise<CompletedBuyback[]> => {
   const { data: current } = await getCurrentRoundStats();
   if (!current) return [];
 
-  const results = await Promise.all(
-    Array.from({ length: current.roundNumber }, (_, i) => getRoundStats(i + 1)),
-  );
+  const results = await Promise.all(Array.from({ length: current.roundNumber }, (_, i) => getRoundStats(i + 1)));
 
   return results
     .map((result) => result.data)
@@ -114,7 +114,7 @@ export const getRoundStats = async (
   try {
     const response = await fetch(`${process.env.PLAA_API_URL}/api/v1/rounds/${roundNumber}/stats`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: plaaApiHeaders(),
       cache: 'no-store',
     });
 

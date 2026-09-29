@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { plaaApiHeaders } from '@/services/plaa/plaa-api';
 
 /** Intentionally public, no-auth — a round's lifecycle state isn't user-specific. */
 export async function GET() {
@@ -10,7 +11,7 @@ export async function GET() {
   try {
     const res = await fetch(`${baseUrl}/api/v1/rounds/snapshot-status`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: plaaApiHeaders(),
       cache: 'no-store',
     });
 

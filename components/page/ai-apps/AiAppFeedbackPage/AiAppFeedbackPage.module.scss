@@ -67,6 +67,24 @@
   margin: 0;
 }
 
+.tabsActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+
+  // SortDropdown's trigger is a fixed 36px; the button's 8px padding + 20px line
+  // + 1px border would otherwise stand 2px taller beside it.
+  .exportButton {
+    height: 36px;
+    padding: 0 10px;
+  }
+
+  @include media.mobile-only {
+    padding-bottom: 12px;
+  }
+}
+
 .exportButton {
   display: inline-flex;
   align-items: center;

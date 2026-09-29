@@ -1,5 +1,4 @@
 import type { FAQItem } from '@/app/constants/demoday';
-import { SPV_FAQ_ITEMS } from '@/components/page/spv-spotlight/faq';
 import { PL_NETWORK_ORGANIZATIONS_LABEL } from '@/services/explore-pl-network/constants';
 
 // Editorial copy for the Explore PL Network landing, copied from the approved
@@ -48,17 +47,15 @@ export const FOCUS_AREAS = [
   },
 ] as const;
 
-// Only figures a public source backs. `portfolio` is filled in from the map's
+// Only figures a public source backs (founded: pl.xyz/about; organizations:
+// plnetwork.io/about; focus areas: protocol.ai). The sources stay here, not on
+// the page (design review, 2026-09-29). `portfolio` is filled in from the map's
 // own data so the two can't disagree.
 export const PL_FACTS = [
-  { value: '2014', label: 'Founded', source: 'Source: pl.xyz/about' },
-  {
-    value: PL_NETWORK_ORGANIZATIONS_LABEL,
-    label: 'Organizations in the network',
-    source: 'Source: plnetwork.io/about',
-  },
-  { value: 'portfolio', label: 'Portfolio teams', source: 'Listed below' },
-  { value: '4', label: 'Focus areas', source: 'Source: protocol.ai' },
+  { value: '2014', label: 'Founded' },
+  { value: PL_NETWORK_ORGANIZATIONS_LABEL, label: 'Organizations in the network' },
+  { value: 'portfolio', label: 'Portfolio teams' },
+  { value: '4', label: 'Focus areas' },
 ] as const;
 
 // Each line is the entity's own meta description, trimmed.
@@ -97,7 +94,8 @@ export const PL_ENTITIES = [
 
 export const PL_CAPITAL_URL = 'https://plcapital.xyz/';
 
-// What an investor new to PL asks first, then the Spotlight questions.
+// What an investor new to PL asks. The Spotlight questions live on the SPV
+// Spotlight page's own Q&A (design review, 2026-09-29), not here.
 export const EXPLORE_FAQ_ITEMS: FAQItem[] = [
   {
     question: 'What is the PL Network?',
@@ -109,6 +107,4 @@ export const EXPLORE_FAQ_ITEMS: FAQItem[] = [
     answer:
       'Every team in the Protocol Labs portfolio with a public directory profile. Each profile is maintained by the team itself and by PL — founders, focus areas, projects and recent news.',
   },
-  // The Spotlight questions, shared with the SPV Spotlight page's own Q&A.
-  ...SPV_FAQ_ITEMS,
 ];

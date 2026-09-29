@@ -11,7 +11,7 @@ type Props = {
  * Reads like an institutional About page: centred, type and hairlines only,
  * no imagery above the portfolio.
  * 1. Statement: marketing's General Info text, mission as the lede.
- * 2. Key figures, each with where it comes from.
+ * 2. Key figures.
  * 3. Focus areas, in marketing's words.
  * 4. The PL entities as linked cards.
  */
@@ -32,7 +32,6 @@ export const EditorialIntro = ({ onEntityClicked }: Props) => (
         <div key={f.label} className={s.edFact}>
           <dt className={s.edFactLabel}>{f.label}</dt>
           <dd className={s.edFactValue}>{f.value === 'portfolio' ? PORTFOLIO.length : f.value}</dd>
-          <dd className={s.edFactSource}>{f.source}</dd>
         </div>
       ))}
     </dl>

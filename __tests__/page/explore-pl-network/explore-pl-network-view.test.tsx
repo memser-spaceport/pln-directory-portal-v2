@@ -27,6 +27,17 @@ describe('ExplorePlNetworkView', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows the figures without source lines', () => {
+    expect(screen.getByText('Organizations in the network')).toBeInTheDocument();
+    expect(screen.queryByText(/^Source:/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Listed below')).not.toBeInTheDocument();
+  });
+
+  it('keeps its Q&A to the network; the Spotlight questions live on the Spotlight page', () => {
+    expect(screen.getByText('What is the PL Network?')).toBeInTheDocument();
+    expect(screen.queryByText('What is PL Spotlight?')).not.toBeInTheDocument();
+  });
+
   it('links every PL entity in a new tab', () => {
     const entities = within(screen.getByRole('region', { name: 'Protocol Labs entities' }));
     for (const e of PL_ENTITIES) {

@@ -1,4 +1,6 @@
 import type { FAQItem } from '@/app/constants/demoday';
+import { SPV_FAQ_ITEMS } from '@/components/page/spv-spotlight/faq';
+import { PL_NETWORK_ORGANIZATIONS_LABEL } from '@/services/explore-pl-network/constants';
 
 // Editorial copy for the Explore PL Network landing, copied from the approved
 // prototype (prototypes/entries/explore-pl-network/mocks.ts, 2026-09-29).
@@ -50,7 +52,11 @@ export const FOCUS_AREAS = [
 // own data so the two can't disagree.
 export const PL_FACTS = [
   { value: '2014', label: 'Founded', source: 'Source: pl.xyz/about' },
-  { value: '760+', label: 'Organizations in the network', source: 'Source: plnetwork.io/about' },
+  {
+    value: PL_NETWORK_ORGANIZATIONS_LABEL,
+    label: 'Organizations in the network',
+    source: 'Source: plnetwork.io/about',
+  },
   { value: 'portfolio', label: 'Portfolio teams', source: 'Listed below' },
   { value: '4', label: 'Focus areas', source: 'Source: protocol.ai' },
 ] as const;
@@ -103,28 +109,6 @@ export const EXPLORE_FAQ_ITEMS: FAQItem[] = [
     answer:
       'Every team in the Protocol Labs portfolio with a public directory profile. Each profile is maintained by the team itself and by PL — founders, focus areas, projects and recent news.',
   },
-  {
-    question: 'What is PL Spotlight?',
-    answer:
-      "PL Spotlight is how Protocol Labs brings a small set of PL Network teams to outside investors. Each Spotlight is one SPV (special purpose vehicle) led by Protocol Labs into one team's round.",
-  },
-  {
-    question: 'Who can request access?',
-    answer:
-      'Accredited investors, and people investing on behalf of a VC fund or institution. A request takes your email, name, role and organization. If you are new, it also creates a free PL Network account.',
-  },
-  {
-    question: 'What happens after I request access?',
-    answer:
-      "The PL team reviews every request. We email you when you are approved. After that, the Spotlight page shows View materials, which opens the team's DocSend.",
-  },
-  {
-    question: 'I was invited — do I still need to request access?',
-    answer:
-      'No. The link in your invitation email signs you in and takes you straight to the materials. If you were sent the public link, request access with your email — that creates your account.',
-  },
-  {
-    question: 'What happens when a Spotlight closes?',
-    answer: 'The SPV stops taking commitments and its materials are no longer available on this page.',
-  },
+  // The Spotlight questions, shared with the SPV Spotlight page's own Q&A.
+  ...SPV_FAQ_ITEMS,
 ];

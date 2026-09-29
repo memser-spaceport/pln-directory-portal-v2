@@ -281,8 +281,10 @@ export function AiAppDetailPage(props: Props) {
   }, [isError, uid, analytics]);
 
   const prodTarget = app ? aiAppTarget(app, 'prod') : null;
+  const previewRow = app?.deployments?.preview ?? null;
+  const canOpenPreview = !!previewRow && !!app?.canViewPreview;
   const previewTargetRow = app ? aiAppTarget(app, 'preview') : null;
-  const selectedEnv = app?.canViewPreview ? previewEnv : 'prod';
+  const selectedEnv = canOpenPreview ? previewEnv : 'prod';
   const previewTarget = selectedEnv === 'preview' ? previewTargetRow : prodTarget;
   const appUrl = previewTarget?.url ?? (selectedEnv === 'prod' ? app?.url ?? null : null);
   const appOrigin = useMemo(() => {
@@ -451,7 +453,8 @@ export function AiAppDetailPage(props: Props) {
   // Shown both for an app that genuinely isn't deployed yet (needsSetup) and
   // for a deploy in progress or failed with nothing serving — a 'warning'
   // failure (previous revision still up) renders the normal layout instead.
-  const showSetupCard = needsSetup || (deployFailed && failureKind !== 'warning') || deployInProgress;
+  const showSetupCard =
+    selectedEnv !== 'preview' && (needsSetup || (deployFailed && failureKind !== 'warning') || deployInProgress);
 
   // Close a card action; if the deployment modal was opened via the
   // `?settings=deployment` deep link, drop the param so a refresh/back doesn't
@@ -486,7 +489,8 @@ export function AiAppDetailPage(props: Props) {
           <div className={s.setupHeader}>
             <h1 className={s.setupTitle}>{app.name}</h1>
             <span className={s.statusBadge} data-status={app.status}>
-              Prod {aiAppStatusLabel(prodTarget?.status ?? app.status)} · Preview {aiAppStatusLabel(previewTargetRow?.status ?? 'IN_DEVELOPMENT')}
+              Prod {aiAppStatusLabel(prodTarget?.status ?? app.status)}
+              {previewRow ? ` · Preview ${aiAppStatusLabel(previewRow.status)}` : ''}
             </span>
             {isPrivateAiApp(app) && <span className={s.privateBadge}>Private</span>}
           </div>
@@ -536,6 +540,23 @@ export function AiAppDetailPage(props: Props) {
   );
 
   const renderFrameArea = () => {
+    if (selectedEnv === 'preview' && !appUrl) {
+      return (
+        <div className={s.frameState}>
+          <div className={s.progress}>
+            <p className={s.progressTitle}>
+              {previewTargetRow?.status === 'DEPLOYING' ? 'Deploying preview' : 'Preview is not deployed yet'}
+            </p>
+            <p className={s.progressText}>
+              {previewTargetRow?.status === 'DEPLOYING'
+                ? 'A deploy is in progress — this page updates automatically once it finishes.'
+                : 'Switch back to Production, or open settings to deploy this environment.'}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     if (isRedeploying) {
       return (
         <div className={s.frameState}>
@@ -595,8 +616,7 @@ export function AiAppDetailPage(props: Props) {
     );
   };
 
-  const normalLayout = (
-    <div className={s.root}>
+  const appHeader = (
       <div className={s.topBar}>
         <Link href="/pl-infra/ai-apps" className={s.backLink}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -611,17 +631,17 @@ export function AiAppDetailPage(props: Props) {
           Back
         </Link>
         <div className={s.topBarActions}>
-          <div className={s.envSwitch} role="tablist" aria-label="App environment">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={selectedEnv === 'prod'}
-              className={selectedEnv === 'prod' ? s.envOn : s.envOff}
-              onClick={() => setPreviewEnv('prod')}
-            >
-              Production
-            </button>
-            {app.canViewPreview && (
+          {canOpenPreview && (
+            <div className={s.envSwitch} role="tablist" aria-label="App environment">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={selectedEnv === 'prod'}
+                className={selectedEnv === 'prod' ? s.envOn : s.envOff}
+                onClick={() => setPreviewEnv('prod')}
+              >
+                Production
+              </button>
               <button
                 type="button"
                 role="tab"
@@ -631,8 +651,8 @@ export function AiAppDetailPage(props: Props) {
               >
                 Preview
               </button>
-            )}
-          </div>
+            </div>
+          )}
           <span className={s.envMeta}>{aiAppStatusLabel(previewTarget?.status ?? '')}</span>
           {isPrivateAiApp(app) && (
             <span className={s.privateBadge} title="Only the owner and people they add can see this app">
@@ -668,10 +688,15 @@ export function AiAppDetailPage(props: Props) {
           )}
         </div>
       </div>
+  );
+
+  const normalLayout = (
+    <div className={s.root}>
+      {appHeader}
       {/* The previous revision still serves — the app below works, only its
           creator needs to know the latest change didn't ship. Hidden during the
           creator's own redeploy (the frame area shows that story). */}
-      {isCreator && failureKind === 'warning' && !isRedeploying && (
+      {isCreator && failureKind === 'warning' && !isRedeploying && selectedEnv !== 'preview' && (
         <div className={s.warningBanner}>
           <span className={s.warningBannerLabel}>Latest deploy didn&apos;t ship</span>
           <button type="button" className={s.warningBannerButton} onClick={() => openFailureLogs('detail-banner')}>
@@ -688,7 +713,14 @@ export function AiAppDetailPage(props: Props) {
   // settling warning → danger) must never unmount an open modal mid-result.
   return (
     <>
-      {showSetupCard ? setupCard : normalLayout}
+      {showSetupCard ? (
+        <>
+          {canOpenPreview && appHeader}
+          {setupCard}
+        </>
+      ) : (
+        normalLayout
+      )}
       {/* Floats over both branches, for the same reason the modals sit here: it
           owns an open dialog, and a status flip must not unmount it mid-typing.
           It also gives the setup / deploying / failed states a feedback door —

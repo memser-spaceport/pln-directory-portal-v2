@@ -59,9 +59,12 @@ export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = 
   {
     version: '1.14',
     items: [
+      'You can keep a Preview of your app next to the live one. Use Preview to try changes; Production is what other people open. Updating Preview does not change the live app',
+      'Preview starts private — only you can open it until you share it from Manage access. On the app page, switch between Production and Preview',
+      '(Via UI) In Deployment settings, create a deployment key and give it to your AI agent or to GitHub Actions. They can publish that version of the app without you approving a new LabOS link each time. The full key is shown only once, and you can turn it off whenever you want',
       'Your app now learns who is signed in from its own address — there is no LabOS token for your code to read or pass around',
       'The sign-in your app receives works for your app only, not for LabOS or other apps',
-      'Apps built with earlier kits keep working as they are — no redeploy needed',
+      'Apps built with earlier kits keep working as they are — no redeploy needed. Download this kit so your agent also knows how to deploy a Preview and use a deployment key',
     ],
   },
   {

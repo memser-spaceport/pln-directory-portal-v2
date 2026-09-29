@@ -9,6 +9,7 @@ import { useAiAppPublicPaths } from '@/services/ai-apps/hooks/useAiAppPublicPath
 import { useSaveAiAppPublicPaths } from '@/services/ai-apps/hooks/useSaveAiAppPublicPaths';
 import { AI_APPS_MAX_PUBLIC_PATHS, validatePublicPath } from '@/services/ai-apps/utils/validatePublicPath';
 
+import { DisclosureSection } from './SectionTitle';
 import s from './DeploymentSettingsModal.module.scss';
 
 interface Props {
@@ -49,19 +50,17 @@ export function PublicEndpointsSection({ uid, lastDeployedAt, disabled, onRedepl
 
   if (isLoading || (!settings && !loadError)) {
     return (
-      <section className={s.section}>
-        <h3 className={s.sectionTitle}>Public endpoints</h3>
+      <DisclosureSection icon="endpoints" title="Public endpoints">
         <p className={s.intro}>Loading…</p>
-      </section>
+      </DisclosureSection>
     );
   }
 
   if (!settings || rows === null) {
     return (
-      <section className={s.section}>
-        <h3 className={s.sectionTitle}>Public endpoints</h3>
+      <DisclosureSection icon="endpoints" title="Public endpoints">
         <p className={s.error}>{loadError}</p>
-      </section>
+      </DisclosureSection>
     );
   }
 
@@ -111,10 +110,9 @@ export function PublicEndpointsSection({ uid, lastDeployedAt, disabled, onRedepl
   };
 
   return (
-    <section className={s.section}>
-      <h3 className={s.sectionTitle}>Public endpoints</h3>
+    <DisclosureSection icon="endpoints" title="Public endpoints">
       <p className={s.intro}>
-        Paths anyone can open without signing in, such as <code>/api/*</code>. Applies to both Production and Preview.
+        Paths anyone can open without signing in, such as <code>/api/*</code>. Used by both Production and Preview.
       </p>
 
       <div className={s.notice}>
@@ -204,6 +202,6 @@ export function PublicEndpointsSection({ uid, lastDeployedAt, disabled, onRedepl
           </Button>
         </div>
       </div>
-    </section>
+    </DisclosureSection>
   );
 }

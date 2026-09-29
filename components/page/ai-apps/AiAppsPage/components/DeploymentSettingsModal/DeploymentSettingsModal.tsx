@@ -24,7 +24,18 @@ import { AiAppsQueryKeys } from '@/services/ai-apps/constants';
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
 
 import { PublicEndpointsSection } from './PublicEndpointsSection';
+import { DisclosureSection } from './SectionTitle';
 import s from './DeploymentSettingsModal.module.scss';
+
+function formatWhen(value: string) {
+  return new Date(value).toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
 
 type Phase = 'form' | 'deploying' | 'done';
 
@@ -59,6 +70,8 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
   const [provided, setProvided] = useState(() => new Set(aiAppTarget(app, 'prod').providedEnvVars));
   const [keys, setKeys] = useState<AiAppDeployKeySummary[]>([]);
   const [createdToken, setCreatedToken] = useState<string | null>(null);
+  const [revokeKeyUid, setRevokeKeyUid] = useState<string | null>(null);
+  const [isRevoking, setIsRevoking] = useState(false);
   const [confirmTeardown, setConfirmTeardown] = useState(false);
 
   const [values, setValues] = useState<Record<string, string>>({});
@@ -115,6 +128,7 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
     setKeysError(null);
     setConfirmTeardown(false);
     setCreatedToken(null);
+    setRevokeKeyUid(null);
   };
 
   useEffect(() => {
@@ -261,8 +275,14 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
     setKeys(await fetchAiAppDeployKeys(app.uid));
   };
 
-  const handleRevokeKey = async (keyUid: string) => {
+  const handleRevokeKey = async () => {
+    if (!revokeKeyUid || isRevoking) return;
+    setIsRevoking(true);
+    setKeysError(null);
+    const keyUid = revokeKeyUid;
     const ok = await revokeAiAppDeployKey(app.uid, keyUid);
+    setIsRevoking(false);
+    setRevokeKeyUid(null);
     if (!ok) {
       setKeysError('Could not revoke that key.');
       return;
@@ -270,8 +290,17 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
     setKeys((current) => current.filter((key) => key.uid !== keyUid));
   };
 
+  const envKeys = keys.filter((key) => key.environment === environment);
+
   return (
-    <Modal isOpen onClose={onClose} className={s.modal} closeOnBackdropClick={false}>
+    <>
+    <Modal
+      isOpen
+      onClose={onClose}
+      className={s.modal}
+      closeOnBackdropClick={false}
+      closeOnEscape={!createdToken && !revokeKeyUid}
+    >
       <div className={s.content}>
         <div className={s.header}>
           <h2 className={s.title}>Deployment settings</h2>
@@ -298,33 +327,33 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
                   </button>
                 ))}
               </div>
-              <section className={s.section}>
-                <h3 className={s.sectionTitle}>Build</h3>
+              <DisclosureSection icon="build" title="Build">
                 <p className={s.intro}>The last bundle deployed to this environment.</p>
-                <p className={s.intro}>
-                  {aiAppStatusLabel(target.status)}
-                  {target.lastDeployedAt
-                    ? ` · Last deployed ${new Date(target.lastDeployedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}`
-                    : ' · No successful deploy yet'}
-                  {target.agentClient ? ` · ${target.agentClient}` : ''}
-                  {target.kitVersion ? ` · kit ${target.kitVersion}` : ''}
-                </p>
-                {!hasBuild && (
+                {target.lastDeployedAt ? (
                   <p className={s.intro}>
+                    {aiAppStatusLabel(target.status)}
+                    {` · Last deployed ${formatWhen(target.lastDeployedAt)}`}
+                    {target.agentClient ? ` · ${target.agentClient}` : ''}
+                    {target.kitVersion ? ` · kit ${target.kitVersion}` : ''}
+                  </p>
+                ) : (
+                  <p className={s.statusNote}>{aiAppStatusLabel(target.status)} · No successful deploy yet</p>
+                )}
+                {!hasBuild && (
+                  <p className={s.statusNote}>
                     No build yet. Ask your AI agent to deploy here before you can deploy from LabOS.
                   </p>
                 )}
-                {externalDeployInFlight && <p className={s.intro}>A deploy is already in progress.</p>}
+                {externalDeployInFlight && <p className={s.statusNote}>A deploy is already in progress.</p>}
                 {canManage && (target.url || target.lastDeployedAt) && (
                   <button type="button" className={s.linkBtn} onClick={handleTeardown} disabled={isSubmitting}>
                     {confirmTeardown ? 'Confirm tear down' : 'Tear down'}
                   </button>
                 )}
                 {buildError && <p className={s.error}>{buildError}</p>}
-              </section>
+              </DisclosureSection>
 
-              <section className={s.section}>
-                <h3 className={s.sectionTitle}>App secrets</h3>
+              <DisclosureSection icon="secrets" title="App secrets">
                 <p className={s.intro}>
                   {hasSecrets
                     ? 'Values the app reads at runtime. Stored ones stay until you replace them.'
@@ -388,7 +417,35 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
                   </div>
                 )}
                 {error && <p className={s.error}>{error}</p>}
-              </section>
+              </DisclosureSection>
+
+              {canManage && (
+                <DisclosureSection icon="keys" title="Deployment keys">
+                  <p className={s.intro}>
+                    Use this key to deploy this environment from an AI agent, GitHub Actions, or any other script. The
+                    full key is shown once.
+                  </p>
+                  {envKeys.length > 0 && (
+                    <ul className={s.keyList}>
+                      {envKeys.map((key) => (
+                        <li key={key.uid}>
+                          <span className={s.keyMeta}>
+                            <span className={s.keyPrefix}>{key.tokenPrefix}…</span>
+                            <span className={s.keyTime}>Generated {formatWhen(key.createdAt)}</span>
+                          </span>
+                          <button type="button" className={s.dangerBtn} onClick={() => setRevokeKeyUid(key.uid)}>
+                            Revoke
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <button type="button" className={s.linkBtn} onClick={handleCreateKey} disabled={isSubmitting}>
+                    Generate key
+                  </button>
+                  {keysError && <p className={s.error}>{keysError}</p>}
+                </DisclosureSection>
+              )}
 
               {canManage && (
                 <PublicEndpointsSection
@@ -398,45 +455,6 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
                   onRedeploy={handleRedeploy}
                   redeployDisabled={isSubmitting || externalDeployInFlight || !hasBuild}
                 />
-              )}
-
-              {canManage && (
-                <section className={s.section}>
-                  <h3 className={s.sectionTitle}>Deployment keys</h3>
-                  <p className={s.intro}>
-                    Lets an agent deploy this environment without the connect flow. The full key is shown once.
-                  </p>
-                  {createdToken && (
-                    <p className={s.keyOnce}>
-                      {createdToken}
-                      <button
-                        type="button"
-                        className={s.linkBtn}
-                        onClick={() => navigator.clipboard?.writeText(createdToken)}
-                      >
-                        Copy
-                      </button>
-                    </p>
-                  )}
-                  {keys.some((key) => key.environment === environment) && (
-                    <ul className={s.keyList}>
-                      {keys
-                        .filter((key) => key.environment === environment)
-                        .map((key) => (
-                          <li key={key.uid}>
-                            <span>{key.tokenPrefix}…</span>
-                            <button type="button" className={s.linkBtn} onClick={() => handleRevokeKey(key.uid)}>
-                              Revoke
-                            </button>
-                          </li>
-                        ))}
-                    </ul>
-                  )}
-                  <button type="button" className={s.linkBtn} onClick={handleCreateKey} disabled={isSubmitting}>
-                    Generate key
-                  </button>
-                  {keysError && <p className={s.error}>{keysError}</p>}
-                </section>
               )}
             </div>
 
@@ -489,5 +507,80 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
         )}
       </div>
     </Modal>
+
+    <Modal
+      isOpen={!!createdToken}
+      onClose={() => setCreatedToken(null)}
+      className={s.modal}
+      overlayClassname={s.stackedOverlay}
+    >
+      <div className={s.content}>
+        <div className={s.header}>
+          <h2 className={s.title}>Deployment key</h2>
+          <button type="button" className={s.close} onClick={() => setCreatedToken(null)} aria-label="Close">
+            <CloseIcon width={20} height={20} />
+          </button>
+        </div>
+        <div className={s.keyRevealBody}>
+          <p className={s.intro}>This key won&apos;t be shown again after you close this.</p>
+          <p className={s.keyOnce}>{createdToken}</p>
+        </div>
+        <div className={s.footer}>
+          <Button style="border" variant="neutral" size="s" onClick={() => setCreatedToken(null)}>
+            Close
+          </Button>
+          <Button
+            style="fill"
+            variant="primary"
+            size="s"
+            onClick={() => {
+              if (createdToken) navigator.clipboard?.writeText(createdToken);
+            }}
+          >
+            Copy
+          </Button>
+        </div>
+      </div>
+    </Modal>
+
+    <Modal
+      isOpen={!!revokeKeyUid}
+      onClose={() => {
+        if (!isRevoking) setRevokeKeyUid(null);
+      }}
+      className={s.modal}
+      overlayClassname={s.stackedOverlay}
+      closeOnEscape={!isRevoking}
+      closeOnBackdropClick={!isRevoking}
+    >
+      <div className={s.content}>
+        <div className={s.header}>
+          <h2 className={s.title}>Revoke this key?</h2>
+          <button
+            type="button"
+            className={s.close}
+            onClick={() => setRevokeKeyUid(null)}
+            aria-label="Close"
+            disabled={isRevoking}
+          >
+            <CloseIcon width={20} height={20} />
+          </button>
+        </div>
+        <div className={s.keyRevealBody}>
+          <p className={s.intro}>
+            Anything still using it, including an agent or GitHub Actions, will no longer be able to deploy.
+          </p>
+        </div>
+        <div className={s.footer}>
+          <Button style="border" variant="neutral" size="s" onClick={() => setRevokeKeyUid(null)} disabled={isRevoking}>
+            Cancel
+          </Button>
+          <Button style="fill" variant="error" size="s" onClick={handleRevokeKey} disabled={isRevoking}>
+            {isRevoking ? 'Revoking…' : 'Revoke'}
+          </Button>
+        </div>
+      </div>
+    </Modal>
+    </>
   );
 }

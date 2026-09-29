@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie';
 import { z } from 'zod';
-import { isHostOnlySessionCookie, SESSION_SCOPE_COOKIE } from './sessionCookies';
+import { isHostOnlySessionCookie, SESSION_SCOPE_COOKIE, sharedCookieDomain } from './sessionCookies';
 
 /**
  * Ends the member's app-scoped sessions in deployed AI Apps (LAB-2695). Fire-and-forget, so sign-out never waits
@@ -54,8 +54,9 @@ export const removeCookie = (name: string) => {
 
 /** Removes the COOKIE_DOMAIN (shared) copy of a cookie; a host-only cookie with the same name is left alone. */
 export const expireSharedCookie = (name: string) => {
-  if (process.env.COOKIE_DOMAIN) {
-    Cookies.remove(name, { path: '/', domain: process.env.COOKIE_DOMAIN });
+  const domain = sharedCookieDomain();
+  if (domain) {
+    Cookies.remove(name, { path: '/', domain });
   }
 };
 

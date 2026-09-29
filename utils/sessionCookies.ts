@@ -25,6 +25,23 @@ export const SESSION_COOKIES = ['refreshToken', 'authToken', 'userInfo'] as cons
 export const SESSION_SCOPE_COOKIE = 'sessionScope';
 export const sessionScopeValue = () => (shareAuthTokenWithApps() ? 'host' : 'host-all');
 
+/**
+ * The COOKIE_DOMAIN whose copies of a cookie are separate from LabOS's host-only ones, or null when there are none.
+ *
+ * On a host with no registrable domain — `localhost`, an IP — browsers treat `Domain=<that host>` as the host-only
+ * cookie itself, not a second copy. Expiring the "shared" copy there deletes the host-only cookie that was just set:
+ * locally (`COOKIE_DOMAIN=localhost`) every sign-in lost its refreshToken on the next request and was shown "Your
+ * session has expired due to inactivity" at once. A real domain keeps the two apart, so its shared copy (which reaches
+ * AI App subdomains) must still be expired.
+ */
+export function sharedCookieDomain(): string | null {
+  const domain = process.env.COOKIE_DOMAIN?.trim();
+  if (!domain) return null;
+  const host = domain.replace(/^\./, '').toLowerCase();
+  const isIp = /^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.includes(':');
+  return host === 'localhost' || isIp ? null : domain;
+}
+
 export const isHostOnlySessionCookie = (name: string) => hostOnlySessionCookies().includes(name);
 
 /**
@@ -34,7 +51,7 @@ export const isHostOnlySessionCookie = (name: string) => hostOnlySessionCookies(
  * `response.cookies` change in a branch.
  */
 export function expireSharedCookies(response: NextResponse, names: readonly string[]) {
-  const domain = process.env.COOKIE_DOMAIN;
+  const domain = sharedCookieDomain();
   if (!domain) return;
   for (const name of names) {
     response.headers.append(

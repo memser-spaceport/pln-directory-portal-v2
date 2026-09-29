@@ -11,6 +11,7 @@ import type {
 import { getKpiWeights } from '@/services/plaa/kpi-weights.service';
 import { getLeaderboard, splitLeaderboardEntries } from '@/services/plaa/leaderboard.service';
 import { getCurrentRoundStats, getRoundStats } from '@/services/plaa/rounds.service';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
 interface LeaderboardPageProps {
   searchParams: Promise<{ round?: string }>;
@@ -20,7 +21,8 @@ export default async function LeaderboardPage({ searchParams }: LeaderboardPageP
   const { round: roundParam } = await searchParams;
   const requestedRound = roundParam ? parseInt(roundParam, 10) : NaN;
 
-  const [{ data: current }, { data: weights }] = await Promise.all([getCurrentRoundStats(), getKpiWeights()]);
+  const { authToken } = await getCookiesFromHeaders();
+  const [{ data: current }, { data: weights }] = await Promise.all([getCurrentRoundStats(authToken), getKpiWeights()]);
 
   if (!current) {
     return (
@@ -31,7 +33,7 @@ export default async function LeaderboardPage({ searchParams }: LeaderboardPageP
   }
 
   const [olderRounds, leaderboardResult] = await Promise.all([
-    Promise.all(Array.from({ length: current.roundNumber - 1 }, (_, i) => getRoundStats(i + 1))),
+    Promise.all(Array.from({ length: current.roundNumber - 1 }, (_, i) => getRoundStats(i + 1, authToken))),
     getLeaderboard(current.roundNumber),
   ]);
 

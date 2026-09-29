@@ -42,7 +42,9 @@ export interface TrustHoldingsData {
   disclaimers: string[];
 }
 
-export const getTrustHoldings = async (): Promise<{ data?: TrustHoldingsData; error?: { message: string } }> => {
+export const getTrustHoldings = async (
+  authToken?: string,
+): Promise<{ data?: TrustHoldingsData; error?: { message: string } }> => {
   // Without this, a build with PLAA_API_URL unset hangs prerendering: two pages
   // share the cached fetch of the same invalid URL and the second never settles.
   if (!process.env.PLAA_API_URL) {
@@ -53,7 +55,7 @@ export const getTrustHoldings = async (): Promise<{ data?: TrustHoldingsData; er
     const url = `${process.env.PLAA_API_URL}/api/v1/trust-holdings`;
     const response = await fetch(url, {
       method: 'GET',
-      headers: plaaApiHeaders(),
+      headers: plaaApiHeaders(authToken),
       next: { revalidate: 300, tags: [TRUST_HOLDINGS_CACHE_TAG] },
     });
 

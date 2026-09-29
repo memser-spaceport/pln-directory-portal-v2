@@ -52,14 +52,16 @@ export interface RoundStatsResponse {
   buyback: RoundBuybackStats | null;
 }
 
-export const getCurrentRoundStats = async (): Promise<{
+export const getCurrentRoundStats = async (
+  authToken?: string,
+): Promise<{
   data?: RoundStatsResponse;
   error?: { message: string };
 }> => {
   try {
     const response = await fetch(`${process.env.PLAA_API_URL}/api/v1/rounds/current/stats`, {
       method: 'GET',
-      headers: plaaApiHeaders(),
+      headers: plaaApiHeaders(authToken),
       cache: 'no-store',
     });
 
@@ -85,11 +87,13 @@ export interface CompletedBuyback {
 // Sorted by round number, not auctionNumber: auctionNumber is nullable, so
 // sorting by it can leave a stale auction at the head. No index endpoint
 // exists, so this walks every round and keeps the ones with a real result.
-export const getCompletedBuybacks = async (): Promise<CompletedBuyback[]> => {
-  const { data: current } = await getCurrentRoundStats();
+export const getCompletedBuybacks = async (authToken?: string): Promise<CompletedBuyback[]> => {
+  const { data: current } = await getCurrentRoundStats(authToken);
   if (!current) return [];
 
-  const results = await Promise.all(Array.from({ length: current.roundNumber }, (_, i) => getRoundStats(i + 1)));
+  const results = await Promise.all(
+    Array.from({ length: current.roundNumber }, (_, i) => getRoundStats(i + 1, authToken)),
+  );
 
   return results
     .map((result) => result.data)
@@ -107,6 +111,7 @@ export const getCompletedBuybacks = async (): Promise<CompletedBuyback[]> => {
 // Used by the past-round archive page for rounds without a hand-authored data file.
 export const getRoundStats = async (
   roundNumber: number,
+  authToken?: string,
 ): Promise<{
   data?: RoundStatsResponse;
   error?: { message: string };
@@ -114,7 +119,7 @@ export const getRoundStats = async (
   try {
     const response = await fetch(`${process.env.PLAA_API_URL}/api/v1/rounds/${roundNumber}/stats`, {
       method: 'GET',
-      headers: plaaApiHeaders(),
+      headers: plaaApiHeaders(authToken),
       cache: 'no-store',
     });
 

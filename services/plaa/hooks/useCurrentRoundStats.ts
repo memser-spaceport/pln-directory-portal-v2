@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import type { RoundStatsResponse } from '@/services/plaa/rounds.service';
+import type { PlaaSummaryRound } from '@/services/plaa/summary.service';
 
 export const RoundStatsQueryKeys = {
   CURRENT: 'plaa-current-round-stats',
 } as const;
 
-async function fetchCurrentRoundStats(): Promise<RoundStatsResponse | null> {
+async function fetchCurrentRoundStats(): Promise<PlaaSummaryRound | null> {
   try {
     const res = await fetch('/api/plaa/round-stats', { method: 'GET' });
     if (!res.ok) return null;
@@ -18,7 +18,7 @@ async function fetchCurrentRoundStats(): Promise<RoundStatsResponse | null> {
 
 /** Goes through /api/plaa/round-stats since PLAA_API_URL isn't reachable client-side. */
 export function useCurrentRoundStats() {
-  return useQuery<RoundStatsResponse | null>({
+  return useQuery<PlaaSummaryRound | null>({
     queryKey: [RoundStatsQueryKeys.CURRENT],
     queryFn: fetchCurrentRoundStats,
     staleTime: 2 * 60 * 1000,

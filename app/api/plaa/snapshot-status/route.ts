@@ -1,8 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { plaaApiHeaders } from '@/services/plaa/plaa-api';
 
-/** Intentionally public, no-auth — a round's lifecycle state isn't user-specific. */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const [type, token] = request.headers.get('authorization')?.split(' ') ?? [];
+  if (type !== 'Bearer' || !token) {
+    return NextResponse.json({ error: 'Authorization header is required' }, { status: 401 });
+  }
+
   const baseUrl = process.env.PLAA_API_URL;
   if (!baseUrl) {
     return NextResponse.json({ error: 'PLAA_API_URL is not configured' }, { status: 500 });
@@ -11,7 +15,7 @@ export async function GET() {
   try {
     const res = await fetch(`${baseUrl}/api/v1/rounds/snapshot-status`, {
       method: 'GET',
-      headers: plaaApiHeaders(),
+      headers: plaaApiHeaders(token),
       cache: 'no-store',
     });
 

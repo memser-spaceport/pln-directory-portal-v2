@@ -1,11 +1,11 @@
 'use client';
 
-import type { NavPoint } from '@/services/plaa/trust-holdings.service';
+type NavField = 'navPerPlaa' | 'nav';
 
-interface NavAreaChartProps {
-  readonly points: NavPoint[];
+interface NavAreaChartProps<F extends NavField> {
+  readonly points: ReadonlyArray<{ label: string } & Record<F, number>>;
   readonly gradientId: string;
-  readonly field: 'navPerPlaa' | 'nav';
+  readonly field: F;
   readonly height?: number;
   readonly showAxisLabels?: boolean;
 }
@@ -17,7 +17,13 @@ const PAD_R = 56;
 const PAD_T = 18;
 const PAD_B = 34;
 
-export default function NavAreaChart({ points, gradientId, field, height, showAxisLabels = true }: NavAreaChartProps) {
+export default function NavAreaChart<F extends NavField>({
+  points,
+  gradientId,
+  field,
+  height,
+  showAxisLabels = true,
+}: NavAreaChartProps<F>) {
   if (points.length < 2) return null;
 
   const values = points.map((p) => p[field]);

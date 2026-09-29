@@ -97,7 +97,7 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
   }
   heroStats.push({ value: formatNumber(round.onboardedParticipants), label: 'Onboarded participants' });
 
-  const monthly = trust?.monthly ?? [];
+  const monthly = trust?.navHistory ?? [];
   const latest = monthly[monthly.length - 1];
   const prior = monthly.length > NAV_DELTA_MONTHS ? monthly[monthly.length - 1 - NAV_DELTA_MONTHS] : undefined;
   const navDelta = latest && prior && prior.nav !== 0 ? ((latest.nav - prior.nav) / prior.nav) * 100 : undefined;

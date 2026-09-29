@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Button } from '@/components/common/Button/Button';
 import { CloseIcon } from '@/components/icons';
 import { getAvatarColor } from '@/components/page/ai-apps/AiAppFeedbackPage/utils/getAvatarColor';
-import { FeedbackStatusSelector } from '@/components/page/ai-apps/AiAppFeedbackPage/FeedbackStatusSelector/FeedbackStatusSelector';
+import { FeedbackStatusSelector } from '@/components/page/ai-apps/AiAppFeedbackPage/components/FeedbackStatusSelector';
 import { AI_APP_FEEDBACK_STATUS_LABELS, type AiAppFeedbackStatus } from '@/services/ai-app-feedback/constants';
 // Forum comment rows — avatar, name, time, body — verbatim, so a thread on a
 // pin reads like every other thread in the product.
@@ -14,7 +14,7 @@ import ci from '@/components/page/forum/PostComments/components/CommentItem/Comm
 // The feedback dialog's card (radius, shadow) and its footer rule.
 import fd from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/GiveAiAppFeedbackDialog.module.scss';
 // The status badge classes, so a reader sees the same pill the author sets.
-import st from '@/components/page/ai-apps/AiAppFeedbackPage/FeedbackStatusSelector/FeedbackStatusSelector.module.scss';
+import st from '@/components/page/ai-apps/AiAppFeedbackPage/components/FeedbackStatusSelector/FeedbackStatusSelector.module.scss';
 
 import { ShotEditor } from './ShotEditor';
 import { formatMinutesAgo } from './time';

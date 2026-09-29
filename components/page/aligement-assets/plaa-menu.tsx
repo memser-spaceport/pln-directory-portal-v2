@@ -67,7 +67,7 @@ const menuItems: Array<{
   {
     name: 'trust-holdings',
     label: 'Portfolio & Holdings',
-    url: '/alignment-asset/trust-holdings',
+    url: '/alignment-asset/portfolio-holdings',
     icon: 'chart-pie-slice',
   },
   { name: 'leaderboard', label: 'Leaderboard', url: '/alignment-asset/leaderboard', icon: 'ranking' },

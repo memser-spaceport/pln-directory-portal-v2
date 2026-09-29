@@ -22,7 +22,7 @@ import {
 } from '@phosphor-icons/react';
 
 const ACTIVITIES_URL = '/alignment-asset/activities';
-const TRUST_URL = '/alignment-asset/trust-holdings';
+const TRUST_URL = '/alignment-asset/portfolio-holdings';
 const PROFILE_URL = '/alignment-asset/profile';
 const OVERVIEW_URL = '/alignment-asset/overview';
 

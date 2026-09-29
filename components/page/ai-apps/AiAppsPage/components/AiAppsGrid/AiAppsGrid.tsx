@@ -80,6 +80,7 @@ export function AiAppsGrid({ onOpenCreateModal }: Props) {
     analytics.onDeploymentLogsOpened({
       appUid: app.uid,
       appName: app.name,
+      environment: 'prod',
       source,
       variant: deployFailureKind(app) ?? undefined,
     });

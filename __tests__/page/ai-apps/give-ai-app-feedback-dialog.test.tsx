@@ -36,6 +36,8 @@ const mockOnFeedbackScreenshotRemoved = jest.fn();
 const mockOnFeedbackScreenshotToolSelected = jest.fn();
 const mockOnFeedbackImageAttached = jest.fn();
 const mockOnFeedbackTooLarge = jest.fn();
+const mockOnFeedbackShortcutUsed = jest.fn();
+const mockOnFeedbackShortcutsHelpOpened = jest.fn();
 
 jest.mock('@/components/form/FormEditor', () => ({
   FormEditor: ({ name, placeholder }: { name: string; placeholder: string }) => {
@@ -120,6 +122,8 @@ jest.mock('@/analytics/ai-apps.analytics', () => ({
     onFeedbackScreenshotToolSelected: mockOnFeedbackScreenshotToolSelected,
     onFeedbackImageAttached: mockOnFeedbackImageAttached,
     onFeedbackTooLarge: mockOnFeedbackTooLarge,
+    onFeedbackShortcutUsed: mockOnFeedbackShortcutUsed,
+    onFeedbackShortcutsHelpOpened: mockOnFeedbackShortcutsHelpOpened,
   }),
 }));
 
@@ -976,6 +980,7 @@ describe('GiveAiAppFeedbackDialog', () => {
 
       await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
       expect(mockOnFeedbackScreenshotClicked).toHaveBeenCalled();
+      expect(mockOnFeedbackShortcutUsed).toHaveBeenCalledWith({ action: 'screenshot' });
     });
 
     it('does not treat Cmd/Ctrl+S as a screenshot', () => {
@@ -994,6 +999,7 @@ describe('GiveAiAppFeedbackDialog', () => {
 
       fireEvent.click(screen.getByRole('button', { name: 'Shortcuts' }));
 
+      expect(mockOnFeedbackShortcutsHelpOpened).toHaveBeenCalled();
       expect(screen.getByRole('heading', { name: 'Keyboard shortcuts' })).toBeInTheDocument();
       expect(screen.getByText('Take screenshot', { selector: 'span' })).toBeInTheDocument();
 
@@ -1027,6 +1033,7 @@ describe('GiveAiAppFeedbackDialog', () => {
           expect.objectContaining({ onSuccess: expect.any(Function) }),
         ),
       );
+      expect(mockOnFeedbackShortcutUsed).toHaveBeenCalledWith({ action: 'submit' });
     });
 
     it('shows validation instead of sending when the form is invalid', async () => {
@@ -1037,6 +1044,7 @@ describe('GiveAiAppFeedbackDialog', () => {
 
       await waitFor(() => expect(screen.getByText('Please select an app')).toBeInTheDocument());
       expect(mockMutate).not.toHaveBeenCalled();
+      expect(mockOnFeedbackShortcutUsed).toHaveBeenCalledWith({ action: 'submit' });
     });
 
     it('does not send on the open chord', () => {

@@ -2767,6 +2767,22 @@ export const AI_APPS_ANALYTICS = {
   PUBLIC_ENDPOINTS_SAVED: 'ai_apps_public_endpoints_saved',
   PUBLIC_ENDPOINTS_SAVE_FAILED: 'ai_apps_public_endpoints_save_failed',
   PUBLIC_ENDPOINTS_REDEPLOY_CLICKED: 'ai_apps_public_endpoints_redeploy_clicked',
+  FEEDBACK_SHORTCUT_USED: 'ai_apps_feedback_shortcut_used',
+  FEEDBACK_SHORTCUTS_HELP_OPENED: 'ai_apps_feedback_shortcuts_help_opened',
+  ENVIRONMENT_SELECTED: 'ai_apps_environment_selected',
+  TARGET_TEARDOWN_CLICKED: 'ai_apps_target_teardown_clicked',
+  TARGET_TEARDOWN_CONFIRMED: 'ai_apps_target_teardown_confirmed',
+  TARGET_TEARDOWN_FAILED: 'ai_apps_target_teardown_failed',
+  DEPLOY_KEY_CREATED: 'ai_apps_deploy_key_created',
+  DEPLOY_KEY_CREATE_FAILED: 'ai_apps_deploy_key_create_failed',
+  DEPLOY_KEY_COPIED: 'ai_apps_deploy_key_copied',
+  DEPLOY_KEY_REVOKE_OPENED: 'ai_apps_deploy_key_revoke_opened',
+  DEPLOY_KEY_REVOKE_CANCELLED: 'ai_apps_deploy_key_revoke_cancelled',
+  DEPLOY_KEY_REVOKED: 'ai_apps_deploy_key_revoked',
+  DEPLOY_KEY_REVOKE_FAILED: 'ai_apps_deploy_key_revoke_failed',
+  FEEDBACK_STATUS_FILTERED: 'ai_apps_feedback_status_filtered',
+  APP_SESSION_STARTED: 'ai_apps_app_session_started',
+  APP_SESSION_FAILED: 'ai_apps_app_session_failed',
 };
 
 export const MCP_ANALYTICS_EVENTS = {

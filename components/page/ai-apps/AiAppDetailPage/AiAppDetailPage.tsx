@@ -288,7 +288,7 @@ export function AiAppDetailPage(props: Props) {
   const previewTargetRow = app ? aiAppTarget(app, 'preview') : null;
   const selectedEnv = canOpenPreview ? previewEnv : 'prod';
   const previewTarget = selectedEnv === 'preview' ? previewTargetRow : prodTarget;
-  const appUrl = previewTarget?.url ?? (selectedEnv === 'prod' ? app?.url ?? null : null);
+  const appUrl = previewTarget?.url ?? (selectedEnv === 'prod' ? (app?.url ?? null) : null);
   const appOrigin = useMemo(() => {
     if (!appUrl) return null;
     try {
@@ -490,6 +490,7 @@ export function AiAppDetailPage(props: Props) {
     analytics.onDeploymentLogsOpened({
       appUid: app.uid,
       appName: app.name,
+      environment: 'prod',
       source,
       variant: failureKind ?? undefined,
     });
@@ -631,77 +632,90 @@ export function AiAppDetailPage(props: Props) {
   };
 
   const appHeader = (
-      <div className={s.topBar}>
-        <Link href="/pl-infra/ai-apps" className={s.backLink}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M11 14L5 8L11 2"
-              stroke="#5E718D"
-              strokeWidth="1.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            ></path>
-          </svg>
-          Back
-        </Link>
-        <div className={s.topBarActions}>
-          {canOpenPreview && (
-            <div className={s.envSwitch} role="tablist" aria-label="App environment">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={selectedEnv === 'prod'}
-                className={selectedEnv === 'prod' ? s.envOn : s.envOff}
-                onClick={() => setPreviewEnv('prod')}
-              >
-                Production
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={selectedEnv === 'preview'}
-                className={selectedEnv === 'preview' ? s.envOn : s.envOff}
-                onClick={() => setPreviewEnv('preview')}
-              >
-                Preview
-              </button>
-            </div>
-          )}
-          <span className={s.envMeta}>{aiAppStatusLabel(previewTarget?.status ?? '')}</span>
-          {isPrivateAiApp(app) && (
-            <span className={s.privateBadge} title="Only the owner and people they add can see this app">
-              <LockIcon size={12} />
-              Private
-            </span>
-          )}
-          {hasPrd(app) && (
-            <Button
-              style="border"
-              variant="neutral"
-              size="xxs"
-              className={s.topBarBtn}
-              onClick={() => setShowDetails(true)}
-              aria-label={`App details for ${app.name}`}
-            >
-              <DocumentIcon aria-hidden />
-              App Details
-            </Button>
-          )}
-          {canLikelyManage(app.member.uid) && (
-            <AppActionsMenu
-              app={app}
-              onEdit={() => setAction('edit')}
-              onAccess={() => setAction('access')}
-              onDeployment={() => setAction('deployment')}
-              onLogs={() => {
-                analytics.onDeploymentLogsOpened({ appUid: app.uid, appName: app.name, source: 'menu' });
-                setAction('logs');
+    <div className={s.topBar}>
+      <Link href="/pl-infra/ai-apps" className={s.backLink}>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M11 14L5 8L11 2"
+            stroke="#5E718D"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          ></path>
+        </svg>
+        Back
+      </Link>
+      <div className={s.topBarActions}>
+        {canOpenPreview && (
+          <div className={s.envSwitch} role="tablist" aria-label="App environment">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={selectedEnv === 'prod'}
+              className={selectedEnv === 'prod' ? s.envOn : s.envOff}
+              onClick={() => {
+                if (selectedEnv === 'prod') return;
+                analytics.onEnvironmentSelected({ environment: 'prod', surface: 'detail' });
+                setPreviewEnv('prod');
               }}
-              onDelete={() => setAction('delete')}
-            />
-          )}
-        </div>
+            >
+              Production
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={selectedEnv === 'preview'}
+              className={selectedEnv === 'preview' ? s.envOn : s.envOff}
+              onClick={() => {
+                if (selectedEnv === 'preview') return;
+                analytics.onEnvironmentSelected({ environment: 'preview', surface: 'detail' });
+                setPreviewEnv('preview');
+              }}
+            >
+              Preview
+            </button>
+          </div>
+        )}
+        <span className={s.envMeta}>{aiAppStatusLabel(previewTarget?.status ?? '')}</span>
+        {isPrivateAiApp(app) && (
+          <span className={s.privateBadge} title="Only the owner and people they add can see this app">
+            <LockIcon size={12} />
+            Private
+          </span>
+        )}
+        {hasPrd(app) && (
+          <Button
+            style="border"
+            variant="neutral"
+            size="xxs"
+            className={s.topBarBtn}
+            onClick={() => setShowDetails(true)}
+            aria-label={`App details for ${app.name}`}
+          >
+            <DocumentIcon aria-hidden />
+            App Details
+          </Button>
+        )}
+        {canLikelyManage(app.member.uid) && (
+          <AppActionsMenu
+            app={app}
+            onEdit={() => setAction('edit')}
+            onAccess={() => setAction('access')}
+            onDeployment={() => setAction('deployment')}
+            onLogs={() => {
+              analytics.onDeploymentLogsOpened({
+                appUid: app.uid,
+                appName: app.name,
+                environment: 'prod',
+                source: 'menu',
+              });
+              setAction('logs');
+            }}
+            onDelete={() => setAction('delete')}
+          />
+        )}
       </div>
+    </div>
   );
 
   const normalLayout = (

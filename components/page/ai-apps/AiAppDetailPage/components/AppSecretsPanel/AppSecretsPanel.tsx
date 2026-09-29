@@ -100,6 +100,7 @@ export function AppSecretsPanel(props: Props) {
     analytics.onSecretsDeployClicked({
       appUid: app.uid,
       isDraft,
+      environment,
       varsRequiredCount: target.requiredEnvVars.length,
       varsProvidedCount,
     });
@@ -107,12 +108,12 @@ export function AppSecretsPanel(props: Props) {
 
     if (result.error) {
       setError(result.error);
-      analytics.onSecretsDeployFailed({ appUid: app.uid, isDraft });
+      analytics.onSecretsDeployFailed({ appUid: app.uid, isDraft, environment });
       // Keep `values` and `editing` as-is on failure — an unlocked field stays
       // unlocked with its typed value intact so the user can retry without
       // re-typing or losing their place.
     } else {
-      analytics.onSecretsDeploySucceeded({ appUid: app.uid, isDraft });
+      analytics.onSecretsDeploySucceeded({ appUid: app.uid, isDraft, environment });
       clearSecretsDraft(app.uid);
       setValues({});
       setEditing({});

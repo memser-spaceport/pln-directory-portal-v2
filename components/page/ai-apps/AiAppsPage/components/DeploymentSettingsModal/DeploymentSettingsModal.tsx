@@ -116,6 +116,8 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
   }, [app.uid]);
 
   const selectEnvironment = (next: AiAppTargetEnvironment) => {
+    if (next === environment) return;
+    analytics.onEnvironmentSelected({ environment: next, surface: 'deployment_settings' });
     const nextTarget = aiAppTarget(liveApp ?? app, next);
     setEnvironment(next);
     setRequiredEnvVars(nextTarget.requiredEnvVars);
@@ -210,6 +212,7 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
     analytics.onSecretsDeployClicked({
       appUid: app.uid,
       isDraft,
+      environment,
       varsRequiredCount: requiredEnvVars.length,
       varsProvidedCount: requiredEnvVars.filter((name) => willProvide.has(name)).length,
     });
@@ -220,11 +223,11 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
       // Keep typed values so the user can fix and retry without re-entering.
       setError(result.error);
       setIsSubmitting(false);
-      analytics.onSecretsDeployFailed({ appUid: app.uid, isDraft });
+      analytics.onSecretsDeployFailed({ appUid: app.uid, isDraft, environment });
       return;
     }
 
-    analytics.onSecretsDeploySucceeded({ appUid: app.uid, isDraft });
+    analytics.onSecretsDeploySucceeded({ appUid: app.uid, isDraft, environment });
     setValues({});
     setReplacing({});
     // Refresh both caches right away — the list poll only starts once it can
@@ -246,6 +249,7 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
   const handleTeardown = async () => {
     if (!confirmTeardown) {
       setConfirmTeardown(true);
+      analytics.onTargetTeardownClicked({ appUid: app.uid, environment });
       return;
     }
     setIsSubmitting(true);
@@ -255,8 +259,10 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
     if (message) {
       setBuildError(message);
       setConfirmTeardown(false);
+      analytics.onTargetTeardownFailed({ appUid: app.uid, environment });
       return;
     }
+    analytics.onTargetTeardownConfirmed({ appUid: app.uid, environment });
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: [AiAppsQueryKeys.AI_APP_DETAIL, app.uid] }),
       queryClient.invalidateQueries({ queryKey: [AiAppsQueryKeys.AI_APPS_LIST] }),
@@ -269,8 +275,10 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
     const result = await createAiAppDeployKey(app.uid, environment);
     if ('error' in result) {
       setKeysError(result.error);
+      analytics.onDeployKeyCreateFailed({ appUid: app.uid, environment });
       return;
     }
+    analytics.onDeployKeyCreated({ appUid: app.uid, environment });
     setCreatedToken(result.token);
     setKeys(await fetchAiAppDeployKeys(app.uid));
   };
@@ -285,301 +293,310 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
     setRevokeKeyUid(null);
     if (!ok) {
       setKeysError('Could not revoke that key.');
+      analytics.onDeployKeyRevokeFailed({ appUid: app.uid, environment });
       return;
     }
+    analytics.onDeployKeyRevoked({ appUid: app.uid, environment });
     setKeys((current) => current.filter((key) => key.uid !== keyUid));
+  };
+
+  const dismissRevoke = () => {
+    if (isRevoking || !revokeKeyUid) return;
+    analytics.onDeployKeyRevokeCancelled({ appUid: app.uid, environment });
+    setRevokeKeyUid(null);
   };
 
   const envKeys = keys.filter((key) => key.environment === environment);
 
   return (
     <>
-    <Modal
-      isOpen
-      onClose={onClose}
-      className={s.modal}
-      closeOnBackdropClick={false}
-      closeOnEscape={!createdToken && !revokeKeyUid}
-    >
-      <div className={s.content}>
-        <div className={s.header}>
-          <h2 className={s.title}>Deployment settings</h2>
-          <button type="button" className={s.close} onClick={onClose} aria-label="Close">
-            <CloseIcon width={20} height={20} />
-          </button>
-        </div>
+      <Modal
+        isOpen
+        onClose={onClose}
+        className={s.modal}
+        closeOnBackdropClick={false}
+        closeOnEscape={!createdToken && !revokeKeyUid}
+      >
+        <div className={s.content}>
+          <div className={s.header}>
+            <h2 className={s.title}>Deployment settings</h2>
+            <button type="button" className={s.close} onClick={onClose} aria-label="Close">
+              <CloseIcon width={20} height={20} />
+            </button>
+          </div>
 
-        {phase === 'form' && (
-          <>
-            <div className={s.body}>
-              <div className={s.envSwitch} role="tablist" aria-label="Deployment environment">
-                {(['prod', 'preview'] as const).map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    role="tab"
-                    aria-selected={environment === value}
-                    className={environment === value ? s.envSwitchOn : s.envSwitchOff}
-                    onClick={() => selectEnvironment(value)}
-                    disabled={isSubmitting}
-                  >
-                    {value === 'prod' ? 'Production' : 'Preview'}
-                  </button>
-                ))}
-              </div>
-              <DisclosureSection icon="build" title="Build">
-                <p className={s.intro}>The last bundle deployed to this environment.</p>
-                {target.lastDeployedAt ? (
+          {phase === 'form' && (
+            <>
+              <div className={s.body}>
+                <div className={s.envSwitch} role="tablist" aria-label="Deployment environment">
+                  {(['prod', 'preview'] as const).map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      role="tab"
+                      aria-selected={environment === value}
+                      className={environment === value ? s.envSwitchOn : s.envSwitchOff}
+                      onClick={() => selectEnvironment(value)}
+                      disabled={isSubmitting}
+                    >
+                      {value === 'prod' ? 'Production' : 'Preview'}
+                    </button>
+                  ))}
+                </div>
+                <DisclosureSection icon="build" title="Build">
+                  <p className={s.intro}>The last bundle deployed to this environment.</p>
+                  {target.lastDeployedAt ? (
+                    <p className={s.intro}>
+                      {aiAppStatusLabel(target.status)}
+                      {` · Last deployed ${formatWhen(target.lastDeployedAt)}`}
+                      {target.agentClient ? ` · ${target.agentClient}` : ''}
+                      {target.kitVersion ? ` · kit ${target.kitVersion}` : ''}
+                    </p>
+                  ) : (
+                    <p className={s.statusNote}>{aiAppStatusLabel(target.status)} · No successful deploy yet</p>
+                  )}
+                  {!hasBuild && (
+                    <p className={s.statusNote}>
+                      No build yet. Ask your AI agent to deploy here before you can deploy from LabOS.
+                    </p>
+                  )}
+                  {externalDeployInFlight && <p className={s.statusNote}>A deploy is already in progress.</p>}
+                  {canManage && (target.url || target.lastDeployedAt) && (
+                    <button type="button" className={s.linkBtn} onClick={handleTeardown} disabled={isSubmitting}>
+                      {confirmTeardown ? 'Confirm tear down' : 'Tear down'}
+                    </button>
+                  )}
+                  {buildError && <p className={s.error}>{buildError}</p>}
+                </DisclosureSection>
+
+                <DisclosureSection icon="secrets" title="App secrets">
                   <p className={s.intro}>
-                    {aiAppStatusLabel(target.status)}
-                    {` · Last deployed ${formatWhen(target.lastDeployedAt)}`}
-                    {target.agentClient ? ` · ${target.agentClient}` : ''}
-                    {target.kitVersion ? ` · kit ${target.kitVersion}` : ''}
+                    {hasSecrets
+                      ? 'Values the app reads at runtime. Stored ones stay until you replace them.'
+                      : 'This environment has no secrets. Redeploy restarts it with the stored bundle.'}
                   </p>
-                ) : (
-                  <p className={s.statusNote}>{aiAppStatusLabel(target.status)} · No successful deploy yet</p>
-                )}
-                {!hasBuild && (
-                  <p className={s.statusNote}>
-                    No build yet. Ask your AI agent to deploy here before you can deploy from LabOS.
-                  </p>
-                )}
-                {externalDeployInFlight && <p className={s.statusNote}>A deploy is already in progress.</p>}
-                {canManage && (target.url || target.lastDeployedAt) && (
-                  <button type="button" className={s.linkBtn} onClick={handleTeardown} disabled={isSubmitting}>
-                    {confirmTeardown ? 'Confirm tear down' : 'Tear down'}
-                  </button>
-                )}
-                {buildError && <p className={s.error}>{buildError}</p>}
-              </DisclosureSection>
-
-              <DisclosureSection icon="secrets" title="App secrets">
-                <p className={s.intro}>
-                  {hasSecrets
-                    ? 'Values the app reads at runtime. Stored ones stay until you replace them.'
-                    : 'This environment has no secrets. Redeploy restarts it with the stored bundle.'}
-                </p>
-                {hasSecrets && (
-                  <div className={s.fields}>
-                    {requiredEnvVars.map((name) => {
-                      const isStored = provided.has(name);
-                      const showStored = isStored && !replacing[name];
-                      return (
-                        <div key={name} className={s.field}>
-                          <span className={s.fieldName}>
-                            {name}
-                            {isStored ? (
-                              <span className={s.storedTag}>Stored</span>
-                            ) : (
-                              <span className={s.requiredTag}>Required</span>
-                            )}
-                          </span>
-                          {showStored ? (
-                            <div className={s.storedRow}>
-                              <span className={s.maskedValue} aria-label="Stored secret value">
-                                ••••••••••••••••
-                              </span>
-                              <button
-                                type="button"
-                                className={s.linkBtn}
-                                onClick={() => startReplace(name)}
-                                disabled={isSubmitting}
-                              >
-                                Replace
-                              </button>
-                            </div>
-                          ) : (
-                            <div className={s.editRow}>
-                              <input
-                                className={s.input}
-                                type="password"
-                                autoComplete="new-password"
-                                value={values[name] ?? ''}
-                                placeholder={isStored ? 'Enter a new value' : 'Enter a value'}
-                                onChange={(e) => onChange(name, e.target.value)}
-                                disabled={isSubmitting}
-                              />
-                              {isStored && (
+                  {hasSecrets && (
+                    <div className={s.fields}>
+                      {requiredEnvVars.map((name) => {
+                        const isStored = provided.has(name);
+                        const showStored = isStored && !replacing[name];
+                        return (
+                          <div key={name} className={s.field}>
+                            <span className={s.fieldName}>
+                              {name}
+                              {isStored ? (
+                                <span className={s.storedTag}>Stored</span>
+                              ) : (
+                                <span className={s.requiredTag}>Required</span>
+                              )}
+                            </span>
+                            {showStored ? (
+                              <div className={s.storedRow}>
+                                <span className={s.maskedValue} aria-label="Stored secret value">
+                                  ••••••••••••••••
+                                </span>
                                 <button
                                   type="button"
                                   className={s.linkBtn}
-                                  onClick={() => cancelReplace(name)}
+                                  onClick={() => startReplace(name)}
                                   disabled={isSubmitting}
                                 >
-                                  Cancel
+                                  Replace
                                 </button>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                {error && <p className={s.error}>{error}</p>}
-              </DisclosureSection>
-
-              {canManage && (
-                <DisclosureSection icon="keys" title="Deployment keys">
-                  <p className={s.intro}>
-                    Lets an agent or GitHub Actions deploy the app to this environment. The full key is shown once.
-                  </p>
-                  {envKeys.length > 0 && (
-                    <ul className={s.keyList}>
-                      {envKeys.map((key) => (
-                        <li key={key.uid}>
-                          <span className={s.keyMeta}>
-                            <span className={s.keyPrefix}>{key.tokenPrefix}…</span>
-                            <span className={s.keyTime}>Generated {formatWhen(key.createdAt)}</span>
-                          </span>
-                          <button type="button" className={s.dangerBtn} onClick={() => setRevokeKeyUid(key.uid)}>
-                            Revoke
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
+                              </div>
+                            ) : (
+                              <div className={s.editRow}>
+                                <input
+                                  className={s.input}
+                                  type="password"
+                                  autoComplete="new-password"
+                                  value={values[name] ?? ''}
+                                  placeholder={isStored ? 'Enter a new value' : 'Enter a value'}
+                                  onChange={(e) => onChange(name, e.target.value)}
+                                  disabled={isSubmitting}
+                                />
+                                {isStored && (
+                                  <button
+                                    type="button"
+                                    className={s.linkBtn}
+                                    onClick={() => cancelReplace(name)}
+                                    disabled={isSubmitting}
+                                  >
+                                    Cancel
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   )}
-                  <button type="button" className={s.linkBtn} onClick={handleCreateKey} disabled={isSubmitting}>
-                    Generate key
-                  </button>
-                  {keysError && <p className={s.error}>{keysError}</p>}
+                  {error && <p className={s.error}>{error}</p>}
                 </DisclosureSection>
-              )}
 
-              {canManage && (
-                <PublicEndpointsSection
-                  uid={app.uid}
-                  lastDeployedAt={target.lastDeployedAt}
-                  disabled={isSubmitting}
-                  onRedeploy={handleRedeploy}
-                  redeployDisabled={isSubmitting || externalDeployInFlight || !hasBuild}
-                />
-              )}
-            </div>
+                {canManage && (
+                  <DisclosureSection icon="keys" title="Deployment keys">
+                    <p className={s.intro}>
+                      Lets an agent or GitHub Actions deploy the app to this environment. The full key is shown once.
+                    </p>
+                    {envKeys.length > 0 && (
+                      <ul className={s.keyList}>
+                        {envKeys.map((key) => (
+                          <li key={key.uid}>
+                            <span className={s.keyMeta}>
+                              <span className={s.keyPrefix}>{key.tokenPrefix}…</span>
+                              <span className={s.keyTime}>Generated {formatWhen(key.createdAt)}</span>
+                            </span>
+                            <button
+                              type="button"
+                              className={s.dangerBtn}
+                              onClick={() => {
+                                setRevokeKeyUid(key.uid);
+                                analytics.onDeployKeyRevokeOpened({ appUid: app.uid, environment });
+                              }}
+                            >
+                              Revoke
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <button type="button" className={s.linkBtn} onClick={handleCreateKey} disabled={isSubmitting}>
+                      Generate key
+                    </button>
+                    {keysError && <p className={s.error}>{keysError}</p>}
+                  </DisclosureSection>
+                )}
 
-            <div className={s.footer}>
-              <Button style="border" variant="neutral" size="s" onClick={onClose} disabled={isSubmitting}>
-                Cancel
-              </Button>
-              <Button
-                style="fill"
-                variant="primary"
-                size="s"
-                onClick={handleRedeploy}
-                disabled={isSubmitting || externalDeployInFlight || !hasBuild}
-              >
-                {isSubmitting ? `${deployingVerb}…` : deployVerb}
-              </Button>
-            </div>
-          </>
-        )}
+                {canManage && (
+                  <PublicEndpointsSection
+                    uid={app.uid}
+                    lastDeployedAt={target.lastDeployedAt}
+                    disabled={isSubmitting}
+                    onRedeploy={handleRedeploy}
+                    redeployDisabled={isSubmitting || externalDeployInFlight || !hasBuild}
+                  />
+                )}
+              </div>
 
-        {phase === 'deploying' && (
-          <div className={s.statusBody}>
-            <Spinner />
-            <p className={s.statusTitle}>
-              {deployingVerb} {app.name}
-            </p>
-            <p className={s.statusText}>
-              This usually takes a couple of minutes — you can close this and keep working.
-            </p>
-          </div>
-        )}
+              <div className={s.footer}>
+                <Button style="border" variant="neutral" size="s" onClick={onClose} disabled={isSubmitting}>
+                  Cancel
+                </Button>
+                <Button
+                  style="fill"
+                  variant="primary"
+                  size="s"
+                  onClick={handleRedeploy}
+                  disabled={isSubmitting || externalDeployInFlight || !hasBuild}
+                >
+                  {isSubmitting ? `${deployingVerb}…` : deployVerb}
+                </Button>
+              </div>
+            </>
+          )}
 
-        {phase === 'done' && (
-          <>
+          {phase === 'deploying' && (
             <div className={s.statusBody}>
-              <SuccessCircleIcon width={44} height={44} className={s.successMark} aria-hidden />
-              <p className={s.statusTitle}>{isDraft ? 'App deployed' : 'App redeployed'}</p>
+              <Spinner />
+              <p className={s.statusTitle}>
+                {deployingVerb} {app.name}
+              </p>
               <p className={s.statusText}>
-                {isDraft
-                  ? 'Your app is live. Open it to take a look.'
-                  : 'Your changes are live. Open the app to see the latest version.'}
+                This usually takes a couple of minutes — you can close this and keep working.
               </p>
             </div>
-            <div className={s.footer}>
-              <Button style="fill" variant="primary" size="s" onClick={onClose}>
-                Done
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
-    </Modal>
+          )}
 
-    <Modal
-      isOpen={!!createdToken}
-      onClose={() => setCreatedToken(null)}
-      className={s.modal}
-      overlayClassname={s.stackedOverlay}
-    >
-      <div className={s.content}>
-        <div className={s.header}>
-          <h2 className={s.title}>Deployment key</h2>
-          <button type="button" className={s.close} onClick={() => setCreatedToken(null)} aria-label="Close">
-            <CloseIcon width={20} height={20} />
-          </button>
+          {phase === 'done' && (
+            <>
+              <div className={s.statusBody}>
+                <SuccessCircleIcon width={44} height={44} className={s.successMark} aria-hidden />
+                <p className={s.statusTitle}>{isDraft ? 'App deployed' : 'App redeployed'}</p>
+                <p className={s.statusText}>
+                  {isDraft
+                    ? 'Your app is live. Open it to take a look.'
+                    : 'Your changes are live. Open the app to see the latest version.'}
+                </p>
+              </div>
+              <div className={s.footer}>
+                <Button style="fill" variant="primary" size="s" onClick={onClose}>
+                  Done
+                </Button>
+              </div>
+            </>
+          )}
         </div>
-        <div className={s.keyRevealBody}>
-          <p className={s.intro}>This key won&apos;t be shown again after you close this.</p>
-          <p className={s.keyOnce}>{createdToken}</p>
-        </div>
-        <div className={s.footer}>
-          <Button style="border" variant="neutral" size="s" onClick={() => setCreatedToken(null)}>
-            Close
-          </Button>
-          <Button
-            style="fill"
-            variant="primary"
-            size="s"
-            onClick={() => {
-              if (createdToken) navigator.clipboard?.writeText(createdToken);
-            }}
-          >
-            Copy
-          </Button>
-        </div>
-      </div>
-    </Modal>
+      </Modal>
 
-    <Modal
-      isOpen={!!revokeKeyUid}
-      onClose={() => {
-        if (!isRevoking) setRevokeKeyUid(null);
-      }}
-      className={s.modal}
-      overlayClassname={s.stackedOverlay}
-      closeOnEscape={!isRevoking}
-      closeOnBackdropClick={!isRevoking}
-    >
-      <div className={s.content}>
-        <div className={s.header}>
-          <h2 className={s.title}>Revoke this key?</h2>
-          <button
-            type="button"
-            className={s.close}
-            onClick={() => setRevokeKeyUid(null)}
-            aria-label="Close"
-            disabled={isRevoking}
-          >
-            <CloseIcon width={20} height={20} />
-          </button>
+      <Modal
+        isOpen={!!createdToken}
+        onClose={() => setCreatedToken(null)}
+        className={s.modal}
+        overlayClassname={s.stackedOverlay}
+      >
+        <div className={s.content}>
+          <div className={s.header}>
+            <h2 className={s.title}>Deployment key</h2>
+            <button type="button" className={s.close} onClick={() => setCreatedToken(null)} aria-label="Close">
+              <CloseIcon width={20} height={20} />
+            </button>
+          </div>
+          <div className={s.keyRevealBody}>
+            <p className={s.intro}>This key won&apos;t be shown again after you close this.</p>
+            <p className={s.keyOnce}>{createdToken}</p>
+          </div>
+          <div className={s.footer}>
+            <Button style="border" variant="neutral" size="s" onClick={() => setCreatedToken(null)}>
+              Close
+            </Button>
+            <Button
+              style="fill"
+              variant="primary"
+              size="s"
+              onClick={() => {
+                if (!createdToken) return;
+                navigator.clipboard?.writeText(createdToken);
+                analytics.onDeployKeyCopied({ appUid: app.uid, environment });
+              }}
+            >
+              Copy
+            </Button>
+          </div>
         </div>
-        <div className={s.keyRevealBody}>
-          <p className={s.intro}>
-            Anything still using it, including an agent or GitHub Actions, will no longer be able to deploy.
-          </p>
+      </Modal>
+
+      <Modal
+        isOpen={!!revokeKeyUid}
+        onClose={dismissRevoke}
+        className={s.modal}
+        overlayClassname={s.stackedOverlay}
+        closeOnEscape={!isRevoking}
+        closeOnBackdropClick={!isRevoking}
+      >
+        <div className={s.content}>
+          <div className={s.header}>
+            <h2 className={s.title}>Revoke this key?</h2>
+            <button type="button" className={s.close} onClick={dismissRevoke} aria-label="Close" disabled={isRevoking}>
+              <CloseIcon width={20} height={20} />
+            </button>
+          </div>
+          <div className={s.keyRevealBody}>
+            <p className={s.intro}>
+              Anything still using it, including an agent or GitHub Actions, will no longer be able to deploy.
+            </p>
+          </div>
+          <div className={s.footer}>
+            <Button style="border" variant="neutral" size="s" onClick={dismissRevoke} disabled={isRevoking}>
+              Cancel
+            </Button>
+            <Button style="fill" variant="error" size="s" onClick={handleRevokeKey} disabled={isRevoking}>
+              {isRevoking ? 'Revoking…' : 'Revoke'}
+            </Button>
+          </div>
         </div>
-        <div className={s.footer}>
-          <Button style="border" variant="neutral" size="s" onClick={() => setRevokeKeyUid(null)} disabled={isRevoking}>
-            Cancel
-          </Button>
-          <Button style="fill" variant="error" size="s" onClick={handleRevokeKey} disabled={isRevoking}>
-            {isRevoking ? 'Revoking…' : 'Revoke'}
-          </Button>
-        </div>
-      </div>
-    </Modal>
+      </Modal>
     </>
   );
 }

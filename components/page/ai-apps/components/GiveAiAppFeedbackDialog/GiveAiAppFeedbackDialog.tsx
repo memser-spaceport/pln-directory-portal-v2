@@ -18,7 +18,12 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApps } from '@/services/ai-apps/hooks/useAiApps';
 import { useSubmitAiAppFeedback } from '@/services/ai-app-feedback/hooks/useSubmitAiAppFeedback';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
-import { isScreenshotChord, isSendChord, useShortcutLabels, type ShortcutLabels } from '@/components/page/ai-apps/shortcutKeys';
+import {
+  isScreenshotChord,
+  isSendChord,
+  useShortcutLabels,
+  type ShortcutLabels,
+} from '@/components/page/ai-apps/shortcutKeys';
 import {
   AnnotatorModal,
   AttachImageError,
@@ -544,6 +549,7 @@ export function GiveAiAppFeedbackDialog({
         event.preventDefault();
         event.stopImmediatePropagation();
         if (isBusy || isPending) return;
+        analytics.onFeedbackShortcutUsed({ action: 'screenshot' });
         if (captureClosedBy) {
           fileInputRef.current?.click();
         } else {
@@ -555,12 +561,24 @@ export function GiveAiAppFeedbackDialog({
       if (isBusy || !isSendChord(event)) return;
       event.preventDefault();
       if (isPending || isOverLimit) return;
+      analytics.onFeedbackShortcutUsed({ action: 'submit' });
       void onSubmit();
     };
 
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [isOpen, shortcutsOpen, pendingRemoveId, isBusy, isPending, isOverLimit, captureClosedBy, onSubmit, onRemoveShot]);
+  }, [
+    isOpen,
+    shortcutsOpen,
+    pendingRemoveId,
+    isBusy,
+    isPending,
+    isOverLimit,
+    captureClosedBy,
+    onSubmit,
+    onRemoveShot,
+    analytics,
+  ]);
 
   return (
     <>
@@ -586,7 +604,14 @@ export function GiveAiAppFeedbackDialog({
           <div className={s.header}>
             <h2 className={s.title}>Give feedback</h2>
             <div className={s.headerActions}>
-              <button type="button" className={s.shortcutsLink} onClick={() => setShortcutsOpen(true)}>
+              <button
+                type="button"
+                className={s.shortcutsLink}
+                onClick={() => {
+                  analytics.onFeedbackShortcutsHelpOpened();
+                  setShortcutsOpen(true);
+                }}
+              >
                 Shortcuts
               </button>
               <button type="button" className={s.closeButton} onClick={onDialogClose} aria-label="Close">

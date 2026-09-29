@@ -12,6 +12,7 @@ const mockExportAiAppFeedbackCsv = jest.fn();
 const mockOnFeedbackReviewViewed = jest.fn();
 const mockOnFeedbackTabFiltered = jest.fn();
 const mockOnFeedbackExported = jest.fn();
+const mockOnFeedbackStatusFiltered = jest.fn();
 const mockOnFeedbackStatusChanged = jest.fn();
 const mockMutate = jest.fn();
 
@@ -36,6 +37,7 @@ jest.mock('@/analytics/ai-apps.analytics', () => ({
     onFeedbackReviewViewed: mockOnFeedbackReviewViewed,
     onFeedbackTabFiltered: mockOnFeedbackTabFiltered,
     onFeedbackExported: mockOnFeedbackExported,
+    onFeedbackStatusFiltered: mockOnFeedbackStatusFiltered,
     onFeedbackStatusChanged: mockOnFeedbackStatusChanged,
   }),
 }));
@@ -165,7 +167,7 @@ describe('AiAppFeedbackPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /Export CSV/ }));
 
     expect(mockExportAiAppFeedbackCsv).toHaveBeenCalledWith([FEEDBACK[0], FEEDBACK[2]], 'ai-app-feedback-alpha.csv');
-    expect(mockOnFeedbackExported).toHaveBeenCalledWith(2);
+    expect(mockOnFeedbackExported).toHaveBeenCalledWith(2, 'ALL');
   });
 
   describe('status filter', () => {
@@ -188,6 +190,7 @@ describe('AiAppFeedbackPage', () => {
 
       selectStatusFilter('Reviewed');
 
+      expect(mockOnFeedbackStatusFiltered).toHaveBeenCalledWith('VIEWED');
       expect(screen.getByText('Needs work')).toBeInTheDocument();
       expect(screen.queryByText('Loved it')).not.toBeInTheDocument();
       expect(screen.queryByText('Already shipped')).not.toBeInTheDocument();
@@ -254,7 +257,7 @@ describe('AiAppFeedbackPage', () => {
       fireEvent.click(screen.getByRole('button', { name: /Export CSV/ }));
 
       expect(mockExportAiAppFeedbackCsv).toHaveBeenCalledWith([FEEDBACK[2]], 'ai-app-feedback-alpha-shipped.csv');
-      expect(mockOnFeedbackExported).toHaveBeenCalledWith(1);
+      expect(mockOnFeedbackExported).toHaveBeenCalledWith(1, 'IMPLEMENTED');
     });
   });
 

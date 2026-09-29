@@ -2,29 +2,23 @@
 
 import React, { useEffect, useState } from 'react';
 import clsx from 'clsx';
-import { useToggle } from 'react-use';
-import { AppLogo } from '@/components/core/navbar/components/icons';
-import { Button } from '@/components/common/Button';
-import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
 import { PRIVACY_POLICY_URL, TERMS_AND_CONDITIONS_URL } from '@/app/constants/demoday';
-// The page is the completed Demo Day template (DemodayCompletedView): its root,
-// white content sheet, partners / FAQ / footer sections, and the teams grid
-// from CompletedDemoDayTeamsList.
+// The page keeps the completed Demo Day template's root, white content sheet,
+// hero and footer (DemodayCompletedView).
 import d from '@/components/page/demo-day/DemodayCompletedView/DemodayCompletedView.module.scss';
-import t from '@/components/page/demo-day/DemodayCompletedView/components/CompletedDemoDayTeamsList/CompletedDemoDayTeamsList.module.scss';
 import { SpvHero, type SpvHeroVariant } from './SpvHero';
-import { SpvLogos } from './SpvLogos';
-import { SpvTeamCard } from './SpvTeamCard';
-import { SpvTeamDrawer } from './SpvTeamDrawer';
+import { SpvExploreTile } from './SpvExploreTile';
+import { SpvNavBar } from './SpvNavBar';
+import { PORTFOLIO } from '../explore-pl-network/islands';
+import { SpvCardAction, SpvCardStatus, SpvTeamSpotlight } from './SpvTeamSpotlight';
+import { netholabs, NETHOLABS_FACTS, NETHOLABS_SUMMARY, NETHOLABS_WEBSITE_IMAGES } from './netholabs';
 import { SpvInvestorProfileDrawer, type InvestorRecord } from './SpvInvestorProfileDrawer';
-import { spvTeams } from './teams';
 import { SpvApplyModal, SpvAppliedModal } from './SpvApplyModal';
 import {
   mockSignedInUser,
   mockInvestorProfile,
   mockInvestorDetails,
   mockSpotlight,
-  spvFaqItems,
   STATUS_OPTIONS,
   VIEWER_OPTIONS,
   type SpvStatus,
@@ -35,31 +29,39 @@ import s from './SpvSpotlight.module.scss';
 /**
  * Investor-facing SPV Spotlight at `/spv-spotlight/[slug]` (LAB-2669).
  *
- * One Spotlight can hold many teams, so the page is the completed Demo Day
- * template rather than PL Spotlight's single-team card: status badge + hero,
- * a teams grid with Show All, partner logos, an FAQ that explains what PL
- * Spotlight is, and the Demo Day footer. What changes for the SPV:
+ * Per the 2026-09-28 sync (Vova, Anuj): one SPV Spotlight is for ONE team, and
+ * PL no longer hosts pitch slides or video. So the page is a title, a
+ * description, then a brief card for that one team (Netholabs,
+ * real data in netholabs.ts), with no site navigation. The card is PL
+ * Spotlight's single team card trimmed — logo, name, one-liner, location and
+ * size, website / stage / tags, founders, a three-sentence summary — with
+ * images from the team's own website in a carousel where the pitch slide and
+ * video were (SpvTeamSpotlight). The CTAs:
  *
- * - Chromeless: no site navigation, only a non-link wordmark. Prototype routes
- *   already hide SiteHeader, so what you see is what ships.
- * - Apply is the primary door (Demo Day's apply + success modals, trimmed);
- *   sign-in is a text link under it.
- * - Every team has its own DocSend: approved investors get a View materials
- *   button on each card and in each team's drawer.
- * - A card opens the Demo Day team drawer holding the dev team page's
- *   sections (details, contact, membership, contributions, members, focus
- *   areas, projects, news), with prev / next to walk the list.
+ * - Request access to data room — the primary until approved (named at the
+ *   2026-09-29 sync, was "Apply to invest"). Requesting is signing up: it
+ *   creates the investor's account, so it has to stay low-friction. It sits in
+ *   the team card's action slot (moved out of the hero 2026-09-29), with
+ *   "Already requested access? Sign in" under it for signed-out viewers.
+ * - View materials — the team's one DocSend, once approved and open; the same
+ *   card slot, since it's the next state of the same door.
+ * - Every other state holds that slot with a quiet line (pending, opening
+ *   soon, declined, closed); the hero carries the stepper and messages.
+ * - Explore PL Network — a separate landing for investors new to the network
+ *   (prototype `explore-pl-network`): what PL is, an FAQ, the portfolio teams.
+ *   A tile under the card.
+ * - Set up / Edit investor profile — a small text link in the hero for approved
+ *   viewers (and in the pending stepper): it's about the investor, not the
+ *   team, and never the page's main action.
  *
- * Decisions on the ticket's open questions:
- * - Pending return visit → its own message, no Apply, so nobody applies twice.
- * - OPEN + not approved → the teams grid and drawers show. The team page is
- *   public directory info already; approval unlocks each team's DocSend, and
- *   the drawer offers Apply where View materials would be.
- * - DRAFT and CLOSED → no teams grid for anyone, per the ticket.
+ * Two kinds of link reach this page: the public link (everyone applies), and a
+ * per-investor whitelisted link whose login token signs them in on arrival as
+ * already approved (the preview bar doesn't simulate this one).
+ *
+ * Decisions still mine, not the team's:
+ * - Pending return visit → the applied stepper, no Apply, so nobody applies twice.
  * - Rejected → says so plainly, no Apply.
  */
-
-const TEAMS_THRESHOLD = 6; // same as CompletedDemoDayTeamsList
 
 const resolveVariant = (status: SpvStatus, viewer: SpvViewer): SpvHeroVariant => {
   if (status === 'CLOSED') return 'closed';
@@ -70,12 +72,12 @@ const resolveVariant = (status: SpvStatus, viewer: SpvViewer): SpvHeroVariant =>
 };
 
 const HINTS: Record<SpvHeroVariant, string> = {
-  landing: 'Landing + Apply. Try applying with applied@example.com to see the “already applied” prompt.',
-  pending: 'Applied, awaiting admin review. No Apply, no materials.',
-  rejected: 'Declined. Cannot re-apply.',
-  openingSoon: 'Approved, Spotlight still in draft. No DocSend, no teams.',
-  open: 'Approved + open: every team card and drawer has its own View materials.',
-  closed: 'Closed — the same message for every viewer, no teams.',
+  landing: 'Public link: requesting access = sign up. Try applied@example.com to see the “already requested” prompt.',
+  pending: 'Requested, awaiting admin review. No request button, no data room.',
+  rejected: 'Declined. Cannot request again.',
+  openingSoon: 'Approved, Spotlight still in draft. No DocSend yet.',
+  open: 'Approved + open: View materials opens the team’s DocSend.',
+  closed: 'Closed — the same message for every viewer.',
 };
 
 export default function SpvSpotlightPrototype() {
@@ -89,8 +91,6 @@ export default function SpvSpotlightPrototype() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [profile, setProfile] = useState(mockInvestorProfile);
   const [investor, setInvestor] = useState<InvestorRecord>(mockInvestorDetails);
-  const [showAllTeams, toggleShowAllTeams] = useToggle(false);
-  const [openTeamIndex, setOpenTeamIndex] = useState<number | null>(null);
 
   useEffect(() => setMounted(true), []);
   if (!mounted) return <div className={s.page} />;
@@ -102,13 +102,45 @@ export default function SpvSpotlightPrototype() {
   const investorComplete =
     (investor.angel && investor.stages.length > 0 && !!investor.checkSize) || (investor.viaFund && !!investor.fundId);
   const variant = resolveVariant(status, viewer);
-  const showTeams = status === 'OPEN';
-  const teamsNum = spvTeams.length;
-  // Per-team CTA: approved + open get each team's own DocSend; people who
-  // haven't applied get Apply in the drawer; pending / rejected get neither.
-  const teamCta: 'materials' | 'apply' | 'none' =
-    variant === 'open' ? 'materials' : variant === 'landing' ? 'apply' : 'none';
-  const browseTeams = () => document.getElementById('spv-teams')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // The team card's action slot: the data-room door, or a line saying why
+  // there isn't one right now.
+  const cardAction = (() => {
+    switch (variant) {
+      case 'landing':
+        return (
+          <SpvCardAction
+            label="Request access to data room"
+            onClick={() => setApplyOpen(true)}
+            // Twin-action rule: the sign-in door is a text link, not a second
+            // button. Invited investors skip it: their email link signs them in.
+            note={
+              isLoggedIn ? undefined : (
+                <>
+                  Already requested access?{' '}
+                  {/* Production opens Privy. Here, signing in shows the
+                      request this email already has. */}
+                  <button type="button" className={s.inlineLink} onClick={() => setViewer('pending')}>
+                    Sign in
+                  </button>
+                </>
+              )
+            }
+          />
+        );
+      case 'open':
+        return <SpvCardAction label="View materials" href={mockSpotlight.docSendUrl} />;
+      case 'pending':
+        return <SpvCardStatus>Access requested, pending review</SpvCardStatus>;
+      case 'openingSoon':
+        return <SpvCardStatus>Approved, materials open soon</SpvCardStatus>;
+      case 'rejected':
+        return <SpvCardStatus>Access not approved</SpvCardStatus>;
+      case 'closed':
+        return <SpvCardStatus>Data room closed</SpvCardStatus>;
+    }
+  })();
+
+  const hint = HINTS[variant];
 
   return (
     <div className={s.page}>
@@ -142,96 +174,55 @@ export default function SpvSpotlightPrototype() {
             </button>
           ))}
         </div>
-        <span className={s.demoHint}>{HINTS[variant]}</span>
+        <span className={s.demoHint}>{hint}</span>
       </div>
 
-      <div className={clsx(d.root, s.root)}>
-        <div className={s.brand} aria-label="PL Network">
-          <AppLogo />
-        </div>
+      <SpvNavBar label="PL Spotlight" supportEmail={mockSpotlight.supportEmail} />
 
+      <div className={clsx(d.root, s.root)}>
         <div className={d.content}>
           <SpvHero
             variant={variant}
             status={status}
-            isLoggedIn={isLoggedIn}
             email={pendingEmail}
             title={mockSpotlight.title}
             description={mockSpotlight.description}
-            onBrowseTeams={browseTeams}
-            onApply={() => setApplyOpen(true)}
-            // Production opens Privy. Here, signing in lands you as an investor
-            // the back office already approved (the CSV pre-approved path).
-            onSignIn={() => setViewer('approved')}
             profileComplete={investorComplete}
             onEditProfile={() => setProfileOpen(true)}
           />
 
-          {/* Teams sit straight under the hero — ahead of the partner logos,
-              unlike the completed Demo Day — because here they are the offer. */}
-          {showTeams && (
-            <section id="spv-teams" className={t.sectionTeams}>
-              <div className={t.subtitle}>
-                <h2 className={t.label}>Teams in this Spotlight ({teamsNum})</h2>
-                <p className={t.supportingText}>
-                  {teamCta === 'materials'
-                    ? 'Open a team for its full profile, or go straight to its materials.'
-                    : 'Hand-picked PL Network teams across AI, crypto, DeSci and infrastructure. Open one for its full profile.'}
-                </p>
-              </div>
-              <div className={t.cards}>
-                <div
-                  className={clsx(t.cardsGridContainer, {
-                    [t.expanded]: showAllTeams || teamsNum <= TEAMS_THRESHOLD,
-                  })}
-                >
-                  <div className={t.cardsGrid}>
-                    {spvTeams.map((team, i) => (
-                      <SpvTeamCard
-                        key={team.uid}
-                        team={team}
-                        showMaterials={teamCta === 'materials'}
-                        onOpen={() => setOpenTeamIndex(i)}
-                      />
-                    ))}
-                  </div>
-                  <div className={t.bottomShadow} />
-                </div>
-                {teamsNum > TEAMS_THRESHOLD && (
-                  <Button size="s" style="border" onClick={toggleShowAllTeams}>
-                    Show {showAllTeams ? 'Less' : 'All'} Teams
-                  </Button>
-                )}
-              </div>
-            </section>
-          )}
-
-          <section className={d.sectionPartners}>
-            <div className={d.logosButtonContainer}>
-              <SpvLogos />
-            </div>
+          {/* The one team this SPV is for, as a brief official card. Public
+              directory info, so every viewer and status sees it; what
+              approval unlocks is the DocSend, behind the card's action. */}
+          <section className={s.teamSection} aria-label={`About ${netholabs.name}`}>
+            <SpvTeamSpotlight
+              team={netholabs}
+              facts={NETHOLABS_FACTS}
+              summary={NETHOLABS_SUMMARY}
+              images={NETHOLABS_WEBSITE_IMAGES}
+              aboutHtml={netholabs.team.longDescription ?? undefined}
+              aboutOpen={variant === 'pending'}
+              action={cardAction}
+              // Remount when the state changes so the default open/closed applies.
+              key={variant === 'pending' ? 'open' : 'closed'}
+            />
           </section>
 
-          <section className={d.sectionFaq}>
-            <FAQ
-              title="About PL Spotlight"
-              items={spvFaqItems}
-              subtitle={
-                <p className={d.infoText}>
-                  Reach out to us at{' '}
-                  <a href={`mailto:${mockSpotlight.supportEmail}`} className={d.infoLink}>
-                    {mockSpotlight.supportEmail}
-                  </a>{' '}
-                  for any other questions.
-                </p>
-              }
-            />
+          {/* Explore PL Network is a tile, not a hero button (decided 2026-09-29):
+              it says what the network is before asking for the click, and it
+              no longer outranks the card's data-room action. */}
+          <section className={s.exploreSection} aria-label="Explore the PL Network">
+            <SpvExploreTile teamCount={PORTFOLIO.length} />
           </section>
 
           <footer className={d.footer}>
             <div className={d.note}>
-              © 2026 Protocol Labs. All content is provided by the founders. Protocol Labs does not endorse or recommend
-              any investment, and is not a broker, dealer, or advisor.
+              © 2026 Protocol Labs. All content is provided by the founders. Protocol Labs does not endorse or
+              recommend any investment, and is not a broker, dealer, or advisor. Questions? Write to{' '}
+              <a href={`mailto:${mockSpotlight.supportEmail}`} className={d.infoLink}>
+                {mockSpotlight.supportEmail}
+              </a>
+              .
             </div>
             <div className={d.bottom}>
               <div className={d.links}>
@@ -246,21 +237,6 @@ export default function SpvSpotlightPrototype() {
           </footer>
         </div>
       </div>
-
-      <SpvTeamDrawer
-        team={showTeams && openTeamIndex !== null ? spvTeams[openTeamIndex] : null}
-        index={openTeamIndex ?? 0}
-        total={teamsNum}
-        cta={teamCta}
-        onClose={() => setOpenTeamIndex(null)}
-        onStep={(delta) =>
-          setOpenTeamIndex((i) => (i === null ? i : Math.min(teamsNum - 1, Math.max(0, i + delta))))
-        }
-        onApply={() => {
-          setOpenTeamIndex(null);
-          setApplyOpen(true);
-        }}
-      />
 
       <SpvApplyModal
         key={viewer}

@@ -123,6 +123,7 @@ function FeedbackFab({ appUid, appName, elementPins, iframeRef }: Props) {
     const onKey = (event: KeyboardEvent) => {
       if (!isOpenFeedbackChord(event)) return;
       event.preventDefault();
+      analytics.onFeedbackShortcutUsed({ action: 'open' });
       if (canPin && !reopenApp) {
         openPinMode();
         return;

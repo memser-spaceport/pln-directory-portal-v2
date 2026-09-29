@@ -8,6 +8,12 @@ jest.mock('next/headers', () => ({
   cookies: async () => ({ get: (name: string) => (cookieJar[name] ? { value: cookieJar[name] } : undefined) }),
 }));
 
+jest.mock('@/analytics/ai-apps-server.analytics', () => ({
+  captureAiAppServerEvent: jest.fn(),
+  memberUidFromToken: (token?: string) => (token ? 'member-1' : 'anonymous'),
+}));
+
+import { captureAiAppServerEvent } from '@/analytics/ai-apps-server.analytics';
 import { GET } from '@/app/pl-infra/ai-apps/authorize/route';
 
 const ORIGIN = 'https://directoryv2.dev.os.pl.xyz';
@@ -24,6 +30,7 @@ beforeEach(() => {
   process.env.DIRECTORY_API_URL = 'https://api.test';
   process.env.COOKIE_DOMAIN = '.dev.os.pl.xyz';
   cookieJar.authToken = '"labos.jwt.token"';
+  (captureAiAppServerEvent as jest.Mock).mockReset();
   fetchMock.mockReset().mockResolvedValue(
     new Response(JSON.stringify({ code: 'one-time-code', callbackOrigin: 'https://foo-preview.dev.os.pl.xyz' }), {
       status: 201,
@@ -45,6 +52,11 @@ describe('GET /pl-infra/ai-apps/authorize', () => {
       state: STATE,
       return: '/reports?x=1',
     });
+    expect(captureAiAppServerEvent as jest.Mock).toHaveBeenCalledWith(
+      'ai_apps_app_session_started',
+      { appId: 'foo', target: 'preview' },
+      'member-1',
+    );
     expect(fetchMock).toHaveBeenCalledWith(
       'https://api.test/v1/ai-apps/sessions/code',
       expect.objectContaining({
@@ -71,6 +83,11 @@ describe('GET /pl-infra/ai-apps/authorize', () => {
     const res = await call(query as Record<string, string>);
     expect(location(res).pathname).toBe('/pl-infra/ai-apps');
     expect(fetchMock).not.toHaveBeenCalled();
+    expect(captureAiAppServerEvent as jest.Mock).toHaveBeenCalledWith(
+      'ai_apps_app_session_failed',
+      { reason: 'invalid_request' },
+      'member-1',
+    );
   });
 
   it.each([
@@ -90,6 +107,11 @@ describe('GET /pl-infra/ai-apps/authorize', () => {
     arrange();
     const res = await call({ appId: 'foo', state: STATE });
     expect(location(res).pathname).toBe('/pl-infra/ai-apps');
+    expect(captureAiAppServerEvent as jest.Mock).toHaveBeenCalledWith(
+      'ai_apps_app_session_failed',
+      expect.objectContaining({ appId: 'foo', reason: expect.stringMatching(/api_error|bad_callback/) }),
+      'member-1',
+    );
   });
 
   it('sends a member without a LabOS token to login and back here', async () => {
@@ -101,5 +123,6 @@ describe('GET /pl-infra/ai-apps/authorize', () => {
       '/pl-infra/ai-apps/authorize?appId=foo',
     );
     expect(fetchMock).not.toHaveBeenCalled();
+    expect(captureAiAppServerEvent as jest.Mock).not.toHaveBeenCalled();
   });
 });

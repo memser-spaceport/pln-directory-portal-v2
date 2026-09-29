@@ -70,7 +70,7 @@ export function AiAppFeedbackPage() {
 
   const handleExport = () => {
     exportAiAppFeedbackCsv(visibleRows, buildFeedbackCsvFilename(activeTab, statusFilter));
-    analytics.onFeedbackExported(visibleRows.length);
+    analytics.onFeedbackExported(visibleRows.length, statusFilter);
   };
 
   const handleStatusSelect = (row: AiAppFeedbackRow, status: AiAppFeedbackStatus) => {
@@ -116,7 +116,12 @@ export function AiAppFeedbackPage() {
                   sortByLabel="Status:"
                   options={FEEDBACK_STATUS_FILTER_OPTIONS}
                   currentSort={statusFilter}
-                  onSortChange={(value) => setStatusFilter(value as FeedbackStatusFilterValue)}
+                  onSortChange={(value) => {
+                    const next = value as FeedbackStatusFilterValue;
+                    if (next === statusFilter) return;
+                    setStatusFilter(next);
+                    analytics.onFeedbackStatusFiltered(next);
+                  }}
                 />
                 <Button
                   size="s"

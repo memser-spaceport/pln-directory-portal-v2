@@ -8,7 +8,13 @@ import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { CloseIcon } from '@/components/icons';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { AiApp, AiAppAccessMode, AiAppAccessCandidate, AiAppTargetEnvironment, aiAppTarget } from '@/services/ai-apps/ai-apps.service';
+import {
+  AiApp,
+  AiAppAccessMode,
+  AiAppAccessCandidate,
+  AiAppTargetEnvironment,
+  aiAppTarget,
+} from '@/services/ai-apps/ai-apps.service';
 import { useAiAppAccess } from '@/services/ai-apps/hooks/useAiAppAccess';
 import { useSaveAiAppAccess } from '@/services/ai-apps/hooks/useSaveAiAppAccess';
 
@@ -85,7 +91,8 @@ export function ManageAccessModal({ app, onClose, onRedeploy }: Props) {
 
   const saved =
     environment === 'preview'
-      ? settings?.preview ?? (settings ? { access: 'PRIVATE' as const, directLinkGateReady: false, members: [] } : null)
+      ? (settings?.preview ??
+        (settings ? { access: 'PRIVATE' as const, directLinkGateReady: false, members: [] } : null))
       : settings;
   const isSaving = saveAccess.isPending;
   const isDirty = useMemo(() => {
@@ -97,6 +104,8 @@ export function ManageAccessModal({ app, onClose, onRedeploy }: Props) {
   const gateNotReady = !!saved && !saved.directLinkGateReady && !!aiAppTarget(app, environment).lastDeployedAt;
 
   const selectEnvironment = (next: AiAppTargetEnvironment) => {
+    if (next === environment) return;
+    analytics.onEnvironmentSelected({ environment: next, surface: 'access' });
     const source = next === 'preview' ? settings?.preview : settings;
     setEnvironment(next);
     setMode(source?.access ?? (next === 'preview' ? 'PRIVATE' : 'OPEN'));
@@ -127,13 +136,14 @@ export function ManageAccessModal({ app, onClose, onRedeploy }: Props) {
     });
     if (result.error || !result.data) {
       setSaveError(result.error ?? 'Saving failed. Please try again.');
-      analytics.onAccessSaveFailed(app.uid);
+      analytics.onAccessSaveFailed(app.uid, environment);
       return;
     }
     const previousUids = new Set((saved?.members ?? []).map((member) => member.uid));
     const nextUids = new Set(members.map((member) => member.uid));
     analytics.onAccessSaved({
       appUid: app.uid,
+      environment,
       from: saved?.access ?? mode,
       to: result.data.access,
       addedCount: members.filter((member) => !previousUids.has(member.uid)).length,

@@ -55,7 +55,12 @@ export function useAiAppsAnalytics() {
     onFeedbackSubmitFailed: (appUid: string) => capture(AI_APPS_ANALYTICS.FEEDBACK_SUBMIT_FAILED, { appUid }),
     onFeedbackReviewViewed: () => capture(AI_APPS_ANALYTICS.FEEDBACK_REVIEW_VIEWED),
     onFeedbackTabFiltered: (appName: string) => capture(AI_APPS_ANALYTICS.FEEDBACK_TAB_FILTERED, { appName }),
-    onFeedbackExported: (rowCount: number) => capture(AI_APPS_ANALYTICS.FEEDBACK_EXPORTED, { rowCount }),
+    onFeedbackExported: (rowCount: number, status: string) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_EXPORTED, { rowCount, status }),
+    onFeedbackStatusFiltered: (status: string) => capture(AI_APPS_ANALYTICS.FEEDBACK_STATUS_FILTERED, { status }),
+    onFeedbackShortcutUsed: (params: { action: 'open' | 'submit' | 'screenshot' }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_SHORTCUT_USED, params),
+    onFeedbackShortcutsHelpOpened: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SHORTCUTS_HELP_OPENED),
     onFeedbackStatusChanged: (params: { appUid: string; from: string; to: string }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_STATUS_CHANGED, params),
     onFeedbackDialogOpened: (params: { appUid?: string; appName?: string } = {}) =>
@@ -117,13 +122,38 @@ export function useAiAppsAnalytics() {
     onSecretsDeployClicked: (params: {
       appUid: string;
       isDraft: boolean;
+      environment: 'prod' | 'preview';
       varsRequiredCount: number;
       varsProvidedCount: number;
     }) => capture(AI_APPS_ANALYTICS.SECRETS_DEPLOY_CLICKED, params),
-    onSecretsDeploySucceeded: (params: { appUid: string; isDraft: boolean }) =>
+    onSecretsDeploySucceeded: (params: { appUid: string; isDraft: boolean; environment: 'prod' | 'preview' }) =>
       capture(AI_APPS_ANALYTICS.SECRETS_DEPLOY_SUCCEEDED, params),
-    onSecretsDeployFailed: (params: { appUid: string; isDraft: boolean }) =>
+    onSecretsDeployFailed: (params: { appUid: string; isDraft: boolean; environment: 'prod' | 'preview' }) =>
       capture(AI_APPS_ANALYTICS.SECRETS_DEPLOY_FAILED, params),
+    onEnvironmentSelected: (params: {
+      environment: 'prod' | 'preview';
+      surface: 'detail' | 'deployment_settings' | 'logs' | 'access';
+    }) => capture(AI_APPS_ANALYTICS.ENVIRONMENT_SELECTED, params),
+    onTargetTeardownClicked: (params: { appUid: string; environment: 'prod' | 'preview' }) =>
+      capture(AI_APPS_ANALYTICS.TARGET_TEARDOWN_CLICKED, params),
+    onTargetTeardownConfirmed: (params: { appUid: string; environment: 'prod' | 'preview' }) =>
+      capture(AI_APPS_ANALYTICS.TARGET_TEARDOWN_CONFIRMED, params),
+    onTargetTeardownFailed: (params: { appUid: string; environment: 'prod' | 'preview' }) =>
+      capture(AI_APPS_ANALYTICS.TARGET_TEARDOWN_FAILED, params),
+    onDeployKeyCreated: (params: { appUid: string; environment: 'prod' | 'preview' }) =>
+      capture(AI_APPS_ANALYTICS.DEPLOY_KEY_CREATED, params),
+    onDeployKeyCreateFailed: (params: { appUid: string; environment: 'prod' | 'preview' }) =>
+      capture(AI_APPS_ANALYTICS.DEPLOY_KEY_CREATE_FAILED, params),
+    onDeployKeyCopied: (params: { appUid: string; environment: 'prod' | 'preview' }) =>
+      capture(AI_APPS_ANALYTICS.DEPLOY_KEY_COPIED, params),
+    onDeployKeyRevokeOpened: (params: { appUid: string; environment: 'prod' | 'preview' }) =>
+      capture(AI_APPS_ANALYTICS.DEPLOY_KEY_REVOKE_OPENED, params),
+    onDeployKeyRevokeCancelled: (params: { appUid: string; environment: 'prod' | 'preview' }) =>
+      capture(AI_APPS_ANALYTICS.DEPLOY_KEY_REVOKE_CANCELLED, params),
+    onDeployKeyRevoked: (params: { appUid: string; environment: 'prod' | 'preview' }) =>
+      capture(AI_APPS_ANALYTICS.DEPLOY_KEY_REVOKED, params),
+    onDeployKeyRevokeFailed: (params: { appUid: string; environment: 'prod' | 'preview' }) =>
+      capture(AI_APPS_ANALYTICS.DEPLOY_KEY_REVOKE_FAILED, params),
     onDraftSetupViewed: (params: { appUid: string; appName: string }) =>
       capture(AI_APPS_ANALYTICS.DRAFT_SETUP_VIEWED, params),
     onManageMenuOpened: (appUid: string, appName: string) =>
@@ -141,13 +171,18 @@ export function useAiAppsAnalytics() {
     onDeploymentLogsOpened: (params: {
       appUid: string;
       appName: string;
+      environment: 'prod' | 'preview';
       source: 'menu' | 'failure-strip' | 'detail-banner' | 'detail-error-card';
       variant?: 'warning' | 'danger' | 'legacy';
     }) => capture(AI_APPS_ANALYTICS.DEPLOYMENT_LOGS_OPENED, params),
-    onDeploymentLogsTabSwitched: (appUid: string, stream: 'build' | 'runtime') =>
-      capture(AI_APPS_ANALYTICS.DEPLOYMENT_LOGS_TAB_SWITCHED, { appUid, stream }),
-    onDeploymentLogsExported: (appUid: string, stream: 'build' | 'runtime', rowCount: number) =>
-      capture(AI_APPS_ANALYTICS.DEPLOYMENT_LOGS_EXPORTED, { appUid, stream, rowCount }),
+    onDeploymentLogsTabSwitched: (appUid: string, stream: 'build' | 'runtime', environment: 'prod' | 'preview') =>
+      capture(AI_APPS_ANALYTICS.DEPLOYMENT_LOGS_TAB_SWITCHED, { appUid, stream, environment }),
+    onDeploymentLogsExported: (
+      appUid: string,
+      stream: 'build' | 'runtime',
+      rowCount: number,
+      environment: 'prod' | 'preview',
+    ) => capture(AI_APPS_ANALYTICS.DEPLOYMENT_LOGS_EXPORTED, { appUid, stream, rowCount, environment }),
     onDeleteAppOpened: (appUid: string, appName: string) =>
       capture(AI_APPS_ANALYTICS.DELETE_APP_OPENED, { appUid, appName }),
     onDeleteAppCancelled: (appUid: string, appName: string) =>
@@ -177,13 +212,15 @@ export function useAiAppsAnalytics() {
     onManageAccessOpened: (appUid: string) => capture(AI_APPS_ANALYTICS.MANAGE_ACCESS_OPENED, { appUid }),
     onAccessSaved: (params: {
       appUid: string;
+      environment: 'prod' | 'preview';
       from: string;
       to: string;
       addedCount: number;
       removedCount: number;
       whitelistSize: number;
     }) => capture(AI_APPS_ANALYTICS.ACCESS_SAVED, params),
-    onAccessSaveFailed: (appUid: string) => capture(AI_APPS_ANALYTICS.ACCESS_SAVE_FAILED, { appUid }),
+    onAccessSaveFailed: (appUid: string, environment: 'prod' | 'preview') =>
+      capture(AI_APPS_ANALYTICS.ACCESS_SAVE_FAILED, { appUid, environment }),
     onPrivateBlocked: (appUid: string) => capture(AI_APPS_ANALYTICS.PRIVATE_BLOCKED, { appUid }),
     onAccessRedeployPrompted: (appUid: string) => capture(AI_APPS_ANALYTICS.ACCESS_REDEPLOY_PROMPTED, { appUid }),
     onAccessRedeployClicked: (appUid: string) => capture(AI_APPS_ANALYTICS.ACCESS_REDEPLOY_CLICKED, { appUid }),
@@ -195,7 +232,8 @@ export function useAiAppsAnalytics() {
       removedCount: number;
       hasWildcard: boolean;
     }) => capture(AI_APPS_ANALYTICS.PUBLIC_ENDPOINTS_SAVED, params),
-    onPublicEndpointsSaveFailed: (appUid: string) => capture(AI_APPS_ANALYTICS.PUBLIC_ENDPOINTS_SAVE_FAILED, { appUid }),
+    onPublicEndpointsSaveFailed: (appUid: string) =>
+      capture(AI_APPS_ANALYTICS.PUBLIC_ENDPOINTS_SAVE_FAILED, { appUid }),
     onPublicEndpointsRedeployClicked: (appUid: string) =>
       capture(AI_APPS_ANALYTICS.PUBLIC_ENDPOINTS_REDEPLOY_CLICKED, { appUid }),
   };

@@ -186,7 +186,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
     setStream(next);
     setVisited((v) => (v[next] ? v : { ...v, [next]: true }));
     setQuery('');
-    analytics.onDeploymentLogsTabSwitched(app.uid, next);
+    analytics.onDeploymentLogsTabSwitched(app.uid, next, environment);
   };
 
   // WAI-ARIA tabs: arrow keys move and activate; roving tabindex below.
@@ -223,7 +223,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
       () => {
         setTransient('copied');
         setAnnouncement('Logs copied to clipboard');
-        analytics.onDeploymentLogsExported(app.uid, stream, filtered.length);
+        analytics.onDeploymentLogsExported(app.uid, stream, filtered.length, environment);
       },
       () => setTransient('failed'),
     );
@@ -439,16 +439,20 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
               {(['prod', 'preview'] as const)
                 .filter((value) => value === 'prod' || app.canViewPreview)
                 .map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={s.appName}
-                  aria-pressed={environment === value}
-                  onClick={() => setEnvironment(value)}
-                >
-                  {value === 'prod' ? 'Production' : 'Preview'}
-                </button>
-              ))}
+                  <button
+                    key={value}
+                    type="button"
+                    className={s.appName}
+                    aria-pressed={environment === value}
+                    onClick={() => {
+                      if (environment === value) return;
+                      analytics.onEnvironmentSelected({ environment: value, surface: 'logs' });
+                      setEnvironment(value);
+                    }}
+                  >
+                    {value === 'prod' ? 'Production' : 'Preview'}
+                  </button>
+                ))}
               <span className={`${s.status} ${statusChip.className}`}>{statusChip.label}</span>
             </div>
           </div>

@@ -1,5 +1,8 @@
 import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
+
+import { captureAiAppServerEvent, memberUidFromToken } from '@/analytics/ai-apps-server.analytics';
+import { AI_APPS_ANALYTICS } from '@/utils/constants';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +37,16 @@ const noStore = (response: NextResponse) => {
   return response;
 };
 
+function trackAppSession(event: string, properties: Record<string, unknown>, token?: string) {
+  const run = () => captureAiAppServerEvent(event, properties, memberUidFromToken(token));
+  // `after` throws outside a request, which is how the route is unit-tested.
+  try {
+    after(run);
+  } catch {
+    void run();
+  }
+}
+
 /**
  * Sign-in round trip for a deployed AI App's auth gate (LAB-2695). The gate sends a signed-out visitor here; this
  * route (protected by proxy.ts, so a signed-out member logs in first and lands back here) mints a one-time code
@@ -47,16 +60,18 @@ export async function GET(request: NextRequest) {
   const target = rawTarget === 'preview' || rawTarget === 'dev' ? 'preview' : 'prod';
   const state = params.get('state') ?? '';
   const fallback = noStore(NextResponse.redirect(new URL('/pl-infra/ai-apps', request.url)));
+  const token = (await cookies()).get('authToken')?.value?.replace(/"/g, '');
+  const session = { appId, target };
 
   if (
     !APP_ID.test(appId) ||
     !STATE.test(state) ||
     (params.get('target') && !['prod', 'preview', 'dev'].includes(params.get('target')!))
   ) {
+    trackAppSession(AI_APPS_ANALYTICS.APP_SESSION_FAILED, { reason: 'invalid_request' }, token);
     return fallback;
   }
 
-  const token = (await cookies()).get('authToken')?.value?.replace(/"/g, '');
   if (!token) {
     const backlink = encodeURIComponent(`${request.nextUrl.pathname}${request.nextUrl.search}`);
     return noStore(NextResponse.redirect(new URL(`/members?backlink=${backlink}#login`, request.url)));
@@ -69,16 +84,24 @@ export async function GET(request: NextRequest) {
       body: JSON.stringify({ appId, target }),
       cache: 'no-store',
     });
-    if (!res.ok) return fallback;
+    if (!res.ok) {
+      trackAppSession(AI_APPS_ANALYTICS.APP_SESSION_FAILED, { ...session, reason: 'api_error' }, token);
+      return fallback;
+    }
     const { code, callbackOrigin } = (await res.json()) as { code?: string; callbackOrigin?: string };
-    if (!code || !callbackOrigin || !isAppOrigin(`${callbackOrigin}/`)) return fallback;
+    if (!code || !callbackOrigin || !isAppOrigin(`${callbackOrigin}/`)) {
+      trackAppSession(AI_APPS_ANALYTICS.APP_SESSION_FAILED, { ...session, reason: 'bad_callback' }, token);
+      return fallback;
+    }
 
     const callback = new URL('/_pln/callback', callbackOrigin);
     callback.searchParams.set('code', code);
     callback.searchParams.set('state', state);
     callback.searchParams.set('return', safeReturnPath(params.get('return')));
+    trackAppSession(AI_APPS_ANALYTICS.APP_SESSION_STARTED, session, token);
     return noStore(NextResponse.redirect(callback));
   } catch {
+    trackAppSession(AI_APPS_ANALYTICS.APP_SESSION_FAILED, { ...session, reason: 'api_error' }, token);
     return fallback;
   }
 }

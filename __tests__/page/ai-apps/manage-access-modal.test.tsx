@@ -27,6 +27,7 @@ const mockAnalytics = {
   onManageAccessOpened: jest.fn(),
   onAccessSaved: jest.fn(),
   onAccessSaveFailed: jest.fn(),
+  onEnvironmentSelected: jest.fn(),
   onAccessRedeployPrompted: jest.fn(),
   onAccessRedeployClicked: jest.fn(),
   onAccessRedeployDismissed: jest.fn(),
@@ -97,11 +98,16 @@ describe('ManageAccessModal', () => {
     fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
 
     await waitFor(() =>
-      expect(mockMutateAsync).toHaveBeenCalledWith({ access: 'PRIVATE', memberUids: ['bob', 'cara'], environment: 'prod' }),
+      expect(mockMutateAsync).toHaveBeenCalledWith({
+        access: 'PRIVATE',
+        memberUids: ['bob', 'cara'],
+        environment: 'prod',
+      }),
     );
     expect(onClose).toHaveBeenCalled();
     expect(mockAnalytics.onAccessSaved).toHaveBeenCalledWith({
       appUid: 'app-1',
+      environment: 'prod',
       from: 'PRIVATE',
       to: 'PRIVATE',
       addedCount: 1,
@@ -118,7 +124,9 @@ describe('ManageAccessModal', () => {
     expect(screen.getByText(/only you can see this app/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
 
-    await waitFor(() => expect(mockMutateAsync).toHaveBeenCalledWith({ access: 'PRIVATE', memberUids: [], environment: 'prod' }));
+    await waitFor(() =>
+      expect(mockMutateAsync).toHaveBeenCalledWith({ access: 'PRIVATE', memberUids: [], environment: 'prod' }),
+    );
   });
 
   it('switching to all PL Infra members hides the list but keeps it', async () => {
@@ -130,7 +138,9 @@ describe('ManageAccessModal', () => {
     expect(screen.getByText(/your list of 1 person is kept/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
 
-    await waitFor(() => expect(mockMutateAsync).toHaveBeenCalledWith({ access: 'OPEN', memberUids: ['bob'], environment: 'prod' }));
+    await waitFor(() =>
+      expect(mockMutateAsync).toHaveBeenCalledWith({ access: 'OPEN', memberUids: ['bob'], environment: 'prod' }),
+    );
   });
 
   it('shows the save error inline and stays open', async () => {
@@ -142,7 +152,7 @@ describe('ManageAccessModal', () => {
 
     expect(await screen.findByText('Some members cannot be added to this app')).toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
-    expect(mockAnalytics.onAccessSaveFailed).toHaveBeenCalledWith('app-1');
+    expect(mockAnalytics.onAccessSaveFailed).toHaveBeenCalledWith('app-1', 'prod');
   });
 
   it('offers a redeploy after saving Private on an app deployed before per-app access', async () => {

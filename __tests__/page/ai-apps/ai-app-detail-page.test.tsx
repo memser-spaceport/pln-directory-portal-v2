@@ -10,6 +10,7 @@ const mockAnalytics = {
   onIframeLoadFailed: jest.fn(),
   onIframeLoaded: jest.fn(),
   onDeploymentLogsOpened: jest.fn(),
+  onEnvironmentSelected: jest.fn(),
   onPrivateBlocked: jest.fn(),
 };
 
@@ -264,6 +265,7 @@ describe('AiAppDetailPage', () => {
     expect(screen.getByRole('link', { name: /^back$/i })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', { name: 'Preview' }));
 
+    expect(mockAnalytics.onEnvironmentSelected).toHaveBeenCalledWith({ environment: 'preview', surface: 'detail' });
     expect(screen.getByRole('link', { name: /^back$/i })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Production' })).toBeInTheDocument();
     expect(screen.getByText('AppActionsMenu')).toBeInTheDocument();
@@ -377,6 +379,7 @@ describe('AiAppDetailPage', () => {
       expect(mockAnalytics.onDeploymentLogsOpened).toHaveBeenCalledWith({
         appUid: 'app-1',
         appName: 'News Summarizer',
+        environment: 'prod',
         source: 'detail-banner',
         variant: 'warning',
       });
@@ -410,6 +413,7 @@ describe('AiAppDetailPage', () => {
       expect(mockAnalytics.onDeploymentLogsOpened).toHaveBeenCalledWith({
         appUid: 'app-1',
         appName: 'News Summarizer',
+        environment: 'prod',
         source: 'detail-error-card',
         variant: 'danger',
       });
@@ -656,7 +660,11 @@ describe('AiAppDetailPage', () => {
 
     it('forwards app query params on a deep link and keeps portal params off the iframe', async () => {
       mockPathname = `${BASE_PATH}/reports/42`;
-      window.history.replaceState(null, '', `${BASE_PATH}/reports/42?tab=weekly&settings=deployment&code=live-auth-code`);
+      window.history.replaceState(
+        null,
+        '',
+        `${BASE_PATH}/reports/42?tab=weekly&settings=deployment&code=live-auth-code`,
+      );
       render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       const iframe = await mountIframe();

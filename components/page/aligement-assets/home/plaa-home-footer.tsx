@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 const PROGRAM_LINKS = [
   { label: 'Activities', href: '/alignment-asset/activities' },
-  { label: 'Portfolio & Holdings', href: '/alignment-asset/trust-holdings' },
+  { label: 'Portfolio & Holdings', href: '/alignment-asset/portfolio-holdings' },
   { label: 'FAQ', href: '/alignment-asset/faqs' },
 ];
 

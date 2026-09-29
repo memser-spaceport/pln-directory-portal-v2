@@ -66,8 +66,8 @@ const menuItems: Array<{
   { name: 'kudos', label: 'Kudos', url: '/alignment-asset/kudos', badge: 'new', icon: 'hands-clapping' },
   {
     name: 'trust-holdings',
-    label: 'Trust & Holdings',
-    url: '/alignment-asset/trust-holdings',
+    label: 'Portfolio & Holdings',
+    url: '/alignment-asset/portfolio-holdings',
     icon: 'chart-pie-slice',
   },
   { name: 'leaderboard', label: 'Leaderboard', url: '/alignment-asset/leaderboard', icon: 'ranking' },

@@ -1,6 +1,10 @@
 @use 'styles/media';
 
 // ApplyForDemoDayModal's chrome and form classes.
+// Centred: flex-start on the overlay plus `margin-block: auto` on the modal
+// centres it when it fits, and when it's taller than the screen (a phone in
+// landscape) it starts at the top and scrolls, instead of losing its top edge
+// the way `align-items: center` would.
 .overlay.overlay {
   align-items: flex-start;
 }
@@ -9,6 +13,7 @@
   position: relative;
   width: 100%;
   max-width: 680px;
+  margin-block: auto;
   padding: 20px;
   border-radius: 16px;
   background: #fff;
@@ -18,7 +23,6 @@
 
   @media (max-width: 768px) {
     max-width: 100%;
-    border-radius: 16px 16px 0 0;
   }
 }
 

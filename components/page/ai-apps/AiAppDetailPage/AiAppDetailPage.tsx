@@ -281,15 +281,10 @@ export function AiAppDetailPage(props: Props) {
   }, [isError, uid, analytics]);
 
   const prodTarget = app ? aiAppTarget(app, 'prod') : null;
-  const devTarget = app ? aiAppTarget(app, 'dev') : null;
-  const previewDefaulted = useRef(false);
-  useEffect(() => {
-    if (!app || previewDefaulted.current) return;
-    previewDefaulted.current = true;
-    if (!aiAppTarget(app, 'prod').url && aiAppTarget(app, 'dev').url) setPreviewEnv('dev');
-  }, [app]);
-  const previewTarget = previewEnv === 'dev' ? devTarget : prodTarget;
-  const appUrl = previewTarget?.url ?? (previewEnv === 'prod' ? app?.url ?? null : null);
+  const previewTargetRow = app ? aiAppTarget(app, 'preview') : null;
+  const selectedEnv = app?.canViewPreview ? previewEnv : 'prod';
+  const previewTarget = selectedEnv === 'preview' ? previewTargetRow : prodTarget;
+  const appUrl = previewTarget?.url ?? (selectedEnv === 'prod' ? app?.url ?? null : null);
   const appOrigin = useMemo(() => {
     if (!appUrl) return null;
     try {
@@ -386,7 +381,7 @@ export function AiAppDetailPage(props: Props) {
     let timer: ReturnType<typeof setTimeout> | undefined;
 
     const probe = async () => {
-      const live = await checkAiAppLive(uid, previewEnv);
+      const live = await checkAiAppLive(uid, selectedEnv);
       if (cancelled) return;
       if (live) {
         setProbeResult({ generation: probeGeneration, status: 'live' });
@@ -406,7 +401,7 @@ export function AiAppDetailPage(props: Props) {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [uid, appUrl, probeGeneration, isRedeploying]);
+  }, [uid, appUrl, probeGeneration, isRedeploying, selectedEnv]);
 
   const handleIframeLoad = () => {
     if (!app || iframeTracked.current === app.uid) return;
@@ -491,7 +486,7 @@ export function AiAppDetailPage(props: Props) {
           <div className={s.setupHeader}>
             <h1 className={s.setupTitle}>{app.name}</h1>
             <span className={s.statusBadge} data-status={app.status}>
-              Prod {aiAppStatusLabel(prodTarget?.status ?? app.status)} · Dev {aiAppStatusLabel(devTarget?.status ?? 'IN_DEVELOPMENT')}
+              Prod {aiAppStatusLabel(prodTarget?.status ?? app.status)} · Preview {aiAppStatusLabel(previewTargetRow?.status ?? 'IN_DEVELOPMENT')}
             </span>
             {isPrivateAiApp(app) && <span className={s.privateBadge}>Private</span>}
           </div>
@@ -616,22 +611,29 @@ export function AiAppDetailPage(props: Props) {
           Back
         </Link>
         <div className={s.topBarActions}>
-          <span className={s.envMeta}>
-            Prod {aiAppStatusLabel(prodTarget?.status ?? '')} · Dev {aiAppStatusLabel(devTarget?.status ?? '')}
-          </span>
-          {prodTarget?.url && (
-            <a className={s.envLink} href={prodTarget.url} target="_blank" rel="noreferrer">
-              Prod URL
-            </a>
-          )}
-          {devTarget?.url && (
-            <a className={s.envLink} href={devTarget.url} target="_blank" rel="noreferrer">
-              Dev URL
-            </a>
-          )}
-          <button type="button" className={s.envLink} onClick={() => setPreviewEnv(previewEnv === 'prod' ? 'dev' : 'prod')}>
-            Preview {previewEnv === 'prod' ? 'dev' : 'prod'}
-          </button>
+          <div className={s.envSwitch} role="tablist" aria-label="App environment">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={selectedEnv === 'prod'}
+              className={selectedEnv === 'prod' ? s.envOn : s.envOff}
+              onClick={() => setPreviewEnv('prod')}
+            >
+              Production
+            </button>
+            {app.canViewPreview && (
+              <button
+                type="button"
+                role="tab"
+                aria-selected={selectedEnv === 'preview'}
+                className={selectedEnv === 'preview' ? s.envOn : s.envOff}
+                onClick={() => setPreviewEnv('preview')}
+              >
+                Preview
+              </button>
+            )}
+          </div>
+          <span className={s.envMeta}>{aiAppStatusLabel(previewTarget?.status ?? '')}</span>
           {isPrivateAiApp(app) && (
             <span className={s.privateBadge} title="Only the owner and people they add can see this app">
               <LockIcon size={12} />

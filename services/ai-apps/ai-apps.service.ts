@@ -35,7 +35,7 @@ export interface AiAppDeploymentInfo {
  */
 export type AiAppAccessMode = 'OPEN' | 'PRIVATE';
 
-export type AiAppTargetEnvironment = 'prod' | 'dev';
+export type AiAppTargetEnvironment = 'prod' | 'preview';
 
 export interface AiAppTargetView {
   environment: AiAppTargetEnvironment;
@@ -48,6 +48,8 @@ export interface AiAppTargetView {
   requiredEnvVars: string[];
   providedEnvVars: string[];
   hasBuild: boolean;
+  kitVersion?: string | null;
+  agentClient?: string | null;
   failureReason?: string;
   failureStream?: AiAppLogStream;
 }
@@ -113,16 +115,18 @@ export interface AiApp {
    * forward the request path — its public paths take effect after one redeploy.
    */
   publicPathsGateReady?: boolean;
+  /** Whether the requester may open the preview target. */
+  canViewPreview?: boolean;
   /** Per-environment deploy targets. Absent on older API versions — prod is the app itself. */
-  deployments?: { prod: AiAppTargetView; dev: AiAppTargetView | null };
+  deployments?: { prod: AiAppTargetView; preview: AiAppTargetView | null };
 }
 
 export function aiAppTarget(app: AiApp, environment: AiAppTargetEnvironment): AiAppTargetView {
   const fromApi = app.deployments?.[environment];
   if (fromApi) return fromApi;
-  if (environment === 'dev') {
+  if (environment === 'preview') {
     return {
-      environment: 'dev',
+      environment: 'preview',
       status: 'IN_DEVELOPMENT',
       url: null,
       httpUrl: null,
@@ -276,7 +280,11 @@ export async function createAiAppDeployKey(
 export async function revokeAiAppDeployKey(uid: string, keyUid: string): Promise<boolean> {
   const response = await customFetch(
     `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/deploy-keys/${encodeURIComponent(keyUid)}/revoke`,
-    { method: 'POST' },
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    },
     true,
   );
   return !!response?.ok;
@@ -554,6 +562,7 @@ export interface AiAppAccessSettings {
   access: AiAppAccessMode;
   directLinkGateReady: boolean;
   members: AiAppAllowedMember[];
+  preview?: AiAppAccessSettings;
 }
 
 export interface AiAppAccessCandidate {
@@ -605,7 +614,7 @@ export async function fetchAiAppAccess(uid: string): Promise<AiAppAccessResult> 
 /** Replaces the access mode and the WHOLE whitelist (the backend keeps the list while the app is OPEN). */
 export async function saveAiAppAccess(
   uid: string,
-  input: { access: AiAppAccessMode; memberUids: string[] },
+  input: { access: AiAppAccessMode; memberUids: string[]; environment?: AiAppTargetEnvironment },
 ): Promise<AiAppAccessResult> {
   const response = await customFetch(
     `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/access`,
@@ -683,10 +692,15 @@ export async function saveAiAppPublicPaths(uid: string, publicPaths: string[]): 
 }
 
 /** Member name search for the whitelist picker; an empty list on any failure. */
-export async function searchAiAppAccessCandidates(uid: string, search: string): Promise<AiAppAccessCandidate[]> {
+export async function searchAiAppAccessCandidates(
+  uid: string,
+  search: string,
+  environment: AiAppTargetEnvironment = 'prod',
+): Promise<AiAppAccessCandidate[]> {
   try {
+    const params = new URLSearchParams({ search, environment });
     const response = await customFetch(
-      `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/access/candidates?search=${encodeURIComponent(search)}`,
+      `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/access/candidates?${params}`,
       { method: 'GET' },
       true,
     );

@@ -25,7 +25,7 @@ beforeEach(() => {
   process.env.COOKIE_DOMAIN = '.dev.os.pl.xyz';
   cookieJar.authToken = '"labos.jwt.token"';
   fetchMock.mockReset().mockResolvedValue(
-    new Response(JSON.stringify({ code: 'one-time-code', callbackOrigin: 'https://foo-dev.dev.os.pl.xyz' }), {
+    new Response(JSON.stringify({ code: 'one-time-code', callbackOrigin: 'https://foo-preview.dev.os.pl.xyz' }), {
       status: 201,
     }),
   );
@@ -34,12 +34,12 @@ beforeEach(() => {
 
 describe('GET /pl-infra/ai-apps/authorize', () => {
   it('mints a code with the LabOS token and sends the member to the app callback', async () => {
-    const res = await call({ appId: 'foo', target: 'dev', state: STATE, return: '/reports?x=1' });
+    const res = await call({ appId: 'foo', target: 'preview', state: STATE, return: '/reports?x=1' });
     const loc = location(res);
 
     expect(res.status).toBe(307);
     expect(res.headers.get('cache-control')).toBe('no-store');
-    expect(`${loc.origin}${loc.pathname}`).toBe('https://foo-dev.dev.os.pl.xyz/_pln/callback');
+    expect(`${loc.origin}${loc.pathname}`).toBe('https://foo-preview.dev.os.pl.xyz/_pln/callback');
     expect(Object.fromEntries(loc.searchParams)).toEqual({
       code: 'one-time-code',
       state: STATE,
@@ -50,7 +50,7 @@ describe('GET /pl-infra/ai-apps/authorize', () => {
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({ Authorization: 'Bearer labos.jwt.token' }),
-        body: JSON.stringify({ appId: 'foo', target: 'dev' }),
+        body: JSON.stringify({ appId: 'foo', target: 'preview' }),
       }),
     );
   });

@@ -43,14 +43,15 @@ const noStore = (response: NextResponse) => {
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const appId = params.get('appId') ?? '';
-  const target = params.get('target') === 'dev' ? 'dev' : 'prod';
+  const rawTarget = params.get('target');
+  const target = rawTarget === 'preview' || rawTarget === 'dev' ? 'preview' : 'prod';
   const state = params.get('state') ?? '';
   const fallback = noStore(NextResponse.redirect(new URL('/pl-infra/ai-apps', request.url)));
 
   if (
     !APP_ID.test(appId) ||
     !STATE.test(state) ||
-    (params.get('target') && !['prod', 'dev'].includes(params.get('target')!))
+    (params.get('target') && !['prod', 'preview', 'dev'].includes(params.get('target')!))
   ) {
     return fallback;
   }

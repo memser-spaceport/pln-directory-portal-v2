@@ -129,8 +129,8 @@ export function AiAppCard(props: Props) {
   const footer = (
     <div className={s.bottom}>
       <p className={s.envRow}>
-        Prod: {aiAppStatusLabel(aiAppTarget(app, 'prod').status)} · Dev:{' '}
-        {aiAppStatusLabel(aiAppTarget(app, 'dev').status)}
+        Prod: {aiAppStatusLabel(aiAppTarget(app, 'prod').status)} · Preview:{' '}
+        {aiAppStatusLabel(aiAppTarget(app, 'preview').status)}
       </p>
       <AiAppTagChips tags={app.tags} />
       {metricsRow}

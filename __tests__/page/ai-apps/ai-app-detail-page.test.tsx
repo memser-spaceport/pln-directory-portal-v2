@@ -216,7 +216,7 @@ describe('AiAppDetailPage', () => {
 
     render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
-    expect(screen.getByText(/Prod Draft · Dev Not deployed/)).toBeInTheDocument();
+    expect(screen.getByText(/Prod Draft · Preview Not deployed/)).toBeInTheDocument();
     expect(screen.getByText('AppSecretsPanel')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /^back$/i })).not.toBeInTheDocument();
   });
@@ -304,7 +304,7 @@ describe('AiAppDetailPage', () => {
       rerender(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       expect(screen.getByText('DeploymentSettingsModal')).toBeInTheDocument();
-      expect(screen.queryByText('Deploying')).not.toBeInTheDocument();
+      expect(screen.queryByText(/this page updates automatically/)).not.toBeInTheDocument();
       expect(screen.getByText('Redeploying the app')).toBeInTheDocument();
     });
   });
@@ -351,7 +351,7 @@ describe('AiAppDetailPage', () => {
       mockUseAiAppReturn = { app: DANGER_APP(), isLoading: false, isError: false };
       render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
-      expect(screen.getByText(/Prod Failed · Dev Not deployed/)).toBeInTheDocument();
+      expect(screen.getByText(/Prod Failed · Preview Not deployed/)).toBeInTheDocument();
       expect(screen.getByText(/Last deploy failed: boom/)).toBeInTheDocument();
       expect(screen.getByText('AppSecretsPanel')).toBeInTheDocument();
 
@@ -385,7 +385,7 @@ describe('AiAppDetailPage', () => {
       mockUseAiAppReturn = { app: buildApp({ status: 'ERROR', notes: 'boom' }), isLoading: false, isError: false };
       const { unmount } = render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
-      expect(screen.getByText(/Prod Failed · Dev Not deployed/)).toBeInTheDocument();
+      expect(screen.getByText(/Prod Failed · Preview Not deployed/)).toBeInTheDocument();
       expect(screen.getByText(/Last deploy failed: boom/)).toBeInTheDocument();
       unmount();
 

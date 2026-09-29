@@ -97,7 +97,7 @@ describe('ManageAccessModal', () => {
     fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
 
     await waitFor(() =>
-      expect(mockMutateAsync).toHaveBeenCalledWith({ access: 'PRIVATE', memberUids: ['bob', 'cara'] }),
+      expect(mockMutateAsync).toHaveBeenCalledWith({ access: 'PRIVATE', memberUids: ['bob', 'cara'], environment: 'prod' }),
     );
     expect(onClose).toHaveBeenCalled();
     expect(mockAnalytics.onAccessSaved).toHaveBeenCalledWith({
@@ -118,7 +118,7 @@ describe('ManageAccessModal', () => {
     expect(screen.getByText(/only you can see this app/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
 
-    await waitFor(() => expect(mockMutateAsync).toHaveBeenCalledWith({ access: 'PRIVATE', memberUids: [] }));
+    await waitFor(() => expect(mockMutateAsync).toHaveBeenCalledWith({ access: 'PRIVATE', memberUids: [], environment: 'prod' }));
   });
 
   it('switching to all PL Infra members hides the list but keeps it', async () => {
@@ -130,7 +130,7 @@ describe('ManageAccessModal', () => {
     expect(screen.getByText(/your list of 1 person is kept/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
 
-    await waitFor(() => expect(mockMutateAsync).toHaveBeenCalledWith({ access: 'OPEN', memberUids: ['bob'] }));
+    await waitFor(() => expect(mockMutateAsync).toHaveBeenCalledWith({ access: 'OPEN', memberUids: ['bob'], environment: 'prod' }));
   });
 
   it('shows the save error inline and stays open', async () => {

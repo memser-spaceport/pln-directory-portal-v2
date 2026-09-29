@@ -114,9 +114,7 @@ export function PublicEndpointsSection({ uid, lastDeployedAt, disabled, onRedepl
     <section className={s.section}>
       <h3 className={s.sectionTitle}>Public endpoints</h3>
       <p className={s.intro}>
-        Paths anyone can call without signing in to LabOS — for webhooks or a public API. Use <code>*</code> for
-        “anything after”, e.g. <code>/api/*</code> (add <code>/api</code> separately if needed). Changes apply right
-        away, no redeploy.
+        Paths anyone can open without signing in, such as <code>/api/*</code>. Applies to both Production and Preview.
       </p>
 
       <div className={s.notice}>

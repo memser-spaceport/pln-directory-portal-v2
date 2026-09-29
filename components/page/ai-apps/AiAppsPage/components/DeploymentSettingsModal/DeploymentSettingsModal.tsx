@@ -12,6 +12,7 @@ import {
   AiApp,
   AiAppDeployKeySummary,
   AiAppTargetEnvironment,
+  aiAppStatusLabel,
   aiAppTarget,
   createAiAppDeployKey,
   deleteAiAppTarget,
@@ -64,6 +65,8 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
   // Stored vars the creator has chosen to replace (revealing an empty input).
   const [replacing, setReplacing] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
+  const [buildError, setBuildError] = useState<string | null>(null);
+  const [keysError, setKeysError] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>('form');
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Set once the live record is seen DEPLOYING after our POST — guards the
@@ -108,6 +111,8 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
     setReplacing({});
     setPhase('form');
     setError(null);
+    setBuildError(null);
+    setKeysError(null);
     setConfirmTeardown(false);
     setCreatedToken(null);
   };
@@ -230,11 +235,11 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
       return;
     }
     setIsSubmitting(true);
-    setError(null);
+    setBuildError(null);
     const message = await deleteAiAppTarget(app.uid, environment);
     setIsSubmitting(false);
     if (message) {
-      setError(message);
+      setBuildError(message);
       setConfirmTeardown(false);
       return;
     }
@@ -246,10 +251,10 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
   };
 
   const handleCreateKey = async () => {
-    setError(null);
+    setKeysError(null);
     const result = await createAiAppDeployKey(app.uid, environment);
     if ('error' in result) {
-      setError(result.error);
+      setKeysError(result.error);
       return;
     }
     setCreatedToken(result.token);
@@ -259,7 +264,7 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
   const handleRevokeKey = async (keyUid: string) => {
     const ok = await revokeAiAppDeployKey(app.uid, keyUid);
     if (!ok) {
-      setError('Could not revoke that key.');
+      setKeysError('Could not revoke that key.');
       return;
     }
     setKeys((current) => current.filter((key) => key.uid !== keyUid));
@@ -279,7 +284,7 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
           <>
             <div className={s.body}>
               <div className={s.envSwitch} role="tablist" aria-label="Deployment environment">
-                {(['prod', 'dev'] as const).map((value) => (
+                {(['prod', 'preview'] as const).map((value) => (
                   <button
                     key={value}
                     type="button"
@@ -289,22 +294,43 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
                     onClick={() => selectEnvironment(value)}
                     disabled={isSubmitting}
                   >
-                    {value === 'prod' ? 'Production' : 'Dev'}
+                    {value === 'prod' ? 'Production' : 'Preview'}
                   </button>
                 ))}
               </div>
-              {!hasBuild && (
+              <section className={s.section}>
+                <h3 className={s.sectionTitle}>Build</h3>
+                <p className={s.intro}>The last bundle deployed to this environment.</p>
                 <p className={s.intro}>
-                  This environment has no build yet. Ask your AI agent to deploy here before you can deploy from LabOS.
+                  {aiAppStatusLabel(target.status)}
+                  {target.lastDeployedAt
+                    ? ` · Last deployed ${new Date(target.lastDeployedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}`
+                    : ' · No successful deploy yet'}
+                  {target.agentClient ? ` · ${target.agentClient}` : ''}
+                  {target.kitVersion ? ` · kit ${target.kitVersion}` : ''}
                 </p>
-              )}
-              {hasSecrets ? (
-                <>
+                {!hasBuild && (
                   <p className={s.intro}>
-                    {isDraft
-                      ? 'Enter the required values and deploy. Secrets are held securely on the sandbox and never shown again.'
-                      : 'Update one or more values and redeploy. Stored secrets stay in place — replace one only if it changed. Secrets are held securely on the sandbox and never shown again.'}
+                    No build yet. Ask your AI agent to deploy here before you can deploy from LabOS.
                   </p>
+                )}
+                {externalDeployInFlight && <p className={s.intro}>A deploy is already in progress.</p>}
+                {canManage && (target.url || target.lastDeployedAt) && (
+                  <button type="button" className={s.linkBtn} onClick={handleTeardown} disabled={isSubmitting}>
+                    {confirmTeardown ? 'Confirm tear down' : 'Tear down'}
+                  </button>
+                )}
+                {buildError && <p className={s.error}>{buildError}</p>}
+              </section>
+
+              <section className={s.section}>
+                <h3 className={s.sectionTitle}>App secrets</h3>
+                <p className={s.intro}>
+                  {hasSecrets
+                    ? 'Values the app reads at runtime. Stored ones stay until you replace them.'
+                    : 'This environment has no secrets. Redeploy restarts it with the stored bundle.'}
+                </p>
+                {hasSecrets && (
                   <div className={s.fields}>
                     {requiredEnvVars.map((name) => {
                       const isStored = provided.has(name);
@@ -338,9 +364,6 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
                               <input
                                 className={s.input}
                                 type="password"
-                                // Keeps browsers/password managers from treating
-                                // these as login fields (and PostHog replay masks
-                                // password inputs unconditionally).
                                 autoComplete="new-password"
                                 value={values[name] ?? ''}
                                 placeholder={isStored ? 'Enter a new value' : 'Enter a value'}
@@ -363,21 +386,25 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
                       );
                     })}
                   </div>
-                </>
-              ) : (
-                <p className={s.intro}>
-                  This app has no secrets to configure. Redeploy to restart the sandbox and pull the latest deployment.
-                </p>
-              )}
-
-              {externalDeployInFlight && <p className={s.intro}>A deploy is already in progress for this app.</p>}
-              {error && <p className={s.error}>{error}</p>}
+                )}
+                {error && <p className={s.error}>{error}</p>}
+              </section>
 
               {canManage && (
-                <div className={s.keys}>
+                <PublicEndpointsSection
+                  uid={app.uid}
+                  lastDeployedAt={target.lastDeployedAt}
+                  disabled={isSubmitting}
+                  onRedeploy={handleRedeploy}
+                  redeployDisabled={isSubmitting || externalDeployInFlight || !hasBuild}
+                />
+              )}
+
+              {canManage && (
+                <section className={s.section}>
+                  <h3 className={s.sectionTitle}>Deployment keys</h3>
                   <p className={s.intro}>
-                    Deployment keys let an agent deploy this app to {environment} without the connect flow. The full key
-                    is shown once.
+                    Lets an agent deploy this environment without the connect flow. The full key is shown once.
                   </p>
                   {createdToken && (
                     <p className={s.keyOnce}>
@@ -391,37 +418,25 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
                       </button>
                     </p>
                   )}
-                  <ul className={s.keyList}>
-                    {keys.map((key) => (
-                      <li key={key.uid}>
-                        <span>
-                          {key.environment} · {key.tokenPrefix}…
-                        </span>
-                        <button type="button" className={s.linkBtn} onClick={() => handleRevokeKey(key.uid)}>
-                          Revoke
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                  <button type="button" className={s.linkBtn} onClick={handleCreateKey} disabled={isSubmitting}>
-                    Generate {environment} key
-                  </button>
-                  {(target.url || target.lastDeployedAt) && (
-                    <button type="button" className={s.linkBtn} onClick={handleTeardown} disabled={isSubmitting}>
-                      {confirmTeardown ? `Confirm tear down ${environment}` : `Tear down ${environment}`}
-                    </button>
+                  {keys.some((key) => key.environment === environment) && (
+                    <ul className={s.keyList}>
+                      {keys
+                        .filter((key) => key.environment === environment)
+                        .map((key) => (
+                          <li key={key.uid}>
+                            <span>{key.tokenPrefix}…</span>
+                            <button type="button" className={s.linkBtn} onClick={() => handleRevokeKey(key.uid)}>
+                              Revoke
+                            </button>
+                          </li>
+                        ))}
+                    </ul>
                   )}
-                </div>
-              )}
-
-              {canManage && (
-                <PublicEndpointsSection
-                  uid={app.uid}
-                  lastDeployedAt={liveApp?.lastDeployedAt ?? app.lastDeployedAt}
-                  disabled={isSubmitting}
-                  onRedeploy={handleRedeploy}
-                  redeployDisabled={isSubmitting || externalDeployInFlight || !hasBuild}
-                />
+                  <button type="button" className={s.linkBtn} onClick={handleCreateKey} disabled={isSubmitting}>
+                    Generate key
+                  </button>
+                  {keysError && <p className={s.error}>{keysError}</p>}
+                </section>
               )}
             </div>
 

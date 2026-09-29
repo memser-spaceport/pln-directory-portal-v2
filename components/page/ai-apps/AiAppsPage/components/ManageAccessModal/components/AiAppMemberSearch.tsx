@@ -4,13 +4,14 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { clsx } from 'clsx';
 
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { AiAppAccessCandidate } from '@/services/ai-apps/ai-apps.service';
+import { AiAppAccessCandidate, AiAppTargetEnvironment } from '@/services/ai-apps/ai-apps.service';
 import { useAiAppAccessCandidates } from '@/services/ai-apps/hooks/useAiAppAccessCandidates';
 
 import s from './AiAppMemberSearch.module.scss';
 
 interface Props {
   appUid: string;
+  environment?: AiAppTargetEnvironment;
   /** Members already on the (unsaved) list, so results show "Added". */
   addedUids: string[];
   onAdd: (candidate: AiAppAccessCandidate) => void;
@@ -24,13 +25,13 @@ interface Props {
  * AI Apps access are hidden: they could never open the app, and the backend
  * rejects them on save.
  */
-export function AiAppMemberSearch({ appUid, addedUids, onAdd, disabled, onDropdownChange }: Props) {
+export function AiAppMemberSearch({ appUid, environment = 'prod', addedUids, onAdd, disabled, onDropdownChange }: Props) {
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [term, setTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const { results: candidates, isSearching, isIdle } = useAiAppAccessCandidates(appUid, term);
+  const { results: candidates, isSearching, isIdle } = useAiAppAccessCandidates(appUid, term, environment);
   const results = candidates.filter((candidate) => candidate.hasAiAppsAccess);
 
   const added = new Set(addedUids);

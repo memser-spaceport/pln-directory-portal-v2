@@ -436,7 +436,9 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
             </h2>
             <div className={s.metaRow}>
               <span className={s.appName}>{app.name}</span>
-              {(['prod', 'dev'] as const).map((value) => (
+              {(['prod', 'preview'] as const)
+                .filter((value) => value === 'prod' || app.canViewPreview)
+                .map((value) => (
                 <button
                   key={value}
                   type="button"
@@ -444,7 +446,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
                   aria-pressed={environment === value}
                   onClick={() => setEnvironment(value)}
                 >
-                  {value === 'prod' ? 'Production' : 'Dev'}
+                  {value === 'prod' ? 'Production' : 'Preview'}
                 </button>
               ))}
               <span className={`${s.status} ${statusChip.className}`}>{statusChip.label}</span>

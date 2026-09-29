@@ -1,0 +1,130 @@
+import type { FAQItem } from '@/app/constants/demoday';
+
+// Editorial copy for the Explore PL Network landing, copied from the approved
+// prototype (prototypes/entries/explore-pl-network/mocks.ts, 2026-09-29).
+// Marketing's own words where noted; the rest is placeholder copy flagged for
+// a marketing pass.
+
+export const EXPLORE_SUPPORT_EMAIL = 'spotlight@protocol.ai';
+
+export const EDITORIAL_HEADER = {
+  overline: 'About Protocol Labs',
+  title: 'The Protocol Labs Network',
+};
+
+// Marketing's "General Info" text on logo-islands.vercel.app, word for word
+// (the same text as protocol.ai's About and plnetwork.io/about).
+export const PL_CONTEXT = {
+  mission: 'Protocol Labs drives breakthroughs in computing to push humanity forward.',
+  about:
+    'We are an innovation network that connects over 760 tech startups, service providers, investment funds, accelerators, foundations, and other organizations developing breakthrough technologies and products in the frontiers of computing: web3, AI, AR, VR, BCI, hardware, and more. Organizations collaborate across the network to solve common problems, share knowledge and resources, and accelerate the R&D process for a wide range of technological fields.',
+  origin:
+    'Originally formed as the team behind IPFS, Filecoin, and libp2p, Protocol Labs continues to support those projects while expanding into additional emerging technologies.',
+};
+
+// The four areas, in marketing's order, with its own one-liners.
+export const FOCUS_AREAS = [
+  {
+    id: 'digital-human-rights',
+    name: 'Digital Human Rights',
+    line: 'Building decentralized infrastructure that enshrines freedom and safety in the digital age.',
+  },
+  {
+    id: 'economies--governance',
+    name: 'Economies & Governance',
+    line: 'Crypto-native tools for more efficient, equitable coordination at global scale.',
+  },
+  {
+    id: 'ai--robotics',
+    name: 'AI & Robotics',
+    line: 'Responsible advancement in AGI, robotics, and immersive technologies that reshape how we interact with the world.',
+  },
+  {
+    id: 'neurotech',
+    name: 'Neurotechnology',
+    line: 'Accelerating brain-computer interfaces and NeuroAI to expand human cognition and treat brain disorders.',
+  },
+] as const;
+
+// Only figures a public source backs. `portfolio` is filled in from the map's
+// own data so the two can't disagree.
+export const PL_FACTS = [
+  { value: '2014', label: 'Founded', source: 'Source: pl.xyz/about' },
+  { value: '760+', label: 'Organizations in the network', source: 'Source: plnetwork.io/about' },
+  { value: 'portfolio', label: 'Portfolio teams', source: 'Listed below' },
+  { value: '4', label: 'Focus areas', source: 'Source: protocol.ai' },
+] as const;
+
+// Each line is the entity's own meta description, trimmed.
+export const PL_ENTITIES = [
+  {
+    name: 'Protocol Labs',
+    line: 'The innovation network driving breakthroughs in computing to push humanity forward.',
+    href: 'https://protocol.ai/',
+    domain: 'protocol.ai',
+  },
+  {
+    name: 'PL R&D',
+    line: 'Funds pre-commercial invention and de-risks frontier ideas from open research to deployment.',
+    href: 'https://www.plrd.org/',
+    domain: 'plrd.org',
+  },
+  {
+    name: 'PL Capital',
+    line: 'A family of venture funds backing extraordinary founders scaling breakthrough R&D.',
+    href: 'https://plcapital.xyz/',
+    domain: 'plcapital.xyz',
+  },
+  {
+    name: 'PL Venture Studio',
+    line: 'Partners with founders translating cutting-edge R&D into groundbreaking startups.',
+    href: 'https://plcapital.xyz/plvs',
+    domain: 'plcapital.xyz/plvs',
+  },
+  {
+    name: 'PL Neuro',
+    line: 'Breaks through bottlenecks in neurotechnology and NeuroAI through investment and research.',
+    href: 'https://www.plneuro.xyz/',
+    domain: 'plneuro.xyz',
+  },
+] as const;
+
+export const PL_CAPITAL_URL = 'https://plcapital.xyz/';
+
+// What an investor new to PL asks first, then the Spotlight questions.
+export const EXPLORE_FAQ_ITEMS: FAQItem[] = [
+  {
+    question: 'What is the PL Network?',
+    answer:
+      'The PL Network is the group of teams Protocol Labs has founded, funded or accelerated, plus the people who work in them. Teams share infrastructure, events and talent, and many build on each other’s work.',
+  },
+  {
+    question: 'Which teams are listed here?',
+    answer:
+      'Every team in the Protocol Labs portfolio with a public directory profile. Each profile is maintained by the team itself and by PL — founders, focus areas, projects and recent news.',
+  },
+  {
+    question: 'What is PL Spotlight?',
+    answer:
+      "PL Spotlight is how Protocol Labs brings a small set of PL Network teams to outside investors. Each Spotlight is one SPV (special purpose vehicle) led by Protocol Labs into one team's round.",
+  },
+  {
+    question: 'Who can request access?',
+    answer:
+      'Accredited investors, and people investing on behalf of a VC fund or institution. A request takes your email, name, role and organization. If you are new, it also creates a free PL Network account.',
+  },
+  {
+    question: 'What happens after I request access?',
+    answer:
+      "The PL team reviews every request. We email you when you are approved. After that, the Spotlight page shows View materials, which opens the team's DocSend.",
+  },
+  {
+    question: 'I was invited — do I still need to request access?',
+    answer:
+      'No. The link in your invitation email signs you in and takes you straight to the materials. If you were sent the public link, request access with your email — that creates your account.',
+  },
+  {
+    question: 'What happens when a Spotlight closes?',
+    answer: 'The SPV stops taking commitments and its materials are no longer available on this page.',
+  },
+];

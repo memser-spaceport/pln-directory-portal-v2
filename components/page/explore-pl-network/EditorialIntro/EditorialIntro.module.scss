@@ -1,0 +1,264 @@
+@use 'styles/media';
+
+// Copied from the approved prototype's Editorial direction.
+// An institutional About page: centred type, whitespace and hairlines.
+// Sizes follow the completed Demo Day titles (56 / 32 / 18) so it stays in the
+// family of the deal page it is opened from.
+
+// Centred, like the rest of the completed Demo Day template it sits in.
+.editorial {
+  width: 100%;
+  max-width: 1184px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 72px;
+  padding-top: 40px;
+
+  @include media.mobile-only {
+    gap: 48px;
+    padding-top: 24px;
+  }
+}
+
+.edHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 800px;
+}
+
+.edOverline,
+.edSectionTitle,
+.edFactLabel {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.edTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 56px;
+  font-weight: 600;
+  line-height: 64px;
+  letter-spacing: -1.6px;
+
+  @include media.mobile-only {
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -0.8px;
+  }
+}
+
+.edLede {
+  margin: 8px 0 0;
+  // Centred lines: balance them so no single word is left on its own.
+  text-wrap: balance;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 32px;
+  letter-spacing: -0.5px;
+
+  @include media.mobile-only {
+    font-size: 20px;
+    line-height: 28px;
+  }
+}
+
+.edBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  p {
+    margin: 0;
+    color: var(--foreground-neutral-secondary, #455468);
+    font-size: 16px;
+    line-height: 26px;
+    letter-spacing: -0.3px;
+  }
+}
+
+// Figures: four columns under a hairline, each with its source.
+.edFacts {
+  margin: 0;
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include media.mobile-only {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.edFact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 20px 12px 0;
+
+  @include media.mobile-only {
+    padding: 16px 8px 8px;
+  }
+}
+
+.edFactValue {
+  order: -1;
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 48px;
+  letter-spacing: -1px;
+  font-variant-numeric: tabular-nums;
+
+  @include media.mobile-only {
+    font-size: 32px;
+    line-height: 40px;
+  }
+}
+
+.edFactSource {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.edSection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.edFocus {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+
+  @include media.tablet-only {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @include media.mobile-only {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+.edFocusItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.edFocusIndex {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.edFocusName {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+}
+
+.edFocusLine {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.edEntities {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+
+  li {
+    display: flex;
+  }
+
+  @include media.tablet-landscape-only {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @include media.tablet-portrait-only {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @include media.mobile-only {
+    grid-template-columns: 1fr;
+  }
+}
+
+.edEntity {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+
+  &:hover .edEntityDomain {
+    text-decoration: underline;
+  }
+}
+
+.edEntityName {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.edEntityLine {
+  flex: 1;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.edEntityDomain {
+  margin-top: 4px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+}

@@ -2802,3 +2802,13 @@ export const SPV_SPOTLIGHT_ANALYTICS = {
   ON_EXPLORE_TILE_CLICKED: 'spv-spotlight-explore-tile-clicked',
   ON_FOUNDER_PROFILE_CLICKED: 'spv-spotlight-founder-profile-clicked',
 };
+
+export const EXPLORE_PL_NETWORK_ANALYTICS = {
+  ON_PAGE_VIEWED: 'explore-pl-network-page-viewed',
+  ON_PORTFOLIO_VIEW_CHANGED: 'explore-pl-network-portfolio-view-changed',
+  ON_MAP_TILE_OPENED: 'explore-pl-network-map-tile-opened',
+  ON_TEAM_PROFILE_CLICKED: 'explore-pl-network-team-profile-clicked',
+  ON_LIST_SHOW_ALL_TOGGLED: 'explore-pl-network-list-show-all-toggled',
+  ON_LOGO_WALL_SHOW_ALL_TOGGLED: 'explore-pl-network-logo-wall-show-all-toggled',
+  ON_ENTITY_CLICKED: 'explore-pl-network-entity-clicked',
+};

@@ -57,6 +57,14 @@ export const MODAL_INTRO =
 
 export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = [
   {
+    version: '1.14',
+    items: [
+      'Your app now learns who is signed in from its own address — there is no LabOS token for your code to read or pass around',
+      'The sign-in your app receives works for your app only, not for LabOS or other apps',
+      'Apps built with earlier kits keep working as they are — no redeploy needed',
+    ],
+  },
+  {
     version: '1.13',
     items: [
       'Choose who can open your app: all PL Infra members (the default) or private to you. Your agent asks before the first deploy',

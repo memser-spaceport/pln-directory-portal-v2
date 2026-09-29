@@ -186,3 +186,57 @@ describe('proxy: host-only refreshToken/userInfo', () => {
     ).toEqual(['refreshToken', 'sessionScope', 'userInfo']);
   });
 });
+
+describe('proxy: AI_APPS_SHARE_AUTH_TOKEN=false (LabOS stops sharing authToken)', () => {
+  beforeEach(() => {
+    process.env.AI_APPS_SHARE_AUTH_TOKEN = 'false';
+  });
+  afterEach(() => {
+    delete process.env.AI_APPS_SHARE_AUTH_TOKEN;
+  });
+
+  it('moves authToken host-only too, once, for a session that already had refreshToken/userInfo moved', async () => {
+    mockedCheck.mockResolvedValue({ active: true });
+
+    const res = await proxy(request('/home', { ...SESSION, sessionScope: 'host' }));
+    const cookies = setCookies(res!);
+
+    expect(res!.headers.get('isLoggedIn')).toBe('true');
+    expect(cookies).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'authToken',
+          value: encodeURIComponent(SESSION.authToken),
+          domain: undefined,
+          expired: false,
+        }),
+        expect.objectContaining({ name: 'authToken', domain: DOMAIN, expired: true }),
+        expect.objectContaining({ name: 'sessionScope', value: 'host-all' }),
+      ]),
+    );
+  });
+
+  it('leaves an already fully host-only session alone', async () => {
+    mockedCheck.mockResolvedValue({ active: true });
+    const res = await proxy(request('/home', { ...SESSION, sessionScope: 'host-all' }));
+    expect(setCookies(res!)).toEqual([]);
+  });
+
+  it('writes a refreshed authToken host-only and expires its shared copy', async () => {
+    mockedCheck.mockResolvedValue({ active: false });
+    mockedRenew.mockResolvedValue({
+      data: { accessToken: 'access2.jwt', refreshToken: 'refresh2.jwt', userInfo: { uid: 'm-1' } },
+    });
+
+    const cookies = setCookies((await proxy(request('/home', SESSION)))!);
+
+    expect(cookies.filter((c) => !c.expired).find((c) => c.name === 'authToken')?.domain).toBeUndefined();
+    expect(cookies.filter((c) => c.expired).map((c) => [c.name, c.domain])).toEqual(
+      expect.arrayContaining([
+        ['authToken', DOMAIN],
+        ['refreshToken', DOMAIN],
+        ['userInfo', DOMAIN],
+      ]),
+    );
+  });
+});

@@ -14,7 +14,7 @@ import { PortfolioPanel } from './PortfolioPanel';
 import { SpvNavBar } from '../spv-spotlight/SpvNavBar';
 import { PORTFOLIO, type PortfolioLogo } from './islands';
 import { TEAM_INFO } from './teamInfo';
-import { EXPLORE_COPY, exploreFaqItems } from './mocks';
+import { EXPLORE_COPY, exploreFaqItems, PL_ENTITIES } from './mocks';
 import { EditorialIntro } from './EditorialSections';
 import { VisualContext, VisualHero } from './VisualSections';
 import s from './ExplorePlNetwork.module.scss';
@@ -107,7 +107,17 @@ export function ExplorePlNetworkPage({ direction }: { direction: Direction }) {
           <footer className={d.footer}>
             <div className={d.note}>
               © 2026 Protocol Labs. Team information is provided by the teams. Protocol Labs does not endorse or
-              recommend any investment, and is not a broker, dealer, or advisor.
+              recommend any investment, and is not a broker, dealer, or advisor. Investments referenced on this page are
+              made through{' '}
+              <a
+                href={PL_ENTITIES.find((e) => e.name === 'PL Capital')?.href}
+                className={d.infoLink}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                PL Capital
+              </a>
+              .
             </div>
             <div className={d.bottom}>
               <div className={d.links}>

@@ -431,3 +431,25 @@
   flex: 0 1 auto;
   min-width: 0;
 }
+
+/* The Suggested tab's two lines — what the list is, and what it was matched
+ * on — as one block: 4px between them (they are one note), the block's 12px
+ * below (lesson 11: a uniform margin would float the second line between the
+ * first and the search). */
+.suggestedNote {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+  margin: 0 0 12px;
+
+  .tabNote,
+  .tabNoteRow {
+    margin: 0;
+  }
+}
+
+/* "Matched on" — the list's criteria are the value, this is its label. */
+.matchedOnLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

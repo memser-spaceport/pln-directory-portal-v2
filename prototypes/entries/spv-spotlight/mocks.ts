@@ -20,7 +20,8 @@ export const EXPLORE_PL_NETWORK_URL = '/prototypes/explore-pl-network';
 
 export const mockSpotlight = {
   slug: 'netholabs-spv',
-  title: 'Netholabs SPV',
+  // Named "SPV Spotlight: <team>" in the 2026-09-29 review.
+  title: 'SPV Spotlight: Netholabs',
   // Admin-configurable hero copy. Rich text in production (Quill), rendered the
   // way the completed Demo Day renders its description. Placeholder wording;
   // the team facts under it come from Netholabs' real directory profile.
@@ -89,23 +90,17 @@ export const spvFaqItems: FAQItem[] = [
   {
     question: 'What happens after I request access?',
     answer:
-      "The PL team reviews every request. We email you when you are approved. After that, the Spotlight page shows View materials, which opens the team's DocSend.",
+      "The PL team reviews every request. We email you when you are approved. After that, the Spotlight page shows Open data room, which opens the team's DocSend.",
   },
   {
     question: 'I was invited — do I still need to request access?',
     answer:
-      'No. The link in your invitation email signs you in and takes you straight to the materials. If you were sent the public link, request access with your email — that creates your account.',
+      'No. The link in your invitation email signs you in and takes you straight to the data room. If you were sent the public link, request access with your email — that creates your account.',
   },
   {
     question: 'What happens when a Spotlight closes?',
-    answer: 'The SPV stops taking commitments and its materials are no longer available on this page.',
+    answer: 'The SPV stops taking commitments and its data room is no longer available on this page.',
   },
-];
-
-export const STATUS_OPTIONS: { value: SpvStatus; label: string }[] = [
-  { value: 'DRAFT', label: 'Draft' },
-  { value: 'OPEN', label: 'Open' },
-  { value: 'CLOSED', label: 'Closed' },
 ];
 
 export const VIEWER_OPTIONS: { value: SpvViewer; label: string }[] = [

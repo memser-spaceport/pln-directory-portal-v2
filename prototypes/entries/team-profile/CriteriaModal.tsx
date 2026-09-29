@@ -100,7 +100,13 @@ export function CriteriaModal({ open, onClose, roleTitle, criteria, people, off,
                     return (
                       <label key={c.id} className={clsx(s.editRow, { [s.editRowLocked]: locked })}>
                         <Checkbox checked={on} disabled={locked} onChange={() => toggle(c.id)} />
-                        {c.label}
+                        {/* The short name over the POC's own sentence: this
+                            is where the lead decides what counts, so it is the
+                            one place the full criterion is spelled out. */}
+                        <span className={s.itemText}>
+                          {c.label}
+                          <span className={s.evidence}>{c.statement}</span>
+                        </span>
                       </label>
                     );
                   })}

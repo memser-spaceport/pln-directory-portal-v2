@@ -63,6 +63,18 @@ interface AnswerPanelProps {
   onDraftChange?: (text: string) => void;
   /** Member cards offer an intro through the PL team (see `DirectoryResultsCards`). */
   requestIntro?: React.ComponentProps<typeof DirectoryResultsCards>['requestIntro'];
+  /**
+   * Drops the Back / New question bar. The `ai-mode` page carries both exits
+   * in its own chrome (Back to search in the page bar, New chat in the history
+   * rail), so a second copy above the thread would be two doors to one room.
+   */
+  hideBar?: boolean;
+  /**
+   * `page`: the thread and its input sit in a centred reading column while the
+   * scroll region stays full width (the `ai-mode` page). The default, `dialog`,
+   * is unchanged for every other host.
+   */
+  layout?: 'dialog' | 'page';
 }
 
 /**
@@ -106,6 +118,8 @@ export function AnswerPanel({
   draft = '',
   onDraftChange,
   requestIntro,
+  hideBar = false,
+  layout = 'dialog',
 }: AnswerPanelProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -200,26 +214,28 @@ export function AnswerPanel({
   };
 
   return (
-    <div className={s.root}>
+    <div className={clsx(s.root, layout === 'page' && s.rootPage)}>
       {/* One bar, two exits. Back returns the list this answer was reached
           from; New question returns to the view's idle state for a fresh
           thread. ("Continue in AI Search" stood in the second slot when this
           was a small dialog and the AI Search page was the bigger surface;
           the view is the bigger surface now, so the link had nowhere to go.) */}
-      <div className={s.bar}>
-        {onBackToResults ? (
-          <Button style="link" variant="neutral" size="xs" onClick={onBackToResults}>
-            ← {backLabel}
-          </Button>
-        ) : (
-          <span />
-        )}
-        {onNewQuestion && (
-          <Button style="link" variant="primary" size="xs" onClick={onNewQuestion}>
-            New question
-          </Button>
-        )}
-      </div>
+      {!hideBar && (
+        <div className={s.bar}>
+          {onBackToResults ? (
+            <Button style="link" variant="neutral" size="xs" onClick={onBackToResults}>
+              ← {backLabel}
+            </Button>
+          ) : (
+            <span />
+          )}
+          {onNewQuestion && (
+            <Button style="link" variant="primary" size="xs" onClick={onNewQuestion}>
+              New question
+            </Button>
+          )}
+        </div>
+      )}
 
       <div className={s.messages}>
         {turns.map((turn, i) => (

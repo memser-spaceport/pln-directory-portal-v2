@@ -17,22 +17,30 @@
   padding-top: 24px;
 }
 
-// Green "live" dot for OPEN — the completed page's `.dot`, drawn inside the
-// same 16px slot as its grey circle so the badge doesn't change width.
-.openDot {
-  width: 16px;
-  height: 16px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+// A shorter hero than the completed Demo Day's, so more of the team card is in
+// the first screen (2026-09-29 review, "more of the Netholabs stuff without
+// scrolling"): no status pill, 16px over the title instead of 40, a 40px title
+// instead of 56 (the title is now the longer "SPV Spotlight: Netholabs"), and
+// 24px down to the card instead of the sheet's 40.
+.heroCompact.heroCompact {
+  padding-top: 16px;
+  gap: 24px;
+}
 
-  &::before {
-    content: '';
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--foreground-success-primary, #0a9952);
+.heroTitle.heroTitle {
+  font-size: 40px;
+  line-height: 48px;
+  letter-spacing: -1px;
+
+  @include media.mobile-only {
+    font-size: 28px;
+    line-height: 36px;
+    letter-spacing: -0.6px;
   }
+}
+
+.contentTight.contentTight {
+  gap: 24px;
 }
 
 // ---- Buttons ----------------------------------------------------------------
@@ -449,6 +457,19 @@
   padding: 10px 12px;
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   border-radius: 8px;
+  // A link to the founder's directory profile (new tab): subtle border at
+  // rest, muted on hover, the product's resting/hover pair.
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
 }
 
 .founderTileAvatar.founderTileAvatar {
@@ -900,4 +921,23 @@
 .heroLinks.heroLinks {
   justify-content: center;
   margin-top: 4px;
+}
+
+// The account menu's popup is portalled to the body at production's z-index 6,
+// under this bar's sticky z-index 10, so the bar covered its top. Lift it
+// above the bar.
+.accountPositioner.accountPositioner {
+  z-index: 11;
+}
+
+// Below 960 LoginBtn is `height: 100%` of production's nav slot; this bar's
+// right group has no fixed height, so it gets 32px there and keeps 40 above.
+.navSignIn.navSignIn {
+  border: none;
+  cursor: pointer;
+  height: 32px;
+
+  @include media.tablet-landscape {
+    height: 40px;
+  }
 }

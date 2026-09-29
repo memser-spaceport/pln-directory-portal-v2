@@ -51,12 +51,14 @@ export const FOCUS_AREAS = [
 // Key numbers. Only ones a source backs: the portfolio count is islands.ts
 // (filled in by the page); the rest are marketing's own, as published. Sources
 // are named as an investor can check them, not by our internal panel names.
+// `source` is provenance only — the page no longer prints it (Anuj, 2026-09-29).
 // protocol.ai also claims 3k contributors and a $40B combined valuation — left
-// out until someone signs off on showing them to investors — and says 750
-// where General Info says 760.
+// out until someone signs off on showing them to investors. The network count
+// is protocol.ai's 750+, which Anuj asked to keep consistent with the SPV
+// page's Explore tile (2026-09-29); General Info (PL_CONTEXT) still says 760.
 export const PL_FACTS = [
   { value: '2014', label: 'Founded', source: 'pl.xyz/about' },
-  { value: '760+', label: 'Organizations in the network', source: 'plnetwork.io/about' },
+  { value: '750+', label: 'Organizations in the network', source: 'protocol.ai' },
   { value: 'portfolio', label: 'Portfolio teams', source: 'Listed below' },
   { value: '4', label: 'Focus areas', source: 'protocol.ai' },
 ] as const;

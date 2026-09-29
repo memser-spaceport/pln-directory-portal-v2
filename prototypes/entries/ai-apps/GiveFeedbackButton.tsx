@@ -1,9 +1,10 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/common/Button';
 import { CommentIcon } from '@/components/icons';
+import { isOpenFeedbackChord, useShortcutLabels } from '@/components/page/ai-apps/shortcutKeys';
 // Production stylesheet: `.button` is just the icon/label row.
 import fb from '@/components/page/ai-apps/components/FloatingFeedbackButton/FloatingFeedbackButton.module.scss';
 
@@ -42,11 +43,32 @@ interface Props {
 export function GiveFeedbackButton({ apps, onSubmit }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const anchorRef = useRef<HTMLSpanElement>(null);
+  const shortcuts = useShortcutLabels();
+
+  /* Production's open chord (`isOpenFeedbackChord`, ⌥⌘↩ / Alt+Ctrl+Enter),
+     wired here so the dialog's shortcut reference lists nothing that does
+     nothing in the prototype. */
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (!isOpenFeedbackChord(event)) return;
+      event.preventDefault();
+      setIsOpen(true);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
 
   return (
     <>
       <span ref={anchorRef} style={{ display: 'inline-flex' }}>
-        <Button size="s" style="fill" variant="primary" className={fb.button} onClick={() => setIsOpen(true)}>
+        <Button
+          size="s"
+          style="fill"
+          variant="primary"
+          className={fb.button}
+          aria-keyshortcuts={shortcuts.openAria}
+          onClick={() => setIsOpen(true)}
+        >
           <CommentIcon />
           Give feedback
         </Button>

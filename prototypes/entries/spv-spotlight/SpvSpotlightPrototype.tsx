@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import clsx from 'clsx';
+import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
 import { PRIVACY_POLICY_URL, TERMS_AND_CONDITIONS_URL } from '@/app/constants/demoday';
 // The page keeps the completed Demo Day template's root, white content sheet,
 // hero and footer (DemodayCompletedView).
@@ -9,7 +10,6 @@ import d from '@/components/page/demo-day/DemodayCompletedView/DemodayCompletedV
 import { SpvHero, type SpvHeroVariant } from './SpvHero';
 import { SpvExploreTile } from './SpvExploreTile';
 import { SpvNavBar } from './SpvNavBar';
-import { PORTFOLIO } from '../explore-pl-network/islands';
 import { SpvCardAction, SpvCardStatus, SpvTeamSpotlight } from './SpvTeamSpotlight';
 import { netholabs, NETHOLABS_FACTS, NETHOLABS_SUMMARY, NETHOLABS_WEBSITE_IMAGES } from './netholabs';
 import { SpvInvestorProfileDrawer, type InvestorRecord } from './SpvInvestorProfileDrawer';
@@ -19,7 +19,7 @@ import {
   mockInvestorProfile,
   mockInvestorDetails,
   mockSpotlight,
-  STATUS_OPTIONS,
+  spvFaqItems,
   VIEWER_OPTIONS,
   type SpvStatus,
   type SpvViewer,
@@ -42,17 +42,22 @@ import s from './SpvSpotlight.module.scss';
  *   2026-09-29 sync, was "Apply to invest"). Requesting is signing up: it
  *   creates the investor's account, so it has to stay low-friction. It sits in
  *   the team card's action slot (moved out of the hero 2026-09-29), with
- *   "Already requested access? Sign in" under it for signed-out viewers.
- * - View materials — the team's one DocSend, once approved and open; the same
- *   card slot, since it's the next state of the same door.
+ *   "Already have an account? Sign in" under it for signed-out viewers (was
+ *   "Already requested access?" — requesting creates the account, so the line
+ *   is for anyone with one: a past requester or an existing member).
+ * - Open data room — the team's one DocSend, once approved and open (renamed
+ *   from "View materials" in the 2026-09-29 review); the same card slot, since
+ *   it's the next state of the same door.
  * - Every other state holds that slot with a quiet line (pending, opening
  *   soon, declined, closed); the hero carries the stepper and messages.
  * - Explore PL Network — a separate landing for investors new to the network
  *   (prototype `explore-pl-network`): what PL is, an FAQ, the portfolio teams.
  *   A tile under the card.
  * - Set up / Edit investor profile — a small text link in the hero for approved
- *   viewers (and in the pending stepper): it's about the investor, not the
- *   team, and never the page's main action.
+ *   viewers (and in the pending stepper), Signed-in viewers also get the account avatar in the
+ *   top bar, which opens their profile (2026-09-29 review).
+ * - An FAQ at the bottom (same review), the questions the Explore landing
+ *   carries too.
  *
  * Two kinds of link reach this page: the public link (everyone applies), and a
  * per-investor whitelisted link whose login token signs them in on arrival as
@@ -62,6 +67,11 @@ import s from './SpvSpotlight.module.scss';
  * - Pending return visit → the applied stepper, no Apply, so nobody applies twice.
  * - Rejected → says so plainly, no Apply.
  */
+
+// The preview bar no longer switches the Spotlight's status (Draft / Open /
+// Closed tabs removed 2026-09-29), so the page previews an OPEN Spotlight. The
+// opening-soon and closed branches stay below for the frontend spec.
+const status: SpvStatus = 'OPEN';
 
 const resolveVariant = (status: SpvStatus, viewer: SpvViewer): SpvHeroVariant => {
   if (status === 'CLOSED') return 'closed';
@@ -76,13 +86,12 @@ const HINTS: Record<SpvHeroVariant, string> = {
   pending: 'Requested, awaiting admin review. No request button, no data room.',
   rejected: 'Declined. Cannot request again.',
   openingSoon: 'Approved, Spotlight still in draft. No DocSend yet.',
-  open: 'Approved + open: View materials opens the team’s DocSend.',
+  open: 'Approved + open: Open data room opens the team’s DocSend.',
   closed: 'Closed — the same message for every viewer.',
 };
 
 export default function SpvSpotlightPrototype() {
   const [mounted, setMounted] = useState(false);
-  const [status, setStatus] = useState<SpvStatus>('OPEN');
   const [viewer, setViewer] = useState<SpvViewer>('signedOut');
   const [applyOpen, setApplyOpen] = useState(false);
   const [appliedEmail, setAppliedEmail] = useState<string | null>(null);
@@ -116,10 +125,11 @@ export default function SpvSpotlightPrototype() {
             note={
               isLoggedIn ? undefined : (
                 <>
-                  Already requested access?{' '}
-                  {/* Production opens Privy. Here, signing in shows the
-                      request this email already has. */}
-                  <button type="button" className={s.inlineLink} onClick={() => setViewer('pending')}>
+                  Already have an account?{' '}
+                  {/* Production opens Privy. Here, signing in lands as a
+                      signed-in viewer with no request yet; the request
+                      form's email check still catches a past requester. */}
+                  <button type="button" className={s.inlineLink} onClick={() => setViewer('notApplied')}>
                     Sign in
                   </button>
                 </>
@@ -128,13 +138,15 @@ export default function SpvSpotlightPrototype() {
           />
         );
       case 'open':
-        return <SpvCardAction label="View materials" href={mockSpotlight.docSendUrl} />;
+        return <SpvCardAction label="Open data room" href={mockSpotlight.docSendUrl} />;
+      // Every line names the data room (2026-09-29 review: "Access not
+      // approved" → "Data room access not approved").
       case 'pending':
-        return <SpvCardStatus>Access requested, pending review</SpvCardStatus>;
+        return <SpvCardStatus>Data room access pending review</SpvCardStatus>;
       case 'openingSoon':
-        return <SpvCardStatus>Approved, materials open soon</SpvCardStatus>;
+        return <SpvCardStatus>Approved, data room opens soon</SpvCardStatus>;
       case 'rejected':
-        return <SpvCardStatus>Access not approved</SpvCardStatus>;
+        return <SpvCardStatus>Data room access not approved</SpvCardStatus>;
       case 'closed':
         return <SpvCardStatus>Data room closed</SpvCardStatus>;
     }
@@ -145,19 +157,6 @@ export default function SpvSpotlightPrototype() {
   return (
     <div className={s.page}>
       <div className={s.demoBar} role="group" aria-label="Prototype preview controls">
-        <span className={s.demoLabel}>Spotlight</span>
-        <div className={s.segmented}>
-          {STATUS_OPTIONS.map((o) => (
-            <button
-              key={o.value}
-              type="button"
-              className={clsx(s.segment, { [s.segmentActive]: status === o.value })}
-              onClick={() => setStatus(o.value)}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
         <span className={s.demoLabel}>Viewer</span>
         <div className={s.segmented}>
           {VIEWER_OPTIONS.map((o) => (
@@ -177,14 +176,26 @@ export default function SpvSpotlightPrototype() {
         <span className={s.demoHint}>{hint}</span>
       </div>
 
-      <SpvNavBar label="PL Spotlight" supportEmail={mockSpotlight.supportEmail} />
+      <SpvNavBar
+        label="PL Spotlight"
+        account={
+          isLoggedIn
+            ? {
+                name: profile.name,
+                avatar: profile.avatar,
+                onProfile: () => setProfileOpen(true),
+                onSignOut: () => setViewer('signedOut'),
+              }
+            : undefined
+        }
+        // Same outcome as the card's "Sign in" link: signed in, no request yet.
+        onSignIn={() => setViewer('notApplied')}
+      />
 
       <div className={clsx(d.root, s.root)}>
-        <div className={d.content}>
+        <div className={clsx(d.content, s.contentTight)}>
           <SpvHero
             variant={variant}
-            status={status}
-            email={pendingEmail}
             title={mockSpotlight.title}
             description={mockSpotlight.description}
             profileComplete={investorComplete}
@@ -212,7 +223,23 @@ export default function SpvSpotlightPrototype() {
               it says what the network is before asking for the click, and it
               no longer outranks the card's data-room action. */}
           <section className={s.exploreSection} aria-label="Explore the PL Network">
-            <SpvExploreTile teamCount={PORTFOLIO.length} />
+            <SpvExploreTile />
+          </section>
+
+          <section className={d.sectionFaq}>
+            <FAQ
+              title="Questions investors ask"
+              items={spvFaqItems}
+              subtitle={
+                <p className={d.infoText}>
+                  Reach out to us at{' '}
+                  <a href={`mailto:${mockSpotlight.supportEmail}`} className={d.infoLink}>
+                    {mockSpotlight.supportEmail}
+                  </a>{' '}
+                  for any other questions.
+                </p>
+              }
+            />
           </section>
 
           <footer className={d.footer}>
@@ -242,7 +269,9 @@ export default function SpvSpotlightPrototype() {
         key={viewer}
         isOpen={applyOpen}
         onClose={() => setApplyOpen(false)}
-        spotlightTitle={mockSpotlight.title}
+        // "Request access to the Netholabs data room": the team's name, since
+        // the page title now reads "SPV Spotlight: Netholabs".
+        spotlightTitle={netholabs.name}
         prefill={viewer === 'notApplied' ? mockSignedInUser : null}
         onSubmitted={(email) => {
           setApplyOpen(false);

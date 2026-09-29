@@ -37,8 +37,18 @@ import {
 // Production stylesheet imported verbatim — the popover, header, form stack,
 // screenshot row/strip and footer are dev's.
 import s from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/GiveAiAppFeedbackDialog.module.scss';
+// The annotator's footer already puts a chord inside each button (Esc on
+// Discard, ⌘↩ on Add to feedback); the dialog's footer now does the same with
+// the same classes.
+import am from '@/components/page/ai-apps/components/screenshot-feedback/AnnotatorModal.module.scss';
+// FormEditor's label, so "Screenshot" is the same kind of label as "Your feedback".
+import fe from '@/components/form/FormEditor/FormEditor.module.scss';
 
+import { KeyboardShortcutsPanel } from './KeyboardShortcutsPanel';
 import { currentUser, LABOS_AI_APPS_OPTION, type AiAppWithDoc } from './mocks';
+import { useChordLabels } from './shortcutPlatform';
+
+import local from './GiveFeedbackDialog.module.scss';
 
 /** Visible characters the member may type, counted with the markup stripped. */
 const MAX_LENGTH = 5000;
@@ -50,8 +60,12 @@ const FEEDBACK_TOOLBAR: (string | Record<string, unknown>)[][] = [
 const DRAFT_KEY = 'prototype:ai-apps:feedback-draft';
 const FEEDBACK_PLACEHOLDER = 'What worked, what didn’t, and what would make this more useful?';
 
+/* `open` is LAB-2700's helper line. It replaces dev's "Your browser will ask
+   which tab to share — choose this one, then drag…": the browser's own picker
+   says the first half, and what the person needs to know before pressing is
+   what they can do with the capture. The fallbacks are dev's. */
 const SCREENSHOT_HINTS: Record<PersistentCaptureReason | 'open', string> = {
-  open: 'Your browser will ask which tab to share — choose this one, then drag to capture any area of the page.',
+  open: 'Take a screenshot — you can draw and add comments on it after capturing.',
   unsupported: 'Screenshots need a desktop browser — take one on your device and attach it here.',
   blocked: 'Screen sharing is turned off in this browser — attach a screenshot instead.',
   unreadable: 'Your browser couldn’t read the screen — attach a screenshot instead.',
@@ -120,7 +134,7 @@ function getAnchorOverlayStyle(anchor: HTMLElement | null, placement: Placement)
 /**
  * COPY-SIMPLIFY of production `GiveAiAppFeedbackDialog`. Same composition, same
  * stylesheet, same capture → region select → annotate → strip flow (the capture
- * pieces are imported from dev, not copied), same shortcuts and footer hints.
+ * pieces are imported from dev, not copied), same shortcut chords.
  *
  * Dropped, all of it plumbing:
  * - the react-query app list and mutations, and the contact-support branch for
@@ -128,6 +142,13 @@ function getAnchorOverlayStyle(anchor: HTMLElement | null, placement: Placement)
  * - image hosting and the server payload cap — screenshots stay as data URIs
  *   inside the body, since nothing is uploaded;
  * - analytics.
+ *
+ * LAB-2700 deviations from dev (the rest is still a transcription):
+ * - the Screenshot section (label, capture button, helper line, strip) moved
+ *   above the feedback text;
+ * - every chord is one pill ("⇧⌘S" / "Ctrl+Shift+S", from `shortcutPlatform`),
+ *   placed on the control it presses — the footer hint row is gone;
+ * - a "Shortcuts" button in the header opens `KeyboardShortcutsPanel`.
  *
  * The prototype's masthead button anchors it with `placement="below"`, the mode
  * dev's stylesheet is written for ("a plain popover below the Give feedback
@@ -144,7 +165,13 @@ export function GiveFeedbackDialog({
   onSubmit,
 }: Props) {
   const [overlayStyle, setOverlayStyle] = useState<CSSProperties>();
+  /* Production's hook still supplies the aria-keyshortcuts strings; the
+     visible pills come from `useChordLabels`, one pill per chord. */
   const shortcuts = useShortcutLabels();
+  const chords = useChordLabels();
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const shortcutsTriggerRef = useRef<HTMLButtonElement>(null);
+  const closeShortcuts = useCallback(() => setShortcutsOpen(false), []);
 
   const appOptions: Option[] = [LABOS_AI_APPS_OPTION, ...apps.map((app) => ({ label: app.name, value: app.uid }))];
 
@@ -203,6 +230,7 @@ export function GiveFeedbackDialog({
   };
 
   const onDialogClose = () => {
+    setShortcutsOpen(false);
     resetCapture();
     setScreenshots([]);
     setEditingShotId(null);
@@ -228,6 +256,7 @@ export function GiveFeedbackDialog({
   };
 
   const onTakeScreenshot = async () => {
+    setShortcutsOpen(false);
     let stream: MediaStream;
     try {
       stream = await requestTabCapture();
@@ -323,7 +352,10 @@ export function GiveFeedbackDialog({
       return;
     }
 
-    const body = [trimmedMessage, ...screenshots.map((shot) => annotatedScreenshotHtml(shot.imageDataUrl, shot.annotations))]
+    const body = [
+      trimmedMessage,
+      ...screenshots.map((shot) => annotatedScreenshotHtml(shot.imageDataUrl, shot.annotations)),
+    ]
       .filter(Boolean)
       .join('');
 
@@ -394,18 +426,42 @@ export function GiveFeedbackDialog({
         closeOnBackdropClick={false}
         /* `pendingRemoveId` keeps Escape from reaching this dialog while the
            delete confirmation is up — see dev's comment on the same line. */
-        closeOnEscape={!isBusy && !pendingRemoveId}
+        closeOnEscape={!isBusy && !pendingRemoveId && !shortcutsOpen}
         overlayClassname={clsx(s.overlay, placement === 'above' && s.overlayAbove, isBusy && s.overlayHidden)}
         overlayStyle={overlayStyle}
         className={s.modalContainer}
       >
-        <div className={s.root}>
+        <div className={clsx(s.root, local.root)}>
           <div className={s.header}>
             <h2 className={s.title}>Give feedback</h2>
-            <button type="button" className={s.closeButton} onClick={onDialogClose} aria-label="Close">
-              <CloseIcon width={16} height={16} />
-            </button>
+            <div className={local.headerActions}>
+              {/* The reference lives beside the ✕, not in the footer: the
+                  footer's width now goes to the chords riding Cancel and Send,
+                  and the header has the room. Labelled rather than a bare
+                  keyboard glyph, so it can't read as a second icon control
+                  beside the ✕. */}
+              <button
+                ref={shortcutsTriggerRef}
+                type="button"
+                className={local.shortcutsButton}
+                aria-expanded={shortcutsOpen}
+                aria-controls="feedback-shortcuts-panel"
+                onClick={() => setShortcutsOpen((open) => !open)}
+              >
+                <KeyboardIcon />
+                Shortcuts
+              </button>
+              <button type="button" className={s.closeButton} onClick={onDialogClose} aria-label="Close">
+                <CloseIcon width={16} height={16} />
+              </button>
+            </div>
           </div>
+
+          <KeyboardShortcutsPanel
+            isOpen={shortcutsOpen && !isBusy}
+            onClose={closeShortcuts}
+            triggerRef={shortcutsTriggerRef}
+          />
 
           <div className={s.content}>
             <FormProvider {...methods}>
@@ -420,6 +476,83 @@ export function GiveFeedbackDialog({
                 />
                 {submitAttempted && !watch('app') && <p className={s.fieldError}>Please select an app</p>}
 
+                {/* LAB-2700: the screenshot is its own labelled section, above
+                    the text — capture first, then describe. Dev's order (text,
+                    then a hint line and button under the editor) left capture
+                    as an afterthought below the fold of a 120px editor. */}
+                <div className={local.screenshotSection}>
+                  <span className={clsx(fe.label, local.screenshotLabel)}>Screenshot</span>
+                  <div className={s.screenshotRow}>
+                    {captureClosedBy ? (
+                      <>
+                        <button
+                          type="button"
+                          className={s.screenshotButton}
+                          onClick={() => fileInputRef.current?.click()}
+                          aria-keyshortcuts={shortcuts.screenshotAria}
+                        >
+                          <ImageIcon />
+                          Attach image
+                          <kbd className={clsx(s.kbd, local.inlineChord)} aria-hidden="true">
+                            {chords.screenshot}
+                          </kbd>
+                        </button>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          className={s.fileInput}
+                          onChange={onAttachImage}
+                          aria-label="Attach image"
+                        />
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        className={s.screenshotButton}
+                        onClick={onTakeScreenshot}
+                        aria-keyshortcuts={shortcuts.screenshotAria}
+                      >
+                        <CameraIcon />
+                        Take screenshot
+                        <kbd className={clsx(s.kbd, local.inlineChord)} aria-hidden="true">
+                          {chords.screenshot}
+                        </kbd>
+                      </button>
+                    )}
+                    <p className={local.screenshotHelper}>{SCREENSHOT_HINTS[captureClosedBy ?? 'open']}</p>
+                  </div>
+
+                  {screenshots.length > 0 && (
+                    <ul className={clsx(s.screenshotList, local.screenshotStrip)}>
+                      {screenshots.map((shot, index) => (
+                        <li key={shot.id} className={s.screenshotChip}>
+                          {/* The ✕ is the image button's sibling, not its child. */}
+                          <button
+                            type="button"
+                            className={s.screenshotOpen}
+                            aria-label={`Edit screenshot ${index + 1}`}
+                            onClick={() => onEditShot(shot)}
+                          >
+                            <img src={shot.imageDataUrl} alt={`Screenshot ${index + 1}`} />
+                            <span className={s.screenshotEdit} aria-hidden="true">
+                              <PencilSimpleLineIcon width={14} height={14} />
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            className={s.screenshotRemove}
+                            aria-label={`Remove screenshot ${index + 1}`}
+                            onClick={() => requestRemoveShot(shot)}
+                          >
+                            <CloseIcon width={12} height={12} />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
                 <FormEditor
                   name="message"
                   label="Your feedback"
@@ -431,76 +564,6 @@ export function GiveFeedbackDialog({
                   minHeight={120}
                   className={s.editor}
                 />
-
-                <div className={s.screenshotRow}>
-                  <p className={s.screenshotHint}>{SCREENSHOT_HINTS[captureClosedBy ?? 'open']}</p>
-                  {captureClosedBy ? (
-                    <>
-                      <button
-                        type="button"
-                        className={s.screenshotButton}
-                        onClick={() => fileInputRef.current?.click()}
-                        aria-keyshortcuts={shortcuts.screenshotAria}
-                      >
-                        <ImageIcon />
-                        Attach image
-                        <kbd className={s.kbd} aria-hidden="true">
-                          {shortcuts.screenshot}
-                        </kbd>
-                      </button>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        className={s.fileInput}
-                        onChange={onAttachImage}
-                        aria-label="Attach image"
-                      />
-                    </>
-                  ) : (
-                    <button
-                      type="button"
-                      className={s.screenshotButton}
-                      onClick={onTakeScreenshot}
-                      aria-keyshortcuts={shortcuts.screenshotAria}
-                    >
-                      <CameraIcon />
-                      Take screenshot
-                      <kbd className={s.kbd} aria-hidden="true">
-                        {shortcuts.screenshot}
-                      </kbd>
-                    </button>
-                  )}
-                </div>
-
-                {screenshots.length > 0 && (
-                  <ul className={s.screenshotList}>
-                    {screenshots.map((shot, index) => (
-                      <li key={shot.id} className={s.screenshotChip}>
-                        {/* The ✕ is the image button's sibling, not its child. */}
-                        <button
-                          type="button"
-                          className={s.screenshotOpen}
-                          aria-label={`Edit screenshot ${index + 1}`}
-                          onClick={() => onEditShot(shot)}
-                        >
-                          <img src={shot.imageDataUrl} alt={`Screenshot ${index + 1}`} />
-                          <span className={s.screenshotEdit} aria-hidden="true">
-                            <PencilSimpleLineIcon width={14} height={14} />
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          className={s.screenshotRemove}
-                          aria-label={`Remove screenshot ${index + 1}`}
-                          onClick={() => requestRemoveShot(shot)}
-                        >
-                          <CloseIcon width={12} height={12} />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
               </div>
             </FormProvider>
 
@@ -524,29 +587,39 @@ export function GiveFeedbackDialog({
               <span>
                 {/* Explicit {' '} — dev's JSX glues the separator to the name
                     ("Bublii· visible"); the prototype keeps the space. */}
-                Posting as <strong>{currentUser.name}</strong>{' '}· visible to the app&apos;s author and LabOS admins
+                Posting as <strong>{currentUser.name}</strong> · visible to the app&apos;s author and LabOS admins
               </span>
             </div>
           </div>
 
-          <div className={s.footer}>
-            <div className={s.hints}>
-              <span className={s.hint}>
-                <kbd className={s.kbd}>{shortcuts.mod}</kbd>
-                <kbd className={s.kbd}>{shortcuts.enter}</kbd>
-                to send
-              </span>
-              <span className={s.hint}>
-                <kbd className={s.kbd}>Esc</kbd>
-                to close
-              </span>
-            </div>
+          {/* Dev's "⌘ ↩ to send · Esc to close" hint row is gone: each chord
+              now rides the button it presses, the way the annotator's own
+              footer already does it (Esc on Discard, ⌘↩ on Add to feedback),
+              with the annotator's classes. The full list is behind Shortcuts. */}
+          <div className={clsx(s.footer, local.footerEnd)}>
             <div className={s.footerActions}>
-              <Button style="border" variant="neutral" onClick={onDialogClose}>
+              <Button
+                style="border"
+                variant="neutral"
+                className={am.action}
+                aria-keyshortcuts="Escape"
+                onClick={onDialogClose}
+              >
                 Cancel
+                <kbd className={clsx(am.kbd, local.inlineChord)} aria-hidden="true">
+                  {chords.close}
+                </kbd>
               </Button>
-              <Button onClick={submit} disabled={isOverLimit}>
+              <Button
+                className={am.action}
+                aria-keyshortcuts={shortcuts.sendAria}
+                onClick={submit}
+                disabled={isOverLimit}
+              >
                 Send feedback
+                <kbd className={clsx(am.kbdOnFill, local.inlineChord)} aria-hidden="true">
+                  {chords.send}
+                </kbd>
               </Button>
             </div>
           </div>
@@ -577,6 +650,22 @@ function ImageIcon() {
         strokeLinejoin="round"
       />
       <circle cx="6.1" cy="6" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+/* No keyboard glyph in `components/icons`; drawn in the same 16px / 1.4 stroke
+   family as the camera and image glyphs beside it in this file. */
+function KeyboardIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <rect x="1.7" y="3.7" width="12.6" height="8.6" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
+      <path
+        d="M4.5 6.5h.01M7 6.5h.01M9.5 6.5h.01M12 6.5h-.5M4.5 9.5h7"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }

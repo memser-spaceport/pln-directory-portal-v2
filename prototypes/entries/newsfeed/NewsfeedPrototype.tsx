@@ -137,9 +137,11 @@ import {
   FOCUS_BY_UID,
   FOR_YOU_TEAM_UIDS,
   HIRING_SIGNALS,
+  LATER_EVENTS_ONLY,
   PERK_SIGNALS,
   SUPERSEDED_BY_HIRING,
   TOP_STORY,
+  UPCOMING_EVENTS,
 } from './mocks';
 
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
@@ -276,6 +278,23 @@ type ViewerTeams = (typeof TEAMS_OPTIONS)[number]['value'];
 const TEAMS_NOTE: Record<ViewerTeams, string> = {
   one: 'Post news opens straight on your team.',
   two: 'Post news asks which team the post is from, starting on your primary team.',
+};
+
+/**
+ * Review switch for the rail's Upcoming events card (LAB-2689). Both states are
+ * real calendars run through the same 30-day rule — "None in 30 days" has events,
+ * just none close enough — so the switch shows the rule, not a hard-coded hide.
+ */
+const EVENTS_OPTIONS = [
+  { value: 'upcoming', label: 'Upcoming' },
+  { value: 'none', label: 'None in 30 days' },
+] as const;
+
+type EventsState = (typeof EVENTS_OPTIONS)[number]['value'];
+
+const EVENTS_NOTE: Record<EventsState, string> = {
+  upcoming: 'Events starting in the next 30 days show in the rail (up to three).',
+  none: 'Nothing starts in the next 30 days, so the rail has no events section at all.',
 };
 
 const VIEWER_NOTE: Record<FeedViewer, string> = {
@@ -437,6 +456,7 @@ export default function NewsfeedPrototype({
    * newest first, under the team it was posted as.
    */
   const [viewerTeams, setViewerTeams] = useState<ViewerTeams>('one');
+  const [eventsState, setEventsState] = useState<EventsState>('upcoming');
   const postTeams = viewerTeams === 'two' ? VIEWER_TEAMS : VIEWER_TEAMS.slice(0, 1);
   const [composeOpen, setComposeOpen] = useState(false);
   const [postTeamUid, setPostTeamUid] = useState(VIEWER_TEAMS[0].uid);
@@ -1400,6 +1420,24 @@ export default function NewsfeedPrototype({
             <span className={clsx(v0.switchNote, local.reviewNote)}>{TEAMS_NOTE[viewerTeams]}</span>
           </div>
         )}
+        <div className={v0.switchBar}>
+          <span className={v0.switchLabel}>Events</span>
+          <div className={v0.switch} role="tablist" aria-label="Upcoming events in the next 30 days">
+            {EVENTS_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                role="tab"
+                aria-selected={eventsState === opt.value}
+                className={clsx(v0.switchBtn, eventsState === opt.value && v0.switchBtnActive)}
+                onClick={() => setEventsState(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <span className={clsx(v0.switchNote, local.reviewNote)}>{EVENTS_NOTE[eventsState]}</span>
+        </div>
         {reviewExtras}
       </div>
     </div>
@@ -1695,6 +1733,7 @@ export default function NewsfeedPrototype({
                         popularItems={popularItems}
                         signedIn={signedIn}
                         onSignIn={handleSignIn}
+                        events={eventsState === 'none' ? LATER_EVENTS_ONLY : UPCOMING_EVENTS}
                         /* Hidden below 960px only while the scroller is rendering.
                          When the block goes (narrowed view) the scroller goes with
                          it, and the rail takes the module back at every width. */

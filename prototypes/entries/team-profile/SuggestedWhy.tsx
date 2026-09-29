@@ -3,7 +3,6 @@
 import clsx from 'clsx';
 
 import { Badge } from '@/components/common/Badge';
-import { CloseIcon } from '@/components/icons';
 import {
   DetailsSection,
   DetailsSectionHeader,
@@ -36,10 +35,21 @@ interface Props {
  * **The band sits over its working.** The header carries "Strong match" or
  * "Good match" (see `STRONG_MATCH`) and "4 of 5 requirements"; the body lists
  * every requirement with a check beside the ones the profile meets and a
- * faded ✕ beside the ones it does not, so the claim can be checked against the
- * line under it. Workable draws its match card the same way (a score, then
+ * faded dash beside the ones it does not, so the claim can be checked against
+ * the line under it. Workable draws its match card the same way (a score, then
  * Education / Experience / Skills with ✓ and a faded ✗ per criterion), with the
  * group name in a left column.
+ *
+ * **A dash, not a ✕ (2026-09-29).** The ✕ was the DS `CloseIcon`, which on
+ * every other surface of this product means *dismiss* — and a requirement the
+ * matcher did not find is not a thing being thrown out, nor a verdict that the
+ * member lacks it. The standup's own notation was "✓ Rust, ✓ 5+ yrs infra,
+ * — no protocol experience". Under each line sits one grey line of working:
+ * for a met requirement, the profile fact that satisfies it (`evidence`); for
+ * an unmet one, "Not on their profile" — the POC reads profiles, so a miss
+ * means *not shown*, and a founder who reads it as *doesn't have* throws away
+ * a person a message could have settled. The POC's full sentence is the
+ * line's `title`; the label is what fits beside a tick.
  *
  * **The network block leads and is not in the count.** "In the network" is what
  * only this product knows — an interest press, a project they worked on, people
@@ -92,12 +102,21 @@ export function SuggestedWhy({ person, criteria, off, match }: Props) {
                   {items.map((c) => {
                     const met = person.met.includes(c.id);
                     return (
-                      <li key={c.id} className={clsx(s.item, { [s.unmet]: !met })}>
+                      <li key={c.id} className={clsx(s.item, { [s.unmet]: !met })} title={c.statement}>
                         <span className={s.mark} aria-hidden="true">
-                          {met ? <ReviewCheckIcon size={16} state="bare" /> : <CloseIcon width={12} height={12} />}
+                          {met ? <ReviewCheckIcon size={16} state="bare" /> : <span className={s.dash} />}
                         </span>
-                        {c.label}
-                        <span className={s.srOnly}>{met ? ' — met' : ' — not met'}</span>
+                        <span className={s.itemText}>
+                          {c.label}
+                          <span className={s.srOnly}>{met ? ' — met' : ' — not met'}</span>
+                          {/* The fact that earns the tick, or — for a miss —
+                              what a miss actually is: the matcher found
+                              nothing on the profile, which is not the member
+                              lacking it. */}
+                          {(!met || person.evidence?.[c.id]) && (
+                            <span className={s.evidence}>{met ? person.evidence?.[c.id] : 'Not on their profile'}</span>
+                          )}
+                        </span>
                       </li>
                     );
                   })}

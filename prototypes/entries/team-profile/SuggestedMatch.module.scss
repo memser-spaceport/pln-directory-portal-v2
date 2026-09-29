@@ -77,7 +77,32 @@
   color: var(--foreground-neutral-primary, #0a0c11);
 }
 
-/* The marker column: a check for a met requirement, the DS grey ✕ for one
+/* The label over its one line of working (`evidence`, or "Not on their
+ * profile" for a miss). */
+.itemText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* The working: caption ink, a step under the label, so the list still scans
+ * as labels and the facts are there for whoever reads down. */
+.evidence {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* A 8×1.5px rule in the mark's ink — the standup's "— no protocol
+ * experience". Not the DS ✕: that glyph means dismiss everywhere else. */
+.dash {
+  width: 8px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+/* The marker column: a check for a met requirement, a grey dash for one
  * that is not, a dot for a network signal. One 16px column so the three read
  * as one list. Met is drawn in the primary ink and unmet in the tertiary, and
  * the row's text fades with it (Workable fades the unmet line the same way) —
@@ -148,9 +173,11 @@
 /* One requirement: the tick and its label, the whole row the hit area (the DS
  * Checkbox ships as a button, so the inner control must not swallow the
  * press — the drawer footer's tick has the same guard). */
+/* Top-aligned since the row carries the POC's sentence under its label: the
+ * tick stays beside the label, not centred on the pair. */
 .editRow {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   padding: 8px 0;
   font-size: 14px;
@@ -162,6 +189,7 @@
   button {
     pointer-events: none;
     flex-shrink: 0;
+    margin-top: 2px;
   }
 }
 

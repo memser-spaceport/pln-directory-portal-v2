@@ -14,6 +14,9 @@ import local from './Newsfeed.module.scss';
 import type { UpcomingEvent } from './mocks';
 
 const MAX_EVENTS = 3;
+/** How far ahead the card looks. Nothing starting inside it → no card at all. */
+export const EVENTS_WINDOW_DAYS = 30;
+const DAY_MS = 24 * 60 * 60 * 1000;
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const cityOf = (event: UpcomingEvent) => event.location.split(',')[0].trim();
@@ -22,6 +25,11 @@ const cityOf = (event: UpcomingEvent) => event.location.split(',')[0].trim();
  * Which three. The card exists to put events in front of people who don't know
  * about them, so:
  *
+ *  - Only ones starting in the next 30 days (`EVENTS_WINDOW_DAYS`), and not
+ *    ones already over. A gathering two months out isn't something to act on
+ *    from the home rail, and with nothing inside the window the card doesn't
+ *    render — no empty state, because an empty card still takes the rail's
+ *    second slot.
  *  - Not ones you're already going to. You know about those; a reminder belongs
  *    to notifications and the digest, not to a discovery slot.
  *  - Not invite-only ones you have no invite to. A door you can't open.
@@ -35,9 +43,13 @@ const cityOf = (event: UpcomingEvent) => event.location.split(',')[0].trim();
 export function selectRailEvents(
   events: UpcomingEvent[],
   viewer: { signedIn: boolean; followedCities: readonly string[] },
+  now: Date = new Date(),
 ): UpcomingEvent[] {
   const followed = new Set(viewer.signedIn ? viewer.followedCities : []);
+  const horizon = now.getTime() + EVENTS_WINDOW_DAYS * DAY_MS;
   const eligible = events.filter((event) => {
+    if (new Date(event.endDate).getTime() < now.getTime()) return false;
+    if (new Date(event.startDate).getTime() > horizon) return false;
     if (viewer.signedIn && event.viewerGoing) return false;
     if (event.type === 'INVITE_ONLY' && !(viewer.signedIn && event.viewerInvited)) return false;
     return true;
@@ -66,15 +78,15 @@ interface UpcomingEventsCardProps {
 }
 
 /**
- * Upcoming events in the rail: a start-date tile, the name, the city and how
- * many are going.
+ * Upcoming events in the rail: a start-date tile, the name and the city, each
+ * row a link. A passive block — nothing to RSVP or dismiss here.
  *
  * Dated events only, never location cards: the old home Featured row's event
  * cards were clicked by 4–5% of monthly home visitors, the city cards that
  * replaced them by about 1%. So the date leads each row as its thumbnail
  * (Circle's rail does the same). The tile carries the start date; the full range
- * is its tooltip and the event page's job. "N going" is the reason to pick one
- * event over another.
+ * is its tooltip and the event page's job. No "N going": production has no
+ * attendee count worth showing (LAB-2689), so the row doesn't invent one.
  *
  * Rows go where production's Featured event cards went (the IRL page filtered to
  * that location's upcoming events); "View all events" is the door to the index.
@@ -101,10 +113,7 @@ export function UpcomingEventsCard({ events }: UpcomingEventsCardProps) {
             </span>
             <span className={local.eventText}>
               <span className={clsx(v0.railStoryTitle, local.eventName)}>{event.name}</span>
-              <span className={v0.railReason}>
-                {city}
-                {event.attendees > 0 && ` · ${event.attendees} going`}
-              </span>
+              <span className={v0.railReason}>{city}</span>
             </span>
           </a>
         );

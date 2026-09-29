@@ -14,7 +14,7 @@ import local from './Newsfeed.module.scss';
 
 import { FollowTeamsCard } from './FollowTeamsCard';
 import { UpcomingEventsCard, selectRailEvents } from './UpcomingEventsCard';
-import { UPCOMING_EVENTS, VIEWER_FOLLOWED_CITIES } from './mocks';
+import { UPCOMING_EVENTS, VIEWER_FOLLOWED_CITIES, type UpcomingEvent } from './mocks';
 import { UPVOTES } from '../newsfeed-v0/mocks';
 
 interface CuratedRailProps {
@@ -48,6 +48,11 @@ interface CuratedRailProps {
   signedIn?: boolean;
   /** Sign-in door, run before the subscribe lands. See `signedIn`. */
   onSignIn?: () => void;
+  /**
+   * The calendar the events card chooses from (the page's Events review
+   * switch). The card applies the 30-day window itself.
+   */
+  events?: UpcomingEvent[];
 }
 
 /**
@@ -66,6 +71,7 @@ export function CuratedRail({
   followCardClassName,
   signedIn = true,
   onSignIn,
+  events = UPCOMING_EVENTS,
 }: CuratedRailProps) {
   const [subscribed, setSubscribed] = useState(false);
 
@@ -76,10 +82,10 @@ export function CuratedRail({
       <FollowTeamsCard followedTeams={followedTeams} onToggleFollow={onToggleFollow} className={followCardClassName} />
 
       {/* The rail's only forward-looking module, so it sits high. Shown at every
-          width: it has no in-feed stand-in, so below 960px it stacks under the feed. */}
-      <UpcomingEventsCard
-        events={selectRailEvents(UPCOMING_EVENTS, { signedIn, followedCities: VIEWER_FOLLOWED_CITIES })}
-      />
+          width: it has no in-feed stand-in, so below 960px it stacks under the feed.
+          Nothing in the next 30 days → it renders nothing and the next module
+          moves up. */}
+      <UpcomingEventsCard events={selectRailEvents(events, { signedIn, followedCities: VIEWER_FOLLOWED_CITIES })} />
 
       {/* Desktop only: below 960px the rail stacks under the whole feed, so the
           strip spliced into the feed column carries this module instead. */}

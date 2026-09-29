@@ -68,9 +68,11 @@ export const SpvAppliedSteps = ({ profileComplete, onProfile }: Props) => {
     {
       id: 2,
       status: step2Status,
-      title: 'Await approval confirmation',
+      // Anuj's wording (2026-09-29 review), approval in the title itself, so the
+      // description only says how you'll hear.
+      title: 'Get access to data room — subject to approval.',
       description:
-        "You'll receive an email confirmation if our team approves your request — the data room then opens on this page.",
+        "You'll receive an email confirmation if our team approves your request, and the data room then opens on this page.",
       height: 52,
     },
   ];

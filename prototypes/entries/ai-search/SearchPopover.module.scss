@@ -188,3 +188,38 @@
     border-radius: 0;
   }
 }
+
+/* ------------------------------------------------------------------------ */
+/* ai-mode: recent AI Search chats at rest                                     */
+/* ------------------------------------------------------------------------ */
+
+/* Label left, door right — the same head the AI view draws over its history
+   ("Your AI Search History" + "Show all (N)"), with the door in
+   `ChatSubheader .button`, production's 12px/500 brand text for this toggle. */
+.aiHistoryHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.aiHistoryAll {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* One line, so the date stays on the row. */
+.aiHistoryTitle {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.aiHistoryWhen {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}

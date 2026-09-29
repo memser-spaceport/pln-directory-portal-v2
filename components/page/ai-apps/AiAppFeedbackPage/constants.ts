@@ -1,1 +1,12 @@
+import type { SortOption } from '@/components/common/filters/SortDropdown';
+
+import { AI_APP_FEEDBACK_STATUSES, AI_APP_FEEDBACK_STATUS_LABELS } from '@/services/ai-app-feedback/constants';
+
+export const ALL_FEEDBACK_STATUSES = 'ALL';
+
 export const ALL_TAB = 'All apps';
+
+export const FEEDBACK_STATUS_FILTER_OPTIONS: SortOption[] = [
+  { value: ALL_FEEDBACK_STATUSES, label: 'All' },
+  ...AI_APP_FEEDBACK_STATUSES.map((status) => ({ value: status, label: AI_APP_FEEDBACK_STATUS_LABELS[status] })),
+];

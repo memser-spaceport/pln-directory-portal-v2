@@ -13,12 +13,15 @@ import { useUpdateAiAppFeedbackStatus } from '@/services/ai-app-feedback/hooks/u
 
 import { ArrowBackIcon } from '@/components/icons';
 import { Button } from '@/components/common/Button/Button';
+import { SortDropdown } from '@/components/common/filters/SortDropdown';
 
+import type { FeedbackStatusFilterValue } from './types';
 import type { FeedbackImage } from './utils/splitFeedbackMedia';
 
-import { ALL_TAB } from './constants';
+import { ALL_TAB, ALL_FEEDBACK_STATUSES, FEEDBACK_STATUS_FILTER_OPTIONS } from './constants';
 
 import { exportAiAppFeedbackCsv } from './utils/exportAiAppFeedbackCsv';
+import { buildFeedbackCsvFilename } from './utils/buildFeedbackCsvFilename';
 
 import { FeedbackTabs } from './components/FeedbackTabs';
 import { DownloadIcon } from './components/DownloadIcon';
@@ -34,6 +37,7 @@ export function AiAppFeedbackPage() {
   const analytics = useAiAppsAnalytics();
   const hasTrackedView = useRef(false);
   const [activeTab, setActiveTab] = useState(ALL_TAB);
+  const [statusFilter, setStatusFilter] = useState<FeedbackStatusFilterValue>(ALL_FEEDBACK_STATUSES);
   const [lightbox, setLightbox] = useState<FeedbackImage | null>(null);
 
   useEffect(() => {
@@ -44,15 +48,20 @@ export function AiAppFeedbackPage() {
 
   const appNames = useMemo(() => Array.from(new Set(feedback.map((row) => row.appName))).sort(), [feedback]);
 
-  const tabs = useMemo(
-    () => [
-      { name: ALL_TAB, count: feedback.length },
-      ...appNames.map((name) => ({ name, count: feedback.filter((row) => row.appName === name).length })),
-    ],
-    [feedback, appNames],
+  const statusRows = useMemo(
+    () => (statusFilter === ALL_FEEDBACK_STATUSES ? feedback : feedback.filter((row) => row.status === statusFilter)),
+    [feedback, statusFilter],
   );
 
-  const visibleRows = activeTab === ALL_TAB ? feedback : feedback.filter((row) => row.appName === activeTab);
+  const tabs = useMemo(
+    () => [
+      { name: ALL_TAB, count: statusRows.length },
+      ...appNames.map((name) => ({ name, count: statusRows.filter((row) => row.appName === name).length })),
+    ],
+    [statusRows, appNames],
+  );
+
+  const visibleRows = activeTab === ALL_TAB ? statusRows : statusRows.filter((row) => row.appName === activeTab);
 
   const handleTabClick = (tab: string) => {
     setActiveTab(tab);
@@ -60,8 +69,7 @@ export function AiAppFeedbackPage() {
   };
 
   const handleExport = () => {
-    const slug = activeTab.toLowerCase().replace(/\s+/g, '-');
-    exportAiAppFeedbackCsv(visibleRows, `ai-app-feedback-${slug}.csv`);
+    exportAiAppFeedbackCsv(visibleRows, buildFeedbackCsvFilename(activeTab, statusFilter));
     analytics.onFeedbackExported(visibleRows.length);
   };
 
@@ -103,21 +111,33 @@ export function AiAppFeedbackPage() {
           <>
             <div className={s.tabsRow}>
               <FeedbackTabs tabs={tabs} activeTab={activeTab} onTabClick={handleTabClick} />
-              <Button
-                size="s"
-                style="fill"
-                variant="primary"
-                onClick={handleExport}
-                disabled={visibleRows.length === 0}
-                className={s.exportButton}
-              >
-                <DownloadIcon />
-                Export CSV
-              </Button>
+              <div className={s.tabsActions}>
+                <SortDropdown
+                  sortByLabel="Status:"
+                  options={FEEDBACK_STATUS_FILTER_OPTIONS}
+                  currentSort={statusFilter}
+                  onSortChange={(value) => setStatusFilter(value as FeedbackStatusFilterValue)}
+                />
+                <Button
+                  size="s"
+                  style="fill"
+                  variant="primary"
+                  onClick={handleExport}
+                  disabled={visibleRows.length === 0}
+                  className={s.exportButton}
+                >
+                  <DownloadIcon />
+                  Export CSV
+                </Button>
+              </div>
             </div>
 
             {visibleRows.length === 0 ? (
-              <div className={s.state}>No feedback for this app yet.</div>
+              <div className={s.state}>
+                {statusFilter === ALL_FEEDBACK_STATUSES
+                  ? 'No feedback for this app yet.'
+                  : 'No feedback matches the selected filters.'}
+              </div>
             ) : (
               <FeedbackTable
                 rows={visibleRows}

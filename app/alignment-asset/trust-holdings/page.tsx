@@ -1,12 +1,13 @@
 import TrustHoldings, { TrustBuyback } from '@/components/page/aligement-assets/trust-holdings/trust-holdings';
 import { getTrustHoldings } from '@/services/plaa/trust-holdings.service';
 import { getCompletedBuybacks } from '@/services/plaa/rounds.service';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { buildBuybackSimulation } from '@/components/page/aligement-assets/rounds/buyback.mapper';
 
 // Same source and mapper as the round pages — figures here cannot drift
 // from /alignment-asset/rounds/[round].
-async function getBuybackPanels(): Promise<TrustBuyback[]> {
-  const completed = await getCompletedBuybacks();
+async function getBuybackPanels(authToken?: string): Promise<TrustBuyback[]> {
+  const completed = await getCompletedBuybacks(authToken);
   return completed.map((entry) => ({
     roundNumber: entry.roundNumber,
     monthYear: `${entry.month} ${entry.year}`,
@@ -16,7 +17,8 @@ async function getBuybackPanels(): Promise<TrustBuyback[]> {
 }
 
 export default async function TrustHoldingsPage() {
-  const [{ data, error }, buybacks] = await Promise.all([getTrustHoldings(), getBuybackPanels()]);
+  const { authToken } = await getCookiesFromHeaders();
+  const [{ data, error }, buybacks] = await Promise.all([getTrustHoldings(authToken), getBuybackPanels(authToken)]);
 
   if (!data) {
     return (

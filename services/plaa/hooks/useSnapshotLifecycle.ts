@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
 
 // Named for the lifecycle, not the current snapshot: useCurrentSnapshotStatus
 // is a different thing entirely (how far through the open month we are).
@@ -15,10 +16,13 @@ export const SnapshotLifecycleQueryKeys = {
 } as const;
 
 async function fetchSnapshotLifecycle(): Promise<SnapshotLifecycleEntry[] | null> {
+  const { authToken } = getCookiesFromClient();
+  if (!authToken) return null;
+
   try {
     const res = await fetch('/api/plaa/snapshot-status', {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
     });
 
     if (!res.ok) throw new Error(`Snapshot lifecycle request failed: ${res.status}`);

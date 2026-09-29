@@ -24,6 +24,7 @@ import { DeleteAppDialog } from './DeleteAppDialog';
 import { OnePagerViewer } from './OnePagerViewer';
 import { AI_APPS_SORT, AI_APPS_SORT_OPTIONS, countAppliedFilters, useMockAiAppsFilterStore } from './mockAiAppsFilterStore';
 import { mockAiApps, mockAppPreviews, mockPageCopy, type AiAppWithDoc } from './mocks';
+import { setShortcutPlatform, useShortcutPlatform } from './shortcutPlatform';
 
 import proto from './AiAppsPrototype.module.scss';
 
@@ -59,6 +60,7 @@ export default function AiAppsPrototype() {
   const [viewAs, setViewAs] = useState<'creator' | 'visitor'>('creator');
 
   const { params, setParam } = useMockAiAppsFilterStore();
+  const shortcutPlatform = useShortcutPlatform();
 
   const selected = apps.find((a) => a.uid === selectedUid) ?? null;
   const actionApp = action ? apps.find((a) => a.uid === action.uid) ?? null : null;
@@ -173,6 +175,33 @@ export default function AiAppsPrototype() {
           Visitor
         </button>
       </div>
+      {/* LAB-2700 review switch: which OS the feedback dialog spells its
+          shortcut pills for. Defaults to the detected OS. Grid only — the
+          dialog opens from this masthead; kept inside the same pill so the
+          review controls stay one object in the row. */}
+      {!standalone && (
+        <>
+          <span className={proto.roleLabel}>Keys</span>
+          <div className={proto.segmented}>
+            <button
+              type="button"
+              data-active={shortcutPlatform === 'mac'}
+              aria-pressed={shortcutPlatform === 'mac'}
+              onClick={() => setShortcutPlatform('mac')}
+            >
+              Mac
+            </button>
+            <button
+              type="button"
+              data-active={shortcutPlatform === 'windows'}
+              aria-pressed={shortcutPlatform === 'windows'}
+              onClick={() => setShortcutPlatform('windows')}
+            >
+              Windows
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 

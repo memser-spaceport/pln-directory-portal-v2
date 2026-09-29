@@ -94,10 +94,10 @@ const CARD_ACCENTS: { key: CardAccent; label: string }[] = [
 ];
 
 /**
- * Where the page's AI door lives. `header`: a text link in the action cluster
- * (the team profile's door). `strip`: the scope's questions as chips under the
- * bio, no header link — the `member-ask-ai` entry, built to compare against
- * this one (Delphi's "Ask me about" block).
+ * The AI door is the header cluster's Ask AI on every entry (2026-09-28).
+ * `strip` also puts the scope's questions as chips under the bio — the
+ * `member-ask-ai` and `member-follow` entries (Delphi's "Ask me about"
+ * block); `header` is the door alone.
  */
 export type AskAiPlacement = 'header' | 'strip';
 
@@ -111,12 +111,14 @@ export default function MemberProfilePrototype() {
  *                ranks their forum posts and their teams' news first in For
  *                You and the digest (follow-shared `MEMBER_PREFS`).
  *
- * The presses (Schedule Meeting · Request an intro, and Follow on the
- * member-follow entry only — "Hide Follow button" took it off the others) sit
- * in a row under the bio, where the reading ends — Delphi puts "Start a call" under
- * the name and bio the same way. Only Ask AI keeps the header's corner. A
- * corner placement and a review-band switch between the two were built and
- * compared, then cut ("Keep only button in the bottom, remove in the corner").
+ * All the profile's actions live in ONE place, the header's action cluster
+ * (design standup 2026-09-28, LAB-2659/2660, LinkedIn-style): Ask AI ·
+ * Follow (member-follow entry only) · one contact press. The contact press is
+ * Schedule Meeting when the member has office hours and Request an intro —
+ * the glossy primary — when not; never both, because booking is the intended
+ * way in and an intro beside it competes with it. The row under the bio and
+ * its intro note are gone. The review band's Office hours switch shows both
+ * states.
  */
 export function MemberProfilePage({ askAi, follow = false }: { askAi: AskAiPlacement; follow?: boolean }) {
   // Reusing interactive production components — gate on a mounted flag so SSR ===
@@ -232,10 +234,9 @@ export function MemberProfilePage({ askAi, follow = false }: { askAi: AskAiPlace
           </div>
         </div>
 
-        {/* Where the header's presses sit: the corner beside the name, or a
-            row under the bio ("Add tab with buttons sitting under bio instead
-            of in the corner"). One page, one switch, so the two placements
-            are compared without leaving it. */}
+        {/* Which contact press the header shows: Available → Schedule
+            Meeting (and the Office Hours card); None → Request an intro as
+            the primary. The two are never on the page together. */}
         <div className={s.demoSwitchGroup}>
           <span className={s.demoSwitchLabel}>Office hours</span>
           <div className={s.demoSwitchRow}>
@@ -267,7 +268,12 @@ export function MemberProfilePage({ askAi, follow = false }: { askAi: AskAiPlace
               <ProfileHeaderCard
                 introRequested={intro.requested(MOCK_MEMBER.id)}
                 onRequestIntro={() => intro.request({ uid: MOCK_MEMBER.id, name: MOCK_MEMBER.name, kind: 'member' })}
-                onAskAi={askAi === 'header' ? () => openAi() : undefined}
+                /* Every entry: Ask AI is one of the header cluster's actions
+                   (2026-09-28, "all profile actions in one place"). The strip
+                   entries add the question chips under the bio as content;
+                   their "Ask your own question" link went, because the
+                   header's Ask AI is that exact door. */
+                onAskAi={() => openAi()}
                 follow={follow ? { following, onToggle: toggleFollow } : undefined}
                 hasOfficeHours={hasOfficeHours}
                 askAbout={
@@ -276,7 +282,6 @@ export function MemberProfilePage({ askAi, follow = false }: { askAi: AskAiPlace
                       firstName={MOCK_MEMBER.name.split(' ')[0]}
                       prompts={aiScope.prompts}
                       onAsk={(q) => openAi(q)}
-                      onAskOwn={() => openAi()}
                     />
                   ) : null
                 }
@@ -393,11 +398,11 @@ function ProfileHeaderCard({
   onRequestIntro: () => void;
   /** Without a booking link there is no Schedule Meeting; the intro stands alone. */
   hasOfficeHours: boolean;
-  /** The header's Ask AI link; absent when the page offers the strip instead. */
-  onAskAi?: () => void;
-  /** Follow, beside Request an intro under the bio; absent on the entries without it. */
+  /** The header cluster's Ask AI — every entry. */
+  onAskAi: () => void;
+  /** Follow, in the header cluster; absent on the entries without it. */
   follow?: { following: boolean; onToggle: () => void };
-  /** The "Ask AI about <name>" strip, rendered under the bio; null for the header link. */
+  /** The strip entries' "Ask AI about <name>" question chips, under the bio. */
   askAbout?: ReactNode;
 }) {
   const isMobile = useIsMobile();
@@ -443,29 +448,42 @@ function ProfileHeaderCard({
               </div>
             </div>
           </div>
-          {/* Production's header keeps its one action here, as `.headerDetails`'
-              second child (Edit, for the owner). Here it holds only Ask AI —
-              the team profile's door, in the same paint: a text action of the
-              header's own lineage (`link` + `primary`, the Button
-              HeaderActionBtn renders for Edit). It reads the profile rather
-              than acting on the person, so it stays in the corner while the
-              presses sit under the bio ("put Ask AI in the corner"). */}
-          {onAskAi && (
-            <div className={clsx(s.headerActions, s.fromTablet)}>
-              <AskAiButton onClick={onAskAi} />
-            </div>
-          )}
+          {/* THE HEADER ACTION CLUSTER — every action on this person in one
+              place, LinkedIn-style (design standup 2026-09-28). Production's
+              header keeps its one action here, as `.headerDetails`' second
+              child (Edit, for the owner); the team profile keeps Ask AI and
+              Follow in the same corner. Order: Ask AI (a text action — it
+              reads the profile), Follow (bordered grey — a relationship), then
+              the ONE contact press in the corner, because the filled press
+              keeps the corner (lesson 25). Never Schedule Meeting and Request
+              an intro together: office hours → Schedule Meeting; none → the
+              intro, as the glossy primary. */}
+          <div className={clsx(s.headerActions, s.fromTablet)}>
+            <ProfileActions
+              onAskAi={onAskAi}
+              follow={follow}
+              hasOfficeHours={hasOfficeHours}
+              introRequested={introRequested}
+              onRequestIntro={onRequestIntro}
+              size="xs"
+            />
+          </div>
         </div>
 
-        {/* Phone: Ask AI on a line of its own between the facts and the tags —
-            a control beside a 20px name has nowhere to stand at 390px. */}
-        {onAskAi && (
-          <div className={s.introMobileRow}>
-            <div className={s.mobileLinkRow}>
-              <AskAiButton onClick={onAskAi} iconSize={12} />
-            </div>
-          </div>
-        )}
+        {/* Phone: the same cluster, on its own lines between the facts and the
+            tags — a control beside a 20px name has nowhere to stand at 390px.
+            The Ask AI badge first at its own width, then the presses full
+            width (the team profile's phone header, same order). */}
+        <div className={s.introMobileRow}>
+          <ProfileActions
+            onAskAi={onAskAi}
+            follow={follow}
+            hasOfficeHours={hasOfficeHours}
+            introRequested={introRequested}
+            onRequestIntro={onRequestIntro}
+            size="s"
+          />
+        </div>
 
         <div className={clsx(h.tags, s.mTags)}>
           <span className={s.founderTag}>Founder</span>
@@ -496,45 +514,15 @@ function ProfileHeaderCard({
         <DetailsSectionGreyContentContainer>
           <div className={s.bio}>{MOCK_MEMBER.bio}</div>
         </DetailsSectionGreyContentContainer>
-        {/* Under the bio: the two ways to reach the person and Follow after
-            them, at the header's size on every width — a row where the
-            reading ends, wrapping on a phone. Schedule Meeting leads ("put
-            schedule on the left"): in a left-aligned row the first press is
-            the primary. Request an intro is bordered brand with the glossy
-            press's drop shadow; Follow is the team page's own pill, bordered
-            neutral and flat ("Put Follow next to request an intro, make it
-            outlined grey"), its sent sibling a text receipt so the row never
-            shows two check-pills. With no office hours the intro leads. */}
-        {/* Every width ("Make buttons full width"): the presses fill the row
-            in equal columns, or the intro alone fills it. Phone ("Make buttons
-            on mobile adaptive"): the DS `s` height (38px, a finger's target),
-            and Follow on a full line of its own. */}
-        <div className={s.actionsBelowBio}>
-          {hasOfficeHours && <ScheduleMeetingButton size={isMobile ? 's' : 'xs'} className={s.rowPress} />}
-          <RequestIntroButton
-            requested={introRequested}
-            onClick={onRequestIntro}
-            name={MOCK_MEMBER.name}
-            size={isMobile ? 's' : 'xs'}
-            className={s.rowPress}
-          />
-          {follow && (
-            <FollowPill
-              following={follow.following}
-              onToggle={follow.onToggle}
-              name={MOCK_MEMBER.name}
-              size={isMobile ? 's' : 'xs'}
-              className={clsx(s.followFlat, s.rowPressFull)}
-            />
-          )}
-        </div>
-        {/* What the intro press does, in one line under the row ("add a small
-            note about what request an intro mean"): the modal's own sentence,
-            so the offer and the form say the same thing. Once sent, the row
-            already reads "Intro requested" and the note steps aside. */}
-        {!introRequested && (
-          <p className={s.introNote}>Request an intro — the PL team makes the introduction.</p>
-        )}
+        {/* The row of presses under the bio and its one-line intro note
+            ("Request an intro — the PL team makes the introduction.") went
+            into the header cluster above (2026-09-28). The note did not come
+            with it: a header cluster carries no captions (LinkedIn's doesn't,
+            and a caption under the corner press would stand under a different
+            button on every seat), and the one fact it held — the PL team
+            makes the intro — is the modal's first sentence, one press away
+            and before anything is sent. The strip entries keep the question
+            chips here, as content. */}
         {askAbout}
       </div>
     </div>
@@ -542,11 +530,65 @@ function ProfileHeaderCard({
 }
 
 /**
+ * The header's action cluster, drawn once for both seats: the corner from
+ * tablet up (`xs`, one row, the contact press last so the filled button keeps
+ * the corner) and the phone's lines under the facts (`s`, stacked — see
+ * `.introMobileRow`). One contact press, chosen by office hours:
+ * Schedule Meeting when the member has a booking link, Request an intro
+ * (glossy primary) when not. Follow sits between, flat and grey.
+ */
+function ProfileActions({
+  onAskAi,
+  follow,
+  hasOfficeHours,
+  introRequested,
+  onRequestIntro,
+  size,
+}: {
+  onAskAi: () => void;
+  follow?: { following: boolean; onToggle: () => void };
+  hasOfficeHours: boolean;
+  introRequested: boolean;
+  onRequestIntro: () => void;
+  size: 'xs' | 's';
+}) {
+  const phone = size === 's';
+  return (
+    <>
+      <AskAiButton onClick={onAskAi} iconSize={phone ? 12 : 18} className={phone ? s.askAiBadge : undefined} />
+      {follow && (
+        <FollowPill
+          following={follow.following}
+          onToggle={follow.onToggle}
+          name={MOCK_MEMBER.name}
+          size={size}
+          className={clsx(s.followFlat, phone && s.rowPressFull)}
+        />
+      )}
+      {/* On the phone's stack the contact press leads (`.contactFirst`):
+          the primary opens a column, as the corner closes a row. */}
+      {hasOfficeHours ? (
+        <ScheduleMeetingButton size={size} className={phone ? clsx(s.rowPressFull, s.contactFirst) : undefined} />
+      ) : (
+        <RequestIntroButton
+          requested={introRequested}
+          onClick={onRequestIntro}
+          name={MOCK_MEMBER.name}
+          size={size}
+          className={phone ? clsx(s.rowPressFull, s.contactFirst) : undefined}
+        />
+      )}
+    </>
+  );
+}
+
+/**
  * Schedule Meeting, in the header's action cluster. Production's press lives
- * on the Office Hours card as its glossy `primaryButton`; here it is the DS
- * Button in the cluster's own size, so it and the bordered intro beside it
- * are one pair. The press is production's: the member's booking link, in a
- * new tab.
+ * on the Office Hours card as its glossy `primaryButton`; here it keeps that
+ * class at the cluster's size. It takes turns with Request an intro in one
+ * slot (intro-shared's `.primary` carries the same reset values), so the
+ * cluster measures the same in both states. The press is production's: the
+ * member's booking link, in a new tab.
  */
 function ScheduleMeetingButton({ size, className }: { size: 'xs' | 's'; className?: string }) {
   return (
@@ -577,13 +619,21 @@ function ScheduleMeetingButton({ size, className }: { size: 'xs' | 's'; classNam
  */
 // `iconSize`: 18 on desktop, 12 in the phone badge. `AiSearchIcon` sizes
 // itself inline, so CSS cannot resize it — each seat passes it.
-function AskAiButton({ onClick, iconSize = 18 }: { onClick: () => void; iconSize?: number }) {
+function AskAiButton({
+  onClick,
+  iconSize = 18,
+  className,
+}: {
+  onClick: () => void;
+  iconSize?: number;
+  className?: string;
+}) {
   return (
     <Button
       style="link"
       variant="primary"
       underline={false}
-      className={s.askAiBtn}
+      className={clsx(s.askAiBtn, className)}
       aria-label={`Ask AI about ${MOCK_MEMBER.name}`}
       onClick={onClick}
     >

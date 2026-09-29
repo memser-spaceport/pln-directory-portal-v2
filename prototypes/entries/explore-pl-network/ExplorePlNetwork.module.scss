@@ -673,7 +673,7 @@
   }
 }
 
-// Figures: four columns under a hairline, each with its source.
+// Figures: four columns under a hairline.
 .edFacts {
   margin: 0;
   display: grid;
@@ -712,13 +712,6 @@
     font-size: 32px;
     line-height: 40px;
   }
-}
-
-.edFactSource {
-  margin: 0;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  font-size: 12px;
-  line-height: 16px;
 }
 
 .edSection {

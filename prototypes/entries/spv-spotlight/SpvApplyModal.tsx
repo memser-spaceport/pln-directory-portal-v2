@@ -354,10 +354,9 @@ export const SpvAppliedModal = ({
                 <div className={ok.lineBottomHidden} />
               </div>
               <div className={ok.stepContent}>
-                <p className={ok.stepTitle}>Await approval</p>
+                <p className={ok.stepTitle}>Get access to data room — subject to approval.</p>
                 <p className={ok.stepDescription}>
-                  We&apos;ll email {email} once you&apos;re approved — each team&apos;s materials then open on this
-                  page.
+                  We&apos;ll email {email} if our team approves your request, and the data room then opens on this page.
                 </p>
               </div>
             </div>

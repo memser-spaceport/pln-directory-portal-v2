@@ -7,7 +7,8 @@ import { useMemo, useSyncExternalStore } from 'react';
  *
  * "Request an intro" stands on a member's profile, on a team's profile, and on
  * every member row and card in search. The rule they share is one request per
- * person or team: a request sent from a search row has to read "Intro
+ * person or team (a team's request is keyed by the team uid — the PL team, not
+ * the requester, picks who on the team it reaches): a request sent from a search row has to read "Intro
  * requested" on that member's profile a minute later, or the founder asks
  * twice. Session storage underneath — the `warm-intros-founders/introAsks.ts`
  * reasoning: the surfaces are separate prototype routes, a reviewer moves
@@ -22,7 +23,10 @@ export interface IntroTarget {
 }
 
 export interface IntroRequest extends IntroTarget {
+  /** "Why would you like an intro?" — required. */
   message: string;
+  /** "Introduce yourself" — optional, empty when skipped. */
+  intro: string;
   /** ISO stamp. */
   sentAt: string;
 }
@@ -69,7 +73,7 @@ export interface IntroRequestsApi {
   requests: IntroRequest[];
   requestFor: (uid: string) => IntroRequest | undefined;
   requested: (uid: string) => boolean;
-  send: (target: IntroTarget, message: string) => void;
+  send: (target: IntroTarget, message: string, intro?: string) => void;
 }
 
 export function useIntroRequests(): IntroRequestsApi {
@@ -81,10 +85,10 @@ export function useIntroRequests(): IntroRequestsApi {
       requests,
       requestFor: (uid) => requests.find((r) => r.uid === uid),
       requested: (uid) => requests.some((r) => r.uid === uid),
-      send: (target, message) =>
+      send: (target, message, intro = '') =>
         commit([
           ...read().filter((r) => r.uid !== target.uid),
-          { ...target, message, sentAt: new Date().toISOString() },
+          { ...target, message, intro, sentAt: new Date().toISOString() },
         ]),
     }),
     [requests],

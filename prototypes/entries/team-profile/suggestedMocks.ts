@@ -35,9 +35,26 @@ export type CriterionGroup = 'Skills' | 'Seniority' | 'Location';
 
 export const CRITERION_GROUPS: CriterionGroup[] = ['Skills', 'Seniority', 'Location'];
 
+/**
+ * One of the role's requirements, in the shape the matching POC writes them
+ * (LAB-2643, "How this run worked": *Claude read each posting once and wrote
+ * 4–6 checkable criteria (skill, seniority, or location)*). `group` is that
+ * kind; `statement` is the criterion as the POC wrote it, a full sentence
+ * ("Experience with Filecoin, Web3, or crypto ecosystems").
+ *
+ * **`label` is the one field this design asks the POC to add.** A sentence
+ * is right where the lead decides what counts (Edit criteria) and wrong
+ * everywhere the criterion is a tick beside a person — a row, a checklist
+ * line, an email item — where a 90-character sentence either wraps a row into
+ * a paragraph or ellipsises before it says anything. So each criterion also
+ * carries a 2–4 word name, written in the same pass as the statement.
+ */
 export interface RoleCriterion {
   id: string;
   group: CriterionGroup;
+  /** The POC's criterion, as it wrote it. */
+  statement: string;
+  /** A 2–4 word name for the same criterion — rows, the checklist, the email. */
   label: string;
 }
 
@@ -116,6 +133,17 @@ export interface SuggestionReason {
 export type RoleSuggested = Omit<RoleCandidate, 'note' | 'appliedAt' | 'cv' | 'unseen' | 'reviewed'> & {
   /** Ids of the role's criteria this profile meets. */
   met: string[];
+  /**
+   * Per met criterion, the profile fact that satisfies it, in a few words —
+   * "Senior Engineer at Saturn since 2022". This is the per-criterion pass
+   * Vova confirmed for LAB-2687 (embed everyone, keep the top results, then
+   * check each criterion on those only), and it keeps a tick honest: the pane
+   * shows it under the criterion, so a lead sees *why* it is met without
+   * reading the whole profile. An unmet criterion has no evidence by
+   * definition — the matcher found nothing on the profile, which is not the
+   * same as the member lacking it, and the pane says so.
+   */
+  evidence?: Record<string, string>;
   /** Network signals, strongest first — see `SuggestionReasonKind`. */
   reasons: SuggestionReason[];
 };
@@ -139,6 +167,23 @@ export const suggestionMatch = (
   const met = on.filter((c) => person.met.includes(c.id)).length;
   const percent = on.length ? Math.round((met / on.length) * 100) : 0;
   return { percent, band: percent >= STRONG_MATCH ? 'strong' : 'good', met, total: on.length };
+};
+
+/**
+ * The working behind a match, split the way every surface shows it: the
+ * switched-on criteria the profile meets and the ones it does not, each in the
+ * role's own order.
+ */
+export const matchWorking = (
+  person: RoleSuggested,
+  criteria: RoleCriterion[],
+  off?: ReadonlySet<string>,
+): { met: RoleCriterion[]; unmet: RoleCriterion[] } => {
+  const on = criteria.filter((c) => !off?.has(c.id));
+  return {
+    met: on.filter((c) => person.met.includes(c.id)),
+    unmet: on.filter((c) => !person.met.includes(c.id)),
+  };
 };
 
 /** Only members at or above the floor, against the criteria that are on. */
@@ -172,19 +217,59 @@ export const sortSuggested = (
 export const MOCK_ROLE_CRITERIA: Record<string, RoleCriterion[]> = {
   // Senior Distributed Systems Engineer
   'pl-1': [
-    { id: 'ds', group: 'Skills', label: 'Distributed systems' },
-    { id: 'rg', group: 'Skills', label: 'Rust or Go' },
-    { id: 'sn', group: 'Skills', label: 'Storage or networking background' },
-    { id: 'sr', group: 'Seniority', label: 'Senior or above' },
-    { id: 'tz', group: 'Location', label: 'Americas or Europe working hours' },
+    {
+      id: 'ds',
+      group: 'Skills',
+      statement: 'Experience designing and operating distributed systems in production',
+      label: 'Distributed systems',
+    },
+    { id: 'rg', group: 'Skills', statement: 'Hands-on proficiency in Rust or Go', label: 'Rust or Go' },
+    {
+      id: 'sn',
+      group: 'Skills',
+      statement: 'Background in peer-to-peer storage or networking protocols',
+      label: 'Protocol experience',
+    },
+    {
+      id: 'sr',
+      group: 'Seniority',
+      statement: '5+ years of infrastructure engineering at senior level or above',
+      label: '5+ yrs infra, senior',
+    },
+    {
+      id: 'tz',
+      group: 'Location',
+      statement: 'Working hours overlapping the Americas or Europe (remote)',
+      label: 'Americas or Europe hours',
+    },
   ],
   // Protocol Researcher
   'pl-3': [
-    { id: 'cr', group: 'Skills', label: 'Cryptography or consensus research' },
-    { id: 'fv', group: 'Skills', label: 'Formal verification' },
-    { id: 'pub', group: 'Skills', label: 'Published research' },
-    { id: 'pr', group: 'Seniority', label: 'Principal or above' },
-    { id: 'tz', group: 'Location', label: 'Americas or Europe working hours' },
+    {
+      id: 'cr',
+      group: 'Skills',
+      statement: 'Research experience in cryptography or consensus protocols',
+      label: 'Cryptography or consensus',
+    },
+    {
+      id: 'fv',
+      group: 'Skills',
+      statement: 'Experience with formal verification or specification languages such as TLA+ or Coq',
+      label: 'Formal verification',
+    },
+    { id: 'pub', group: 'Skills', statement: 'A track record of published research', label: 'Published research' },
+    {
+      id: 'pr',
+      group: 'Seniority',
+      statement: 'Principal-level research experience or above',
+      label: 'Principal level',
+    },
+    {
+      id: 'tz',
+      group: 'Location',
+      statement: 'Working hours overlapping the Americas or Europe (remote)',
+      label: 'Americas or Europe hours',
+    },
   ],
 };
 
@@ -223,6 +308,13 @@ export const MOCK_SUGGESTED: Record<string, RoleSuggested[]> = {
         repositories: [{ name: 'saturn-l1-cache', description: 'The L1 node cache layer for Saturn retrievals.' }],
       },
       met: ['ds', 'rg', 'sn', 'sr', 'tz'],
+      evidence: {
+        ds: 'Runs Saturn’s retrieval path; four years on Cloudflare’s edge cache',
+        rg: 'Rust and Go on her profile; maintains saturn-l1-cache',
+        sn: 'Content routing on Saturn, contributor to IPFS',
+        sr: 'Senior Engineer since 2022, 7 years in infrastructure',
+        tz: 'Porto, Portugal',
+      },
       reasons: [
         { kind: 'interest', text: 'Pressed I’m interested on your Protocol Researcher role' },
         { kind: 'contribution', text: 'Core contributor to Saturn, contributor to IPFS' },
@@ -251,8 +343,15 @@ export const MOCK_SUGGESTED: Record<string, RoleSuggested[]> = {
         contributions: [{ uid: 'kmc1', project: 'Lotus', role: 'Contributor', start: '2019-01', end: '2021-07' }],
         repositories: [],
       },
-      // Not "Senior or above": the title on his profile is Infrastructure Engineer.
+      // Not "5+ yrs infra, senior": the title on his profile is Infrastructure
+      // Engineer, and the matcher reads the profile, not his history's length.
       met: ['ds', 'rg', 'sn', 'tz'],
+      evidence: {
+        ds: 'S3-compatible gateway over Filecoin and IPFS at Filebase',
+        rg: 'Go on his profile; two and a half years on Lotus',
+        sn: 'Distributed storage at Filebase and on Lotus',
+        tz: 'Toronto, Canada',
+      },
       reasons: [
         { kind: 'contribution', text: 'Contributed to Lotus for two and a half years' },
         { kind: 'vouch', text: 'Worked with 3 people on your team at Protocol Labs' },
@@ -278,11 +377,47 @@ export const MOCK_SUGGESTED: Record<string, RoleSuggested[]> = {
       },
       // Exactly at the floor, and no network signal: the row's third line is the count.
       met: ['ds', 'rg', 'tz'],
+      evidence: {
+        ds: 'Distributed systems on his profile; backend at Fission',
+        rg: 'Rust on his profile; wrote rs-ucan-store',
+        tz: 'Vancouver, Canada',
+      },
       reasons: [],
     },
     {
+      // The fourth at or above the floor, so the suggested-candidates email
+      // (which names the top three) has someone to leave to the page.
+      id: 'sug-7',
+      memberId: 'priya-raman',
+      name: 'Priya Raman',
+      role: 'Senior Software Engineer · Tableland',
+      title: 'Senior Software Engineer',
+      team: 'Tableland',
+      location: 'Berlin, Germany',
+      email: 'priya@tableland.xyz',
+      avatar: 'https://i.pravatar.cc/96?img=45',
+      skills: ['TypeScript', 'SQL', 'Distributed Systems'],
+      experience: [
+        exp('priya-raman', 'pr1', 'Senior Software Engineer', 'Tableland', '2021-06', null, 'Berlin, Germany'),
+        exp('priya-raman', 'pr2', 'Software Engineer', 'Zalando', '2016-03', '2021-05', 'Berlin, Germany'),
+      ],
+      profile: {
+        linkedinHandle: 'priyaraman',
+        teams: [{ id: 'tableland', name: 'Tableland', role: 'Senior Software Engineer', mainTeam: true }],
+        contributions: [],
+        repositories: [],
+      },
+      met: ['ds', 'sr', 'tz'],
+      evidence: {
+        ds: 'Distributed systems on her profile; replicated SQL at Tableland',
+        sr: 'Senior Software Engineer since 2021, 9 years in total',
+        tz: 'Berlin, Germany',
+      },
+      reasons: [{ kind: 'vouch', text: 'Worked with 2 people on your team on the Tableland–Filecoin bridge' }],
+    },
+    {
       // Under the floor with every requirement on (2 of 5 = 40%), so hidden.
-      // Switch off "Rust or Go" and "Senior or above" in Edit criteria and he
+      // Switch off "Rust or Go" and "5+ yrs infra, senior" in Edit criteria and he
       // is 2 of 3 and appears — the demo of what the criteria control does.
       id: 'sug-6',
       memberId: 'mateo-silva',
@@ -302,6 +437,7 @@ export const MOCK_SUGGESTED: Record<string, RoleSuggested[]> = {
         repositories: [],
       },
       met: ['ds', 'tz'],
+      evidence: { ds: 'Platform engineering at Ceramic', tz: 'Mexico City, Mexico' },
       reasons: [],
     },
   ],
@@ -332,6 +468,12 @@ export const MOCK_SUGGESTED: Record<string, RoleSuggested[]> = {
         repositories: [],
       },
       met: ['cr', 'fv', 'pub', 'tz'],
+      evidence: {
+        cr: 'Research scientist on proofs of space at CryptoNet',
+        fv: 'Formal verification on her profile',
+        pub: 'PhD in cryptography, ETH Zürich',
+        tz: 'Istanbul, Türkiye',
+      },
       reasons: [{ kind: 'contribution', text: 'Research contributor to Filecoin since 2021' }],
     },
     {
@@ -355,6 +497,11 @@ export const MOCK_SUGGESTED: Record<string, RoleSuggested[]> = {
         repositories: [{ name: 'tla-consensus-specs', description: 'TLA+ specifications of three BFT protocols.' }],
       },
       met: ['cr', 'fv', 'tz'],
+      evidence: {
+        cr: 'Consensus on his profile; independent protocol researcher',
+        fv: 'TLA+ specifications of three BFT protocols',
+        tz: 'Buenos Aires, Argentina',
+      },
       reasons: [],
     },
   ],

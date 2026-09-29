@@ -229,27 +229,68 @@ const BOARD_INTERESTED: Record<string, RoleInterested[]> = {
    for, and `ff-3` / `ff-4` have none: a listing that is not up has nobody to
    invite. `person()` gives every record a CV, which a suggestion does not
    carry (nothing was sent), so it is dropped. */
-const suggestion = (p: ReturnType<typeof person>, met: string[], reasons: SuggestionReason[]): RoleSuggested => {
+const suggestion = (
+  p: ReturnType<typeof person>,
+  evidence: Record<string, string>,
+  reasons: SuggestionReason[],
+): RoleSuggested => {
   const { cv: _cv, ...rest } = p;
-  return { ...rest, met, reasons };
+  // Met is whatever the per-criterion pass found evidence for — one record, so
+  // a tick can never stand without the fact that earns it.
+  return { ...rest, met: Object.keys(evidence), evidence, reasons };
 };
 
 /* What each of the lead's live roles is matched against — see `RoleCriterion`. */
 const BOARD_CRITERIA: Record<string, RoleCriterion[]> = {
   // Head of Ecosystem Growth
   'ff-1': [
-    { id: 'eco', group: 'Skills', label: 'Ecosystem or partnerships experience' },
-    { id: 'dev', group: 'Skills', label: 'Developer ecosystem background' },
-    { id: 'prog', group: 'Skills', label: 'Program or grants operations' },
-    { id: 'lead', group: 'Seniority', label: 'Lead or above' },
-    { id: 'tz', group: 'Location', label: 'US or Europe working hours' },
+    {
+      id: 'eco',
+      group: 'Skills',
+      statement: 'Experience building ecosystems or partnerships across many teams',
+      label: 'Ecosystem or partnerships',
+    },
+    {
+      id: 'dev',
+      group: 'Skills',
+      statement: 'Background in developer ecosystems or developer relations',
+      label: 'Developer ecosystems',
+    },
+    {
+      id: 'prog',
+      group: 'Skills',
+      statement: 'Experience running grants or programs end to end',
+      label: 'Grants or programs',
+    },
+    { id: 'lead', group: 'Seniority', statement: 'Lead-level experience or above', label: 'Lead level' },
+    {
+      id: 'tz',
+      group: 'Location',
+      statement: 'Working hours overlapping the US or Europe (remote)',
+      label: 'US or Europe hours',
+    },
   ],
   // Grants Program Operations Lead
   'ff-2': [
-    { id: 'prog', group: 'Skills', label: 'Grants or program operations' },
-    { id: 'rep', group: 'Skills', label: 'Reporting and analytics' },
-    { id: 'lead', group: 'Seniority', label: 'Lead or above' },
-    { id: 'tz', group: 'Location', label: 'US or Europe working hours' },
+    {
+      id: 'prog',
+      group: 'Skills',
+      statement: 'Experience operating a grants or funding program',
+      label: 'Grants operations',
+    },
+    {
+      id: 'rep',
+      group: 'Skills',
+      statement: 'Strong reporting and analytics skills applied to programs',
+      label: 'Reporting and analytics',
+    },
+    { id: 'lead', group: 'Seniority', statement: 'Lead-level experience or above', label: 'Lead level' },
+    {
+      id: 'tz',
+      group: 'Location',
+      statement: 'Working hours overlapping the US or Europe (remote)',
+      label: 'US or Europe hours',
+    },
   ],
 };
 
@@ -274,19 +315,32 @@ const BOARD_SUGGESTED: Record<string, RoleSuggested[]> = {
   'ff-1': [
     suggestion(
       IMANI,
-      ['eco', 'dev', 'lead', 'tz'],
+      {
+        eco: 'Ecosystem Lead at Livepeer; partnerships at Protocol Labs',
+        dev: 'Developer ecosystems on her profile',
+        lead: 'Ecosystem Lead since 2022',
+        tz: 'London, UK',
+      },
       [{ kind: 'vouch', text: 'Worked with 2 of your teammates while at Protocol Labs' }],
     ),
     suggestion(
       { ...TARIQ, id: 'ff-sug-2' },
-      ['eco', 'prog', 'tz'],
+      {
+        eco: 'Program partnerships at Gitcoin and Mozilla Foundation',
+        prog: 'Grants Manager at Gitcoin since 2022',
+        tz: 'Accra, Ghana',
+      },
       [{ kind: 'interest', text: 'Applied to your Grants Program Operations Lead role' }],
     ),
   ],
   'ff-2': [
     suggestion(
       { ...SOFIA, id: 'ff-sug-3' },
-      ['rep', 'lead', 'tz'],
+      {
+        rep: 'Analytics on her profile; growth reporting at Lattice Compute',
+        lead: 'Growth Lead since 2023',
+        tz: 'Lisbon, Portugal',
+      },
       [{ kind: 'interest', text: 'Applied to your Head of Ecosystem Growth role' }],
     ),
   ],

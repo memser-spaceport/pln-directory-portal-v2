@@ -35,7 +35,6 @@ export const EditorialIntro = () => {
           <div key={f.label} className={s.edFact}>
             <dt className={s.edFactLabel}>{f.label}</dt>
             <dd className={s.edFactValue}>{f.value === 'portfolio' ? PORTFOLIO.length : f.value}</dd>
-            <dd className={s.edFactSource}>{f.source === 'Listed below' ? f.source : `Source: ${f.source}`}</dd>
           </div>
         ))}
       </dl>

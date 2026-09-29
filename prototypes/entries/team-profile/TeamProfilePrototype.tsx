@@ -39,6 +39,7 @@ import { TeamContributionsView } from './TeamContributionsView';
 import { TeamProjectsView } from './TeamProjectsView';
 import { TeamOpenRolesView } from './TeamOpenRolesView';
 import { TeamCandidatesPage, type CandidatesTab } from './TeamCandidatesPage';
+import { SuggestedCandidatesEmail } from './email/SuggestedCandidatesEmail';
 import { getJobDate, seniorityDisplayLabel } from '@/utils/jobs.utils';
 import { seedListingMeta, submitJobHref, type ListingMeta, type ListingStatus } from '../job-board/listings';
 /* The board's apply flow, mounted here so a role read from its team's page is
@@ -74,6 +75,11 @@ import { PostNewsButton } from './PostNewsButton';
 import { deriveDomain } from './newsUrl';
 import { FollowPill } from '../follow-shared/FollowPill';
 import { FollowToast } from '../follow-shared/FollowToast';
+// Team-level "Request an intro" (LAB-2698): the member profile's press and
+// modal, in its team variant — the PL team routes the request to the right
+// person on the team. One store, keyed by the team uid.
+import { RequestIntroButton } from '../intro-shared/RequestIntroButton';
+import { useRequestIntro } from '../intro-shared/useRequestIntro';
 // The archive itself — the same component the teams grid's news chip opens, so
 // one team's news is one box wherever you reach it from.
 import { TeamNewsModal } from '../news-shared/TeamNewsModal';
@@ -103,6 +109,7 @@ import {
   MOCK_SUGGESTED,
   MOCK_ROLE_CRITERIA,
   visibleSuggested,
+  sortSuggested,
   MOCK_TEAM_FACTS,
   type TeamStatus,
 } from './mocks';
@@ -188,6 +195,30 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
   const [candidatesRole, setCandidatesRole] = useState<string | null>(null);
   // The tab the count line asked for: its "N suggested" clause opens Suggested.
   const [candidatesTab, setCandidatesTab] = useState<CandidatesTab | undefined>(undefined);
+  // The person the page opens on — set only by a link to one member.
+  const [candidatesPerson, setCandidatesPerson] = useState<string | undefined>(undefined);
+  // `?email=suggested`: the suggested-candidates email, as a review surface.
+  const [suggestedEmailOpen, setSuggestedEmailOpen] = useState(false);
+  /**
+   * LANDING (LAB-2687 Comms). The suggested-candidates email and the bell
+   * notification both link here — `?candidates=<roleUid>&tab=suggested`, plus
+   * `&candidate=<id>` from a name in the email — and arrive on the Candidates
+   * page, on that role, Suggested tab open, as the team lead (the seat the
+   * email is sent to). Read once on mount; the real route would be
+   * `/teams/<id>/candidates?role=…&tab=suggested`.
+   */
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get('email') === 'suggested') setSuggestedEmailOpen(true);
+    const role = q.get('candidates');
+    if (!role) return;
+    setView('lead');
+    const tab = q.get('tab');
+    if (tab === 'suggested') setCandidatesTab('Suggested');
+    else if (tab === 'interested') setCandidatesTab('Interested');
+    setCandidatesPerson(q.get('candidate') ?? undefined);
+    setCandidatesRole(role);
+  }, []);
 
   /**
    * THE APPLY FLOW, on this page.
@@ -592,6 +623,18 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
    * prompt on an empty rail.
    */
   const [aiOpen, setAiOpen] = useState(false);
+  /**
+   * "Request an intro to <team>" (LAB-2698, reversed back in at the
+   * 2026-09-28 standup). The requester — a founder, an operator, a BD person —
+   * wants the team, not a named member, and does not know who there to ask;
+   * the PL team picks the person (a founder, the events lead…) and makes the
+   * intro. So the target is the team itself, and the press lives in the
+   * header cluster beside Ask AI and Follow, like the member page's contact
+   * press. Visitors only: the team's own members (the Admin / Team lead /
+   * Member seats, production's team view) have nobody to be introduced to.
+   */
+  const intro = useRequestIntro();
+  const teamIntroUid = team.id ?? 'protocol-labs';
   const [followersOpen, setFollowersOpen] = useState(false);
   const scrollToSection = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -641,6 +684,25 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
 
   if (!mounted) {
     return <div className={shell.teamDetail} />;
+  }
+
+  /* The email takes the whole page, as the job board's `?email=1` does: it is
+     something that leaves the product, not a state the profile can be in. */
+  if (suggestedEmailOpen && teamRoles) {
+    const emailRole = teamRoles.roles.find((r) => (MOCK_SUGGESTED[r.uid] ?? []).length > 0) ?? teamRoles.roles[0];
+    const emailCriteria = MOCK_ROLE_CRITERIA[emailRole.uid] ?? [];
+    return (
+      <SuggestedCandidatesEmail
+        teamName={team.name ?? 'your team'}
+        recipientName={`${MOCK_MEMBERS.find((m) => m.teamLead)?.name ?? 'Team lead'} (team lead)`}
+        roleTitle={emailRole.roleTitle}
+        people={sortSuggested(visibleSuggested(MOCK_SUGGESTED[emailRole.uid] ?? [], emailCriteria), emailCriteria)}
+        criteria={emailCriteria}
+        hrefFor={(personId) =>
+          `/prototypes/team-profile?candidates=${emailRole.uid}&tab=suggested${personId ? `&candidate=${personId}` : ''}`
+        }
+      />
+    );
   }
 
   const followCount = TEAM_FOLLOWER_COUNT;
@@ -776,7 +838,11 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
           }))}
           initialRoleUid={candidatesRole}
           initialTab={candidatesTab}
-          onBack={() => setCandidatesRole(null)}
+          initialSelectedId={candidatesPerson}
+          onBack={() => {
+            setCandidatesRole(null);
+            setCandidatesPerson(undefined);
+          }}
         />
       ) : (
         <div className={local.layout}>
@@ -798,13 +864,35 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                   headerAction={
                     !isTeamView ? (
                       <div className={`${local.followHeader} ${local.followClusterMobile}`}>
+                        {/* The visitor's cluster, the member page's order: Ask
+                            AI · Follow · the contact press in the corner
+                            (the filled press keeps the corner, lesson 25).
+                            The Follow caption hangs under Follow itself, so it
+                            never lands under a different button. */}
                         <div className={local.headerActionRow}>
                           {askAiButton(local.fromTablet)}
-                          <FollowPill
-                            following={following}
-                            onToggle={handleFollowToggle}
+                          <div className={local.followCol}>
+                            <FollowPill
+                              following={following}
+                              onToggle={handleFollowToggle}
+                              name={team.name ?? 'this team'}
+                              size={isMobile ? 's' : 'xs'}
+                            />
+                            {/* Reserve the caption's height once following so nothing below jumps.
+                                The phone names the button, which no longer
+                                sits alone above it. */}
+                            <p className={`${local.followCaption} ${following ? local.followCaptionHidden : ''}`}>
+                              {isMobile ? 'Follow to get updates & announcements' : 'Get updates & announcements'}
+                            </p>
+                          </div>
+                          <RequestIntroButton
+                            requested={intro.requested(teamIntroUid)}
+                            onClick={() =>
+                              intro.request({ uid: teamIntroUid, name: team.name ?? 'this team', kind: 'team' })
+                            }
                             name={team.name ?? 'this team'}
                             size={isMobile ? 's' : 'xs'}
+                            className={local.introPress}
                           />
                           {/* Phone: Ask AI beside Follow as the member page's
                               outlined badge ("Use the same badge for team
@@ -812,12 +900,6 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                               and on both profile pages. */}
                           {askAiButton(clsx(local.mobileOnly, local.askAiBadge), 12)}
                         </div>
-                        {/* Reserve the caption's height once following so nothing below jumps.
-                            With two buttons on the row the caption names its
-                            button; under Follow alone it needn't. */}
-                        <p className={`${local.followCaption} ${following ? local.followCaptionHidden : ''}`}>
-                          {isMobile ? 'Follow to get updates & announcements' : 'Get updates & announcements'}
-                        </p>
                       </div>
                     ) : (
                       <div className={local.teamHeaderCluster}>
@@ -1120,6 +1202,8 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
         </FollowToast>
       )}
       {listingToast && <FollowToast>{listingToast}</FollowToast>}
+      {/* The team-intro modal and its "sent" toast. */}
+      {intro.layer}
 
       {/* The job, read and applied to without leaving the team — the board's own
           drawer, so the role a person finds here and the role they find on

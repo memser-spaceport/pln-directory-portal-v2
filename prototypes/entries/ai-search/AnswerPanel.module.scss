@@ -16,6 +16,28 @@
   min-height: 0;
 }
 
+/* The `ai-mode` page: the scroll region stays full width (its edge is the
+   page's edge), and the turns and the input share one 768px reading column
+   centred in it, so a wide screen reads like a page and not a stretched card.
+   The input loses its hairline: on a page the column's end is the edge. */
+.rootPage {
+  .messages,
+  .inputWrap {
+    padding-left: max(16px, calc((100% - 768px) / 2));
+    padding-right: max(16px, calc((100% - 768px) / 2));
+  }
+
+  .messages {
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+
+  .inputWrap {
+    padding-bottom: 16px;
+    border-top: 0;
+  }
+}
+
 /* Pinned above the thread, so Back is reachable at any scroll position. */
 .bar {
   display: flex;

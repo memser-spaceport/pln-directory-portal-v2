@@ -13,8 +13,13 @@ interface Props {
   prompts: { text: string }[];
   /** A chip: open the AI view already answering this question. */
   onAsk: (question: string) => void;
-  /** The text link: open the view idle, field focused, for a question of your own. */
-  onAskOwn: () => void;
+  /**
+   * The text link: open the view idle, field focused, for a question of your
+   * own. Optional since 2026-09-28: the member profile moved Ask AI into the
+   * header's action cluster, which is this exact door, so the page passes
+   * none and the strip is only its questions.
+   */
+  onAskOwn?: () => void;
   max?: number;
 }
 
@@ -31,8 +36,9 @@ interface Props {
  * fifth example: an offer that only exists behind a press is being made by
  * nothing).
  *
- * One door, not two: the header link is gone on this page, so the strip is the
- * only way in. The chips are the scope's own prompts — one per card the page
+ * (2026-09-28: the header's Ask AI came back — every profile action now lives
+ * in the header cluster — so on the member page the strip is the questions
+ * only, and the idle door is the header's.) The chips are the scope's own prompts — one per card the page
  * renders — so a chip and its answer's door always agree. The last item is a
  * text action for a question of your own; it opens the same view idle, with
  * the scope chip in the field.
@@ -60,11 +66,13 @@ export function AskAboutStrip({ firstName, prompts, onAsk, onAskOwn, max = 3 }: 
             </button>
           </li>
         ))}
-        <li>
-          <Button style="link" variant="primary" underline={false} className={s.own} onClick={onAskOwn}>
-            Ask your own question
-          </Button>
-        </li>
+        {onAskOwn && (
+          <li>
+            <Button style="link" variant="primary" underline={false} className={s.own} onClick={onAskOwn}>
+              Ask your own question
+            </Button>
+          </li>
+        )}
       </ul>
     </div>
   );

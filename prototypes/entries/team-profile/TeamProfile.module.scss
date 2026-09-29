@@ -1417,9 +1417,24 @@
     }
 
     > .askAiBadge {
-      order: -1;
+      order: -2;
       align-self: flex-start;
       width: auto;
+    }
+
+    /* The contact press leads the stack, Follow and its caption follow — the
+       member page's phone order. */
+    > .introPress {
+      order: -1;
+    }
+
+    > .followCol {
+      align-items: stretch;
+
+      > * {
+        width: 100%;
+        justify-content: center;
+      }
     }
   }
 
@@ -1553,19 +1568,41 @@
   line-height: 24px;
 }
 
-/* Visitor's header: Ask AI and Follow on one row, the Follow caption under
-   them. Follow stays last on desktop so it keeps the card's corner and the
-   right-aligned caption sits under it. On a phone the cluster is left-aligned,
-   so the row reverses: Follow leads and the caption is still under Follow,
-   never under Ask AI. */
+/* Visitor's header: Ask AI · Follow · Request an intro on one row — the
+   member page's cluster (2026-09-28, LAB-2698). The filled intro keeps the
+   corner; Follow's caption lives in `.followCol` under Follow, so it is never
+   under another button. On a phone the row becomes a stack: the Ask AI
+   badge, the intro, then Follow with its caption. */
 .headerActionRow {
   display: inline-flex;
-  align-items: center;
+  /* Top-aligned since the intro joined (2026-09-28): Follow's caption hangs
+     under Follow inside `.followCol`, so centring would drop the pills
+     half a caption below Ask AI. Ask AI takes the pills' 34px instead. */
+  align-items: flex-start;
   /* 12px — production's `.actions` gap in the owner's row (TeamDetails), so
      Ask AI stands the same distance from its neighbour in every seat. A bare
      text action needs the air a boxed one carried in its padding. */
   gap: 12px;
   /* Phone layout: see the mobile block at the end of this file. */
+
+  > .askAiBtn {
+    min-height: 34px;
+  }
+}
+
+/* Follow over its caption, the caption centred under the pill. */
+.followCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The team's contact press: the member page's, in the corner. The pills are
+   8px apart on the member page; here the row's 12px stands, because the gap
+   is set once for the row that also holds Ask AI. */
+.introPress {
+  flex-shrink: 0;
 }
 
 /* Owner's seat: Ask AI rides the Edit/Delete row from tablet up, and the

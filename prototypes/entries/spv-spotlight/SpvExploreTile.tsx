@@ -25,23 +25,21 @@ const hex = (x: number, y: number, r: number) =>
     return `${(x + r * Math.cos(a)).toFixed(2)},${(y + r * Math.sin(a)).toFixed(2)}`;
   }).join(' ');
 
-type Props = {
-  teamCount: number;
-};
-
 /**
  * "Explore PL Network" as a tile rather than a hero button (decided
  * 2026-09-29; it is the page's only way to the Explore landing). The tile earns its space by saying what the network is before
  * asking for the click; the whole tile is the link.
  */
-export const SpvExploreTile = ({ teamCount }: Props) => (
+// The count is the network figure the Explore landing shows (750+, 2026-09-29
+// review), not the 284 logos on its map: the tile names what it opens.
+export const SpvExploreTile = () => (
   <a className={s.exploreTile} href={EXPLORE_PL_NETWORK_URL} target="_blank" rel="noopener noreferrer">
     <div className={s.exploreTileText}>
       <span className={s.exploreTileOverline}>New to Protocol Labs?</span>
       <span className={s.exploreTileTitle}>Explore the PL Network</span>
       <span className={s.exploreTileBody}>
-        {teamCount} teams across AI, neurotech, digital rights and new economies: the network this SPV comes from, and
-        the founders, funds and labs behind it.
+        750+ teams across AI, neurotech, digital rights and new economies: the network this SPV comes from, and the
+        founders, funds and labs behind it.
       </span>
       <span className={s.exploreTileCta}>
         Explore PL Network <ArrowRight />

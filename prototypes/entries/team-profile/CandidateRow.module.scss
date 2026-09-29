@@ -125,6 +125,56 @@
   flex-shrink: 0;
   color: var(--foreground-neutral-tertiary, #8897ae);
 }
+/* A suggested row's working, under the role: "4 of 5 requirements" and then,
+ * named, whatever the profile does not show. The role line's own 12/18. The
+ * count takes the role's secondary ink; each miss the tertiary ink behind a
+ * dash — the pane's own unmet mark, so row and checklist read as one list.
+ * One line; a long miss ellipsises rather than wrapping the row. */
+.working {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  margin: 2px 0 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.workingCount {
+  flex-shrink: 0;
+}
+
+.workingUnmet {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.workingDash {
+  flex-shrink: 0;
+  width: 6px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
 
 /* The match badge at the row's right end: "Strong match" / "Good match",
  * colour-coded by band (see SUGGESTION_BAND_VARIANT). */

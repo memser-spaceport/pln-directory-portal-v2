@@ -15,6 +15,9 @@ import type { WebsiteImage } from './netholabs';
 import type { SpvTeam } from './teams';
 import s from './SpvSpotlight.module.scss';
 
+// The live directory, as the Explore landing links it.
+const DIRECTORY_URL = 'https://os.pl.xyz';
+
 type Props = {
   team: SpvTeam;
   facts: { location: string; teamSize: string };
@@ -87,10 +90,9 @@ export const SpvCardStatus = ({ children }: { children: React.ReactNode }) => (
  * drawn with PL Spotlight's card primary button. Not in TeamProfileCard's
  * bottom action row: this card is taller than a screen, and the one thing to
  * do should sit beside the team's name, above the fold. On phones it drops
- * under the identity at full width. Nothing links into the directory (this
- * page has no routes into the app).
- */
-export function SpvTeamSpotlight({ team, facts, summary, images, aboutHtml, aboutOpen = false, action }: Props) {
+ * under the identity at full width. The founder tiles are the one way into the
+ * directory: each opens that person's profile in a new tab.
+ */ export function SpvTeamSpotlight({ team, facts, summary, images, aboutHtml, aboutOpen = false, action }: Props) {
   const [showFull, setShowFull] = useState(aboutOpen);
   const website = team.team.website ?? '';
   const host = website.replace(/^https?:\/\//, '').replace(/\/$/, '');
@@ -175,18 +177,27 @@ export function SpvTeamSpotlight({ team, facts, summary, images, aboutHtml, abou
             <section className={s.asideBlock}>
               <h4 className={s.asideLabel}>Founders</h4>
               <ul className={s.founderTiles}>
+                {/* Each founder opens their directory profile in a new tab
+                    (2026-09-29 review), so the deal page stays where it is. */}
                 {team.members.map((m) => (
-                  <li key={m.id} className={s.founderTile}>
-                    <div
-                      className={clsx(h.founderAvatar, s.founderTileAvatar)}
-                      style={{ backgroundImage: `url('${m.profile ?? ''}')` }}
-                      role="img"
-                      aria-label={m.name}
-                    />
-                    <div className={h.founderText}>
-                      <div className={clsx(h.founderName, s.founderTileName)}>{m.name}</div>
-                      <div className={h.founderRole}>{m.teams?.[0]?.role ?? 'Co-Founder'}</div>
-                    </div>
+                  <li key={m.id}>
+                    <a
+                      className={s.founderTile}
+                      href={`${DIRECTORY_URL}/members/${m.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <div
+                        className={clsx(h.founderAvatar, s.founderTileAvatar)}
+                        style={{ backgroundImage: `url('${m.profile ?? ''}')` }}
+                        role="img"
+                        aria-label={m.name}
+                      />
+                      <div className={h.founderText}>
+                        <div className={clsx(h.founderName, s.founderTileName)}>{m.name}</div>
+                        <div className={h.founderRole}>{m.teams?.[0]?.role ?? 'Co-Founder'}</div>
+                      </div>
+                    </a>
                   </li>
                 ))}
               </ul>

@@ -5,9 +5,9 @@
  * - Page: `member-profile/MemberProfilePrototype` — imported whole via its
  *   named `MemberProfilePage` with `askAi="strip"`. Nothing else on the page
  *   changes, so the two entries differ in exactly one decision and can be
- *   compared side by side (member-profile keeps the header link).
- * - Strip: `./AskAboutStrip` — label + question chips + "Ask your own
- *   question" text action, mounted under the bio in the header card.
+ *   compared side by side.
+ * - Strip: `./AskAboutStrip` — label + question chips, mounted under the bio
+ *   in the header card.
  * - Questions: `member-profile/aiSearchScope.ts` (`buildMemberAiScope`) — the
  *   scope's prompts, first three; a chip opens the view already answering.
  * - View: `ai-search/AiSearchView` with `scope` + `request` ({question,
@@ -23,10 +23,11 @@
 import { MemberProfilePage } from '../member-profile/MemberProfilePrototype';
 
 /**
- * Member profile with "Ask AI" as a strip of questions under the bio instead
- * of a link in the header's action cluster. One page, one changed decision —
- * see `AskAboutStrip` for the argument and `member-profile` for the other
- * half of the comparison.
+ * Member profile with the scope's questions as a strip of chips under the
+ * bio. Since 2026-09-28 every profile action — Ask AI included — lives in the
+ * header cluster on both entries, so the one decision this entry changes is
+ * whether the questions are also on the page (here) or only inside the view
+ * (member-profile).
  */
 export default function MemberAskAiPrototype() {
   return <MemberProfilePage askAi="strip" />;

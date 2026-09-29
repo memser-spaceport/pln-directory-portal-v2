@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 /* `size="compact"` — AI search's rows and cards. The box is production's
    "Available to connect" badge (`components/core/OhBadge/OhBadge.module.scss`
    `.root`) copied value for value, so the two stand at one height on one line:
@@ -54,14 +56,47 @@
   }
 }
 
-.btn {
+/* Production's `OfficeHoursView.primaryButton`, reset for a header cluster —
+   the same values as member-profile's `.scheduleBtn`, because the two presses
+   take turns in one slot and must measure alike: natural width (not the
+   card's 100%), no auto margin or grid area, the DS xs height (6px pad + 20px
+   line + 1px borders = 34px), 6px from glyph to label. Hover is the DS
+   fill/primary's one step deeper; production's glossy declares none. */
+.primary {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   gap: 6px;
   white-space: nowrap;
-  /* No shadow ("Remove shadow from Request an intro"): the glossy primary
-     beside it keeps its gloss and is the only lifted press in the row. */
+  width: auto;
+  margin-left: 0;
+  grid-area: auto;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-family: inherit;
+
+  &:hover {
+    background: var(--action-background-brand-hover, #0f3cd9);
+  }
+
+  &:active {
+    background: var(--action-background-brand-normal, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+
+  @include media.tablet-landscape {
+    width: auto;
+  }
+}
+
+/* The phone's `s` height: production's own 8px pad, 38px. */
+.primaryS {
+  padding: 8px 12px;
 }
 
 /* The sent receipt: the pill's own type (14/20 500), ink and 34px line, with

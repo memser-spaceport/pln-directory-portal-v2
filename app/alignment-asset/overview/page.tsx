@@ -1,7 +1,7 @@
 import OverviewPage from '@/components/page/aligement-assets/overview/overview-page';
 import type { RoundHistoryEntry } from '@/components/page/aligement-assets/overview/active-member-overview';
 import { getKpiWeights } from '@/services/plaa/kpi-weights.service';
-import { getCurrentRoundStats, getRoundStats, RoundStatsResponse } from '@/services/plaa/rounds.service';
+import { getAllRoundStats, RoundStatsResponse } from '@/services/plaa/rounds.service';
 import { getTrustHoldings } from '@/services/plaa/trust-holdings.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
@@ -15,39 +15,35 @@ function toCategoryStats(data: RoundStatsResponse | undefined, categories: strin
   }));
 }
 
-async function getRoundHistory(totalRounds: number, authToken?: string): Promise<RoundHistoryEntry[]> {
-  const results = await Promise.all(Array.from({ length: totalRounds }, (_, i) => getRoundStats(i + 1, authToken)));
-
+function getRoundHistory(rounds: RoundStatsResponse[]): RoundHistoryEntry[] {
   const categoryNames = new Set<string>();
-  results.forEach(({ data }) => {
-    data?.chart.forEach((entry) => categoryNames.add(entry.name));
-    data?.tokenChart.forEach((entry) => categoryNames.add(entry.name));
+  rounds.forEach((data) => {
+    data.chart.forEach((entry) => categoryNames.add(entry.name));
+    data.tokenChart.forEach((entry) => categoryNames.add(entry.name));
   });
   const categories = Array.from(categoryNames).sort();
 
-  return results
-    .map(({ data }) =>
-      data
-        ? {
-            roundNumber: data.roundNumber,
-            label: `${data.month} ${data.year}`,
-            categories: toCategoryStats(data, categories),
-          }
-        : null,
-    )
-    .filter((entry): entry is RoundHistoryEntry => entry !== null)
+  return rounds
+    .map((data) => ({
+      roundNumber: data.roundNumber,
+      label: `${data.month} ${data.year}`,
+      categories: toCategoryStats(data, categories),
+    }))
     .sort((a, b) => b.roundNumber - a.roundNumber);
 }
 
 export default async function OverviewRoutePage() {
   const { authToken } = await getCookiesFromHeaders();
-  const [{ data: kpiWeights }, { data: roundStats }, { data: trustHoldings }] = await Promise.all([
+  const [{ data: kpiWeights }, { data: rounds = [] }, { data: trustHoldings }] = await Promise.all([
     getKpiWeights(),
-    getCurrentRoundStats(authToken),
+    getAllRoundStats(authToken),
     getTrustHoldings(authToken),
   ]);
 
-  const roundHistory = roundStats ? await getRoundHistory(roundStats.roundNumber, authToken) : [];
+  const roundStats = rounds.find((round) => round.isCurrentRound);
+  const roundHistory = roundStats
+    ? getRoundHistory(rounds.filter((round) => round.roundNumber <= roundStats.roundNumber))
+    : [];
 
   return (
     <OverviewPage

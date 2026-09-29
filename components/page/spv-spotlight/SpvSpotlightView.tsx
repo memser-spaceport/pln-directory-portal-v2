@@ -55,7 +55,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
   const goToLogin = useLoginRedirect();
   const analytics = useSpvSpotlightAnalytics();
 
-  const { data: spotlight, isError } = useGetSpvSpotlight(slug, initialSpotlight);
+  const { data: spotlight, isError, isPlaceholderData } = useGetSpvSpotlight(slug, initialSpotlight);
   const requestAccess = useRequestSpvAccess(slug, isLoggedIn);
   const { data: memberData } = useMember(isLoggedIn ? currentUser?.uid : undefined);
   const profileComplete = checkInvestorProfileComplete(memberData?.memberInfo, currentUser);
@@ -71,7 +71,10 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
       ? 'PENDING'
       : spotlight.viewerAccess
     : null;
-  const viewState: SpvViewState | null = spotlight && access ? resolveSpvViewState(spotlight.status, access) : null;
+  // Null while a signed-in viewer's own read is loading: the content shows, but
+  // nothing that depends on where they stand (no CTA to flash, no wrong message).
+  const viewState: SpvViewState | null =
+    spotlight && access && !isPlaceholderData ? resolveSpvViewState(spotlight.status, access) : null;
 
   const baseParams = (): SpvSpotlightBaseParams | null =>
     spotlight && viewState ? { spotlight_slug: slug, spotlight_status: spotlight.status, view_state: viewState } : null;
@@ -129,7 +132,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
     }
   };
 
-  if (!spotlight || !viewState) {
+  if (!spotlight) {
     return (
       <div className={s.page}>
         <SpvTopBar label={TOP_BAR_LABEL} supportEmail={initialSpotlight?.supportEmail ?? 'spotlight@protocol.ai'} />
@@ -150,6 +153,8 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
 
   const cardAction = (() => {
     switch (viewState) {
+      case null:
+        return undefined;
       case 'landing':
         return (
           <SpvCardAction

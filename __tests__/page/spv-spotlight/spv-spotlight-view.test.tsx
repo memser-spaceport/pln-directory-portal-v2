@@ -129,6 +129,19 @@ describe('SpvSpotlightView — the card action slot', () => {
     expect(screen.queryByText('Request submitted successfully!')).not.toBeInTheDocument();
   });
 
+  it("keeps the content up, but no CTA or state message, while a signed-in viewer's own state loads", () => {
+    useCurrentUserStore.setState({ currentUser: { uid: 'u1' } as never, isHydrated: true });
+    // The anonymous server read stands in until the viewer's read lands.
+    mockedUseGetSpvSpotlight.mockReturnValue({ data: base, isError: false, isPlaceholderData: true });
+    render(<SpvSpotlightView slug={MOCK_SPV_SLUG} initialSpotlight={base} />);
+
+    expect(screen.getByRole('heading', { level: 1, name: base.title })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: base.team.name })).toBeInTheDocument();
+    expect(screen.queryByLabelText('Loading Spotlight')).not.toBeInTheDocument();
+    expect(requestButton()).not.toBeInTheDocument();
+    expect(screen.queryByText(/Access requested|Data room closed|not approved/)).not.toBeInTheDocument();
+  });
+
   it('hides the Explore tile while the Explore landing is dark', () => {
     renderView('OPEN', 'NONE');
     expect(screen.queryByRole('link', { name: /Explore the PL Network/ })).not.toBeInTheDocument();

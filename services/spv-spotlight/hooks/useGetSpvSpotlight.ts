@@ -20,7 +20,9 @@ export function useGetSpvSpotlight(slug: string, initialData?: SpvSpotlight | nu
     // Wait for the auth store: an authenticated read fired before it hydrates
     // would go out anonymous and paint the wrong viewer state.
     enabled: !!slug && isHydrated,
-    // The server's read is anonymous, so it only seeds the anonymous key.
-    ...(!authenticated && !hasOverrides && initialData ? { initialData } : {}),
+    // The server's read is anonymous: it seeds the anonymous key, and for a
+    // signed-in viewer it is only a placeholder (`isPlaceholderData`) so the page
+    // keeps its content while the viewer's own state loads.
+    ...(initialData && !hasOverrides ? (authenticated ? { placeholderData: initialData } : { initialData }) : {}),
   });
 }

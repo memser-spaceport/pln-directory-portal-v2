@@ -9,7 +9,8 @@ import { SpvAppliedSteps } from '../SpvAppliedSteps/SpvAppliedSteps';
 import s from './SpvHero.module.scss';
 
 type Props = {
-  viewState: SpvViewState;
+  /** Null while the viewer's state loads: the hero shows only the spotlight's own copy. */
+  viewState: SpvViewState | null;
   status: SpvSpotlightStatus;
   title: string;
   /** Admin HTML. */

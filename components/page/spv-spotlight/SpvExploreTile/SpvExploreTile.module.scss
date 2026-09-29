@@ -4,6 +4,8 @@
 // team card above it.
 .root {
   display: flex;
+  // The section centres its children; the tile spans it, like the card above.
+  width: 100%;
   align-items: center;
   justify-content: space-between;
   gap: 32px;

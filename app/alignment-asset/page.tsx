@@ -1,24 +1,19 @@
 import { notFound } from 'next/navigation';
-import { getCurrentRoundStats } from '@/services/plaa/rounds.service';
-import { getTrustHoldings } from '@/services/plaa/trust-holdings.service';
+import { getPlaaSummary } from '@/services/plaa/summary.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import PlaaHomeTokens from '@/components/page/aligement-assets/home/plaa-home-tokens';
 import PlaaHome from '@/components/page/aligement-assets/home/plaa-home';
 import PlaaHomeFooter from '@/components/page/aligement-assets/home/plaa-home-footer';
 
 export default async function PlaaHomePage() {
-  const [{ data: round }, { data: trust }, { isLoggedIn }] = await Promise.all([
-    getCurrentRoundStats(),
-    getTrustHoldings(),
-    getCookiesFromHeaders(),
-  ]);
+  const [{ data: summary }, { isLoggedIn }] = await Promise.all([getPlaaSummary(), getCookiesFromHeaders()]);
 
-  if (!round) notFound();
+  if (!summary) notFound();
 
   return (
     <div className="plaa-home">
       <PlaaHomeTokens />
-      <PlaaHome round={round} trust={trust} variant={isLoggedIn ? 'member' : 'prospect'} />
+      <PlaaHome round={summary.round} trust={summary.trust ?? undefined} variant={isLoggedIn ? 'member' : 'prospect'} />
       <PlaaHomeFooter />
     </div>
   );

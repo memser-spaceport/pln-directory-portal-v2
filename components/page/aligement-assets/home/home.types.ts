@@ -1,9 +1,8 @@
-import type { TrustHoldingsData } from '@/services/plaa/trust-holdings.service';
-import type { RoundStatsResponse } from '@/services/plaa/rounds.service';
+import type { PlaaSummaryRound, PlaaSummaryTrust } from '@/services/plaa/summary.service';
 
 export interface PlaaHomeData {
-  readonly round: RoundStatsResponse;
-  readonly trust?: TrustHoldingsData;
+  readonly round: PlaaSummaryRound;
+  readonly trust?: PlaaSummaryTrust;
 }
 
 export type PlaaHomeVariant = 'prospect' | 'member';

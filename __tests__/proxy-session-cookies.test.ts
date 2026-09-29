@@ -185,6 +185,53 @@ describe('proxy: host-only refreshToken/userInfo', () => {
         .sort(),
     ).toEqual(['refreshToken', 'sessionScope', 'userInfo']);
   });
+
+  /* Local dev sets COOKIE_DOMAIN=localhost. Browsers read `Domain=localhost` (or an IP) as the host-only cookie
+     itself, so an "expire the shared copy" header there deletes the refreshToken set a line earlier — every local
+     sign-in then showed "session expired due to inactivity" at once. */
+  describe.each(['localhost', '127.0.0.1'])('COOKIE_DOMAIN=%s (no separate shared copy)', (domain) => {
+    beforeEach(() => {
+      process.env.COOKIE_DOMAIN = domain;
+    });
+
+    it('migrates without expiring the cookies it just wrote', async () => {
+      mockedCheck.mockResolvedValue({ active: true });
+
+      const cookies = setCookies((await proxy(request('/home', SESSION)))!);
+
+      expect(cookies.filter((c) => c.expired)).toEqual([]);
+      expect(cookies.map((c) => c.name).sort()).toEqual(['refreshToken', 'sessionScope', 'userInfo']);
+    });
+
+    it('with authToken host-only too (AI_APPS_SHARE_AUTH_TOKEN=false), still expires nothing it wrote', async () => {
+      process.env.AI_APPS_SHARE_AUTH_TOKEN = 'false';
+      mockedCheck.mockResolvedValue({ active: true });
+      try {
+        const cookies = setCookies((await proxy(request('/home', SESSION)))!);
+
+        expect(cookies.filter((c) => c.expired)).toEqual([]);
+        expect(cookies.map((c) => c.name)).toEqual(expect.arrayContaining(['authToken', 'refreshToken', 'userInfo']));
+      } finally {
+        delete process.env.AI_APPS_SHARE_AUTH_TOKEN;
+      }
+    });
+
+    it('renews without expiring the refreshed refreshToken/userInfo', async () => {
+      mockedCheck.mockResolvedValue({ active: false });
+      mockedRenew.mockResolvedValue({
+        data: { accessToken: 'access.new', refreshToken: 'refresh.new', userInfo: { uid: 'm-1' } },
+      });
+
+      const res = await proxy(request('/home', SESSION));
+      const cookies = setCookies(res!);
+
+      expect(res!.headers.get('isLoggedIn')).toBe('true');
+      expect(cookies.filter((c) => c.expired)).toEqual([]);
+      expect(cookies).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: 'refreshToken', expired: false })]),
+      );
+    });
+  });
 });
 
 describe('proxy: AI_APPS_SHARE_AUTH_TOKEN=false (LabOS stops sharing authToken)', () => {

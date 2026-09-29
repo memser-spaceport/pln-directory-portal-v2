@@ -88,6 +88,19 @@ describe('LabOS session cookie helpers', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it.each(['localhost', '127.0.0.1'])(
+    'never expires a "shared" copy on %s, where it would be the host-only cookie itself',
+    (domain) => {
+      process.env.COOKIE_DOMAIN = domain;
+
+      setSessionCookie('refreshToken', '"r"', { expires: EXPIRES });
+      expireSharedCookie('userInfo');
+
+      expect(mockedCookies.remove).not.toHaveBeenCalled();
+      expect(mockedCookies.set).toHaveBeenCalledWith('refreshToken', '"r"', { path: '/', expires: EXPIRES });
+    },
+  );
+
   it('logout clears host-only and shared copies, including the migration marker', () => {
     Object.defineProperty(window, 'localStorage', { value: { clear: jest.fn() }, configurable: true });
 

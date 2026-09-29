@@ -600,7 +600,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
     <div className="th">
       {/* Header */}
       <header className="th__header">
-        <h1 className="th__title">Alignment Asset Trust &amp; Holdings</h1>
+        <h1 className="th__title">Alignment Asset Portfolio &amp; Holdings</h1>
         <p className="th__subtitle">
           The information provided is for illustrative and educational purposes only and does not constitute financial,
           investment, or legal advice. NAV figures are approximations based on internal methodology and are subject to

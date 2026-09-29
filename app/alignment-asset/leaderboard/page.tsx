@@ -10,7 +10,7 @@ import type {
 } from '@/components/page/aligement-assets/leaderboard/leaderboard.types';
 import { getKpiWeights } from '@/services/plaa/kpi-weights.service';
 import { getLeaderboard, splitLeaderboardEntries } from '@/services/plaa/leaderboard.service';
-import { getCurrentRoundStats, getRoundStats } from '@/services/plaa/rounds.service';
+import { getAllRoundStats } from '@/services/plaa/rounds.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
 interface LeaderboardPageProps {
@@ -22,7 +22,8 @@ export default async function LeaderboardPage({ searchParams }: LeaderboardPageP
   const requestedRound = roundParam ? parseInt(roundParam, 10) : NaN;
 
   const { authToken } = await getCookiesFromHeaders();
-  const [{ data: current }, { data: weights }] = await Promise.all([getCurrentRoundStats(authToken), getKpiWeights()]);
+  const [{ data: rounds = [] }, { data: weights }] = await Promise.all([getAllRoundStats(authToken), getKpiWeights()]);
+  const current = rounds.find((round) => round.isCurrentRound);
 
   if (!current) {
     return (
@@ -32,15 +33,10 @@ export default async function LeaderboardPage({ searchParams }: LeaderboardPageP
     );
   }
 
-  const [olderRounds, leaderboardResult] = await Promise.all([
-    Promise.all(Array.from({ length: current.roundNumber - 1 }, (_, i) => getRoundStats(i + 1, authToken))),
-    getLeaderboard(current.roundNumber),
-  ]);
+  const olderRounds = rounds.filter((round) => round.roundNumber < current.roundNumber);
+  const leaderboardResult = await getLeaderboard(current.roundNumber);
 
-  const snapshots: LeaderboardSnapshot[] = [
-    current,
-    ...olderRounds.flatMap((result) => (result.data ? [result.data] : [])),
-  ]
+  const snapshots: LeaderboardSnapshot[] = [current, ...olderRounds]
     .map(toSnapshot)
     .sort((a, b) => b.roundNumber - a.roundNumber);
 

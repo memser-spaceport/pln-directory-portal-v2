@@ -4,15 +4,20 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { SPV_MOCK_ENABLED, SpvSpotlightQueryKeys } from '@/services/spv-spotlight/constants';
 import { readSpvMockOverrides } from '@/services/spv-spotlight/spv-spotlight.mock';
 import { getSpvSpotlight } from '@/services/spv-spotlight/spv-spotlight.service';
-import type { SpvSpotlight } from '@/services/spv-spotlight/types';
 
-export function useGetSpvSpotlight(slug: string, initialData?: SpvSpotlight | null) {
+/**
+ * The viewer's own read of the spotlight. Deliberately takes no server data:
+ * QueryProvider's client is one per Node process, so `initialData` here would
+ * write the first anonymous read into a cache every later SSR request reuses,
+ * and an admin's edits would never reach server-rendered pages. The page
+ * passes its server read to the view as a prop instead.
+ */
+export function useGetSpvSpotlight(slug: string) {
   const searchParams = useSearchParams();
   const { currentUser, isHydrated } = useCurrentUserStore();
   const authenticated = !!currentUser?.uid;
   // The state switch is dev-only: ignored entirely unless the mock is on.
   const overrides = SPV_MOCK_ENABLED ? readSpvMockOverrides(searchParams) : {};
-  const hasOverrides = !!overrides.status || !!overrides.access;
 
   return useQuery({
     queryKey: [SpvSpotlightQueryKeys.GET_SPOTLIGHT, slug, currentUser?.uid ?? null, overrides.status, overrides.access],
@@ -20,9 +25,5 @@ export function useGetSpvSpotlight(slug: string, initialData?: SpvSpotlight | nu
     // Wait for the auth store: an authenticated read fired before it hydrates
     // would go out anonymous and paint the wrong viewer state.
     enabled: !!slug && isHydrated,
-    // The server's read is anonymous: it seeds the anonymous key, and for a
-    // signed-in viewer it is only a placeholder (`isPlaceholderData`) so the page
-    // keeps its content while the viewer's own state loads.
-    ...(initialData && !hasOverrides ? (authenticated ? { placeholderData: initialData } : { initialData }) : {}),
   });
 }

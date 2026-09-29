@@ -45,7 +45,8 @@ export type SpvRequestAccessOutcome = { type: 'success' } | { type: 'blocked' } 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  spotlightTitle: string;
+  /** Names the data room in the heading; the admin title ("SPV Spotlight: …") reads badly inside a sentence. */
+  teamName: string;
   /** Signed-in requesters come in with email and name locked. */
   prefill: { email: string; name: string } | null;
   onSubmit: (payload: SpvAccessRequestPayload) => Promise<SpvRequestAccessOutcome>;
@@ -59,7 +60,7 @@ type Props = {
  * request from turns the modal into a sign-in prompt; it never says why, so a
  * rejection isn't disclosed to someone who only knows the address.
  */
-export const SpvRequestAccessModal = ({ isOpen, onClose, spotlightTitle, prefill, onSubmit, onSignIn }: Props) => {
+export const SpvRequestAccessModal = ({ isOpen, onClose, teamName, prefill, onSubmit, onSignIn }: Props) => {
   const isAuthenticated = !!prefill;
   const [step, setStep] = useState<'form' | 'alreadyRequested'>('form');
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -160,7 +161,7 @@ export const SpvRequestAccessModal = ({ isOpen, onClose, spotlightTitle, prefill
         <div className={s.content}>
           <div className={s.header}>
             <h2 id="spv-request-access-title" className={s.title}>
-              Request access to the {spotlightTitle} data room
+              Request access to the {teamName} data room
             </h2>
           </div>
           <p className={s.description}>

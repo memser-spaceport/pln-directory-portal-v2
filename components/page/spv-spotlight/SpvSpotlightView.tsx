@@ -50,12 +50,18 @@ type Props = {
  * backend can't know who they are until they sign in.
  */
 export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
-  const { currentUser } = useCurrentUserStore();
+  const { currentUser, isHydrated } = useCurrentUserStore();
   const isLoggedIn = !!currentUser?.uid;
   const goToLogin = useLoginRedirect();
   const analytics = useSpvSpotlightAnalytics();
 
-  const { data: spotlight, isError, isPlaceholderData } = useGetSpvSpotlight(slug, initialSpotlight);
+  const { data, isError } = useGetSpvSpotlight(slug);
+  // The server's read (a prop, never the shared query cache) stands in until the
+  // viewer's own read lands. It is anonymous, so it only says where the viewer
+  // stands once we know they're signed out: before the auth store hydrates, or
+  // for a signed-in viewer, it is content only.
+  const spotlight = data ?? initialSpotlight;
+  const isProvisional = !data && (!isHydrated || isLoggedIn);
   const requestAccess = useRequestSpvAccess(slug, isLoggedIn);
   const { data: memberData } = useMember(isLoggedIn ? currentUser?.uid : undefined);
   const profileComplete = checkInvestorProfileComplete(memberData?.memberInfo, currentUser);
@@ -71,10 +77,10 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
       ? 'PENDING'
       : spotlight.viewerAccess
     : null;
-  // Null while a signed-in viewer's own read is loading: the content shows, but
-  // nothing that depends on where they stand (no CTA to flash, no wrong message).
+  // Null while provisional: the content shows, but nothing that depends on where
+  // the viewer stands (no CTA to flash, no wrong message).
   const viewState: SpvViewState | null =
-    spotlight && access && !isPlaceholderData ? resolveSpvViewState(spotlight.status, access) : null;
+    spotlight && access && !isProvisional ? resolveSpvViewState(spotlight.status, access) : null;
 
   const baseParams = (): SpvSpotlightBaseParams | null =>
     spotlight && viewState ? { spotlight_slug: slug, spotlight_status: spotlight.status, view_state: viewState } : null;
@@ -247,7 +253,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
         key={currentUser?.uid ?? 'signed-out'}
         isOpen={requestOpen}
         onClose={() => setRequestOpen(false)}
-        spotlightTitle={spotlight.title}
+        teamName={spotlight.team.name}
         prefill={isLoggedIn ? { email: currentUser?.email ?? '', name: currentUser?.name ?? '' } : null}
         onSubmit={handleRequestSubmit}
         onSignIn={(email) => signIn('already-requested-prompt', email)}

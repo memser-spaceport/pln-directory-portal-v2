@@ -55,7 +55,7 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const NETHOLABS_SPOTLIGHT: Omit<SpvSpotlight, 'status' | 'viewerAccess' | 'docSendUrl'> = {
   uid: 'mock-spv-netholabs',
   slug: MOCK_SPV_SLUG,
-  title: 'Netholabs SPV',
+  title: 'SPV Spotlight: Netholabs',
   description:
     'Netholabs builds digital mammals for neuroscience, drug discovery and mind uploading. Protocol Labs is leading an SPV into their round and opening it to a small group of outside investors.',
   supportEmail: 'spotlight@protocol.ai',

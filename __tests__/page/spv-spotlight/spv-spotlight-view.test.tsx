@@ -129,17 +129,31 @@ describe('SpvSpotlightView — the card action slot', () => {
     expect(screen.queryByText('Request submitted successfully!')).not.toBeInTheDocument();
   });
 
-  it("keeps the content up, but no CTA or state message, while a signed-in viewer's own state loads", () => {
-    useCurrentUserStore.setState({ currentUser: { uid: 'u1' } as never, isHydrated: true });
-    // The anonymous server read stands in until the viewer's read lands.
-    mockedUseGetSpvSpotlight.mockReturnValue({ data: base, isError: false, isPlaceholderData: true });
-    render(<SpvSpotlightView slug={MOCK_SPV_SLUG} initialSpotlight={base} />);
+  describe('before the viewer’s own read lands (server data as a prop only)', () => {
+    const renderWithoutData = (currentUser: unknown, isHydrated = true) => {
+      useCurrentUserStore.setState({ currentUser: currentUser as never, isHydrated });
+      mockedUseGetSpvSpotlight.mockReturnValue({ data: undefined, isError: false });
+      render(<SpvSpotlightView slug={MOCK_SPV_SLUG} initialSpotlight={base} />);
+    };
 
-    expect(screen.getByRole('heading', { level: 1, name: base.title })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: base.team.name })).toBeInTheDocument();
-    expect(screen.queryByLabelText('Loading Spotlight')).not.toBeInTheDocument();
-    expect(requestButton()).not.toBeInTheDocument();
-    expect(screen.queryByText(/Access requested|Data room closed|not approved/)).not.toBeInTheDocument();
+    it('shows content but no CTA or state message to a signed-in viewer', () => {
+      renderWithoutData({ uid: 'u1' });
+      expect(screen.getByRole('heading', { level: 1, name: base.title })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: base.team.name })).toBeInTheDocument();
+      expect(requestButton()).not.toBeInTheDocument();
+      expect(screen.queryByText(/Access requested|Data room closed|not approved/)).not.toBeInTheDocument();
+    });
+
+    it('shows no CTA before the auth store hydrates (the server render)', () => {
+      renderWithoutData(null, false);
+      expect(screen.getByRole('heading', { level: 1, name: base.title })).toBeInTheDocument();
+      expect(requestButton()).not.toBeInTheDocument();
+    });
+
+    it('offers Request access straight away to a hydrated, signed-out viewer', () => {
+      renderWithoutData(null);
+      expect(requestButton()).toBeInTheDocument();
+    });
   });
 
   it('hides the Explore tile while the Explore landing is dark', () => {

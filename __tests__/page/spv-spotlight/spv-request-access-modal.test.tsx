@@ -18,7 +18,7 @@ const setup = (
     <SpvRequestAccessModal
       isOpen
       onClose={onClose}
-      spotlightTitle="Netholabs SPV"
+      teamName="Netholabs"
       prefill={prefill}
       onSubmit={onSubmit}
       onSignIn={onSignIn}
@@ -36,9 +36,9 @@ const fillForm = async (user: ReturnType<typeof userEvent.setup>, { email = 'new
 };
 
 describe('SpvRequestAccessModal', () => {
-  it('asks for the data room by the spotlight name', () => {
+  it('asks for the data room by the team name', () => {
     setup();
-    expect(screen.getByRole('heading', { name: 'Request access to the Netholabs SPV data room' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Request access to the Netholabs data room' })).toBeInTheDocument();
   });
 
   it('will not submit without the accreditation confirmation', async () => {

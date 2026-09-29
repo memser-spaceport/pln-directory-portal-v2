@@ -19,10 +19,10 @@ import ok from '@/components/page/demo-day/ApplyForDemoDayModal/AccountCreatedSu
 import { APPLIED_EMAILS } from './mocks';
 
 // Transcribed from ApplyForDemoDayModal's `applySchema` (same email rules and
-// accreditation message). LinkedIn and the team/project picker are dropped —
-// the SPV asks for email, name and organization only. Organization is a plain
-// text field rather than the directory team picker, because most applicants
-// are outside investors whose fund is not a directory team.
+// accreditation message). Email, name, and Demo Day's "Role & Organization/Fund
+// Name" row (role @ organization). LinkedIn is left out to keep the request
+// short. Organization is a plain text field rather than Demo Day's team picker,
+// because most requesters are outside investors whose fund is not a directory team.
 const applySchema = yup.object({
   email: yup
     .string()
@@ -34,6 +34,7 @@ const applySchema = yup.object({
     })
     .required('Email is required'),
   name: yup.string().required('Name is required'),
+  role: yup.string().required('Role is required'),
   org: yup.string().required('Organization is required'),
   isInvestor: yup
     .boolean()
@@ -50,7 +51,7 @@ type Props = {
   onClose: () => void;
   spotlightTitle: string;
   // Signed-in applicants come in with email + name locked, like production.
-  prefill?: { email: string; name: string; org: string } | null;
+  prefill?: { email: string; name: string; role: string; org: string } | null;
   onSubmitted: (email: string) => void;
   onSignIn: (email: string) => void;
 };
@@ -70,6 +71,7 @@ export const SpvApplyModal = ({ isOpen, onClose, spotlightTitle, prefill, onSubm
     defaultValues: {
       email: prefill?.email ?? '',
       name: prefill?.name ?? '',
+      role: prefill?.role ?? '',
       org: prefill?.org ?? '',
       isInvestor: false,
     },
@@ -127,11 +129,11 @@ export const SpvApplyModal = ({ isOpen, onClose, spotlightTitle, prefill, onSubm
       {step === 'alreadyApplied' ? (
         <div className={s.content}>
           <div className={s.text}>
-            <h2 className={s.title}>You&apos;ve already applied</h2>
+            <h2 className={s.title}>You&apos;ve already requested access</h2>
           </div>
           <p className={s.description}>
-            There&apos;s already an application for <strong>{getValues('email')}</strong>. Sign in with that email to
-            see where it stands — you can&apos;t apply twice to the same SPV.
+            There&apos;s already a request for <strong>{getValues('email')}</strong>. Sign in with that email to see
+            where it stands — each email can request access once.
           </p>
           <div className={s.footer}>
             <Button type="button" size="m" variant="secondary" style="border" onClick={() => setStep('form')}>
@@ -155,10 +157,10 @@ export const SpvApplyModal = ({ isOpen, onClose, spotlightTitle, prefill, onSubm
       ) : (
         <div className={s.content}>
           <div className={s.text}>
-            <h2 className={s.title}>Apply for {spotlightTitle}</h2>
+            <h2 className={s.title}>Request access to the {spotlightTitle} data room</h2>
           </div>
           <p className={s.description}>
-            The PL team reviews every application. Once you&apos;re approved, the deal materials open on this page and
+            The PL team reviews every request. Once you&apos;re approved, the data room opens on this page and
             we&apos;ll email you.
           </p>
 
@@ -178,7 +180,15 @@ export const SpvApplyModal = ({ isOpen, onClose, spotlightTitle, prefill, onSubm
                 isRequired
                 disabled={isAuthenticated}
               />
-              <FormField name="org" label="Organization / Fund" placeholder="e.g. Northfield Ventures" isRequired />
+              {/* Demo Day's role row, same classes: "Role @ Organization". */}
+              <div className={s.column}>
+                <div className={clsx(s.inputsLabel, s.required)}>Role & Organization/Fund Name</div>
+                <div className={s.inputsWrapper}>
+                  <FormField name="role" placeholder="Enter your primary role" />
+                  <span>@</span>
+                  <FormField name="org" placeholder="e.g. Northfield Ventures" />
+                </div>
+              </div>
 
               {/* Kept from the Demo Day form on purpose: an SPV is a securities
                   offering, so accreditation is the one extra field that is not
@@ -210,7 +220,7 @@ export const SpvApplyModal = ({ isOpen, onClose, spotlightTitle, prefill, onSubm
                 <p className={s.bodySecondary}>
                   {isAuthenticated
                     ? 'By submitting this form, you agree to our '
-                    : 'Applying creates a free PL Network account for this email. By submitting this form, you agree to our '}
+                    : 'Requesting access creates a free PL Network account for this email. By submitting this form, you agree to our '}
                   <a href="#" onClick={(e) => e.preventDefault()}>
                     Privacy Policy
                   </a>{' '}
@@ -227,7 +237,7 @@ export const SpvApplyModal = ({ isOpen, onClose, spotlightTitle, prefill, onSubm
                   Cancel
                 </Button>
                 <Button type="submit" size="m" style="fill" variant="primary" disabled={isSubmitting}>
-                  {isSubmitting ? 'Submitting...' : 'Submit application'}
+                  {isSubmitting ? 'Submitting...' : 'Request access'}
                 </Button>
               </div>
             </form>
@@ -254,13 +264,25 @@ const CircleCheckIcon = () => (
 
 const StepCheck = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M13.3334 4L6.00008 11.3333L2.66675 8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M13.3334 4L6.00008 11.3333L2.66675 8"
+      stroke="white"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 
 const SmallClose = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M12 4L4 12M4 4L12 12"
+      stroke="currentColor"
+      strokeWidth="1.33"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 
@@ -286,7 +308,7 @@ export const SpvAppliedModal = ({
           <CircleCheckIcon />
         </div>
         <div className={ok.text}>
-          <h2 className={ok.title}>Application received</h2>
+          <h2 className={ok.title}>Request received</h2>
 
           <div className={ok.steps}>
             <div className={ok.step}>
@@ -298,7 +320,7 @@ export const SpvAppliedModal = ({
                 <div className={ok.lineBottom} />
               </div>
               <div className={ok.stepContent}>
-                <p className={ok.stepTitle}>Application submitted</p>
+                <p className={ok.stepTitle}>Request submitted</p>
                 <p className={ok.stepDescription}>Sent to the PL team for review.</p>
               </div>
             </div>
@@ -316,7 +338,7 @@ export const SpvAppliedModal = ({
               <div className={ok.stepContent}>
                 <p className={ok.stepTitle}>Set up investor profile</p>
                 <p className={ok.stepDescription}>
-                  Complete your investor profile: the PL team reviews it with your application.
+                  Complete your investor profile: the PL team reviews it with your request.
                 </p>
               </div>
             </div>
@@ -334,7 +356,8 @@ export const SpvAppliedModal = ({
               <div className={ok.stepContent}>
                 <p className={ok.stepTitle}>Await approval</p>
                 <p className={ok.stepDescription}>
-                  We&apos;ll email {email}{' '}once you&apos;re approved — each team&apos;s materials then open on this page.
+                  We&apos;ll email {email} once you&apos;re approved — each team&apos;s materials then open on this
+                  page.
                 </p>
               </div>
             </div>
@@ -343,7 +366,14 @@ export const SpvAppliedModal = ({
       </div>
 
       <div className={ok.footer}>
-        <Button type="button" size="m" style="fill" variant="primary" onClick={onSetUpProfile} className={ok.primaryButton}>
+        <Button
+          type="button"
+          size="m"
+          style="fill"
+          variant="primary"
+          onClick={onSetUpProfile}
+          className={ok.primaryButton}
+        >
           Set up investor profile
         </Button>
       </div>

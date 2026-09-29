@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { Button } from '@/components/common/Button';
 import { CommentIcon } from '@/components/icons';
@@ -33,19 +33,32 @@ interface Props {
  *
  * `size="s"`: a 24px control beside a 28px title reads as an afterthought.
  *
+ * The dialog hangs below this button as dev's anchored popover
+ * (`placement="below"`). `Button` takes no ref, so the span is the anchor.
+ *
  * The rbac gate (`canViewAiApps`) and analytics are dropped; anyone who can see
  * the prototype can open the dialog.
  */
 export function GiveFeedbackButton({ apps, onSubmit }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const anchorRef = useRef<HTMLSpanElement>(null);
 
   return (
     <>
-      <Button size="s" style="fill" variant="primary" className={fb.button} onClick={() => setIsOpen(true)}>
-        <CommentIcon />
-        Give feedback
-      </Button>
-      <GiveFeedbackDialog isOpen={isOpen} onClose={() => setIsOpen(false)} apps={apps} onSubmit={onSubmit} />
+      <span ref={anchorRef} style={{ display: 'inline-flex' }}>
+        <Button size="s" style="fill" variant="primary" className={fb.button} onClick={() => setIsOpen(true)}>
+          <CommentIcon />
+          Give feedback
+        </Button>
+      </span>
+      <GiveFeedbackDialog
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        apps={apps}
+        anchorRef={anchorRef}
+        placement="below"
+        onSubmit={onSubmit}
+      />
     </>
   );
 }

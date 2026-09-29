@@ -422,8 +422,7 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
               {canManage && (
                 <DisclosureSection icon="keys" title="Deployment keys">
                   <p className={s.intro}>
-                    Use this key to deploy this environment from an AI agent, GitHub Actions, or any other script. The
-                    full key is shown once.
+                    Lets an agent or GitHub Actions deploy the app to this environment. The full key is shown once.
                   </p>
                   {envKeys.length > 0 && (
                     <ul className={s.keyList}>

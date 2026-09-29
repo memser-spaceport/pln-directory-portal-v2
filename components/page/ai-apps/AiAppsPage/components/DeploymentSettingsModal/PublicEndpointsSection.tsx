@@ -112,7 +112,8 @@ export function PublicEndpointsSection({ uid, lastDeployedAt, disabled, onRedepl
   return (
     <DisclosureSection icon="endpoints" title="Public endpoints">
       <p className={s.intro}>
-        Paths anyone can open without signing in, such as <code>/api/*</code>. Used by both Production and Preview.
+        Paths that skip LabOS sign-in, so a cron job, a webhook (Stripe, GitHub), an MCP endpoint, or a public page
+        can reach the app. Same list for Production and Preview.
       </p>
 
       <div className={s.notice}>

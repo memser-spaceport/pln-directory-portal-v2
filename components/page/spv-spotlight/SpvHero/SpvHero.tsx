@@ -3,7 +3,6 @@
 import React, { useMemo } from 'react';
 import { EditIcon } from '@/components/page/demo-day/DemodayCompletedView/components/Icons';
 import type { SpvViewState } from '@/services/spv-spotlight/resolveSpvViewState';
-import type { SpvSpotlightStatus } from '@/services/spv-spotlight/types';
 import { sanitizeSpvHtml } from '@/utils/html/sanitizeSpvHtml';
 import { SpvAppliedSteps } from '../SpvAppliedSteps/SpvAppliedSteps';
 import s from './SpvHero.module.scss';
@@ -11,7 +10,6 @@ import s from './SpvHero.module.scss';
 type Props = {
   /** Null while the viewer's state loads: the hero shows only the spotlight's own copy. */
   viewState: SpvViewState | null;
-  status: SpvSpotlightStatus;
   title: string;
   /** Admin HTML. */
   description: string;
@@ -22,22 +20,14 @@ type Props = {
   onProfile: (source: 'hero' | 'applied-steps') => void;
 };
 
-// Says where the Spotlight is, not where the viewer is: the viewer's state
-// goes in the message box under the headline.
-const OVERLINE: Record<SpvSpotlightStatus, string> = {
-  DRAFT: 'Opening soon',
-  OPEN: 'Open',
-  CLOSED: 'Closed',
-};
-
 /**
- * The completed Demo Day hero: overline badge, title, admin description, then
- * whatever the viewer's state has to say. The data-room action is not here: it
+ * The completed Demo Day hero: title, admin description, then whatever the
+ * viewer's state has to say. No status badge above the title: every state that
+ * matters to the viewer already says so in the message box or the card's action. The data-room action is not here: it
  * lives in the team card's action slot, so the page has one door.
  */
 export const SpvHero = ({
   viewState,
-  status,
   title,
   description,
   supportEmail,
@@ -77,16 +67,6 @@ export const SpvHero = ({
   return (
     <section className={s.root}>
       <div className={s.titleContainer}>
-        <div className={s.badge}>
-          {status === 'OPEN' ? (
-            <span className={s.openDot} aria-hidden />
-          ) : (
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-              <circle cx="8" cy="8" r="3.5" fill="#455468" />
-            </svg>
-          )}
-          <span className={s.overlineText}>{OVERLINE[status]}</span>
-        </div>
         <div className={s.headline}>
           <h1 className={s.title}>{title}</h1>
           {descriptionHtml && <div className={s.body} dangerouslySetInnerHTML={{ __html: descriptionHtml }} />}

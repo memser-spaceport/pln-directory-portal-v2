@@ -24,42 +24,6 @@
   max-width: 600px;
 }
 
-.badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding: 2px 12px 2px 8px;
-  border-radius: 9999px;
-  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
-}
-
-// Green "live" dot for OPEN, in the same 16px slot as the grey circle so the
-// badge doesn't change width.
-.openDot {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-
-  &::before {
-    content: '';
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--foreground-success-primary, #0a9952);
-  }
-}
-
-.overlineText {
-  color: var(--foreground-neutral-secondary, #455468);
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 24px;
-  letter-spacing: -0.3px;
-}
-
 .headline {
   display: flex;
   flex-direction: column;

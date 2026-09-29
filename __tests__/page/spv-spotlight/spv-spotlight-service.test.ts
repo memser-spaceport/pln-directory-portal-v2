@@ -9,6 +9,12 @@ import {
 import { SpvAccessRequestBlockedError, type SpvAccessRequestPayload } from '@/services/spv-spotlight/types';
 
 jest.mock('@/utils/fetch-wrapper', () => ({ customFetch: jest.fn() }));
+// The real-API path regardless of the machine's env: next/jest loads .env, and a
+// developer running the mocked page locally has NEXT_PUBLIC_SPV_MOCK=true there.
+jest.mock('@/services/spv-spotlight/constants', () => ({
+  ...jest.requireActual('@/services/spv-spotlight/constants'),
+  SPV_MOCK_ENABLED: false,
+}));
 
 const mockedFetch = customFetch as jest.Mock;
 

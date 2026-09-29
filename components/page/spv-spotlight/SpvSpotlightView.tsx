@@ -208,7 +208,6 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
         <div className={s.content}>
           <SpvHero
             viewState={viewState}
-            status={spotlight.status}
             title={spotlight.title}
             description={spotlight.description}
             supportEmail={spotlight.supportEmail}

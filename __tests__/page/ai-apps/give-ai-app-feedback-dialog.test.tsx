@@ -563,11 +563,9 @@ describe('GiveAiAppFeedbackDialog', () => {
     render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} />);
 
     expect(screen.getByRole('button', { name: 'Take screenshot' })).toBeInTheDocument();
-    /* The hint names the browser picker, which is the moment people got lost —
-       the old copy jumped straight to "drag to capture" and never mentioned
-       that a permission dialog would appear first. */
-    expect(screen.getByText(/ask which tab to share/)).toBeInTheDocument();
-    expect(screen.getByText(/drag to capture any area of the page/)).toBeInTheDocument();
+    expect(screen.getByText('Take screenshot', { selector: 'p' })).toBeInTheDocument();
+    expect(screen.getByText(/Share this tab and drag to capture an area/)).toBeInTheDocument();
+    expect(screen.getByText(/draw and annotate/)).toBeInTheDocument();
   });
 
   it('toasts when screenshot capture is unavailable', async () => {
@@ -987,6 +985,25 @@ describe('GiveAiAppFeedbackDialog', () => {
       fireEvent.keyDown(document, { key: 's', ctrlKey: true });
 
       expect(mockOnFeedbackScreenshotClicked).not.toHaveBeenCalled();
+    });
+
+    it('opens the shortcut list without closing the dialog', async () => {
+      apps();
+      const onClose = jest.fn();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={onClose} appUid="app-1" appName="My App" />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Shortcuts' }));
+
+      expect(screen.getByRole('heading', { name: 'Keyboard shortcuts' })).toBeInTheDocument();
+      expect(screen.getByText('Take screenshot', { selector: 'span' })).toBeInTheDocument();
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      expect(onClose).not.toHaveBeenCalled();
+      await waitFor(() =>
+        expect(screen.queryByRole('heading', { name: 'Keyboard shortcuts' })).not.toBeInTheDocument(),
+      );
+      expect(screen.getByRole('heading', { name: 'Give feedback' })).toBeInTheDocument();
     });
 
     it('shows the send and close hints', () => {

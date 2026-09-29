@@ -353,10 +353,7 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
           <Button className={s.action} aria-keyshortcuts={shortcuts.sendAria} onClick={() => onAdd(annotations)}>
             {isEditing ? 'Save changes' : 'Add to feedback'}
             <kbd className={s.kbdOnFill} aria-hidden="true">
-              {shortcuts.mod}
-            </kbd>
-            <kbd className={s.kbdOnFill} aria-hidden="true">
-              {shortcuts.enter}
+              {shortcuts.send}
             </kbd>
           </Button>
         </div>

@@ -10,7 +10,10 @@ export type ShortcutLabels = {
   openAria: string;
   undoAria: string;
   redoAria: string;
-  shift: string;
+  send: string;
+  screenshot: string;
+  undo: string;
+  redo: string;
   screenshotAria: string;
 };
 
@@ -22,7 +25,10 @@ const WINDOWS: ShortcutLabels = {
   openAria: 'Control+Alt+Enter',
   undoAria: 'Control+Z',
   redoAria: 'Shift+Control+Z Control+Y',
-  shift: 'Shift',
+  send: 'Ctrl+Enter',
+  screenshot: 'Ctrl+Shift+S',
+  undo: 'Ctrl+Z',
+  redo: 'Ctrl+Shift+Z',
   screenshotAria: 'Control+Shift+S',
 };
 
@@ -34,7 +40,10 @@ const MAC: ShortcutLabels = {
   openAria: 'Alt+Meta+Enter',
   undoAria: 'Meta+Z',
   redoAria: 'Shift+Meta+Z',
-  shift: '⇧',
+  send: '⌘↩',
+  screenshot: '⌘⇧S',
+  undo: '⌘Z',
+  redo: '⇧⌘Z',
   screenshotAria: 'Meta+Shift+S',
 };
 

@@ -445,13 +445,7 @@ export function GiveFeedbackDialog({
                         <ImageIcon />
                         Attach image
                         <kbd className={s.kbd} aria-hidden="true">
-                          {shortcuts.mod}
-                        </kbd>
-                        <kbd className={s.kbd} aria-hidden="true">
-                          {shortcuts.shift}
-                        </kbd>
-                        <kbd className={s.kbd} aria-hidden="true">
-                          S
+                          {shortcuts.screenshot}
                         </kbd>
                       </button>
                       <input
@@ -473,13 +467,7 @@ export function GiveFeedbackDialog({
                       <CameraIcon />
                       Take screenshot
                       <kbd className={s.kbd} aria-hidden="true">
-                        {shortcuts.mod}
-                      </kbd>
-                      <kbd className={s.kbd} aria-hidden="true">
-                        {shortcuts.shift}
-                      </kbd>
-                      <kbd className={s.kbd} aria-hidden="true">
-                        S
+                        {shortcuts.screenshot}
                       </kbd>
                     </button>
                   )}

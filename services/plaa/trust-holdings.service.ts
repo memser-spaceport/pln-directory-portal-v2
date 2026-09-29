@@ -1,3 +1,5 @@
+import { plaaApiHeaders } from '@/services/plaa/plaa-api';
+
 // Cache tag for this fetch, used by /api/revalidate.
 export const TRUST_HOLDINGS_CACHE_TAG = 'trust-holdings';
 
@@ -51,7 +53,7 @@ export const getTrustHoldings = async (): Promise<{ data?: TrustHoldingsData; er
     const url = `${process.env.PLAA_API_URL}/api/v1/trust-holdings`;
     const response = await fetch(url, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: plaaApiHeaders(),
       next: { revalidate: 300, tags: [TRUST_HOLDINGS_CACHE_TAG] },
     });
 

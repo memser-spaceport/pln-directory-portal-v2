@@ -1,0 +1,95 @@
+@use 'styles/media';
+
+// Text left, the Explore page's PL cube right. Same width and radius as the
+// team card above it.
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 32px 40px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow:
+      0 0 1px 0 rgba(15, 23, 42, 0.16),
+      0 8px 16px 0 rgba(15, 23, 42, 0.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+
+  @include media.mobile-only {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 24px 20px;
+  }
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 560px;
+}
+
+.overline {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.title {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+}
+
+.body {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 15px;
+  line-height: 24px;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+
+  svg {
+    transition: transform 0.15s ease;
+  }
+
+  .root:hover & svg {
+    transform: translateX(2px);
+  }
+}
+
+.art {
+  flex-shrink: 0;
+  width: 160px;
+  height: auto;
+
+  @include media.mobile-only {
+    width: 104px;
+  }
+}

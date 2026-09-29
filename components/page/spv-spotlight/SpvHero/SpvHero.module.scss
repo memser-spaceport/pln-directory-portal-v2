@@ -1,0 +1,166 @@
+@use 'styles/media';
+
+// DemodayCompletedView's hero section, with the SPV prototype's adjustments.
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  width: 100%;
+  max-width: 1184px;
+  padding-top: 40px;
+
+  @include media.mobile-only {
+    gap: 32px;
+  }
+}
+
+.titleContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 2px 12px 2px 8px;
+  border-radius: 9999px;
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+// Green "live" dot for OPEN, in the same 16px slot as the grey circle so the
+// badge doesn't change width.
+.openDot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+
+  &::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--foreground-success-primary, #0a9952);
+  }
+}
+
+.overlineText {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+}
+
+.headline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.title {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-align: center;
+  font-size: 56px;
+  font-weight: 600;
+  line-height: 64px;
+  letter-spacing: -1.6px;
+  overflow-wrap: anywhere;
+
+  @include media.mobile-only {
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -0.8px;
+  }
+}
+
+.body {
+  max-width: 600px;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-align: center;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: -0.4px;
+
+  p {
+    margin: 0;
+  }
+
+  a {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  @include media.mobile-only {
+    font-size: 16px;
+    line-height: 22px;
+    letter-spacing: -0.3px;
+  }
+}
+
+// The completed Demo Day's underlined text link ("Give Feedback").
+.profileLink {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 0;
+  border: none;
+  border-bottom: 1px solid #1b4dff;
+  background: none;
+  color: var(--foreground-brand-secondary_inverted, #1b4dff);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.appliedSteps {
+  width: 100%;
+  max-width: 600px;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 600px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+}
+
+.infoText {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-align: center;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+}
+
+.inlineLink {
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-weight: 500;
+  text-decoration: underline;
+}

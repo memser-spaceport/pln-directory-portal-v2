@@ -1,0 +1,464 @@
+@use 'styles/media';
+@use 'styles/mixins';
+
+// PL Spotlight's single team card (TeamProfileCard .profileCard), with a real
+// hairline: its 1px shadow ring all but vanishes on the page's white sheet.
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  width: 100%;
+  padding: 32px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 4px 4px 0 rgba(15, 23, 42, 0.04);
+
+  @include media.mobile-only {
+    gap: 20px;
+    padding: 16px;
+  }
+}
+
+// ---- Identity ----------------------------------------------------------------
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+
+  // On phones the action slot wraps under the identity, full width.
+  @include media.mobile-only {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 12px;
+    row-gap: 16px;
+  }
+}
+
+.logo {
+  position: relative;
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  overflow: hidden;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @include media.mobile-only {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+  }
+}
+
+.identityText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+
+  @include media.mobile-only {
+    flex: 1 1 0;
+  }
+}
+
+.name {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 36px;
+  letter-spacing: -0.6px;
+
+  @include media.mobile-only {
+    font-size: 20px;
+    line-height: 28px;
+    letter-spacing: -0.3px;
+  }
+}
+
+.oneLiner {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+
+  @include media.mobile-only {
+    font-size: 14px;
+    line-height: 20px;
+  }
+}
+
+// ---- Action slot ---------------------------------------------------------------
+.actionSlot {
+  flex-shrink: 0;
+  margin-left: auto;
+
+  @include media.mobile-only {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+}
+
+.cardAction {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+
+  @include media.mobile-only {
+    align-items: stretch;
+  }
+}
+
+// DemoDayActionButtons' primary, 40px tall: the page's only primary.
+.cardActionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+  border-radius: 8px;
+  background: var(--action-background-brand-normal, #1b4dff);
+  box-shadow:
+    0 1px 3px 0 var(--transparent-light-32, rgba(255, 255, 255, 0.32)) inset,
+    0 4px 6px 0 var(--transparent-light-6, rgba(255, 255, 255, 0.06)) inset,
+    0 1px 5px 0 var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  color: var(--action-foreground-base-inverted_white, #fff);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #1a45e6;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #156ff7;
+    outline-offset: 2px;
+  }
+
+  @include media.mobile-only {
+    width: 100%;
+    padding: 10px 12px;
+  }
+}
+
+.cardActionNote {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 13px;
+  line-height: 18px;
+
+  @include media.mobile-only {
+    text-align: center;
+  }
+}
+
+.cardStatus {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+// ---- Facts ----------------------------------------------------------------------
+.factStrip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
+  margin: 0;
+  padding: 16px 0;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include media.mobile-only {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 16px;
+    padding: 12px 0;
+  }
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding-inline: 20px;
+  border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  &:first-child {
+    padding-left: 0;
+    border-left: none;
+  }
+
+  @include media.mobile-only {
+    padding-inline: 0 12px;
+    border-left: none;
+  }
+}
+
+.factLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.factValue {
+  margin: 0;
+  overflow: hidden;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.factLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// ---- Body: media left, reading column right --------------------------------
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 32px;
+
+    > * {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+}
+
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.asideBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.asideLabel {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.summary {
+  max-width: 60ch;
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 16px;
+  line-height: 26px;
+  letter-spacing: -0.2px;
+
+  @include media.mobile-only {
+    font-size: 14px;
+    line-height: 22px;
+  }
+}
+
+.aboutFull {
+  max-width: 60ch;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 15px;
+  line-height: 24px;
+  overflow-wrap: anywhere;
+
+  p,
+  ul,
+  ol {
+    margin: 0 0 12px;
+  }
+
+  ul,
+  ol {
+    padding-left: 20px;
+  }
+
+  ul {
+    list-style: disc;
+  }
+
+  ol {
+    list-style: decimal;
+  }
+
+  // Quill leaves empty spacer paragraphs between blocks.
+  p:has(> br:only-child) {
+    display: none;
+  }
+
+  strong,
+  b {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    font-weight: 600;
+  }
+
+  a {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.aboutToggle {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// ProfileHeader's tag chips.
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include media.mobile-only {
+    gap: 6px;
+  }
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+
+  @include media.mobile-only {
+    font-size: 12px;
+    line-height: 16px;
+  }
+}
+
+// Founders as bordered tiles, two across.
+.founders {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include media.mobile-only {
+    grid-template-columns: 1fr;
+  }
+}
+
+.founder {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+}
+
+.founderAvatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background-color: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  background-position: 50% 50%;
+  background-size: cover;
+}
+
+.founderText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.founderName {
+  max-width: 100%;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+
+  @include mixins.ellipse-text;
+}
+
+.founderRole {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+}

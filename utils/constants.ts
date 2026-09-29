@@ -2789,3 +2789,15 @@ export const MCP_ANALYTICS_EVENTS = {
 export const EDITOR_ANALYTICS = {
   IMAGE_RESIZED: 'editor-image-resized',
 };
+
+export const SPV_SPOTLIGHT_ANALYTICS = {
+  ON_PAGE_VIEWED: 'spv-spotlight-page-viewed',
+  ON_REQUEST_ACCESS_CLICKED: 'spv-spotlight-request-access-clicked',
+  ON_REQUEST_ACCESS_SUBMITTED: 'spv-spotlight-request-access-submitted',
+  ON_REQUEST_ACCESS_BLOCKED: 'spv-spotlight-request-access-blocked',
+  ON_REQUEST_ACCESS_FAILED: 'spv-spotlight-request-access-failed',
+  ON_SIGN_IN_CLICKED: 'spv-spotlight-sign-in-clicked',
+  ON_VIEW_MATERIALS_CLICKED: 'spv-spotlight-view-materials-clicked',
+  ON_INVESTOR_PROFILE_CLICKED: 'spv-spotlight-investor-profile-clicked',
+  ON_EXPLORE_TILE_CLICKED: 'spv-spotlight-explore-tile-clicked',
+};

@@ -66,3 +66,6 @@ design-canvas/comments.json.*
 # The capture's own build folder, kept apart from .next so a capture cannot take down the dev server.
 # DELETE WITH: the design-canvas/ folder.
 .next-canvas/
+
+# AI Apps bridge bundle — built from ai-apps-bridge/ by scripts/build-ai-apps-bridge.mjs
+/public/ai-apps/bridge/

@@ -12,6 +12,15 @@ export enum AiAppsQueryKeys {
   AI_APP_PUBLIC_PATHS = 'ai-app-public-paths',
 }
 
+/**
+ * Element pins on the app detail page: the feedback button talks to the
+ * in-app bridge (`ai-apps-bridge/`, served at /ai-apps/bridge/v1.js) so a member
+ * can pin notes to elements instead of screenshotting. Off = today's screenshot
+ * flow only. The bridge file itself is served regardless — the flag only
+ * decides whether LabOS ever sends it a command.
+ */
+export const SHOW_AI_APPS_ELEMENT_PINS: boolean = process.env.NEXT_PUBLIC_SHOW_AI_APPS_ELEMENT_PINS === 'true';
+
 /** Keep in sync with `AI_APPS_STARTER_KIT_VERSION` in pln-directory-portal web-api. */
 export const AI_APPS_STARTER_KIT_VERSION = '1.14';
 

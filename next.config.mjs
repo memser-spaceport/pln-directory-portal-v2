@@ -51,6 +51,17 @@ const nextConfig = {
   sassOptions: {
     loadPaths: [__dirname, path.join(__dirname, 'styles')],
   },
+  async headers() {
+    return [
+      {
+        // The AI Apps bridge is loaded by every embedded app on every page view.
+        // Short-lived so a fix reaches apps within minutes without a redeploy;
+        // the path carries the major version, so a breaking change is a new file.
+        source: '/ai-apps/bridge/:file*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=300, stale-while-revalidate=3600' }],
+      },
+    ];
+  },
   async redirects() {
     return [
       // {

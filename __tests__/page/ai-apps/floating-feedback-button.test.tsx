@@ -218,4 +218,67 @@ describe('FloatingFeedbackButton', () => {
       expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', 'App A');
     });
   });
+
+  describe('element pins (bridge-enabled apps)', () => {
+    const controller = (status: 'ready' | 'unavailable' | 'waiting', pins: unknown[] = []) =>
+      ({
+        status,
+        isPicking: false,
+        pins,
+        onFrameLoad: jest.fn(),
+        startPicking: jest.fn(),
+        stopPicking: jest.fn(),
+        setNote: jest.fn(),
+        removePin: jest.fn(),
+        clearPins: jest.fn(),
+      }) as any;
+    const iframeRef = { current: null };
+
+    it('opens pin mode and starts picking when the app answered — no dialog', () => {
+      withAccess();
+      const pins = controller('ready');
+      render(<FloatingFeedbackButton appUid="app-1" appName="My App" elementPins={pins} iframeRef={iframeRef} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+
+      expect(screen.getByRole('complementary', { name: 'Pin feedback' })).toBeInTheDocument();
+      expect(pins.startPicking).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
+    });
+
+    it.each(['unavailable', 'waiting'] as const)('keeps the screenshot dialog when the bridge is %s', (status) => {
+      withAccess();
+      const pins = controller(status);
+      render(<FloatingFeedbackButton appUid="app-1" appName="My App" elementPins={pins} iframeRef={iframeRef} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+      expect(screen.queryByRole('complementary', { name: 'Pin feedback' })).not.toBeInTheDocument();
+      expect(pins.startPicking).not.toHaveBeenCalled();
+    });
+
+    it('Continue hands over to the dialog; closing the dialog ends the pin session', () => {
+      withAccess();
+      const pin = {
+        id: 'pin-1',
+        note: 'Too small',
+        rect: { x: 0, y: 0, w: 1, h: 1 },
+        crop: { status: 'pending' },
+        element: { selector: '#a', tag: 'button', text: '', component: null, page: { path: '/' } },
+      };
+      const pins = controller('ready', [pin]);
+      render(<FloatingFeedbackButton appUid="app-1" appName="My App" elementPins={pins} iframeRef={iframeRef} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+
+      expect(pins.stopPicking).toHaveBeenCalled();
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+      expect(screen.queryByRole('complementary', { name: 'Pin feedback' })).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Close feedback' }));
+      expect(pins.clearPins).toHaveBeenCalled();
+    });
+  });
 });

@@ -50,6 +50,7 @@ export function useAiAppsAnalytics() {
       appName: string;
       screenshotCount: number;
       hasAnnotations: boolean;
+      pinCount?: number;
     }) => capture(AI_APPS_ANALYTICS.FEEDBACK_SUBMITTED, params),
     onFeedbackSubmitFailed: (appUid: string) => capture(AI_APPS_ANALYTICS.FEEDBACK_SUBMIT_FAILED, { appUid }),
     onFeedbackReviewViewed: () => capture(AI_APPS_ANALYTICS.FEEDBACK_REVIEW_VIEWED),
@@ -60,6 +61,18 @@ export function useAiAppsAnalytics() {
     onFeedbackDialogOpened: (params: { appUid?: string; appName?: string } = {}) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_DIALOG_OPENED, params),
     onFeedbackScreenshotClicked: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_CLICKED),
+    /* Element pins (bridge spike). `bridge_unavailable` fires when the feedback
+       button falls back to screenshots because the app never said `ready` —
+       its rate is the adoption signal for the starter-kit script. */
+    onFeedbackPinsOpened: (params: { appUid: string }) => capture(AI_APPS_ANALYTICS.FEEDBACK_PINS_OPENED, params),
+    onFeedbackPinAdded: (params: { appUid: string; hasComponent: boolean; pinCount: number }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_PIN_ADDED, params),
+    onFeedbackPinRemoved: (params: { appUid: string }) => capture(AI_APPS_ANALYTICS.FEEDBACK_PIN_REMOVED, params),
+    onFeedbackPinDetached: (params: { appUid: string }) => capture(AI_APPS_ANALYTICS.FEEDBACK_PIN_DETACHED, params),
+    onFeedbackPinCropFailed: (params: { appUid: string; error: string }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_PIN_CROP_FAILED, params),
+    onFeedbackBridgeUnavailable: (params: { appUid: string }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_BRIDGE_UNAVAILABLE, params),
     /**
      * `reason` used to be `denied | unavailable`, which collapsed six distinct
      * causes into two and made the real distribution unknowable — the reason a

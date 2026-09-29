@@ -29,7 +29,9 @@ import {
   DeleteAiAppDialog,
   AiAppDetailsModal,
 } from '@/components/page/ai-apps/dynamicActionModals';
+import { SHOW_AI_APPS_ELEMENT_PINS } from '@/services/ai-apps/constants';
 import { FloatingFeedbackButton } from '../components/FloatingFeedbackButton';
+import { useElementPins } from '../components/element-pins';
 import { AiAppTagChips } from '../components/AiAppTagChips';
 import { LockIcon } from '../AiAppsPage/components/ManageAccessModal/icons';
 
@@ -405,7 +407,19 @@ export function AiAppDetailPage(props: Props) {
     };
   }, [uid, appUrl, probeGeneration, isRedeploying, selectedEnv]);
 
+  // The in-app bridge (starter kit script). Pin state lives here, next to the
+  // iframe it belongs to; the feedback button only drives it. Keyed on the
+  // same generation as the iframe, so a redeploy remount starts clean.
+  const elementPins = useElementPins({
+    iframeRef,
+    appOrigin,
+    frameKey: deployGeneration,
+    enabled: SHOW_AI_APPS_ELEMENT_PINS,
+    appUid: uid,
+  });
+
   const handleIframeLoad = () => {
+    elementPins.onFrameLoad();
     if (!app || iframeTracked.current === app.uid) return;
     iframeTracked.current = app.uid;
     analytics.onIframeLoaded(app.uid, app.name);
@@ -725,7 +739,12 @@ export function AiAppDetailPage(props: Props) {
           owns an open dialog, and a status flip must not unmount it mid-typing.
           It also gives the setup / deploying / failed states a feedback door —
           they had none, and a failed deploy is when people most want one. */}
-      <FloatingFeedbackButton appUid={app.uid} appName={app.name} />
+      <FloatingFeedbackButton
+        appUid={app.uid}
+        appName={app.name}
+        elementPins={SHOW_AI_APPS_ELEMENT_PINS ? elementPins : undefined}
+        iframeRef={iframeRef}
+      />
       {showDetails && (
         <AiAppDetailsModal
           isOpen

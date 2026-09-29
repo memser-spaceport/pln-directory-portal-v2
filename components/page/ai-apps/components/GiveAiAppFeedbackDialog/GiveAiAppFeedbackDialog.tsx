@@ -37,6 +37,7 @@ import {
   type PersistentCaptureReason,
   type ScreenshotAttachment,
 } from '../screenshot-feedback';
+import { PinSummary, appendPins, type ElementPin } from '../element-pins';
 
 import s from './GiveAiAppFeedbackDialog.module.scss';
 
@@ -72,8 +73,8 @@ const SCREENSHOT_HINTS: Record<PersistentCaptureReason | 'open', string> = {
   unreadable: 'Your browser couldn’t read the screen — attach a screenshot instead.',
 };
 
-function hasFeedbackContent(html: string, screenshotCount = 0): boolean {
-  return !isBlankHtml(html) || /<img\b/i.test(html) || screenshotCount > 0;
+function hasFeedbackContent(html: string, attachmentCount = 0): boolean {
+  return !isBlankHtml(html) || /<img\b/i.test(html) || attachmentCount > 0;
 }
 
 function visibleFeedbackLength(html: string): number {
@@ -119,7 +120,13 @@ interface Props {
    * from `rect.bottom` there would put the panel below the fold.
    */
   placement?: Placement;
+  /** Element pins made in pin mode (app detail page, bridge-enabled apps). Sent with the feedback. */
+  pins?: ElementPin[];
+  /** Returns to the pin panel without discarding anything. */
+  onEditPins?: () => void;
 }
+
+const NO_PINS: ElementPin[] = [];
 
 function getAnchorOverlayStyle(anchor: HTMLElement | null, placement: Placement): CSSProperties | undefined {
   if (!anchor) {
@@ -158,6 +165,8 @@ export function GiveAiAppFeedbackDialog({
   appName,
   anchorRef,
   placement = 'below',
+  pins = NO_PINS,
+  onEditPins,
 }: Props) {
   const { currentUser } = useCurrentUserStore();
   const [overlayStyle, setOverlayStyle] = useState<CSSProperties>();
@@ -413,7 +422,7 @@ export function GiveAiAppFeedbackDialog({
     setSubmitAttempted(true);
     let trimmedMessage = (rawMessage ?? '').trim();
 
-    if (!app?.value || !hasFeedbackContent(trimmedMessage, screenshots.length)) {
+    if (!app?.value || !hasFeedbackContent(trimmedMessage, screenshots.length + pins.length)) {
       return;
     }
 
@@ -421,6 +430,7 @@ export function GiveAiAppFeedbackDialog({
       setIsHostingImages(true);
       trimmedMessage = await hostDataUriImages(trimmedMessage);
       trimmedMessage = await appendScreenshots(trimmedMessage, screenshots);
+      trimmedMessage = await appendPins(trimmedMessage, pins);
     } catch {
       toast.error('Image upload failed. Please try again.');
       return;
@@ -482,6 +492,7 @@ export function GiveAiAppFeedbackDialog({
             appName: app.label,
             screenshotCount: screenshots.length,
             hasAnnotations: screenshots.some((shot) => hasAnyAnnotation(shot.annotations)),
+            ...(pins.length > 0 ? { pinCount: pins.length } : {}),
           });
           toast.success('Thanks for your feedback!');
           onSubmitted?.(app);
@@ -601,6 +612,8 @@ export function GiveAiAppFeedbackDialog({
                   menuPortalTarget={typeof document === 'undefined' ? null : document.body}
                 />
                 {submitAttempted && !watch('app') && <p className={s.fieldError}>Please select an app</p>}
+
+                {pins.length > 0 && onEditPins && <PinSummary pins={pins} onEdit={onEditPins} />}
 
                 <div className={s.screenshotRow}>
                   <p className={s.fieldLabel}>{captureClosedBy ? 'Attach image' : 'Take screenshot'}</p>

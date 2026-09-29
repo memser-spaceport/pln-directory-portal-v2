@@ -4,18 +4,18 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useDebounce } from '@/hooks/useDebounce';
 import { AiAppsQueryKeys } from '@/services/ai-apps/constants';
-import { searchAiAppAccessCandidates } from '@/services/ai-apps/ai-apps.service';
+import { AiAppTargetEnvironment, searchAiAppAccessCandidates } from '@/services/ai-apps/ai-apps.service';
 
 const MIN_SEARCH_LENGTH = 2;
 
 /** Debounced member search for the whitelist picker; idle below two characters. */
-export function useAiAppAccessCandidates(uid: string, term: string) {
+export function useAiAppAccessCandidates(uid: string, term: string, environment: AiAppTargetEnvironment = 'prod') {
   const search = useDebounce(term.trim(), 300);
   const enabled = search.length >= MIN_SEARCH_LENGTH;
 
   const { data, isFetching } = useQuery({
-    queryKey: [AiAppsQueryKeys.AI_APP_ACCESS_CANDIDATES, uid, search],
-    queryFn: () => searchAiAppAccessCandidates(uid, search),
+    queryKey: [AiAppsQueryKeys.AI_APP_ACCESS_CANDIDATES, uid, environment, search],
+    queryFn: () => searchAiAppAccessCandidates(uid, search, environment),
     enabled,
     staleTime: 60 * 1000,
     placeholderData: (previous) => previous,

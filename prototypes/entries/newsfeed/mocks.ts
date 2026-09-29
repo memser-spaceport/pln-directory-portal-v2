@@ -596,3 +596,122 @@ export const CURATED_SUGGESTED_TEAMS: CuratedSuggestedTeam[] = [
  * meaning anything.
  */
 export const FOR_YOU_TEAM_UIDS: readonly string[] = ['libp2p', 'drand', 'lattice-compute', 'prime-intellect'];
+
+/**
+ * Gatherings for the rail's events card, soonest first. Shaped like the slice
+ * of production's IRL event the card reads — with no attendee count: there is
+ * no reliable "N going" number behind production's events, so the card doesn't
+ * show one.
+ *
+ * Dates are offsets from today, computed at load, so the 30-day window
+ * (`EVENTS_WINDOW_DAYS` in UpcomingEventsCard) behaves the same whenever the
+ * prototype is opened. More than three inside the window on purpose: the card
+ * chooses which three, and each rule has an event here to act on (see
+ * `selectRailEvents`).
+ */
+export interface UpcomingEvent {
+  slug: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  /** "City, Country" — production's `location` string; the card shows the city. */
+  location: string;
+  /** Production's `type`; `INVITE_ONLY` is the value the events table marks. */
+  type?: 'INVITE_ONLY';
+  /** Whether the signed-in viewer is on the attendee list. */
+  viewerGoing?: boolean;
+  /** Whether the signed-in viewer has an invite (only meaningful for INVITE_ONLY). */
+  viewerInvited?: boolean;
+}
+
+/** An ISO date `days` from today at `hour`:00 UTC. */
+function daysFromNow(days: number, hour: number): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + days);
+  d.setUTCHours(hour, 0, 0, 0);
+  return d.toISOString();
+}
+
+type EventFixture = Omit<UpcomingEvent, 'startDate' | 'endDate'> & { inDays: number; lastsDays?: number };
+
+const toEvents = (fixtures: EventFixture[]): UpcomingEvent[] =>
+  fixtures.map(({ inDays, lastsDays = 1, ...event }) => ({
+    ...event,
+    startDate: daysFromNow(inDays, 9),
+    endDate: daysFromNow(inDays + lastsDays - 1, 18),
+  }));
+
+/** Demo state "Upcoming": six events inside the next 30 days, one before, one past it. */
+export const UPCOMING_EVENTS: UpcomingEvent[] = toEvents([
+  {
+    // Already over: never shown.
+    slug: 'founder-dinner-nyc',
+    name: 'Founder Dinner',
+    inDays: -3,
+    location: 'New York, USA',
+  },
+  { slug: 'desci-summit-26', name: 'DeSci Summit', inDays: 7, lastsDays: 2, location: 'Berlin, Germany' },
+  {
+    // Invite-only, no invite: never shown, signed in or out.
+    slug: 'founders-forum-paris',
+    name: 'PL Founders Forum',
+    inDays: 12,
+    location: 'Paris, France',
+    type: 'INVITE_ONLY',
+  },
+  {
+    // The viewer is going: left out for them, shown to everyone else.
+    slug: 'labweek-26',
+    name: 'LabWeek26: Protocol Labs network gathering',
+    inDays: 18,
+    lastsDays: 5,
+    location: 'Lisbon, Portugal',
+    viewerGoing: true,
+  },
+  {
+    slug: 'funding-the-commons-sg',
+    name: 'Funding the Commons',
+    inDays: 22,
+    lastsDays: 2,
+    location: 'Singapore, Singapore',
+  },
+  { slug: 'fil-dev-summit-ba', name: 'FIL Dev Summit', inDays: 26, lastsDays: 3, location: 'Buenos Aires, Argentina' },
+  {
+    // In a city the viewer follows: the latest event in the window, yet it makes
+    // their three (bumping FIL Dev Summit) and shows last, in date order.
+    slug: 'ipfs-camp-tokyo',
+    name: 'IPFS Camp',
+    inDays: 29,
+    lastsDays: 2,
+    location: 'Tokyo, Japan',
+  },
+  {
+    // Past the 30-day window: not shown, even though the city is followed.
+    slug: 'tokyo-builders-night',
+    name: 'Tokyo Builders Night',
+    inDays: 48,
+    location: 'Tokyo, Japan',
+  },
+]);
+
+/**
+ * Demo state "None in 30 days": the calendar isn't empty, but nothing starts
+ * inside the window — so the whole rail module goes, rather than an empty card.
+ */
+export const LATER_EVENTS_ONLY: UpcomingEvent[] = toEvents([
+  {
+    slug: 'funding-the-commons-sg',
+    name: 'Funding the Commons',
+    inDays: 41,
+    lastsDays: 2,
+    location: 'Singapore, Singapore',
+  },
+  { slug: 'fil-dev-summit-ba', name: 'FIL Dev Summit', inDays: 57, lastsDays: 3, location: 'Buenos Aires, Argentina' },
+  { slug: 'ipfs-camp-tokyo', name: 'IPFS Camp', inDays: 74, lastsDays: 2, location: 'Tokyo, Japan' },
+]);
+
+/**
+ * Cities the signed-in viewer follows — production's location subscriptions
+ * (`useMyLocationSubscriptions`), matched on the city part of `location`.
+ */
+export const VIEWER_FOLLOWED_CITIES: readonly string[] = ['Tokyo'];

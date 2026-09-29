@@ -1,7 +1,9 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { AiAppFeedbackPage } from '@/components/page/ai-apps/AiAppFeedbackPage';
+
 import { serializeAnnotations } from '@/components/page/ai-apps/components/screenshot-feedback/types';
+
+import { AiAppFeedbackPage } from '@/components/page/ai-apps/AiAppFeedbackPage';
 
 const mockUseAiAppFeedbackList = jest.fn();
 const mockUseAiAppFeedbackReviewAccess = jest.fn();
@@ -57,7 +59,23 @@ const FEEDBACK = [
     member: { uid: 'm-2', name: 'Alan Turing' },
     createdAt: '2026-07-02T00:00:00.000Z',
   },
+  {
+    uid: 'fb-3',
+    appUid: 'app-1',
+    appName: 'Alpha',
+    text: 'Already shipped',
+    status: 'IMPLEMENTED' as const,
+    member: { uid: 'm-3', name: 'Grace Hopper' },
+    createdAt: '2026-07-03T00:00:00.000Z',
+  },
 ];
+
+const STATUS_FILTER_TRIGGER = /^(All|New|Reviewed|Shipped)$/;
+
+const selectStatusFilter = (label: string) => {
+  fireEvent.click(screen.getByRole('button', { name: STATUS_FILTER_TRIGGER }));
+  fireEvent.click(screen.getByRole('menuitem', { name: label }));
+};
 
 describe('AiAppFeedbackPage', () => {
   beforeEach(() => {
@@ -146,8 +164,98 @@ describe('AiAppFeedbackPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Export CSV/ }));
 
-    expect(mockExportAiAppFeedbackCsv).toHaveBeenCalledWith([FEEDBACK[0]], 'ai-app-feedback-alpha.csv');
-    expect(mockOnFeedbackExported).toHaveBeenCalledWith(1);
+    expect(mockExportAiAppFeedbackCsv).toHaveBeenCalledWith([FEEDBACK[0], FEEDBACK[2]], 'ai-app-feedback-alpha.csv');
+    expect(mockOnFeedbackExported).toHaveBeenCalledWith(2);
+  });
+
+  describe('status filter', () => {
+    beforeEach(() => {
+      mockUseAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
+    });
+
+    it('shows every status on load', () => {
+      render(<AiAppFeedbackPage />);
+
+      expect(screen.getByText('Status:')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument();
+      expect(screen.getByText('Loved it')).toBeInTheDocument();
+      expect(screen.getByText('Needs work')).toBeInTheDocument();
+      expect(screen.getByText('Already shipped')).toBeInTheDocument();
+    });
+
+    it('narrows the table to the chosen status', () => {
+      render(<AiAppFeedbackPage />);
+
+      selectStatusFilter('Reviewed');
+
+      expect(screen.getByText('Needs work')).toBeInTheDocument();
+      expect(screen.queryByText('Loved it')).not.toBeInTheDocument();
+      expect(screen.queryByText('Already shipped')).not.toBeInTheDocument();
+    });
+
+    it('is single-select \u2014 picking another status replaces the previous one', () => {
+      render(<AiAppFeedbackPage />);
+
+      selectStatusFilter('Reviewed');
+      selectStatusFilter('Shipped');
+
+      expect(screen.getByText('Already shipped')).toBeInTheDocument();
+      expect(screen.queryByText('Needs work')).not.toBeInTheDocument();
+    });
+
+    it('returns to every status when All is chosen again', () => {
+      render(<AiAppFeedbackPage />);
+
+      selectStatusFilter('Shipped');
+      selectStatusFilter('All');
+
+      expect(screen.getByText('Loved it')).toBeInTheDocument();
+      expect(screen.getByText('Needs work')).toBeInTheDocument();
+      expect(screen.getByText('Already shipped')).toBeInTheDocument();
+    });
+
+    it('combines with the app tab, narrowing rows within the selected app', () => {
+      render(<AiAppFeedbackPage />);
+
+      fireEvent.click(screen.getByRole('button', { name: /^Alpha/ }));
+      selectStatusFilter('New');
+
+      expect(screen.getByText('Loved it')).toBeInTheDocument();
+      expect(screen.queryByText('Already shipped')).not.toBeInTheDocument();
+      expect(screen.queryByText('Needs work')).not.toBeInTheDocument();
+    });
+
+    /* A tab counting rows the status filter hides would send reviewers to an empty table. */
+    it('counts each tab against the active status filter without dropping the tab', () => {
+      render(<AiAppFeedbackPage />);
+
+      selectStatusFilter('New');
+
+      expect(screen.getByRole('button', { name: 'All apps 1' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Alpha 1' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Beta 0' })).toBeInTheDocument();
+    });
+
+    it('explains an empty table caused by the filters', () => {
+      render(<AiAppFeedbackPage />);
+
+      fireEvent.click(screen.getByRole('button', { name: /^Beta/ }));
+      selectStatusFilter('Shipped');
+
+      expect(screen.getByText('No feedback matches the selected filters.')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Export CSV/ })).toBeDisabled();
+    });
+
+    it('exports only the rows left by both filters, naming the file after them', () => {
+      render(<AiAppFeedbackPage />);
+
+      fireEvent.click(screen.getByRole('button', { name: /^Alpha/ }));
+      selectStatusFilter('Shipped');
+      fireEvent.click(screen.getByRole('button', { name: /Export CSV/ }));
+
+      expect(mockExportAiAppFeedbackCsv).toHaveBeenCalledWith([FEEDBACK[2]], 'ai-app-feedback-alpha-shipped.csv');
+      expect(mockOnFeedbackExported).toHaveBeenCalledWith(1);
+    });
   });
 
   it('shows each row’s current status without marking it viewed', () => {
@@ -215,6 +323,44 @@ describe('AiAppFeedbackPage', () => {
     expect(screen.getByRole('link', { name: 'docs' })).toHaveAttribute('href', 'https://example.com/docs');
     expect(screen.getByAltText('shot')).toHaveAttribute('src', 'https://cdn.test/shot.png');
     expect(screen.queryByText('View annotations')).not.toBeInTheDocument();
+  });
+
+  describe('rendered markup is sanitizer output', () => {
+    const renderFeedbackText = (text: string) => {
+      mockUseAiAppFeedbackList.mockReturnValue({
+        feedback: [{ ...FEEDBACK[0], uid: 'fb-xss', text }],
+        isLoading: false,
+        isError: false,
+      });
+      return render(<AiAppFeedbackPage />);
+    };
+
+    const eventHandlerAttributes = (root: HTMLElement) =>
+      Array.from(root.querySelectorAll('*')).flatMap((el) =>
+        Array.from(el.attributes)
+          .filter((attr) => attr.name.toLowerCase().startsWith('on'))
+          .map((attr) => `${el.tagName.toLowerCase()}[${attr.name}]`),
+      );
+
+    it('does not let the image split turn a data-* value into an event handler', () => {
+      const { container } = renderFeedbackText(
+        '<p data-x="<img a=">x&quot; onmouseover=&quot;alert(1)&quot; y=&quot;</p>',
+      );
+      expect(eventHandlerAttributes(container)).toEqual([]);
+    });
+
+    it('does not let linkify turn a data-* value into an event handler', () => {
+      const { container } = renderFeedbackText('<p data-x="a>https://x.test/onmouseover=alert(1)//">text</p>');
+      expect(eventHandlerAttributes(container)).toEqual([]);
+    });
+
+    it('still renders linkified bare URLs as new-tab links', () => {
+      renderFeedbackText('<p>See https://example.com/page for details</p>');
+      const link = screen.getByRole('link', { name: 'https://example.com/page' });
+      expect(link).toHaveAttribute('href', 'https://example.com/page');
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    });
   });
 
   it('opens a feedback image fullscreen and closes on Escape or overlay click', async () => {

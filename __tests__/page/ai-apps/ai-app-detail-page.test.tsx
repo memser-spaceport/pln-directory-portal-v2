@@ -216,9 +216,58 @@ describe('AiAppDetailPage', () => {
 
     render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
-    expect(screen.getByText('Draft')).toBeInTheDocument();
+    expect(screen.getByText(/Prod Draft/)).toBeInTheDocument();
+    expect(screen.queryByText(/Preview/)).not.toBeInTheDocument();
     expect(screen.getByText('AppSecretsPanel')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /^back$/i })).not.toBeInTheDocument();
+  });
+
+  it('keeps the same header, including settings, after switching to preview', () => {
+    mockUseAiAppReturn = {
+      app: buildApp({
+        status: 'DRAFT',
+        providedEnvVars: [],
+        canViewPreview: true,
+        deployments: {
+          prod: {
+            environment: 'prod',
+            status: 'DRAFT',
+            url: null,
+            httpUrl: null,
+            host: null,
+            lastDeployedAt: null,
+            serving: 'none',
+            requiredEnvVars: ['PERPLEXITY_API_KEY'],
+            providedEnvVars: [],
+            hasBuild: false,
+          },
+          preview: {
+            environment: 'preview',
+            status: 'READY',
+            url: 'https://preview.example.com',
+            httpUrl: 'https://preview.example.com',
+            host: 'preview.example.com',
+            lastDeployedAt: '2026-07-02T00:00:00.000Z',
+            serving: 'latest',
+            requiredEnvVars: [],
+            providedEnvVars: [],
+            hasBuild: true,
+          },
+        },
+      }),
+      isLoading: false,
+      isError: false,
+    };
+
+    render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
+
+    expect(screen.getByRole('link', { name: /^back$/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Preview' }));
+
+    expect(screen.getByRole('link', { name: /^back$/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Production' })).toBeInTheDocument();
+    expect(screen.getByText('AppActionsMenu')).toBeInTheDocument();
+    expect(screen.queryByText('AppSecretsPanel')).not.toBeInTheDocument();
   });
 
   describe('healthy app top bar', () => {
@@ -304,7 +353,7 @@ describe('AiAppDetailPage', () => {
       rerender(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
       expect(screen.getByText('DeploymentSettingsModal')).toBeInTheDocument();
-      expect(screen.queryByText('Deploying')).not.toBeInTheDocument();
+      expect(screen.queryByText(/this page updates automatically/)).not.toBeInTheDocument();
       expect(screen.getByText('Redeploying the app')).toBeInTheDocument();
     });
   });
@@ -351,7 +400,8 @@ describe('AiAppDetailPage', () => {
       mockUseAiAppReturn = { app: DANGER_APP(), isLoading: false, isError: false };
       render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
-      expect(screen.getByText('Deploy failed')).toBeInTheDocument();
+      expect(screen.getByText(/Prod Failed/)).toBeInTheDocument();
+      expect(screen.queryByText(/Preview/)).not.toBeInTheDocument();
       expect(screen.getByText(/Last deploy failed: boom/)).toBeInTheDocument();
       expect(screen.getByText('AppSecretsPanel')).toBeInTheDocument();
 
@@ -385,7 +435,8 @@ describe('AiAppDetailPage', () => {
       mockUseAiAppReturn = { app: buildApp({ status: 'ERROR', notes: 'boom' }), isLoading: false, isError: false };
       const { unmount } = render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
 
-      expect(screen.getByText('Deploy failed')).toBeInTheDocument();
+      expect(screen.getByText(/Prod Failed/)).toBeInTheDocument();
+      expect(screen.queryByText(/Preview/)).not.toBeInTheDocument();
       expect(screen.getByText(/Last deploy failed: boom/)).toBeInTheDocument();
       unmount();
 

@@ -265,6 +265,31 @@
   border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
+.envSwitch {
+  display: flex;
+  gap: 8px;
+}
+
+.envSwitchOn,
+.envSwitchOff {
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.envSwitchOn {
+  border: 1px solid #1d4ed8;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.envSwitchOff {
+  border: 1px solid rgba(27, 56, 96, 0.16);
+  background: #fff;
+  color: #334155;
+}
+
 @media (max-width: 639px) {
   .header,
   .body,

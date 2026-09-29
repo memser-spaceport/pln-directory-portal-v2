@@ -355,10 +355,9 @@ export function PrototypeNavBar({
                 >
                   <SearchGlyph />
                 </button>
-                {/* From tablet-landscape up: the field itself. The slot keeps
-                    its 200px in the row; the field is anchored to the slot's
-                    right edge and widens leftward over the nav, so nothing in
-                    the bar reflows while you search. */}
+                {/* From tablet-landscape up: the field itself. It fills the
+                    slot and keeps that width while you search; only its
+                    border changes. */}
                 <div
                   className={clsx(local.navSearchField, searchOpen && local.navSearchFieldOpen)}
                   /* The glyph and the padding are the field too. */
@@ -408,7 +407,7 @@ export function PrototypeNavBar({
                       onClick={onAiSearchClick}
                       aria-label="Open AI Search"
                     >
-                      <AiSearchIcon size={16} />
+                      <AiSearchIcon size={12} />
                       AI
                     </button>
                   )}
@@ -462,10 +461,10 @@ export function PrototypeNavBar({
                 type="button"
                 className={clsx(help.contact, help.trigger)}
                 aria-label="Give feedback"
+                title="Give feedback"
                 onClick={() => setCommenting(true)}
               >
                 <HelpIcon />
-                <span className={help.contactLabel}>Contact us</span>
               </button>
             )}
             {/* Logged out, the bell goes with the account: notifications with

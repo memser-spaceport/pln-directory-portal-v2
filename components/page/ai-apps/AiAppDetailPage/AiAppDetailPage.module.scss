@@ -382,6 +382,47 @@
   flex-shrink: 0;
 }
 
+.envSwitch {
+  display: flex;
+  gap: 4px;
+}
+
+.envOn,
+.envOff {
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 16px;
+  cursor: pointer;
+}
+
+.envOn {
+  border: 1px solid #1d4ed8;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.envOff {
+  border: 1px solid rgba(27, 56, 96, 0.16);
+  background: #fff;
+  color: #475569;
+}
+
+.envMeta,
+.envLink {
+  font-size: 12px;
+  line-height: 16px;
+  color: #475569;
+}
+
+.envLink {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 // "App Details" action; mirrors AiAppCard's (AiAppCard.module.scss) so the two
 // entry points read the same. Colors/typography come from the shared Button
 // (border / neutral / xxs).

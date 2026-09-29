@@ -1,0 +1,40 @@
+.lightboxOverlay {
+  background: rgba(14, 15, 17, 0.72);
+}
+
+.lightboxContent {
+  width: auto;
+  max-width: none;
+  line-height: 0;
+
+  img {
+    display: block;
+    max-width: 90vw;
+    max-height: 90vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+  }
+}
+
+.lightboxCanvas {
+  display: block;
+  max-width: 90vw;
+
+  img {
+    max-height: 90vh;
+  }
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

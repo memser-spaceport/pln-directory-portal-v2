@@ -25,7 +25,12 @@ import { Badge } from '@/components/common/Badge';
 import {
   SUGGESTION_BAND_LABEL,
   SUGGESTION_BAND_VARIANT,
-  type RoleCandidate, type RoleInterested, type RoleSuggested, type SuggestionMatch } from './mocks';
+  type RoleCandidate,
+  type RoleCriterion,
+  type RoleInterested,
+  type RoleSuggested,
+  type SuggestionMatch,
+} from './mocks';
 import s from './CandidateRow.module.scss';
 
 interface Props {
@@ -38,6 +43,8 @@ interface Props {
   invitedAt?: string;
   /** Suggested rows only: the match band, at the row's right end. */
   match?: SuggestionMatch;
+  /** Suggested rows only: the switched-on requirements the profile does not show. */
+  unmet?: RoleCriterion[];
   /**
    * Not looked at yet: the row is tinted and carries `● New`. Opening it
    * returns the row to the plain grey every other row wears — read is the row
@@ -64,7 +71,17 @@ interface Props {
  * the row; pressing it shows the person, and their note, in the pane beside
  * the list.
  */
-export function CandidateRow({ candidate: a, isNew, reviewed, last, selected, onSelect, invitedAt, match }: Props) {
+export function CandidateRow({
+  candidate: a,
+  isNew,
+  reviewed,
+  last,
+  selected,
+  onSelect,
+  invitedAt,
+  match,
+  unmet,
+}: Props) {
   return (
     <button type="button" className={clsx(tmvc.root, s.selectable)} onClick={onSelect} aria-pressed={selected}>
       <div
@@ -114,22 +131,37 @@ export function CandidateRow({ candidate: a, isNew, reviewed, last, selected, on
                   because they applied — and it is what the band at the right
                   cannot say (see `SuggestionReasonKind`). No tick: the green
                   check in this list already means Reviewed. */}
-              {'reasons' in a && (
+              {/* The band's working, on every suggested row: how many of the
+                  role's requirements the profile meets, then the ones it
+                  doesn't, named — the standup's "✓ Rust, ✓ 5+ yrs infra,
+                  — no protocol experience", compressed for a 440px row. The
+                  met ones are a count, not a list: five labels don't fit, and
+                  what tells two Strong matches apart is what each is missing.
+                  No check glyph: the green check in this list already means
+                  Reviewed. The whole checklist, with evidence, is the pane's. */}
+              {'reasons' in a && match && (
+                <p className={s.working}>
+                  <span className={s.workingCount}>
+                    {match.met === match.total
+                      ? `All ${match.total} requirements`
+                      : `${match.met} of ${match.total} requirements`}
+                  </span>
+                  {unmet?.map((c) => (
+                    <span key={c.id} className={s.workingUnmet}>
+                      <span className={s.workingDash} aria-hidden="true" />
+                      <span className={s.srOnly}>not on profile: </span>
+                      {c.label}
+                    </span>
+                  ))}
+                </p>
+              )}
+              {/* The strongest network signal, in words — what the band at the
+                  right cannot say (see `SuggestionReasonKind`). Only when there
+                  is one: a row with no signal ends at its working. */}
+              {'reasons' in a && a.reasons[0] && (
                 <p className={s.reason}>
-                  {a.reasons[0] ? (
-                    <>
-                      <span className={s.reasonText}>{a.reasons[0].text}</span>
-                      {a.reasons.length > 1 && <span className={s.reasonMore}>+{a.reasons.length - 1}</span>}
-                    </>
-                  ) : (
-                    /* No network signal: the line says what the band is made
-                       of instead of leaving a gap under the role. */
-                    match && (
-                      <span className={s.reasonText}>
-                        {match.met} of {match.total} requirements
-                      </span>
-                    )
-                  )}
+                  <span className={s.reasonText}>{a.reasons[0].text}</span>
+                  {a.reasons.length > 1 && <span className={s.reasonMore}>+{a.reasons.length - 1}</span>}
                 </p>
               )}
             </div>

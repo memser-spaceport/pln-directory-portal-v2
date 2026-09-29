@@ -8,7 +8,7 @@ import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { CloseIcon } from '@/components/icons';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { AiApp, AiAppAccessMode, AiAppAccessCandidate } from '@/services/ai-apps/ai-apps.service';
+import { AiApp, AiAppAccessMode, AiAppAccessCandidate, AiAppTargetEnvironment, aiAppTarget } from '@/services/ai-apps/ai-apps.service';
 import { useAiAppAccess } from '@/services/ai-apps/hooks/useAiAppAccess';
 import { useSaveAiAppAccess } from '@/services/ai-apps/hooks/useSaveAiAppAccess';
 
@@ -62,6 +62,7 @@ export function ManageAccessModal({ app, onClose, onRedeploy }: Props) {
   const { settings, error: loadError, isLoading } = useAiAppAccess(app.uid);
   const saveAccess = useSaveAiAppAccess(app.uid);
 
+  const [environment, setEnvironment] = useState<AiAppTargetEnvironment>('prod');
   const [mode, setMode] = useState<AiAppAccessMode | null>(null);
   const [members, setMembers] = useState<Person[]>([]);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -82,15 +83,27 @@ export function ManageAccessModal({ app, onClose, onRedeploy }: Props) {
     setMembers(settings.members.map(({ uid, name, image }) => ({ uid, name, image })));
   }
 
+  const saved =
+    environment === 'preview'
+      ? settings?.preview ?? (settings ? { access: 'PRIVATE' as const, directLinkGateReady: false, members: [] } : null)
+      : settings;
   const isSaving = saveAccess.isPending;
   const isDirty = useMemo(() => {
-    if (!settings || mode === null) return false;
-    return mode !== settings.access || !sameMembers(members, settings.members);
-  }, [settings, mode, members]);
+    if (!saved || mode === null) return false;
+    return mode !== saved.access || !sameMembers(members, saved.members ?? []);
+  }, [saved, mode, members]);
 
-  // Only a shipped app has a running sidecar; a never-deployed app's first
-  // deploy already ships the per-app one.
-  const gateNotReady = !!settings && !settings.directLinkGateReady && !!app.lastDeployedAt;
+  // Only a shipped target has a running sidecar; a never-deployed one ships the per-app gate on first deploy.
+  const gateNotReady = !!saved && !saved.directLinkGateReady && !!aiAppTarget(app, environment).lastDeployedAt;
+
+  const selectEnvironment = (next: AiAppTargetEnvironment) => {
+    const source = next === 'preview' ? settings?.preview : settings;
+    setEnvironment(next);
+    setMode(source?.access ?? (next === 'preview' ? 'PRIVATE' : 'OPEN'));
+    setMembers((source?.members ?? []).map(({ uid, name, image }) => ({ uid, name, image })));
+    setSaveError(null);
+    setNeedsRedeploy(false);
+  };
 
   const addMember = (candidate: AiAppAccessCandidate) => {
     setMembers((current) =>
@@ -107,17 +120,21 @@ export function ManageAccessModal({ app, onClose, onRedeploy }: Props) {
   const handleSave = async () => {
     if (!mode) return;
     setSaveError(null);
-    const result = await saveAccess.mutateAsync({ access: mode, memberUids: members.map((member) => member.uid) });
+    const result = await saveAccess.mutateAsync({
+      access: mode,
+      memberUids: members.map((member) => member.uid),
+      environment,
+    });
     if (result.error || !result.data) {
       setSaveError(result.error ?? 'Saving failed. Please try again.');
       analytics.onAccessSaveFailed(app.uid);
       return;
     }
-    const previousUids = new Set((settings?.members ?? []).map((member) => member.uid));
+    const previousUids = new Set((saved?.members ?? []).map((member) => member.uid));
     const nextUids = new Set(members.map((member) => member.uid));
     analytics.onAccessSaved({
       appUid: app.uid,
-      from: settings?.access ?? mode,
+      from: saved?.access ?? mode,
       to: result.data.access,
       addedCount: members.filter((member) => !previousUids.has(member.uid)).length,
       removedCount: [...previousUids].filter((uid) => !nextUids.has(uid)).length,
@@ -179,6 +196,7 @@ export function ManageAccessModal({ app, onClose, onRedeploy }: Props) {
             <span className={s.label}>People with access</span>
             <AiAppMemberSearch
               appUid={app.uid}
+              environment={environment}
               addedUids={members.map((member) => member.uid)}
               onAdd={addMember}
               disabled={isSaving}
@@ -252,7 +270,27 @@ export function ManageAccessModal({ app, onClose, onRedeploy }: Props) {
           </button>
         </div>
 
-        <div className={s.body}>{renderBody()}</div>
+        <div className={s.body}>
+          <div className={s.envSwitch} role="tablist" aria-label="Access environment">
+            {(['prod', 'preview'] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                role="tab"
+                aria-selected={environment === value}
+                className={environment === value ? s.envSwitchOn : s.envSwitchOff}
+                onClick={() => selectEnvironment(value)}
+                disabled={isSaving}
+              >
+                {value === 'prod' ? 'Production' : 'Preview'}
+              </button>
+            ))}
+          </div>
+          {environment === 'preview' && (
+            <p className={s.helpText}>Preview starts private. Only you can open it until you change this.</p>
+          )}
+          {renderBody()}
+        </div>
 
         <div className={s.footer}>
           {needsRedeploy ? (

@@ -3,13 +3,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { AiAppsQueryKeys } from '@/services/ai-apps/constants';
-import { AiAppAccessMode, saveAiAppAccess } from '@/services/ai-apps/ai-apps.service';
+import { AiAppAccessMode, AiAppTargetEnvironment, saveAiAppAccess } from '@/services/ai-apps/ai-apps.service';
 
 export function useSaveAiAppAccess(uid: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: { access: AiAppAccessMode; memberUids: string[] }) => saveAiAppAccess(uid, input),
+    mutationFn: (input: { access: AiAppAccessMode; memberUids: string[]; environment?: AiAppTargetEnvironment }) =>
+      saveAiAppAccess(uid, input),
     onSuccess: async (result) => {
       // Failures come back as data, so onSuccess fires either way.
       if (result.error) return;

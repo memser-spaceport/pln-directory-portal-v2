@@ -9,6 +9,9 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
 import { useAiAppManageAccess } from '@/services/ai-apps/hooks/useAiAppManageAccess';
 import {
+  AiAppTargetEnvironment,
+  aiAppStatusLabel,
+  aiAppTarget,
   checkAiAppLive,
   deployFailureKind,
   hasPrd,
@@ -26,7 +29,9 @@ import {
   DeleteAiAppDialog,
   AiAppDetailsModal,
 } from '@/components/page/ai-apps/dynamicActionModals';
+import { SHOW_AI_APPS_ELEMENT_PINS } from '@/services/ai-apps/constants';
 import { FloatingFeedbackButton } from '../components/FloatingFeedbackButton';
+import { useElementPins } from '../components/element-pins';
 import { AiAppTagChips } from '../components/AiAppTagChips';
 import { LockIcon } from '../AiAppsPage/components/ManageAccessModal/icons';
 
@@ -207,6 +212,7 @@ export function AiAppDetailPage(props: Props) {
   const [showDetails, setShowDetails] = useState(false);
   // Bumped by "Try again" to restart the polling effect after it gave up.
   const [retryToken, setRetryToken] = useState(0);
+  const [previewEnv, setPreviewEnv] = useState<AiAppTargetEnvironment>('prod');
   // Result of the liveness polling, tagged with the generation it probed. A new
   // generation (fresh deploy or retry) makes the derived status fall back to
   // 'checking' without the effect having to reset any state synchronously.
@@ -276,7 +282,13 @@ export function AiAppDetailPage(props: Props) {
     }
   }, [isError, uid, analytics]);
 
-  const appUrl = app?.url ?? null;
+  const prodTarget = app ? aiAppTarget(app, 'prod') : null;
+  const previewRow = app?.deployments?.preview ?? null;
+  const canOpenPreview = !!previewRow && !!app?.canViewPreview;
+  const previewTargetRow = app ? aiAppTarget(app, 'preview') : null;
+  const selectedEnv = canOpenPreview ? previewEnv : 'prod';
+  const previewTarget = selectedEnv === 'preview' ? previewTargetRow : prodTarget;
+  const appUrl = previewTarget?.url ?? (selectedEnv === 'prod' ? app?.url ?? null : null);
   const appOrigin = useMemo(() => {
     if (!appUrl) return null;
     try {
@@ -297,7 +309,7 @@ export function AiAppDetailPage(props: Props) {
   // updatedAt would remount a visitor's working previous version whenever a
   // FAILED deploy bumps the row (warning state). updatedAt stays as the
   // fallback for pre-contract API responses that lack the field.
-  const deployGeneration = app?.lastDeployedAt ?? app?.updatedAt ?? '';
+  const deployGeneration = previewTarget?.lastDeployedAt ?? app?.updatedAt ?? '';
   // One probe "generation" per deployed version and per manual retry; probe
   // results from older generations are ignored, so a fresh deploy always
   // re-checks.
@@ -373,7 +385,7 @@ export function AiAppDetailPage(props: Props) {
     let timer: ReturnType<typeof setTimeout> | undefined;
 
     const probe = async () => {
-      const live = await checkAiAppLive(uid);
+      const live = await checkAiAppLive(uid, selectedEnv);
       if (cancelled) return;
       if (live) {
         setProbeResult({ generation: probeGeneration, status: 'live' });
@@ -393,9 +405,21 @@ export function AiAppDetailPage(props: Props) {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [uid, appUrl, probeGeneration, isRedeploying]);
+  }, [uid, appUrl, probeGeneration, isRedeploying, selectedEnv]);
+
+  // The in-app bridge (starter kit script). Pin state lives here, next to the
+  // iframe it belongs to; the feedback button only drives it. Keyed on the
+  // same generation as the iframe, so a redeploy remount starts clean.
+  const elementPins = useElementPins({
+    iframeRef,
+    appOrigin,
+    frameKey: deployGeneration,
+    enabled: SHOW_AI_APPS_ELEMENT_PINS,
+    appUid: uid,
+  });
 
   const handleIframeLoad = () => {
+    elementPins.onFrameLoad();
     if (!app || iframeTracked.current === app.uid) return;
     iframeTracked.current = app.uid;
     analytics.onIframeLoaded(app.uid, app.name);
@@ -443,7 +467,8 @@ export function AiAppDetailPage(props: Props) {
   // Shown both for an app that genuinely isn't deployed yet (needsSetup) and
   // for a deploy in progress or failed with nothing serving — a 'warning'
   // failure (previous revision still up) renders the normal layout instead.
-  const showSetupCard = needsSetup || (deployFailed && failureKind !== 'warning') || deployInProgress;
+  const showSetupCard =
+    selectedEnv !== 'preview' && (needsSetup || (deployFailed && failureKind !== 'warning') || deployInProgress);
 
   // Close a card action; if the deployment modal was opened via the
   // `?settings=deployment` deep link, drop the param so a refresh/back doesn't
@@ -478,7 +503,8 @@ export function AiAppDetailPage(props: Props) {
           <div className={s.setupHeader}>
             <h1 className={s.setupTitle}>{app.name}</h1>
             <span className={s.statusBadge} data-status={app.status}>
-              {SETUP_STATUS_LABELS[app.status] ?? app.status}
+              Prod {aiAppStatusLabel(prodTarget?.status ?? app.status)}
+              {previewRow ? ` · Preview ${aiAppStatusLabel(previewRow.status)}` : ''}
             </span>
             {isPrivateAiApp(app) && <span className={s.privateBadge}>Private</span>}
           </div>
@@ -528,6 +554,23 @@ export function AiAppDetailPage(props: Props) {
   );
 
   const renderFrameArea = () => {
+    if (selectedEnv === 'preview' && !appUrl) {
+      return (
+        <div className={s.frameState}>
+          <div className={s.progress}>
+            <p className={s.progressTitle}>
+              {previewTargetRow?.status === 'DEPLOYING' ? 'Deploying preview' : 'Preview is not deployed yet'}
+            </p>
+            <p className={s.progressText}>
+              {previewTargetRow?.status === 'DEPLOYING'
+                ? 'A deploy is in progress — this page updates automatically once it finishes.'
+                : 'Switch back to Production, or open settings to deploy this environment.'}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     if (isRedeploying) {
       return (
         <div className={s.frameState}>
@@ -587,8 +630,7 @@ export function AiAppDetailPage(props: Props) {
     );
   };
 
-  const normalLayout = (
-    <div className={s.root}>
+  const appHeader = (
       <div className={s.topBar}>
         <Link href="/pl-infra/ai-apps" className={s.backLink}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -603,6 +645,29 @@ export function AiAppDetailPage(props: Props) {
           Back
         </Link>
         <div className={s.topBarActions}>
+          {canOpenPreview && (
+            <div className={s.envSwitch} role="tablist" aria-label="App environment">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={selectedEnv === 'prod'}
+                className={selectedEnv === 'prod' ? s.envOn : s.envOff}
+                onClick={() => setPreviewEnv('prod')}
+              >
+                Production
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={selectedEnv === 'preview'}
+                className={selectedEnv === 'preview' ? s.envOn : s.envOff}
+                onClick={() => setPreviewEnv('preview')}
+              >
+                Preview
+              </button>
+            </div>
+          )}
+          <span className={s.envMeta}>{aiAppStatusLabel(previewTarget?.status ?? '')}</span>
           {isPrivateAiApp(app) && (
             <span className={s.privateBadge} title="Only the owner and people they add can see this app">
               <LockIcon size={12} />
@@ -637,10 +702,15 @@ export function AiAppDetailPage(props: Props) {
           )}
         </div>
       </div>
+  );
+
+  const normalLayout = (
+    <div className={s.root}>
+      {appHeader}
       {/* The previous revision still serves — the app below works, only its
           creator needs to know the latest change didn't ship. Hidden during the
           creator's own redeploy (the frame area shows that story). */}
-      {isCreator && failureKind === 'warning' && !isRedeploying && (
+      {isCreator && failureKind === 'warning' && !isRedeploying && selectedEnv !== 'preview' && (
         <div className={s.warningBanner}>
           <span className={s.warningBannerLabel}>Latest deploy didn&apos;t ship</span>
           <button type="button" className={s.warningBannerButton} onClick={() => openFailureLogs('detail-banner')}>
@@ -657,12 +727,24 @@ export function AiAppDetailPage(props: Props) {
   // settling warning → danger) must never unmount an open modal mid-result.
   return (
     <>
-      {showSetupCard ? setupCard : normalLayout}
+      {showSetupCard ? (
+        <>
+          {canOpenPreview && appHeader}
+          {setupCard}
+        </>
+      ) : (
+        normalLayout
+      )}
       {/* Floats over both branches, for the same reason the modals sit here: it
           owns an open dialog, and a status flip must not unmount it mid-typing.
           It also gives the setup / deploying / failed states a feedback door —
           they had none, and a failed deploy is when people most want one. */}
-      <FloatingFeedbackButton appUid={app.uid} appName={app.name} />
+      <FloatingFeedbackButton
+        appUid={app.uid}
+        appName={app.name}
+        elementPins={SHOW_AI_APPS_ELEMENT_PINS ? elementPins : undefined}
+        iframeRef={iframeRef}
+      />
       {showDetails && (
         <AiAppDetailsModal
           isOpen

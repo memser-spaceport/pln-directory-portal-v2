@@ -221,15 +221,15 @@ import { JobBoardMobileFilters } from './JobBoardMobileFilters';
 import { JobTeamGroupCard, type JobCardNewsVariant } from './JobTeamGroupCard';
 import { OpenRoleRow } from './OpenRoleRow';
 import { openRoleFor, type OpenInterest } from './openRoles';
-import { JobBoardScopeTabs, SCOPE_APPLIED, SCOPE_PARAM, SCOPE_SAVED } from './JobBoardScopeTabs';
-// Saving — designed and settled in the `saving` entry, ported here the way that
-// entry's own note asks: mount the store, hand the card, the row and the scope
-// tabs the optional props they already take. Same store (`save-shared`), so a
-// role kept here is kept there.
+import { JobBoardScopeTabs, SCOPE_APPLIED, SCOPE_PARAM } from './JobBoardScopeTabs';
+import { SAVED_PARAM } from './JobBoardSavedFilter';
+// Saving — the bookmark and the store come from the `saving` entry (same store,
+// `save-shared`, so a role kept here is kept there). The *scope* follows
+// production (LAB-2629, 2026-09-25): Saved is a checkbox in the rail's
+// "My Activity" section, not a tab. The `saving` entry keeps its tab.
 import { useSavedItems } from '../save-shared/savedItems';
 import { FollowToast } from '../follow-shared/FollowToast';
-// `.toastLink` and the scope strip's +8px gap for a third tab — the saving
-// entry's own two rules, imported rather than restated.
+// `.toastLink` — the saving entry's own rule, imported rather than restated.
 import sp from '../saving/SavingPrototype.module.scss';
 // The team's candidates page — the team profile's own, mounted here as the
 // destination of the owner rows' count line. See `candidatesView`.
@@ -587,7 +587,7 @@ export default function JobBoardPrototype() {
          still wins when it has something, because that is the sign-in round trip
          putting back what the person had already chosen. */
       const seeded = new URLSearchParams();
-      for (const key of ['q', 'sort', SCOPE_PARAM, ...CRITERIA_KEYS]) {
+      for (const key of ['q', 'sort', SCOPE_PARAM, SAVED_PARAM, ...CRITERIA_KEYS]) {
         const value = q.get(key);
         if (value) seeded.set(key, value);
       }
@@ -839,22 +839,23 @@ export default function JobBoardPrototype() {
   const appliedScope = params.get(SCOPE_PARAM) === SCOPE_APPLIED;
 
   /**
-   * Saved roles — the bookmark on every row, and the **Saved** tab between All
-   * and Applied.
+   * Saved roles — the bookmark on every row, and the **Saved** filter in the
+   * rail (production's `saved=true` param). A filter, so it combines with the
+   * other facets and with the Applied tab, and Clear All takes it off.
    *
    * **Offered to everyone, honoured with an account** — the row's own rule for
    * Refer. A visitor sees the bookmark and the press opens the sign-up door;
    * nothing is kept for someone with nowhere to keep it, so without an account
-   * no row reads as saved and the scope cannot be on (the strip that would turn
-   * it off is not drawn for them either).
+   * no row reads as saved and the filter cannot be on (the rail does not draw
+   * it for them either).
    *
    * Owners' rows have no bookmark: their actions all live behind the ⋯, and
    * nobody bookmarks their own listing.
    */
   const saved = useSavedItems();
-  const savedScope = isLoggedIn && params.get(SCOPE_PARAM) === SCOPE_SAVED;
+  const savedScope = isLoggedIn && params.get(SAVED_PARAM) === 'true';
   const savedRoleUids = useMemo(() => (isLoggedIn ? saved.uidsOf('job') : new Set<string>()), [isLoggedIn, saved]);
-  /* The clock reads "Saved …" only inside the Saved tab — Applied's own move.
+  /* The clock reads "Saved …" only while the Saved filter is on — Applied's own move.
      On the open board the posting age is still the number that decides. */
   const savedAtByRole = useMemo(
     () => (savedScope ? new Map([...savedRoleUids].map((uid) => [uid, saved.savedAt(uid) ?? ''])) : undefined),
@@ -1699,9 +1700,9 @@ export default function JobBoardPrototype() {
    * a logged-out visitor has no applications, so the tab could only ever open on
    * nothing. */
   const scopeTabs = isLoggedIn ? (
-    <div className={`${s.scopeTabs} ${sp.scopeTabs}`}>
-      {/* All · Saved · Applied. */}
-      <JobBoardScopeTabs appliedCount={appliedRoleUids.size} savedCount={saved.countOf('job')} />
+    <div className={s.scopeTabs}>
+      {/* All · Applied. Saved moved to the rail, as in production. */}
+      <JobBoardScopeTabs appliedCount={appliedRoleUids.size} />
     </div>
   ) : null;
 
@@ -1863,7 +1864,7 @@ export default function JobBoardPrototype() {
         {submitJobButton && <div className={s.mobileSubmit}>{submitJobButton}</div>}
       </div>
       <div className={contentCss.mobileFilters}>
-        <JobBoardMobileFilters />
+        <JobBoardMobileFilters isLoggedIn={isLoggedIn} />
       </div>
 
       <div className={contentCss.toolbar}>
@@ -1902,7 +1903,7 @@ export default function JobBoardPrototype() {
             {savedScope && savedRoleUids.size === 0 ? (
               <>
                 You haven&apos;t saved any roles yet. Roles you bookmark collect here, so you can come back to them.{' '}
-                <button type="button" className={s.emptyLink} onClick={() => setParam(SCOPE_PARAM, undefined)}>
+                <button type="button" className={s.emptyLink} onClick={() => setParam(SAVED_PARAM, undefined)}>
                   Browse all roles
                 </button>
               </>
@@ -2046,7 +2047,7 @@ export default function JobBoardPrototype() {
           />
         </div>
       ) : (
-        <DashboardPagesLayout filters={<JobBoardFilterView />} content={content} />
+        <DashboardPagesLayout filters={<JobBoardFilterView isLoggedIn={isLoggedIn} />} content={content} />
       )}
 
       {savedToast && (
@@ -2056,7 +2057,7 @@ export default function JobBoardPrototype() {
             type="button"
             className={sp.toastLink}
             onClick={() => {
-              setParam(SCOPE_PARAM, SCOPE_SAVED);
+              setParam(SAVED_PARAM, 'true');
               setSavedToast(false);
             }}
           >

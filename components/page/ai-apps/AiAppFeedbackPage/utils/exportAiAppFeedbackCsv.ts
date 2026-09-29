@@ -1,5 +1,6 @@
-import { AI_APP_FEEDBACK_STATUS_LABELS } from '@/services/ai-app-feedback/constants';
 import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
+
+import { AI_APP_FEEDBACK_STATUS_LABELS } from '@/services/ai-app-feedback/constants';
 
 /**
  * Serialize a value for CSV: quote if it contains comma / quote / newline.

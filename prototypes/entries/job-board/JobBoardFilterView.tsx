@@ -15,13 +15,16 @@ import {
 import { facetToFilterItems } from '@/components/page/jobs/JobsFilterBody/utils/facetToFilterItems';
 
 import { useMockJobsFilterStore } from './mockJobsFilterStore';
+import { JobBoardSavedFilter, SAVED_PARAM } from './JobBoardSavedFilter';
 import { MOCK_ROLE_CATEGORY_FACETS, MOCK_SENIORITY_FACETS, MOCK_WORKMODE_FACETS, MOCK_LOCATION_FACETS } from './mocks';
 
 // Params that count toward the "applied filters" badge (mirrors production's tracked set, minus sort/q).
-const COUNTED_PARAMS = ['roleCategory', 'seniority', 'workplaceType', 'location'];
+const COUNTED_PARAMS = ['roleCategory', 'seniority', 'workplaceType', 'location', SAVED_PARAM];
 
 interface Props {
   onClose?: () => void;
+  /** Production's rule: the Saved filter exists only with an account to keep saves in. */
+  isLoggedIn?: boolean;
 }
 
 /**
@@ -30,7 +33,7 @@ interface Props {
  * verbatim, wired to a mock filter store + mock facets via `createFilterGetter`.
  * The production Focus Area tree is omitted (matches the teams prototype's approach).
  */
-export function JobBoardFilterView({ onClose }: Props) {
+export function JobBoardFilterView({ onClose, isLoggedIn = false }: Props) {
   const { params, setParam, clearParams } = useMockJobsFilterStore();
 
   const appliedFiltersCount = COUNTED_PARAMS.filter((k) => params.get(k)).length;
@@ -54,6 +57,12 @@ export function JobBoardFilterView({ onClose }: Props) {
           placeholder="Search a team or role"
         />
       </FilterSection>
+
+      {isLoggedIn && (
+        <FilterSection title="My Activity">
+          <JobBoardSavedFilter />
+        </FilterSection>
+      )}
 
       <FilterSection title="Role Category">
         <GenericCheckboxList

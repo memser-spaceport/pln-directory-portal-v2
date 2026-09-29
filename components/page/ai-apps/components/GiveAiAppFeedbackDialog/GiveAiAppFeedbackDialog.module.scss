@@ -92,6 +92,28 @@
   margin: 0;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shortcutsLink {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 13px;
+  line-height: 18px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-secondary, #455468);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
 .closeButton {
   display: flex;
   align-items: center;
@@ -173,10 +195,44 @@
 
 .footer {
   display: flex;
-  justify-content: flex-end;
-  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
   padding: 16px 24px;
   border-top: 1px solid rgba(203, 213, 225, 0.5);
+}
+
+.hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.kbd {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-secondary, #455468);
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+}
+
+.footerActions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
 }
 
 /**
@@ -201,6 +257,79 @@
   @include media.mobile-only {
     display: none;
   }
+}
+
+.fieldLabel {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.helpOverlay {
+  z-index: 10002;
+}
+
+.helpContainer {
+  width: min(420px, 100%);
+}
+
+.help {
+  padding: 20px 24px 24px;
+  background: #fff;
+  border-radius: 16px;
+}
+
+.helpHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.helpTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.helpGroup + .helpGroup {
+  margin-top: 16px;
+}
+
+.helpGroupTitle {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.helpList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.helpRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 6px 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.helpNote {
+  margin: 16px 0 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
 }
 
 .screenshotHint {

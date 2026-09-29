@@ -7,7 +7,7 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { DocumentIcon, EyeIcon, UsersThreeIcon } from '@/components/icons';
 import { Button } from '@/components/common/Button';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { AiApp, deployFailureKind, hasPrd, isPrivateAiApp } from '@/services/ai-apps/ai-apps.service';
+import { AiApp, aiAppStatusLabel, aiAppTarget, deployFailureKind, hasPrd, isPrivateAiApp } from '@/services/ai-apps/ai-apps.service';
 import { formatAiAppDate, formatCount } from '@/utils/ai-apps.utils';
 import { DetailsItem } from '@/components/core/UpdatesPanel/NotificationItem/components/NotificationFooter/components/DetailsItem';
 import nf from '@/components/core/UpdatesPanel/NotificationItem/components/NotificationFooter/NotificationFooter.module.scss';
@@ -128,6 +128,10 @@ export function AiAppCard(props: Props) {
 
   const footer = (
     <div className={s.bottom}>
+      <p className={s.envRow}>
+        Prod: {aiAppStatusLabel(aiAppTarget(app, 'prod').status)} · Preview:{' '}
+        {aiAppStatusLabel(aiAppTarget(app, 'preview').status)}
+      </p>
       <AiAppTagChips tags={app.tags} />
       {metricsRow}
       <div className={s.footer}>

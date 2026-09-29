@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { usePermissions } from '@/services/rbac/hooks/usePermissions';
 import { canViewAiApps } from '@/services/rbac/utils/aiApps/canViewAiApps';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { CommentIcon } from '@/components/icons';
+import { isOpenFeedbackChord, useShortcutLabels } from '@/components/page/ai-apps/shortcutKeys';
 import { GiveAiAppFeedbackDialog } from '../GiveAiAppFeedbackDialog';
+import { PinOverlay, PinPanel, type ElementPinsController } from '../element-pins';
 
 import s from './FloatingFeedbackButton.module.scss';
 
@@ -16,6 +18,13 @@ interface Props {
   /** When provided (app detail page), preselects this app in the feedback picker. */
   appUid?: string;
   appName?: string;
+  /**
+   * Element pins for the embedded app (detail page, flag on). When its bridge
+   * has said `ready`, the button opens pin mode instead of the dialog; an app
+   * without the bridge keeps the screenshot flow.
+   */
+  elementPins?: ElementPinsController;
+  iframeRef?: RefObject<HTMLIFrameElement | null>;
 }
 
 /**
@@ -38,12 +47,22 @@ export function FloatingFeedbackButton(props: Props) {
   return <FeedbackFab key={props.appUid ?? 'list'} {...props} />;
 }
 
-function FeedbackFab({ appUid, appName }: Props) {
+type SubmittedApp = { label: string; value: string };
+
+function FeedbackFab({ appUid, appName, elementPins, iframeRef }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isPinMode, setIsPinMode] = useState(false);
+  const [activePinId, setActivePinId] = useState<string | null>(null);
+  const canPin = Boolean(appUid && elementPins?.status === 'ready');
   const [isCollapsed, setIsCollapsed] = useState(false);
+  /** App from the last successful send. The next open-shortcut consumes it. */
+  const [reopenApp, setReopenApp] = useState<SubmittedApp | null>(null);
+  /** Prefill for the open that the shortcut just started. A button click leaves this empty. */
+  const [shortcutApp, setShortcutApp] = useState<SubmittedApp | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const introStartedAtRef = useRef<number | null>(null);
   const analytics = useAiAppsAnalytics();
+  const shortcuts = useShortcutLabels();
   const { permsSet, isLoading } = usePermissions();
   const isVisible = !isLoading && canViewAiApps(permsSet);
 
@@ -73,6 +92,54 @@ function FeedbackFab({ appUid, appName }: Props) {
     return () => clearTimeout(timer);
   }, [isVisible, isOpen, isCollapsed]);
 
+  /* The door: pin mode when the app's bridge answered, the dialog otherwise. */
+  const openPinMode = useCallback(() => {
+    if (!elementPins || !appUid) return;
+    analytics.onFeedbackPinsOpened({ appUid });
+    setIsPinMode(true);
+    if (elementPins.pins.length === 0) elementPins.startPicking();
+  }, [elementPins, appUid, analytics]);
+
+  const leavePinMode = () => {
+    setIsPinMode(false);
+    setActivePinId(null);
+  };
+
+  /* A pin made in a frame that has since been remounted (redeploy) or lost its
+     bridge can't be shown or sent; drop pin mode with it. */
+  const bridgeStatus = elementPins?.status;
+  const [seenBridgeStatus, setSeenBridgeStatus] = useState(bridgeStatus);
+  if (seenBridgeStatus !== bridgeStatus) {
+    setSeenBridgeStatus(bridgeStatus);
+    if (bridgeStatus !== 'ready') {
+      setIsPinMode(false);
+      setActivePinId(null);
+    }
+  }
+
+  useEffect(() => {
+    if (!isVisible || isOpen || isPinMode) return;
+
+    const onKey = (event: KeyboardEvent) => {
+      if (!isOpenFeedbackChord(event)) return;
+      event.preventDefault();
+      if (canPin && !reopenApp) {
+        openPinMode();
+        return;
+      }
+      const prefill = reopenApp;
+      setShortcutApp(prefill);
+      setReopenApp(null);
+      const uid = prefill?.value ?? appUid;
+      const name = prefill?.label ?? appName;
+      analytics.onFeedbackDialogOpened(uid ? { appUid: uid, appName: name } : {});
+      setIsOpen(true);
+    };
+
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isVisible, isOpen, isPinMode, canPin, openPinMode, reopenApp, appUid, appName, analytics]);
+
   if (!isVisible) {
     return null;
   }
@@ -84,7 +151,13 @@ function FeedbackFab({ appUid, appName }: Props) {
           type="button"
           className={s.button}
           aria-label="Give feedback"
+          aria-keyshortcuts={shortcuts.openAria}
           onClick={() => {
+            if (canPin) {
+              openPinMode();
+              return;
+            }
+            setShortcutApp(null);
             analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
             setIsOpen(true);
           }}
@@ -92,16 +165,68 @@ function FeedbackFab({ appUid, appName }: Props) {
           {/* CommentIcon hardcodes its own 16px box and ignores props. */}
           <CommentIcon />
           <span className={s.label} aria-hidden>
-            Give feedback
+            <span>Give feedback</span>
+            <kbd className={s.labelKbd}>{shortcuts.open}</kbd>
           </span>
         </button>
       </div>
 
+      {elementPins && iframeRef && elementPins.pins.length > 0 && (isPinMode || isOpen) && (
+        <PinOverlay
+          iframeRef={iframeRef}
+          pins={elementPins.pins}
+          activePinId={activePinId}
+          onPinClick={(pinId) => {
+            if (!isPinMode) openPinMode();
+            setActivePinId(pinId);
+          }}
+        />
+      )}
+
+      {elementPins && isPinMode && (
+        <PinPanel
+          pins={elementPins}
+          activePinId={activePinId}
+          onActivePinChange={setActivePinId}
+          onCancel={() => {
+            elementPins.clearPins();
+            leavePinMode();
+          }}
+          onUseScreenshot={() => {
+            elementPins.clearPins();
+            leavePinMode();
+            setShortcutApp(null);
+            analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
+            setIsOpen(true);
+          }}
+          onContinue={() => {
+            elementPins.stopPicking();
+            leavePinMode();
+            analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
+            setIsOpen(true);
+          }}
+        />
+      )}
+
       <GiveAiAppFeedbackDialog
         isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        appUid={appUid}
-        appName={appName}
+        onClose={() => {
+          /* Closing the dialog (Cancel, ✕, or a successful send) ends the pin session too. */
+          elementPins?.clearPins();
+          setIsOpen(false);
+        }}
+        pins={elementPins?.pins}
+        onEditPins={
+          elementPins
+            ? () => {
+                setIsOpen(false);
+                setIsPinMode(true);
+              }
+            : undefined
+        }
+        onSubmitted={setReopenApp}
+        appUid={shortcutApp?.value ?? appUid}
+        appName={shortcutApp?.label ?? appName}
         anchorRef={wrapRef}
         placement="above"
       />

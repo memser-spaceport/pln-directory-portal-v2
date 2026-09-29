@@ -44,6 +44,7 @@ import { CandidateMemberPage } from './CandidateMemberPage';
 import { Tabs } from '@/components/ui/tabs/Tabs';
 
 import {
+  matchWorking,
   sortSuggested,
   suggestionMatch,
   visibleSuggested,
@@ -99,6 +100,12 @@ interface Props {
   initialRoleUid: string;
   /** The tab to open on: the count line's "N suggested" clause opens Suggested. */
   initialTab?: CandidatesTab;
+  /**
+   * The person to open on — the suggested-candidates email and notification
+   * link a name straight to that member's pane. Ignored when they are not in
+   * the opening list (the lead may since have switched a criterion off).
+   */
+  initialSelectedId?: string;
   onBack: () => void;
   /**
    * What Back is called. "Back to <team>" by default — the page's first home is
@@ -209,8 +216,19 @@ interface Props {
  *     lead can switch them off in **Edit criteria** (Workable's "Manage
  *     matching criteria"), and nobody under the floor is suggested at all.
  *     What the network knows (an interest press, shared work) is *not* in the
- *     band: it is the row's third line and the pane's first block. See
+ *     band: it is the row's last line and the pane's first block. See
  *     `suggestedMocks.ts`.
+ *   - **Met and unmet, on the row and in the pane (2026-09-29, LAB-2687).**
+ *     Each row carries its working under the role — "4 of 5 requirements"
+ *     then, named behind a dash, what the profile doesn't show — and the pane
+ *     lists every requirement with the profile fact that meets it or "Not on
+ *     their profile". The role's criteria are said once, as "Matched on …"
+ *     under the tab's note, with Edit criteria beside them. Criteria are the
+ *     POC's own (LAB-2643: 4–6 checkable skill / seniority / location
+ *     statements) plus a short label this design asks it to write.
+ *   - **Landing.** The suggested-candidates email and the bell notification
+ *     open this page on the role with Suggested open (`initialTab`), and a
+ *     name in the email opens that person (`initialSelectedId`).
  *   - **Sorted by the share the band is read off, not by date** — nothing
  *     happened, so there is no date, and a Good match above a Strong one
  *     reads as a bug. One spine, no top-N band; ties go to the stronger
@@ -230,12 +248,20 @@ interface Props {
  * back to the list, which is how the members grid and its profile relate on a
  * phone already.
  */
-export function TeamCandidatesPage({ teamName, roles, initialRoleUid, initialTab, onBack, backLabel }: Props) {
+export function TeamCandidatesPage({
+  teamName,
+  roles,
+  initialRoleUid,
+  initialTab,
+  initialSelectedId,
+  onBack,
+  backLabel,
+}: Props) {
   const isMobile = useIsMobile();
   const [roleUid, setRoleUid] = useState(initialRoleUid);
   const [tab, setTab] = useState<string>(initialTab ?? APPLIED_TAB);
   const [query, setQuery] = useState('');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId ?? null);
   const [seenIds, setSeenIds] = useState<Set<string>>(() => new Set());
   // Who the team has marked reviewed — starts from the record's own flags.
   const [reviewedIds, setReviewedIds] = useState<Set<string>>(
@@ -253,7 +279,8 @@ export function TeamCandidatesPage({ teamName, roles, initialRoleUid, initialTab
   const invite = (id: string) =>
     setInvitedAt((prev) => (prev[id] ? prev : { ...prev, [id]: new Date().toISOString() }));
   // Mobile only: whether the pane is showing instead of the list.
-  const [paneOpen, setPaneOpen] = useState(false);
+  // A link to one person (the email's names) opens on their pane there too.
+  const [paneOpen, setPaneOpen] = useState(Boolean(initialSelectedId));
   // Criteria the lead has switched off, per role — session-local; production
   // would keep it on the listing.
   const [criteriaOff, setCriteriaOff] = useState<Record<string, ReadonlySet<string>>>({});
@@ -561,18 +588,31 @@ export function TeamCandidatesPage({ teamName, roles, initialRoleUid, initialTab
                 say: nobody on it did anything, and all of them agreed to be
                 on it. */}
             {tab === SUGGESTED_TAB && (
-              <div className={s.tabNoteRow}>
+              <div className={s.suggestedNote}>
                 <p className={s.tabNote}>
                   Members who let hiring teams find them, matched to this role on their profile. They haven’t applied.
                 </p>
+                {/* What every row below was matched against, said once, so a
+                    lead reading "4 of 5 requirements" knows which five. Edit
+                    criteria moved here from the end of the sentence above: a
+                    control sits beside the thing it changes. */}
                 {criteria.length > 0 && (
-                  <button
-                    type="button"
-                    className={clsx(btn.root, btn.xs, btn.link, btn.primary)}
-                    onClick={() => setCriteriaOpen(true)}
-                  >
-                    Edit criteria
-                  </button>
+                  <div className={s.tabNoteRow}>
+                    <p className={s.tabNote}>
+                      <span className={s.matchedOnLabel}>Matched on</span>{' '}
+                      {criteria
+                        .filter((c) => !off.has(c.id))
+                        .map((c) => c.label)
+                        .join(' · ')}
+                    </p>
+                    <button
+                      type="button"
+                      className={clsx(btn.root, btn.xs, btn.link, btn.primary)}
+                      onClick={() => setCriteriaOpen(true)}
+                    >
+                      Edit criteria
+                    </button>
+                  </div>
                 )}
               </div>
             )}
@@ -589,6 +629,7 @@ export function TeamCandidatesPage({ teamName, roles, initialRoleUid, initialTab
                     reviewed={reviewedIds.has(a.id)}
                     invitedAt={invitedAt[a.id]}
                     match={isSuggested(a) ? suggestionMatch(a, criteria, off) : undefined}
+                    unmet={isSuggested(a) ? matchWorking(a, criteria, off).unmet : undefined}
                     last={index === shown.length - 1}
                     selected={!isMobile && a.id === selectedId}
                     onSelect={() => select(a)}

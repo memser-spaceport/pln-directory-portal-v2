@@ -33,8 +33,8 @@ export function useRequestIntro() {
       <RequestIntroModal
         target={target}
         onClose={() => setTarget(null)}
-        onSend={(t, message) => {
-          api.send(t, message);
+        onSend={(t, { message, intro }) => {
+          api.send(t, message, intro);
           setTarget(null);
           setToast(true);
           if (timer.current) clearTimeout(timer.current);

@@ -45,9 +45,37 @@
 .card.card {
   max-width: 560px;
   padding: 24px;
+  /* Two fields now, so the card is capped to the window and the fields scroll
+     inside it (design-thinking lesson 5b): the overlay's own gutter (12+12 on
+     a phone, 24+24 from tablet-landscape) is what comes off. */
+  max-height: calc(100dvh - 32px);
+
+  @include media.tablet-landscape {
+    max-height: calc(100dvh - 48px);
+  }
 
   @include media.mobile-only {
     max-width: none;
     padding: 20px;
   }
+}
+
+/* The form fills what the masthead leaves; the fields scroll, the footer row
+   stays pinned so Send is always in reach. `min-height: 0` on both, or a flex
+   item refuses to shrink below its content and the cap never bites. */
+.form {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* The two fields: 16px apart (the source form's 10px gap was for one field
+   and its footer). The scrollbar only appears on a window short enough to
+   need it; no reserved gutter, so at rest the fields stay flush with the
+   footer's buttons. */
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  overflow-y: auto;
 }

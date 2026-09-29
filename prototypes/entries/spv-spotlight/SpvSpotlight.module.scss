@@ -1,0 +1,943 @@
+@use 'styles/media';
+
+// Page chrome for the SPV Spotlight prototype. The hero, footer and modals use
+// production stylesheets (the completed Demo Day and its apply modal); this
+// file only holds what those don't have: the chromeless wordmark, the button
+// row, the team card and its carousel, and the preview bar.
+
+.page {
+  min-height: 100vh;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+// DemodayCompletedView .root has no side gutter below its 1344px max; the
+// production page gets one from the app layout, which a chromeless page lacks.
+.root {
+  padding-inline: 16px;
+  padding-top: 24px;
+}
+
+// A shorter hero than the completed Demo Day's, so more of the team card is in
+// the first screen (2026-09-29 review, "more of the Netholabs stuff without
+// scrolling"): no status pill, 16px over the title instead of 40, a 40px title
+// instead of 56 (the title is now the longer "SPV Spotlight: Netholabs"), and
+// 24px down to the card instead of the sheet's 40.
+.heroCompact.heroCompact {
+  padding-top: 16px;
+  gap: 24px;
+}
+
+.heroTitle.heroTitle {
+  font-size: 40px;
+  line-height: 48px;
+  letter-spacing: -1px;
+
+  @include media.mobile-only {
+    font-size: 28px;
+    line-height: 36px;
+    letter-spacing: -0.6px;
+  }
+}
+
+.contentTight.contentTight {
+  gap: 24px;
+}
+
+// ---- Buttons ----------------------------------------------------------------
+.buttonRow {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    max-width: 320px;
+
+    a,
+    button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  a {
+    text-decoration: none;
+  }
+}
+
+// Doubled class: the completed page's `.buttons button { display: flex }` would
+// otherwise turn these inline text buttons into blocks.
+.inlineLink.inlineLink {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font: inherit;
+  font-weight: 500;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+// The completed page's `.info` box carries a 32px top margin meant for a
+// standalone section; inside the buttons column the column gap already spaces it.
+.infoTight {
+  margin-top: 0;
+  max-width: 600px;
+}
+
+// ---- The team ----------------------------------------------------------------
+// The one team, as PL Spotlight's single card (TeamProfileCard) — a white card
+// with its own shadow, so it sits straight on the white sheet.
+.teamSection {
+  width: 100%;
+  max-width: 948px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+
+  @include media.mobile-only {
+    gap: 16px;
+  }
+}
+
+// PL Spotlight's card edge is only a 1px shadow ring, which all but vanishes on
+// this page's white: a real hairline border (the founder tiles' own) instead.
+.spotlightCard.spotlightCard {
+  width: 100%;
+  padding: 32px;
+  gap: 24px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  box-shadow: 0 4px 4px 0 rgba(15, 23, 42, 0.04);
+
+  @include media.mobile-only {
+    padding: 16px;
+    gap: 20px;
+  }
+}
+
+// ---- Identity: logo, name, one-liner, nothing else --------------------------
+.spotlightIdentity {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+
+  @include media.mobile-only {
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+// ProfileHeader's 80px logo, kept at 64px on phones (it drops to 32px there,
+// too small to carry the card's identity alone).
+.spotlightLogo.spotlightLogo {
+  width: 72px;
+  height: 72px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+
+  @include media.mobile-only {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+  }
+}
+
+.spotlightIdentityText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+// ---- Action slot: the header's right edge (ProfileHeader's `linksWrapper`,
+// margin-left: auto). On phones it wraps under the identity, full width.
+.spotlightActionSlot {
+  margin-left: auto;
+  flex-shrink: 0;
+
+  @include media.mobile-only {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+}
+
+.spotlightIdentity:has(.spotlightActionSlot) {
+  @include media.mobile-only {
+    flex-wrap: wrap;
+    row-gap: 16px;
+
+    // Keep the name beside the logo; only the action slot wraps.
+    .spotlightIdentityText {
+      flex: 1 1 0;
+    }
+  }
+}
+
+.cardAction {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+
+  @include media.mobile-only {
+    align-items: stretch;
+  }
+}
+
+// DemoDayActionButtons' primary is a <button>; the DocSend one is an <a>.
+// 40px tall here (production's card row is 36px): it's the page's only
+// primary, and the hero's bordered buttons beside it are 48px.
+.cardActionButton.cardActionButton {
+  padding: 10px 16px;
+  text-decoration: none;
+
+  @include media.mobile-only {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+}
+
+.cardActionNote {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 13px;
+  line-height: 18px;
+
+  @include media.mobile-only {
+    text-align: center;
+  }
+}
+
+// The quiet line that holds the slot when there's nothing to press.
+.cardStatus {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+// ProfileHeader's name is a link with a hover colour; here it's a heading.
+.spotlightName.spotlightName {
+  margin: 0;
+  font-size: 28px;
+  line-height: 36px;
+  letter-spacing: -0.6px;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  @include media.mobile-only {
+    font-size: 20px;
+    line-height: 28px;
+    letter-spacing: -0.3px;
+  }
+}
+
+.spotlightOneLiner {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+
+  @include media.mobile-only {
+    font-size: 14px;
+    line-height: 20px;
+  }
+}
+
+// ---- Facts: labelled key-value strip (Linear customer page, Wellfound) ------
+.factStrip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
+  margin: 0;
+  padding: 16px 0;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include media.mobile-only {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 16px;
+    padding: 12px 0;
+  }
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding-inline: 20px;
+  border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  &:first-child {
+    padding-left: 0;
+    border-left: none;
+  }
+
+  @include media.mobile-only {
+    padding-inline: 0 12px;
+    border-left: none;
+  }
+}
+
+.factLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.factValue {
+  margin: 0;
+  overflow: hidden;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.factLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// ---- Body: media left, reading column right --------------------------------
+// ProfileContent's two-up row, with the carousel in the slide's place and the
+// reading column in the video's. The website's GIFs are 340px wide, so a
+// half-width stage keeps them near their own size.
+.spotlightBody {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 32px;
+
+    > * {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+}
+
+.spotlightAside {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.asideBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// Small section label (Attio's record panel, Pin's company drawer).
+.asideLabel {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+// The full About, in the summary's voice but a step smaller: it is longer
+// reading. Directory HTML, so paragraphs and a list arrive as markup.
+.spotlightAboutFull {
+  max-width: 60ch;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 15px;
+  line-height: 24px;
+
+  p,
+  ul {
+    margin: 0 0 12px;
+  }
+
+  ul {
+    padding-left: 20px;
+  }
+
+  // Quill leaves empty spacer paragraphs between blocks.
+  p:has(> br:only-child) {
+    display: none;
+  }
+
+  strong {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    font-weight: 600;
+  }
+}
+
+.aboutToggle {
+  align-self: flex-start;
+  margin-top: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.spotlightSummaryText {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 16px;
+  line-height: 26px;
+  letter-spacing: -0.2px;
+
+  @include media.mobile-only {
+    font-size: 14px;
+    line-height: 22px;
+  }
+}
+
+// Founders as bordered tiles, two across (Wellfound's founder cards).
+.founderTiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include media.mobile-only {
+    grid-template-columns: 1fr;
+  }
+}
+
+.founderTile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  // A link to the founder's directory profile (new tab): subtle border at
+  // rest, muted on hover, the product's resting/hover pair.
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.founderTileAvatar.founderTileAvatar {
+  width: 40px;
+  height: 40px;
+}
+
+.founderTileName.founderTileName {
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// ---- Media carousel ------------------------------------------------------------
+.carousel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.carouselStage {
+  position: relative;
+}
+
+// Near-black (production uses this ink as a ground too) so the raster's own
+// black margin runs into the letterbox without a seam.
+.carouselViewport {
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--foreground-neutral-primary, #0a0c11);
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.carouselTrack {
+  display: flex;
+  touch-action: pan-y pinch-zoom;
+}
+
+.carouselSlide {
+  flex: 0 0 100%;
+  min-width: 0;
+  aspect-ratio: 16 / 9;
+}
+
+.carouselImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+
+.carouselImageContain {
+  object-fit: contain;
+}
+
+// White round buttons on the image's edges (Care.com / Unity galleries).
+.carouselButton {
+  position: absolute;
+  top: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 50%;
+  background: var(--background-base-white, #fff);
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  color: var(--foreground-neutral-primary, #0a0c11);
+  transform: translateY(-50%);
+  cursor: pointer;
+
+  // Smaller on phones, where swipe does most of the work and the stage is
+  // only ~200px tall.
+  @include media.mobile-only {
+    width: 28px;
+    height: 28px;
+  }
+
+  &:hover {
+    background: var(--action-background-base-white-hover, #f8fafc);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.carouselButtonPrev {
+  left: 12px;
+
+  @include media.mobile-only {
+    left: 8px;
+  }
+}
+
+.carouselButtonNext {
+  right: 12px;
+
+  @include media.mobile-only {
+    right: 8px;
+  }
+}
+
+.carouselCounter {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: var(--transparent-dark-64, rgba(14, 15, 17, 0.64));
+  color: var(--background-base-white, #fff);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+
+  @include media.mobile-only {
+    right: 8px;
+    bottom: 8px;
+  }
+}
+
+.carouselThumbs {
+  display: flex;
+  gap: 8px;
+}
+
+.carouselThumb {
+  flex: 0 0 72px;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 6px;
+  background: var(--foreground-neutral-primary, #0a0c11);
+  opacity: 0.6;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.carouselThumbActive.carouselThumbActive {
+  border-color: var(--border-brand-primary, #1b4dff);
+  box-shadow: 0 0 0 1px var(--border-brand-primary, #1b4dff);
+  opacity: 1;
+}
+
+.carouselCaption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.carouselCaptionText {
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.carouselSource {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+
+    &:hover {
+      color: var(--foreground-brand-primary, #1b4dff);
+    }
+  }
+}
+
+// ---- Explore PL Network tile ------------------------------------------------
+// The tile variant of the Explore CTA: text left, the Explore page's PL cube
+// right, one link. Same width and slate ground as the team panel above.
+.exploreSection {
+  width: 100%;
+  max-width: 948px;
+  margin: 0 auto;
+}
+
+.exploreTile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 32px 40px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px; // the team card's (PL Spotlight's profileCard), so the two line up
+  background: var(--background-neutral-subtle, #f1f5f9);
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow:
+      0 0 1px 0 rgba(15, 23, 42, 0.16),
+      0 8px 16px 0 rgba(15, 23, 42, 0.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+
+  @include media.mobile-only {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 24px 20px;
+  }
+}
+
+.exploreTileText {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 560px;
+}
+
+.exploreTileOverline {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.exploreTileTitle {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+}
+
+.exploreTileBody {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 15px;
+  line-height: 24px;
+}
+
+.exploreTileCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+
+  svg {
+    transition: transform 0.15s ease;
+  }
+
+  .exploreTile:hover & svg {
+    transform: translateX(2px);
+  }
+}
+
+.exploreTileArt {
+  flex-shrink: 0;
+  width: 160px;
+  height: auto;
+
+  @include media.mobile-only {
+    width: 104px;
+  }
+}
+
+// ---- Top bar ----------------------------------------------------------------
+// Production's navbar shell (NavBar.module.scss .Root), pinned while the page
+// scrolls. Its height token isn't loaded on prototype routes, hence the
+// fallback; its max-content min-width would push a phone sideways.
+.navBar.navBar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  min-width: 0;
+  height: var(--app-navbar-height, 64px);
+}
+
+// On a black hero: the bar takes the sea's black, the cube and text go white,
+// and a faint light hairline replaces the shadow (a grey line on black).
+.navBarDark.navBarDark {
+  --nav-sea: #000; // marketing's black, as .islandsRoot / .vHero
+  background: var(--nav-sea);
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.08);
+
+  .navLabel {
+    color: var(--Neutral-White, #fff);
+  }
+
+  // AppLogo's fill is fixed dark.
+  svg path {
+    fill: var(--Neutral-White, #fff);
+  }
+
+  .navLink.navLink {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.72);
+
+    &:hover {
+      color: var(--Neutral-White, #fff);
+      background: rgba(255, 255, 255, 0.08);
+    }
+  }
+}
+
+.navBrand {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.navLabel {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+.navLink.navLink {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+// ---- Preview bar (prototype only) -------------------------------------------
+.demoBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 16px;
+  background: var(--Neutral-White, #fff);
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.demoLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.segment {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.segmentActive {
+  background: var(--Neutral-White, #fff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+}
+
+.demoHint {
+  flex-basis: 100%;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+
+  @include media.desktop {
+    flex-basis: auto;
+    margin-left: auto;
+  }
+}
+
+// ---- Investor profile drawer -------------------------------------------------
+// The drawer's column centres its children (Demo Day's .drawerContent), so the
+// shared Section wrapper states its width — see Section's own note.
+.drawerSection {
+  width: 100%;
+}
+
+// Hero message: the investor-profile line under the state sentence.
+.profileLine {
+  display: block;
+  margin-top: 4px;
+}
+
+// Demo Day's applied-investor stepper sits under the hero's buttons at its
+// landing's width (the card is full-width; the landing's column is ~600px).
+.appliedSteps {
+  width: 100%;
+  max-width: 600px;
+  margin-top: 8px;
+}
+
+// The approved viewer's profile link, under the hero description: centred
+// like the headline, a little clear of the paragraph above.
+.heroLinks.heroLinks {
+  justify-content: center;
+  margin-top: 4px;
+}
+
+// The account menu's popup is portalled to the body at production's z-index 6,
+// under this bar's sticky z-index 10, so the bar covered its top. Lift it
+// above the bar.
+.accountPositioner.accountPositioner {
+  z-index: 11;
+}
+
+// Below 960 LoginBtn is `height: 100%` of production's nav slot; this bar's
+// right group has no fixed height, so it gets 32px there and keeps 40 above.
+.navSignIn.navSignIn {
+  border: none;
+  cursor: pointer;
+  height: 32px;
+
+  @include media.tablet-landscape {
+    height: 40px;
+  }
+}

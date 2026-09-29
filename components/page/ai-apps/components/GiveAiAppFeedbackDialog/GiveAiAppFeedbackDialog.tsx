@@ -1,6 +1,6 @@
 'use client';
 
-import { type CSSProperties, type RefObject, useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { type CSSProperties, type RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import clsx from 'clsx';
 import { useForm, FormProvider } from 'react-hook-form';
@@ -18,6 +18,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApps } from '@/services/ai-apps/hooks/useAiApps';
 import { useSubmitAiAppFeedback } from '@/services/ai-app-feedback/hooks/useSubmitAiAppFeedback';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
+import { isScreenshotChord, isSendChord, useShortcutLabels, type ShortcutLabels } from '@/components/page/ai-apps/shortcutKeys';
 import {
   AnnotatorModal,
   AttachImageError,
@@ -36,6 +37,7 @@ import {
   type PersistentCaptureReason,
   type ScreenshotAttachment,
 } from '../screenshot-feedback';
+import { PinSummary, appendPins, type ElementPin } from '../element-pins';
 
 import s from './GiveAiAppFeedbackDialog.module.scss';
 
@@ -64,21 +66,15 @@ const FEEDBACK_TOOLBAR: (string | Record<string, unknown>)[][] = [
 export const AI_APP_FEEDBACK_DRAFT_KEY = 'form-draft:ai-app-feedback';
 export const FEEDBACK_PLACEHOLDER = 'What worked, what didn’t, and what would make this more useful?';
 
-/**
- * What the line above the button says, keyed by why the capture path is shut.
- *
- * `open` names the browser picker, which the old copy never did — the picker is
- * the moment people got lost, because nothing had told them to expect it.
- */
 const SCREENSHOT_HINTS: Record<PersistentCaptureReason | 'open', string> = {
-  open: 'Your browser will ask which tab to share — choose this one, then drag to capture any area of the page.',
+  open: 'Share this tab and drag to capture an area. You can draw and annotate on it.',
   unsupported: 'Screenshots need a desktop browser — take one on your device and attach it here.',
   blocked: 'Screen sharing is turned off in this browser — attach a screenshot instead.',
   unreadable: 'Your browser couldn’t read the screen — attach a screenshot instead.',
 };
 
-function hasFeedbackContent(html: string, screenshotCount = 0): boolean {
-  return !isBlankHtml(html) || /<img\b/i.test(html) || screenshotCount > 0;
+function hasFeedbackContent(html: string, attachmentCount = 0): boolean {
+  return !isBlankHtml(html) || /<img\b/i.test(html) || attachmentCount > 0;
 }
 
 function visibleFeedbackLength(html: string): number {
@@ -111,6 +107,8 @@ type Placement = 'below' | 'above';
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  /** Fired after a successful send, with the app that was submitted. */
+  onSubmitted?: (app: Option) => void;
   /** When provided (app detail page), preselects this app in the picker. */
   appUid?: string;
   appName?: string;
@@ -122,7 +120,13 @@ interface Props {
    * from `rect.bottom` there would put the panel below the fold.
    */
   placement?: Placement;
+  /** Element pins made in pin mode (app detail page, bridge-enabled apps). Sent with the feedback. */
+  pins?: ElementPin[];
+  /** Returns to the pin panel without discarding anything. */
+  onEditPins?: () => void;
 }
+
+const NO_PINS: ElementPin[] = [];
 
 function getAnchorOverlayStyle(anchor: HTMLElement | null, placement: Placement): CSSProperties | undefined {
   if (!anchor) {
@@ -153,13 +157,24 @@ function getDefaultApp(appUid?: string, appName?: string): Option | null {
   return { label: appName, value: appUid };
 }
 
-export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anchorRef, placement = 'below' }: Props) {
+export function GiveAiAppFeedbackDialog({
+  isOpen,
+  onClose,
+  onSubmitted,
+  appUid,
+  appName,
+  anchorRef,
+  placement = 'below',
+  pins = NO_PINS,
+  onEditPins,
+}: Props) {
   const { currentUser } = useCurrentUserStore();
   const [overlayStyle, setOverlayStyle] = useState<CSSProperties>();
   const { apps, isLoading: isAppsLoading } = useAiApps();
   const { mutate: submitAppFeedback, isPending: isAppFeedbackPending } = useSubmitAiAppFeedback();
   const { mutate: submitContactSupport, isPending: isContactSupportPending } = useContactSupport();
   const analytics = useAiAppsAnalytics();
+  const shortcuts = useShortcutLabels();
 
   const appOptions: Option[] = [LABOS_AI_APPS_OPTION, ...apps.map((app) => ({ label: app.name, value: app.uid }))];
 
@@ -215,6 +230,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
   const isBusy = isCapturing || Boolean(freezeSrc) || Boolean(cropSrc);
   const isPending = isAppFeedbackPending || isContactSupportPending || isHostingImages;
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   useLayoutEffect(() => {
     if (!isOpen) {
@@ -244,6 +260,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
     setEditingShotId(null);
     setPendingRemoveId(null);
     setSubmitAttempted(false);
+    setShortcutsOpen(false);
     onClose();
   };
 
@@ -305,6 +322,8 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
       stopCaptureStream(stream);
     }
   };
+  const onTakeScreenshotRef = useRef(onTakeScreenshot);
+  onTakeScreenshotRef.current = onTakeScreenshot;
 
   /**
    * The fallback for anyone the capture path cannot serve.
@@ -374,10 +393,13 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
     setEditingShotId(null);
   };
 
-  const onRemoveShot = (shotId: string) => {
-    analytics.onFeedbackScreenshotRemoved();
-    setScreenshots((prev) => prev.filter((item) => item.id !== shotId));
-  };
+  const onRemoveShot = useCallback(
+    (shotId: string) => {
+      analytics.onFeedbackScreenshotRemoved();
+      setScreenshots((prev) => prev.filter((item) => item.id !== shotId));
+    },
+    [analytics],
+  );
 
   /**
    * Only an annotated capture is worth asking about.
@@ -400,7 +422,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
     setSubmitAttempted(true);
     let trimmedMessage = (rawMessage ?? '').trim();
 
-    if (!app?.value || !hasFeedbackContent(trimmedMessage, screenshots.length)) {
+    if (!app?.value || !hasFeedbackContent(trimmedMessage, screenshots.length + pins.length)) {
       return;
     }
 
@@ -408,6 +430,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
       setIsHostingImages(true);
       trimmedMessage = await hostDataUriImages(trimmedMessage);
       trimmedMessage = await appendScreenshots(trimmedMessage, screenshots);
+      trimmedMessage = await appendPins(trimmedMessage, pins);
     } catch {
       toast.error('Image upload failed. Please try again.');
       return;
@@ -451,7 +474,10 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
           },
         },
         {
-          onSuccess: onSubmitSuccess,
+          onSuccess: () => {
+            onSubmitted?.(app);
+            onSubmitSuccess();
+          },
         },
       );
       return;
@@ -466,8 +492,10 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
             appName: app.label,
             screenshotCount: screenshots.length,
             hasAnnotations: screenshots.some((shot) => hasAnyAnnotation(shot.annotations)),
+            ...(pins.length > 0 ? { pinCount: pins.length } : {}),
           });
           toast.success('Thanks for your feedback!');
+          onSubmitted?.(app);
           onSubmitSuccess();
         },
         onError: () => {
@@ -477,6 +505,62 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
       },
     );
   });
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const onKey = (event: KeyboardEvent) => {
+      if (shortcutsOpen) return;
+
+      if (pendingRemoveId) {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          setPendingRemoveId(null);
+          return;
+        }
+        const confirmsDelete =
+          event.key === 'Enter' &&
+          !event.shiftKey &&
+          !event.metaKey &&
+          !event.ctrlKey &&
+          !event.altKey &&
+          !event.isComposing;
+        if (confirmsDelete) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          onRemoveShot(pendingRemoveId);
+          setPendingRemoveId(null);
+          return;
+        }
+        if (isSendChord(event) || isScreenshotChord(event)) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+        return;
+      }
+
+      if (isScreenshotChord(event)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (isBusy || isPending) return;
+        if (captureClosedBy) {
+          fileInputRef.current?.click();
+        } else {
+          void onTakeScreenshotRef.current();
+        }
+        return;
+      }
+
+      if (isBusy || !isSendChord(event)) return;
+      event.preventDefault();
+      if (isPending || isOverLimit) return;
+      void onSubmit();
+    };
+
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen, shortcutsOpen, pendingRemoveId, isBusy, isPending, isOverLimit, captureClosedBy, onSubmit, onRemoveShot]);
 
   return (
     <>
@@ -493,7 +577,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
            the typed draft with it — `Modal` registers its handler on `document`
            in the capture phase and calls `stopImmediatePropagation`, so nothing
            the confirmation registers later could ever intercept it. */
-        closeOnEscape={!isBusy && !pendingRemoveId}
+        closeOnEscape={!isBusy && !pendingRemoveId && !shortcutsOpen}
         overlayClassname={clsx(s.overlay, placement === 'above' && s.overlayAbove, isBusy && s.overlayHidden)}
         overlayStyle={overlayStyle}
         className={s.modalContainer}
@@ -501,9 +585,14 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
         <div className={s.root}>
           <div className={s.header}>
             <h2 className={s.title}>Give feedback</h2>
-            <button type="button" className={s.closeButton} onClick={onDialogClose} aria-label="Close">
-              <CloseIcon width={16} height={16} />
-            </button>
+            <div className={s.headerActions}>
+              <button type="button" className={s.shortcutsLink} onClick={() => setShortcutsOpen(true)}>
+                Shortcuts
+              </button>
+              <button type="button" className={s.closeButton} onClick={onDialogClose} aria-label="Close">
+                <CloseIcon width={16} height={16} />
+              </button>
+            </div>
           </div>
 
           <div className={s.content}>
@@ -524,19 +613,10 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
                 />
                 {submitAttempted && !watch('app') && <p className={s.fieldError}>Please select an app</p>}
 
-                <FormEditor
-                  name="message"
-                  label="Your feedback"
-                  placeholder={FEEDBACK_PLACEHOLDER}
-                  simplified
-                  toolbarConfig={FEEDBACK_TOOLBAR}
-                  maxLength={MAX_LENGTH}
-                  showCharCount
-                  minHeight={120}
-                  className={s.editor}
-                />
+                {pins.length > 0 && onEditPins && <PinSummary pins={pins} onEdit={onEditPins} />}
 
                 <div className={s.screenshotRow}>
+                  <p className={s.fieldLabel}>{captureClosedBy ? 'Attach image' : 'Take screenshot'}</p>
                   <p className={s.screenshotHint}>{SCREENSHOT_HINTS[captureClosedBy ?? 'open']}</p>
                   {captureClosedBy ? (
                     <>
@@ -545,9 +625,13 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
                         className={s.screenshotButton}
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isPending}
+                        aria-keyshortcuts={shortcuts.screenshotAria}
                       >
                         <ImageIcon />
                         Attach image
+                        <kbd className={s.kbd} aria-hidden="true">
+                          {shortcuts.screenshot}
+                        </kbd>
                       </button>
                       <input
                         ref={fileInputRef}
@@ -564,44 +648,60 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
                       className={s.screenshotButton}
                       onClick={onTakeScreenshot}
                       disabled={isPending}
+                      aria-keyshortcuts={shortcuts.screenshotAria}
                     >
                       <CameraIcon />
                       Take screenshot
+                      <kbd className={s.kbd} aria-hidden="true">
+                        {shortcuts.screenshot}
+                      </kbd>
                     </button>
+                  )}
+
+                  {screenshots.length > 0 && (
+                    <ul className={s.screenshotList}>
+                      {screenshots.map((shot, index) => (
+                        <li key={shot.id} className={s.screenshotChip}>
+                          {/* The image is the press, the ✕ is its SIBLING rather
+                              than its child: a button inside a button is invalid
+                              markup that browsers reparent, and the reparenting is
+                              how a Remove press ends up opening the editor. */}
+                          <button
+                            type="button"
+                            className={s.screenshotOpen}
+                            aria-label={`Edit screenshot ${index + 1}`}
+                            onClick={() => onEditShot(shot)}
+                          >
+                            <img src={shot.imageDataUrl} alt={`Screenshot ${index + 1}`} />
+                            <span className={s.screenshotEdit} aria-hidden="true">
+                              <PencilSimpleLineIcon width={14} height={14} />
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            className={s.screenshotRemove}
+                            aria-label={`Remove screenshot ${index + 1}`}
+                            onClick={() => requestRemoveShot(shot)}
+                          >
+                            <CloseIcon width={12} height={12} />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
                   )}
                 </div>
 
-                {screenshots.length > 0 && (
-                  <ul className={s.screenshotList}>
-                    {screenshots.map((shot, index) => (
-                      <li key={shot.id} className={s.screenshotChip}>
-                        {/* The image is the press, the ✕ is its SIBLING rather
-                            than its child: a button inside a button is invalid
-                            markup that browsers reparent, and the reparenting is
-                            how a Remove press ends up opening the editor. */}
-                        <button
-                          type="button"
-                          className={s.screenshotOpen}
-                          aria-label={`Edit screenshot ${index + 1}`}
-                          onClick={() => onEditShot(shot)}
-                        >
-                          <img src={shot.imageDataUrl} alt={`Screenshot ${index + 1}`} />
-                          <span className={s.screenshotEdit} aria-hidden="true">
-                            <PencilSimpleLineIcon width={14} height={14} />
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          className={s.screenshotRemove}
-                          aria-label={`Remove screenshot ${index + 1}`}
-                          onClick={() => requestRemoveShot(shot)}
-                        >
-                          <CloseIcon width={12} height={12} />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <FormEditor
+                  name="message"
+                  label="Your feedback"
+                  placeholder={FEEDBACK_PLACEHOLDER}
+                  simplified
+                  toolbarConfig={FEEDBACK_TOOLBAR}
+                  maxLength={MAX_LENGTH}
+                  showCharCount
+                  minHeight={120}
+                  className={s.editor}
+                />
               </div>
             </FormProvider>
 
@@ -633,12 +733,24 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
           </div>
 
           <div className={s.footer}>
-            <Button style="border" variant="neutral" onClick={onDialogClose}>
-              Cancel
-            </Button>
-            <Button onClick={onSubmit} disabled={isPending || isOverLimit}>
-              {isPending ? 'Sending…' : 'Send feedback'}
-            </Button>
+            <div className={s.hints}>
+              <span className={s.hint}>
+                <kbd className={s.kbd}>{shortcuts.send}</kbd>
+                to send
+              </span>
+              <span className={s.hint}>
+                <kbd className={s.kbd}>Esc</kbd>
+                to close
+              </span>
+            </div>
+            <div className={s.footerActions}>
+              <Button style="border" variant="neutral" onClick={onDialogClose}>
+                Cancel
+              </Button>
+              <Button onClick={onSubmit} disabled={isPending || isOverLimit}>
+                {isPending ? 'Sending…' : 'Send feedback'}
+              </Button>
+            </div>
           </div>
         </div>
       </Modal>
@@ -654,7 +766,79 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anch
           initialAnnotations={editingShot?.annotations}
         />
       )}
+      <ShortcutHelp isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} shortcuts={shortcuts} />
     </>
+  );
+}
+
+function ShortcutHelp({
+  isOpen,
+  onClose,
+  shortcuts,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  shortcuts: ShortcutLabels;
+}) {
+  const groups = [
+    {
+      title: 'Feedback',
+      rows: [
+        [shortcuts.open, 'Open feedback'],
+        [shortcuts.send, 'Send'],
+        ['Esc', 'Close'],
+        [shortcuts.screenshot, 'Take screenshot'],
+      ],
+    },
+    {
+      title: 'Annotate',
+      rows: [
+        [shortcuts.send, 'Add to feedback'],
+        ['Esc', 'Discard'],
+        ['P', 'Draw'],
+        ['R', 'Box'],
+        ['O', 'Oval'],
+        ['A', 'Arrow'],
+        ['C', 'Comment'],
+        [shortcuts.undo, 'Undo'],
+        [shortcuts.redo, 'Redo'],
+      ],
+    },
+  ];
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      overlayClassname={s.helpOverlay}
+      className={s.helpContainer}
+      ariaLabelledBy="feedback-shortcuts-title"
+    >
+      <div className={s.help}>
+        <div className={s.helpHeader}>
+          <h2 id="feedback-shortcuts-title" className={s.helpTitle}>
+            Keyboard shortcuts
+          </h2>
+          <button type="button" className={s.closeButton} onClick={onClose} aria-label="Close shortcuts">
+            <CloseIcon width={16} height={16} />
+          </button>
+        </div>
+        {groups.map((group) => (
+          <section key={group.title} className={s.helpGroup}>
+            <h3 className={s.helpGroupTitle}>{group.title}</h3>
+            <ul className={s.helpList}>
+              {group.rows.map(([keys, label]) => (
+                <li key={label} className={s.helpRow}>
+                  <span>{label}</span>
+                  <kbd className={s.kbd}>{keys}</kbd>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+        <p className={s.helpNote}>Enter confirms a prompt. Esc cancels it.</p>
+      </div>
+    </Modal>
   );
 }
 

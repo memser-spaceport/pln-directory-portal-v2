@@ -6,7 +6,8 @@
  * A copy of `ai-search`'s host page with the founder-only warm-intro apparatus
  * taken out — no seat switch, no founder states, no investor rows — and one
  * thing put in: every member found, in the popover's rows or in an answer's
- * "Results from the directory" cards, carries the envelope. Pressing it opens
+ * "Results from the directory" cards, carries "Request an intro" at the size
+ * of the "Available to connect" badge, painted as a button. Pressing it opens
  * the Demo Day "Make an intro" form pointed at the PL team, who makes the
  * intro. The request is the same record the member and team profiles write
  * (`intro-shared/`), so a member asked for here reads "Intro requested" on
@@ -136,25 +137,25 @@ export default function AiSearchIntrosPrototype() {
       <main className={s.page}>
         <h1 className={s.title}>Search — request an intro</h1>
         <p className={s.lede}>
-          The search in two sizes, with the envelope on every member: in the popover&apos;s rows beside Ask AI, and on
-          the member cards under an AI answer. It opens the Demo Day &ldquo;Make an intro&rdquo; form, pointed at the PL
-          team. Everything is mocked; requests are kept for the tab and shared with the{' '}
+          The search in two sizes, with a small Request an intro button on every member: in the popover&apos;s rows
+          beside Ask AI, and on the member cards under an AI answer. It opens the Demo Day &ldquo;Make an intro&rdquo;
+          form, pointed at the PL team. Everything is mocked; requests are kept for the tab and shared with the{' '}
           <a href="/prototypes/member-profile">member profile</a> and the{' '}
           <a href="/prototypes/team-profile">team profile</a>.
         </p>
         <ol className={s.steps}>
           <li>
             <strong>Click the header field</strong> or press ⌘K, and type a name — <em>amara</em>, <em>lisbon</em>,{' '}
-            <em>office hours</em>. Member rows end in <em>Ask AI</em> and the envelope.
+            <em>office hours</em>. Member rows end in <em>Request an intro</em> and <em>Ask AI</em>.
           </li>
           <li>
-            <strong>Press the envelope.</strong> The form names the person, says the request goes to the PL team, and
-            asks why. Send it: the row shows a check, and the same person on their profile reads{' '}
-            <em>Intro requested</em>.
+            <strong>Press Request an intro.</strong> The form names the person, says the request goes to the PL team,
+            and asks why. Send it: the button becomes <em>Intro requested</em>, and the same person on their profile
+            reads <em>Intro requested</em>.
           </li>
           <li>
             <strong>Ask AI Search</strong> — <em>Who at Lumen Storage offers office hours?</em> — and the member cards
-            under the answer carry the envelope too.
+            under the answer carry the button too.
           </li>
         </ol>
         <div className={s.cta}>

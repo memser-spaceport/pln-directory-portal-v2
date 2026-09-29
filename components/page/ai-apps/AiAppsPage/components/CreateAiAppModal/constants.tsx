@@ -57,12 +57,23 @@ export const MODAL_INTRO =
 
 export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = [
   {
+    version: '1.14',
+    items: [
+      'Preview is for testing, QA, and development. It sits next to Production and does not change the live app',
+      'Preview is private by default. Share it with a few people from Manage access. Switch between Production and Preview on the app page',
+      '(Via UI) In Deployment settings, create a deployment key and give it to your agent or GitHub Actions. It deploys the app to this environment (Production or Preview), so you do not approve a new LabOS link each time. The full key is shown once. Revoke it anytime',
+      'Your app now learns who is signed in from its own address — there is no LabOS token for your code to read or pass around',
+      'The sign-in your app receives works for your app only, not for LabOS or other apps',
+      'Apps built with earlier kits keep working as they are — no redeploy needed. Download this kit so your agent also knows how to deploy a Preview and use a deployment key',
+    ],
+  },
+  {
     version: '1.13',
     items: [
       'Choose who can open your app: all PL Infra members (the default) or private to you. Your agent asks before the first deploy',
       '(Via UI) Manage access from your app’s ⋮ menu: make it private and add specific members, or open it to all PL Infra members again. Switch anytime — your list of people is kept',
       'Members you haven’t added don’t see a private app in the catalog, and get a “no access” page if they open its link',
-      'Public endpoints: make selected paths (e.g. /api/* or a webhook) reachable without LabOS sign-in. Your agent sets them up at deploy with your approval — LabOS doesn’t check sign-in there, so your app must protect them',
+      'Public endpoints: paths that skip LabOS sign-in, so a cron job, a webhook (Stripe, GitHub), an MCP endpoint, or a public page can reach the app. Your agent sets them at deploy, with your approval. LabOS does not check sign-in on these paths, so the app has to (a signature or its own API key)',
       '(Via UI) Add, edit, or remove public endpoints anytime in Deployment settings — changes apply right away, no redeploy',
     ],
   },

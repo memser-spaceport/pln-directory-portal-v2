@@ -8,12 +8,34 @@ import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { CloseIcon, SuccessCircleIcon } from '@/components/icons';
-import { AiApp, deployAiApp } from '@/services/ai-apps/ai-apps.service';
+import {
+  AiApp,
+  AiAppDeployKeySummary,
+  AiAppTargetEnvironment,
+  aiAppStatusLabel,
+  aiAppTarget,
+  createAiAppDeployKey,
+  deleteAiAppTarget,
+  deployAiApp,
+  fetchAiAppDeployKeys,
+  revokeAiAppDeployKey,
+} from '@/services/ai-apps/ai-apps.service';
 import { AiAppsQueryKeys } from '@/services/ai-apps/constants';
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
 
 import { PublicEndpointsSection } from './PublicEndpointsSection';
+import { DisclosureSection } from './SectionTitle';
 import s from './DeploymentSettingsModal.module.scss';
+
+function formatWhen(value: string) {
+  return new Date(value).toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
 
 type Phase = 'form' | 'deploying' | 'done';
 
@@ -43,14 +65,21 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
   const analytics = useAiAppsAnalytics();
   const queryClient = useQueryClient();
 
-  // Mount-time snapshots (the component renders only while open).
-  const [requiredEnvVars] = useState(() => app.requiredEnvVars);
-  const [provided] = useState(() => new Set(app.providedEnvVars));
+  const [environment, setEnvironment] = useState<AiAppTargetEnvironment>('prod');
+  const [requiredEnvVars, setRequiredEnvVars] = useState(() => aiAppTarget(app, 'prod').requiredEnvVars);
+  const [provided, setProvided] = useState(() => new Set(aiAppTarget(app, 'prod').providedEnvVars));
+  const [keys, setKeys] = useState<AiAppDeployKeySummary[]>([]);
+  const [createdToken, setCreatedToken] = useState<string | null>(null);
+  const [revokeKeyUid, setRevokeKeyUid] = useState<string | null>(null);
+  const [isRevoking, setIsRevoking] = useState(false);
+  const [confirmTeardown, setConfirmTeardown] = useState(false);
 
   const [values, setValues] = useState<Record<string, string>>({});
   // Stored vars the creator has chosen to replace (revealing an empty input).
   const [replacing, setReplacing] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
+  const [buildError, setBuildError] = useState<string | null>(null);
+  const [keysError, setKeysError] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>('form');
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Set once the live record is seen DEPLOYING after our POST — guards the
@@ -59,11 +88,14 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
 
   // Live record: fresh canManage/status, and the 5s poll while DEPLOYING.
   const { app: liveApp } = useAiApp(app.uid);
-  const liveStatus = liveApp?.status ?? app.status;
-  const liveNotes = liveApp?.notes ?? null;
+  const source = liveApp ?? app;
+  const target = aiAppTarget(source, environment);
+  const liveStatus = target.status;
+  const liveNotes = target.failureReason ?? null;
   const canManage = liveApp?.canManage ?? app.canManage ?? false;
+  const hasBuild = target.hasBuild;
 
-  const isDraft = app.status === 'DRAFT';
+  const isDraft = target.status === 'DRAFT' || target.status === 'IN_DEVELOPMENT';
   const hasSecrets = requiredEnvVars.length > 0;
   // A draft has never been deployed, so the action is a first "Deploy" — only an
   // already-live app "Redeploys". Snapshotting `app.status` at open keeps the
@@ -72,6 +104,32 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
   const deployingVerb = isDraft ? 'Deploying' : 'Redeploying';
   // A deploy already running that this modal didn't start (e.g. agent-triggered).
   const externalDeployInFlight = phase === 'form' && liveStatus === 'DEPLOYING';
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchAiAppDeployKeys(app.uid).then((rows) => {
+      if (!cancelled) setKeys(rows);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [app.uid]);
+
+  const selectEnvironment = (next: AiAppTargetEnvironment) => {
+    const nextTarget = aiAppTarget(liveApp ?? app, next);
+    setEnvironment(next);
+    setRequiredEnvVars(nextTarget.requiredEnvVars);
+    setProvided(new Set(nextTarget.providedEnvVars));
+    setValues({});
+    setReplacing({});
+    setPhase('form');
+    setError(null);
+    setBuildError(null);
+    setKeysError(null);
+    setConfirmTeardown(false);
+    setCreatedToken(null);
+    setRevokeKeyUid(null);
+  };
 
   useEffect(() => {
     analytics.onDeploymentSettingsOpened({ appUid: app.uid, isDraft });
@@ -156,7 +214,7 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
       varsProvidedCount: requiredEnvVars.filter((name) => willProvide.has(name)).length,
     });
 
-    const result = await deployAiApp(app.uid, secrets);
+    const result = await deployAiApp(app.uid, secrets, environment);
 
     if (result.error) {
       // Keep typed values so the user can fix and retry without re-entering.
@@ -181,11 +239,68 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
       queryClient.invalidateQueries({ queryKey: [AiAppsQueryKeys.AI_APPS_LIST] }),
     ]);
     setIsSubmitting(false);
-    setPhase(result.app?.status === 'DEPLOYING' ? 'deploying' : 'done');
+    const settled = result.app ? aiAppTarget(result.app, environment).status : null;
+    setPhase(settled === 'DEPLOYING' ? 'deploying' : 'done');
   };
 
+  const handleTeardown = async () => {
+    if (!confirmTeardown) {
+      setConfirmTeardown(true);
+      return;
+    }
+    setIsSubmitting(true);
+    setBuildError(null);
+    const message = await deleteAiAppTarget(app.uid, environment);
+    setIsSubmitting(false);
+    if (message) {
+      setBuildError(message);
+      setConfirmTeardown(false);
+      return;
+    }
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: [AiAppsQueryKeys.AI_APP_DETAIL, app.uid] }),
+      queryClient.invalidateQueries({ queryKey: [AiAppsQueryKeys.AI_APPS_LIST] }),
+    ]);
+    onClose();
+  };
+
+  const handleCreateKey = async () => {
+    setKeysError(null);
+    const result = await createAiAppDeployKey(app.uid, environment);
+    if ('error' in result) {
+      setKeysError(result.error);
+      return;
+    }
+    setCreatedToken(result.token);
+    setKeys(await fetchAiAppDeployKeys(app.uid));
+  };
+
+  const handleRevokeKey = async () => {
+    if (!revokeKeyUid || isRevoking) return;
+    setIsRevoking(true);
+    setKeysError(null);
+    const keyUid = revokeKeyUid;
+    const ok = await revokeAiAppDeployKey(app.uid, keyUid);
+    setIsRevoking(false);
+    setRevokeKeyUid(null);
+    if (!ok) {
+      setKeysError('Could not revoke that key.');
+      return;
+    }
+    setKeys((current) => current.filter((key) => key.uid !== keyUid));
+  };
+
+  const envKeys = keys.filter((key) => key.environment === environment);
+
   return (
-    <Modal isOpen onClose={onClose} className={s.modal} closeOnBackdropClick={false}>
+    <>
+    <Modal
+      isOpen
+      onClose={onClose}
+      className={s.modal}
+      closeOnBackdropClick={false}
+      closeOnEscape={!createdToken && !revokeKeyUid}
+    >
       <div className={s.content}>
         <div className={s.header}>
           <h2 className={s.title}>Deployment settings</h2>
@@ -197,13 +312,54 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
         {phase === 'form' && (
           <>
             <div className={s.body}>
-              {hasSecrets ? (
-                <>
+              <div className={s.envSwitch} role="tablist" aria-label="Deployment environment">
+                {(['prod', 'preview'] as const).map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="tab"
+                    aria-selected={environment === value}
+                    className={environment === value ? s.envSwitchOn : s.envSwitchOff}
+                    onClick={() => selectEnvironment(value)}
+                    disabled={isSubmitting}
+                  >
+                    {value === 'prod' ? 'Production' : 'Preview'}
+                  </button>
+                ))}
+              </div>
+              <DisclosureSection icon="build" title="Build">
+                <p className={s.intro}>The last bundle deployed to this environment.</p>
+                {target.lastDeployedAt ? (
                   <p className={s.intro}>
-                    {isDraft
-                      ? 'Enter the required values and deploy. Secrets are held securely on the sandbox and never shown again.'
-                      : 'Update one or more values and redeploy. Stored secrets stay in place — replace one only if it changed. Secrets are held securely on the sandbox and never shown again.'}
+                    {aiAppStatusLabel(target.status)}
+                    {` · Last deployed ${formatWhen(target.lastDeployedAt)}`}
+                    {target.agentClient ? ` · ${target.agentClient}` : ''}
+                    {target.kitVersion ? ` · kit ${target.kitVersion}` : ''}
                   </p>
+                ) : (
+                  <p className={s.statusNote}>{aiAppStatusLabel(target.status)} · No successful deploy yet</p>
+                )}
+                {!hasBuild && (
+                  <p className={s.statusNote}>
+                    No build yet. Ask your AI agent to deploy here before you can deploy from LabOS.
+                  </p>
+                )}
+                {externalDeployInFlight && <p className={s.statusNote}>A deploy is already in progress.</p>}
+                {canManage && (target.url || target.lastDeployedAt) && (
+                  <button type="button" className={s.linkBtn} onClick={handleTeardown} disabled={isSubmitting}>
+                    {confirmTeardown ? 'Confirm tear down' : 'Tear down'}
+                  </button>
+                )}
+                {buildError && <p className={s.error}>{buildError}</p>}
+              </DisclosureSection>
+
+              <DisclosureSection icon="secrets" title="App secrets">
+                <p className={s.intro}>
+                  {hasSecrets
+                    ? 'Values the app reads at runtime. Stored ones stay until you replace them.'
+                    : 'This environment has no secrets. Redeploy restarts it with the stored bundle.'}
+                </p>
+                {hasSecrets && (
                   <div className={s.fields}>
                     {requiredEnvVars.map((name) => {
                       const isStored = provided.has(name);
@@ -237,9 +393,6 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
                               <input
                                 className={s.input}
                                 type="password"
-                                // Keeps browsers/password managers from treating
-                                // these as login fields (and PostHog replay masks
-                                // password inputs unconditionally).
                                 autoComplete="new-password"
                                 value={values[name] ?? ''}
                                 placeholder={isStored ? 'Enter a new value' : 'Enter a value'}
@@ -262,23 +415,44 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
                       );
                     })}
                   </div>
-                </>
-              ) : (
-                <p className={s.intro}>
-                  This app has no secrets to configure. Redeploy to restart the sandbox and pull the latest deployment.
-                </p>
-              )}
+                )}
+                {error && <p className={s.error}>{error}</p>}
+              </DisclosureSection>
 
-              {externalDeployInFlight && <p className={s.intro}>A deploy is already in progress for this app.</p>}
-              {error && <p className={s.error}>{error}</p>}
+              {canManage && (
+                <DisclosureSection icon="keys" title="Deployment keys">
+                  <p className={s.intro}>
+                    Lets an agent or GitHub Actions deploy the app to this environment. The full key is shown once.
+                  </p>
+                  {envKeys.length > 0 && (
+                    <ul className={s.keyList}>
+                      {envKeys.map((key) => (
+                        <li key={key.uid}>
+                          <span className={s.keyMeta}>
+                            <span className={s.keyPrefix}>{key.tokenPrefix}…</span>
+                            <span className={s.keyTime}>Generated {formatWhen(key.createdAt)}</span>
+                          </span>
+                          <button type="button" className={s.dangerBtn} onClick={() => setRevokeKeyUid(key.uid)}>
+                            Revoke
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <button type="button" className={s.linkBtn} onClick={handleCreateKey} disabled={isSubmitting}>
+                    Generate key
+                  </button>
+                  {keysError && <p className={s.error}>{keysError}</p>}
+                </DisclosureSection>
+              )}
 
               {canManage && (
                 <PublicEndpointsSection
                   uid={app.uid}
-                  lastDeployedAt={liveApp?.lastDeployedAt ?? app.lastDeployedAt}
+                  lastDeployedAt={target.lastDeployedAt}
                   disabled={isSubmitting}
                   onRedeploy={handleRedeploy}
-                  redeployDisabled={isSubmitting || externalDeployInFlight}
+                  redeployDisabled={isSubmitting || externalDeployInFlight || !hasBuild}
                 />
               )}
             </div>
@@ -292,7 +466,7 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
                 variant="primary"
                 size="s"
                 onClick={handleRedeploy}
-                disabled={isSubmitting || externalDeployInFlight}
+                disabled={isSubmitting || externalDeployInFlight || !hasBuild}
               >
                 {isSubmitting ? `${deployingVerb}…` : deployVerb}
               </Button>
@@ -332,5 +506,80 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
         )}
       </div>
     </Modal>
+
+    <Modal
+      isOpen={!!createdToken}
+      onClose={() => setCreatedToken(null)}
+      className={s.modal}
+      overlayClassname={s.stackedOverlay}
+    >
+      <div className={s.content}>
+        <div className={s.header}>
+          <h2 className={s.title}>Deployment key</h2>
+          <button type="button" className={s.close} onClick={() => setCreatedToken(null)} aria-label="Close">
+            <CloseIcon width={20} height={20} />
+          </button>
+        </div>
+        <div className={s.keyRevealBody}>
+          <p className={s.intro}>This key won&apos;t be shown again after you close this.</p>
+          <p className={s.keyOnce}>{createdToken}</p>
+        </div>
+        <div className={s.footer}>
+          <Button style="border" variant="neutral" size="s" onClick={() => setCreatedToken(null)}>
+            Close
+          </Button>
+          <Button
+            style="fill"
+            variant="primary"
+            size="s"
+            onClick={() => {
+              if (createdToken) navigator.clipboard?.writeText(createdToken);
+            }}
+          >
+            Copy
+          </Button>
+        </div>
+      </div>
+    </Modal>
+
+    <Modal
+      isOpen={!!revokeKeyUid}
+      onClose={() => {
+        if (!isRevoking) setRevokeKeyUid(null);
+      }}
+      className={s.modal}
+      overlayClassname={s.stackedOverlay}
+      closeOnEscape={!isRevoking}
+      closeOnBackdropClick={!isRevoking}
+    >
+      <div className={s.content}>
+        <div className={s.header}>
+          <h2 className={s.title}>Revoke this key?</h2>
+          <button
+            type="button"
+            className={s.close}
+            onClick={() => setRevokeKeyUid(null)}
+            aria-label="Close"
+            disabled={isRevoking}
+          >
+            <CloseIcon width={20} height={20} />
+          </button>
+        </div>
+        <div className={s.keyRevealBody}>
+          <p className={s.intro}>
+            Anything still using it, including an agent or GitHub Actions, will no longer be able to deploy.
+          </p>
+        </div>
+        <div className={s.footer}>
+          <Button style="border" variant="neutral" size="s" onClick={() => setRevokeKeyUid(null)} disabled={isRevoking}>
+            Cancel
+          </Button>
+          <Button style="fill" variant="error" size="s" onClick={handleRevokeKey} disabled={isRevoking}>
+            {isRevoking ? 'Revoking…' : 'Revoke'}
+          </Button>
+        </div>
+      </div>
+    </Modal>
+    </>
   );
 }

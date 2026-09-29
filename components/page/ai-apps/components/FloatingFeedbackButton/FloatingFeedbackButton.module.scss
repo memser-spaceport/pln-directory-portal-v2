@@ -87,7 +87,9 @@
    `gap`: a gap survives the label collapsing to zero width and would leave the
    glyph 4px off the centre of the disc. */
 .label {
-  max-width: 160px;
+  display: inline-flex;
+  align-items: center;
+  max-width: 280px;
   margin-left: 8px;
   overflow: hidden;
   white-space: nowrap;
@@ -97,11 +99,23 @@
     opacity 0.18s ease;
 }
 
+.labelKbd {
+  margin-left: 8px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.18);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 14px;
+}
+
 @mixin expanded-label {
   padding: 0 18px 0 16px;
 
   .label {
-    max-width: 160px;
+    max-width: 280px;
     margin-left: 8px;
     opacity: 1;
   }

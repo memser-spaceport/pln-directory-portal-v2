@@ -2,7 +2,8 @@
 
 import clsx from 'clsx';
 
-import { Button, type ButtonProps } from '@/components/common/Button';
+// Production's glossy primary — the Schedule Meeting this press stands in for.
+import office from '@/components/page/member-details/OfficeHoursDetails/components/OfficeHoursView/OfficeHoursView.module.scss';
 
 import { EnvelopeGlyph } from './EnvelopeGlyph';
 import s from './RequestIntroButton.module.scss';
@@ -12,31 +13,40 @@ interface Props {
   onClick: () => void;
   /** Who the intro is to — the accessible label. */
   name: string;
-  /** DS size; `xs` is the header's. A phone's full-width row takes `s`. */
-  size?: ButtonProps['size'];
+  /**
+   * `xs` is the header cluster's (34px, the DS xs height). A phone's
+   * full-width row takes `s` (38px, production's own padding).
+   * `compact` is AI search's: the exact box of production's "Available to
+   * connect" badge (`OhBadge`), painted as a press — see the stylesheet.
+   */
+  size?: 'xs' | 's' | 'compact';
   className?: string;
 }
 
 /**
- * The profile-header press. Bordered **brand** (the DS `border` + `primary`
- * pair) at the header's small size: the page has one filled button, Schedule
- * Meeting, and that is the stronger route to the person (office hours, "no
- * introduction needed"); the intro through the PL team is the second route —
- * Demo Day's Invest / Make an Intro pair. It went grey for a day ("Let's do
- * request intro grey") and came back blue once Follow, which is grey, joined
- * the same corner: two grey pills there read as one kind of thing, and the
- * reach press is not the relationship toggle. Once sent it reads
- * "Intro requested" as a line of text, not a pill: a sent
- * request is a receipt, and once Follow stands in the same cluster a second
- * grey check-pill beside "Following ✓" would read as one kind of thing twice
- * (2026-09-24, the member-follow entry). It keeps the pill's height and ink
- * so the row does not move when it lands. One request per person.
+ * The profile-header press — the page's ONE contact action when the member
+ * has no office hours, and the team profile's contact action. Production's
+ * glossy primary, by class (`OfficeHoursView.primaryButton`, the Schedule
+ * Meeting it stands in for), with the 16px envelope.
+ *
+ * It used to be the bordered second route beside a filled Schedule Meeting
+ * (Demo Day's Invest / Make an Intro pair). Design standup, 2026-09-28: never
+ * both. Booking is the intended way in, and an intro offered beside it
+ * competes with it — so a member with office hours shows Schedule Meeting
+ * only, and one without shows this, filled, as the primary. With nothing to
+ * be second to, a bordered press would be a weaker primary, not a quieter one
+ * (design-thinking lesson 18).
+ *
+ * Once sent it reads "Intro requested" as a line of text, not a pill: a sent
+ * request is a receipt. It keeps the press's height and ink so the cluster
+ * does not move when it lands. One request per person or team.
  */
 export function RequestIntroButton({ requested, onClick, name, size = 'xs', className }: Props) {
+  const compact = size === 'compact';
   if (requested) {
     return (
       <span
-        className={clsx(s.sent, size === 's' && s.sentS, className)}
+        className={clsx(s.sent, size === 's' && s.sentS, compact && s.sentCompact, className)}
         role="status"
         aria-label={`Intro to ${name} requested`}
         title="Your request is with the PL team"
@@ -44,20 +54,36 @@ export function RequestIntroButton({ requested, onClick, name, size = 'xs', clas
         {/* Two words. "· with the PL team" was drawn after them and cost the
             header's facts column 100px — the role wrapped under the team. The
             toast and the title carry where the request went. */}
-        <CheckGlyph />
+        <CheckGlyph size={compact ? 12 : 14} />
         <span>Intro requested</span>
       </span>
     );
   }
+  if (compact) {
+    /* A plain button, not the DS Button: the badge's 16px box is under the
+       DS scale's smallest size (xxs, 24px), and overriding every size rule of
+       it would be a fork by another name. */
+    return (
+      <button
+        type="button"
+        className={clsx(s.compact, className)}
+        aria-label={`Request an intro to ${name}`}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onClick();
+        }}
+      >
+        {/* 12px: the badge's calendar glyph. */}
+        <EnvelopeGlyph size={12} />
+        <span>Request an intro</span>
+      </button>
+    );
+  }
   return (
-    /* Bordered brand — back from grey (2026-09-24, "let's make request an
-       intro blue outlined"): with Follow now the grey pill in the corner, the
-       reach press wants the brand line so the two do not read as one kind. */
-    <Button
-      size={size}
-      style="border"
-      variant="primary"
-      className={clsx(s.btn, className)}
+    <button
+      type="button"
+      className={clsx(office.primaryButton, s.primary, size === 's' && s.primaryS, className)}
       aria-label={`Request an intro to ${name}`}
       onClick={(e) => {
         e.preventDefault();
@@ -65,16 +91,17 @@ export function RequestIntroButton({ requested, onClick, name, size = 'xs', clas
         onClick();
       }}
     >
-      {/* 16px ("Make letter icon for request an intro 16 px"). */}
+      {/* 16px ("Make letter icon for request an intro 16 px"); white on the
+          fill, since the glyph takes `currentColor`. */}
       <EnvelopeGlyph size={16} />
       <span>Request an intro</span>
-    </Button>
+    </button>
   );
 }
 
 // FollowPill's check, so the two resting states in one header match.
-const CheckGlyph = () => (
-  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+const CheckGlyph = ({ size = 14 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
     <path
       d="M13.25 4.75 6.5 11.5 2.75 7.75"
       stroke="currentColor"

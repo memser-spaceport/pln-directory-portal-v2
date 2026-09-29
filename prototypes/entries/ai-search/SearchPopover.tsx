@@ -15,6 +15,7 @@ import type { FoundItem, SearchResult } from '@/services/search/types';
 import fsr from '@/components/core/application-search/components/FullSearchResults/FullSearchResults.module.scss';
 import rs from '@/components/core/application-search/components/RecentSearch/RecentSearch.module.scss';
 import rl from '@/components/core/application-search/components/SearchResultsSection/components/ResultsList/ResultsList.module.scss';
+import sub from '@/components/core/application-search/components/AiChatPanel/components/ChatSubheader/ChatSubheader.module.scss';
 
 import { SearchField } from './SearchField';
 import { ResultRows } from './ResultRows';
@@ -60,6 +61,18 @@ interface SearchPopoverProps {
    * where the header has just a glyph.
    */
   fieldInHeader?: boolean;
+  /**
+   * The `ai-mode` entry: the latest AI Search chats at rest, under Recent,
+   * with a door to the page that holds all of them. It is the signpost for
+   * "where did my chat go" on the surface people open first. Omitted, nothing
+   * changes for the other hosts.
+   */
+  aiHistory?: {
+    items: { id: number; title: string; when: string }[];
+    total: number;
+    onOpen: (id: number) => void;
+    onShowAll: () => void;
+  };
 }
 
 /**
@@ -97,6 +110,7 @@ export function SearchPopover({
   holdOpen = false,
   anchor,
   fieldInHeader = false,
+  aiHistory,
 }: SearchPopoverProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [activeCategory, setActiveCategory] = useState<keyof SearchResult | null>('top');
@@ -289,6 +303,34 @@ export function SearchPopover({
                           {/* The DS `CloseIcon`, not production's `/icons/close-gray.svg`
                               (Tailwind slate baked in); one drawing of one mark. */}
                           <CloseIcon />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {/* ai-mode only. The record after the searches, and a door to
+                  the page it lives on — named for the page ("AI Search"),
+                  so the words here are the words on the rail there. */}
+              {aiHistory && aiHistory.items.length > 0 && (
+                <div className={clsx(rs.root, s.idleSection)}>
+                  <div className={s.aiHistoryHead}>
+                    <div className={rs.label}>Recent AI Search chats</div>
+                    <button type="button" className={clsx(sub.button, s.aiHistoryAll)} onClick={aiHistory.onShowAll}>
+                      All chats ({aiHistory.total})
+                    </button>
+                  </div>
+                  <ul className={rs.list}>
+                    {aiHistory.items.map((item) => (
+                      <li key={item.id}>
+                        <button
+                          type="button"
+                          className={clsx(rs.searchItem, s.rowButton)}
+                          onClick={() => aiHistory.onOpen(item.id)}
+                        >
+                          <AiSearchIcon className={s.rowIcon} />
+                          <span className={clsx(rs.searchItemText, s.aiHistoryTitle)}>{item.title}</span>
+                          <span className={s.aiHistoryWhen}>{item.when}</span>
                         </button>
                       </li>
                     ))}

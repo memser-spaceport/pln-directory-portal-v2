@@ -13,13 +13,27 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
     isOpen,
     anchorRef,
     placement,
+    appName,
+    onSubmitted,
+    onClose,
   }: {
     isOpen: boolean;
     anchorRef?: { current: HTMLElement | null };
     placement?: string;
+    appName?: string;
+    onSubmitted?: (app: { label: string; value: string }) => void;
+    onClose?: () => void;
   }) =>
     isOpen ? (
-      <div data-placement={placement}>{anchorRef?.current ? 'Feedback dialog open' : 'Feedback dialog unanchored'}</div>
+      <div data-placement={placement} data-app-name={appName ?? ''}>
+        {anchorRef?.current ? 'Feedback dialog open' : 'Feedback dialog unanchored'}
+        <button type="button" onClick={() => onSubmitted?.({ label: 'Chosen App', value: 'chosen-app' })}>
+          Complete submit
+        </button>
+        <button type="button" onClick={() => onClose?.()}>
+          Close feedback
+        </button>
+      </div>
     ) : null,
 }));
 
@@ -155,6 +169,116 @@ describe('FloatingFeedbackButton', () => {
 
       expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
       expect(wrapOf(container)).toHaveAttribute('data-collapsed', 'false');
+    });
+  });
+
+  describe('keyboard shortcuts', () => {
+    const openChord = () => fireEvent.keyDown(window, { key: 'Enter', ctrlKey: true, altKey: true });
+
+    it('opens from the shortcut, and shows it on the trigger', () => {
+      withAccess();
+
+      render(<FloatingFeedbackButton />);
+
+      expect(screen.getByRole('button', { name: 'Give feedback' })).toHaveAttribute(
+        'aria-keyshortcuts',
+        expect.stringMatching(/Enter/),
+      );
+      openChord();
+
+      expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', '');
+    });
+
+    it('reopens the submitted app once, then returns to the picker', () => {
+      withAccess();
+
+      render(<FloatingFeedbackButton />);
+      openChord();
+      fireEvent.click(screen.getByRole('button', { name: 'Complete submit' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Close feedback' }));
+
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+      expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', '');
+      fireEvent.click(screen.getByRole('button', { name: 'Close feedback' }));
+
+      openChord();
+      expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', 'Chosen App');
+      fireEvent.click(screen.getByRole('button', { name: 'Close feedback' }));
+
+      openChord();
+      expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', '');
+    });
+
+    it('opens a detail page on that page’s app', () => {
+      withAccess();
+
+      render(<FloatingFeedbackButton appUid="app-a" appName="App A" />);
+      openChord();
+
+      expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', 'App A');
+    });
+  });
+
+  describe('element pins (bridge-enabled apps)', () => {
+    const controller = (status: 'ready' | 'unavailable' | 'waiting', pins: unknown[] = []) =>
+      ({
+        status,
+        isPicking: false,
+        pins,
+        onFrameLoad: jest.fn(),
+        startPicking: jest.fn(),
+        stopPicking: jest.fn(),
+        setNote: jest.fn(),
+        removePin: jest.fn(),
+        clearPins: jest.fn(),
+      }) as any;
+    const iframeRef = { current: null };
+
+    it('opens pin mode and starts picking when the app answered — no dialog', () => {
+      withAccess();
+      const pins = controller('ready');
+      render(<FloatingFeedbackButton appUid="app-1" appName="My App" elementPins={pins} iframeRef={iframeRef} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+
+      expect(screen.getByRole('complementary', { name: 'Pin feedback' })).toBeInTheDocument();
+      expect(pins.startPicking).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
+    });
+
+    it.each(['unavailable', 'waiting'] as const)('keeps the screenshot dialog when the bridge is %s', (status) => {
+      withAccess();
+      const pins = controller(status);
+      render(<FloatingFeedbackButton appUid="app-1" appName="My App" elementPins={pins} iframeRef={iframeRef} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+      expect(screen.queryByRole('complementary', { name: 'Pin feedback' })).not.toBeInTheDocument();
+      expect(pins.startPicking).not.toHaveBeenCalled();
+    });
+
+    it('Continue hands over to the dialog; closing the dialog ends the pin session', () => {
+      withAccess();
+      const pin = {
+        id: 'pin-1',
+        note: 'Too small',
+        rect: { x: 0, y: 0, w: 1, h: 1 },
+        crop: { status: 'pending' },
+        element: { selector: '#a', tag: 'button', text: '', component: null, page: { path: '/' } },
+      };
+      const pins = controller('ready', [pin]);
+      render(<FloatingFeedbackButton appUid="app-1" appName="My App" elementPins={pins} iframeRef={iframeRef} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+
+      expect(pins.stopPicking).toHaveBeenCalled();
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+      expect(screen.queryByRole('complementary', { name: 'Pin feedback' })).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Close feedback' }));
+      expect(pins.clearPins).toHaveBeenCalled();
     });
   });
 });

@@ -1,5 +1,10 @@
 import { plaaApiHeaders } from '@/services/plaa/plaa-api';
-import { getCompletedBuybacks, getCurrentRoundStats, getRoundStats } from '@/services/plaa/rounds.service';
+import {
+  getAllRoundStats,
+  getCompletedBuybacks,
+  getCurrentRoundStats,
+  getRoundStats,
+} from '@/services/plaa/rounds.service';
 import { getTrustHoldings } from '@/services/plaa/trust-holdings.service';
 import { getPlaaSummary } from '@/services/plaa/summary.service';
 import { GET as getSnapshotStatus } from '@/app/api/plaa/snapshot-status/route';
@@ -62,11 +67,30 @@ describe('PLAA API auth', () => {
     expect(headersOf(fetchMock).Authorization).toBe('Bearer member-token');
   });
 
-  it('forwards the session on every round fetched for completed buybacks', async () => {
-    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ roundNumber: 2, buyback: null }) });
-    await getCompletedBuybacks('member-token');
-    expect(fetchMock).toHaveBeenCalledTimes(3);
-    fetchMock.mock.calls.forEach((_, i) => expect(headersOf(fetchMock, i).Authorization).toBe('Bearer member-token'));
+  it('fetches every round in one call, with the session', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => [{ roundNumber: 1 }, { roundNumber: 2 }] });
+    const { data } = await getAllRoundStats('member-token');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0]).toBe('https://plaa.example/api/v1/rounds/all/rounds');
+    expect(headersOf(fetchMock).Authorization).toBe('Bearer member-token');
+    expect(data).toEqual([{ roundNumber: 1 }, { roundNumber: 2 }]);
+  });
+
+  it('builds completed buybacks from a single all-rounds call', async () => {
+    const buyback = { totalBuybackPool: '$10k', simulation: false };
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => [
+        { roundNumber: 1, month: 'May', year: 2025, buyback },
+        { roundNumber: 2, month: 'June', year: 2025, buyback: null },
+        { roundNumber: 3, month: 'July', year: 2025, buyback: { ...buyback, simulation: true } },
+        { roundNumber: 4, month: 'August', year: 2025, buyback },
+      ],
+    });
+    const completed = await getCompletedBuybacks('member-token');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(headersOf(fetchMock).Authorization).toBe('Bearer member-token');
+    expect(completed.map((entry) => entry.roundNumber)).toEqual([4, 1]);
   });
 
   it('fetches the public summary without credentials', async () => {

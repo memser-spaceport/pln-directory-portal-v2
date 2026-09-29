@@ -14,10 +14,11 @@ type Props = {
   aboutOpen?: boolean;
   /** The header's action slot: SpvCardAction or SpvCardStatus, chosen by the page. */
   action?: React.ReactNode;
+  onFounderClicked?: (memberUid: string) => void;
 };
 
 /**
- * The data-room door: Request access, then View materials. An `href` opens in a
+ * The data-room door: Request access, then Open data room. An `href` opens in a
  * new tab (the DocSend); otherwise it's a button.
  */
 export const SpvCardAction = ({
@@ -57,10 +58,10 @@ export const SpvCardStatus = ({ children }: { children: React.ReactNode }) => (
  * The one team this SPV is for: PL Spotlight's single team card, reorganised.
  * Identity (logo, name, one-liner) with the action slot at its right; a
  * labelled facts strip; the team's website images where the pitch deck and
- * video were; About, Focus and Founders beside them. Nothing links into the
- * directory: the page has no routes into the app.
+ * video were; About, Focus and Founders beside them. Founder tiles open the
+ * founder's directory profile in a new tab, so the page stays where it is.
  */
-export function SpvTeamCard({ team, media, aboutOpen = false, action }: Props) {
+export function SpvTeamCard({ team, media, aboutOpen = false, action, onFounderClicked }: Props) {
   const [showFull, setShowFull] = useState(aboutOpen);
   const aboutHtml = useMemo(() => sanitizeSpvHtml(team.longDescription), [team.longDescription]);
   const website = team.website ?? '';
@@ -147,16 +148,24 @@ export function SpvTeamCard({ team, media, aboutOpen = false, action }: Props) {
               <h3 className={s.asideLabel}>Founders</h3>
               <ul className={s.founders}>
                 {team.founders.map((f) => (
-                  <li key={f.uid} className={s.founder}>
-                    <div
-                      className={s.founderAvatar}
-                      style={f.imageUrl ? { backgroundImage: `url('${f.imageUrl}')` } : undefined}
-                      aria-hidden
-                    />
-                    <div className={s.founderText}>
-                      <div className={s.founderName}>{f.name}</div>
-                      {f.role && <div className={s.founderRole}>{f.role}</div>}
-                    </div>
+                  <li key={f.uid}>
+                    <a
+                      className={s.founder}
+                      href={`/members/${f.uid}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => onFounderClicked?.(f.uid)}
+                    >
+                      <div
+                        className={s.founderAvatar}
+                        style={f.imageUrl ? { backgroundImage: `url('${f.imageUrl}')` } : undefined}
+                        aria-hidden
+                      />
+                      <div className={s.founderText}>
+                        <div className={s.founderName}>{f.name}</div>
+                        {f.role && <div className={s.founderRole}>{f.role}</div>}
+                      </div>
+                    </a>
                   </li>
                 ))}
               </ul>

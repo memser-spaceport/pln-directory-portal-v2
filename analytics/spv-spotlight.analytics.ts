@@ -67,6 +67,9 @@ export const useSpvSpotlightAnalytics = () => {
   const onExploreTileClicked = (params: SpvSpotlightBaseParams) =>
     captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_EXPLORE_TILE_CLICKED, params);
 
+  const onFounderProfileClicked = (params: SpvSpotlightBaseParams & { member_uid: string }) =>
+    captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_FOUNDER_PROFILE_CLICKED, params);
+
   return {
     onPageViewed,
     onRequestAccessClicked,
@@ -77,5 +80,6 @@ export const useSpvSpotlightAnalytics = () => {
     onViewMaterialsClicked,
     onInvestorProfileClicked,
     onExploreTileClicked,
+    onFounderProfileClicked,
   };
 };

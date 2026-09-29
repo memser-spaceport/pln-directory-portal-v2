@@ -62,7 +62,7 @@ export const SpvAppliedSteps = ({ isLoggedIn, profileComplete, onProfile }: Prop
       status: step2Status,
       title: 'Await approval confirmation',
       description:
-        "You'll receive an email confirmation if our team approves your request — the data room then opens on this page.",
+        'Get access to data room - subject to approval. You will receive an email confirmation if our team approves your request — the data room then opens on this page.',
       connectorHeight: 52,
     },
   ];

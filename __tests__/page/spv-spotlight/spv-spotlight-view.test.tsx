@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { SpvSpotlightView } from '@/components/page/spv-spotlight/SpvSpotlightView';
@@ -93,7 +93,7 @@ describe('SpvSpotlightView — the card action slot', () => {
 
   it('opens the DocSend for an approved viewer of an open spotlight', () => {
     renderView('OPEN', 'APPROVED', { signedIn: true });
-    const link = screen.getByRole('link', { name: /View materials/ });
+    const link = screen.getByRole('link', { name: /Open data room/ });
     expect(link).toHaveAttribute('href', 'https://docsend.com/view/x');
     expect(link).toHaveAttribute('target', '_blank');
     expect(screen.getByRole('button', { name: /investor profile/ })).toBeInTheDocument();
@@ -102,31 +102,63 @@ describe('SpvSpotlightView — the card action slot', () => {
   it.each([
     ['DRAFT', 'APPROVED', 'Approved, materials open soon'],
     ['OPEN', 'PENDING', 'Access requested, pending review'],
-    ['OPEN', 'REJECTED', 'Access not approved'],
+    ['OPEN', 'REJECTED', 'Data room access not approved'],
     ['CLOSED', 'APPROVED', 'Data room closed'],
     ['CLOSED', 'NONE', 'Data room closed'],
   ] as const)('%s + %s holds the slot with a quiet line', (status, access, line) => {
     renderView(status, access, { signedIn: access !== 'NONE' });
     expect(screen.getByText(line)).toBeInTheDocument();
     expect(requestButton()).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /View materials/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Open data room/ })).not.toBeInTheDocument();
   });
 
   it('shows the applied stepper and the full About while pending', () => {
     renderView('OPEN', 'PENDING', { signedIn: true });
     expect(screen.getByText('Request submitted successfully!')).toBeInTheDocument();
+    expect(
+      screen.getByText(/^Get access to data room - subject to approval\. You will receive an email confirmation/),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Show less' })).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('tells a rejected viewer plainly, with no way to request again', () => {
     renderView('OPEN', 'REJECTED', { signedIn: true });
-    expect(screen.getByText(/wasn.t approved/)).toBeInTheDocument();
+    expect(screen.getByText(/wasn.t approved\. If you think this is a mistake/)).toBeInTheDocument();
+    expect(screen.queryByText(/materials aren.t available/)).not.toBeInTheDocument();
   });
 
   it('closes for everyone', () => {
     renderView('CLOSED', 'PENDING', { signedIn: true });
     expect(screen.getByText(/This Spotlight has closed/)).toBeInTheDocument();
     expect(screen.queryByText('Request submitted successfully!')).not.toBeInTheDocument();
+  });
+
+  it('links each founder to their directory profile in a new tab', () => {
+    renderView('OPEN', 'NONE');
+    const founder = base.team.founders[0];
+    const link = screen.getByRole('link', { name: new RegExp(founder.name) });
+    expect(link).toHaveAttribute('href', `/members/${founder.uid}`);
+    expect(link).toHaveAttribute('target', '_blank');
+  });
+
+  it('puts Contact us in the hero, and the avatar (not Contact us) in the top bar', () => {
+    renderView('OPEN', 'APPROVED', { signedIn: true });
+    const banner = screen.getByText('PL Spotlight').closest('header') as HTMLElement;
+    expect(within(banner).queryByRole('link', { name: 'Contact us' })).not.toBeInTheDocument();
+    expect(within(banner).getByRole('link', { name: 'Your profile' })).toHaveAttribute('href', '/members/u1');
+    expect(screen.getByRole('link', { name: 'Contact us' })).toHaveAttribute('href', `mailto:${base.supportEmail}`);
+    expect(screen.getByRole('button', { name: /investor profile/ })).toBeInTheDocument();
+  });
+
+  it('shows no avatar to a signed-out visitor', () => {
+    renderView('OPEN', 'NONE');
+    expect(screen.queryByRole('link', { name: 'Your profile' })).not.toBeInTheDocument();
+  });
+
+  it('ends with the Q&A before the footer', () => {
+    renderView('OPEN', 'NONE');
+    expect(screen.getByRole('heading', { name: 'Questions investors ask' })).toBeInTheDocument();
+    expect(screen.getByText('What is PL Spotlight?')).toBeInTheDocument();
   });
 
   describe('before the viewer’s own read lands (server data as a prop only)', () => {
@@ -164,6 +196,9 @@ describe('SpvSpotlightView — the card action slot', () => {
   it('links the Explore tile to the landing once it ships', () => {
     mockShowExplore = true;
     renderView('OPEN', 'NONE');
-    expect(screen.getByRole('link', { name: /Explore the PL Network/ })).toHaveAttribute('href', '/explore-pl-network');
+    const tile = screen.getByRole('link', { name: /Explore the PL Network/ });
+    expect(tile).toHaveAttribute('href', '/explore-pl-network');
+    // The same count the Explore landing states, not the map's portfolio size.
+    expect(tile).toHaveTextContent('760+ organizations');
   });
 });

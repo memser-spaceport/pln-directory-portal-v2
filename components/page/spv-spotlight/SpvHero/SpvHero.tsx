@@ -21,10 +21,12 @@ type Props = {
 };
 
 /**
- * The completed Demo Day hero: title, admin description, then whatever the
- * viewer's state has to say. No status badge above the title: every state that
- * matters to the viewer already says so in the message box or the card's action. The data-room action is not here: it
- * lives in the team card's action slot, so the page has one door.
+ * The completed Demo Day hero, kept compact so the team card starts above the
+ * fold: title, admin description, a row of quiet text links (investor profile
+ * for approved viewers, Contact us for everyone, as PL Spotlight's hero has),
+ * then whatever the viewer's state has to say. No status badge: every state
+ * that matters already says so in the message box or the card's action. The
+ * data-room action lives in the team card's action slot, so the page has one door.
  */
 export const SpvHero = ({
   viewState,
@@ -44,8 +46,7 @@ export const SpvHero = ({
       case 'rejected':
         return (
           <>
-            Your request for this data room wasn&apos;t approved, so its materials aren&apos;t available to you. If you
-            think this is a mistake,{' '}
+            Your request for this data room wasn&apos;t approved. If you think this is a mistake,{' '}
             <a className={s.inlineLink} href={`mailto:${supportEmail}`}>
               get in touch
             </a>
@@ -58,7 +59,7 @@ export const SpvHero = ({
         );
       case 'closed':
         return <>This Spotlight has closed and its materials are no longer available.</>;
-      // Pending draws the applied stepper instead; open says it with the card's View materials.
+      // Pending draws the applied stepper instead; open says it with the card's Open data room.
       default:
         return null;
     }
@@ -70,11 +71,16 @@ export const SpvHero = ({
         <div className={s.headline}>
           <h1 className={s.title}>{title}</h1>
           {descriptionHtml && <div className={s.body} dangerouslySetInnerHTML={{ __html: descriptionHtml }} />}
-          {showProfileLink && (
-            <button type="button" className={s.profileLink} onClick={() => onProfile('hero')}>
-              {profileComplete ? 'Edit investor profile' : 'Set up investor profile'} <EditIcon />
-            </button>
-          )}
+          <div className={s.links}>
+            {showProfileLink && (
+              <button type="button" className={s.textLink} onClick={() => onProfile('hero')}>
+                {profileComplete ? 'Edit investor profile' : 'Set up investor profile'} <EditIcon />
+              </button>
+            )}
+            <a className={s.textLink} href={`mailto:${supportEmail}`}>
+              Contact us
+            </a>
+          </div>
         </div>
       </div>
 

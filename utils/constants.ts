@@ -2800,4 +2800,5 @@ export const SPV_SPOTLIGHT_ANALYTICS = {
   ON_VIEW_MATERIALS_CLICKED: 'spv-spotlight-view-materials-clicked',
   ON_INVESTOR_PROFILE_CLICKED: 'spv-spotlight-investor-profile-clicked',
   ON_EXPLORE_TILE_CLICKED: 'spv-spotlight-explore-tile-clicked',
+  ON_FOUNDER_PROFILE_CLICKED: 'spv-spotlight-founder-profile-clicked',
 };

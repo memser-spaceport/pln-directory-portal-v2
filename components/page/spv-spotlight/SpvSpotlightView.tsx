@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLoginRedirect } from '@/components/core/login/utils';
 import { EditInvestorProfileDrawer } from '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfileDrawer/EditInvestorProfileDrawer';
+import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
 import {
   useSpvSpotlightAnalytics,
   type SpvInvestorProfileSource,
@@ -30,6 +31,7 @@ import { SpvExploreTile } from './SpvExploreTile/SpvExploreTile';
 import { SpvFooter } from './SpvFooter/SpvFooter';
 import { SpvRequestAccessModal, type SpvRequestAccessOutcome } from './SpvRequestAccessModal/SpvRequestAccessModal';
 import { SpvRequestReceivedModal } from './SpvRequestReceivedModal/SpvRequestReceivedModal';
+import { SPV_FAQ_ITEMS } from './faq';
 import s from './SpvSpotlightView.module.scss';
 
 const TOP_BAR_LABEL = 'PL Spotlight';
@@ -65,6 +67,10 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
   const requestAccess = useRequestSpvAccess(slug, isLoggedIn);
   const { data: memberData } = useMember(isLoggedIn ? currentUser?.uid : undefined);
   const profileComplete = checkInvestorProfileComplete(memberData?.memberInfo, currentUser);
+
+  const topBarUser = currentUser?.uid
+    ? { uid: currentUser.uid, name: currentUser.name, profileImageUrl: currentUser.profileImageUrl }
+    : null;
 
   const [requestOpen, setRequestOpen] = useState(false);
   const [receivedEmail, setReceivedEmail] = useState<string | null>(null);
@@ -141,7 +147,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
   if (!spotlight) {
     return (
       <div className={s.page}>
-        <SpvTopBar label={TOP_BAR_LABEL} supportEmail={initialSpotlight?.supportEmail ?? 'spotlight@protocol.ai'} />
+        <SpvTopBar label={TOP_BAR_LABEL} user={topBarUser} />
         <div className={s.root}>
           <div className={s.content}>
             {isError ? (
@@ -185,7 +191,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
       case 'open':
         return spotlight.docSendUrl ? (
           <SpvCardAction
-            label="View materials"
+            label="Open data room"
             href={spotlight.docSendUrl}
             onClick={() => {
               const params = baseParams();
@@ -200,7 +206,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
       case 'openingSoon':
         return <SpvCardStatus>Approved, materials open soon</SpvCardStatus>;
       case 'rejected':
-        return <SpvCardStatus>Access not approved</SpvCardStatus>;
+        return <SpvCardStatus>Data room access not approved</SpvCardStatus>;
       case 'closed':
         return <SpvCardStatus>Data room closed</SpvCardStatus>;
     }
@@ -208,7 +214,8 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
 
   return (
     <div className={s.page}>
-      <SpvTopBar label={TOP_BAR_LABEL} supportEmail={spotlight.supportEmail} />
+      {/* Contact us lives in the hero, beside the investor-profile link (as on PL Spotlight). */}
+      <SpvTopBar label={TOP_BAR_LABEL} user={topBarUser} />
 
       <div className={s.root}>
         <div className={s.content}>
@@ -230,6 +237,10 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
               media={spotlight.media}
               aboutOpen={viewState === 'pending'}
               action={cardAction}
+              onFounderClicked={(memberUid) => {
+                const params = baseParams();
+                if (params) analytics.onFounderProfileClicked({ ...params, member_uid: memberUid });
+              }}
             />
           </section>
 
@@ -243,6 +254,22 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
               />
             </section>
           )}
+
+          <section className={s.faqSection}>
+            <FAQ
+              title="Questions investors ask"
+              items={SPV_FAQ_ITEMS}
+              subtitle={
+                <p className={s.faqSubtitle}>
+                  Reach out to us at{' '}
+                  <a href={`mailto:${spotlight.supportEmail}`} className={s.faqLink}>
+                    {spotlight.supportEmail}
+                  </a>{' '}
+                  for any other questions.
+                </p>
+              }
+            />
+          </section>
 
           <SpvFooter supportEmail={spotlight.supportEmail} />
         </div>

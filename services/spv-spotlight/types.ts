@@ -1,12 +1,16 @@
 /**
- * The frontend's side of the SPV Spotlight contract (LAB-2670). The backend
- * does not exist yet: these shapes are what the page needs, and they are
- * served by `spv-spotlight.mock.ts` until the endpoints land. Treat any change
- * here as a contract change and tell the backend.
+ * The SPV Spotlight contract (LAB-2670), as the directory web API implements
+ * it. Treat any change here as a contract change and tell the backend.
  *
  *   GET  /v1/spv-spotlights/:slug                  → SpvSpotlight (auth optional)
- *   POST /v1/spv-spotlights/:slug/access-requests  → SpvAccessRequestResult (auth optional)
+ *        404 unknown slug. DRAFT and CLOSED are still 200.
+ *   POST /v1/spv-spotlights/:slug/access-requests  → 201 SpvAccessRequestResult (auth optional)
  *        409 { reason: SpvAccessRequestBlockReason }
+ *        409 { message: 'This spotlight is closed' } (no reason)
+ *        422 { message: 'Input validation failed: …' }
+ *
+ * An invalid or expired token never 401s: the API reads it as signed out.
+ * Signed in, the API takes the email from the token and ignores the body's.
  */
 
 export type SpvSpotlightStatus = 'DRAFT' | 'OPEN' | 'CLOSED';
@@ -21,8 +25,8 @@ export type SpvViewerAccess = 'NONE' | 'PENDING' | 'APPROVED' | 'REJECTED';
 export type SpvMedia = {
   url: string;
   alt: string;
-  /** `contain` for images whose edges carry content (charts, labelled figures). Defaults to `cover`. */
-  fit?: 'cover' | 'contain';
+  /** `contain` for images whose edges carry content (charts, labelled figures). The API always sends it. */
+  fit: 'cover' | 'contain';
 };
 
 export type SpvFounder = {
@@ -94,5 +98,21 @@ export class SpvAccessRequestBlockedError extends Error {
     super(`Access request blocked: ${reason}`);
     this.name = 'SpvAccessRequestBlockedError';
     this.reason = reason;
+  }
+}
+
+/** HTTP 409 without a reason: the spotlight closed while the form was open. */
+export class SpvSpotlightClosedError extends Error {
+  constructor() {
+    super('This spotlight is closed');
+    this.name = 'SpvSpotlightClosedError';
+  }
+}
+
+/** HTTP 422: the backend's own validation message, shown inline in the form. */
+export class SpvAccessRequestValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'SpvAccessRequestValidationError';
   }
 }

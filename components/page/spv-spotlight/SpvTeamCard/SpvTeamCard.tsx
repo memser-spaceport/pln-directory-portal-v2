@@ -64,8 +64,11 @@ export const SpvCardStatus = ({ children }: { children: React.ReactNode }) => (
 export function SpvTeamCard({ team, media, aboutOpen = false, action, onFounderClicked }: Props) {
   const [showFull, setShowFull] = useState(aboutOpen);
   const aboutHtml = useMemo(() => sanitizeSpvHtml(team.longDescription), [team.longDescription]);
-  const website = team.website ?? '';
-  const host = website.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const rawWebsite = team.website?.trim() ?? '';
+  // Directory websites are free text ("www.netholabs.com"); without a scheme the
+  // href would resolve as a path on this site.
+  const website = rawWebsite && !/^https?:\/\//i.test(rawWebsite) ? `https://${rawWebsite}` : rawWebsite;
+  const host = rawWebsite.replace(/^https?:\/\//i, '').replace(/\/$/, '');
   const summary = team.summary?.trim() || team.shortDescription;
 
   const facts: { label: string; value: React.ReactNode }[] = [

@@ -57,6 +57,14 @@ export const MODAL_INTRO =
 
 export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = [
   {
+    version: '1.15',
+    items: [
+      'Deploys no longer time out. Your agent gets an answer right away and then follows the build until it is live or has failed, so it no longer reports a failure for a deploy that actually worked',
+      'If a deploy fails, your agent sees why — whether the build or the running app failed — and goes straight to the right logs',
+      'Kits downloaded before this version report "deployed" as soon as the upload is accepted, while the build is still running. The app page always shows the real status. Download this kit so your agent waits for the result',
+    ],
+  },
+  {
     version: '1.14',
     items: [
       'Preview is for testing, QA, and development. It sits next to Production and does not change the live app',

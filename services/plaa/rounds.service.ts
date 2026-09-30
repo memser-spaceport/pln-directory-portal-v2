@@ -1,3 +1,5 @@
+import { plaaApiHeaders } from '@/services/plaa/plaa-api';
+
 export interface RoundStatsChartEntry {
   name: string;
   value: number;
@@ -50,14 +52,16 @@ export interface RoundStatsResponse {
   buyback: RoundBuybackStats | null;
 }
 
-export const getCurrentRoundStats = async (): Promise<{
+export const getCurrentRoundStats = async (
+  authToken?: string,
+): Promise<{
   data?: RoundStatsResponse;
   error?: { message: string };
 }> => {
   try {
     const response = await fetch(`${process.env.PLAA_API_URL}/api/v1/rounds/current/stats`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: plaaApiHeaders(authToken),
       cache: 'no-store',
     });
 
@@ -81,19 +85,11 @@ export interface CompletedBuyback {
 }
 
 // Sorted by round number, not auctionNumber: auctionNumber is nullable, so
-// sorting by it can leave a stale auction at the head. No index endpoint
-// exists, so this walks every round and keeps the ones with a real result.
-export const getCompletedBuybacks = async (): Promise<CompletedBuyback[]> => {
-  const { data: current } = await getCurrentRoundStats();
-  if (!current) return [];
+// sorting by it can leave a stale auction at the head.
+export const getCompletedBuybacks = async (authToken?: string): Promise<CompletedBuyback[]> => {
+  const { data: rounds } = await getAllRoundStats(authToken);
 
-  const results = await Promise.all(
-    Array.from({ length: current.roundNumber }, (_, i) => getRoundStats(i + 1)),
-  );
-
-  return results
-    .map((result) => result.data)
-    .filter((stats): stats is RoundStatsResponse => Boolean(stats))
+  return (rounds ?? [])
     .filter((stats) => stats.buyback && stats.buyback.totalBuybackPool !== null && !stats.buyback.simulation)
     .map((stats) => ({
       roundNumber: stats.roundNumber,
@@ -104,9 +100,37 @@ export const getCompletedBuybacks = async (): Promise<CompletedBuyback[]> => {
     .sort((a, b) => b.roundNumber - a.roundNumber);
 };
 
+// One request for every round: a request per round fans out into one session
+// check per round upstream, which the Directory rate-limits.
+export const getAllRoundStats = async (
+  authToken?: string,
+): Promise<{
+  data?: RoundStatsResponse[];
+  error?: { message: string };
+}> => {
+  try {
+    const response = await fetch(`${process.env.PLAA_API_URL}/api/v1/rounds/all/rounds`, {
+      method: 'GET',
+      headers: plaaApiHeaders(authToken),
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      return { error: { message: `API responded with ${response.status}: ${response.statusText}` } };
+    }
+
+    const data: RoundStatsResponse[] = await response.json();
+    return { data };
+  } catch (error) {
+    console.error('[rounds.service] Failed to fetch all round stats:', error);
+    return { error: { message: 'Failed to fetch all round stats' } };
+  }
+};
+
 // Used by the past-round archive page for rounds without a hand-authored data file.
 export const getRoundStats = async (
   roundNumber: number,
+  authToken?: string,
 ): Promise<{
   data?: RoundStatsResponse;
   error?: { message: string };
@@ -114,7 +138,7 @@ export const getRoundStats = async (
   try {
     const response = await fetch(`${process.env.PLAA_API_URL}/api/v1/rounds/${roundNumber}/stats`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: plaaApiHeaders(authToken),
       cache: 'no-store',
     });
 

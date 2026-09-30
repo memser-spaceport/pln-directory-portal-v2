@@ -22,6 +22,8 @@ import { useRequestSpvAccess } from '@/services/spv-spotlight/hooks/useRequestSp
 import { resolveSpvViewState, type SpvViewState } from '@/services/spv-spotlight/resolveSpvViewState';
 import {
   SpvAccessRequestBlockedError,
+  SpvAccessRequestValidationError,
+  SpvSpotlightClosedError,
   type SpvAccessRequestPayload,
   type SpvSpotlight,
   type SpvViewerAccess,
@@ -170,7 +172,16 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
         }
         return { type: 'blocked' };
       }
+      if (error instanceof SpvSpotlightClosedError) {
+        // Closed while the form was open. The refetch (invalidated on settle)
+        // turns the page into its closed state, which says so.
+        setRequestOpen(false);
+        return { type: 'success' };
+      }
       if (params) analytics.onRequestAccessFailed(params);
+      if (error instanceof SpvAccessRequestValidationError) {
+        return { type: 'error', message: error.message };
+      }
       return { type: 'error', message: 'Something went wrong. Please try again.' };
     }
   };

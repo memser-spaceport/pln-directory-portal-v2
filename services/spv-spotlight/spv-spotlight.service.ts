@@ -1,8 +1,8 @@
 import { customFetch } from '@/utils/fetch-wrapper';
-import { SPV_MOCK_ENABLED } from './constants';
-import { getMockSpvSpotlight, mockRequestSpvAccess, type SpvMockOverrides } from './spv-spotlight.mock';
 import {
   SpvAccessRequestBlockedError,
+  SpvAccessRequestValidationError,
+  SpvSpotlightClosedError,
   type SpvAccessRequestBlockReason,
   type SpvAccessRequestPayload,
   type SpvAccessRequestResult,
@@ -11,18 +11,14 @@ import {
 
 const BLOCK_REASONS: SpvAccessRequestBlockReason[] = ['ALREADY_APPLIED', 'REJECTED', 'PRE_APPROVED'];
 
-/** Client-side read. Resolves null for an unknown slug. */
-export async function getSpvSpotlight(
-  slug: string,
-  authenticated: boolean,
-  mockOverrides?: SpvMockOverrides,
-): Promise<SpvSpotlight | null> {
-  if (SPV_MOCK_ENABLED) {
-    return getMockSpvSpotlight(slug, authenticated, mockOverrides);
-  }
+const spotlightUrl = (slug: string) => `${process.env.DIRECTORY_API_URL}/v1/spv-spotlights/${encodeURIComponent(slug)}`;
 
-  const url = `${process.env.DIRECTORY_API_URL}/v1/spv-spotlights/${encodeURIComponent(slug)}`;
-  const response = await customFetch(url, { method: 'GET' }, authenticated);
+/**
+ * Client-side read, with the viewer's token when signed in (the API computes
+ * `viewerAccess` from it). Resolves null for an unknown slug.
+ */
+export async function getSpvSpotlight(slug: string, authenticated: boolean): Promise<SpvSpotlight | null> {
+  const response = await customFetch(spotlightUrl(slug), { method: 'GET', cache: 'no-store' }, authenticated);
   if (response?.status === 404) return null;
   if (!response?.ok) {
     throw new Error('Failed to fetch SPV spotlight');
@@ -32,20 +28,16 @@ export async function getSpvSpotlight(
 
 /**
  * Requesting access is signing up: the backend creates the account when the
- * email is new. A 409 means the email can't request again and should sign in.
+ * email is new. A 409 with a reason means the email can't request again and
+ * should sign in; a 409 without one means the spotlight closed.
  */
 export async function requestSpvAccess(
   slug: string,
   payload: SpvAccessRequestPayload,
   authenticated: boolean,
 ): Promise<SpvAccessRequestResult> {
-  if (SPV_MOCK_ENABLED) {
-    return mockRequestSpvAccess(slug, payload, authenticated);
-  }
-
-  const url = `${process.env.DIRECTORY_API_URL}/v1/spv-spotlights/${encodeURIComponent(slug)}/access-requests`;
   const response = await customFetch(
-    url,
+    `${spotlightUrl(slug)}/access-requests`,
     {
       method: 'POST',
       // customFetch adds no Content-Type of its own.
@@ -55,14 +47,22 @@ export async function requestSpvAccess(
     authenticated,
   );
 
+  if (response?.ok) {
+    return (await response.json()) as SpvAccessRequestResult;
+  }
+
+  const body = await response?.json().catch(() => null);
+
   if (response?.status === 409) {
-    const body = await response.json().catch(() => null);
     const reason = body?.reason as SpvAccessRequestBlockReason | undefined;
-    throw new SpvAccessRequestBlockedError(reason && BLOCK_REASONS.includes(reason) ? reason : 'ALREADY_APPLIED');
+    if (reason && BLOCK_REASONS.includes(reason)) throw new SpvAccessRequestBlockedError(reason);
+    // The closed 409 carries only a message; `reason` is a machine code and never lives inside it.
+    if (typeof body?.message === 'string' && /closed/i.test(body.message)) throw new SpvSpotlightClosedError();
+    // A missing (or future) reason: the backend's own advice is to treat it as already applied.
+    throw new SpvAccessRequestBlockedError('ALREADY_APPLIED');
   }
-  if (!response?.ok) {
-    const body = await response?.json().catch(() => null);
-    throw new Error(body?.message || 'Failed to request access');
+  if (response?.status === 422 && typeof body?.message === 'string') {
+    throw new SpvAccessRequestValidationError(body.message);
   }
-  return (await response.json()) as SpvAccessRequestResult;
+  throw new Error(typeof body?.message === 'string' ? body.message : 'Failed to request access');
 }

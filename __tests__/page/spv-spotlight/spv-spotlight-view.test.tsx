@@ -1,14 +1,21 @@
 import React from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { SpvSpotlightView } from '@/components/page/spv-spotlight/SpvSpotlightView';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useGetSpvSpotlight } from '@/services/spv-spotlight/hooks/useGetSpvSpotlight';
-import { getMockSpvSpotlight, MOCK_SPV_SLUG } from '@/services/spv-spotlight/spv-spotlight.mock';
-import type { SpvSpotlight, SpvSpotlightStatus, SpvViewerAccess } from '@/services/spv-spotlight/types';
+import { buildSpvSpotlight, SPV_FIXTURE_SLUG as MOCK_SPV_SLUG } from '@/services/spv-spotlight/spv-spotlight.fixture';
+import {
+  SpvAccessRequestValidationError,
+  SpvSpotlightClosedError,
+  type SpvSpotlight,
+  type SpvSpotlightStatus,
+  type SpvViewerAccess,
+} from '@/services/spv-spotlight/types';
 
 const mockGoToLogin = jest.fn();
+const mockRequestAccess = jest.fn();
 const mockEmitAuthEvent = jest.fn();
 const mockClearAuthCookies = jest.fn();
 let mockShowExplore = false;
@@ -22,7 +29,7 @@ jest.mock('@/services/explore-pl-network/constants', () => ({
 
 jest.mock('@/services/spv-spotlight/hooks/useGetSpvSpotlight', () => ({ useGetSpvSpotlight: jest.fn() }));
 jest.mock('@/services/spv-spotlight/hooks/useRequestSpvAccess', () => ({
-  useRequestSpvAccess: () => ({ mutateAsync: jest.fn() }),
+  useRequestSpvAccess: () => ({ mutateAsync: (...args: unknown[]) => mockRequestAccess(...args) }),
 }));
 jest.mock('@/services/members/hooks/useMember', () => ({ useMember: () => ({ data: undefined }) }));
 jest.mock('@/components/core/login/utils', () => ({
@@ -58,8 +65,8 @@ const mockedUseGetSpvSpotlight = useGetSpvSpotlight as jest.Mock;
 
 let base: SpvSpotlight;
 
-beforeAll(async () => {
-  base = (await getMockSpvSpotlight(MOCK_SPV_SLUG, false)) as SpvSpotlight;
+beforeAll(() => {
+  base = buildSpvSpotlight();
 });
 
 const renderView = (status: SpvSpotlightStatus, viewerAccess: SpvViewerAccess, { signedIn = false } = {}) => {
@@ -160,6 +167,17 @@ describe('SpvSpotlightView — the card action slot', () => {
     expect(link).toHaveAttribute('target', '_blank');
   });
 
+  it('gives a scheme-less directory website an absolute https link', () => {
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+    const spotlight = { ...base, team: { ...base.team, website: 'www.netholabs.com' } };
+    mockedUseGetSpvSpotlight.mockReturnValue({ data: spotlight, isError: false });
+    render(<SpvSpotlightView slug={MOCK_SPV_SLUG} initialSpotlight={spotlight} />);
+    // The fact strip's link and the carousel's source credit.
+    const links = screen.getAllByRole('link', { name: /www\.netholabs\.com/ });
+    expect(links).toHaveLength(2);
+    links.forEach((link) => expect(link).toHaveAttribute('href', 'https://www.netholabs.com'));
+  });
+
   it('has no Contact us link in the hero or the top bar (the FAQ carries the email)', () => {
     renderView('OPEN', 'APPROVED', { signedIn: true });
     expect(screen.queryByRole('link', { name: 'Contact us' })).not.toBeInTheDocument();
@@ -190,6 +208,36 @@ describe('SpvSpotlightView — the card action slot', () => {
     expect(mockGoToLogin).toHaveBeenCalledWith(
       expect.objectContaining({ returnTo: `/spv-spotlight/${MOCK_SPV_SLUG}` }),
     );
+  });
+
+  describe('submitting a request', () => {
+    const submitAsSignedIn = async () => {
+      renderView('OPEN', 'NONE', { signedIn: true });
+      const user = userEvent.setup();
+      await user.click(requestButton()!);
+      await user.type(screen.getByPlaceholderText('Enter your primary role'), 'Partner');
+      await user.type(screen.getByPlaceholderText('e.g. Northfield Ventures'), 'Northfield');
+      await user.click(screen.getByRole('checkbox'));
+      await user.click(screen.getByRole('button', { name: 'Request access' }));
+    };
+
+    beforeEach(() => mockRequestAccess.mockReset());
+
+    it('shows the backend 422 message inline and keeps the form open', async () => {
+      const message = 'Input validation failed: organization should not be empty';
+      mockRequestAccess.mockRejectedValueOnce(new SpvAccessRequestValidationError(message));
+      await submitAsSignedIn();
+      expect(await screen.findByText(message)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Request access' })).toBeInTheDocument();
+    });
+
+    it('closes the form when the spotlight closed meanwhile, without a sign-in prompt', async () => {
+      mockRequestAccess.mockRejectedValueOnce(new SpvSpotlightClosedError());
+      await submitAsSignedIn();
+      await waitFor(() => expect(screen.queryByRole('button', { name: 'Request access' })).not.toBeInTheDocument());
+      expect(screen.queryByText('Request received')).not.toBeInTheDocument();
+      expect(mockGoToLogin).not.toHaveBeenCalled();
+    });
   });
 
   it('ends with the Q&A before the footer', () => {

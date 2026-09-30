@@ -1,16 +1,12 @@
-import { SPV_MOCK_ENABLED } from './constants';
-import { getMockSpvSpotlight } from './spv-spotlight.mock';
 import type { SpvSpotlight } from './types';
 
 /**
  * Anonymous server read, for metadata and the first paint. Viewer access is
- * always NONE here; the client refetches with the viewer's token.
+ * always NONE here; the client refetches with the viewer's token. Never send a
+ * token from here: this read is shared across viewers by `revalidate`.
  */
 export async function getSpvSpotlightServer(slug: string): Promise<SpvSpotlight | null> {
   if (!slug) return null;
-  if (SPV_MOCK_ENABLED) {
-    return getMockSpvSpotlight(slug, false);
-  }
 
   const apiBase = process.env.DIRECTORY_API_URL;
   if (!apiBase) return null;

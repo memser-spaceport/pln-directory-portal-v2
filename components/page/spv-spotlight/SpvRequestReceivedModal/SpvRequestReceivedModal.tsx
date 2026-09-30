@@ -10,6 +10,8 @@ type Props = {
   isOpen: boolean;
   email: string;
   isLoggedIn: boolean;
+  /** Signed in with a complete investor profile: step 2 is done, as in the hero stepper. */
+  profileComplete: boolean;
   onClose: () => void;
   /** Opens the investor-profile drawer, or sends a signed-out requester to sign in. */
   onSetUpProfile: () => void;
@@ -29,13 +31,21 @@ type Step = { title: string; description: string; done: boolean };
  * set up investor profile → data room, subject to approval. Closing it leaves the applied
  * stepper in the hero, which says the same thing.
  */
-export const SpvRequestReceivedModal = ({ isOpen, email, isLoggedIn, onClose, onSetUpProfile }: Props) => {
+export const SpvRequestReceivedModal = ({
+  isOpen,
+  email,
+  isLoggedIn,
+  profileComplete,
+  onClose,
+  onSetUpProfile,
+}: Props) => {
+  const profileDone = isLoggedIn && profileComplete;
   const steps: Step[] = [
     { title: 'Request submitted', description: 'Sent to the PL team for review.', done: true },
     {
       title: 'Set up investor profile',
       description: 'Complete your investor profile: the PL team reviews it with your request.',
-      done: false,
+      done: profileDone,
     },
     {
       title: 'Get access to data room — subject to approval.',
@@ -90,7 +100,11 @@ export const SpvRequestReceivedModal = ({ isOpen, email, isLoggedIn, onClose, on
         </div>
 
         <Button type="button" size="m" style="fill" variant="primary" onClick={onSetUpProfile} className={s.primary}>
-          {isLoggedIn ? 'Set up investor profile' : 'Sign in to set up investor profile'}
+          {profileDone
+            ? 'Edit investor profile'
+            : isLoggedIn
+              ? 'Set up investor profile'
+              : 'Sign in to set up investor profile'}
         </Button>
       </div>
     </Modal>

@@ -1,20 +1,13 @@
 import { customFetch } from '@/utils/fetch-wrapper';
 import { getSpvSpotlight, requestSpvAccess } from '@/services/spv-spotlight/spv-spotlight.service';
 import {
-  getMockSpvSpotlight,
-  MOCK_SPV_SLUG,
-  mockRequestSpvAccess,
-  readSpvMockOverrides,
-} from '@/services/spv-spotlight/spv-spotlight.mock';
-import { SpvAccessRequestBlockedError, type SpvAccessRequestPayload } from '@/services/spv-spotlight/types';
+  SpvAccessRequestBlockedError,
+  SpvAccessRequestValidationError,
+  SpvSpotlightClosedError,
+  type SpvAccessRequestPayload,
+} from '@/services/spv-spotlight/types';
 
 jest.mock('@/utils/fetch-wrapper', () => ({ customFetch: jest.fn() }));
-// The real-API path regardless of the machine's env: next/jest loads .env, and a
-// developer running the mocked page locally has NEXT_PUBLIC_SPV_MOCK=true there.
-jest.mock('@/services/spv-spotlight/constants', () => ({
-  ...jest.requireActual('@/services/spv-spotlight/constants'),
-  SPV_MOCK_ENABLED: false,
-}));
 
 const mockedFetch = customFetch as jest.Mock;
 
@@ -32,13 +25,22 @@ const response = (status: number, body: unknown) => ({
   json: () => Promise.resolve(body),
 });
 
-describe('spv-spotlight.service (real API path)', () => {
+describe('spv-spotlight.service', () => {
   beforeEach(() => mockedFetch.mockReset());
 
   it('reads the spotlight and resolves null on 404', async () => {
-    mockedFetch.mockResolvedValueOnce(response(404, {}));
+    mockedFetch.mockResolvedValueOnce(response(404, { statusCode: 404, message: 'SPV spotlight not found' }));
     await expect(getSpvSpotlight('missing', false)).resolves.toBeNull();
     expect(mockedFetch.mock.calls[0][0]).toMatch(/\/v1\/spv-spotlights\/missing$/);
+  });
+
+  it('sends the token only for a signed-in read, and never caches it', async () => {
+    mockedFetch.mockResolvedValue(response(200, { slug: 's' }));
+    await getSpvSpotlight('s', true);
+    await getSpvSpotlight('s', false);
+    expect(mockedFetch.mock.calls[0][1]).toEqual(expect.objectContaining({ cache: 'no-store' }));
+    expect(mockedFetch.mock.calls[0][2]).toBe(true);
+    expect(mockedFetch.mock.calls[1][2]).toBe(false);
   });
 
   it('throws on other failures instead of painting an empty page', async () => {
@@ -66,58 +68,37 @@ describe('spv-spotlight.service (real API path)', () => {
     },
   );
 
+  it('turns the reasonless closed 409 into a closed error, not a sign-in prompt', async () => {
+    mockedFetch.mockResolvedValueOnce(response(409, { message: 'This spotlight is closed' }));
+    const error = await requestSpvAccess('s', payload, false).catch((e) => e);
+    expect(error).toBeInstanceOf(SpvSpotlightClosedError);
+  });
+
+  it('treats a 409 with no reason and no closed message as already applied', async () => {
+    mockedFetch.mockResolvedValueOnce(response(409, { statusCode: 409 }));
+    const error = await requestSpvAccess('s', payload, false).catch((e) => e);
+    expect(error).toBeInstanceOf(SpvAccessRequestBlockedError);
+    expect(error.reason).toBe('ALREADY_APPLIED');
+  });
+
   it('treats a 409 with an unknown reason as already applied', async () => {
     mockedFetch.mockResolvedValueOnce(response(409, { reason: 'SOMETHING_NEW' }));
     const error = await requestSpvAccess('s', payload, false).catch((e) => e);
     expect(error.reason).toBe('ALREADY_APPLIED');
   });
 
-  it('surfaces the backend message on other failures', async () => {
-    mockedFetch.mockResolvedValueOnce(response(400, { message: 'Bad email' }));
-    await expect(requestSpvAccess('s', payload, false)).rejects.toThrow('Bad email');
-  });
-});
-
-describe('spv-spotlight.mock', () => {
-  it('reads the state switch and ignores values it does not know', () => {
-    expect(readSpvMockOverrides(new URLSearchParams('mockStatus=closed&mockViewer=approved'))).toEqual({
-      status: 'CLOSED',
-      access: 'APPROVED',
-    });
-    expect(readSpvMockOverrides(new URLSearchParams('mockStatus=LIVE&mockViewer=admin'))).toEqual({
-      status: undefined,
-      access: undefined,
-    });
+  it('turns a 422 into a validation error carrying the backend message', async () => {
+    const message = 'Input validation failed: email must be a valid email';
+    mockedFetch.mockResolvedValueOnce(response(422, { statusCode: 422, message, error: 'Unprocessable Entity' }));
+    const error = await requestSpvAccess('s', payload, false).catch((e) => e);
+    expect(error).toBeInstanceOf(SpvAccessRequestValidationError);
+    expect(error.message).toBe(message);
   });
 
-  it('only hands the DocSend link to approved viewers of an open spotlight', async () => {
-    const open = await getMockSpvSpotlight(MOCK_SPV_SLUG, true, { status: 'OPEN', access: 'APPROVED' });
-    const draft = await getMockSpvSpotlight(MOCK_SPV_SLUG, true, { status: 'DRAFT', access: 'APPROVED' });
-    const pending = await getMockSpvSpotlight(MOCK_SPV_SLUG, true, { status: 'OPEN', access: 'PENDING' });
-    expect(open?.docSendUrl).toBeTruthy();
-    expect(draft?.docSendUrl).toBeNull();
-    expect(pending?.docSendUrl).toBeNull();
-  });
-
-  it('knows one slug', async () => {
-    await expect(getMockSpvSpotlight('another-spv', false)).resolves.toBeNull();
-  });
-
-  it('blocks the test emails for signed-out requesters', async () => {
-    const error = await mockRequestSpvAccess(
-      MOCK_SPV_SLUG,
-      { ...payload, email: ' Rejected@Example.com ' },
-      false,
-    ).catch((e) => e);
-    expect(error).toBeInstanceOf(SpvAccessRequestBlockedError);
-    expect(error.reason).toBe('REJECTED');
-  });
-
-  it('makes a signed-in requester pending', async () => {
-    await mockRequestSpvAccess(MOCK_SPV_SLUG, payload, true);
-    const after = await getMockSpvSpotlight(MOCK_SPV_SLUG, true);
-    expect(after?.viewerAccess).toBe('PENDING');
-    // A signed-out read is still anonymous.
-    expect((await getMockSpvSpotlight(MOCK_SPV_SLUG, false))?.viewerAccess).toBe('NONE');
+  it('throws a plain error on other failures', async () => {
+    mockedFetch.mockResolvedValueOnce(response(500, {}));
+    const error = await requestSpvAccess('s', payload, false).catch((e) => e);
+    expect(error).toBeInstanceOf(Error);
+    expect(error).not.toBeInstanceOf(SpvAccessRequestValidationError);
   });
 });

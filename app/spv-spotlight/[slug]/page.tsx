@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { SpvSpotlightView } from '@/components/page/spv-spotlight/SpvSpotlightView';
 import { SHOW_SPV_SPOTLIGHT } from '@/services/spv-spotlight/constants';
@@ -28,10 +27,5 @@ export default async function SpvSpotlightPage(props: PageProps) {
   const spotlight = await getSpvSpotlightServer(slug);
   if (!spotlight) notFound();
 
-  return (
-    // useSearchParams (the mock's state switch) needs a Suspense boundary.
-    <Suspense>
-      <SpvSpotlightView slug={slug} initialSpotlight={spotlight} />
-    </Suspense>
-  );
+  return <SpvSpotlightView slug={slug} initialSpotlight={spotlight} />;
 }

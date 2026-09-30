@@ -332,6 +332,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
         isOpen={!!receivedEmail}
         email={receivedEmail ?? ''}
         isLoggedIn={isLoggedIn}
+        profileComplete={profileComplete}
         onClose={() => setReceivedEmail(null)}
         onSetUpProfile={() => {
           setReceivedEmail(null);

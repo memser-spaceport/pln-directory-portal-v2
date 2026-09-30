@@ -167,6 +167,17 @@ describe('SpvSpotlightView — the card action slot', () => {
     expect(link).toHaveAttribute('target', '_blank');
   });
 
+  it('gives a scheme-less directory website an absolute https link', () => {
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+    const spotlight = { ...base, team: { ...base.team, website: 'www.netholabs.com' } };
+    mockedUseGetSpvSpotlight.mockReturnValue({ data: spotlight, isError: false });
+    render(<SpvSpotlightView slug={MOCK_SPV_SLUG} initialSpotlight={spotlight} />);
+    // The fact strip's link and the carousel's source credit.
+    const links = screen.getAllByRole('link', { name: /www\.netholabs\.com/ });
+    expect(links).toHaveLength(2);
+    links.forEach((link) => expect(link).toHaveAttribute('href', 'https://www.netholabs.com'));
+  });
+
   it('has no Contact us link in the hero or the top bar (the FAQ carries the email)', () => {
     renderView('OPEN', 'APPROVED', { signedIn: true });
     expect(screen.queryByRole('link', { name: 'Contact us' })).not.toBeInTheDocument();

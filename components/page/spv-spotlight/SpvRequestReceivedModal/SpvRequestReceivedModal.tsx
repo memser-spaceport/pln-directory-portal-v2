@@ -26,7 +26,7 @@ type Step = { title: string; description: string; done: boolean };
 
 /**
  * Demo Day's AccountCreatedSuccessModal, for a data-room request: submitted →
- * set up investor profile → await approval. Closing it leaves the applied
+ * set up investor profile → data room, subject to approval. Closing it leaves the applied
  * stepper in the hero, which says the same thing.
  */
 export const SpvRequestReceivedModal = ({ isOpen, email, isLoggedIn, onClose, onSetUpProfile }: Props) => {
@@ -38,8 +38,8 @@ export const SpvRequestReceivedModal = ({ isOpen, email, isLoggedIn, onClose, on
       done: false,
     },
     {
-      title: 'Await approval',
-      description: `We'll email ${email} once you're approved. The materials then open on this page.`,
+      title: 'Get access to data room — subject to approval.',
+      description: `We'll email ${email} if our team approves your request, and the data room then opens on this page.`,
       done: false,
     },
   ];

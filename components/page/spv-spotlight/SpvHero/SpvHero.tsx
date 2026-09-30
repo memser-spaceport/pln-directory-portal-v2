@@ -13,6 +13,7 @@ type Props = {
   title: string;
   /** Admin HTML. */
   description: string;
+  /** For the rejected message's "get in touch". */
   supportEmail: string;
   isLoggedIn: boolean;
   profileComplete: boolean;
@@ -22,9 +23,9 @@ type Props = {
 
 /**
  * The completed Demo Day hero, kept compact so the team card starts above the
- * fold: title, admin description, a row of quiet text links (investor profile
- * for approved viewers, Contact us for everyone, as PL Spotlight's hero has),
- * then whatever the viewer's state has to say. No status badge: every state
+ * fold: title, admin description, the investor-profile text link for approved
+ * viewers, then whatever the viewer's state has to say. No Contact us: the FAQ
+ * at the bottom already carries the support email. No status badge: every state
  * that matters already says so in the message box or the card's action. The
  * data-room action lives in the team card's action slot, so the page has one door.
  */
@@ -54,11 +55,9 @@ export const SpvHero = ({
           </>
         );
       case 'openingSoon':
-        return (
-          <>You&apos;re approved. We&apos;ll email you when this Spotlight opens and the deal materials go live.</>
-        );
+        return <>You&apos;re approved. We&apos;ll email you when this Spotlight opens and the data room goes live.</>;
       case 'closed':
-        return <>This Spotlight has closed and its materials are no longer available.</>;
+        return <>This Spotlight has closed and its data room is no longer available.</>;
       // Pending draws the applied stepper instead; open says it with the card's Open data room.
       default:
         return null;
@@ -71,16 +70,13 @@ export const SpvHero = ({
         <div className={s.headline}>
           <h1 className={s.title}>{title}</h1>
           {descriptionHtml && <div className={s.body} dangerouslySetInnerHTML={{ __html: descriptionHtml }} />}
-          <div className={s.links}>
-            {showProfileLink && (
+          {showProfileLink && (
+            <div className={s.links}>
               <button type="button" className={s.textLink} onClick={() => onProfile('hero')}>
                 {profileComplete ? 'Edit investor profile' : 'Set up investor profile'} <EditIcon />
               </button>
-            )}
-            <a className={s.textLink} href={`mailto:${supportEmail}`}>
-              Contact us
-            </a>
-          </div>
+            </div>
+          )}
         </div>
       </div>
 

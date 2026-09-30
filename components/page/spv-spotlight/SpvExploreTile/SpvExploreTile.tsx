@@ -20,8 +20,8 @@ export const SpvExploreTile = ({ onClick }: Props) => (
       <span className={s.overline}>New to Protocol Labs?</span>
       <span className={s.title}>Explore the PL Network</span>
       <span className={s.body}>
-        {PL_NETWORK_ORGANIZATIONS_LABEL} organizations across AI, neurotech, digital rights and new economies: the
-        network this SPV comes from, and the founders, funds and labs behind it.
+        {PL_NETWORK_ORGANIZATIONS_LABEL} teams across AI, neurotech, digital rights and new economies: the network this
+        SPV comes from, and the founders, funds and labs behind it.
       </span>
       <span className={s.cta}>
         Explore PL Network <ArrowRightIcon />

@@ -437,8 +437,8 @@ export default function ActiveMemberOverview({
         </div>
       </div>
 
-      <div className={styles.redeemCard}>
-        <div>
+      <div className={styles.section}>
+        <div className={styles.sectionIntro}>
           <h2 className={styles.sectionTitle}>Redeeming PLAA</h2>
           <p className={styles.sectionDesc}>
             PLAA is redeemed through periodic buyback auctions run by the Trust. Bids are collected as a batch, settled
@@ -446,27 +446,29 @@ export default function ActiveMemberOverview({
           </p>
         </div>
 
-        <div className={styles.stepGridWrap}>
-          <div className={styles.stepConnector} />
-          <div className={styles.stepGrid}>
-            {REDEEM_STEPS.map((step) => (
-              <div key={step.title} className={styles.stepItem}>
-                <span className={styles.stepIcon}>{step.icon}</span>
-                <div className={styles.stepTitle}>{step.title}</div>
-                <div className={styles.stepDesc}>{step.description}</div>
-              </div>
-            ))}
+        <div className={styles.redeemCard}>
+          <div className={styles.stepGridWrap}>
+            <div className={styles.stepConnector} />
+            <div className={styles.stepGrid}>
+              {REDEEM_STEPS.map((step) => (
+                <div key={step.title} className={styles.stepItem}>
+                  <span className={styles.stepIcon}>{step.icon}</span>
+                  <div className={styles.stepTitle}>{step.title}</div>
+                  <div className={styles.stepDesc}>{step.description}</div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
 
-        <div className={styles.redeemFaqRow}>
-          <Question size={18} weight="regular" className={styles.redeemFaqIcon} />
-          <div className={styles.redeemFaqText}>
-            For details on eligibility, auctions, and settlement, see the{' '}
-            <Link href="/alignment-asset/faqs" onClick={handleFaqClick}>
-              FAQ
-            </Link>
-            .
+          <div className={styles.redeemFaqRow}>
+            <Question size={18} weight="regular" className={styles.redeemFaqIcon} />
+            <div className={styles.redeemFaqText}>
+              For details on eligibility, auctions, and settlement, see the{' '}
+              <Link href="/alignment-asset/faqs" onClick={handleFaqClick}>
+                FAQ
+              </Link>
+              .
+            </div>
           </div>
         </div>
       </div>

@@ -25,6 +25,6 @@ export const SPV_FAQ_ITEMS: FAQItem[] = [
   },
   {
     question: 'What happens when a Spotlight closes?',
-    answer: 'The SPV stops taking commitments and its materials are no longer available on this page.',
+    answer: 'The SPV stops taking commitments and its data room is no longer available on this page.',
   },
 ];

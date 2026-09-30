@@ -2813,7 +2813,7 @@ export const SPV_SPOTLIGHT_ANALYTICS = {
   ON_REQUEST_ACCESS_BLOCKED: 'spv-spotlight-request-access-blocked',
   ON_REQUEST_ACCESS_FAILED: 'spv-spotlight-request-access-failed',
   ON_SIGN_IN_CLICKED: 'spv-spotlight-sign-in-clicked',
-  ON_VIEW_MATERIALS_CLICKED: 'spv-spotlight-view-materials-clicked',
+  ON_OPEN_DATA_ROOM_CLICKED: 'spv-spotlight-open-data-room-clicked',
   ON_INVESTOR_PROFILE_CLICKED: 'spv-spotlight-investor-profile-clicked',
   ON_EXPLORE_TILE_CLICKED: 'spv-spotlight-explore-tile-clicked',
   ON_FOUNDER_PROFILE_CLICKED: 'spv-spotlight-founder-profile-clicked',

@@ -1,7 +1,10 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { useLoginRedirect } from '@/components/core/login/utils';
+import { usePostHog } from 'posthog-js/react';
+import { authEvents, useLoginRedirect } from '@/components/core/login/utils';
+import { broadcastLogout } from '@/components/core/login/components/BroadcastChannel';
+import { toast } from '@/components/core/ToastContainer';
 import { EditInvestorProfileDrawer } from '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfileDrawer/EditInvestorProfileDrawer';
 import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
 import {
@@ -24,6 +27,8 @@ import {
   type SpvViewerAccess,
 } from '@/services/spv-spotlight/types';
 import { checkInvestorProfileComplete } from '@/utils/member.utils';
+import { clearAllAuthCookies } from '@/utils/third-party.helper';
+import { TOAST_MESSAGES } from '@/utils/constants';
 import { SpvTopBar } from './SpvTopBar/SpvTopBar';
 import { SpvHero } from './SpvHero/SpvHero';
 import { SpvCardAction, SpvCardStatus, SpvTeamCard } from './SpvTeamCard/SpvTeamCard';
@@ -68,9 +73,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
   const { data: memberData } = useMember(isLoggedIn ? currentUser?.uid : undefined);
   const profileComplete = checkInvestorProfileComplete(memberData?.memberInfo, currentUser);
 
-  const topBarUser = currentUser?.uid
-    ? { uid: currentUser.uid, name: currentUser.name, profileImageUrl: currentUser.profileImageUrl }
-    : null;
+  const postHog = usePostHog();
 
   const [requestOpen, setRequestOpen] = useState(false);
   const [receivedEmail, setReceivedEmail] = useState<string | null>(null);
@@ -119,6 +122,34 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
     }
   };
 
+  // Production's AccountMenu logout; AuthBox (mounted on bare routes too) then
+  // reloads the tab, so the page re-reads as signed out.
+  const signOut = () => {
+    clearAllAuthCookies();
+    authEvents.emit('auth:logout');
+    toast.success(TOAST_MESSAGES.LOGOUT_MSG);
+    broadcastLogout();
+    postHog.reset();
+  };
+
+  const topBar = (
+    <SpvTopBar
+      label={TOP_BAR_LABEL}
+      account={
+        isLoggedIn
+          ? {
+              name: currentUser?.name,
+              profileImageUrl: currentUser?.profileImageUrl,
+              onProfile: () => openProfile('top-bar'),
+              onSignOut: signOut,
+            }
+          : null
+      }
+      // Hidden until auth hydrates, so a signed-in viewer never sees Sign in flash.
+      onSignIn={isHydrated ? () => signIn('top-bar') : undefined}
+    />
+  );
+
   const handleRequestSubmit = async (payload: SpvAccessRequestPayload): Promise<SpvRequestAccessOutcome> => {
     const params = baseParams();
     try {
@@ -147,7 +178,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
   if (!spotlight) {
     return (
       <div className={s.page}>
-        <SpvTopBar label={TOP_BAR_LABEL} user={topBarUser} />
+        {topBar}
         <div className={s.root}>
           <div className={s.content}>
             {isError ? (
@@ -179,7 +210,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
             note={
               isLoggedIn ? undefined : (
                 <>
-                  Already requested access?{' '}
+                  Already have an account?{' '}
                   <button type="button" className={s.inlineLink} onClick={() => signIn('card')}>
                     Sign in
                   </button>
@@ -195,16 +226,16 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
             href={spotlight.docSendUrl}
             onClick={() => {
               const params = baseParams();
-              if (params) analytics.onViewMaterialsClicked(params);
+              if (params) analytics.onOpenDataRoomClicked(params);
             }}
           />
         ) : (
-          <SpvCardStatus>Materials are being prepared</SpvCardStatus>
+          <SpvCardStatus>Data room is being prepared</SpvCardStatus>
         );
       case 'pending':
-        return <SpvCardStatus>Access requested, pending review</SpvCardStatus>;
+        return <SpvCardStatus>Data room access pending review</SpvCardStatus>;
       case 'openingSoon':
-        return <SpvCardStatus>Approved, materials open soon</SpvCardStatus>;
+        return <SpvCardStatus>Approved, data room opens soon</SpvCardStatus>;
       case 'rejected':
         return <SpvCardStatus>Data room access not approved</SpvCardStatus>;
       case 'closed':
@@ -214,8 +245,8 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
 
   return (
     <div className={s.page}>
-      {/* Contact us lives in the hero, beside the investor-profile link (as on PL Spotlight). */}
-      <SpvTopBar label={TOP_BAR_LABEL} user={topBarUser} />
+      {/* No Contact us in the bar: the FAQ subtitle and the footer carry the support email. */}
+      {topBar}
 
       <div className={s.root}>
         <div className={s.content}>

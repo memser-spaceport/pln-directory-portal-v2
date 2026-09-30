@@ -15,8 +15,8 @@ export type SpvSpotlightBaseParams = {
   view_state: SpvViewState;
 };
 
-export type SpvSignInSource = 'card' | 'already-requested-prompt' | 'applied-steps' | 'success-sheet';
-export type SpvInvestorProfileSource = 'hero' | 'applied-steps' | 'success-sheet';
+export type SpvSignInSource = 'top-bar' | 'card' | 'already-requested-prompt' | 'applied-steps' | 'success-sheet';
+export type SpvInvestorProfileSource = 'top-bar' | 'hero' | 'applied-steps' | 'success-sheet';
 
 export const useSpvSpotlightAnalytics = () => {
   const postHog = usePostHog();
@@ -58,8 +58,8 @@ export const useSpvSpotlightAnalytics = () => {
   const onSignInClicked = (params: SpvSpotlightBaseParams & { source: SpvSignInSource }) =>
     captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_SIGN_IN_CLICKED, params);
 
-  const onViewMaterialsClicked = (params: SpvSpotlightBaseParams) =>
-    captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_VIEW_MATERIALS_CLICKED, params);
+  const onOpenDataRoomClicked = (params: SpvSpotlightBaseParams) =>
+    captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_OPEN_DATA_ROOM_CLICKED, params);
 
   const onInvestorProfileClicked = (params: SpvSpotlightBaseParams & { source: SpvInvestorProfileSource }) =>
     captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_INVESTOR_PROFILE_CLICKED, params);
@@ -77,7 +77,7 @@ export const useSpvSpotlightAnalytics = () => {
     onRequestAccessBlocked,
     onRequestAccessFailed,
     onSignInClicked,
-    onViewMaterialsClicked,
+    onOpenDataRoomClicked,
     onInvestorProfileClicked,
     onExploreTileClicked,
     onFounderProfileClicked,

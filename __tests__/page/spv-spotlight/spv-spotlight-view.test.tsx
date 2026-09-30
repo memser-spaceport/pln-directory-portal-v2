@@ -9,6 +9,8 @@ import { getMockSpvSpotlight, MOCK_SPV_SLUG } from '@/services/spv-spotlight/spv
 import type { SpvSpotlight, SpvSpotlightStatus, SpvViewerAccess } from '@/services/spv-spotlight/types';
 
 const mockGoToLogin = jest.fn();
+const mockEmitAuthEvent = jest.fn();
+const mockClearAuthCookies = jest.fn();
 let mockShowExplore = false;
 
 jest.mock('@/services/explore-pl-network/constants', () => ({
@@ -23,7 +25,17 @@ jest.mock('@/services/spv-spotlight/hooks/useRequestSpvAccess', () => ({
   useRequestSpvAccess: () => ({ mutateAsync: jest.fn() }),
 }));
 jest.mock('@/services/members/hooks/useMember', () => ({ useMember: () => ({ data: undefined }) }));
-jest.mock('@/components/core/login/utils', () => ({ useLoginRedirect: () => mockGoToLogin }));
+jest.mock('@/components/core/login/utils', () => ({
+  useLoginRedirect: () => mockGoToLogin,
+  authEvents: { emit: (...args: unknown[]) => mockEmitAuthEvent(...args) },
+}));
+jest.mock('@/components/core/login/components/BroadcastChannel', () => ({ broadcastLogout: jest.fn() }));
+jest.mock('@/utils/third-party.helper', () => ({
+  ...jest.requireActual('@/utils/third-party.helper'),
+  clearAllAuthCookies: () => mockClearAuthCookies(),
+}));
+jest.mock('@/components/core/ToastContainer', () => ({ toast: { success: jest.fn() } }));
+jest.mock('posthog-js/react', () => ({ usePostHog: () => ({ reset: jest.fn() }) }));
 jest.mock('@/analytics/spv-spotlight.analytics', () => ({
   useSpvSpotlightAnalytics: () =>
     new Proxy(
@@ -35,7 +47,10 @@ jest.mock('@/analytics/spv-spotlight.analytics', () => ({
 }));
 jest.mock(
   '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfileDrawer/EditInvestorProfileDrawer',
-  () => ({ EditInvestorProfileDrawer: () => null }),
+  () => ({
+    EditInvestorProfileDrawer: ({ isOpen }: { isOpen: boolean }) =>
+      isOpen ? <div>Investor profile drawer</div> : null,
+  }),
 );
 jest.mock('embla-carousel-react', () => () => [jest.fn(), undefined]);
 
@@ -62,11 +77,16 @@ const renderView = (status: SpvSpotlightStatus, viewerAccess: SpvViewerAccess, {
   return render(<SpvSpotlightView slug={MOCK_SPV_SLUG} initialSpotlight={spotlight} />);
 };
 
+const topBar = () => screen.getByText('PL Spotlight').closest('header') as HTMLElement;
+const card = () => screen.getByRole('article');
+
 const requestButton = () => screen.queryByRole('button', { name: /Request access to data room/ });
 
 describe('SpvSpotlightView — the card action slot', () => {
   beforeEach(() => {
     mockGoToLogin.mockReset();
+    mockEmitAuthEvent.mockReset();
+    mockClearAuthCookies.mockReset();
     mockShowExplore = false;
   });
 
@@ -74,7 +94,8 @@ describe('SpvSpotlightView — the card action slot', () => {
     renderView('OPEN', 'NONE');
     expect(requestButton()).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    expect(within(card()).getByText(/Already have an account\?/)).toBeInTheDocument();
+    await userEvent.click(within(card()).getByRole('button', { name: 'Sign in' }));
     expect(mockGoToLogin).toHaveBeenCalledWith(
       expect.objectContaining({ returnTo: `/spv-spotlight/${MOCK_SPV_SLUG}` }),
     );
@@ -100,8 +121,8 @@ describe('SpvSpotlightView — the card action slot', () => {
   });
 
   it.each([
-    ['DRAFT', 'APPROVED', 'Approved, materials open soon'],
-    ['OPEN', 'PENDING', 'Access requested, pending review'],
+    ['DRAFT', 'APPROVED', 'Approved, data room opens soon'],
+    ['OPEN', 'PENDING', 'Data room access pending review'],
     ['OPEN', 'REJECTED', 'Data room access not approved'],
     ['CLOSED', 'APPROVED', 'Data room closed'],
     ['CLOSED', 'NONE', 'Data room closed'],
@@ -115,9 +136,7 @@ describe('SpvSpotlightView — the card action slot', () => {
   it('shows the applied stepper and the full About while pending', () => {
     renderView('OPEN', 'PENDING', { signedIn: true });
     expect(screen.getByText('Request submitted successfully!')).toBeInTheDocument();
-    expect(
-      screen.getByText(/^Get access to data room - subject to approval\. You will receive an email confirmation/),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Get access to data room — subject to approval.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Show less' })).toHaveAttribute('aria-expanded', 'true');
   });
 
@@ -129,7 +148,7 @@ describe('SpvSpotlightView — the card action slot', () => {
 
   it('closes for everyone', () => {
     renderView('CLOSED', 'PENDING', { signedIn: true });
-    expect(screen.getByText(/This Spotlight has closed/)).toBeInTheDocument();
+    expect(screen.getByText('This Spotlight has closed and its data room is no longer available.')).toBeInTheDocument();
     expect(screen.queryByText('Request submitted successfully!')).not.toBeInTheDocument();
   });
 
@@ -141,18 +160,36 @@ describe('SpvSpotlightView — the card action slot', () => {
     expect(link).toHaveAttribute('target', '_blank');
   });
 
-  it('puts Contact us in the hero, and the avatar (not Contact us) in the top bar', () => {
+  it('has no Contact us link in the hero or the top bar (the FAQ carries the email)', () => {
     renderView('OPEN', 'APPROVED', { signedIn: true });
-    const banner = screen.getByText('PL Spotlight').closest('header') as HTMLElement;
-    expect(within(banner).queryByRole('link', { name: 'Contact us' })).not.toBeInTheDocument();
-    expect(within(banner).getByRole('link', { name: 'Your profile' })).toHaveAttribute('href', '/members/u1');
-    expect(screen.getByRole('link', { name: 'Contact us' })).toHaveAttribute('href', `mailto:${base.supportEmail}`);
+    expect(screen.queryByRole('link', { name: 'Contact us' })).not.toBeInTheDocument();
+    // The FAQ subtitle and the footer each carry it.
+    expect(screen.getAllByRole('link', { name: base.supportEmail })).toHaveLength(2);
     expect(screen.getByRole('button', { name: /investor profile/ })).toBeInTheDocument();
   });
 
-  it('shows no avatar to a signed-out visitor', () => {
+  it('gives a signed-in viewer the account menu: their name opens the investor profile, Sign out logs out', async () => {
+    renderView('OPEN', 'APPROVED', { signedIn: true });
+    expect(within(topBar()).queryByRole('button', { name: 'Sign in' })).not.toBeInTheDocument();
+
+    await userEvent.click(within(topBar()).getByRole('button', { name: 'Account' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: /Maya Chen/ }));
+    expect(screen.getByText('Investor profile drawer')).toBeInTheDocument();
+    expect(mockGoToLogin).not.toHaveBeenCalled();
+
+    await userEvent.click(within(topBar()).getByRole('button', { name: 'Account' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: /Sign out/ }));
+    expect(mockClearAuthCookies).toHaveBeenCalled();
+    expect(mockEmitAuthEvent).toHaveBeenCalledWith('auth:logout');
+  });
+
+  it('gives a signed-out visitor Sign in in the top bar, and no account menu', async () => {
     renderView('OPEN', 'NONE');
-    expect(screen.queryByRole('link', { name: 'Your profile' })).not.toBeInTheDocument();
+    expect(within(topBar()).queryByRole('button', { name: 'Account' })).not.toBeInTheDocument();
+    await userEvent.click(within(topBar()).getByRole('button', { name: 'Sign in' }));
+    expect(mockGoToLogin).toHaveBeenCalledWith(
+      expect.objectContaining({ returnTo: `/spv-spotlight/${MOCK_SPV_SLUG}` }),
+    );
   });
 
   it('ends with the Q&A before the footer', () => {
@@ -173,13 +210,14 @@ describe('SpvSpotlightView — the card action slot', () => {
       expect(screen.getByRole('heading', { level: 1, name: base.title })).toBeInTheDocument();
       expect(screen.getByRole('heading', { name: base.team.name })).toBeInTheDocument();
       expect(requestButton()).not.toBeInTheDocument();
-      expect(screen.queryByText(/Access requested|Data room closed|not approved/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/pending review|Data room closed|not approved/)).not.toBeInTheDocument();
     });
 
     it('shows no CTA before the auth store hydrates (the server render)', () => {
       renderWithoutData(null, false);
       expect(screen.getByRole('heading', { level: 1, name: base.title })).toBeInTheDocument();
       expect(requestButton()).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Sign in' })).not.toBeInTheDocument();
     });
 
     it('offers Request access straight away to a hydrated, signed-out viewer', () => {
@@ -199,6 +237,6 @@ describe('SpvSpotlightView — the card action slot', () => {
     const tile = screen.getByRole('link', { name: /Explore the PL Network/ });
     expect(tile).toHaveAttribute('href', '/explore-pl-network');
     // The same count the Explore landing states, not the map's portfolio size.
-    expect(tile).toHaveTextContent('760+ organizations');
+    expect(tile).toHaveTextContent('750+ teams');
   });
 });

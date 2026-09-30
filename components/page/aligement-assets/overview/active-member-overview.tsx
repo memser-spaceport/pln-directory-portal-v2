@@ -21,6 +21,7 @@ import type { KpiWeightEntry } from '@/services/plaa/kpi-weights.service';
 import type { RoundStatsResponse } from '@/services/plaa/rounds.service';
 import type { TrustHoldingsData } from '@/services/plaa/trust-holdings.service';
 import OverviewTopline from './overview-topline';
+import SnapshotRoundPicker, { RoundChangeMethod } from './snapshot-round-picker';
 import styles from './overview.module.scss';
 import type { CSSProperties } from 'react';
 
@@ -78,10 +79,18 @@ export default function ActiveMemberOverview({
   roundHistory = [],
 }: ActiveMemberOverviewProps) {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const { onOverviewActivitiesLinkClicked, onOverviewFaqLinkClicked } = useAlignmentAssetsAnalytics();
+  const [selectedRoundNumber, setSelectedRoundNumber] = useState(roundStats?.roundNumber);
+  const { onOverviewActivitiesLinkClicked, onOverviewFaqLinkClicked, onOverviewSnapshotRoundChanged } =
+    useAlignmentAssetsAnalytics();
   useScrollDepthTracking('overview');
 
+  const currentRoundNumber = roundStats?.roundNumber;
+  const selectedRound = roundHistory.find((round) => round.roundNumber === selectedRoundNumber);
+  const isCurrentRoundSelected = selectedRoundNumber !== undefined && selectedRoundNumber === currentRoundNumber;
+
   const categoryStats = useMemo<CategoryStat[]>(() => {
+    // History rounds share one category list across every round, so the chart keeps its shape while browsing.
+    if (selectedRound) return selectedRound.categories;
     const points = roundStats?.chart ?? [];
     const plaa = roundStats?.tokenChart ?? [];
     const names = new Set<string>([...points.map((p) => p.name), ...plaa.map((p) => p.name)]);
@@ -93,7 +102,10 @@ export default function ActiveMemberOverview({
         points: points.find((p) => p.name === name)?.value ?? 0,
         plaa: plaa.find((p) => p.name === name)?.value ?? 0,
       }));
-  }, [roundStats]);
+  }, [roundStats, selectedRound]);
+
+  // Mid-snapshot, points are in but PLAA hasn't converted yet.
+  const isConversionPending = isCurrentRoundSelected && categoryStats.every((c) => c.plaa === 0);
 
   const maxPoints = Math.max(1, ...categoryStats.map((c) => c.points));
   const maxPlaa = Math.max(1, ...categoryStats.map((c) => c.plaa));
@@ -108,6 +120,10 @@ export default function ActiveMemberOverview({
 
   const handleActivitiesClick = () => onOverviewActivitiesLinkClicked('/alignment-asset/activities', 'cta-banner');
   const handleFaqClick = () => onOverviewFaqLinkClicked('/alignment-asset/faqs');
+  const handleRoundChange = (roundNumber: number, method: RoundChangeMethod) => {
+    onOverviewSnapshotRoundChanged(selectedRoundNumber, roundNumber, method);
+    setSelectedRoundNumber(roundNumber);
+  };
 
   return (
     <div className={styles.wrapper}>
@@ -128,20 +144,37 @@ export default function ActiveMemberOverview({
             <div>
               <div className={styles.snapshotHeaderTitle}>Points and PLAA collected by category</div>
               <div className={styles.snapshotHeaderDesc}>
-                {roundStats
-                  ? `Round ${roundStats.roundNumber} — ${roundStats.month} ${roundStats.year}`
-                  : 'Illustrative example, not a specific snapshot'}
+                {selectedRound
+                  ? `Round ${selectedRound.roundNumber} — ${selectedRound.label}`
+                  : roundStats
+                    ? `Round ${roundStats.roundNumber} — ${roundStats.month} ${roundStats.year}`
+                    : 'Illustrative example, not a specific snapshot'}
               </div>
+              {isConversionPending && (
+                <div className={styles.snapshotHeaderNote}>
+                  In progress. Points convert to PLAA at the end of the snapshot period.
+                </div>
+              )}
             </div>
-            <div className={styles.legendRow}>
-              <span className={styles.legendItem}>
-                <span className={styles.legendDot} style={cssVars({ '--ov-dot': '#0a9952' })} />
-                Points collected
-              </span>
-              <span className={styles.legendItem}>
-                <span className={styles.legendDot} style={cssVars({ '--ov-dot': '#1b4dff' })} />
-                PLAA distributed
-              </span>
+            <div className={styles.snapshotHeaderControls}>
+              {roundHistory.length > 1 && selectedRoundNumber !== undefined && (
+                <SnapshotRoundPicker
+                  rounds={roundHistory}
+                  selectedRound={selectedRoundNumber}
+                  currentRound={currentRoundNumber}
+                  onChange={handleRoundChange}
+                />
+              )}
+              <div className={styles.legendRow}>
+                <span className={styles.legendItem}>
+                  <span className={styles.legendDot} style={cssVars({ '--ov-dot': '#0a9952' })} />
+                  Points collected
+                </span>
+                <span className={styles.legendItem}>
+                  <span className={styles.legendDot} style={cssVars({ '--ov-dot': '#1b4dff' })} />
+                  PLAA distributed
+                </span>
+              </div>
             </div>
           </div>
 

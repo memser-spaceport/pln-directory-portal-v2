@@ -1,6 +1,10 @@
-import { notFound } from "next/navigation";
-import IncentiveModel, { RoundCategoryEntry, RoundOption } from "@/components/page/aligement-assets/incentive-model/incentive-model";
-import { getCurrentRoundStats, getRoundStats, RoundStatsResponse } from "@/services/plaa/rounds.service";
+import { notFound } from 'next/navigation';
+import IncentiveModel, {
+  RoundCategoryEntry,
+  RoundOption,
+} from '@/components/page/aligement-assets/incentive-model/incentive-model';
+import { getAllRoundStats, RoundStatsResponse } from '@/services/plaa/rounds.service';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
 function toCategoryEntries(data: RoundStatsResponse | undefined, categories: string[]): RoundCategoryEntry[] {
   const points = data?.chart ?? [];
@@ -13,15 +17,14 @@ function toCategoryEntries(data: RoundStatsResponse | undefined, categories: str
 }
 
 export default async function IncentiveModelPage() {
-  const { data: current } = await getCurrentRoundStats();
+  const { authToken } = await getCookiesFromHeaders();
+  const { data: rounds = [] } = await getAllRoundStats(authToken);
+  const current = rounds.find((round) => round.isCurrentRound);
   if (!current) notFound();
   const totalRounds = current.roundNumber;
 
-  // One request per round, no cache: self-maintaining as new rounds appear,
-  // at the cost of a request per round.
-  const results = await Promise.all(
-    Array.from({ length: totalRounds }, (_, i) => getRoundStats(i + 1)),
-  );
+  const byNumber = new Map(rounds.map((round) => [round.roundNumber, round]));
+  const results = Array.from({ length: totalRounds }, (_, i) => ({ data: byNumber.get(i + 1) }));
 
   // Category axis is the union of whatever the fetched rounds actually
   // contain, not a hand-typed list.

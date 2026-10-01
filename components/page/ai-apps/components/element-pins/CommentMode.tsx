@@ -281,17 +281,33 @@ export function CommentMode({
     [drafts.drafts],
   );
   const newest = elementPins.pins.at(-1) ?? null;
-  const [seenNewestId, setSeenNewestId] = useState<string | null>(newest?.id ?? null);
+  const [seen, setSeen] = useState({ newestId: newest?.id ?? null, count: elementPins.pins.length });
   const [composingPinId, setComposingPinId] = useState<string | null>(null);
   /** A pick made while a thread was open: it only closes the thread (prototype), so the pin is dropped. */
   const [discardPinId, setDiscardPinId] = useState<string | null>(null);
-  if ((newest?.id ?? null) !== seenNewestId) {
-    setSeenNewestId(newest?.id ?? null);
-    if (active && newest && !draftPinIds.has(newest.id)) {
+  if ((newest?.id ?? null) !== seen.newestId || elementPins.pins.length !== seen.count) {
+    /* Only a pin that was just added is a new pick. Removing the newest one (sent,
+       discarded) exposes an older pin as the newest — that is not a click. */
+    const added = elementPins.pins.length > seen.count;
+    setSeen({ newestId: newest?.id ?? null, count: elementPins.pins.length });
+    if (added && active && newest && !draftPinIds.has(newest.id)) {
       if (openPinUid) setDiscardPinId(newest.id);
       else setComposingPinId(newest.id);
     }
   }
+
+  /* A draft can leave the list from another tab (sent or removed there); its
+     marker in this tab's app goes with it, or it lingers as a pin with no comment. */
+  const prevDraftPinIds = useRef(draftPinIds);
+  useEffect(() => {
+    const before = prevDraftPinIds.current;
+    prevDraftPinIds.current = draftPinIds;
+    for (const id of before) {
+      if (!draftPinIds.has(id) && id !== composingPinId && elementPins.pins.some((p) => p.id === id)) {
+        elementPins.removePin(id);
+      }
+    }
+  }, [draftPinIds, composingPinId, elementPins]);
 
   /* Pending until the bridge's list drops it, so nothing here has to reset. */
   const discardPending = Boolean(discardPinId && elementPins.pins.some((p) => p.id === discardPinId));

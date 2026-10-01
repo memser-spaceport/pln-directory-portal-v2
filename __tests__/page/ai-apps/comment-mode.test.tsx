@@ -309,6 +309,33 @@ describe('CommentMode — writing', () => {
     t.cleanup();
   });
 
+  it('removing the newest pin is not a click: an older pin left behind opens no composer', () => {
+    const t = setup({}, { pins: [picked('pin-1')], isPicking: true });
+    t.bridgeIs({ pins: [picked('pin-1'), picked('pin-2')], isPicking: true });
+    expect(screen.getByRole('dialog', { name: 'New comment' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    t.bridgeIs({ pins: [picked('pin-1')], isPicking: true });
+    expect(screen.queryByRole('dialog', { name: 'New comment' })).not.toBeInTheDocument();
+    t.cleanup();
+  });
+
+  it('drops the marker of a comment sent or removed in another tab', async () => {
+    const t = setup();
+    addDraft(t);
+    await waitFor(() => expect(window.localStorage.getItem('ai-app-comment-drafts:app-1')).toContain('hosted-crop'));
+    t.spies.removePin.mockClear();
+
+    act(() => {
+      window.localStorage.removeItem('ai-app-comment-drafts:app-1');
+      window.dispatchEvent(new StorageEvent('storage', { key: 'ai-app-comment-drafts:app-1' }));
+    });
+
+    expect(screen.queryByText('Label is unclear')).not.toBeInTheDocument();
+    expect(t.spies.removePin).toHaveBeenCalledWith('pin-1');
+    t.cleanup();
+  });
+
   it('Cancel drops the new pin', () => {
     const t = setup();
     t.bridgeIs({ pins: [picked('pin-1')], isPicking: false });

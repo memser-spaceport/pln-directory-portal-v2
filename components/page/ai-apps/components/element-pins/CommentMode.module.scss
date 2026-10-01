@@ -387,6 +387,209 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   flex-shrink: 0;
 }
 
+/* ---------- writing ---------- */
+
+/* A draft's pin drops in; it shows its number in the dock, in the viewer's colour. */
+.pinDraft {
+  pointer-events: none;
+  animation: pinDrop 200ms ease-out both;
+}
+
+@keyframes pinDrop {
+  from {
+    transform: translate(0, -100%) scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: translate(0, -100%);
+    opacity: 1;
+  }
+}
+
+/* The small card beside a new pin (prototype PinComposer). */
+.composer {
+  position: fixed;
+  z-index: 11;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 300px;
+  padding: 12px;
+  border: 1px solid $border;
+}
+
+/* Production FormTextArea's field, transcribed (as the prototype does). */
+.composerField {
+  width: 100%;
+  min-height: 72px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  background: #fff;
+  outline: none;
+  color: $quiet;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+
+  &::placeholder {
+    color: #cbd5e1;
+  }
+
+  &:focus {
+    border-color: #5e718d;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+  }
+}
+
+.composerFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.draft {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 10px 10px 12px;
+  border: 1px solid $border;
+  border-left: 3px solid $brand;
+  border-radius: 10px;
+}
+
+.draftNumber {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid $border;
+  border-radius: 999px;
+  color: $quiet;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.draftBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.draftHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.draftLabel {
+  color: $ink;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* The reference's Screenshot chip: a thumbnail and the word; pressing it marks the picture up. */
+.shotChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 8px 0 2px;
+  border: 1px solid $border;
+  border-radius: 999px;
+  background: var(--background-neutral-secondary, #f8fafc);
+  color: $ink;
+  font-size: 12px;
+  cursor: pointer;
+
+  img {
+    width: 28px;
+    height: 18px;
+    border-radius: 999px;
+    object-fit: cover;
+  }
+}
+
+.shotChipPending {
+  width: 96px;
+  cursor: default;
+  background: linear-gradient(
+    90deg,
+    rgba(14, 15, 17, 0.04) 25%,
+    rgba(14, 15, 17, 0.08) 50%,
+    rgba(14, 15, 17, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.draftText {
+  margin: 0;
+  color: $quiet;
+  font-size: 13px;
+  line-height: 18px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.iconButton {
+  flex-shrink: 0;
+  display: flex;
+  padding: 4px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: $quiet;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.06);
+  }
+}
+
+.whole {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid $border;
+  border-radius: 12px;
+}
+
+.wholeLabel {
+  color: $ink;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.audience {
+  margin: 0;
+  color: $quiet;
+  font-size: 12px;
+  line-height: 16px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pin,
   .highlight {
@@ -394,7 +597,9 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   }
 
   .card,
-  .dock {
+  .dock,
+  .pinDraft,
+  .shotChipPending {
     animation: none;
   }
 }

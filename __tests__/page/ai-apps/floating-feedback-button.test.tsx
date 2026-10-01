@@ -345,15 +345,5 @@ describe('FloatingFeedbackButton', () => {
       render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={mode({ openCount: 3 })} />);
       expect(screen.getByLabelText('3 open comments')).toHaveTextContent('3');
     });
-
-    it('lets the comment-mode dock start today’s flow', () => {
-      withAccess();
-      const handle = { current: null as null | { startFeedback: () => void } };
-      render(
-        <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={mode()} controlRef={handle} />,
-      );
-      act(() => handle.current?.startFeedback());
-      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
-    });
   });
 });

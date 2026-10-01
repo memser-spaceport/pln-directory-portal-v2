@@ -1,7 +1,7 @@
 'use client';
 
 import { clsx } from 'clsx';
-import { type RefObject, useEffect, useMemo, useState } from 'react';
+import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { CloseIcon } from '@/components/icons';
@@ -11,6 +11,10 @@ import { FeedbackStatusSelector } from '@/components/page/ai-apps/AiAppFeedbackP
 import { AI_APP_FEEDBACK_STATUS_LABELS, type AiAppFeedbackStatus } from '@/services/ai-app-feedback/constants';
 import type { AiAppEnvironment, OverlayFeedbackPin } from '@/services/ai-app-feedback/ai-app-feedback.service';
 import { useUpdateAiAppFeedbackStatus } from '@/services/ai-app-feedback/hooks/useUpdateAiAppFeedbackStatus';
+import { useSubmitAiAppFeedback } from '@/services/ai-app-feedback/hooks/useSubmitAiAppFeedback';
+import type { FeedbackContext } from '@/services/ai-app-feedback/ai-app-feedback.service';
+import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
+import { toast } from '@/components/core/ToastContainer';
 import type { BridgeRect } from '@/ai-apps-bridge/protocol';
 // Forum comment rows (avatar, name, time, body), so a thread on a pin reads like
 // every other thread in the product — as the prototype does.
@@ -20,6 +24,16 @@ import fd from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/Giv
 // The status badge classes, so a reader sees the same pill the author sets.
 import st from '@/components/page/ai-apps/AiAppFeedbackPage/components/FeedbackStatusSelector/FeedbackStatusSelector.module.scss';
 import { otherEnvLabel, useFeedbackOverlay } from './useFeedbackOverlay';
+import type { ElementPinsController } from './useElementPins';
+import { hostPinCrops } from './pinsHtml';
+import {
+  commentHtml,
+  draftToPinInput,
+  generalCommentHtml,
+  type CommentDraft,
+  type CommentDrafts,
+} from './commentDrafts';
+import { CommentDock } from './CommentDock';
 
 import s from './CommentMode.module.scss';
 
@@ -30,9 +44,10 @@ import s from './CommentMode.module.scss';
  * is cross-origin, so the bridge finds each pin's element (`locate`) and
  * reports where it is (`pins:rects`), and LabOS draws over the frame.
  *
- * This is the viewing half: pins, their threads and status, and the pins that
- * can't be drawn. Writing new comments in the mode comes next; until then the
- * card's "Leave feedback" starts today's pick-and-send flow.
+ * In the mode, a click in the app drops a pin (the bridge picks; picking stays
+ * on while nothing else is open), a small composer beside it queues the
+ * comment as a draft, and the dock sends the drafts together: one feedback
+ * item per pin, plus an optional comment about the whole app.
  */
 
 const THREAD_WIDTH = 340;
@@ -144,6 +159,64 @@ export function PinThreadCard({ pin, canManage, currentEnv, isStatusPending, onS
   );
 }
 
+type Point = { x: number; y: number };
+
+/** Where a pin made this session sits: its element's rect and the click point, or nowhere. */
+function draftPoint(rect: BridgeRect | null, point: { ox: number; oy: number } | null): Point | null {
+  if (!rect) return null;
+  return { x: rect.x + rect.w * (point?.ox ?? 0), y: rect.y + rect.h * (point?.oy ?? 0) };
+}
+
+/** Beside a pin, flipped left when the right side of the window has no room. */
+function cardPosition(box: FrameBox, point: Point, minRoom = 320) {
+  const px = box.left + point.x;
+  const flip = px + THREAD_GAP + THREAD_WIDTH > window.innerWidth - 8;
+  return {
+    left: flip ? Math.max(8, px - THREAD_GAP - THREAD_WIDTH) : px + THREAD_GAP,
+    top: Math.max(8, Math.min(box.top + point.y - 16, window.innerHeight - minRoom)),
+  };
+}
+
+type ComposerProps = { onCancel: () => void; onAdd: (note: string) => void; style: { left: number; top: number } };
+
+/**
+ * The small card beside a new pin (prototype PinComposer). "Add comment", not
+ * Send: the note joins the drafts the member reviews and sends together; the
+ * screenshot is looked at (and marked up) there.
+ */
+function PinComposer({ onCancel, onAdd, style }: ComposerProps) {
+  const [text, setText] = useState('');
+  const canAdd = text.trim().length > 0;
+  return (
+    <div className={clsx(fd.root, s.composer)} style={style} role="dialog" aria-label="New comment">
+      <textarea
+        className={s.composerField}
+        rows={3}
+        maxLength={5000}
+        autoFocus
+        aria-label="Comment"
+        placeholder="What worked, what didn’t, and what would make this more useful?"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && canAdd) {
+            e.preventDefault();
+            onAdd(text);
+          }
+        }}
+      />
+      <div className={s.composerFooter}>
+        <Button style="border" variant="neutral" size="s" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button size="s" disabled={!canAdd} onClick={() => onAdd(text)}>
+          Add comment
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 type Props = {
   appUid: string;
   appName: string;
@@ -156,14 +229,17 @@ type Props = {
   canManage: boolean;
   currentPath: string | null;
   currentEnv: AiAppEnvironment;
-  /** The mode is on, and nothing else is using the frame (picking a pin for new feedback). */
+  /** The mode is on. */
   active: boolean;
   openPinUid: string | null;
   onOpenPinChange: (pinUid: string | null) => void;
   onGoToPage: (pagePath: string) => void;
   onExit: () => void;
-  /** Until writing in the mode ships: today's pick-and-send flow. */
-  onLeaveFeedback: () => void;
+  /** The bridge, for picking new pins and their crops. */
+  elementPins: ElementPinsController;
+  drafts: CommentDrafts;
+  viewerName: string;
+  getContext: () => FeedbackContext | null;
 };
 
 export function CommentMode({
@@ -181,26 +257,112 @@ export function CommentMode({
   onOpenPinChange,
   onGoToPage,
   onExit,
-  onLeaveFeedback,
+  elementPins,
+  drafts,
+  viewerName,
+  getContext,
 }: Props) {
   const overlay = useFeedbackOverlay({ iframeRef, appOrigin, frameKey, listening: true, active, pins, currentPath });
   const box = useFrameBox(iframeRef, active);
   const [hoverPinUid, setHoverPinUid] = useState<string | null>(null);
-  const [showUnplaced, setShowUnplaced] = useState(false);
   const { mutate: updateStatus, isPending, variables } = useUpdateAiAppFeedbackStatus();
+  const { mutateAsync: submitFeedback } = useSubmitAiAppFeedback();
+  const analytics = useAiAppsAnalytics();
+  const [isSending, setIsSending] = useState(false);
+  const [sentCount, setSentCount] = useState(0);
 
-  /* Esc unwinds: an open thread first, then the mode. */
+  /* ---------- a new pick: the composer, or (thread open) just closing the thread ---------- */
+
+  const draftPinIds = useMemo(
+    () => new Set(drafts.drafts.map((d) => d.bridgePinId).filter((id): id is string => Boolean(id))),
+    [drafts.drafts],
+  );
+  const newest = elementPins.pins.at(-1) ?? null;
+  const [seenNewestId, setSeenNewestId] = useState<string | null>(newest?.id ?? null);
+  const [composingPinId, setComposingPinId] = useState<string | null>(null);
+  /** A pick made while a thread was open: it only closes the thread (prototype), so the pin is dropped. */
+  const [discardPinId, setDiscardPinId] = useState<string | null>(null);
+  if ((newest?.id ?? null) !== seenNewestId) {
+    setSeenNewestId(newest?.id ?? null);
+    if (active && newest && !draftPinIds.has(newest.id)) {
+      if (openPinUid) setDiscardPinId(newest.id);
+      else setComposingPinId(newest.id);
+    }
+  }
+
+  /* Pending until the bridge's list drops it, so nothing here has to reset. */
+  const discardPending = Boolean(discardPinId && elementPins.pins.some((p) => p.id === discardPinId));
+  useEffect(() => {
+    if (!discardPending || !discardPinId) return;
+    elementPins.removePin(discardPinId);
+    onOpenPinChange(null);
+  }, [discardPending, discardPinId, elementPins, onOpenPinChange]);
+
+  /* ---------- picking stays on while the mode is on and nothing else is open ---------- */
+
+  const prevPicking = useRef(elementPins.isPicking);
+  const pinCount = useRef(elementPins.pins.length);
+  useEffect(() => {
+    const wasPicking = prevPicking.current;
+    const pickedSomething = elementPins.pins.length > pinCount.current;
+    prevPicking.current = elementPins.isPicking;
+    pinCount.current = elementPins.pins.length;
+    if (!active) {
+      if (elementPins.isPicking) elementPins.stopPicking();
+      return;
+    }
+    if (composingPinId || discardPending || elementPins.status !== 'ready' || elementPins.isPicking) return;
+    /* Picking ended without a pick: Esc pressed inside the app (the bridge holds
+       focus while picking). Same order as Esc here: the thread, then the mode. */
+    if (wasPicking && !pickedSomething) {
+      if (openPinUid) {
+        onOpenPinChange(null);
+      } else {
+        onExit();
+        return;
+      }
+    }
+    elementPins.startPicking();
+  }, [active, composingPinId, discardPending, elementPins, openPinUid, onOpenPinChange, onExit]);
+
+  /* Esc with focus in LabOS: the composer, then a thread, then the mode. */
+  const cancelComposer = useCallback(() => {
+    if (composingPinId) elementPins.removePin(composingPinId);
+    setComposingPinId(null);
+  }, [composingPinId, elementPins]);
   useEffect(() => {
     if (!active) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || event.defaultPrevented) return;
       event.preventDefault();
-      if (openPinUid) onOpenPinChange(null);
+      if (composingPinId) cancelComposer();
+      else if (openPinUid) onOpenPinChange(null);
       else onExit();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [active, openPinUid, onOpenPinChange, onExit]);
+  }, [active, composingPinId, cancelComposer, openPinUid, onOpenPinChange, onExit]);
+
+  /* ---------- crops: hosted once each finishes, so a draft survives a reload with its picture ---------- */
+
+  const hosting = useRef(new Set<string>());
+  useEffect(() => {
+    for (const draft of drafts.drafts) {
+      if (draft.cropState !== 'pending' || !draft.bridgePinId || hosting.current.has(draft.id)) continue;
+      const pin = elementPins.pins.find((p) => p.id === draft.bridgePinId);
+      if (!pin) continue;
+      if (pin.crop.status === 'failed') {
+        drafts.update(draft.id, { cropState: 'failed' });
+        continue;
+      }
+      if (pin.crop.status !== 'done') continue;
+      hosting.current.add(draft.id);
+      void hostPinCrops([pin])
+        .then(([url]) => drafts.update(draft.id, url ? { cropUrl: url, cropState: 'done' } : { cropState: 'failed' }))
+        .catch(() => drafts.update(draft.id, { cropState: 'failed' }))
+        .finally(() => hosting.current.delete(draft.id));
+    }
+  }, [drafts, elementPins.pins]);
 
   const unplaced = useMemo(() => {
     const groups = [...overlay.otherPages.entries()];
@@ -211,6 +373,63 @@ export function CommentMode({
     };
   }, [overlay.notFound, overlay.otherPages]);
 
+  /* ---------- send: one feedback item per pinned comment, plus the whole-app one ---------- */
+
+  const send = async () => {
+    if (isSending) return;
+    setIsSending(true);
+    const context = getContext() ?? undefined;
+    let sent = 0;
+    let failed = 0;
+    for (const draft of drafts.drafts) {
+      try {
+        await submitFeedback({ appUid, text: commentHtml(draft), pins: [draftToPinInput(draft)], context });
+        drafts.remove([draft.id]);
+        if (draft.bridgePinId) elementPins.removePin(draft.bridgePinId);
+        analytics.onFeedbackSubmitted({
+          appUid,
+          appName,
+          screenshotCount: draft.cropUrl ? 1 : 0,
+          hasAnnotations: Boolean(
+            draft.annotations && (draft.annotations.strokes.length || draft.annotations.shapes.length),
+          ),
+          pinCount: 1,
+        });
+        sent += 1;
+      } catch {
+        failed += 1;
+        analytics.onFeedbackSubmitFailed(appUid);
+      }
+    }
+    if (drafts.general.trim()) {
+      try {
+        await submitFeedback({ appUid, text: generalCommentHtml(drafts.general), context });
+        drafts.setGeneral('');
+        analytics.onFeedbackSubmitted({ appUid, appName, screenshotCount: 0, hasAnnotations: false });
+        sent += 1;
+      } catch {
+        failed += 1;
+        analytics.onFeedbackSubmitFailed(appUid);
+      }
+    }
+    setIsSending(false);
+    setSentCount(sent);
+    if (failed > 0) {
+      toast.error(
+        sent > 0
+          ? `Sent ${sent}, but ${failed} didn’t go through. They’re still here; try again.`
+          : 'Something went wrong. Your comments are still here; try again.',
+      );
+    }
+  };
+
+  /* The "Sent N comments" receipt, for a few seconds. */
+  useEffect(() => {
+    if (sentCount === 0) return;
+    const timer = setTimeout(() => setSentCount(0), 3000);
+    return () => clearTimeout(timer);
+  }, [sentCount]);
+
   if (!active || typeof document === 'undefined') return null;
 
   const setStatus = (pin: OverlayFeedbackPin) => (status: AiAppFeedbackStatus) => {
@@ -220,16 +439,33 @@ export function CommentMode({
 
   const open = overlay.placed.find((p) => p.pin.uid === openPinUid && p.rect);
   const outlined = overlay.placed.find((p) => p.pin.uid === (hoverPinUid ?? openPinUid) && p.rect);
+  const threadStyle = open?.rect && box ? cardPosition(box, pointIn(open.rect, open.pin)) : null;
 
-  let threadStyle: { left: number; top: number } | null = null;
-  if (open?.rect && box) {
-    const point = pointIn(open.rect, open.pin);
-    const px = box.left + point.x;
-    const flip = px + THREAD_GAP + THREAD_WIDTH > window.innerWidth - 8;
-    const left = flip ? Math.max(8, px - THREAD_GAP - THREAD_WIDTH) : px + THREAD_GAP;
-    const top = Math.max(8, Math.min(box.top + point.y - 16, window.innerHeight - 320));
-    threadStyle = { left, top };
-  }
+  const composingPin = composingPinId ? elementPins.pins.find((p) => p.id === composingPinId) : null;
+  const composingPoint = composingPin ? draftPoint(composingPin.rect, composingPin.point) : null;
+  const composerStyle = composingPoint && box ? cardPosition(box, composingPoint, 200) : null;
+  const viewerColor = getAvatarColor(viewerName);
+
+  /* This session's crop as it came from the bridge, else the hosted copy (a restored draft). */
+  const cropPreview = (draft: CommentDraft) => {
+    const pin = draft.bridgePinId ? elementPins.pins.find((p) => p.id === draft.bridgePinId) : null;
+    return pin?.crop.status === 'done' ? pin.crop.dataUrl : draft.cropUrl;
+  };
+
+  const addDraft = (note: string) => {
+    if (!composingPin) return;
+    drafts.add({
+      note,
+      element: composingPin.element,
+      point: composingPin.point,
+      env: currentEnv,
+      cropUrl: null,
+      cropState: composingPin.crop.status === 'failed' ? 'failed' : 'pending',
+      annotations: null,
+      bridgePinId: composingPin.id,
+    });
+    setComposingPinId(null);
+  };
 
   return createPortal(
     <>
@@ -269,6 +505,30 @@ export function CommentMode({
               </button>
             );
           })}
+          {/* Drafts made this page load: numbered like their rows in the dock. */}
+          {drafts.drafts.map((draft, i) => {
+            const pin = draft.bridgePinId ? elementPins.pins.find((p) => p.id === draft.bridgePinId) : null;
+            const point = pin ? draftPoint(pin.rect, pin.point) : null;
+            return point ? (
+              <span
+                key={draft.id}
+                className={clsx(s.pin, s.pinDraft)}
+                style={{ left: point.x, top: point.y, ['--pin-color' as string]: viewerColor }}
+                aria-label={`Draft comment ${i + 1}`}
+              >
+                <span className={s.pinFace}>{i + 1}</span>
+              </span>
+            ) : null;
+          })}
+          {composingPoint && (
+            <span
+              className={clsx(s.pin, s.pinDraft, s.pinActive)}
+              style={{ left: composingPoint.x, top: composingPoint.y, ['--pin-color' as string]: viewerColor }}
+              aria-hidden
+            >
+              <span className={s.pinFace}>{drafts.drafts.length + 1}</span>
+            </span>
+          )}
         </div>
       )}
 
@@ -290,88 +550,39 @@ export function CommentMode({
         </div>
       )}
 
-      <section className={clsx(fd.root, s.dock)} aria-label="Feedback on this app">
-        <div className={s.top}>
-          <span className={s.chip}>{appName}</span>
-        </div>
-        <div className={s.scroll}>
-          <p className={s.hint}>
-            {overlay.status === 'waiting'
-              ? 'Connecting to the app…'
-              : overlay.status === 'unsupported'
-                ? 'This app can’t place comments on the page yet; they’re listed below.'
-                : canManage
-                  ? 'Comments members left on this app. Open one to read it and set its status.'
-                  : 'Your comments on this app. You’ll see when the author marks one Shipped.'}
-          </p>
+      {composingPin && composerStyle && (
+        <PinComposer style={composerStyle} onCancel={cancelComposer} onAdd={addDraft} />
+      )}
 
-          {unplaced.count > 0 && (
-            <div className={s.unplaced}>
-              <button
-                type="button"
-                className={s.unplacedToggle}
-                aria-expanded={showUnplaced}
-                onClick={() => setShowUnplaced((v) => !v)}
-              >
-                Not on screen ({unplaced.count})
-                <span aria-hidden className={s.chevron} data-open={showUnplaced} />
-              </button>
-              {showUnplaced && (
-                <div className={s.unplacedBody}>
-                  {unplaced.notFound.length > 0 && (
-                    <section className={s.group}>
-                      <h3 className={s.groupTitle}>Not found on this page</h3>
-                      <ul className={s.list}>
-                        {unplaced.notFound.map((pin) => (
-                          <li key={pin.uid} className={s.item}>
-                            <PinThreadCard
-                              pin={pin}
-                              canManage={canManage}
-                              currentEnv={currentEnv}
-                              isStatusPending={statusPending(pin)}
-                              onStatus={setStatus(pin)}
-                            />
-                          </li>
-                        ))}
-                      </ul>
-                    </section>
-                  )}
-                  {unplaced.otherPages.map(([page, list]) => (
-                    <section key={page} className={s.group}>
-                      <div className={s.pageHead}>
-                        <h3 className={s.groupTitle}>
-                          <code>{page}</code> · {list.length}
-                        </h3>
-                        <button type="button" className={s.linkButton} onClick={() => onGoToPage(page)}>
-                          Go to page
-                        </button>
-                      </div>
-                      <ul className={s.list}>
-                        {list.map((pin) => (
-                          <li key={pin.uid} className={s.itemCompact}>
-                            <span className={s.dot} style={{ background: getAvatarColor(authorOf(pin)) }} aria-hidden>
-                              {initials(authorOf(pin))}
-                            </span>
-                            <span className={s.itemText}>{pin.note || 'No comment'}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </section>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-        <div className={s.footer}>
-          <Button style="link" variant="neutral" size="s" onClick={onExit}>
-            Close
-          </Button>
-          <Button size="s" onClick={onLeaveFeedback}>
-            Leave feedback
-          </Button>
-        </div>
-      </section>
+      <CommentDock
+        appName={appName}
+        drafts={drafts}
+        cropPreview={cropPreview}
+        onRemoveDraft={(draft) => {
+          drafts.remove([draft.id]);
+          if (draft.bridgePinId) elementPins.removePin(draft.bridgePinId);
+        }}
+        onClearDrafts={() => {
+          for (const draft of drafts.drafts) if (draft.bridgePinId) elementPins.removePin(draft.bridgePinId);
+          drafts.clear();
+        }}
+        sentCount={sentCount}
+        isSending={isSending}
+        onSend={send}
+        onClose={onExit}
+        status={overlay.status}
+        unplaced={unplaced}
+        renderUnplacedPin={(pin) => (
+          <PinThreadCard
+            pin={pin}
+            canManage={canManage}
+            currentEnv={currentEnv}
+            isStatusPending={statusPending(pin)}
+            onStatus={setStatus(pin)}
+          />
+        )}
+        onGoToPage={onGoToPage}
+      />
     </>,
     document.body,
   );

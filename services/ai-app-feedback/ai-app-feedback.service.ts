@@ -45,6 +45,9 @@ export interface FeedbackPinInput {
   viewportH: number;
   note: string;
   cropUrl: string | null;
+  /** Where in the element the member clicked, 0–1 of its box (BE #3467). Omitted when unknown. */
+  ox?: number;
+  oy?: number;
 }
 
 /** Where the feedback was left (backend FeedbackContextSchema). Viewport is the app frame's. */
@@ -60,7 +63,7 @@ export interface FeedbackContext {
 }
 
 /** A pin as the overlay reads it: GET /:uid/feedback/pins and /pins/mine. */
-export interface OverlayFeedbackPin extends Omit<FeedbackPinInput, 'cropUrl'> {
+export interface OverlayFeedbackPin extends Omit<FeedbackPinInput, 'cropUrl' | 'ox' | 'oy'> {
   uid: string;
   /** Where in the element the member clicked (0–1 of its box); null on older pins (they sit at its corner). */
   ox?: number | null;

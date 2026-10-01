@@ -671,8 +671,10 @@ export function TeamCandidatesPage({
                     match={suggestionMatch(selected, criteria, off)}
                   />
                 ) : !('note' in selected) ? (
-                  /* The interest press: no note to quote, so the section is its
-                   date, the CV when one went with the profile, and the reply. */
+                  /* The interest press: its date, the note when the candidate
+                   wrote one, and the CV when one went with the profile.
+                   LAB-2713: no note → no description, no placeholder, no empty
+                   block — the header's date is the whole report. */
                   <DetailsSection>
                     <DetailsSectionHeader title="Interest">
                       <span className={clsx(row.relative, rowTone.relativeTone)}>
@@ -680,18 +682,21 @@ export function TeamCandidatesPage({
                         Interested {formatRelativeDays(selected.interestedAt)}
                       </span>
                     </DetailsSectionHeader>
-                    {selected.cv && (
+                    {(selected.comment || selected.cv) && (
                       <DetailsSectionGreyContentContainer>
-                        <a href={selected.cv.url} target="_blank" rel="noopener noreferrer" className={s.cvLink}>
-                          <CvAttachmentLine
-                            cv={{
-                              fileName: selected.cv.name,
-                              size: selected.cv.size,
-                              uploadedAt: selected.interestedAt,
-                            }}
-                            variant="chip"
-                          />
-                        </a>
+                        {selected.comment && <p className={s.noteFull}>{selected.comment}</p>}
+                        {selected.cv && (
+                          <a href={selected.cv.url} target="_blank" rel="noopener noreferrer" className={s.cvLink}>
+                            <CvAttachmentLine
+                              cv={{
+                                fileName: selected.cv.name,
+                                size: selected.cv.size,
+                                uploadedAt: selected.interestedAt,
+                              }}
+                              variant="chip"
+                            />
+                          </a>
+                        )}
                       </DetailsSectionGreyContentContainer>
                     )}
                   </DetailsSection>

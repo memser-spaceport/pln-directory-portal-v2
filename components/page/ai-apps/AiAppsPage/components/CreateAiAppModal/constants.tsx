@@ -57,6 +57,14 @@ export const MODAL_INTRO =
 
 export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = [
   {
+    version: '1.15',
+    items: [
+      'Your agent can read the feedback people leave on your app, including screenshots, and work through it with you',
+      'When your agent starts on an item it marks it Viewed. Once the fix is deployed it marks it Implemented. You see the same status on the app page',
+      'Agents never move an item back to New. That, and any other status change, is still yours to make from LabOS',
+    ],
+  },
+  {
     version: '1.14',
     items: [
       'Preview is for testing, QA, and development. It sits next to Production and does not change the live app',

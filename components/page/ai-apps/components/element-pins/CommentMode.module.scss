@@ -309,6 +309,7 @@ $quiet: var(--foreground-neutral-secondary, #455468);
 .dock {
   position: fixed;
   right: 24px;
+
   bottom: 88px;
   z-index: 10;
   gap: 12px;
@@ -317,6 +318,11 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   padding: 16px;
   border: 1px solid $border;
   animation: threadIn 160ms ease-out both;
+
+  /* Beside the comments panel while it is open (hidden on phones). */
+  @include media.tablet-portrait {
+    right: calc(24px + var(--ai-app-comments-inset, 0px));
+  }
 
   @include media.mobile-only {
     right: 12px;
@@ -332,86 +338,11 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   flex-shrink: 0;
 }
 
-.scroll {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-height: 0;
-  overflow-y: auto;
-}
-
 .hint {
   margin: 0;
   color: $quiet;
   font-size: 14px;
   line-height: 20px;
-}
-
-.unplaced {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border-top: 1px solid $border;
-  padding-top: 10px;
-}
-
-.unplacedToggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0;
-  border: none;
-  background: none;
-  color: $ink;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.chevron {
-  width: 8px;
-  height: 8px;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
-  transform: rotate(45deg);
-  transition: transform 120ms ease;
-
-  &[data-open='true'] {
-    transform: rotate(-135deg);
-  }
-}
-
-.unplacedBody {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.groupTitle {
-  margin: 0;
-  color: $quiet;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-
-  code {
-    text-transform: none;
-    letter-spacing: 0;
-  }
-}
-
-.pageHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
 }
 
 .linkButton {
@@ -435,44 +366,6 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.item {
-  border: 1px solid $border;
-  border-radius: 12px;
-  overflow: hidden;
-
-  .thread {
-    padding: 12px;
-  }
-}
-
-.itemCompact {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: $ink;
-}
-
-.dot {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50% 50% 50% 4px;
-  color: #fff;
-  font-size: 9px;
-  font-weight: 600;
-}
-
-.itemText {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* ---------- writing ---------- */

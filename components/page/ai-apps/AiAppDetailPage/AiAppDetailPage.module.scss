@@ -5,6 +5,11 @@
   flex-direction: column;
   height: calc(100vh - var(--app-header-height));
   width: 100%;
+
+  /* The app narrows beside the comments panel rather than sit under it. */
+  @include media.tablet-portrait {
+    padding-right: var(--ai-app-comments-inset, 0px);
+  }
 }
 
 .iframe {

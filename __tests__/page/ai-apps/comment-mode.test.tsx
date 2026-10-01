@@ -2,6 +2,7 @@ import React from 'react';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { BRIDGE_NS, BRIDGE_VERSION } from '@/ai-apps-bridge/protocol';
+import { describeTarget, shortAgo } from '@/components/page/ai-apps/components/element-pins/CommentsDrawer';
 import {
   CommentMode,
   type ElementPinsController,
@@ -291,19 +292,90 @@ describe('CommentMode — viewing', () => {
     t.fromApp('locate:result', { results: { a: { pinId: 'loc-1', rect: { x: 1, y: 1, w: 9, h: 9 } }, v: null } });
     expect(screen.queryByRole('button', { name: /Change status/ })).not.toBeInTheDocument();
     expect(screen.getByRole('dialog', { name: 'Comment by Ada Lovelace' })).not.toHaveTextContent('New');
-    fireEvent.click(screen.getByRole('button', { name: /Not on screen/ }));
-    expect(screen.getByText('Reviewed')).toBeInTheDocument();
+    const row = within(screen.getByRole('complementary', { name: 'Comments' }))
+      .getAllByRole('listitem')
+      .find((r) => r.textContent?.includes('Note v'));
+    expect(row).toHaveTextContent('Reviewed');
     t.cleanup();
   });
 
-  it('lists comments it can’t draw: not found here, and other pages with Go to page', () => {
-    const t = setup({ pins: VIEW_PINS });
+  it('lists every comment newest first, saying where each one points', () => {
+    const t = setup({
+      pins: [
+        stored('old', {
+          createdAt: '2026-09-01T00:00:00.000Z',
+          feedback: { ...stored('old').feedback, createdAt: '2026-09-01T00:00:00.000Z' },
+        }),
+        stored('a', { tag: 'a', text: 'Draft intro' }),
+        stored('b', { pagePath: '/other' }),
+      ],
+    });
     t.fromApp('ready', LOCATE_READY);
-    t.fromApp('locate:result', { results: { a: null, c: null } });
-    fireEvent.click(screen.getByRole('button', { name: 'Not on screen (3)' }));
-    expect(screen.getByText('Not on the current version')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Go to page' }));
+    t.fromApp('locate:result', {
+      results: { a: { pinId: 'loc-1', rect: { x: 100, y: 200, w: 80, h: 40 } }, old: null },
+    });
+
+    const panel = screen.getByRole('complementary', { name: 'Comments' });
+    expect(panel).toHaveTextContent('Comments 3');
+    const rows = within(panel).getAllByRole('listitem');
+    expect(rows.map((r) => r.textContent)).toEqual([
+      expect.stringContaining('Note a'),
+      expect.stringContaining('Note b'),
+      expect.stringContaining('Note old'),
+    ]);
+    expect(rows[0]).toHaveTextContent('Link “Draft intro”');
+    expect(rows[1]).toHaveTextContent('/other');
+    expect(rows[2]).toHaveTextContent('Not on the current version');
+    t.cleanup();
+  });
+
+  it('a row opens its thread: at the pin here, after going to the page for another one', () => {
+    const t = setup({ pins: VIEW_PINS });
+    placeAll(t);
+    const panel = screen.getByRole('complementary', { name: 'Comments' });
+
+    fireEvent.click(within(panel).getByText('Note a'));
+    expect(t.onOpenPinChange).toHaveBeenLastCalledWith('a');
+
+    fireEvent.click(within(panel).getByText('Note b'));
     expect(t.onGoToPage).toHaveBeenCalledWith('/other');
+    expect(t.onOpenPinChange).toHaveBeenLastCalledWith('b');
+    t.cleanup();
+  });
+
+  it('a comment whose element is gone opens beside the panel, with its replies', () => {
+    mockComments = [];
+    const t = setup({
+      pins: [stored('gone', { feedback: { ...stored('gone').feedback, commentCount: 0 } })],
+      openPinUid: 'gone',
+    });
+    t.fromApp('ready', LOCATE_READY);
+    t.fromApp('locate:result', { results: { gone: null } });
+    const thread = screen.getByRole('dialog', { name: 'Comment by Ada Lovelace' });
+    expect(thread).toHaveTextContent('Note gone');
+    expect(within(thread).getByRole('textbox', { name: 'Reply' })).toBeInTheDocument();
+    t.cleanup();
+  });
+
+  it('filters the list by status', () => {
+    const t = setup({ pins: VIEW_PINS });
+    placeAll(t);
+    const panel = screen.getByRole('complementary', { name: 'Comments' });
+    fireEvent.change(within(panel).getByRole('combobox', { name: 'Show comments' }), {
+      target: { value: 'IMPLEMENTED' },
+    });
+    expect(within(panel).getAllByRole('listitem')).toHaveLength(1);
+    expect(panel).toHaveTextContent('Note c');
+    fireEvent.change(within(panel).getByRole('combobox', { name: 'Show comments' }), { target: { value: 'VIEWED' } });
+    expect(panel).toHaveTextContent('No Reviewed comments.');
+    t.cleanup();
+  });
+
+  it('makes room for the panel while the mode is on', () => {
+    const t = setup();
+    expect(document.documentElement.style.getPropertyValue('--ai-app-comments-inset')).toBe('380px');
+    t.unmount();
+    expect(document.documentElement.style.getPropertyValue('--ai-app-comments-inset')).toBe('');
     t.cleanup();
   });
 
@@ -582,18 +654,25 @@ describe('CommentMode — replies', () => {
     expect(screen.getAllByLabelText(/messages$/)).toHaveLength(1);
     t.cleanup();
   });
+});
 
-  it('keeps the Not on screen list from fetching every thread: replies open behind a toggle', () => {
-    mockComments = [reply('c-1', 'creator', 'Cleo Creator', 'Which chart?')];
-    const t = setup({ pins: [withReplies('a', 1)] });
-    t.fromApp('ready', LOCATE_READY);
-    t.fromApp('locate:result', { results: { a: null } });
-    fireEvent.click(screen.getByRole('button', { name: 'Not on screen (1)' }));
+describe('comments panel helpers', () => {
+  it('names a target the way a person would', () => {
+    const base = { role: null, ariaLabel: null, selector: '#x' };
+    expect(describeTarget({ ...base, tag: 'a', text: 'Draft intro via Roneil Rumburg →' })).toBe(
+      'Link “Draft intro via Roneil Rumburg →”',
+    );
+    expect(describeTarget({ ...base, tag: 'div', text: '92% match score' })).toBe('Card “92% match score”');
+    expect(describeTarget({ ...base, tag: 'div', role: 'button', text: 'Go' })).toBe('Button “Go”');
+    expect(describeTarget({ ...base, tag: 'canvas', text: '' })).toBe('Chart');
+    expect(describeTarget({ ...base, tag: 'p', text: 'x'.repeat(60) })).toMatch(/^Text “x{47}…”$/);
+  });
 
-    expect(mockCommentsFetched).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: 'Replies (1)' }));
-    expect(mockCommentsFetched).toHaveBeenCalledWith('fb-a');
-    expect(screen.getByText('Which chart?')).toBeInTheDocument();
-    t.cleanup();
+  it('says how long ago in the list’s short form', () => {
+    const now = Date.parse('2026-10-02T12:00:00.000Z');
+    expect(shortAgo('2026-10-02T11:59:40.000Z', now)).toBe('just now');
+    expect(shortAgo('2026-10-02T11:55:00.000Z', now)).toBe('5m ago');
+    expect(shortAgo('2026-10-02T07:00:00.000Z', now)).toBe('5h ago');
+    expect(shortAgo('2026-09-26T12:00:00.000Z', now)).toBe('6d ago');
   });
 });

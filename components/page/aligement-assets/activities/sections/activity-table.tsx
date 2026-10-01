@@ -19,48 +19,51 @@ const SECTION_METADATA = [
     id: 'Repeatable',
     title: 'Repeatable',
     badge: 'Monthly/Ongoing',
-    description: 'Complete these regularly to maximize points.'
+    description: 'Complete these regularly to maximize points.',
   },
   {
     id: 'Recurring',
     title: 'Recurring',
     badge: 'Periodic/Event-Based',
-    description: 'Tied to specific events or time-bound opportunities.'
+    description: 'Tied to specific events or time-bound opportunities.',
   },
   {
     id: 'One-Time',
     title: 'One-Time',
     badge: 'Foundational',
-    description: 'Typically completed once — set yourself up for success.'
-  }
+    description: 'Typically completed once — set yourself up for success.',
+  },
 ];
 
 export default function ActivityTable({ activities, onRowClick }: ActivityTableProps) {
   const { onActivitiesFormLinkClicked, onActivitiesRowClicked } = useAlignmentAssetsAnalytics();
 
   // Group activities by frequency
-  const groupedActivities = activities.reduce((acc, activity) => {
-    const freq = activity.frequency || 'Repeatable'; // fallback to Repeatable if missing
-    if (!acc[freq]) {
-      acc[freq] = [];
-    }
-    acc[freq].push(activity);
-    return acc;
-  }, {} as Record<string, Activity[]>);
+  const groupedActivities = activities.reduce(
+    (acc, activity) => {
+      const freq = activity.frequency || 'Repeatable';
+      if (!acc[freq]) {
+        acc[freq] = [];
+      }
+      acc[freq].push(activity);
+      return acc;
+    },
+    {} as Record<string, Activity[]>,
+  );
 
   // Manage expanded state for sections (all open by default)
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    'Repeatable': true,
-    'Recurring': true,
+    Repeatable: true,
+    Recurring: true,
     'One-Time': true,
   });
 
   const [mobileActiveTab, setMobileActiveTab] = useState<string>(SECTION_METADATA[0].id);
 
   const toggleSection = (id: string) => {
-    setExpandedSections(prev => ({
+    setExpandedSections((prev) => ({
       ...prev,
-      [id]: !prev[id]
+      [id]: !prev[id],
     }));
   };
 
@@ -86,9 +89,12 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
     }
 
     // Submit CTA: open the submission form. Priority: ctaLink > submissionLink > ACTIVITY_FORM_URL
-    const url = activity.popupContent.ctaLink
-      || (!activity.hasFormLink && activity.popupContent.submissionLink ? activity.popupContent.submissionLink.url : null)
-      || ACTIVITY_FORM_URL;
+    const url =
+      activity.popupContent.ctaLink ||
+      (!activity.hasFormLink && activity.popupContent.submissionLink
+        ? activity.popupContent.submissionLink.url
+        : null) ||
+      ACTIVITY_FORM_URL;
 
     onActivitiesFormLinkClicked(analyticsParams, url);
 
@@ -104,7 +110,6 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
     });
     onRowClick(activity);
   };
-
 
   return (
     <section className="activities-grouped-cards">
@@ -132,10 +137,7 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
 
         return (
           <div key={section.id} className={`activity-section ${isMobileActive ? 'mobile-active' : 'mobile-hidden'}`}>
-            <div 
-              className="activity-section__header" 
-              onClick={() => toggleSection(section.id)}
-            >
+            <div className="activity-section__header" onClick={() => toggleSection(section.id)}>
               <div className="activity-section__header-content">
                 <div className="activity-section__title-row">
                   <h2 className="activity-section__title">{section.title}</h2>
@@ -160,11 +162,7 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
             {isExpanded && (
               <div className="activity-section__grid">
                 {sectionActivities.map((activity) => (
-                  <div 
-                    key={activity.id} 
-                    className="activity-card"
-                    onClick={() => handleCardClick(activity)}
-                  >
+                  <div key={activity.id} className="activity-card" onClick={() => handleCardClick(activity)}>
                     <div className="activity-card__top">
                       <span className="activity-card__category">{activity.category}</span>
                       <div className="activity-card__top-right">
@@ -178,27 +176,27 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
 
                     <div className="activity-card__body">
                       <h3 className="activity-card__title">{activity.activity}</h3>
-                      <p className="activity-card__desc">
-                        {activity.networkValue}
-                      </p>
+                      <p className="activity-card__desc">{activity.networkValue}</p>
                     </div>
 
                     <div className="activity-card__footer">
                       <div className="activity-card__tracking">
                         {(() => {
                           const vType = activity.verificationType || (activity.isAutoTracked ? 'Auto' : 'Submission');
-                          if (vType === 'Auto') return (
-                            <>
-                              <Image src="/icons/auto-tracked.svg" alt="Auto-tracked" width={16} height={16} />
-                              <span>Auto-tracked</span>
-                            </>
-                          );
-                          if (vType === 'Manual Review') return (
-                            <>
-                              <Image src="/icons/hybrid-icon.svg" alt="Manual Review" width={16} height={16} />
-                              <span>Manual Review</span>
-                            </>
-                          );
+                          if (vType === 'Auto')
+                            return (
+                              <>
+                                <Image src="/icons/auto-tracked.svg" alt="Auto-tracked" width={16} height={16} />
+                                <span>Auto-tracked</span>
+                              </>
+                            );
+                          if (vType === 'Manual Review')
+                            return (
+                              <>
+                                <Image src="/icons/hybrid-icon.svg" alt="Manual Review" width={16} height={16} />
+                                <span>Manual Review</span>
+                              </>
+                            );
                           return (
                             <>
                               <Image src="/icons/submission.svg" alt="Submission" width={16} height={16} />
@@ -207,11 +205,8 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
                           );
                         })()}
                       </div>
-                      <button
-                        className="activity-card__submit-btn"
-                        onClick={(e) => handleCtaClick(e, activity)}
-                      >
-                        {activity.cta === 'confirm' ? 'Confirm' : (activity.popupContent.submitButtonText || 'Submit')}
+                      <button className="activity-card__submit-btn" onClick={(e) => handleCtaClick(e, activity)}>
+                        {activity.cta === 'confirm' ? 'Confirm' : activity.popupContent.submitButtonText || 'Submit'}
                       </button>
                     </div>
                   </div>
@@ -318,7 +313,9 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
           display: flex;
           flex-direction: column;
           cursor: pointer;
-          transition: box-shadow 0.2s ease, transform 0.2s ease;
+          transition:
+            box-shadow 0.2s ease,
+            transform 0.2s ease;
           height: 100%;
         }
 
@@ -462,7 +459,7 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
             -ms-overflow-style: none; /* IE and Edge */
             scrollbar-width: none; /* Firefox */
           }
-          
+
           .mobile-tabs-container::-webkit-scrollbar {
             display: none; /* Chrome, Safari and Opera */
           }
@@ -507,7 +504,7 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
           .activity-section__toggle {
             display: none;
           }
-          
+
           .activity-section__title-row {
             flex-direction: column;
             align-items: flex-start;

@@ -71,6 +71,7 @@ export function toCropDataUrl(value: unknown): string | null {
   return /^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(value) ? value : null;
 }
 
+/** A picked pin (`pin-N`) or a stored pin the bridge located again for the overlay (`loc-N`). */
 export function toPinId(value: unknown): string | null {
-  return typeof value === 'string' && /^pin-\d{1,6}$/.test(value) ? value : null;
+  return typeof value === 'string' && /^(pin|loc)-\d{1,6}$/.test(value) ? value : null;
 }

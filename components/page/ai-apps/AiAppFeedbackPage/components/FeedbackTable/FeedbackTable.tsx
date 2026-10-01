@@ -1,4 +1,6 @@
+import Link from 'next/link';
 import type { AiAppFeedbackStatus } from '@/services/ai-app-feedback/constants';
+import { SHOW_AI_APPS_FEEDBACK_OVERLAY } from '@/services/ai-apps/constants';
 import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
 
 import type { FeedbackImage } from '../../utils/splitFeedbackMedia';
@@ -42,6 +44,14 @@ export function FeedbackTable({ rows, pendingFeedbackUid, onStatusSelect, onImag
                 </td>
                 <td title={looksLikeHtml(row.text) ? undefined : row.text}>
                   <FeedbackBody text={row.text} onImageClick={onImageClick} />
+                  {SHOW_AI_APPS_FEEDBACK_OVERLAY && (row.pinCount ?? 0) > 0 && (
+                    <Link
+                      className={s.showOnPage}
+                      href={`/pl-infra/ai-apps/${encodeURIComponent(row.appUid)}?feedback=${encodeURIComponent(row.uid)}`}
+                    >
+                      Show on page
+                    </Link>
+                  )}
                 </td>
                 <td>
                   <div className={s.submitter}>

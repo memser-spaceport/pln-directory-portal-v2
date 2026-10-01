@@ -51,6 +51,7 @@
   has to read as an object above the page.
 */
 .button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -152,4 +153,30 @@
   .label {
     transition: none;
   }
+}
+
+/* Comment mode on: the same mark, lit as the active tool (prototype FeedbackFab). */
+.buttonActive {
+  background: #fff;
+  color: var(--foreground-brand-primary, #1b4dff);
+  box-shadow:
+    0 0 0 2px var(--foreground-brand-primary, #1b4dff),
+    0 6px 18px rgba(27, 77, 255, 0.2);
+}
+
+/* Open comments on the resting mark. */
+.count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  border: 2px solid #fff;
+  background: var(--foreground-neutral-primary, #0a0c11);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
 }

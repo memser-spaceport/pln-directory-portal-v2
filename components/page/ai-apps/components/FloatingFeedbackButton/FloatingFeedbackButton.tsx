@@ -1,6 +1,7 @@
 'use client';
 
-import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
+import { type Ref, type RefObject, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { clsx } from 'clsx';
 import { usePermissions } from '@/services/rbac/hooks/usePermissions';
 import { canViewAiApps } from '@/services/rbac/utils/aiApps/canViewAiApps';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
@@ -8,6 +9,7 @@ import { CommentIcon } from '@/components/icons';
 import { isOpenFeedbackChord, useShortcutLabels } from '@/components/page/ai-apps/shortcutKeys';
 import { GiveAiAppFeedbackDialog } from '../GiveAiAppFeedbackDialog';
 import { PinOverlay, PinPanel, type ElementPinsController } from '../element-pins';
+import type { FeedbackContext } from '@/services/ai-app-feedback/ai-app-feedback.service';
 
 import s from './FloatingFeedbackButton.module.scss';
 
@@ -30,7 +32,22 @@ interface Props {
    */
   elementPins?: ElementPinsController;
   iframeRef?: RefObject<HTMLIFrameElement | null>;
+  /** Where the feedback is left (detail page); passed through to the dialog. */
+  getContext?: () => FeedbackContext | null;
+  /**
+   * Comment mode on the live app (detail page, flag on, bridge can locate). When
+   * available, the button is the mode's toggle — it reads "Done" while the mode
+   * is on, and carries the count of open comments while it is off.
+   */
+  commentMode?: { available: boolean; active: boolean; openCount: number; onToggle: () => void };
+  /** Lets the comment-mode dock start today's pick-and-send flow. */
+  controlRef?: Ref<FeedbackButtonHandle>;
 }
+
+export type FeedbackButtonHandle = {
+  /** Pin mode when the app's bridge is ready, the dialog otherwise. */
+  startFeedback: () => void;
+};
 
 /**
  * Floating "Give feedback" door for the AI Apps surfaces. It opens saying its
@@ -54,7 +71,17 @@ export function FloatingFeedbackButton(props: Props) {
 
 type SubmittedApp = { label: string; value: string };
 
-function FeedbackFab({ appUid, appName, feedbackEnabled = true, elementPins, iframeRef }: Props) {
+function FeedbackFab({
+  appUid,
+  appName,
+  feedbackEnabled = true,
+  elementPins,
+  iframeRef,
+  getContext,
+  commentMode,
+  controlRef,
+}: Props) {
+  const inCommentMode = Boolean(commentMode?.available && commentMode.active);
   const [isOpen, setIsOpen] = useState(false);
   const [isPinMode, setIsPinMode] = useState(false);
   const [activePinId, setActivePinId] = useState<string | null>(null);
@@ -105,6 +132,19 @@ function FeedbackFab({ appUid, appName, feedbackEnabled = true, elementPins, ifr
     if (elementPins.pins.length === 0) elementPins.startPicking();
   }, [elementPins, appUid, analytics]);
 
+  /* Today's door, minus the comment mode: pin mode when the bridge answered, the dialog otherwise. */
+  const startFeedback = useCallback(() => {
+    if (canPin) {
+      openPinMode();
+      return;
+    }
+    setShortcutApp(null);
+    analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
+    setIsOpen(true);
+  }, [canPin, openPinMode, analytics, appUid, appName]);
+
+  useImperativeHandle(controlRef, () => ({ startFeedback }), [startFeedback]);
+
   const leavePinMode = () => {
     setIsPinMode(false);
     setActivePinId(null);
@@ -129,6 +169,10 @@ function FeedbackFab({ appUid, appName, feedbackEnabled = true, elementPins, ifr
       if (!isOpenFeedbackChord(event)) return;
       event.preventDefault();
       analytics.onFeedbackShortcutUsed({ action: 'open' });
+      if (commentMode?.available) {
+        commentMode.onToggle();
+        return;
+      }
       if (canPin && !reopenApp) {
         openPinMode();
         return;
@@ -144,7 +188,7 @@ function FeedbackFab({ appUid, appName, feedbackEnabled = true, elementPins, ifr
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isVisible, isOpen, isPinMode, canPin, openPinMode, reopenApp, appUid, appName, analytics]);
+  }, [isVisible, isOpen, isPinMode, canPin, openPinMode, reopenApp, appUid, appName, analytics, commentMode]);
 
   if (!isVisible) {
     return null;
@@ -152,28 +196,35 @@ function FeedbackFab({ appUid, appName, feedbackEnabled = true, elementPins, ifr
 
   return (
     <>
-      <div ref={wrapRef} className={s.wrap} data-collapsed={isCollapsed}>
+      <div ref={wrapRef} className={s.wrap} data-collapsed={isCollapsed && !inCommentMode}>
+        {/* With comment mode available the button is the mode's toggle, Figma-style:
+            one mark, two states ("Done" while on). The count rides the resting
+            mark only — in the mode the pins themselves are the count. */}
         <button
           type="button"
-          className={s.button}
-          aria-label="Give feedback"
+          className={clsx(s.button, inCommentMode && s.buttonActive)}
+          aria-label={inCommentMode ? 'Finish commenting' : 'Give feedback'}
+          aria-pressed={commentMode?.available ? inCommentMode : undefined}
           aria-keyshortcuts={shortcuts.openAria}
           onClick={() => {
-            if (canPin) {
-              openPinMode();
+            if (commentMode?.available) {
+              commentMode.onToggle();
               return;
             }
-            setShortcutApp(null);
-            analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
-            setIsOpen(true);
+            startFeedback();
           }}
         >
           {/* CommentIcon hardcodes its own 16px box and ignores props. */}
           <CommentIcon />
           <span className={s.label} aria-hidden>
-            <span>Give feedback</span>
-            <kbd className={s.labelKbd}>{shortcuts.open}</kbd>
+            <span>{inCommentMode ? 'Done' : 'Give feedback'}</span>
+            {!inCommentMode && <kbd className={s.labelKbd}>{shortcuts.open}</kbd>}
           </span>
+          {commentMode?.available && !inCommentMode && commentMode.openCount > 0 && (
+            <span className={s.count} aria-label={`${commentMode.openCount} open comments`}>
+              {commentMode.openCount}
+            </span>
+          )}
         </button>
       </div>
 
@@ -231,6 +282,7 @@ function FeedbackFab({ appUid, appName, feedbackEnabled = true, elementPins, ifr
             : undefined
         }
         onSubmitted={setReopenApp}
+        getContext={getContext}
         appUid={shortcutApp?.value ?? appUid}
         appName={shortcutApp?.label ?? appName}
         anchorRef={wrapRef}

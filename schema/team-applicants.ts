@@ -79,15 +79,9 @@ export const applicantRowSchema = z
     /** ISO. `appliedAt` for an application, `interestedAt` for an interest —
      *  one name, because every reader of it asks the same question ("when"). */
     createdAt: z.string().min(1),
-    /** What they wrote with an application. Always null on an interest, whose
-     *  words — if any — arrive as `note`. */
+    /** What they wrote with an application. Always null on an interest. */
     coverLetter: z.string().nullable(),
-    /**
-     * The short note an interest press may carry (LAB-2713; stored and served
-     * by LAB-2726). Optional so a server that has not grown the field yet still
-     * parses; null once it has and the candidate left none. Never set on an
-     * application, whose words are `coverLetter`.
-     */
+    /** The optional note left with an interest. Absent until the API sends it; always null on an application. */
     note: z.string().nullable().optional(),
     cv: applicantCvSchema.nullable(),
     /**

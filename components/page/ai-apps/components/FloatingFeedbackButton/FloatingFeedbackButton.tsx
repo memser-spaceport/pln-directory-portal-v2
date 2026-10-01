@@ -40,7 +40,7 @@ interface Props {
    * available, the button is "Feedback & comments": it opens one panel with two
    * tabs (prototype ai-apps-comments) — Feedback, the written form (this
    * dialog), and Comment, where comment mode draws the card and the pins. The
-   * resting mark carries the count of open comments.
+   * resting mark carries the count of comments (all of them, as the panel does).
    */
   commentMode?: {
     available: boolean;
@@ -258,7 +258,7 @@ function FeedbackFab({
             <kbd className={s.labelKbd}>{shortcuts.open}</kbd>
           </span>
           {commentsAvailable && !panelOpen && (commentMode?.count ?? 0) > 0 && (
-            <span className={s.count} aria-label={`${commentMode?.count} open comments`}>
+            <span className={s.count} aria-label={`${commentMode?.count} comments`}>
               {commentMode?.count}
             </span>
           )}

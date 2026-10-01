@@ -379,12 +379,12 @@ describe('FloatingFeedbackButton', () => {
       expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
     });
 
-    it('carries the open-comment count while the panel is closed', () => {
+    it('carries the comment count while the panel is closed', () => {
       withAccess();
       const { rerender } = render(
         <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments({ count: 3 })} />,
       );
-      expect(screen.getByLabelText('3 open comments')).toHaveTextContent('3');
+      expect(screen.getByLabelText('3 comments')).toHaveTextContent('3');
       rerender(
         <FloatingFeedbackButton
           appUid="app-1"
@@ -392,7 +392,7 @@ describe('FloatingFeedbackButton', () => {
           commentMode={comments({ count: 3, active: true })}
         />,
       );
-      expect(screen.queryByLabelText(/open comments/)).not.toBeInTheDocument();
+      expect(screen.queryByLabelText(/\d+ comments/)).not.toBeInTheDocument();
     });
 
     it('without comments it stays "Give feedback", with no tabs', () => {

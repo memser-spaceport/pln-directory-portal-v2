@@ -148,6 +148,103 @@ describe('AI Apps bridge', () => {
   });
 });
 
+describe('AI Apps bridge: what a pick means', () => {
+  let ctx: ReturnType<typeof setup>;
+  afterEach(() => ctx?.cleanup());
+
+  const box = (el: Element, rect = { x: 100, y: 100, width: 200, height: 40 }) => {
+    el.getBoundingClientRect = () => ({ ...rect, top: rect.y, left: rect.x, right: 0, bottom: 0, toJSON: () => ({}) });
+    return el;
+  };
+  const move = (el: Element, x = 150, y = 110) =>
+    el.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: x, clientY: y }));
+  const clickAt = (el: Element, x = 150, y = 110) =>
+    el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, clientX: x, clientY: y }));
+  const selected = () => ctx.posted.filter((m) => m.type === 'pick:selected').at(-1)?.payload;
+
+  /** elementFromPoint always answers with the leaf; the rule decides from there. */
+  const under = (el: Element) => {
+    (ctx.doc as any).elementFromPoint = () => el;
+  };
+
+  it('climbs from a word to the button it sits in', () => {
+    ctx = setup();
+    ctx.doc.body.innerHTML = '<button id="go"><span>Review</span> now</button>';
+    const span = ctx.doc.querySelector('span')!;
+    box(ctx.doc.getElementById('go')!);
+    under(span);
+    ctx.command('pick:start');
+    move(span);
+    clickAt(span);
+    expect(selected().element).toMatchObject({ selector: '#go', tag: 'button' });
+  });
+
+  it('climbs from a number to the card with an edge around it', () => {
+    ctx = setup();
+    ctx.doc.body.innerHTML =
+      '<div class="card" style="border: 1px solid #ccc"><div><strong>24</strong></div><small>teams</small></div>';
+    const strong = ctx.doc.querySelector('strong')!;
+    box(ctx.doc.querySelector('.card')!);
+    under(strong);
+    ctx.command('pick:start');
+    move(strong);
+    clickAt(strong);
+    expect(selected().element.tag).toBe('div');
+    expect(selected().element.html).toContain('class="card"');
+  });
+
+  it('keeps the leaf when the nearest edged ancestor fills most of the window', () => {
+    ctx = setup();
+    ctx.doc.body.innerHTML = '<main style="background: #fff"><p id="para">Some text</p></main>';
+    const p = ctx.doc.getElementById('para')!;
+    box(ctx.doc.querySelector('main')!, { x: 0, y: 0, width: 5000, height: 5000 });
+    box(p);
+    under(p);
+    ctx.command('pick:start');
+    move(p);
+    clickAt(p);
+    expect(selected().element.tag).toBe('p');
+  });
+
+  it('reports where in the element the click landed', () => {
+    ctx = setup();
+    ctx.doc.body.innerHTML = '<button id="go">Go</button>';
+    const button = box(ctx.doc.getElementById('go')!);
+    under(button);
+    ctx.command('pick:start');
+    move(button);
+    /* Box is x 100–300, y 100–140: (150, 130) is a quarter across, three quarters down. */
+    clickAt(button, 150, 130);
+    expect(selected().point).toEqual({ ox: 0.25, oy: 0.75 });
+  });
+
+  it('a tap with no hover before it picks by the same rule', () => {
+    ctx = setup();
+    ctx.doc.body.innerHTML = '<button id="go"><span>Go</span></button>';
+    const span = ctx.doc.querySelector('span')!;
+    box(ctx.doc.getElementById('go')!);
+    under(span);
+    ctx.command('pick:start');
+    clickAt(span);
+    expect(selected().element.tag).toBe('button');
+  });
+
+  it('⌥ walks up from the chosen target, and a small move over the same word keeps the walk', () => {
+    ctx = setup();
+    ctx.doc.body.innerHTML = '<section id="panel"><button id="go"><span>Go</span></button></section>';
+    const span = ctx.doc.querySelector('span')!;
+    box(ctx.doc.getElementById('go')!);
+    box(ctx.doc.getElementById('panel')!);
+    under(span);
+    ctx.command('pick:start');
+    move(span);
+    ctx.win.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt', bubbles: true }));
+    move(span, 151, 111);
+    clickAt(span);
+    expect(selected().element.selector).toBe('#panel');
+  });
+});
+
 describe('AI Apps bridge: locate (the feedback overlay)', () => {
   let ctx: ReturnType<typeof setup>;
   afterEach(() => ctx?.cleanup());

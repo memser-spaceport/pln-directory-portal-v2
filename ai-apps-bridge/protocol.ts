@@ -62,7 +62,8 @@ export type ParentMessage =
 export type AppMessage =
   /** `session` is random per page load: a new value means the app loaded a new document and our pins are gone. */
   | Msg<'ready', { capabilities: BridgeCapability[]; session: string }>
-  | Msg<'pick:selected', { pinId: string; element: ElementDescriptor }>
+  /** `point`: where in the element the click landed, as a fraction of its box (0–1). */
+  | Msg<'pick:selected', { pinId: string; element: ElementDescriptor; point: { ox: number; oy: number } }>
   | Msg<'pick:cancelled'>
   | Msg<'pins:rects', { rects: Record<string, BridgeRect | null> }>
   | Msg<'crop:result', { pinId: string; dataUrl?: string; error?: string }>

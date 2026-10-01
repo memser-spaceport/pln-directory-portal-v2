@@ -1,4 +1,5 @@
 import { describeElement, rectOf, visibleText } from './describe';
+import { pickTarget, pointWithin } from './target';
 import {
   BRIDGE_VERSION,
   LIMITS,
@@ -57,6 +58,8 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
   let locateCounter = 0;
   let picking = false;
   let hovered: Element | null = null;
+  /** The raw element under the pointer, so ⌥'s walk up survives small moves over the same element. */
+  let lastHit: Element | null = null;
   let frame = 0;
   let frameFallback = 0;
   let cropLoader: Promise<CropFn> | null = null;
@@ -121,9 +124,10 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
   };
 
   const onPointerMove = (event: PointerEvent) => {
-    const target = doc.elementFromPoint(event.clientX, event.clientY);
-    if (!target || isOwn(target) || target === hovered) return;
-    hovered = target;
+    const hit = doc.elementFromPoint(event.clientX, event.clientY);
+    if (!hit || isOwn(hit) || hit === lastHit) return;
+    lastHit = hit;
+    hovered = pickTarget(hit, win);
     paintHover();
   };
 
@@ -136,7 +140,9 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
 
   const onClick = (event: MouseEvent) => {
     swallow(event);
-    const target = hovered ?? doc.elementFromPoint(event.clientX, event.clientY);
+    /* A tap has no hover before it: pick from the point, by the same rule. */
+    const hit = hovered ? null : doc.elementFromPoint(event.clientX, event.clientY);
+    const target = hovered ?? (hit && !isOwn(hit) ? pickTarget(hit, win) : null);
     if (!target || isOwn(target)) return;
     if (picked.size >= LIMITS.pins) return;
     pinCounter += 1;
@@ -145,7 +151,14 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
     picked.add(pinId);
     watch(target);
     stopPicking();
-    send({ type: 'pick:selected', payload: { pinId, element: describeElement(target, win) } });
+    send({
+      type: 'pick:selected',
+      payload: {
+        pinId,
+        element: describeElement(target, win),
+        point: pointWithin(target, event.clientX, event.clientY),
+      },
+    });
     scheduleRects();
   };
 
@@ -157,8 +170,9 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
       send({ type: 'pick:cancelled' });
       return;
     }
-    /* Alt/⌥ walks the highlight up one ancestor per press — the innermost
-       element under the pointer is often a <span> inside the thing meant. */
+    /* Alt/⌥ walks the highlight up one ancestor per press, from the target the
+       pick rule chose — for when the thing meant is bigger than the nearest
+       control or card. */
     if (event.key === 'Alt' && hovered?.parentElement && hovered.parentElement !== doc.documentElement) {
       swallow(event);
       hovered = hovered.parentElement;
@@ -183,6 +197,7 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
     if (!picking) return;
     picking = false;
     hovered = null;
+    lastHit = null;
     outline.remove();
     cursorStyle.remove();
     win.removeEventListener('pointermove', onPointerMove, true);

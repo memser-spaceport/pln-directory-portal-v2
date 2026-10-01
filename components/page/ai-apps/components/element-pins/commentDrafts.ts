@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ElementDescriptor } from '@/ai-apps-bridge/protocol';
 import type { AiAppEnvironment, FeedbackPinInput } from '@/services/ai-app-feedback/ai-app-feedback.service';
 import {
@@ -34,75 +34,151 @@ export type CommentDraft = {
 };
 
 type Stored = { v: 1; drafts: Omit<CommentDraft, 'bridgePinId'>[]; general: string };
+type Snapshot = { drafts: CommentDraft[]; general: string };
 
 const storageKey = (appUid: string) => `ai-app-comment-drafts:${appUid}`;
 const MAX_NOTE = 5000;
+const EMPTY: Snapshot = { drafts: [], general: '' };
 
-function load(appUid: string): { drafts: CommentDraft[]; general: string } {
-  if (typeof window === 'undefined') return { drafts: [], general: '' };
+/** What this browser holds for the app; null when storage can't be read at all. */
+function read(appUid: string): Snapshot | null {
+  if (typeof window === 'undefined') return null;
   try {
     const raw = window.localStorage.getItem(storageKey(appUid));
     const parsed = raw ? (JSON.parse(raw) as Stored) : null;
-    if (!parsed || parsed.v !== 1 || !Array.isArray(parsed.drafts)) return { drafts: [], general: '' };
+    if (!parsed || parsed.v !== 1 || !Array.isArray(parsed.drafts)) return EMPTY;
     return {
-      drafts: parsed.drafts.map((d) => ({
-        ...d,
-        bridgePinId: null,
-        /* A crop that was still hosting when the page went away never will be. */
-        cropState: d.cropState === 'pending' ? 'failed' : d.cropState,
-      })),
+      drafts: parsed.drafts.map((d) => ({ ...d, bridgePinId: null })),
       general: typeof parsed.general === 'string' ? parsed.general : '',
     };
   } catch {
-    return { drafts: [], general: '' };
+    return null;
   }
+}
+
+/** False when the browser wouldn't keep it (private mode, quota). */
+function write(appUid: string, snapshot: Snapshot): boolean {
+  try {
+    const key = storageKey(appUid);
+    if (snapshot.drafts.length === 0 && !snapshot.general.trim()) {
+      window.localStorage.removeItem(key);
+      return true;
+    }
+    const stored: Stored = {
+      v: 1,
+      drafts: snapshot.drafts.map(({ bridgePinId: _bridgePinId, ...rest }) => rest),
+      general: snapshot.general,
+    };
+    window.localStorage.setItem(key, JSON.stringify(stored));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The stored drafts as this tab shows them. Only the tab that took a crop can
+ * finish hosting it, so a crop still pending that this tab isn't making reads
+ * as failed (its own tab's update flips it to done if it lands). The bridge's
+ * id for an element is this page load's, so it is kept from this tab's copy.
+ */
+function adopt(stored: Snapshot, local: Snapshot): Snapshot {
+  const mine = new Map(local.drafts.map((d) => [d.id, d]));
+  return {
+    general: stored.general,
+    drafts: stored.drafts.map((d) => {
+      const own = mine.get(d.id);
+      return {
+        ...d,
+        bridgePinId: own?.bridgePinId ?? null,
+        cropState: d.cropState === 'pending' && own?.cropState !== 'pending' ? 'failed' : d.cropState,
+      };
+    }),
+  };
 }
 
 let nextId = 1;
 const newDraftId = () => `d-${Date.now().toString(36)}-${nextId++}`;
 
+/*
+ * The same app open in two tabs shares one stored list. Each change is applied
+ * to what is stored right now, not to this tab's copy, and the other tabs pick
+ * it up from the `storage` event — so sending (or clearing) in one tab removes
+ * only what it sent, never the comments queued in another.
+ */
 export function useCommentDrafts(appUid: string) {
   /* Read once per app; comment mode renders client-side only, after a click. */
-  const [state, setState] = useState(() => ({ appUid, ...load(appUid) }));
-  if (state.appUid !== appUid) setState({ appUid, ...load(appUid) });
+  const [state, setState] = useState(() => ({ appUid, ...adopt(read(appUid) ?? EMPTY, EMPTY) }));
+  if (state.appUid !== appUid) setState({ appUid, ...adopt(read(appUid) ?? EMPTY, EMPTY) });
 
+  /* The latest snapshot for the change handlers, which may run several times before a render. */
+  const latest = useRef(state);
   useEffect(() => {
-    try {
-      const key = storageKey(state.appUid);
-      if (state.drafts.length === 0 && !state.general.trim()) {
-        window.localStorage.removeItem(key);
-        return;
-      }
-      const stored: Stored = {
-        v: 1,
-        drafts: state.drafts.map(({ bridgePinId: _bridgePinId, ...rest }) => rest),
-        general: state.general,
-      };
-      window.localStorage.setItem(key, JSON.stringify(stored));
-    } catch {
-      /* Not kept in this browser (private mode, quota): the drafts still live in memory. */
-    }
+    latest.current = state;
   }, [state]);
 
-  const add = useCallback((draft: Omit<CommentDraft, 'id'>) => {
-    const id = newDraftId();
-    setState((s) => ({ ...s, drafts: [...s.drafts, { ...draft, note: draft.note.slice(0, MAX_NOTE), id }] }));
-    return id;
-  }, []);
-  const update = useCallback((id: string, patch: Partial<Omit<CommentDraft, 'id'>>) => {
-    setState((s) => ({ ...s, drafts: s.drafts.map((d) => (d.id === id ? { ...d, ...patch } : d)) }));
-  }, []);
-  const remove = useCallback((ids: string[]) => {
-    const gone = new Set(ids);
-    setState((s) => ({ ...s, drafts: s.drafts.filter((d) => !gone.has(d.id)) }));
-  }, []);
-  const setGeneral = useCallback(
-    (general: string) => setState((s) => ({ ...s, general: general.slice(0, MAX_NOTE) })),
-    [],
-  );
-  const clear = useCallback(() => setState((s) => ({ ...s, drafts: [] })), []);
+  /* Once a write fails the stored list is stale, and this tab's copy is the truth. */
+  const storageKept = useRef(true);
 
-  return { drafts: state.drafts, general: state.general, add, update, remove, setGeneral, clear };
+  const commit = useCallback((change: (snapshot: Snapshot) => Snapshot) => {
+    const local = latest.current;
+    const stored = storageKept.current ? read(local.appUid) : null;
+    const next = change(stored ? adopt(stored, local) : local);
+    storageKept.current = write(local.appUid, next);
+    latest.current = { appUid: local.appUid, ...next };
+    setState(latest.current);
+  }, []);
+
+  useEffect(() => {
+    const key = storageKey(appUid);
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== key && event.key !== null) return;
+      const local = latest.current;
+      if (local.appUid !== appUid) return;
+      latest.current = { appUid, ...adopt(read(appUid) ?? EMPTY, local) };
+      setState(latest.current);
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [appUid]);
+
+  const add = useCallback(
+    (draft: Omit<CommentDraft, 'id'>) => {
+      const id = newDraftId();
+      commit((s) => ({ ...s, drafts: [...s.drafts, { ...draft, note: draft.note.slice(0, MAX_NOTE), id }] }));
+      return id;
+    },
+    [commit],
+  );
+  const update = useCallback(
+    (id: string, patch: Partial<Omit<CommentDraft, 'id'>>) => {
+      commit((s) => ({ ...s, drafts: s.drafts.map((d) => (d.id === id ? { ...d, ...patch } : d)) }));
+    },
+    [commit],
+  );
+  const remove = useCallback(
+    (ids: string[]) => {
+      const gone = new Set(ids);
+      commit((s) => ({ ...s, drafts: s.drafts.filter((d) => !gone.has(d.id)) }));
+    },
+    [commit],
+  );
+  const setGeneral = useCallback(
+    (general: string) => commit((s) => ({ ...s, general: general.slice(0, MAX_NOTE) })),
+    [commit],
+  );
+  /** After sending the whole-app comment: clears it unless it was rewritten meanwhile (here or in another tab). */
+  const clearGeneral = useCallback(
+    (sent: string) => commit((s) => (s.general === sent ? { ...s, general: '' } : s)),
+    [commit],
+  );
+  /** Clear in the dock: drops the comments this tab is showing, not ones queued since in another tab. */
+  const clear = useCallback(() => {
+    const shown = new Set(latest.current.drafts.map((d) => d.id));
+    commit((s) => ({ ...s, drafts: s.drafts.filter((d) => !shown.has(d.id)) }));
+  }, [commit]);
+
+  return { drafts: state.drafts, general: state.general, add, update, remove, setGeneral, clearGeneral, clear };
 }
 
 export type CommentDrafts = ReturnType<typeof useCommentDrafts>;

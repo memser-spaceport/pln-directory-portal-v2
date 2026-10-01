@@ -401,10 +401,11 @@ export function CommentMode({
         analytics.onFeedbackSubmitFailed(appUid);
       }
     }
-    if (drafts.general.trim()) {
+    const general = drafts.general;
+    if (general.trim()) {
       try {
-        await submitFeedback({ appUid, text: generalCommentHtml(drafts.general), context });
-        drafts.setGeneral('');
+        await submitFeedback({ appUid, text: generalCommentHtml(general), context });
+        drafts.clearGeneral(general);
         analytics.onFeedbackSubmitted({ appUid, appName, screenshotCount: 0, hasAnnotations: false });
         sent += 1;
       } catch {

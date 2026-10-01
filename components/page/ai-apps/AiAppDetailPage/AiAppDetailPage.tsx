@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
@@ -29,9 +29,13 @@ import {
   DeleteAiAppDialog,
   AiAppDetailsModal,
 } from '@/components/page/ai-apps/dynamicActionModals';
-import { SHOW_AI_APPS_ELEMENT_PINS } from '@/services/ai-apps/constants';
+import { SHOW_AI_APPS_ELEMENT_PINS, SHOW_AI_APPS_FEEDBACK_OVERLAY } from '@/services/ai-apps/constants';
+import { BRIDGE_VERSION } from '@/ai-apps-bridge/protocol';
+import type { FeedbackContext } from '@/services/ai-app-feedback/ai-app-feedback.service';
+import { useAppFeedbackPins } from '@/services/ai-app-feedback/hooks/useAppFeedbackPins';
 import { FloatingFeedbackButton } from '../components/FloatingFeedbackButton';
-import { useElementPins } from '../components/element-pins';
+import { CommentMode, normalizeAppPath, useElementPins } from '../components/element-pins';
+import type { FeedbackButtonHandle } from '../components/FloatingFeedbackButton/FloatingFeedbackButton';
 import { AiAppTagChips } from '../components/AiAppTagChips';
 import { LockIcon } from '../AiAppsPage/components/ManageAccessModal/icons';
 
@@ -83,9 +87,10 @@ const MAX_APP_TITLE_LENGTH = 200;
 /**
  * Portal-owned keys on this page's query string. They stay on the parent URL
  * and are never forwarded into the iframe (`?settings=deployment` opens a
- * LabOS modal; `path` is the legacy deep-link param).
+ * LabOS modal; `path` is the legacy deep-link param; `feedback=<uid>` opens
+ * that feedback's pins on the page).
  */
-const RESERVED_PORTAL_PARAMS = new Set(['settings', 'path']);
+const RESERVED_PORTAL_PARAMS = new Set(['settings', 'path', 'feedback']);
 
 /**
  * Exact, case-insensitive. These names are where OAuth callbacks (`?code=`),
@@ -207,6 +212,9 @@ export function AiAppDetailPage(props: Props) {
     return qs ? `?${qs}` : '';
   });
   const [appPageTitle, setAppPageTitle] = useState<string | null>(null);
+  // The app page on screen, for the feedback overlay (only this page's pins are
+  // looked for). Seeded from the deep link; then from the app's route reports.
+  const [currentAppPath, setCurrentAppPath] = useState<string | null>(initialPath);
   const [isRedeploying, setIsRedeploying] = useState(false);
   const [action, setAction] = useState<Action | null>(null);
   const [showDetails, setShowDetails] = useState(false);
@@ -366,6 +374,7 @@ export function AiAppDetailPage(props: Props) {
       const path = resolveAppPath(appOrigin, event.data.path);
       if (!path) return;
       appPathRef.current = path;
+      setCurrentAppPath(path);
       window.history.replaceState(null, '', mirroredAppUrl(basePath, path));
     };
 
@@ -418,6 +427,96 @@ export function AiAppDetailPage(props: Props) {
     appUid: uid,
   });
 
+  // Feedback in context. Creator / directory admin see every member's pins;
+  // anyone else signed in sees their own. Nothing is fetched when signed out:
+  // these are authenticated requests (customFetch reloads on a missing session).
+  const canManageApp = !!app && (app.canManage ?? (!!currentUser?.uid && currentUser.uid === app.member?.uid));
+  const overlayScope: 'all' | 'mine' | null =
+    !SHOW_AI_APPS_FEEDBACK_OVERLAY || !app || !currentUser?.uid ? null : canManageApp ? 'all' : 'mine';
+  // Shipped comments stay on the page, faded (prototype), so they're always fetched.
+  const feedbackPins = useAppFeedbackPins({
+    appUid: uid,
+    scope: overlayScope,
+    includeResolved: true,
+    enabled: overlayScope !== null,
+  });
+  // Comment mode (prototype `CommentLayer`): the feedback button toggles it; pins
+  // are only drawn while it is on. Needs the app's bridge, and a running frame.
+  const [commentModeOn, setCommentModeOn] = useState(false);
+  const [openFeedbackPin, setOpenFeedbackPin] = useState<string | null>(null);
+  const feedbackButtonRef = useRef<FeedbackButtonHandle>(null);
+  const deepLinkHandled = useRef(false);
+  // Open items on the button: one feedback item may carry several pins (older feedback).
+  const openCommentCount = useMemo(
+    () =>
+      new Set(feedbackPins.pins.filter((pin) => pin.feedback.status !== 'IMPLEMENTED').map((pin) => pin.feedbackUid))
+        .size,
+    [feedbackPins.pins],
+  );
+
+  const goToAppPage = useCallback(
+    (pagePath: string) => {
+      const frame = iframeRef.current;
+      if (!frame || !appOrigin) return;
+      /* A cross-origin frame can still be sent somewhere; the app then reports the
+         route itself. Set it here too, for apps that never report one. */
+      setCurrentAppPath(pagePath);
+      frame.src = `${appOrigin}${pagePath}`;
+    },
+    [appOrigin],
+  );
+
+  // `?feedback=<uid>` (from the feedback list's "Show on page"): once the pins
+  // are in, turn the overlay on at that feedback's first pin, on its page. The
+  // param is dropped either way, so a refresh doesn't replay it.
+  const deepLinkFeedback = searchParams.get('feedback');
+  useEffect(() => {
+    if (deepLinkHandled.current || !deepLinkFeedback || overlayScope === null || feedbackPins.isLoading) return;
+    if (frameStatus !== 'live') return;
+    deepLinkHandled.current = true;
+    const first = feedbackPins.pins.find((pin) => pin.feedbackUid === deepLinkFeedback);
+    if (first) {
+      setCommentModeOn(true);
+      setOpenFeedbackPin(first.uid);
+      if (normalizeAppPath(first.pagePath) !== normalizeAppPath(appPathRef.current ?? currentAppPath ?? '/')) {
+        goToAppPage(first.pagePath);
+      }
+    }
+    const params = new URLSearchParams(window.location.search);
+    params.delete('feedback');
+    const qs = params.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
+  }, [
+    deepLinkFeedback,
+    overlayScope,
+    feedbackPins.isLoading,
+    feedbackPins.pins,
+    frameStatus,
+    currentAppPath,
+    goToAppPage,
+  ]);
+
+  // What the feedback dialog records with a report: where it was left, on what.
+  const getFeedbackContext = useCallback((): FeedbackContext | null => {
+    if (!appOrigin) return null;
+    const frame = iframeRef.current;
+    const href = window.location.href;
+    return {
+      env: selectedEnv,
+      appPath: (appPathRef.current ?? currentAppPath ?? '/').slice(0, 2000),
+      labosUrl: href.length <= 2000 ? href : `${window.location.origin}${window.location.pathname}`.slice(0, 2000),
+      viewport: {
+        w: Math.round(frame?.clientWidth ?? window.innerWidth),
+        h: Math.round(frame?.clientHeight ?? window.innerHeight),
+      },
+      pixelRatio: Math.min(10, window.devicePixelRatio || 1),
+      touch: window.matchMedia?.('(pointer: coarse)').matches ?? false,
+      userAgent: navigator.userAgent.slice(0, 500),
+      bridge:
+        elementPins.status === 'ready' ? { version: BRIDGE_VERSION, capabilities: elementPins.capabilities } : null,
+    };
+  }, [appOrigin, selectedEnv, currentAppPath, elementPins.status, elementPins.capabilities]);
+
   const handleIframeLoad = () => {
     elementPins.onFrameLoad();
     if (!app || iframeTracked.current === app.uid) return;
@@ -469,6 +568,11 @@ export function AiAppDetailPage(props: Props) {
   // failure (previous revision still up) renders the normal layout instead.
   const showSetupCard =
     selectedEnv !== 'preview' && (needsSetup || (deployFailed && failureKind !== 'warning') || deployInProgress);
+
+  // Comment mode needs the app's bridge (kit 1.15+) and a running frame; without
+  // them the feedback button stays today's door (pins or the dialog).
+  const commentModeAvailable =
+    overlayScope !== null && elementPins.status === 'ready' && frameStatus === 'live' && !showSetupCard;
 
   // Close a card action; if the deployment modal was opened via the
   // `?settings=deployment` deep link, drop the param so a refresh/back doesn't
@@ -759,7 +863,48 @@ export function AiAppDetailPage(props: Props) {
         feedbackEnabled={app.feedbackEnabled !== false}
         elementPins={SHOW_AI_APPS_ELEMENT_PINS ? elementPins : undefined}
         iframeRef={iframeRef}
+        getContext={getFeedbackContext}
+        commentMode={
+          commentModeAvailable
+            ? {
+                available: true,
+                active: commentModeOn,
+                openCount: openCommentCount,
+                onToggle: () => {
+                  setCommentModeOn(!commentModeOn);
+                  setOpenFeedbackPin(null);
+                },
+              }
+            : undefined
+        }
+        controlRef={feedbackButtonRef}
       />
+      {commentModeAvailable && (
+        <CommentMode
+          appUid={app.uid}
+          appName={app.name}
+          iframeRef={iframeRef}
+          appOrigin={appOrigin}
+          frameKey={deployGeneration}
+          pins={feedbackPins.pins}
+          canManage={canManageApp}
+          currentPath={currentAppPath}
+          currentEnv={selectedEnv}
+          active={commentModeOn && !elementPins.isPicking && elementPins.pins.length === 0}
+          openPinUid={openFeedbackPin}
+          onOpenPinChange={setOpenFeedbackPin}
+          onGoToPage={goToAppPage}
+          onExit={() => {
+            setCommentModeOn(false);
+            setOpenFeedbackPin(null);
+          }}
+          onLeaveFeedback={() => {
+            setCommentModeOn(false);
+            setOpenFeedbackPin(null);
+            feedbackButtonRef.current?.startFeedback();
+          }}
+        />
+      )}
       {showDetails && (
         <AiAppDetailsModal
           isOpen

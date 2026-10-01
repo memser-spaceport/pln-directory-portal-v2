@@ -301,4 +301,59 @@ describe('FloatingFeedbackButton', () => {
       expect(pins.clearPins).toHaveBeenCalled();
     });
   });
+
+  describe('comment mode (the button is the mode’s toggle)', () => {
+    const openChord = () => fireEvent.keyDown(window, { key: 'Enter', ctrlKey: true, altKey: true });
+    const mode = (overrides: Partial<{ active: boolean; openCount: number }> = {}) => ({
+      available: true,
+      active: false,
+      openCount: 0,
+      onToggle: jest.fn(),
+      ...overrides,
+    });
+
+    it('toggles the mode instead of opening the dialog, by click and by the shortcut', () => {
+      withAccess();
+      const commentMode = mode();
+      render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={commentMode} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+      openChord();
+
+      expect(commentMode.onToggle).toHaveBeenCalledTimes(2);
+      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
+    });
+
+    it('reads Done while the mode is on, and drops the count', () => {
+      withAccess();
+      render(
+        <FloatingFeedbackButton
+          appUid="app-1"
+          appName="Grant Tracker"
+          commentMode={mode({ active: true, openCount: 3 })}
+        />,
+      );
+
+      const button = screen.getByRole('button', { name: 'Finish commenting' });
+      expect(button).toHaveAttribute('aria-pressed', 'true');
+      expect(button).toHaveTextContent('Done');
+      expect(screen.queryByLabelText(/open comments/)).not.toBeInTheDocument();
+    });
+
+    it('carries the open-comment count while the mode is off', () => {
+      withAccess();
+      render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={mode({ openCount: 3 })} />);
+      expect(screen.getByLabelText('3 open comments')).toHaveTextContent('3');
+    });
+
+    it('lets the comment-mode dock start today’s flow', () => {
+      withAccess();
+      const handle = { current: null as null | { startFeedback: () => void } };
+      render(
+        <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={mode()} controlRef={handle} />,
+      );
+      act(() => handle.current?.startFeedback());
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+    });
+  });
 });

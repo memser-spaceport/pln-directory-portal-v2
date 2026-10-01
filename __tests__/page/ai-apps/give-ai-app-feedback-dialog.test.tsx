@@ -242,6 +242,99 @@ describe('GiveAiAppFeedbackDialog', () => {
     expect(mockContactSupportMutate).not.toHaveBeenCalled();
   });
 
+  describe('pins and context (feedback in context)', () => {
+    const pin = {
+      id: 'pin-1',
+      element: {
+        selector: '#save',
+        tag: 'button',
+        text: 'Save',
+        html: '<button id="save">Save</button>',
+        role: null,
+        ariaLabel: null,
+        component: null,
+        source: null,
+        rect: { x: 1, y: 2, w: 3, h: 4 },
+        page: { path: '/settings', title: 'Settings', viewportW: 800, viewportH: 600 },
+      },
+      rect: { x: 1, y: 2, w: 3, h: 4 },
+      note: 'Hard to see',
+      crop: { status: 'pending' as const },
+    };
+    const context = {
+      env: 'preview' as const,
+      appPath: '/settings',
+      labosUrl: 'https://directory.example/pl-infra/ai-apps/app-1/settings',
+      viewport: { w: 800, h: 600 },
+      pixelRatio: 2,
+      touch: false,
+      userAgent: 'jest',
+      bridge: { version: 1, capabilities: ['pick', 'locate'] },
+    };
+
+    beforeEach(() =>
+      mockUseAiApps.mockReturnValue({
+        apps: [
+          { uid: 'app-1', name: 'My App' },
+          { uid: 'app-2', name: 'Other App' },
+        ],
+        isLoading: false,
+        isError: false,
+      }),
+    );
+
+    it('sends the pins as data, with where they were made, for the app on screen', async () => {
+      render(
+        <GiveAiAppFeedbackDialog
+          isOpen
+          onClose={jest.fn()}
+          appUid="app-1"
+          appName="My App"
+          pins={[pin]}
+          getContext={() => context}
+        />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+      await waitFor(() => expect(mockMutate).toHaveBeenCalled());
+      const [payload] = mockMutate.mock.calls[0];
+      expect(payload.context).toEqual(context);
+      expect(payload.pins).toEqual([
+        expect.objectContaining({
+          n: 1,
+          env: 'preview',
+          pagePath: '/settings',
+          selector: '#save',
+          note: 'Hard to see',
+        }),
+      ]);
+      expect(payload.text).toContain('Pinned elements');
+    });
+
+    it('sends neither when the feedback is switched to another app', async () => {
+      render(
+        <GiveAiAppFeedbackDialog
+          isOpen
+          onClose={jest.fn()}
+          appUid="app-1"
+          appName="My App"
+          pins={[pin]}
+          getContext={() => context}
+        />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Other App' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+      await waitFor(() => expect(mockMutate).toHaveBeenCalled());
+      const [payload] = mockMutate.mock.calls[0];
+      expect(payload.appUid).toBe('app-2');
+      expect(payload).not.toHaveProperty('pins');
+      expect(payload).not.toHaveProperty('context');
+      /* The readable copy still says what was pinned. */
+      expect(payload.text).toContain('Pinned elements');
+    });
+  });
+
   it('submits HTML feedback', async () => {
     mockUseAiApps.mockReturnValue({
       apps: [{ uid: 'app-1', name: 'My App' }],

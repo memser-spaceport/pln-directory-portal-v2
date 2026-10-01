@@ -1,13 +1,20 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { submitAiAppFeedback, type AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
+import {
+  submitAiAppFeedback,
+  type AiAppFeedbackRow,
+  type FeedbackContext,
+  type FeedbackPinInput,
+} from '@/services/ai-app-feedback/ai-app-feedback.service';
 import { AiAppFeedbackQueryKeys } from '@/services/ai-app-feedback/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 
 export interface SubmitAiAppFeedbackData {
   appUid: string;
   text: string;
+  pins?: FeedbackPinInput[];
+  context?: FeedbackContext;
 }
 
 const LIST_QUERY_KEY = [AiAppFeedbackQueryKeys.AI_APP_FEEDBACK_LIST];
@@ -17,7 +24,8 @@ export function useSubmitAiAppFeedback() {
   const { currentUser } = useCurrentUserStore();
 
   return useMutation({
-    mutationFn: ({ appUid, text }: SubmitAiAppFeedbackData) => submitAiAppFeedback(appUid, text),
+    mutationFn: ({ appUid, text, pins, context }: SubmitAiAppFeedbackData) =>
+      submitAiAppFeedback(appUid, text, { pins, context }),
     onMutate: async ({ appUid, text }: SubmitAiAppFeedbackData) => {
       await queryClient.cancelQueries({ queryKey: LIST_QUERY_KEY });
 
@@ -45,6 +53,7 @@ export function useSubmitAiAppFeedback() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: LIST_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: [AiAppFeedbackQueryKeys.AI_APP_FEEDBACK_PINS] });
     },
   });
 }

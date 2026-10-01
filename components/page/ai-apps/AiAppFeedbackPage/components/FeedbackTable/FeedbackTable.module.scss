@@ -94,3 +94,17 @@
   font-weight: 600;
   flex-shrink: 0;
 }
+
+/* Opens the app with this feedback's pins drawn on the elements they point at. */
+.showOnPage {
+  display: inline-block;
+  margin-top: 6px;
+  color: #1b4dff;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

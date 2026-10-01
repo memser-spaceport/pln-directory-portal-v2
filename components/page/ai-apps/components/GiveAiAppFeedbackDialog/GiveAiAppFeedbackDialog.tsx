@@ -42,7 +42,8 @@ import {
   type PersistentCaptureReason,
   type ScreenshotAttachment,
 } from '../screenshot-feedback';
-import { PinSummary, appendPins, type ElementPin } from '../element-pins';
+import { PinSummary, appendPinsHtml, hostPinCrops, toPinInputs, type ElementPin } from '../element-pins';
+import type { FeedbackContext, FeedbackPinInput } from '@/services/ai-app-feedback/ai-app-feedback.service';
 
 import s from './GiveAiAppFeedbackDialog.module.scss';
 
@@ -129,6 +130,12 @@ interface Props {
   pins?: ElementPin[];
   /** Returns to the pin panel without discarding anything. */
   onEditPins?: () => void;
+  /**
+   * Where the feedback is being left (detail page): env, app path, the frame's
+   * viewport, device, bridge. Read at submit time. Sent, with the pins as data,
+   * only for feedback about the app on screen (`appUid`).
+   */
+  getContext?: () => FeedbackContext | null;
 }
 
 const NO_PINS: ElementPin[] = [];
@@ -172,6 +179,7 @@ export function GiveAiAppFeedbackDialog({
   placement = 'below',
   pins = NO_PINS,
   onEditPins,
+  getContext,
 }: Props) {
   const { currentUser } = useCurrentUserStore();
   const [overlayStyle, setOverlayStyle] = useState<CSSProperties>();
@@ -431,11 +439,22 @@ export function GiveAiAppFeedbackDialog({
       return;
     }
 
+    /* Context and pins-as-data describe the app on screen; feedback switched to
+       another app in the picker gets neither (its pins would be located on the
+       wrong app). The readable pin block still goes into the text either way. */
+    const isAboutThisApp = Boolean(appUid) && app.value === appUid;
+    const context = isAboutThisApp ? (getContext?.() ?? null) : null;
+    let pinInputs: FeedbackPinInput[] = [];
+
     try {
       setIsHostingImages(true);
       trimmedMessage = await hostDataUriImages(trimmedMessage);
       trimmedMessage = await appendScreenshots(trimmedMessage, screenshots);
-      trimmedMessage = await appendPins(trimmedMessage, pins);
+      if (pins.length > 0) {
+        const crops = await hostPinCrops(pins);
+        trimmedMessage = appendPinsHtml(trimmedMessage, pins, crops);
+        if (isAboutThisApp) pinInputs = toPinInputs(pins, crops, context?.env ?? 'prod');
+      }
     } catch {
       toast.error('Image upload failed. Please try again.');
       return;
@@ -489,7 +508,12 @@ export function GiveAiAppFeedbackDialog({
     }
 
     submitAppFeedback(
-      { appUid: app.value, text: trimmedMessage },
+      {
+        appUid: app.value,
+        text: trimmedMessage,
+        ...(pinInputs.length > 0 ? { pins: pinInputs } : {}),
+        ...(context ? { context } : {}),
+      },
       {
         onSuccess: () => {
           analytics.onFeedbackSubmitted({

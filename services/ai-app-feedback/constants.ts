@@ -1,6 +1,7 @@
 export enum AiAppFeedbackQueryKeys {
   AI_APP_FEEDBACK_LIST = 'ai-app-feedback-list',
   AI_APP_FEEDBACK_PINS = 'ai-app-feedback-pins',
+  AI_APP_FEEDBACK_COMMENTS = 'ai-app-feedback-comments',
 }
 
 export const AI_APP_FEEDBACK_STATUSES = ['NEW', 'VIEWED', 'IMPLEMENTED'] as const;

@@ -73,6 +73,10 @@ export function useAiAppsAnalytics() {
     onFeedbackPinAdded: (params: { appUid: string; hasComponent: boolean; pinCount: number }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_PIN_ADDED, params),
     onFeedbackPinRemoved: (params: { appUid: string }) => capture(AI_APPS_ANALYTICS.FEEDBACK_PIN_REMOVED, params),
+    onFeedbackReplySent: (params: { appUid: string; feedbackUid: string }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_REPLY_SENT, params),
+    onFeedbackReplyDeleted: (params: { appUid: string; feedbackUid: string }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_REPLY_DELETED, params),
     onFeedbackPinDetached: (params: { appUid: string }) => capture(AI_APPS_ANALYTICS.FEEDBACK_PIN_DETACHED, params),
     onFeedbackPinCropFailed: (params: { appUid: string; error: string }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_PIN_CROP_FAILED, params),

@@ -90,6 +90,23 @@ $quiet: var(--foreground-neutral-secondary, #455468);
 
 /* Shipped: the pin stays, quieter, so the author sees what has been answered
    and the reader sees their own point landed. */
+/* Messages in the pin's conversation, comment included (prototype CommentLayer .pinCount). */
+.pinCount {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  border: 1.5px solid #fff;
+  background: $ink;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 13px;
+}
+
 .pinShipped {
   opacity: 0.45;
 
@@ -189,6 +206,99 @@ $quiet: var(--foreground-neutral-secondary, #455468);
     object-fit: contain;
     object-position: left top;
   }
+}
+
+/* ---------- the conversation under a comment (phase 2) ---------- */
+
+/* `ci.repliesWrapper` indents and spaces like the forum; inside a 340px card
+   its 24px gap and top margin are too loose. */
+.replies {
+  gap: 16px;
+  margin-top: 0;
+}
+
+.repliesNote {
+  margin: 0;
+  color: $quiet;
+  font-size: 13px;
+}
+
+.repliesToggle {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  color: $brand;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.replyPending {
+  opacity: 0.55;
+}
+
+.shippedNote {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--background-success-secondary, #ecfdf3);
+  color: var(--foreground-success-primary, #067647);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.replyDelete {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: $quiet;
+  font-size: 12px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-danger-primary, #d92d20);
+  }
+}
+
+.replyConfirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 0;
+  color: $ink;
+  font-size: 13px;
+}
+
+.linkButtonDanger {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--foreground-danger-primary, #d92d20);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* The prototype's reply row: one line that grows, and the button beside it. */
+.replyRow {
+  flex-wrap: nowrap;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+.replyInput {
+  flex: 1;
+  min-height: 0;
+  padding: 8px 12px;
+  resize: none;
 }
 
 /* ---------- the dock ---------- */

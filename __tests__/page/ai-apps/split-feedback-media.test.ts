@@ -1,5 +1,8 @@
 import { splitFeedbackMedia } from '@/components/page/ai-apps/AiAppFeedbackPage/utils/splitFeedbackMedia';
 import { serializeAnnotations } from '@/components/page/ai-apps/components/screenshot-feedback/types';
+import { pinsHtml } from '@/components/page/ai-apps/components/element-pins/pinsHtml';
+import type { ElementPin } from '@/components/page/ai-apps/components/element-pins/types';
+import { sanitizeAiAppFeedbackHtml } from '@/utils/html';
 
 describe('splitFeedbackMedia', () => {
   it('leaves a body with no images untouched', () => {
@@ -130,5 +133,23 @@ describe('splitFeedbackMedia', () => {
     const { images } = splitFeedbackMedia("<p><img src='https://cdn.test/a.png' alt='shot'></p>");
 
     expect(images[0]).toMatchObject({ src: 'https://cdn.test/a.png', alt: 'shot' });
+  });
+
+  /* Pin crops are already crops, of any shape: the viewer must fit them, not
+     crop them again. The flag has to survive the real sanitizer, which is what
+     sits between the stored body and this function. */
+  it('flags element-pin crops, through the feedback sanitizer, and only those', () => {
+    const pin = {
+      note: 'Looks disabled',
+      element: { selector: '#review', tag: 'button', component: null, page: { path: '/pins' } },
+    } as unknown as ElementPin;
+    const body = `<p><img src="https://cdn.test/shot.png" alt="Screenshot"></p>${pinsHtml([pin], ['https://cdn.test/crop.webp'])}`;
+
+    const { images } = splitFeedbackMedia(sanitizeAiAppFeedbackHtml(body));
+
+    expect(images.map((image) => [image.src, image.isPinCrop])).toEqual([
+      ['https://cdn.test/shot.png', false],
+      ['https://cdn.test/crop.webp', true],
+    ]);
   });
 });

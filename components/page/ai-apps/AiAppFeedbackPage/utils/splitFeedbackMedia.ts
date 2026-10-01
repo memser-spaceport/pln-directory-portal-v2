@@ -1,10 +1,13 @@
 import { hasAnyAnnotation, parseAnnotations, type AnnotationState } from '../../components/screenshot-feedback/types';
+import { PIN_CROP_CLASS } from '../../components/element-pins/pinsHtml';
 
 export type FeedbackImage = {
   src: string;
   alt: string;
   annotations: AnnotationState | null;
   hasVisibleAnnotations: boolean;
+  /** A crop of one pinned element: any shape (a 585×21 input), so it is fitted, never cropped again. */
+  isPinCrop: boolean;
 };
 
 export type FeedbackMedia = {
@@ -59,6 +62,7 @@ export function splitFeedbackMedia(sanitizedHtml: string): FeedbackMedia {
       alt: attr(tag, 'alt') ?? '',
       annotations,
       hasVisibleAnnotations: hasAnyAnnotation(annotations),
+      isPinCrop: (attr(tag, 'class') ?? '').split(/\s+/).includes(PIN_CROP_CLASS),
     });
     return '';
   });

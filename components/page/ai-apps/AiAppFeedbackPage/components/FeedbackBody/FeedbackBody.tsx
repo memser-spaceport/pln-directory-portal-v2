@@ -23,6 +23,8 @@ interface Props {
  * place they stack at whatever size each capture happens to be — one tall phone
  * screenshot makes a table row hundreds of pixels deep. They are lifted out and
  * given identical tiles instead; the full image stays one click away.
+ * Element-pin crops share the strip but are fitted inside their tile, not
+ * cropped to fill it: they are already crops, of any shape.
  */
 export function FeedbackBody({ text, onImageClick }: Props) {
   if (!looksLikeHtml(text)) {
@@ -35,14 +37,20 @@ export function FeedbackBody({ text, onImageClick }: Props) {
     <div className={s.messageBlock}>
       {/* Image-only feedback is a supported submission, and an empty ql-editor
           block for it would add padding under nothing. */}
-      {textHtml.trim() && <QuillContent html={textHtml} className={s.richMessage} sanitize={sanitizeAiAppFeedbackHtml} />}
+      {textHtml.trim() && (
+        <QuillContent html={textHtml} className={s.richMessage} sanitize={sanitizeAiAppFeedbackHtml} />
+      )}
       {images.length > 0 && (
         <ul className={s.shotStrip}>
           {images.map((image, index) => (
             <li key={`${image.src}-${index}`}>
               <button
                 type="button"
-                className={clsx(s.shotTile, image.hasVisibleAnnotations && s.shotTileAnnotated)}
+                className={clsx(
+                  s.shotTile,
+                  image.isPinCrop && s.shotTilePinCrop,
+                  image.hasVisibleAnnotations && s.shotTileAnnotated,
+                )}
                 title={image.hasVisibleAnnotations ? 'View annotations' : undefined}
                 onClick={() => onImageClick(image)}
               >

@@ -48,7 +48,9 @@ jest.mock('@/components/common/profile/StoredCv/CvPreviewModal', () => ({
 /* A function declaration, not a `const`: the mock factories below are hoisted
    above it and would otherwise reach it before it is initialised. */
 function mockSection(id: string) {
-  return () => <div data-testid={id} />;
+  const Section = () => <div data-testid={id} />;
+  Section.displayName = id;
+  return Section;
 }
 jest.mock('@/components/page/member-details/ProfileDetails', () => ({
   ProfileDetails: mockSection('profile-details'),

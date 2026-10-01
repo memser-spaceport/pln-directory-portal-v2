@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 
@@ -137,8 +137,6 @@ interface JobInterestBannerProps {
   onToggle: (nextInterested: boolean, followTeam: boolean, followOffered: boolean, note: string) => void;
 }
 
-type NoteForm = { note: string };
-
 export function JobInterestBanner(props: JobInterestBannerProps) {
   const { teamName, isInterested, note, error, follow, onToggle } = props;
 
@@ -157,7 +155,10 @@ export function JobInterestBanner(props: JobInterestBannerProps) {
   const fieldName = `interestNote-${useId()}`;
   const methods = useForm<Record<string, string>>({ defaultValues: { [fieldName]: '' } });
   const typed = useWatch({ control: methods.control, name: fieldName }) ?? '';
-  const remaining = INTEREST_NOTE_MAX_LENGTH - typed.trim().length;
+  /* Counted after trimming everywhere — the counter, the hold and the server
+     (LAB-2726) agree on one number. */
+  const noteLength = typed.trim().length;
+  const remaining = INTEREST_NOTE_MAX_LENGTH - noteLength;
   const overLimit = remaining < 0;
 
   const title = isInterested ? INTEREST_CONFIRMED_TITLE : interestPromptTitle(teamName);
@@ -167,6 +168,36 @@ export function JobInterestBanner(props: JobInterestBannerProps) {
     methods.reset({ [fieldName]: '' });
     setComposing(false);
   };
+
+  /* The signal went in and then went away with no refusal attached — undone
+     from another tab, or a refetch that no longer lists the role. Nothing sent
+     from here is pending, so the box closes and forgets: reopening it
+     pre-filled with words that were already sent would invite sending them
+     twice. A refusal is the other case, and the one the box must survive: the
+     optimistic flip reverts WITH `error`, and the words stay where they were. */
+  const wasInterested = useRef(isInterested);
+  useEffect(() => {
+    if (wasInterested.current && !isInterested && !error) {
+      closeComposer();
+    }
+    wasInterested.current = isInterested;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInterested, error]);
+
+  /* The press that opens the box hands focus to the field it opened: the box
+     sits before the control in reading order, and a button that merely
+     renames itself to "Send interest" tells a screen reader nothing about a
+     field appearing above it. The field's id is `FormTextArea`'s own. */
+  useEffect(() => {
+    if (showComposer) {
+      document.getElementById(fieldName)?.focus();
+    }
+  }, [showComposer, fieldName]);
+
+  /* Focus returns to the one control that survives every state, so sending or
+     cancelling does not drop it to `<body>` with the field. */
+  const actionRef = useRef<HTMLButtonElement>(null);
+  const focusAction = () => actionRef.current?.focus();
 
   const handleAction = () => {
     if (isInterested) {
@@ -181,7 +212,13 @@ export function JobInterestBanner(props: JobInterestBannerProps) {
       return;
     }
     if (overLimit) return;
+    focusAction();
     onToggle(true, follow?.checked ?? false, Boolean(follow), typed.trim());
+  };
+
+  const handleCancel = () => {
+    closeComposer();
+    focusAction();
   };
 
   const actionLabel = isInterested ? INTEREST_UNDO_LABEL : showComposer ? INTEREST_SEND_LABEL : INTEREST_CTA_LABEL;
@@ -238,7 +275,7 @@ export function JobInterestBanner(props: JobInterestBannerProps) {
                 the reason the cover letter gives: the built-in one needs a
                 real `maxLength`, and that attribute truncates a paste. */}
             <p className={clsx(s.counter, overLimit && s.counterOver)} aria-hidden="true">
-              {typed.length} / {INTEREST_NOTE_MAX_LENGTH}
+              {noteLength} / {INTEREST_NOTE_MAX_LENGTH}
             </p>
             <p className={s.visuallyHidden} role="status">
               {overLimit ? interestNoteOverLimit(-remaining) : ''}
@@ -251,13 +288,14 @@ export function JobInterestBanner(props: JobInterestBannerProps) {
         {showComposer && (
           <button
             type="button"
-            onClick={closeComposer}
+            onClick={handleCancel}
             className={clsx(s.cancel, btn.root, btn.medium, btn.border, btn.neutral)}
           >
             {INTEREST_CANCEL_LABEL}
           </button>
         )}
         <button
+          ref={actionRef}
           type="button"
           onClick={handleAction}
           disabled={showComposer && overLimit}

@@ -181,8 +181,9 @@ describe('the banner itself', () => {
     renderBanner({ onToggle });
 
     fireEvent.click(action());
-    fireEvent.change(noteBox(), { target: { value: 'x'.repeat(INTEREST_NOTE_MAX_LENGTH + 5) } });
+    fireEvent.change(noteBox(), { target: { value: `${'x'.repeat(INTEREST_NOTE_MAX_LENGTH + 5)}   ` } });
 
+    /* Counted after trimming, the way the server counts it. */
     expect(screen.getByText(`${INTEREST_NOTE_MAX_LENGTH + 5} / ${INTEREST_NOTE_MAX_LENGTH}`)).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent(interestNoteOverLimit(5));
     expect(action()).toBeDisabled();
@@ -266,6 +267,8 @@ describe('the banner itself', () => {
     fireEvent.change(noteBox(), { target: { value: 'Still here' } });
     fireEvent.click(action());
 
+    /* The optimistic flip, then the revert that carries the refusal. */
+    rerender(<JobInterestBanner teamName={TEAM_NAME} isInterested error={null} onToggle={onToggle} />);
     rerender(
       <JobInterestBanner
         teamName={TEAM_NAME}
@@ -324,8 +327,14 @@ describe('the banner itself', () => {
     before.focus();
     expect(document.activeElement).toBe(before);
 
+    /* Opening the box hands focus to the field it opened — the one state
+       change here that is not a rename of the control. */
     fireEvent.click(before);
     expect(action()).toBe(before);
+    expect(document.activeElement).toBe(noteBox());
+
+    /* Sending hands it back to the control, which then survives the toggle. */
+    fireEvent.click(before);
     expect(document.activeElement).toBe(before);
     expect(document.activeElement).toHaveAccessibleName(INTEREST_SEND_LABEL);
 
@@ -334,6 +343,40 @@ describe('the banner itself', () => {
     expect(action()).toBe(before);
     expect(document.activeElement).toBe(before);
     expect(document.activeElement).toHaveAccessibleName(INTEREST_UNDO_LABEL);
+  });
+
+  it('hands focus back to the control on Cancel, with the field gone', () => {
+    renderBanner();
+
+    const control = action();
+    fireEvent.click(control);
+    fireEvent.click(screen.getByRole('button', { name: INTEREST_CANCEL_LABEL }));
+
+    expect(document.activeElement).toBe(control);
+    expect(document.activeElement).toHaveAccessibleName(INTEREST_CTA_LABEL);
+  });
+
+  /* The signal went in and then went away with no refusal — undone from
+     another tab, or a refetch that no longer lists the role. Nothing is
+     pending from here, so the box closes rather than reopening pre-filled with
+     words that were already sent. */
+  it('forgets a sent note when the signal is cleared from elsewhere', () => {
+    const onToggle = jest.fn();
+    const { rerender } = renderBanner({ onToggle });
+
+    fireEvent.click(action());
+    fireEvent.change(noteBox(), { target: { value: 'Already sent' } });
+    fireEvent.click(action());
+
+    rerender(
+      <JobInterestBanner teamName={TEAM_NAME} isInterested note="Already sent" error={null} onToggle={onToggle} />,
+    );
+    rerender(<JobInterestBanner teamName={TEAM_NAME} isInterested={false} error={null} onToggle={onToggle} />);
+
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(action()).toHaveAccessibleName(INTEREST_CTA_LABEL);
+    fireEvent.click(action());
+    expect(noteBox()).toHaveValue('');
   });
 
   it('announces the change for someone who pressed with a mouse', () => {

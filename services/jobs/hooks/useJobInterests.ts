@@ -110,9 +110,13 @@ export function useToggleJobInterest(memberUid: string | undefined) {
 
       queryClient.setQueryData<JobInterest[]>(key, (old = []) => {
         if (!nextInterested) return old.filter((interest) => interest.jobUid !== roleUid);
-        /* A repeat press with a note replaces the stored one (LAB-2726), so the
-           row's note follows the press even when the row already exists. */
+        /* A repeat press WITH a note replaces the stored one (LAB-2726), so the
+           row's note follows the press even when the row already exists. A
+           repeat press without one — the login round-trip re-marking a role
+           already marked — leaves the stored note alone here and lets the
+           refetch say what the server did with it. */
         if (old.some((interest) => interest.jobUid === roleUid)) {
+          if (!trimmedNote) return old;
           return old.map((interest) => (interest.jobUid === roleUid ? { ...interest, note: trimmedNote } : interest));
         }
         /* A stand-in row, not a guess at the server's. Only `jobUid` and `note`
@@ -145,7 +149,7 @@ export function useToggleJobInterest(memberUid: string | undefined) {
             uid: `pending:${result.jobUid}`,
             jobUid: result.jobUid,
             interestedAt: new Date().toISOString(),
-            note: result.note ?? note?.trim() ?? null,
+            note: result.note ?? (note?.trim() || null),
           },
         ];
       });

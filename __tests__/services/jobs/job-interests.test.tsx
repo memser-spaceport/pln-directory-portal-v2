@@ -204,6 +204,23 @@ describe('the optimistic toggle', () => {
     release(ok(toggled(true)));
   });
 
+  /* The login round-trip re-marks a role that may already be marked, with no
+     note. The stored note is not cleared on the strength of that press; the
+     refetch says what the server kept. */
+  it('keeps a stored note when a repeat mark carries none', async () => {
+    let release: (value: unknown) => void = () => {};
+    fetchMock.mockReturnValue(new Promise((resolve) => (release = resolve)));
+
+    const { client, result } = harness();
+    client.setQueryData(KEY, [{ ...ROW, note: 'Kept' }]);
+    result.current.mutate({ roleUid: 'r1', nextInterested: true });
+
+    await waitFor(() => expect(result.current.isPending).toBe(true));
+    expect((rows(client)?.[0] as { note?: string | null }).note).toBe('Kept');
+
+    release(ok(toggled(true)));
+  });
+
   it('puts the screen back when the server refuses', async () => {
     fetchMock.mockResolvedValue(fail(500, { message: 'boom' }));
 

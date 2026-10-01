@@ -19,5 +19,5 @@ export {
 } from './pinsHtml';
 export type { ElementPin } from './types';
 export { CommentMode, PinThreadCard } from './CommentMode';
-export { useCommentDrafts, commentHtml, generalCommentHtml, draftToPinInput, type CommentDraft } from './commentDrafts';
+export { commentHtml, toPinInput, type PinnedComment } from './commentPost';
 export { useFeedbackOverlay, normalizeAppPath, type OverlayStatus, type PlacedFeedbackPin } from './useFeedbackOverlay';

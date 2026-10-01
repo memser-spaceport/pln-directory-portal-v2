@@ -1,6 +1,15 @@
 'use client';
 
-import { type CSSProperties, type RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  type ReactNode,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { flushSync } from 'react-dom';
 import clsx from 'clsx';
 import { useForm, FormProvider } from 'react-hook-form';
@@ -136,6 +145,11 @@ interface Props {
    * only for feedback about the app on screen (`appUid`).
    */
   getContext?: () => FeedbackContext | null;
+  /**
+   * Replaces the "Give feedback" title: on an app whose page can take comments,
+   * the dialog is the Feedback tab of one panel (Comment / Feedback).
+   */
+  headerTabs?: ReactNode;
 }
 
 const NO_PINS: ElementPin[] = [];
@@ -180,6 +194,7 @@ export function GiveAiAppFeedbackDialog({
   pins = NO_PINS,
   onEditPins,
   getContext,
+  headerTabs,
 }: Props) {
   const { currentUser } = useCurrentUserStore();
   const [overlayStyle, setOverlayStyle] = useState<CSSProperties>();
@@ -626,7 +641,7 @@ export function GiveAiAppFeedbackDialog({
       >
         <div className={s.root}>
           <div className={s.header}>
-            <h2 className={s.title}>Give feedback</h2>
+            {headerTabs ?? <h2 className={s.title}>Give feedback</h2>}
             <div className={s.headerActions}>
               <button
                 type="button"

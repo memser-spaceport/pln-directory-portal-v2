@@ -16,7 +16,9 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
     appName,
     onSubmitted,
     onClose,
+    headerTabs,
   }: {
+    headerTabs?: React.ReactNode;
     isOpen: boolean;
     anchorRef?: { current: HTMLElement | null };
     placement?: string;
@@ -26,6 +28,7 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
   }) =>
     isOpen ? (
       <div data-placement={placement} data-app-name={appName ?? ''}>
+        {headerTabs}
         {anchorRef?.current ? 'Feedback dialog open' : 'Feedback dialog unanchored'}
         <button type="button" onClick={() => onSubmitted?.({ label: 'Chosen App', value: 'chosen-app' })}>
           Complete submit
@@ -302,73 +305,102 @@ describe('FloatingFeedbackButton', () => {
     });
   });
 
-  describe('comment mode (the button is the mode’s toggle)', () => {
+  describe('feedback & comments (one panel, two tabs)', () => {
     const openChord = () => fireEvent.keyDown(window, { key: 'Enter', ctrlKey: true, altKey: true });
-    const mode = (overrides: Partial<{ active: boolean; openCount: number; draftCount: number }> = {}) => ({
+    const comments = (overrides: Partial<{ active: boolean; count: number; feedbackRequest: number }> = {}) => ({
       available: true,
       active: false,
-      openCount: 0,
-      onToggle: jest.fn(),
+      count: 0,
+      onOpen: jest.fn(),
+      onClose: jest.fn(),
+      feedbackRequest: 0,
       ...overrides,
     });
 
-    it('toggles the mode instead of opening the dialog, by click and by the shortcut', () => {
+    it('is named Feedback & comments and opens on the Feedback tab', () => {
       withAccess();
-      const commentMode = mode();
+      render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments({ count: 3 })} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Feedback & comments' }));
+
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: 'Feedback' })).toHaveAttribute('aria-selected', 'true');
+      expect(screen.getByRole('tab', { name: /Comment/ })).toHaveTextContent('3');
+    });
+
+    it('the Comment tab closes the form and turns comment mode on', () => {
+      withAccess();
+      const commentMode = comments();
       render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={commentMode} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Feedback & comments' }));
 
-      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
-      openChord();
+      fireEvent.click(screen.getByRole('tab', { name: /Comment/ }));
 
-      expect(commentMode.onToggle).toHaveBeenCalledTimes(2);
+      expect(commentMode.onOpen).toHaveBeenCalled();
       expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
     });
 
-    it('reads Done while the mode is on, and drops the count', () => {
-      withAccess();
-      render(
-        <FloatingFeedbackButton
-          appUid="app-1"
-          appName="Grant Tracker"
-          commentMode={mode({ active: true, openCount: 3 })}
-        />,
-      );
-
-      const button = screen.getByRole('button', { name: 'Finish commenting' });
-      expect(button).toHaveAttribute('aria-pressed', 'true');
-      expect(button).toHaveTextContent('Done');
-      expect(screen.queryByLabelText(/open comments/)).not.toBeInTheDocument();
-    });
-
-    it('carries the open-comment count while the mode is off', () => {
-      withAccess();
-      render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={mode({ openCount: 3 })} />);
-      expect(screen.getByLabelText('3 open comments')).toHaveTextContent('3');
-    });
-
-    it('says, apart from the open count, how many comments are written but not sent', () => {
+    it('pressed again it closes whichever tab is open', () => {
       withAccess();
       const { rerender } = render(
-        <FloatingFeedbackButton
-          appUid="app-1"
-          appName="Grant Tracker"
-          commentMode={mode({ openCount: 3, draftCount: 2 })}
-        />,
+        <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments()} />,
       );
-      expect(screen.getByLabelText('2 unsent comments')).toHaveTextContent('2');
-      expect(screen.getByLabelText('3 open comments')).toHaveTextContent('3');
+      fireEvent.click(screen.getByRole('button', { name: 'Feedback & comments' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Close feedback and comments' }));
+      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
 
+      const inMode = comments({ active: true });
+      rerender(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={inMode} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Close feedback and comments' }));
+      expect(inMode.onClose).toHaveBeenCalled();
+    });
+
+    it('the shortcut leaves comment mode', () => {
+      withAccess();
+      const inMode = comments({ active: true });
+      render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={inMode} />);
+      openChord();
+      expect(inMode.onClose).toHaveBeenCalled();
+    });
+
+    it('opens the form when the page asks (the comment card’s Feedback tab)', () => {
+      withAccess();
+      const { rerender } = render(
+        <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments()} />,
+      );
+      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
       rerender(
         <FloatingFeedbackButton
           appUid="app-1"
           appName="Grant Tracker"
-          commentMode={mode({ active: true, draftCount: 2 })}
+          commentMode={comments({ feedbackRequest: 1 })}
         />,
       );
-      expect(screen.queryByLabelText(/unsent comment/)).not.toBeInTheDocument();
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+    });
 
-      rerender(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={mode({ draftCount: 0 })} />);
-      expect(screen.queryByLabelText(/unsent comment/)).not.toBeInTheDocument();
+    it('carries the open-comment count while the panel is closed', () => {
+      withAccess();
+      const { rerender } = render(
+        <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments({ count: 3 })} />,
+      );
+      expect(screen.getByLabelText('3 open comments')).toHaveTextContent('3');
+      rerender(
+        <FloatingFeedbackButton
+          appUid="app-1"
+          appName="Grant Tracker"
+          commentMode={comments({ count: 3, active: true })}
+        />,
+      );
+      expect(screen.queryByLabelText(/open comments/)).not.toBeInTheDocument();
+    });
+
+    it('without comments it stays "Give feedback", with no tabs', () => {
+      withAccess();
+      render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" />);
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+      expect(screen.queryByRole('tab')).not.toBeInTheDocument();
     });
   });
 });

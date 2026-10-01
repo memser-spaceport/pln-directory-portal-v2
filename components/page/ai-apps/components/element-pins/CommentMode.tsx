@@ -26,29 +26,23 @@ import st from '@/components/page/ai-apps/AiAppFeedbackPage/components/FeedbackS
 import { otherEnvLabel, useFeedbackOverlay } from './useFeedbackOverlay';
 import type { ElementPinsController } from './useElementPins';
 import { hostPinCrops } from './pinsHtml';
-import {
-  commentHtml,
-  draftToPinInput,
-  generalCommentHtml,
-  type CommentDraft,
-  type CommentDrafts,
-} from './commentDrafts';
-import { CommentDock } from './CommentDock';
+import { commentHtml, toPinInput } from './commentPost';
+import { CommentCard } from './CommentCard';
 import { useFeedbackReplies, type ThreadViewer } from './FeedbackReplies';
 
 import s from './CommentMode.module.scss';
 
 /*
- * Comment mode on the live app, ported from the designer prototype
- * (`prototypes/entries/feedback-shared/comments/` — CommentLayer, PinThread,
- * DraftsPanel). The prototype reaches into a same-origin frame; here the app
- * is cross-origin, so the bridge finds each pin's element (`locate`) and
- * reports where it is (`pins:rects`), and LabOS draws over the frame.
+ * Comment mode on the live app — the Comment tab of the feedback button's
+ * panel (prototype ai-apps-comments). The prototype reaches into a same-origin
+ * frame; here the app is cross-origin, so the bridge finds each pin's element
+ * (`locate`) and reports where it is (`pins:rects`), and LabOS draws over the
+ * frame.
  *
  * In the mode, a click in the app drops a pin (the bridge picks; picking stays
- * on while nothing else is open), a small composer beside it queues the
- * comment as a draft, and the dock sends the drafts together: one feedback
- * item per pin, plus an optional comment about the whole app.
+ * on while nothing else is open) and a small composer beside it posts the
+ * comment at once — one feedback item per pin — then opens its thread. A
+ * comment about the app as a whole is the Feedback tab's written form.
  */
 
 const THREAD_WIDTH = 340;
@@ -202,16 +196,26 @@ function cardPosition(box: FrameBox, point: Point, minRoom = 320) {
   };
 }
 
-type ComposerProps = { onCancel: () => void; onAdd: (note: string) => void; style: { left: number; top: number } };
+type ComposerShot = { status: 'pending' | 'done' | 'failed'; dataUrl: string | null };
+
+type ComposerProps = {
+  onCancel: () => void;
+  onPost: (note: string, withShot: boolean) => void;
+  style: { left: number; top: number };
+  /** The element's crop from the bridge; attaching it is the member's choice. */
+  shot: ComposerShot;
+  posting: boolean;
+};
 
 /**
- * The small card beside a new pin (prototype PinComposer). "Add comment", not
- * Send: the note joins the drafts the member reviews and sends together; the
- * screenshot is looked at (and marked up) there.
+ * The small card beside a new pin (prototype ai-apps-comments): what to say,
+ * an optional screenshot of the element, and Post — the comment goes at once.
  */
-function PinComposer({ onCancel, onAdd, style }: ComposerProps) {
+function PinComposer({ onCancel, onPost, style, shot, posting }: ComposerProps) {
   const [text, setText] = useState('');
-  const canAdd = text.trim().length > 0;
+  const [withShot, setWithShot] = useState(false);
+  const canPost = text.trim().length > 0 && !posting && !(withShot && shot.status === 'pending');
+  const post = () => canPost && onPost(text, withShot && shot.status === 'done');
   return (
     <div className={clsx(fd.root, s.composer)} style={style} role="dialog" aria-label="New comment">
       <textarea
@@ -220,25 +224,69 @@ function PinComposer({ onCancel, onAdd, style }: ComposerProps) {
         maxLength={5000}
         autoFocus
         aria-label="Comment"
-        placeholder="What worked, what didn’t, and what would make this more useful?"
+        placeholder="Add a comment"
         value={text}
+        disabled={posting}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {
-          if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && canAdd) {
+          if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
             e.preventDefault();
-            onAdd(text);
+            post();
           }
         }}
       />
+      {withShot && shot.status !== 'failed' ? (
+        <div className={s.composerShot}>
+          {shot.dataUrl ? (
+            <img src={shot.dataUrl} alt="Screenshot of the element" />
+          ) : (
+            <span className={s.composerShotPending}>Preparing screenshot…</span>
+          )}
+          <button
+            type="button"
+            className={s.composerShotRemove}
+            onClick={() => setWithShot(false)}
+            aria-label="Remove screenshot"
+            disabled={posting}
+          >
+            <CloseIcon width={12} height={12} />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className={s.composerShotButton}
+          onClick={() => setWithShot(true)}
+          disabled={posting || shot.status === 'failed'}
+          title={shot.status === 'failed' ? 'A screenshot of this element couldn’t be taken' : undefined}
+        >
+          <CameraIcon />
+          Screenshot
+        </button>
+      )}
       <div className={s.composerFooter}>
-        <Button style="border" variant="neutral" size="s" onClick={onCancel}>
+        <span className={s.composerAudience}>Only the app’s author and admins see it</span>
+        <Button style="border" variant="neutral" size="s" onClick={onCancel} disabled={posting}>
           Cancel
         </Button>
-        <Button size="s" disabled={!canAdd} onClick={() => onAdd(text)}>
-          Add comment
+        <Button size="s" disabled={!canPost} onClick={post}>
+          {posting ? 'Posting…' : 'Post'}
         </Button>
       </div>
     </div>
+  );
+}
+
+function CameraIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M2.5 5.5A1.5 1.5 0 0 1 4 4h1.2l.8-1.2h4l.8 1.2H12a1.5 1.5 0 0 1 1.5 1.5v5.5A1.5 1.5 0 0 1 12 12.5H4A1.5 1.5 0 0 1 2.5 11V5.5Z"
+        stroke="currentColor"
+        strokeWidth="1.2"
+      />
+      <circle cx="8" cy="8.2" r="2.2" stroke="currentColor" strokeWidth="1.2" />
+    </svg>
   );
 }
 
@@ -262,8 +310,11 @@ type Props = {
   onExit: () => void;
   /** The bridge, for picking new pins and their crops. */
   elementPins: ElementPinsController;
-  drafts: CommentDrafts;
   viewerName: string;
+  /** Open comments, beside the Comment tab. */
+  commentCount: number;
+  /** The card's Feedback tab: leave the mode and open the written form. */
+  onFeedbackTab: () => void;
   /** The signed-in member, for the thread's replies; null when unknown. */
   viewer: ThreadViewer | null;
   getContext: () => FeedbackContext | null;
@@ -285,9 +336,10 @@ export function CommentMode({
   onGoToPage,
   onExit,
   elementPins,
-  drafts,
   viewerName,
   viewer,
+  commentCount,
+  onFeedbackTab,
   getContext,
 }: Props) {
   const overlay = useFeedbackOverlay({ iframeRef, appOrigin, frameKey, listening: true, active, pins, currentPath });
@@ -296,18 +348,10 @@ export function CommentMode({
   const { mutate: updateStatus, isPending, variables } = useUpdateAiAppFeedbackStatus();
   const { mutateAsync: submitFeedback } = useSubmitAiAppFeedback();
   const analytics = useAiAppsAnalytics();
-  const [isSending, setIsSending] = useState(false);
-  const [sentCount, setSentCount] = useState(0);
-  /* The "Sent N comments" receipt stays until there is something new to send, or
-     the mode is left: a timer let it go by unseen while the pins redrew. */
-  if (sentCount > 0 && (!active || drafts.drafts.length > 0 || drafts.general.trim())) setSentCount(0);
+  const [posting, setPosting] = useState(false);
 
   /* ---------- a new pick: the composer, or (thread open) just closing the thread ---------- */
 
-  const draftPinIds = useMemo(
-    () => new Set(drafts.drafts.map((d) => d.bridgePinId).filter((id): id is string => Boolean(id))),
-    [drafts.drafts],
-  );
   const newest = elementPins.pins.at(-1) ?? null;
   const [seen, setSeen] = useState({ newestId: newest?.id ?? null, count: elementPins.pins.length });
   const [composingPinId, setComposingPinId] = useState<string | null>(null);
@@ -318,24 +362,11 @@ export function CommentMode({
        discarded) exposes an older pin as the newest — that is not a click. */
     const added = elementPins.pins.length > seen.count;
     setSeen({ newestId: newest?.id ?? null, count: elementPins.pins.length });
-    if (added && active && newest && !draftPinIds.has(newest.id)) {
+    if (added && active && newest) {
       if (openPinUid) setDiscardPinId(newest.id);
       else setComposingPinId(newest.id);
     }
   }
-
-  /* A draft can leave the list from another tab (sent or removed there); its
-     marker in this tab's app goes with it, or it lingers as a pin with no comment. */
-  const prevDraftPinIds = useRef(draftPinIds);
-  useEffect(() => {
-    const before = prevDraftPinIds.current;
-    prevDraftPinIds.current = draftPinIds;
-    for (const id of before) {
-      if (!draftPinIds.has(id) && id !== composingPinId && elementPins.pins.some((p) => p.id === id)) {
-        elementPins.removePin(id);
-      }
-    }
-  }, [draftPinIds, composingPinId, elementPins]);
 
   /* Pending until the bridge's list drops it, so nothing here has to reset. */
   const discardPending = Boolean(discardPinId && elementPins.pins.some((p) => p.id === discardPinId));
@@ -390,27 +421,6 @@ export function CommentMode({
     return () => document.removeEventListener('keydown', onKey);
   }, [active, composingPinId, cancelComposer, openPinUid, onOpenPinChange, onExit]);
 
-  /* ---------- crops: hosted once each finishes, so a draft survives a reload with its picture ---------- */
-
-  const hosting = useRef(new Set<string>());
-  useEffect(() => {
-    for (const draft of drafts.drafts) {
-      if (draft.cropState !== 'pending' || !draft.bridgePinId || hosting.current.has(draft.id)) continue;
-      const pin = elementPins.pins.find((p) => p.id === draft.bridgePinId);
-      if (!pin) continue;
-      if (pin.crop.status === 'failed') {
-        drafts.update(draft.id, { cropState: 'failed' });
-        continue;
-      }
-      if (pin.crop.status !== 'done') continue;
-      hosting.current.add(draft.id);
-      void hostPinCrops([pin])
-        .then(([url]) => drafts.update(draft.id, url ? { cropUrl: url, cropState: 'done' } : { cropState: 'failed' }))
-        .catch(() => drafts.update(draft.id, { cropState: 'failed' }))
-        .finally(() => hosting.current.delete(draft.id));
-    }
-  }, [drafts, elementPins.pins]);
-
   const unplaced = useMemo(() => {
     const groups = [...overlay.otherPages.entries()];
     return {
@@ -420,54 +430,54 @@ export function CommentMode({
     };
   }, [overlay.notFound, overlay.otherPages]);
 
-  /* ---------- send: one feedback item per pinned comment, plus the whole-app one ---------- */
+  /* ---------- post: one feedback item per comment, sent at once; then its thread opens ---------- */
 
-  const send = async () => {
-    if (isSending) return;
-    setIsSending(true);
-    const context = getContext() ?? undefined;
-    let sent = 0;
-    let failed = 0;
-    for (const draft of drafts.drafts) {
-      try {
-        await submitFeedback({ appUid, text: commentHtml(draft), pins: [draftToPinInput(draft)], context });
-        drafts.remove([draft.id]);
-        if (draft.bridgePinId) elementPins.removePin(draft.bridgePinId);
-        analytics.onFeedbackSubmitted({
-          appUid,
-          appName,
-          screenshotCount: draft.cropUrl ? 1 : 0,
-          hasAnnotations: Boolean(
-            draft.annotations && (draft.annotations.strokes.length || draft.annotations.shapes.length),
-          ),
-          pinCount: 1,
-        });
-        sent += 1;
-      } catch {
-        failed += 1;
-        analytics.onFeedbackSubmitFailed(appUid);
-      }
-    }
-    const general = drafts.general;
-    if (general.trim()) {
-      try {
-        await submitFeedback({ appUid, text: generalCommentHtml(general), context });
-        drafts.clearGeneral(general);
-        analytics.onFeedbackSubmitted({ appUid, appName, screenshotCount: 0, hasAnnotations: false });
-        sent += 1;
-      } catch {
-        failed += 1;
-        analytics.onFeedbackSubmitFailed(appUid);
-      }
-    }
-    setIsSending(false);
-    setSentCount(sent);
-    if (failed > 0) {
-      toast.error(
-        sent > 0
-          ? `Sent ${sent}, but ${failed} didn’t go through. They’re still here; try again.`
-          : 'Something went wrong. Your comments are still here; try again.',
-      );
+  /* The item just posted; its thread opens once the pin comes back from the API. */
+  const openWhenListed = useRef<string | null>(null);
+  useEffect(() => {
+    const feedbackUid = openWhenListed.current;
+    if (!feedbackUid) return;
+    const posted = pins.find((pin) => pin.feedbackUid === feedbackUid);
+    if (!posted) return;
+    openWhenListed.current = null;
+    onOpenPinChange(posted.uid);
+  }, [pins, onOpenPinChange]);
+
+  const post = async (note: string, withShot: boolean) => {
+    const pin = composingPinId ? elementPins.pins.find((p) => p.id === composingPinId) : null;
+    if (!pin || posting) return;
+    setPosting(true);
+    try {
+      const [cropUrl] = withShot ? await hostPinCrops([pin]) : [null];
+      const comment = {
+        note,
+        element: pin.element,
+        point: pin.point,
+        env: currentEnv,
+        cropUrl: cropUrl ?? null,
+        annotations: null,
+      };
+      const created = await submitFeedback({
+        appUid,
+        text: commentHtml(comment),
+        pins: [toPinInput(comment)],
+        context: getContext() ?? undefined,
+      });
+      openWhenListed.current = created?.uid ?? null;
+      elementPins.removePin(pin.id);
+      setComposingPinId(null);
+      analytics.onFeedbackSubmitted({
+        appUid,
+        appName,
+        screenshotCount: comment.cropUrl ? 1 : 0,
+        hasAnnotations: false,
+        pinCount: 1,
+      });
+    } catch {
+      analytics.onFeedbackSubmitFailed(appUid);
+      toast.error('Your comment didn’t post. It’s still here; try again.');
+    } finally {
+      setPosting(false);
     }
   };
 
@@ -486,27 +496,6 @@ export function CommentMode({
   const composingPoint = composingPin ? draftPoint(composingPin.rect, composingPin.point) : null;
   const composerStyle = composingPoint && box ? cardPosition(box, composingPoint, 200) : null;
   const viewerColor = getAvatarColor(viewerName);
-
-  /* This session's crop as it came from the bridge, else the hosted copy (a restored draft). */
-  const cropPreview = (draft: CommentDraft) => {
-    const pin = draft.bridgePinId ? elementPins.pins.find((p) => p.id === draft.bridgePinId) : null;
-    return pin?.crop.status === 'done' ? pin.crop.dataUrl : draft.cropUrl;
-  };
-
-  const addDraft = (note: string) => {
-    if (!composingPin) return;
-    drafts.add({
-      note,
-      element: composingPin.element,
-      point: composingPin.point,
-      env: currentEnv,
-      cropUrl: null,
-      cropState: composingPin.crop.status === 'failed' ? 'failed' : 'pending',
-      annotations: null,
-      bridgePinId: composingPin.id,
-    });
-    setComposingPinId(null);
-  };
 
   return createPortal(
     <>
@@ -552,28 +541,13 @@ export function CommentMode({
               </button>
             );
           })}
-          {/* Drafts made this page load: numbered like their rows in the dock. */}
-          {drafts.drafts.map((draft, i) => {
-            const pin = draft.bridgePinId ? elementPins.pins.find((p) => p.id === draft.bridgePinId) : null;
-            const point = pin ? draftPoint(pin.rect, pin.point) : null;
-            return point ? (
-              <span
-                key={draft.id}
-                className={clsx(s.pin, s.pinDraft)}
-                style={{ left: point.x, top: point.y, ['--pin-color' as string]: viewerColor }}
-                aria-label={`Draft comment ${i + 1}`}
-              >
-                <span className={s.pinFace}>{i + 1}</span>
-              </span>
-            ) : null;
-          })}
           {composingPoint && (
             <span
               className={clsx(s.pin, s.pinDraft, s.pinActive)}
               style={{ left: composingPoint.x, top: composingPoint.y, ['--pin-color' as string]: viewerColor }}
               aria-hidden
             >
-              <span className={s.pinFace}>{drafts.drafts.length + 1}</span>
+              <span className={s.pinFace}>{initials(viewerName)}</span>
             </span>
           )}
         </div>
@@ -600,24 +574,22 @@ export function CommentMode({
       )}
 
       {composingPin && composerStyle && (
-        <PinComposer style={composerStyle} onCancel={cancelComposer} onAdd={addDraft} />
+        <PinComposer
+          key={composingPin.id}
+          style={composerStyle}
+          onCancel={cancelComposer}
+          onPost={(note, withShot) => void post(note, withShot)}
+          shot={{
+            status: composingPin.crop.status,
+            dataUrl: composingPin.crop.status === 'done' ? composingPin.crop.dataUrl : null,
+          }}
+          posting={posting}
+        />
       )}
 
-      <CommentDock
-        appName={appName}
-        drafts={drafts}
-        cropPreview={cropPreview}
-        onRemoveDraft={(draft) => {
-          drafts.remove([draft.id]);
-          if (draft.bridgePinId) elementPins.removePin(draft.bridgePinId);
-        }}
-        onClearDrafts={() => {
-          for (const draft of drafts.drafts) if (draft.bridgePinId) elementPins.removePin(draft.bridgePinId);
-          drafts.clear();
-        }}
-        sentCount={sentCount}
-        isSending={isSending}
-        onSend={send}
+      <CommentCard
+        commentCount={commentCount}
+        onFeedbackTab={onFeedbackTab}
         onClose={onExit}
         status={overlay.status}
         unplaced={unplaced}

@@ -91,13 +91,24 @@ export function CommentDock({
       </div>
 
       <div className={s.scroll}>
-        {count === 0 && (
+        {count === 0 && sentCount > 0 && (
+          <p className={s.receipt} role="status">
+            <span aria-hidden className={s.receiptMark}>
+              ✓
+            </span>
+            <span>
+              Sent {sentCount} {sentCount === 1 ? 'comment' : 'comments'}.{' '}
+              {status !== 'unsupported' && (
+                <span className={s.receiptNext}>Click anything in the app to add another.</span>
+              )}
+            </span>
+          </p>
+        )}
+        {count === 0 && sentCount === 0 && (
           <p className={s.hint} aria-live="polite">
-            {sentCount > 0
-              ? `Sent ${sentCount} ${sentCount === 1 ? 'comment' : 'comments'}.`
-              : status === 'unsupported'
-                ? 'Click anything in the app to pin a comment, or write one below. Comments already left are listed under Not on screen.'
-                : 'Click anything in the app to pin a comment with a screenshot, or write one below.'}
+            {status === 'unsupported'
+              ? 'Click anything in the app to pin a comment, or write one below. Comments already left are listed under Not on screen.'
+              : 'Click anything in the app to pin a comment with a screenshot, or write one below.'}
           </p>
         )}
 

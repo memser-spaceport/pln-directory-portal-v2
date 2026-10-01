@@ -869,6 +869,7 @@ export function AiAppDetailPage(props: Props) {
                 available: true,
                 active: commentModeOn,
                 openCount: openCommentCount,
+                draftCount: commentDrafts.drafts.length + (commentDrafts.general.trim() ? 1 : 0),
                 onToggle: () => {
                   setCommentModeOn(!commentModeOn);
                   setOpenFeedbackPin(null);

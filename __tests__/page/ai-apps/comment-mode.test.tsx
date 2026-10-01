@@ -365,9 +365,31 @@ describe('CommentMode — writing', () => {
     expect(second).not.toHaveProperty('pins');
     expect(second.text).toContain('Love it overall');
 
-    expect(screen.getByText('Sent 2 comments.')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Sent 2 comments.');
     expect(t.spies.removePin).toHaveBeenCalledWith('pin-1');
     t.cleanup();
+  });
+
+  it('keeps the Sent receipt until there is something new to send', async () => {
+    jest.useFakeTimers();
+    try {
+      const t = setup();
+      addDraft(t);
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled());
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+      });
+      act(() => void jest.advanceTimersByTime(30_000));
+      expect(screen.getByRole('status')).toHaveTextContent('Sent 1 comment.');
+
+      fireEvent.change(screen.getByRole('textbox', { name: 'Comment about the whole app' }), {
+        target: { value: 'One more thing' },
+      });
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      t.cleanup();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('keeps a comment that failed to send, and says so', async () => {

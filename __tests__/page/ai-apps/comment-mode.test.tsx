@@ -680,19 +680,23 @@ describe('comments panel helpers', () => {
 
 describe('thread cards keep clear of the Comment card', () => {
   beforeEach(() => {
-    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 900 });
   });
-  const card = { top: 600, left: 700 };
+  const card = { top: 700, left: 700 };
 
-  it('a thread in the card’s column is raised and capped above it', () => {
-    expect(keepClear(500, 500, 240, card)).toEqual({ left: 500, top: 348, maxHeight: 240 });
+  it('a thread in the card’s column is raised to have 400px above it', () => {
+    expect(keepClear(500, 600, 400, card)).toEqual({ left: 500, top: 288, maxHeight: 400 });
   });
 
   it('a thread beside the card, not above it, may run to the window’s bottom', () => {
-    expect(keepClear(100, 500, 240, card)).toEqual({ left: 100, top: 500, maxHeight: 292 });
+    expect(keepClear(100, 300, 400, card)).toEqual({ left: 100, top: 300, maxHeight: 520 });
+  });
+
+  it('never grows past the card’s own 520px limit', () => {
+    expect(keepClear(100, 8, 400, null).maxHeight).toBe(520);
   });
 
   it('with no card measured yet it keeps to the window', () => {
-    expect(keepClear(500, 700, 240, null)).toEqual({ left: 500, top: 552, maxHeight: 240 });
+    expect(keepClear(500, 700, 400, null)).toEqual({ left: 500, top: 492, maxHeight: 400 });
   });
 });

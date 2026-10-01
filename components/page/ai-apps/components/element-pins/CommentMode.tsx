@@ -198,6 +198,11 @@ function draftPoint(rect: BridgeRect | null, point: { ox: number; oy: number } |
 
 type Obstacle = { top: number; left: number } | null;
 
+/** Room a thread is given when it has to be raised: enough for the comment and most of its replies. */
+const THREAD_ROOM = 400;
+/** The tallest a card grows (the card's own CSS limit, which an inline cap would otherwise lift). */
+const CARD_MAX_HEIGHT = 520;
+
 /**
  * Where a card can sit from `left`/`top` down: to the window's bottom, or to the
  * top of the Comment card when the two would share a column — a long thread
@@ -207,7 +212,7 @@ export function keepClear(left: number, top: number, minRoom: number, obstacle: 
   const overlaps = obstacle !== null && left + THREAD_WIDTH > obstacle.left;
   const floor = overlaps ? obstacle.top - 12 : window.innerHeight - 8;
   const clampedTop = Math.max(8, Math.min(top, floor - minRoom));
-  return { left, top: clampedTop, maxHeight: Math.max(160, floor - clampedTop) };
+  return { left, top: clampedTop, maxHeight: Math.min(CARD_MAX_HEIGHT, Math.max(160, floor - clampedTop)) };
 }
 
 /** Beside a pin, flipped left when the right side of the window has no room. */
@@ -543,7 +548,8 @@ export function CommentMode({
 
   const open = overlay.placed.find((p) => p.pin.uid === openPinUid && p.rect);
   const outlined = overlay.placed.find((p) => p.pin.uid === (hoverPinUid ?? openPinUid) && p.rect);
-  const threadStyle = open?.rect && box ? cardPosition(box, pointIn(open.rect, open.pin), 240, cardBounds) : null;
+  const threadStyle =
+    open?.rect && box ? cardPosition(box, pointIn(open.rect, open.pin), THREAD_ROOM, cardBounds) : null;
   /* A comment whose element isn't on the page (gone, or unknown without `locate`): its thread
      opens beside the panel instead of at a pin. */
   const floating = !open
@@ -555,7 +561,7 @@ export function CommentMode({
     ? keepClear(
         Math.max(8, window.innerWidth - drawerInset() - THREAD_WIDTH - 24),
         Math.max(8, (box?.top ?? 0) + 16),
-        240,
+        THREAD_ROOM,
         cardBounds,
       )
     : null;

@@ -34,8 +34,7 @@ import { BRIDGE_VERSION } from '@/ai-apps-bridge/protocol';
 import type { FeedbackContext } from '@/services/ai-app-feedback/ai-app-feedback.service';
 import { useAppFeedbackPins } from '@/services/ai-app-feedback/hooks/useAppFeedbackPins';
 import { FloatingFeedbackButton } from '../components/FloatingFeedbackButton';
-import { CommentMode, normalizeAppPath, useElementPins } from '../components/element-pins';
-import type { FeedbackButtonHandle } from '../components/FloatingFeedbackButton/FloatingFeedbackButton';
+import { CommentMode, normalizeAppPath, useCommentDrafts, useElementPins } from '../components/element-pins';
 import { AiAppTagChips } from '../components/AiAppTagChips';
 import { LockIcon } from '../AiAppsPage/components/ManageAccessModal/icons';
 
@@ -444,7 +443,7 @@ export function AiAppDetailPage(props: Props) {
   // are only drawn while it is on. Needs the app's bridge, and a running frame.
   const [commentModeOn, setCommentModeOn] = useState(false);
   const [openFeedbackPin, setOpenFeedbackPin] = useState<string | null>(null);
-  const feedbackButtonRef = useRef<FeedbackButtonHandle>(null);
+  const commentDrafts = useCommentDrafts(uid);
   const deepLinkHandled = useRef(false);
   // Open items on the button: one feedback item may carry several pins (older feedback).
   const openCommentCount = useMemo(
@@ -877,7 +876,6 @@ export function AiAppDetailPage(props: Props) {
               }
             : undefined
         }
-        controlRef={feedbackButtonRef}
       />
       {commentModeAvailable && (
         <CommentMode
@@ -890,7 +888,7 @@ export function AiAppDetailPage(props: Props) {
           canManage={canManageApp}
           currentPath={currentAppPath}
           currentEnv={selectedEnv}
-          active={commentModeOn && !elementPins.isPicking && elementPins.pins.length === 0}
+          active={commentModeOn}
           openPinUid={openFeedbackPin}
           onOpenPinChange={setOpenFeedbackPin}
           onGoToPage={goToAppPage}
@@ -898,11 +896,10 @@ export function AiAppDetailPage(props: Props) {
             setCommentModeOn(false);
             setOpenFeedbackPin(null);
           }}
-          onLeaveFeedback={() => {
-            setCommentModeOn(false);
-            setOpenFeedbackPin(null);
-            feedbackButtonRef.current?.startFeedback();
-          }}
+          elementPins={elementPins}
+          drafts={commentDrafts}
+          viewerName={currentUser?.name ?? 'You'}
+          getContext={getFeedbackContext}
         />
       )}
       {showDetails && (

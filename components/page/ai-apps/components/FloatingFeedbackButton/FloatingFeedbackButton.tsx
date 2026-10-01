@@ -1,6 +1,6 @@
 'use client';
 
-import { type Ref, type RefObject, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import { usePermissions } from '@/services/rbac/hooks/usePermissions';
 import { canViewAiApps } from '@/services/rbac/utils/aiApps/canViewAiApps';
@@ -40,14 +40,7 @@ interface Props {
    * is on, and carries the count of open comments while it is off.
    */
   commentMode?: { available: boolean; active: boolean; openCount: number; onToggle: () => void };
-  /** Lets the comment-mode dock start today's pick-and-send flow. */
-  controlRef?: Ref<FeedbackButtonHandle>;
 }
-
-export type FeedbackButtonHandle = {
-  /** Pin mode when the app's bridge is ready, the dialog otherwise. */
-  startFeedback: () => void;
-};
 
 /**
  * Floating "Give feedback" door for the AI Apps surfaces. It opens saying its
@@ -79,7 +72,6 @@ function FeedbackFab({
   iframeRef,
   getContext,
   commentMode,
-  controlRef,
 }: Props) {
   const inCommentMode = Boolean(commentMode?.available && commentMode.active);
   const [isOpen, setIsOpen] = useState(false);
@@ -142,8 +134,6 @@ function FeedbackFab({
     analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
     setIsOpen(true);
   }, [canPin, openPinMode, analytics, appUid, appName]);
-
-  useImperativeHandle(controlRef, () => ({ startFeedback }), [startFeedback]);
 
   const leavePinMode = () => {
     setIsPinMode(false);

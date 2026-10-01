@@ -249,6 +249,8 @@ interface JobApplyFlowDrawerProps {
      *  `followOffered` is whether the tick was on screen for this press.
      *  `note` is the optional note typed with the mark, trimmed; '' when none. */
     onToggle: (nextInterested: boolean, followTeam: boolean, followOffered?: boolean, note?: string) => void;
+    onComposerOpened?: () => void;
+    onComposerCancelled?: (hadNote: boolean) => void;
   };
   viewerState: BoardViewerState;
   source: JobSurface;
@@ -1236,6 +1238,8 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                           isInterested={interest.isInterested}
                           note={interest.note}
                           error={interest.error}
+                          onComposerOpened={interest.onComposerOpened}
+                          onComposerCancelled={interest.onComposerCancelled}
                           /* The same offer the apply footer makes, on the one
                              other press that sends something to a team from
                              this board. Absent once the member already

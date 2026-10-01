@@ -207,6 +207,23 @@ describe('the banner itself', () => {
     expect(action()).toHaveAccessibleName(INTEREST_CTA_LABEL);
   });
 
+  it('reports opening the note box and cancelling it, including whether a note was started', () => {
+    const onComposerOpened = jest.fn();
+    const onComposerCancelled = jest.fn();
+    renderBanner({ onComposerOpened, onComposerCancelled });
+
+    fireEvent.click(action());
+    expect(onComposerOpened).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole('button', { name: INTEREST_CANCEL_LABEL }));
+    expect(onComposerCancelled).toHaveBeenCalledWith(false);
+
+    fireEvent.click(action());
+    fireEvent.change(noteBox(), { target: { value: 'Half a thought' } });
+    fireEvent.click(screen.getByRole('button', { name: INTEREST_CANCEL_LABEL }));
+    expect(onComposerCancelled).toHaveBeenLastCalledWith(true);
+  });
+
   it('asks for the state it is not in', () => {
     const onToggle = jest.fn();
 

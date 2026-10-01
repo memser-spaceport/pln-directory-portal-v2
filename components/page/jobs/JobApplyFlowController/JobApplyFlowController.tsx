@@ -386,6 +386,21 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
                   note: interestNote,
                   error: interestErrorForRole,
                   onToggle: handleToggleInterest,
+                  onComposerOpened: () =>
+                    analytics.onJobInterestComposerOpened({
+                      job_id: state.target.role.uid,
+                      team_id: state.target.teamId,
+                      viewer_state: viewer.viewer,
+                      source,
+                    }),
+                  onComposerCancelled: (hadNote) =>
+                    analytics.onJobInterestComposerCancelled({
+                      job_id: state.target.role.uid,
+                      team_id: state.target.teamId,
+                      viewer_state: viewer.viewer,
+                      source,
+                      had_note: hadNote,
+                    }),
                 }
               : undefined
           }

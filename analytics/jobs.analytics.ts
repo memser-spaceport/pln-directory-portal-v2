@@ -423,6 +423,14 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_CREATE_PROFILE_CLICKED, { ...args });
   };
 
+  const onJobInterestComposerOpened = (args: JobApplyBaseParams) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_INTEREST_COMPOSER_OPENED, { ...args });
+  };
+
+  const onJobInterestComposerCancelled = (args: JobApplyBaseParams & { had_note: boolean }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_INTEREST_COMPOSER_CANCELLED, { ...args });
+  };
+
   /**
    * The light signal beside Apply.
    *
@@ -600,6 +608,8 @@ export const useJobsAnalytics = () => {
     onJobApplyExternalRedirected,
     onJobUnlockInfoOpened,
     onJobCreateProfileClicked,
+    onJobInterestComposerOpened,
+    onJobInterestComposerCancelled,
     onJobInterestMarked,
     onJobInterestUndone,
     onJobInterestFailed,

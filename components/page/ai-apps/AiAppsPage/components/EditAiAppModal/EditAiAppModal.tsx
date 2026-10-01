@@ -129,6 +129,10 @@ export function EditAiAppModal({ app, onClose }: Props) {
       analytics.onEditDetailsFailed(app.uid);
       return;
     }
+    const feedbackWasEnabled = app.feedbackEnabled !== false;
+    if (feedbackEnabled !== feedbackWasEnabled) {
+      analytics.onFeedbackSettingChanged({ appUid: app.uid, from: feedbackWasEnabled, to: feedbackEnabled });
+    }
     analytics.onEditDetailsSaved(app.uid, feedbackEnabled);
     onClose();
   };

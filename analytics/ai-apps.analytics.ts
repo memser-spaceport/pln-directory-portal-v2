@@ -167,6 +167,8 @@ export function useAiAppsAnalytics() {
     onEditDetailsSaved: (appUid: string, feedbackEnabled: boolean) =>
       capture(AI_APPS_ANALYTICS.EDIT_DETAILS_SAVED, { appUid, feedbackEnabled }),
     onEditDetailsFailed: (appUid: string) => capture(AI_APPS_ANALYTICS.EDIT_DETAILS_FAILED, { appUid }),
+    onFeedbackSettingChanged: (params: { appUid: string; from: boolean; to: boolean }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_SETTING_CHANGED, params),
     onDeploymentSettingsOpened: (params: { appUid: string; isDraft: boolean }) =>
       capture(AI_APPS_ANALYTICS.DEPLOYMENT_SETTINGS_OPENED, params),
     // Logs events carry uids/streams/counts and closed unions ONLY — never log

@@ -135,10 +135,13 @@ interface JobInterestBannerProps {
    *  `followOffered` is whether the tick was on screen for this press.
    *  `note` is what was typed, trimmed; '' when nothing was (and on Undo). */
   onToggle: (nextInterested: boolean, followTeam: boolean, followOffered: boolean, note: string) => void;
+  onComposerOpened?: () => void;
+  /** `hadNote` is whether the box held any text. The text itself stays here. */
+  onComposerCancelled?: (hadNote: boolean) => void;
 }
 
 export function JobInterestBanner(props: JobInterestBannerProps) {
-  const { teamName, isInterested, note, error, follow, onToggle } = props;
+  const { teamName, isInterested, note, error, follow, onToggle, onComposerOpened, onComposerCancelled } = props;
 
   /* Whether the card is open on its composer. Derived against `isInterested`
      rather than reset by an effect: once the signal is in, the confirmation
@@ -209,6 +212,7 @@ export function JobInterestBanner(props: JobInterestBannerProps) {
     }
     if (!showComposer) {
       setComposing(true);
+      onComposerOpened?.();
       return;
     }
     if (overLimit) return;
@@ -217,8 +221,10 @@ export function JobInterestBanner(props: JobInterestBannerProps) {
   };
 
   const handleCancel = () => {
+    const hadNote = typed.trim().length > 0;
     closeComposer();
     focusAction();
+    onComposerCancelled?.(hadNote);
   };
 
   const actionLabel = isInterested ? INTEREST_UNDO_LABEL : showComposer ? INTEREST_SEND_LABEL : INTEREST_CTA_LABEL;

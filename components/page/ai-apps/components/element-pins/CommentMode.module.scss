@@ -252,6 +252,31 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   line-height: 20px;
 }
 
+/* After Send: stays until there is something new to send. */
+.receipt {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--background-success-secondary, #ecfdf3);
+  color: var(--foreground-success-primary, #067647);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.receiptMark {
+  flex: none;
+  font-weight: 700;
+}
+
+.receiptNext {
+  color: $quiet;
+  font-weight: 400;
+}
+
 .unplaced {
   display: flex;
   flex-direction: column;

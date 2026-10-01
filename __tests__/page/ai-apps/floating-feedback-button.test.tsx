@@ -304,7 +304,7 @@ describe('FloatingFeedbackButton', () => {
 
   describe('comment mode (the button is the mode’s toggle)', () => {
     const openChord = () => fireEvent.keyDown(window, { key: 'Enter', ctrlKey: true, altKey: true });
-    const mode = (overrides: Partial<{ active: boolean; openCount: number }> = {}) => ({
+    const mode = (overrides: Partial<{ active: boolean; openCount: number; draftCount: number }> = {}) => ({
       available: true,
       active: false,
       openCount: 0,
@@ -344,6 +344,31 @@ describe('FloatingFeedbackButton', () => {
       withAccess();
       render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={mode({ openCount: 3 })} />);
       expect(screen.getByLabelText('3 open comments')).toHaveTextContent('3');
+    });
+
+    it('says, apart from the open count, how many comments are written but not sent', () => {
+      withAccess();
+      const { rerender } = render(
+        <FloatingFeedbackButton
+          appUid="app-1"
+          appName="Grant Tracker"
+          commentMode={mode({ openCount: 3, draftCount: 2 })}
+        />,
+      );
+      expect(screen.getByLabelText('2 unsent comments')).toHaveTextContent('2');
+      expect(screen.getByLabelText('3 open comments')).toHaveTextContent('3');
+
+      rerender(
+        <FloatingFeedbackButton
+          appUid="app-1"
+          appName="Grant Tracker"
+          commentMode={mode({ active: true, draftCount: 2 })}
+        />,
+      );
+      expect(screen.queryByLabelText(/unsent comment/)).not.toBeInTheDocument();
+
+      rerender(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={mode({ draftCount: 0 })} />);
+      expect(screen.queryByLabelText(/unsent comment/)).not.toBeInTheDocument();
     });
   });
 });

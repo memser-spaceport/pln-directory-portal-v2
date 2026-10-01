@@ -270,6 +270,9 @@ export function CommentMode({
   const analytics = useAiAppsAnalytics();
   const [isSending, setIsSending] = useState(false);
   const [sentCount, setSentCount] = useState(0);
+  /* The "Sent N comments" receipt stays until there is something new to send, or
+     the mode is left: a timer let it go by unseen while the pins redrew. */
+  if (sentCount > 0 && (!active || drafts.drafts.length > 0 || drafts.general.trim())) setSentCount(0);
 
   /* ---------- a new pick: the composer, or (thread open) just closing the thread ---------- */
 
@@ -423,13 +426,6 @@ export function CommentMode({
       );
     }
   };
-
-  /* The "Sent N comments" receipt, for a few seconds. */
-  useEffect(() => {
-    if (sentCount === 0) return;
-    const timer = setTimeout(() => setSentCount(0), 3000);
-    return () => clearTimeout(timer);
-  }, [sentCount]);
 
   if (!active || typeof document === 'undefined') return null;
 

@@ -37,9 +37,10 @@ interface Props {
   /**
    * Comment mode on the live app (detail page, flag on, bridge can locate). When
    * available, the button is the mode's toggle — it reads "Done" while the mode
-   * is on, and carries the count of open comments while it is off.
+   * is on, and carries the count of open comments while it is off — and, apart
+   * from it, how many of this viewer's comments are written but not yet sent.
    */
-  commentMode?: { available: boolean; active: boolean; openCount: number; onToggle: () => void };
+  commentMode?: { available: boolean; active: boolean; openCount: number; draftCount?: number; onToggle: () => void };
 }
 
 /**
@@ -213,6 +214,14 @@ function FeedbackFab({
           {commentMode?.available && !inCommentMode && commentMode.openCount > 0 && (
             <span className={s.count} aria-label={`${commentMode.openCount} open comments`}>
               {commentMode.openCount}
+            </span>
+          )}
+          {commentMode?.available && !inCommentMode && (commentMode.draftCount ?? 0) > 0 && (
+            <span
+              className={s.drafts}
+              aria-label={`${commentMode.draftCount} unsent ${commentMode.draftCount === 1 ? 'comment' : 'comments'}`}
+            >
+              {commentMode.draftCount}
             </span>
           )}
         </button>

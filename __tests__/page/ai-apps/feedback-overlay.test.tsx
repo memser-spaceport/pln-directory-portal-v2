@@ -207,6 +207,7 @@ describe('toPinInputs', () => {
     rect: { x: 1, y: 2, w: 3, h: 4 },
     note: '  Too small  ',
     crop: { status: 'pending' },
+    point: null,
     ...overrides,
   });
 

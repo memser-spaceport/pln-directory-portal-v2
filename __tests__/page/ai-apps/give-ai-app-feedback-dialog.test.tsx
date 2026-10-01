@@ -260,6 +260,7 @@ describe('GiveAiAppFeedbackDialog', () => {
       rect: { x: 1, y: 2, w: 3, h: 4 },
       note: 'Hard to see',
       crop: { status: 'pending' as const },
+      point: null,
     };
     const context = {
       env: 'preview' as const,

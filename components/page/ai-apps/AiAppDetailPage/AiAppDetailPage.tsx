@@ -446,11 +446,10 @@ export function AiAppDetailPage(props: Props) {
   /* Bumped when the comment card's Feedback tab is chosen: the button opens the written form. */
   const [feedbackRequest, setFeedbackRequest] = useState(0);
   const deepLinkHandled = useRef(false);
-  // Open items on the button: one feedback item may carry several pins (older feedback).
-  const openCommentCount = useMemo(
-    () =>
-      new Set(feedbackPins.pins.filter((pin) => pin.feedback.status !== 'IMPLEMENTED').map((pin) => pin.feedbackUid))
-        .size,
+  // Every comment, Shipped included — the button, the Comment tab and the comments panel
+  // show the same total (prototype). One item may carry several pins (older feedback).
+  const commentCount = useMemo(
+    () => new Set(feedbackPins.pins.map((pin) => pin.feedbackUid)).size,
     [feedbackPins.pins],
   );
 
@@ -869,7 +868,7 @@ export function AiAppDetailPage(props: Props) {
             ? {
                 available: true,
                 active: commentModeOn,
-                count: openCommentCount,
+                count: commentCount,
                 onOpen: () => setCommentModeOn(true),
                 onClose: () => {
                   setCommentModeOn(false);
@@ -901,7 +900,7 @@ export function AiAppDetailPage(props: Props) {
           }}
           elementPins={elementPins}
           viewerName={currentUser?.name ?? 'You'}
-          commentCount={openCommentCount}
+          commentCount={commentCount}
           onFeedbackTab={() => {
             setCommentModeOn(false);
             setOpenFeedbackPin(null);

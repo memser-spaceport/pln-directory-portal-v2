@@ -321,7 +321,7 @@ type Props = {
   /** The bridge, for picking new pins and their crops. */
   elementPins: ElementPinsController;
   viewerName: string;
-  /** Open comments, beside the Comment tab. */
+  /** Every comment on the app (Shipped included), beside the Comment tab. */
   commentCount: number;
   /** The card's Feedback tab: leave the mode and open the written form. */
   onFeedbackTab: () => void;

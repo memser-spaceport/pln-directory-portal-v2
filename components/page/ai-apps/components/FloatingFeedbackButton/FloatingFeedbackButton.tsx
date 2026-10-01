@@ -19,6 +19,11 @@ interface Props {
   appUid?: string;
   appName?: string;
   /**
+   * Open-app LabOS feedback. The list page omits this and always shows the
+   * button. A missing value is on, matching the server default.
+   */
+  feedbackEnabled?: boolean;
+  /**
    * Element pins for the embedded app (detail page, flag on). When its bridge
    * has said `ready`, the button opens pin mode instead of the dialog; an app
    * without the bridge keeps the screenshot flow.
@@ -49,7 +54,7 @@ export function FloatingFeedbackButton(props: Props) {
 
 type SubmittedApp = { label: string; value: string };
 
-function FeedbackFab({ appUid, appName, elementPins, iframeRef }: Props) {
+function FeedbackFab({ appUid, appName, feedbackEnabled = true, elementPins, iframeRef }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [isPinMode, setIsPinMode] = useState(false);
   const [activePinId, setActivePinId] = useState<string | null>(null);
@@ -64,7 +69,7 @@ function FeedbackFab({ appUid, appName, elementPins, iframeRef }: Props) {
   const analytics = useAiAppsAnalytics();
   const shortcuts = useShortcutLabels();
   const { permsSet, isLoading } = usePermissions();
-  const isVisible = !isLoading && canViewAiApps(permsSet);
+  const isVisible = !isLoading && canViewAiApps(permsSet) && feedbackEnabled;
 
   // Gated on `isVisible` rather than left bare: hooks run before the early
   // return below, so an ungated timer would spend its 2.2s while this renders

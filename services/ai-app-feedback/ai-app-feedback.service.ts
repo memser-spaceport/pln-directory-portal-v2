@@ -23,6 +23,8 @@ export interface AiAppFeedbackRow extends AiAppFeedback {
   appName: string;
   /** Absent from responses older than the pins table. */
   pinCount?: number;
+  /** Replies under the item; absent from responses older than the comments table. */
+  commentCount?: number;
 }
 
 export type AiAppEnvironment = 'prod' | 'preview';
@@ -76,8 +78,24 @@ export interface OverlayFeedbackPin extends Omit<FeedbackPinInput, 'cropUrl' | '
     status: AiAppFeedbackStatus;
     createdAt: string;
     member: { uid: string; name: string; image: string | null } | null;
+    /** Replies under the item. Absent until the backend has conversations — then the thread offers none. */
+    commentCount?: number;
   };
 }
+
+/** One message in a feedback item's conversation: a reply, or the agent's note when it shipped the fix. */
+export interface AiAppFeedbackComment {
+  uid: string;
+  text: string;
+  kind: 'REPLY' | 'CLOSING_NOTE';
+  createdAt: string;
+  member: { uid: string; name: string; image: string | null } | null;
+  /** Client-only: sent but not yet confirmed. */
+  pending?: boolean;
+}
+
+/** Longest reply the API takes, in characters. */
+export const FEEDBACK_COMMENT_MAX_LENGTH = 2000;
 
 /**
  * POST /v1/ai-apps/:uid/feedback. `text` is the Quill HTML (pins included, for
@@ -179,4 +197,45 @@ export async function fetchMyAppFeedbackPins(appUid: string): Promise<OverlayFee
     throw new Error('Failed to load your feedback pins');
   }
   return response.json();
+}
+
+const commentsUrl = (appUid: string, feedbackUid: string) =>
+  `${AI_APPS_API_URL}/${appUid}/feedback/${feedbackUid}/comments`;
+
+/**
+ * GET /v1/ai-apps/:uid/feedback/:feedbackUid/comments — the item's conversation,
+ * oldest first. Participants only: the app's creator, directory admins, and the
+ * member who left the feedback.
+ */
+export async function fetchFeedbackComments(appUid: string, feedbackUid: string): Promise<AiAppFeedbackComment[]> {
+  const response = await customFetch(commentsUrl(appUid, feedbackUid), { method: 'GET' }, true);
+  if (!response?.ok) {
+    throw new Error('Failed to load replies');
+  }
+  return response.json();
+}
+
+/** POST …/comments — a reply; the API tells the other participants. Plain text, 1–2000 chars. */
+export async function postFeedbackComment(
+  appUid: string,
+  feedbackUid: string,
+  text: string,
+): Promise<AiAppFeedbackComment> {
+  const response = await customFetch(
+    commentsUrl(appUid, feedbackUid),
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) },
+    true,
+  );
+  if (!response?.ok) {
+    throw new Error('Failed to send reply');
+  }
+  return response.json();
+}
+
+/** DELETE …/comments/:commentUid — its author (or a directory admin). */
+export async function deleteFeedbackComment(appUid: string, feedbackUid: string, commentUid: string): Promise<void> {
+  const response = await customFetch(`${commentsUrl(appUid, feedbackUid)}/${commentUid}`, { method: 'DELETE' }, true);
+  if (!response?.ok) {
+    throw new Error('Failed to delete reply');
+  }
 }

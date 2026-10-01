@@ -900,6 +900,11 @@ export function AiAppDetailPage(props: Props) {
           elementPins={elementPins}
           drafts={commentDrafts}
           viewerName={currentUser?.name ?? 'You'}
+          viewer={
+            currentUser?.uid
+              ? { uid: currentUser.uid, name: currentUser.name ?? 'You', image: currentUser.profileImageUrl ?? null }
+              : null
+          }
           getContext={getFeedbackContext}
         />
       )}

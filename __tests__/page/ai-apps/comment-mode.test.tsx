@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { BRIDGE_NS, BRIDGE_VERSION } from '@/ai-apps-bridge/protocol';
 import {
@@ -8,7 +8,11 @@ import {
   type ElementPinsController,
   type ElementPin,
 } from '@/components/page/ai-apps/components/element-pins';
-import type { FeedbackContext, OverlayFeedbackPin } from '@/services/ai-app-feedback/ai-app-feedback.service';
+import type {
+  AiAppFeedbackComment,
+  FeedbackContext,
+  OverlayFeedbackPin,
+} from '@/services/ai-app-feedback/ai-app-feedback.service';
 
 const mockUpdateStatus = jest.fn();
 jest.mock('@/services/ai-app-feedback/hooks/useUpdateAiAppFeedbackStatus', () => ({
@@ -19,7 +23,25 @@ jest.mock('@/services/ai-app-feedback/hooks/useSubmitAiAppFeedback', () => ({
   useSubmitAiAppFeedback: () => ({ mutateAsync: mockSubmit }),
 }));
 jest.mock('@/analytics/ai-apps.analytics', () => ({
-  useAiAppsAnalytics: () => ({ onFeedbackSubmitted: jest.fn(), onFeedbackSubmitFailed: jest.fn() }),
+  useAiAppsAnalytics: () => ({
+    onFeedbackSubmitted: jest.fn(),
+    onFeedbackSubmitFailed: jest.fn(),
+    onFeedbackReplySent: jest.fn(),
+    onFeedbackReplyDeleted: jest.fn(),
+  }),
+}));
+/* The conversation's data layer is tested on its own (feedback-comments-hooks); here it is a stub. */
+let mockComments: AiAppFeedbackComment[] = [];
+const mockCommentsFetched = jest.fn();
+const mockAddReply = jest.fn();
+const mockDeleteReply = jest.fn();
+jest.mock('@/services/ai-app-feedback/hooks/useFeedbackComments', () => ({
+  useFeedbackComments: (_appUid: string, feedbackUid: string, enabled: boolean) => {
+    if (enabled) mockCommentsFetched(feedbackUid);
+    return { comments: enabled ? mockComments : [], isLoading: false, isError: false, refetch: jest.fn() };
+  },
+  useAddFeedbackComment: () => ({ mutateAsync: (text: string) => mockAddReply(text) }),
+  useDeleteFeedbackComment: () => ({ mutate: (uid: string) => mockDeleteReply(uid) }),
 }));
 const mockToastError = jest.fn();
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { error: (...a: unknown[]) => mockToastError(...a) } }));
@@ -138,6 +160,7 @@ function Harness({ bridge, spies, ...props }: HarnessProps) {
       elementPins={makeController(bridge, spies)}
       drafts={drafts}
       viewerName="Grace Hopper"
+      viewer={{ uid: 'me', name: 'Grace Hopper', image: null }}
       getContext={() => CONTEXT}
       {...props}
     />
@@ -206,6 +229,10 @@ const addDraft = (t: ReturnType<typeof setup>, pin = picked('pin-1'), note = 'La
 };
 
 beforeEach(() => {
+  mockComments = [];
+  mockCommentsFetched.mockReset();
+  mockAddReply.mockReset().mockResolvedValue(undefined);
+  mockDeleteReply.mockReset();
   mockUpdateStatus.mockReset();
   mockSubmit.mockReset().mockResolvedValue(true);
   mockToastError.mockReset();
@@ -449,5 +476,143 @@ describe('CommentMode — writing', () => {
     const u = setup();
     expect(screen.getByText('Label is unclear')).toBeInTheDocument();
     u.cleanup();
+  });
+});
+
+describe('CommentMode — replies', () => {
+  const withReplies = (uid: string, commentCount: number, overrides: Partial<OverlayFeedbackPin> = {}) =>
+    stored(uid, { ...overrides, feedback: { ...stored(uid).feedback, commentCount } });
+  const reply = (
+    uid: string,
+    memberUid: string,
+    name: string,
+    text: string,
+    extra: Partial<AiAppFeedbackComment> = {},
+  ) =>
+    ({
+      uid,
+      text,
+      kind: 'REPLY',
+      createdAt: '2026-10-01T01:00:00.000Z',
+      member: { uid: memberUid, name, image: null },
+      ...extra,
+    }) as AiAppFeedbackComment;
+  const openThread = (pin: OverlayFeedbackPin) => {
+    const t = setup({ pins: [pin], openPinUid: pin.uid });
+    t.fromApp('ready', LOCATE_READY);
+    t.fromApp('locate:result', { results: { [pin.uid]: { pinId: 'loc-1', rect: { x: 100, y: 200, w: 80, h: 40 } } } });
+    return t;
+  };
+  const thread = () => screen.getByRole('dialog', { name: 'Comment by Ada Lovelace' });
+
+  it('shows the conversation under the comment, the agent’s note marked, and a reply field', () => {
+    mockComments = [
+      reply('c-1', 'creator', 'Cleo Creator', 'Which chart?'),
+      reply('c-2', 'creator', 'Cleo Creator', 'Axis labels added', { kind: 'CLOSING_NOTE' }),
+    ];
+    const t = openThread(withReplies('a', 2));
+
+    expect(within(thread()).getByText('Which chart?')).toBeInTheDocument();
+    expect(within(thread()).getByText('Shipped note')).toBeInTheDocument();
+    expect(within(thread()).getByRole('textbox', { name: 'Reply' })).toBeInTheDocument();
+    t.cleanup();
+  });
+
+  it('offers no replies while the API has no conversations (no commentCount on the pin)', () => {
+    const t = openThread(stored('a'));
+    expect(within(thread()).queryByRole('textbox', { name: 'Reply' })).not.toBeInTheDocument();
+    expect(mockCommentsFetched).not.toHaveBeenCalled();
+    t.cleanup();
+  });
+
+  it('does not fetch a thread that has no replies yet, but still lets you write the first', () => {
+    const t = openThread(withReplies('a', 0));
+    expect(mockCommentsFetched).not.toHaveBeenCalled();
+    expect(within(thread()).getByRole('textbox', { name: 'Reply' })).toBeInTheDocument();
+    t.cleanup();
+  });
+
+  it('Enter sends the trimmed reply and clears the field; Shift+Enter does not send', async () => {
+    const t = openThread(withReplies('a', 0));
+    const field = within(thread()).getByRole('textbox', { name: 'Reply' });
+    fireEvent.change(field, { target: { value: '  On it \n' } });
+    fireEvent.keyDown(field, { key: 'Enter', shiftKey: true });
+    expect(mockAddReply).not.toHaveBeenCalled();
+
+    await act(async () => {
+      fireEvent.keyDown(field, { key: 'Enter' });
+    });
+    expect(mockAddReply).toHaveBeenCalledWith('On it');
+    expect(field).toHaveValue('');
+    t.cleanup();
+  });
+
+  it('puts the text back when the reply does not go', async () => {
+    mockAddReply.mockRejectedValue(new Error('offline'));
+    const t = openThread(withReplies('a', 0));
+    const field = within(thread()).getByRole('textbox', { name: 'Reply' });
+    fireEvent.change(field, { target: { value: 'Still broken' } });
+    await act(async () => {
+      fireEvent.click(within(thread()).getByRole('button', { name: 'Reply' }));
+    });
+    await waitFor(() => expect(field).toHaveValue('Still broken'));
+    t.cleanup();
+  });
+
+  it('Esc in a field with text leaves the field, and keeps the thread open', () => {
+    const t = openThread(withReplies('a', 0));
+    const field = within(thread()).getByRole('textbox', { name: 'Reply' });
+    fireEvent.change(field, { target: { value: 'half a thought' } });
+    fireEvent.keyDown(field, { key: 'Escape' });
+    expect(t.onOpenPinChange).not.toHaveBeenCalledWith(null);
+    expect(field).toHaveValue('half a thought');
+    t.cleanup();
+  });
+
+  it('lets you delete your own reply after confirming, and nobody else’s', () => {
+    mockComments = [
+      reply('c-1', 'creator', 'Cleo Creator', 'Which chart?'),
+      reply('c-2', 'me', 'Grace Hopper', 'Mine'),
+    ];
+    const t = openThread(withReplies('a', 2));
+
+    expect(within(thread()).getAllByRole('button', { name: 'Delete' })).toHaveLength(1);
+    fireEvent.click(within(thread()).getByRole('button', { name: 'Delete' }));
+    expect(mockDeleteReply).not.toHaveBeenCalled();
+    fireEvent.click(
+      within(within(thread()).getByRole('group', { name: 'Delete this reply?' })).getByRole('button', {
+        name: 'Delete',
+      }),
+    );
+    expect(mockDeleteReply).toHaveBeenCalledWith('c-2');
+    t.cleanup();
+  });
+
+  it('badges a pin with the messages in its conversation, the comment included', () => {
+    const t = setup({ pins: [withReplies('a', 2), withReplies('b', 0)] });
+    t.fromApp('ready', LOCATE_READY);
+    t.fromApp('locate:result', {
+      results: {
+        a: { pinId: 'loc-1', rect: { x: 100, y: 200, w: 80, h: 40 } },
+        b: { pinId: 'loc-2', rect: { x: 300, y: 200, w: 80, h: 40 } },
+      },
+    });
+    expect(screen.getByLabelText('3 messages')).toHaveTextContent('3');
+    expect(screen.getAllByLabelText(/messages$/)).toHaveLength(1);
+    t.cleanup();
+  });
+
+  it('keeps the Not on screen list from fetching every thread: replies open behind a toggle', () => {
+    mockComments = [reply('c-1', 'creator', 'Cleo Creator', 'Which chart?')];
+    const t = setup({ pins: [withReplies('a', 1)] });
+    t.fromApp('ready', LOCATE_READY);
+    t.fromApp('locate:result', { results: { a: null } });
+    fireEvent.click(screen.getByRole('button', { name: 'Not on screen (1)' }));
+
+    expect(mockCommentsFetched).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Replies (1)' }));
+    expect(mockCommentsFetched).toHaveBeenCalledWith('fb-a');
+    expect(screen.getByText('Which chart?')).toBeInTheDocument();
+    t.cleanup();
   });
 });

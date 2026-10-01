@@ -2724,6 +2724,8 @@ export const AI_APPS_ANALYTICS = {
   FEEDBACK_PINS_OPENED: 'ai_apps_feedback_pins_opened',
   FEEDBACK_PIN_ADDED: 'ai_apps_feedback_pin_added',
   FEEDBACK_PIN_REMOVED: 'ai_apps_feedback_pin_removed',
+  FEEDBACK_REPLY_SENT: 'ai_apps_feedback_reply_sent',
+  FEEDBACK_REPLY_DELETED: 'ai_apps_feedback_reply_deleted',
   FEEDBACK_PIN_DETACHED: 'ai_apps_feedback_pin_detached',
   FEEDBACK_PIN_CROP_FAILED: 'ai_apps_feedback_pin_crop_failed',
   FEEDBACK_BRIDGE_UNAVAILABLE: 'ai_apps_feedback_bridge_unavailable',

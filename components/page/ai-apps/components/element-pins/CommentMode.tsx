@@ -34,6 +34,7 @@ import {
   type CommentDrafts,
 } from './commentDrafts';
 import { CommentDock } from './CommentDock';
+import { useFeedbackReplies, type ThreadViewer } from './FeedbackReplies';
 
 import s from './CommentMode.module.scss';
 
@@ -99,21 +100,43 @@ function useFrameBox(iframeRef: RefObject<HTMLIFrameElement | null>, enabled: bo
 }
 
 type ThreadProps = {
+  appUid: string;
   pin: OverlayFeedbackPin;
   canManage: boolean;
   currentEnv: AiAppEnvironment;
   isStatusPending: boolean;
   onStatus: (status: AiAppFeedbackStatus) => void;
   onClose?: () => void;
+  /** Who is reading; null while signed out (no replies then). */
+  viewer: ThreadViewer | null;
+  /** The "Not on screen" list: the replies start behind a toggle. */
+  repliesCollapsed?: boolean;
 };
 
 /**
- * One pinned comment: status, who and when, what they said, and the element as
- * it looked. The prototype's PinThread without the reply field (replies come
- * with the comments table). Creator and admins triage here; anyone else sees a
- * status only once it says something (New on your own comment says nothing).
+ * One pinned comment: status, who and when, what they said, the element as it
+ * looked, and the conversation under it (the prototype's PinThread). Creator
+ * and admins triage here; anyone else sees a status only once it says
+ * something (New on your own comment says nothing).
  */
-export function PinThreadCard({ pin, canManage, currentEnv, isStatusPending, onStatus, onClose }: ThreadProps) {
+export function PinThreadCard({
+  appUid,
+  pin,
+  canManage,
+  currentEnv,
+  isStatusPending,
+  onStatus,
+  onClose,
+  viewer,
+  repliesCollapsed,
+}: ThreadProps) {
+  const replies = useFeedbackReplies({
+    appUid,
+    feedbackUid: pin.feedbackUid,
+    commentCount: pin.feedback.commentCount,
+    viewer,
+    collapsed: repliesCollapsed,
+  });
   const status = pin.feedback.status;
   const showStatus = canManage || status !== 'NEW';
   const name = authorOf(pin);
@@ -154,7 +177,9 @@ export function PinThreadCard({ pin, canManage, currentEnv, isStatusPending, onS
             <img src={pin.cropUrl} alt="The part of the app this comment points at" />
           </a>
         )}
+        {replies.list}
       </div>
+      {replies.field}
     </>
   );
 }
@@ -239,6 +264,8 @@ type Props = {
   elementPins: ElementPinsController;
   drafts: CommentDrafts;
   viewerName: string;
+  /** The signed-in member, for the thread's replies; null when unknown. */
+  viewer: ThreadViewer | null;
   getContext: () => FeedbackContext | null;
 };
 
@@ -260,6 +287,7 @@ export function CommentMode({
   elementPins,
   drafts,
   viewerName,
+  viewer,
   getContext,
 }: Props) {
   const overlay = useFeedbackOverlay({ iframeRef, appOrigin, frameKey, listening: true, active, pins, currentPath });
@@ -515,6 +543,12 @@ export function CommentMode({
                 aria-expanded={pin.uid === openPinUid}
               >
                 <span className={s.pinFace}>{initials(name)}</span>
+                {/* Messages in the conversation, the comment included (prototype CommentLayer). */}
+                {(pin.feedback.commentCount ?? 0) > 0 && (
+                  <span className={s.pinCount} aria-label={`${(pin.feedback.commentCount ?? 0) + 1} messages`}>
+                    {(pin.feedback.commentCount ?? 0) + 1}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -553,6 +587,8 @@ export function CommentMode({
           aria-label={`Comment by ${authorOf(open.pin)}`}
         >
           <PinThreadCard
+            appUid={appUid}
+            viewer={viewer}
             pin={open.pin}
             canManage={canManage}
             currentEnv={currentEnv}
@@ -587,6 +623,9 @@ export function CommentMode({
         unplaced={unplaced}
         renderUnplacedPin={(pin) => (
           <PinThreadCard
+            appUid={appUid}
+            viewer={viewer}
+            repliesCollapsed
             pin={pin}
             canManage={canManage}
             currentEnv={currentEnv}

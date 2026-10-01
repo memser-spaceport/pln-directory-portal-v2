@@ -75,6 +75,11 @@ interface AnswerPanelProps {
    * is unchanged for every other host.
    */
   layout?: 'dialog' | 'page';
+  /**
+   * The follow-up field. Defaults to production's `ChatInput`; the
+   * ai-search-page entry passes its redone composer (same props, same ref).
+   */
+  InputComponent?: typeof ChatInput;
 }
 
 /**
@@ -120,9 +125,10 @@ export function AnswerPanel({
   requestIntro,
   hideBar = false,
   layout = 'dialog',
+  InputComponent = ChatInput,
 }: AnswerPanelProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const endRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
   const last = turns[turns.length - 1];
   const busy = !!last && last.status !== 'done';
   const loader = useContext(AnswerStatusVariantContext);
@@ -155,7 +161,11 @@ export function AnswerPanel({
 
   /* Keep the newest turn in view as it grows. */
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: 'end' });
+    /* Scrolls the thread's own list only. scrollIntoView also scrolled every
+       ancestor, so on a page host (ai-mode, ai-search-page) it dragged the
+       body up and left the input under the fold. */
+    const box = messagesRef.current;
+    if (box) box.scrollTop = box.scrollHeight;
   }, [turns.length, last?.status]);
 
   const stop = () => {
@@ -237,7 +247,7 @@ export function AnswerPanel({
         </div>
       )}
 
-      <div className={s.messages}>
+      <div className={s.messages} ref={messagesRef}>
         {turns.map((turn, i) => (
           <Message
             key={turn.id}
@@ -252,11 +262,10 @@ export function AnswerPanel({
             requestIntro={requestIntro}
           />
         ))}
-        <div ref={endRef} />
       </div>
 
       <form className={s.inputWrap} onSubmit={(e) => e.preventDefault()}>
-        <ChatInput
+        <InputComponent
           ref={inputRef}
           placeholder="Ask a follow-up"
           rows={1}

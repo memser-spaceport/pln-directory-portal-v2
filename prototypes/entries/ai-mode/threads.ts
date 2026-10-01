@@ -11,12 +11,17 @@ export interface ChatThread {
   turns: Turn[];
   /** A thread started "about" a team or person keeps that scope for its follow-ups. */
   scope: AiSearchScope | null;
+  /**
+   * Production's generated title (`createThreadTitle`). Optional: this entry
+   * titles a thread by its first question; ai-search-page sets short ones.
+   */
+  title?: string;
 }
 
 let nextThreadId = 1;
 export const newThreadId = () => nextThreadId++;
 
-export const threadTitle = (t: ChatThread) => t.turns[0]?.question ?? 'New chat';
+export const threadTitle = (t: ChatThread) => t.title ?? t.turns[0]?.question ?? 'New chat';
 
 /**
  * Past chats, already answered, newest first. The ai-search entry's own seed

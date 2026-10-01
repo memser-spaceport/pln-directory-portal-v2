@@ -65,10 +65,11 @@ const VIEWER = { uid: 'viewer', name: 'Viewer', email: 'viewer@pl.org' } as unkn
  * - **Application** — this page's own section, second, because it is why the
  *   founder is looking at this person at all.
  * - **Office Hours** — only when the member has them (`OfficeHoursDetails`
- *   returns null for a visitor otherwise).
+ *   returns null for a visitor otherwise), and never for a job aspirant.
  * - **Contact Details** — every handle in production's order; a missing one
  *   draws the row's `incomplete` state, as production does.
- * - **Teams, Experience, Project Contributions, Repositories** — always, with
+ * - **Teams** — only when the candidate has one (LAB-2713).
+ * - **Experience, Project Contributions, Repositories** — always, with
  *   production's own "Not provided" empties.
  *
  * Not here, each for the reason production gives: Forum Activity hides with no
@@ -201,8 +202,10 @@ export function CandidateMemberPage({ candidate, application }: Props) {
 
       {application}
 
-      {/* ---------- Office Hours (OfficeHoursView, visitor state) ---------- */}
-      {p.officeHours && (
+      {/* ---------- Office Hours (OfficeHoursView, visitor state) ----------
+          Never for a job aspirant (LAB-2713): it is a member's offer to the
+          network, and an aspirant has none to make — whatever the record holds. */}
+      {p.officeHours && !candidate.jobAspirant && (
         <DetailsSection>
           <div className={office.root}>
             <DetailsSectionHeader title="Office Hours" />
@@ -282,11 +285,16 @@ export function CandidateMemberPage({ candidate, application }: Props) {
         </div>
       </DetailsSection>
 
-      {/* ---------- Teams ---------- */}
-      <DetailsSection>
-        <DetailsSectionHeader title={`Teams ${p.teams.length ? `(${p.teams.length})` : ''}`} />
-        <TeamsList member={member} userInfo={VIEWER} isEditable={false} onEdit={() => {}} />
-      </DetailsSection>
+      {/* ---------- Teams ----------
+          Only when there is a team (LAB-2713). Production draws "Not provided"
+          here; on a candidate that empty reads as a gap in the person rather
+          than in the record, and it is the usual case for a job aspirant. */}
+      {p.teams.length > 0 && (
+        <DetailsSection>
+          <DetailsSectionHeader title={`Teams (${p.teams.length})`} />
+          <TeamsList member={member} userInfo={VIEWER} isEditable={false} onEdit={() => {}} />
+        </DetailsSection>
+      )}
 
       {/* ---------- Experience ---------- */}
       <DetailsSection>

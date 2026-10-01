@@ -427,6 +427,8 @@ export interface NewsfeedHostProps {
   reviewExtras?: ReactNode;
   /** The Preview as switch, reported: a host's member-only layer must follow it. */
   onSignedInChange?: (signedIn: boolean) => void;
+  /** Leads the page, above Quick Actions / the signed-out banner (`home-ai-ask`'s field). */
+  leadSlot?: ReactNode;
 }
 
 export default function NewsfeedPrototype({
@@ -434,6 +436,7 @@ export default function NewsfeedPrototype({
   helpCallout = true,
   reviewExtras,
   onSignedInChange,
+  leadSlot,
 }: NewsfeedHostProps = {}) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -1474,6 +1477,7 @@ export default function NewsfeedPrototype({
               which is a 20/40px-gap column, so neither needs a wrapper of its
               own. They are alternatives rather than neighbours because Quick
               Actions is a row of things only a member can do. */}
+          {leadSlot}
           {signedIn ? (
             <>
               <div className={v0.qaDesktop}>

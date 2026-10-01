@@ -1,0 +1,238 @@
+// AI Search's field on Home. A search box, not a composer: one line, the
+// mark and name inside it, a text press only once there is something to ask.
+// The overview under it wears the AI Search answer's own card and prose
+// classes (AnswerPanel.module.scss). Token/fallback pairs from neighbouring
+// production sheets.
+
+@use 'styles/media';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 52px;
+  padding: 0 8px 0 16px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-neutral-primary, #fff);
+  box-shadow: 0 1px 2px var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  transition:
+    border-color 0.15s ease-out,
+    box-shadow 0.15s ease-out;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+
+  &:focus-within {
+    border-color: var(--border-brand-primary, #1b4dff);
+    box-shadow: 0 0 0 3px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.mark {
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 24px;
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+.clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+/* The DS primary fill at `xs` (32px), drawn here because it sits inside the
+   field's own box. */
+.submit {
+  flex-shrink: 0;
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--background-brand-primary, #1b4dff);
+  border-radius: 8px;
+  background: var(--background-brand-primary, #1b4dff);
+  color: var(--foreground-neutral-inverse, #fff);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--background-brand-primary-hover, #0f3cd9);
+    border-color: var(--background-brand-primary-hover, #0f3cd9);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+/* "Try" and three questions, as a line of text — not pills, so they can't be
+   read as a third row of feed filters. */
+.try {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+  margin: 0;
+  padding: 0 4px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.tryLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.tryItem {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* The overview                                                               */
+/* ------------------------------------------------------------------------ */
+
+.overview {
+  gap: 16px;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: overviewIn 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+}
+
+@keyframes overviewIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.overviewHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.overviewName {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+/* The answer's prose, capped to the reading width. */
+.prose.prose {
+  max-width: 72ch;
+  margin-bottom: 0;
+}
+
+.overviewFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.continue {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-primary, #fff);
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+.footNote {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}

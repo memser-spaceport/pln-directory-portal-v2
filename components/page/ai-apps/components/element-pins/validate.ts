@@ -55,6 +55,16 @@ export function toDescriptor(value: unknown): ElementDescriptor | null {
   };
 }
 
+/** A click point within an element: both fractions in 0–1, or nothing. */
+export function toPoint(value: unknown): { ox: number; oy: number } | null {
+  if (!value || typeof value !== 'object') return null;
+  const v = value as Record<string, unknown>;
+  const ox = num(v.ox);
+  const oy = num(v.oy);
+  if (ox === null || oy === null || ox < 0 || ox > 1 || oy < 0 || oy > 1) return null;
+  return { ox, oy };
+}
+
 /** Only raster images LabOS itself will re-host through `/v1/images`. */
 export function toCropDataUrl(value: unknown): string | null {
   if (typeof value !== 'string' || value.length > LIMITS.cropDataUrl) return null;

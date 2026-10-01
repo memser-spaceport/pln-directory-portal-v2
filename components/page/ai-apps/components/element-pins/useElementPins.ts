@@ -3,7 +3,7 @@
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { LIMITS, envelope, isEnvelope, type ParentMessage } from '@/ai-apps-bridge/protocol';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
-import { toCropDataUrl, toDescriptor, toPinId, toRect } from './validate';
+import { toCropDataUrl, toDescriptor, toPinId, toPoint, toRect } from './validate';
 import type { ElementPin } from './types';
 
 /**
@@ -126,7 +126,14 @@ export function useElementPins({ iframeRef, appOrigin, frameKey, enabled, appUid
           if (!pinId || !element || current.length >= LIMITS.pins || current.some((p) => p.id === pinId)) return;
           const next = [
             ...current,
-            { id: pinId, element, rect: element.rect, note: '', crop: { status: 'pending' } } as ElementPin,
+            {
+              id: pinId,
+              element,
+              rect: element.rect,
+              note: '',
+              crop: { status: 'pending' },
+              point: toPoint(payload.point),
+            } as ElementPin,
           ];
           commitPins(() => next);
           analyticsRef.current.onFeedbackPinAdded({

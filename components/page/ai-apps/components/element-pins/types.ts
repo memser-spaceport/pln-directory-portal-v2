@@ -11,4 +11,6 @@ export type ElementPin = {
   rect: BridgeRect | null;
   note: string;
   crop: PinCrop;
+  /** Where in the element the member clicked (0–1 of its box); null from a bridge that predates it. */
+  point: { ox: number; oy: number } | null;
 };

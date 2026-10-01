@@ -102,6 +102,16 @@ describe('useElementPins', () => {
     t.cleanup();
   });
 
+  it('keeps where in the element the member clicked, and drops a point that is not inside it', () => {
+    const t = setup();
+    t.fromApp('ready', { capabilities: ['pick'], session: 's1' });
+    t.fromApp('pick:selected', { pinId: 'pin-1', element: descriptor(), point: { ox: 0.25, oy: 0.75 } });
+    t.fromApp('pick:selected', { pinId: 'pin-2', element: descriptor(), point: { ox: 1.5, oy: 0.5 } });
+    t.fromApp('pick:selected', { pinId: 'pin-3', element: descriptor() });
+    expect(t.hook.result.current.pins.map((p) => p.point)).toEqual([{ ox: 0.25, oy: 0.75 }, null, null]);
+    t.cleanup();
+  });
+
   it('drops malformed picks and crops that are not raster images', () => {
     const t = setup();
     t.fromApp('ready', { capabilities: ['pick'], session: 's1' });
@@ -148,6 +158,7 @@ describe('pinsHtml', () => {
     rect: { x: 1, y: 2, w: 3, h: 4 },
     note,
     crop: { status: 'pending' },
+    point: null,
     ...overrides,
   });
 

@@ -756,6 +756,7 @@ export function AiAppDetailPage(props: Props) {
       <FloatingFeedbackButton
         appUid={app.uid}
         appName={app.name}
+        feedbackEnabled={app.feedbackEnabled !== false}
         elementPins={SHOW_AI_APPS_ELEMENT_PINS ? elementPins : undefined}
         iframeRef={iframeRef}
       />

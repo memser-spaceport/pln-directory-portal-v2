@@ -217,6 +217,26 @@ describe('FloatingFeedbackButton', () => {
 
       expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', 'App A');
     });
+
+    it('hides the button and ignores the shortcut when feedback is off', () => {
+      withAccess();
+
+      const { container } = render(<FloatingFeedbackButton appUid="app-a" appName="App A" feedbackEnabled={false} />);
+
+      expect(container).toBeEmptyDOMElement();
+      openChord();
+      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
+    });
+
+    it('still shows Give feedback when the setting is on or omitted', () => {
+      withAccess();
+
+      const { rerender } = render(<FloatingFeedbackButton appUid="app-a" feedbackEnabled />);
+      expect(screen.getByRole('button', { name: 'Give feedback' })).toBeInTheDocument();
+
+      rerender(<FloatingFeedbackButton appUid="app-a" />);
+      expect(screen.getByRole('button', { name: 'Give feedback' })).toBeInTheDocument();
+    });
   });
 
   describe('element pins (bridge-enabled apps)', () => {

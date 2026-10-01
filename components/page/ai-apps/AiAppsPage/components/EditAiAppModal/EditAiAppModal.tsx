@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Switch } from '@base-ui-components/react/switch';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { CloseIcon } from '@/components/icons';
 import { FileUploader } from '@/components/ui/FileUploader/FileUploader';
+import switchStyles from '@/components/form/FormSwitch/FormSwitch.module.scss';
 import { AiApp, hasPrd } from '@/services/ai-apps/ai-apps.service';
 import { useUpdateAiApp } from '@/services/ai-apps/hooks/useUpdateAiApp';
 import { useUpdateAiAppFile } from '@/services/ai-apps/hooks/useUpdateAiAppFile';
@@ -43,7 +45,7 @@ function prdFormatBadge(state: PrdState): string {
 }
 
 /**
- * "Edit details" — name, description, tags, and the optional one-pager. Plain
+ * "Edit details" — name, description, tags, LabOS feedback, and the optional one-pager. Plain
  * metadata saves are a JSON PATCH; setting or replacing the one-pager is a
  * multipart PATCH carrying the file itself (`-F file=@one-pager.md`) — the
  * backend derives `prd` from the file's contents, so its bytes are never
@@ -62,6 +64,7 @@ export function EditAiAppModal({ app, onClose }: Props) {
   const [name, setName] = useState(app.name);
   const [description, setDescription] = useState(app.description);
   const [tags, setTags] = useState<string[]>(app.tags ?? []);
+  const [feedbackEnabled, setFeedbackEnabled] = useState(app.feedbackEnabled !== false);
   const [prd, setPrd] = useState<PrdState | null>(() =>
     hasPrd(app) ? { kind: 'existing', url: app.prd as string } : null,
   );
@@ -104,11 +107,18 @@ export function EditAiAppModal({ app, onClose }: Props) {
     // backend reads the one-pager from the file itself, never from JSON text.
     const result =
       prd?.kind === 'file'
-        ? await saveFile({ name: trimmedName, description: trimmedDescription, tags, file: prd.file })
+        ? await saveFile({
+            name: trimmedName,
+            description: trimmedDescription,
+            tags,
+            feedbackEnabled,
+            file: prd.file,
+          })
         : await savePatch({
             name: trimmedName,
             description: trimmedDescription,
             tags,
+            feedbackEnabled,
             // Only ship `prd` when clearing a one-pager that existed before —
             // an unchanged `existing` one-pager is never re-sent.
             ...(prd === null && hadInitialPrd ? { prd: null } : {}),
@@ -119,7 +129,7 @@ export function EditAiAppModal({ app, onClose }: Props) {
       analytics.onEditDetailsFailed(app.uid);
       return;
     }
-    analytics.onEditDetailsSaved(app.uid);
+    analytics.onEditDetailsSaved(app.uid, feedbackEnabled);
     onClose();
   };
 
@@ -170,6 +180,32 @@ export function EditAiAppModal({ app, onClose }: Props) {
             </label>
             <AiAppTagsSelect value={tags} onChange={setTags} disabled={isSaving} />
             <p className={s.helpText}>Members use tags to browse and filter the AI Apps directory.</p>
+          </div>
+
+          <div className={switchStyles.Container}>
+            <div className={switchStyles.SwitchWrap}>
+              <Switch.Root
+                className={switchStyles.Switch}
+                checked={feedbackEnabled}
+                onCheckedChange={setFeedbackEnabled}
+                disabled={isSaving}
+                aria-labelledby="ai-app-feedback-label"
+                aria-describedby="ai-app-feedback-help"
+              >
+                <Switch.Thumb className={switchStyles.Thumb}>
+                  <div className={switchStyles.dot} />
+                </Switch.Thumb>
+              </Switch.Root>
+            </div>
+            <div className={switchStyles.TextContent}>
+              <div id="ai-app-feedback-label" className={switchStyles.Label}>
+                LabOS feedback
+              </div>
+              <div id="ai-app-feedback-help" className={switchStyles.HelperText}>
+                When off, people who open this app do not see Give feedback. They can still send it from the AI Apps
+                list.
+              </div>
+            </div>
           </div>
 
           <div className={s.field}>

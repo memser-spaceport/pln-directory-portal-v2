@@ -160,7 +160,8 @@ export function useAiAppsAnalytics() {
       capture(AI_APPS_ANALYTICS.MANAGE_MENU_OPENED, { appUid, appName }),
     onEditDetailsOpened: (appUid: string, appName: string) =>
       capture(AI_APPS_ANALYTICS.EDIT_DETAILS_OPENED, { appUid, appName }),
-    onEditDetailsSaved: (appUid: string) => capture(AI_APPS_ANALYTICS.EDIT_DETAILS_SAVED, { appUid }),
+    onEditDetailsSaved: (appUid: string, feedbackEnabled: boolean) =>
+      capture(AI_APPS_ANALYTICS.EDIT_DETAILS_SAVED, { appUid, feedbackEnabled }),
     onEditDetailsFailed: (appUid: string) => capture(AI_APPS_ANALYTICS.EDIT_DETAILS_FAILED, { appUid }),
     onDeploymentSettingsOpened: (params: { appUid: string; isDraft: boolean }) =>
       capture(AI_APPS_ANALYTICS.DEPLOYMENT_SETTINGS_OPENED, params),

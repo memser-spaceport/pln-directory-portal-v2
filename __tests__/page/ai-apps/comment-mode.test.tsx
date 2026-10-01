@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import '@testing-library/jest-dom';
 import { BRIDGE_NS, BRIDGE_VERSION } from '@/ai-apps-bridge/protocol';
 import { describeTarget, shortAgo } from '@/components/page/ai-apps/components/element-pins/CommentsDrawer';
+import { keepClear } from '@/components/page/ai-apps/components/element-pins/CommentMode';
 import {
   CommentMode,
   type ElementPinsController,
@@ -674,5 +675,24 @@ describe('comments panel helpers', () => {
     expect(shortAgo('2026-10-02T11:55:00.000Z', now)).toBe('5m ago');
     expect(shortAgo('2026-10-02T07:00:00.000Z', now)).toBe('5h ago');
     expect(shortAgo('2026-09-26T12:00:00.000Z', now)).toBe('6d ago');
+  });
+});
+
+describe('thread cards keep clear of the Comment card', () => {
+  beforeEach(() => {
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 });
+  });
+  const card = { top: 600, left: 700 };
+
+  it('a thread in the card’s column is raised and capped above it', () => {
+    expect(keepClear(500, 500, 240, card)).toEqual({ left: 500, top: 348, maxHeight: 240 });
+  });
+
+  it('a thread beside the card, not above it, may run to the window’s bottom', () => {
+    expect(keepClear(100, 500, 240, card)).toEqual({ left: 100, top: 500, maxHeight: 292 });
+  });
+
+  it('with no card measured yet it keeps to the window', () => {
+    expect(keepClear(500, 700, 240, null)).toEqual({ left: 500, top: 552, maxHeight: 240 });
   });
 });

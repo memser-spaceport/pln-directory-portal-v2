@@ -196,14 +196,26 @@ function draftPoint(rect: BridgeRect | null, point: { ox: number; oy: number } |
   return { x: rect.x + rect.w * (point?.ox ?? 0), y: rect.y + rect.h * (point?.oy ?? 0) };
 }
 
+type Obstacle = { top: number; left: number } | null;
+
+/**
+ * Where a card can sit from `left`/`top` down: to the window's bottom, or to the
+ * top of the Comment card when the two would share a column — a long thread
+ * raised and capped (it scrolls) rather than drawn over it.
+ */
+export function keepClear(left: number, top: number, minRoom: number, obstacle: Obstacle) {
+  const overlaps = obstacle !== null && left + THREAD_WIDTH > obstacle.left;
+  const floor = overlaps ? obstacle.top - 12 : window.innerHeight - 8;
+  const clampedTop = Math.max(8, Math.min(top, floor - minRoom));
+  return { left, top: clampedTop, maxHeight: Math.max(160, floor - clampedTop) };
+}
+
 /** Beside a pin, flipped left when the right side of the window has no room. */
-function cardPosition(box: FrameBox, point: Point, minRoom = 320) {
+function cardPosition(box: FrameBox, point: Point, minRoom = 320, obstacle: Obstacle = null) {
   const px = box.left + point.x;
   const flip = px + THREAD_GAP + THREAD_WIDTH > window.innerWidth - drawerInset() - 8;
-  return {
-    left: flip ? Math.max(8, px - THREAD_GAP - THREAD_WIDTH) : px + THREAD_GAP,
-    top: Math.max(8, Math.min(box.top + point.y - 16, window.innerHeight - minRoom)),
-  };
+  const left = flip ? Math.max(8, px - THREAD_GAP - THREAD_WIDTH) : px + THREAD_GAP;
+  return keepClear(left, box.top + point.y - 16, minRoom, obstacle);
 }
 
 type ComposerShot = { status: 'pending' | 'done' | 'failed'; dataUrl: string | null };
@@ -211,7 +223,7 @@ type ComposerShot = { status: 'pending' | 'done' | 'failed'; dataUrl: string | n
 type ComposerProps = {
   onCancel: () => void;
   onPost: (note: string, withShot: boolean) => void;
-  style: { left: number; top: number };
+  style: { left: number; top: number; maxHeight?: number };
   /** The element's crop from the bridge; attaching it is the member's choice. */
   shot: ComposerShot;
   posting: boolean;
@@ -359,6 +371,8 @@ export function CommentMode({
   const { mutateAsync: submitFeedback } = useSubmitAiAppFeedback();
   const analytics = useAiAppsAnalytics();
   const [posting, setPosting] = useState(false);
+  /** The Comment card's corner on screen; threads keep clear of it. */
+  const [cardBounds, setCardBounds] = useState<Obstacle>(null);
 
   /* ---------- a new pick: the composer, or (thread open) just closing the thread ---------- */
 
@@ -529,7 +543,7 @@ export function CommentMode({
 
   const open = overlay.placed.find((p) => p.pin.uid === openPinUid && p.rect);
   const outlined = overlay.placed.find((p) => p.pin.uid === (hoverPinUid ?? openPinUid) && p.rect);
-  const threadStyle = open?.rect && box ? cardPosition(box, pointIn(open.rect, open.pin)) : null;
+  const threadStyle = open?.rect && box ? cardPosition(box, pointIn(open.rect, open.pin), 240, cardBounds) : null;
   /* A comment whose element isn't on the page (gone, or unknown without `locate`): its thread
      opens beside the panel instead of at a pin. */
   const floating = !open
@@ -538,10 +552,12 @@ export function CommentMode({
       )
     : undefined;
   const floatingStyle = floating
-    ? {
-        left: Math.max(8, window.innerWidth - drawerInset() - THREAD_WIDTH - 24),
-        top: Math.max(8, (box?.top ?? 0) + 16),
-      }
+    ? keepClear(
+        Math.max(8, window.innerWidth - drawerInset() - THREAD_WIDTH - 24),
+        Math.max(8, (box?.top ?? 0) + 16),
+        240,
+        cardBounds,
+      )
     : null;
   const thread =
     open && threadStyle
@@ -552,7 +568,7 @@ export function CommentMode({
 
   const composingPin = composingPinId ? elementPins.pins.find((p) => p.id === composingPinId) : null;
   const composingPoint = composingPin ? draftPoint(composingPin.rect, composingPin.point) : null;
-  const composerStyle = composingPoint && box ? cardPosition(box, composingPoint, 200) : null;
+  const composerStyle = composingPoint && box ? cardPosition(box, composingPoint, 200, cardBounds) : null;
   const viewerColor = getAvatarColor(viewerName);
 
   return createPortal(
@@ -646,7 +662,13 @@ export function CommentMode({
         />
       )}
 
-      <CommentCard commentCount={commentCount} onFeedbackTab={onFeedbackTab} onClose={onExit} status={overlay.status} />
+      <CommentCard
+        commentCount={commentCount}
+        onFeedbackTab={onFeedbackTab}
+        onClose={onExit}
+        status={overlay.status}
+        onBoundsChange={setCardBounds}
+      />
 
       <CommentsDrawer items={listItems} openPinUid={openPinUid} onSelect={selectItem} onClose={onExit} />
     </>,

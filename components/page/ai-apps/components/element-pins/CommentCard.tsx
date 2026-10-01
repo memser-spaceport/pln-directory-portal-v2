@@ -1,6 +1,7 @@
 'use client';
 
 import { clsx } from 'clsx';
+import { useEffect, useRef } from 'react';
 import { CloseIcon } from '@/components/icons';
 // The feedback dialog's card (radius, shadow), as the prototype's card uses it.
 import fd from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/GiveAiAppFeedbackDialog.module.scss';
@@ -15,6 +16,8 @@ type Props = {
   onFeedbackTab: () => void;
   onClose: () => void;
   status: OverlayStatus;
+  /** Where the card sits on screen, so threads beside a pin can keep clear of it. */
+  onBoundsChange?: (bounds: { top: number; left: number } | null) => void;
 };
 
 /**
@@ -23,9 +26,28 @@ type Props = {
  * comment — a click anywhere in the app — and who sees it. The comments
  * themselves are listed in the panel on the right.
  */
-export function CommentCard({ commentCount, onFeedbackTab, onClose, status }: Props) {
+export function CommentCard({ commentCount, onFeedbackTab, onClose, status, onBoundsChange }: Props) {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !onBoundsChange) return;
+    const report = () => {
+      const r = el.getBoundingClientRect();
+      onBoundsChange({ top: r.top, left: r.left });
+    };
+    report();
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(report) : null;
+    observer?.observe(el);
+    window.addEventListener('resize', report);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', report);
+      onBoundsChange(null);
+    };
+  }, [onBoundsChange]);
+
   return (
-    <section className={clsx(fd.root, s.dock)} aria-label="Comments on this app">
+    <section ref={ref} className={clsx(fd.root, s.dock)} aria-label="Comments on this app">
       <div className={s.top}>
         <FeedbackTabs
           active="comment"

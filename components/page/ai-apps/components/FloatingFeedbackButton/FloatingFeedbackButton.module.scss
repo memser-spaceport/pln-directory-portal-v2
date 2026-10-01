@@ -19,6 +19,11 @@
   display: inline-flex;
   animation: fabIn 280ms ease-out both;
 
+  /* Beside the comments panel while it is open (set by comment mode; the panel is hidden on phones). */
+  @include media.tablet-portrait {
+    right: calc(24px + var(--ai-app-comments-inset, 0px));
+  }
+
   @include media.tablet-landscape {
     bottom: 24px;
   }

@@ -28,6 +28,7 @@ import type { ElementPinsController } from './useElementPins';
 import { hostPinCrops } from './pinsHtml';
 import { commentHtml, toPinInput } from './commentPost';
 import { CommentCard } from './CommentCard';
+import { CommentsDrawer, type CommentListItem, type CommentWhere } from './CommentsDrawer';
 import { useFeedbackReplies, type ThreadViewer } from './FeedbackReplies';
 
 import s from './CommentMode.module.scss';
@@ -46,6 +47,15 @@ import s from './CommentMode.module.scss';
  */
 
 const THREAD_WIDTH = 340;
+/** The comments panel's width; the app, the button and the cards keep out of it. */
+const DRAWER_WIDTH = 380;
+/** Below this the panel is hidden (phones), so nothing makes room for it. */
+const DRAWER_MIN_VIEWPORT = 640;
+
+/** How much of the window's right edge the comments panel covers now. */
+function drawerInset() {
+  return typeof window !== 'undefined' && window.innerWidth >= DRAWER_MIN_VIEWPORT ? DRAWER_WIDTH : 0;
+}
 const THREAD_GAP = 20;
 
 function initials(name: string) {
@@ -189,7 +199,7 @@ function draftPoint(rect: BridgeRect | null, point: { ox: number; oy: number } |
 /** Beside a pin, flipped left when the right side of the window has no room. */
 function cardPosition(box: FrameBox, point: Point, minRoom = 320) {
   const px = box.left + point.x;
-  const flip = px + THREAD_GAP + THREAD_WIDTH > window.innerWidth - 8;
+  const flip = px + THREAD_GAP + THREAD_WIDTH > window.innerWidth - drawerInset() - 8;
   return {
     left: flip ? Math.max(8, px - THREAD_GAP - THREAD_WIDTH) : px + THREAD_GAP,
     top: Math.max(8, Math.min(box.top + point.y - 16, window.innerHeight - minRoom)),
@@ -421,14 +431,43 @@ export function CommentMode({
     return () => document.removeEventListener('keydown', onKey);
   }, [active, composingPinId, cancelComposer, openPinUid, onOpenPinChange, onExit]);
 
-  const unplaced = useMemo(() => {
-    const groups = [...overlay.otherPages.entries()];
-    return {
-      notFound: overlay.notFound,
-      otherPages: groups,
-      count: overlay.notFound.length + groups.reduce((n, [, list]) => n + list.length, 0),
+  /* ---------- the comments panel: one row per item, newest first, with where its element is ---------- */
+
+  const listItems = useMemo((): CommentListItem[] => {
+    const where = new Map<string, CommentWhere>();
+    if (overlay.status !== 'unsupported') {
+      for (const { pin } of overlay.placed) where.set(pin.uid, { kind: 'here' });
+      for (const pin of overlay.notFound) where.set(pin.uid, { kind: 'gone' });
+      for (const pin of overlay.pending) where.set(pin.uid, { kind: 'locating' });
+      for (const [path, list] of overlay.otherPages) {
+        for (const pin of list) where.set(pin.uid, { kind: 'otherPage', path });
+      }
+    }
+    /* Older feedback may carry several pins; the item is listed once, by its first. */
+    const seenItems = new Set<string>();
+    const items: CommentListItem[] = [];
+    for (const pin of pins) {
+      if (seenItems.has(pin.feedbackUid)) continue;
+      seenItems.add(pin.feedbackUid);
+      items.push({ pin, where: where.get(pin.uid) ?? { kind: 'unknown' } });
+    }
+    return items.sort((a, b) => b.pin.feedback.createdAt.localeCompare(a.pin.feedback.createdAt));
+  }, [pins, overlay.status, overlay.placed, overlay.notFound, overlay.pending, overlay.otherPages]);
+
+  const selectItem = (item: CommentListItem) => {
+    if (item.where.kind === 'otherPage') onGoToPage(item.where.path);
+    onOpenPinChange(item.pin.uid);
+  };
+
+  /* The app, the button and the card make room for the panel while the mode is on. */
+  useEffect(() => {
+    if (!active) return;
+    const root = document.documentElement;
+    root.style.setProperty('--ai-app-comments-inset', `${DRAWER_WIDTH}px`);
+    return () => {
+      root.style.removeProperty('--ai-app-comments-inset');
     };
-  }, [overlay.notFound, overlay.otherPages]);
+  }, [active]);
 
   /* ---------- post: one feedback item per comment, sent at once; then its thread opens ---------- */
 
@@ -491,6 +530,25 @@ export function CommentMode({
   const open = overlay.placed.find((p) => p.pin.uid === openPinUid && p.rect);
   const outlined = overlay.placed.find((p) => p.pin.uid === (hoverPinUid ?? openPinUid) && p.rect);
   const threadStyle = open?.rect && box ? cardPosition(box, pointIn(open.rect, open.pin)) : null;
+  /* A comment whose element isn't on the page (gone, or unknown without `locate`): its thread
+     opens beside the panel instead of at a pin. */
+  const floating = !open
+    ? listItems.find(
+        (item) => item.pin.uid === openPinUid && (item.where.kind === 'gone' || item.where.kind === 'unknown'),
+      )
+    : undefined;
+  const floatingStyle = floating
+    ? {
+        left: Math.max(8, window.innerWidth - drawerInset() - THREAD_WIDTH - 24),
+        top: Math.max(8, (box?.top ?? 0) + 16),
+      }
+    : null;
+  const thread =
+    open && threadStyle
+      ? { pin: open.pin, style: threadStyle }
+      : floating && floatingStyle
+        ? { pin: floating.pin, style: floatingStyle }
+        : null;
 
   const composingPin = composingPinId ? elementPins.pins.find((p) => p.id === composingPinId) : null;
   const composingPoint = composingPin ? draftPoint(composingPin.rect, composingPin.point) : null;
@@ -553,21 +611,22 @@ export function CommentMode({
         </div>
       )}
 
-      {open && threadStyle && (
+      {thread && (
         <div
           className={clsx(fd.root, s.card)}
-          style={threadStyle}
+          style={thread.style}
           role="dialog"
-          aria-label={`Comment by ${authorOf(open.pin)}`}
+          aria-label={`Comment by ${authorOf(thread.pin)}`}
         >
           <PinThreadCard
+            key={thread.pin.uid}
             appUid={appUid}
             viewer={viewer}
-            pin={open.pin}
+            pin={thread.pin}
             canManage={canManage}
             currentEnv={currentEnv}
-            isStatusPending={statusPending(open.pin)}
-            onStatus={setStatus(open.pin)}
+            isStatusPending={statusPending(thread.pin)}
+            onStatus={setStatus(thread.pin)}
             onClose={() => onOpenPinChange(null)}
           />
         </div>
@@ -587,26 +646,9 @@ export function CommentMode({
         />
       )}
 
-      <CommentCard
-        commentCount={commentCount}
-        onFeedbackTab={onFeedbackTab}
-        onClose={onExit}
-        status={overlay.status}
-        unplaced={unplaced}
-        renderUnplacedPin={(pin) => (
-          <PinThreadCard
-            appUid={appUid}
-            viewer={viewer}
-            repliesCollapsed
-            pin={pin}
-            canManage={canManage}
-            currentEnv={currentEnv}
-            isStatusPending={statusPending(pin)}
-            onStatus={setStatus(pin)}
-          />
-        )}
-        onGoToPage={onGoToPage}
-      />
+      <CommentCard commentCount={commentCount} onFeedbackTab={onFeedbackTab} onClose={onExit} status={overlay.status} />
+
+      <CommentsDrawer items={listItems} openPinUid={openPinUid} onSelect={selectItem} onClose={onExit} />
     </>,
     document.body,
   );

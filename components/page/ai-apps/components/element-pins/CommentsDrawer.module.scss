@@ -1,0 +1,233 @@
+@use 'styles/media';
+
+/* The comments panel (prototype ai-apps-comments CommentsDrawer): the right
+   edge below the site header, the app narrowed beside it (see
+   --ai-app-comments-inset). Too narrow a screen keeps the card alone. */
+
+$border: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+$ink: var(--foreground-neutral-primary, #0a0c11);
+$quiet: var(--foreground-neutral-secondary, #455468);
+$brand: var(--foreground-brand-primary, #1b4dff);
+
+.drawer {
+  position: fixed;
+  top: var(--app-header-height, 0px);
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  width: 380px;
+  border-left: 1px solid $border;
+  background: #fff;
+  box-shadow: -8px 0 24px rgba(14, 15, 17, 0.06);
+  animation: drawerIn 180ms ease-out both;
+
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+@keyframes drawerIn {
+  from {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 16px 14px 20px;
+  border-bottom: 1px solid $border;
+}
+
+.title {
+  margin: 0 auto 0 0;
+  color: $ink;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.total {
+  margin-left: 4px;
+  color: $quiet;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.filter {
+  height: 32px;
+  padding: 0 28px 0 10px;
+  border: 1px solid $border;
+  border-radius: 8px;
+  background: #fff;
+  color: $ink;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--background-neutral-secondary, #f1f5f9);
+  color: $quiet;
+  cursor: pointer;
+}
+
+.empty {
+  margin: 0;
+  padding: 20px;
+  color: $quiet;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.row {
+  border-bottom: 1px solid $border;
+}
+
+.rowSelected {
+  background: var(--background-brand-secondary, #eef3ff);
+}
+
+.rowButton {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.02);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $brand;
+    outline-offset: -2px;
+  }
+}
+
+.rowHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.avatar {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.name {
+  overflow: hidden;
+  color: $ink;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.time {
+  flex: none;
+  color: $quiet;
+  font-size: 12px;
+}
+
+.status {
+  flex: none;
+  margin-left: auto;
+}
+
+.where {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  color: $quiet;
+  font-size: 12px;
+  line-height: 16px;
+
+  svg {
+    flex: none;
+    color: $brand;
+  }
+}
+
+.whereGone {
+  color: $quiet;
+
+  s {
+    color: $quiet;
+  }
+}
+
+.page {
+  margin-left: 4px;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: rgba(14, 15, 17, 0.06);
+  font-family: monospace;
+  font-size: 11px;
+}
+
+.note {
+  display: -webkit-box;
+  overflow: hidden;
+  color: $ink;
+  font-size: 14px;
+  line-height: 20px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  white-space: pre-wrap;
+}
+
+.noNote {
+  color: $quiet;
+}
+
+.replies {
+  color: $brand;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer {
+    animation: none;
+  }
+}

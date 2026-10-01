@@ -9,6 +9,8 @@ import { Activity, PopupLink } from '../types';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { ACTIVITY_FORM_URL, ACTIVITY_CONFIRM_TOAST } from '@/constants/plaa';
 import { toast } from '@/components/core/ToastContainer';
+import { openPlaaBotForActivity } from '@/components/core/plaa-bot/plaa-bot.utils';
+import { PLAA_BOT_ANALYTICS_TARGET } from '@/components/core/plaa-bot/constants';
 
 interface ActivityDetailModalProps {
   isOpen: boolean;
@@ -46,17 +48,25 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
       return;
     }
 
+    const analyticsParams = {
+      activityId: activity.id,
+      activityName: activity.activity,
+      category: activity.category,
+      points: activity.points,
+    };
+
+    if (openPlaaBotForActivity(activity.id)) {
+      onActivitiesModalLinkClicked(analyticsParams, 'Submit Activity Button', PLAA_BOT_ANALYTICS_TARGET);
+      onClose();
+      return;
+    }
+
     // Submit CTA: open the submission form. Priority: ctaLink > submissionLink > ACTIVITY_FORM_URL
     const url = popupContent.ctaLink
       || (!activity.hasFormLink && popupContent.submissionLink ? popupContent.submissionLink.url : null)
       || ACTIVITY_FORM_URL;
 
-    onActivitiesModalLinkClicked({
-      activityId: activity.id,
-      activityName: activity.activity,
-      category: activity.category,
-      points: activity.points,
-    }, 'Submit Activity Button', url);
+    onActivitiesModalLinkClicked(analyticsParams, 'Submit Activity Button', url);
 
     window.open(url, '_blank', 'noopener,noreferrer');
   };

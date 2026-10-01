@@ -6,6 +6,8 @@ import { Activity } from '../types';
 import { ACTIVITY_FORM_URL, ACTIVITY_CONFIRM_TOAST } from '@/constants/plaa';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { toast } from '@/components/core/ToastContainer';
+import { openPlaaBotForActivity } from '@/components/core/plaa-bot/plaa-bot.utils';
+import { PLAA_BOT_ANALYTICS_TARGET } from '@/components/core/plaa-bot/constants';
 
 interface ActivityTableProps {
   activities: Activity[];
@@ -71,17 +73,24 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
       return;
     }
 
+    const analyticsParams = {
+      activityId: activity.id,
+      activityName: activity.activity,
+      category: activity.category,
+      points: activity.points,
+    };
+
+    if (openPlaaBotForActivity(activity.id)) {
+      onActivitiesFormLinkClicked(analyticsParams, PLAA_BOT_ANALYTICS_TARGET);
+      return;
+    }
+
     // Submit CTA: open the submission form. Priority: ctaLink > submissionLink > ACTIVITY_FORM_URL
     const url = activity.popupContent.ctaLink
       || (!activity.hasFormLink && activity.popupContent.submissionLink ? activity.popupContent.submissionLink.url : null)
       || ACTIVITY_FORM_URL;
 
-    onActivitiesFormLinkClicked({
-      activityId: activity.id,
-      activityName: activity.activity,
-      category: activity.category,
-      points: activity.points,
-    }, url);
+    onActivitiesFormLinkClicked(analyticsParams, url);
 
     window.open(url, '_blank', 'noopener,noreferrer');
   };

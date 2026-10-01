@@ -183,9 +183,7 @@ export const EditTeamInvestorDetailsForm = ({ team, onClose }: Props) => {
 
               <div className={s.infoContent}>
                 <div className={s.infoTitle}>Manage your investor settings</div>
-                <p className={s.infoText}>
-                  Update demo day invites and investor profile visibility in Account Settings →
-                </p>
+                <p className={s.infoText}>Update demo day invites and investor profile visibility in Settings →</p>
                 <Link href="/settings/email" target="_blank" className={s.infoLink}>
                   Email Preferences <LinkIcon />
                 </Link>

@@ -21,7 +21,7 @@ export default async function Settings() {
     <>
       <div className={styles.settings}>
         <div className={styles.settings__title}>
-          <h2 className={styles.settings__title__text}>Account Settings</h2>
+          <h2 className={styles.settings__title__text}>Settings</h2>
         </div>
         <div>
           <SettingsMenu isAdmin={isAdmin} isTeamLead={isTeamLead} userInfo={userInfo} />

@@ -70,6 +70,16 @@ describe('the applicant row contract', () => {
     expect(() => applicantRowSchema.parse({ ...row, coverLetter: null, cv: null })).not.toThrow();
   });
 
+  /* LAB-2713 / LAB-2726: an interest press may carry a short note. Optional,
+     so a server that has not grown the field yet still parses; nullable, so
+     one that has can say "none". */
+  it('accepts an interest note, a null one, and none at all', () => {
+    const interest = { ...row, coverLetter: null, cv: null };
+    expect(applicantRowSchema.parse({ ...interest, note: 'Happy to talk.' }).note).toBe('Happy to talk.');
+    expect(applicantRowSchema.parse({ ...interest, note: null }).note).toBeNull();
+    expect(applicantRowSchema.parse(interest).note).toBeUndefined();
+  });
+
   it('accepts a member with no email, because Email <name> has to hide itself', () => {
     expect(() => applicantRowSchema.parse({ ...row, email: null })).not.toThrow();
   });

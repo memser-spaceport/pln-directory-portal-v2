@@ -81,11 +81,17 @@ jest.mock('@/analytics/jobs.analytics', () => ({
 
 import { JobApplyFlowDrawer } from '@/components/page/jobs/JobApplyFlowDrawer/JobApplyFlowDrawer';
 import {
+  INTEREST_CANCEL_LABEL,
   INTEREST_CONFIRMED_TITLE,
   INTEREST_CTA_LABEL,
+  INTEREST_NOTE_MAX_LENGTH,
+  INTEREST_SEND_LABEL,
   INTEREST_SUBTITLE,
   INTEREST_UNDO_LABEL,
   JobInterestBanner,
+  interestNoteLabel,
+  interestNoteOverLimit,
+  interestNoteSentLabel,
   interestPromptTitle,
   teamFollowOfferLabel,
 } from '@/components/page/jobs/JobInterestBanner/JobInterestBanner';
@@ -97,7 +103,13 @@ const TEAM_NAME = 'Filecoin Foundation';
 const renderBanner = (props: Partial<React.ComponentProps<typeof JobInterestBanner>> = {}) =>
   render(<JobInterestBanner teamName={TEAM_NAME} isInterested={false} error={null} onToggle={jest.fn()} {...props} />);
 
-const action = () => screen.getByRole('button');
+/* The primary control, by name: once the composer is open a Cancel sits beside
+   it, so a bare `getByRole('button')` would find two. */
+const action = () =>
+  screen.getByRole('button', {
+    name: new RegExp(`^(${INTEREST_CTA_LABEL}|${INTEREST_SEND_LABEL}|${INTEREST_UNDO_LABEL})$`),
+  });
+const noteBox = () => screen.getByRole('textbox', { name: interestNoteLabel(TEAM_NAME) });
 
 describe('the banner itself', () => {
   it('asks on behalf of the named team, and says what pressing costs', () => {
@@ -122,31 +134,157 @@ describe('the banner itself', () => {
     expect(screen.queryByText(INTEREST_SUBTITLE)).not.toBeInTheDocument();
   });
 
+  /* LAB-2713: the press opens an optional note in the same slot rather than
+     sending at once. Sending with the box empty sends exactly what the old
+     press did. */
+  it('opens the note box on the press, and sends on the second one', () => {
+    const onToggle = jest.fn();
+    renderBanner({ onToggle });
+
+    fireEvent.click(action());
+    expect(onToggle).not.toHaveBeenCalled();
+    expect(noteBox()).toBeInTheDocument();
+    expect(screen.getByText('(Optional)')).toBeInTheDocument();
+    expect(action()).toHaveAccessibleName(INTEREST_SEND_LABEL);
+
+    fireEvent.click(action());
+    expect(onToggle).toHaveBeenCalledWith(true, false, false, '');
+  });
+
+  it('sends the note, trimmed', () => {
+    const onToggle = jest.fn();
+    renderBanner({ onToggle });
+
+    fireEvent.click(action());
+    fireEvent.change(noteBox(), { target: { value: '  Six years on distributed storage.  ' } });
+    fireEvent.click(action());
+
+    expect(onToggle).toHaveBeenCalledWith(true, false, false, 'Six years on distributed storage.');
+  });
+
+  it('sends a whitespace-only note as no note', () => {
+    const onToggle = jest.fn();
+    renderBanner({ onToggle });
+
+    fireEvent.click(action());
+    fireEvent.change(noteBox(), { target: { value: '   \n  ' } });
+    fireEvent.click(action());
+
+    expect(onToggle).toHaveBeenCalledWith(true, false, false, '');
+  });
+
+  /* No `maxLength` attribute, for the reason the cover letter gives: it silently
+     truncates pasted text. The count goes red, the send is held, and the
+     person is told. */
+  it('holds the send while the note is over the limit, and says by how much', () => {
+    const onToggle = jest.fn();
+    renderBanner({ onToggle });
+
+    fireEvent.click(action());
+    fireEvent.change(noteBox(), { target: { value: 'x'.repeat(INTEREST_NOTE_MAX_LENGTH + 5) } });
+
+    expect(screen.getByText(`${INTEREST_NOTE_MAX_LENGTH + 5} / ${INTEREST_NOTE_MAX_LENGTH}`)).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(interestNoteOverLimit(5));
+    expect(action()).toBeDisabled();
+    fireEvent.click(action());
+    expect(onToggle).not.toHaveBeenCalled();
+
+    fireEvent.change(noteBox(), { target: { value: 'x'.repeat(INTEREST_NOTE_MAX_LENGTH) } });
+    expect(action()).toBeEnabled();
+  });
+
+  it('closes the note box on Cancel without sending anything', () => {
+    const onToggle = jest.fn();
+    renderBanner({ onToggle });
+
+    fireEvent.click(action());
+    fireEvent.change(noteBox(), { target: { value: 'Half a thought' } });
+    fireEvent.click(screen.getByRole('button', { name: INTEREST_CANCEL_LABEL }));
+
+    expect(onToggle).not.toHaveBeenCalled();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(action()).toHaveAccessibleName(INTEREST_CTA_LABEL);
+  });
+
   it('asks for the state it is not in', () => {
     const onToggle = jest.fn();
 
     const { rerender } = renderBanner({ onToggle });
     fireEvent.click(action());
-    expect(onToggle).toHaveBeenCalledWith(true, false, false);
+    fireEvent.click(action());
+    expect(onToggle).toHaveBeenCalledWith(true, false, false, '');
 
     rerender(<JobInterestBanner teamName={TEAM_NAME} isInterested error={null} onToggle={onToggle} />);
     fireEvent.click(action());
-    expect(onToggle).toHaveBeenLastCalledWith(false, false, false);
+    expect(onToggle).toHaveBeenLastCalledWith(false, false, false, '');
   });
 
-  it('puts a refusal where the offer was, and leaves the control pressable', () => {
+  /* The confirmation quotes the note back when one went with the signal, and
+     says nothing about it when none did. */
+  it('quotes the note back once the signal is in', () => {
+    renderBanner({ isInterested: true, note: 'Happy to talk through the Rust side.' });
+
+    expect(screen.getByText(interestNoteSentLabel(TEAM_NAME))).toBeInTheDocument();
+    expect(screen.getByText('Happy to talk through the Rust side.')).toBeInTheDocument();
+  });
+
+  it('draws no note block when the signal carried none', () => {
+    renderBanner({ isInterested: true, note: null });
+
+    expect(screen.queryByText(interestNoteSentLabel(TEAM_NAME))).not.toBeInTheDocument();
+  });
+
+  /* Undo then mark again starts from an empty box: the old note is not
+     prefilled, so the new signal carries only what is typed now. */
+  it('starts a fresh note after Undo', () => {
     const onToggle = jest.fn();
-    renderBanner({ error: 'Could not save your interest', onToggle });
+    const { rerender } = renderBanner({ onToggle });
+
+    fireEvent.click(action());
+    fireEvent.change(noteBox(), { target: { value: 'First note' } });
+    fireEvent.click(action());
+
+    rerender(
+      <JobInterestBanner teamName={TEAM_NAME} isInterested note="First note" error={null} onToggle={onToggle} />,
+    );
+    fireEvent.click(action());
+    expect(onToggle).toHaveBeenLastCalledWith(false, false, false, '');
+
+    rerender(<JobInterestBanner teamName={TEAM_NAME} isInterested={false} error={null} onToggle={onToggle} />);
+    expect(action()).toHaveAccessibleName(INTEREST_CTA_LABEL);
+    fireEvent.click(action());
+    expect(noteBox()).toHaveValue('');
+  });
+
+  /* A refused send leaves the words where they were: the box stays open with
+     the note in it, and the refusal sits where the subtitle was. */
+  it('puts a refusal where the offer was, and keeps the note in the box', () => {
+    const onToggle = jest.fn();
+    const { rerender } = renderBanner({ onToggle });
+
+    fireEvent.click(action());
+    fireEvent.change(noteBox(), { target: { value: 'Still here' } });
+    fireEvent.click(action());
+
+    rerender(
+      <JobInterestBanner
+        teamName={TEAM_NAME}
+        isInterested={false}
+        error="Could not save your interest"
+        onToggle={onToggle}
+      />,
+    );
 
     expect(screen.getByText('Could not save your interest')).toBeInTheDocument();
     expect(screen.queryByText(INTEREST_SUBTITLE)).not.toBeInTheDocument();
+    expect(noteBox()).toHaveValue('Still here');
 
     fireEvent.click(action());
-    expect(onToggle).toHaveBeenCalledWith(true, false, false);
+    expect(onToggle).toHaveBeenLastCalledWith(true, false, false, 'Still here');
   });
 
   /* The follow offer: one row under the subtitle while the signal is unsent,
-     and the tick as it stands rides the press. */
+     and the tick as it stands rides the press that sends it. */
   it('carries the follow tick into the press that sends the signal', () => {
     const onToggle = jest.fn();
     renderBanner({ follow: { checked: true, onChange: jest.fn() }, onToggle });
@@ -154,7 +292,9 @@ describe('the banner itself', () => {
     expect(screen.getByText(teamFollowOfferLabel(TEAM_NAME))).toBeInTheDocument();
 
     fireEvent.click(action());
-    expect(onToggle).toHaveBeenCalledWith(true, true, true);
+    expect(screen.getByText(teamFollowOfferLabel(TEAM_NAME))).toBeInTheDocument();
+    fireEvent.click(action());
+    expect(onToggle).toHaveBeenCalledWith(true, true, true, '');
   });
 
   it('sends no follow when the tick was removed', () => {
@@ -162,7 +302,8 @@ describe('the banner itself', () => {
     renderBanner({ follow: { checked: false, onChange: jest.fn() }, onToggle });
 
     fireEvent.click(action());
-    expect(onToggle).toHaveBeenCalledWith(true, false, true);
+    fireEvent.click(action());
+    expect(onToggle).toHaveBeenCalledWith(true, false, true, '');
   });
 
   /* Once the signal is in, the footer's press is Undo — and Undo is not an
@@ -173,15 +314,20 @@ describe('the banner itself', () => {
     expect(screen.queryByText(teamFollowOfferLabel(TEAM_NAME))).not.toBeInTheDocument();
   });
 
-  /* The reason the two states share one `<button>`. If someone splits this into
-     a conditional pair, the rendered output still looks right and this is the
-     only thing that fails. */
+  /* The reason the three states share one `<button>`. If someone splits this
+     into a conditional pair, the rendered output still looks right and this is
+     the only thing that fails. */
   it('keeps focus on the control across the toggle', () => {
     const { rerender } = renderBanner();
 
     const before = action();
     before.focus();
     expect(document.activeElement).toBe(before);
+
+    fireEvent.click(before);
+    expect(action()).toBe(before);
+    expect(document.activeElement).toBe(before);
+    expect(document.activeElement).toHaveAccessibleName(INTEREST_SEND_LABEL);
 
     rerender(<JobInterestBanner teamName={TEAM_NAME} isInterested error={null} onToggle={jest.fn()} />);
 

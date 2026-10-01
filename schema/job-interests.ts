@@ -26,6 +26,12 @@ export const jobInterestSchema = z
     /** ISO timestamp. Named for the act, not the row — `interestedAt`, where the
      *  application's equivalent is `appliedAt`. */
     interestedAt: z.string().min(1),
+    /**
+     * The short note that went with the press, when one did (LAB-2713; stored
+     * by LAB-2726). Optional rather than nullable-only so a server that has not
+     * grown the field yet still parses; null once it has and none was left.
+     */
+    note: z.string().nullable().optional(),
   })
   .strict();
 
@@ -55,6 +61,9 @@ export const jobInterestToggleResponseSchema = z
     jobUid: z.string().min(1),
     interestedCount: z.number(),
     viewerIsInterested: z.boolean(),
+    /** The note as stored, if the server chooses to echo it (LAB-2726 leaves
+     *  this to the read-back; tolerated here so an echo is not a drift). */
+    note: z.string().nullable().optional(),
   })
   .strict();
 

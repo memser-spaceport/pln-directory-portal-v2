@@ -59,6 +59,15 @@ describe('the wire shape', () => {
   /* The write response carries the role's total alongside the viewer's own
      state. Nothing renders the count today; it is parsed so that adding a UI
      for it later is not a `.strict()` surprise. */
+  /* LAB-2726 adds the member's own note to the read-back. Optional here so a
+     server that has not shipped it yet still parses; nullable so one that has
+     can say "none". */
+  it('accepts the note the server will add to each row, and its absence', () => {
+    expect(jobInterestListResponseSchema.parse({ interests: [{ ...ROW, note: 'Hi' }] }).interests[0].note).toBe('Hi');
+    expect(jobInterestListResponseSchema.parse({ interests: [{ ...ROW, note: null }] }).interests[0].note).toBeNull();
+    expect(jobInterestListResponseSchema.parse({ interests: [ROW] }).interests[0].note).toBeUndefined();
+  });
+
   it('accepts the toggle response, count and all', () => {
     expect(jobInterestToggleResponseSchema.parse(toggled(true))).toEqual({
       jobUid: 'r1',
@@ -111,6 +120,22 @@ describe('the calls', () => {
     }
   });
 
+  /* LAB-2713: the optional note rides the mark. Only sent when there are
+     words — the server stores a blank as no note anyway, and `{}` keeps the
+     write byte-identical to what it was for everyone who types nothing. */
+  it('sends the note with the mark, trimmed, and only when there is one', async () => {
+    fetchMock.mockResolvedValue(ok(toggled(true)));
+
+    await markJobInterest('r1', '  Six years on distributed storage.  ');
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ note: 'Six years on distributed storage.' });
+
+    await markJobInterest('r1', '   ');
+    expect(fetchMock.mock.calls[1][1].body).toBe('{}');
+
+    await markJobInterest('r1');
+    expect(fetchMock.mock.calls[2][1].body).toBe('{}');
+  });
+
   it('carries the server’s own message when it sent one', async () => {
     fetchMock.mockResolvedValue(fail(400, { message: 'This role is no longer accepting interest' }));
 
@@ -160,6 +185,21 @@ describe('the optimistic toggle', () => {
 
     await waitFor(() => expect(rows(client)).toHaveLength(1));
     expect(rows(client)?.[0].jobUid).toBe('r1');
+
+    release(ok(toggled(true)));
+  });
+
+  /* LAB-2713: the note rides the optimistic row, so the confirmation can quote
+     it back before the refetch lands. */
+  it('carries the note on the optimistic row', async () => {
+    let release: (value: unknown) => void = () => {};
+    fetchMock.mockReturnValue(new Promise((resolve) => (release = resolve)));
+
+    const { client, result } = harness();
+    result.current.mutate({ roleUid: 'r1', nextInterested: true, note: 'Happy to talk.' });
+
+    await waitFor(() => expect(rows(client)).toHaveLength(1));
+    expect((rows(client)?.[0] as { note?: string | null }).note).toBe('Happy to talk.');
 
     release(ok(toggled(true)));
   });

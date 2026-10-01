@@ -51,20 +51,27 @@ export function useJobInterests({ memberUid, enabled }: MemberScopedOptions) {
 export function useRoleInterest(
   roleUid: string,
   { memberUid, enabled }: MemberScopedOptions,
-): { isInterested: boolean; isSettled: boolean } {
+): { isInterested: boolean; isSettled: boolean; note: string | null } {
   const { data, isPending, isError } = useQuery({
     queryKey: jobInterestsQueryKey(memberUid ?? ''),
     queryFn: fetchJobInterests,
     enabled: enabled && !!memberUid,
     staleTime: Infinity,
-    select: (interests: JobInterest[]) => interests.some((interest) => interest.jobUid === roleUid),
+    /* The row rather than a boolean, since LAB-2713: the banner quotes the
+       note back, and the note lives on the row. Still one observer per banner,
+       still re-rendering only when this role's row changes. */
+    select: (interests: JobInterest[]) => interests.find((interest) => interest.jobUid === roleUid) ?? null,
   });
 
+  /* The Jest `useQuery` mock ignores `select` and returns the raw object, so
+     this is a shape test rather than a truthiness one — the same guard, for
+     the same reason, as `useIsRoleApplied`. */
+  const row =
+    data && typeof data === 'object' && (data as JobInterest).jobUid === roleUid ? (data as JobInterest) : null;
+
   return {
-    /* The Jest `useQuery` mock ignores `select` and returns the raw object, so
-       this is a shape test rather than a truthiness one — the same guard, for
-       the same reason, as `useIsRoleApplied`. */
-    isInterested: data === true,
+    isInterested: row !== null,
+    note: row?.note ?? null,
     /* A query that is disabled never pends, and a failed one is settled at
        "we asked and could not find out" — in both cases the banner should show
        rather than wait forever. Only a genuinely in-flight first read holds it
@@ -88,24 +95,34 @@ export function useToggleJobInterest(memberUid: string | undefined) {
     /* Both verbs answer with the same shape — the authoritative post-write
        state — which is what lets `onSuccess` below correct the screen from the
        server's answer rather than from what we assumed the press meant. */
-    mutationFn: ({ roleUid, nextInterested }: { roleUid: string; nextInterested: boolean }) =>
-      nextInterested ? markJobInterest(roleUid) : clearJobInterest(roleUid),
+    mutationFn: ({ roleUid, nextInterested, note }: { roleUid: string; nextInterested: boolean; note?: string }) =>
+      nextInterested ? markJobInterest(roleUid, note) : clearJobInterest(roleUid),
 
-    onMutate: async ({ roleUid, nextInterested }): Promise<{ previous?: JobInterest[] }> => {
+    onMutate: async ({ roleUid, nextInterested, note }): Promise<{ previous?: JobInterest[] }> => {
       if (!memberUid) return {};
       const key = jobInterestsQueryKey(memberUid);
 
       await queryClient.cancelQueries({ queryKey: key });
       const previous = queryClient.getQueryData<JobInterest[]>(key);
 
+      /* The note as the server will keep it: trimmed, and absent when blank. */
+      const trimmedNote = note?.trim() || null;
+
       queryClient.setQueryData<JobInterest[]>(key, (old = []) => {
         if (!nextInterested) return old.filter((interest) => interest.jobUid !== roleUid);
-        if (old.some((interest) => interest.jobUid === roleUid)) return old;
-        /* A stand-in row, not a guess at the server's. Only `jobUid` is ever
-           read from it before `onSettled` replaces the list wholesale; the uid
-           is marked so a row that somehow outlives the refetch is obvious in a
-           devtools cache dump rather than passing for real. */
-        return [...old, { uid: `optimistic:${roleUid}`, jobUid: roleUid, interestedAt: new Date().toISOString() }];
+        /* A repeat press with a note replaces the stored one (LAB-2726), so the
+           row's note follows the press even when the row already exists. */
+        if (old.some((interest) => interest.jobUid === roleUid)) {
+          return old.map((interest) => (interest.jobUid === roleUid ? { ...interest, note: trimmedNote } : interest));
+        }
+        /* A stand-in row, not a guess at the server's. Only `jobUid` and `note`
+           are ever read from it before `onSettled` replaces the list wholesale;
+           the uid is marked so a row that somehow outlives the refetch is
+           obvious in a devtools cache dump rather than passing for real. */
+        return [
+          ...old,
+          { uid: `optimistic:${roleUid}`, jobUid: roleUid, interestedAt: new Date().toISOString(), note: trimmedNote },
+        ];
       });
 
       return { previous };
@@ -116,7 +133,7 @@ export function useToggleJobInterest(memberUid: string | undefined) {
        but it is the only thing here that actually knows, and taking it costs
        one branch. A disagreement means something raced us, and the screen
        should follow the server rather than the click. */
-    onSuccess: (result) => {
+    onSuccess: (result, { note }) => {
       if (!memberUid) return;
       queryClient.setQueryData<JobInterest[]>(jobInterestsQueryKey(memberUid), (old = []) => {
         const without = old.filter((interest) => interest.jobUid !== result.jobUid);
@@ -128,6 +145,7 @@ export function useToggleJobInterest(memberUid: string | undefined) {
             uid: `pending:${result.jobUid}`,
             jobUid: result.jobUid,
             interestedAt: new Date().toISOString(),
+            note: result.note ?? note?.trim() ?? null,
           },
         ];
       });

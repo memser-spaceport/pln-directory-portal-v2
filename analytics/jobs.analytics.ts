@@ -433,8 +433,12 @@ export const useJobsAnalytics = () => {
    * A logged-out press fires nothing here — it is a sign-up intent, and
    * `onJobApplyClicked` already counts those with `trigger`. The mark event
    * fires when the signal actually exists.
+   *
+   * `has_note` (LAB-2713): whether a note went with the signal. The note-attach
+   * rate LAB-2726's Metrics section reads is marks with `has_note = true` over
+   * all marks, so this is set on every mark, the login round-trip included.
    */
-  const onJobInterestMarked = (args: JobApplyBaseParams & { resumed: boolean }) => {
+  const onJobInterestMarked = (args: JobApplyBaseParams & { resumed: boolean; has_note: boolean }) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_INTEREST_MARKED, { ...args });
   };
 
@@ -488,11 +492,7 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_HIRING_VIEWED, { ...args });
   };
 
-  const onJobApplicantOpened = (args: {
-    team_id: string;
-    job_id: string | null;
-    kind: 'application' | 'interest';
-  }) => {
+  const onJobApplicantOpened = (args: { team_id: string; job_id: string | null; kind: 'application' | 'interest' }) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_APPLICANT_OPENED, { ...args });
   };
 
@@ -529,11 +529,7 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_APPLICANT_EMAIL_CLICKED, { ...args });
   };
 
-  const onJobHiringTabChanged = (args: {
-    team_id: string;
-    job_id: string | null;
-    tab: 'applied' | 'interested';
-  }) => {
+  const onJobHiringTabChanged = (args: { team_id: string; job_id: string | null; tab: 'applied' | 'interested' }) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_HIRING_TAB_CHANGED, { ...args });
   };
 

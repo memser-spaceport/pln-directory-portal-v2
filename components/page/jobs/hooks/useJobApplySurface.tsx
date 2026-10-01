@@ -199,6 +199,8 @@ export function useJobApplySurface({
       }
     }
 
+    /* No note on the round trip: the press that went to Privy was the bare
+       button, and nothing typed survives a redirect. */
     toggleInterest.mutate({ roleUid, nextInterested: true });
     analytics.onJobInterestMarked({
       job_id: roleUid,
@@ -206,6 +208,7 @@ export function useJobApplySurface({
       viewer_state: viewer.viewer,
       source,
       resumed: true,
+      has_note: false,
     });
 
     /* Only if the application resume did not already claim the drawer. Our own
@@ -219,13 +222,7 @@ export function useJobApplySurface({
   }, [enabled, isLoggedIn, viewer.viewer, viewer.memberUid, isLoading, groups]);
 
   const controller = enabled ? (
-    <JobApplyFlowController
-      flow={flow}
-      viewer={viewer}
-      isLoggedIn={isLoggedIn}
-      userInfo={userInfo}
-      source={source}
-    />
+    <JobApplyFlowController flow={flow} viewer={viewer} isLoggedIn={isLoggedIn} userInfo={userInfo} source={source} />
   ) : null;
 
   return { viewer, flow, applyProps, controller };

@@ -79,8 +79,16 @@ export const applicantRowSchema = z
     /** ISO. `appliedAt` for an application, `interestedAt` for an interest —
      *  one name, because every reader of it asks the same question ("when"). */
     createdAt: z.string().min(1),
-    /** What they wrote. Always null on an interest: the press carries no words. */
+    /** What they wrote with an application. Always null on an interest, whose
+     *  words — if any — arrive as `note`. */
     coverLetter: z.string().nullable(),
+    /**
+     * The short note an interest press may carry (LAB-2713; stored and served
+     * by LAB-2726). Optional so a server that has not grown the field yet still
+     * parses; null once it has and the candidate left none. Never set on an
+     * application, whose words are `coverLetter`.
+     */
+    note: z.string().nullable().optional(),
     cv: applicantCvSchema.nullable(),
     /**
      * Not opened by THIS viewer — per-lead, not per-row.

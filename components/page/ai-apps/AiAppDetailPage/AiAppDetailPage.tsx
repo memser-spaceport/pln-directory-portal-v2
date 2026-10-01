@@ -34,7 +34,7 @@ import { BRIDGE_VERSION } from '@/ai-apps-bridge/protocol';
 import type { FeedbackContext } from '@/services/ai-app-feedback/ai-app-feedback.service';
 import { useAppFeedbackPins } from '@/services/ai-app-feedback/hooks/useAppFeedbackPins';
 import { FloatingFeedbackButton } from '../components/FloatingFeedbackButton';
-import { CommentMode, normalizeAppPath, useCommentDrafts, useElementPins } from '../components/element-pins';
+import { CommentMode, normalizeAppPath, useElementPins } from '../components/element-pins';
 import { AiAppTagChips } from '../components/AiAppTagChips';
 import { LockIcon } from '../AiAppsPage/components/ManageAccessModal/icons';
 
@@ -443,7 +443,8 @@ export function AiAppDetailPage(props: Props) {
   // are only drawn while it is on. Needs the app's bridge, and a running frame.
   const [commentModeOn, setCommentModeOn] = useState(false);
   const [openFeedbackPin, setOpenFeedbackPin] = useState<string | null>(null);
-  const commentDrafts = useCommentDrafts(uid);
+  /* Bumped when the comment card's Feedback tab is chosen: the button opens the written form. */
+  const [feedbackRequest, setFeedbackRequest] = useState(0);
   const deepLinkHandled = useRef(false);
   // Open items on the button: one feedback item may carry several pins (older feedback).
   const openCommentCount = useMemo(
@@ -868,12 +869,13 @@ export function AiAppDetailPage(props: Props) {
             ? {
                 available: true,
                 active: commentModeOn,
-                openCount: openCommentCount,
-                draftCount: commentDrafts.drafts.length + (commentDrafts.general.trim() ? 1 : 0),
-                onToggle: () => {
-                  setCommentModeOn(!commentModeOn);
+                count: openCommentCount,
+                onOpen: () => setCommentModeOn(true),
+                onClose: () => {
+                  setCommentModeOn(false);
                   setOpenFeedbackPin(null);
                 },
+                feedbackRequest,
               }
             : undefined
         }
@@ -898,8 +900,13 @@ export function AiAppDetailPage(props: Props) {
             setOpenFeedbackPin(null);
           }}
           elementPins={elementPins}
-          drafts={commentDrafts}
           viewerName={currentUser?.name ?? 'You'}
+          commentCount={openCommentCount}
+          onFeedbackTab={() => {
+            setCommentModeOn(false);
+            setOpenFeedbackPin(null);
+            setFeedbackRequest((n) => n + 1);
+          }}
           viewer={
             currentUser?.uid
               ? { uid: currentUser.uid, name: currentUser.name ?? 'You', image: currentUser.profileImageUrl ?? null }

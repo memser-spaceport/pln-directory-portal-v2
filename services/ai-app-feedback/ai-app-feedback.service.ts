@@ -106,7 +106,7 @@ export async function submitAiAppFeedback(
   appUid: string,
   text: string,
   extras: { pins?: FeedbackPinInput[]; context?: FeedbackContext } = {},
-): Promise<boolean> {
+): Promise<{ uid: string }> {
   const response = await customFetch(
     `${AI_APPS_API_URL}/${appUid}/feedback`,
     {
@@ -127,7 +127,8 @@ export async function submitAiAppFeedback(
     throw new Error('Failed to submit AI App feedback');
   }
 
-  return true;
+  /* The stored item: comment mode opens its thread once the pin comes back. */
+  return response.json();
 }
 
 /**

@@ -43,9 +43,10 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   width: 28px;
   height: 28px;
   padding: 0;
-  transform: translate(0, -100%);
+  /* Centred on the spot that was clicked: a round initials badge (prototype ai-apps-comments). */
+  transform: translate(-50%, -50%);
   border: 2px solid #fff;
-  border-radius: 50% 50% 50% 4px;
+  border-radius: 50%;
   background: var(--pin-color, #1b4dff);
   box-shadow:
     0 1px 2px rgba(14, 15, 17, 0.2),
@@ -57,7 +58,7 @@ $quiet: var(--foreground-neutral-secondary, #455468);
     opacity 120ms ease;
 
   &:hover {
-    transform: translate(0, -100%) scale(1.08);
+    transform: translate(-50%, -50%) scale(1.08);
   }
 
   &:focus-visible {
@@ -326,25 +327,9 @@ $quiet: var(--foreground-neutral-secondary, #455468);
 .top {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   flex-shrink: 0;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  min-width: 0;
-  height: 32px;
-  padding: 0 12px;
-  border: 1px solid $border;
-  border-radius: 999px;
-  background: var(--background-neutral-secondary, #f8fafc);
-  color: $ink;
-  font-size: 14px;
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .scroll {
@@ -360,31 +345,6 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   color: $quiet;
   font-size: 14px;
   line-height: 20px;
-}
-
-/* After Send: stays until there is something new to send. */
-.receipt {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-  margin: 0;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: var(--background-success-secondary, #ecfdf3);
-  color: var(--foreground-success-primary, #067647);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-}
-
-.receiptMark {
-  flex: none;
-  font-weight: 700;
-}
-
-.receiptNext {
-  color: $quiet;
-  font-weight: 400;
 }
 
 .unplaced {
@@ -515,13 +475,6 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   white-space: nowrap;
 }
 
-.footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-}
-
 /* ---------- writing ---------- */
 
 /* A draft's pin drops in; it shows its number in the dock, in the viewer's colour. */
@@ -580,112 +533,9 @@ $quiet: var(--foreground-neutral-secondary, #455468);
 
 .composerFooter {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: flex-end;
   gap: 8px;
-}
-
-.chips {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.draft {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 10px 10px 10px 12px;
-  border: 1px solid $border;
-  border-left: 3px solid $brand;
-  border-radius: 10px;
-}
-
-.draftNumber {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border: 1px solid $border;
-  border-radius: 999px;
-  color: $quiet;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.draftBody {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.draftHead {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.draftLabel {
-  color: $ink;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-/* The reference's Screenshot chip: a thumbnail and the word; pressing it marks the picture up. */
-.shotChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 24px;
-  padding: 0 8px 0 2px;
-  border: 1px solid $border;
-  border-radius: 999px;
-  background: var(--background-neutral-secondary, #f8fafc);
-  color: $ink;
-  font-size: 12px;
-  cursor: pointer;
-
-  img {
-    width: 28px;
-    height: 18px;
-    border-radius: 999px;
-    object-fit: cover;
-  }
-}
-
-.shotChipPending {
-  width: 96px;
-  cursor: default;
-  background: linear-gradient(
-    90deg,
-    rgba(14, 15, 17, 0.04) 25%,
-    rgba(14, 15, 17, 0.08) 50%,
-    rgba(14, 15, 17, 0.04) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.2s linear infinite;
-}
-
-@keyframes shimmer {
-  from {
-    background-position: 200% 0;
-  }
-  to {
-    background-position: -200% 0;
-  }
-}
-
-.draftText {
-  margin: 0;
-  color: $quiet;
-  font-size: 13px;
-  line-height: 18px;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
 }
 
 .iconButton {
@@ -703,21 +553,6 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   }
 }
 
-.whole {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 10px;
-  border: 1px solid $border;
-  border-radius: 12px;
-}
-
-.wholeLabel {
-  color: $ink;
-  font-size: 13px;
-  font-weight: 600;
-}
-
 .audience {
   margin: 0;
   color: $quiet;
@@ -733,8 +568,92 @@ $quiet: var(--foreground-neutral-secondary, #455468);
 
   .card,
   .dock,
-  .pinDraft,
-  .shotChipPending {
+  .pinDraft {
     animation: none;
   }
+}
+
+/* ---------- the Comment tab's card and the composer (prototype ai-apps-comments) ---------- */
+
+.hintBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hintLead {
+  margin: 0;
+  color: $ink;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.composerShotButton {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid $border;
+  border-radius: 6px;
+  background: #fff;
+  color: $ink;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:disabled {
+    color: $quiet;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.composerShot {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid $border;
+  border-radius: 8px;
+  background: var(--background-neutral-secondary, #f8fafc);
+  line-height: 0;
+
+  img {
+    display: block;
+    width: 100%;
+    max-height: 120px;
+    object-fit: contain;
+    object-position: left top;
+  }
+}
+
+.composerShotPending {
+  display: block;
+  padding: 12px;
+  color: $quiet;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.composerShotRemove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(14, 15, 17, 0.6);
+  color: #fff;
+  cursor: pointer;
+}
+
+.composerAudience {
+  margin-right: auto;
+  color: $quiet;
+  font-size: 12px;
+  line-height: 16px;
 }

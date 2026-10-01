@@ -4,7 +4,6 @@ import '@testing-library/jest-dom';
 import { BRIDGE_NS, BRIDGE_VERSION } from '@/ai-apps-bridge/protocol';
 import {
   CommentMode,
-  useCommentDrafts,
   type ElementPinsController,
   type ElementPin,
 } from '@/components/page/ai-apps/components/element-pins';
@@ -19,6 +18,7 @@ jest.mock('@/services/ai-app-feedback/hooks/useUpdateAiAppFeedbackStatus', () =>
   useUpdateAiAppFeedbackStatus: () => ({ mutate: mockUpdateStatus, isPending: false, variables: undefined }),
 }));
 const mockSubmit = jest.fn();
+const mockFeedbackTab = jest.fn();
 jest.mock('@/services/ai-app-feedback/hooks/useSubmitAiAppFeedback', () => ({
   useSubmitAiAppFeedback: () => ({ mutateAsync: mockSubmit }),
 }));
@@ -140,7 +140,6 @@ type HarnessProps = Partial<React.ComponentProps<typeof CommentMode>> & {
 };
 
 function Harness({ bridge, spies, ...props }: HarnessProps) {
-  const drafts = useCommentDrafts('app-1');
   return (
     <CommentMode
       appUid="app-1"
@@ -158,8 +157,9 @@ function Harness({ bridge, spies, ...props }: HarnessProps) {
       onGoToPage={jest.fn()}
       onExit={jest.fn()}
       elementPins={makeController(bridge, spies)}
-      drafts={drafts}
       viewerName="Grace Hopper"
+      commentCount={2}
+      onFeedbackTab={mockFeedbackTab}
       viewer={{ uid: 'me', name: 'Grace Hopper', image: null }}
       getContext={() => CONTEXT}
       {...props}
@@ -189,9 +189,18 @@ function setup(
   jest.spyOn(appWindow, 'postMessage').mockImplementation(() => undefined);
   const spies = { startPicking: jest.fn(), stopPicking: jest.fn(), removePin: jest.fn(), clearPins: jest.fn() };
   const handlers = { onOpenPinChange: jest.fn(), onGoToPage: jest.fn(), onExit: jest.fn() };
-  const base = { iframeRef: { current: iframe }, ...handlers, ...props };
+  let base = { iframeRef: { current: iframe }, ...handlers, ...props };
+  let bridgeNow = bridge;
   const view = render(<Harness bridge={bridge} spies={spies} {...base} />);
-  const bridgeIs = (next: Bridge) => view.rerender(<Harness bridge={next} spies={spies} {...base} />);
+  const bridgeIs = (next: Bridge) => {
+    bridgeNow = next;
+    view.rerender(<Harness bridge={next} spies={spies} {...base} />);
+  };
+  /* New props from the page (say, the pins query came back), the bridge as it is. */
+  const propsAre = (next: Partial<React.ComponentProps<typeof CommentMode>>) => {
+    base = { ...base, ...next };
+    view.rerender(<Harness bridge={bridgeNow} spies={spies} {...base} />);
+  };
   const fromApp = (type: string, payload: unknown) =>
     act(() => {
       window.dispatchEvent(
@@ -202,7 +211,7 @@ function setup(
         }),
       );
     });
-  return { ...view, ...handlers, spies, bridgeIs, fromApp, cleanup: () => iframe.remove() };
+  return { ...view, ...handlers, spies, bridgeIs, propsAre, fromApp, cleanup: () => iframe.remove() };
 }
 
 const LOCATE_READY = { capabilities: ['pick', 'describe', 'crop', 'locate'], session: 's1' };
@@ -221,11 +230,15 @@ const placeAll = (t: ReturnType<typeof setup>) => {
   });
 };
 
-/** A new pick, a note, Add comment: one draft in the dock. */
-const addDraft = (t: ReturnType<typeof setup>, pin = picked('pin-1'), note = 'Label is unclear') => {
+/** A new pick and a note in its composer. */
+const compose = (t: ReturnType<typeof setup>, pin = picked('pin-1'), note = 'Label is unclear') => {
   t.bridgeIs({ pins: [pin], isPicking: false });
   fireEvent.change(screen.getByRole('textbox', { name: 'Comment' }), { target: { value: note } });
-  fireEvent.click(screen.getByRole('button', { name: 'Add comment' }));
+};
+const post = async () => {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: 'Post' }));
+  });
 };
 
 beforeEach(() => {
@@ -234,7 +247,8 @@ beforeEach(() => {
   mockAddReply.mockReset().mockResolvedValue(undefined);
   mockDeleteReply.mockReset();
   mockUpdateStatus.mockReset();
-  mockSubmit.mockReset().mockResolvedValue(true);
+  mockSubmit.mockReset().mockResolvedValue({ uid: 'fb-new' });
+  mockFeedbackTab.mockReset();
   mockToastError.mockReset();
   window.localStorage.clear();
 });
@@ -287,7 +301,7 @@ describe('CommentMode — viewing', () => {
     t.fromApp('ready', LOCATE_READY);
     t.fromApp('locate:result', { results: { a: null, c: null } });
     fireEvent.click(screen.getByRole('button', { name: 'Not on screen (3)' }));
-    expect(screen.getByText('Not found on this page')).toBeInTheDocument();
+    expect(screen.getByText('Not on the current version')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Go to page' }));
     expect(t.onGoToPage).toHaveBeenCalledWith('/other');
     t.cleanup();
@@ -306,7 +320,7 @@ describe('CommentMode — viewing', () => {
   it('draws nothing while the mode is off, and stops picking', () => {
     const t = setup({ active: false });
     expect(screen.queryByTestId('comment-mode-layer')).not.toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: 'Feedback on this app' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Comments on this app' })).not.toBeInTheDocument();
     expect(t.spies.stopPicking).toHaveBeenCalled();
     t.cleanup();
   });
@@ -319,20 +333,79 @@ describe('CommentMode — writing', () => {
     t.cleanup();
   });
 
-  it('a click in the app opens the composer beside the new pin; Add comment queues it in the dock', async () => {
+  it('a click in the app opens the composer beside the new pin; Post sends it at once', async () => {
     const t = setup();
-    t.bridgeIs({ pins: [picked('pin-1')], isPicking: false });
+    compose(t);
     expect(screen.getByRole('dialog', { name: 'New comment' })).toBeInTheDocument();
     expect(t.spies.startPicking).not.toHaveBeenCalled();
 
-    fireEvent.change(screen.getByRole('textbox', { name: 'Comment' }), { target: { value: 'Label is unclear' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Add comment' }));
+    await post();
 
-    expect(screen.getByText('1 comment')).toBeInTheDocument();
-    expect(screen.getByText('Label is unclear')).toBeInTheDocument();
+    expect(mockSubmit).toHaveBeenCalledTimes(1);
+    const [sent] = mockSubmit.mock.calls[0];
+    expect(sent.pins).toEqual([
+      expect.objectContaining({ n: 1, selector: '#save', note: 'Label is unclear', ox: 0.2, oy: 0.5, cropUrl: null }),
+    ]);
+    expect(sent.context).toEqual(CONTEXT);
+    expect(sent.text).toContain('Label is unclear');
+    expect(t.spies.removePin).toHaveBeenCalledWith('pin-1');
     expect(screen.queryByRole('dialog', { name: 'New comment' })).not.toBeInTheDocument();
-    expect(t.spies.startPicking).toHaveBeenCalled();
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled());
+    t.cleanup();
+  });
+
+  it('opens the posted comment’s thread once its pin comes back', async () => {
+    const t = setup();
+    compose(t);
+    await post();
+    expect(t.onOpenPinChange).not.toHaveBeenCalled();
+
+    t.propsAre({ pins: [stored('new', { feedbackUid: 'fb-new' })] });
+    expect(t.onOpenPinChange).toHaveBeenCalledWith('new');
+    t.cleanup();
+  });
+
+  it('attaches the element’s screenshot only when asked', async () => {
+    const t = setup();
+    compose(t);
+    fireEvent.click(screen.getByRole('button', { name: 'Screenshot' }));
+    expect(screen.getByRole('img', { name: 'Screenshot of the element' })).toBeInTheDocument();
+
+    await post();
+
+    const [sent] = mockSubmit.mock.calls[0];
+    expect(sent.pins[0].cropUrl).toBe('https://cdn.example/hosted-crop.png');
+    expect(sent.text).toContain('https://cdn.example/hosted-crop.png');
+    t.cleanup();
+  });
+
+  it('a removed screenshot is not sent', async () => {
+    const t = setup();
+    compose(t);
+    fireEvent.click(screen.getByRole('button', { name: 'Screenshot' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot' }));
+    await post();
+    expect(mockSubmit.mock.calls[0][0].pins[0].cropUrl).toBeNull();
+    t.cleanup();
+  });
+
+  it('waits for a screenshot still being made, but only if it was attached', () => {
+    const t = setup();
+    compose(t, picked('pin-1', { crop: { status: 'pending' } }));
+    expect(screen.getByRole('button', { name: 'Post' })).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Screenshot' }));
+    expect(screen.getByText('Preparing screenshot…')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Post' })).toBeDisabled();
+    t.cleanup();
+  });
+
+  it('keeps a comment that did not post, with its text, and says so', async () => {
+    mockSubmit.mockRejectedValueOnce(new Error('nope'));
+    const t = setup();
+    compose(t);
+    await post();
+    expect(screen.getByRole('textbox', { name: 'Comment' })).toHaveValue('Label is unclear');
+    expect(t.spies.removePin).not.toHaveBeenCalled();
+    expect(mockToastError).toHaveBeenCalled();
     t.cleanup();
   });
 
@@ -344,22 +417,6 @@ describe('CommentMode — writing', () => {
 
     t.bridgeIs({ pins: [picked('pin-1')], isPicking: true });
     expect(screen.queryByRole('dialog', { name: 'New comment' })).not.toBeInTheDocument();
-    t.cleanup();
-  });
-
-  it('drops the marker of a comment sent or removed in another tab', async () => {
-    const t = setup();
-    addDraft(t);
-    await waitFor(() => expect(window.localStorage.getItem('ai-app-comment-drafts:app-1')).toContain('hosted-crop'));
-    t.spies.removePin.mockClear();
-
-    act(() => {
-      window.localStorage.removeItem('ai-app-comment-drafts:app-1');
-      window.dispatchEvent(new StorageEvent('storage', { key: 'ai-app-comment-drafts:app-1' }));
-    });
-
-    expect(screen.queryByText('Label is unclear')).not.toBeInTheDocument();
-    expect(t.spies.removePin).toHaveBeenCalledWith('pin-1');
     t.cleanup();
   });
 
@@ -388,94 +445,18 @@ describe('CommentMode — writing', () => {
     t.cleanup();
   });
 
-  it('sends one feedback item per comment, with its pin, crop and context, then the whole-app one', async () => {
+  it('the card says how to comment, and its Feedback tab hands over to the written form', () => {
     const t = setup();
-    addDraft(t);
-    fireEvent.change(screen.getByRole('textbox', { name: 'Comment about the whole app' }), {
-      target: { value: 'Love it overall' },
-    });
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled());
+    const card = screen.getByRole('region', { name: 'Comments on this app' });
+    expect(card).toHaveTextContent('Click anywhere on the app to leave a comment.');
+    expect(within(card).getByRole('tab', { name: /Comment/ })).toHaveAttribute('aria-selected', 'true');
+    expect(within(card).getByRole('tab', { name: /Comment/ })).toHaveTextContent('2');
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Send' }));
-    });
-
-    expect(mockSubmit).toHaveBeenCalledTimes(2);
-    const [first] = mockSubmit.mock.calls[0];
-    expect(first.pins).toEqual([
-      expect.objectContaining({
-        n: 1,
-        selector: '#save',
-        note: 'Label is unclear',
-        ox: 0.2,
-        oy: 0.5,
-        cropUrl: 'https://cdn.example/hosted-crop.png',
-      }),
-    ]);
-    expect(first.context).toEqual(CONTEXT);
-    expect(first.text).toContain('Label is unclear');
-    expect(first.text).toContain('https://cdn.example/hosted-crop.png');
-    const [second] = mockSubmit.mock.calls[1];
-    expect(second).not.toHaveProperty('pins');
-    expect(second.text).toContain('Love it overall');
-
-    expect(screen.getByRole('status')).toHaveTextContent('Sent 2 comments.');
-    expect(t.spies.removePin).toHaveBeenCalledWith('pin-1');
+    fireEvent.click(within(card).getByRole('tab', { name: 'Feedback' }));
+    expect(mockFeedbackTab).toHaveBeenCalled();
+    fireEvent.click(within(card).getByRole('button', { name: 'Close comments' }));
+    expect(t.onExit).toHaveBeenCalled();
     t.cleanup();
-  });
-
-  it('keeps the Sent receipt until there is something new to send', async () => {
-    jest.useFakeTimers();
-    try {
-      const t = setup();
-      addDraft(t);
-      await waitFor(() => expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled());
-      await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: 'Send' }));
-      });
-      act(() => void jest.advanceTimersByTime(30_000));
-      expect(screen.getByRole('status')).toHaveTextContent('Sent 1 comment.');
-
-      fireEvent.change(screen.getByRole('textbox', { name: 'Comment about the whole app' }), {
-        target: { value: 'One more thing' },
-      });
-      expect(screen.queryByRole('status')).not.toBeInTheDocument();
-      t.cleanup();
-    } finally {
-      jest.useRealTimers();
-    }
-  });
-
-  it('keeps a comment that failed to send, and says so', async () => {
-    mockSubmit.mockRejectedValueOnce(new Error('nope'));
-    const t = setup();
-    addDraft(t);
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled());
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Send' }));
-    });
-    expect(screen.getByText('Label is unclear')).toBeInTheDocument();
-    expect(mockToastError).toHaveBeenCalled();
-    t.cleanup();
-  });
-
-  it('waits for a screenshot still being made before it can send', () => {
-    const t = setup();
-    addDraft(t, picked('pin-1', { crop: { status: 'pending' } }));
-    expect(screen.getByRole('button', { name: 'Preparing…' })).toBeDisabled();
-    t.cleanup();
-  });
-
-  it('keeps unsent comments in this browser, and brings them back', async () => {
-    const t = setup();
-    addDraft(t);
-    await waitFor(() => expect(window.localStorage.getItem('ai-app-comment-drafts:app-1')).toContain('hosted-crop'));
-    t.unmount();
-    t.cleanup();
-
-    const u = setup();
-    expect(screen.getByText('Label is unclear')).toBeInTheDocument();
-    u.cleanup();
   });
 });
 

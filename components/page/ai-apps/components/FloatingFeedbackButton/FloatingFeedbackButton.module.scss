@@ -164,23 +164,6 @@
     0 6px 18px rgba(27, 77, 255, 0.2);
 }
 
-/* Unsent comments (drafts) on the resting mark: opposite corner and amber, so it never reads as the open count on the blue mark. */
-.drafts {
-  position: absolute;
-  top: -4px;
-  left: -4px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 9px;
-  border: 2px solid #fff;
-  background: #f79009;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 14px;
-}
-
 /* Open comments on the resting mark. */
 .count {
   position: absolute;

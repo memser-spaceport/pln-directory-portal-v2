@@ -21,6 +21,7 @@ import { ProfileDetails } from '@/components/page/member-details/ProfileDetails'
 import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
 import { TeamsDetails } from '@/components/page/member-details/TeamsDetails';
 import { ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
+import { isJobAspirantMember } from '@/components/page/member-details/job-aspirant-profile';
 import type { TeamApplicant } from '@/schema/team-applicants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { MembersQueryKeys } from '@/services/members/constants';
@@ -55,6 +56,13 @@ interface Props {
  * Job Search Status is owner-only and the API omits it for anyone else; the
  * desktop rail's Relationship and team-news cards belong to a page whose right
  * side is not already taken by an applicant list.
+ *
+ * Two more are conditional (LAB-2713), because a card with nothing in it reads
+ * as a gap in the person rather than in the record: Office Hours is withheld
+ * from a Job Aspirant, who is not a PL member and has none to book; Teams is
+ * withheld from anyone with no team — usually an aspirant, but the rule is "no
+ * data, no section", not "aspirant, no section". A PL member with both filled
+ * in sees exactly what they saw before.
  */
 export function ApplicantPane({ applicant, isLoggedIn }: Props) {
   const { currentUser: userInfo } = useCurrentUserStore();
@@ -105,6 +113,10 @@ export function ApplicantPane({ applicant, isLoggedIn }: Props) {
     );
   }
 
+  /* The same persona test the member page applies to the person it shows. */
+  const jobAspirant = isJobAspirantMember(member);
+  const hasTeams = (member.teams?.length ?? 0) > 0;
+
   return (
     <div className={s.column}>
       <ProfileSection name="Profile Details">
@@ -113,15 +125,19 @@ export function ApplicantPane({ applicant, isLoggedIn }: Props) {
 
       {application}
 
-      <ProfileSection name="Office Hours">
-        <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-      </ProfileSection>
+      {!jobAspirant && (
+        <ProfileSection name="Office Hours">
+          <OfficeHoursDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+        </ProfileSection>
+      )}
       <ProfileSection name="Contact Details">
         <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
       </ProfileSection>
-      <ProfileSection name="Teams">
-        <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
-      </ProfileSection>
+      {hasTeams && (
+        <ProfileSection name="Teams">
+          <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+        </ProfileSection>
+      )}
       <ProfileSection name="Experience">
         <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
       </ProfileSection>
@@ -140,14 +156,23 @@ export function ApplicantPane({ applicant, isLoggedIn }: Props) {
  * that came with it.
  *
  * Headed **Application** or **Interest**, because they are not the same act. An
- * application has words and asks for a reply; an interest press is a bare
- * signal, and heading it "Application" would promise a note that was never
- * written.
+ * application has words and asks for a reply; an interest press is a signal
+ * with, at most, a short note (LAB-2713), and heading it "Application" would
+ * promise a letter that was never written.
+ *
+ * An interest with no note draws the header and nothing under it. It used to
+ * say "this signal carries no message", which was true and read as a gap in
+ * the person; a lead who sees the time they pressed has the whole record.
  */
 function ApplicationSection({ applicant }: { applicant: TeamApplicant }) {
   const isApplication = applicant.kind === 'application';
   const acted = isApplication ? 'Applied' : 'Interested';
   const [previewing, setPreviewing] = useState(false);
+
+  /* What they wrote: a letter with an application, a note with an interest.
+     The server stores a blank note as none; `|| null` keeps an empty string
+     that slipped through from drawing an empty quote. */
+  const words = (isApplication ? applicant.coverLetter : applicant.note) || null;
 
   /**
    * The document itself, which the application row does not carry.
@@ -185,11 +210,11 @@ function ApplicationSection({ applicant }: { applicant: TeamApplicant }) {
         </span>
       </div>
 
-      {applicant.coverLetter || applicant.cv ? (
+      {words || applicant.cv ? (
         <DetailsSectionGreyContentContainer>
           {/* `pre-line`, because what somebody typed had paragraphs in it and
               collapsing them is a quiet way of misquoting them. */}
-          {applicant.coverLetter && <p className={s.note}>{applicant.coverLetter}</p>}
+          {words && <p className={s.note}>{words}</p>}
           {applicant.cv && (
             /* The chip stays what it is — `CvAttachmentLine` is deliberately
                inert, because the same component renders inside the email preview
@@ -214,16 +239,14 @@ function ApplicationSection({ applicant }: { applicant: TeamApplicant }) {
           )}
         </DetailsSectionGreyContentContainer>
       ) : (
-        /* Not an apology for a gap that isn't one: an interest press carries no
-           note by design, so this says what the act was rather than what it
-           lacked. */
-        <DetailsSectionGreyContentContainer>
-          <NoDataBlock>
-            {isApplication
-              ? 'They applied without a note.'
-              : 'They pressed “I’m interested” — this signal carries no message.'}
-          </NoDataBlock>
-        </DetailsSectionGreyContentContainer>
+        /* An application without a letter is worth a sentence — the form asked
+           for one. An interest without a note is not: the note is optional and
+           most presses carry none, so the header and the time are the record. */
+        isApplication && (
+          <DetailsSectionGreyContentContainer>
+            <NoDataBlock>They applied without a note.</NoDataBlock>
+          </DetailsSectionGreyContentContainer>
+        )
       )}
 
       {previewCv && <CvPreviewModal cv={previewCv} isOpen={previewing} onClose={() => setPreviewing(false)} />}

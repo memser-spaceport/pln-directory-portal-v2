@@ -48,6 +48,34 @@
   border-color: var(--border-success-subtle, #a9e0c4);
 }
 
+/* The card, opened on its note (LAB-2713): the row layout gives way to a
+   column on every width, because a textarea beside a title is not a layout
+   the design draws. Same surface and radius, so the press reads as the card
+   growing a field rather than as a new thing arriving. */
+.composing {
+  @include media.tablet-landscape {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px;
+  }
+}
+
+/* The icon and the text, kept side by side once the card goes column-wise. */
+.lead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+
+  @include media.tablet-landscape {
+    flex: 1 1 auto;
+  }
+
+  .composing & {
+    align-items: flex-start;
+  }
+}
+
 .iconTile {
   flex: 0 0 auto;
   display: inline-flex;
@@ -129,6 +157,104 @@
   color: var(--foreground-error-primary, #dc2626);
 }
 
+/* The note, quoted back under the confirmation — only when one was sent.
+   White, so it reads as the person's own words rather than as more of the
+   alert's voice. */
+.sentNote {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--background-base-white, #fff);
+}
+
+.sentLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.sentValue {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  /* What somebody typed had line breaks in it; collapsing them misquotes them. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* The composer: the field and its count. */
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+/* The note's own counter. `FormTextArea`'s built-in one requires `maxLength`,
+   and a maxLength attribute silently truncates pasted text, so the field has
+   no cap, the count goes red, and the send is held instead. */
+.counter {
+  align-self: flex-end;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.counterOver {
+  color: var(--foreground-error-primary, #cc0523);
+  font-weight: 500;
+}
+
+/* A visible non-live counter plus a hidden status region is the accessible
+   character-count pattern; the status only speaks once the note overflows. */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* The press and, while composing, the Cancel beside it. A wrapper rather than
+   two siblings of the card so the row layout still has exactly three cells:
+   icon, text, action. */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  @include media.tablet-landscape {
+    flex: 0 0 auto;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .composing & {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
+.cancel {
+  flex: 1 1 auto;
+  justify-content: center;
+
+  @include media.tablet-landscape {
+    flex: 0 0 auto;
+  }
+}
+
 .action {
   flex: 0 0 auto;
   /* Full-width beneath the text on the stacked layout, per the mobile frame;
@@ -136,9 +262,18 @@
   width: 100%;
   justify-content: center;
 
+  .composing & {
+    flex: 1 1 auto;
+    width: auto;
+  }
+
   @include media.tablet-landscape {
     width: auto;
     min-width: 128px;
+
+    .composing & {
+      flex: 0 0 auto;
+    }
 
     /* The confirmed state's Undo is a link: no border, no background, so the
        128px box that makes the CTA the design's 128x40 has nothing to draw and

@@ -17,6 +17,11 @@ export type FeedbackMedia = {
 };
 
 const IMG_TAG = /<img\b[^>]*>/gi;
+/**
+ * The "where" line older comments wrote into their text: `<code>selector</code> ·
+ * /page`. It is pin data now, and the list doesn't show element paths.
+ */
+const PIN_PATH_LINE = /<p>\s*<code>[^<]*<\/code>\s*(?:·|&middot;|&#183;)\s*\/[^<]*<\/p>/gi;
 /** A paragraph left holding nothing once its image was lifted out. */
 const EMPTY_BLOCK = /<p>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi;
 
@@ -67,5 +72,5 @@ export function splitFeedbackMedia(sanitizedHtml: string): FeedbackMedia {
     return '';
   });
 
-  return { textHtml: withoutImages.replace(EMPTY_BLOCK, ''), images };
+  return { textHtml: withoutImages.replace(PIN_PATH_LINE, '').replace(EMPTY_BLOCK, ''), images };
 }

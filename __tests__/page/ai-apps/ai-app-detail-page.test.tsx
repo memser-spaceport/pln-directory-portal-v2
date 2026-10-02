@@ -49,6 +49,21 @@ jest.mock('@/components/page/ai-apps/AiAppDetailPage/components/AppSecretsPanel'
   AppSecretsPanel: () => <div>AppSecretsPanel</div>,
 }));
 
+/* Comments are public: every signed-in viewer reads the same pins (scope `all`); the API filters. */
+jest.mock('@/services/ai-apps/constants', () => ({
+  ...jest.requireActual('@/services/ai-apps/constants'),
+  SHOW_AI_APPS_FEEDBACK_OVERLAY: true,
+}));
+const mockUseAppFeedbackPins = jest.fn((_args: { scope: string | null; live?: boolean }) => ({
+  pins: [],
+  isLoading: false,
+  isError: false,
+  refetch: jest.fn(),
+}));
+jest.mock('@/services/ai-app-feedback/hooks/useAppFeedbackPins', () => ({
+  useAppFeedbackPins: (args: { scope: string | null; live?: boolean }) => mockUseAppFeedbackPins(args),
+}));
+
 const mockCanLikelyManage = jest.fn();
 jest.mock('@/services/ai-apps/hooks/useAiAppManageAccess', () => ({
   useAiAppManageAccess: () => ({ canLikelyManage: mockCanLikelyManage, isDirectoryAdmin: false }),
@@ -357,6 +372,22 @@ describe('AiAppDetailPage', () => {
       expect(screen.getByText('DeploymentSettingsModal')).toBeInTheDocument();
       expect(screen.queryByText(/this page updates automatically/)).not.toBeInTheDocument();
       expect(screen.getByText('Redeploying the app')).toBeInTheDocument();
+    });
+  });
+
+  describe('comments on the live app', () => {
+    it('a visitor reads every comment, as the creator does (the API decides what each may see)', () => {
+      mockCanLikelyManage.mockReturnValue(false);
+      mockUseAiAppReturn = {
+        app: buildApp({ canManage: false, member: { uid: 'member-2', name: 'Grace', image: null } }),
+        isLoading: false,
+        isError: false,
+      };
+      render(<AiAppDetailPage uid="app-1" basePath={BASE_PATH} />);
+
+      expect(mockUseAppFeedbackPins).toHaveBeenLastCalledWith(
+        expect.objectContaining({ scope: 'all', includeResolved: true, enabled: true, live: false }),
+      );
     });
   });
 

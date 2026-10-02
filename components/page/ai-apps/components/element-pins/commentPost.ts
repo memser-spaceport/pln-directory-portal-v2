@@ -39,13 +39,11 @@ function paragraphs(text: string): string {
 
 /**
  * The readable text of one pinned comment, for the feedback list and the
- * agent's HTML: what was said, where (selector · page), and the element's crop
- * with any marks on it. The pin itself travels as data alongside.
+ * agent's HTML: what was said and the element's crop with any marks on it.
+ * Where it points (selector, page) is the pin's data, sent alongside — not
+ * text: comments are public, and the list doesn't show element paths.
  */
 export function commentHtml(comment: Pick<PinnedComment, 'note' | 'element' | 'cropUrl' | 'annotations'>): string {
-  const where = [`<code>${escapeHtml(comment.element.selector)}</code>`, escapeHtml(comment.element.page.path)].join(
-    ' · ',
-  );
   const marks =
     comment.annotations && hasAnyAnnotation(comment.annotations)
       ? ` ${ANNOTATION_ATTR}="${serializeAnnotations(comment.annotations)}"`
@@ -53,7 +51,7 @@ export function commentHtml(comment: Pick<PinnedComment, 'note' | 'element' | 'c
   const crop = comment.cropUrl
     ? `<p><img src="${escapeHtml(comment.cropUrl)}" alt="${escapeHtml(`Pin: ${comment.note.trim() || comment.element.tag}`.slice(0, 200))}" class="${PIN_CROP_CLASS}"${marks}></p>`
     : '';
-  return `${paragraphs(comment.note) || '<p>(no comment)</p>'}<p>${where}</p>${crop}`;
+  return `${paragraphs(comment.note) || '<p>(no comment)</p>'}${crop}`;
 }
 
 /** The pin as POST /:uid/feedback stores it: one pin per comment, so always n = 1. */

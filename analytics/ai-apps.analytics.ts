@@ -77,6 +77,17 @@ export function useAiAppsAnalytics() {
       capture(AI_APPS_ANALYTICS.FEEDBACK_REPLY_SENT, params),
     onFeedbackReplyDeleted: (params: { appUid: string; feedbackUid: string }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_REPLY_DELETED, params),
+    onFeedbackReplyEdited: (params: { appUid: string; feedbackUid: string }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_REPLY_EDITED, params),
+    onFeedbackCommentEdited: (params: { appUid: string; feedbackUid: string }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_COMMENT_EDITED, params),
+    /* `byAuthor` false: an admin removed someone else's comment (moderation). */
+    onFeedbackCommentDeleted: (params: {
+      appUid: string;
+      feedbackUid: string;
+      byAuthor: boolean;
+      replyCount: number;
+    }) => capture(AI_APPS_ANALYTICS.FEEDBACK_COMMENT_DELETED, params),
     /* Instant screenshots: one event per bridge capture (on open, Whole page, Pick a part), with how it went. */
     onFeedbackAppCapture: (params: {
       appUid?: string;

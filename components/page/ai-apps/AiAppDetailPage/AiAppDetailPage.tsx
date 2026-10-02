@@ -185,7 +185,7 @@ export function AiAppDetailPage(props: Props) {
 
   const { app, errorKind, isLoading, isError } = useAiApp(uid);
   const { currentUser } = useCurrentUserStore();
-  const { canLikelyManage } = useAiAppManageAccess();
+  const { canLikelyManage, isDirectoryAdmin } = useAiAppManageAccess();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -426,22 +426,30 @@ export function AiAppDetailPage(props: Props) {
     appUid: uid,
   });
 
-  // Feedback in context. Creator / directory admin see every member's pins;
-  // anyone else signed in sees their own. Nothing is fetched when signed out:
-  // these are authenticated requests (customFetch reloads on a missing session).
+  // Feedback in context. Comments are public: everyone who can open the app reads
+  // them all, and the API adds the private feedback each viewer may also see
+  // (creator and admins: all of it; anyone else: their own). Nothing is fetched
+  // when signed out: these are authenticated requests (customFetch reloads on a
+  // missing session).
   const canManageApp = !!app && (app.canManage ?? (!!currentUser?.uid && currentUser.uid === app.member?.uid));
-  const overlayScope: 'all' | 'mine' | null =
-    !SHOW_AI_APPS_FEEDBACK_OVERLAY || !app || !currentUser?.uid ? null : canManageApp ? 'all' : 'mine';
+  const overlayScope: 'all' | null = !SHOW_AI_APPS_FEEDBACK_OVERLAY || !app || !currentUser?.uid ? null : 'all';
+  // Comment mode (prototype `CommentLayer`): the feedback button toggles it; pins
+  // are only drawn while it is on. Needs the app's bridge, and a running frame.
+  const [commentModeOn, setCommentModeOn] = useState(false);
   // Shipped comments stay on the page, faded (prototype), so they're always fetched.
+  // While the mode is on, other members' new comments come in without a reload.
   const feedbackPins = useAppFeedbackPins({
     appUid: uid,
     scope: overlayScope,
     includeResolved: true,
     enabled: overlayScope !== null,
+    live: commentModeOn,
   });
-  // Comment mode (prototype `CommentLayer`): the feedback button toggles it; pins
-  // are only drawn while it is on. Needs the app's bridge, and a running frame.
-  const [commentModeOn, setCommentModeOn] = useState(false);
+  // Opening the mode reads the pins afresh, however recently they were fetched.
+  const refetchPins = feedbackPins.refetch;
+  useEffect(() => {
+    if (commentModeOn && overlayScope !== null) void refetchPins();
+  }, [commentModeOn, overlayScope, refetchPins]);
   const [openFeedbackPin, setOpenFeedbackPin] = useState<string | null>(null);
   /* Bumped when the comment card's Feedback tab is chosen: the button opens the written form. */
   const [feedbackRequest, setFeedbackRequest] = useState(0);
@@ -912,6 +920,7 @@ export function AiAppDetailPage(props: Props) {
               : null
           }
           getContext={getFeedbackContext}
+          isAdmin={isDirectoryAdmin}
         />
       )}
       {showDetails && (

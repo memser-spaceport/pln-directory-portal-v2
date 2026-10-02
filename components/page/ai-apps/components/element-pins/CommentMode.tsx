@@ -30,6 +30,8 @@ import { commentHtml, toPinInput } from './commentPost';
 import { CommentCard } from './CommentCard';
 import { CommentsDrawer, type CommentListItem, type CommentWhere } from './CommentsDrawer';
 import { useFeedbackReplies, type ThreadViewer } from './FeedbackReplies';
+import { ConfirmDelete, EditedMark, InlineEdit, ItemActionsMenu } from './ItemActions';
+import { useDeleteFeedbackItem, useEditFeedbackNote } from '@/services/ai-app-feedback/hooks/useFeedbackItemActions';
 
 import s from './CommentMode.module.scss';
 
@@ -115,7 +117,13 @@ type ThreadProps = {
   viewer: ThreadViewer | null;
   /** The "Not on screen" list: the replies start behind a toggle. */
   repliesCollapsed?: boolean;
+  /** A directory admin: may delete anyone's comment or reply (never edit it). */
+  isAdmin?: boolean;
 };
+
+function replyCountText(count: number) {
+  return count === 1 ? 'Also deletes 1 reply.' : `Also deletes ${count} replies.`;
+}
 
 /**
  * One pinned comment: status, who and when, what they said, the element as it
@@ -133,6 +141,7 @@ export function PinThreadCard({
   onClose,
   viewer,
   repliesCollapsed,
+  isAdmin = false,
 }: ThreadProps) {
   const replies = useFeedbackReplies({
     appUid,
@@ -140,7 +149,18 @@ export function PinThreadCard({
     commentCount: pin.feedback.commentCount,
     viewer,
     collapsed: repliesCollapsed,
+    isAdmin,
   });
+  const editNote = useEditFeedbackNote(appUid);
+  const deleteItem = useDeleteFeedbackItem(appUid);
+  const analytics = useAiAppsAnalytics();
+  const [editing, setEditing] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const isOwn = Boolean(viewer && pin.feedback.member?.uid === viewer.uid);
+  /* Only comments can be edited (the API refuses FEEDBACK items), and only by their author. */
+  const canEdit = isOwn && pin.feedback.kind === 'COMMENT';
+  const canDelete = Boolean(viewer) && (isOwn || isAdmin);
+  const replyCount = pin.feedback.commentCount ?? 0;
   const status = pin.feedback.status;
   const showStatus = canManage || status !== 'NEW';
   const name = authorOf(pin);
@@ -161,7 +181,7 @@ export function PinThreadCard({
         )}
       </div>
       <div className={s.thread}>
-        <div className={ci.itemRoot}>
+        <div className={clsx(ci.itemRoot, s.itemRow)}>
           <div className={ci.footer}>
             <span className={ci.Avatar} style={{ backgroundColor: getAvatarColor(name) }} aria-hidden>
               <span className={ci.Fallback}>{initials(name)}</span>
@@ -170,11 +190,50 @@ export function PinThreadCard({
               <span className={ci.name}>{name}</span>
               <span className={ci.time}>
                 {formatDistanceToNow(new Date(pin.feedback.createdAt), { addSuffix: true })}
+                <EditedMark at={pin.feedback.editedAt} />
                 {envLabel && <span className={s.envLabel}>{envLabel}</span>}
               </span>
             </div>
           </div>
-          <p className={clsx(ci.postContent, s.body)}>{pin.note || <span className={s.noNote}>No comment</span>}</p>
+          {!editing && !confirmingDelete && (
+            <ItemActionsMenu
+              label={isOwn ? 'Actions for your comment' : 'Actions for this comment'}
+              onEdit={canEdit ? () => setEditing(true) : undefined}
+              onDelete={canDelete ? () => setConfirmingDelete(true) : undefined}
+            />
+          )}
+          {editing ? (
+            <InlineEdit
+              initial={pin.note}
+              label="Edit your comment"
+              onCancel={() => setEditing(false)}
+              onSave={(note) => {
+                setEditing(false);
+                editNote.mutate({ feedbackUid: pin.feedbackUid, note });
+                analytics.onFeedbackCommentEdited({ appUid, feedbackUid: pin.feedbackUid });
+              }}
+            />
+          ) : (
+            <p className={clsx(ci.postContent, s.body)}>{pin.note || <span className={s.noNote}>No comment</span>}</p>
+          )}
+          {confirmingDelete && (
+            <ConfirmDelete
+              question="Delete comment?"
+              detail={replyCount > 0 ? replyCountText(replyCount) : undefined}
+              onCancel={() => setConfirmingDelete(false)}
+              onConfirm={() => {
+                setConfirmingDelete(false);
+                deleteItem.mutate(pin.feedbackUid);
+                analytics.onFeedbackCommentDeleted({
+                  appUid,
+                  feedbackUid: pin.feedbackUid,
+                  byAuthor: isOwn,
+                  replyCount,
+                });
+                onClose?.();
+              }}
+            />
+          )}
         </div>
         {pin.cropUrl && (
           <a className={s.shot} href={pin.cropUrl} target="_blank" rel="noopener noreferrer" title="View full size">
@@ -285,14 +344,18 @@ function PinComposer({ onCancel, onPost, style, shot, posting }: ComposerProps) 
           className={s.composerShotButton}
           onClick={() => setWithShot(true)}
           disabled={posting || shot.status === 'failed'}
-          title={shot.status === 'failed' ? 'A screenshot of this element couldn’t be taken' : undefined}
+          title={
+            shot.status === 'failed'
+              ? 'A screenshot of this element couldn’t be taken'
+              : 'Attach a screenshot of this element. Everyone who can open this app can see it.'
+          }
         >
           <CameraIcon />
           Screenshot
         </button>
       )}
       <div className={s.composerFooter}>
-        <span className={s.composerAudience}>Only the app’s author and admins see it</span>
+        <span className={s.composerAudience}>Everyone who can open this app can see it</span>
         <Button style="border" variant="neutral" size="s" onClick={onCancel} disabled={posting}>
           Cancel
         </Button>
@@ -345,6 +408,8 @@ type Props = {
   /** The signed-in member, for the thread's replies; null when unknown. */
   viewer: ThreadViewer | null;
   getContext: () => FeedbackContext | null;
+  /** A directory admin: may delete anyone's comment (moderation). The app's creator may not. */
+  isAdmin?: boolean;
 };
 
 export function CommentMode({
@@ -368,6 +433,7 @@ export function CommentMode({
   commentCount,
   onFeedbackTab,
   getContext,
+  isAdmin = false,
 }: Props) {
   const overlay = useFeedbackOverlay({ iframeRef, appOrigin, frameKey, listening: true, active, pins, currentPath });
   const box = useFrameBox(iframeRef, active);
@@ -520,6 +586,7 @@ export function CommentMode({
         text: commentHtml(comment),
         pins: [toPinInput(comment)],
         context: getContext() ?? undefined,
+        kind: 'COMMENT',
       });
       openWhenListed.current = created?.uid ?? null;
       elementPins.removePin(pin.id);
@@ -650,6 +717,7 @@ export function CommentMode({
             isStatusPending={statusPending(thread.pin)}
             onStatus={setStatus(thread.pin)}
             onClose={() => onOpenPinChange(null)}
+            isAdmin={isAdmin}
           />
         </div>
       )}

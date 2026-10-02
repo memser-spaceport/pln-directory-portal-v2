@@ -57,6 +57,15 @@ export const MODAL_INTRO =
 
 export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = [
   {
+    version: '1.16',
+    items: [
+      'Your agent can tell private feedback from public comments, sees which part of the app a comment points at, and reads the replies under it before it starts',
+      'When your agent ships a fix, it leaves a one-sentence note on what changed. The person who reported it is notified, and on a comment so is everyone who replied',
+      'Comments are public, so your agent keeps private details out of those notes',
+      'Feedback pictures of your app never show what people typed. Ask your agent to hide anything else private, and LabOS greys it out in every picture',
+    ],
+  },
+  {
     version: '1.15',
     items: [
       'Deploys no longer time out. Your agent gets an answer right away and then follows the build until it is live or has failed, so it no longer reports a failure for a deploy that actually worked',

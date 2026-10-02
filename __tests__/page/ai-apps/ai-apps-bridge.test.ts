@@ -118,6 +118,48 @@ describe('AI Apps bridge', () => {
     expect(appHandler).toHaveBeenCalledTimes(1);
   });
 
+  /* Members point at things; they don't read markup (feedback, 2026-10-02). */
+  it('outlines the hovered element with no tag label, in the brand ring with a halo', () => {
+    ctx = setup();
+    const button = ctx.doc.createElement('button');
+    button.textContent = 'Save changes';
+    button.id = 'save';
+    ctx.doc.body.appendChild(button);
+    ctx.place(button);
+
+    ctx.command('pick:start');
+    button.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 15, clientY: 25 }));
+
+    const outline = ctx.doc.querySelector<HTMLElement>('[data-pln-bridge="outline"]')!;
+    expect(outline.style.display).toBe('block');
+    expect([outline.style.left, outline.style.top, outline.style.width, outline.style.height]).toEqual([
+      '10px',
+      '20px',
+      '100px',
+      '30px',
+    ]);
+    expect(outline.textContent).toBe('');
+    expect(outline.children).toHaveLength(0);
+    expect(outline.style.outline).toContain('2px solid');
+    expect(outline.style.boxShadow).toContain('4px');
+    /* A square element gets a soft 4px ring… */
+    expect(outline.style.borderRadius).toBe('4px');
+  });
+
+  it('rounds the ring to the hovered element’s own corners', () => {
+    ctx = setup();
+    const card = ctx.doc.createElement('section');
+    card.textContent = 'Total awarded';
+    card.style.borderRadius = '12px';
+    ctx.doc.body.appendChild(card);
+    ctx.place(card);
+
+    ctx.command('pick:start');
+    card.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 15, clientY: 25 }));
+
+    expect(ctx.doc.querySelector<HTMLElement>('[data-pln-bridge="outline"]')!.style.borderRadius).toBe('12px');
+  });
+
   it('Esc leaves pick mode and tells LabOS', () => {
     ctx = setup();
     ctx.command('pick:start');

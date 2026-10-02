@@ -80,33 +80,24 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
 
   /* ---------- pick mode ---------- */
 
+  /* The element under the pointer, as LabOS outlines a pin's element (and the
+     prototype's comment layer does): a brand ring just outside it with a soft
+     halo, gliding between elements. No tag label — members point at things,
+     they don't read markup. */
   const outline = doc.createElement('div');
   outline.setAttribute(MARKER_ATTR, 'outline');
   Object.assign(outline.style, {
     position: 'fixed',
     pointerEvents: 'none',
     zIndex: '2147483647',
-    border: `2px solid ${ACCENT}`,
-    background: 'rgba(27, 77, 255, 0.08)',
-    borderRadius: '3px',
+    outline: `2px solid ${ACCENT}`,
+    outlineOffset: '1px',
+    boxShadow: '0 0 0 4px rgba(27, 77, 255, 0.12)',
+    borderRadius: '4px',
     boxSizing: 'border-box',
+    transition: 'left 60ms linear, top 60ms linear, width 60ms linear, height 60ms linear',
     display: 'none',
   } satisfies Partial<CSSStyleDeclaration>);
-  const label = doc.createElement('div');
-  label.setAttribute(MARKER_ATTR, 'label');
-  Object.assign(label.style, {
-    position: 'absolute',
-    left: '-2px',
-    bottom: '100%',
-    marginBottom: '4px',
-    padding: '2px 6px',
-    font: '600 11px/16px system-ui, sans-serif',
-    color: '#fff',
-    background: ACCENT,
-    borderRadius: '4px',
-    whiteSpace: 'nowrap',
-  } satisfies Partial<CSSStyleDeclaration>);
-  outline.appendChild(label);
 
   const cursorStyle = doc.createElement('style');
   cursorStyle.setAttribute(MARKER_ATTR, 'cursor');
@@ -120,17 +111,17 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
       outline.style.display = 'none';
       return;
     }
+    /* The ring follows the element's own corners (a 12px card gets a 12px
+       ring); square elements keep a soft 4px. */
+    const radius = win.getComputedStyle(hovered).borderRadius;
     Object.assign(outline.style, {
       display: 'block',
       left: `${rect.x}px`,
       top: `${rect.y}px`,
       width: `${rect.w}px`,
       height: `${rect.h}px`,
+      borderRadius: radius && !/^0(px)?$/.test(radius) ? radius : '4px',
     });
-    label.textContent = hovered.tagName.toLowerCase() + (hovered.id ? `#${hovered.id}` : '');
-    /* Flip the tag inside the box when there is no room above it. */
-    label.style.bottom = rect.y < 24 ? 'auto' : '100%';
-    label.style.top = rect.y < 24 ? '2px' : 'auto';
   };
 
   const onPointerMove = (event: PointerEvent) => {

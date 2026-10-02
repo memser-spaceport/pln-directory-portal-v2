@@ -141,14 +141,25 @@ describe('kudos proxy routes — upstream contract', () => {
     expect(res.status).toBe(200);
   });
 
-  it('update: encodes the id so it cannot change the upstream path', async () => {
+  it.each(['.', '..', '../../plaa-tokens/me?x=1', 'a/b', 'a%2Fb', 'a b', 'a'.repeat(65)])(
+    'update: rejects the id %p without calling upstream',
+    async (id) => {
+      const res = await patchKudos(
+        makeRequest('http://localhost/api/plaa/kudos/community/x', { auth: 'Bearer privy-1', body: { points: 5 } }),
+        makeContext(id),
+      );
+      expect(res.status).toBe(400);
+      expect(global.fetch).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['kudos-1', 'cmq8d7vhr00nlny4g33b74d9t', 'A_b-9'])('update: accepts the id %p', async (id) => {
     mockUpstreamOnce({});
     await patchKudos(
       makeRequest('http://localhost/api/plaa/kudos/community/x', { auth: 'Bearer privy-1', body: { points: 5 } }),
-      makeContext('../../plaa-tokens/me?x=1'),
+      makeContext(id),
     );
-    const [url] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(url).toBe(`${PLAA_API_URL}/api/v1/kudos/community/..%2F..%2Fplaa-tokens%2Fme%3Fx%3D1`);
+    expect((global.fetch as jest.Mock).mock.calls[0][0]).toBe(`${PLAA_API_URL}/api/v1/kudos/community/${id}`);
   });
 
   it('update: forwards upstream rejection (e.g. 403 not the original giver) with the body', async () => {

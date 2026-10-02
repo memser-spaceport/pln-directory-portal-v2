@@ -84,6 +84,13 @@
   min-width: 0;
 }
 
+.nameLine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
 .name {
   font-size: 14px;
   font-weight: 600;

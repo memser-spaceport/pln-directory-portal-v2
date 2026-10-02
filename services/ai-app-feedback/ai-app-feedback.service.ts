@@ -124,7 +124,8 @@ export async function submitAiAppFeedback(
   );
 
   if (!response?.ok) {
-    throw new Error('Failed to submit AI App feedback');
+    /* The status tells the form why: 403 is "feedback is turned off for this app". */
+    throw Object.assign(new Error('Failed to submit AI App feedback'), { status: response?.status ?? 0 });
   }
 
   /* The stored item: comment mode opens its thread once the pin comes back. */

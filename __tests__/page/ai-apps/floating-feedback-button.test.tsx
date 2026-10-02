@@ -17,7 +17,9 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
     onSubmitted,
     onClose,
     headerTabs,
+    capture,
   }: {
+    capture?: () => Promise<unknown>;
     headerTabs?: React.ReactNode;
     isOpen: boolean;
     anchorRef?: { current: HTMLElement | null };
@@ -27,7 +29,7 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
     onClose?: () => void;
   }) =>
     isOpen ? (
-      <div data-placement={placement} data-app-name={appName ?? ''}>
+      <div data-placement={placement} data-app-name={appName ?? ''} data-capture={capture ? 'bridge' : 'none'}>
         {headerTabs}
         {anchorRef?.current ? 'Feedback dialog open' : 'Feedback dialog unanchored'}
         <button type="button" onClick={() => onSubmitted?.({ label: 'Chosen App', value: 'chosen-app' })}>
@@ -269,6 +271,19 @@ describe('FloatingFeedbackButton', () => {
       expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
     });
 
+    it("doesn't hand the bridge's capture to the form while instant screenshots are off", () => {
+      withAccess();
+      const pins = { ...controller('unavailable'), canCapture: true, capture: jest.fn() };
+      render(<FloatingFeedbackButton appUid="app-1" appName="My App" elementPins={pins} iframeRef={iframeRef} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+
+      expect(screen.getByText('Feedback dialog open').closest('[data-capture]')).toHaveAttribute(
+        'data-capture',
+        'none',
+      );
+    });
+
     it.each(['unavailable', 'waiting'] as const)('keeps the screenshot dialog when the bridge is %s', (status) => {
       withAccess();
       const pins = controller(status);
@@ -326,6 +341,8 @@ describe('FloatingFeedbackButton', () => {
       expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: 'Feedback' })).toHaveAttribute('aria-selected', 'true');
       expect(screen.getByRole('tab', { name: /Comment/ })).toHaveTextContent('3');
+      /* Feedback is the primary door: left of Comment (prototype ai-apps-comments). */
+      expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual(['Feedback', 'Comment3']);
     });
 
     it('the Comment tab closes the form and turns comment mode on', () => {

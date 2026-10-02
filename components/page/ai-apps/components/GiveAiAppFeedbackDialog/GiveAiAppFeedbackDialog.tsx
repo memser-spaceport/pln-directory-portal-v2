@@ -38,9 +38,13 @@ import {
   AttachImageError,
   CaptureError,
   ConfirmLayer,
+  LiveRegionOverlay,
   RegionSelectOverlay,
   appendScreenshots,
   attachImageFile,
+  cropImageToDataUrl,
+  emptyAnnotations,
+  frameRectToCapturePixels,
   grabVideoFrame,
   hasAnyAnnotation,
   isCaptureSupported,
@@ -48,9 +52,12 @@ import {
   requestTabCapture,
   stopCaptureStream,
   type AnnotationState,
+  type FrameRect,
   type PersistentCaptureReason,
   type ScreenshotAttachment,
 } from '../screenshot-feedback';
+import type { AppCapture } from '../element-pins';
+import { SHOW_AI_APPS_INSTANT_SCREENSHOTS } from '@/services/ai-apps/constants';
 import { PinSummary, appendPinsHtml, hostPinCrops, toPinInputs, type ElementPin } from '../element-pins';
 import type { FeedbackContext, FeedbackPinInput } from '@/services/ai-app-feedback/ai-app-feedback.service';
 
@@ -58,6 +65,8 @@ import s from './GiveAiAppFeedbackDialog.module.scss';
 
 /** Visible characters the member may type, counted with the markup stripped. */
 const MAX_LENGTH = 5000;
+/** Screenshots per item. Each is a large picture; more is rarely clearer and risks the payload cap. */
+export const MAX_SCREENSHOTS = 5;
 
 /**
  * Serialized length the server will accept, mirroring `SubmitFeedbackSchema`'s
@@ -150,6 +159,34 @@ interface Props {
    * the dialog is the Feedback tab of one panel (Comment / Feedback).
    */
   headerTabs?: ReactNode;
+  /**
+   * A picture of the app on screen from its bridge — set when the app's bridge
+   * can `capture` (and instant screenshots are on). With it the form attaches
+   * one when it opens and offers Whole page / Pick a part with no screen-share
+   * prompt; without it, today's screen share.
+   */
+  capture?: () => Promise<AppCapture>;
+  /** The app frame, for Pick a part (the drag counts over it). */
+  frameRef?: RefObject<HTMLIFrameElement | null>;
+}
+
+/** The automatic screenshot taken when the form opens, per open. Removing it or closing drops a late result. */
+/**
+ * This open's automatic screenshot. `landed` carries the picture from the
+ * capture to the render that attaches it, so the "is it still wanted?" check
+ * runs against the latest state rather than a closure.
+ */
+type AutoShot =
+  | { token: number; status: 'capturing' | 'attached' | 'failed' | 'removed' }
+  | { token: number; status: 'landed'; dataUrl: string };
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('Could not read the capture'));
+    image.src = src;
+  });
 }
 
 const NO_PINS: ElementPin[] = [];
@@ -195,6 +232,8 @@ export function GiveAiAppFeedbackDialog({
   onEditPins,
   getContext,
   headerTabs,
+  capture,
+  frameRef,
 }: Props) {
   const { currentUser } = useCurrentUserStore();
   const [overlayStyle, setOverlayStyle] = useState<CSSProperties>();
@@ -204,7 +243,17 @@ export function GiveAiAppFeedbackDialog({
   const analytics = useAiAppsAnalytics();
   const shortcuts = useShortcutLabels();
 
-  const appOptions: Option[] = [LABOS_AI_APPS_OPTION, ...apps.map((app) => ({ label: app.name, value: app.uid }))];
+  /* Apps whose creator turned feedback off refuse it (403), so they aren't offered — except the one on screen. */
+  const appOptions: Option[] = [
+    LABOS_AI_APPS_OPTION,
+    ...apps
+      .filter((app) => app.feedbackEnabled !== false || app.uid === appUid)
+      .map((app) => ({ label: app.name, value: app.uid })),
+  ];
+  /* The new screenshot area (stacked previews, Whole page / Pick a part) is the flag's; the
+     bridge decides only whether captures skip the screen share. */
+  const instant = SHOW_AI_APPS_INSTANT_SCREENSHOTS;
+  const canCapture = instant && Boolean(capture);
 
   const getDefaults = useCallback(
     (): FormValues => ({ app: getDefaultApp(appUid, appName), message: '' }),
@@ -216,7 +265,8 @@ export function GiveAiAppFeedbackDialog({
   });
   const { handleSubmit, reset, watch } = methods;
   const { clearDraft } = useFormDraft<FormValues, FeedbackDraft>({
-    storageKey: AI_APP_FEEDBACK_DRAFT_KEY,
+    /* Per app, so reopening never restores text written about another app. */
+    storageKey: appUid ? `${AI_APP_FEEDBACK_DRAFT_KEY}:${appUid}` : AI_APP_FEEDBACK_DRAFT_KEY,
     enabled: isOpen,
     methods,
     getDefaults,
@@ -255,8 +305,92 @@ export function GiveAiAppFeedbackDialog({
     isCaptureSupported() ? null : 'unsupported',
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const isBusy = isCapturing || Boolean(freezeSrc) || Boolean(cropSrc);
-  const isPending = isAppFeedbackPending || isContactSupportPending || isHostingImages;
+  const [auto, setAuto] = useState<AutoShot | null>(null);
+  /** A Whole page / Pick a part capture the member asked for is on its way (Send waits for it). */
+  const [isRequestedCapture, setIsRequestedCapture] = useState(false);
+  const [isPickingPart, setIsPickingPart] = useState(false);
+  /** The bridge failed a capture this open: further captures use the screen share (after a click). */
+  const [bridgeFailed, setBridgeFailed] = useState(false);
+  const useBridge = canCapture && !bridgeFailed;
+  const isBusy = isCapturing || Boolean(freezeSrc) || Boolean(cropSrc) || isPickingPart;
+  const isPending = isAppFeedbackPending || isContactSupportPending || isHostingImages || isRequestedCapture;
+  /* The picture still on its way counts: it's a slot the member can see. */
+  const shotCount = screenshots.length + (auto?.status === 'capturing' ? 1 : 0);
+  const atShotLimit = instant && shotCount >= MAX_SCREENSHOTS;
+
+  /* Fresh refs for the capture effect, which must not re-run (and re-capture) when they change identity. */
+  const captureRef = useRef(capture);
+  const analyticsRef = useRef(analytics);
+  useEffect(() => {
+    captureRef.current = capture;
+    analyticsRef.current = analytics;
+  });
+
+  /* Each open is a new session: the first time the form shows, it attaches the
+     app as it is (if the bridge can), into an empty list. Tracked during render
+     so the "Capturing…" chip is there from the first frame. */
+  const [wasOpen, setWasOpen] = useState(false);
+  const [openCount, setOpenCount] = useState(0);
+  if (isOpen !== wasOpen) {
+    setWasOpen(isOpen);
+    if (isOpen) {
+      setOpenCount(openCount + 1);
+      setAuto(canCapture ? { token: openCount + 1, status: 'capturing' } : null);
+      setBridgeFailed(false);
+    } else {
+      setAuto(null);
+    }
+  }
+
+  /* A picture that landed while its open still wanted it joins the list, first. */
+  if (auto?.status === 'landed') {
+    const { token, dataUrl } = auto;
+    setAuto({ token, status: 'attached' });
+    setScreenshots((prev) => [
+      { id: `shot-auto-${token}`, imageDataUrl: dataUrl, annotations: emptyAnnotations(), source: 'auto' },
+      ...prev,
+    ]);
+  }
+
+  const autoCapturing = auto?.status === 'capturing';
+  const autoToken = auto?.token;
+  useEffect(() => {
+    const take = captureRef.current;
+    if (!autoCapturing || !take || autoToken === undefined) return;
+    /* The result only counts while this open's auto shot is still capturing:
+       removed, closed or sent meanwhile, it belongs to nobody and is dropped.
+       Checked inside the state update — an effect cleanup can run AFTER a fast
+       capture resolves. */
+    const settle = (next: AutoShot) =>
+      setAuto((prev) => (prev?.token === autoToken && prev.status === 'capturing' ? next : prev));
+    const startedAt = performance.now();
+    take()
+      .then((shot) => {
+        settle({ token: autoToken, status: 'landed', dataUrl: shot.dataUrl });
+        analyticsRef.current.onFeedbackAppCapture({
+          appUid,
+          source: 'auto',
+          outcome: 'succeeded',
+          ms: Math.round(performance.now() - startedAt),
+        });
+      })
+      .catch((error: unknown) => {
+        settle({ token: autoToken, status: 'failed' });
+        analyticsRef.current.onFeedbackAppCapture({
+          appUid,
+          source: 'auto',
+          outcome: 'failed',
+          ms: Math.round(performance.now() - startedAt),
+          error: error instanceof Error ? error.message.slice(0, 60) : 'failed',
+        });
+      });
+  }, [autoCapturing, autoToken, appUid]);
+
+  const removeAutoChip = () => {
+    if (!auto) return;
+    analytics.onFeedbackAutoShotRemoved({ appUid, whileCapturing: auto.status === 'capturing' });
+    setAuto({ token: auto.token, status: 'removed' });
+  };
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
@@ -284,6 +418,7 @@ export function GiveAiAppFeedbackDialog({
 
   const onDialogClose = () => {
     resetCapture();
+    setIsPickingPart(false);
     setScreenshots([]);
     setEditingShotId(null);
     setPendingRemoveId(null);
@@ -295,6 +430,7 @@ export function GiveAiAppFeedbackDialog({
   const onSubmitSuccess = () => {
     clearDraft();
     reset(getDefaults());
+    setIsPickingPart(false);
     setScreenshots([]);
     setEditingShotId(null);
     setPendingRemoveId(null);
@@ -352,6 +488,100 @@ export function GiveAiAppFeedbackDialog({
   };
   const onTakeScreenshotRef = useRef(onTakeScreenshot);
   onTakeScreenshotRef.current = onTakeScreenshot;
+
+  /* ---------- instant screenshots: from the app's bridge, no screen-share prompt ---------- */
+
+  /** A bridge capture the member asked for. Null when it failed (they've been told; the next click screen-shares). */
+  const takeRequested = async (source: 'page' | 'part'): Promise<AppCapture | null> => {
+    if (!capture) return null;
+    const startedAt = performance.now();
+    setIsRequestedCapture(true);
+    try {
+      const shot = await capture();
+      analytics.onFeedbackAppCapture({
+        appUid,
+        source,
+        outcome: 'succeeded',
+        ms: Math.round(performance.now() - startedAt),
+      });
+      return shot;
+    } catch (error) {
+      analytics.onFeedbackAppCapture({
+        appUid,
+        source,
+        outcome: 'failed',
+        ms: Math.round(performance.now() - startedAt),
+        error: error instanceof Error ? error.message.slice(0, 60) : 'failed',
+      });
+      /* No automatic screen share: the browser only allows one straight from a click. */
+      setBridgeFailed(true);
+      toast.error('Couldn’t capture the app. Try again — it will use screen sharing.');
+      return null;
+    } finally {
+      setIsRequestedCapture(false);
+    }
+  };
+
+  const onWholePage = async () => {
+    if (!useBridge) {
+      analytics.onFeedbackScreenShareFallback({ reason: 'capture-failed' });
+      void onTakeScreenshot();
+      return;
+    }
+    const shot = await takeRequested('page');
+    if (!shot) return;
+    setScreenshots((prev) => [
+      ...prev,
+      { id: `shot-${Date.now()}`, imageDataUrl: shot.dataUrl, annotations: emptyAnnotations(), source: 'page' },
+    ]);
+  };
+
+  const onPickPart = () => {
+    if (!useBridge || !frameRef) {
+      analytics.onFeedbackScreenShareFallback({ reason: 'capture-failed' });
+      void onTakeScreenshot();
+      return;
+    }
+    setIsPickingPart(true);
+  };
+
+  /* The picture is taken when the drag ends, so what was framed is what is kept. */
+  const onPartSelected = async (rect: FrameRect) => {
+    setIsPickingPart(false);
+    const shot = await takeRequested('part');
+    if (!shot) return;
+    try {
+      const image = await loadImage(shot.dataUrl);
+      const cut = cropImageToDataUrl(image, frameRectToCapturePixels(rect, shot.width, image.naturalWidth));
+      setScreenshots((prev) => [
+        ...prev,
+        { id: `shot-${Date.now()}`, imageDataUrl: cut, annotations: emptyAnnotations(), source: 'part' },
+      ]);
+    } catch {
+      toast.error('Couldn’t cut out that part. Please try again.');
+    }
+  };
+
+  const onPartCancel = useCallback(() => {
+    analyticsRef.current.onFeedbackPickPartCancelled();
+    setIsPickingPart(false);
+  }, []);
+
+  const onUseScreenShare = () => {
+    analytics.onFeedbackScreenShareFallback({ reason: 'chosen' });
+    void onTakeScreenshot();
+  };
+
+  /* "Misaligned? Tell us" marks the automatic picture; the mark travels with
+     the report as a line under it (prototype ai-apps-comments). */
+  const onToggleMisaligned = (shotId: string) => {
+    const shot = screenshots.find((item) => item.id === shotId);
+    if (!shot) return;
+    if (!shot.misaligned) analytics.onFeedbackCaptureMisaligned({ appUid });
+    setScreenshots((prev) =>
+      prev.map((item) => (item.id === shotId ? { ...item, misaligned: !item.misaligned } : item)),
+    );
+  };
 
   /**
    * The fallback for anyone the capture path cannot serve.
@@ -453,6 +683,8 @@ export function GiveAiAppFeedbackDialog({
     if (!app?.value || !hasFeedbackContent(trimmedMessage, screenshots.length + pins.length)) {
       return;
     }
+    /* Sending doesn't wait for the automatic screenshot: it goes without it. */
+    if (auto?.status === 'capturing') setAuto({ token: auto.token, status: 'removed' });
 
     /* Context and pins-as-data describe the app on screen; feedback switched to
        another app in the picker gets neither (its pins would be located on the
@@ -465,6 +697,9 @@ export function GiveAiAppFeedbackDialog({
       setIsHostingImages(true);
       trimmedMessage = await hostDataUriImages(trimmedMessage);
       trimmedMessage = await appendScreenshots(trimmedMessage, screenshots);
+      if (screenshots.some((shot) => shot.misaligned)) {
+        trimmedMessage += '<p><em>Automatic screenshot flagged as misaligned.</em></p>';
+      }
       if (pins.length > 0) {
         const crops = await hostPinCrops(pins);
         trimmedMessage = appendPinsHtml(trimmedMessage, pins, crops);
@@ -542,9 +777,13 @@ export function GiveAiAppFeedbackDialog({
           onSubmitted?.(app);
           onSubmitSuccess();
         },
-        onError: () => {
+        onError: (error: unknown) => {
           analytics.onFeedbackSubmitFailed(app.value);
-          toast.error('Something went wrong. Please try again.');
+          toast.error(
+            (error as { status?: number })?.status === 403
+              ? 'Feedback is turned off for this app.'
+              : 'Something went wrong. Please try again.',
+          );
         },
       },
     );
@@ -589,7 +828,9 @@ export function GiveAiAppFeedbackDialog({
         event.stopImmediatePropagation();
         if (isBusy || isPending) return;
         analytics.onFeedbackShortcutUsed({ action: 'screenshot' });
-        if (captureClosedBy) {
+        if (useBridge && frameRef) {
+          if (!atShotLimit) setIsPickingPart(true);
+        } else if (captureClosedBy) {
           fileInputRef.current?.click();
         } else {
           void onTakeScreenshotRef.current();
@@ -617,6 +858,9 @@ export function GiveAiAppFeedbackDialog({
     onSubmit,
     onRemoveShot,
     analytics,
+    useBridge,
+    frameRef,
+    atShotLimit,
   ]);
 
   return (
@@ -679,81 +923,240 @@ export function GiveAiAppFeedbackDialog({
 
                 {pins.length > 0 && onEditPins && <PinSummary pins={pins} onEdit={onEditPins} />}
 
-                <div className={s.screenshotRow}>
-                  <p className={s.fieldLabel}>{captureClosedBy ? 'Attach image' : 'Take screenshot'}</p>
-                  <p className={s.screenshotHint}>{SCREENSHOT_HINTS[captureClosedBy ?? 'open']}</p>
-                  {captureClosedBy ? (
-                    <>
+                {instant ? (
+                  <div className={s.shots}>
+                    <p className={s.fieldLabel}>
+                      Screenshots
+                      {shotCount > 0 && <span className={s.shotCount}> · {shotCount}</span>}
+                    </p>
+                    {auto?.status === 'capturing' && (
+                      <div className={clsx(s.shot, s.shotPending)} role="status" aria-label="Capturing the app">
+                        <span className={s.shotPendingText}>Capturing the app…</span>
+                        <div className={s.shotActions}>
+                          <button
+                            type="button"
+                            className={s.shotAction}
+                            aria-label="Remove screenshot"
+                            onClick={removeAutoChip}
+                          >
+                            <CloseIcon width={12} height={12} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {auto?.status === 'failed' && screenshots.length === 0 && (
+                      <p className={s.shotNote}>Couldn’t capture the app automatically — add a screenshot below.</p>
+                    )}
+                    {screenshots.map((shot, index) => (
+                      <figure key={shot.id} className={s.shotFigure}>
+                        <div className={s.shot}>
+                          <button
+                            type="button"
+                            className={s.shotImage}
+                            aria-label={`Open screenshot ${index + 1}`}
+                            onClick={() => onEditShot(shot)}
+                          >
+                            <img src={shot.imageDataUrl} alt={`Screenshot ${index + 1}`} />
+                          </button>
+                          <div className={s.shotActions}>
+                            <button
+                              type="button"
+                              className={s.shotAction}
+                              aria-label={`Annotate screenshot ${index + 1}`}
+                              onClick={() => onEditShot(shot)}
+                            >
+                              <PencilSimpleLineIcon width={12} height={12} />
+                              <span aria-hidden="true">Annotate</span>
+                            </button>
+                            <button
+                              type="button"
+                              className={s.shotAction}
+                              aria-label={`Remove screenshot ${index + 1}`}
+                              onClick={() => {
+                                if (shot.source === 'auto') {
+                                  analytics.onFeedbackAutoShotRemoved({ appUid, whileCapturing: false });
+                                }
+                                requestRemoveShot(shot);
+                              }}
+                            >
+                              <CloseIcon width={12} height={12} />
+                            </button>
+                          </div>
+                        </div>
+                        {shot.source === 'auto' && (
+                          <figcaption className={s.shotCaption}>
+                            Automatic capture may not be exact.{' '}
+                            <button
+                              type="button"
+                              className={s.shotLink}
+                              aria-pressed={Boolean(shot.misaligned)}
+                              onClick={() => onToggleMisaligned(shot.id)}
+                            >
+                              {shot.misaligned ? 'Misaligned · noted' : 'Misaligned? Tell us'}
+                            </button>
+                          </figcaption>
+                        )}
+                        {shot.source === 'page' && <figcaption className={s.shotCaption}>Whole page</figcaption>}
+                        {shot.source === 'part' && <figcaption className={s.shotCaption}>Part of the page</figcaption>}
+                      </figure>
+                    ))}
+                    {canCapture ? (
+                      <div className={s.shotButtons}>
+                        <button
+                          type="button"
+                          className={s.screenshotButton}
+                          onClick={() => void onWholePage()}
+                          disabled={isPending || atShotLimit}
+                        >
+                          <CameraIcon />
+                          Whole page
+                        </button>
+                        <button
+                          type="button"
+                          className={s.screenshotButton}
+                          onClick={onPickPart}
+                          disabled={isPending || atShotLimit}
+                          aria-keyshortcuts={shortcuts.screenshotAria}
+                        >
+                          <CrosshairIcon />
+                          Pick a part
+                        </button>
+                        {!captureClosedBy && (
+                          <button
+                            type="button"
+                            className={s.shotLink}
+                            onClick={onUseScreenShare}
+                            disabled={isPending || atShotLimit}
+                          >
+                            Use screen share instead
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        <p className={s.screenshotHint}>{SCREENSHOT_HINTS[captureClosedBy ?? 'open']}</p>
+                        <div className={s.shotButtons}>
+                          {captureClosedBy ? (
+                            <>
+                              <button
+                                type="button"
+                                className={s.screenshotButton}
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isPending}
+                                aria-keyshortcuts={shortcuts.screenshotAria}
+                              >
+                                <ImageIcon />
+                                Attach image
+                                <kbd className={s.kbd} aria-hidden="true">
+                                  {shortcuts.screenshot}
+                                </kbd>
+                              </button>
+                              <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                className={s.fileInput}
+                                onChange={onAttachImage}
+                                aria-label="Attach image"
+                              />
+                            </>
+                          ) : (
+                            <button
+                              type="button"
+                              className={s.screenshotButton}
+                              onClick={onTakeScreenshot}
+                              disabled={isPending}
+                              aria-keyshortcuts={shortcuts.screenshotAria}
+                            >
+                              <CameraIcon />
+                              Take screenshot
+                              <kbd className={s.kbd} aria-hidden="true">
+                                {shortcuts.screenshot}
+                              </kbd>
+                            </button>
+                          )}
+                        </div>
+                      </>
+                    )}
+                    {atShotLimit && <p className={s.shotNote}>Up to {MAX_SCREENSHOTS} screenshots.</p>}
+                  </div>
+                ) : (
+                  <div className={s.screenshotRow}>
+                    <p className={s.fieldLabel}>{captureClosedBy ? 'Attach image' : 'Take screenshot'}</p>
+                    <p className={s.screenshotHint}>{SCREENSHOT_HINTS[captureClosedBy ?? 'open']}</p>
+                    {captureClosedBy ? (
+                      <>
+                        <button
+                          type="button"
+                          className={s.screenshotButton}
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isPending}
+                          aria-keyshortcuts={shortcuts.screenshotAria}
+                        >
+                          <ImageIcon />
+                          Attach image
+                          <kbd className={s.kbd} aria-hidden="true">
+                            {shortcuts.screenshot}
+                          </kbd>
+                        </button>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          className={s.fileInput}
+                          onChange={onAttachImage}
+                          aria-label="Attach image"
+                        />
+                      </>
+                    ) : (
                       <button
                         type="button"
                         className={s.screenshotButton}
-                        onClick={() => fileInputRef.current?.click()}
+                        onClick={onTakeScreenshot}
                         disabled={isPending}
                         aria-keyshortcuts={shortcuts.screenshotAria}
                       >
-                        <ImageIcon />
-                        Attach image
+                        <CameraIcon />
+                        Take screenshot
                         <kbd className={s.kbd} aria-hidden="true">
                           {shortcuts.screenshot}
                         </kbd>
                       </button>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        className={s.fileInput}
-                        onChange={onAttachImage}
-                        aria-label="Attach image"
-                      />
-                    </>
-                  ) : (
-                    <button
-                      type="button"
-                      className={s.screenshotButton}
-                      onClick={onTakeScreenshot}
-                      disabled={isPending}
-                      aria-keyshortcuts={shortcuts.screenshotAria}
-                    >
-                      <CameraIcon />
-                      Take screenshot
-                      <kbd className={s.kbd} aria-hidden="true">
-                        {shortcuts.screenshot}
-                      </kbd>
-                    </button>
-                  )}
+                    )}
 
-                  {screenshots.length > 0 && (
-                    <ul className={s.screenshotList}>
-                      {screenshots.map((shot, index) => (
-                        <li key={shot.id} className={s.screenshotChip}>
-                          {/* The image is the press, the ✕ is its SIBLING rather
-                              than its child: a button inside a button is invalid
-                              markup that browsers reparent, and the reparenting is
-                              how a Remove press ends up opening the editor. */}
-                          <button
-                            type="button"
-                            className={s.screenshotOpen}
-                            aria-label={`Edit screenshot ${index + 1}`}
-                            onClick={() => onEditShot(shot)}
-                          >
-                            <img src={shot.imageDataUrl} alt={`Screenshot ${index + 1}`} />
-                            <span className={s.screenshotEdit} aria-hidden="true">
-                              <PencilSimpleLineIcon width={14} height={14} />
-                            </span>
-                          </button>
-                          <button
-                            type="button"
-                            className={s.screenshotRemove}
-                            aria-label={`Remove screenshot ${index + 1}`}
-                            onClick={() => requestRemoveShot(shot)}
-                          >
-                            <CloseIcon width={12} height={12} />
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+                    {screenshots.length > 0 && (
+                      <ul className={s.screenshotList}>
+                        {screenshots.map((shot, index) => (
+                          <li key={shot.id} className={s.screenshotChip}>
+                            {/* The image is the press, the ✕ is its SIBLING rather
+                                than its child: a button inside a button is invalid
+                                markup that browsers reparent, and the reparenting is
+                                how a Remove press ends up opening the editor. */}
+                            <button
+                              type="button"
+                              className={s.screenshotOpen}
+                              aria-label={`Edit screenshot ${index + 1}`}
+                              onClick={() => onEditShot(shot)}
+                            >
+                              <img src={shot.imageDataUrl} alt={`Screenshot ${index + 1}`} />
+                              <span className={s.screenshotEdit} aria-hidden="true">
+                                <PencilSimpleLineIcon width={14} height={14} />
+                              </span>
+                            </button>
+                            <button
+                              type="button"
+                              className={s.screenshotRemove}
+                              aria-label={`Remove screenshot ${index + 1}`}
+                              onClick={() => requestRemoveShot(shot)}
+                            >
+                              <CloseIcon width={12} height={12} />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
 
                 <FormEditor
                   name="message"
@@ -820,6 +1223,9 @@ export function GiveAiAppFeedbackDialog({
       </Modal>
       {freezeSrc && (
         <RegionSelectOverlay freezeSrc={freezeSrc} onSelect={onCropSelected} onCancel={onRegionSelectCancel} />
+      )}
+      {isPickingPart && frameRef && (
+        <LiveRegionOverlay frameRef={frameRef} onSelect={(rect) => void onPartSelected(rect)} onCancel={onPartCancel} />
       )}
       {cropSrc && (
         <AnnotatorModal
@@ -931,6 +1337,15 @@ function CameraIcon() {
         strokeWidth="1.4"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+function CrosshairIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <circle cx="8" cy="8" r="4.5" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M8 1.5v3M8 11.5v3M1.5 8h3M11.5 8h3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   );
 }

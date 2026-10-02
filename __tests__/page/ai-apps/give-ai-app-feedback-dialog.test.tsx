@@ -186,6 +186,9 @@ const asCapableBrowser = () => {
   });
 };
 
+/** Drafts are per app: a draft written on one app's page never opens on another's. */
+const APP_1_DRAFT_KEY = `${AI_APP_FEEDBACK_DRAFT_KEY}:app-1`;
+
 describe('GiveAiAppFeedbackDialog', () => {
   beforeEach(() => {
     asCapableBrowser();
@@ -202,6 +205,7 @@ describe('GiveAiAppFeedbackDialog', () => {
   afterEach(() => {
     jest.clearAllMocks();
     clearFormDraft(AI_APP_FEEDBACK_DRAFT_KEY);
+    clearFormDraft(APP_1_DRAFT_KEY);
   });
 
   it('renders nothing when closed', () => {
@@ -486,7 +490,7 @@ describe('GiveAiAppFeedbackDialog', () => {
   });
 
   it('restores a typed draft when the dialog is reopened', async () => {
-    writeFormDraft(AI_APP_FEEDBACK_DRAFT_KEY, { message: 'Draft feedback text' });
+    writeFormDraft(APP_1_DRAFT_KEY, { message: 'Draft feedback text' });
     mockUseAiApps.mockReturnValue({
       apps: [{ uid: 'app-1', name: 'My App' }],
       isLoading: false,
@@ -502,6 +506,25 @@ describe('GiveAiAppFeedbackDialog', () => {
     await waitFor(() => {
       expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('Draft feedback text');
     });
+  });
+
+  it("doesn't restore one app's draft on another app", async () => {
+    writeFormDraft(APP_1_DRAFT_KEY, { message: 'Draft feedback text' });
+    mockUseAiApps.mockReturnValue({
+      apps: [
+        { uid: 'app-1', name: 'My App' },
+        { uid: 'app-2', name: 'Other App' },
+      ],
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-2" appName="Other App" />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('');
   });
 
   it('persists typed feedback to localStorage while the dialog is open', async () => {
@@ -527,12 +550,12 @@ describe('GiveAiAppFeedbackDialog', () => {
       jest.advanceTimersByTime(500);
     });
 
-    expect(readFormDraft<{ message: string }>(AI_APP_FEEDBACK_DRAFT_KEY)?.message).toBe('Draft feedback text');
+    expect(readFormDraft<{ message: string }>(APP_1_DRAFT_KEY)?.message).toBe('Draft feedback text');
     jest.useRealTimers();
   });
 
   it('clears the draft after a successful submit', async () => {
-    writeFormDraft(AI_APP_FEEDBACK_DRAFT_KEY, { message: 'Should be cleared' });
+    writeFormDraft(APP_1_DRAFT_KEY, { message: 'Should be cleared' });
     mockUseAiApps.mockReturnValue({
       apps: [{ uid: 'app-1', name: 'My App' }],
       isLoading: false,
@@ -551,7 +574,7 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     await waitFor(() => {
       expect(mockMutate).toHaveBeenCalled();
-      expect(readFormDraft(AI_APP_FEEDBACK_DRAFT_KEY)).toBeNull();
+      expect(readFormDraft(APP_1_DRAFT_KEY)).toBeNull();
     });
   });
 

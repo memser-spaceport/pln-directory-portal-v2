@@ -77,6 +77,21 @@ export function useAiAppsAnalytics() {
       capture(AI_APPS_ANALYTICS.FEEDBACK_REPLY_SENT, params),
     onFeedbackReplyDeleted: (params: { appUid: string; feedbackUid: string }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_REPLY_DELETED, params),
+    /* Instant screenshots: one event per bridge capture (on open, Whole page, Pick a part), with how it went. */
+    onFeedbackAppCapture: (params: {
+      appUid?: string;
+      source: 'auto' | 'page' | 'part';
+      outcome: 'succeeded' | 'failed';
+      ms: number;
+      error?: string;
+    }) => capture(AI_APPS_ANALYTICS.FEEDBACK_APP_CAPTURE, params),
+    onFeedbackAutoShotRemoved: (params: { appUid?: string; whileCapturing: boolean }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_AUTO_SHOT_REMOVED, params),
+    onFeedbackPickPartCancelled: () => capture(AI_APPS_ANALYTICS.FEEDBACK_PICK_PART_CANCELLED),
+    onFeedbackScreenShareFallback: (params: { reason: 'chosen' | 'capture-failed' }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_SCREEN_SHARE_FALLBACK, params),
+    onFeedbackCaptureMisaligned: (params: { appUid?: string }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_CAPTURE_MISALIGNED, params),
     onFeedbackPinDetached: (params: { appUid: string }) => capture(AI_APPS_ANALYTICS.FEEDBACK_PIN_DETACHED, params),
     onFeedbackPinCropFailed: (params: { appUid: string; error: string }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_PIN_CROP_FAILED, params),

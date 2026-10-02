@@ -2,6 +2,7 @@ export {
   requestTabCapture,
   grabVideoFrame,
   stopCaptureStream,
+  cropImageToDataUrl,
   isCaptureSupported,
   isPersistentReason,
   CaptureError,
@@ -10,6 +11,7 @@ export {
 } from './captureTabFrame';
 export { attachImageFile, AttachImageError } from './attachImageFile';
 export { RegionSelectOverlay } from './RegionSelectOverlay';
+export { LiveRegionOverlay, dragToFrameRect, frameRectToCapturePixels, type FrameRect } from './LiveRegionOverlay';
 export { AnnotatorModal } from './AnnotatorModal';
 export { ConfirmLayer } from './ConfirmLayer';
 export { AnnotationCanvas, DRAW_COLORS, DEFAULT_DRAW_COLOR } from './AnnotationCanvas';

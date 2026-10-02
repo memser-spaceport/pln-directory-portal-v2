@@ -108,3 +108,25 @@
     text-decoration: underline;
   }
 }
+
+/* Which door an item came through: a public comment on the live app, or the form. */
+.kindFeedback,
+.kindComment {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.kindFeedback {
+  background: rgba(14, 15, 17, 0.06);
+  color: #455468;
+}
+
+.kindComment {
+  background: #eef2ff;
+  color: #1b4dff;
+}

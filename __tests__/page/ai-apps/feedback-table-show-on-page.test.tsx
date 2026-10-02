@@ -34,3 +34,21 @@ describe('FeedbackTable: Show on page', () => {
     expect(links[0]).toHaveAttribute('href', '/pl-infra/ai-apps/app%201?feedback=fb-1');
   });
 });
+
+describe('FeedbackTable: kind', () => {
+  it('says which door each item came through: a comment on the live app, or the form', () => {
+    render(
+      <FeedbackTable
+        rows={[{ ...row('fb-1'), kind: 'COMMENT' }, { ...row('fb-2'), kind: 'FEEDBACK' }, row('fb-3')]}
+        onStatusSelect={jest.fn()}
+        onImageClick={jest.fn()}
+      />,
+    );
+    const kinds = screen
+      .getAllByRole('row')
+      .slice(1)
+      .map((tr) => tr.querySelector('td:nth-child(2) > span')?.textContent);
+    /* An older response has no kind: it was written as private feedback. */
+    expect(kinds).toEqual(['Comment', 'Feedback', 'Feedback']);
+  });
+});

@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   submitAiAppFeedback,
+  type AiAppFeedbackKind,
   type AiAppFeedbackRow,
   type FeedbackContext,
   type FeedbackPinInput,
@@ -15,6 +16,8 @@ export interface SubmitAiAppFeedbackData {
   text: string;
   pins?: FeedbackPinInput[];
   context?: FeedbackContext;
+  /** COMMENT from comment mode; the form's items are FEEDBACK (the API's default). */
+  kind?: AiAppFeedbackKind;
 }
 
 const LIST_QUERY_KEY = [AiAppFeedbackQueryKeys.AI_APP_FEEDBACK_LIST];
@@ -24,8 +27,8 @@ export function useSubmitAiAppFeedback() {
   const { currentUser } = useCurrentUserStore();
 
   return useMutation({
-    mutationFn: ({ appUid, text, pins, context }: SubmitAiAppFeedbackData) =>
-      submitAiAppFeedback(appUid, text, { pins, context }),
+    mutationFn: ({ appUid, text, pins, context, kind }: SubmitAiAppFeedbackData) =>
+      submitAiAppFeedback(appUid, text, { pins, context, kind }),
     onMutate: async ({ appUid, text }: SubmitAiAppFeedbackData) => {
       await queryClient.cancelQueries({ queryKey: LIST_QUERY_KEY });
 

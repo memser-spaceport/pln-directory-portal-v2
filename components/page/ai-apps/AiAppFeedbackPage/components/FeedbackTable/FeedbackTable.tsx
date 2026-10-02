@@ -43,6 +43,10 @@ export function FeedbackTable({ rows, pendingFeedbackUid, onStatusSelect, onImag
                   {row.appName}
                 </td>
                 <td title={looksLikeHtml(row.text) ? undefined : row.text}>
+                  {/* Comments (left on the live app) are public; feedback (the form) is not. */}
+                  <span className={row.kind === 'COMMENT' ? s.kindComment : s.kindFeedback}>
+                    {row.kind === 'COMMENT' ? 'Comment' : 'Feedback'}
+                  </span>
                   <FeedbackBody text={row.text} onImageClick={onImageClick} />
                   {SHOW_AI_APPS_FEEDBACK_OVERLAY && (row.pinCount ?? 0) > 0 && (
                     <Link

@@ -152,4 +152,23 @@ describe('splitFeedbackMedia', () => {
       ['https://cdn.test/crop.webp', true],
     ]);
   });
+
+  /* Older comments wrote where they pointed into their text; that is pin data now,
+     and the list doesn't show element paths. Again through the real sanitizer. */
+  it('drops the element-path line older comments carried, and keeps their words and crop', () => {
+    const body =
+      '<p>Label is unclear</p><p><code>main &gt; button.save</code> · /settings/profile</p>' +
+      '<p><img src="https://cdn.test/crop.webp" alt="Pin: Label is unclear" class="ai-app-pin-crop"></p>';
+
+    const { textHtml, images } = splitFeedbackMedia(sanitizeAiAppFeedbackHtml(body));
+
+    expect(textHtml).toBe('<p>Label is unclear</p>');
+    expect(images.map((image) => image.src)).toEqual(['https://cdn.test/crop.webp']);
+  });
+
+  it('keeps a paragraph that only looks like one: code a member wrote, with no page after it', () => {
+    const body = '<p><code>npm run build</code> · fails on CI</p>';
+
+    expect(splitFeedbackMedia(sanitizeAiAppFeedbackHtml(body)).textHtml).toBe(body);
+  });
 });

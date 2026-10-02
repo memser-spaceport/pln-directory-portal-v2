@@ -13,7 +13,7 @@
 export const BRIDGE_NS = 'pln-bridge';
 export const BRIDGE_VERSION = 1;
 
-export type BridgeCapability = 'pick' | 'describe' | 'crop' | 'locate';
+export type BridgeCapability = 'pick' | 'describe' | 'crop' | 'locate' | 'capture';
 
 /** A rectangle in the app's viewport (CSS px). LabOS offsets it by the iframe's own rect. */
 export type BridgeRect = { x: number; y: number; w: number; h: number };
@@ -56,7 +56,9 @@ export type ParentMessage =
   | Msg<'pins:unwatch', { pinIds: string[] }>
   | Msg<'pins:clear'>
   | Msg<'crop', { pinId: string }>
-  | Msg<'locate', { requests: LocateRequest[] }>;
+  | Msg<'locate', { requests: LocateRequest[] }>
+  /** A picture of the app as it is on screen (the viewport). `key` is LabOS's and comes back on the result. */
+  | Msg<'capture', { key: string }>;
 
 /** App → LabOS. */
 export type AppMessage =
@@ -68,7 +70,9 @@ export type AppMessage =
   | Msg<'pins:rects', { rects: Record<string, BridgeRect | null> }>
   | Msg<'crop:result', { pinId: string; dataUrl?: string; error?: string }>
   /** One entry per request key; `null` = no single element matched. */
-  | Msg<'locate:result', { results: Record<string, LocateResult | null> }>;
+  | Msg<'locate:result', { results: Record<string, LocateResult | null> }>
+  /** `width`/`height`: the viewport in CSS px the picture shows, so LabOS can map a dragged rectangle onto it. */
+  | Msg<'capture:result', { key: string; dataUrl?: string; width?: number; height?: number; error?: string }>;
 
 export type Envelope<M> = M & { ns: typeof BRIDGE_NS; v: typeof BRIDGE_VERSION; id: string };
 
@@ -87,6 +91,8 @@ export const LIMITS = {
   /** A stored selector may be longer than one this bridge generates (an older bridge, a hand edit). */
   locateSelector: 1000,
   locateKey: 100,
+  /** A `capture` key (LabOS's correlation id). */
+  captureKey: 40,
 } as const;
 
 let counter = 0;

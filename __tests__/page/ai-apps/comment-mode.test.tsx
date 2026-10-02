@@ -125,6 +125,8 @@ function makeController(bridge: Bridge, spies: Record<string, jest.Mock>): Eleme
   return {
     status: 'ready',
     capabilities: ['pick', 'describe', 'crop', 'locate'],
+    canCapture: false,
+    capture: jest.fn(),
     isPicking: bridge.isPicking,
     pins: bridge.pins,
     onFrameLoad: jest.fn(),

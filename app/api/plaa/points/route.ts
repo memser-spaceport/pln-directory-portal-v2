@@ -19,7 +19,6 @@ export async function GET(request: NextRequest) {
       ? `${baseUrl}/api/v1/points/me?snapshotPeriod=${snapshotPeriod}`
       : `${baseUrl}/api/v1/points/me`;
 
-
     const res = await fetch(url, {
       method: 'GET',
       headers: {
@@ -33,10 +32,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!res.ok) {
-      return NextResponse.json(
-        { error: `PLAA API request failed: ${res.status}` },
-        { status: res.status }
-      );
+      return NextResponse.json({ error: `PLAA API request failed: ${res.status}` }, { status: res.status });
     }
 
     const data = await res.json();

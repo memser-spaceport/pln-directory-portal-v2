@@ -1,0 +1,75 @@
+/* The row and the "+n" panel. The chips themselves are the design system's
+   `Tag` (primary), which owns their padding, radius, truncation and tone —
+   nothing here restates it. */
+
+/* `TeamsTagsList` declares its container in styled-jsx, so this is the one
+   thing that has to be copied by value rather than imported: same flex row,
+   same 8px. */
+.row {
+  display: flex;
+  gap: 8px;
+  overflow: hidden;
+  /* Without this the row's min-content width (every chip, unbroken) travels up
+     through `min-width: auto` on each ancestor and into the grid track, so the
+     CARD widens to fit the tags instead of the row cropping to fit the card.
+     `.root` in AiAppCard.module.scss stops the same leak at the grid item. */
+  min-width: 0;
+
+  /* A flex item shrinks by default, and `white-space: nowrap` on the chip means
+     it shrinks by clipping its own label — silently reintroducing the cropping
+     this row exists to avoid, and making the measuring pass read squeezed
+     widths. Chips keep their natural width; the "+n" reports the rest. */
+  > * {
+    flex-shrink: 0;
+  }
+
+  /* `Tag.primary` caps itself at 74px, which is how the teams card fits a fixed
+     two chips whatever their labels say. Here the count adapts instead, so the
+     cap would only cut labels the row has already decided it has room for.
+     Targeted by element because the Tag's own class is hashed inside its module. */
+  button {
+    max-width: none;
+  }
+}
+
+.more {
+  display: flex;
+  min-width: 0;
+}
+
+/* The panel behind the "+n". The popover draws no surface of its own — the IRL
+   "Host" list supplies its own white card the same way — so the chrome lives
+   here: a card lifted over the grid, holding the rest of the row as the same
+   chips, wrapping. */
+.panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: max-content;
+  max-width: 260px;
+  margin: 0;
+  padding: 10px;
+  list-style: none;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+  /* The popover wrapper sets `color: #fff` for the black-tooltip case it was
+     written for; chips on a white card need their own ink back. */
+  color: var(--foreground-neutral-secondary, #455468);
+
+  /* A tag set long enough to need it scrolls rather than running down the page.
+     No visible bar — the prototypes' settled treatment for a clipped region. */
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Same cap removal as the row: the panel exists to show the labels in full. */
+  button {
+    max-width: none;
+  }
+}

@@ -24,10 +24,11 @@ export const PostHogPageview = dynamic(() => import('@/providers/analytics-provi
 export const RatingContainer = dynamic(() => import('@/components/core/office-hours-rating/rating-container'), {
   ssr: false,
 });
-export const BotpressWebchat = dynamic(
-  () => import('@/components/core/botpress/BotpressWebchat').then((m) => m.BotpressWebchat),
-  { ssr: false },
-);
+// TODO(deprecated): the Botpress webchat is replaced by the activity chat. Remove this and components/core/botpress.
+// export const BotpressWebchat = dynamic(
+//   () => import('@/components/core/botpress/BotpressWebchat').then((m) => m.BotpressWebchat),
+//   { ssr: false },
+// );
 export const PlaaBot = dynamic(() => import('@/components/core/plaa-bot/PlaaBot').then((m) => m.PlaaBot), {
   ssr: false,
 });

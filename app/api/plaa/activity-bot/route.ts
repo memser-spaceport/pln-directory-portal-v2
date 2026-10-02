@@ -1,3 +1,4 @@
+import { sign } from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -43,10 +44,19 @@ async function resolveMemberUid(authToken: string): Promise<string> {
   return typeof data?.memberUid === 'string' ? data.memberUid : '';
 }
 
+function signMemberToken(signingKey: string, memberUid: string, sessionId: string): string {
+  return sign({ sid: sessionId }, signingKey.replace(/\\n/g, '\n'), {
+    algorithm: 'ES256',
+    subject: memberUid,
+    audience: 'plaa-activity-bot',
+    expiresIn: 60,
+  });
+}
+
 export async function POST(request: NextRequest) {
   const webhookUrl = process.env.PLAA_BOT_WEBHOOK_URL;
-  const clientToken = process.env.PLAA_BOT_CLIENT_TOKEN;
-  if (!webhookUrl || !clientToken) {
+  const signingKey = process.env.PLAA_BOT_SIGNING_KEY;
+  if (!webhookUrl || !signingKey) {
     return NextResponse.json({ error: 'The activity bot is not configured' }, { status: 503 });
   }
 
@@ -78,8 +88,7 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-PLAA-Client-Token': clientToken,
-        'X-PLAA-Member-Uid': memberUid,
+        Authorization: `Bearer ${signMemberToken(signingKey, memberUid, turn.data.sessionId)}`,
       },
       body: JSON.stringify(turn.data),
       cache: 'no-store',

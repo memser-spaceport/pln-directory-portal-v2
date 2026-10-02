@@ -1,6 +1,8 @@
 /**
  * @jest-environment node
  */
+import { generateKeyPairSync } from 'node:crypto';
+import jwt from 'jsonwebtoken';
 import { NextRequest } from 'next/server';
 
 import { POST as postTurn } from '@/app/api/plaa/activity-bot/route';
@@ -9,6 +11,15 @@ const WEBHOOK_URL = 'https://bot.internal.example/webhook/plaa-activity-bot';
 const DIRECTORY_API_URL = 'https://directory.internal.example';
 const ACCESS_URL = `${DIRECTORY_API_URL}/v2/access-control-v2/me/access`;
 const TURN = { sessionId: 'session-1', activityId: 'network_introduction', message: 'hello' };
+const { privateKey, publicKey } = generateKeyPairSync('ec', { namedCurve: 'P-256' });
+const PRIVATE_PEM = privateKey.export({ type: 'pkcs8', format: 'pem' }) as string;
+const PUBLIC_PEM = publicKey.export({ type: 'spki', format: 'pem' }) as string;
+
+function forwardedClaims() {
+  const [, init] = callsTo(WEBHOOK_URL)[0];
+  const token = String(init.headers.Authorization).replace(/^Bearer /, '');
+  return jwt.verify(token, PUBLIC_PEM, { algorithms: ['ES256'] }) as jwt.JwtPayload;
+}
 
 interface RequestOptions {
   body?: unknown;
@@ -51,7 +62,7 @@ const callsTo = (url: string) => (global.fetch as jest.Mock).mock.calls.filter((
 
 beforeEach(() => {
   process.env.PLAA_BOT_WEBHOOK_URL = WEBHOOK_URL;
-  process.env.PLAA_BOT_CLIENT_TOKEN = 'srv-tok';
+  process.env.PLAA_BOT_SIGNING_KEY = PRIVATE_PEM;
   process.env.DIRECTORY_API_URL = DIRECTORY_API_URL;
   global.fetch = jest.fn();
   mockUpstream();
@@ -113,14 +124,38 @@ describe('activity bot proxy route', () => {
     expect(init.headers.Authorization).toBe('Bearer member-token');
   });
 
-  it('forwards the turn with the server-side token and the verified member uid', async () => {
+  it('forwards the turn with a token it signed for the verified member and this session', async () => {
     await postTurn(makeRequest());
 
     const [, init] = callsTo(WEBHOOK_URL)[0];
+    const claims = forwardedClaims();
     expect(init.method).toBe('POST');
-    expect(init.headers['X-PLAA-Client-Token']).toBe('srv-tok');
-    expect(init.headers['X-PLAA-Member-Uid']).toBe('member-uid-1');
     expect(JSON.parse(init.body)).toEqual(TURN);
+    expect(claims.sub).toBe('member-uid-1');
+    expect(claims.sid).toBe('session-1');
+    expect(claims.aud).toBe('plaa-activity-bot');
+  });
+
+  it('signs a token that lasts one minute', async () => {
+    await postTurn(makeRequest());
+
+    const claims = forwardedClaims();
+    expect((claims.exp as number) - (claims.iat as number)).toBe(60);
+  });
+
+  it('accepts a signing key whose line breaks are written as \\n', async () => {
+    process.env.PLAA_BOT_SIGNING_KEY = PRIVATE_PEM.replace(/\n/g, '\\n');
+
+    await postTurn(makeRequest());
+
+    expect(forwardedClaims().sub).toBe('member-uid-1');
+  });
+
+  it('sends no shared secret and no member header', async () => {
+    await postTurn(makeRequest());
+
+    const headerNames = Object.keys(callsTo(WEBHOOK_URL)[0][1].headers).map((name) => name.toLowerCase());
+    expect(headerNames.sort()).toEqual(['authorization', 'content-type']);
   });
 
   it('ignores a member uid supplied by the browser, in a header or in the body', async () => {
@@ -132,7 +167,7 @@ describe('activity bot proxy route', () => {
     );
 
     const [, init] = callsTo(WEBHOOK_URL)[0];
-    expect(init.headers['X-PLAA-Member-Uid']).toBe('member-uid-1');
+    expect(forwardedClaims().sub).toBe('member-uid-1');
     expect(JSON.parse(init.body)).toEqual(TURN);
   });
 

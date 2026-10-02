@@ -3,6 +3,8 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { FloatingFeedbackButton } from '@/components/page/ai-apps/components/FloatingFeedbackButton';
 
 const mockUsePermissions = jest.fn();
+/* The form's close guard. By default nothing is unsent, so the host's close runs at once. */
+const mockRequestClose = jest.fn((close: () => void) => close());
 
 jest.mock('@/services/rbac/hooks/usePermissions', () => ({
   usePermissions: () => mockUsePermissions(),
@@ -18,7 +20,9 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
     onClose,
     headerTabs,
     capture,
+    ref,
   }: {
+    ref?: React.Ref<{ requestClose: (close: () => void) => void }>;
     capture?: () => Promise<unknown>;
     headerTabs?: React.ReactNode;
     isOpen: boolean;
@@ -27,8 +31,9 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
     appName?: string;
     onSubmitted?: (app: { label: string; value: string }) => void;
     onClose?: () => void;
-  }) =>
-    isOpen ? (
+  }) => {
+    require('react').useImperativeHandle(ref, () => ({ requestClose: mockRequestClose }));
+    return isOpen ? (
       <div data-placement={placement} data-app-name={appName ?? ''} data-capture={capture ? 'bridge' : 'none'}>
         {headerTabs}
         {anchorRef?.current ? 'Feedback dialog open' : 'Feedback dialog unanchored'}
@@ -39,12 +44,17 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
           Close feedback
         </button>
       </div>
-    ) : null,
+    ) : null;
+  },
 }));
 
 const withAccess = () => mockUsePermissions.mockReturnValue({ permsSet: new Set(['ai_apps.read']), isLoading: false });
 
 describe('FloatingFeedbackButton', () => {
+  beforeEach(() => {
+    mockRequestClose.mockImplementation((close: () => void) => close());
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -353,6 +363,28 @@ describe('FloatingFeedbackButton', () => {
 
       fireEvent.click(screen.getByRole('tab', { name: /Comment/ }));
 
+      expect(commentMode.onOpen).toHaveBeenCalled();
+      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
+    });
+
+    it('with unsent work in the form, the Comment tab and the button wait for it to agree', () => {
+      withAccess();
+      const commentMode = comments();
+      render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={commentMode} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Feedback & comments' }));
+      /* The form asks "Discard your feedback?" and the member keeps editing. */
+      mockRequestClose.mockImplementation(() => undefined);
+
+      fireEvent.click(screen.getByRole('tab', { name: /Comment/ }));
+      fireEvent.click(screen.getByRole('button', { name: 'Close feedback and comments' }));
+
+      expect(mockRequestClose).toHaveBeenCalledTimes(2);
+      expect(commentMode.onOpen).not.toHaveBeenCalled();
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+
+      /* …then discards: the tab's own close runs. */
+      const [closeFromTab] = mockRequestClose.mock.calls[0];
+      act(() => closeFromTab());
       expect(commentMode.onOpen).toHaveBeenCalled();
       expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
     });

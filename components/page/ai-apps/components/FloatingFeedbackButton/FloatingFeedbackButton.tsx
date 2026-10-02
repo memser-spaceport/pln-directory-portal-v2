@@ -7,7 +7,7 @@ import { canViewAiApps } from '@/services/rbac/utils/aiApps/canViewAiApps';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { CommentIcon } from '@/components/icons';
 import { isOpenFeedbackChord, useShortcutLabels } from '@/components/page/ai-apps/shortcutKeys';
-import { GiveAiAppFeedbackDialog } from '../GiveAiAppFeedbackDialog';
+import { GiveAiAppFeedbackDialog, type FeedbackDialogHandle } from '../GiveAiAppFeedbackDialog';
 import { FeedbackTabs } from '../FeedbackTabs/FeedbackTabs';
 import { PinOverlay, PinPanel, type ElementPinsController } from '../element-pins';
 import type { FeedbackContext } from '@/services/ai-app-feedback/ai-app-feedback.service';
@@ -159,6 +159,13 @@ function FeedbackFab({
     setIsOpen(true);
   }
 
+  /* The form warns before throwing away what was written or drawn; closing it from here asks it first. */
+  const dialogRef = useRef<FeedbackDialogHandle>(null);
+  const closeForm = (close: () => void) => {
+    if (dialogRef.current) dialogRef.current.requestClose(close);
+    else close();
+  };
+
   /* One mark, one panel: pressed again it closes whichever tab is open. */
   const onButton = () => {
     if (inCommentMode) {
@@ -166,7 +173,7 @@ function FeedbackFab({
       return;
     }
     if (commentsAvailable && isOpen) {
-      setIsOpen(false);
+      closeForm(() => setIsOpen(false));
       return;
     }
     startFeedback();
@@ -303,6 +310,7 @@ function FeedbackFab({
       )}
 
       <GiveAiAppFeedbackDialog
+        ref={dialogRef}
         isOpen={isOpen}
         onClose={() => {
           /* Closing the dialog (Cancel, ✕, or a successful send) ends the pin session too. */
@@ -335,8 +343,10 @@ function FeedbackFab({
               commentCount={commentMode?.count ?? 0}
               onSelect={(tab) => {
                 if (tab !== 'comment') return;
-                setIsOpen(false);
-                commentMode?.onOpen();
+                closeForm(() => {
+                  setIsOpen(false);
+                  commentMode?.onOpen();
+                });
               }}
             />
           ) : undefined

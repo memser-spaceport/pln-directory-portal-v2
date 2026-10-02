@@ -501,7 +501,8 @@
   background: none;
   cursor: zoom-in;
 
-  img {
+  /* Direct child only: an annotated preview lays out its own picture. */
+  > img {
     display: block;
     width: 100%;
     height: 100%;

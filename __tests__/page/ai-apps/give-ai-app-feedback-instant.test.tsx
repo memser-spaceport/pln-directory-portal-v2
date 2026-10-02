@@ -2,8 +2,10 @@ import '@testing-library/jest-dom';
 import { createRef } from 'react';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import {
+  AI_APP_FEEDBACK_DRAFT_KEY,
   FEEDBACK_PLACEHOLDER,
   GiveAiAppFeedbackDialog,
+  type FeedbackDialogHandle,
 } from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog';
 import { MAX_SCREENSHOTS } from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/GiveAiAppFeedbackDialog';
 import { toast } from '@/components/core/ToastContainer';
@@ -97,6 +99,36 @@ jest.mock('@/components/page/ai-apps/components/screenshot-feedback', () => {
     grabVideoFrame: jest.fn(),
     stopCaptureStream: jest.fn(),
     cropImageToDataUrl: jest.fn(),
+    /* Drawing on a canvas is out of jsdom's reach: "Save marks" stands for an annotated save. */
+    AnnotatorModal: ({ onAdd, onDiscard }: { onAdd: (a: unknown) => void; onDiscard: () => void }) => (
+      <div>
+        <button
+          type="button"
+          onClick={() =>
+            onAdd({
+              version: 1,
+              strokes: [
+                {
+                  color: '#f00',
+                  width: 3,
+                  points: [
+                    { x: 0.1, y: 0.1 },
+                    { x: 0.4, y: 0.3 },
+                  ],
+                },
+              ],
+              shapes: [],
+              comments: [{ id: 'c1', x: 0.5, y: 0.5, text: 'Here' }],
+            })
+          }
+        >
+          Save marks
+        </button>
+        <button type="button" onClick={onDiscard}>
+          Discard marks
+        </button>
+      </div>
+    ),
     LiveRegionOverlay: ({ onSelect, onCancel }: { onSelect: (r: unknown) => void; onCancel: () => void }) => (
       <div data-testid="live-region-overlay">
         <button type="button" onClick={() => onSelect({ x: 10, y: 20, width: 100, height: 50 })}>
@@ -129,11 +161,11 @@ const shot = (dataUrl: string, width = 800): AppCapture => ({ dataUrl, width, he
 
 const frameRef = createRef<HTMLIFrameElement>();
 
-function renderDialog(capture: (() => Promise<AppCapture>) | undefined, isOpen = true) {
+function renderDialog(capture: (() => Promise<AppCapture>) | undefined, isOpen = true, onClose = jest.fn()) {
   return render(
     <GiveAiAppFeedbackDialog
       isOpen={isOpen}
-      onClose={jest.fn()}
+      onClose={onClose}
       appUid="app-1"
       appName="My App"
       capture={capture}
@@ -423,5 +455,119 @@ describe('Pick a part geometry', () => {
       width: DRAG.width * dpr,
       height: DRAG.height * dpr,
     });
+  });
+});
+
+describe('annotated previews', () => {
+  it('draws the marks on the preview once a screenshot is annotated', async () => {
+    renderDialog(() => Promise.resolve(shot(SHOT_A)));
+    await flush();
+    const preview = () => screen.getByRole('button', { name: 'Open screenshot 1' });
+    expect(preview().querySelector('canvas')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot 1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save marks' }));
+
+    await waitFor(() => expect(preview().querySelector('canvas')).not.toBeNull());
+    expect(within(preview()).getByRole('img', { name: 'Screenshot 1' })).toHaveAttribute('src', SHOT_A);
+    /* The comment pin is a plain marker: no button inside the preview's own button. */
+    expect(within(preview()).getByText('1')).toBeInTheDocument();
+    expect(within(preview()).queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('offers no "Use screen share instead" when the app can capture', async () => {
+    renderDialog(() => Promise.resolve(shot(SHOT_A)));
+    await flush();
+    expect(screen.getByRole('button', { name: 'Whole page' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Use screen share instead' })).not.toBeInTheDocument();
+  });
+});
+
+describe('closing with unsent work', () => {
+  /* ConfirmDialog has no dialog role; its title is how the other confirmations are found too. */
+  const discardDialog = () => screen.queryByText('Discard your feedback?');
+
+  it('closes at once when nothing was written or drawn (the automatic screenshot is not work)', async () => {
+    const onClose = jest.fn();
+    renderDialog(() => Promise.resolve(shot(SHOT_A)), true, onClose);
+    await flush();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(discardDialog()).not.toBeInTheDocument();
+  });
+
+  it('asks before Cancel throws away what was written; Keep editing keeps it, Discard clears the draft', async () => {
+    jest.useFakeTimers();
+    const onClose = jest.fn();
+    renderDialog(undefined, true, onClose);
+    await act(async () => {
+      jest.advanceTimersByTime(0);
+    });
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Half a thought' } });
+    await act(async () => {
+      jest.advanceTimersByTime(500);
+    });
+    expect(window.localStorage.getItem(`${AI_APP_FEEDBACK_DRAFT_KEY}:app-1`)).toContain('Half a thought');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(discardDialog()).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Keep editing' }));
+    expect(discardDialog()).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('Half a thought');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Discard' }));
+    await act(async () => {
+      jest.advanceTimersByTime(500);
+    });
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(window.localStorage.getItem(`${AI_APP_FEEDBACK_DRAFT_KEY}:app-1`)).toBeNull();
+    jest.useRealTimers();
+  });
+
+  it('asks before closing away marks on a screenshot, with nothing written', async () => {
+    const onClose = jest.fn();
+    renderDialog(() => Promise.resolve(shot(SHOT_A)), true, onClose);
+    await flush();
+    fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot 1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save marks' }));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Open screenshot 1' }).querySelector('canvas')).not.toBeNull(),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(discardDialog()).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('Esc asks too, and a second Esc does not close the form behind the question', () => {
+    const onClose = jest.fn();
+    renderDialog(undefined, true, onClose);
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Half a thought' } });
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(discardDialog()).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('a host closing the form (the button, the Comment tab) goes through the same question', () => {
+    const ref = createRef<FeedbackDialogHandle>();
+    const hostClose = jest.fn();
+    render(<GiveAiAppFeedbackDialog ref={ref} isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Half a thought' } });
+
+    act(() => ref.current!.requestClose(hostClose));
+    expect(hostClose).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Discard' }));
+
+    expect(hostClose).toHaveBeenCalledTimes(1);
   });
 });

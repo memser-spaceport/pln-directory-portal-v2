@@ -3,9 +3,11 @@
 import {
   type CSSProperties,
   type ReactNode,
+  type Ref,
   type RefObject,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useLayoutEffect,
   useRef,
   useState,
@@ -37,6 +39,7 @@ import {
   AnnotatorModal,
   AttachImageError,
   CaptureError,
+  AnnotatedPreview,
   ConfirmLayer,
   LiveRegionOverlay,
   RegionSelectOverlay,
@@ -167,9 +170,19 @@ interface Props {
   capture?: () => Promise<AppCapture>;
   /** The app frame, for Pick a part (the drag counts over it). */
   frameRef?: RefObject<HTMLIFrameElement | null>;
+  /** For a host that closes the form itself (the button, the Comment tab): see `FeedbackDialogHandle`. */
+  ref?: Ref<FeedbackDialogHandle>;
 }
 
-/** The automatic screenshot taken when the form opens, per open. Removing it or closing drops a late result. */
+export type FeedbackDialogHandle = {
+  /**
+   * Close the form the way its own Cancel does: straight away when nothing
+   * would be lost, else after "Discard your feedback?" is confirmed. `close`
+   * runs once it may go (the host's own way of closing).
+   */
+  requestClose: (close: () => void) => void;
+};
+
 /**
  * This open's automatic screenshot. `landed` carries the picture from the
  * capture to the render that attaches it, so the "is it still wanted?" check
@@ -233,6 +246,7 @@ export function GiveAiAppFeedbackDialog({
   headerTabs,
   capture,
   frameRef,
+  ref,
 }: Props) {
   const { currentUser } = useCurrentUserStore();
   const [overlayStyle, setOverlayStyle] = useState<CSSProperties>();
@@ -414,7 +428,7 @@ export function GiveAiAppFeedbackDialog({
     setCropSrc(null);
   };
 
-  const onDialogClose = () => {
+  const resetForm = () => {
     resetCapture();
     setIsPickingPart(false);
     setScreenshots([]);
@@ -422,8 +436,36 @@ export function GiveAiAppFeedbackDialog({
     setPendingRemoveId(null);
     setSubmitAttempted(false);
     setShortcutsOpen(false);
-    onClose();
   };
+
+  /* What closing would throw away: what was written, or marks on a screenshot.
+     A screenshot alone isn't (one is attached on every open). */
+  const hasUnsentWork = hasFeedbackContent(message) || screenshots.some((shot) => hasAnyAnnotation(shot.annotations));
+  /** Set while "Discard your feedback?" is up: how to close once it is confirmed. */
+  const [closeAfterDiscard, setCloseAfterDiscard] = useState<(() => void) | null>(null);
+
+  const requestClose = (close: () => void) => {
+    if (hasUnsentWork) {
+      setCloseAfterDiscard(() => close);
+      return;
+    }
+    resetForm();
+    close();
+  };
+
+  const discardAndClose = () => {
+    const close = closeAfterDiscard;
+    setCloseAfterDiscard(null);
+    /* Discarded means gone: the saved draft would otherwise bring the text back on reopen. */
+    clearDraft();
+    reset(getDefaults());
+    resetForm();
+    close?.();
+  };
+
+  useImperativeHandle(ref, () => ({ requestClose }));
+
+  const onDialogClose = () => requestClose(onClose);
 
   const onSubmitSuccess = () => {
     clearDraft();
@@ -564,11 +606,6 @@ export function GiveAiAppFeedbackDialog({
     analyticsRef.current.onFeedbackPickPartCancelled();
     setIsPickingPart(false);
   }, []);
-
-  const onUseScreenShare = () => {
-    analytics.onFeedbackScreenShareFallback({ reason: 'chosen' });
-    void onTakeScreenshot();
-  };
 
   /* "Misaligned? Tell us" marks the automatic picture; the mark travels with
      the report as a line under it (prototype ai-apps-comments). */
@@ -876,7 +913,7 @@ export function GiveAiAppFeedbackDialog({
            the typed draft with it — `Modal` registers its handler on `document`
            in the capture phase and calls `stopImmediatePropagation`, so nothing
            the confirmation registers later could ever intercept it. */
-        closeOnEscape={!isBusy && !pendingRemoveId && !shortcutsOpen}
+        closeOnEscape={!isBusy && !pendingRemoveId && !shortcutsOpen && !closeAfterDiscard}
         overlayClassname={clsx(s.overlay, placement === 'above' && s.overlayAbove, isBusy && s.overlayHidden)}
         overlayStyle={overlayStyle}
         className={s.modalContainer}
@@ -953,7 +990,16 @@ export function GiveAiAppFeedbackDialog({
                           aria-label={`Open screenshot ${index + 1}`}
                           onClick={() => onEditShot(shot)}
                         >
-                          <img src={shot.imageDataUrl} alt={`Screenshot ${index + 1}`} />
+                          {/* Marks show on the preview too, so nothing drawn is out of sight (prototype). */}
+                          {hasAnyAnnotation(shot.annotations) ? (
+                            <AnnotatedPreview
+                              src={shot.imageDataUrl}
+                              alt={`Screenshot ${index + 1}`}
+                              annotations={shot.annotations}
+                            />
+                          ) : (
+                            <img src={shot.imageDataUrl} alt={`Screenshot ${index + 1}`} />
+                          )}
                         </button>
                         <div className={s.shotActions}>
                           <button
@@ -1018,16 +1064,6 @@ export function GiveAiAppFeedbackDialog({
                         <CrosshairIcon />
                         Pick a part
                       </button>
-                      {!captureClosedBy && (
-                        <button
-                          type="button"
-                          className={s.shotLink}
-                          onClick={onUseScreenShare}
-                          disabled={isPending || atShotLimit}
-                        >
-                          Use screen share instead
-                        </button>
-                      )}
                     </div>
                   ) : (
                     <>
@@ -1107,6 +1143,17 @@ export function GiveAiAppFeedbackDialog({
                   setPendingRemoveId(null);
                 }}
                 onCancel={() => setPendingRemoveId(null)}
+              />
+            </ConfirmLayer>
+            <ConfirmLayer isOpen={Boolean(closeAfterDiscard)}>
+              <ConfirmDialog
+                isOpen
+                title="Discard your feedback?"
+                message="What you wrote and the marks on your screenshots will be lost."
+                confirmText="Discard"
+                cancelText="Keep editing"
+                onConfirm={discardAndClose}
+                onCancel={() => setCloseAfterDiscard(null)}
               />
             </ConfirmLayer>
 

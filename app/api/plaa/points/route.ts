@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { plaaUpstreamUrl } from '../_upstream';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,9 +16,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'PLAA_API_URL is not configured' }, { status: 500 });
     }
 
-    const url = snapshotPeriod
-      ? `${baseUrl}/api/v1/points/me?snapshotPeriod=${snapshotPeriod}`
-      : `${baseUrl}/api/v1/points/me`;
+    const url = plaaUpstreamUrl(baseUrl, ['points', 'me'], { snapshotPeriod }) as string;
 
     const res = await fetch(url, {
       method: 'GET',

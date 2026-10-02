@@ -37,7 +37,7 @@ export async function fetchSnapshotPoints(snapshotPeriod: string): Promise<Snaps
   if (!authToken) return null;
 
   try {
-    const res = await fetch(`/api/plaa/points?snapshotPeriod=${snapshotPeriod}`, {
+    const res = await fetch(`/api/plaa/points?snapshotPeriod=${encodeURIComponent(snapshotPeriod)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

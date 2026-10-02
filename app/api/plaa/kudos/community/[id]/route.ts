@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveAuthHeader } from '../../_auth';
-
-const KUDOS_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+import { plaaUpstreamUrl } from '../../../_upstream';
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -20,12 +19,13 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }
 
     const { id } = await context.params;
-    if (!KUDOS_ID_PATTERN.test(id)) {
+    const url = plaaUpstreamUrl(baseUrl, ['kudos', 'community', id]);
+    if (!url) {
       return NextResponse.json({ error: 'Invalid kudos id' }, { status: 400 });
     }
     const body = await request.text();
 
-    const res = await fetch(`${baseUrl}/api/v1/kudos/community/${encodeURIComponent(id)}`, {
+    const res = await fetch(url, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: authHeader },
       body,

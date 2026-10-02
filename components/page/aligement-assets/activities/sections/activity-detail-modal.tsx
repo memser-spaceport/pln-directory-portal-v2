@@ -9,6 +9,8 @@ import { Activity, PopupLink } from '../types';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { ACTIVITY_FORM_URL, ACTIVITY_CONFIRM_TOAST } from '@/constants/plaa';
 import { toast } from '@/components/core/ToastContainer';
+import { openPlaaBotForActivity } from '@/components/core/plaa-bot/plaa-bot.utils';
+import { PLAA_BOT_ANALYTICS_TARGET } from '@/components/core/plaa-bot/constants';
 
 interface ActivityDetailModalProps {
   isOpen: boolean;
@@ -31,12 +33,16 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
   const allLinks = popupContent.links || (popupContent.submissionLink ? [popupContent.submissionLink] : []);
 
   const handleLinkClick = (linkText: string, url: string) => {
-    onActivitiesModalLinkClicked({
-      activityId: activity.id,
-      activityName: activity.activity,
-      category: activity.category,
-      points: activity.points,
-    }, linkText, url);
+    onActivitiesModalLinkClicked(
+      {
+        activityId: activity.id,
+        activityName: activity.activity,
+        category: activity.category,
+        points: activity.points,
+      },
+      linkText,
+      url,
+    );
   };
 
   const handleCtaClick = () => {
@@ -46,17 +52,26 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
       return;
     }
 
-    // Submit CTA: open the submission form. Priority: ctaLink > submissionLink > ACTIVITY_FORM_URL
-    const url = popupContent.ctaLink
-      || (!activity.hasFormLink && popupContent.submissionLink ? popupContent.submissionLink.url : null)
-      || ACTIVITY_FORM_URL;
-
-    onActivitiesModalLinkClicked({
+    const analyticsParams = {
       activityId: activity.id,
       activityName: activity.activity,
       category: activity.category,
       points: activity.points,
-    }, 'Submit Activity Button', url);
+    };
+
+    if (openPlaaBotForActivity(activity.id)) {
+      onActivitiesModalLinkClicked(analyticsParams, 'Submit Activity Button', PLAA_BOT_ANALYTICS_TARGET);
+      onClose();
+      return;
+    }
+
+    // Submit CTA: open the submission form. Priority: ctaLink > submissionLink > ACTIVITY_FORM_URL
+    const url =
+      popupContent.ctaLink ||
+      (!activity.hasFormLink && popupContent.submissionLink ? popupContent.submissionLink.url : null) ||
+      ACTIVITY_FORM_URL;
+
+    onActivitiesModalLinkClicked(analyticsParams, 'Submit Activity Button', url);
 
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -78,10 +93,8 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
     const matches: Match[] = [];
 
     // Deduplicate links to avoid redundant processing
-    const uniqueLinks = links.filter((link, index, self) =>
-      index === self.findIndex((t) => (
-        t.text === link.text && t.url === link.url
-      ))
+    const uniqueLinks = links.filter(
+      (link, index, self) => index === self.findIndex((t) => t.text === link.text && t.url === link.url),
     );
 
     for (const link of uniqueLinks) {
@@ -90,7 +103,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
         matches.push({
           start: pos,
           end: pos + link.text.length,
-          link
+          link,
         });
         pos = text.indexOf(link.text, pos + 1);
       }
@@ -102,7 +115,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
     // 3. Build content
     const parts: (string | React.JSX.Element)[] = [];
     let cursor = 0;
-    
+
     // Use a simple counter for keys
     let keyIndex = 0;
 
@@ -126,7 +139,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           onClick={() => handleLinkClick(match.link.text, match.link.url)}
         >
           {match.link.text}
-        </Link>
+        </Link>,
       );
 
       // Update cursor
@@ -151,15 +164,11 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
 
           <div className="activity-modal__content">
             <h2 className="activity-modal__title">{popupContent.title}</h2>
-            
-            {popupContent.subtitle && (
-              <h3 className="activity-modal__subtitle">{popupContent.subtitle}</h3>
-            )}
-            
+
+            {popupContent.subtitle && <h3 className="activity-modal__subtitle">{popupContent.subtitle}</h3>}
+
             {popupContent.description && (
-              <p className="activity-modal__description">
-                {renderTextWithLinks(popupContent.description, allLinks)}
-              </p>
+              <p className="activity-modal__description">{renderTextWithLinks(popupContent.description, allLinks)}</p>
             )}
 
             {popupContent.overview && (
@@ -186,7 +195,8 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                   <section className="activity-modal__section">
                     <h3 className="activity-modal__section-title">📏 Rules</h3>
                     <p className="activity-modal__description">
-                      Participants must complete the activity as described and meet the activity-specific eligibility requirements:
+                      Participants must complete the activity as described and meet the activity-specific eligibility
+                      requirements:
                     </p>
                     <ol className="activity-modal__rules">
                       {popupContent.rules.map((rule, index) => (
@@ -209,11 +219,11 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                 ))}
               </ul>
             )}
-            
+
             {popupContent.submissionNoteTitle && (
               <h4 className="activity-modal__submission-note-title">{popupContent.submissionNoteTitle}</h4>
             )}
-            
+
             {popupContent.submissionNote && (
               <p className="activity-modal__submission-note">
                 {renderTextWithLinks(popupContent.submissionNote, allLinks)}
@@ -230,7 +240,9 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                     {pointsAwarded.subtitle.map((item, index) => (
                       <div key={index} className="activity-modal__points-item">
                         {item.value ? (
-                          <><strong>{item.label}:</strong> {item.value}</>
+                          <>
+                            <strong>{item.label}:</strong> {item.value}
+                          </>
                         ) : (
                           item.label
                         )}
@@ -238,7 +250,7 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                     ))}
                   </div>
                 )}
-                
+
                 {pointsAwarded.description && (
                   <p className="activity-modal__points-description">{pointsAwarded.description}</p>
                 )}
@@ -248,39 +260,52 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                     {pointsAwarded.items.map((item, index) => {
                       const boldLabel = item.boldLabel !== false;
                       return (
-                      <li key={index} className="activity-modal__points-item">
-                        {item.value ? (
-                          item.valueOnNewLine ? (
-                            <>
-                              {boldLabel ? <strong>{item.label}:</strong> : <>{item.label}:</>}
-                              <div className="activity-modal__points-item-value">
-                                {item.italicValue ? <em>{item.value}</em> : item.value}
-                              </div>
-                            </>
+                        <li key={index} className="activity-modal__points-item">
+                          {item.value ? (
+                            item.valueOnNewLine ? (
+                              <>
+                                {boldLabel ? <strong>{item.label}:</strong> : <>{item.label}:</>}
+                                <div className="activity-modal__points-item-value">
+                                  {item.italicValue ? <em>{item.value}</em> : item.value}
+                                </div>
+                              </>
+                            ) : boldLabel ? (
+                              <>
+                                <strong>{item.label}:</strong> {item.italicValue ? <em>{item.value}</em> : item.value}
+                              </>
+                            ) : (
+                              <>
+                                {item.label}: {item.italicValue ? <em>{item.value}</em> : item.value}
+                              </>
+                            )
+                          ) : item.subItems ? (
+                            boldLabel ? (
+                              <>
+                                <strong>{item.label}:</strong>
+                              </>
+                            ) : (
+                              <>{item.label}:</>
+                            )
                           ) : boldLabel ? (
-                            <><strong>{item.label}:</strong> {item.italicValue ? <em>{item.value}</em> : item.value}</>
+                            <strong>{item.label}</strong>
                           ) : (
-                            <>{item.label}: {item.italicValue ? <em>{item.value}</em> : item.value}</>
-                          )
-                        ) : item.subItems ? (
-                          boldLabel ? <><strong>{item.label}:</strong></> : <>{item.label}:</>
-                        ) : (
-                          boldLabel ? <strong>{item.label}</strong> : item.label
-                        )}
-                        {item.description && (
-                          <div className="activity-modal__points-item-description">{item.description}</div>
-                        )}
-                        {item.subItems && (
-                          <ul className="activity-modal__points-sublist">
-                            {item.subItems.map((subItem, subIndex) => (
-                              <li key={subIndex} className="activity-modal__points-subitem">
-                                {subItem.value ? `${subItem.label}: ${subItem.value}` : subItem.label}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </li>
-                    );})}
+                            item.label
+                          )}
+                          {item.description && (
+                            <div className="activity-modal__points-item-description">{item.description}</div>
+                          )}
+                          {item.subItems && (
+                            <ul className="activity-modal__points-sublist">
+                              {item.subItems.map((subItem, subIndex) => (
+                                <li key={subIndex} className="activity-modal__points-subitem">
+                                  {subItem.value ? `${subItem.label}: ${subItem.value}` : subItem.label}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
 
@@ -292,7 +317,9 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                       {popupContent.additionalPointsAwarded.items.map((item, index) => (
                         <li key={index} className="activity-modal__points-item">
                           {item.value ? (
-                            <><strong>{item.label}:</strong> {item.value}</>
+                            <>
+                              <strong>{item.label}:</strong> {item.value}
+                            </>
                           ) : (
                             <strong>{item.label}</strong>
                           )}
@@ -310,17 +337,24 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                         <div className="activity-modal__category-header">
                           <span className="activity-modal__category-title">{category.title}</span>
                           {category.description && (
-                            <span className="activity-modal__category-description activity-modal__category-description--inline">{category.description}</span>
+                            <span className="activity-modal__category-description activity-modal__category-description--inline">
+                              {category.description}
+                            </span>
                           )}
                         </div>
                         {category.tiers.length > 0 && (
                           <ul className="activity-modal__category-list">
                             {category.tiers.map((tier, tierIndex) => (
                               <li key={tierIndex} className="activity-modal__category-item">
-                                • {tier.label === 'Default' || tier.label === 'Optional' ? (
-                                  <><strong>{tier.label}:</strong> {tier.points}</>
+                                •{' '}
+                                {tier.label === 'Default' || tier.label === 'Optional' ? (
+                                  <>
+                                    <strong>{tier.label}:</strong> {tier.points}
+                                  </>
                                 ) : (
-                                  <>{tier.label}: {tier.points}</>
+                                  <>
+                                    {tier.label}: {tier.points}
+                                  </>
                                 )}
                               </li>
                             ))}
@@ -343,18 +377,20 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
             <div className="activity-modal__tracking">
               {(() => {
                 const vType = activity.verificationType || (activity.isAutoTracked ? 'Auto' : 'Submission');
-                if (vType === 'Auto') return (
-                  <>
-                    <Image src="/icons/auto-tracked.svg" alt="Auto-tracked" width={16} height={16} />
-                    <span>Auto-tracked</span>
-                  </>
-                );
-                if (vType === 'Manual Review') return (
-                  <>
-                    <Image src="/icons/hybrid-icon.svg" alt="Manual Review" width={16} height={16} />
-                    <span>Manual Review</span>
-                  </>
-                );
+                if (vType === 'Auto')
+                  return (
+                    <>
+                      <Image src="/icons/auto-tracked.svg" alt="Auto-tracked" width={16} height={16} />
+                      <span>Auto-tracked</span>
+                    </>
+                  );
+                if (vType === 'Manual Review')
+                  return (
+                    <>
+                      <Image src="/icons/hybrid-icon.svg" alt="Manual Review" width={16} height={16} />
+                      <span>Manual Review</span>
+                    </>
+                  );
                 return (
                   <>
                     <Image src="/icons/submission.svg" alt="Submission" width={16} height={16} />
@@ -366,7 +402,12 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
             <button className="activity-modal__submit-btn" onClick={handleCtaClick}>
               {activity.cta === 'confirm'
                 ? 'Confirm'
-                : (popupContent.submitButtonText || (activity.hasFormLink ? 'Submit Activity >' : (popupContent.submissionLink ? 'Read & Submit >' : 'Submit')))}
+                : popupContent.submitButtonText ||
+                  (activity.hasFormLink
+                    ? 'Submit Activity >'
+                    : popupContent.submissionLink
+                      ? 'Read & Submit >'
+                      : 'Submit')}
             </button>
           </div>
         </div>
@@ -724,5 +765,3 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
     </>
   );
 }
-
-

@@ -1,5 +1,7 @@
 # Directory Frontend
 
+> Maintained by the Directory team. Agent pipeline notes live in the agentic-dev repo.
+
 This is the frontend for the Directory application, uses [Next.js](https://nextjs.org/) framework and is bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 Link to the [index repo](https://github.com/memser-spaceport/protocol-labs-directory)
 

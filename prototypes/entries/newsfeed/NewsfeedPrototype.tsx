@@ -400,11 +400,15 @@ function landAtTop(el: Element) {
 }
 
 /** Local copy of production `NewsBase` with our own heading. */
-function NetworkUpdatesBase({ headerDetails, children }: PropsWithChildren<{ headerDetails?: ReactNode }>) {
+function NetworkUpdatesBase({
+  headerDetails,
+  titleClassName,
+  children,
+}: PropsWithChildren<{ headerDetails?: ReactNode; titleClassName?: string }>) {
   return (
     <section className={nb.section}>
       <div className={nb.header}>
-        <h2 className={clsx(nb.title, v0.sectionTitle)}>Network Updates</h2>
+        <h2 className={clsx(nb.title, v0.sectionTitle, titleClassName)}>Network Updates</h2>
         {headerDetails}
       </div>
       <p className={nb.sub}>Recent shipping, raises, partnerships, and milestones from across the network.</p>
@@ -429,6 +433,8 @@ export interface NewsfeedHostProps {
   onSignedInChange?: (signedIn: boolean) => void;
   /** Leads the page, above Quick Actions / the signed-out banner (`home-ai-ask`'s field). */
   leadSlot?: ReactNode;
+  /** Re-ranks the Network Updates heading when the host's lead slot carries the page headline. */
+  newsTitleClassName?: string;
 }
 
 export default function NewsfeedPrototype({
@@ -437,6 +443,7 @@ export default function NewsfeedPrototype({
   reviewExtras,
   onSignedInChange,
   leadSlot,
+  newsTitleClassName,
 }: NewsfeedHostProps = {}) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -1493,6 +1500,7 @@ export default function NewsfeedPrototype({
 
           <div className={styles.home__cn__teamnews}>
             <NetworkUpdatesBase
+              titleClassName={newsTitleClassName}
               headerDetails={
                 <div className={clsx(v0.headerActions, v0.headerActionsBanner)}>
                   {newCount > 0 && <span className={s.unreadBadge}>{newCount} new</span>}

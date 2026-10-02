@@ -5,14 +5,15 @@
  *
  * Stands on the real Home prototype rather than a copy of it: `newsfeed`'s
  * NewsfeedPrototype, with the field passed in through its `leadSlot` and the
- * mode switch through `reviewExtras` (the host pattern `guided-tour` uses).
+ * switches through `reviewExtras` (the host pattern `guided-tour` uses).
  *
  * IMPORTED:
  *  - newsfeed: the whole Home page; newsfeed-v0's review-band switch classes
  *  - ai-search: buildAnswer / prompts (mocked answers), AnswerStatus (the
  *    wait), DirectoryResultsCards, the answer card + prose classes
  *  - ai-search-page: the destination — it reads `?q=` (and `answered=1`,
- *    `viewer=out`) and opens that question as a thread
+ *    `viewer=out`) and opens that question as a thread; its Composer is the
+ *    "Big field" version
  *  - production: Markdown, CloseIcon; the AI Search mark (prototypes/components)
  */
 
@@ -22,7 +23,13 @@ import clsx from 'clsx';
 import NewsfeedPrototype from '../newsfeed/NewsfeedPrototype';
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
 
-import { HomeAsk, type AskMode } from './HomeAsk';
+import { HomeAsk, type AskMode, type FieldSize } from './HomeAsk';
+import homeAsk from './HomeAsk.module.scss';
+
+const SIZES: { value: FieldSize; label: string; note: string }[] = [
+  { value: 'box', label: 'Search box', note: 'One line with the AI Search mark inside it.' },
+  { value: 'composer', label: 'Big field', note: "The AI Search page's own field, two lines tall at rest." },
+];
 
 const MODES: { value: AskMode; label: string; note: string }[] = [
   {
@@ -33,36 +40,65 @@ const MODES: { value: AskMode; label: string; note: string }[] = [
   { value: 'handoff', label: 'Opens AI Search', note: 'Enter opens the AI Search page, already answering.' },
 ];
 
+function Switch<T extends string>({
+  label,
+  ariaLabel,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  ariaLabel: string;
+  options: { value: T; label: string; note: string }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className={v0.switchBar}>
+      <span className={v0.switchLabel}>{label}</span>
+      <div className={v0.switch} role="tablist" aria-label={ariaLabel}>
+        {options.map((o) => (
+          <button
+            key={o.value}
+            type="button"
+            role="tab"
+            aria-selected={value === o.value}
+            className={clsx(v0.switchBtn, value === o.value && v0.switchBtnActive)}
+            onClick={() => onChange(o.value)}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+      <span className={v0.switchNote}>{options.find((o) => o.value === value)!.note}</span>
+    </div>
+  );
+}
+
 export default function HomeAiAskPrototype() {
+  const [size, setSize] = useState<FieldSize>('box');
   const [mode, setMode] = useState<AskMode>('overview');
   const [signedIn, setSignedIn] = useState(true);
 
   const reviewExtras = (
-    <div className={v0.switchBar}>
-      <span className={v0.switchLabel}>Ask field</span>
-      <div className={v0.switch} role="tablist" aria-label="How the Home field answers">
-        {MODES.map((m) => (
-          <button
-            key={m.value}
-            type="button"
-            role="tab"
-            aria-selected={mode === m.value}
-            className={clsx(v0.switchBtn, mode === m.value && v0.switchBtnActive)}
-            onClick={() => setMode(m.value)}
-          >
-            {m.label}
-          </button>
-        ))}
-      </div>
-      <span className={v0.switchNote}>{MODES.find((m) => m.value === mode)!.note}</span>
-    </div>
+    <>
+      <Switch label="Field" ariaLabel="Size of the Home field" options={SIZES} value={size} onChange={setSize} />
+      <Switch
+        label="Ask field"
+        ariaLabel="How the Home field answers"
+        options={MODES}
+        value={mode}
+        onChange={setMode}
+      />
+    </>
   );
 
   return (
     <NewsfeedPrototype
-      leadSlot={<HomeAsk mode={mode} signedIn={signedIn} />}
+      leadSlot={<HomeAsk mode={mode} size={size} signedIn={signedIn} />}
       reviewExtras={reviewExtras}
       onSignedInChange={setSignedIn}
+      newsTitleClassName={homeAsk.homeNewsTitle}
     />
   );
 }

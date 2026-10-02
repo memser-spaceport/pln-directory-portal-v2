@@ -159,7 +159,11 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
                     <div className="activity-card__top">
                       <span className="activity-card__category">{activity.category}</span>
                       <div className="activity-card__top-right">
-                        {activity.isNew && <span className="activity-card__new-badge">New</span>}
+                        {activity.isSunset && (
+                          <span className="activity-card__sunset-badge" title="Sunsetting at the end of this snapshot">
+                            <Image src="/icons/sunset.svg" alt="Sunsetting" width={18} height={18} />
+                          </span>
+                        )}
                         <div className="activity-card__points">
                           <Image src="/icons/points-icon.svg" alt="points-icon" width={16} height={16} />
                           <span className="activity-card__points-val">{activity.points} points</span>
@@ -345,14 +349,12 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
           white-space: normal;
         }
 
-        .activity-card__new-badge {
-          display: inline-block;
-          color: #2563eb;
-          font-size: 12px;
-          font-weight: 600;
-          background: transparent;
-          border: 1px solid #2563eb;
-          padding: 5px 12px;
+        .activity-card__sunset-badge {
+          display: inline-flex;
+          align-items: center;
+          background: #fff7ed;
+          border: 1px solid #fed7aa;
+          padding: 3px 10px;
           border-radius: 999px;
           white-space: nowrap;
         }

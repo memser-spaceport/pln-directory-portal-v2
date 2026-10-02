@@ -606,6 +606,43 @@ describe('GiveAiAppFeedbackDialog', () => {
     anchor.remove();
   });
 
+  /* Opening this form from comment mode: the button measured on open is still
+     shifted beside the comments panel, then moves back when the page drops
+     --ai-app-comments-inset from the root's style (dev, 2026-10-02). */
+  it('follows the button when the page moves it by changing the root style', async () => {
+    mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+    const anchor = document.createElement('button');
+    document.body.appendChild(anchor);
+    const rect = (right: number) =>
+      ({
+        x: right - 160,
+        y: 600,
+        top: 600,
+        bottom: 640,
+        left: right - 160,
+        right,
+        width: 160,
+        height: 40,
+        toJSON: () => ({}),
+      }) as DOMRect;
+    const measure = jest.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(rect(596));
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1000 });
+    document.documentElement.style.setProperty('--ai-app-comments-inset', '380px');
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} anchorRef={{ current: anchor }} placement="above" />);
+    const overlayStyle = () =>
+      document.body.querySelector('[style*="--feedback-popover-right"]')?.getAttribute('style');
+    expect(overlayStyle()).toContain('--feedback-popover-right: 404px');
+
+    measure.mockReturnValue(rect(976));
+    await act(async () => {
+      document.documentElement.style.removeProperty('--ai-app-comments-inset');
+    });
+
+    expect(overlayStyle()).toContain('--feedback-popover-right: 24px');
+    anchor.remove();
+  });
+
   it('raises the popover above the trigger when placement is "above"', () => {
     mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
 

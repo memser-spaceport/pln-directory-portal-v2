@@ -416,9 +416,19 @@ export function GiveAiAppFeedbackDialog({
     update();
     window.addEventListener('resize', update);
     window.addEventListener('scroll', update);
+    /* The anchor can move without a resize or scroll. Leaving comment mode for
+       this form drops the page's --ai-app-comments-inset (set on the root's
+       style) in a passive effect — after this one measured the button still
+       shifted beside the comments panel — so measure again on the next frame
+       and whenever the root's style changes. */
+    const frame = requestAnimationFrame(update);
+    const rootStyle = typeof MutationObserver === 'undefined' ? null : new MutationObserver(update);
+    rootStyle?.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
     return () => {
       window.removeEventListener('resize', update);
       window.removeEventListener('scroll', update);
+      cancelAnimationFrame(frame);
+      rootStyle?.disconnect();
     };
   }, [isOpen, anchorRef, placement]);
 

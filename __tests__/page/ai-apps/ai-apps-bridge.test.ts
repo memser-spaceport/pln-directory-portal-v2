@@ -64,7 +64,7 @@ describe('AI Apps bridge', () => {
   it('announces itself to the exact LabOS origin, and again on hello', () => {
     ctx = setup();
     expect(ctx.posted).toEqual([expect.objectContaining({ type: 'ready', ns: BRIDGE_NS, v: BRIDGE_VERSION })]);
-    expect(ctx.posted[0].payload.capabilities).toEqual(['pick', 'describe', 'crop', 'locate']);
+    expect(ctx.posted[0].payload.capabilities).toEqual(['pick', 'describe', 'crop', 'locate', 'capture']);
     ctx.command('hello');
     expect(ctx.posted.map((m) => m.type)).toEqual(['ready', 'ready']);
     /* Same page load, same session — LabOS tells an echo from a new document by it. */
@@ -145,6 +145,55 @@ describe('AI Apps bridge', () => {
     ctx = setup();
     ctx.command('crop', { pinId: 'pin-9' });
     expect(ctx.posted.at(-1)).toMatchObject({ type: 'crop:result', payload: { pinId: 'pin-9', error: 'detached' } });
+  });
+
+  describe('capture (a picture of the app as it is on screen)', () => {
+    /* The renderer chunk is already loaded: the bridge skips the <script> and calls it. */
+    const withRenderer = (capture?: () => Promise<unknown>) => {
+      (ctx.win as any).__plnBridgeCrop = jest.fn();
+      if (capture) (ctx.win as any).__plnBridgeCapture = capture;
+    };
+    const lastResult = async () => {
+      await new Promise((r) => setTimeout(r, 0));
+      return ctx.posted.filter((m) => m.type === 'capture:result').at(-1);
+    };
+
+    it('answers with the picture and the viewport size, under LabOS’s key', async () => {
+      ctx = setup();
+      withRenderer(() => Promise.resolve({ dataUrl: 'data:image/jpeg;base64,AAAA', width: 1280, height: 720 }));
+      ctx.command('capture', { key: 'cap-1' });
+      expect(await lastResult()).toMatchObject({
+        payload: { key: 'cap-1', dataUrl: 'data:image/jpeg;base64,AAAA', width: 1280, height: 720 },
+      });
+    });
+
+    it('says why when it can’t: a renderer from before capture, a picture too large, a render error', async () => {
+      ctx = setup();
+      withRenderer();
+      ctx.command('capture', { key: 'cap-1' });
+      expect(await lastResult()).toMatchObject({ payload: { key: 'cap-1', error: 'capture-missing' } });
+
+      withRenderer(() =>
+        Promise.resolve({ dataUrl: `data:image/jpeg;base64,${'A'.repeat(4_000_001)}`, width: 1, height: 1 }),
+      );
+      ctx.command('capture', { key: 'cap-2' });
+      expect(await lastResult()).toMatchObject({ payload: { key: 'cap-2', error: 'too-large' } });
+
+      withRenderer(() => Promise.reject(new Error('timeout')));
+      ctx.command('capture', { key: 'cap-3' });
+      expect(await lastResult()).toMatchObject({ payload: { key: 'cap-3', error: 'timeout' } });
+    });
+
+    it('ignores a capture without a usable key, and from anyone but LabOS', async () => {
+      ctx = setup();
+      const render = jest.fn(() => Promise.resolve({ dataUrl: 'data:image/jpeg;base64,AA', width: 1, height: 1 }));
+      withRenderer(render);
+      ctx.command('capture', { key: 'x'.repeat(41) });
+      ctx.command('capture', {});
+      ctx.command('capture', { key: 'cap-1' }, { origin: 'https://evil.example' });
+      await new Promise((r) => setTimeout(r, 0));
+      expect(render).not.toHaveBeenCalled();
+    });
   });
 });
 

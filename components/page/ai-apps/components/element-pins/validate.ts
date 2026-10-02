@@ -75,3 +75,20 @@ export function toCropDataUrl(value: unknown): string | null {
 export function toPinId(value: unknown): string | null {
   return typeof value === 'string' && /^(pin|loc)-\d{1,6}$/.test(value) ? value : null;
 }
+
+/** A `capture` correlation key LabOS minted (`cap-N`). */
+export function toCaptureKey(value: unknown): string | null {
+  return typeof value === 'string' && /^cap-\d{1,9}$/.test(value) ? value : null;
+}
+
+/** A viewport picture: a raster LabOS can re-host, and the CSS viewport size it shows. */
+export function toCaptureResult(
+  payload: Record<string, unknown>,
+): { dataUrl: string; width: number; height: number } | null {
+  const dataUrl = toCropDataUrl(payload.dataUrl);
+  const width = num(payload.width);
+  const height = num(payload.height);
+  if (!dataUrl || width === null || height === null) return null;
+  if (width < 1 || height < 1 || width > 100_000 || height > 100_000) return null;
+  return { dataUrl, width, height };
+}

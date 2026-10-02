@@ -159,7 +159,7 @@ function traceShape(ctx: CanvasRenderingContext2D, shape: Shape, width: number, 
  * clearing pass wipes whatever the first one drew, and on the live-preview path
  * it wipes the in-progress line every frame.
  */
-function renderAnnotations(
+export function renderAnnotations(
   ctx: CanvasRenderingContext2D,
   annotations: Pick<AnnotationState, 'strokes' | 'shapes'>,
   width: number,

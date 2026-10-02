@@ -1,5 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 /**
  * The candidate pane — the person as the directory shows them, with what they
@@ -75,6 +77,7 @@ jest.mock('@/components/page/member-details/RepositoriesDetails', () => ({
 import { ApplicantPane } from '@/components/page/team-details/TeamApplicants/components/ApplicantPane';
 import { JOB_ASPIRANT_POLICY_CODE } from '@/services/jobs/job-board-viewer';
 import type { TeamApplicant } from '@/schema/team-applicants';
+import paneCss from '@/components/page/team-details/TeamApplicants/components/ApplicantPane.module.scss';
 
 const PL_MEMBER = {
   id: 'm-1',
@@ -195,5 +198,38 @@ describe('the profile sections', () => {
       expect(screen.getByTestId(id)).toBeInTheDocument();
     }
     expect(screen.getByText('I led the consensus rewrite.')).toBeInTheDocument();
+  });
+});
+
+/* LAB-2747: a note typed as one unbroken run (a pasted link, a key mash) ran out
+   of the Interest box, because `.note` kept the typed line breaks but had no
+   rule for breaking inside a word. jsdom applies no stylesheet, so the rule is
+   read from the source, next to a render that pins which element carries it. */
+describe('a note with no spaces in it', () => {
+  const css = readFileSync(
+    join(process.cwd(), 'components/page/team-details/TeamApplicants/components/ApplicantPane.module.scss'),
+    'utf8',
+  );
+  const rule = (selector: string) => css.match(new RegExp(`(?:^|\\n)\\.${selector} \\{([^}]*)\\}`))?.[1] ?? '';
+
+  it('is quoted whole, in the element that carries the note rule', () => {
+    const unbroken = 'x'.repeat(240);
+    renderPane(row({ note: unbroken }), JOB_ASPIRANT);
+
+    const note = screen.getByText(unbroken);
+    expect(note.tagName).toBe('P');
+    expect(note).toHaveClass(paneCss.note);
+  });
+
+  it('breaks inside the word instead of running past the box', () => {
+    expect(rule('note')).toMatch(/overflow-wrap:\s*anywhere;/);
+  });
+
+  it('keeps the paragraphs somebody typed', () => {
+    expect(rule('note')).toMatch(/white-space:\s*pre-line;/);
+  });
+
+  it('cannot widen the pane it sits in', () => {
+    expect(rule('column')).toMatch(/min-width:\s*0;/);
   });
 });

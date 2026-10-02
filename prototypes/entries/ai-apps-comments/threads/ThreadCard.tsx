@@ -242,6 +242,7 @@ export function ThreadCard(props: Props) {
                   alt: 'Screenshot attached to this comment',
                   annotations,
                   hasVisibleAnnotations: !!annotations,
+                  isPinCrop: false,
                 }
               : null
           }

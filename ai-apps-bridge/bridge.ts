@@ -27,16 +27,26 @@ import {
  *   elements, and the answer is a position: never text, markup or attributes.
  *   Matching on a selector reveals at most whether such an element exists on
  *   the page the viewer is already looking at.
+ * - `capture` returns a picture of what the viewer already sees in the frame
+ *   (its viewport), with typed values, select choices, editable text and
+ *   anything the app marks `data-labos-mask` masked, and nothing of the
+ *   bridge's own UI. It is taken only when LabOS asks, for the feedback form.
  */
 
 export const MARKER_ATTR = 'data-pln-bridge';
-const CAPABILITIES: BridgeCapability[] = ['pick', 'describe', 'crop', 'locate'];
+const CAPABILITIES: BridgeCapability[] = ['pick', 'describe', 'crop', 'locate', 'capture'];
 const CROP_LOAD_TIMEOUT_MS = 10_000;
 const ACCENT = '#1b4dff';
 const RECT_FALLBACK_MS = 100;
 
 type CropFn = (el: Element) => Promise<string>;
-type BridgeWindow = Window & { __plnBridge?: { version: number; destroy: () => void }; __plnBridgeCrop?: CropFn };
+type CaptureFn = () => Promise<{ dataUrl: string; width: number; height: number }>;
+type BridgeWindow = Window & {
+  __plnBridge?: { version: number; destroy: () => void };
+  __plnBridgeCrop?: CropFn;
+  /** Set by the same lazily loaded chunk as the crop; absent from a chunk older than `capture`. */
+  __plnBridgeCapture?: CaptureFn;
+};
 
 export type BridgeOptions = {
   /** The only origin the bridge will talk to: the LabOS deployment that served the script. */
@@ -385,6 +395,28 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
     }
   }
 
+  /* ---------- capture: the app as it is on screen ---------- */
+
+  async function capture(key: string) {
+    try {
+      await loadCrop();
+      /* A browser can hold a renderer cached from before `capture` existed. */
+      const render = w.__plnBridgeCapture;
+      if (!render) throw new Error('capture-missing');
+      const { dataUrl, width, height } = await render();
+      if (dataUrl.length > LIMITS.cropDataUrl) {
+        send({ type: 'capture:result', payload: { key, error: 'too-large' } });
+        return;
+      }
+      send({ type: 'capture:result', payload: { key, dataUrl, width, height } });
+    } catch (error) {
+      send({
+        type: 'capture:result',
+        payload: { key, error: error instanceof Error ? error.message : 'capture-failed' },
+      });
+    }
+  }
+
   /* ---------- the channel ---------- */
 
   const onMessage = (event: MessageEvent) => {
@@ -412,6 +444,9 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
         return;
       case 'locate':
         locate(readLocateRequests(payload?.requests));
+        return;
+      case 'capture':
+        if (typeof payload?.key === 'string' && payload.key.length <= LIMITS.captureKey) void capture(payload.key);
         return;
       default:
         /* Unknown commands are ignored: a newer LabOS may speak to an older bridge. */

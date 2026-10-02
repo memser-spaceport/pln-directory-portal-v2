@@ -49,16 +49,18 @@ export function ApplicantRow({ applicant, last, selected, onSelect }: Props) {
           loading="lazy"
         />
         <span className={s.text}>
-          <span className={s.name}>{applicant.name}</span>
+          <span className={s.nameLine}>
+            <span className={s.name}>{applicant.name}</span>
+            {applicant.reviewed && (
+              <ReviewCheckIcon size={16} state="bare" className={s.reviewed} role="img" aria-label="Reviewed" />
+            )}
+          </span>
           {roleLine && <span className={s.role}>{roleLine}</span>}
         </span>
       </span>
 
       <span className={s.right}>
         {applicant.unseen && <span className={s.newBadge}>● New</span>}
-        {applicant.reviewed && (
-          <ReviewCheckIcon size={16} state="soft" className={s.reviewed} role="img" aria-label="Reviewed" />
-        )}
         <span className={s.when}>
           <ClockIcon />
           {acted} {formatRelativeDays(applicant.createdAt)}

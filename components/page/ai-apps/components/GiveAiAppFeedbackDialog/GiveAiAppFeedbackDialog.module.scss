@@ -461,3 +461,157 @@
     border-color: #fff;
   }
 }
+
+/* ---------- instant screenshots (prototype ai-apps-comments) ---------- */
+
+.shots {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shotCount {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-weight: 400;
+}
+
+.shotFigure {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+/* Every screenshot is a full-width preview, large enough to read. */
+.shot {
+  position: relative;
+  overflow: hidden;
+  height: 166px;
+  border: 1px solid rgba(203, 213, 225, 0.8);
+  border-radius: 8px;
+  background: var(--background-neutral-secondary, #f8fafc);
+}
+
+.shotImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: zoom-in;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: left top;
+  }
+}
+
+.shotActions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+}
+
+.shotAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(14, 15, 17, 0.72);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.86);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+.shotPending {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    90deg,
+    var(--background-neutral-secondary, #f1f5f9) 25%,
+    #e2e8f0 50%,
+    var(--background-neutral-secondary, #f1f5f9) 75%
+  );
+  background-size: 200% 100%;
+  animation: shotShimmer 1.2s linear infinite;
+}
+
+.shotPendingText {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 13px;
+}
+
+@keyframes shotShimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.shotCaption {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.shotLink {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+    cursor: not-allowed;
+    text-decoration: none;
+  }
+}
+
+.shotButtons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.shotNote {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shotPending {
+    animation: none;
+  }
+}

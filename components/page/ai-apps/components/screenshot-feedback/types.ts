@@ -60,6 +60,14 @@ export type ScreenshotAttachment = {
   id: string;
   imageDataUrl: string;
   annotations: AnnotationState;
+  /**
+   * How it was taken: attached when the form opened (`auto`), the app's whole
+   * visible page (`whole`), a dragged part (`part`), or a screen share / file
+   * (absent). Drives the caption under it.
+   */
+  source?: 'auto' | 'page' | 'part';
+  /** The member said the automatic picture doesn't match what they see ("Misaligned? Tell us"). */
+  misaligned?: boolean;
 };
 
 export const EMPTY_ANNOTATIONS: AnnotationState = {

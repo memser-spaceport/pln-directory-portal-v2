@@ -1,0 +1,50 @@
+/* Pick a part over the live app (prototype ai-apps-comments): the page dims, a
+   dark bar at the bottom says what to do. Above the feedback popup (10000+). */
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  cursor: crosshair;
+  user-select: none;
+  background: rgba(14, 15, 17, 0.28);
+  outline: none;
+}
+
+.selection {
+  position: fixed;
+  box-sizing: border-box;
+  border: 2px solid var(--foreground-brand-primary, #1b4dff);
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 0 9999px rgba(14, 15, 17, 0.18);
+  pointer-events: none;
+}
+
+.bar {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 16px;
+  border-radius: 10px;
+  background: var(--foreground-neutral-primary, #0a0c11);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.cancel {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}

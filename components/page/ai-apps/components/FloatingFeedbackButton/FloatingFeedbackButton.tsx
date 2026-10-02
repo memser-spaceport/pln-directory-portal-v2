@@ -9,6 +9,7 @@ import { CommentIcon } from '@/components/icons';
 import { isOpenFeedbackChord, useShortcutLabels } from '@/components/page/ai-apps/shortcutKeys';
 import { GiveAiAppFeedbackDialog } from '../GiveAiAppFeedbackDialog';
 import { FeedbackTabs } from '../FeedbackTabs/FeedbackTabs';
+import { SHOW_AI_APPS_INSTANT_SCREENSHOTS } from '@/services/ai-apps/constants';
 import { PinOverlay, PinPanel, type ElementPinsController } from '../element-pins';
 import type { FeedbackContext } from '@/services/ai-app-feedback/ai-app-feedback.service';
 
@@ -325,6 +326,9 @@ function FeedbackFab({
         appName={shortcutApp?.label ?? appName}
         anchorRef={wrapRef}
         placement="above"
+        /* Instant screenshots: the app's bridge takes the picture, no screen-share prompt. */
+        capture={SHOW_AI_APPS_INSTANT_SCREENSHOTS && elementPins?.canCapture ? elementPins.capture : undefined}
+        frameRef={iframeRef}
         headerTabs={
           commentsAvailable ? (
             <FeedbackTabs

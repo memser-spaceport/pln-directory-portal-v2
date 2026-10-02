@@ -29,6 +29,14 @@ export const SHOW_AI_APPS_ELEMENT_PINS: boolean = process.env.NEXT_PUBLIC_SHOW_A
  */
 export const SHOW_AI_APPS_FEEDBACK_OVERLAY: boolean = process.env.NEXT_PUBLIC_SHOW_AI_APPS_FEEDBACK_OVERLAY === 'true';
 
+/**
+ * Instant app screenshots in the Feedback form: a picture of the app attached
+ * when the form opens, Whole page and Pick a part, with no screen-share prompt
+ * — for apps whose bridge can `capture`. Others keep today's screen share.
+ */
+export const SHOW_AI_APPS_INSTANT_SCREENSHOTS: boolean =
+  process.env.NEXT_PUBLIC_SHOW_AI_APPS_INSTANT_SCREENSHOTS === 'true';
+
 /** Keep in sync with `AI_APPS_STARTER_KIT_VERSION` in pln-directory-portal web-api. */
 export const AI_APPS_STARTER_KIT_VERSION = '1.15';
 

@@ -1,0 +1,36 @@
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { FeedbackTable } from '@/components/page/ai-apps/AiAppFeedbackPage/components/FeedbackTable';
+import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
+
+jest.mock('@/services/ai-apps/constants', () => ({
+  ...jest.requireActual('@/services/ai-apps/constants'),
+  SHOW_AI_APPS_FEEDBACK_OVERLAY: true,
+}));
+
+const row = (uid: string, pinCount?: number): AiAppFeedbackRow => ({
+  uid,
+  appUid: 'app 1',
+  appName: 'Grant Tracker',
+  text: `Feedback ${uid}`,
+  status: 'NEW',
+  createdAt: '2026-10-01T00:00:00.000Z',
+  member: { uid: 'm1', name: 'Ada' },
+  ...(pinCount === undefined ? {} : { pinCount }),
+});
+
+describe('FeedbackTable: Show on page', () => {
+  it('links feedback that pinned elements to the app with that feedback open, and only that feedback', () => {
+    render(
+      <FeedbackTable
+        rows={[row('fb-1', 2), row('fb-2', 0), row('fb-3')]}
+        onStatusSelect={jest.fn()}
+        onImageClick={jest.fn()}
+      />,
+    );
+    const links = screen.getAllByRole('link', { name: 'Show on page' });
+    expect(links).toHaveLength(1);
+    expect(links[0]).toHaveAttribute('href', '/pl-infra/ai-apps/app%201?feedback=fb-1');
+  });
+});

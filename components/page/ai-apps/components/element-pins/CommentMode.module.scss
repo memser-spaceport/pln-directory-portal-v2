@@ -1,0 +1,559 @@
+@use 'styles/media';
+
+/* Comment mode, transcribed from the prototype's CommentLayer / PinThread /
+   DraftsPanel styles (prototypes/entries/feedback-shared/comments/). */
+
+$brand: var(--foreground-brand-primary, #1b4dff);
+$border: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+$ink: var(--foreground-neutral-primary, #0a0c11);
+$quiet: var(--foreground-neutral-secondary, #455468);
+
+/* ---------- over the frame ---------- */
+
+/* Clipped to the frame, so a pin scrolled out of the app disappears with it.
+   Click-through except the pins. */
+.layer {
+  position: fixed;
+  z-index: 8;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* The element a pin points at, while its pin is hovered or open. */
+.highlight {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 4px;
+  outline: 2px solid $brand;
+  outline-offset: 1px;
+  box-shadow: 0 0 0 4px rgba(27, 77, 255, 0.12);
+  transition:
+    left 60ms linear,
+    top 60ms linear,
+    width 60ms linear,
+    height 60ms linear;
+}
+
+/* The commenter's initials in Figma's teardrop — round everywhere except the
+   corner that points at the spot, which sits on the click point. The colour is
+   the feedback table's per-name palette, so a pin and its row are the same person. */
+.pin {
+  position: absolute;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  /* Centred on the spot that was clicked: a round initials badge (prototype ai-apps-comments). */
+  transform: translate(-50%, -50%);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--pin-color, #1b4dff);
+  box-shadow:
+    0 1px 2px rgba(14, 15, 17, 0.2),
+    0 4px 10px rgba(14, 15, 17, 0.18);
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    transform 120ms ease,
+    opacity 120ms ease;
+
+  &:hover {
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $brand;
+    outline-offset: 2px;
+  }
+}
+
+.pinFace {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  user-select: none;
+}
+
+.pinActive {
+  z-index: 4;
+  transform: translate(0, -100%) scale(1.12);
+  box-shadow:
+    0 0 0 3px rgba(27, 77, 255, 0.24),
+    0 4px 10px rgba(14, 15, 17, 0.18);
+}
+
+/* Shipped: the pin stays, quieter, so the author sees what has been answered
+   and the reader sees their own point landed. */
+/* Messages in the pin's conversation, comment included (prototype CommentLayer .pinCount). */
+.pinCount {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  border: 1.5px solid #fff;
+  background: $ink;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 13px;
+}
+
+.pinShipped {
+  opacity: 0.45;
+
+  &:hover,
+  &.pinActive {
+    opacity: 1;
+  }
+}
+
+/* ---------- thread card ---------- */
+
+/* `fd.root` (the feedback dialog's card) narrowed to a thread and anchored
+   beside its pin. Fixed in the window, so it can hang past the frame. */
+.card {
+  position: fixed;
+  z-index: 11;
+  width: 340px;
+  max-height: min(70vh, 520px);
+  border: 1px solid $border;
+  animation: threadIn 160ms ease-out both;
+
+  @include media.mobile-only {
+    width: min(340px, calc(100vw - 48px));
+  }
+}
+
+@keyframes threadIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.threadHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px 0 16px;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.close {
+  margin-left: auto;
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.body {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.noNote {
+  color: $quiet;
+  font-style: italic;
+}
+
+.envLabel {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(14, 15, 17, 0.06);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* The element that was pointed at, bordered (a white capture on a white card
+   has no edge otherwise), contained on a capped height. */
+.shot {
+  display: block;
+  overflow: hidden;
+  border: 1px solid $border;
+  border-radius: 8px;
+  background: var(--background-neutral-secondary, #f8fafc);
+  cursor: zoom-in;
+  line-height: 0;
+
+  img {
+    display: block;
+    width: 100%;
+    max-height: 160px;
+    object-fit: contain;
+    object-position: left top;
+  }
+}
+
+/* ---------- the conversation under a comment (phase 2) ---------- */
+
+/* `ci.repliesWrapper` indents and spaces like the forum; inside a 340px card
+   its 24px gap and top margin are too loose. */
+.replies {
+  gap: 16px;
+  margin-top: 0;
+}
+
+.repliesNote {
+  margin: 0;
+  color: $quiet;
+  font-size: 13px;
+}
+
+.repliesToggle {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  color: $brand;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.replyPending {
+  opacity: 0.55;
+}
+
+.shippedNote {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--background-success-secondary, #ecfdf3);
+  color: var(--foreground-success-primary, #067647);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.replyDelete {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: $quiet;
+  font-size: 12px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-danger-primary, #d92d20);
+  }
+}
+
+.replyConfirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 0;
+  color: $ink;
+  font-size: 13px;
+}
+
+.linkButtonDanger {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--foreground-danger-primary, #d92d20);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* The prototype's reply row: one line that grows, and the button beside it. */
+.replyRow.replyRow {
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+/* One line that grows with what is typed, up to about five (prototype: a single-line
+   field beside Reply). Doubled to outrank `.composerField`, declared later, whose
+   72px floor would otherwise win. */
+.replyInput.replyInput {
+  flex: 1;
+  min-height: 36px;
+  max-height: 120px;
+  padding: 7px 12px;
+  field-sizing: content;
+  resize: none;
+}
+
+/* ---------- the dock ---------- */
+
+/* Open for as long as the mode is on, above the feedback button (the
+   prototype's DraftsPanel position). Only the middle scrolls. */
+.dock {
+  position: fixed;
+  right: 24px;
+
+  bottom: 88px;
+  z-index: 10;
+  gap: 12px;
+  width: min(420px, calc(100vw - 24px));
+  max-height: min(64vh, 560px);
+  padding: 16px;
+  border: 1px solid $border;
+  animation: threadIn 160ms ease-out both;
+
+  /* Beside the comments panel while it is open (hidden on phones). */
+  @include media.tablet-portrait {
+    right: calc(24px + var(--ai-app-comments-inset, 0px));
+  }
+
+  @include media.mobile-only {
+    right: 12px;
+    bottom: 72px;
+  }
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.hint {
+  margin: 0;
+  color: $quiet;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.linkButton {
+  padding: 0;
+  border: none;
+  background: none;
+  color: $brand;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---------- writing ---------- */
+
+/* A draft's pin drops in; it shows its number in the dock, in the viewer's colour. */
+.pinDraft {
+  pointer-events: none;
+  animation: pinDrop 200ms ease-out both;
+}
+
+@keyframes pinDrop {
+  from {
+    transform: translate(0, -100%) scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: translate(0, -100%);
+    opacity: 1;
+  }
+}
+
+/* The small card beside a new pin (prototype PinComposer). */
+.composer {
+  position: fixed;
+  z-index: 11;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 300px;
+  padding: 12px;
+  border: 1px solid $border;
+}
+
+/* Production FormTextArea's field, transcribed (as the prototype does). */
+.composerField {
+  width: 100%;
+  min-height: 72px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  background: #fff;
+  outline: none;
+  color: $quiet;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+
+  &::placeholder {
+    color: #cbd5e1;
+  }
+
+  &:focus {
+    border-color: #5e718d;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+  }
+}
+
+.composerFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.iconButton {
+  flex-shrink: 0;
+  display: flex;
+  padding: 4px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: $quiet;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.06);
+  }
+}
+
+.audience {
+  margin: 0;
+  color: $quiet;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pin,
+  .highlight {
+    transition: none;
+  }
+
+  .card,
+  .dock,
+  .pinDraft {
+    animation: none;
+  }
+}
+
+/* ---------- the Comment tab's card and the composer (prototype ai-apps-comments) ---------- */
+
+.hintBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hintLead {
+  margin: 0;
+  color: $ink;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.composerShotButton {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid $border;
+  border-radius: 6px;
+  background: #fff;
+  color: $ink;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:disabled {
+    color: $quiet;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.composerShot {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid $border;
+  border-radius: 8px;
+  background: var(--background-neutral-secondary, #f8fafc);
+  line-height: 0;
+
+  img {
+    display: block;
+    width: 100%;
+    max-height: 120px;
+    object-fit: contain;
+    object-position: left top;
+  }
+}
+
+.composerShotPending {
+  display: block;
+  padding: 12px;
+  color: $quiet;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.composerShotRemove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(14, 15, 17, 0.6);
+  color: #fff;
+  cursor: pointer;
+}
+
+.composerAudience {
+  margin-right: auto;
+  color: $quiet;
+  font-size: 12px;
+  line-height: 16px;
+}

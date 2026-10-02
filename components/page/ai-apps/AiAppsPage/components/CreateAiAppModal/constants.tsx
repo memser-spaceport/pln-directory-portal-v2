@@ -57,6 +57,17 @@ export const MODAL_INTRO =
 
 export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = [
   {
+    version: '1.15',
+    items: [
+      'Deploys no longer time out. Your agent gets an answer right away and then follows the build until it is live or has failed, so it no longer reports a failure for a deploy that actually worked',
+      'If a deploy fails, your agent sees why — whether the build or the running app failed — and goes straight to the right logs',
+      'Kits downloaded before this version report "deployed" as soon as the upload is accepted, while the build is still running. The app page always shows the real status. Download this kit so your agent waits for the result',
+      'Your agent can read the feedback people leave on your app, including screenshots, and work through it with you',
+      'When your agent starts on an item it marks it Viewed. Once the fix is deployed it marks it Implemented. You see the same status on the app page',
+      'Agents never move an item back to New. That, and any other status change, is still yours to make from LabOS',
+    ],
+  },
+  {
     version: '1.14',
     items: [
       'Preview is for testing, QA, and development. It sits next to Production and does not change the live app',

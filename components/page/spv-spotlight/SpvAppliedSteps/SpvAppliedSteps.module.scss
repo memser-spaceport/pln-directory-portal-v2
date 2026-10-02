@@ -1,0 +1,152 @@
+@use 'styles/media';
+
+// AppliedInvestorSteps' vertical stepper.
+.stepper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 322px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+
+  @include media.mobile-only {
+    gap: 12px;
+  }
+}
+
+.indicatorColumn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.indicator {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.iconCompleted {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #11a75c;
+  box-shadow:
+    0 1px 3px 0 rgba(14, 15, 17, 0.12),
+    0 1px 2px 0 rgba(14, 15, 17, 0.06);
+
+  svg {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+.dot {
+  width: 20px;
+  height: 20px;
+  border: 0.5px solid rgba(27, 56, 96, 0.12);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 1px 3px 0 rgba(14, 15, 17, 0.12),
+    0 1px 2px 0 rgba(14, 15, 17, 0.06);
+}
+
+.dotCurrent {
+  border: 3px solid #1b4dff;
+  box-shadow:
+    0 4px 6px -1px rgba(14, 15, 17, 0.12),
+    0 2px 4px -1px rgba(14, 15, 17, 0.06);
+}
+
+.connector {
+  width: 2px;
+  margin-top: 4px;
+  background: #f0f3f9;
+
+  @include media.mobile-only {
+    // The inline height is the desktop rhythm; phones wrap the text taller.
+    min-height: 32px;
+  }
+}
+
+.connectorCompleted {
+  background: #1b4dff;
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding-bottom: 24px;
+
+  @include media.mobile-only {
+    padding-bottom: 20px;
+  }
+}
+
+.step:last-child .content {
+  padding-bottom: 0;
+}
+
+.title {
+  color: #0a0c11;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.description {
+  margin-bottom: 8px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+}
+
+// The completed Demo Day's underlined text link.
+.cta {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  border-bottom: 1px solid #1b4dff;
+  background: none;
+  color: var(--foreground-brand-secondary_inverted, #1b4dff);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}

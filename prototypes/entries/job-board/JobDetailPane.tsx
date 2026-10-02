@@ -56,7 +56,7 @@ interface JobDetailPaneProps {
    * the same slot, with its confirmation and undo. Absent for everyone else —
    * a member applies, a visitor has no profile to signal with yet.
    */
-  interest?: { interested: boolean; onInterested: () => void; onUndo: () => void };
+  interest?: { interested: boolean; comment?: string; onInterested: (comment: string) => void; onUndo: () => void };
   /**
    * The listing's state, for a reader who manages it. Worn in the stamp row as
    * the same pill an owner's not-yet-live row wears, so a lead opening their own
@@ -173,6 +173,7 @@ export function JobDetailPane(props: JobDetailPaneProps) {
         <InterestStrip
           teamName={team.name}
           interested={interest.interested}
+          comment={interest.comment}
           onInterested={interest.onInterested}
           onUndo={interest.onUndo}
         />

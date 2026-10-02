@@ -1,13 +1,16 @@
 'use client';
 
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
+import { clsx } from 'clsx';
 import { usePermissions } from '@/services/rbac/hooks/usePermissions';
 import { canViewAiApps } from '@/services/rbac/utils/aiApps/canViewAiApps';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { CommentIcon } from '@/components/icons';
 import { isOpenFeedbackChord, useShortcutLabels } from '@/components/page/ai-apps/shortcutKeys';
 import { GiveAiAppFeedbackDialog } from '../GiveAiAppFeedbackDialog';
+import { FeedbackTabs } from '../FeedbackTabs/FeedbackTabs';
 import { PinOverlay, PinPanel, type ElementPinsController } from '../element-pins';
+import type { FeedbackContext } from '@/services/ai-app-feedback/ai-app-feedback.service';
 
 import s from './FloatingFeedbackButton.module.scss';
 
@@ -19,12 +22,38 @@ interface Props {
   appUid?: string;
   appName?: string;
   /**
+   * Open-app LabOS feedback. The list page omits this and always shows the
+   * button. A missing value is on, matching the server default.
+   */
+  feedbackEnabled?: boolean;
+  /**
    * Element pins for the embedded app (detail page, flag on). When its bridge
    * has said `ready`, the button opens pin mode instead of the dialog; an app
    * without the bridge keeps the screenshot flow.
    */
   elementPins?: ElementPinsController;
   iframeRef?: RefObject<HTMLIFrameElement | null>;
+  /** Where the feedback is left (detail page); passed through to the dialog. */
+  getContext?: () => FeedbackContext | null;
+  /**
+   * Comments on the live app (detail page, flag on, bridge can locate). When
+   * available, the button is "Feedback & comments": it opens one panel with two
+   * tabs (prototype ai-apps-comments) — Feedback, the written form (this
+   * dialog), and Comment, where comment mode draws the card and the pins. The
+   * resting mark carries the count of comments (all of them, as the panel does).
+   */
+  commentMode?: {
+    available: boolean;
+    /** The Comment tab is open (comment mode on). */
+    active: boolean;
+    count: number;
+    /** The Comment tab was chosen. */
+    onOpen: () => void;
+    /** Leave comment mode (the button pressed again). */
+    onClose: () => void;
+    /** Bumped by the page when the comment card's Feedback tab is chosen: open the dialog. */
+    feedbackRequest: number;
+  };
 }
 
 /**
@@ -49,7 +78,17 @@ export function FloatingFeedbackButton(props: Props) {
 
 type SubmittedApp = { label: string; value: string };
 
-function FeedbackFab({ appUid, appName, elementPins, iframeRef }: Props) {
+function FeedbackFab({
+  appUid,
+  appName,
+  feedbackEnabled = true,
+  elementPins,
+  iframeRef,
+  getContext,
+  commentMode,
+}: Props) {
+  const commentsAvailable = Boolean(commentMode?.available);
+  const inCommentMode = Boolean(commentMode?.available && commentMode.active);
   const [isOpen, setIsOpen] = useState(false);
   const [isPinMode, setIsPinMode] = useState(false);
   const [activePinId, setActivePinId] = useState<string | null>(null);
@@ -64,7 +103,7 @@ function FeedbackFab({ appUid, appName, elementPins, iframeRef }: Props) {
   const analytics = useAiAppsAnalytics();
   const shortcuts = useShortcutLabels();
   const { permsSet, isLoading } = usePermissions();
-  const isVisible = !isLoading && canViewAiApps(permsSet);
+  const isVisible = !isLoading && canViewAiApps(permsSet) && feedbackEnabled;
 
   // Gated on `isVisible` rather than left bare: hooks run before the early
   // return below, so an ungated timer would spend its 2.2s while this renders
@@ -100,6 +139,39 @@ function FeedbackFab({ appUid, appName, elementPins, iframeRef }: Props) {
     if (elementPins.pins.length === 0) elementPins.startPicking();
   }, [elementPins, appUid, analytics]);
 
+  /* Today's door, minus the comment mode: pin mode when the bridge answered, the dialog otherwise. */
+  const startFeedback = useCallback(() => {
+    if (canPin && !commentsAvailable) {
+      openPinMode();
+      return;
+    }
+    setShortcutApp(null);
+    analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
+    setIsOpen(true);
+  }, [canPin, commentsAvailable, openPinMode, analytics, appUid, appName]);
+
+  /* The comment card's Feedback tab: the page bumps the request, the dialog opens. */
+  const feedbackRequest = commentMode?.feedbackRequest ?? 0;
+  const [seenFeedbackRequest, setSeenFeedbackRequest] = useState(feedbackRequest);
+  if (feedbackRequest !== seenFeedbackRequest) {
+    setSeenFeedbackRequest(feedbackRequest);
+    setShortcutApp(null);
+    setIsOpen(true);
+  }
+
+  /* One mark, one panel: pressed again it closes whichever tab is open. */
+  const onButton = () => {
+    if (inCommentMode) {
+      commentMode?.onClose();
+      return;
+    }
+    if (commentsAvailable && isOpen) {
+      setIsOpen(false);
+      return;
+    }
+    startFeedback();
+  };
+
   const leavePinMode = () => {
     setIsPinMode(false);
     setActivePinId(null);
@@ -124,7 +196,11 @@ function FeedbackFab({ appUid, appName, elementPins, iframeRef }: Props) {
       if (!isOpenFeedbackChord(event)) return;
       event.preventDefault();
       analytics.onFeedbackShortcutUsed({ action: 'open' });
-      if (canPin && !reopenApp) {
+      if (inCommentMode) {
+        commentMode?.onClose();
+        return;
+      }
+      if (canPin && !commentsAvailable && !reopenApp) {
         openPinMode();
         return;
       }
@@ -139,36 +215,53 @@ function FeedbackFab({ appUid, appName, elementPins, iframeRef }: Props) {
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isVisible, isOpen, isPinMode, canPin, openPinMode, reopenApp, appUid, appName, analytics]);
+  }, [
+    isVisible,
+    isOpen,
+    isPinMode,
+    canPin,
+    commentsAvailable,
+    inCommentMode,
+    openPinMode,
+    reopenApp,
+    appUid,
+    appName,
+    analytics,
+    commentMode,
+  ]);
 
   if (!isVisible) {
     return null;
   }
 
+  const panelOpen = inCommentMode || (commentsAvailable && isOpen);
+  const name = commentsAvailable ? 'Feedback & comments' : 'Give feedback';
+
   return (
     <>
-      <div ref={wrapRef} className={s.wrap} data-collapsed={isCollapsed}>
+      <div ref={wrapRef} className={s.wrap} data-collapsed={isCollapsed || panelOpen}>
+        {/* With comments available the button opens one panel (Comment / Feedback)
+            and, while it is open, settles to the outlined glyph that closes it.
+            The count rides the resting mark only — in the mode the pins are the count. */}
         <button
           type="button"
-          className={s.button}
-          aria-label="Give feedback"
+          className={clsx(s.button, panelOpen && s.buttonActive)}
+          aria-label={panelOpen ? 'Close feedback and comments' : name}
+          aria-expanded={commentsAvailable ? panelOpen : undefined}
           aria-keyshortcuts={shortcuts.openAria}
-          onClick={() => {
-            if (canPin) {
-              openPinMode();
-              return;
-            }
-            setShortcutApp(null);
-            analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
-            setIsOpen(true);
-          }}
+          onClick={onButton}
         >
           {/* CommentIcon hardcodes its own 16px box and ignores props. */}
           <CommentIcon />
           <span className={s.label} aria-hidden>
-            <span>Give feedback</span>
+            <span>{name}</span>
             <kbd className={s.labelKbd}>{shortcuts.open}</kbd>
           </span>
+          {commentsAvailable && !panelOpen && (commentMode?.count ?? 0) > 0 && (
+            <span className={s.count} aria-label={`${commentMode?.count} comments`}>
+              {commentMode?.count}
+            </span>
+          )}
         </button>
       </div>
 
@@ -216,9 +309,10 @@ function FeedbackFab({ appUid, appName, elementPins, iframeRef }: Props) {
           elementPins?.clearPins();
           setIsOpen(false);
         }}
-        pins={elementPins?.pins}
+        /* Pins belong to comment mode when it is there; the old pin flow feeds the dialog otherwise. */
+        pins={commentsAvailable ? undefined : elementPins?.pins}
         onEditPins={
-          elementPins
+          elementPins && !commentsAvailable
             ? () => {
                 setIsOpen(false);
                 setIsPinMode(true);
@@ -226,10 +320,24 @@ function FeedbackFab({ appUid, appName, elementPins, iframeRef }: Props) {
             : undefined
         }
         onSubmitted={setReopenApp}
+        getContext={getContext}
         appUid={shortcutApp?.value ?? appUid}
         appName={shortcutApp?.label ?? appName}
         anchorRef={wrapRef}
         placement="above"
+        headerTabs={
+          commentsAvailable ? (
+            <FeedbackTabs
+              active="feedback"
+              commentCount={commentMode?.count ?? 0}
+              onSelect={(tab) => {
+                if (tab !== 'comment') return;
+                setIsOpen(false);
+                commentMode?.onOpen();
+              }}
+            />
+          ) : undefined
+        }
       />
     </>
   );

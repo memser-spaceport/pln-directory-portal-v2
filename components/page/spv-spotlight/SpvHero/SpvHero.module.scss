@@ -1,0 +1,143 @@
+@use 'styles/media';
+
+// DemodayCompletedView's hero section, with the SPV prototype's adjustments.
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  // Compact: the team card should start above the fold (Demo Day's completed
+  // hero is 56px type with 40px air above and below).
+  gap: 24px;
+  width: 100%;
+  max-width: 1184px;
+  padding-top: 16px;
+
+  @include media.mobile-only {
+    gap: 20px;
+    padding-top: 16px;
+  }
+}
+
+.titleContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 640px;
+}
+
+.headline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.title {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-align: center;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 48px;
+  letter-spacing: -1px;
+  overflow-wrap: anywhere;
+
+  @include media.mobile-only {
+    font-size: 28px;
+    line-height: 36px;
+    letter-spacing: -0.6px;
+  }
+}
+
+.body {
+  max-width: 600px;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-align: center;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+
+  p {
+    margin: 0;
+  }
+
+  a {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  @include media.mobile-only {
+    font-size: 16px;
+    line-height: 22px;
+    letter-spacing: -0.3px;
+  }
+}
+
+// The investor-profile link's row.
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 20px;
+  margin-top: 4px;
+}
+
+// The completed Demo Day's underlined text link ("Give Feedback").
+.textLink {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  padding: 0;
+  border: none;
+  border-bottom: 1px solid #1b4dff;
+  background: none;
+  color: var(--foreground-brand-secondary_inverted, #1b4dff);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.appliedSteps {
+  width: 100%;
+  max-width: 600px;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 600px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+}
+
+.infoText {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-align: center;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+}
+
+.inlineLink {
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-weight: 500;
+  text-decoration: underline;
+}

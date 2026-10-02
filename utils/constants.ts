@@ -105,6 +105,8 @@ export const JOBS_ANALYTICS = {
   ON_JOB_APPLY_EXTERNAL_REDIRECTED: 'job-apply-external-redirected',
   ON_JOB_UNLOCK_INFO_OPENED: 'job-unlock-info-opened',
   ON_JOB_CREATE_PROFILE_CLICKED: 'job-create-profile-clicked',
+  ON_JOB_INTEREST_COMPOSER_OPENED: 'job-interest-composer-opened',
+  ON_JOB_INTEREST_COMPOSER_CANCELLED: 'job-interest-composer-cancelled',
   ON_JOB_INTEREST_MARKED: 'job-interest-marked',
   ON_JOB_INTEREST_UNDONE: 'job-interest-undone',
   ON_JOB_INTEREST_FAILED: 'job-interest-failed',
@@ -2724,6 +2726,8 @@ export const AI_APPS_ANALYTICS = {
   FEEDBACK_PINS_OPENED: 'ai_apps_feedback_pins_opened',
   FEEDBACK_PIN_ADDED: 'ai_apps_feedback_pin_added',
   FEEDBACK_PIN_REMOVED: 'ai_apps_feedback_pin_removed',
+  FEEDBACK_REPLY_SENT: 'ai_apps_feedback_reply_sent',
+  FEEDBACK_REPLY_DELETED: 'ai_apps_feedback_reply_deleted',
   FEEDBACK_PIN_DETACHED: 'ai_apps_feedback_pin_detached',
   FEEDBACK_PIN_CROP_FAILED: 'ai_apps_feedback_pin_crop_failed',
   FEEDBACK_BRIDGE_UNAVAILABLE: 'ai_apps_feedback_bridge_unavailable',
@@ -2740,6 +2744,7 @@ export const AI_APPS_ANALYTICS = {
   EDIT_DETAILS_OPENED: 'ai_apps_edit_details_opened',
   EDIT_DETAILS_SAVED: 'ai_apps_edit_details_saved',
   EDIT_DETAILS_FAILED: 'ai_apps_edit_details_failed',
+  FEEDBACK_SETTING_CHANGED: 'ai_apps_feedback_setting_changed',
   DEPLOYMENT_SETTINGS_OPENED: 'ai_apps_deployment_settings_opened',
   DELETE_APP_OPENED: 'ai_apps_delete_app_opened',
   DELETE_APP_CANCELLED: 'ai_apps_delete_app_cancelled',
@@ -2804,4 +2809,27 @@ export const MCP_ANALYTICS_EVENTS = {
 
 export const EDITOR_ANALYTICS = {
   IMAGE_RESIZED: 'editor-image-resized',
+};
+
+export const SPV_SPOTLIGHT_ANALYTICS = {
+  ON_PAGE_VIEWED: 'spv-spotlight-page-viewed',
+  ON_REQUEST_ACCESS_CLICKED: 'spv-spotlight-request-access-clicked',
+  ON_REQUEST_ACCESS_SUBMITTED: 'spv-spotlight-request-access-submitted',
+  ON_REQUEST_ACCESS_BLOCKED: 'spv-spotlight-request-access-blocked',
+  ON_REQUEST_ACCESS_FAILED: 'spv-spotlight-request-access-failed',
+  ON_SIGN_IN_CLICKED: 'spv-spotlight-sign-in-clicked',
+  ON_OPEN_DATA_ROOM_CLICKED: 'spv-spotlight-open-data-room-clicked',
+  ON_INVESTOR_PROFILE_CLICKED: 'spv-spotlight-investor-profile-clicked',
+  ON_EXPLORE_TILE_CLICKED: 'spv-spotlight-explore-tile-clicked',
+  ON_FOUNDER_PROFILE_CLICKED: 'spv-spotlight-founder-profile-clicked',
+};
+
+export const EXPLORE_PL_NETWORK_ANALYTICS = {
+  ON_PAGE_VIEWED: 'explore-pl-network-page-viewed',
+  ON_PORTFOLIO_VIEW_CHANGED: 'explore-pl-network-portfolio-view-changed',
+  ON_MAP_TILE_OPENED: 'explore-pl-network-map-tile-opened',
+  ON_TEAM_PROFILE_CLICKED: 'explore-pl-network-team-profile-clicked',
+  ON_LIST_SHOW_ALL_TOGGLED: 'explore-pl-network-list-show-all-toggled',
+  ON_LOGO_WALL_SHOW_ALL_TOGGLED: 'explore-pl-network-logo-wall-show-all-toggled',
+  ON_ENTITY_CLICKED: 'explore-pl-network-entity-clicked',
 };

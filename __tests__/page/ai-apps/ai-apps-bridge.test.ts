@@ -64,7 +64,7 @@ describe('AI Apps bridge', () => {
   it('announces itself to the exact LabOS origin, and again on hello', () => {
     ctx = setup();
     expect(ctx.posted).toEqual([expect.objectContaining({ type: 'ready', ns: BRIDGE_NS, v: BRIDGE_VERSION })]);
-    expect(ctx.posted[0].payload.capabilities).toEqual(['pick', 'describe', 'crop']);
+    expect(ctx.posted[0].payload.capabilities).toEqual(['pick', 'describe', 'crop', 'locate']);
     ctx.command('hello');
     expect(ctx.posted.map((m) => m.type)).toEqual(['ready', 'ready']);
     /* Same page load, same session — LabOS tells an echo from a new document by it. */
@@ -145,6 +145,207 @@ describe('AI Apps bridge', () => {
     ctx = setup();
     ctx.command('crop', { pinId: 'pin-9' });
     expect(ctx.posted.at(-1)).toMatchObject({ type: 'crop:result', payload: { pinId: 'pin-9', error: 'detached' } });
+  });
+});
+
+describe('AI Apps bridge: what a pick means', () => {
+  let ctx: ReturnType<typeof setup>;
+  afterEach(() => ctx?.cleanup());
+
+  const box = (el: Element, rect = { x: 100, y: 100, width: 200, height: 40 }) => {
+    el.getBoundingClientRect = () => ({ ...rect, top: rect.y, left: rect.x, right: 0, bottom: 0, toJSON: () => ({}) });
+    return el;
+  };
+  const move = (el: Element, x = 150, y = 110) =>
+    el.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: x, clientY: y }));
+  const clickAt = (el: Element, x = 150, y = 110) =>
+    el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, clientX: x, clientY: y }));
+  const selected = () => ctx.posted.filter((m) => m.type === 'pick:selected').at(-1)?.payload;
+
+  /** elementFromPoint always answers with the leaf; the rule decides from there. */
+  const under = (el: Element) => {
+    (ctx.doc as any).elementFromPoint = () => el;
+  };
+
+  it('climbs from a word to the button it sits in', () => {
+    ctx = setup();
+    ctx.doc.body.innerHTML = '<button id="go"><span>Review</span> now</button>';
+    const span = ctx.doc.querySelector('span')!;
+    box(ctx.doc.getElementById('go')!);
+    under(span);
+    ctx.command('pick:start');
+    move(span);
+    clickAt(span);
+    expect(selected().element).toMatchObject({ selector: '#go', tag: 'button' });
+  });
+
+  it('climbs from a number to the card with an edge around it', () => {
+    ctx = setup();
+    ctx.doc.body.innerHTML =
+      '<div class="card" style="border: 1px solid #ccc"><div><strong>24</strong></div><small>teams</small></div>';
+    const strong = ctx.doc.querySelector('strong')!;
+    box(ctx.doc.querySelector('.card')!);
+    under(strong);
+    ctx.command('pick:start');
+    move(strong);
+    clickAt(strong);
+    expect(selected().element.tag).toBe('div');
+    expect(selected().element.html).toContain('class="card"');
+  });
+
+  it('keeps the leaf when the nearest edged ancestor fills most of the window', () => {
+    ctx = setup();
+    ctx.doc.body.innerHTML = '<main style="background: #fff"><p id="para">Some text</p></main>';
+    const p = ctx.doc.getElementById('para')!;
+    box(ctx.doc.querySelector('main')!, { x: 0, y: 0, width: 5000, height: 5000 });
+    box(p);
+    under(p);
+    ctx.command('pick:start');
+    move(p);
+    clickAt(p);
+    expect(selected().element.tag).toBe('p');
+  });
+
+  it('reports where in the element the click landed', () => {
+    ctx = setup();
+    ctx.doc.body.innerHTML = '<button id="go">Go</button>';
+    const button = box(ctx.doc.getElementById('go')!);
+    under(button);
+    ctx.command('pick:start');
+    move(button);
+    /* Box is x 100–300, y 100–140: (150, 130) is a quarter across, three quarters down. */
+    clickAt(button, 150, 130);
+    expect(selected().point).toEqual({ ox: 0.25, oy: 0.75 });
+  });
+
+  it('a tap with no hover before it picks by the same rule', () => {
+    ctx = setup();
+    ctx.doc.body.innerHTML = '<button id="go"><span>Go</span></button>';
+    const span = ctx.doc.querySelector('span')!;
+    box(ctx.doc.getElementById('go')!);
+    under(span);
+    ctx.command('pick:start');
+    clickAt(span);
+    expect(selected().element.tag).toBe('button');
+  });
+
+  it('⌥ walks up from the chosen target, and a small move over the same word keeps the walk', () => {
+    ctx = setup();
+    ctx.doc.body.innerHTML = '<section id="panel"><button id="go"><span>Go</span></button></section>';
+    const span = ctx.doc.querySelector('span')!;
+    box(ctx.doc.getElementById('go')!);
+    box(ctx.doc.getElementById('panel')!);
+    under(span);
+    ctx.command('pick:start');
+    move(span);
+    ctx.win.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt', bubbles: true }));
+    move(span, 151, 111);
+    clickAt(span);
+    expect(selected().element.selector).toBe('#panel');
+  });
+});
+
+describe('AI Apps bridge: locate (the feedback overlay)', () => {
+  let ctx: ReturnType<typeof setup>;
+  afterEach(() => ctx?.cleanup());
+
+  /** Gives every element a visible box; jsdom lays nothing out. */
+  const sized = (el: Element, rect = { x: 10, y: 20, width: 100, height: 30 }) => {
+    el.getBoundingClientRect = () => ({ ...rect, top: rect.y, left: rect.x, right: 0, bottom: 0, toJSON: () => ({}) });
+    return el;
+  };
+
+  const add = (html: string) => {
+    ctx.doc.body.insertAdjacentHTML('beforeend', html);
+    ctx.doc.body.querySelectorAll('*').forEach((el) => sized(el));
+  };
+
+  const locate = (requests: unknown[]) => {
+    ctx.command('locate', { requests });
+    const result = ctx.posted.filter((m) => m.type === 'locate:result').at(-1);
+    return result?.payload.results as Record<string, { pinId: string; rect: unknown } | null>;
+  };
+
+  const req = (key: string, selector: string, tag: string, text = '') => ({ key, selector, tag, text });
+
+  it('finds a pin by its selector and answers with a tracked id and a position, nothing else', () => {
+    ctx = setup();
+    add('<button id="review">Review now</button>');
+    const results = locate([req('p1', '#review', 'button', 'Review now')]);
+    expect(results).toEqual({ p1: { pinId: 'loc-1', rect: { x: 10, y: 20, w: 100, h: 30 } } });
+  });
+
+  it('falls back to the same tag with the same visible text when the selector no longer matches', () => {
+    ctx = setup();
+    /* After a redeploy: the id is gone, the button is the same. */
+    add('<div><span>Grants</span><button>Review now</button><button>Export</button></div>');
+    const results = locate([req('p1', '#review', 'button', 'Review now')]);
+    expect(results.p1).toMatchObject({ pinId: 'loc-1' });
+  });
+
+  it('does not trust a selector that now matches an element of another kind', () => {
+    ctx = setup();
+    add('<div id="review">Review now</div>');
+    expect(locate([req('p1', '#review', 'button', 'Review now')]).p1).toBeNull();
+  });
+
+  it('gives up rather than guess when the text matches more than one element', () => {
+    ctx = setup();
+    add('<button>Delete</button><button>Delete</button>');
+    expect(locate([req('p1', '#gone', 'button', 'Delete')]).p1).toBeNull();
+  });
+
+  it('does not fall back on empty text (an input matches every input)', () => {
+    ctx = setup();
+    add('<input type="text">');
+    expect(locate([req('p1', '#q', 'input', '')]).p1).toBeNull();
+  });
+
+  it('survives a selector the browser cannot parse', () => {
+    ctx = setup();
+    add('<button>Save</button>');
+    expect(locate([req('p1', 'button:has(((', 'button', 'Save')]).p1).toMatchObject({ pinId: 'loc-1' });
+  });
+
+  it('drops malformed requests and answers the rest', () => {
+    ctx = setup();
+    add('<button id="ok">OK</button>');
+    const results = locate([
+      req('bad-tag', '#ok', 'button onclick=x', 'OK'),
+      { key: 'no-selector', tag: 'button', text: 'OK' },
+      req('long', 'x'.repeat(1001), 'button', 'OK'),
+      req('good', '#ok', 'button', 'OK'),
+    ]);
+    expect(Object.keys(results)).toEqual(['good']);
+  });
+
+  it('tracks a located element like a picked one, and reports it gone when it leaves', async () => {
+    ctx = setup();
+    add('<button id="review">Review now</button>');
+    locate([req('p1', '#review', 'button', 'Review now')]);
+    ctx.doc.getElementById('review')!.remove();
+    ctx.win.dispatchEvent(new Event('resize'));
+    await new Promise((r) => setTimeout(r, 5));
+    const rects = ctx.posted.filter((m) => m.type === 'pins:rects').map((m) => m.payload.rects['loc-1']);
+    expect(rects.at(-1)).toBeNull();
+  });
+
+  it('never lets located pins use up the member’s picks', () => {
+    ctx = setup();
+    add(Array.from({ length: 25 }, (_, i) => `<button id="b${i}">B${i}</button>`).join(''));
+    locate(Array.from({ length: 25 }, (_, i) => req(`k${i}`, `#b${i}`, 'button', `B${i}`)));
+    const target = ctx.doc.getElementById('b0')!;
+    ctx.place(target);
+    ctx.command('pick:start');
+    click(target);
+    expect(ctx.posted.find((m) => m.type === 'pick:selected')?.payload.pinId).toBe('pin-1');
+  });
+
+  it('ignores locate from any other origin', () => {
+    ctx = setup();
+    add('<button id="review">Review now</button>');
+    ctx.command('locate', { requests: [req('p1', '#review', 'button')] }, { origin: 'https://evil.example' });
+    expect(ctx.posted.some((m) => m.type === 'locate:result')).toBe(false);
   });
 });
 

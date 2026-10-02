@@ -13,7 +13,7 @@
 export const BRIDGE_NS = 'pln-bridge';
 export const BRIDGE_VERSION = 1;
 
-export type BridgeCapability = 'pick' | 'describe' | 'crop';
+export type BridgeCapability = 'pick' | 'describe' | 'crop' | 'locate';
 
 /** A rectangle in the app's viewport (CSS px). LabOS offsets it by the iframe's own rect. */
 export type BridgeRect = { x: number; y: number; w: number; h: number };
@@ -37,6 +37,15 @@ export type ElementDescriptor = {
   page: { path: string; title: string; viewportW: number; viewportH: number };
 };
 
+/**
+ * Find a stored pin's element again (the feedback overlay). `key` is LabOS's
+ * own id for the pin and is opaque to the bridge.
+ */
+export type LocateRequest = { key: string; selector: string; tag: string; text: string };
+
+/** A found element, now tracked like a picked one. `rect: null` = it exists but is not visible. */
+export type LocateResult = { pinId: string; rect: BridgeRect | null };
+
 type Msg<T extends string, P = undefined> = P extends undefined ? { type: T } : { type: T; payload: P };
 
 /** LabOS → app. */
@@ -46,16 +55,20 @@ export type ParentMessage =
   | Msg<'pick:stop'>
   | Msg<'pins:unwatch', { pinIds: string[] }>
   | Msg<'pins:clear'>
-  | Msg<'crop', { pinId: string }>;
+  | Msg<'crop', { pinId: string }>
+  | Msg<'locate', { requests: LocateRequest[] }>;
 
 /** App → LabOS. */
 export type AppMessage =
   /** `session` is random per page load: a new value means the app loaded a new document and our pins are gone. */
   | Msg<'ready', { capabilities: BridgeCapability[]; session: string }>
-  | Msg<'pick:selected', { pinId: string; element: ElementDescriptor }>
+  /** `point`: where in the element the click landed, as a fraction of its box (0–1). */
+  | Msg<'pick:selected', { pinId: string; element: ElementDescriptor; point: { ox: number; oy: number } }>
   | Msg<'pick:cancelled'>
   | Msg<'pins:rects', { rects: Record<string, BridgeRect | null> }>
-  | Msg<'crop:result', { pinId: string; dataUrl?: string; error?: string }>;
+  | Msg<'crop:result', { pinId: string; dataUrl?: string; error?: string }>
+  /** One entry per request key; `null` = no single element matched. */
+  | Msg<'locate:result', { results: Record<string, LocateResult | null> }>;
 
 export type Envelope<M> = M & { ns: typeof BRIDGE_NS; v: typeof BRIDGE_VERSION; id: string };
 
@@ -69,6 +82,11 @@ export const LIMITS = {
   /** A data URL longer than this is refused on both sides (≈ 3 MB of PNG). */
   cropDataUrl: 4_000_000,
   pins: 20,
+  /** Stored pins located per `locate` command (the overlay sends one page's worth). */
+  locate: 200,
+  /** A stored selector may be longer than one this bridge generates (an older bridge, a hand edit). */
+  locateSelector: 1000,
+  locateKey: 100,
 } as const;
 
 let counter = 0;

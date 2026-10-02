@@ -1,0 +1,174 @@
+// AccountCreatedSuccessModal's layout and stepper.
+.overlay.overlay {
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 368px;
+  margin: auto;
+  padding: 20px;
+  border-radius: 24px;
+  background: var(--background-base-white, #fff);
+  box-shadow:
+    0 10px 20px 0 rgba(14, 15, 17, 0.06),
+    0 20px 65px 0 rgba(14, 15, 17, 0.06);
+}
+
+.closeButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  border: none;
+  border-radius: 9999px;
+  background: var(--action-background-neutral-light_normal, rgba(14, 15, 17, 0.04));
+  color: #455468;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.08);
+  }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  padding: 10px;
+  border-radius: 9999px;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+}
+
+.title {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 27px;
+  letter-spacing: -0.4px;
+  text-align: center;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.stepIndicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 20px;
+  padding-top: 2px;
+}
+
+.line {
+  flex: 1;
+  width: 1px;
+  min-height: 30px;
+  background: var(--border-brand-default, #1b4dff);
+}
+
+.stepIconCompleted,
+.stepIconPending {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  box-shadow:
+    0 1px 3px 0 rgba(14, 15, 17, 0.12),
+    0 1px 2px 0 rgba(14, 15, 17, 0.06);
+}
+
+.stepIconCompleted {
+  background: #11a75c;
+
+  svg {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+.stepIconPending {
+  background: var(--background-neutral-muted, #8897ae);
+}
+
+.stepDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--background-base-white, #fff);
+}
+
+.stepContent {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding-bottom: 16px;
+}
+
+.step:last-child .stepContent {
+  padding-bottom: 0;
+}
+
+.stepTitle {
+  margin: 0;
+  color: #0a0c11;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.stepDescription {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  overflow-wrap: anywhere;
+}
+
+.primary {
+  width: 100%;
+}

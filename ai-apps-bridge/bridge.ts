@@ -1,4 +1,5 @@
-import { describeElement, rectOf } from './describe';
+import { describeElement, rectOf, visibleText } from './describe';
+import { pickTarget, pointWithin } from './target';
 import {
   BRIDGE_VERSION,
   LIMITS,
@@ -7,6 +8,8 @@ import {
   type AppMessage,
   type BridgeCapability,
   type BridgeRect,
+  type LocateRequest,
+  type LocateResult,
 } from './protocol';
 
 /**
@@ -17,12 +20,17 @@ import {
  * - Obeys only messages whose origin is `parentOrigin` AND whose source is
  *   `window.parent`; replies go to that origin, never `'*'`.
  * - Inert when not framed.
- * - No eval, no caller-supplied selectors, no storage/cookie reads. The only
- *   DOM it reports on is an element the member clicked while in pick mode.
+ * - No eval, no storage/cookie reads. It describes only an element the member
+ *   clicked while in pick mode.
+ * - The one caller-supplied input is a stored pin's selector, tag and text
+ *   (`locate`, for the feedback overlay). It is only ever used to find
+ *   elements, and the answer is a position: never text, markup or attributes.
+ *   Matching on a selector reveals at most whether such an element exists on
+ *   the page the viewer is already looking at.
  */
 
 export const MARKER_ATTR = 'data-pln-bridge';
-const CAPABILITIES: BridgeCapability[] = ['pick', 'describe', 'crop'];
+const CAPABILITIES: BridgeCapability[] = ['pick', 'describe', 'crop', 'locate'];
 const CROP_LOAD_TIMEOUT_MS = 10_000;
 const ACCENT = '#1b4dff';
 const RECT_FALLBACK_MS = 100;
@@ -43,10 +51,15 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
   if (win.parent === win || w.__plnBridge) return () => undefined;
 
   const pins = new Map<string, Element>();
+  /** The subset of `pins` the member picked. Only these count against the pick limit; located ones never do. */
+  const picked = new Set<string>();
   const lastSent = new Map<string, string>();
   let pinCounter = 0;
+  let locateCounter = 0;
   let picking = false;
   let hovered: Element | null = null;
+  /** The raw element under the pointer, so ⌥'s walk up survives small moves over the same element. */
+  let lastHit: Element | null = null;
   let frame = 0;
   let frameFallback = 0;
   let cropLoader: Promise<CropFn> | null = null;
@@ -111,9 +124,10 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
   };
 
   const onPointerMove = (event: PointerEvent) => {
-    const target = doc.elementFromPoint(event.clientX, event.clientY);
-    if (!target || isOwn(target) || target === hovered) return;
-    hovered = target;
+    const hit = doc.elementFromPoint(event.clientX, event.clientY);
+    if (!hit || isOwn(hit) || hit === lastHit) return;
+    lastHit = hit;
+    hovered = pickTarget(hit, win);
     paintHover();
   };
 
@@ -126,15 +140,25 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
 
   const onClick = (event: MouseEvent) => {
     swallow(event);
-    const target = hovered ?? doc.elementFromPoint(event.clientX, event.clientY);
+    /* A tap has no hover before it: pick from the point, by the same rule. */
+    const hit = hovered ? null : doc.elementFromPoint(event.clientX, event.clientY);
+    const target = hovered ?? (hit && !isOwn(hit) ? pickTarget(hit, win) : null);
     if (!target || isOwn(target)) return;
-    if (pins.size >= LIMITS.pins) return;
+    if (picked.size >= LIMITS.pins) return;
     pinCounter += 1;
     const pinId = `pin-${pinCounter}`;
     pins.set(pinId, target);
+    picked.add(pinId);
     watch(target);
     stopPicking();
-    send({ type: 'pick:selected', payload: { pinId, element: describeElement(target, win) } });
+    send({
+      type: 'pick:selected',
+      payload: {
+        pinId,
+        element: describeElement(target, win),
+        point: pointWithin(target, event.clientX, event.clientY),
+      },
+    });
     scheduleRects();
   };
 
@@ -146,8 +170,9 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
       send({ type: 'pick:cancelled' });
       return;
     }
-    /* Alt/⌥ walks the highlight up one ancestor per press — the innermost
-       element under the pointer is often a <span> inside the thing meant. */
+    /* Alt/⌥ walks the highlight up one ancestor per press, from the target the
+       pick rule chose — for when the thing meant is bigger than the nearest
+       control or card. */
     if (event.key === 'Alt' && hovered?.parentElement && hovered.parentElement !== doc.documentElement) {
       swallow(event);
       hovered = hovered.parentElement;
@@ -172,6 +197,7 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
     if (!picking) return;
     picking = false;
     hovered = null;
+    lastHit = null;
     outline.remove();
     cursorStyle.remove();
     win.removeEventListener('pointermove', onPointerMove, true);
@@ -237,9 +263,81 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
       const el = pins.get(id);
       if (el) resizeObserver?.unobserve(el);
       pins.delete(id);
+      picked.delete(id);
       lastSent.delete(id);
     }
     unwatchAllIfIdle();
+  }
+
+  /* ---------- locate (the feedback overlay) ---------- */
+
+  const sameTag = (el: Element, tag: string) => el.tagName.toLowerCase() === tag.toLowerCase();
+
+  /**
+   * One element for a stored pin, or none. The selector first; when it no
+   * longer matches exactly one element of the right tag (a redeploy shifted an
+   * nth-of-type, an id changed), the same tag with the same visible text. Both
+   * must match exactly one element: pointing at the wrong thing is worse than
+   * admitting the pin is lost.
+   */
+  function findElement({ selector, tag, text }: LocateRequest): Element | null {
+    let bySelector: Element[] = [];
+    try {
+      bySelector = Array.from(doc.querySelectorAll(selector)).filter((el) => !isOwn(el));
+    } catch {
+      /* A stored selector this browser cannot parse: fall through to the text match. */
+    }
+    if (bySelector.length === 1 && sameTag(bySelector[0], tag)) return bySelector[0];
+    if (!text) return null;
+
+    /* visibleText clips with an ellipsis, so compare clipped to clipped; the
+       cheap textContent check only narrows before innerText forces layout. */
+    const needle = text.endsWith('…') ? text.slice(0, -1) : text;
+    const matches: Element[] = [];
+    for (const el of Array.from(doc.getElementsByTagName(tag))) {
+      if (isOwn(el) || !(el.textContent ?? '').replace(/\s+/g, ' ').includes(needle)) continue;
+      if (visibleText(el) !== text) continue;
+      matches.push(el);
+      if (matches.length > 1) return null;
+    }
+    return matches[0] ?? null;
+  }
+
+  function locate(requests: LocateRequest[]) {
+    const results: Record<string, LocateResult | null> = {};
+    for (const request of requests) {
+      const el = findElement(request);
+      if (!el) {
+        results[request.key] = null;
+        continue;
+      }
+      locateCounter += 1;
+      const pinId = `loc-${locateCounter}`;
+      const rect = rectOf(el);
+      pins.set(pinId, el);
+      lastSent.set(pinId, JSON.stringify(rect));
+      watch(el);
+      results[request.key] = { pinId, rect };
+    }
+    send({ type: 'locate:result', payload: { results } });
+  }
+
+  /** Every field typed and capped; one bad request is dropped, not the batch. */
+  function readLocateRequests(value: unknown): LocateRequest[] {
+    if (!Array.isArray(value)) return [];
+    const isText = (v: unknown, max: number): v is string => typeof v === 'string' && v.length <= max;
+    return value
+      .slice(0, LIMITS.locate)
+      .filter(
+        (r): r is LocateRequest =>
+          !!r &&
+          typeof r === 'object' &&
+          isText(r.key, LIMITS.locateKey) &&
+          isText(r.selector, LIMITS.locateSelector) &&
+          isText(r.tag, 64) &&
+          /^[a-z][a-z0-9-]*$/i.test(r.tag) &&
+          isText(r.text, LIMITS.text),
+      );
   }
 
   /* ---------- crop ---------- */
@@ -311,6 +409,9 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
         return;
       case 'crop':
         if (typeof payload?.pinId === 'string') void crop(payload.pinId);
+        return;
+      case 'locate':
+        locate(readLocateRequests(payload?.requests));
         return;
       default:
         /* Unknown commands are ignored: a newer LabOS may speak to an older bridge. */

@@ -79,8 +79,10 @@ export const applicantRowSchema = z
     /** ISO. `appliedAt` for an application, `interestedAt` for an interest —
      *  one name, because every reader of it asks the same question ("when"). */
     createdAt: z.string().min(1),
-    /** What they wrote. Always null on an interest: the press carries no words. */
+    /** What they wrote with an application. Always null on an interest. */
     coverLetter: z.string().nullable(),
+    /** The optional note left with an interest. Absent until the API sends it; always null on an application. */
+    note: z.string().nullable().optional(),
     cv: applicantCvSchema.nullable(),
     /**
      * Not opened by THIS viewer — per-lead, not per-row.

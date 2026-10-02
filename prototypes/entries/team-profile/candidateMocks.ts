@@ -52,6 +52,13 @@ export interface RoleCandidate {
   profile: CandidateMemberRecord;
   unseen: boolean;
   /**
+   * Signed up on the job board to find work rather than as a member of a PL
+   * network team (`job-aspirant`). The pane hides Office Hours for them
+   * whatever the record holds — the section is a member's offer to the
+   * network, and an aspirant has none to make (LAB-2713).
+   */
+  jobAspirant?: boolean;
+  /**
    * The team's own press — **Mark as reviewed** on the candidates page — not
    * a derived fact. It is the one stage the list carries: a founder working
    * through fifty people needs to know which ones they have already dealt
@@ -342,15 +349,20 @@ export const MOCK_CANDIDATES: Record<string, RoleCandidate[]> = {
 
 /**
  * Someone who pressed **I'm interested** on one of this team's roles
- * (`InterestStrip` on the board) instead of applying. It is a bare press, so
- * there is no note to quote. What the team gets is the person, the time they
- * pressed, and the profile that went with it ("share your LabOS profile"),
- * plus a CV when the account keeps one. Same shape as an application
+ * (`InterestStrip` on the board) instead of applying. What the team gets is
+ * the person, the time they pressed, the profile that went with it ("share
+ * your LabOS profile"), a CV when the account keeps one — and, since LAB-2713,
+ * a short note when they chose to write one. Same shape as an application
  * otherwise, so the page draws both with one row and one pane.
  */
 export type RoleInterested = Omit<RoleCandidate, 'note' | 'appliedAt'> & {
   /** ISO — when they pressed I'm interested. */
   interestedAt: string;
+  /**
+   * The optional note from the strip's composer. Not called `note`: `'note' in`
+   * is how the page tells an application from an interest press.
+   */
+  comment?: string;
 };
 
 export const MOCK_INTERESTED: Record<string, RoleInterested[]> = {
@@ -366,6 +378,8 @@ export const MOCK_INTERESTED: Record<string, RoleInterested[]> = {
       email: 'amara@nwosu.dev',
       avatar: 'https://i.pravatar.cc/96?img=32',
       interestedAt: daysAgo(0, 2),
+      comment:
+        'I run validator infrastructure at Chainsafe and would like to move closer to the protocol itself. Happy to share the Lodestar metrics work if it helps.',
       cv: { name: 'amara-nwosu-cv.pdf', url: '#', size: 176128 },
       skills: ['Go', 'Distributed Systems', 'Kubernetes'],
       experience: [
@@ -395,6 +409,7 @@ export const MOCK_INTERESTED: Record<string, RoleInterested[]> = {
       email: 'jonas@weber.sh',
       avatar: 'https://i.pravatar.cc/96?img=60',
       interestedAt: daysAgo(4),
+      jobAspirant: true,
       skills: ['Site Reliability', 'Rust', 'Observability'],
       experience: [exp('jonas-weber', 'jw1', 'Site Reliability Engineer', 'Independent', '2021-05', null, 'Zurich, Switzerland')],
       profile: {
@@ -451,6 +466,7 @@ export const MOCK_INTERESTED: Record<string, RoleInterested[]> = {
       email: 'tomas@ruiz.security',
       avatar: 'https://i.pravatar.cc/96?img=12',
       interestedAt: daysAgo(3, 4),
+      jobAspirant: true,
       skills: ['Cryptography', 'Auditing', 'Rust'],
       experience: [exp('tomas-ruiz', 'tr1', 'Security Researcher', 'Independent', '2020-01', null, 'Madrid, Spain')],
       profile: {

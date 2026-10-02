@@ -1,6 +1,15 @@
 'use client';
 
-import { type CSSProperties, type RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  type ReactNode,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { flushSync } from 'react-dom';
 import clsx from 'clsx';
 import { useForm, FormProvider } from 'react-hook-form';
@@ -42,7 +51,8 @@ import {
   type PersistentCaptureReason,
   type ScreenshotAttachment,
 } from '../screenshot-feedback';
-import { PinSummary, appendPins, type ElementPin } from '../element-pins';
+import { PinSummary, appendPinsHtml, hostPinCrops, toPinInputs, type ElementPin } from '../element-pins';
+import type { FeedbackContext, FeedbackPinInput } from '@/services/ai-app-feedback/ai-app-feedback.service';
 
 import s from './GiveAiAppFeedbackDialog.module.scss';
 
@@ -129,6 +139,17 @@ interface Props {
   pins?: ElementPin[];
   /** Returns to the pin panel without discarding anything. */
   onEditPins?: () => void;
+  /**
+   * Where the feedback is being left (detail page): env, app path, the frame's
+   * viewport, device, bridge. Read at submit time. Sent, with the pins as data,
+   * only for feedback about the app on screen (`appUid`).
+   */
+  getContext?: () => FeedbackContext | null;
+  /**
+   * Replaces the "Give feedback" title: on an app whose page can take comments,
+   * the dialog is the Feedback tab of one panel (Comment / Feedback).
+   */
+  headerTabs?: ReactNode;
 }
 
 const NO_PINS: ElementPin[] = [];
@@ -172,6 +193,8 @@ export function GiveAiAppFeedbackDialog({
   placement = 'below',
   pins = NO_PINS,
   onEditPins,
+  getContext,
+  headerTabs,
 }: Props) {
   const { currentUser } = useCurrentUserStore();
   const [overlayStyle, setOverlayStyle] = useState<CSSProperties>();
@@ -431,11 +454,22 @@ export function GiveAiAppFeedbackDialog({
       return;
     }
 
+    /* Context and pins-as-data describe the app on screen; feedback switched to
+       another app in the picker gets neither (its pins would be located on the
+       wrong app). The readable pin block still goes into the text either way. */
+    const isAboutThisApp = Boolean(appUid) && app.value === appUid;
+    const context = isAboutThisApp ? (getContext?.() ?? null) : null;
+    let pinInputs: FeedbackPinInput[] = [];
+
     try {
       setIsHostingImages(true);
       trimmedMessage = await hostDataUriImages(trimmedMessage);
       trimmedMessage = await appendScreenshots(trimmedMessage, screenshots);
-      trimmedMessage = await appendPins(trimmedMessage, pins);
+      if (pins.length > 0) {
+        const crops = await hostPinCrops(pins);
+        trimmedMessage = appendPinsHtml(trimmedMessage, pins, crops);
+        if (isAboutThisApp) pinInputs = toPinInputs(pins, crops, context?.env ?? 'prod');
+      }
     } catch {
       toast.error('Image upload failed. Please try again.');
       return;
@@ -489,7 +523,12 @@ export function GiveAiAppFeedbackDialog({
     }
 
     submitAppFeedback(
-      { appUid: app.value, text: trimmedMessage },
+      {
+        appUid: app.value,
+        text: trimmedMessage,
+        ...(pinInputs.length > 0 ? { pins: pinInputs } : {}),
+        ...(context ? { context } : {}),
+      },
       {
         onSuccess: () => {
           analytics.onFeedbackSubmitted({
@@ -602,7 +641,7 @@ export function GiveAiAppFeedbackDialog({
       >
         <div className={s.root}>
           <div className={s.header}>
-            <h2 className={s.title}>Give feedback</h2>
+            {headerTabs ?? <h2 className={s.title}>Give feedback</h2>}
             <div className={s.headerActions}>
               <button
                 type="button"

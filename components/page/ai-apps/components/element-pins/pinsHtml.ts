@@ -1,4 +1,5 @@
 import { hostDataUriImages } from '@/utils/html';
+import type { AiAppEnvironment, FeedbackPinInput } from '@/services/ai-app-feedback/ai-app-feedback.service';
 import type { ElementPin } from './types';
 
 /**
@@ -95,9 +96,46 @@ async function hostCrop(dataUrl: string): Promise<string | null> {
   return match?.[1] && !match[1].startsWith('data:') ? match[1] : null;
 }
 
+/** Hosts every finished crop once, in pin order. A crop that failed or is still rendering is `null`. */
+export async function hostPinCrops(pins: ElementPin[]): Promise<(string | null)[]> {
+  return Promise.all(pins.map((pin) => (pin.crop.status === 'done' ? hostCrop(pin.crop.dataUrl) : null)));
+}
+
+/** Appends the readable pin block, using crops already hosted by `hostPinCrops`. */
+export function appendPinsHtml(html: string, pins: ElementPin[], crops: (string | null)[]): string {
+  if (pins.length === 0) return html;
+  return [html.trim(), pinsHtml(pins, crops)].filter(Boolean).join('');
+}
+
 /** Hosts every finished crop, then appends the pin block. A crop that failed or is still rendering is left out. */
 export async function appendPins(html: string, pins: ElementPin[]): Promise<string> {
   if (pins.length === 0) return html;
-  const crops = await Promise.all(pins.map((pin) => (pin.crop.status === 'done' ? hostCrop(pin.crop.dataUrl) : null)));
-  return [html.trim(), pinsHtml(pins, crops)].filter(Boolean).join('');
+  return appendPinsHtml(html, pins, await hostPinCrops(pins));
+}
+
+/**
+ * The same pins as data, for the feedback-in-context overlay: what
+ * POST /:uid/feedback stores as rows. Shares `crops` with `pinsHtml`, so the
+ * row and the readable list point at the same hosted image. The bridge reports
+ * the page without its query; `pageQuery` stays null.
+ */
+export function toPinInputs(pins: ElementPin[], crops: (string | null)[], env: AiAppEnvironment): FeedbackPinInput[] {
+  return pins.map((pin, i) => ({
+    n: i + 1,
+    env,
+    pagePath: pin.element.page.path.startsWith('/') ? pin.element.page.path : `/${pin.element.page.path}`,
+    pageQuery: null,
+    selector: pin.element.selector,
+    tag: pin.element.tag,
+    text: pin.element.text,
+    role: pin.element.role,
+    ariaLabel: pin.element.ariaLabel,
+    component: pin.element.component,
+    source: pin.element.source,
+    rect: pin.element.rect,
+    viewportW: Math.max(1, Math.round(pin.element.page.viewportW)),
+    viewportH: Math.max(1, Math.round(pin.element.page.viewportH)),
+    note: pin.note.trim(),
+    cropUrl: crops[i] ?? null,
+  }));
 }

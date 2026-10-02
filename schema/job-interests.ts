@@ -26,6 +26,8 @@ export const jobInterestSchema = z
     /** ISO timestamp. Named for the act, not the row — `interestedAt`, where the
      *  application's equivalent is `appliedAt`. */
     interestedAt: z.string().min(1),
+    /** Absent until the API sends it. Null when the member left no note. */
+    note: z.string().nullable().optional(),
   })
   .strict();
 
@@ -55,6 +57,8 @@ export const jobInterestToggleResponseSchema = z
     jobUid: z.string().min(1),
     interestedCount: z.number(),
     viewerIsInterested: z.boolean(),
+    /** Absent until the API sends it. Null when the member left no note, or after undo. */
+    note: z.string().nullable().optional(),
   })
   .strict();
 

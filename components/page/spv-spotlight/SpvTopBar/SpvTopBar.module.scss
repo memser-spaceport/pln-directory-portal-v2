@@ -1,0 +1,122 @@
+@use 'styles/media';
+
+// The site navbar's shell (NavBar.module.scss .Root), without its nav.
+.root {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 64px;
+  padding: 16px;
+  background: var(--Surface-surface-light, #fff);
+  box-shadow: 0 1px 4px 0 #e2e8f0;
+
+  @include media.tablet-landscape {
+    padding: 16px 24px;
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  width: 48px;
+  height: 48px;
+}
+
+.label {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+// The account menu's popup is portalled to the body at production's z-index 6,
+// under this bar's sticky z-index 10, which would cover its top.
+.accountPositioner.accountPositioner {
+  z-index: 11;
+}
+
+.accountItem.accountItem {
+  cursor: pointer;
+}
+
+// Below 960 LoginBtn is `height: 100%` of production's nav slot; this bar's
+// right group has no fixed height, so it gets 32px there and keeps 40 above.
+.signIn.signIn {
+  height: 32px;
+  border: none;
+  cursor: pointer;
+
+  @include media.tablet-landscape {
+    height: 40px;
+  }
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+
+  @media (hover: hover) {
+    &:hover {
+      color: var(--foreground-neutral-primary, #0a0c11);
+      background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -1px;
+  }
+}
+
+// On a black page: the bar takes the black, and a faint light hairline
+// replaces the shadow.
+.dark {
+  background: #000;
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.08);
+
+  .label {
+    color: var(--Neutral-White, #fff);
+  }
+
+  // AppLogo's fill is fixed dark.
+  svg path {
+    fill: var(--Neutral-White, #fff);
+  }
+
+  .link {
+    color: rgba(255, 255, 255, 0.72);
+
+    @media (hover: hover) {
+      &:hover {
+        color: var(--Neutral-White, #fff);
+        background: rgba(255, 255, 255, 0.08);
+      }
+    }
+  }
+}

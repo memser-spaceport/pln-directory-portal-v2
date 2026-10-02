@@ -18,6 +18,18 @@
   padding: 0;
   overflow-wrap: anywhere;
 
+  /* Element pins (pinsHtml): each item is a note paragraph then a location
+     paragraph. QuillContent puts list markers inside the li, which leaves "1."
+     alone on a line above block children; outside keeps it beside the note. */
+  :global(ol.ai-app-element-pins) {
+    padding-left: 1.5em;
+  }
+
+  :global(ol.ai-app-element-pins > li) {
+    padding-left: 0.25em;
+    list-style-position: outside;
+  }
+
   /* Every image is lifted into `.shotStrip` before this renders, so nothing
      should match. Kept as a backstop: one tag slipping through uncapped is a
      4000px image shouldering the whole table open. */
@@ -64,6 +76,19 @@
 
   &:hover .shotBadge {
     background: rgba(10, 12, 17, 0.92);
+  }
+}
+
+/* A pin crop is one element at its own proportions (a thin input, a wide
+   header): cover would zoom it into an unreadable sliver, so it is fitted
+   whole on a framed tile instead. */
+.shotTilePinCrop {
+  padding: 6px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+
+  img {
+    object-fit: contain;
   }
 }
 

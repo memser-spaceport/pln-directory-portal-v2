@@ -85,6 +85,11 @@ export interface AiApp {
   prd?: string | null;
   /** Slugs from the controlled vocabulary (see `fetchAiAppTags`). Absent on older API versions. */
   tags?: string[];
+  /**
+   * LabOS Give feedback on the open app. Absent on older API versions — treat
+   * as on (`!== false`), matching the server default.
+   */
+  feedbackEnabled?: boolean;
   createdAt: string;
   updatedAt: string;
   member: {
@@ -138,7 +143,8 @@ export function aiAppTarget(app: AiApp, environment: AiAppTargetEnvironment): Ai
       hasBuild: false,
     };
   }
-  const shipped = app.status === 'DRAFT' || app.status === 'DEPLOYING' || app.status === 'READY' || app.status === 'ERROR';
+  const shipped =
+    app.status === 'DRAFT' || app.status === 'DEPLOYING' || app.status === 'READY' || app.status === 'ERROR';
   return {
     environment: 'prod',
     status: app.status,
@@ -254,7 +260,11 @@ export interface AiAppDeployKeySummary {
 }
 
 export async function fetchAiAppDeployKeys(uid: string): Promise<AiAppDeployKeySummary[]> {
-  const response = await customFetch(`${AI_APPS_API_URL}/${encodeURIComponent(uid)}/deploy-keys`, { method: 'GET' }, true);
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/deploy-keys`,
+    { method: 'GET' },
+    true,
+  );
   if (!response?.ok) return [];
   const body = await response.json();
   return Array.isArray(body?.keys) ? body.keys : [];
@@ -720,6 +730,8 @@ export interface UpdateAiAppPatch {
   prd?: string | null;
   /** Replaces the whole tag list. */
   tags?: string[];
+  /** LabOS Give feedback on the open app. */
+  feedbackEnabled?: boolean;
 }
 
 export interface UpdateAiAppResult {
@@ -770,6 +782,8 @@ export interface UpdateAiAppFileInput {
   name?: string;
   description?: string;
   tags?: string[];
+  /** LabOS Give feedback on the open app. Sent as `"true"` / `"false"`. */
+  feedbackEnabled?: boolean;
   /** The one-pager file itself — the backend derives `prd` from its contents. */
   file: File;
 }
@@ -786,6 +800,7 @@ export async function updateAiAppFile(uid: string, input: UpdateAiAppFileInput):
   if (input.description !== undefined) formData.append('description', input.description);
   // Multipart carries the list as a JSON string; the backend parses it back.
   if (input.tags !== undefined) formData.append('tags', JSON.stringify(input.tags));
+  if (input.feedbackEnabled !== undefined) formData.append('feedbackEnabled', String(input.feedbackEnabled));
   formData.append('file', input.file);
 
   const response = await customFetch(

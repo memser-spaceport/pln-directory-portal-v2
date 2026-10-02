@@ -774,12 +774,14 @@ export default function JobBoardPrototype() {
      here rather than in the drawer for the reason the applications are — it
      has to survive the drawer closing, and it is the board's fact about the
      person, not the flow's. Session-only, like everything else. Undo is a
-     delete, which is the only way a signal can honestly be taken back. */
-  const [interested, setInterested] = useState<Set<string>>(() => new Set());
-  const setRoleInterest = (roleUid: string, on: boolean) =>
+     delete, which is the only way a signal can honestly be taken back. The
+     value is the optional note the strip now takes (LAB-2713) — empty when
+     the aspirant sent the bare press. */
+  const [interested, setInterested] = useState<Map<string, string>>(() => new Map());
+  const setRoleInterest = (roleUid: string, on: boolean, comment = '') =>
     setInterested((prev) => {
-      const next = new Set(prev);
-      if (on) next.add(roleUid);
+      const next = new Map(prev);
+      if (on) next.set(roleUid, comment);
       else next.delete(roleUid);
       return next;
     });
@@ -1563,7 +1565,7 @@ export default function JobBoardPrototype() {
     setProfile(profileForViewer(next));
     onCloseFlow();
     setApplications(next === 'applied' ? seededApplications() : new Map());
-    setInterested(new Set());
+    setInterested(new Map());
     /* A viewer who manages nothing must not be left standing on a team's
        candidates. */
     setCandidatesView(null);
@@ -2094,7 +2096,8 @@ export default function JobBoardPrototype() {
         applied={flowJob ? appliedRoleUids.has(flowJob.role.uid) : false}
         appliedAt={flowJob ? appliedAtByRole.get(flowJob.role.uid) : undefined}
         interested={flowJob ? interested.has(flowJob.role.uid) : false}
-        onSetInterested={flowJob ? (on) => setRoleInterest(flowJob.role.uid, on) : undefined}
+        interestComment={flowJob ? interested.get(flowJob.role.uid) : undefined}
+        onSetInterested={flowJob ? (on, comment) => setRoleInterest(flowJob.role.uid, on, comment) : undefined}
         /* The open role's route: profile review, then the message to the team.
            See `openInterestFlow`. */
         interest={

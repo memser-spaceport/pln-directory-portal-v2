@@ -69,16 +69,13 @@ export const AccountMenu = ({ userInfo }: Props) => {
                   }
                 }}
               >
-                <UserIcon /> {userInfo?.name ?? userInfo?.email}{' '}
+                <UserIcon /> My profile
               </Menu.Item>
               {/* "Get Support" used to sit here as well, opening the same modal
                   from a second and less-labelled door — 5 clicks in 90 days.
                   Now that the header's (?) is a labelled menu of every support
                   topic, this one was noise. */}
-              <div className={s.SeparatorWrapper}>
-                Support
-                <Menu.Separator className={s.Separator} />
-              </div>
+              <Menu.Separator className={s.SeparatorRow} />
               <Link href="/changelog">
                 <Menu.Item
                   className={s.Item}
@@ -87,20 +84,17 @@ export const AccountMenu = ({ userInfo }: Props) => {
                   <ChangeLogIcon /> Changelog
                 </Menu.Item>
               </Link>
-              <div className={s.SeparatorWrapper}>
-                Settings
-                <Menu.Separator className={s.Separator} />
-              </div>
+              <Menu.Separator className={s.SeparatorRow} />
               <Link href={isMobile ? '/settings' : '/settings/profile'}>
                 <Menu.Item
                   className={s.Item}
                   onClick={() => analytics.onNavGetHelpItemClicked('Settings Profile', getAnalyticsUserInfo(userInfo))}
                 >
-                  <SettingsIcon /> Account Settings
+                  <SettingsIcon /> Settings
                 </Menu.Item>
               </Link>
               <Menu.Item className={s.Item} onClick={handleLogout}>
-                <LogoutIcon /> Logout
+                <LogoutIcon /> Sign out
               </Menu.Item>
             </Menu.Popup>
           </Menu.Positioner>

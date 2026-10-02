@@ -3,7 +3,7 @@
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { LIMITS, envelope, isEnvelope, type ParentMessage } from '@/ai-apps-bridge/protocol';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
-import { toCropDataUrl, toDescriptor, toPinId, toRect } from './validate';
+import { toCropDataUrl, toDescriptor, toPinId, toPoint, toRect } from './validate';
 import type { ElementPin } from './types';
 
 /**
@@ -46,6 +46,8 @@ export function useElementPins({ iframeRef, appOrigin, frameKey, enabled, appUid
   const [status, setStatus] = useState<BridgeStatus>(enabled && appOrigin ? 'waiting' : 'off');
   const [isPicking, setIsPicking] = useState(false);
   const [pins, setPins] = useState<ElementPin[]>([]);
+  /** What the bridge said it can do in its last `ready` (recorded with feedback as context). */
+  const [capabilities, setCapabilities] = useState<string[]>([]);
   /* The message handler is registered once per origin and reads these instead
      of state, so it never re-subscribes (and never misses a message) on a pin
      change. `pinsRef` is the source of truth: every write goes through
@@ -86,6 +88,7 @@ export function useElementPins({ iframeRef, appOrigin, frameKey, enabled, appUid
     setStatus(enabled && appOrigin ? 'waiting' : 'off');
     setIsPicking(false);
     setPins([]);
+    setCapabilities([]);
   }
   useEffect(() => {
     pinsRef.current = [];
@@ -107,6 +110,14 @@ export function useElementPins({ iframeRef, appOrigin, frameKey, enabled, appUid
         case 'ready': {
           if (readyTimer.current) clearTimeout(readyTimer.current);
           setStatus('ready');
+          if (Array.isArray(payload.capabilities)) {
+            setCapabilities(
+              payload.capabilities
+                .filter((c): c is string => typeof c === 'string')
+                .map((c) => c.slice(0, 32))
+                .slice(0, 10),
+            );
+          }
           const session = typeof payload.session === 'string' ? payload.session.slice(0, 40) : null;
           const previous = bridgeSession.current;
           bridgeSession.current = session;
@@ -126,7 +137,14 @@ export function useElementPins({ iframeRef, appOrigin, frameKey, enabled, appUid
           if (!pinId || !element || current.length >= LIMITS.pins || current.some((p) => p.id === pinId)) return;
           const next = [
             ...current,
-            { id: pinId, element, rect: element.rect, note: '', crop: { status: 'pending' } } as ElementPin,
+            {
+              id: pinId,
+              element,
+              rect: element.rect,
+              note: '',
+              crop: { status: 'pending' },
+              point: toPoint(payload.point),
+            } as ElementPin,
           ];
           commitPins(() => next);
           analyticsRef.current.onFeedbackPinAdded({
@@ -242,5 +260,16 @@ export function useElementPins({ iframeRef, appOrigin, frameKey, enabled, appUid
     send({ type: 'pins:clear' });
   }, [send, commitPins]);
 
-  return { status, isPicking, pins, onFrameLoad, startPicking, stopPicking, setNote, removePin, clearPins };
+  return {
+    status,
+    capabilities,
+    isPicking,
+    pins,
+    onFrameLoad,
+    startPicking,
+    stopPicking,
+    setNote,
+    removePin,
+    clearPins,
+  };
 }

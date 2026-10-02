@@ -1,0 +1,578 @@
+@use 'styles/media';
+
+// Copied from the approved prototype (prototypes/entries/explore-pl-network),
+// portfolio panel only. The site's values, not the design system's: a black
+// sea, 1px hairlines at 12% white, white Aileron, square-cornered controls. It
+// is marketing's piece set into our page, so it keeps its own look.
+
+// ---- Logo islands -------------------------------------------------------------
+// The site's values, not the design system's: a black sea, 1px hairlines at
+// 12% white, white Aileron, square-cornered controls. It is marketing's piece
+// set into our page, so it keeps its own look.
+
+.islandsRoot {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 16px;
+  // Marketing's sea is pure black; the design system has no such token.
+  --islands-sea: #000;
+  background: var(--islands-sea);
+  color: var(--Neutral-White, #fff);
+  // Self-hosted Aileron (aileron.ts), set on the page root as --font-aileron.
+  font-family: var(--font-aileron), 'Aileron', sans-serif;
+  font-weight: 400;
+}
+
+.islandsStage {
+  position: relative;
+  padding: 20px 16px;
+
+  @include media.mobile-only {
+    padding: 16px 12px;
+  }
+}
+
+.islandsSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.islandsClose {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  z-index: 1;
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  color: var(--Neutral-White, #fff);
+  font: inherit;
+  font-size: 16px;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+// Tiles glide to their new cell when the year or the category changes, and
+// fade in when they join.
+.tile {
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: tileIn 0.4s ease both;
+
+  polygon {
+    transition: fill 0.2s ease;
+  }
+}
+
+@keyframes tileIn {
+  from {
+    opacity: 0;
+  }
+}
+
+// While a tile is hovered its island glows and every other island dims.
+.islandGroup {
+  transition:
+    opacity 0.25s ease,
+    filter 0.25s ease;
+}
+
+.islandDim {
+  opacity: 0.5;
+}
+
+// A faint halo, tight to the tiles, in the site's bright PL blue whatever the
+// island. SVG user units: 1 ≈ 3px on desktop.
+.islandLit {
+  filter: drop-shadow(0 0 2px rgba(69, 132, 239, 0.55));
+}
+
+// ---- Name card ----------------------------------------------------------------
+.islandsOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(14, 22, 38, 0.72);
+}
+
+// The phone layout: pinned to the viewport instead of the (much taller) map.
+.islandsOverlayFixed {
+  position: fixed;
+  z-index: 100;
+  padding: 16px;
+}
+
+.islandsCard {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  align-items: flex-start;
+  gap: 36px;
+  padding: 44px 40px;
+  border-radius: 6px;
+  background: var(--Neutral-White, #fff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  // A phone card is too narrow for a badge column: the badge sits above the name.
+  @include media.mobile-only {
+    flex-direction: column;
+    gap: 12px;
+    padding: 24px 20px;
+  }
+}
+
+.cardHex {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+
+  @include media.mobile-only {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+.cardBody {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cardName {
+  font-size: 30px;
+  line-height: 40px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+
+  @include media.mobile-only {
+    font-size: 22px;
+    line-height: 28px;
+  }
+}
+
+// The directory's one-liner. A few run to a paragraph, so it stops at three lines.
+.cardOneLiner {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 16px;
+  line-height: 24px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  @include media.mobile-only {
+    font-size: 14px;
+    line-height: 20px;
+  }
+}
+
+// Focus area · stage · since · website: small facts in one wrapping row,
+// split by the map's own hairline rather than dots.
+.cardMeta {
+  margin: 6px 0 4px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 6px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 13px;
+  line-height: 18px;
+
+  @include media.mobile-only {
+    column-gap: 14px;
+  }
+}
+
+.cardMetaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+
+  & + & {
+    margin-left: 12px;
+    padding-left: 12px;
+    border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+    // On a phone the row wraps, and a hairline would start each new line: plain gaps instead.
+    @include media.mobile-only {
+      margin-left: 0;
+      padding-left: 0;
+      border-left: none;
+    }
+  }
+
+  &:first-child {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+.cardMetaHex {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+}
+
+.cardWebsite {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.cardLink {
+  align-self: flex-start;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.cardClose {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: inline-flex;
+  padding: 4px;
+  border: none;
+  background: none;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+}
+
+// ---- Footer: categories + years -------------------------------------------------
+.islandsFooter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+
+  @include media.mobile-only {
+    padding: 12px 12px 16px;
+  }
+}
+
+.categoryRow {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.categoryButton {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--Neutral-White, #fff);
+  font: inherit;
+  font-size: 16px;
+  line-height: 20px;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  @include media.mobile-only {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+}
+
+.categoryOn.categoryOn:hover {
+  filter: brightness(1.1);
+}
+
+.yearRow {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.yearArrow {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--Neutral-White, #fff);
+  cursor: pointer;
+
+  &:disabled {
+    color: rgba(255, 255, 255, 0.25);
+    cursor: default;
+  }
+
+  @include media.mobile-only {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+.yearStrip {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @include media.mobile-only {
+    padding: 0 8px;
+  }
+}
+
+.year {
+  flex-shrink: 0;
+  padding: 4px 4px;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.5);
+  font: inherit;
+  font-size: 11px;
+  line-height: 16px;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: pointer;
+
+  &:hover {
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+// With an island chosen, other years fall back and the years its teams
+// joined stay lit, as on the site.
+.yearStripFocused .year {
+  color: rgba(255, 255, 255, 0.22);
+}
+
+.yearStripFocused .yearBright {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.yearOn.yearOn {
+  color: var(--Neutral-White, #fff);
+}
+
+// ---- Portfolio panel ------------------------------------------------------------
+// The Map / List switch sits inside the black box, at its top, in the
+// map's own look: a square-cornered segmented pair on 12% white hairlines.
+.panelHeader {
+  display: flex;
+  justify-content: center;
+  padding: 16px 16px 0;
+}
+
+.panelSwitch {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+}
+
+.panelTab {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 2px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--Neutral-White, #fff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.6);
+    outline-offset: 1px;
+  }
+}
+
+.panelTabOn.panelTabOn {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--Neutral-White, #fff);
+}
+
+// ---- Dark list -------------------------------------------------------------------
+// The List view inside the same black box: islands as groups, each team a row
+// with its logo on the island's colour. Collapsed to a few rows with a fade,
+// like the logo wall's Show All.
+.darkListWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 32px 28px;
+
+  @include media.mobile-only {
+    padding: 20px 12px 20px;
+  }
+}
+
+.darkList {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  text-align: left;
+}
+
+.darkListCollapsed {
+  max-height: var(--collapsed);
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    height: 120px;
+    background: linear-gradient(to bottom, transparent, var(--islands-sea));
+    pointer-events: none;
+  }
+}
+
+.darkGroupTitle {
+  margin: 0 0 12px;
+  color: var(--Neutral-White, #fff);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+}
+
+.darkGroupCount {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+}
+
+.darkGrid {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+
+  // One column on phones: two columns truncate most names.
+  @include media.mobile-only {
+    grid-template-columns: 1fr;
+  }
+}
+
+.darkItem {
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.24);
+    background: rgba(255, 255, 255, 0.04);
+  }
+}
+
+.darkLogo {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+
+  img {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+  }
+}
+
+.darkName {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+// The map's own control style (the year arrows): square, hairline, white.
+.darkMore {
+  padding: 12px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--Neutral-White, #fff);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}

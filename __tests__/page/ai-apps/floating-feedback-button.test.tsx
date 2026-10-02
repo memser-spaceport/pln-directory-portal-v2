@@ -271,7 +271,7 @@ describe('FloatingFeedbackButton', () => {
       expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
     });
 
-    it("doesn't hand the bridge's capture to the form while instant screenshots are off", () => {
+    it("hands the bridge's capture to the form when the app's bridge can capture", () => {
       withAccess();
       const pins = { ...controller('unavailable'), canCapture: true, capture: jest.fn() };
       render(<FloatingFeedbackButton appUid="app-1" appName="My App" elementPins={pins} iframeRef={iframeRef} />);
@@ -280,7 +280,7 @@ describe('FloatingFeedbackButton', () => {
 
       expect(screen.getByText('Feedback dialog open').closest('[data-capture]')).toHaveAttribute(
         'data-capture',
-        'none',
+        'bridge',
       );
     });
 

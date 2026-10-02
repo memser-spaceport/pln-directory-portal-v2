@@ -684,7 +684,8 @@ describe('GiveAiAppFeedbackDialog', () => {
     render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} />);
 
     expect(screen.getByRole('button', { name: 'Take screenshot' })).toBeInTheDocument();
-    expect(screen.getByText('Take screenshot', { selector: 'p' })).toBeInTheDocument();
+    /* Without the app's capture script the section keeps today's screen share. */
+    expect(screen.getByText('Screenshots', { selector: 'p' })).toBeInTheDocument();
     expect(screen.getByText(/Share this tab and drag to capture an area/)).toBeInTheDocument();
     expect(screen.getByText(/draw and annotate/)).toBeInTheDocument();
   });
@@ -736,7 +737,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     it('opens the annotator again from the thumbnail', async () => {
       await takeAndAdd();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Edit screenshot 1' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot 1' }));
 
       /* Its footer says what this visit is: the CHANGES can be discarded, while
          the screenshot stays in the feedback either way — and it does not say
@@ -751,7 +752,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     it('replaces the entry rather than adding a second', async () => {
       await takeAndAdd();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Edit screenshot 1' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot 1' }));
       await waitFor(() => expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument());
       fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
 
@@ -762,7 +763,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     it('leaves the capture alone when the edit is cancelled', async () => {
       await takeAndAdd();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Edit screenshot 1' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot 1' }));
       await waitFor(() => expect(screen.getByRole('button', { name: 'Discard changes' })).toBeInTheDocument());
       fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
 
@@ -781,7 +782,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     it('does not let a discarded edit swallow the next capture', async () => {
       await takeAndAdd();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Edit screenshot 1' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot 1' }));
       await waitFor(() => expect(screen.getByRole('button', { name: 'Discard changes' })).toBeInTheDocument());
       fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
 
@@ -1037,7 +1038,7 @@ describe('GiveAiAppFeedbackDialog', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Add to feedback' }));
       await waitFor(() => expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument());
 
-      fireEvent.click(screen.getByRole('button', { name: 'Edit screenshot 1' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot 1' }));
       expect(mockOnFeedbackScreenshotEditOpened).toHaveBeenCalled();
       await waitFor(() => expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument());
 
@@ -1047,7 +1048,7 @@ describe('GiveAiAppFeedbackDialog', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
       expect(mockOnFeedbackScreenshotAnnotatorDiscarded).toHaveBeenCalledWith({ isEditing: true });
 
-      fireEvent.click(screen.getByRole('button', { name: 'Edit screenshot 1' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot 1' }));
       await waitFor(() => expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument());
       fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
       expect(mockOnFeedbackScreenshotEditSaved).toHaveBeenCalledWith({ hasAnnotations: false });

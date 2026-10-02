@@ -16,16 +16,11 @@ import {
 import type { AppCapture } from '@/components/page/ai-apps/components/element-pins';
 
 /**
- * The Feedback form with instant screenshots (SHOW_AI_APPS_INSTANT_SCREENSHOTS):
- * the app's bridge takes the picture, so opening attaches one and Whole page /
- * Pick a part never ask for a screen share. The flag-off form is covered by
- * give-ai-app-feedback-dialog.test.tsx, where the flag is off.
+ * The Feedback form with instant screenshots: the app's bridge takes the
+ * picture, so opening attaches one and Whole page / Pick a part never ask for a
+ * screen share. Apps without the capture script (no `capture` prop) keep the
+ * screen share, covered by give-ai-app-feedback-dialog.test.tsx.
  */
-
-jest.mock('@/services/ai-apps/constants', () => ({
-  ...jest.requireActual('@/services/ai-apps/constants'),
-  SHOW_AI_APPS_INSTANT_SCREENSHOTS: true,
-}));
 
 const mockUseAiApps = jest.fn();
 const mockMutate = jest.fn();

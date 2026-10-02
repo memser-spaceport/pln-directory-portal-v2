@@ -26,6 +26,7 @@ interface RequestOptions {
   cookie?: string | null;
   contentType?: string;
   headers?: Record<string, string>;
+  url?: string;
 }
 
 function makeRequest({
@@ -33,8 +34,9 @@ function makeRequest({
   cookie = 'authToken=%22member-token%22',
   contentType = 'application/json',
   headers = {},
+  url = 'https://portal.example/api/plaa/activity-bot',
 }: RequestOptions = {}) {
-  return new NextRequest('https://portal.example/api/plaa/activity-bot', {
+  return new NextRequest(url, {
     method: 'POST',
     headers: { 'content-type': contentType, ...(cookie ? { cookie } : {}), ...headers },
     body: typeof body === 'string' ? body : JSON.stringify(body),
@@ -90,6 +92,37 @@ describe('activity bot proxy route', () => {
 
     expect(res.status).toBe(403);
     expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  describe('behind a proxy, where the app sees an internal address', () => {
+    const INTERNAL_URL = 'http://10.0.0.5:3000/api/plaa/activity-bot';
+
+    beforeEach(() => {
+      process.env.APPLICATION_BASE_URL = 'https://portal.example/';
+    });
+    afterEach(() => {
+      delete process.env.APPLICATION_BASE_URL;
+    });
+
+    it("accepts a request from the site's public origin", async () => {
+      const res = await postTurn(makeRequest({ url: INTERNAL_URL, headers: { origin: 'https://portal.example' } }));
+
+      expect(res.status).toBe(200);
+      expect(callsTo(WEBHOOK_URL)).toHaveLength(1);
+    });
+
+    it('still rejects a request from another origin', async () => {
+      const res = await postTurn(makeRequest({ url: INTERNAL_URL, headers: { origin: 'https://evil.example' } }));
+
+      expect(res.status).toBe(403);
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('rejects the internal address as an origin', async () => {
+      const res = await postTurn(makeRequest({ url: INTERNAL_URL, headers: { origin: 'http://10.0.0.5:3000' } }));
+
+      expect(res.status).toBe(403);
+    });
   });
 
   it('returns 401 without a session cookie', async () => {

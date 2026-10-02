@@ -11,12 +11,25 @@ const turnSchema = z
   })
   .strip();
 
+function siteOrigin(request: NextRequest): string {
+  // Behind the ingress the request URL carries the pod's address, not the public one.
+  const configured = process.env.APPLICATION_BASE_URL;
+  if (configured) {
+    try {
+      return new URL(configured).origin;
+    } catch {
+      return '';
+    }
+  }
+  return request.nextUrl.origin;
+}
+
 function isSameOrigin(request: NextRequest): boolean {
   const origin = request.headers.get('origin');
   if (!origin) return true;
 
   try {
-    return new URL(origin).host === request.nextUrl.host;
+    return new URL(origin).origin === siteOrigin(request);
   } catch {
     return false;
   }

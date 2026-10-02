@@ -354,8 +354,9 @@ function PinComposer({ onCancel, onPost, style, shot, posting }: ComposerProps) 
           Screenshot
         </button>
       )}
+      {/* Its own line: beside the buttons it wrapped to three narrow ones. */}
+      <p className={s.composerAudience}>Everyone who can open this app can see it.</p>
       <div className={s.composerFooter}>
-        <span className={s.composerAudience}>Everyone who can open this app can see it</span>
         <Button style="border" variant="neutral" size="s" onClick={onCancel} disabled={posting}>
           Cancel
         </Button>

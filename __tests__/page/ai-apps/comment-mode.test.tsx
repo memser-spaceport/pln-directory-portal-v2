@@ -652,7 +652,7 @@ describe('CommentMode — replies', () => {
 
     expect(within(thread()).queryByRole('button', { name: 'Actions for this reply' })).not.toBeInTheDocument();
     fireEvent.click(within(thread()).getByRole('button', { name: 'Actions for your reply' }));
-    fireEvent.click(within(thread()).getByRole('menuitem', { name: 'Delete' }));
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Delete' }));
     expect(mockDeleteReply).not.toHaveBeenCalled();
     fireEvent.click(
       within(within(thread()).getByRole('group', { name: 'Delete this reply?' })).getByRole('button', {
@@ -668,7 +668,7 @@ describe('CommentMode — replies', () => {
     const t = openThread(withReplies('a', 1));
 
     fireEvent.click(within(thread()).getByRole('button', { name: 'Actions for your reply' }));
-    fireEvent.click(within(thread()).getByRole('menuitem', { name: 'Edit' }));
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Edit' }));
     const field = within(thread()).getByRole('textbox', { name: 'Edit your reply' });
     expect(field).toHaveValue('Mine');
     expect(within(thread()).getByRole('button', { name: 'Save' })).toBeDisabled();
@@ -678,7 +678,7 @@ describe('CommentMode — replies', () => {
     expect(within(thread()).getByText('Mine')).toBeInTheDocument();
 
     fireEvent.click(within(thread()).getByRole('button', { name: 'Actions for your reply' }));
-    fireEvent.click(within(thread()).getByRole('menuitem', { name: 'Edit' }));
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Edit' }));
     fireEvent.change(within(thread()).getByRole('textbox', { name: 'Edit your reply' }), {
       target: { value: '  Mine, fixed  ' },
     });
@@ -704,8 +704,8 @@ describe('CommentMode — replies', () => {
     t.propsAre({ isAdmin: true });
 
     fireEvent.click(within(thread()).getByRole('button', { name: 'Actions for this reply' }));
-    expect(within(thread()).queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
-    fireEvent.click(within(thread()).getByRole('menuitem', { name: 'Delete' }));
+    expect(within(screen.getByRole('menu')).queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Delete' }));
     fireEvent.click(
       within(within(thread()).getByRole('group', { name: 'Delete this reply?' })).getByRole('button', {
         name: 'Delete',
@@ -767,7 +767,7 @@ describe('CommentMode — editing and deleting a comment', () => {
     const t = open(mine());
 
     fireEvent.click(within(card()).getByRole('button', { name: 'Actions for your comment' }));
-    fireEvent.click(within(card()).getByRole('menuitem', { name: 'Edit' }));
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Edit' }));
     const field = within(card()).getByRole('textbox', { name: 'Edit your comment' });
     expect(field).toHaveValue('Note a');
     fireEvent.change(field, { target: { value: 'Note a, clearer' } });
@@ -788,7 +788,7 @@ describe('CommentMode — editing and deleting a comment', () => {
     const t = open(mine({ commentCount: 3 }));
 
     fireEvent.click(within(card()).getByRole('button', { name: 'Actions for your comment' }));
-    fireEvent.click(within(card()).getByRole('menuitem', { name: 'Delete' }));
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Delete' }));
     const confirm = within(card()).getByRole('group', { name: 'Delete comment?' });
     expect(confirm).toHaveTextContent('Also deletes 3 replies.');
     expect(mockDeleteItem).not.toHaveBeenCalled();
@@ -802,7 +802,7 @@ describe('CommentMode — editing and deleting a comment', () => {
   it('a comment without replies asks plainly', () => {
     const t = open(mine({ commentCount: 0 }));
     fireEvent.click(within(card()).getByRole('button', { name: 'Actions for your comment' }));
-    fireEvent.click(within(card()).getByRole('menuitem', { name: 'Delete' }));
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Delete' }));
     expect(within(card()).getByRole('group', { name: 'Delete comment?' })).not.toHaveTextContent('Also deletes');
     t.cleanup();
   });
@@ -816,26 +816,60 @@ describe('CommentMode — editing and deleting a comment', () => {
   it('a directory admin may delete someone else’s comment, never edit it', () => {
     const t = open(stored('a', { feedback: { ...stored('a').feedback, kind: 'COMMENT' } }), { isAdmin: true });
     fireEvent.click(within(card('Ada Lovelace')).getByRole('button', { name: 'Actions for this comment' }));
-    expect(within(card('Ada Lovelace')).queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
-    expect(within(card('Ada Lovelace')).getByRole('menuitem', { name: 'Delete' })).toBeInTheDocument();
+    expect(within(screen.getByRole('menu')).queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
+    expect(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Delete' })).toBeInTheDocument();
     t.cleanup();
   });
 
   it('your own private feedback can be deleted but not edited (the API edits comments only)', () => {
     const t = open(mine({ kind: 'FEEDBACK' }));
     fireEvent.click(within(card()).getByRole('button', { name: 'Actions for your comment' }));
-    expect(within(card()).queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
-    expect(within(card()).getByRole('menuitem', { name: 'Delete' })).toBeInTheDocument();
+    expect(within(screen.getByRole('menu')).queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
+    expect(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Delete' })).toBeInTheDocument();
     t.cleanup();
   });
 
   it('Esc closes the ⋮ menu and leaves the thread open', () => {
     const t = open(mine());
     fireEvent.click(within(card()).getByRole('button', { name: 'Actions for your comment' }));
-    fireEvent.keyDown(within(card()).getByRole('menuitem', { name: 'Edit' }), { key: 'Escape' });
+    fireEvent.keyDown(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Edit' }), { key: 'Escape' });
 
-    expect(within(card()).queryByRole('menu')).not.toBeInTheDocument();
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     expect(t.onOpenPinChange).not.toHaveBeenCalledWith(null);
+    t.cleanup();
+  });
+
+  /* The thread card scrolls; a menu inside it was clipped (dev, 2026-10-02). */
+  it('the ⋮ menu opens outside the thread card, so its scroll area cannot clip it', () => {
+    const t = open(mine());
+    fireEvent.click(within(card()).getByRole('button', { name: 'Actions for your comment' }));
+
+    const menu = screen.getByRole('menu', { name: 'Actions for your comment' });
+    expect(card()).not.toContainElement(menu);
+    expect(menu.parentElement).toBe(document.body);
+    t.cleanup();
+  });
+
+  it('the ⋮ menu closes when anything scrolls, rather than drifting from its button', () => {
+    const t = open(mine());
+    fireEvent.click(within(card()).getByRole('button', { name: 'Actions for your comment' }));
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+
+    fireEvent.scroll(card());
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    t.cleanup();
+  });
+
+  it('the ⋮ menu opens upward when its button is near the window’s bottom', () => {
+    const t = open(mine());
+    const trigger = within(card()).getByRole('button', { name: 'Actions for your comment' });
+    trigger.getBoundingClientRect = () =>
+      ({ top: window.innerHeight - 30, bottom: window.innerHeight - 6, left: 300, right: 324 }) as DOMRect;
+    fireEvent.click(trigger);
+
+    const menu = screen.getByRole('menu');
+    expect(menu.style.bottom).toBe('34px');
+    expect(menu.style.top).toBe('');
     t.cleanup();
   });
 

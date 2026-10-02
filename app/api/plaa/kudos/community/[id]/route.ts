@@ -20,7 +20,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const { id } = await context.params;
     const body = await request.text();
 
-    const res = await fetch(`${baseUrl}/api/v1/kudos/community/${id}`, {
+    const res = await fetch(`${baseUrl}/api/v1/kudos/community/${encodeURIComponent(id)}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: authHeader },
       body,

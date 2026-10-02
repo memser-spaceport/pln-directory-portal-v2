@@ -60,7 +60,10 @@ describe('kudos proxy routes — auth gate', () => {
   });
 
   it('community (update): returns 401 when no Authorization header', async () => {
-    const res = await patchKudos(makeRequest('http://localhost/api/plaa/kudos/community/kudos-1'), makeContext('kudos-1'));
+    const res = await patchKudos(
+      makeRequest('http://localhost/api/plaa/kudos/community/kudos-1'),
+      makeContext('kudos-1'),
+    );
     expect(res.status).toBe(401);
     expect(global.fetch).not.toHaveBeenCalled();
   });
@@ -136,6 +139,16 @@ describe('kudos proxy routes — upstream contract', () => {
     expect(init.headers.Authorization).toBe('Bearer privy-1');
     expect(JSON.parse(init.body)).toEqual(input);
     expect(res.status).toBe(200);
+  });
+
+  it('update: encodes the id so it cannot change the upstream path', async () => {
+    mockUpstreamOnce({});
+    await patchKudos(
+      makeRequest('http://localhost/api/plaa/kudos/community/x', { auth: 'Bearer privy-1', body: { points: 5 } }),
+      makeContext('../../plaa-tokens/me?x=1'),
+    );
+    const [url] = (global.fetch as jest.Mock).mock.calls[0];
+    expect(url).toBe(`${PLAA_API_URL}/api/v1/kudos/community/..%2F..%2Fplaa-tokens%2Fme%3Fx%3D1`);
   });
 
   it('update: forwards upstream rejection (e.g. 403 not the original giver) with the body', async () => {

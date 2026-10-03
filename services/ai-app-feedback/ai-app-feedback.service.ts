@@ -160,6 +160,17 @@ export async function fetchAccessibleAiAppFeedback(): Promise<AiAppFeedbackRow[]
   return response.json();
 }
 
+/** GET /v1/ai-apps/feedback/mine - only what the caller submitted, on any app, newest first. */
+export async function fetchMyAiAppFeedback(): Promise<AiAppFeedbackRow[]> {
+  const response = await customFetch(`${AI_APPS_API_URL}/feedback/mine`, { method: 'GET' }, true);
+
+  if (!response?.ok) {
+    throw new Error('Failed to load your AI App feedback');
+  }
+
+  return response.json();
+}
+
 /**
  * PATCH /v1/ai-apps/:uid/feedback/:feedbackUid - body is `{ status }`.
  * Restricted to the app's creator or a directory admin (same as the list GET).

@@ -9,7 +9,7 @@ import { looksLikeHtml } from '../../utils/looksLikeHtml';
 import { getAvatarColor } from '../../utils/getAvatarColor';
 
 import { FeedbackBody } from '../FeedbackBody';
-import { FeedbackStatusSelector } from '../FeedbackStatusSelector';
+import { FeedbackStatusSelector, StatusBadge } from '../FeedbackStatusSelector';
 
 import s from './FeedbackTable.module.scss';
 
@@ -17,7 +17,8 @@ interface Props {
   readonly rows: AiAppFeedbackRow[];
   /** The row whose status write is in flight, if any — its selector locks until the mutation settles. */
   readonly pendingFeedbackUid?: string;
-  readonly onStatusSelect: (row: AiAppFeedbackRow, status: AiAppFeedbackStatus) => void;
+  /** Omitted on the submitter's own list: every row is theirs, so no From column, and the status is read-only. */
+  readonly onStatusSelect?: (row: AiAppFeedbackRow, status: AiAppFeedbackStatus) => void;
   readonly onImageClick: (image: FeedbackImage) => void;
 }
 
@@ -29,7 +30,7 @@ export function FeedbackTable({ rows, pendingFeedbackUid, onStatusSelect, onImag
           <tr>
             <th className={s.appCol}>App</th>
             <th>Feedback</th>
-            <th className={s.fromCol}>From</th>
+            {onStatusSelect && <th className={s.fromCol}>From</th>}
             <th className={s.statusCol}>Status</th>
             <th className={s.dateCol}>Date</th>
           </tr>
@@ -57,22 +58,28 @@ export function FeedbackTable({ rows, pendingFeedbackUid, onStatusSelect, onImag
                     </Link>
                   )}
                 </td>
+                {onStatusSelect && (
+                  <td>
+                    <div className={s.submitter}>
+                      <span className={s.avatar} style={{ background: getAvatarColor(submitterName) }}>
+                        {submitterName.charAt(0).toUpperCase()}
+                      </span>
+                      <span className={s.submitterName} title={submitterName}>
+                        {submitterName}
+                      </span>
+                    </div>
+                  </td>
+                )}
                 <td>
-                  <div className={s.submitter}>
-                    <span className={s.avatar} style={{ background: getAvatarColor(submitterName) }}>
-                      {submitterName.charAt(0).toUpperCase()}
-                    </span>
-                    <span className={s.submitterName} title={submitterName}>
-                      {submitterName}
-                    </span>
-                  </div>
-                </td>
-                <td>
-                  <FeedbackStatusSelector
-                    status={row.status}
-                    isPending={pendingFeedbackUid === row.uid}
-                    onStatusSelect={(status) => onStatusSelect(row, status)}
-                  />
+                  {onStatusSelect ? (
+                    <FeedbackStatusSelector
+                      status={row.status}
+                      isPending={pendingFeedbackUid === row.uid}
+                      onStatusSelect={(status) => onStatusSelect(row, status)}
+                    />
+                  ) : (
+                    <StatusBadge status={row.status} />
+                  )}
                 </td>
                 <td className={s.dateCell}>
                   {new Date(row.createdAt).toLocaleDateString('en-US', {

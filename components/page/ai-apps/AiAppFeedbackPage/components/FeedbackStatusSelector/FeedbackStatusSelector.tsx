@@ -24,7 +24,7 @@ function ChevronIcon() {
   );
 }
 
-function StatusBadge({ status }: { status: AiAppFeedbackStatus }) {
+export function StatusBadge({ status }: { status: AiAppFeedbackStatus }) {
   return <span className={clsx(s.badge, s[`badge_${status}`])}>{AI_APP_FEEDBACK_STATUS_LABELS[status]}</span>;
 }
 

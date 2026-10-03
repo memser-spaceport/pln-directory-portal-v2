@@ -813,6 +813,19 @@
   line-height: 20px;
 }
 
+.sentLink {
+  width: fit-content;
+  color: #1b4dff;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .sentRow {
   overflow: hidden;
   padding: 8px 10px;

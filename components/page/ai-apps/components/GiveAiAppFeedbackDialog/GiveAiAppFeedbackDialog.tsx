@@ -12,6 +12,7 @@ import {
   useState,
 } from 'react';
 import { flushSync } from 'react-dom';
+import Link from 'next/link';
 import clsx from 'clsx';
 import { useForm, FormProvider } from 'react-hook-form';
 import { Modal } from '@/components/common/Modal/Modal';
@@ -425,6 +426,8 @@ export function GiveAiAppFeedbackDialog({
   const [isWide, setIsWide] = useState(false);
   /** The opening line of each report sent while this panel was open. */
   const [sentReports, setSentReports] = useState<string[]>([]);
+  /** The last report went to an app, not to support, so it is on "Your feedback". */
+  const [sentToApp, setSentToApp] = useState(false);
   const startedAtRef = useRef<number | null>(null);
   const keptPicturesRef = useRef<{ key: string; shots: ScreenshotAttachment[]; images: string[] } | null>(null);
   /** Bumped on every load and close, so pictures read back for an earlier one are dropped. */
@@ -654,7 +657,7 @@ export function GiveAiAppFeedbackDialog({
     setCropSrc(null);
   };
 
-  const onSubmitSuccess = (opening: string) => {
+  const onSubmitSuccess = (opening: string, toApp: boolean) => {
     discardFeedbackDraft(draftKey);
     reset(getDefaults());
     setIsPickingPart(false);
@@ -665,6 +668,7 @@ export function GiveAiAppFeedbackDialog({
     setSubmitAttempted(false);
     setShowDrafts(false);
     setSentReports((prev) => [...prev, opening]);
+    setSentToApp(toApp);
     setShowSent(true);
     onSent?.();
   };
@@ -975,7 +979,7 @@ export function GiveAiAppFeedbackDialog({
         },
         {
           onSuccess: () => {
-            onSubmitSuccess(opening);
+            onSubmitSuccess(opening, false);
           },
         },
       );
@@ -998,7 +1002,7 @@ export function GiveAiAppFeedbackDialog({
             hasAnnotations: screenshots.some((shot) => hasAnyAnnotation(shot.annotations)),
             ...(pins.length > 0 ? { pinCount: pins.length } : {}),
           });
-          onSubmitSuccess(opening);
+          onSubmitSuccess(opening, true);
         },
         onError: (error: unknown) => {
           analytics.onFeedbackSubmitFailed(app.value);
@@ -1176,6 +1180,11 @@ export function GiveAiAppFeedbackDialog({
               <div className={s.sent} role="status">
                 <h3 className={s.sentTitle}>Feedback sent</h3>
                 <p className={s.sentText}>Thanks for your feedback!</p>
+                {sentToApp && (
+                  <Link href="/pl-infra/ai-apps/feedback/mine" className={s.sentLink} onClick={onClose}>
+                    See your feedback and its status
+                  </Link>
+                )}
               </div>
               <div className={s.footerActions}>
                 <Button

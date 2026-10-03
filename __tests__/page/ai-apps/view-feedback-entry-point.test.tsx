@@ -35,38 +35,50 @@ describe('ViewFeedbackEntryPoint', () => {
     expect(link).toHaveAttribute('href', '/pl-infra/ai-apps/feedback');
   });
 
-  it('renders nothing while access is loading', () => {
+  it('hides View feedback while access is loading', () => {
     mockUseAiAppFeedbackReviewAccess.mockReturnValue({ canReview: false, isLoading: true });
 
-    const { container } = render(<ViewFeedbackEntryPoint />);
+    render(<ViewFeedbackEntryPoint />);
 
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole('link', { name: /View feedback/ })).not.toBeInTheDocument();
   });
 
-  it('renders nothing while feedback is loading', () => {
+  it('hides View feedback while feedback is loading', () => {
     mockUseAiAppFeedbackReviewAccess.mockReturnValue({ canReview: true, isLoading: false });
     mockUseAiAppFeedbackList.mockReturnValue({ feedback: [], isLoading: true, isError: false });
 
-    const { container } = render(<ViewFeedbackEntryPoint />);
+    render(<ViewFeedbackEntryPoint />);
 
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole('link', { name: /View feedback/ })).not.toBeInTheDocument();
   });
 
-  it('renders nothing for members who cannot review feedback', () => {
+  it('hides View feedback for members who cannot review feedback', () => {
     mockUseAiAppFeedbackReviewAccess.mockReturnValue({ canReview: false, isLoading: false });
 
-    const { container } = render(<ViewFeedbackEntryPoint />);
+    render(<ViewFeedbackEntryPoint />);
 
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole('link', { name: /View feedback/ })).not.toBeInTheDocument();
   });
 
-  it('renders nothing when there is no feedback to view', () => {
+  it('hides View feedback when there is no feedback to view', () => {
     mockUseAiAppFeedbackReviewAccess.mockReturnValue({ canReview: true, isLoading: false });
     mockUseAiAppFeedbackList.mockReturnValue({ feedback: [], isLoading: false, isError: false });
 
-    const { container } = render(<ViewFeedbackEntryPoint />);
+    render(<ViewFeedbackEntryPoint />);
 
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole('link', { name: /View feedback/ })).not.toBeInTheDocument();
+  });
+
+  it("always links to the member's own feedback, even when they cannot review any", () => {
+    mockUseAiAppFeedbackReviewAccess.mockReturnValue({ canReview: false, isLoading: false });
+    mockUseAiAppFeedbackList.mockReturnValue({ feedback: [], isLoading: false, isError: false });
+
+    render(<ViewFeedbackEntryPoint />);
+
+    expect(screen.getByRole('link', { name: 'Your feedback' })).toHaveAttribute(
+      'href',
+      '/pl-infra/ai-apps/feedback/mine',
+    );
   });
 
   it('shows the total feedback count as a badge (not an "unread" count)', () => {

@@ -477,7 +477,18 @@ describe('after sending', () => {
     expect(screen.getByText('Sent while this was open · 2')).toBeInTheDocument();
     expect(screen.getByText('Broken button')).toBeInTheDocument();
     expect(screen.getByText('Slow search')).toBeInTheDocument();
-    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(within(screen.getByText('Slow search').closest('ul')!).queryByRole('link')).not.toBeInTheDocument();
+  });
+
+  it("links to the member's own feedback list", async () => {
+    const onClose = jest.fn();
+    renderDialog(undefined, true, onClose);
+    await send('Broken button');
+
+    const link = screen.getByRole('link', { name: 'See your feedback and its status' });
+    expect(link).toHaveAttribute('href', '/pl-infra/ai-apps/feedback/mine');
+    fireEvent.click(link);
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('a failed send stays on the form', async () => {

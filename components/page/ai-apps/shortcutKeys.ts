@@ -6,6 +6,7 @@ export type ShortcutLabels = {
   mod: string;
   enter: string;
   open: string;
+  openAlt: string;
   sendAria: string;
   openAria: string;
   undoAria: string;
@@ -23,8 +24,9 @@ const WINDOWS: ShortcutLabels = {
   mod: 'Ctrl',
   enter: 'Enter',
   open: 'Alt+F',
+  openAlt: 'Ctrl+Alt+Enter',
   sendAria: 'Control+Enter',
-  openAria: 'Alt+F',
+  openAria: 'Alt+F Control+Alt+Enter',
   undoAria: 'Control+Z',
   redoAria: 'Shift+Control+Z Control+Y',
   send: 'Ctrl+Enter',
@@ -40,8 +42,9 @@ const MAC: ShortcutLabels = {
   mod: '⌘',
   enter: '↩',
   open: 'Option+F',
+  openAlt: '⌥⌘↩',
   sendAria: 'Meta+Enter',
-  openAria: 'Alt+F',
+  openAria: 'Alt+F Alt+Meta+Enter',
   undoAria: 'Meta+Z',
   redoAria: 'Shift+Meta+Z Meta+Y',
   send: '⌘↩',
@@ -90,8 +93,10 @@ export function isAnyDialogOpen(): boolean {
   );
 }
 
-/** Alt+F by physical key: on a Mac, Option+F reports `key` as "ƒ". */
+/** Alt+F by physical key (on a Mac, Option+F reports `key` as "ƒ"), or ⌥⌘↩, which types nothing and so works from a field too. */
 export function isOpenFeedbackKey(event: KeyboardEvent): boolean {
+  if (event.repeat || event.defaultPrevented || isAnyDialogOpen()) return false;
+  if (isOpenFeedbackChord(event)) return true;
   return (
     event.code === 'KeyF' &&
     event.altKey &&
@@ -99,10 +104,7 @@ export function isOpenFeedbackKey(event: KeyboardEvent): boolean {
     !event.ctrlKey &&
     !event.shiftKey &&
     !event.isComposing &&
-    !event.repeat &&
-    !event.defaultPrevented &&
-    !isTypingTarget(event.target) &&
-    !isAnyDialogOpen()
+    !isTypingTarget(event.target)
   );
 }
 

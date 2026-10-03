@@ -676,6 +676,42 @@ describe('GiveAiAppFeedbackDialog', () => {
     anchor.remove();
   });
 
+  it('turns the popup into the wide drawer and back, remembering the choice', () => {
+    mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+    const { rerender } = render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} placement="above" />);
+    const overlay = () => document.body.querySelector('[data-modal]');
+
+    expect(overlay()).not.toHaveClass('overlayWide');
+    fireEvent.click(screen.getByRole('button', { name: 'Wider' }));
+
+    expect(overlay()).toHaveClass('overlayWide');
+    expect(screen.getByRole('button', { name: 'Narrower' })).toHaveAttribute('title', 'Narrower');
+    expect(window.localStorage.getItem('ai-app-feedback:wide')).toBe('1');
+
+    rerender(<GiveAiAppFeedbackDialog isOpen={false} onClose={jest.fn()} placement="above" />);
+    rerender(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} placement="above" />);
+    expect(overlay()).toHaveClass('overlayWide');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Narrower' }));
+    expect(overlay()).not.toHaveClass('overlayWide');
+    expect(screen.getByRole('button', { name: 'Wider' })).toHaveAttribute('title', 'Wider');
+    expect(window.localStorage.getItem('ai-app-feedback:wide')).toBe('0');
+  });
+
+  it('opens as the popup when the browser cannot store the choice', () => {
+    mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+    window.localStorage.setItem('ai-app-feedback:wide', '1');
+    const getItem = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('SecurityError');
+    });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} />);
+
+    expect(document.body.querySelector('[data-modal]')).not.toHaveClass('overlayWide');
+    expect(screen.getByRole('button', { name: 'Wider' })).toBeInTheDocument();
+    getItem.mockRestore();
+  });
+
   it('does not reposition the overlay when a nested scroller fires scroll', () => {
     mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
 
@@ -1186,19 +1222,18 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(onClose).not.toHaveBeenCalled();
     });
 
-    it('lists the keys that work, and not the old open chord', () => {
+    it('lists the keys that work', () => {
       apps();
       render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
 
       fireEvent.click(screen.getByRole('button', { name: 'Shortcuts' }));
 
       const row = (label: string) => screen.getAllByText(label, { selector: 'span' })[0].closest('li');
-      expect(row('Open feedback')).toHaveTextContent('Alt+F');
+      expect(row('Open feedback')).toHaveTextContent('Alt+F or Ctrl+Alt+Enter');
       expect(row('Next or previous field')).toHaveTextContent('Tab or Shift+Tab');
       expect(row('Cancel picking a part')).toHaveTextContent('Esc');
       expect(row('Redo')).toHaveTextContent('Ctrl+Shift+Z or Ctrl+Y');
       expect(row('Show or hide')).toHaveTextContent('?');
-      expect(screen.queryByText('Alt+Ctrl+Enter')).not.toBeInTheDocument();
     });
 
     it('notes when the app has no bridge for instant screenshots', () => {

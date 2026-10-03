@@ -200,17 +200,40 @@ describe('FloatingFeedbackButton', () => {
 
       render(<FloatingFeedbackButton />);
 
-      expect(screen.getByRole('button', { name: 'Give feedback' })).toHaveAttribute('aria-keyshortcuts', 'Alt+F');
+      expect(screen.getByRole('button', { name: 'Give feedback' })).toHaveAttribute(
+        'aria-keyshortcuts',
+        'Alt+F Control+Alt+Enter',
+      );
       expect(screen.getByText('Alt+F', { selector: 'kbd' })).toBeInTheDocument();
+      expect(screen.queryByText('Ctrl+Alt+Enter')).not.toBeInTheDocument();
       openChord();
 
       expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', '');
     });
 
-    it('no longer opens from the old chord', () => {
+    it('opens from Ctrl+Alt+Enter too, even while typing in a field', () => {
       withAccess();
 
-      render(<FloatingFeedbackButton />);
+      render(
+        <>
+          <input aria-label="Search" />
+          <FloatingFeedbackButton />
+        </>,
+      );
+      fireEvent.keyDown(screen.getByRole('textbox', { name: 'Search' }), { key: 'Enter', ctrlKey: true, altKey: true });
+
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+    });
+
+    it('ignores Ctrl+Alt+Enter while another dialog is open', () => {
+      withAccess();
+
+      render(
+        <>
+          <div role="dialog" aria-label="Edit app" />
+          <FloatingFeedbackButton />
+        </>,
+      );
       fireEvent.keyDown(window, { key: 'Enter', ctrlKey: true, altKey: true });
 
       expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();

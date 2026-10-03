@@ -144,6 +144,25 @@ interface FormValues {
 
 const POPOVER_GAP = 8;
 
+/** Wide (the right-hand drawer) or the popup, as last chosen in this browser. */
+const WIDE_KEY = 'ai-app-feedback:wide';
+
+function readWide(): boolean {
+  try {
+    return window.localStorage.getItem(WIDE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function writeWide(wide: boolean) {
+  try {
+    window.localStorage.setItem(WIDE_KEY, wide ? '1' : '0');
+  } catch {
+    /* not remembered; the next open is the popup */
+  }
+}
+
 type Placement = 'below' | 'above';
 
 interface Props {
@@ -386,6 +405,7 @@ export function GiveAiAppFeedbackDialog({
   const [showDrafts, setShowDrafts] = useState(false);
   const [isDiscardPending, setIsDiscardPending] = useState(false);
   const [showSent, setShowSent] = useState(false);
+  const [isWide, setIsWide] = useState(false);
   /** The opening line of each report sent while this panel was open. */
   const [sentReports, setSentReports] = useState<string[]>([]);
   const startedAtRef = useRef<number | null>(null);
@@ -412,6 +432,7 @@ export function GiveAiAppFeedbackDialog({
       setHere(place);
       setDraftPlace(place);
       setOpenCount(openCount + 1);
+      setIsWide(readWide());
       const hasDraft = Boolean(readFeedbackDraft(feedbackDraftKey(place)));
       setAuto(canCapture && !hasDraft ? { token: openCount + 1, status: 'capturing' } : null);
       setBridgeFailed(false);
@@ -1070,9 +1091,14 @@ export function GiveAiAppFeedbackDialog({
            in the capture phase and calls `stopImmediatePropagation`, so nothing
            the confirmation registers later could ever intercept it. */
         closeOnEscape={!isBusy && !pendingRemoveId && !shortcutsOpen && !isDiscardPending}
-        overlayClassname={clsx(s.overlay, placement === 'above' && s.overlayAbove, isBusy && s.overlayHidden)}
+        overlayClassname={clsx(
+          s.overlay,
+          placement === 'above' && s.overlayAbove,
+          isWide && s.overlayWide,
+          isBusy && s.overlayHidden,
+        )}
         overlayStyle={overlayStyle}
-        className={s.modalContainer}
+        className={clsx(s.modalContainer, isWide && s.modalContainerWide)}
       >
         <div className={s.root}>
           <div className={s.header}>
@@ -1097,6 +1123,18 @@ export function GiveAiAppFeedbackDialog({
                 }}
               >
                 Shortcuts
+              </button>
+              <button
+                type="button"
+                className={s.closeButton}
+                aria-label={isWide ? 'Narrower' : 'Wider'}
+                title={isWide ? 'Narrower' : 'Wider'}
+                onClick={() => {
+                  writeWide(!isWide);
+                  setIsWide(!isWide);
+                }}
+              >
+                {isWide ? <NarrowerIcon /> : <WiderIcon />}
               </button>
               <button type="button" className={s.closeButton} onClick={onClose} aria-label="Close">
                 <CloseIcon width={16} height={16} />
@@ -1184,197 +1222,203 @@ export function GiveAiAppFeedbackDialog({
                         event.stopPropagation();
                     }}
                   >
-                    {restoredSince !== null && worthKeeping && (
-                      <p className={s.draftNote}>
-                        Your unsent draft{' '}
-                        {isHere
-                          ? `for this ${here.screen ? 'screen' : appUid ? 'app' : 'page'}`
-                          : `started on ${placeLabel(draftPlace)}`}
-                        , kept in this browser since {formatDraftTime(restoredSince)}.
-                      </p>
-                    )}
-                    <FormSelect
-                      name="app"
-                      label="Which app is this about?"
-                      placeholder="Select an app…"
-                      options={appOptions}
-                      disabled={isAppsLoading}
-                      isRequired
-                      // Portalled + fixed so the menu escapes `.root`'s overflow mask and
-                      // `auto` can measure viewport space below the control. Forcing
-                      // `top` made the list open upward over the nav even though the
-                      // field sits at the top of this panel.
-                      menuPortalTarget={typeof document === 'undefined' ? null : document.body}
-                    />
-                    {submitAttempted && !watch('app') && <p className={s.fieldError}>Please select an app</p>}
-
-                    {pins.length > 0 && onEditPins && <PinSummary pins={pins} onEdit={onEditPins} />}
-
-                    <div className={s.shots}>
-                      <p className={s.fieldLabel}>
-                        Screenshots
-                        {shotCount > 0 && <span className={s.shotCount}> · {shotCount}</span>}
-                      </p>
-                      {auto?.status === 'capturing' && (
-                        <div className={clsx(s.shot, s.shotPending)} role="status" aria-label="Capturing the app">
-                          <span className={s.shotPendingText}>Capturing the app…</span>
-                          <div className={s.shotActions}>
-                            <button
-                              type="button"
-                              className={s.shotAction}
-                              aria-label="Remove screenshot"
-                              onClick={removeAutoChip}
-                            >
-                              <CloseIcon width={12} height={12} />
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                      {bridgeMissing && (
-                        <p className={s.shotNote}>
-                          This app is built on an older starter kit, so instant screenshots aren&apos;t available. Its
-                          author can update it to turn them on.
+                    <div className={s.formGroup}>
+                      {restoredSince !== null && worthKeeping && (
+                        <p className={s.draftNote}>
+                          Your unsent draft{' '}
+                          {isHere
+                            ? `for this ${here.screen ? 'screen' : appUid ? 'app' : 'page'}`
+                            : `started on ${placeLabel(draftPlace)}`}
+                          , kept in this browser since {formatDraftTime(restoredSince)}.
                         </p>
                       )}
-                      {auto?.status === 'failed' && screenshots.length === 0 && (
-                        <p className={s.shotNote}>Couldn’t capture the app automatically — add a screenshot below.</p>
-                      )}
-                      {screenshots.map((shot, index) => (
-                        <figure key={shot.id} className={s.shotFigure}>
-                          <div className={s.shot}>
-                            <button
-                              type="button"
-                              className={s.shotImage}
-                              aria-label={`Open screenshot ${index + 1}`}
-                              onClick={() => onEditShot(shot)}
-                            >
-                              {/* Marks show on the preview too, so nothing drawn is out of sight (prototype). */}
-                              {hasAnyAnnotation(shot.annotations) ? (
-                                <AnnotatedPreview
-                                  src={shot.imageDataUrl}
-                                  alt={`Screenshot ${index + 1}`}
-                                  annotations={shot.annotations}
-                                />
-                              ) : (
-                                <img src={shot.imageDataUrl} alt={`Screenshot ${index + 1}`} />
-                              )}
-                            </button>
+                      <FormSelect
+                        name="app"
+                        label="Which app is this about?"
+                        placeholder="Select an app…"
+                        options={appOptions}
+                        disabled={isAppsLoading}
+                        isRequired
+                        // Portalled + fixed so the menu escapes `.root`'s overflow mask and
+                        // `auto` can measure viewport space below the control. Forcing
+                        // `top` made the list open upward over the nav even though the
+                        // field sits at the top of this panel.
+                        menuPortalTarget={typeof document === 'undefined' ? null : document.body}
+                      />
+                      {submitAttempted && !watch('app') && <p className={s.fieldError}>Please select an app</p>}
+                    </div>
+
+                    <div className={clsx(s.formGroup, s.shotsColumn)}>
+                      {pins.length > 0 && onEditPins && <PinSummary pins={pins} onEdit={onEditPins} />}
+
+                      <div className={s.shots}>
+                        <p className={s.fieldLabel}>
+                          Screenshots
+                          {shotCount > 0 && <span className={s.shotCount}> · {shotCount}</span>}
+                        </p>
+                        {auto?.status === 'capturing' && (
+                          <div className={clsx(s.shot, s.shotPending)} role="status" aria-label="Capturing the app">
+                            <span className={s.shotPendingText}>Capturing the app…</span>
                             <div className={s.shotActions}>
                               <button
                                 type="button"
                                 className={s.shotAction}
-                                aria-label={`Annotate screenshot ${index + 1}`}
-                                onClick={() => onEditShot(shot)}
-                              >
-                                <PencilSimpleLineIcon width={12} height={12} />
-                                <span aria-hidden="true">Annotate</span>
-                              </button>
-                              <button
-                                type="button"
-                                className={s.shotAction}
-                                aria-label={`Remove screenshot ${index + 1}`}
-                                onClick={() => {
-                                  if (shot.source === 'auto') {
-                                    analytics.onFeedbackAutoShotRemoved({ appUid, whileCapturing: false });
-                                  }
-                                  requestRemoveShot(shot);
-                                }}
+                                aria-label="Remove screenshot"
+                                onClick={removeAutoChip}
                               >
                                 <CloseIcon width={12} height={12} />
                               </button>
                             </div>
                           </div>
-                          {shot.source === 'page' && <figcaption className={s.shotCaption}>Whole page</figcaption>}
-                          {shot.source === 'part' && (
-                            <figcaption className={s.shotCaption}>Part of the page</figcaption>
-                          )}
-                        </figure>
-                      ))}
-                      {canCapture ? (
-                        <div className={s.shotButtons}>
-                          <button
-                            type="button"
-                            className={s.screenshotButton}
-                            onClick={() => void onWholePage()}
-                            disabled={isPending || atShotLimit}
-                          >
-                            <CameraIcon />
-                            Whole page
-                          </button>
-                          <button
-                            type="button"
-                            className={s.screenshotButton}
-                            onClick={onPickPart}
-                            disabled={isPending || atShotLimit}
-                            aria-keyshortcuts={shortcuts.screenshotAria}
-                          >
-                            <CrosshairIcon />
-                            Pick a part
-                            <kbd className={s.kbd} aria-hidden="true">
-                              {shortcuts.screenshot}
-                            </kbd>
-                          </button>
-                        </div>
-                      ) : (
-                        <>
-                          <p className={s.screenshotHint}>{SCREENSHOT_HINTS[captureClosedBy ?? 'open']}</p>
+                        )}
+                        {bridgeMissing && (
+                          <p className={s.shotNote}>
+                            This app is built on an older starter kit, so instant screenshots aren&apos;t available. Its
+                            author can update it to turn them on.
+                          </p>
+                        )}
+                        {auto?.status === 'failed' && screenshots.length === 0 && (
+                          <p className={s.shotNote}>Couldn’t capture the app automatically — add a screenshot below.</p>
+                        )}
+                        {screenshots.map((shot, index) => (
+                          <figure key={shot.id} className={s.shotFigure}>
+                            <div className={s.shot}>
+                              <button
+                                type="button"
+                                className={s.shotImage}
+                                aria-label={`Open screenshot ${index + 1}`}
+                                onClick={() => onEditShot(shot)}
+                              >
+                                {/* Marks show on the preview too, so nothing drawn is out of sight (prototype). */}
+                                {hasAnyAnnotation(shot.annotations) ? (
+                                  <AnnotatedPreview
+                                    src={shot.imageDataUrl}
+                                    alt={`Screenshot ${index + 1}`}
+                                    annotations={shot.annotations}
+                                  />
+                                ) : (
+                                  <img src={shot.imageDataUrl} alt={`Screenshot ${index + 1}`} />
+                                )}
+                              </button>
+                              <div className={s.shotActions}>
+                                <button
+                                  type="button"
+                                  className={s.shotAction}
+                                  aria-label={`Annotate screenshot ${index + 1}`}
+                                  onClick={() => onEditShot(shot)}
+                                >
+                                  <PencilSimpleLineIcon width={12} height={12} />
+                                  <span aria-hidden="true">Annotate</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  className={s.shotAction}
+                                  aria-label={`Remove screenshot ${index + 1}`}
+                                  onClick={() => {
+                                    if (shot.source === 'auto') {
+                                      analytics.onFeedbackAutoShotRemoved({ appUid, whileCapturing: false });
+                                    }
+                                    requestRemoveShot(shot);
+                                  }}
+                                >
+                                  <CloseIcon width={12} height={12} />
+                                </button>
+                              </div>
+                            </div>
+                            {shot.source === 'page' && <figcaption className={s.shotCaption}>Whole page</figcaption>}
+                            {shot.source === 'part' && (
+                              <figcaption className={s.shotCaption}>Part of the page</figcaption>
+                            )}
+                          </figure>
+                        ))}
+                        {canCapture ? (
                           <div className={s.shotButtons}>
-                            {captureClosedBy ? (
-                              <>
+                            <button
+                              type="button"
+                              className={s.screenshotButton}
+                              onClick={() => void onWholePage()}
+                              disabled={isPending || atShotLimit}
+                            >
+                              <CameraIcon />
+                              Whole page
+                            </button>
+                            <button
+                              type="button"
+                              className={s.screenshotButton}
+                              onClick={onPickPart}
+                              disabled={isPending || atShotLimit}
+                              aria-keyshortcuts={shortcuts.screenshotAria}
+                            >
+                              <CrosshairIcon />
+                              Pick a part
+                              <kbd className={s.kbd} aria-hidden="true">
+                                {shortcuts.screenshot}
+                              </kbd>
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <p className={s.screenshotHint}>{SCREENSHOT_HINTS[captureClosedBy ?? 'open']}</p>
+                            <div className={s.shotButtons}>
+                              {captureClosedBy ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    className={s.screenshotButton}
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={isPending}
+                                    aria-keyshortcuts={shortcuts.screenshotAria}
+                                  >
+                                    <ImageIcon />
+                                    Attach image
+                                    <kbd className={s.kbd} aria-hidden="true">
+                                      {shortcuts.screenshot}
+                                    </kbd>
+                                  </button>
+                                  <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    className={s.fileInput}
+                                    onChange={onAttachImage}
+                                    aria-label="Attach image"
+                                  />
+                                </>
+                              ) : (
                                 <button
                                   type="button"
                                   className={s.screenshotButton}
-                                  onClick={() => fileInputRef.current?.click()}
+                                  onClick={onTakeScreenshot}
                                   disabled={isPending}
                                   aria-keyshortcuts={shortcuts.screenshotAria}
                                 >
-                                  <ImageIcon />
-                                  Attach image
+                                  <CameraIcon />
+                                  Take screenshot
                                   <kbd className={s.kbd} aria-hidden="true">
                                     {shortcuts.screenshot}
                                   </kbd>
                                 </button>
-                                <input
-                                  ref={fileInputRef}
-                                  type="file"
-                                  accept="image/*"
-                                  className={s.fileInput}
-                                  onChange={onAttachImage}
-                                  aria-label="Attach image"
-                                />
-                              </>
-                            ) : (
-                              <button
-                                type="button"
-                                className={s.screenshotButton}
-                                onClick={onTakeScreenshot}
-                                disabled={isPending}
-                                aria-keyshortcuts={shortcuts.screenshotAria}
-                              >
-                                <CameraIcon />
-                                Take screenshot
-                                <kbd className={s.kbd} aria-hidden="true">
-                                  {shortcuts.screenshot}
-                                </kbd>
-                              </button>
-                            )}
-                          </div>
-                        </>
-                      )}
-                      {atShotLimit && <p className={s.shotNote}>Up to {MAX_SCREENSHOTS} screenshots.</p>}
+                              )}
+                            </div>
+                          </>
+                        )}
+                        {atShotLimit && <p className={s.shotNote}>Up to {MAX_SCREENSHOTS} screenshots.</p>}
+                      </div>
                     </div>
 
-                    <FormEditor
-                      name="message"
-                      label="Your feedback"
-                      placeholder={FEEDBACK_PLACEHOLDER}
-                      simplified
-                      toolbarConfig={FEEDBACK_TOOLBAR}
-                      maxLength={MAX_LENGTH}
-                      showCharCount
-                      minHeight={120}
-                      className={s.editor}
-                    />
+                    <div className={s.writing}>
+                      <FormEditor
+                        name="message"
+                        label="Your feedback"
+                        placeholder={FEEDBACK_PLACEHOLDER}
+                        simplified
+                        toolbarConfig={FEEDBACK_TOOLBAR}
+                        maxLength={MAX_LENGTH}
+                        showCharCount
+                        minHeight={isWide ? 360 : 120}
+                        className={s.editor}
+                      />
+                    </div>
                   </div>
                 </FormProvider>
 
@@ -1502,7 +1546,7 @@ export function ShortcutHelp({
     {
       title: 'Feedback',
       rows: [
-        [shortcuts.open, 'Open feedback'],
+        [[shortcuts.open, shortcuts.openAlt], 'Open feedback'],
         [shortcuts.send, 'Send'],
         [shortcuts.send, 'Give more feedback, once sent'],
         ['Esc', 'Close'],
@@ -1604,6 +1648,34 @@ function CameraIcon() {
         d="M5.2 3.5 5.7 2.6A1 1 0 0 1 6.55 2.1h2.9a1 1 0 0 1 .85.5l.5.9H12.5A1.5 1.5 0 0 1 14 5v6.5A1.5 1.5 0 0 1 12.5 13h-9A1.5 1.5 0 0 1 2 11.5V5a1.5 1.5 0 0 1 1.5-1.5h1.7ZM8 11a2.75 2.75 0 1 0 0-5.5A2.75 2.75 0 0 0 8 11Z"
         stroke="currentColor"
         strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function WiderIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M2 8h12M5 5 2 8l3 3M11 5l3 3-3 3"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function NarrowerIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M1.5 8H6.5M9.5 8h5M3.5 5l3 3-3 3M12.5 5l-3 3 3 3"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
         strokeLinejoin="round"
       />
     </svg>

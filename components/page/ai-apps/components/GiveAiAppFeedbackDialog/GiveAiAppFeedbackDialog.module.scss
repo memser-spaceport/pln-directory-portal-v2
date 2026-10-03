@@ -60,6 +60,32 @@
   margin: 0;
 }
 
+// Wider: no longer anchored to the button but a drawer on the right edge, the
+// full height of the window, over the design system's modal scrim. Declared
+// after `.overlayAbove` so it wins over its padding and the .root max-height.
+.overlayWide {
+  align-items: stretch;
+  justify-content: flex-end;
+  padding: 0;
+  background: var(--transparent-dark-50, rgba(14, 15, 17, 0.5)) !important;
+
+  .root {
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
+  }
+}
+
+.modalContainer.modalContainerWide {
+  width: min(1120px, 80vw);
+  max-width: none;
+  height: 100%;
+
+  @include media.mobile-only {
+    width: 100%;
+  }
+}
+
 .root {
   display: flex;
   flex-direction: column;
@@ -145,6 +171,41 @@
   flex-direction: column;
   gap: 20px;
   overflow: visible;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+// Wider, from tablet up: screenshots on the left, the writing on the right.
+// A phone keeps the one column.
+@include media.tablet-portrait {
+  .overlayWide {
+    .form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows: auto 1fr;
+      gap: 20px 32px;
+      align-items: start;
+    }
+
+    .formGroup {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .shotsColumn {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+    }
+
+    .writing {
+      grid-column: 2;
+      grid-row: 2;
+    }
+  }
 }
 
 .editor {

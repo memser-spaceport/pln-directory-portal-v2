@@ -411,12 +411,16 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
   /* ---------- the feedback shortcut ---------- */
 
   /* Same rules as LabOS's own Alt+F: the physical key (Option+F types "ƒ" on a
-     Mac), and never while typing in one of the app's fields. */
+     Mac), and never while typing in one of the app's fields. ⌥⌘↩ types
+     nothing, so it is taken from a field too. */
   const onShortcutKey = (event: KeyboardEvent) => {
-    if (event.code !== 'KeyF' || !event.altKey || event.metaKey || event.ctrlKey || event.shiftKey) return;
     if (event.isComposing || event.repeat || event.defaultPrevented) return;
-    const target = event.target as HTMLElement | null;
-    if (target?.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName ?? '')) return;
+    const isChord = event.key === 'Enter' && (event.metaKey || event.ctrlKey) && event.altKey && !event.shiftKey;
+    if (!isChord) {
+      if (event.code !== 'KeyF' || !event.altKey || event.metaKey || event.ctrlKey || event.shiftKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName ?? '')) return;
+    }
     event.preventDefault();
     send({ type: 'shortcut:feedback' });
   };

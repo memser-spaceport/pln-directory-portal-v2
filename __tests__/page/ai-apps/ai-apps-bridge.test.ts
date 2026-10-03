@@ -455,6 +455,10 @@ describe('AI Apps bridge: locate (the feedback overlay)', () => {
     press(ctx.doc.body, { shiftKey: true });
     press(ctx.doc.body, { repeat: true });
     expect(shortcuts()).toBe(1);
+
+    /* ⌥⌘↩ too, and from a field: it types nothing. */
+    press(ctx.doc.getElementById('name')!, { key: 'Enter', code: 'Enter', metaKey: true });
+    expect(shortcuts()).toBe(2);
   });
 
   it('ignores locate from any other origin', () => {

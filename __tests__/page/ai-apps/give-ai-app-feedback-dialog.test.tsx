@@ -340,7 +340,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     });
   });
 
-  it('submits HTML feedback', async () => {
+  it('submits the note as markdown', async () => {
     mockUseAiApps.mockReturnValue({
       apps: [{ uid: 'app-1', name: 'My App' }],
       isLoading: false,
@@ -356,10 +356,41 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     await waitFor(() =>
       expect(mockMutate).toHaveBeenCalledWith(
-        { appUid: 'app-1', text: '<p><strong>Nice app!</strong></p>' },
+        { appUid: 'app-1', text: '**Nice app!**' },
         expect.objectContaining({ onSuccess: expect.any(Function) }),
       ),
     );
+  });
+
+  it('opens on Rich; Markdown shows the source of the same note, and switching back keeps it', () => {
+    mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+    const rich =
+      '<h2>Title</h2><ul><li>one</li></ul><p><a href="https://x.test">link</a> <img src="https://cdn.test/i.png" alt="pic"></p>';
+
+    expect(screen.getByRole('tab', { name: 'Rich' })).toHaveAttribute('aria-selected', 'true');
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: rich } });
+    fireEvent.click(screen.getByRole('tab', { name: 'Markdown' }));
+
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue(
+      '## Title\n\n- one\n\n[link](https://x.test) ![pic](https://cdn.test/i.png)',
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Rich' }));
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue(rich);
+  });
+
+  it('sends what is typed in Markdown as typed, < > and & included', async () => {
+    mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+    const source = '# Bug\n\na < b && c > d\n\n- one\n- two';
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Markdown' }));
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: source } });
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue(source);
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+    await waitFor(() => expect(mockMutate).toHaveBeenCalledWith({ appUid: 'app-1', text: source }, expect.any(Object)));
   });
 
   it('allows image-only feedback', async () => {
@@ -378,7 +409,7 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     await waitFor(() =>
       expect(mockMutate).toHaveBeenCalledWith(
-        { appUid: 'app-1', text: '<p><img src="https://cdn.test/shot.png" alt="shot"></p>' },
+        { appUid: 'app-1', text: '![shot](https://cdn.test/shot.png)' },
         expect.any(Object),
       ),
     );
@@ -430,7 +461,7 @@ describe('GiveAiAppFeedbackDialog', () => {
           topic: 'AI Apps Feedback',
           email: 'ada@example.com',
           name: 'Ada Lovelace',
-          message: 'Platform needs better docs',
+          message: '<p>Platform needs better docs</p>',
           metadata: {
             logged: true,
             uid: 'member-1',
@@ -462,7 +493,7 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     await waitFor(() =>
       expect(mockMutate).toHaveBeenCalledWith(
-        { appUid: 'app-1', text: '<p><img src="https://cdn.test/hosted.png"></p>' },
+        { appUid: 'app-1', text: '![](https://cdn.test/hosted.png)' },
         expect.any(Object),
       ),
     );
@@ -1522,9 +1553,15 @@ describe('GiveAiAppFeedbackDialog oversized submission', () => {
     clearFormDraft(AI_APP_FEEDBACK_DRAFT_KEY);
   });
 
+  /* In the Markdown view, where markup is kept as typed. */
+  const typeSource = (text: string) => {
+    fireEvent.click(screen.getByRole('tab', { name: 'Markdown' }));
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: text } });
+  };
+
   const submitText = async (text: string) => {
     render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
-    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: text } });
+    typeSource(text);
     fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
   };
 
@@ -1550,7 +1587,7 @@ describe('GiveAiAppFeedbackDialog oversized submission', () => {
   /* The editor's own limit cannot catch this: the visible text is two words. */
   it('is not caught by the visible-character limit', async () => {
     render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
-    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: bigDrawing } });
+    typeSource(bigDrawing);
 
     expect(screen.getByRole('button', { name: 'Send feedback' })).not.toBeDisabled();
   });

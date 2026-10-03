@@ -19,9 +19,16 @@ export type DraftPlace = {
   screen?: string;
 };
 
+export type NoteView = 'rich' | 'markdown';
+
 export type DraftWords = {
-  /** The text, with each pasted data-URI image replaced by `draft-image:N` (the Nth stored image). */
+  /**
+   * The note as markdown, with each pasted data-URI image replaced by `draft-image:N` (the Nth
+   * stored image). Quill HTML in a draft from before the views, which has no `view`.
+   */
   message: string;
+  /** The view the note was being written in. */
+  view?: NoteView;
   app?: { label: string; value: string } | null;
   place?: DraftPlace;
   /** Screenshots and text images kept in IndexedDB. */
@@ -89,22 +96,24 @@ export function listFeedbackDrafts(): SavedDraft[] {
   return drafts.sort((a, b) => b.savedAt - a.savedAt);
 }
 
-const DATA_URI_IMAGE = /(<img\b[^>]*?\bsrc=")(data:[^"]+)(")/gi;
-const DRAFT_IMAGE = /<img\b[^>]*?\bsrc="draft-image:(\d+)"[^>]*>/gi;
+/* As an `<img>` or a markdown image: drafts from before the markdown note hold Quill HTML. */
+const DATA_URI_IMAGE = /(<img\b[^>]*?\bsrc="|!\[[^\]]*\]\()(data:[^")\s]+)/gi;
+const DRAFT_IMAGE = /<img\b[^>]*?\bsrc="draft-image:(\d+)"[^>]*>|!\[[^\]]*\]\(draft-image:(\d+)\)/gi;
 
 /** Takes pasted images out of the text, so the words fit in localStorage. */
-export function packTextImages(html: string): { message: string; images: string[] } {
+export function packTextImages(text: string): { message: string; images: string[] } {
   const images: string[] = [];
-  const message = html.replace(DATA_URI_IMAGE, (_, open: string, src: string, close: string) => {
+  const message = text.replace(DATA_URI_IMAGE, (_, open: string, src: string) => {
     images.push(src);
-    return `${open}draft-image:${images.length - 1}${close}`;
+    return `${open}draft-image:${images.length - 1}`;
   });
   return { message, images };
 }
 
 /** Puts them back. An image that could not be read back is left out rather than shown broken. */
 export function unpackTextImages(message: string, images: string[]): string {
-  return message.replace(DRAFT_IMAGE, (tag, index: string) => {
+  return message.replace(DRAFT_IMAGE, (tag, htmlIndex?: string, markdownIndex?: string) => {
+    const index = htmlIndex ?? markdownIndex;
     const src = images[Number(index)];
     return src ? tag.replace(`draft-image:${index}`, src) : '';
   });

@@ -6,6 +6,7 @@ import {
   type RefObject,
   useCallback,
   useEffect,
+  useId,
   useLayoutEffect,
   useRef,
   useState,
@@ -67,6 +68,7 @@ import {
   type ElementPin,
 } from '../element-pins';
 import type { FeedbackContext, FeedbackPinInput } from '@/services/ai-app-feedback/ai-app-feedback.service';
+import { htmlToMarkdown, markdownToHtml } from '../../utils/feedbackMarkdown';
 
 import {
   discardFeedbackDraft,
@@ -79,6 +81,7 @@ import {
   writeFeedbackDraft,
   writeFeedbackPictures,
   type DraftPlace,
+  type NoteView,
   type SavedDraft,
 } from './feedbackDrafts';
 
@@ -137,9 +140,11 @@ interface Option {
   value: string;
 }
 
+/** The note is markdown. `rich` is what the Rich view's editor holds, `markdown` the Markdown view's source. */
 interface FormValues {
   app: Option | null;
-  message: string;
+  rich: string;
+  markdown: string;
 }
 
 const POPOVER_GAP = 8;
@@ -323,17 +328,29 @@ export function GiveAiAppFeedbackDialog({
   const canCapture = Boolean(capture);
 
   const getDefaults = useCallback(
-    (): FormValues => ({ app: getDefaultApp(appUid, appName), message: '' }),
+    (): FormValues => ({ app: getDefaultApp(appUid, appName), rich: '', markdown: '' }),
     [appUid, appName],
   );
 
   const methods = useForm<FormValues>({
     defaultValues: getDefaults(),
   });
-  const { handleSubmit, reset, watch } = methods;
-  const message = watch('message') ?? '';
+  const { handleSubmit, reset, watch, register, setValue } = methods;
+  const rich = watch('rich') ?? '';
+  const markdown = watch('markdown') ?? '';
   const app = watch('app');
-  const isOverLimit = visibleFeedbackLength(message) > MAX_LENGTH;
+  const [noteView, setNoteView] = useState<NoteView>('rich');
+  const note = noteView === 'rich' ? htmlToMarkdown(rich) : markdown;
+  const noteLength = visibleFeedbackLength(noteView === 'rich' ? rich : markdownToHtml(markdown));
+  const isOverLimit = noteLength > MAX_LENGTH;
+  const noteLabelId = useId();
+
+  const switchNoteView = (view: NoteView) => {
+    if (view === noteView) return;
+    if (view === 'markdown') setValue('markdown', note);
+    else setValue('rich', markdownToHtml(markdown));
+    setNoteView(view);
+  };
   const [isHostingImages, setIsHostingImages] = useState(false);
   const [screenshots, setScreenshots] = useState<ScreenshotAttachment[]>([]);
   const [freezeSrc, setFreezeSrc] = useState<string | null>(null);
@@ -511,13 +528,20 @@ export function GiveAiAppFeedbackDialog({
     const saved = readFeedbackDraft(key);
     const ticket = ++loadTicketRef.current;
     const since = saved ? (saved.startedAt ?? saved.savedAt) : null;
-    const values: FormValues = { app: saved?.app ?? getDefaults().app, message: '' };
+    const values: FormValues = { ...getDefaults(), app: saved?.app ?? getDefaults().app };
+    /* A draft from before the views holds Quill HTML, which the Rich view takes as it is. */
+    const withNote = (images: string[]): FormValues => {
+      const text = unpackTextImages(saved?.message ?? '', images);
+      if (saved?.view === 'markdown') return { ...values, markdown: text };
+      return { ...values, rich: saved?.view ? markdownToHtml(text) : text };
+    };
     setDraftPlace(place);
     setLoadedKey(null);
     setRestoredSince(since);
+    setNoteView(saved?.view ?? 'rich');
     startedAtRef.current = since;
     if (!saved?.pictures) {
-      reset({ ...values, message: unpackTextImages(saved?.message ?? '', []) });
+      reset(withNote([]));
       if (saved) setScreenshots([]);
       setLoadedKey(key);
       return;
@@ -526,7 +550,7 @@ export function GiveAiAppFeedbackDialog({
     setScreenshots([]);
     void readFeedbackPictures(key).then((pictures) => {
       if (ticket !== loadTicketRef.current) return;
-      reset({ ...values, message: unpackTextImages(saved.message, pictures?.images ?? []) });
+      reset(withNote(pictures?.images ?? []));
       setScreenshots(pictures?.shots ?? []);
       setLoadedKey(key);
     });
@@ -542,12 +566,12 @@ export function GiveAiAppFeedbackDialog({
   /* Words, a screenshot they added, or marks on one. The automatic screenshot alone is not a
      draft, but once there is one it is kept with the rest. */
   const worthKeeping =
-    hasFeedbackContent(message) ||
+    hasFeedbackContent(note) ||
     screenshots.some((shot) => shot.source !== 'auto' || hasAnyAnnotation(shot.annotations));
 
   useEffect(() => {
     if (!isOpen || loadedKey !== draftKey) return;
-    const { message: packed, images } = packTextImages(message);
+    const { message: packed, images } = packTextImages(note);
     if (worthKeeping) startedAtRef.current ??= Date.now();
     else startedAtRef.current = null;
     writeFeedbackDraft(
@@ -555,6 +579,7 @@ export function GiveAiAppFeedbackDialog({
       worthKeeping
         ? {
             message: packed,
+            view: noteView,
             app,
             place: draftPlace,
             pictures: screenshots.length + images.length,
@@ -570,7 +595,7 @@ export function GiveAiAppFeedbackDialog({
     if (last?.key === draftKey && last.shots === shots && isSameList(last.images, kept)) return;
     keptPicturesRef.current = { key: draftKey, shots, images: kept };
     void writeFeedbackPictures(draftKey, { shots, images: kept });
-  }, [isOpen, loadedKey, draftKey, draftPlace, message, app, screenshots, worthKeeping]);
+  }, [isOpen, loadedKey, draftKey, draftPlace, note, noteView, app, screenshots, worthKeeping]);
 
   useEffect(() => {
     if (isOpen) setOtherDrafts(listFeedbackDrafts().filter((draft) => draft.key !== draftKey));
@@ -874,10 +899,11 @@ export function GiveAiAppFeedbackDialog({
 
   const pendingRemoveShot = pendingRemoveId ? screenshots.find((shot) => shot.id === pendingRemoveId) : undefined;
 
-  const onSubmit = handleSubmit(async ({ app, message: rawMessage }) => {
+  const onSubmit = handleSubmit(async ({ app }) => {
     setSubmitAttempted(true);
-    let trimmedMessage = (rawMessage ?? '').trim();
-    const opening = firstLine(trimmedMessage);
+    /* Not trimmed at the start: leading spaces can mean something in markdown. */
+    let trimmedMessage = note.trimEnd();
+    const opening = firstLine(markdownToHtml(trimmedMessage));
 
     if (!app?.value || !hasFeedbackContent(trimmedMessage, screenshots.length + pins.length)) {
       return;
@@ -895,13 +921,15 @@ export function GiveAiAppFeedbackDialog({
     try {
       setIsHostingImages(true);
       trimmedMessage = await hostDataUriImages(trimmedMessage);
-      if (!isHere) trimmedMessage += `<p>Started on ${escapeHtml(placeLabel(draftPlace))}</p>`;
-      trimmedMessage = await appendScreenshots(trimmedMessage, screenshots);
+      /* The rest follows the note as HTML blocks, which markdown carries as they are. */
+      let attached = isHere ? '' : `<p>Started on ${escapeHtml(placeLabel(draftPlace))}</p>`;
+      attached = await appendScreenshots(attached, screenshots);
       if (pins.length > 0) {
         const crops = await hostPinCrops(pins);
-        trimmedMessage = appendPinsHtml(trimmedMessage, pins, crops);
+        attached = appendPinsHtml(attached, pins, crops);
         if (isAboutThisApp) pinInputs = toPinInputs(pins, crops, context?.env ?? 'prod');
       }
+      trimmedMessage = [trimmedMessage, attached].filter(Boolean).join('\n\n');
     } catch {
       toast.error('Image upload failed. Please try again.');
       return;
@@ -937,7 +965,8 @@ export function GiveAiAppFeedbackDialog({
           topic: 'AI Apps Feedback',
           email,
           name,
-          message: trimmedMessage,
+          /* Support reads it as an email, which shows markdown as plain text. */
+          message: markdownToHtml(trimmedMessage),
           metadata: {
             logged: Boolean(currentUser),
             uid: currentUser?.uid || '',
@@ -1196,7 +1225,9 @@ export function GiveAiAppFeedbackDialog({
                       {otherDrafts.map((draft) => (
                         <li key={draft.key}>
                           <button type="button" className={s.draftRow} onClick={() => openDraft(draft)}>
-                            <span className={s.draftTitle}>{firstLine(draft.message) || 'No words yet'}</span>
+                            <span className={s.draftTitle}>
+                              {firstLine(draft.view ? markdownToHtml(draft.message) : draft.message) || 'No words yet'}
+                            </span>
                             <span className={s.draftMeta}>
                               {placeLabel(draft.place ?? {})} · {formatDraftTime(draft.savedAt)}
                               {draft.pictures
@@ -1407,17 +1438,47 @@ export function GiveAiAppFeedbackDialog({
                     </div>
 
                     <div className={s.writing}>
-                      <FormEditor
-                        name="message"
-                        label="Your feedback"
-                        placeholder={FEEDBACK_PLACEHOLDER}
-                        simplified
-                        toolbarConfig={FEEDBACK_TOOLBAR}
-                        maxLength={MAX_LENGTH}
-                        showCharCount
-                        minHeight={isWide ? 360 : 120}
-                        className={s.editor}
-                      />
+                      <div className={s.noteHeader}>
+                        <p className={s.fieldLabel} id={noteLabelId}>
+                          Your feedback
+                        </p>
+                        <div className={s.noteViews} role="tablist" aria-label="Show the note as">
+                          {(['rich', 'markdown'] as const).map((view) => (
+                            <button
+                              key={view}
+                              type="button"
+                              role="tab"
+                              aria-selected={noteView === view}
+                              className={clsx(s.noteView, noteView === view && s.noteViewActive)}
+                              onClick={() => switchNoteView(view)}
+                            >
+                              {view === 'rich' ? 'Rich' : 'Markdown'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      {noteView === 'rich' ? (
+                        <FormEditor
+                          name="rich"
+                          placeholder={FEEDBACK_PLACEHOLDER}
+                          simplified
+                          toolbarConfig={FEEDBACK_TOOLBAR}
+                          markdownShortcuts
+                          minHeight={isWide ? 360 : 120}
+                          className={s.editor}
+                        />
+                      ) : (
+                        <textarea
+                          {...register('markdown')}
+                          aria-labelledby={noteLabelId}
+                          placeholder={FEEDBACK_PLACEHOLDER}
+                          className={s.noteSource}
+                          style={{ minHeight: isWide ? 402 : 162 }}
+                        />
+                      )}
+                      <span className={clsx(s.noteCount, isOverLimit && s.noteCountOver)}>
+                        {noteLength} / {MAX_LENGTH}
+                      </span>
                     </div>
                   </div>
                 </FormProvider>

@@ -592,8 +592,20 @@ describe('drafts', () => {
     expect(screen.queryByText('Discard this draft?')).not.toBeInTheDocument();
     reopen();
     await flush();
-    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('Half a thought');
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('<p>Half a thought</p>');
     expect(screen.getByText(/Your unsent draft for this screen, kept in this browser since/)).toBeInTheDocument();
+  });
+
+  it('restores the note in the view it was written in', async () => {
+    const { reopen } = renderAt('/orders');
+    fireEvent.click(screen.getByRole('tab', { name: 'Markdown' }));
+    typeFeedback('**Half** a thought');
+
+    reopen();
+    await flush();
+
+    expect(screen.getByRole('tab', { name: 'Markdown' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('**Half** a thought');
   });
 
   it('Esc closes and keeps the draft', () => {
@@ -643,7 +655,9 @@ describe('drafts', () => {
     reopen();
     await flush();
 
-    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue(`<p>See</p><p><img src="${SHOT_B}"></p>`);
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue(
+      `<p>See</p><p><img src="${SHOT_B}" alt=""></p>`,
+    );
   });
 
   it('is per screen: another screen of the app starts empty and lists this one under Drafts', async () => {
@@ -670,7 +684,7 @@ describe('drafts', () => {
     fireEvent.click(screen.getByText('About orders'));
     await flush();
 
-    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('About orders');
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('<p>About orders</p>');
     expect(screen.getByText(/Your unsent draft started on My App · \/orders/)).toBeInTheDocument();
     expect(window.localStorage.getItem(`${DRAFT_KEY}:/settings`)).toContain('About settings');
     expect(screen.getByRole('button', { name: 'Drafts · 1' })).toBeInTheDocument();

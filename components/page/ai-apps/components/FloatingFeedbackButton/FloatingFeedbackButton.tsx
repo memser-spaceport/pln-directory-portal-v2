@@ -4,10 +4,16 @@ import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { clsx } from 'clsx';
 import { usePermissions } from '@/services/rbac/hooks/usePermissions';
 import { canViewAiApps } from '@/services/rbac/utils/aiApps/canViewAiApps';
+import { SHOW_AI_APPS_COMMENTS } from '@/services/ai-apps/constants';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { CommentIcon } from '@/components/icons';
-import { isOpenFeedbackChord, useShortcutLabels } from '@/components/page/ai-apps/shortcutKeys';
-import { GiveAiAppFeedbackDialog, type FeedbackDialogHandle } from '../GiveAiAppFeedbackDialog';
+import {
+  isAnyDialogOpen,
+  isOpenFeedbackKey,
+  isShortcutsKey,
+  useShortcutLabels,
+} from '@/components/page/ai-apps/shortcutKeys';
+import { GiveAiAppFeedbackDialog, ShortcutHelp, type FeedbackDialogHandle } from '../GiveAiAppFeedbackDialog';
 import { FeedbackTabs } from '../FeedbackTabs/FeedbackTabs';
 import { PinOverlay, PinPanel, type ElementPinsController } from '../element-pins';
 import type { FeedbackContext } from '@/services/ai-app-feedback/ai-app-feedback.service';
@@ -76,8 +82,6 @@ export function FloatingFeedbackButton(props: Props) {
   return <FeedbackFab key={props.appUid ?? 'list'} {...props} />;
 }
 
-type SubmittedApp = { label: string; value: string };
-
 function FeedbackFab({
   appUid,
   appName,
@@ -92,12 +96,9 @@ function FeedbackFab({
   const [isOpen, setIsOpen] = useState(false);
   const [isPinMode, setIsPinMode] = useState(false);
   const [activePinId, setActivePinId] = useState<string | null>(null);
-  const canPin = Boolean(appUid && elementPins?.status === 'ready');
+  const canPin = SHOW_AI_APPS_COMMENTS && Boolean(appUid && elementPins?.status === 'ready');
   const [isCollapsed, setIsCollapsed] = useState(false);
-  /** App from the last successful send. The next open-shortcut consumes it. */
-  const [reopenApp, setReopenApp] = useState<SubmittedApp | null>(null);
-  /** Prefill for the open that the shortcut just started. A button click leaves this empty. */
-  const [shortcutApp, setShortcutApp] = useState<SubmittedApp | null>(null);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const introStartedAtRef = useRef<number | null>(null);
   const analytics = useAiAppsAnalytics();
@@ -145,7 +146,6 @@ function FeedbackFab({
       openPinMode();
       return;
     }
-    setShortcutApp(null);
     analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
     setIsOpen(true);
   }, [canPin, commentsAvailable, openPinMode, analytics, appUid, appName]);
@@ -155,7 +155,6 @@ function FeedbackFab({
   const [seenFeedbackRequest, setSeenFeedbackRequest] = useState(feedbackRequest);
   if (feedbackRequest !== seenFeedbackRequest) {
     setSeenFeedbackRequest(feedbackRequest);
-    setShortcutApp(null);
     setIsOpen(true);
   }
 
@@ -196,46 +195,28 @@ function FeedbackFab({
     }
   }
 
+  /* The open form owns its keys, `?` included. */
   useEffect(() => {
-    if (!isVisible || isOpen || isPinMode) return;
+    if (!isVisible || isOpen || isPinMode || shortcutsOpen) return;
 
     const onKey = (event: KeyboardEvent) => {
-      if (!isOpenFeedbackChord(event)) return;
+      if (isShortcutsKey(event) && !isAnyDialogOpen()) {
+        event.preventDefault();
+        analytics.onFeedbackShortcutsHelpOpened();
+        setShortcutsOpen(true);
+        return;
+      }
+      if (!isOpenFeedbackKey(event)) return;
       event.preventDefault();
       analytics.onFeedbackShortcutUsed({ action: 'open' });
-      if (inCommentMode) {
-        commentMode?.onClose();
-        return;
-      }
-      if (canPin && !commentsAvailable && !reopenApp) {
-        openPinMode();
-        return;
-      }
-      const prefill = reopenApp;
-      setShortcutApp(prefill);
-      setReopenApp(null);
-      const uid = prefill?.value ?? appUid;
-      const name = prefill?.label ?? appName;
-      analytics.onFeedbackDialogOpened(uid ? { appUid: uid, appName: name } : {});
-      setIsOpen(true);
+      /* What the button does while the form is closed. */
+      if (inCommentMode) commentMode?.onClose();
+      else startFeedback();
     };
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [
-    isVisible,
-    isOpen,
-    isPinMode,
-    canPin,
-    commentsAvailable,
-    inCommentMode,
-    openPinMode,
-    reopenApp,
-    appUid,
-    appName,
-    analytics,
-    commentMode,
-  ]);
+  }, [isVisible, isOpen, isPinMode, shortcutsOpen, inCommentMode, commentMode, startFeedback, analytics]);
 
   if (!isVisible) {
     return null;
@@ -296,7 +277,6 @@ function FeedbackFab({
           onUseScreenshot={() => {
             elementPins.clearPins();
             leavePinMode();
-            setShortcutApp(null);
             analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
             setIsOpen(true);
           }}
@@ -327,14 +307,15 @@ function FeedbackFab({
               }
             : undefined
         }
-        onSubmitted={setReopenApp}
         getContext={getContext}
-        appUid={shortcutApp?.value ?? appUid}
-        appName={shortcutApp?.label ?? appName}
+        appUid={appUid}
+        appName={appName}
         anchorRef={wrapRef}
         placement="above"
         /* Instant screenshots: the app's bridge takes the picture, no screen-share prompt. */
         capture={elementPins?.canCapture ? elementPins.capture : undefined}
+        /* The bridge never answered: an app built before it (kit < 1.15). */
+        bridgeMissing={elementPins?.status === 'unavailable'}
         frameRef={iframeRef}
         headerTabs={
           commentsAvailable ? (
@@ -352,6 +333,8 @@ function FeedbackFab({
           ) : undefined
         }
       />
+
+      <ShortcutHelp isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} shortcuts={shortcuts} />
     </>
   );
 }

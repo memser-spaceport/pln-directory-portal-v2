@@ -29,7 +29,11 @@ import {
   DeleteAiAppDialog,
   AiAppDetailsModal,
 } from '@/components/page/ai-apps/dynamicActionModals';
-import { SHOW_AI_APPS_ELEMENT_PINS, SHOW_AI_APPS_FEEDBACK_OVERLAY } from '@/services/ai-apps/constants';
+import {
+  SHOW_AI_APPS_COMMENTS,
+  SHOW_AI_APPS_ELEMENT_PINS,
+  SHOW_AI_APPS_FEEDBACK_OVERLAY,
+} from '@/services/ai-apps/constants';
 import { BRIDGE_VERSION } from '@/ai-apps-bridge/protocol';
 import type { FeedbackContext } from '@/services/ai-app-feedback/ai-app-feedback.service';
 import { useAppFeedbackPins } from '@/services/ai-app-feedback/hooks/useAppFeedbackPins';
@@ -432,7 +436,8 @@ export function AiAppDetailPage(props: Props) {
   // when signed out: these are authenticated requests (customFetch reloads on a
   // missing session).
   const canManageApp = !!app && (app.canManage ?? (!!currentUser?.uid && currentUser.uid === app.member?.uid));
-  const overlayScope: 'all' | null = !SHOW_AI_APPS_FEEDBACK_OVERLAY || !app || !currentUser?.uid ? null : 'all';
+  const overlayScope: 'all' | null =
+    !SHOW_AI_APPS_COMMENTS || !SHOW_AI_APPS_FEEDBACK_OVERLAY || !app || !currentUser?.uid ? null : 'all';
   // Comment mode (prototype `CommentLayer`): the feedback button toggles it; pins
   // are only drawn while it is on. Needs the app's bridge, and a running frame.
   const [commentModeOn, setCommentModeOn] = useState(false);

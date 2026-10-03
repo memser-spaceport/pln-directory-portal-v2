@@ -3,6 +3,14 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { FloatingFeedbackButton } from '@/components/page/ai-apps/components/FloatingFeedbackButton';
 
 const mockUsePermissions = jest.fn();
+let mockShowComments = false;
+
+jest.mock('@/services/ai-apps/constants', () => ({
+  ...jest.requireActual('@/services/ai-apps/constants'),
+  get SHOW_AI_APPS_COMMENTS() {
+    return mockShowComments;
+  },
+}));
 /* The form's close guard. By default nothing is unsent, so the host's close runs at once. */
 const mockRequestClose = jest.fn((close: () => void) => close());
 
@@ -16,12 +24,13 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
     anchorRef,
     placement,
     appName,
-    onSubmitted,
     onClose,
     headerTabs,
     capture,
+    bridgeMissing,
     ref,
   }: {
+    bridgeMissing?: boolean;
     ref?: React.Ref<{ requestClose: (close: () => void) => void }>;
     capture?: () => Promise<unknown>;
     headerTabs?: React.ReactNode;
@@ -29,23 +38,25 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
     anchorRef?: { current: HTMLElement | null };
     placement?: string;
     appName?: string;
-    onSubmitted?: (app: { label: string; value: string }) => void;
     onClose?: () => void;
   }) => {
     require('react').useImperativeHandle(ref, () => ({ requestClose: mockRequestClose }));
     return isOpen ? (
-      <div data-placement={placement} data-app-name={appName ?? ''} data-capture={capture ? 'bridge' : 'none'}>
+      <div
+        data-placement={placement}
+        data-app-name={appName ?? ''}
+        data-capture={capture ? 'bridge' : 'none'}
+        data-bridge-missing={bridgeMissing ? 'true' : 'false'}
+      >
         {headerTabs}
         {anchorRef?.current ? 'Feedback dialog open' : 'Feedback dialog unanchored'}
-        <button type="button" onClick={() => onSubmitted?.({ label: 'Chosen App', value: 'chosen-app' })}>
-          Complete submit
-        </button>
         <button type="button" onClick={() => onClose?.()}>
           Close feedback
         </button>
       </div>
     ) : null;
   },
+  ShortcutHelp: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div role="dialog">Keyboard shortcuts</div> : null),
 }));
 
 const withAccess = () => mockUsePermissions.mockReturnValue({ permsSet: new Set(['ai_apps.read']), isLoading: false });
@@ -188,40 +199,90 @@ describe('FloatingFeedbackButton', () => {
   });
 
   describe('keyboard shortcuts', () => {
-    const openChord = () => fireEvent.keyDown(window, { key: 'Enter', ctrlKey: true, altKey: true });
+    /* Option+F on a Mac reports key "ƒ"; the physical key is what counts. */
+    const openChord = (init: Partial<KeyboardEventInit> = {}, target: Window | Element = window) =>
+      fireEvent.keyDown(target, { key: 'ƒ', code: 'KeyF', altKey: true, ...init });
 
-    it('opens from the shortcut, and shows it on the trigger', () => {
+    it('opens from Alt+F, and shows it on the trigger', () => {
       withAccess();
 
       render(<FloatingFeedbackButton />);
 
-      expect(screen.getByRole('button', { name: 'Give feedback' })).toHaveAttribute(
-        'aria-keyshortcuts',
-        expect.stringMatching(/Enter/),
-      );
+      expect(screen.getByRole('button', { name: 'Give feedback' })).toHaveAttribute('aria-keyshortcuts', 'Alt+F');
+      expect(screen.getByText('Alt+F', { selector: 'kbd' })).toBeInTheDocument();
       openChord();
 
       expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', '');
     });
 
-    it('reopens the submitted app once, then returns to the picker', () => {
+    it('no longer opens from the old chord', () => {
       withAccess();
 
       render(<FloatingFeedbackButton />);
-      openChord();
-      fireEvent.click(screen.getByRole('button', { name: 'Complete submit' }));
-      fireEvent.click(screen.getByRole('button', { name: 'Close feedback' }));
+      fireEvent.keyDown(window, { key: 'Enter', ctrlKey: true, altKey: true });
 
-      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
-      expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', '');
-      fireEvent.click(screen.getByRole('button', { name: 'Close feedback' }));
+      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
+    });
 
-      openChord();
-      expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', 'Chosen App');
-      fireEvent.click(screen.getByRole('button', { name: 'Close feedback' }));
+    it.each([
+      ['with Ctrl', { ctrlKey: true }],
+      ['with Shift', { shiftKey: true }],
+      ['during IME composition', { isComposing: true }],
+      ['on key repeat', { repeat: true }],
+    ])('ignores Alt+F %s', (_, init) => {
+      withAccess();
 
+      render(<FloatingFeedbackButton />);
+      openChord(init);
+
+      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
+    });
+
+    it('ignores Alt+F while typing in a field', () => {
+      withAccess();
+
+      render(
+        <>
+          <input aria-label="Search" />
+          <FloatingFeedbackButton />
+        </>,
+      );
+      openChord({}, screen.getByRole('textbox', { name: 'Search' }));
+
+      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
+    });
+
+    it('ignores Alt+F while another dialog is open', () => {
+      withAccess();
+
+      render(
+        <>
+          <div role="dialog" aria-label="Edit app" />
+          <FloatingFeedbackButton />
+        </>,
+      );
       openChord();
-      expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', '');
+
+      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
+    });
+
+    it('opens the keyboard shortcuts on ?, outside text fields', () => {
+      withAccess();
+
+      render(
+        <>
+          <input aria-label="Search" />
+          <FloatingFeedbackButton />
+        </>,
+      );
+      fireEvent.keyDown(screen.getByRole('textbox', { name: 'Search' }), { key: '?', shiftKey: true });
+      expect(screen.queryByText('Keyboard shortcuts')).not.toBeInTheDocument();
+
+      fireEvent.keyDown(window, { key: '?', shiftKey: true });
+
+      expect(screen.getByText('Keyboard shortcuts')).toBeInTheDocument();
+      openChord();
+      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
     });
 
     it('opens a detail page on that page’s app', () => {
@@ -269,7 +330,51 @@ describe('FloatingFeedbackButton', () => {
       }) as any;
     const iframeRef = { current: null };
 
+    afterEach(() => {
+      mockShowComments = false;
+    });
+
+    it('opens the form, not pin mode, while comments are off', () => {
+      withAccess();
+      const pins = { ...controller('ready'), canCapture: true, capture: jest.fn() };
+      render(<FloatingFeedbackButton appUid="app-1" appName="My App" elementPins={pins} iframeRef={iframeRef} />);
+
+      expect(screen.getByRole('button', { name: 'Give feedback' })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+
+      expect(screen.getByText('Feedback dialog open').closest('[data-capture]')).toHaveAttribute(
+        'data-capture',
+        'bridge',
+      );
+      expect(screen.queryByRole('complementary', { name: 'Pin feedback' })).not.toBeInTheDocument();
+      expect(pins.startPicking).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['unavailable', 'true'],
+      ['ready', 'false'],
+      ['waiting', 'false'],
+    ] as const)('tells the form the bridge is missing only when it never answered (%s)', (status, missing) => {
+      withAccess();
+      render(
+        <FloatingFeedbackButton
+          appUid="app-1"
+          appName="My App"
+          elementPins={controller(status)}
+          iframeRef={iframeRef}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+
+      expect(screen.getByText('Feedback dialog open').closest('[data-bridge-missing]')).toHaveAttribute(
+        'data-bridge-missing',
+        missing,
+      );
+    });
+
     it('opens pin mode and starts picking when the app answered — no dialog', () => {
+      mockShowComments = true;
       withAccess();
       const pins = controller('ready');
       render(<FloatingFeedbackButton appUid="app-1" appName="My App" elementPins={pins} iframeRef={iframeRef} />);
@@ -306,7 +411,20 @@ describe('FloatingFeedbackButton', () => {
       expect(pins.startPicking).not.toHaveBeenCalled();
     });
 
+    it('Alt+F opens pin mode too, as the button does', () => {
+      mockShowComments = true;
+      withAccess();
+      const pins = controller('ready');
+      render(<FloatingFeedbackButton appUid="app-1" appName="My App" elementPins={pins} iframeRef={iframeRef} />);
+
+      fireEvent.keyDown(window, { key: 'ƒ', code: 'KeyF', altKey: true });
+
+      expect(screen.getByRole('complementary', { name: 'Pin feedback' })).toBeInTheDocument();
+      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
+    });
+
     it('Continue hands over to the dialog; closing the dialog ends the pin session', () => {
+      mockShowComments = true;
       withAccess();
       const pin = {
         id: 'pin-1',
@@ -331,7 +449,7 @@ describe('FloatingFeedbackButton', () => {
   });
 
   describe('feedback & comments (one panel, two tabs)', () => {
-    const openChord = () => fireEvent.keyDown(window, { key: 'Enter', ctrlKey: true, altKey: true });
+    const openChord = () => fireEvent.keyDown(window, { key: 'ƒ', code: 'KeyF', altKey: true });
     const comments = (overrides: Partial<{ active: boolean; count: number; feedbackRequest: number }> = {}) => ({
       available: true,
       active: false,

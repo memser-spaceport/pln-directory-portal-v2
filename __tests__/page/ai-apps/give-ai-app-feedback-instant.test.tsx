@@ -297,6 +297,14 @@ describe('adding screenshots', () => {
     expect(requestTabCapture).not.toHaveBeenCalled();
   });
 
+  it('shows the screenshot shortcut on Pick a part, not on Whole page', async () => {
+    renderDialog(jest.fn().mockResolvedValue(shot(SHOT_A)));
+    await flush();
+
+    expect(screen.getByRole('button', { name: 'Pick a part' })).toHaveTextContent('Ctrl+Shift+S');
+    expect(screen.getByRole('button', { name: 'Whole page' })).not.toHaveTextContent('Ctrl+Shift+S');
+  });
+
   it('Pick a part cuts the dragged rectangle out of the capture, in its pixels', async () => {
     /* jsdom never loads images: this one "loads" at twice the viewport (a DPR 2 capture). */
     const OriginalImage = window.Image;

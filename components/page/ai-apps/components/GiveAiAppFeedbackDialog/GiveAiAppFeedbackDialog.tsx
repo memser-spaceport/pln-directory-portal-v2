@@ -32,6 +32,7 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import {
   isScreenshotChord,
   isSendChord,
+  isShortcutsKey,
   useShortcutLabels,
   type ShortcutLabels,
 } from '@/components/page/ai-apps/shortcutKeys';
@@ -133,8 +134,6 @@ type Placement = 'below' | 'above';
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  /** Fired after a successful send, with the app that was submitted. */
-  onSubmitted?: (app: Option) => void;
   /** When provided (app detail page), preselects this app in the picker. */
   appUid?: string;
   appName?: string;
@@ -170,6 +169,8 @@ interface Props {
   capture?: () => Promise<AppCapture>;
   /** The app frame, for Pick a part (the drag counts over it). */
   frameRef?: RefObject<HTMLIFrameElement | null>;
+  /** The app has no bridge (older starter kit), so it misses instant screenshots. */
+  bridgeMissing?: boolean;
   /** For a host that closes the form itself (the button, the Comment tab): see `FeedbackDialogHandle`. */
   ref?: Ref<FeedbackDialogHandle>;
 }
@@ -235,7 +236,6 @@ function getDefaultApp(appUid?: string, appName?: string): Option | null {
 export function GiveAiAppFeedbackDialog({
   isOpen,
   onClose,
-  onSubmitted,
   appUid,
   appName,
   anchorRef,
@@ -246,6 +246,7 @@ export function GiveAiAppFeedbackDialog({
   headerTabs,
   capture,
   frameRef,
+  bridgeMissing = false,
   ref,
 }: Props) {
   const { currentUser } = useCurrentUserStore();
@@ -794,7 +795,6 @@ export function GiveAiAppFeedbackDialog({
         },
         {
           onSuccess: () => {
-            onSubmitted?.(app);
             onSubmitSuccess();
           },
         },
@@ -819,7 +819,6 @@ export function GiveAiAppFeedbackDialog({
             ...(pins.length > 0 ? { pinCount: pins.length } : {}),
           });
           toast.success('Thanks for your feedback!');
-          onSubmitted?.(app);
           onSubmitSuccess();
         },
         onError: (error: unknown) => {
@@ -868,6 +867,14 @@ export function GiveAiAppFeedbackDialog({
         return;
       }
 
+      if (isShortcutsKey(event)) {
+        if (isBusy || closeAfterDiscard) return;
+        event.preventDefault();
+        analytics.onFeedbackShortcutsHelpOpened();
+        setShortcutsOpen(true);
+        return;
+      }
+
       if (isScreenshotChord(event)) {
         event.preventDefault();
         event.stopImmediatePropagation();
@@ -896,6 +903,7 @@ export function GiveAiAppFeedbackDialog({
     isOpen,
     shortcutsOpen,
     pendingRemoveId,
+    closeAfterDiscard,
     isBusy,
     isPending,
     isOverLimit,
@@ -950,7 +958,13 @@ export function GiveAiAppFeedbackDialog({
 
           <div className={s.content}>
             <FormProvider {...methods}>
-              <div className={s.form}>
+              <div
+                className={s.form}
+                onKeyDownCapture={(event) => {
+                  /* Kept from Quill, which would type a tab: Tab moves to the next field. */
+                  if (event.key === 'Tab' && (event.target as HTMLElement).isContentEditable) event.stopPropagation();
+                }}
+              >
                 <FormSelect
                   name="app"
                   label="Which app is this about?"
@@ -987,6 +1001,12 @@ export function GiveAiAppFeedbackDialog({
                         </button>
                       </div>
                     </div>
+                  )}
+                  {bridgeMissing && (
+                    <p className={s.shotNote}>
+                      This app is built on an older starter kit, so instant screenshots aren&apos;t available. Its
+                      author can update it to turn them on.
+                    </p>
                   )}
                   {auto?.status === 'failed' && screenshots.length === 0 && (
                     <p className={s.shotNote}>Couldn’t capture the app automatically — add a screenshot below.</p>
@@ -1073,6 +1093,9 @@ export function GiveAiAppFeedbackDialog({
                       >
                         <CrosshairIcon />
                         Pick a part
+                        <kbd className={s.kbd} aria-hidden="true">
+                          {shortcuts.screenshot}
+                        </kbd>
                       </button>
                     </div>
                   ) : (
@@ -1218,7 +1241,7 @@ export function GiveAiAppFeedbackDialog({
   );
 }
 
-function ShortcutHelp({
+export function ShortcutHelp({
   isOpen,
   onClose,
   shortcuts,
@@ -1227,14 +1250,28 @@ function ShortcutHelp({
   onClose: () => void;
   shortcuts: ShortcutLabels;
 }) {
-  const groups = [
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (!isShortcutsKey(event)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      onClose();
+    };
+    document.addEventListener('keydown', onKey, true);
+    return () => document.removeEventListener('keydown', onKey, true);
+  }, [isOpen, onClose]);
+
+  const groups: { title: string; rows: [string | string[], string][] }[] = [
     {
       title: 'Feedback',
       rows: [
         [shortcuts.open, 'Open feedback'],
         [shortcuts.send, 'Send'],
         ['Esc', 'Close'],
+        [['Tab', shortcuts.prevField], 'Next or previous field'],
         [shortcuts.screenshot, 'Take screenshot'],
+        ['Esc', 'Cancel picking a part'],
       ],
     },
     {
@@ -1248,7 +1285,14 @@ function ShortcutHelp({
         ['A', 'Arrow'],
         ['C', 'Comment'],
         [shortcuts.undo, 'Undo'],
-        [shortcuts.redo, 'Redo'],
+        [[shortcuts.redo, shortcuts.redoAlt], 'Redo'],
+      ],
+    },
+    {
+      title: 'This list',
+      rows: [
+        ['?', 'Show or hide'],
+        ['Esc', 'Close'],
       ],
     },
   ];
@@ -1277,7 +1321,13 @@ function ShortcutHelp({
               {group.rows.map(([keys, label]) => (
                 <li key={label} className={s.helpRow}>
                   <span>{label}</span>
-                  <kbd className={s.kbd}>{keys}</kbd>
+                  {Array.isArray(keys) ? (
+                    <span>
+                      <kbd className={s.kbd}>{keys[0]}</kbd> or <kbd className={s.kbd}>{keys[1]}</kbd>
+                    </span>
+                  ) : (
+                    <kbd className={s.kbd}>{keys}</kbd>
+                  )}
                 </li>
               ))}
             </ul>

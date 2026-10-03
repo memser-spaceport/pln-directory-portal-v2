@@ -29,6 +29,13 @@ export const SHOW_AI_APPS_ELEMENT_PINS: boolean = process.env.NEXT_PUBLIC_SHOW_A
  */
 export const SHOW_AI_APPS_FEEDBACK_OVERLAY: boolean = process.env.NEXT_PUBLIC_SHOW_AI_APPS_FEEDBACK_OVERLAY === 'true';
 
+/**
+ * Comments on the live app, the Feedback / Comment tabs, and the pin mode that
+ * came before them. Off for now, so every app's button is "Give feedback" and
+ * opens the form; the bridge only adds instant screenshots there.
+ */
+export const SHOW_AI_APPS_COMMENTS = false;
+
 /** Keep in sync with `AI_APPS_STARTER_KIT_VERSION` in pln-directory-portal web-api. */
 export const AI_APPS_STARTER_KIT_VERSION = '1.16';
 

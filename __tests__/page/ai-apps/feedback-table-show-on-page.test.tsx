@@ -7,6 +7,7 @@ import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedbac
 jest.mock('@/services/ai-apps/constants', () => ({
   ...jest.requireActual('@/services/ai-apps/constants'),
   SHOW_AI_APPS_FEEDBACK_OVERLAY: true,
+  SHOW_AI_APPS_COMMENTS: true,
 }));
 
 const row = (uid: string, pinCount?: number): AiAppFeedbackRow => ({

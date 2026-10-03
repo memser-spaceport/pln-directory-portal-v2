@@ -53,6 +53,7 @@ jest.mock('@/components/page/ai-apps/AiAppDetailPage/components/AppSecretsPanel'
 jest.mock('@/services/ai-apps/constants', () => ({
   ...jest.requireActual('@/services/ai-apps/constants'),
   SHOW_AI_APPS_FEEDBACK_OVERLAY: true,
+  SHOW_AI_APPS_COMMENTS: true,
 }));
 const mockUseAppFeedbackPins = jest.fn((_args: { scope: string | null; live?: boolean }) => ({
   pins: [],

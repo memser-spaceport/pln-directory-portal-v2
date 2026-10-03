@@ -1167,6 +1167,52 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(screen.getByRole('heading', { name: 'Give feedback' })).toBeInTheDocument();
     });
 
+    it('opens and closes the shortcut list on ?, outside text fields', async () => {
+      apps();
+      const onClose = jest.fn();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={onClose} appUid="app-1" appName="My App" />);
+
+      fireEvent.keyDown(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { key: '?', shiftKey: true });
+      expect(screen.queryByRole('heading', { name: 'Keyboard shortcuts' })).not.toBeInTheDocument();
+
+      fireEvent.keyDown(document, { key: '?', shiftKey: true });
+      expect(screen.getByRole('heading', { name: 'Keyboard shortcuts' })).toBeInTheDocument();
+      expect(mockOnFeedbackShortcutsHelpOpened).toHaveBeenCalled();
+
+      fireEvent.keyDown(document, { key: '?', shiftKey: true });
+      await waitFor(() =>
+        expect(screen.queryByRole('heading', { name: 'Keyboard shortcuts' })).not.toBeInTheDocument(),
+      );
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('lists the keys that work, and not the old open chord', () => {
+      apps();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Shortcuts' }));
+
+      const row = (label: string) => screen.getAllByText(label, { selector: 'span' })[0].closest('li');
+      expect(row('Open feedback')).toHaveTextContent('Alt+F');
+      expect(row('Next or previous field')).toHaveTextContent('Tab or Shift+Tab');
+      expect(row('Cancel picking a part')).toHaveTextContent('Esc');
+      expect(row('Redo')).toHaveTextContent('Ctrl+Shift+Z or Ctrl+Y');
+      expect(row('Show or hide')).toHaveTextContent('?');
+      expect(screen.queryByText('Alt+Ctrl+Enter')).not.toBeInTheDocument();
+    });
+
+    it('notes when the app has no bridge for instant screenshots', () => {
+      apps();
+      const { rerender } = render(
+        <GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" bridgeMissing />,
+      );
+
+      expect(screen.getByText(/older starter kit/)).toBeInTheDocument();
+
+      rerender(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+      expect(screen.queryByText(/older starter kit/)).not.toBeInTheDocument();
+    });
+
     it('shows the send and close hints', () => {
       apps();
       render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
@@ -1202,7 +1248,7 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(mockOnFeedbackShortcutUsed).toHaveBeenCalledWith({ action: 'submit' });
     });
 
-    it('does not send on the open chord', () => {
+    it('does not send on Ctrl+Alt+Enter', () => {
       apps();
       const onClose = jest.fn();
       render(<GiveAiAppFeedbackDialog isOpen onClose={onClose} appUid="app-1" appName="My App" />);
@@ -1212,26 +1258,6 @@ describe('GiveAiAppFeedbackDialog', () => {
 
       expect(mockMutate).not.toHaveBeenCalled();
       expect(onClose).not.toHaveBeenCalled();
-    });
-
-    it('reports the submitted app so the next shortcut can reopen it', async () => {
-      apps();
-      const onSubmitted = jest.fn();
-      mockMutate.mockImplementation((_payload, options) => options?.onSuccess?.());
-      render(
-        <GiveAiAppFeedbackDialog
-          isOpen
-          onClose={jest.fn()}
-          onSubmitted={onSubmitted}
-          appUid="app-1"
-          appName="My App"
-        />,
-      );
-
-      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Nice app!' } });
-      sendChord();
-
-      await waitFor(() => expect(onSubmitted).toHaveBeenCalledWith({ label: 'My App', value: 'app-1' }));
     });
 
     it('ignores the send chord while a capture is in progress', async () => {

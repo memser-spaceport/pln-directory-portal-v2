@@ -47,7 +47,7 @@ const nextConfig = {
   // through a tunnel domain instead of localhost directly. No effect on
   // `next build`/`next start` — Next.js only enforces this origin check
   // in `next dev`.
-  allowedDevOrigins: ['plaa.i.beandev.xyz', 'plaa.test'],
+  allowedDevOrigins: ['plaa.i.beandev.xyz', 'plaa.test', 'directory-local.dev.os.pl.xyz'],
   sassOptions: {
     loadPaths: [__dirname, path.join(__dirname, 'styles')],
   },

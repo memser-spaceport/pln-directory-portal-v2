@@ -206,7 +206,6 @@ describe('opening the form attaches the app', () => {
 
     expect(screen.queryByRole('status', { name: 'Capturing the app' })).not.toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Screenshot 1' })).toHaveAttribute('src', SHOT_A);
-    expect(screen.getByText(/Automatic capture may not be exact/)).toBeInTheDocument();
     expect(capture).toHaveBeenCalledTimes(1);
     expect(requestTabCapture).not.toHaveBeenCalled();
   });
@@ -384,37 +383,6 @@ describe('adding screenshots', () => {
 });
 
 describe('sending', () => {
-  it('"Misaligned? Tell us" marks the automatic picture and the report says so', async () => {
-    renderDialog(() => Promise.resolve(shot(SHOT_A)));
-    await flush();
-
-    const toggle = screen.getByRole('button', { name: 'Misaligned? Tell us' });
-    fireEvent.click(toggle);
-    expect(toggle).toHaveAttribute('aria-pressed', 'true');
-    expect(toggle).toHaveTextContent('Misaligned · noted');
-    expect(mockAnalytics.onFeedbackCaptureMisaligned).toHaveBeenCalledWith({ appUid: 'app-1' });
-
-    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Off by a bit' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
-
-    await waitFor(() => expect(mockMutate).toHaveBeenCalled());
-    const { appUid, text } = mockMutate.mock.calls[0][0];
-    expect(appUid).toBe('app-1');
-    expect(text).toContain('https://cdn.test/hosted.png');
-    expect(text).toContain('Automatic screenshot flagged as misaligned.');
-  });
-
-  it('an unflagged report carries no misaligned line', async () => {
-    renderDialog(() => Promise.resolve(shot(SHOT_A)));
-    await flush();
-
-    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Looks right' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
-
-    await waitFor(() => expect(mockMutate).toHaveBeenCalled());
-    expect(mockMutate.mock.calls[0][0].text).not.toContain('misaligned');
-  });
-
   it('tells the member when the app has feedback turned off (403)', async () => {
     mockMutate.mockImplementation((_payload, options) => options?.onError?.({ status: 403 }));
     renderDialog(undefined);

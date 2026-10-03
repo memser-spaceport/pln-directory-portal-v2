@@ -618,17 +618,6 @@ export function GiveAiAppFeedbackDialog({
     setIsPickingPart(false);
   }, []);
 
-  /* "Misaligned? Tell us" marks the automatic picture; the mark travels with
-     the report as a line under it (prototype ai-apps-comments). */
-  const onToggleMisaligned = (shotId: string) => {
-    const shot = screenshots.find((item) => item.id === shotId);
-    if (!shot) return;
-    if (!shot.misaligned) analytics.onFeedbackCaptureMisaligned({ appUid });
-    setScreenshots((prev) =>
-      prev.map((item) => (item.id === shotId ? { ...item, misaligned: !item.misaligned } : item)),
-    );
-  };
-
   /**
    * The fallback for anyone the capture path cannot serve.
    *
@@ -743,9 +732,6 @@ export function GiveAiAppFeedbackDialog({
       setIsHostingImages(true);
       trimmedMessage = await hostDataUriImages(trimmedMessage);
       trimmedMessage = await appendScreenshots(trimmedMessage, screenshots);
-      if (screenshots.some((shot) => shot.misaligned)) {
-        trimmedMessage += '<p><em>Automatic screenshot flagged as misaligned.</em></p>';
-      }
       if (pins.length > 0) {
         const crops = await hostPinCrops(pins);
         trimmedMessage = appendPinsHtml(trimmedMessage, pins, crops);
@@ -1056,19 +1042,6 @@ export function GiveAiAppFeedbackDialog({
                           </button>
                         </div>
                       </div>
-                      {shot.source === 'auto' && (
-                        <figcaption className={s.shotCaption}>
-                          Automatic capture may not be exact.{' '}
-                          <button
-                            type="button"
-                            className={s.shotLink}
-                            aria-pressed={Boolean(shot.misaligned)}
-                            onClick={() => onToggleMisaligned(shot.id)}
-                          >
-                            {shot.misaligned ? 'Misaligned · noted' : 'Misaligned? Tell us'}
-                          </button>
-                        </figcaption>
-                      )}
                       {shot.source === 'page' && <figcaption className={s.shotCaption}>Whole page</figcaption>}
                       {shot.source === 'part' && <figcaption className={s.shotCaption}>Part of the page</figcaption>}
                     </figure>
@@ -1285,6 +1258,10 @@ export function ShortcutHelp({
         ['O', 'Oval'],
         ['A', 'Arrow'],
         ['C', 'Comment'],
+        ['T', 'Text'],
+        [shortcuts.enter, 'New line in a label'],
+        [shortcuts.send, 'Leave a label, keeping the text'],
+        ['Esc', 'Leave a label, then deselect it, before discarding'],
         [shortcuts.undo, 'Undo'],
         [[shortcuts.redo, shortcuts.redoAlt], 'Redo'],
       ],

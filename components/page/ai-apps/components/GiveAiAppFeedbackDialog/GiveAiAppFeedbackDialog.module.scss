@@ -577,26 +577,6 @@
   line-height: 16px;
 }
 
-.shotLink {
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--foreground-brand-primary, #1b4dff);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-
-  &:hover {
-    text-decoration: underline;
-  }
-
-  &:disabled {
-    color: var(--foreground-neutral-tertiary, #8897ae);
-    cursor: not-allowed;
-    text-decoration: none;
-  }
-}
-
 .shotButtons {
   display: flex;
   flex-wrap: wrap;

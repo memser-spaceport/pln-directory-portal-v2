@@ -59,6 +59,7 @@ const TOOL_LETTERS: Record<AnnotatorTool, string> = {
   ellipse: 'O',
   arrow: 'A',
   comment: 'C',
+  text: 'T',
 };
 
 type History = {

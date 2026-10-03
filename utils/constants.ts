@@ -2735,7 +2735,6 @@ export const AI_APPS_ANALYTICS = {
   FEEDBACK_AUTO_SHOT_REMOVED: 'ai_apps_feedback_auto_shot_removed',
   FEEDBACK_PICK_PART_CANCELLED: 'ai_apps_feedback_pick_part_cancelled',
   FEEDBACK_SCREEN_SHARE_FALLBACK: 'ai_apps_feedback_screen_share_fallback',
-  FEEDBACK_CAPTURE_MISALIGNED: 'ai_apps_feedback_capture_misaligned',
   FEEDBACK_PIN_DETACHED: 'ai_apps_feedback_pin_detached',
   FEEDBACK_PIN_CROP_FAILED: 'ai_apps_feedback_pin_crop_failed',
   FEEDBACK_BRIDGE_UNAVAILABLE: 'ai_apps_feedback_bridge_unavailable',

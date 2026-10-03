@@ -101,8 +101,6 @@ export function useAiAppsAnalytics() {
     onFeedbackPickPartCancelled: () => capture(AI_APPS_ANALYTICS.FEEDBACK_PICK_PART_CANCELLED),
     onFeedbackScreenShareFallback: (params: { reason: 'chosen' | 'capture-failed' }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_SCREEN_SHARE_FALLBACK, params),
-    onFeedbackCaptureMisaligned: (params: { appUid?: string }) =>
-      capture(AI_APPS_ANALYTICS.FEEDBACK_CAPTURE_MISALIGNED, params),
     onFeedbackPinDetached: (params: { appUid: string }) => capture(AI_APPS_ANALYTICS.FEEDBACK_PIN_DETACHED, params),
     onFeedbackPinCropFailed: (params: { appUid: string; error: string }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_PIN_CROP_FAILED, params),
@@ -143,7 +141,7 @@ export function useAiAppsAnalytics() {
     onFeedbackScreenshotEditSaved: (params: { hasAnnotations: boolean }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_EDIT_SAVED, params),
     onFeedbackScreenshotRemoved: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_REMOVED),
-    onFeedbackScreenshotToolSelected: (params: { tool: 'draw' | 'comment' | 'rect' | 'ellipse' | 'arrow' }) =>
+    onFeedbackScreenshotToolSelected: (params: { tool: 'draw' | 'comment' | 'rect' | 'ellipse' | 'arrow' | 'text' }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_TOOL_SELECTED, params),
     onViewFeedbackClicked: (params: { feedbackCount: number }) =>
       capture(AI_APPS_ANALYTICS.VIEW_FEEDBACK_CLICKED, params),

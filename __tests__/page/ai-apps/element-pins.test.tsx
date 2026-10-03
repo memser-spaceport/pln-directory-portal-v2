@@ -77,6 +77,20 @@ describe('useElementPins', () => {
     t.cleanup();
   });
 
+  it('replays Alt+F pressed inside the app as the same key on this window', () => {
+    const t = setup();
+    const onKey = jest.fn();
+    window.addEventListener('keydown', onKey);
+
+    t.fromApp('shortcut:feedback');
+    t.fromApp('shortcut:feedback', undefined, { origin: 'https://evil.example' });
+
+    expect(onKey).toHaveBeenCalledTimes(1);
+    expect(onKey.mock.calls[0][0]).toMatchObject({ code: 'KeyF', altKey: true });
+    window.removeEventListener('keydown', onKey);
+    t.cleanup();
+  });
+
   it('falls back to screenshots when a loaded frame never answers', () => {
     jest.useFakeTimers();
     const t = setup();

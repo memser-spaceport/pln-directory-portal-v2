@@ -432,6 +432,31 @@ describe('AI Apps bridge: locate (the feedback overlay)', () => {
     expect(ctx.posted.find((m) => m.type === 'pick:selected')?.payload.pinId).toBe('pin-1');
   });
 
+  it('passes Alt+F on to LabOS, except while the member is typing in the app', () => {
+    ctx = setup();
+    add('<input id="name" />');
+    const press = (target: EventTarget, init: KeyboardEventInit = {}) =>
+      target.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'ƒ',
+          code: 'KeyF',
+          altKey: true,
+          bubbles: true,
+          cancelable: true,
+          ...init,
+        }),
+      );
+    const shortcuts = () => ctx.posted.filter((m) => m.type === 'shortcut:feedback').length;
+
+    press(ctx.doc.body);
+    expect(shortcuts()).toBe(1);
+
+    press(ctx.doc.getElementById('name')!);
+    press(ctx.doc.body, { shiftKey: true });
+    press(ctx.doc.body, { repeat: true });
+    expect(shortcuts()).toBe(1);
+  });
+
   it('ignores locate from any other origin', () => {
     ctx = setup();
     add('<button id="review">Review now</button>');

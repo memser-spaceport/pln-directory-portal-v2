@@ -408,6 +408,19 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
     }
   }
 
+  /* ---------- the feedback shortcut ---------- */
+
+  /* Same rules as LabOS's own Alt+F: the physical key (Option+F types "ƒ" on a
+     Mac), and never while typing in one of the app's fields. */
+  const onShortcutKey = (event: KeyboardEvent) => {
+    if (event.code !== 'KeyF' || !event.altKey || event.metaKey || event.ctrlKey || event.shiftKey) return;
+    if (event.isComposing || event.repeat || event.defaultPrevented) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName ?? '')) return;
+    event.preventDefault();
+    send({ type: 'shortcut:feedback' });
+  };
+
   /* ---------- the channel ---------- */
 
   const onMessage = (event: MessageEvent) => {
@@ -446,6 +459,7 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
   };
 
   win.addEventListener('message', onMessage);
+  win.addEventListener('keydown', onShortcutKey);
   announce();
 
   const destroy = () => {
@@ -454,6 +468,7 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
     if (frame) win.cancelAnimationFrame(frame);
     if (frameFallback) win.clearTimeout(frameFallback);
     win.removeEventListener('message', onMessage);
+    win.removeEventListener('keydown', onShortcutKey);
     delete w.__plnBridge;
   };
   w.__plnBridge = { version: BRIDGE_VERSION, destroy };

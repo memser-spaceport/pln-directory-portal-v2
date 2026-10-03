@@ -237,6 +237,11 @@ export function useElementPins({ iframeRef, appOrigin, frameKey, enabled, appUid
             );
           return;
         }
+        case 'shortcut:feedback':
+          /* Replayed here so it goes through the same checks as Alt+F pressed
+             outside the frame (dialogs open, comment mode, and so on). */
+          window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ƒ', code: 'KeyF', altKey: true }));
+          return;
         default:
           return;
       }

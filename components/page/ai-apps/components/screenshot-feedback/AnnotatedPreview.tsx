@@ -2,7 +2,7 @@
 
 import { clsx } from 'clsx';
 import { useCallback, useEffect, useRef } from 'react';
-import { renderAnnotations } from './AnnotationCanvas';
+import { labelStyle, renderAnnotations } from './AnnotationCanvas';
 import type { AnnotationState } from './types';
 
 import ac from './AnnotationCanvas.module.scss';
@@ -26,6 +26,7 @@ type Props = {
  */
 export function AnnotatedPreview({ src, alt, annotations, className }: Props) {
   const imgRef = useRef<HTMLImageElement>(null);
+  const rootRef = useRef<HTMLSpanElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const draw = useCallback(() => {
@@ -37,6 +38,7 @@ export function AnnotatedPreview({ src, alt, annotations, className }: Props) {
     if (width === 0 || height === 0) return;
     canvas.width = width;
     canvas.height = height;
+    rootRef.current?.style.setProperty('--label-scale', String(img.naturalWidth ? width / img.naturalWidth : 1));
     const ctx = canvas.getContext('2d');
     if (ctx) renderAnnotations(ctx, annotations, width, height);
   }, [annotations]);
@@ -51,9 +53,14 @@ export function AnnotatedPreview({ src, alt, annotations, className }: Props) {
   }, [draw]);
 
   return (
-    <span className={clsx(s.root, className)}>
+    <span ref={rootRef} className={clsx(s.root, className)}>
       <img ref={imgRef} className={s.image} src={src} alt={alt} onLoad={draw} draggable={false} />
       <canvas ref={canvasRef} className={s.canvas} aria-hidden />
+      {annotations.labels?.map((label) => (
+        <span key={label.id} className={ac.label} style={labelStyle(label)} aria-hidden>
+          {label.text}
+        </span>
+      ))}
       {annotations.comments.map((comment, index) => (
         <span
           key={comment.id}

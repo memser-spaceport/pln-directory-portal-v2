@@ -41,6 +41,26 @@ export type PinComment = {
   text: string;
 };
 
+/**
+ * Words drawn on the picture — not a comment, which is a pin with a note.
+ *
+ * `x`/`y` is the top-left corner, normalized like everything else. `size` is in
+ * pixels of the saved image, not of the screen, so a label reads the same in the
+ * editor, the strip's thumbnail and the lightbox. `width` is the wrap width as a
+ * share of the image's width, set once the corner handle is dragged; absent, the
+ * label is as wide as its longest line and wraps at the picture's right edge.
+ */
+export type TextLabel = {
+  id: string;
+  x: number;
+  y: number;
+  text: string;
+  color: string;
+  size: number;
+  bold: boolean;
+  width?: number;
+};
+
 export type AnnotationState = {
   /**
    * Deliberately NOT bumped when `shapes` was added.
@@ -54,6 +74,8 @@ export type AnnotationState = {
   strokes: Stroke[];
   shapes: Shape[];
   comments: PinComment[];
+  /** Optional for the same reason `version` stays 1: every payload saved before labels omits it. */
+  labels?: TextLabel[];
 };
 
 export type ScreenshotAttachment = {
@@ -66,8 +88,6 @@ export type ScreenshotAttachment = {
    * (absent). Drives the caption under it.
    */
   source?: 'auto' | 'page' | 'part';
-  /** The member said the automatic picture doesn't match what they see ("Misaligned? Tell us"). */
-  misaligned?: boolean;
 };
 
 export const EMPTY_ANNOTATIONS: AnnotationState = {
@@ -94,7 +114,11 @@ export function parseAnnotations(raw: string | null | undefined): AnnotationStat
     /* Strict on the two fields that have always been there, tolerant on the one
        that has not: every annotation saved before shapes existed omits the key,
        and rejecting those would erase them from the UI. */
-    return { ...parsed, shapes: Array.isArray(parsed.shapes) ? parsed.shapes : [] };
+    return {
+      ...parsed,
+      shapes: Array.isArray(parsed.shapes) ? parsed.shapes : [],
+      labels: Array.isArray(parsed.labels) ? parsed.labels : undefined,
+    };
   } catch {
     return null;
   }
@@ -106,5 +130,11 @@ export function emptyAnnotations(): AnnotationState {
 
 /** Whether there is anything on this screenshot worth flagging to a reviewer. */
 export function hasAnyAnnotation(state: AnnotationState | null | undefined): boolean {
-  return Boolean(state && (state.strokes.length > 0 || state.shapes.length > 0 || state.comments.length > 0));
+  return Boolean(
+    state &&
+      (state.strokes.length > 0 ||
+        state.shapes.length > 0 ||
+        state.comments.length > 0 ||
+        (state.labels?.length ?? 0) > 0),
+  );
 }

@@ -72,7 +72,9 @@ export type AppMessage =
   /** One entry per request key; `null` = no single element matched. */
   | Msg<'locate:result', { results: Record<string, LocateResult | null> }>
   /** `width`/`height`: the viewport in CSS px the picture shows, so LabOS can map a dragged rectangle onto it. */
-  | Msg<'capture:result', { key: string; dataUrl?: string; width?: number; height?: number; error?: string }>;
+  | Msg<'capture:result', { key: string; dataUrl?: string; width?: number; height?: number; error?: string }>
+  /** Alt/⌥+F was pressed in the app. Keys pressed in the frame never reach LabOS's window. */
+  | Msg<'shortcut:feedback'>;
 
 export type Envelope<M> = M & { ns: typeof BRIDGE_NS; v: typeof BRIDGE_VERSION; id: string };
 

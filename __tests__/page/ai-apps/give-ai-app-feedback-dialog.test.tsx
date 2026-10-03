@@ -1213,12 +1213,16 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(screen.queryByText(/older starter kit/)).not.toBeInTheDocument();
     });
 
-    it('shows the send and close hints', () => {
+    it('shows the send and close keys on their buttons', () => {
       apps();
       render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
 
-      expect(screen.getByText(/to send/)).toBeInTheDocument();
-      expect(screen.getByText(/to close/)).toBeInTheDocument();
+      const send = screen.getByRole('button', { name: 'Send feedback' });
+      const cancel = screen.getByRole('button', { name: 'Cancel' });
+      expect(send.querySelector('kbd')).toBeInTheDocument();
+      expect(send).toHaveAttribute('aria-keyshortcuts');
+      expect(cancel.querySelector('kbd')).toHaveTextContent('Esc');
+      expect(cancel).toHaveAttribute('aria-keyshortcuts', 'Escape');
     });
 
     it('submits on Cmd/Ctrl+Enter', async () => {

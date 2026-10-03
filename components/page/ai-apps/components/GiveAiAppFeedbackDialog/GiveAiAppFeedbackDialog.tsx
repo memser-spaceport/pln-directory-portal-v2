@@ -3,11 +3,9 @@
 import {
   type CSSProperties,
   type ReactNode,
-  type Ref,
   type RefObject,
   useCallback,
   useEffect,
-  useImperativeHandle,
   useLayoutEffect,
   useRef,
   useState,
@@ -23,7 +21,6 @@ import { FormSelect } from '@/components/form/FormSelect/FormSelect';
 import { CloseIcon, CommentIcon, PencilSimpleLineIcon } from '@/components/icons';
 import { toast } from '@/components/core/ToastContainer';
 import { useContactSupport } from '@/components/ContactSupport/hooks/useContactSupport';
-import { useFormDraft } from '@/hooks/useFormDraft';
 import { hostDataUriImages, isBlankHtml } from '@/utils/html';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApps } from '@/services/ai-apps/hooks/useAiApps';
@@ -61,10 +58,33 @@ import {
   type ScreenshotAttachment,
 } from '../screenshot-feedback';
 import type { AppCapture } from '../element-pins';
-import { PinSummary, appendPinsHtml, hostPinCrops, toPinInputs, type ElementPin } from '../element-pins';
+import {
+  PinSummary,
+  appendPinsHtml,
+  hostPinCrops,
+  normalizeAppPath,
+  toPinInputs,
+  type ElementPin,
+} from '../element-pins';
 import type { FeedbackContext, FeedbackPinInput } from '@/services/ai-app-feedback/ai-app-feedback.service';
 
+import {
+  discardFeedbackDraft,
+  feedbackDraftKey,
+  listFeedbackDrafts,
+  packTextImages,
+  readFeedbackDraft,
+  readFeedbackPictures,
+  unpackTextImages,
+  writeFeedbackDraft,
+  writeFeedbackPictures,
+  type DraftPlace,
+  type SavedDraft,
+} from './feedbackDrafts';
+
 import s from './GiveAiAppFeedbackDialog.module.scss';
+
+export { AI_APP_FEEDBACK_DRAFT_KEY } from './feedbackDrafts';
 
 /** Visible characters the member may type, counted with the markup stripped. */
 const MAX_LENGTH = 5000;
@@ -90,7 +110,6 @@ const FEEDBACK_TOOLBAR: (string | Record<string, unknown>)[][] = [
   [{ header: [1, 2, 3, false] }],
   ['bold', 'link', 'image'],
 ];
-export const AI_APP_FEEDBACK_DRAFT_KEY = 'form-draft:ai-app-feedback';
 export const FEEDBACK_PLACEHOLDER = 'What worked, what didn’t, and what would make this more useful?';
 
 const SCREENSHOT_HINTS: Record<PersistentCaptureReason | 'open', string> = {
@@ -122,10 +141,6 @@ interface FormValues {
   app: Option | null;
   message: string;
 }
-
-type FeedbackDraft = {
-  message: string;
-};
 
 const POPOVER_GAP = 8;
 
@@ -171,18 +186,7 @@ interface Props {
   frameRef?: RefObject<HTMLIFrameElement | null>;
   /** The app has no bridge (older starter kit), so it misses instant screenshots. */
   bridgeMissing?: boolean;
-  /** For a host that closes the form itself (the button, the Comment tab): see `FeedbackDialogHandle`. */
-  ref?: Ref<FeedbackDialogHandle>;
 }
-
-export type FeedbackDialogHandle = {
-  /**
-   * Close the form the way its own Cancel does: straight away when nothing
-   * would be lost, else after "Discard your feedback?" is confirmed. `close`
-   * runs once it may go (the host's own way of closing).
-   */
-  requestClose: (close: () => void) => void;
-};
 
 /**
  * This open's automatic screenshot. `landed` carries the picture from the
@@ -203,6 +207,35 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 }
 
 const NO_PINS: ElementPin[] = [];
+const NO_SHOTS: ScreenshotAttachment[] = [];
+const NO_TEXT_IMAGES: string[] = [];
+
+function isSameList(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((item, index) => item === b[index]);
+}
+
+function firstLine(html: string): string {
+  const text = new DOMParser().parseFromString(html.replace(/<\/(p|h[1-6]|li)>/gi, '$&\n'), 'text/html').body
+    .textContent;
+  return (
+    (text ?? '')
+      .split('\n')
+      .find((line) => line.trim())
+      ?.trim()
+      .slice(0, 80) ?? ''
+  );
+}
+
+function formatDraftTime(at: number): string {
+  const date = new Date(at);
+  const time = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  if (date.toDateString() === new Date().toDateString()) return time;
+  return `${date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}, ${time}`;
+}
+
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
 
 function getAnchorOverlayStyle(anchor: HTMLElement | null, placement: Placement): CSSProperties | undefined {
   if (!anchor) {
@@ -247,7 +280,6 @@ export function GiveAiAppFeedbackDialog({
   capture,
   frameRef,
   bridgeMissing = false,
-  ref,
 }: Props) {
   const { currentUser } = useCurrentUserStore();
   const [overlayStyle, setOverlayStyle] = useState<CSSProperties>();
@@ -277,17 +309,8 @@ export function GiveAiAppFeedbackDialog({
     defaultValues: getDefaults(),
   });
   const { handleSubmit, reset, watch } = methods;
-  const { clearDraft } = useFormDraft<FormValues, FeedbackDraft>({
-    /* Per app, so reopening never restores text written about another app. */
-    storageKey: appUid ? `${AI_APP_FEEDBACK_DRAFT_KEY}:${appUid}` : AI_APP_FEEDBACK_DRAFT_KEY,
-    enabled: isOpen,
-    methods,
-    getDefaults,
-    toDraft: (form) => ({ message: form.message }),
-    fromDraft: (draft) => ({ ...getDefaults(), message: draft.message }),
-    isEmpty: (draft) => !hasFeedbackContent(draft.message ?? ''),
-  });
   const message = watch('message') ?? '';
+  const app = watch('app');
   const isOverLimit = visibleFeedbackLength(message) > MAX_LENGTH;
   const [isHostingImages, setIsHostingImages] = useState(false);
   const [screenshots, setScreenshots] = useState<ScreenshotAttachment[]>([]);
@@ -339,19 +362,68 @@ export function GiveAiAppFeedbackDialog({
     analyticsRef.current = analytics;
   });
 
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+
+  /*
+   * Drafts. The panel edits one draft at a time, named by the place it was
+   * started: the app and, inside it, the screen. Here's, until another is
+   * picked from Drafts. It is kept in this browser as it changes, and dropped
+   * only once it is sent or discarded.
+   */
+  const [here, setHere] = useState<DraftPlace>({});
+  const [draftPlace, setDraftPlace] = useState<DraftPlace>({});
+  const draftKey = feedbackDraftKey(draftPlace);
+  const isHere = draftKey === feedbackDraftKey(here);
+  /** Set once the draft is in the panel, pictures included: nothing is saved over it before. */
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  /** When the draft in the panel was first kept, if it was restored. */
+  const [restoredSince, setRestoredSince] = useState<number | null>(null);
+  const [otherDrafts, setOtherDrafts] = useState<SavedDraft[]>([]);
+  const [showDrafts, setShowDrafts] = useState(false);
+  const [isDiscardPending, setIsDiscardPending] = useState(false);
+  const startedAtRef = useRef<number | null>(null);
+  const keptPicturesRef = useRef<{ key: string; shots: ScreenshotAttachment[]; images: string[] } | null>(null);
+  /** Bumped on every load and close, so pictures read back for an earlier one are dropped. */
+  const loadTicketRef = useRef(0);
+
+  const placeHere = (): DraftPlace => {
+    if (!appUid) return {};
+    const appPath = getContext?.()?.appPath;
+    return { appUid, appName, ...(appPath ? { screen: normalizeAppPath(appPath) } : {}) };
+  };
+
   /* Each open is a new session: the first time the form shows, it attaches the
-     app as it is (if the bridge can), into an empty list. Tracked during render
-     so the "Capturing…" chip is there from the first frame. */
+     app as it is (if the bridge can), into an empty list — unless a kept draft
+     brings its own pictures. Tracked during render so the "Capturing…" chip is
+     there from the first frame. */
   const [wasOpen, setWasOpen] = useState(false);
   const [openCount, setOpenCount] = useState(0);
   if (isOpen !== wasOpen) {
     setWasOpen(isOpen);
     if (isOpen) {
+      const place = placeHere();
+      setHere(place);
+      setDraftPlace(place);
       setOpenCount(openCount + 1);
-      setAuto(canCapture ? { token: openCount + 1, status: 'capturing' } : null);
+      const hasDraft = Boolean(readFeedbackDraft(feedbackDraftKey(place)));
+      setAuto(canCapture && !hasDraft ? { token: openCount + 1, status: 'capturing' } : null);
       setBridgeFailed(false);
     } else {
+      /* What was in the panel stays as a draft; the next open loads it from there. */
       setAuto(null);
+      setLoadedKey(null);
+      setIsCapturing(false);
+      setFreezeSrc(null);
+      setCropSrc(null);
+      setIsPickingPart(false);
+      setScreenshots([]);
+      setEditingShotId(null);
+      setPendingRemoveId(null);
+      setSubmitAttempted(false);
+      setShortcutsOpen(false);
+      setShowDrafts(false);
+      setIsDiscardPending(false);
     }
   }
 
@@ -404,8 +476,97 @@ export function GiveAiAppFeedbackDialog({
     analytics.onFeedbackAutoShotRemoved({ appUid, whileCapturing: auto.status === 'capturing' });
     setAuto({ token: auto.token, status: 'removed' });
   };
-  const [submitAttempted, setSubmitAttempted] = useState(false);
-  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  /* Words at once, pictures when IndexedDB answers. */
+  const loadDraft = (place: DraftPlace) => {
+    const key = feedbackDraftKey(place);
+    const saved = readFeedbackDraft(key);
+    const ticket = ++loadTicketRef.current;
+    const since = saved ? (saved.startedAt ?? saved.savedAt) : null;
+    const values: FormValues = { app: saved?.app ?? getDefaults().app, message: '' };
+    setDraftPlace(place);
+    setLoadedKey(null);
+    setRestoredSince(since);
+    startedAtRef.current = since;
+    if (!saved?.pictures) {
+      reset({ ...values, message: unpackTextImages(saved?.message ?? '', []) });
+      if (saved) setScreenshots([]);
+      setLoadedKey(key);
+      return;
+    }
+    reset(values);
+    setScreenshots([]);
+    void readFeedbackPictures(key).then((pictures) => {
+      if (ticket !== loadTicketRef.current) return;
+      reset({ ...values, message: unpackTextImages(saved.message, pictures?.images ?? []) });
+      setScreenshots(pictures?.shots ?? []);
+      setLoadedKey(key);
+    });
+  };
+
+  useEffect(() => {
+    if (isOpen) loadDraft(here);
+    else loadTicketRef.current += 1;
+    // Once per open: `here` is set in the render that opens it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, openCount]);
+
+  /* Words, a screenshot they added, or marks on one. The automatic screenshot alone is not a
+     draft, but once there is one it is kept with the rest. */
+  const worthKeeping =
+    hasFeedbackContent(message) ||
+    screenshots.some((shot) => shot.source !== 'auto' || hasAnyAnnotation(shot.annotations));
+
+  useEffect(() => {
+    if (!isOpen || loadedKey !== draftKey) return;
+    const { message: packed, images } = packTextImages(message);
+    if (worthKeeping) startedAtRef.current ??= Date.now();
+    else startedAtRef.current = null;
+    writeFeedbackDraft(
+      draftKey,
+      worthKeeping
+        ? {
+            message: packed,
+            app,
+            place: draftPlace,
+            pictures: screenshots.length + images.length,
+            startedAt: startedAtRef.current ?? undefined,
+          }
+        : null,
+    );
+
+    /* Pictures change rarely — taken, drawn on, removed — so they are written only when they do. */
+    const shots = worthKeeping ? screenshots : NO_SHOTS;
+    const kept = worthKeeping ? images : NO_TEXT_IMAGES;
+    const last = keptPicturesRef.current;
+    if (last?.key === draftKey && last.shots === shots && isSameList(last.images, kept)) return;
+    keptPicturesRef.current = { key: draftKey, shots, images: kept };
+    void writeFeedbackPictures(draftKey, { shots, images: kept });
+  }, [isOpen, loadedKey, draftKey, draftPlace, message, app, screenshots, worthKeeping]);
+
+  useEffect(() => {
+    if (isOpen) setOtherDrafts(listFeedbackDrafts().filter((draft) => draft.key !== draftKey));
+  }, [isOpen, draftKey, showDrafts]);
+
+  /* The draft in the panel is already kept as it stands. */
+  const openDraft = (draft: SavedDraft) => {
+    if (auto?.status === 'capturing') setAuto({ token: auto.token, status: 'removed' });
+    setShowDrafts(false);
+    loadDraft(draft.place ?? {});
+  };
+
+  const placeLabel = (place: DraftPlace) => {
+    if (!place.appUid) return 'AI Apps list';
+    const name = apps.find((item) => item.uid === place.appUid)?.name ?? place.appName ?? 'An app';
+    return place.screen ? `${name} · ${place.screen}` : name;
+  };
+
+  const discardDraft = () => {
+    setIsDiscardPending(false);
+    discardFeedbackDraft(draftKey);
+    reset(getDefaults());
+    setScreenshots([]);
+    onClose();
+  };
 
   useLayoutEffect(() => {
     if (!isOpen) {
@@ -439,47 +600,8 @@ export function GiveAiAppFeedbackDialog({
     setCropSrc(null);
   };
 
-  const resetForm = () => {
-    resetCapture();
-    setIsPickingPart(false);
-    setScreenshots([]);
-    setEditingShotId(null);
-    setPendingRemoveId(null);
-    setSubmitAttempted(false);
-    setShortcutsOpen(false);
-  };
-
-  /* What closing would throw away: what was written, or marks on a screenshot.
-     A screenshot alone isn't (one is attached on every open). */
-  const hasUnsentWork = hasFeedbackContent(message) || screenshots.some((shot) => hasAnyAnnotation(shot.annotations));
-  /** Set while "Discard your feedback?" is up: how to close once it is confirmed. */
-  const [closeAfterDiscard, setCloseAfterDiscard] = useState<(() => void) | null>(null);
-
-  const requestClose = (close: () => void) => {
-    if (hasUnsentWork) {
-      setCloseAfterDiscard(() => close);
-      return;
-    }
-    resetForm();
-    close();
-  };
-
-  const discardAndClose = () => {
-    const close = closeAfterDiscard;
-    setCloseAfterDiscard(null);
-    /* Discarded means gone: the saved draft would otherwise bring the text back on reopen. */
-    clearDraft();
-    reset(getDefaults());
-    resetForm();
-    close?.();
-  };
-
-  useImperativeHandle(ref, () => ({ requestClose }));
-
-  const onDialogClose = () => requestClose(onClose);
-
   const onSubmitSuccess = () => {
-    clearDraft();
+    discardFeedbackDraft(draftKey);
     reset(getDefaults());
     setIsPickingPart(false);
     setScreenshots([]);
@@ -731,6 +853,7 @@ export function GiveAiAppFeedbackDialog({
     try {
       setIsHostingImages(true);
       trimmedMessage = await hostDataUriImages(trimmedMessage);
+      if (!isHere) trimmedMessage += `<p>Started on ${escapeHtml(placeLabel(draftPlace))}</p>`;
       trimmedMessage = await appendScreenshots(trimmedMessage, screenshots);
       if (pins.length > 0) {
         const crops = await hostPinCrops(pins);
@@ -854,7 +977,7 @@ export function GiveAiAppFeedbackDialog({
       }
 
       if (isShortcutsKey(event)) {
-        if (isBusy || closeAfterDiscard) return;
+        if (isBusy || isDiscardPending) return;
         event.preventDefault();
         analytics.onFeedbackShortcutsHelpOpened();
         setShortcutsOpen(true);
@@ -889,7 +1012,7 @@ export function GiveAiAppFeedbackDialog({
     isOpen,
     shortcutsOpen,
     pendingRemoveId,
-    closeAfterDiscard,
+    isDiscardPending,
     isBusy,
     isPending,
     isOverLimit,
@@ -906,7 +1029,7 @@ export function GiveAiAppFeedbackDialog({
     <>
       <Modal
         isOpen={isOpen}
-        onClose={onDialogClose}
+        onClose={onClose}
         closeOnBackdropClick={false}
         /* `pendingRemoveId` is in here but NOT in `isBusy`, which also hides this
            overlay: while the delete confirmation is up, Escape has to stop
@@ -917,7 +1040,7 @@ export function GiveAiAppFeedbackDialog({
            the typed draft with it — `Modal` registers its handler on `document`
            in the capture phase and calls `stopImmediatePropagation`, so nothing
            the confirmation registers later could ever intercept it. */
-        closeOnEscape={!isBusy && !pendingRemoveId && !shortcutsOpen && !closeAfterDiscard}
+        closeOnEscape={!isBusy && !pendingRemoveId && !shortcutsOpen && !isDiscardPending}
         overlayClassname={clsx(s.overlay, placement === 'above' && s.overlayAbove, isBusy && s.overlayHidden)}
         overlayStyle={overlayStyle}
         className={s.modalContainer}
@@ -926,6 +1049,16 @@ export function GiveAiAppFeedbackDialog({
           <div className={s.header}>
             {headerTabs ?? <h2 className={s.title}>Give feedback</h2>}
             <div className={s.headerActions}>
+              {otherDrafts.length > 0 && (
+                <button
+                  type="button"
+                  className={s.shortcutsLink}
+                  aria-expanded={showDrafts}
+                  onClick={() => setShowDrafts((open) => !open)}
+                >
+                  Drafts · {otherDrafts.length}
+                </button>
+              )}
               <button
                 type="button"
                 className={s.shortcutsLink}
@@ -936,13 +1069,37 @@ export function GiveAiAppFeedbackDialog({
               >
                 Shortcuts
               </button>
-              <button type="button" className={s.closeButton} onClick={onDialogClose} aria-label="Close">
+              <button type="button" className={s.closeButton} onClick={onClose} aria-label="Close">
                 <CloseIcon width={16} height={16} />
               </button>
             </div>
           </div>
 
           <div className={s.content}>
+            {showDrafts && otherDrafts.length > 0 && (
+              <div className={s.drafts}>
+                <p className={s.fieldLabel}>Unsent, kept in this browser · {otherDrafts.length}</p>
+                <ul className={s.draftList}>
+                  {otherDrafts.map((draft) => (
+                    <li key={draft.key}>
+                      <button type="button" className={s.draftRow} onClick={() => openDraft(draft)}>
+                        <span className={s.draftTitle}>{firstLine(draft.message) || 'No words yet'}</span>
+                        <span className={s.draftMeta}>
+                          {placeLabel(draft.place ?? {})} · {formatDraftTime(draft.savedAt)}
+                          {draft.pictures
+                            ? ` · ${draft.pictures} ${draft.pictures === 1 ? 'picture' : 'pictures'}`
+                            : ''}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <p className={s.shotNote}>
+                  Choosing one puts it in this panel, pictures and all{worthKeeping ? '; the one here now is kept' : ''}
+                  .
+                </p>
+              </div>
+            )}
             <FormProvider {...methods}>
               <div
                 className={s.form}
@@ -951,6 +1108,15 @@ export function GiveAiAppFeedbackDialog({
                   if (event.key === 'Tab' && (event.target as HTMLElement).isContentEditable) event.stopPropagation();
                 }}
               >
+                {restoredSince !== null && worthKeeping && (
+                  <p className={s.draftNote}>
+                    Your unsent draft{' '}
+                    {isHere
+                      ? `for this ${here.screen ? 'screen' : appUid ? 'app' : 'page'}`
+                      : `started on ${placeLabel(draftPlace)}`}
+                    , kept in this browser since {formatDraftTime(restoredSince)}.
+                  </p>
+                )}
                 <FormSelect
                   name="app"
                   label="Which app is this about?"
@@ -1151,15 +1317,15 @@ export function GiveAiAppFeedbackDialog({
                 onCancel={() => setPendingRemoveId(null)}
               />
             </ConfirmLayer>
-            <ConfirmLayer isOpen={Boolean(closeAfterDiscard)}>
+            <ConfirmLayer isOpen={isDiscardPending}>
               <ConfirmDialog
                 isOpen
-                title="Discard your feedback?"
-                message="What you wrote and the marks on your screenshots will be lost."
+                title="Discard this draft?"
+                message="What you wrote and your screenshots, with the marks on them, will be deleted from this browser."
                 confirmText="Discard"
-                cancelText="Keep editing"
-                onConfirm={discardAndClose}
-                onCancel={() => setCloseAfterDiscard(null)}
+                cancelText="Keep"
+                onConfirm={discardDraft}
+                onCancel={() => setIsDiscardPending(false)}
               />
             </ConfirmLayer>
 
@@ -1173,22 +1339,34 @@ export function GiveAiAppFeedbackDialog({
           </div>
 
           <div className={s.footer}>
-            <div className={s.hints}>
-              <span className={s.hint}>
-                <kbd className={s.kbd}>{shortcuts.send}</kbd>
-                to send
-              </span>
-              <span className={s.hint}>
-                <kbd className={s.kbd}>Esc</kbd>
-                to close
-              </span>
-            </div>
             <div className={s.footerActions}>
-              <Button style="border" variant="neutral" onClick={onDialogClose}>
+              {worthKeeping && (
+                <Button style="link" variant="error" onClick={() => setIsDiscardPending(true)}>
+                  Discard
+                </Button>
+              )}
+              <Button
+                style="border"
+                variant="neutral"
+                className={s.footerButton}
+                onClick={onClose}
+                aria-keyshortcuts="Escape"
+              >
                 Cancel
+                <kbd className={s.kbd} aria-hidden="true">
+                  Esc
+                </kbd>
               </Button>
-              <Button onClick={onSubmit} disabled={isPending || isOverLimit}>
+              <Button
+                className={s.footerButton}
+                onClick={onSubmit}
+                disabled={isPending || isOverLimit}
+                aria-keyshortcuts={shortcuts.sendAria}
+              >
                 {isPending ? 'Sending…' : 'Send feedback'}
+                <kbd className={clsx(s.kbd, s.kbdOnPrimary)} aria-hidden="true">
+                  {shortcuts.send}
+                </kbd>
               </Button>
             </div>
           </div>

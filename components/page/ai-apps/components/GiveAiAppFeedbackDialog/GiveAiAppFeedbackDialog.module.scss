@@ -203,21 +203,6 @@
   border-top: 1px solid rgba(203, 213, 225, 0.5);
 }
 
-.hints {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  color: var(--foreground-neutral-secondary, #455468);
-  font-size: 12px;
-  line-height: 16px;
-}
-
-.hint {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
 .kbd {
   padding: 1px 5px;
   border-radius: 4px;
@@ -227,6 +212,17 @@
   font-size: 11px;
   line-height: 14px;
   font-weight: 600;
+}
+
+.footerButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kbdOnPrimary {
+  background: rgba(255, 255, 255, 0.2);
+  color: inherit;
 }
 
 .footerActions {
@@ -595,4 +591,59 @@
   .shotPending {
     animation: none;
   }
+}
+
+.draftNote {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.drafts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.draftList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.draftRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid rgba(203, 213, 225, 0.7);
+  border-radius: 8px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.draftTitle {
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.draftMeta {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
 }

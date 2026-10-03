@@ -5,7 +5,6 @@ import {
   AI_APP_FEEDBACK_DRAFT_KEY,
   FEEDBACK_PLACEHOLDER,
   GiveAiAppFeedbackDialog,
-  type FeedbackDialogHandle,
 } from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog';
 import { MAX_SCREENSHOTS } from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/GiveAiAppFeedbackDialog';
 import { toast } from '@/components/core/ToastContainer';
@@ -142,6 +141,18 @@ jest.mock('@/components/page/ai-apps/components/screenshot-feedback', () => {
   };
 });
 
+/* jsdom has no IndexedDB: the pictures half of a draft is kept in memory here. */
+const mockPictures = new Map<string, unknown>();
+jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/feedbackDrafts', () => ({
+  ...jest.requireActual('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/feedbackDrafts'),
+  readFeedbackPictures: (key: string) => Promise.resolve(mockPictures.get(key) ?? null),
+  writeFeedbackPictures: (key: string, pictures: { shots: unknown[]; images: unknown[] } | null) => {
+    if (pictures && (pictures.shots.length || pictures.images.length)) mockPictures.set(key, pictures);
+    else mockPictures.delete(key);
+    return Promise.resolve();
+  },
+}));
+
 jest.mock('@/services/registration.service', () => ({
   saveRegistrationImage: () => Promise.resolve({ image: { url: 'https://cdn.test/hosted.png' } }),
 }));
@@ -182,6 +193,7 @@ const flush = () => act(async () => {});
 
 beforeEach(() => {
   window.localStorage.clear();
+  mockPictures.clear();
   Object.defineProperty(window, 'isSecureContext', { configurable: true, value: true });
   Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getDisplayMedia: jest.fn() } });
   mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
@@ -459,91 +471,185 @@ describe('annotated previews', () => {
   });
 });
 
-describe('closing with unsent work', () => {
-  /* ConfirmDialog has no dialog role; its title is how the other confirmations are found too. */
-  const discardDialog = () => screen.queryByText('Discard your feedback?');
+describe('drafts', () => {
+  const DRAFT_KEY = `${AI_APP_FEEDBACK_DRAFT_KEY}:app-1`;
+  const typeFeedback = (value: string) =>
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value } });
 
-  it('closes at once when nothing was written or drawn (the automatic screenshot is not work)', async () => {
+  function renderAt(appPath: string, capture?: () => Promise<AppCapture>, onClose = jest.fn()) {
+    const props = {
+      onClose,
+      appUid: 'app-1',
+      appName: 'My App',
+      capture,
+      frameRef,
+      getContext: () => ({ appPath }) as never,
+    };
+    const view = render(<GiveAiAppFeedbackDialog isOpen {...props} />);
+    const reopen = (path = appPath) => {
+      props.getContext = () => ({ appPath: path }) as never;
+      view.rerender(<GiveAiAppFeedbackDialog isOpen={false} {...props} />);
+      view.rerender(<GiveAiAppFeedbackDialog isOpen {...props} />);
+    };
+    return { ...view, reopen };
+  }
+
+  it('closing with words keeps them, without asking; reopening restores them and says since when', async () => {
     const onClose = jest.fn();
-    renderDialog(() => Promise.resolve(shot(SHOT_A)), true, onClose);
+    const { reopen } = renderAt('/orders', undefined, onClose);
+    typeFeedback('Half a thought');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('Discard this draft?')).not.toBeInTheDocument();
+    reopen();
     await flush();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-
-    expect(onClose).toHaveBeenCalledTimes(1);
-    expect(discardDialog()).not.toBeInTheDocument();
-  });
-
-  it('asks before Cancel throws away what was written; Keep editing keeps it, Discard clears the draft', async () => {
-    jest.useFakeTimers();
-    const onClose = jest.fn();
-    renderDialog(undefined, true, onClose);
-    await act(async () => {
-      jest.advanceTimersByTime(0);
-    });
-    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Half a thought' } });
-    await act(async () => {
-      jest.advanceTimersByTime(500);
-    });
-    expect(window.localStorage.getItem(`${AI_APP_FEEDBACK_DRAFT_KEY}:app-1`)).toContain('Half a thought');
-
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-    expect(discardDialog()).toBeInTheDocument();
-    expect(onClose).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Keep editing' }));
-    expect(discardDialog()).not.toBeInTheDocument();
     expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('Half a thought');
-
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Discard' }));
-    await act(async () => {
-      jest.advanceTimersByTime(500);
-    });
-
-    expect(onClose).toHaveBeenCalledTimes(1);
-    expect(window.localStorage.getItem(`${AI_APP_FEEDBACK_DRAFT_KEY}:app-1`)).toBeNull();
-    jest.useRealTimers();
+    expect(screen.getByText(/Your unsent draft for this screen, kept in this browser since/)).toBeInTheDocument();
   });
 
-  it('asks before closing away marks on a screenshot, with nothing written', async () => {
+  it('Esc closes and keeps the draft', () => {
     const onClose = jest.fn();
-    renderDialog(() => Promise.resolve(shot(SHOT_A)), true, onClose);
+    renderAt('/orders', undefined, onClose);
+    typeFeedback('Half a thought');
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(window.localStorage.getItem(`${DRAFT_KEY}:/orders`)).toContain('Half a thought');
+  });
+
+  it('the automatic screenshot alone leaves nothing behind', async () => {
+    const { reopen } = renderAt('/orders', () => Promise.resolve(shot(SHOT_A)));
+    await flush();
+    expect(screen.getByRole('img', { name: 'Screenshot 1' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(window.localStorage.length).toBe(0);
+    expect(mockPictures.size).toBe(0);
+    reopen();
+    expect(screen.queryByText(/Your unsent draft/)).not.toBeInTheDocument();
+  });
+
+  it('marks on the automatic screenshot make a draft, and reopening brings the picture back with them', async () => {
+    const capture = jest.fn(() => Promise.resolve(shot(SHOT_A)));
+    const { reopen } = renderAt('/orders', capture);
     await flush();
     fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot 1' }));
     fireEvent.click(screen.getByRole('button', { name: 'Save marks' }));
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Open screenshot 1' }).querySelector('canvas')).not.toBeNull(),
+
+    reopen();
+    await flush();
+
+    expect(capture).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'Open screenshot 1' }).querySelector('canvas')).not.toBeNull();
+    expect(screen.getByRole('img', { name: 'Screenshot 1' })).toHaveAttribute('src', SHOT_A);
+  });
+
+  it('keeps an image pasted into the text, out of localStorage', async () => {
+    const { reopen } = renderAt('/orders');
+    typeFeedback(`<p>See</p><p><img src="${SHOT_B}"></p>`);
+    expect(window.localStorage.getItem(`${DRAFT_KEY}:/orders`)).not.toContain('data:');
+
+    reopen();
+    await flush();
+
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue(`<p>See</p><p><img src="${SHOT_B}"></p>`);
+  });
+
+  it('is per screen: another screen of the app starts empty and lists this one under Drafts', async () => {
+    const { reopen } = renderAt('/orders');
+    typeFeedback('About orders');
+
+    reopen('/settings');
+    await flush();
+
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('');
+    fireEvent.click(screen.getByRole('button', { name: 'Drafts · 1' }));
+    expect(screen.getByText('About orders')).toBeInTheDocument();
+    expect(screen.getByText(/My App · \/orders/)).toBeInTheDocument();
+  });
+
+  it('opening a draft from Drafts keeps the one in the panel, and sending it says where it was started', async () => {
+    const { reopen } = renderAt('/orders');
+    typeFeedback('About orders');
+    reopen('/settings');
+    await flush();
+    typeFeedback('About settings');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Drafts · 1' }));
+    fireEvent.click(screen.getByText('About orders'));
+    await flush();
+
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('About orders');
+    expect(screen.getByText(/Your unsent draft started on My App · \/orders/)).toBeInTheDocument();
+    expect(window.localStorage.getItem(`${DRAFT_KEY}:/settings`)).toContain('About settings');
+    expect(screen.getByRole('button', { name: 'Drafts · 1' })).toBeInTheDocument();
+
+    mockMutate.mockImplementation((_payload, options) => options?.onSuccess?.());
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+    await waitFor(() => expect(mockMutate).toHaveBeenCalled());
+
+    expect(mockMutate.mock.calls[0][0].text).toContain('<p>Started on My App · /orders</p>');
+    expect(window.localStorage.getItem(`${DRAFT_KEY}:/orders`)).toBeNull();
+    expect(window.localStorage.getItem(`${DRAFT_KEY}:/settings`)).toContain('About settings');
+    mockMutate.mockReset();
+  });
+
+  it('a failed send keeps the draft; a successful one removes it', async () => {
+    renderAt('/orders');
+    typeFeedback('Broken button');
+
+    mockMutate.mockImplementationOnce((_payload, options) => options?.onError?.({ status: 500 }));
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+    await waitFor(() => expect(mockMutate).toHaveBeenCalledTimes(1));
+    expect(window.localStorage.getItem(`${DRAFT_KEY}:/orders`)).toContain('Broken button');
+
+    mockMutate.mockImplementationOnce((_payload, options) => options?.onSuccess?.());
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+    await waitFor(() => expect(mockMutate).toHaveBeenCalledTimes(2));
+    expect(window.localStorage.getItem(`${DRAFT_KEY}:/orders`)).toBeNull();
+  });
+
+  it('Discard asks first; Keep keeps it, Discard deletes it and closes', () => {
+    const onClose = jest.fn();
+    renderAt('/orders', undefined, onClose);
+    typeFeedback('Half a thought');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Discard' }));
+    expect(screen.getByText('Discard this draft?')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Keep' }));
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('Half a thought');
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Discard' }));
+    fireEvent.click(
+      within(screen.getByText('Discard this draft?').parentElement!.parentElement!).getByRole('button', {
+        name: 'Discard',
+      }),
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-
-    expect(discardDialog()).toBeInTheDocument();
-    expect(onClose).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(window.localStorage.getItem(`${DRAFT_KEY}:/orders`)).toBeNull();
   });
 
-  it('Esc asks too, and a second Esc does not close the form behind the question', () => {
+  it('works when the browser cannot store anything', async () => {
+    const setItem = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError');
+    });
     const onClose = jest.fn();
-    renderDialog(undefined, true, onClose);
-    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Half a thought' } });
+    const { reopen } = renderAt('/orders', undefined, onClose);
+    typeFeedback('Broken button');
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    reopen();
+    await flush();
 
-    fireEvent.keyDown(document, { key: 'Escape' });
-    expect(discardDialog()).toBeInTheDocument();
-    fireEvent.keyDown(document, { key: 'Escape' });
-
-    expect(onClose).not.toHaveBeenCalled();
-  });
-
-  it('a host closing the form (the button, the Comment tab) goes through the same question', () => {
-    const ref = createRef<FeedbackDialogHandle>();
-    const hostClose = jest.fn();
-    render(<GiveAiAppFeedbackDialog ref={ref} isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
-    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Half a thought' } });
-
-    act(() => ref.current!.requestClose(hostClose));
-    expect(hostClose).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: 'Discard' }));
-
-    expect(hostClose).toHaveBeenCalledTimes(1);
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('');
+    typeFeedback('Broken button');
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+    await waitFor(() => expect(mockMutate).toHaveBeenCalled());
+    setItem.mockRestore();
   });
 });

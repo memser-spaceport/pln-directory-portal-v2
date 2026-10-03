@@ -406,6 +406,93 @@ describe('sending', () => {
   });
 });
 
+describe('after sending', () => {
+  const send = async (text: string) => {
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: text } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+    await screen.findByText('Feedback sent');
+  };
+
+  beforeEach(() => {
+    mockMutate.mockImplementation((_payload, options) => options?.onSuccess?.());
+  });
+
+  it('stays open on the sent screen, with Give more feedback focused', async () => {
+    const onClose = jest.fn();
+    renderDialog(undefined, true, onClose);
+    await send('Broken button');
+
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByText('Thanks for your feedback!')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Give more feedback/ })).toHaveFocus();
+    expect(screen.queryByPlaceholderText(FEEDBACK_PLACEHOLDER)).not.toBeInTheDocument();
+  });
+
+  it('Give more feedback starts a fresh form with a new automatic screenshot', async () => {
+    const capture = jest.fn(() => Promise.resolve(shot(SHOT_A)));
+    renderDialog(capture);
+    await flush();
+    await send('Broken button');
+
+    fireEvent.click(screen.getByRole('button', { name: /Give more feedback/ }));
+    await flush();
+
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('');
+    expect(capture).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole('img', { name: 'Screenshot 1' })).toHaveAttribute('src', SHOT_A);
+  });
+
+  it('the send chord gives more feedback and never sends the report again', async () => {
+    renderDialog(undefined);
+    await send('Broken button');
+
+    fireEvent.keyDown(document, { key: 'Enter', metaKey: true });
+
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('');
+    expect(mockMutate).toHaveBeenCalledTimes(1);
+  });
+
+  it('Close and Esc close the panel', async () => {
+    const onClose = jest.fn();
+    renderDialog(undefined, true, onClose);
+    await send('Broken button');
+
+    const close = screen
+      .getAllByRole('button', { name: 'Close' })
+      .find((button) => button.getAttribute('aria-keyshortcuts') === 'Escape');
+    fireEvent.click(close!);
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(onClose).toHaveBeenCalledTimes(2);
+  });
+
+  it('lists what was sent from the second report on, without links', async () => {
+    renderDialog(undefined);
+    await send('Broken button');
+    expect(screen.queryByText(/Sent while this was open/)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Give more feedback/ }));
+    await send('Slow search');
+
+    expect(screen.getByText('Sent while this was open · 2')).toBeInTheDocument();
+    expect(screen.getByText('Broken button')).toBeInTheDocument();
+    expect(screen.getByText('Slow search')).toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
+  it('a failed send stays on the form', async () => {
+    mockMutate.mockImplementation((_payload, options) => options?.onError?.({ status: 500 }));
+    renderDialog(undefined);
+
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Broken button' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Something went wrong. Please try again.'));
+    expect(screen.queryByText('Feedback sent')).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('Broken button');
+  });
+});
+
 describe('Pick a part geometry', () => {
   const frame = { left: 100, top: 50, width: 800, height: 600 };
 

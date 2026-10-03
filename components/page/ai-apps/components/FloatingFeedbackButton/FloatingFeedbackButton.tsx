@@ -285,12 +285,13 @@ function FeedbackFab({
       <GiveAiAppFeedbackDialog
         isOpen={isOpen}
         onClose={() => {
-          /* Closing the dialog (Cancel, ✕, or a successful send) ends the pin session too. */
+          /* Closing the dialog (Cancel, ✕, Close after sending) ends the pin session too. */
           elementPins?.clearPins();
           setIsOpen(false);
         }}
         /* Pins belong to comment mode when it is there; the old pin flow feeds the dialog otherwise. */
         pins={commentsAvailable ? undefined : elementPins?.pins}
+        onSent={() => elementPins?.clearPins()}
         onEditPins={
           elementPins && !commentsAvailable
             ? () => {

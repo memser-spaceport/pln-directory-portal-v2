@@ -231,6 +231,10 @@
   margin-left: auto;
 }
 
+.discardButton {
+  padding-right: 10px;
+}
+
 /**
  * The whole offer, hidden on a phone.
  *
@@ -646,4 +650,37 @@
   color: var(--foreground-neutral-tertiary, #8897ae);
   font-size: 12px;
   line-height: 16px;
+}
+
+.sent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sentTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.sentText {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.sentRow {
+  overflow: hidden;
+  padding: 8px 10px;
+  border: 1px solid rgba(203, 213, 225, 0.7);
+  border-radius: 8px;
+  color: #0f172a;
+  font-size: 13px;
+  line-height: 18px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }

@@ -4,6 +4,11 @@
   z-index: 10000;
   cursor: crosshair;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  overscroll-behavior: contain;
   background: var(--foreground-neutral-primary, #0a0c11);
 }
 
@@ -33,11 +38,43 @@
   white-space: nowrap;
 }
 
-.cancel {
+.actions {
   position: absolute;
   top: 16px;
   right: 16px;
   z-index: 1;
+  display: flex;
+  gap: 8px;
+}
+
+.atBottom {
+  top: auto;
+  bottom: 16px;
+}
+
+.use,
+.cancel {
+  white-space: nowrap;
+}
+
+.use {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 9999px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #fff;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.cancel {
   padding: 8px 14px;
   border: none;
   border-radius: 9999px;
@@ -59,4 +96,57 @@
   border: 2px solid var(--foreground-brand-primary, #1b4dff);
   background: rgba(27, 77, 255, 0.12);
   pointer-events: none;
+}
+
+.size {
+  position: fixed;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(14, 15, 17, 0.78);
+  color: #fff;
+  font-size: 11px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* A 44px target around a small visible dot: big enough for a finger. */
+.handle {
+  position: fixed;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  touch-action: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    margin: -7px 0 0 -7px;
+    box-sizing: border-box;
+    border: 2px solid var(--foreground-brand-primary, #1b4dff);
+    border-radius: 50%;
+    background: #fff;
+  }
+
+  &[data-corner='nw'],
+  &[data-corner='se'] {
+    cursor: nwse-resize;
+  }
+
+  &[data-corner='ne'],
+  &[data-corner='sw'] {
+    cursor: nesw-resize;
+  }
+}
+
+@media (pointer: coarse) {
+  .use,
+  .cancel {
+    min-height: 44px;
+    padding: 0 16px;
+  }
 }

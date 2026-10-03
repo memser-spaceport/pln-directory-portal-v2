@@ -1,7 +1,10 @@
 'use client';
 
-import { type RefObject, useEffect, useRef, useState } from 'react';
+import clsx from 'clsx';
+import { type RefObject, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+
+import { CORNERS, useRegionPicker } from './useRegionPicker';
 
 import s from './LiveRegionOverlay.module.scss';
 
@@ -9,6 +12,8 @@ import s from './LiveRegionOverlay.module.scss';
 export type FrameRect = { x: number; y: number; width: number; height: number };
 
 const MIN_SIZE = 8;
+/** How far up from the bottom the bar sits; a selection reaching into it sends the bar to the top. */
+const BAR_ZONE = 96;
 
 /**
  * A drag over the page, as a rectangle inside the app frame: clamped to the
@@ -48,73 +53,77 @@ type Props = {
 
 /**
  * Pick a part, over the LIVE app (prototype ai-apps-comments): the page dims, a
- * bar says what to do, and the member drags a rectangle over the app. The
- * picture is taken when the drag ends, so what they framed is what they get.
- * Portalled to the body, above the feedback popup (which hides meanwhile).
+ * bar says what to do, and the member drags a rectangle over the app. With a
+ * mouse the picture is taken when the drag ends; with a finger or a pen the
+ * rectangle stays up to adjust until Use this part. Portalled to the body, above
+ * the feedback popup (which hides meanwhile).
  */
 export function LiveRegionOverlay({ frameRef, onSelect, onCancel }: Props) {
-  const [start, setStart] = useState<{ x: number; y: number } | null>(null);
-  const [end, setEnd] = useState<{ x: number; y: number } | null>(null);
-  /* The frame's box, read once when the drag starts (refs aren't read during render). */
-  const [box, setBox] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
-  const layerRef = useRef<HTMLDivElement>(null);
-
-  /* Esc cancels. The layer takes focus so the key reaches LabOS, not the app frame. */
-  useEffect(() => {
-    layerRef.current?.focus();
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      onCancel();
-    };
-    document.addEventListener('keydown', onKey, true);
-    return () => document.removeEventListener('keydown', onKey, true);
-  }, [onCancel]);
-
   const frameBox = () => {
     const r = frameRef.current?.getBoundingClientRect();
     return r ? { left: r.left, top: r.top, width: r.width, height: r.height } : null;
   };
 
-  const finish = (at: { x: number; y: number }) => {
-    const from = start;
-    const frame = box;
-    setStart(null);
-    setEnd(null);
-    setBox(null);
-    if (!from || !frame) return;
-    const rect = dragToFrameRect(from, at, frame);
-    if (rect) onSelect(rect);
-  };
+  const { selection, adjusting, canConfirm, confirm, surfaceRef, surfaceHandlers } = useRegionPicker({
+    getBounds: () => {
+      const box = frameBox();
+      return box ? { x: box.left, y: box.top, width: box.width, height: box.height } : null;
+    },
+    onConfirm: (sel) => {
+      const box = frameBox();
+      const rect = box && dragToFrameRect(sel, { x: sel.x + sel.width, y: sel.y + sel.height }, box);
+      if (rect) onSelect(rect);
+    },
+    onCancel,
+  });
 
-  const preview = start && end && box ? dragToFrameRect(start, end, box) : null;
+  /* The layer takes focus so Esc and Enter reach LabOS, not the app frame. */
+  useEffect(() => {
+    surfaceRef.current?.focus();
+  }, [surfaceRef]);
+
+  const barOnTop =
+    selection !== null &&
+    typeof window !== 'undefined' &&
+    selection.y + selection.height > window.innerHeight - BAR_ZONE &&
+    selection.y > BAR_ZONE;
 
   if (typeof document === 'undefined') return null;
   return createPortal(
-    <div
-      ref={layerRef}
-      className={s.root}
-      tabIndex={-1}
-      data-testid="live-region-overlay"
-      onPointerDown={(e) => {
-        if ((e.target as HTMLElement).closest('button')) return;
-        e.currentTarget.setPointerCapture?.(e.pointerId);
-        setBox(frameBox());
-        setStart({ x: e.clientX, y: e.clientY });
-        setEnd({ x: e.clientX, y: e.clientY });
-      }}
-      onPointerMove={(e) => start && setEnd({ x: e.clientX, y: e.clientY })}
-      onPointerUp={(e) => finish({ x: e.clientX, y: e.clientY })}
-    >
-      {preview && box && (
-        <div
-          className={s.selection}
-          style={{ left: box.left + preview.x, top: box.top + preview.y, width: preview.width, height: preview.height }}
-        />
+    <div ref={surfaceRef} {...surfaceHandlers} className={s.root} tabIndex={-1} data-testid="live-region-overlay">
+      {selection && (selection.width > 0 || selection.height > 0) && (
+        <>
+          <div
+            className={s.selection}
+            style={{ left: selection.x, top: selection.y, width: selection.width, height: selection.height }}
+          />
+          <div className={s.size} style={{ left: selection.x, top: Math.max(0, selection.y - 24) }}>
+            {Math.round(selection.width)} × {Math.round(selection.height)}
+          </div>
+          {adjusting &&
+            CORNERS.map((corner) => (
+              <div
+                key={corner}
+                className={s.handle}
+                data-corner={corner}
+                aria-hidden
+                style={{
+                  left: corner.includes('w') ? selection.x : selection.x + selection.width,
+                  top: corner.includes('n') ? selection.y : selection.y + selection.height,
+                }}
+              />
+            ))}
+        </>
       )}
-      <div className={s.bar} role="status">
-        Drag over the part you want
+      <div className={clsx(s.bar, barOnTop && s.barTop)} role="status">
+        <span className={s.label}>
+          {adjusting ? 'Drag a corner to adjust, or draw again' : 'Drag over the part you want'}
+        </span>
+        {adjusting && (
+          <button type="button" className={s.use} disabled={!canConfirm} onClick={confirm}>
+            Use this part
+          </button>
+        )}
         <button type="button" className={s.cancel} onClick={onCancel}>
           Cancel
         </button>

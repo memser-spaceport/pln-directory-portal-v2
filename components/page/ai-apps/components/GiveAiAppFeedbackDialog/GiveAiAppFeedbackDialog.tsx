@@ -1271,6 +1271,7 @@ export function ShortcutHelp({
         ['Esc', 'Close'],
         [['Tab', shortcuts.prevField], 'Next or previous field'],
         [shortcuts.screenshot, 'Take screenshot'],
+        [shortcuts.enter, 'Use this part, after a touch or pen drag'],
         ['Esc', 'Cancel picking a part'],
       ],
     },

@@ -56,7 +56,7 @@ const PREVIEW: AiAppTargetView = {
   httpUrl: null,
   host: null,
   lastDeployedAt: '2026-10-01T00:00:00.000Z',
-  serving: 'current',
+  serving: 'latest',
   requiredEnvVars: [],
   providedEnvVars: [],
   hasBuild: true,

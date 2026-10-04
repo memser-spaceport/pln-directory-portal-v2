@@ -85,6 +85,29 @@ describe('testing users service', () => {
     expect((await fetchAiAppTestingUsers('app-1')).error).toBe('Something went wrong. Try again.');
   });
 
+  it('returns the generic error instead of throwing on a network failure or an unreadable body', async () => {
+    mockCustomFetch.mockRejectedValueOnce(new Error('network down'));
+    expect(await createAiAppTestingUsers('app-1', 1)).toEqual({
+      data: null,
+      error: 'Something went wrong. Try again.',
+    });
+
+    mockCustomFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => {
+        throw new SyntaxError('Unexpected token');
+      },
+    } as unknown as Response);
+    expect(await mintAiAppTestingUserAccess('app-1')).toEqual({
+      data: null,
+      error: 'Something went wrong. Try again.',
+    });
+
+    mockCustomFetch.mockRejectedValueOnce(new Error('network down'));
+    expect(await fetchAiAppTestingUsers('app-1')).toEqual({ data: null, error: 'Something went wrong. Try again.' });
+  });
+
   it('mints for all active users or only the given ones', async () => {
     const item = { uid: 'tu-1', name: 'Testing user 1', token: 'tok', expiresAt: '2026-10-05T00:00:00.000Z' };
     mockCustomFetch.mockResolvedValue(jsonResponse(200, { items: [item] }));

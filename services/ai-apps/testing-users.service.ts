@@ -54,28 +54,39 @@ async function toError(response: Response | undefined): Promise<string> {
   return GENERIC_ERROR;
 }
 
+/** Network failures and unreadable bodies come back as the generic error, never as a throw. */
+async function safely<T>(run: () => Promise<AiAppTestingUsersResult<T>>): Promise<AiAppTestingUsersResult<T>> {
+  try {
+    return await run();
+  } catch {
+    return { data: null, error: GENERIC_ERROR };
+  }
+}
+
 function appUrl(appUid: string, path: string): string {
   return `${AI_APPS_API_URL}/${encodeURIComponent(appUid)}/testing-users${path}`;
 }
 
 /** Every testing user of the app, active and revoked, oldest first. Creator or directory admin only. */
 export async function fetchAiAppTestingUsers(appUid: string): Promise<AiAppTestingUsersResult<AiAppTestingUser[]>> {
-  const items: AiAppTestingUser[] = [];
-  // Revoked users stay listed, so an app can hold more than one page.
-  for (let page = 1; ; page += 1) {
-    const response = await customFetch(
-      appUrl(appUid, `?page=${page}&limit=${LIST_PAGE_LIMIT}`),
-      { method: 'GET' },
-      true,
-    );
-    if (!response?.ok) return { data: null, error: await toError(response) };
-    const body = await response.json();
-    const pageItems: AiAppTestingUser[] = Array.isArray(body?.items) ? body.items : [];
-    items.push(...pageItems);
-    const total = typeof body?.total === 'number' ? body.total : items.length;
-    if (pageItems.length === 0 || items.length >= total) break;
-  }
-  return { data: items, error: null };
+  return safely(async () => {
+    const items: AiAppTestingUser[] = [];
+    // Revoked users stay listed, so an app can hold more than one page.
+    for (let page = 1; ; page += 1) {
+      const response = await customFetch(
+        appUrl(appUid, `?page=${page}&limit=${LIST_PAGE_LIMIT}`),
+        { method: 'GET' },
+        true,
+      );
+      if (!response?.ok) return { data: null, error: await toError(response) };
+      const body = await response.json();
+      const pageItems: AiAppTestingUser[] = Array.isArray(body?.items) ? body.items : [];
+      items.push(...pageItems);
+      const total = typeof body?.total === 'number' ? body.total : items.length;
+      if (pageItems.length === 0 || items.length >= total) break;
+    }
+    return { data: items, error: null };
+  });
 }
 
 /** Creates `count` (1 to 100) testing users, all or nothing. */
@@ -83,14 +94,16 @@ export async function createAiAppTestingUsers(
   appUid: string,
   count: number,
 ): Promise<AiAppTestingUsersResult<AiAppTestingUser[]>> {
-  const response = await customFetch(
-    appUrl(appUid, ''),
-    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ count }) },
-    true,
-  );
-  if (!response?.ok) return { data: null, error: await toError(response) };
-  const body = await response.json();
-  return { data: Array.isArray(body?.items) ? body.items : [], error: null };
+  return safely(async () => {
+    const response = await customFetch(
+      appUrl(appUid, ''),
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ count }) },
+      true,
+    );
+    if (!response?.ok) return { data: null, error: await toError(response) };
+    const body = await response.json();
+    return { data: Array.isArray(body?.items) ? body.items : [], error: null };
+  });
 }
 
 /** Revokes one testing user (idempotent); its Preview access stops working. */
@@ -98,17 +111,19 @@ export async function revokeAiAppTestingUser(
   appUid: string,
   testingUserUid: string,
 ): Promise<AiAppTestingUsersResult<{ uid: string; revokedAt: string }>> {
-  const response = await customFetch(
-    appUrl(appUid, `/${encodeURIComponent(testingUserUid)}/revoke`),
-    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' },
-    true,
-  );
-  if (!response?.ok) return { data: null, error: await toError(response) };
-  const body = await response.json();
-  return {
-    data: { uid: body?.uid ?? testingUserUid, revokedAt: body?.revokedAt ?? new Date().toISOString() },
-    error: null,
-  };
+  return safely(async () => {
+    const response = await customFetch(
+      appUrl(appUid, `/${encodeURIComponent(testingUserUid)}/revoke`),
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' },
+      true,
+    );
+    if (!response?.ok) return { data: null, error: await toError(response) };
+    const body = await response.json();
+    return {
+      data: { uid: body?.uid ?? testingUserUid, revokedAt: body?.revokedAt ?? new Date().toISOString() },
+      error: null,
+    };
+  });
 }
 
 /**
@@ -119,12 +134,14 @@ export async function mintAiAppTestingUserAccess(
   appUid: string,
   uids?: string[],
 ): Promise<AiAppTestingUsersResult<AiAppTestingUserAccess[]>> {
-  const response = await customFetch(
-    appUrl(appUid, '/sessions'),
-    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(uids ? { uids } : {}) },
-    true,
-  );
-  if (!response?.ok) return { data: null, error: await toError(response) };
-  const body = await response.json();
-  return { data: Array.isArray(body?.items) ? body.items : [], error: null };
+  return safely(async () => {
+    const response = await customFetch(
+      appUrl(appUid, '/sessions'),
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(uids ? { uids } : {}) },
+      true,
+    );
+    if (!response?.ok) return { data: null, error: await toError(response) };
+    const body = await response.json();
+    return { data: Array.isArray(body?.items) ? body.items : [], error: null };
+  });
 }

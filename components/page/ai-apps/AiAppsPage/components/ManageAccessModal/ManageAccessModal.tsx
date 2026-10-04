@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { clsx } from 'clsx';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
@@ -19,6 +19,7 @@ import { useAiAppAccess } from '@/services/ai-apps/hooks/useAiAppAccess';
 import { useSaveAiAppAccess } from '@/services/ai-apps/hooks/useSaveAiAppAccess';
 
 import { AiAppMemberSearch } from './components/AiAppMemberSearch';
+import { TestingUsersSection } from './components/TestingUsersSection';
 import { GlobeIcon, LockIcon } from './icons';
 
 import s from './ManageAccessModal.module.scss';
@@ -51,6 +52,12 @@ const MODE_OPTIONS: Array<{ value: AiAppAccessMode; title: string; description: 
   },
 ];
 
+/** Same test the backend uses before it allows testing users: the Preview target was uploaded or deployed. */
+function hasPreviewEnvironment(app: AiApp): boolean {
+  const preview = app.deployments?.preview;
+  return !!preview && (!!preview.url || preview.hasBuild || !!preview.lastDeployedAt);
+}
+
 function sameMembers(a: Person[], b: Person[]): boolean {
   if (a.length !== b.length) return false;
   const uids = new Set(a.map((member) => member.uid));
@@ -75,6 +82,9 @@ export function ManageAccessModal({ app, onClose, onRedeploy }: Props) {
   // After a Private save on an app still running a pre-access sidecar.
   const [needsRedeploy, setNeedsRedeploy] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isRevealOpen, setIsRevealOpen] = useState(false);
+  // `ai-apps-testing-users-opened` fires once per modal open, however often the tab is switched.
+  const testingUsersTracked = useRef(false);
 
   useEffect(() => {
     analytics.onManageAccessOpened(app.uid);
@@ -266,12 +276,30 @@ export function ManageAccessModal({ app, onClose, onRedeploy }: Props) {
         )}
 
         {saveError && <p className={s.errorText}>{saveError}</p>}
+
+        {environment === 'preview' && hasPreviewEnvironment(app) && (
+          <TestingUsersSection
+            appUid={app.uid}
+            onShown={() => {
+              if (testingUsersTracked.current) return;
+              testingUsersTracked.current = true;
+              analytics.onTestingUsersOpened(app.uid);
+            }}
+            onRevealChange={setIsRevealOpen}
+          />
+        )}
       </>
     );
   };
 
   return (
-    <Modal isOpen onClose={onClose} className={s.modal} closeOnBackdropClick={false} closeOnEscape={!isSearchOpen}>
+    <Modal
+      isOpen
+      onClose={onClose}
+      className={s.modal}
+      closeOnBackdropClick={false}
+      closeOnEscape={!isSearchOpen && !isRevealOpen}
+    >
       <div className={s.content}>
         <div className={s.header}>
           <h2 className={s.title}>Manage access</h2>

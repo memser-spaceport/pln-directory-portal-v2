@@ -27,6 +27,12 @@ import { hostDataUriImages, isBlankHtml } from '@/utils/html';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApps } from '@/services/ai-apps/hooks/useAiApps';
 import { useSubmitAiAppFeedback } from '@/services/ai-app-feedback/hooks/useSubmitAiAppFeedback';
+import {
+  AI_APP_FEEDBACK_PRIORITY_LABELS,
+  AI_APP_FEEDBACK_REPORT_KINDS,
+  type AiAppFeedbackPriority,
+  type AiAppFeedbackReportKind,
+} from '@/services/ai-app-feedback/constants';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import {
   isScreenshotChord,
@@ -141,11 +147,22 @@ interface Option {
   value: string;
 }
 
+const REPORT_KIND_OPTIONS: Option[] = AI_APP_FEEDBACK_REPORT_KINDS.map((kind) => ({ label: kind, value: kind }));
+const PRIORITY_OPTIONS: Option[] = Object.entries(AI_APP_FEEDBACK_PRIORITY_LABELS).map(([value, label]) => ({
+  label,
+  value,
+}));
+
+const DEFAULT_REPORT_KIND: Option = { label: 'bug', value: 'bug' };
+const DEFAULT_PRIORITY: Option = { label: AI_APP_FEEDBACK_PRIORITY_LABELS.P2, value: 'P2' };
+
 /** The note is markdown. `rich` is what the Rich view's editor holds, `markdown` the Markdown view's source. */
 interface FormValues {
   app: Option | null;
   rich: string;
   markdown: string;
+  reportKind: Option;
+  priority: Option;
 }
 
 const POPOVER_GAP = 8;
@@ -329,7 +346,13 @@ export function GiveAiAppFeedbackDialog({
   const canCapture = Boolean(capture);
 
   const getDefaults = useCallback(
-    (): FormValues => ({ app: getDefaultApp(appUid, appName), rich: '', markdown: '' }),
+    (): FormValues => ({
+      app: getDefaultApp(appUid, appName),
+      rich: '',
+      markdown: '',
+      reportKind: DEFAULT_REPORT_KIND,
+      priority: DEFAULT_PRIORITY,
+    }),
     [appUid, appName],
   );
 
@@ -340,6 +363,8 @@ export function GiveAiAppFeedbackDialog({
   const rich = watch('rich') ?? '';
   const markdown = watch('markdown') ?? '';
   const app = watch('app');
+  const reportKind = watch('reportKind')?.value as AiAppFeedbackReportKind | undefined;
+  const priority = watch('priority')?.value as AiAppFeedbackPriority | undefined;
   const [noteView, setNoteView] = useState<NoteView>('rich');
   const note = noteView === 'rich' ? htmlToMarkdown(rich) : markdown;
   const noteLength = visibleFeedbackLength(noteView === 'rich' ? rich : markdownToHtml(markdown));
@@ -531,7 +556,12 @@ export function GiveAiAppFeedbackDialog({
     const saved = readFeedbackDraft(key);
     const ticket = ++loadTicketRef.current;
     const since = saved ? (saved.startedAt ?? saved.savedAt) : null;
-    const values: FormValues = { ...getDefaults(), app: saved?.app ?? getDefaults().app };
+    const values: FormValues = {
+      ...getDefaults(),
+      app: saved?.app ?? getDefaults().app,
+      reportKind: REPORT_KIND_OPTIONS.find((option) => option.value === saved?.reportKind) ?? DEFAULT_REPORT_KIND,
+      priority: PRIORITY_OPTIONS.find((option) => option.value === saved?.priority) ?? DEFAULT_PRIORITY,
+    };
     /* A draft from before the views holds Quill HTML, which the Rich view takes as it is. */
     const withNote = (images: string[]): FormValues => {
       const text = unpackTextImages(saved?.message ?? '', images);
@@ -584,6 +614,8 @@ export function GiveAiAppFeedbackDialog({
             message: packed,
             view: noteView,
             app,
+            reportKind,
+            priority,
             place: draftPlace,
             pictures: screenshots.length + images.length,
             startedAt: startedAtRef.current ?? undefined,
@@ -598,7 +630,7 @@ export function GiveAiAppFeedbackDialog({
     if (last?.key === draftKey && last.shots === shots && isSameList(last.images, kept)) return;
     keptPicturesRef.current = { key: draftKey, shots, images: kept };
     void writeFeedbackPictures(draftKey, { shots, images: kept });
-  }, [isOpen, loadedKey, draftKey, draftPlace, note, noteView, app, screenshots, worthKeeping]);
+  }, [isOpen, loadedKey, draftKey, draftPlace, note, noteView, app, reportKind, priority, screenshots, worthKeeping]);
 
   useEffect(() => {
     if (isOpen) setOtherDrafts(listFeedbackDrafts().filter((draft) => draft.key !== draftKey));
@@ -992,6 +1024,8 @@ export function GiveAiAppFeedbackDialog({
         text: trimmedMessage,
         ...(pinInputs.length > 0 ? { pins: pinInputs } : {}),
         ...(context ? { context } : {}),
+        reportKind,
+        priority,
       },
       {
         onSuccess: () => {
@@ -1488,6 +1522,23 @@ export function GiveAiAppFeedbackDialog({
                       <span className={clsx(s.noteCount, isOverLimit && s.noteCountOver)}>
                         {noteLength} / {MAX_LENGTH}
                       </span>
+                    </div>
+
+                    <div className={s.triage}>
+                      <FormSelect
+                        name="reportKind"
+                        label="Kind"
+                        placeholder="Kind"
+                        options={REPORT_KIND_OPTIONS}
+                        menuPortalTarget={typeof document === 'undefined' ? null : document.body}
+                      />
+                      <FormSelect
+                        name="priority"
+                        label="Priority"
+                        placeholder="Priority"
+                        options={PRIORITY_OPTIONS}
+                        menuPortalTarget={typeof document === 'undefined' ? null : document.body}
+                      />
                     </div>
                   </div>
                 </FormProvider>

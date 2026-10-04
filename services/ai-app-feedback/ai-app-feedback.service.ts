@@ -1,5 +1,5 @@
 import { customFetch } from '@/utils/fetch-wrapper';
-import type { AiAppFeedbackStatus } from './constants';
+import type { AiAppFeedbackPriority, AiAppFeedbackReportKind, AiAppFeedbackStatus } from './constants';
 
 export type { AiAppFeedbackStatus } from './constants';
 
@@ -23,6 +23,9 @@ export interface AiAppFeedback {
   createdAt: string;
   /** Absent from responses older than the item kinds (BE #3474): treat as FEEDBACK. */
   kind?: AiAppFeedbackKind;
+  /** Picked on the written form; null (or absent) when never set, as on comments and older items. */
+  reportKind?: AiAppFeedbackReportKind | null;
+  priority?: AiAppFeedbackPriority | null;
   /** Set when its author changed the text. */
   editedAt?: string | null;
   member: { uid: string; name: string } | null;
@@ -118,7 +121,13 @@ export const FEEDBACK_COMMENT_MAX_LENGTH = 2000;
 export async function submitAiAppFeedback(
   appUid: string,
   text: string,
-  extras: { pins?: FeedbackPinInput[]; context?: FeedbackContext; kind?: AiAppFeedbackKind } = {},
+  extras: {
+    pins?: FeedbackPinInput[];
+    context?: FeedbackContext;
+    kind?: AiAppFeedbackKind;
+    reportKind?: AiAppFeedbackReportKind;
+    priority?: AiAppFeedbackPriority;
+  } = {},
 ): Promise<{ uid: string }> {
   const response = await customFetch(
     `${AI_APPS_API_URL}/${appUid}/feedback`,
@@ -132,6 +141,8 @@ export async function submitAiAppFeedback(
         ...(extras.pins?.length ? { pins: extras.pins } : {}),
         ...(extras.context ? { context: extras.context } : {}),
         ...(extras.kind ? { kind: extras.kind } : {}),
+        ...(extras.reportKind ? { reportKind: extras.reportKind } : {}),
+        ...(extras.priority ? { priority: extras.priority } : {}),
       }),
     },
     true, // withAuth

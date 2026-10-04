@@ -8,7 +8,7 @@
 
 .table {
   width: 100%;
-  min-width: 780px;
+  min-width: 1060px;
   table-layout: fixed;
   border-collapse: collapse;
 
@@ -39,10 +39,18 @@
   }
 }
 
-// APP, FROM, STATUS, and DATE are fixed-width so they don't reflow as content changes;
+// APP, KIND, PRIORITY, FROM, STATUS, and DATE are fixed-width so they don't reflow as content changes;
 // FEEDBACK (no width set) fills the remaining space via table-layout: fixed.
 .appCol {
   width: 160px;
+}
+
+.kindCol {
+  width: 100px;
+}
+
+.priorityCol {
+  width: 180px;
 }
 
 .fromCol {

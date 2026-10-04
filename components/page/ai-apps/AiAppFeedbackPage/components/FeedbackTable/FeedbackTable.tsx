@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { AiAppFeedbackStatus } from '@/services/ai-app-feedback/constants';
+import { AI_APP_FEEDBACK_PRIORITY_LABELS, type AiAppFeedbackStatus } from '@/services/ai-app-feedback/constants';
 import { SHOW_AI_APPS_COMMENTS, SHOW_AI_APPS_FEEDBACK_OVERLAY } from '@/services/ai-apps/constants';
 import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
 
@@ -30,6 +30,8 @@ export function FeedbackTable({ rows, pendingFeedbackUid, onStatusSelect, onImag
           <tr>
             <th className={s.appCol}>App</th>
             <th>Feedback</th>
+            <th className={s.kindCol}>Kind</th>
+            <th className={s.priorityCol}>Priority</th>
             {onStatusSelect && <th className={s.fromCol}>From</th>}
             <th className={s.statusCol}>Status</th>
             <th className={s.dateCol}>Date</th>
@@ -58,6 +60,8 @@ export function FeedbackTable({ rows, pendingFeedbackUid, onStatusSelect, onImag
                     </Link>
                   )}
                 </td>
+                <td>{row.reportKind ?? ''}</td>
+                <td>{row.priority ? AI_APP_FEEDBACK_PRIORITY_LABELS[row.priority] : ''}</td>
                 {onStatusSelect && (
                   <td>
                     <div className={s.submitter}>

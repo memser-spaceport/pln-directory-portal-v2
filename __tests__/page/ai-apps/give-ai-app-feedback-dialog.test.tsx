@@ -72,13 +72,18 @@ jest.mock('react-select', () => ({
     menuPlacement?: string;
   }) => (
     <div data-menu-placement={menuPlacement}>
-      <span data-testid="selected-app">{value?.label ?? placeholder}</span>
+      <span data-testid={`selected-${inputId}`}>{value?.label ?? placeholder}</span>
       {options.map((opt) => (
         <button key={opt.value} type="button" onClick={() => onChange(opt)}>
           {opt.label}
         </button>
       ))}
-      <input id={inputId} aria-label="Which app is this about?" readOnly value={value?.label ?? ''} />
+      <input
+        id={inputId}
+        aria-label={inputId === 'app' ? 'Which app is this about?' : inputId}
+        readOnly
+        value={value?.label ?? ''}
+      />
     </div>
   ),
   components: {},
@@ -239,7 +244,7 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     await waitFor(() =>
       expect(mockMutate).toHaveBeenCalledWith(
-        { appUid: 'app-1', text: 'Nice app!' },
+        { appUid: 'app-1', text: 'Nice app!', reportKind: 'bug', priority: 'P2' },
         expect.objectContaining({ onSuccess: expect.any(Function), onError: expect.any(Function) }),
       ),
     );
@@ -356,7 +361,7 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     await waitFor(() =>
       expect(mockMutate).toHaveBeenCalledWith(
-        { appUid: 'app-1', text: '**Nice app!**' },
+        { appUid: 'app-1', text: '**Nice app!**', reportKind: 'bug', priority: 'P2' },
         expect.objectContaining({ onSuccess: expect.any(Function) }),
       ),
     );
@@ -390,7 +395,12 @@ describe('GiveAiAppFeedbackDialog', () => {
     expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue(source);
     fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
 
-    await waitFor(() => expect(mockMutate).toHaveBeenCalledWith({ appUid: 'app-1', text: source }, expect.any(Object)));
+    await waitFor(() =>
+      expect(mockMutate).toHaveBeenCalledWith(
+        { appUid: 'app-1', text: source, reportKind: 'bug', priority: 'P2' },
+        expect.any(Object),
+      ),
+    );
   });
 
   it('allows image-only feedback', async () => {
@@ -409,7 +419,7 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     await waitFor(() =>
       expect(mockMutate).toHaveBeenCalledWith(
-        { appUid: 'app-1', text: '![shot](https://cdn.test/shot.png)' },
+        { appUid: 'app-1', text: '![shot](https://cdn.test/shot.png)', reportKind: 'bug', priority: 'P2' },
         expect.any(Object),
       ),
     );
@@ -493,7 +503,7 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     await waitFor(() =>
       expect(mockMutate).toHaveBeenCalledWith(
-        { appUid: 'app-1', text: '![](https://cdn.test/hosted.png)' },
+        { appUid: 'app-1', text: '![](https://cdn.test/hosted.png)', reportKind: 'bug', priority: 'P2' },
         expect.any(Object),
       ),
     );
@@ -518,6 +528,67 @@ describe('GiveAiAppFeedbackDialog', () => {
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Image upload failed. Please try again.'));
     expect(mockMutate).not.toHaveBeenCalled();
     expect(mockContactSupportMutate).not.toHaveBeenCalled();
+  });
+
+  it('shows Kind and Priority under the note, starting at bug and P2, and sends what is picked', async () => {
+    mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" bridgeMissing />);
+
+    expect(screen.getByText('Kind')).toBeInTheDocument();
+    expect(screen.getByText('Priority')).toBeInTheDocument();
+    expect(screen.getByTestId('selected-reportKind')).toHaveTextContent('bug');
+    expect(screen.getByTestId('selected-priority')).toHaveTextContent('P2 — Normal — worth doing, not urgent');
+    for (const label of [
+      'P0 — Blocking — nobody can work around this',
+      'P1 — Serious — there is a workaround and it hurts',
+      'P3 — Someday — a good idea with no clock on it',
+      'request',
+      'question',
+      'chore',
+    ]) {
+      expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
+    }
+
+    fireEvent.click(screen.getByRole('button', { name: 'request' }));
+    fireEvent.click(screen.getByRole('button', { name: 'P0 — Blocking — nobody can work around this' }));
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Nice app!' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+    await waitFor(() =>
+      expect(mockMutate).toHaveBeenCalledWith(
+        { appUid: 'app-1', text: 'Nice app!', reportKind: 'request', priority: 'P0' },
+        expect.any(Object),
+      ),
+    );
+  });
+
+  it('shows Kind and Priority when opened from the apps list, with no app on screen', () => {
+    mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} />);
+
+    expect(screen.getByTestId('selected-reportKind')).toHaveTextContent('bug');
+    expect(screen.getByTestId('selected-priority')).toHaveTextContent('P2 — Normal — worth doing, not urgent');
+  });
+
+  it('keeps the picked Kind and Priority in the draft and restores them', async () => {
+    mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+    const { rerender } = render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Half a thought' } });
+    fireEvent.click(screen.getByRole('button', { name: 'chore' }));
+    fireEvent.click(screen.getByRole('button', { name: 'P3 — Someday — a good idea with no clock on it' }));
+    await waitFor(() =>
+      expect(JSON.parse(window.localStorage.getItem(APP_1_DRAFT_KEY) ?? '{}').data).toMatchObject({
+        reportKind: 'chore',
+        priority: 'P3',
+      }),
+    );
+
+    rerender(<GiveAiAppFeedbackDialog isOpen={false} onClose={jest.fn()} appUid="app-1" appName="My App" />);
+    rerender(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+    await waitFor(() => expect(screen.getByTestId('selected-reportKind')).toHaveTextContent('chore'));
+    expect(screen.getByTestId('selected-priority')).toHaveTextContent('P3 — Someday — a good idea with no clock on it');
   });
 
   it('restores a typed draft when the dialog is reopened', async () => {
@@ -1300,7 +1371,7 @@ describe('GiveAiAppFeedbackDialog', () => {
 
       await waitFor(() =>
         expect(mockMutate).toHaveBeenCalledWith(
-          { appUid: 'app-1', text: 'Nice app!' },
+          { appUid: 'app-1', text: 'Nice app!', reportKind: 'bug', priority: 'P2' },
           expect.objectContaining({ onSuccess: expect.any(Function) }),
         ),
       );

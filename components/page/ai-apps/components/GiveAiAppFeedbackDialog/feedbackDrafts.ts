@@ -8,6 +8,7 @@
  * Every read and write may fail (a private window, storage turned off). A failure means the draft
  * is not kept, never that the panel breaks.
  */
+import type { AiAppFeedbackPriority, AiAppFeedbackReportKind } from '@/services/ai-app-feedback/constants';
 import type { ScreenshotAttachment } from '../screenshot-feedback';
 
 export const AI_APP_FEEDBACK_DRAFT_KEY = 'form-draft:ai-app-feedback';
@@ -30,6 +31,8 @@ export type DraftWords = {
   /** The view the note was being written in. */
   view?: NoteView;
   app?: { label: string; value: string } | null;
+  reportKind?: AiAppFeedbackReportKind;
+  priority?: AiAppFeedbackPriority;
   place?: DraftPlace;
   /** Screenshots and text images kept in IndexedDB. */
   pictures?: number;

@@ -53,3 +53,34 @@ describe('FeedbackTable: kind', () => {
     expect(kinds).toEqual(['Comment', 'Feedback', 'Feedback']);
   });
 });
+
+describe('FeedbackTable: Kind and Priority', () => {
+  it.each([
+    ['the review list', { onStatusSelect: jest.fn() }],
+    ['the sender’s own list', {}],
+  ])('shows them in the form’s words on %s, blank where never set', (_, props) => {
+    render(
+      <FeedbackTable
+        rows={[
+          { ...row('fb-1'), reportKind: 'request', priority: 'P0' },
+          { ...row('fb-2'), reportKind: null, priority: null },
+          row('fb-3'),
+        ]}
+        onImageClick={jest.fn()}
+        {...props}
+      />,
+    );
+    const cells = screen
+      .getAllByRole('row')
+      .slice(1)
+      .map((tr) => [
+        tr.querySelector('td:nth-child(3)')?.textContent,
+        tr.querySelector('td:nth-child(4)')?.textContent,
+      ]);
+    expect(cells).toEqual([
+      ['request', 'P0 — Blocking — nobody can work around this'],
+      ['', ''],
+      ['', ''],
+    ]);
+  });
+});

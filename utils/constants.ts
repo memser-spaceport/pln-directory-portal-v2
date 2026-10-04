@@ -2770,6 +2770,8 @@ export const AI_APPS_ANALYTICS = {
   FILTERS_CLEARED: 'ai_apps_filters_cleared',
   EMPTY_RESULTS_SHOWN: 'ai_apps_empty_results_shown',
   MANAGE_ACCESS_OPENED: 'ai_apps_manage_access_opened',
+  // LAB-2745: named in the ticket's Metrics section (kebab-case, unlike the older events above).
+  TESTING_USERS_OPENED: 'ai-apps-testing-users-opened',
   ACCESS_SAVED: 'ai_apps_access_saved',
   ACCESS_SAVE_FAILED: 'ai_apps_access_save_failed',
   PRIVATE_BLOCKED: 'ai_apps_private_blocked',

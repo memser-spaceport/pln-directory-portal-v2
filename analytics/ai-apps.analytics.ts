@@ -241,6 +241,7 @@ export function useAiAppsAnalytics() {
     onFiltersCleared: (params: { source: 'rail' | 'mobile' }) => capture(AI_APPS_ANALYTICS.FILTERS_CLEARED, params),
     onEmptyResultsShown: (params: { filterCount: number }) => capture(AI_APPS_ANALYTICS.EMPTY_RESULTS_SHOWN, params),
     onManageAccessOpened: (appUid: string) => capture(AI_APPS_ANALYTICS.MANAGE_ACCESS_OPENED, { appUid }),
+    onTestingUsersOpened: (appUid: string) => capture(AI_APPS_ANALYTICS.TESTING_USERS_OPENED, { appUid }),
     onAccessSaved: (params: {
       appUid: string;
       environment: 'prod' | 'preview';

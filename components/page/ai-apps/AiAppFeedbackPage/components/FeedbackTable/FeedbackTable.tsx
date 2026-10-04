@@ -3,6 +3,8 @@ import { AI_APP_FEEDBACK_PRIORITY_LABELS, type AiAppFeedbackStatus } from '@/ser
 import { SHOW_AI_APPS_COMMENTS, SHOW_AI_APPS_FEEDBACK_OVERLAY } from '@/services/ai-apps/constants';
 import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
 
+import { Tooltip } from '@/components/core/tooltip/tooltip';
+
 import type { FeedbackImage } from '../../utils/splitFeedbackMedia';
 
 import { looksLikeHtml } from '../../utils/looksLikeHtml';
@@ -31,7 +33,26 @@ export function FeedbackTable({ rows, pendingFeedbackUid, onStatusSelect, onImag
             <th className={s.appCol}>App</th>
             <th>Feedback</th>
             <th className={s.kindCol}>Kind</th>
-            <th className={s.priorityCol}>Priority</th>
+            <th className={s.priorityCol}>
+              <span className={s.priorityHeader}>
+                Priority
+                <Tooltip
+                  asChild
+                  trigger={
+                    <button type="button" className={s.priorityHelp} aria-label="Priority levels">
+                      <img src="/icons/help.svg" alt="" width={16} height={16} />
+                    </button>
+                  }
+                  content={
+                    <ul className={s.priorityLegend}>
+                      {Object.values(AI_APP_FEEDBACK_PRIORITY_LABELS).map((label) => (
+                        <li key={label}>{label}</li>
+                      ))}
+                    </ul>
+                  }
+                />
+              </span>
+            </th>
             {onStatusSelect && <th className={s.fromCol}>From</th>}
             <th className={s.statusCol}>Status</th>
             <th className={s.dateCol}>Date</th>
@@ -61,7 +82,7 @@ export function FeedbackTable({ rows, pendingFeedbackUid, onStatusSelect, onImag
                   )}
                 </td>
                 <td>{row.reportKind ?? ''}</td>
-                <td>{row.priority ? AI_APP_FEEDBACK_PRIORITY_LABELS[row.priority] : ''}</td>
+                <td>{row.priority ?? ''}</td>
                 {onStatusSelect && (
                   <td>
                     <div className={s.submitter}>

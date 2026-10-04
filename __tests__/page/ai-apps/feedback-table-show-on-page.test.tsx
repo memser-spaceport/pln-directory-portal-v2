@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { FeedbackTable } from '@/components/page/ai-apps/AiAppFeedbackPage/components/FeedbackTable';
 import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
@@ -58,7 +58,7 @@ describe('FeedbackTable: Kind and Priority', () => {
   it.each([
     ['the review list', { onStatusSelect: jest.fn() }],
     ['the sender’s own list', {}],
-  ])('shows them in the form’s words on %s, blank where never set', (_, props) => {
+  ])('shows the kind and the bare P# on %s, blank where never set', (_, props) => {
     render(
       <FeedbackTable
         rows={[
@@ -78,9 +78,26 @@ describe('FeedbackTable: Kind and Priority', () => {
         tr.querySelector('td:nth-child(4)')?.textContent,
       ]);
     expect(cells).toEqual([
-      ['request', 'P0 — Blocking — nobody can work around this'],
+      ['request', 'P0'],
       ['', ''],
       ['', ''],
+    ]);
+  });
+
+  it('lists every priority in the form’s words behind the ? beside the Priority header', () => {
+    render(<FeedbackTable rows={[row('fb-1')]} onImageClick={jest.fn()} />);
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Priority levels' })[0]);
+
+    expect(
+      within(screen.getByRole('tooltip'))
+        .getAllByRole('listitem')
+        .map((item) => item.textContent),
+    ).toEqual([
+      'P0 — Blocking — nobody can work around this',
+      'P1 — Serious — there is a workaround and it hurts',
+      'P2 — Normal — worth doing, not urgent',
+      'P3 — Someday — a good idea with no clock on it',
     ]);
   });
 });

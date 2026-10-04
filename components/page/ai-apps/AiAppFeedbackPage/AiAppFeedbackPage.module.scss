@@ -81,6 +81,7 @@
   }
 
   @include media.mobile-only {
+    flex-wrap: wrap;
     padding-bottom: 12px;
   }
 }

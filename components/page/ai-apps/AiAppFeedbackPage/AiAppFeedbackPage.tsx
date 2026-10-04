@@ -15,10 +15,18 @@ import { ArrowBackIcon } from '@/components/icons';
 import { Button } from '@/components/common/Button/Button';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
 
-import type { FeedbackStatusFilterValue } from './types';
+import type { FeedbackPriorityFilterValue, FeedbackReportKindFilterValue, FeedbackStatusFilterValue } from './types';
 import type { FeedbackImage } from './utils/splitFeedbackMedia';
 
-import { ALL_TAB, ALL_FEEDBACK_STATUSES, FEEDBACK_STATUS_FILTER_OPTIONS } from './constants';
+import {
+  ALL_TAB,
+  ALL_FEEDBACK_STATUSES,
+  ALL_FEEDBACK_PRIORITIES,
+  ALL_FEEDBACK_REPORT_KINDS,
+  FEEDBACK_STATUS_FILTER_OPTIONS,
+  FEEDBACK_PRIORITY_FILTER_OPTIONS,
+  FEEDBACK_REPORT_KIND_FILTER_OPTIONS,
+} from './constants';
 
 import { exportAiAppFeedbackCsv } from './utils/exportAiAppFeedbackCsv';
 import { buildFeedbackCsvFilename } from './utils/buildFeedbackCsvFilename';
@@ -38,6 +46,8 @@ export function AiAppFeedbackPage() {
   const hasTrackedView = useRef(false);
   const [activeTab, setActiveTab] = useState(ALL_TAB);
   const [statusFilter, setStatusFilter] = useState<FeedbackStatusFilterValue>(ALL_FEEDBACK_STATUSES);
+  const [reportKindFilter, setReportKindFilter] = useState<FeedbackReportKindFilterValue>(ALL_FEEDBACK_REPORT_KINDS);
+  const [priorityFilter, setPriorityFilter] = useState<FeedbackPriorityFilterValue>(ALL_FEEDBACK_PRIORITIES);
   const [lightbox, setLightbox] = useState<FeedbackImage | null>(null);
 
   useEffect(() => {
@@ -48,20 +58,31 @@ export function AiAppFeedbackPage() {
 
   const appNames = useMemo(() => Array.from(new Set(feedback.map((row) => row.appName))).sort(), [feedback]);
 
-  const statusRows = useMemo(
-    () => (statusFilter === ALL_FEEDBACK_STATUSES ? feedback : feedback.filter((row) => row.status === statusFilter)),
-    [feedback, statusFilter],
+  const isFiltered =
+    statusFilter !== ALL_FEEDBACK_STATUSES ||
+    reportKindFilter !== ALL_FEEDBACK_REPORT_KINDS ||
+    priorityFilter !== ALL_FEEDBACK_PRIORITIES;
+
+  const filteredRows = useMemo(
+    () =>
+      feedback.filter(
+        (row) =>
+          (statusFilter === ALL_FEEDBACK_STATUSES || row.status === statusFilter) &&
+          (reportKindFilter === ALL_FEEDBACK_REPORT_KINDS || row.reportKind === reportKindFilter) &&
+          (priorityFilter === ALL_FEEDBACK_PRIORITIES || row.priority === priorityFilter),
+      ),
+    [feedback, statusFilter, reportKindFilter, priorityFilter],
   );
 
   const tabs = useMemo(
     () => [
-      { name: ALL_TAB, count: statusRows.length },
-      ...appNames.map((name) => ({ name, count: statusRows.filter((row) => row.appName === name).length })),
+      { name: ALL_TAB, count: filteredRows.length },
+      ...appNames.map((name) => ({ name, count: filteredRows.filter((row) => row.appName === name).length })),
     ],
-    [statusRows, appNames],
+    [filteredRows, appNames],
   );
 
-  const visibleRows = activeTab === ALL_TAB ? statusRows : statusRows.filter((row) => row.appName === activeTab);
+  const visibleRows = activeTab === ALL_TAB ? filteredRows : filteredRows.filter((row) => row.appName === activeTab);
 
   const handleTabClick = (tab: string) => {
     setActiveTab(tab);
@@ -123,6 +144,18 @@ export function AiAppFeedbackPage() {
                     analytics.onFeedbackStatusFiltered(next);
                   }}
                 />
+                <SortDropdown
+                  sortByLabel="Kind:"
+                  options={FEEDBACK_REPORT_KIND_FILTER_OPTIONS}
+                  currentSort={reportKindFilter}
+                  onSortChange={(value) => setReportKindFilter(value as FeedbackReportKindFilterValue)}
+                />
+                <SortDropdown
+                  sortByLabel="Priority:"
+                  options={FEEDBACK_PRIORITY_FILTER_OPTIONS}
+                  currentSort={priorityFilter}
+                  onSortChange={(value) => setPriorityFilter(value as FeedbackPriorityFilterValue)}
+                />
                 <Button
                   size="s"
                   style="fill"
@@ -139,9 +172,7 @@ export function AiAppFeedbackPage() {
 
             {visibleRows.length === 0 ? (
               <div className={s.state}>
-                {statusFilter === ALL_FEEDBACK_STATUSES
-                  ? 'No feedback for this app yet.'
-                  : 'No feedback matches the selected filters.'}
+                {isFiltered ? 'No feedback matches the selected filters.' : 'No feedback for this app yet.'}
               </div>
             ) : (
               <FeedbackTable

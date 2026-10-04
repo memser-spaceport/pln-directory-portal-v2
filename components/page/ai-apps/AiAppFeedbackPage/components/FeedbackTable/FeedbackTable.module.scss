@@ -50,7 +50,35 @@
 }
 
 .priorityCol {
-  width: 180px;
+  width: 110px;
+}
+
+.priorityHeader {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.priorityHelp {
+  display: flex;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+// The tooltip renders inside the <th>, so undo its uppercase, nowrap header text.
+.priorityLegend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 4px 2px;
+  list-style: none;
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: normal;
+  font-weight: 400;
 }
 
 .fromCol {

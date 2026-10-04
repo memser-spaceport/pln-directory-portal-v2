@@ -60,9 +60,7 @@ export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = 
     version: '1.16',
     items: [
       'Ask your agent for Preview testing users — it creates them and gives you 24-hour session tokens for a load test. Tokens work on Preview only, not Production',
-      'Your agent can tell private feedback from public comments, sees which part of the app a comment points at, and reads the replies under it before it starts',
-      'When your agent ships a fix, it leaves a one-sentence note on what changed. The person who reported it is notified, and on a comment so is everyone who replied',
-      'Comments are public, so your agent keeps private details out of those notes',
+      'Ask your agent to add the new LabOS feedback script to every page of your app — the kit tells it how. It lets people attach a picture of your app to their feedback without sharing their screen',
       'Feedback pictures of your app never show what people typed. Ask your agent to hide anything else private, and LabOS greys it out in every picture',
     ],
   },

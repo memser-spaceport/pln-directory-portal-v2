@@ -48,7 +48,7 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
       analytics.trackDeleteThread(thread.threadId, thread.title);
       handleDeleteModalOpen(thread);
     },
-    [thread, handleDeleteModalOpen],
+    [thread, handleDeleteModalOpen, analytics],
   );
 
   return (

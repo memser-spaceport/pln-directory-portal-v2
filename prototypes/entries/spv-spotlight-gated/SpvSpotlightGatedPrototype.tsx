@@ -15,7 +15,6 @@ import { netholabs, NETHOLABS_FACTS, NETHOLABS_SUMMARY, NETHOLABS_WEBSITE_IMAGES
 import { SpvInvestorProfileDrawer, type InvestorRecord } from './SpvInvestorProfileDrawer';
 import { SpvApplyModal, SpvAppliedModal } from './SpvApplyModal';
 import {
-  EMPTY_DEAL_PREFS,
   mockSignedInUser,
   mockInvestorProfile,
   mockInvestorDetails,
@@ -23,7 +22,6 @@ import {
   REQUEST_FLOW_ENABLED,
   spvFaqItems,
   VIEWER_OPTIONS,
-  type DealPrefs,
   type SpvStatus,
   type SpvViewer,
 } from './mocks';
@@ -38,7 +36,7 @@ import s from './SpvSpotlight.module.scss';
  *   logs them in. So "Request access to data room" and the request modal, the
  *   pending stepper and the approval states are hidden behind
  *   REQUEST_FLOW_ENABLED (mocks.ts) — "feature flag it, don't remove it", as
- *   Demo Day taught us — and the primary is simply **Open data room**, a plain
+ *   Demo Day taught us — and the primary is **Request data room access**, a plain
  *   link to the team's DocSend (no DocSend integration).
  * - **Locked states.** Without the token and a login, the page shows nothing of
  *   the deal — no title, no team, no FAQ: a lock message with Sign in (or "Use a
@@ -48,16 +46,16 @@ import s from './SpvSpotlight.module.scss';
  * - **Secondary call to action: Set up investor profile**, beside Open data
  *   room, "so we can send you the deals you'd be interested in" (a deal is the
  *   venture word for a startup investment opportunity). It opens the investor
- *   profile drawer, which gains a **Deal preferences** section — sectors, stages
- *   and check size — the deal part the drawer lacked.
+ *   profile drawer; Investor Details already asks what they invest in (focus,
+ *   stages, check size), so it only gains one tick: "Email me deals that match".
  * - Contact us (mailto) replaces the questions block on the locked states; the
  *   FAQ stays for invited viewers, rewritten for the token model.
  *
  * Still open, to confirm with Anuj / Remy / Mark: what the token link does once
  * it expires or is used on a second device; whether "not on the list" should
- * show the signed-in email (it does here); whether deal preferences should
- * replace the stages / check size in Investor Details instead of sitting beside
- * them (they are prefilled from it here).
+ * show the signed-in email (it does here); fund-only investors get no focus /
+ * check size fields in Investor Details (production behaviour), so deal emails
+ * have nothing to match on for them.
  */
 
 // The preview bar no longer switches the Spotlight's status (Draft / Open /
@@ -82,7 +80,7 @@ const HINTS: Record<SpvHeroVariant, string> = {
   pending: 'Legacy request flow (flag on).',
   rejected: 'Legacy request flow (flag on).',
   openingSoon: 'Invited, Spotlight still in draft. No DocSend yet.',
-  open: 'The token link logged them in: Open data room goes straight to the DocSend.',
+  open: 'The token link logged them in: Request data room access goes straight to the DocSend.',
   closed: 'Closed — the same message for every viewer.',
 };
 
@@ -96,15 +94,14 @@ export default function SpvSpotlightGatedPrototype() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [profile, setProfile] = useState(mockInvestorProfile);
   const [investor, setInvestor] = useState<InvestorRecord>(mockInvestorDetails);
-  const [dealPrefs, setDealPrefs] = useState<DealPrefs>(EMPTY_DEAL_PREFS);
 
   useEffect(() => setMounted(true), []);
   if (!mounted) return <div className={s.page} />;
 
   const isLoggedIn = viewer !== 'signedOut';
-  // The secondary call to action reads "Set up" until the deal part is filled:
-  // at least a sector and a check size, so there is something to match on.
-  const profileComplete = dealPrefs.sectors.length > 0 && !!dealPrefs.checkSize;
+  // The secondary call to action reads "Set up" until Investor Details says what
+  // they invest in: a focus and a check size, so there is something to match on.
+  const profileComplete = investor.focus.length > 0 && !!investor.checkSize;
   const variant = resolveVariant(status, viewer);
   const locked = variant === 'lockedSignedOut' || variant === 'lockedNoAccess';
 
@@ -132,19 +129,17 @@ export default function SpvSpotlightGatedPrototype() {
       case 'open':
         return (
           <SpvCardAction
-            label="Open data room"
+            // "Request", not "Open" (review 2026-10-02): an invited investor
+            // still asks for access on DocSend, so the label names that step.
+            label="Request data room access"
             href={mockSpotlight.docSendUrl}
-            // The investor-profile door (2026-10-01): a deal is what an
-            // investor is sent once PL knows what they invest in.
+            // The investor-profile door (2026-10-01), a link under the primary;
+            // what it is for sits in the info tooltip beside it (2026-10-05).
             secondary={{
-              label: profileComplete ? 'Edit investor profile' : 'Set up investor profile',
+              label: profileComplete ? 'Edit your investor profile' : 'Set up your investor profile',
               onClick: () => setProfileOpen(true),
+              info: 'Your investor preferences are used to fine-tune the deals we notify you about.',
             }}
-            note={
-              profileComplete
-                ? 'We’ll send you the deals that match your profile.'
-                : 'Tell us what you invest in and we’ll send you the deals that fit.'
-            }
           />
         );
       case 'pending':
@@ -231,10 +226,11 @@ export default function SpvSpotlightGatedPrototype() {
             </section>
           )}
 
-          {/* Explore PL Network stays on the page. Locked, it is the page's one
-              way onward, so it grows: facts and focus areas, not just a pitch. */}
+          {/* Explore PL Network stays on the page, in its big version for
+              everyone: the KPIs and focus areas give a snapshot of the network
+              (review 2026-10-02 — it started as the locked page's version). */}
           <section className={s.exploreSection} aria-label="Explore the PL Network">
-            <SpvExploreTile featured={locked} />
+            <SpvExploreTile featured />
           </section>
 
           {!locked && (
@@ -325,8 +321,6 @@ export default function SpvSpotlightGatedPrototype() {
         onProfileChange={setProfile}
         investor={investor}
         onInvestorChange={setInvestor}
-        dealPrefs={dealPrefs}
-        onDealPrefsChange={setDealPrefs}
       />
     </div>
   );

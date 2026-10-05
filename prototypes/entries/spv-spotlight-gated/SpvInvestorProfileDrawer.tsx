@@ -45,7 +45,6 @@ import type { ProfileRecord } from '../profile-shared/SectionEditor/types';
 // Grey-✕ copies of production's FormMultiSelect / FormTagsInput (lesson 8).
 import { PreferenceMultiSelect } from '../job-board/PreferenceMultiSelect';
 import { SkillsTagsInput } from '../job-board/SkillsTagsInput';
-import { SECTOR_OPTIONS, type DealPrefs } from './mocks';
 import s from './SpvSpotlight.module.scss';
 
 /**
@@ -77,9 +76,15 @@ export type InvestorRecord = {
   /** "I invest through fund(s)." */
   viaFund: boolean;
   fundId: string | null;
+  /** "Email me deals that match" — added 2026-10-01 for SPV Spotlight. */
+  dealEmails: boolean;
 };
 
-type Target = 'profile' | 'deals' | 'investor' | 'contact' | null;
+// What the section is for (2026-10-01): the answers decide which deals are sent.
+const DEAL_LEAD =
+  'Tell us what you invest in and your typical check size. We’ll use it to email you deals that match, so you only see the ones you’d want to look at.';
+
+type Target = 'profile' | 'investor' | 'contact' | null;
 
 const STAGE_OPTIONS = ['Pre-seed', 'Seed', 'Series A', 'Series B', 'Series C', 'Series D and later'].map((v) => ({
   value: v,
@@ -119,8 +124,6 @@ type Props = {
   onProfileChange: (next: ProfileRecord) => void;
   investor: InvestorRecord;
   onInvestorChange: (next: InvestorRecord) => void;
-  dealPrefs: DealPrefs;
-  onDealPrefsChange: (next: DealPrefs) => void;
 };
 
 const BackIcon = () => (
@@ -139,8 +142,6 @@ export const SpvInvestorProfileDrawer = ({
   onProfileChange,
   investor,
   onInvestorChange,
-  dealPrefs,
-  onDealPrefsChange,
 }: Props) => {
   const [editing, setEditing] = useState<Target>(null);
   const [, setDirty] = useState(false);
@@ -238,48 +239,7 @@ export const SpvInvestorProfileDrawer = ({
             </div>
           </Section>
 
-          {/* 2. Deal preferences — new 2026-10-01. The deal part the drawer lacked:
-              what kind of deals to send this investor. Three fields, per Anuj. */}
-          <Section {...sectionProps('deals')}>
-            <DetailsSection
-              editView={is('deals')}
-              classes={{
-                ...editSectionClasses(is('deals')),
-                root: clsx(ipd.root, editSectionClasses(is('deals'))?.root),
-              }}
-            >
-              {is('deals') ? (
-                <DealPrefsForm
-                  prefs={dealPrefs}
-                  investor={investor}
-                  onClose={close}
-                  onSubmit={(next) => {
-                    onDealPrefsChange(next);
-                    close();
-                  }}
-                />
-              ) : (
-                <div className={iv.root}>
-                  <DetailsSectionHeader title="Deal preferences">
-                    <EditButton onClick={() => setEditing('deals')} />
-                  </DetailsSectionHeader>
-                  <p className={s.dealLead}>The kinds of deals you would like us to send you.</p>
-                  <div className={iv.content}>
-                    <InvestmentDetailsSection
-                      typicalCheckSize={dealPrefs.checkSize || undefined}
-                      investmentFocusAreas={dealPrefs.sectors}
-                      investInStartupStages={dealPrefs.stages}
-                      secRulesAccepted
-                      isEditable
-                      onEdit={() => setEditing('deals')}
-                    />
-                  </div>
-                </div>
-              )}
-            </DetailsSection>
-          </Section>
-
-          {/* 3. Investor Details. */}
+          {/* 2. Investor Details. */}
           <Section {...sectionProps('investor')}>
             <DetailsSection
               editView={is('investor')}
@@ -303,7 +263,7 @@ export const SpvInvestorProfileDrawer = ({
             </DetailsSection>
           </Section>
 
-          {/* 4. Contact Details. */}
+          {/* 3. Contact Details. */}
           <Section {...sectionProps('contact')}>
             <DetailsSection editView={is('contact')} classes={editSectionClasses(is('contact'))}>
               {is('contact') ? (
@@ -347,6 +307,8 @@ function InvestorView({ investor, onEdit }: { investor: InvestorRecord; onEdit: 
       <DetailsSectionHeader title="Investor Details">
         <EditButton onClick={onEdit} />
       </DetailsSectionHeader>
+      {/* What the section is for (2026-10-01): deals sent to the investor's liking. */}
+      <p className={s.dealLead}>{DEAL_LEAD}</p>
       <div className={iv.content}>
         {fund && (
           <div className={iv.block}>
@@ -380,6 +342,7 @@ type InvestorFormValues = {
   checkSize: string;
   focus: string[];
   viaFund: boolean;
+  dealEmails: boolean;
   fund: { value: string; label: string } | null;
 };
 
@@ -403,12 +366,14 @@ function InvestorForm({
       checkSize: investor.checkSize,
       focus: investor.focus,
       viaFund: investor.viaFund,
+      dealEmails: investor.dealEmails,
       fund: fundOption(investor.fundId),
     },
   });
   const { watch, setValue, handleSubmit } = methods;
   const angel = watch('angel');
   const viaFund = watch('viaFund');
+  const dealEmails = watch('dealEmails');
 
   return (
     <FormProvider {...methods}>
@@ -423,11 +388,13 @@ function InvestorForm({
             checkSize: String(v.checkSize ?? '').replace(/[^0-9.]/g, ''),
             focus: v.focus,
             viaFund: v.viaFund,
+            dealEmails: v.dealEmails,
             fundId: v.viaFund ? (v.fund?.value ?? null) : null,
           }),
         )}
       >
         <SectionEditorTitle title="Edit Investor Details" />
+        <p className={s.dealLead}>{DEAL_LEAD}</p>
         <div className={ef.body}>
           <div className={ef.block}>
             <div className={ef.sectionHeader}>
@@ -517,86 +484,25 @@ function InvestorForm({
                 </div>
               )}
             </section>
-          </div>
-        </div>
-        <SectionEditorControls onClose={onClose} />
-      </form>
-    </FormProvider>
-  );
-}
-
-/* ---------- Deal preferences: form ---------- */
-
-type DealFormValues = {
-  sectors: { value: string; label: string }[];
-  stages: { value: string; label: string }[];
-  checkSize: string;
-};
-
-// Same field components as Investor Details' form. The check size and stages
-// start from what Investor Details already holds, so nobody types them twice.
-function DealPrefsForm({
-  prefs,
-  investor,
-  onClose,
-  onSubmit,
-}: {
-  prefs: DealPrefs;
-  investor: InvestorRecord;
-  onClose: () => void;
-  onSubmit: (next: DealPrefs) => void;
-}) {
-  const asOptions = (vs: string[]) => vs.map((v) => ({ value: v, label: v }));
-  const methods = useForm<DealFormValues>({
-    defaultValues: {
-      sectors: asOptions(prefs.sectors),
-      stages: asOptions(prefs.stages.length ? prefs.stages : investor.stages),
-      checkSize: prefs.checkSize || investor.checkSize,
-    },
-  });
-
-  return (
-    <FormProvider {...methods}>
-      <form
-        noValidate
-        onSubmit={methods.handleSubmit((v) =>
-          onSubmit({
-            sectors: v.sectors.map((o) => o.value),
-            stages: v.stages.map((o) => o.value),
-            checkSize: String(v.checkSize ?? '').replace(/[^0-9.]/g, ''),
-          }),
-        )}
-      >
-        <SectionEditorTitle title="Edit Deal preferences" />
-        <div className={ef.body}>
-          <div className={ef.block}>
-            <div className={ef.sectionHeader}>
-              <h3>What deals would you like to see?</h3>
-            </div>
-            <div className={ef.row}>
-              <PreferenceMultiSelect
-                name="sectors"
-                label="I invest in"
-                placeholder="Select sectors (e.g., Frontier tech, AI & Robotics…)"
-                options={SECTOR_OPTIONS}
-              />
-            </div>
-            <div className={ef.row}>
-              <PreferenceMultiSelect
-                name="stages"
-                label="Startup stage(s)"
-                placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A…)"
-                options={STAGE_OPTIONS}
-              />
-            </div>
-            <div className={ef.row}>
-              <FormCurrencyField
-                name="checkSize"
-                label="Typical check size"
-                placeholder="E.g. $250.000"
-                currency="USD"
-              />
-            </div>
+            <div className={ef.divider} />
+            {/* The deal part (2026-10-01): the fields above already say what you
+                invest in, so the only new question is whether to send deals. */}
+            <section>
+              <label className={ef.Label}>
+                <Checkbox.Root
+                  className={ef.Checkbox}
+                  checked={dealEmails}
+                  onCheckedChange={(v: boolean) => setValue('dealEmails', v, { shouldDirty: true })}
+                >
+                  <Checkbox.Indicator className={ef.Indicator}>
+                    <CheckIcon className={ef.Icon} />
+                  </Checkbox.Indicator>
+                </Checkbox.Root>
+                <div className={ef.col}>
+                  <div className={ef.primary}>Email me deals that match my investment focus and check size</div>
+                </div>
+              </label>
+            </section>
           </div>
         </div>
         <SectionEditorControls onClose={onClose} />

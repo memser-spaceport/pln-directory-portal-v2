@@ -13,7 +13,7 @@ import s from './SpvSpotlight.module.scss';
 
 /**
  * The page's hero: title, description, then only what isn't the data-room
- * door. Request access and Open data room live in the team card's action slot
+ * door. Request access and Request data room access live in the team card's action slot
  * (SpvTeamSpotlight), so there is one door, not two. The hero keeps the
  * investor-profile link, the pending stepper and the state messages.
  *
@@ -31,7 +31,7 @@ export type SpvHeroVariant =
   | 'pending' // requested, awaiting admin review
   | 'rejected' // request declined, no way to request again
   | 'openingSoon' // approved, spotlight still DRAFT
-  | 'open' // approved, spotlight OPEN (card: Open data room)
+  | 'open' // approved, spotlight OPEN (card: Request data room access)
   | 'closed'; // spotlight CLOSED, for everyone
 
 type Props = {
@@ -58,7 +58,17 @@ const lockedCopy = (variant: 'lockedSignedOut' | 'lockedNoAccess', email?: strin
       }
     : {
         title: 'You don’t have access to this Spotlight',
-        body: `${email ?? 'This account'} isn’t on the invitation list for this Spotlight. Sign in with the email your invitation was sent to, or contact us if you think this is a mistake.`,
+        // The email is quoted mid-sentence in a grey chip (review 2026-10-02:
+        // as the sentence's first words it read as a stray fragment).
+        body: email ? (
+          <>
+            You’re signed in as <span className={s.emailChip}>{email}</span>, which isn’t on the invitation list for
+            this Spotlight. Sign in with the email your invitation was sent to, or contact us if you think this is a
+            mistake.
+          </>
+        ) : (
+          'This account isn’t on the invitation list for this Spotlight. Sign in with the email your invitation was sent to, or contact us if you think this is a mistake.'
+        ),
       };
 
 export const SpvHero = ({
@@ -132,7 +142,7 @@ export const SpvHero = ({
         return <>You&apos;re approved. We&apos;ll email you when this Spotlight opens and the data room goes live.</>;
       case 'closed':
         return <>This Spotlight has closed and its data room is no longer available.</>;
-      // Open + approved says nothing here: the card's Open data room already
+      // Open + approved says nothing here: the card's Request data room access already
       // is the state.
       default:
         return null;

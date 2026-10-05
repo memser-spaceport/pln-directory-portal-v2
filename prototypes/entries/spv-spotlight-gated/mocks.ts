@@ -78,6 +78,7 @@ export const mockInvestorDetails: InvestorRecord = {
   focus: [],
   viaFund: false,
   fundId: null,
+  dealEmails: true,
 };
 
 // Emails the mocked backend already has an application for. Typing one of these
@@ -99,7 +100,7 @@ export const spvFaqItems: FAQItem[] = [
   {
     question: 'How do I see the materials?',
     answer:
-      "Open data room takes you to the team's DocSend, where the pitch and the SPV terms are. Nothing is uploaded to this page.",
+      "Request data room access takes you to the team's DocSend, where you ask for access and then read the pitch and the SPV terms. Nothing is uploaded to this page.",
   },
   {
     question: 'What does the investor profile do?',
@@ -132,30 +133,3 @@ const REQUEST_VIEWERS: { value: SpvViewer; label: string }[] = [
 
 export const VIEWER_OPTIONS = REQUEST_FLOW_ENABLED ? [...TOKEN_VIEWERS, ...REQUEST_VIEWERS] : TOKEN_VIEWERS;
 
-// ---- Deal preferences ---------------------------------------------------------
-// What the secondary call to action collects (2026-10-01): in venture a "deal"
-// is a startup investment opportunity, and the data room is the "deal room".
-// Anuj: two or three fields — what you invest in, your check size, and that is
-// it — so PL can send the deals that fit. Stages ride along because the drawer
-// already asks for them.
-export type DealPrefs = {
-  sectors: string[];
-  stages: string[];
-  checkSize: string;
-};
-
-export const EMPTY_DEAL_PREFS: DealPrefs = { sectors: [], stages: [], checkSize: '' };
-
-// PL's four focus areas first (the Explore landing's), then the keywords an
-// investor names a thesis in. Placeholder list.
-export const SECTOR_OPTIONS = [
-  'AI & Robotics',
-  'Neurotechnology',
-  'Digital Human Rights',
-  'Economies & Governance',
-  'Frontier tech',
-  'Crypto & Web3',
-  'DeSci & biotech',
-  'Infrastructure',
-  'Hardware',
-].map((v) => ({ value: v, label: v }));

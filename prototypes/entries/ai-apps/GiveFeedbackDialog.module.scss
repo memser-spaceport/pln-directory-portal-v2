@@ -14,28 +14,33 @@
   gap: 8px;
 }
 
-// Quiet text control beside the ✕: 12/16, the footer hints' old type, in the
-// ✕'s ink and hover wash. A keyboard reference has nothing to offer a phone.
+// A link beside the ✕: brand ink and an underline at rest, so it reads as
+// something you can open. Manager review: as a quiet grey label it was "hard to
+// spot" top right; the underline is what says "press me" without growing it.
+// 13/18, production's own shortcutsLink size. A keyboard reference has nothing to
+// offer a phone.
 .shortcutsButton {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   height: 24px;
-  padding: 0 8px;
+  padding: 0 4px;
   border: none;
   border-radius: 6px;
   background: none;
-  color: var(--foreground-neutral-secondary, #455468);
+  color: var(--foreground-brand-primary, #1b4dff);
   font-family: inherit;
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 13px;
+  line-height: 18px;
   font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
   cursor: pointer;
 
   &:hover,
   &[aria-expanded='true'] {
-    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-    color: var(--foreground-neutral-primary, #0a0c11);
+    text-decoration-thickness: 2px;
   }
 
   &:focus-visible {

@@ -216,15 +216,29 @@
   }
 }
 
+// With a note, the column is exactly as wide as the primary button and the
+// note wraps inside it (width 0 + min-width 100%), so it sits right under the
+// call to action (review 2026-10-02: it used to hang off the right of a
+// two-button row and sat under neither). Centred under the button since
+// 2026-10-05: the note is now one link line about as wide as the button, and
+// shared left edges left a ~30px near-miss on the right.
+.cardActionWithNote {
+  align-items: stretch;
+  max-width: 280px;
+
+  @include media.mobile-only {
+    max-width: none;
+  }
+}
+
 .cardActionNote {
+  width: 0;
+  min-width: 100%;
   margin: 0;
+  text-align: center;
   color: var(--foreground-neutral-secondary, #455468);
   font-size: 13px;
   line-height: 18px;
-
-  @include media.mobile-only {
-    text-align: center;
-  }
 }
 
 // The quiet line that holds the slot when there's nothing to press.
@@ -1075,10 +1089,68 @@
   }
 }
 
-// One line under "Deal preferences", saying what the section is for.
+
+// One line under "Investor Details", saying the answers decide which deals are sent.
 .dealLead {
   margin: 0 0 16px;
   color: var(--foreground-neutral-secondary, #455468);
   font-size: 14px;
   line-height: 20px;
+}
+
+// An email quoted inside a sentence: a quiet grey chip, so the address reads as
+// the value it is rather than as words of the sentence.
+.emailChip {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--background-neutral-secondary, #f1f5f9);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+// The profile link and its info icon on one line (2026-10-05).
+.secondaryRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+// The icon only, no button chrome; the tooltip is production's (core/tooltip).
+.infoTrigger.infoTrigger {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: help;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+.infoTooltip {
+  display: block;
+  max-width: 240px;
+}
+
+// The profile link carries the primary's arrow (2026-10-05). Inline-flex so
+// the arrow sits on the text's centre line; the underline stays on the words.
+.secondaryLink.secondaryLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  svg {
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+  }
+
+  &:hover svg {
+    transform: translateX(2px);
+  }
 }

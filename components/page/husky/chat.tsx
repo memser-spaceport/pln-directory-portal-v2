@@ -6,7 +6,7 @@ import Cookies from 'js-cookie';
 import Messages from './messages';
 import ChatFeedback from './chat-feedback';
 import HuskyLimitStrip from '@/components/core/husky/husky-limit-strip';
-import { DAILY_CHAT_LIMIT, TOAST_MESSAGES } from '@/utils/constants';
+import { DAILY_CHAT_LIMIT, PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
 import { generateUUID, getUniqueId, isMobileDevice, triggerLoader } from '@/utils/common.utils';
 import ChatHome from './chat-home';
 import { IAnalyticsUserInfo } from '@/types/shared.types';
@@ -395,7 +395,7 @@ const Chat: React.FC<ChatProps> = ({
           analytics.trackThreadDuplicateStatus(id ?? '', 'failed');
           return;
         }
-        router.push(`/husky/chat/${duplicateThreadResponse.threadId}`);
+        router.push(`${PAGE_ROUTES.HUSKY}/${duplicateThreadResponse.threadId}`);
         document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
         analytics.trackThreadDuplicateStatus(id ?? '', 'success');
       }

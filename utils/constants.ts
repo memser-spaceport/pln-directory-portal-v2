@@ -8,7 +8,7 @@ export const PAGE_ROUTES = {
   NOTIFICATIONS: '/notifications',
   ADD_TEAM: '/teams/add',
   SIGNUP: '/sign-up',
-  HUSKY: '/husky/chat',
+  HUSKY: '/ai-search',
   EVENTS: '/events',
   FORUM: '/forum',
   JOBS: '/jobs',

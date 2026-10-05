@@ -9,6 +9,7 @@ import { triggerLoader } from '@/utils/common.utils';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { useParams, useRouter } from 'next/navigation';
 import Modal from '@/components/core/modal';
+import { PAGE_ROUTES } from '@/utils/constants';
 
 interface IThread {
   title: string;
@@ -33,7 +34,7 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
   const handleClick = useCallback(() => {
     if (!isActive) {
       triggerLoader(true);
-      router.push(`/husky/chat/${thread.threadId}`);
+      router.push(`${PAGE_ROUTES.HUSKY}/${thread.threadId}`);
       if (isMobile) {
         toggleSidebar();
       }
@@ -178,7 +179,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     if (isMobile) {
       handleSidebarToggle();
     }
-    router.push('/husky/chat');
+    router.push(PAGE_ROUTES.HUSKY);
     document.dispatchEvent(new CustomEvent('new-chat'));
     analytics.trackSidebarNewConversationClicked();
   }, [isMobile, handleSidebarToggle, router, analytics]);
@@ -242,7 +243,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
       // Redirect to home if the deleted thread is the current one
       document.dispatchEvent(new CustomEvent('new-chat'));
       if (deleteId === id) {
-        router.push('/husky/chat');
+        router.push(PAGE_ROUTES.HUSKY);
       }
     } catch (error) {
       console.error('Error deleting thread:', error);
@@ -363,7 +364,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           </div>
           <button onClick={handleNewConversation} className="sidebar__header__newConversation">
             <img src="/icons/add.svg" alt="plus" />
-            <span className="sidebar__header__newConversation__text">New Conversation</span>
+            <span className="sidebar__header__newConversation__text">New chat</span>
           </button>
         </div>
         <div data-state={state} className="sidebar__body">
@@ -371,7 +372,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
             <div onClick={handleOpenSidebar} className="sidebar__body__history__header">
               <div className="sidebar__body__history__header__title">
                 <img width={22} height={22} src="/icons/history.svg" alt="history" />
-                <span className="sidebar__body__history__header__title__text">Threads</span>
+                <span className="sidebar__body__history__header__title__text">History</span>
               </div>
             </div>
             <div className="sidebar__body__history__list">

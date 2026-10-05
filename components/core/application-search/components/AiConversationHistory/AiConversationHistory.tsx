@@ -8,6 +8,7 @@ import { getUserCredentials } from '@/utils/auth.utils';
 import { getHuskyThreadById } from '@/services/husky.service';
 import { useRouter } from 'next/navigation';
 import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
+import { PAGE_ROUTES } from '@/utils/constants';
 
 interface IThread {
   title: string;
@@ -125,7 +126,7 @@ export const AiConversationHistory = ({ onClick, isLoggedIn }: Props) => {
                             return;
                           }
 
-                          router.push(`/husky/chat/${thread.threadId}`);
+                          router.push(`${PAGE_ROUTES.HUSKY}/${thread.threadId}`);
                         }}
                       >
                         {chat.title}
@@ -139,7 +140,7 @@ export const AiConversationHistory = ({ onClick, isLoggedIn }: Props) => {
         <button
           className={s.btnText}
           onClick={() => {
-            router.push(`/husky/chat`);
+            router.push(PAGE_ROUTES.HUSKY);
             onClick();
           }}
           id="application-search-try-ai"

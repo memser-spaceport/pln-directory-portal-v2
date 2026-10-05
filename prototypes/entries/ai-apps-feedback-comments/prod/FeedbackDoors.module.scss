@@ -1,8 +1,8 @@
 @use 'styles/media';
 
 /*
-  Proposal additions to production's FloatingFeedbackButton stylesheet (`s`)
-  and the feedback popover's card (`fd`).
+  Prototype additions to production's FloatingFeedbackButton stylesheet and the
+  feedback popover's card (copied from ai-apps-comments, where review settled them).
 */
 
 /*
@@ -148,6 +148,7 @@
   above it. Bottom = the bubble's own inset + its 48px + the popover's 8px gap.
 */
 .commentCard {
+  right: calc(24px + var(--ai-app-comments-inset, 0px));
   position: fixed;
   bottom: calc(72px + 48px + 8px);
   z-index: 10;
@@ -201,3 +202,22 @@
   }
 }
 
+
+/*
+  The popover's text controls (Shortcuts, Drafts). Production draws them as a
+  quiet grey label that only underlines on hover; review found Shortcuts "hard
+  to spot" top right. A text control has to look pressable at rest: brand ink
+  and an underline, at production's own 13/18. Same fix the ai-apps entry got.
+*/
+.textLink.textLink {
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration-thickness: 2px;
+  }
+}

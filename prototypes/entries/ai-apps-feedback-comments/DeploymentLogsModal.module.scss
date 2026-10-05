@@ -1,0 +1,541 @@
+.modal {
+  width: 100%;
+  // Two columns don't need the width six did — past ~800px the message lines
+  // get long enough to hurt scanning.
+  max-width: 820px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  // Fixed, not max — tabs switch content, they must not resize the container.
+  // The modal is vertically centred, so a height change would shift the tab bar
+  // out from under the cursor that just clicked it. Capped so it doesn't grow
+  // absurd on tall monitors; the table region absorbs the slack.
+  height: min(86vh, 720px);
+  overflow: hidden;
+  border: 1px solid rgba(27, 56, 96, 0.06);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 4px 24px rgba(14, 15, 17, 0.08);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 24px 14px;
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.close {
+  display: flex;
+  padding: 4px;
+  border: none;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.metaItem {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.status {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+}
+
+.statusLive {
+  color: var(--foreground-success-primary, #0a9952);
+  background: var(--background-success-subtle, rgba(10, 153, 82, 0.08));
+}
+
+.statusFailed {
+  color: var(--foreground-error-primary, #d21a0e);
+  background: rgba(210, 26, 14, 0.08);
+}
+
+/* ---- Stream tabs -------------------------------------------------------- */
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 4px;
+  margin-bottom: -1px;
+  margin-right: 16px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &[data-active='true'] {
+    border-bottom-color: var(--foreground-brand-primary, #1b4dff);
+    color: var(--foreground-neutral-primary, #0a0c11);
+    font-weight: 600;
+  }
+}
+
+.tabCount {
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  font-size: 11px;
+  line-height: 17px;
+  font-weight: 600;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// Right-aligned context that differs per stream: attempt + exit code for the
+// finite build, live + retention window for the continuous runtime tail.
+.streamNote {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.exitOk {
+  font-family: 'SF Mono', 'Roboto Mono', ui-monospace, monospace;
+  font-weight: 600;
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+.exitBad {
+  font-family: 'SF Mono', 'Roboto Mono', ui-monospace, monospace;
+  font-weight: 600;
+  color: var(--foreground-error-primary, #d21a0e);
+}
+
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+.liveDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--foreground-success-primary, #0a9952);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liveDot {
+    animation: none;
+  }
+}
+
+/* ---- Empty runtime stream ----------------------------------------------- */
+
+// Fills the same space the table would, so switching to an empty tab keeps the
+// footer pinned where it was instead of springing upward.
+.emptyState {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.emptyText {
+  margin: 0 0 6px;
+  max-width: 420px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* ---- Toolbar ------------------------------------------------------------ */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 24px;
+}
+
+.search {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  background: #ffffff;
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.copyBtn {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.failNote {
+  margin: 0 24px 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(210, 26, 14, 0.16);
+  background: rgba(210, 26, 14, 0.05);
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* ---- Table -------------------------------------------------------------- */
+
+.tableWrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 10px 24px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 500;
+    color: var(--foreground-neutral-secondary, #455468);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 10px 24px;
+    border-bottom: 1px solid rgba(27, 56, 96, 0.06);
+    font-size: 14px;
+    line-height: 22px;
+    vertical-align: top;
+  }
+
+  tbody tr:hover td {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  // Message takes all the slack; the timestamp is a fixed, right-aligned rail.
+  th:last-child,
+  td:last-child {
+    width: 156px;
+  }
+}
+
+.messageCell {
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// Only warnings and errors get a marker — info and success rows stay quiet, so
+// the things worth noticing are the only things that interrupt the scan.
+.levelDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 8px;
+  border-radius: 50%;
+  vertical-align: 0.15em;
+  background: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.messageText {
+  color: inherit;
+}
+
+// Resource + status code, folded in rather than given columns of their own.
+.detail {
+  margin-left: 8px;
+  font-family: 'SF Mono', 'Roboto Mono', ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  word-break: break-word;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.timeCell {
+  display: flex;
+  gap: 8px;
+  white-space: nowrap;
+  // Fixed-width digits so timestamps align down the column — the reason to
+  // reach for monospace, without the second typeface.
+  font-variant-numeric: tabular-nums;
+}
+
+.date {
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: 0.3px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.time {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* ---- Level accents ------------------------------------------------------ */
+
+// Success needs no accent — a clean build is the expected case, and colouring
+// every good line just adds noise to scan past.
+
+.warn {
+  .levelDot {
+    background: var(--foreground-warning-primary, #b45309);
+  }
+
+  .messageCell {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.error {
+  td {
+    background: rgba(210, 26, 14, 0.04);
+  }
+
+  .levelDot {
+    background: var(--foreground-error-primary, #d21a0e);
+  }
+
+  .messageCell {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    font-weight: 500;
+  }
+
+  .detail {
+    color: var(--foreground-error-primary, #d21a0e);
+  }
+}
+
+.empty {
+  margin: 0;
+  padding: 32px 24px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* ---- Footer ------------------------------------------------------------- */
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.count {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  strong {
+    font-weight: 600;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 6px;
+}
+
+.pageBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:disabled {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.pageLabel {
+  min-width: 44px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+@media (max-width: 639px) {
+  .header,
+  .toolbar,
+  .footer,
+  .tabs {
+    padding-inline: 16px;
+  }
+
+  .table th,
+  .table td {
+    padding-inline: 16px;
+  }
+
+  // Stack the timestamp under the message rather than squeezing both.
+  .table th:last-child,
+  .table td:last-child {
+    width: 104px;
+  }
+
+  .timeCell {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .failNote {
+    margin-inline: 16px;
+  }
+
+  .footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .count {
+    text-align: center;
+  }
+}

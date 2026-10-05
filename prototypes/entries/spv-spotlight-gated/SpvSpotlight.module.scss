@@ -972,12 +972,34 @@
 // Nothing of the deal shows: a centred message, then Explore as the way out.
 .heroLocked.heroLocked {
   padding-top: 48px;
+  // Room between the buttons and the Explore card below (2026-10-05).
+  padding-bottom: 40px;
   align-items: center;
   text-align: center;
+
+  @include media.mobile-only {
+    padding-bottom: 24px;
+  }
 }
 
 .lockHeadline.lockHeadline {
   align-items: center;
+
+  // The headline's 8px gap is the lock badge's spacing too; only the title
+  // gets more air before the message (16px total, 2026-10-05).
+  h1 {
+    margin-bottom: 8px;
+  }
+
+  // Production's 18/24 is tight for a three-line message with the email chip
+  // in it; 18/28 lets it read as a paragraph (2026-10-05).
+  p {
+    line-height: 28px;
+
+    @include media.mobile-only {
+      line-height: 24px;
+    }
+  }
 }
 
 .lockBadge {

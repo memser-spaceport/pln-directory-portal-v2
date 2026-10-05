@@ -99,6 +99,8 @@ function FeedbackFab({
   const canPin = SHOW_AI_APPS_COMMENTS && Boolean(appUid && elementPins?.status === 'ready');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  /* The form hid itself for a capture: the button steps out of the picture with it. */
+  const [isFormHidden, setIsFormHidden] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const introStartedAtRef = useRef<number | null>(null);
   const analytics = useAiAppsAnalytics();
@@ -220,7 +222,11 @@ function FeedbackFab({
 
   return (
     <>
-      <div ref={wrapRef} className={s.wrap} data-collapsed={isCollapsed || panelOpen}>
+      <div
+        ref={wrapRef}
+        className={clsx(s.wrap, isFormHidden && s.wrapHidden)}
+        data-collapsed={isCollapsed || panelOpen}
+      >
         {/* With comments available the button opens one panel (Comment / Feedback)
             and, while it is open, settles to the outlined glyph that closes it.
             The count rides the resting mark only — in the mode the pins are the count. */}
@@ -310,6 +316,7 @@ function FeedbackFab({
         /* The bridge never answered: an app built before it (kit < 1.15). */
         bridgeMissing={elementPins?.status === 'unavailable'}
         frameRef={iframeRef}
+        onHiddenChange={setIsFormHidden}
         headerTabs={
           commentsAvailable ? (
             <FeedbackTabs

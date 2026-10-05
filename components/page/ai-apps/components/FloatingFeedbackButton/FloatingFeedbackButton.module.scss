@@ -185,3 +185,9 @@
   font-weight: 600;
   line-height: 14px;
 }
+
+/* Out of the picture while the feedback form takes a screenshot (it hides itself too). */
+.wrapHidden {
+  visibility: hidden;
+  pointer-events: none;
+}

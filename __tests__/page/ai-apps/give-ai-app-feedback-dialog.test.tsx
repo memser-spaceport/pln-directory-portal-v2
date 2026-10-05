@@ -1678,3 +1678,127 @@ describe('GiveAiAppFeedbackDialog oversized submission', () => {
     expect(toast.error).not.toHaveBeenCalled();
   });
 });
+
+/* LAB-2759: the screen-share screenshot showed the feedback popup itself. */
+describe('GiveAiAppFeedbackDialog hides itself during a screen-share capture', () => {
+  const overlay = () => document.querySelector('[class*="overlay"]');
+
+  beforeEach(() => {
+    asCapableBrowser();
+    window.localStorage.clear();
+    mockUseCurrentUserStore.mockReturnValue({
+      currentUser: { uid: 'member-1', name: 'Ada Lovelace', email: 'ada@example.com' },
+    });
+    mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+    (requestTabCapture as jest.Mock).mockReset();
+    (grabVideoFrame as jest.Mock).mockReset();
+    (stopCaptureStream as jest.Mock).mockReset();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    clearFormDraft(AI_APP_FEEDBACK_DRAFT_KEY);
+    clearFormDraft(APP_1_DRAFT_KEY);
+  });
+
+  it('is already hidden, with its host told, when the share prompt opens and when the frame is grabbed', async () => {
+    const onHiddenChange = jest.fn();
+    let hiddenAtPrompt: boolean | undefined;
+    let hiddenAtGrab: boolean | undefined;
+    (requestTabCapture as jest.Mock).mockImplementation(async () => {
+      hiddenAtPrompt = Boolean(overlay()?.className.includes('overlayHidden'));
+      return { getTracks: () => [{ stop: jest.fn() }] };
+    });
+    (grabVideoFrame as jest.Mock).mockImplementation(async () => {
+      hiddenAtGrab = Boolean(overlay()?.className.includes('overlayHidden'));
+      return PIXEL_PNG;
+    });
+
+    render(
+      <GiveAiAppFeedbackDialog
+        isOpen
+        onClose={jest.fn()}
+        appUid="app-1"
+        appName="My App"
+        onHiddenChange={onHiddenChange}
+      />,
+    );
+    expect(overlay()?.className).not.toMatch(/overlayHidden/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
+
+    expect(hiddenAtPrompt).toBe(true);
+    expect(hiddenAtGrab).toBe(true);
+    expect(onHiddenChange).toHaveBeenLastCalledWith(true);
+  });
+
+  it('comes back with the new screenshot attached when the capture finishes', async () => {
+    const onHiddenChange = jest.fn();
+    (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
+    (grabVideoFrame as jest.Mock).mockResolvedValue(PIXEL_PNG);
+
+    render(
+      <GiveAiAppFeedbackDialog
+        isOpen
+        onClose={jest.fn()}
+        appUid="app-1"
+        appName="My App"
+        onHiddenChange={onHiddenChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Select region' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Add to feedback' })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Add to feedback' }));
+
+    await waitFor(() => expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument());
+    expect(overlay()?.className).not.toMatch(/overlayHidden/);
+    expect(onHiddenChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it('comes back with nothing attached when the share prompt is cancelled', async () => {
+    const onHiddenChange = jest.fn();
+    (requestTabCapture as jest.Mock).mockRejectedValue(new CaptureError('cancelled', '', 'AbortError'));
+
+    render(
+      <GiveAiAppFeedbackDialog
+        isOpen
+        onClose={jest.fn()}
+        appUid="app-1"
+        appName="My App"
+        onHiddenChange={onHiddenChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+
+    await waitFor(() => expect(mockOnFeedbackScreenshotCaptureDenied).toHaveBeenCalled());
+    await waitFor(() => expect(overlay()?.className).not.toMatch(/overlayHidden/));
+    expect(onHiddenChange).toHaveBeenCalledWith(true);
+    expect(onHiddenChange).toHaveBeenLastCalledWith(false);
+    expect(screen.queryByAltText('Screenshot 1')).not.toBeInTheDocument();
+  });
+
+  it('comes back with nothing attached when the capture fails', async () => {
+    const onHiddenChange = jest.fn();
+    (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
+    (grabVideoFrame as jest.Mock).mockRejectedValue(new Error('grab failed'));
+
+    render(
+      <GiveAiAppFeedbackDialog
+        isOpen
+        onClose={jest.fn()}
+        appUid="app-1"
+        appName="My App"
+        onHiddenChange={onHiddenChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+
+    await waitFor(() => expect(mockOnFeedbackScreenshotCaptureFailed).toHaveBeenCalledWith({ stage: 'grab' }));
+    await waitFor(() => expect(overlay()?.className).not.toMatch(/overlayHidden/));
+    expect(onHiddenChange).toHaveBeenLastCalledWith(false);
+    expect(screen.queryByAltText('Screenshot 1')).not.toBeInTheDocument();
+  });
+});

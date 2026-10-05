@@ -27,7 +27,9 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
     headerTabs,
     capture,
     bridgeMissing,
+    onHiddenChange,
   }: {
+    onHiddenChange?: (hidden: boolean) => void;
     bridgeMissing?: boolean;
     capture?: () => Promise<unknown>;
     headerTabs?: React.ReactNode;
@@ -48,6 +50,12 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
         {anchorRef?.current ? 'Feedback dialog open' : 'Feedback dialog unanchored'}
         <button type="button" onClick={() => onClose?.()}>
           Close feedback
+        </button>
+        <button type="button" onClick={() => onHiddenChange?.(true)}>
+          Start capture
+        </button>
+        <button type="button" onClick={() => onHiddenChange?.(false)}>
+          End capture
         </button>
       </div>
     ) : null;
@@ -113,6 +121,23 @@ describe('FloatingFeedbackButton', () => {
     // The trigger sits in the bottom-right corner; measuring down from it would
     // put the panel below the fold.
     expect(dialog).toHaveAttribute('data-placement', 'above');
+  });
+
+  /* LAB-2759: a screen share of the tab must show only the app, so the button
+     leaves the picture whenever the form hides itself for a capture. */
+  it('hides the floating button while the form is hidden for a capture, and brings it back after', () => {
+    withAccess();
+
+    const { container } = render(<FloatingFeedbackButton />);
+    fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+    const wrap = container.querySelector('[data-collapsed]');
+    expect(wrap?.className).not.toMatch(/wrapHidden/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Start capture' }));
+    expect(wrap?.className).toMatch(/wrapHidden/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'End capture' }));
+    expect(wrap?.className).not.toMatch(/wrapHidden/);
   });
 
   describe('the introduction', () => {

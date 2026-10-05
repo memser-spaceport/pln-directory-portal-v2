@@ -1183,7 +1183,7 @@ export function GiveAiAppFeedbackDialog({
               )}
               <button
                 type="button"
-                className={s.shortcutsLink}
+                className={clsx(s.shortcutsLink, s.shortcutsHelpLink)}
                 onClick={() => {
                   analytics.onFeedbackShortcutsHelpOpened();
                   setShortcutsOpen(true);
@@ -1229,7 +1229,7 @@ export function GiveAiAppFeedbackDialog({
                   aria-keyshortcuts="Escape"
                 >
                   Close
-                  <kbd className={s.kbd} aria-hidden="true">
+                  <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
                     Esc
                   </kbd>
                 </Button>
@@ -1240,7 +1240,7 @@ export function GiveAiAppFeedbackDialog({
                   aria-keyshortcuts={shortcuts.sendAria}
                 >
                   Give more feedback
-                  <kbd className={clsx(s.kbd, s.kbdOnPrimary)} aria-hidden="true">
+                  <kbd className={clsx(s.kbd, s.kbdOnPrimary, s.kbdHint)} aria-hidden="true">
                     {shortcuts.send}
                   </kbd>
                 </Button>
@@ -1425,7 +1425,7 @@ export function GiveAiAppFeedbackDialog({
                             >
                               <CrosshairIcon />
                               Pick a part
-                              <kbd className={s.kbd} aria-hidden="true">
+                              <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
                                 {shortcuts.screenshot}
                               </kbd>
                             </button>
@@ -1445,7 +1445,7 @@ export function GiveAiAppFeedbackDialog({
                                   >
                                     <ImageIcon />
                                     Attach image
-                                    <kbd className={s.kbd} aria-hidden="true">
+                                    <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
                                       {shortcuts.screenshot}
                                     </kbd>
                                   </button>
@@ -1468,7 +1468,7 @@ export function GiveAiAppFeedbackDialog({
                                 >
                                   <CameraIcon />
                                   Take screenshot
-                                  <kbd className={s.kbd} aria-hidden="true">
+                                  <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
                                     {shortcuts.screenshot}
                                   </kbd>
                                 </button>
@@ -1601,7 +1601,7 @@ export function GiveAiAppFeedbackDialog({
                     aria-keyshortcuts="Escape"
                   >
                     Cancel
-                    <kbd className={s.kbd} aria-hidden="true">
+                    <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
                       Esc
                     </kbd>
                   </Button>
@@ -1612,7 +1612,7 @@ export function GiveAiAppFeedbackDialog({
                     aria-keyshortcuts={shortcuts.sendAria}
                   >
                     {isPending ? 'Sending…' : 'Send feedback'}
-                    <kbd className={clsx(s.kbd, s.kbdOnPrimary)} aria-hidden="true">
+                    <kbd className={clsx(s.kbd, s.kbdOnPrimary, s.kbdHint)} aria-hidden="true">
                       {shortcuts.send}
                     </kbd>
                   </Button>

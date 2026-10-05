@@ -1362,6 +1362,26 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(cancel).toHaveAttribute('aria-keyshortcuts', 'Escape');
     });
 
+    /* jsdom can't evaluate the touch-only media query, so this holds the class
+       that carries it: a new key hint on a button without it would show on phones. */
+    it('marks every key hint on a button as one to hide on touch, and no key in the shortcut list', () => {
+      apps();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      const dialog = screen.getByRole('heading', { name: 'Give feedback' }).closest('[role="dialog"]') ?? document;
+      const buttonKeys = Array.from(dialog.querySelectorAll('button kbd'));
+      expect(buttonKeys.length).toBeGreaterThan(0);
+      buttonKeys.forEach((key) => expect(key).toHaveClass('kbdHint'));
+      expect(screen.getByRole('button', { name: 'Shortcuts' })).toHaveClass('shortcutsHelpLink');
+
+      fireEvent.click(screen.getByRole('button', { name: 'Shortcuts' }));
+
+      const sheet = screen.getByRole('heading', { name: 'Keyboard shortcuts' }).closest('[role="dialog"]');
+      const sheetKeys = Array.from(sheet!.querySelectorAll('kbd'));
+      expect(sheetKeys.length).toBeGreaterThan(0);
+      sheetKeys.forEach((key) => expect(key).not.toHaveClass('kbdHint'));
+    });
+
     it('submits on Cmd/Ctrl+Enter', async () => {
       apps();
       render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);

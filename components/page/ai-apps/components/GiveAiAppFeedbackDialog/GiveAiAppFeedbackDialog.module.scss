@@ -124,6 +124,13 @@
   gap: 8px;
 }
 
+/* Its sheet lists nothing but key chords. Drafts shares .shortcutsLink and stays. */
+.shortcutsHelpLink {
+  @include media.no-fine-pointer {
+    display: none;
+  }
+}
+
 .shortcutsLink {
   padding: 0;
   border: none;
@@ -374,6 +381,14 @@
 .kbdOnPrimary {
   background: rgba(255, 255, 255, 0.2);
   color: inherit;
+}
+
+/* A key hint on a button. Not the Keyboard shortcuts sheet's keys: `?` opens it
+   from a hardware keyboard, which a phone can have too. */
+.kbdHint {
+  @include media.no-fine-pointer {
+    display: none;
+  }
 }
 
 .footerActions {

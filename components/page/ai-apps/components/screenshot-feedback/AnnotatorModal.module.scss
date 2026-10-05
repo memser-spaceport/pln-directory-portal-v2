@@ -252,6 +252,10 @@
   font-size: 11px;
   line-height: 14px;
   font-weight: 600;
+
+  @include media.no-fine-pointer {
+    display: none;
+  }
 }
 
 .kbd {

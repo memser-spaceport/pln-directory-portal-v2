@@ -82,3 +82,12 @@ $breakpoint-full-hd: 1920;
     @content;
   }
 }
+
+// No mouse or trackpad anywhere on the device: a phone or a bare tablet. A question about
+// input, not width — a landscape phone is wider than mobile-only, and an iPad with a trackpad
+// has keys.
+@mixin no-fine-pointer {
+  @media not all and (any-pointer: fine) {
+    @content;
+  }
+}

@@ -4,7 +4,16 @@ import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties
 import clsx from 'clsx';
 
 import { CloseIcon } from '@/components/icons';
-import { type AnnotationState, type PinComment, type Point, type Shape, type ShapeKind, type Stroke } from './types';
+import { isSendChord } from '@/components/page/ai-apps/shortcutKeys';
+import {
+  type AnnotationState,
+  type PinComment,
+  type Point,
+  type Shape,
+  type ShapeKind,
+  type Stroke,
+  type TextLabel,
+} from './types';
 
 import s from './AnnotationCanvas.module.scss';
 
@@ -14,7 +23,7 @@ export const DEFAULT_DRAW_COLOR = DRAW_COLORS[0];
 const STROKE_WIDTH_RATIO = 0.006;
 const DRAG_THRESHOLD_PX = 4;
 
-export type AnnotatorTool = 'draw' | 'comment' | ShapeKind;
+export type AnnotatorTool = 'draw' | 'comment' | 'text' | ShapeKind;
 
 const SHAPE_TOOLS: AnnotatorTool[] = ['rect', 'ellipse', 'arrow'];
 
@@ -34,6 +43,38 @@ const PANEL_HEIGHT = 150;
 const ARROW_HEAD_RATIO = 0.035;
 /** How far the head is splayed from the shaft. */
 const ARROW_HEAD_ANGLE = Math.PI / 7;
+
+/* Label sizes are pixels of the saved image; the presets are a shortcut, any
+   whole number in range can be typed. */
+const LABEL_SIZE_PRESETS = [12, 16, 20, 24, 32, 40, 48, 64, 80, 96, 128];
+const LABEL_SIZE_MIN = 8;
+const LABEL_SIZE_MAX = 400;
+const LABEL_MIN_WIDTH_PX = 24;
+const LABEL_PLACEHOLDER = 'Type. Return makes a new line.';
+
+/** Scales with the capture, so a first label reads the same on a phone shot and a 4K one. */
+function defaultLabelSize(naturalWidth: number): number {
+  return Math.max(14, Math.round((naturalWidth || 1400) / 58));
+}
+
+/**
+ * Where and how big a label is drawn. `--label-scale`, set on the picture's
+ * box, is screen pixels per image pixel.
+ *
+ * Shared with AnnotatedPreview: the type and the wrap width both scale with the
+ * picture, so a label wraps on the same words in the editor and in a thumbnail.
+ */
+export function labelStyle(label: TextLabel): CSSProperties {
+  return {
+    left: `${label.x * 100}%`,
+    top: `${label.y * 100}%`,
+    width: label.width ? `${label.width * 100}%` : undefined,
+    maxWidth: `${(1 - label.x) * 100}%`,
+    color: label.color,
+    fontSize: `calc(${label.size}px * var(--label-scale, 1))`,
+    fontWeight: label.bold ? 700 : 400,
+  };
+}
 
 function isShapeTool(tool: AnnotatorTool): tool is ShapeKind {
   return SHAPE_TOOLS.includes(tool);
@@ -55,6 +96,16 @@ type ShapeDrag = {
   kind: ShapeKind;
   from: Point;
   to: Point;
+};
+
+type LabelDrag = {
+  pointerId: number;
+  mode: 'move' | 'size';
+  startX: number;
+  startY: number;
+  origin: TextLabel;
+  originWidthPx: number;
+  latest: TextLabel | null;
 };
 
 type PinDrag = {
@@ -85,6 +136,11 @@ const COORD_SCALE = 10 ** COORD_DP;
 /** Rounds a 0..1 coordinate to `COORD_DP`, dropping precision that cannot be seen. */
 function roundNorm(value: number): number {
   return Math.round(value * COORD_SCALE) / COORD_SCALE;
+}
+
+/** Keeps a moved label's corner on the picture, with room left for at least a letter. */
+function clampLabelCorner(value: number): number {
+  return roundNorm(Math.min(0.95, Math.max(0, value)));
 }
 
 function toNorm(point: Point, width: number, height: number): Point {
@@ -159,7 +215,7 @@ function traceShape(ctx: CanvasRenderingContext2D, shape: Shape, width: number, 
  * clearing pass wipes whatever the first one drew, and on the live-preview path
  * it wipes the in-progress line every frame.
  */
-function renderAnnotations(
+export function renderAnnotations(
   ctx: CanvasRenderingContext2D,
   annotations: Pick<AnnotationState, 'strokes' | 'shapes'>,
   width: number,
@@ -218,7 +274,19 @@ export function AnnotationCanvas({
   const dragRef = useRef<PinDrag | null>(null);
   const dragPosRef = useRef<{ id: string; x: number; y: number } | null>(null);
   const nextCommentId = useRef(0);
-  const [size, setSize] = useState({ width: 0, height: 0 });
+  const pendingLabel = useRef<Point | null>(null);
+  const nextLabelId = useRef(0);
+  const labelDraftRef = useRef<TextLabel | null>(null);
+  const labelFieldRef = useRef<HTMLTextAreaElement>(null);
+  const labelFocusing = useRef(false);
+  const labelDragRef = useRef<LabelDrag | null>(null);
+  const [size, setSize] = useState({ width: 0, height: 0, naturalWidth: 0 });
+  /* The label being typed in. Kept out of `annotations` until the field is left,
+     so a sentence is one step of undo rather than one per keystroke. */
+  const [labelDraft, setLabelDraft] = useState<TextLabel | null>(null);
+  const [activeLabelId, setActiveLabelId] = useState<string | null>(null);
+  const [labelDrag, setLabelDrag] = useState<TextLabel | null>(null);
+  const [lastLabelSize, setLastLabelSize] = useState<number | null>(null);
   const [draft, setDraft] = useState<DraftComment | null>(null);
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
   const [dragPos, setDragPos] = useState<{ id: string; x: number; y: number } | null>(null);
@@ -231,7 +299,12 @@ export function AnnotationCanvas({
     const width = img.clientWidth;
     const height = img.clientHeight;
     if (width === 0 || height === 0) return;
-    setSize((prev) => (prev.width === width && prev.height === height ? prev : { width, height }));
+    const naturalWidth = img.naturalWidth || width;
+    setSize((prev) =>
+      prev.width === width && prev.height === height && prev.naturalWidth === naturalWidth
+        ? prev
+        : { width, height, naturalWidth },
+    );
     const canvas = canvasRef.current;
     if (!canvas) return;
     if (canvas.width !== width || canvas.height !== height) {
@@ -263,6 +336,25 @@ export function AnnotationCanvas({
     return () => window.clearTimeout(id);
   }, [draftId]);
 
+  const labelDraftId = labelDraft?.id;
+  useLayoutEffect(() => {
+    if (!labelDraftId) return;
+    const focusField = () => {
+      const el = labelFieldRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(el.value.length, el.value.length);
+    };
+    focusField();
+    /* Again after the click that opened it has finished, which can take the focus
+       back to whatever it landed on. */
+    const id = window.setTimeout(() => {
+      labelFocusing.current = false;
+      focusField();
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [labelDraftId]);
+
   useEffect(() => {
     const img = imgRef.current;
     if (!img) return;
@@ -285,6 +377,180 @@ export function AnnotationCanvas({
     const ctx = canvas.getContext('2d');
     if (ctx) renderAnnotations(ctx, { strokes, shapes }, canvas.width, canvas.height);
   }, [strokes, shapes, size]);
+
+  const savedLabels = annotations.labels ?? [];
+  const showLabel = (label: TextLabel) =>
+    labelDrag?.id === label.id ? labelDrag : labelDraft?.id === label.id ? labelDraft : label;
+  const shownLabels = [
+    ...savedLabels.map(showLabel),
+    ...(labelDraft && !savedLabels.some((label) => label.id === labelDraft.id) ? [showLabel(labelDraft)] : []),
+  ];
+  const labelScale = size.naturalWidth ? size.width / size.naturalWidth : 1;
+
+  /** Adds, replaces or — once its text is gone — drops a label, as one step of undo. */
+  const writeLabel = (label: TextLabel) => {
+    if (!onChange) return;
+    const base = annotationsRef.current;
+    const labels = base.labels ?? [];
+    const existing = labels.find((item) => item.id === label.id);
+    const keep = label.text.trim() !== '';
+    if (!keep && !existing) return;
+    if (keep && existing && JSON.stringify(existing) === JSON.stringify(label)) return;
+    let nextLabels = labels.filter((item) => item.id !== label.id);
+    if (keep) nextLabels = existing ? labels.map((item) => (item.id === label.id ? label : item)) : [...labels, label];
+    const next = { ...base, labels: nextLabels };
+    /* Leaving a field and then changing the size are two writes before the
+       parent re-renders; the second must build on the first. */
+    annotationsRef.current = next;
+    onChange(next);
+  };
+
+  const editLabel = (label: TextLabel) => {
+    labelFocusing.current = true;
+    labelDraftRef.current = label;
+    setLabelDraft(label);
+    setActiveLabelId(label.id);
+  };
+
+  /** Keeps what was typed; only a label left empty disappears. */
+  const leaveLabelField = () => {
+    const current = labelDraftRef.current;
+    if (!current) return;
+    labelDraftRef.current = null;
+    setLabelDraft(null);
+    writeLabel(current);
+    if (!current.text.trim()) setActiveLabelId(null);
+  };
+
+  /* While a label is being typed in, a change to it waits to be saved with the
+     text; otherwise it is saved at once. */
+  const updateLabel = (next: TextLabel) => {
+    if (labelDraftRef.current?.id === next.id) {
+      labelDraftRef.current = next;
+      setLabelDraft(next);
+      return;
+    }
+    writeLabel(next);
+  };
+
+  const removeLabel = (label: TextLabel) => {
+    if (labelDraftRef.current?.id === label.id) {
+      labelDraftRef.current = null;
+      setLabelDraft(null);
+    }
+    setActiveLabelId(null);
+    writeLabel({ ...label, text: '' });
+  };
+
+  const placeLabel = (point: Point, width: number, height: number) => {
+    if (width === 0 || height === 0) return;
+    /* A reopened screenshot already carries labels numbered from 1. */
+    let id = '';
+    do id = `l-${++nextLabelId.current}`;
+    while (annotationsRef.current.labels?.some((label) => label.id === id));
+    editLabel({
+      id,
+      x: roundNorm(point.x / width),
+      y: roundNorm(point.y / height),
+      text: '',
+      color: strokeColor,
+      size: lastLabelSize ?? defaultLabelSize(size.naturalWidth),
+      bold: true,
+    });
+  };
+
+  const beginLabelDrag = (event: React.PointerEvent<HTMLElement>, label: TextLabel, mode: LabelDrag['mode']) => {
+    if (readOnly || event.button > 0) return;
+    /* In the field being typed in, a press places the caret. */
+    if (mode === 'move' && labelDraftRef.current?.id === label.id) return;
+    event.stopPropagation();
+    event.preventDefault();
+    if (labelDraftRef.current && labelDraftRef.current.id !== label.id) leaveLabelField();
+    setActiveLabelId(label.id);
+    event.currentTarget.setPointerCapture(event.pointerId);
+    const box = mode === 'size' ? event.currentTarget.parentElement : event.currentTarget;
+    labelDragRef.current = {
+      pointerId: event.pointerId,
+      mode,
+      startX: event.clientX,
+      startY: event.clientY,
+      origin: label,
+      originWidthPx: box?.getBoundingClientRect().width ?? 0,
+      latest: null,
+    };
+  };
+
+  const moveLabelDrag = (event: React.PointerEvent<HTMLElement>) => {
+    const drag = labelDragRef.current;
+    const bounds = wrapRef.current?.getBoundingClientRect();
+    if (!drag || drag.pointerId !== event.pointerId || !bounds?.width || !bounds.height) return;
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    if (!drag.latest && dx * dx + dy * dy < DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX) return;
+    const { origin } = drag;
+    const next =
+      drag.mode === 'move'
+        ? {
+            ...origin,
+            x: clampLabelCorner(origin.x + dx / bounds.width),
+            y: clampLabelCorner(origin.y + dy / bounds.height),
+          }
+        : {
+            ...origin,
+            width: roundNorm(
+              Math.min(1 - origin.x, Math.max(LABEL_MIN_WIDTH_PX, drag.originWidthPx + dx) / bounds.width),
+            ),
+          };
+    drag.latest = next;
+    setLabelDrag(next);
+  };
+
+  const endLabelDrag = (event: React.PointerEvent<HTMLElement>) => {
+    const drag = labelDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    labelDragRef.current = null;
+    setLabelDrag(null);
+    if (drag.latest) updateLabel(drag.latest);
+  };
+
+  const cancelLabelDrag = () => {
+    labelDragRef.current = null;
+    setLabelDrag(null);
+  };
+
+  /**
+   * Esc one step at a time: leave the field, then deselect the label, and only
+   * then let the editor close. ⌘↩ / Ctrl+Enter in a label leaves the field too.
+   *
+   * On `window` in the capture phase, ahead of the annotator's own handler on
+   * `document`, which would otherwise discard the screenshot or add it.
+   */
+  useEffect(() => {
+    if (readOnly || !activeLabelId) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.isComposing) return;
+      const target = event.target;
+      if (target === labelFieldRef.current && (event.key === 'Escape' || isSendChord(event))) {
+        event.preventDefault();
+        event.stopPropagation();
+        leaveLabelField();
+        return;
+      }
+      if (event.key !== 'Escape' || !(target instanceof Element)) return;
+      if (target.closest(`.${s.labelBar}`)) {
+        event.preventDefault();
+        event.stopPropagation();
+        (target as HTMLElement).blur();
+        return;
+      }
+      if (target.closest('textarea, input, select, [contenteditable="true"]')) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setActiveLabelId(null);
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [readOnly, activeLabelId, leaveLabelField]);
 
   const localPoint = (event: React.PointerEvent<HTMLCanvasElement>): Point => {
     const bounds = event.currentTarget.getBoundingClientRect();
@@ -373,6 +639,14 @@ export function AnnotationCanvas({
   const onPointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
     if (readOnly || event.button > 0) return;
     const point = localPoint(event);
+    leaveLabelField();
+    setActiveLabelId(null);
+    if (tool === 'text') {
+      event.preventDefault();
+      pendingLabel.current = point;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      return;
+    }
     if (tool === 'draw') {
       event.currentTarget.setPointerCapture(event.pointerId);
       drawing.current = [point];
@@ -447,6 +721,13 @@ export function AnnotationCanvas({
       const drag = shaping.current;
       shaping.current = null;
       commitShape(drag, event.currentTarget);
+      return;
+    }
+    if (pendingLabel.current) {
+      const bounds = event.currentTarget.getBoundingClientRect();
+      const point = pendingLabel.current;
+      pendingLabel.current = null;
+      placeLabel(point, bounds.width || size.width, bounds.height || size.height);
       return;
     }
     if (pendingComment.current) {
@@ -591,7 +872,7 @@ export function AnnotationCanvas({
     } as CSSProperties;
   };
 
-  const canvasCursor = readOnly ? 'default' : 'crosshair';
+  const canvasCursor = readOnly ? 'default' : tool === 'text' ? 'text' : 'crosshair';
 
   /**
    * The comment tool owns the cursor, pins included.
@@ -614,7 +895,7 @@ export function AnnotationCanvas({
   };
 
   return (
-    <div ref={wrapRef} className={clsx(s.wrap, className)}>
+    <div ref={wrapRef} className={clsx(s.wrap, className)} style={{ '--label-scale': labelScale } as CSSProperties}>
       <img ref={imgRef} className={s.image} src={imageSrc} alt="" onLoad={syncSize} draggable={false} />
       <canvas
         ref={canvasRef}
@@ -630,8 +911,103 @@ export function AnnotationCanvas({
           drawing.current = null;
           shaping.current = null;
           pendingComment.current = null;
+          pendingLabel.current = null;
         }}
       />
+      {shownLabels.map((label) => {
+        const isActive = !readOnly && label.id === activeLabelId;
+        const isTyping = !readOnly && label.id === labelDraft?.id;
+        return (
+          <div
+            key={label.id}
+            className={clsx(s.label, !readOnly && s.labelMove, isActive && s.labelActive, isTyping && s.labelTyping)}
+            style={labelStyle(label)}
+            onPointerDown={(event) => beginLabelDrag(event, label, 'move')}
+            onPointerMove={moveLabelDrag}
+            onPointerUp={endLabelDrag}
+            onPointerCancel={cancelLabelDrag}
+            onDoubleClick={(event) => {
+              event.stopPropagation();
+              if (!readOnly && !isTyping) editLabel(label);
+            }}
+          >
+            {/* While typing, the text underneath is invisible and only sizes the box,
+                so the box grows with what is typed. The trailing space holds open a
+                last line that is still empty. */}
+            <span className={s.labelText} aria-hidden={isTyping || undefined}>
+              {isTyping ? `${label.text || LABEL_PLACEHOLDER} ` : label.text}
+            </span>
+            {isTyping && (
+              <textarea
+                ref={labelFieldRef}
+                className={s.labelField}
+                value={label.text}
+                placeholder={LABEL_PLACEHOLDER}
+                aria-label="Label text"
+                onChange={(event) => updateLabel({ ...label, text: event.target.value })}
+                onBlur={() => {
+                  if (!labelFocusing.current) leaveLabelField();
+                }}
+              />
+            )}
+            {isActive && (
+              <>
+                <span
+                  className={s.labelGrip}
+                  aria-hidden
+                  onPointerDown={(event) => beginLabelDrag(event, label, 'size')}
+                />
+                <div
+                  className={clsx(
+                    s.labelBar,
+                    label.y * size.height < 48 && s.labelBarBelow,
+                    label.x > 0.5 && s.labelBarEnd,
+                  )}
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onDoubleClick={(event) => event.stopPropagation()}
+                  onMouseDown={(event) => {
+                    /* Buttons here must not take the caret out of the label; the size
+                       field and its presets need the focus they are clicked for. */
+                    if (!(event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement)) {
+                      event.preventDefault();
+                    }
+                  }}
+                >
+                  <LabelSizeField
+                    value={label.size}
+                    onChange={(next) => {
+                      setLastLabelSize(next);
+                      updateLabel({ ...label, size: next });
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className={clsx(s.labelBarButton, s.labelBold, label.bold && s.labelBarButtonOn)}
+                    aria-label="Bold"
+                    aria-pressed={label.bold}
+                    onClick={() => updateLabel({ ...label, bold: !label.bold })}
+                  >
+                    B
+                  </button>
+                  {!isTyping && (
+                    <button type="button" className={s.labelBarButton} onClick={() => editLabel(label)}>
+                      Edit
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={s.labelBarButton}
+                    aria-label="Delete label"
+                    onClick={() => removeLabel(label)}
+                  >
+                    <CloseIcon width={12} height={12} />
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        );
+      })}
       {annotations.comments.map((comment, index) => {
         const pos = pinPosition(comment);
         return (
@@ -767,5 +1143,70 @@ export function AnnotationCanvas({
         </>
       )}
     </div>
+  );
+}
+
+/**
+ * A label's size, typed or picked.
+ *
+ * The field keeps a draft of its own so a half-typed number is not clamped out
+ * from under the typist: on the way to 120, "1" is simply left alone. A number
+ * in range applies as it is typed; leaving the field or pressing Return settles
+ * anything else to the nearest size there is.
+ */
+function LabelSizeField({ value, onChange }: { value: number; onChange: (size: number) => void }) {
+  const [draft, setDraft] = useState(String(value));
+  const [shownValue, setShownValue] = useState(value);
+  if (shownValue !== value) {
+    setShownValue(value);
+    setDraft(String(value));
+  }
+
+  const commit = () => {
+    const typed = Number(draft);
+    const next =
+      draft.trim() && Number.isFinite(typed)
+        ? Math.min(LABEL_SIZE_MAX, Math.max(LABEL_SIZE_MIN, Math.round(typed)))
+        : value;
+    setDraft(String(next));
+    if (next !== value) onChange(next);
+  };
+
+  const options = Array.from(new Set([...LABEL_SIZE_PRESETS, value])).sort((a, b) => a - b);
+
+  return (
+    <span className={s.labelSize}>
+      <input
+        type="number"
+        min={LABEL_SIZE_MIN}
+        max={LABEL_SIZE_MAX}
+        step={1}
+        value={draft}
+        aria-label="Text size in pixels"
+        onChange={(event) => {
+          setDraft(event.target.value);
+          const typed = Number(event.target.value);
+          if (Number.isInteger(typed) && typed >= LABEL_SIZE_MIN && typed <= LABEL_SIZE_MAX) onChange(typed);
+        }}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key !== 'Enter') return;
+          event.preventDefault();
+          commit();
+        }}
+      />
+      <span aria-hidden>px</span>
+      <select
+        value={String(value)}
+        aria-label="Text size presets"
+        onChange={(event) => onChange(Number(event.target.value))}
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option} px
+          </option>
+        ))}
+      </select>
+    </span>
   );
 }

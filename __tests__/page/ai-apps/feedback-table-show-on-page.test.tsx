@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { FeedbackTable } from '@/components/page/ai-apps/AiAppFeedbackPage/components/FeedbackTable';
 import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
@@ -7,6 +7,7 @@ import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedbac
 jest.mock('@/services/ai-apps/constants', () => ({
   ...jest.requireActual('@/services/ai-apps/constants'),
   SHOW_AI_APPS_FEEDBACK_OVERLAY: true,
+  SHOW_AI_APPS_COMMENTS: true,
 }));
 
 const row = (uid: string, pinCount?: number): AiAppFeedbackRow => ({
@@ -32,5 +33,71 @@ describe('FeedbackTable: Show on page', () => {
     const links = screen.getAllByRole('link', { name: 'Show on page' });
     expect(links).toHaveLength(1);
     expect(links[0]).toHaveAttribute('href', '/pl-infra/ai-apps/app%201?feedback=fb-1');
+  });
+});
+
+describe('FeedbackTable: kind', () => {
+  it('says which door each item came through: a comment on the live app, or the form', () => {
+    render(
+      <FeedbackTable
+        rows={[{ ...row('fb-1'), kind: 'COMMENT' }, { ...row('fb-2'), kind: 'FEEDBACK' }, row('fb-3')]}
+        onStatusSelect={jest.fn()}
+        onImageClick={jest.fn()}
+      />,
+    );
+    const kinds = screen
+      .getAllByRole('row')
+      .slice(1)
+      .map((tr) => tr.querySelector('td:nth-child(2) > span')?.textContent);
+    /* An older response has no kind: it was written as private feedback. */
+    expect(kinds).toEqual(['Comment', 'Feedback', 'Feedback']);
+  });
+});
+
+describe('FeedbackTable: Kind and Priority', () => {
+  it.each([
+    ['the review list', { onStatusSelect: jest.fn() }],
+    ['the sender’s own list', {}],
+  ])('shows the kind and the bare P# on %s, blank where never set', (_, props) => {
+    render(
+      <FeedbackTable
+        rows={[
+          { ...row('fb-1'), reportKind: 'request', priority: 'P0' },
+          { ...row('fb-2'), reportKind: null, priority: null },
+          row('fb-3'),
+        ]}
+        onImageClick={jest.fn()}
+        {...props}
+      />,
+    );
+    const cells = screen
+      .getAllByRole('row')
+      .slice(1)
+      .map((tr) => [
+        tr.querySelector('td:nth-child(3)')?.textContent,
+        tr.querySelector('td:nth-child(4)')?.textContent,
+      ]);
+    expect(cells).toEqual([
+      ['request', 'P0'],
+      ['', ''],
+      ['', ''],
+    ]);
+  });
+
+  it('lists every priority in the form’s words behind the ? beside the Priority header', () => {
+    render(<FeedbackTable rows={[row('fb-1')]} onImageClick={jest.fn()} />);
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Priority levels' })[0]);
+
+    expect(
+      within(screen.getByRole('tooltip'))
+        .getAllByRole('listitem')
+        .map((item) => item.textContent),
+    ).toEqual([
+      'P0 — Blocking — nobody can work around this',
+      'P1 — Serious — there is a workaround and it hurts',
+      'P2 — Normal — worth doing, not urgent',
+      'P3 — Someday — a good idea with no clock on it',
+    ]);
   });
 });

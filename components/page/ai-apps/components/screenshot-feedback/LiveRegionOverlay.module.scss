@@ -1,0 +1,156 @@
+@use 'styles/media';
+
+/* Pick a part over the live app (prototype ai-apps-comments): the page dims, a
+   dark bar at the bottom says what to do. Above the feedback popup (10000+). */
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  overscroll-behavior: contain;
+  background: rgba(14, 15, 17, 0.28);
+  outline: none;
+}
+
+.selection {
+  position: fixed;
+  box-sizing: border-box;
+  border: 2px solid var(--foreground-brand-primary, #1b4dff);
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 0 9999px rgba(14, 15, 17, 0.18);
+  pointer-events: none;
+}
+
+.size {
+  position: fixed;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--foreground-neutral-primary, #0a0c11);
+  color: #fff;
+  font-size: 11px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* A 44px target around a small visible dot: big enough for a finger. */
+.handle {
+  position: fixed;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  touch-action: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    margin: -7px 0 0 -7px;
+    box-sizing: border-box;
+    border: 2px solid var(--foreground-brand-primary, #1b4dff);
+    border-radius: 50%;
+    background: #fff;
+  }
+
+  &[data-corner='nw'],
+  &[data-corner='se'] {
+    cursor: nwse-resize;
+  }
+
+  &[data-corner='ne'],
+  &[data-corner='sw'] {
+    cursor: nesw-resize;
+  }
+}
+
+.bar {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 16px;
+  border-radius: 10px;
+  background: var(--foreground-neutral-primary, #0a0c11);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  cursor: default;
+}
+
+/* On a phone the instruction gets its own row above the buttons. */
+@include media.mobile-only {
+  .bar {
+    flex-wrap: wrap;
+    width: calc(100vw - 32px);
+    padding: 12px;
+  }
+
+  .label {
+    flex-basis: 100%;
+  }
+
+  .use,
+  .cancel {
+    flex: 1;
+  }
+}
+
+.barTop {
+  top: 24px;
+  bottom: auto;
+}
+
+.use,
+.cancel {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.use {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.cancel {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+@media (pointer: coarse) {
+  .use,
+  .cancel {
+    min-height: 44px;
+    padding: 0 16px;
+  }
+}

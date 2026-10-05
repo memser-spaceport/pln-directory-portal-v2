@@ -13,10 +13,14 @@ import { AnswerStatus, USUAL_THINKING_MS } from '../ai-search/AnswerStatus';
 import { DirectoryResultsCards } from '../ai-search/DirectoryResultsCards';
 // The answer prose and card are the AI Search answer's own classes.
 import ap from '../ai-search/AnswerPanel.module.scss';
+import Composer from '../ai-search-page/Composer';
+import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
 
 import s from './HomeAsk.module.scss';
 
 export type AskMode = 'overview' | 'handoff';
+/** `box`: the one-line search box. `composer`: the AI Search page's own field. */
+export type FieldSize = 'box' | 'composer';
 
 const PAGE = '/prototypes/ai-search-page';
 /** The overview shows this many directory results; the rest are one press away. */
@@ -47,14 +51,22 @@ interface Asked extends CannedAnswer {
  *  - `handoff`: Enter opens /ai-search with the question already answering;
  *    Back returns here.
  */
-export function HomeAsk({ mode, signedIn }: { mode: AskMode; signedIn: boolean }) {
+export function HomeAsk({ mode, size, signedIn }: { mode: AskMode; size: FieldSize; signedIn: boolean }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+  /* The Composer keeps its own "has text" flag; remounting it is how a clear
+     reaches that flag. */
+  const [composerKey, setComposerKey] = useState(0);
   const [value, setValue] = useState('');
   const [asked, setAsked] = useState<Asked | null>(null);
 
-  /* Switching modes starts over, so each is judged from rest. */
-  useEffect(() => setAsked(null), [mode]);
+  /* Switching modes or sizes starts over, so each is judged from rest. */
+  useEffect(() => {
+    setAsked(null);
+    setValue('');
+    setComposerKey((k) => k + 1);
+  }, [mode, size]);
 
   /* The overview's wait: the AI Search loader, for the usual thinking time. */
   useEffect(() => {
@@ -84,43 +96,82 @@ export function HomeAsk({ mode, signedIn }: { mode: AskMode; signedIn: boolean }
   const clear = () => {
     setAsked(null);
     setValue('');
-    inputRef.current?.focus();
+    if (size === 'composer') {
+      setComposerKey((k) => k + 1);
+      requestAnimationFrame(() => composerRef.current?.focus());
+    } else {
+      inputRef.current?.focus();
+    }
   };
 
   return (
-    <section className={s.root} aria-label="Ask AI Search">
-      <form
-        className={s.field}
-        role="search"
-        onSubmit={(e) => {
-          e.preventDefault();
-          ask(value);
-        }}
-      >
-        <AiSearchIcon size={20} className={s.mark} />
-        <input
-          ref={inputRef}
-          className={s.input}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder="Ask AI Search about the network"
-          aria-label="Ask AI Search about the network"
-          enterKeyHint="search"
-        />
-        {value && (
-          <button type="button" className={s.clear} onClick={clear} aria-label="Clear">
-            <CloseIcon width={14} height={14} />
-          </button>
-        )}
-        {/* The press for touch, where Enter is not on a keyboard in view.
+    <section className={s.root} aria-labelledby="home-ask-title">
+      {/* The page's headline, in the size Network Updates used to wear; that
+          heading steps down to a section title (`homeNewsTitle`) while this
+          one leads. The field under it is what the headline invites you to do. */}
+      <h1 id="home-ask-title" className={clsx(v0.sectionTitle, s.headline)}>
+        Explore the Protocol Labs network
+      </h1>
+
+      {size === 'composer' ? (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            ask(value);
+          }}
+        >
+          <Composer
+            key={composerKey}
+            ref={composerRef}
+            size="home"
+            rows={1}
+            value={value}
+            placeholder="Ask AI Search about the network"
+            aria-label="Ask AI Search about the network"
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                ask(value);
+              }
+            }}
+            onTextSubmit={() => ask(value)}
+          />
+        </form>
+      ) : (
+        <form
+          className={s.field}
+          role="search"
+          onSubmit={(e) => {
+            e.preventDefault();
+            ask(value);
+          }}
+        >
+          <AiSearchIcon size={20} className={s.mark} />
+          <input
+            ref={inputRef}
+            className={s.input}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="Ask AI Search about the network"
+            aria-label="Ask AI Search about the network"
+            enterKeyHint="search"
+          />
+          {value && (
+            <button type="button" className={s.clear} onClick={clear} aria-label="Clear">
+              <CloseIcon width={14} height={14} />
+            </button>
+          )}
+          {/* The press for touch, where Enter is not on a keyboard in view.
             Shown once there is something to ask, so at rest the field reads
             as a search box and not as a composer with a send. */}
-        {value.trim() && (
-          <button type="submit" className={s.submit}>
-            Ask
-          </button>
-        )}
-      </form>
+          {value.trim() && (
+            <button type="submit" className={s.submit}>
+              Ask
+            </button>
+          )}
+        </form>
+      )}
 
       {!asked && (
         <p className={s.try}>

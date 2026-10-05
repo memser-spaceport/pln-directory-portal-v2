@@ -23,7 +23,8 @@ type Props = {
 /**
  * The Comment tab of the feedback button's panel (prototype ai-apps-comments):
  * open for as long as comment mode is, above the button. It says how to leave a
- * comment — a click anywhere in the app — and who sees it. The comments
+ * comment — a click anywhere in the app — and who sees it (everyone who can
+ * open the app). The comments
  * themselves are listed in the panel on the right.
  */
 export function CommentCard({ commentCount, onFeedbackTab, onClose, status, onBoundsChange }: Props) {
@@ -64,7 +65,7 @@ export function CommentCard({ commentCount, onFeedbackTab, onClose, status, onBo
             ? 'Click anywhere on the app to leave a comment. This app can’t show where earlier comments point; open them from the list.'
             : 'Click anywhere on the app to leave a comment.'}
         </p>
-        <p className={s.audience}>Only the app’s author and admins see it.</p>
+        <p className={s.audience}>Everyone who can open this app can see it.</p>
       </div>
     </section>
   );

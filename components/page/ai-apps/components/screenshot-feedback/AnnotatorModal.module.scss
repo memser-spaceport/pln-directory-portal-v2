@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 .overlay {
   z-index: 10001;
   background: rgba(14, 15, 17, 0.48);
@@ -51,30 +53,40 @@
 }
 
 .toolbar {
+  /* Above the stage, so a tooltip hanging below a button is not painted over. */
+  position: relative;
+  z-index: 2;
   display: flex;
-  /* Four tools plus five swatches already ran close to the edge on a narrow
-     viewport; six tools pass it. Wrapping keeps every control reachable —
-     `.history`'s auto margin still pushes undo/redo right on each line. */
+  /* The tools stay one row; the swatches and undo/redo wrap under them on a
+     narrow viewport. `.history`'s auto margin still pushes undo/redo right. */
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   padding: 12px 20px;
   border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include media.mobile-only {
+    padding: 8px 12px;
+  }
+}
+
+.tools {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
 }
 
 .tool {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  width: 32px;
   height: 32px;
-  padding: 0 12px;
+  padding: 0;
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   border-radius: 8px;
   background: #fff;
   color: var(--foreground-neutral-secondary, #455468);
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 500;
   cursor: pointer;
 
   &:hover:not(:disabled) {
@@ -85,6 +97,61 @@
     opacity: 0.45;
     cursor: default;
   }
+
+  /* Six 44px targets fit a 360px phone; on a narrower one they give a little
+     rather than push the row off the screen. */
+  @include media.mobile-only {
+    flex: 0 1 44px;
+    width: 44px;
+    min-width: 36px;
+    height: 44px;
+  }
+}
+
+/* The name and shortcut, on hover and on keyboard focus alike: `title` shows
+   on neither keyboard focus nor touch. */
+.tool,
+.iconTool {
+  position: relative;
+
+  &[data-tip]:hover::after,
+  &[data-tip]:focus-visible::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    z-index: 1;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: var(--foreground-neutral-primary, #0a0c11);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* A tap is a hover that never ends; only keyboard focus keeps it there. */
+  @media (hover: none) {
+    &[data-tip]:hover:not(:focus-visible)::after {
+      content: none;
+    }
+  }
+}
+
+/* The first tool and undo/redo sit at the edges, where a centred tooltip would
+   be cut off by the modal. */
+.tools .tool:first-child[data-tip]::after {
+  left: 0;
+  transform: none;
+}
+
+.history .iconTool[data-tip]::after {
+  right: 0;
+  left: auto;
+  transform: none;
 }
 
 .toolActive {
@@ -146,6 +213,11 @@
     opacity: 0.45;
     cursor: default;
   }
+
+  @include media.mobile-only {
+    width: 44px;
+    height: 44px;
+  }
 }
 
 .stage {
@@ -156,17 +228,6 @@
   padding: 16px 20px;
   overflow: auto;
   background: var(--background-neutral-secondary, #f8fafc);
-}
-
-.toolKey {
-  margin-left: 2px;
-  padding: 0 4px;
-  border-radius: 4px;
-  background: rgba(14, 15, 17, 0.06);
-  font-family: inherit;
-  font-size: 10px;
-  line-height: 14px;
-  font-weight: 600;
 }
 
 .footer {

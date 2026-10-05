@@ -36,6 +36,7 @@ interface Props extends PropsWithChildren {
   minHeight?: number;
   simplified?: boolean;
   toolbarConfig?: (string | Record<string, unknown>)[][];
+  markdownShortcuts?: boolean;
 }
 
 export const FormEditor = (props: Props) => {
@@ -58,6 +59,7 @@ export const FormEditor = (props: Props) => {
     minHeight,
     simplified,
     toolbarConfig,
+    markdownShortcuts,
   } = props;
 
   const {
@@ -67,7 +69,9 @@ export const FormEditor = (props: Props) => {
   } = useFormContext();
   const value = watch(name);
   const hasHadContent = useRef(false);
-  const charCount = showCharCount ? (value as string)?.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').length ?? 0 : 0;
+  const charCount = showCharCount
+    ? ((value as string)?.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').length ?? 0)
+    : 0;
   const isOverLimit = showCharCount && maxLength != null && charCount > maxLength;
 
   return (
@@ -106,6 +110,7 @@ export const FormEditor = (props: Props) => {
         onMentionSearch={onMentionSearch}
         onMentionSelected={onMentionSelected}
         minHeight={minHeight}
+        markdownShortcuts={markdownShortcuts}
       />
       {errors[name] ? (
         <Field.Error className={s.errorMsg} match={!!errors[name]}>

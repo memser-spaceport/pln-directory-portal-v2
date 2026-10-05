@@ -3,7 +3,7 @@
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { LIMITS, envelope, isEnvelope, type ParentMessage } from '@/ai-apps-bridge/protocol';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
-import { toCropDataUrl, toDescriptor, toPinId, toPoint, toRect } from './validate';
+import { toCaptureKey, toCaptureResult, toCropDataUrl, toDescriptor, toPinId, toPoint, toRect } from './validate';
 import type { ElementPin } from './types';
 
 /**
@@ -14,6 +14,29 @@ import type { ElementPin } from './types';
  */
 export const BRIDGE_READY_TIMEOUT_MS = 2000;
 const HELLO_RETRY_MS = [300, 1000, 2500];
+/** Loading the bridge's renderer (first use) plus rendering the viewport. Measured well under this. */
+export const CAPTURE_TIMEOUT_MS = 20_000;
+
+/** A picture of the app as it is on screen; `width`/`height` are the viewport in CSS px. */
+export type AppCapture = { dataUrl: string; width: number; height: number };
+
+/**
+ * Why `capture()` gave no picture: `unsupported` (no bridge, or one older than
+ * `capture`), `timeout`, `reloaded` (the frame changed document meanwhile), or
+ * the bridge's own error (`too-large`, `capture-missing`, a renderer message).
+ */
+export class AppCaptureError extends Error {
+  constructor(readonly reason: string) {
+    super(reason);
+    this.name = 'AppCaptureError';
+  }
+}
+
+type PendingCapture = {
+  resolve: (capture: AppCapture) => void;
+  reject: (error: AppCaptureError) => void;
+  timer: ReturnType<typeof setTimeout>;
+};
 
 export type BridgeStatus = 'off' | 'waiting' | 'ready' | 'unavailable';
 
@@ -65,6 +88,18 @@ export function useElementPins({ iframeRef, appOrigin, frameKey, enabled, appUid
     setPins(next);
   }, []);
   const readyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Read by `capture()` without re-creating it on every `ready`. */
+  const capabilitiesRef = useRef<string[]>([]);
+  const pendingCaptures = useRef(new Map<string, PendingCapture>());
+  const captureCounter = useRef(0);
+  /** Every capture still waiting fails: its frame is gone or the app reloaded. */
+  const failPendingCaptures = useCallback((reason: string) => {
+    for (const [key, pending] of pendingCaptures.current) {
+      clearTimeout(pending.timer);
+      pending.reject(new AppCaptureError(reason));
+      pendingCaptures.current.delete(key);
+    }
+  }, []);
   /** The bridge's per-page-load id from the last `ready`. */
   const bridgeSession = useRef<string | null>(null);
   const reportedUnavailable = useRef<string | null>(null);
@@ -93,10 +128,12 @@ export function useElementPins({ iframeRef, appOrigin, frameKey, enabled, appUid
   useEffect(() => {
     pinsRef.current = [];
     bridgeSession.current = null;
+    capabilitiesRef.current = [];
     return () => {
       if (readyTimer.current) clearTimeout(readyTimer.current);
+      failPendingCaptures('reloaded');
     };
-  }, [frameIdentity]);
+  }, [frameIdentity, failPendingCaptures]);
 
   useEffect(() => {
     if (!enabled || !appOrigin) return;
@@ -111,12 +148,12 @@ export function useElementPins({ iframeRef, appOrigin, frameKey, enabled, appUid
           if (readyTimer.current) clearTimeout(readyTimer.current);
           setStatus('ready');
           if (Array.isArray(payload.capabilities)) {
-            setCapabilities(
-              payload.capabilities
-                .filter((c): c is string => typeof c === 'string')
-                .map((c) => c.slice(0, 32))
-                .slice(0, 10),
-            );
+            const next = payload.capabilities
+              .filter((c): c is string => typeof c === 'string')
+              .map((c) => c.slice(0, 32))
+              .slice(0, 10);
+            capabilitiesRef.current = next;
+            setCapabilities(next);
           }
           const session = typeof payload.session === 'string' ? payload.session.slice(0, 40) : null;
           const previous = bridgeSession.current;
@@ -126,6 +163,7 @@ export function useElementPins({ iframeRef, appOrigin, frameKey, enabled, appUid
              bridge has never heard of our pins, and it isn't picking. */
           if (previous === null || previous === session) return;
           setIsPicking(false);
+          failPendingCaptures('reloaded');
           commitPins((prev) => (prev.some((p) => p.rect) ? prev.map((p) => ({ ...p, rect: null })) : prev));
           return;
         }
@@ -185,6 +223,25 @@ export function useElementPins({ iframeRef, appOrigin, frameKey, enabled, appUid
           );
           return;
         }
+        case 'capture:result': {
+          const key = toCaptureKey(payload.key);
+          const pending = key ? pendingCaptures.current.get(key) : undefined;
+          if (!key || !pending) return;
+          clearTimeout(pending.timer);
+          pendingCaptures.current.delete(key);
+          const result = toCaptureResult(payload);
+          if (result) pending.resolve(result);
+          else
+            pending.reject(
+              new AppCaptureError(typeof payload.error === 'string' ? payload.error.slice(0, 60) : 'invalid'),
+            );
+          return;
+        }
+        case 'shortcut:feedback':
+          /* Replayed here so it goes through the same checks as Alt+F pressed
+             outside the frame (dialogs open, comment mode, and so on). */
+          window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ƒ', code: 'KeyF', altKey: true }));
+          return;
         default:
           return;
       }
@@ -208,7 +265,35 @@ export function useElementPins({ iframeRef, appOrigin, frameKey, enabled, appUid
       retries.forEach(clearTimeout);
       window.removeEventListener('message', onMessage);
     };
-  }, [enabled, appOrigin, iframeRef, send, appUid, commitPins]);
+  }, [enabled, appOrigin, iframeRef, send, appUid, commitPins, failPendingCaptures]);
+
+  /* Captures can't outlive the hook (a page change, the flag turned off). */
+  useEffect(() => () => failPendingCaptures('reloaded'), [failPendingCaptures]);
+
+  /**
+   * A picture of the app as it is on screen, from its bridge — no screen-share
+   * prompt. Rejects at once with `unsupported` when the bridge isn't ready or
+   * predates `capture` (callers fall back to the screen share), and after
+   * CAPTURE_TIMEOUT_MS with `timeout`.
+   */
+  const capture = useCallback(
+    () =>
+      new Promise<AppCapture>((resolve, reject) => {
+        if (statusRef.current !== 'ready' || !capabilitiesRef.current.includes('capture')) {
+          reject(new AppCaptureError('unsupported'));
+          return;
+        }
+        captureCounter.current += 1;
+        const key = `cap-${captureCounter.current}`;
+        const timer = setTimeout(() => {
+          pendingCaptures.current.delete(key);
+          reject(new AppCaptureError('timeout'));
+        }, CAPTURE_TIMEOUT_MS);
+        pendingCaptures.current.set(key, { resolve, reject, timer });
+        send({ type: 'capture', payload: { key } });
+      }),
+    [send],
+  );
 
   /** Wire to the iframe's `onLoad`. Asks a bridge that loaded before we listened to announce itself again. */
   const onFrameLoad = useCallback(() => {
@@ -263,6 +348,9 @@ export function useElementPins({ iframeRef, appOrigin, frameKey, enabled, appUid
   return {
     status,
     capabilities,
+    /** The bridge can take a picture of the app (`capture()` won't reject as `unsupported`). */
+    canCapture: status === 'ready' && capabilities.includes('capture'),
+    capture,
     isPicking,
     pins,
     onFrameLoad,

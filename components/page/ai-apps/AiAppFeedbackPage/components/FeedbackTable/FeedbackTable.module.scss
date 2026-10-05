@@ -8,7 +8,7 @@
 
 .table {
   width: 100%;
-  min-width: 780px;
+  min-width: 1060px;
   table-layout: fixed;
   border-collapse: collapse;
 
@@ -39,10 +39,46 @@
   }
 }
 
-// APP, FROM, STATUS, and DATE are fixed-width so they don't reflow as content changes;
+// APP, KIND, PRIORITY, FROM, STATUS, and DATE are fixed-width so they don't reflow as content changes;
 // FEEDBACK (no width set) fills the remaining space via table-layout: fixed.
 .appCol {
   width: 160px;
+}
+
+.kindCol {
+  width: 100px;
+}
+
+.priorityCol {
+  width: 110px;
+}
+
+.priorityHeader {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.priorityHelp {
+  display: flex;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+// The tooltip renders inside the <th>, so undo its uppercase, nowrap header text.
+.priorityLegend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 4px 2px;
+  list-style: none;
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: normal;
+  font-weight: 400;
 }
 
 .fromCol {
@@ -107,4 +143,26 @@
   &:hover {
     text-decoration: underline;
   }
+}
+
+/* Which door an item came through: a public comment on the live app, or the form. */
+.kindFeedback,
+.kindComment {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.kindFeedback {
+  background: rgba(14, 15, 17, 0.06);
+  color: #455468;
+}
+
+.kindComment {
+  background: #eef2ff;
+  color: #1b4dff;
 }

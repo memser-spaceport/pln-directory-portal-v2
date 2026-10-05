@@ -50,6 +50,8 @@ interface Props {
    *  because only this component knows whether the mention dropdown is open,
    *  and Enter belongs to the dropdown whenever it is. */
   onSubmit?: () => void;
+  /** `**bold**` turns bold as the closing `*` is typed. (`- ` and `1. ` lists are Quill's own.) */
+  markdownShortcuts?: boolean;
 }
 
 const QL_EDITOR_CLASS = 'ql-editor';
@@ -112,6 +114,7 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
     toolbarConfig,
     minHeight,
     onSubmit,
+    markdownShortcuts,
   } = props;
 
   const quillRef = useRef<any>(null);
@@ -346,6 +349,26 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
       root.removeEventListener('paste', handlePaste, true);
       editor.off('text-change', stripDataUriImages);
     };
+  }, []);
+
+  useEffect(() => {
+    const editor = quillRef.current?.getEditor();
+    if (!editor || !markdownShortcuts) return;
+    editor.keyboard.addBinding(
+      { key: '*', shiftKey: null, collapsed: true, prefix: /\*\*[^*\s](?:[^*]*[^*\s])?\*$/ },
+      (range: { index: number }, context: { prefix: string }) => {
+        const inner = context.prefix.match(/\*\*([^*]+)\*$/)![1];
+        const start = range.index - inner.length - 3;
+        editor.deleteText(range.index - 1, 1, 'user');
+        editor.deleteText(start, 2, 'user');
+        editor.formatText(start, inner.length, 'bold', true, 'user');
+        editor.setSelection(start + inner.length, 0, 'user');
+        editor.format('bold', false, 'user');
+        return false;
+      },
+    );
+    // Once: bindings can't be removed, and the editor lives as long as this component.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

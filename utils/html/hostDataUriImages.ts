@@ -1,6 +1,7 @@
 import { saveRegistrationImage } from '@/services/registration.service';
 
-const DATA_URI_SRC = /\bsrc=["'](data:[^"']+)["']/gi;
+/* An `<img src>`, or a markdown image (AI Apps feedback notes are markdown). */
+const DATA_URI_SRC = /\bsrc=["'](data:[^"']+)["']|!\[[^\]]*\]\((data:[^)\s]+)\)/gi;
 
 function dataUriToFile(dataUri: string): File {
   const comma = dataUri.indexOf(',');
@@ -26,7 +27,7 @@ function dataUriToFile(dataUri: string): File {
  * Swap those for hosted URLs before we persist or send the markup.
  */
 export async function hostDataUriImages(html: string): Promise<string> {
-  const unique = [...new Set([...html.matchAll(DATA_URI_SRC)].map((match) => match[1]))];
+  const unique = [...new Set([...html.matchAll(DATA_URI_SRC)].map((match) => match[1] ?? match[2]))];
   if (unique.length === 0) {
     return html;
   }

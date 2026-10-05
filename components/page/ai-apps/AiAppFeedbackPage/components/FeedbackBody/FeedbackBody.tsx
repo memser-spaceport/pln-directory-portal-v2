@@ -3,6 +3,7 @@ import { clsx } from 'clsx';
 import { sanitizeAiAppFeedbackHtml } from '@/utils/html';
 
 import { QuillContent } from '@/components/ui/QuillContent/QuillContent';
+import { markdownToHtml } from '@/components/page/ai-apps/utils/feedbackMarkdown';
 
 import type { FeedbackImage } from '../../utils/splitFeedbackMedia';
 
@@ -27,11 +28,9 @@ interface Props {
  * cropped to fill it: they are already crops, of any shape.
  */
 export function FeedbackBody({ text, onImageClick }: Props) {
-  if (!looksLikeHtml(text)) {
-    return <div className={s.messageText}>{text}</div>;
-  }
-
-  const { textHtml, images } = splitFeedbackMedia(sanitizeAiAppFeedbackHtml(text));
+  /* Notes are markdown now, with any screenshots after them as HTML; older ones are Quill HTML. */
+  const html = looksLikeHtml(text) ? text : markdownToHtml(text);
+  const { textHtml, images } = splitFeedbackMedia(sanitizeAiAppFeedbackHtml(html));
 
   return (
     <div className={s.messageBlock}>

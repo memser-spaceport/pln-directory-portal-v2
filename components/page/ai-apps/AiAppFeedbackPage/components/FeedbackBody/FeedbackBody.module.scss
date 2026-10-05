@@ -1,13 +1,3 @@
-// -webkit-box is unreliable directly on a td, so the clamp lives on an inner div.
-.messageText {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  overflow: hidden;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
 .messageBlock {
   display: flex;
   flex-direction: column;

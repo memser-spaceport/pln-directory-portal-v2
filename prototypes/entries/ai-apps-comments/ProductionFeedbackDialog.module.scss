@@ -1,0 +1,11 @@
+/**
+ * Prototype-only deviations from production's GiveAiAppFeedbackDialog stylesheet,
+ * which this dialog imports verbatim.
+ *
+ * `.screenshotRow` stacks label, hint and button on one `gap: 8px`, so the hint
+ * sat as far from its own label as from the button and read as a separate block.
+ * The hint qualifies the label, so it sits 2px under it; the button keeps the 8px.
+ */
+.hintUnderLabel {
+  margin-top: -6px;
+}

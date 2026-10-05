@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react';
 import { BRIDGE_NS, BRIDGE_VERSION, LIMITS } from '@/ai-apps-bridge/protocol';
 import {
   BRIDGE_READY_TIMEOUT_MS,
+  CAPTURE_TIMEOUT_MS,
   ELEMENT_PINS_ATTR,
   pinsHtml,
   serializePins,
@@ -73,6 +74,20 @@ describe('useElementPins', () => {
     expect(t.hook.result.current.status).toBe('waiting');
     t.fromApp('ready', { capabilities: ['pick'], session: 's1' });
     expect(t.hook.result.current.status).toBe('ready');
+    t.cleanup();
+  });
+
+  it('replays Alt+F pressed inside the app as the same key on this window', () => {
+    const t = setup();
+    const onKey = jest.fn();
+    window.addEventListener('keydown', onKey);
+
+    t.fromApp('shortcut:feedback');
+    t.fromApp('shortcut:feedback', undefined, { origin: 'https://evil.example' });
+
+    expect(onKey).toHaveBeenCalledTimes(1);
+    expect(onKey.mock.calls[0][0]).toMatchObject({ code: 'KeyF', altKey: true });
+    window.removeEventListener('keydown', onKey);
     t.cleanup();
   });
 
@@ -148,6 +163,97 @@ describe('useElementPins', () => {
     expect(t.hook.result.current.isPicking).toBe(false);
     expect(t.hook.result.current.pins[0].rect).toBeNull();
     t.cleanup();
+  });
+
+  describe('capture()', () => {
+    const CAPABLE = { capabilities: ['pick', 'crop', 'capture'], session: 's1' };
+    const JPEG = 'data:image/jpeg;base64,AAAA';
+    const sentKey = (t: ReturnType<typeof setup>) => t.toApp.filter((m) => m.type === 'capture').at(-1)?.payload.key;
+
+    it('asks the bridge and resolves with the picture its answer carries', async () => {
+      const t = setup();
+      t.fromApp('ready', CAPABLE);
+      expect(t.hook.result.current.canCapture).toBe(true);
+      let shot: Promise<unknown> = Promise.resolve();
+      act(() => {
+        shot = t.hook.result.current.capture();
+      });
+      const key = sentKey(t);
+      expect(key).toMatch(/^cap-\d+$/);
+      t.fromApp('capture:result', { key, dataUrl: JPEG, width: 1280, height: 720 });
+      await expect(shot).resolves.toEqual({ dataUrl: JPEG, width: 1280, height: 720 });
+      t.cleanup();
+    });
+
+    it('rejects at once as unsupported when the bridge is older than capture, or not ready', async () => {
+      const t = setup();
+      await expect(t.hook.result.current.capture()).rejects.toMatchObject({ reason: 'unsupported' });
+      t.fromApp('ready', { capabilities: ['pick', 'crop'], session: 's1' });
+      expect(t.hook.result.current.canCapture).toBe(false);
+      await expect(t.hook.result.current.capture()).rejects.toMatchObject({ reason: 'unsupported' });
+      expect(t.toApp.some((m) => m.type === 'capture')).toBe(false);
+      t.cleanup();
+    });
+
+    it('passes the bridge’s error on, and refuses a picture that isn’t a raster or has no size', async () => {
+      const t = setup();
+      t.fromApp('ready', CAPABLE);
+      let first: Promise<unknown> = Promise.resolve();
+      act(() => {
+        first = t.hook.result.current.capture();
+      });
+      t.fromApp('capture:result', { key: sentKey(t), error: 'too-large' });
+      await expect(first).rejects.toMatchObject({ reason: 'too-large' });
+
+      let second: Promise<unknown> = Promise.resolve();
+      act(() => {
+        second = t.hook.result.current.capture();
+      });
+      t.fromApp('capture:result', {
+        key: sentKey(t),
+        dataUrl: 'data:image/svg+xml;base64,AAAA',
+        width: 10,
+        height: 10,
+      });
+      await expect(second).rejects.toMatchObject({ reason: 'invalid' });
+      t.cleanup();
+    });
+
+    it('ignores answers it never asked for, and fails a pending capture when the app reloads', async () => {
+      const t = setup();
+      t.fromApp('ready', CAPABLE);
+      let shot: Promise<unknown> = Promise.resolve();
+      act(() => {
+        shot = t.hook.result.current.capture();
+      });
+      t.fromApp('capture:result', { key: 'cap-999', dataUrl: JPEG, width: 1, height: 1 });
+      t.fromApp(
+        'capture:result',
+        { key: sentKey(t), dataUrl: JPEG, width: 1, height: 1 },
+        { origin: 'https://evil.example' },
+      );
+      t.fromApp('ready', { ...CAPABLE, session: 's2' });
+      await expect(shot).rejects.toMatchObject({ reason: 'reloaded' });
+      t.cleanup();
+    });
+
+    it('times out when the bridge never answers', async () => {
+      jest.useFakeTimers();
+      try {
+        const t = setup();
+        t.fromApp('ready', CAPABLE);
+        let shot: Promise<unknown> = Promise.resolve();
+        act(() => {
+          shot = t.hook.result.current.capture();
+        });
+        const settled = expect(shot).rejects.toMatchObject({ reason: 'timeout' });
+        act(() => void jest.advanceTimersByTime(CAPTURE_TIMEOUT_MS));
+        await settled;
+        t.cleanup();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
   });
 });
 

@@ -1,6 +1,9 @@
 export {
   useElementPins,
+  AppCaptureError,
   BRIDGE_READY_TIMEOUT_MS,
+  CAPTURE_TIMEOUT_MS,
+  type AppCapture,
   type BridgeStatus,
   type ElementPinsController,
 } from './useElementPins';

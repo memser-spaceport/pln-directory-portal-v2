@@ -12,6 +12,7 @@ import {
 import {
   useAddFeedbackComment,
   useDeleteFeedbackComment,
+  useEditFeedbackComment,
   useFeedbackComments,
 } from '@/services/ai-app-feedback/hooks/useFeedbackComments';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
@@ -19,9 +20,11 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import ci from '@/components/page/forum/PostComments/components/CommentItem/CommentItem.module.scss';
 import fd from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/GiveAiAppFeedbackDialog.module.scss';
 
+import { ConfirmDelete, EditedMark, InlineEdit, ItemActionsMenu } from './ItemActions';
+
 import s from './CommentMode.module.scss';
 
-/** Who is reading the thread: their replies show at once under their name, and only theirs can be deleted. */
+/** Who is reading the thread: their replies show at once under their name, and only theirs can be edited. */
 export type ThreadViewer = { uid: string; name: string; image: string | null };
 
 function initials(name: string) {
@@ -43,6 +46,8 @@ type Props = {
   viewer: ThreadViewer | null;
   /** The "Not on screen" list: a toggle first, so the list doesn't fetch every thread at once. */
   collapsed?: boolean;
+  /** A directory admin: may delete anyone's reply (never edit it). */
+  isAdmin?: boolean;
 };
 
 const NOTHING = { list: null, field: null };
@@ -54,7 +59,14 @@ const NOTHING = { list: null, field: null };
  * area) and the field (for its footer) separately; both null when the API has
  * no conversations yet (`commentCount` absent) or nobody is signed in.
  */
-export function useFeedbackReplies({ appUid, feedbackUid, commentCount, viewer, collapsed = false }: Props) {
+export function useFeedbackReplies({
+  appUid,
+  feedbackUid,
+  commentCount,
+  viewer,
+  collapsed = false,
+  isAdmin = false,
+}: Props) {
   const available = typeof commentCount === 'number' && viewer !== null;
   const count = commentCount ?? 0;
   const [expanded, setExpanded] = useState(!collapsed);
@@ -65,8 +77,10 @@ export function useFeedbackReplies({ appUid, feedbackUid, commentCount, viewer, 
   );
   const add = useAddFeedbackComment(appUid, feedbackUid, viewer);
   const remove = useDeleteFeedbackComment(appUid, feedbackUid);
+  const edit = useEditFeedbackComment(appUid, feedbackUid);
   const analytics = useAiAppsAnalytics();
   const [confirmingUid, setConfirmingUid] = useState<string | null>(null);
+  const [editingUid, setEditingUid] = useState<string | null>(null);
 
   if (!available || !viewer) return NOTHING;
 
@@ -98,21 +112,39 @@ export function useFeedbackReplies({ appUid, feedbackUid, commentCount, viewer, 
             </button>
           </p>
         )}
-        {comments.map((comment) => (
-          <ReplyRow
-            key={comment.uid}
-            comment={comment}
-            isOwn={!comment.pending && comment.member?.uid === viewer.uid}
-            confirming={confirmingUid === comment.uid}
-            onAskDelete={() => setConfirmingUid(comment.uid)}
-            onCancelDelete={() => setConfirmingUid(null)}
-            onDelete={() => {
-              setConfirmingUid(null);
-              remove.mutate(comment.uid);
-              analytics.onFeedbackReplyDeleted({ appUid, feedbackUid });
-            }}
-          />
-        ))}
+        {comments.map((comment) => {
+          const isOwn = !comment.pending && comment.member?.uid === viewer.uid;
+          return (
+            <ReplyRow
+              key={comment.uid}
+              comment={comment}
+              isOwn={isOwn}
+              canDelete={!comment.pending && (isOwn || isAdmin)}
+              confirming={confirmingUid === comment.uid}
+              editing={editingUid === comment.uid}
+              onAskDelete={() => {
+                setEditingUid(null);
+                setConfirmingUid(comment.uid);
+              }}
+              onCancelDelete={() => setConfirmingUid(null)}
+              onDelete={() => {
+                setConfirmingUid(null);
+                remove.mutate(comment.uid);
+                analytics.onFeedbackReplyDeleted({ appUid, feedbackUid });
+              }}
+              onAskEdit={() => {
+                setConfirmingUid(null);
+                setEditingUid(comment.uid);
+              }}
+              onCancelEdit={() => setEditingUid(null)}
+              onSaveEdit={(text) => {
+                setEditingUid(null);
+                edit.mutate({ commentUid: comment.uid, text });
+                analytics.onFeedbackReplyEdited({ appUid, feedbackUid });
+              }}
+            />
+          );
+        })}
       </div>
     ) : null;
 
@@ -122,21 +154,31 @@ export function useFeedbackReplies({ appUid, feedbackUid, commentCount, viewer, 
 function ReplyRow({
   comment,
   isOwn,
+  canDelete,
   confirming,
+  editing,
   onAskDelete,
   onCancelDelete,
   onDelete,
+  onAskEdit,
+  onCancelEdit,
+  onSaveEdit,
 }: {
   comment: AiAppFeedbackComment;
   isOwn: boolean;
+  canDelete: boolean;
   confirming: boolean;
+  editing: boolean;
   onAskDelete: () => void;
   onCancelDelete: () => void;
   onDelete: () => void;
+  onAskEdit: () => void;
+  onCancelEdit: () => void;
+  onSaveEdit: (text: string) => void;
 }) {
   const name = comment.member?.name ?? 'A member';
   return (
-    <div className={clsx(ci.itemRoot, ci.reply, comment.pending && s.replyPending)}>
+    <div className={clsx(ci.itemRoot, ci.reply, s.itemRow, comment.pending && s.replyPending)}>
       <div className={ci.footer}>
         <span className={ci.Avatar} style={{ backgroundColor: getAvatarColor(name) }} aria-hidden>
           <span className={ci.Fallback}>{initials(name)}</span>
@@ -148,26 +190,23 @@ function ReplyRow({
           </span>
           <span className={ci.time}>
             {comment.pending ? 'Sending…' : formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+            {!comment.pending && <EditedMark at={comment.editedAt} />}
           </span>
         </div>
       </div>
-      <p className={clsx(ci.postContent, s.body)}>{comment.text}</p>
-      {isOwn &&
-        (confirming ? (
-          <p className={s.replyConfirm} role="group" aria-label="Delete this reply?">
-            Delete this reply?
-            <button type="button" className={s.linkButtonDanger} onClick={onDelete}>
-              Delete
-            </button>
-            <button type="button" className={s.linkButton} onClick={onCancelDelete}>
-              Cancel
-            </button>
-          </p>
-        ) : (
-          <button type="button" className={s.replyDelete} onClick={onAskDelete}>
-            Delete
-          </button>
-        ))}
+      {!editing && !confirming && (
+        <ItemActionsMenu
+          label={isOwn ? 'Actions for your reply' : 'Actions for this reply'}
+          onEdit={isOwn ? onAskEdit : undefined}
+          onDelete={canDelete ? onAskDelete : undefined}
+        />
+      )}
+      {editing ? (
+        <InlineEdit initial={comment.text} label="Edit your reply" onCancel={onCancelEdit} onSave={onSaveEdit} />
+      ) : (
+        <p className={clsx(ci.postContent, s.body)}>{comment.text}</p>
+      )}
+      {confirming && <ConfirmDelete question="Delete this reply?" onConfirm={onDelete} onCancel={onCancelDelete} />}
     </div>
   );
 }

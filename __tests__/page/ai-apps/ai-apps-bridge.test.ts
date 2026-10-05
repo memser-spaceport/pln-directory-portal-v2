@@ -64,7 +64,7 @@ describe('AI Apps bridge', () => {
   it('announces itself to the exact LabOS origin, and again on hello', () => {
     ctx = setup();
     expect(ctx.posted).toEqual([expect.objectContaining({ type: 'ready', ns: BRIDGE_NS, v: BRIDGE_VERSION })]);
-    expect(ctx.posted[0].payload.capabilities).toEqual(['pick', 'describe', 'crop', 'locate']);
+    expect(ctx.posted[0].payload.capabilities).toEqual(['pick', 'describe', 'crop', 'locate', 'capture']);
     ctx.command('hello');
     expect(ctx.posted.map((m) => m.type)).toEqual(['ready', 'ready']);
     /* Same page load, same session — LabOS tells an echo from a new document by it. */
@@ -118,6 +118,48 @@ describe('AI Apps bridge', () => {
     expect(appHandler).toHaveBeenCalledTimes(1);
   });
 
+  /* Members point at things; they don't read markup (feedback, 2026-10-02). */
+  it('outlines the hovered element with no tag label, in the brand ring with a halo', () => {
+    ctx = setup();
+    const button = ctx.doc.createElement('button');
+    button.textContent = 'Save changes';
+    button.id = 'save';
+    ctx.doc.body.appendChild(button);
+    ctx.place(button);
+
+    ctx.command('pick:start');
+    button.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 15, clientY: 25 }));
+
+    const outline = ctx.doc.querySelector<HTMLElement>('[data-pln-bridge="outline"]')!;
+    expect(outline.style.display).toBe('block');
+    expect([outline.style.left, outline.style.top, outline.style.width, outline.style.height]).toEqual([
+      '10px',
+      '20px',
+      '100px',
+      '30px',
+    ]);
+    expect(outline.textContent).toBe('');
+    expect(outline.children).toHaveLength(0);
+    expect(outline.style.outline).toContain('2px solid');
+    expect(outline.style.boxShadow).toContain('4px');
+    /* A square element gets a soft 4px ring… */
+    expect(outline.style.borderRadius).toBe('4px');
+  });
+
+  it('rounds the ring to the hovered element’s own corners', () => {
+    ctx = setup();
+    const card = ctx.doc.createElement('section');
+    card.textContent = 'Total awarded';
+    card.style.borderRadius = '12px';
+    ctx.doc.body.appendChild(card);
+    ctx.place(card);
+
+    ctx.command('pick:start');
+    card.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 15, clientY: 25 }));
+
+    expect(ctx.doc.querySelector<HTMLElement>('[data-pln-bridge="outline"]')!.style.borderRadius).toBe('12px');
+  });
+
   it('Esc leaves pick mode and tells LabOS', () => {
     ctx = setup();
     ctx.command('pick:start');
@@ -145,6 +187,55 @@ describe('AI Apps bridge', () => {
     ctx = setup();
     ctx.command('crop', { pinId: 'pin-9' });
     expect(ctx.posted.at(-1)).toMatchObject({ type: 'crop:result', payload: { pinId: 'pin-9', error: 'detached' } });
+  });
+
+  describe('capture (a picture of the app as it is on screen)', () => {
+    /* The renderer chunk is already loaded: the bridge skips the <script> and calls it. */
+    const withRenderer = (capture?: () => Promise<unknown>) => {
+      (ctx.win as any).__plnBridgeCrop = jest.fn();
+      if (capture) (ctx.win as any).__plnBridgeCapture = capture;
+    };
+    const lastResult = async () => {
+      await new Promise((r) => setTimeout(r, 0));
+      return ctx.posted.filter((m) => m.type === 'capture:result').at(-1);
+    };
+
+    it('answers with the picture and the viewport size, under LabOS’s key', async () => {
+      ctx = setup();
+      withRenderer(() => Promise.resolve({ dataUrl: 'data:image/jpeg;base64,AAAA', width: 1280, height: 720 }));
+      ctx.command('capture', { key: 'cap-1' });
+      expect(await lastResult()).toMatchObject({
+        payload: { key: 'cap-1', dataUrl: 'data:image/jpeg;base64,AAAA', width: 1280, height: 720 },
+      });
+    });
+
+    it('says why when it can’t: a renderer from before capture, a picture too large, a render error', async () => {
+      ctx = setup();
+      withRenderer();
+      ctx.command('capture', { key: 'cap-1' });
+      expect(await lastResult()).toMatchObject({ payload: { key: 'cap-1', error: 'capture-missing' } });
+
+      withRenderer(() =>
+        Promise.resolve({ dataUrl: `data:image/jpeg;base64,${'A'.repeat(4_000_001)}`, width: 1, height: 1 }),
+      );
+      ctx.command('capture', { key: 'cap-2' });
+      expect(await lastResult()).toMatchObject({ payload: { key: 'cap-2', error: 'too-large' } });
+
+      withRenderer(() => Promise.reject(new Error('timeout')));
+      ctx.command('capture', { key: 'cap-3' });
+      expect(await lastResult()).toMatchObject({ payload: { key: 'cap-3', error: 'timeout' } });
+    });
+
+    it('ignores a capture without a usable key, and from anyone but LabOS', async () => {
+      ctx = setup();
+      const render = jest.fn(() => Promise.resolve({ dataUrl: 'data:image/jpeg;base64,AA', width: 1, height: 1 }));
+      withRenderer(render);
+      ctx.command('capture', { key: 'x'.repeat(41) });
+      ctx.command('capture', {});
+      ctx.command('capture', { key: 'cap-1' }, { origin: 'https://evil.example' });
+      await new Promise((r) => setTimeout(r, 0));
+      expect(render).not.toHaveBeenCalled();
+    });
   });
 });
 
@@ -339,6 +430,35 @@ describe('AI Apps bridge: locate (the feedback overlay)', () => {
     ctx.command('pick:start');
     click(target);
     expect(ctx.posted.find((m) => m.type === 'pick:selected')?.payload.pinId).toBe('pin-1');
+  });
+
+  it('passes Alt+F on to LabOS, except while the member is typing in the app', () => {
+    ctx = setup();
+    add('<input id="name" />');
+    const press = (target: EventTarget, init: KeyboardEventInit = {}) =>
+      target.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'ƒ',
+          code: 'KeyF',
+          altKey: true,
+          bubbles: true,
+          cancelable: true,
+          ...init,
+        }),
+      );
+    const shortcuts = () => ctx.posted.filter((m) => m.type === 'shortcut:feedback').length;
+
+    press(ctx.doc.body);
+    expect(shortcuts()).toBe(1);
+
+    press(ctx.doc.getElementById('name')!);
+    press(ctx.doc.body, { shiftKey: true });
+    press(ctx.doc.body, { repeat: true });
+    expect(shortcuts()).toBe(1);
+
+    /* ⌥⌘↩ too, and from a field: it types nothing. */
+    press(ctx.doc.getElementById('name')!, { key: 'Enter', code: 'Enter', metaKey: true });
+    expect(shortcuts()).toBe(2);
   });
 
   it('ignores locate from any other origin', () => {

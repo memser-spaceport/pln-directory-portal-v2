@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import clsx from 'clsx';
 
 import { Modal } from '@/components/common/Modal/Modal';
@@ -36,15 +36,17 @@ const TOOL_KEYS: Record<string, AnnotatorTool> = {
   o: 'ellipse',
   a: 'arrow',
   c: 'comment',
+  t: 'text',
 };
 
-const TOOL_LETTERS: Record<AnnotatorTool, string> = {
-  draw: 'P',
-  rect: 'R',
-  ellipse: 'O',
-  arrow: 'A',
-  comment: 'C',
-};
+const TOOLS: { id: AnnotatorTool; name: string; letter: string; icon: ReactNode }[] = [
+  { id: 'comment', name: 'Comment', letter: 'C', icon: <CommentIcon /> },
+  { id: 'draw', name: 'Draw', letter: 'P', icon: <PencilSimpleLineIcon width={16} height={16} /> },
+  { id: 'rect', name: 'Box', letter: 'R', icon: <BoxIcon /> },
+  { id: 'ellipse', name: 'Oval', letter: 'O', icon: <OvalIcon /> },
+  { id: 'arrow', name: 'Arrow', letter: 'A', icon: <ArrowIcon /> },
+  { id: 'text', name: 'Text', letter: 'T', icon: <TextIcon /> },
+];
 
 type History = {
   entries: AnnotationState[];
@@ -204,76 +206,22 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
         </div>
 
         <div className={s.toolbar} role="toolbar" aria-label="Annotation tools">
-          <button
-            type="button"
-            className={clsx(s.tool, tool === 'comment' && s.toolActive)}
-            aria-pressed={tool === 'comment'}
-            aria-keyshortcuts="C"
-            title="Comment (C)"
-            onClick={() => selectTool('comment')}
-          >
-            <CommentIcon />
-            Comment
-            <kbd className={s.toolKey} aria-hidden="true">
-              {TOOL_LETTERS.comment}
-            </kbd>
-          </button>
-          <button
-            type="button"
-            className={clsx(s.tool, tool === 'draw' && s.toolActive)}
-            aria-pressed={tool === 'draw'}
-            aria-keyshortcuts="P"
-            title="Draw (P)"
-            onClick={() => selectTool('draw')}
-          >
-            <PencilSimpleLineIcon width={16} height={16} />
-            Draw
-            <kbd className={s.toolKey} aria-hidden="true">
-              {TOOL_LETTERS.draw}
-            </kbd>
-          </button>
-          <button
-            type="button"
-            className={clsx(s.tool, tool === 'rect' && s.toolActive)}
-            aria-pressed={tool === 'rect'}
-            aria-keyshortcuts="R"
-            title="Box (R)"
-            onClick={() => selectTool('rect')}
-          >
-            <BoxIcon />
-            Box
-            <kbd className={s.toolKey} aria-hidden="true">
-              {TOOL_LETTERS.rect}
-            </kbd>
-          </button>
-          <button
-            type="button"
-            className={clsx(s.tool, tool === 'ellipse' && s.toolActive)}
-            aria-pressed={tool === 'ellipse'}
-            aria-keyshortcuts="O"
-            title="Oval (O)"
-            onClick={() => selectTool('ellipse')}
-          >
-            <OvalIcon />
-            Oval
-            <kbd className={s.toolKey} aria-hidden="true">
-              {TOOL_LETTERS.ellipse}
-            </kbd>
-          </button>
-          <button
-            type="button"
-            className={clsx(s.tool, tool === 'arrow' && s.toolActive)}
-            aria-pressed={tool === 'arrow'}
-            aria-keyshortcuts="A"
-            title="Arrow (A)"
-            onClick={() => selectTool('arrow')}
-          >
-            <ArrowIcon />
-            Arrow
-            <kbd className={s.toolKey} aria-hidden="true">
-              {TOOL_LETTERS.arrow}
-            </kbd>
-          </button>
+          <div className={s.tools} role="group" aria-label="Tool">
+            {TOOLS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={clsx(s.tool, tool === item.id && s.toolActive)}
+                aria-pressed={tool === item.id}
+                aria-label={item.name}
+                aria-keyshortcuts={item.letter}
+                data-tip={`${item.name} (${item.letter})`}
+                onClick={() => selectTool(item.id)}
+              >
+                {item.icon}
+              </button>
+            ))}
+          </div>
 
           <div className={s.colors} role="group" aria-label="Draw color">
             {DRAW_COLORS.map((color) => (
@@ -304,7 +252,7 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
               disabled={!canUndo}
               aria-label="Undo"
               aria-keyshortcuts={shortcuts.undoAria}
-              title={`Undo (${shortcuts.mod}+Z)`}
+              data-tip={`Undo (${shortcuts.undo})`}
             >
               <UndoIcon />
             </button>
@@ -315,7 +263,7 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
               disabled={!canRedo}
               aria-label="Redo"
               aria-keyshortcuts={shortcuts.redoAria}
-              title={`Redo (${shortcuts.mod}+Shift+Z)`}
+              data-tip={`Redo (${shortcuts.redo})`}
             >
               <RedoIcon />
             </button>
@@ -382,6 +330,20 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
         />
       </ConfirmLayer>
     </Modal>
+  );
+}
+
+function TextIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M3.5 4.5V3h9v1.5M8 3v10M6.2 13h3.6"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

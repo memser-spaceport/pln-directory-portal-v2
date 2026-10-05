@@ -27,16 +27,26 @@ import {
  *   elements, and the answer is a position: never text, markup or attributes.
  *   Matching on a selector reveals at most whether such an element exists on
  *   the page the viewer is already looking at.
+ * - `capture` returns a picture of what the viewer already sees in the frame
+ *   (its viewport), with typed values, select choices, editable text and
+ *   anything the app marks `data-labos-mask` masked, and nothing of the
+ *   bridge's own UI. It is taken only when LabOS asks, for the feedback form.
  */
 
 export const MARKER_ATTR = 'data-pln-bridge';
-const CAPABILITIES: BridgeCapability[] = ['pick', 'describe', 'crop', 'locate'];
+const CAPABILITIES: BridgeCapability[] = ['pick', 'describe', 'crop', 'locate', 'capture'];
 const CROP_LOAD_TIMEOUT_MS = 10_000;
 const ACCENT = '#1b4dff';
 const RECT_FALLBACK_MS = 100;
 
 type CropFn = (el: Element) => Promise<string>;
-type BridgeWindow = Window & { __plnBridge?: { version: number; destroy: () => void }; __plnBridgeCrop?: CropFn };
+type CaptureFn = () => Promise<{ dataUrl: string; width: number; height: number }>;
+type BridgeWindow = Window & {
+  __plnBridge?: { version: number; destroy: () => void };
+  __plnBridgeCrop?: CropFn;
+  /** Set by the same lazily loaded chunk as the crop; absent from a chunk older than `capture`. */
+  __plnBridgeCapture?: CaptureFn;
+};
 
 export type BridgeOptions = {
   /** The only origin the bridge will talk to: the LabOS deployment that served the script. */
@@ -70,33 +80,24 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
 
   /* ---------- pick mode ---------- */
 
+  /* The element under the pointer, as LabOS outlines a pin's element (and the
+     prototype's comment layer does): a brand ring just outside it with a soft
+     halo, gliding between elements. No tag label — members point at things,
+     they don't read markup. */
   const outline = doc.createElement('div');
   outline.setAttribute(MARKER_ATTR, 'outline');
   Object.assign(outline.style, {
     position: 'fixed',
     pointerEvents: 'none',
     zIndex: '2147483647',
-    border: `2px solid ${ACCENT}`,
-    background: 'rgba(27, 77, 255, 0.08)',
-    borderRadius: '3px',
+    outline: `2px solid ${ACCENT}`,
+    outlineOffset: '1px',
+    boxShadow: '0 0 0 4px rgba(27, 77, 255, 0.12)',
+    borderRadius: '4px',
     boxSizing: 'border-box',
+    transition: 'left 60ms linear, top 60ms linear, width 60ms linear, height 60ms linear',
     display: 'none',
   } satisfies Partial<CSSStyleDeclaration>);
-  const label = doc.createElement('div');
-  label.setAttribute(MARKER_ATTR, 'label');
-  Object.assign(label.style, {
-    position: 'absolute',
-    left: '-2px',
-    bottom: '100%',
-    marginBottom: '4px',
-    padding: '2px 6px',
-    font: '600 11px/16px system-ui, sans-serif',
-    color: '#fff',
-    background: ACCENT,
-    borderRadius: '4px',
-    whiteSpace: 'nowrap',
-  } satisfies Partial<CSSStyleDeclaration>);
-  outline.appendChild(label);
 
   const cursorStyle = doc.createElement('style');
   cursorStyle.setAttribute(MARKER_ATTR, 'cursor');
@@ -110,17 +111,17 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
       outline.style.display = 'none';
       return;
     }
+    /* The ring follows the element's own corners (a 12px card gets a 12px
+       ring); square elements keep a soft 4px. */
+    const radius = win.getComputedStyle(hovered).borderRadius;
     Object.assign(outline.style, {
       display: 'block',
       left: `${rect.x}px`,
       top: `${rect.y}px`,
       width: `${rect.w}px`,
       height: `${rect.h}px`,
+      borderRadius: radius && !/^0(px)?$/.test(radius) ? radius : '4px',
     });
-    label.textContent = hovered.tagName.toLowerCase() + (hovered.id ? `#${hovered.id}` : '');
-    /* Flip the tag inside the box when there is no room above it. */
-    label.style.bottom = rect.y < 24 ? 'auto' : '100%';
-    label.style.top = rect.y < 24 ? '2px' : 'auto';
   };
 
   const onPointerMove = (event: PointerEvent) => {
@@ -385,6 +386,45 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
     }
   }
 
+  /* ---------- capture: the app as it is on screen ---------- */
+
+  async function capture(key: string) {
+    try {
+      await loadCrop();
+      /* A browser can hold a renderer cached from before `capture` existed. */
+      const render = w.__plnBridgeCapture;
+      if (!render) throw new Error('capture-missing');
+      const { dataUrl, width, height } = await render();
+      if (dataUrl.length > LIMITS.cropDataUrl) {
+        send({ type: 'capture:result', payload: { key, error: 'too-large' } });
+        return;
+      }
+      send({ type: 'capture:result', payload: { key, dataUrl, width, height } });
+    } catch (error) {
+      send({
+        type: 'capture:result',
+        payload: { key, error: error instanceof Error ? error.message : 'capture-failed' },
+      });
+    }
+  }
+
+  /* ---------- the feedback shortcut ---------- */
+
+  /* Same rules as LabOS's own Alt+F: the physical key (Option+F types "ƒ" on a
+     Mac), and never while typing in one of the app's fields. ⌥⌘↩ types
+     nothing, so it is taken from a field too. */
+  const onShortcutKey = (event: KeyboardEvent) => {
+    if (event.isComposing || event.repeat || event.defaultPrevented) return;
+    const isChord = event.key === 'Enter' && (event.metaKey || event.ctrlKey) && event.altKey && !event.shiftKey;
+    if (!isChord) {
+      if (event.code !== 'KeyF' || !event.altKey || event.metaKey || event.ctrlKey || event.shiftKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName ?? '')) return;
+    }
+    event.preventDefault();
+    send({ type: 'shortcut:feedback' });
+  };
+
   /* ---------- the channel ---------- */
 
   const onMessage = (event: MessageEvent) => {
@@ -413,6 +453,9 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
       case 'locate':
         locate(readLocateRequests(payload?.requests));
         return;
+      case 'capture':
+        if (typeof payload?.key === 'string' && payload.key.length <= LIMITS.captureKey) void capture(payload.key);
+        return;
       default:
         /* Unknown commands are ignored: a newer LabOS may speak to an older bridge. */
         return;
@@ -420,6 +463,7 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
   };
 
   win.addEventListener('message', onMessage);
+  win.addEventListener('keydown', onShortcutKey);
   announce();
 
   const destroy = () => {
@@ -428,6 +472,7 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
     if (frame) win.cancelAnimationFrame(frame);
     if (frameFallback) win.clearTimeout(frameFallback);
     win.removeEventListener('message', onMessage);
+    win.removeEventListener('keydown', onShortcutKey);
     delete w.__plnBridge;
   };
   w.__plnBridge = { version: BRIDGE_VERSION, destroy };

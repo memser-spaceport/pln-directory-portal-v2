@@ -60,6 +60,32 @@
   margin: 0;
 }
 
+// Wider: no longer anchored to the button but a drawer on the right edge, the
+// full height of the window, over the design system's modal scrim. Declared
+// after `.overlayAbove` so it wins over its padding and the .root max-height.
+.overlayWide {
+  align-items: stretch;
+  justify-content: flex-end;
+  padding: 0;
+  background: var(--transparent-dark-50, rgba(14, 15, 17, 0.5)) !important;
+
+  .root {
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
+  }
+}
+
+.modalContainer.modalContainerWide {
+  width: min(1120px, 80vw);
+  max-width: none;
+  height: 100%;
+
+  @include media.mobile-only {
+    width: 100%;
+  }
+}
+
 .root {
   display: flex;
   flex-direction: column;
@@ -147,6 +173,131 @@
   overflow: visible;
 }
 
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+// Wider, from tablet up: screenshots on the left, the writing on the right.
+// A phone keeps the one column.
+@include media.tablet-portrait {
+  .overlayWide {
+    .form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows: auto 1fr auto;
+      gap: 20px 32px;
+      align-items: start;
+    }
+
+    .formGroup {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .shotsColumn {
+      grid-column: 1;
+      grid-row: 1 / span 3;
+    }
+
+    .writing {
+      grid-column: 2;
+      grid-row: 2;
+    }
+
+    .triage {
+      grid-column: 2;
+      grid-row: 3;
+    }
+  }
+}
+
+.writing {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.triage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.noteHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.noteViews {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.noteView {
+  padding: 2px 10px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.noteViewActive {
+  background: #fff;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.08);
+}
+
+// Matches the Rich view's editor box, focus ring included (RichTextEditor's .root:focus-within).
+.noteSource {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 14px;
+  line-height: 22px;
+  resize: vertical;
+  outline: none;
+
+  &::placeholder {
+    color: rgba(0, 0, 0, 0.6);
+    font-style: italic;
+  }
+
+  &:focus {
+    border-color: #5e718d;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+  }
+}
+
+.noteCount {
+  align-self: flex-end;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+}
+
+.noteCountOver {
+  color: #dc2626;
+}
+
 .editor {
   :global(.ql-toolbar) {
     overflow: visible;
@@ -203,21 +354,6 @@
   border-top: 1px solid rgba(203, 213, 225, 0.5);
 }
 
-.hints {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  color: var(--foreground-neutral-secondary, #455468);
-  font-size: 12px;
-  line-height: 16px;
-}
-
-.hint {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
 .kbd {
   padding: 1px 5px;
   border-radius: 4px;
@@ -229,10 +365,25 @@
   font-weight: 600;
 }
 
+.footerButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kbdOnPrimary {
+  background: rgba(255, 255, 255, 0.2);
+  color: inherit;
+}
+
 .footerActions {
   display: flex;
   gap: 8px;
   margin-left: auto;
+}
+
+.discardButton {
+  padding-right: 10px;
 }
 
 /**
@@ -460,4 +611,240 @@
     background: var(--foreground-error-primary, #dd2c5a);
     border-color: #fff;
   }
+}
+
+/* ---------- instant screenshots (prototype ai-apps-comments) ---------- */
+
+.shots {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shotCount {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-weight: 400;
+}
+
+.shotFigure {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+/* Every screenshot is a full-width preview, large enough to read. */
+.shot {
+  position: relative;
+  overflow: hidden;
+  height: 166px;
+  border: 1px solid rgba(203, 213, 225, 0.8);
+  border-radius: 8px;
+  background: var(--background-neutral-secondary, #f8fafc);
+}
+
+.shotImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: zoom-in;
+
+  /* Direct child only: an annotated preview lays out its own picture. */
+  > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: left top;
+  }
+}
+
+.shotActions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+}
+
+.shotAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(14, 15, 17, 0.72);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.86);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+.shotPending {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    90deg,
+    var(--background-neutral-secondary, #f1f5f9) 25%,
+    #e2e8f0 50%,
+    var(--background-neutral-secondary, #f1f5f9) 75%
+  );
+  background-size: 200% 100%;
+  animation: shotShimmer 1.2s linear infinite;
+}
+
+.shotPendingText {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 13px;
+}
+
+@keyframes shotShimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.shotCaption {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.shotButtons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.shotNote {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shotPending {
+    animation: none;
+  }
+}
+
+.draftNote {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.drafts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.draftList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.draftRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid rgba(203, 213, 225, 0.7);
+  border-radius: 8px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.draftTitle {
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.draftMeta {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.sent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sentTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.sentText {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.sentLink {
+  width: fit-content;
+  color: #1b4dff;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.sentRow {
+  overflow: hidden;
+  padding: 8px 10px;
+  border: 1px solid rgba(203, 213, 225, 0.7);
+  border-radius: 8px;
+  color: #0f172a;
+  font-size: 13px;
+  line-height: 18px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }

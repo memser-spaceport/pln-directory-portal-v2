@@ -1,0 +1,202 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.count {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.muted,
+.error,
+.status {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.muted {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.error {
+  color: var(--foreground-error-primary, #d21a0e);
+}
+
+.status {
+  min-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.create {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.countField {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.countLabel {
+  font-size: 13px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.countInput {
+  width: 72px;
+  padding: 6px 8px;
+  border: 1px solid rgba(27, 56, 96, 0.16);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.list,
+.tokenList {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list {
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.row,
+.tokenRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(27, 56, 96, 0.06);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.rowActions {
+  display: flex;
+  gap: 12px;
+}
+
+.linkBtn,
+.dangerBtn {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 13px;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.linkBtn {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.dangerBtn {
+  color: var(--foreground-error-primary, #d21a0e);
+}
+
+.revokedTag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(27, 56, 96, 0.06);
+  font-size: 12px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.revealModal {
+  width: 100%;
+  max-width: 560px;
+}
+
+.reveal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 85vh;
+  padding: 20px 24px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 4px 24px rgba(14, 15, 17, 0.08);
+}
+
+// Same amber palette as the access notice.
+.notice {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fef3c7;
+  font-size: 13px;
+  line-height: 18px;
+  color: #92400e;
+}
+
+.tokenList {
+  overflow-y: auto;
+}
+
+.tokenRow .name {
+  flex: 0 0 120px;
+}
+
+.token {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  user-select: all;
+}
+
+.revealFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@media (max-width: 639px) {
+  .reveal {
+    padding-inline: 16px;
+  }
+
+  .tokenRow .name {
+    flex-basis: 90px;
+  }
+}

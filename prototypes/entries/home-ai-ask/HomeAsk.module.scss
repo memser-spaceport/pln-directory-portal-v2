@@ -13,6 +13,24 @@
   width: 100%;
 }
 
+/* The page headline wears the Home prototype's own headline class
+   (v0.sectionTitle, 28 → 32px), which Network Updates gives up to it. Three
+   ranks on the page: this, the feed's section title, the tools' grey labels. */
+.headline.headline.headline {
+  margin: 0 0 8px;
+}
+
+/* Network Updates, stepped down from page headline to section title: under the
+   32px headline and above Quick Actions' 16px grey label. Passed to the host as
+   `newsTitleClassName`; three classes to beat sectionTitle's doubled one and its
+   breakpoint bump. */
+.homeNewsTitle.homeNewsTitle.homeNewsTitle {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
 .field {
   display: flex;
   align-items: center;

@@ -57,6 +57,14 @@ export const MODAL_INTRO =
 
 export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = [
   {
+    version: '1.16',
+    items: [
+      'Ask your agent for Preview testing users — it creates them and gives you 24-hour session tokens for a load test. Tokens work on Preview only, not Production',
+      'Ask your agent to add the new LabOS feedback script to every page of your app — the kit tells it how. It lets people attach a picture of your app to their feedback without sharing their screen',
+      'Feedback pictures of your app never show what people typed. Ask your agent to hide anything else private, and LabOS greys it out in every picture',
+    ],
+  },
+  {
     version: '1.15',
     items: [
       'Deploys no longer time out. Your agent gets an answer right away and then follows the build until it is live or has failed, so it no longer reports a failure for a deploy that actually worked',

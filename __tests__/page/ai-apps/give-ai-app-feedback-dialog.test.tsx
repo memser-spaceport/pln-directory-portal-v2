@@ -72,13 +72,18 @@ jest.mock('react-select', () => ({
     menuPlacement?: string;
   }) => (
     <div data-menu-placement={menuPlacement}>
-      <span data-testid="selected-app">{value?.label ?? placeholder}</span>
+      <span data-testid={`selected-${inputId}`}>{value?.label ?? placeholder}</span>
       {options.map((opt) => (
         <button key={opt.value} type="button" onClick={() => onChange(opt)}>
           {opt.label}
         </button>
       ))}
-      <input id={inputId} aria-label="Which app is this about?" readOnly value={value?.label ?? ''} />
+      <input
+        id={inputId}
+        aria-label={inputId === 'app' ? 'Which app is this about?' : inputId}
+        readOnly
+        value={value?.label ?? ''}
+      />
     </div>
   ),
   components: {},
@@ -186,6 +191,9 @@ const asCapableBrowser = () => {
   });
 };
 
+/** Drafts are per app: a draft written on one app's page never opens on another's. */
+const APP_1_DRAFT_KEY = `${AI_APP_FEEDBACK_DRAFT_KEY}:app-1`;
+
 describe('GiveAiAppFeedbackDialog', () => {
   beforeEach(() => {
     asCapableBrowser();
@@ -202,6 +210,7 @@ describe('GiveAiAppFeedbackDialog', () => {
   afterEach(() => {
     jest.clearAllMocks();
     clearFormDraft(AI_APP_FEEDBACK_DRAFT_KEY);
+    clearFormDraft(APP_1_DRAFT_KEY);
   });
 
   it('renders nothing when closed', () => {
@@ -235,7 +244,7 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     await waitFor(() =>
       expect(mockMutate).toHaveBeenCalledWith(
-        { appUid: 'app-1', text: 'Nice app!' },
+        { appUid: 'app-1', text: 'Nice app!', reportKind: 'bug', priority: 'P2' },
         expect.objectContaining({ onSuccess: expect.any(Function), onError: expect.any(Function) }),
       ),
     );
@@ -336,7 +345,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     });
   });
 
-  it('submits HTML feedback', async () => {
+  it('submits the note as markdown', async () => {
     mockUseAiApps.mockReturnValue({
       apps: [{ uid: 'app-1', name: 'My App' }],
       isLoading: false,
@@ -352,8 +361,44 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     await waitFor(() =>
       expect(mockMutate).toHaveBeenCalledWith(
-        { appUid: 'app-1', text: '<p><strong>Nice app!</strong></p>' },
+        { appUid: 'app-1', text: '**Nice app!**', reportKind: 'bug', priority: 'P2' },
         expect.objectContaining({ onSuccess: expect.any(Function) }),
+      ),
+    );
+  });
+
+  it('opens on Rich; Markdown shows the source of the same note, and switching back keeps it', () => {
+    mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+    const rich =
+      '<h2>Title</h2><ul><li>one</li></ul><p><a href="https://x.test">link</a> <img src="https://cdn.test/i.png" alt="pic"></p>';
+
+    expect(screen.getByRole('tab', { name: 'Rich' })).toHaveAttribute('aria-selected', 'true');
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: rich } });
+    fireEvent.click(screen.getByRole('tab', { name: 'Markdown' }));
+
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue(
+      '## Title\n\n- one\n\n[link](https://x.test) ![pic](https://cdn.test/i.png)',
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Rich' }));
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue(rich);
+  });
+
+  it('sends what is typed in Markdown as typed, < > and & included', async () => {
+    mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+    const source = '# Bug\n\na < b && c > d\n\n- one\n- two';
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Markdown' }));
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: source } });
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue(source);
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+    await waitFor(() =>
+      expect(mockMutate).toHaveBeenCalledWith(
+        { appUid: 'app-1', text: source, reportKind: 'bug', priority: 'P2' },
+        expect.any(Object),
       ),
     );
   });
@@ -374,7 +419,7 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     await waitFor(() =>
       expect(mockMutate).toHaveBeenCalledWith(
-        { appUid: 'app-1', text: '<p><img src="https://cdn.test/shot.png" alt="shot"></p>' },
+        { appUid: 'app-1', text: '![shot](https://cdn.test/shot.png)', reportKind: 'bug', priority: 'P2' },
         expect.any(Object),
       ),
     );
@@ -426,7 +471,7 @@ describe('GiveAiAppFeedbackDialog', () => {
           topic: 'AI Apps Feedback',
           email: 'ada@example.com',
           name: 'Ada Lovelace',
-          message: 'Platform needs better docs',
+          message: '<p>Platform needs better docs</p>',
           metadata: {
             logged: true,
             uid: 'member-1',
@@ -458,7 +503,7 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     await waitFor(() =>
       expect(mockMutate).toHaveBeenCalledWith(
-        { appUid: 'app-1', text: '<p><img src="https://cdn.test/hosted.png"></p>' },
+        { appUid: 'app-1', text: '![](https://cdn.test/hosted.png)', reportKind: 'bug', priority: 'P2' },
         expect.any(Object),
       ),
     );
@@ -485,8 +530,69 @@ describe('GiveAiAppFeedbackDialog', () => {
     expect(mockContactSupportMutate).not.toHaveBeenCalled();
   });
 
+  it('shows Kind and Priority under the note, starting at bug and P2, and sends what is picked', async () => {
+    mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" bridgeMissing />);
+
+    expect(screen.getByText('Kind')).toBeInTheDocument();
+    expect(screen.getByText('Priority')).toBeInTheDocument();
+    expect(screen.getByTestId('selected-reportKind')).toHaveTextContent('bug');
+    expect(screen.getByTestId('selected-priority')).toHaveTextContent('P2 — Normal — worth doing, not urgent');
+    for (const label of [
+      'P0 — Blocking — nobody can work around this',
+      'P1 — Serious — there is a workaround and it hurts',
+      'P3 — Someday — a good idea with no clock on it',
+      'request',
+      'question',
+      'chore',
+    ]) {
+      expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
+    }
+
+    fireEvent.click(screen.getByRole('button', { name: 'request' }));
+    fireEvent.click(screen.getByRole('button', { name: 'P0 — Blocking — nobody can work around this' }));
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Nice app!' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+
+    await waitFor(() =>
+      expect(mockMutate).toHaveBeenCalledWith(
+        { appUid: 'app-1', text: 'Nice app!', reportKind: 'request', priority: 'P0' },
+        expect.any(Object),
+      ),
+    );
+  });
+
+  it('shows Kind and Priority when opened from the apps list, with no app on screen', () => {
+    mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} />);
+
+    expect(screen.getByTestId('selected-reportKind')).toHaveTextContent('bug');
+    expect(screen.getByTestId('selected-priority')).toHaveTextContent('P2 — Normal — worth doing, not urgent');
+  });
+
+  it('keeps the picked Kind and Priority in the draft and restores them', async () => {
+    mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+    const { rerender } = render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Half a thought' } });
+    fireEvent.click(screen.getByRole('button', { name: 'chore' }));
+    fireEvent.click(screen.getByRole('button', { name: 'P3 — Someday — a good idea with no clock on it' }));
+    await waitFor(() =>
+      expect(JSON.parse(window.localStorage.getItem(APP_1_DRAFT_KEY) ?? '{}').data).toMatchObject({
+        reportKind: 'chore',
+        priority: 'P3',
+      }),
+    );
+
+    rerender(<GiveAiAppFeedbackDialog isOpen={false} onClose={jest.fn()} appUid="app-1" appName="My App" />);
+    rerender(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+    await waitFor(() => expect(screen.getByTestId('selected-reportKind')).toHaveTextContent('chore'));
+    expect(screen.getByTestId('selected-priority')).toHaveTextContent('P3 — Someday — a good idea with no clock on it');
+  });
+
   it('restores a typed draft when the dialog is reopened', async () => {
-    writeFormDraft(AI_APP_FEEDBACK_DRAFT_KEY, { message: 'Draft feedback text' });
+    writeFormDraft(APP_1_DRAFT_KEY, { message: 'Draft feedback text' });
     mockUseAiApps.mockReturnValue({
       apps: [{ uid: 'app-1', name: 'My App' }],
       isLoading: false,
@@ -502,6 +608,25 @@ describe('GiveAiAppFeedbackDialog', () => {
     await waitFor(() => {
       expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('Draft feedback text');
     });
+  });
+
+  it("doesn't restore one app's draft on another app", async () => {
+    writeFormDraft(APP_1_DRAFT_KEY, { message: 'Draft feedback text' });
+    mockUseAiApps.mockReturnValue({
+      apps: [
+        { uid: 'app-1', name: 'My App' },
+        { uid: 'app-2', name: 'Other App' },
+      ],
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-2" appName="Other App" />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER)).toHaveValue('');
   });
 
   it('persists typed feedback to localStorage while the dialog is open', async () => {
@@ -527,12 +652,12 @@ describe('GiveAiAppFeedbackDialog', () => {
       jest.advanceTimersByTime(500);
     });
 
-    expect(readFormDraft<{ message: string }>(AI_APP_FEEDBACK_DRAFT_KEY)?.message).toBe('Draft feedback text');
+    expect(readFormDraft<{ message: string }>(APP_1_DRAFT_KEY)?.message).toBe('Draft feedback text');
     jest.useRealTimers();
   });
 
   it('clears the draft after a successful submit', async () => {
-    writeFormDraft(AI_APP_FEEDBACK_DRAFT_KEY, { message: 'Should be cleared' });
+    writeFormDraft(APP_1_DRAFT_KEY, { message: 'Should be cleared' });
     mockUseAiApps.mockReturnValue({
       apps: [{ uid: 'app-1', name: 'My App' }],
       isLoading: false,
@@ -551,7 +676,7 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     await waitFor(() => {
       expect(mockMutate).toHaveBeenCalled();
-      expect(readFormDraft(AI_APP_FEEDBACK_DRAFT_KEY)).toBeNull();
+      expect(readFormDraft(APP_1_DRAFT_KEY)).toBeNull();
     });
   });
 
@@ -580,6 +705,43 @@ describe('GiveAiAppFeedbackDialog', () => {
     expect(overlay?.getAttribute('style')).toContain('--feedback-popover-top: 128px');
     expect(overlay?.getAttribute('style')).toContain('--feedback-popover-right: 40px');
 
+    anchor.remove();
+  });
+
+  /* Opening this form from comment mode: the button measured on open is still
+     shifted beside the comments panel, then moves back when the page drops
+     --ai-app-comments-inset from the root's style (dev, 2026-10-02). */
+  it('follows the button when the page moves it by changing the root style', async () => {
+    mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+    const anchor = document.createElement('button');
+    document.body.appendChild(anchor);
+    const rect = (right: number) =>
+      ({
+        x: right - 160,
+        y: 600,
+        top: 600,
+        bottom: 640,
+        left: right - 160,
+        right,
+        width: 160,
+        height: 40,
+        toJSON: () => ({}),
+      }) as DOMRect;
+    const measure = jest.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(rect(596));
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1000 });
+    document.documentElement.style.setProperty('--ai-app-comments-inset', '380px');
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} anchorRef={{ current: anchor }} placement="above" />);
+    const overlayStyle = () =>
+      document.body.querySelector('[style*="--feedback-popover-right"]')?.getAttribute('style');
+    expect(overlayStyle()).toContain('--feedback-popover-right: 404px');
+
+    measure.mockReturnValue(rect(976));
+    await act(async () => {
+      document.documentElement.style.removeProperty('--ai-app-comments-inset');
+    });
+
+    expect(overlayStyle()).toContain('--feedback-popover-right: 24px');
     anchor.remove();
   });
 
@@ -614,6 +776,42 @@ describe('GiveAiAppFeedbackDialog', () => {
     expect(screen.getByTestId('selected-app').parentElement).toHaveAttribute('data-menu-placement', 'auto');
 
     anchor.remove();
+  });
+
+  it('turns the popup into the wide drawer and back, remembering the choice', () => {
+    mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+    const { rerender } = render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} placement="above" />);
+    const overlay = () => document.body.querySelector('[data-modal]');
+
+    expect(overlay()).not.toHaveClass('overlayWide');
+    fireEvent.click(screen.getByRole('button', { name: 'Wider' }));
+
+    expect(overlay()).toHaveClass('overlayWide');
+    expect(screen.getByRole('button', { name: 'Narrower' })).toHaveAttribute('title', 'Narrower');
+    expect(window.localStorage.getItem('ai-app-feedback:wide')).toBe('1');
+
+    rerender(<GiveAiAppFeedbackDialog isOpen={false} onClose={jest.fn()} placement="above" />);
+    rerender(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} placement="above" />);
+    expect(overlay()).toHaveClass('overlayWide');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Narrower' }));
+    expect(overlay()).not.toHaveClass('overlayWide');
+    expect(screen.getByRole('button', { name: 'Wider' })).toHaveAttribute('title', 'Wider');
+    expect(window.localStorage.getItem('ai-app-feedback:wide')).toBe('0');
+  });
+
+  it('opens as the popup when the browser cannot store the choice', () => {
+    mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+    window.localStorage.setItem('ai-app-feedback:wide', '1');
+    const getItem = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('SecurityError');
+    });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} />);
+
+    expect(document.body.querySelector('[data-modal]')).not.toHaveClass('overlayWide');
+    expect(screen.getByRole('button', { name: 'Wider' })).toBeInTheDocument();
+    getItem.mockRestore();
   });
 
   it('does not reposition the overlay when a nested scroller fires scroll', () => {
@@ -661,7 +859,8 @@ describe('GiveAiAppFeedbackDialog', () => {
     render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} />);
 
     expect(screen.getByRole('button', { name: 'Take screenshot' })).toBeInTheDocument();
-    expect(screen.getByText('Take screenshot', { selector: 'p' })).toBeInTheDocument();
+    /* Without the app's capture script the section keeps today's screen share. */
+    expect(screen.getByText('Screenshots', { selector: 'p' })).toBeInTheDocument();
     expect(screen.getByText(/Share this tab and drag to capture an area/)).toBeInTheDocument();
     expect(screen.getByText(/draw and annotate/)).toBeInTheDocument();
   });
@@ -713,7 +912,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     it('opens the annotator again from the thumbnail', async () => {
       await takeAndAdd();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Edit screenshot 1' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot 1' }));
 
       /* Its footer says what this visit is: the CHANGES can be discarded, while
          the screenshot stays in the feedback either way — and it does not say
@@ -728,7 +927,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     it('replaces the entry rather than adding a second', async () => {
       await takeAndAdd();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Edit screenshot 1' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot 1' }));
       await waitFor(() => expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument());
       fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
 
@@ -739,7 +938,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     it('leaves the capture alone when the edit is cancelled', async () => {
       await takeAndAdd();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Edit screenshot 1' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot 1' }));
       await waitFor(() => expect(screen.getByRole('button', { name: 'Discard changes' })).toBeInTheDocument());
       fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
 
@@ -758,7 +957,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     it('does not let a discarded edit swallow the next capture', async () => {
       await takeAndAdd();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Edit screenshot 1' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot 1' }));
       await waitFor(() => expect(screen.getByRole('button', { name: 'Discard changes' })).toBeInTheDocument());
       fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
 
@@ -1014,7 +1213,7 @@ describe('GiveAiAppFeedbackDialog', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Add to feedback' }));
       await waitFor(() => expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument());
 
-      fireEvent.click(screen.getByRole('button', { name: 'Edit screenshot 1' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot 1' }));
       expect(mockOnFeedbackScreenshotEditOpened).toHaveBeenCalled();
       await waitFor(() => expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument());
 
@@ -1024,7 +1223,7 @@ describe('GiveAiAppFeedbackDialog', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
       expect(mockOnFeedbackScreenshotAnnotatorDiscarded).toHaveBeenCalledWith({ isEditing: true });
 
-      fireEvent.click(screen.getByRole('button', { name: 'Edit screenshot 1' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot 1' }));
       await waitFor(() => expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument());
       fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
       expect(mockOnFeedbackScreenshotEditSaved).toHaveBeenCalledWith({ hasAnnotations: false });
@@ -1106,12 +1305,61 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(screen.getByRole('heading', { name: 'Give feedback' })).toBeInTheDocument();
     });
 
-    it('shows the send and close hints', () => {
+    it('opens and closes the shortcut list on ?, outside text fields', async () => {
+      apps();
+      const onClose = jest.fn();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={onClose} appUid="app-1" appName="My App" />);
+
+      fireEvent.keyDown(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { key: '?', shiftKey: true });
+      expect(screen.queryByRole('heading', { name: 'Keyboard shortcuts' })).not.toBeInTheDocument();
+
+      fireEvent.keyDown(document, { key: '?', shiftKey: true });
+      expect(screen.getByRole('heading', { name: 'Keyboard shortcuts' })).toBeInTheDocument();
+      expect(mockOnFeedbackShortcutsHelpOpened).toHaveBeenCalled();
+
+      fireEvent.keyDown(document, { key: '?', shiftKey: true });
+      await waitFor(() =>
+        expect(screen.queryByRole('heading', { name: 'Keyboard shortcuts' })).not.toBeInTheDocument(),
+      );
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('lists the keys that work', () => {
       apps();
       render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
 
-      expect(screen.getByText(/to send/)).toBeInTheDocument();
-      expect(screen.getByText(/to close/)).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Shortcuts' }));
+
+      const row = (label: string) => screen.getAllByText(label, { selector: 'span' })[0].closest('li');
+      expect(row('Open feedback')).toHaveTextContent('Alt+F or Ctrl+Alt+Enter');
+      expect(row('Next or previous field')).toHaveTextContent('Tab or Shift+Tab');
+      expect(row('Cancel picking a part')).toHaveTextContent('Esc');
+      expect(row('Redo')).toHaveTextContent('Ctrl+Shift+Z or Ctrl+Y');
+      expect(row('Show or hide')).toHaveTextContent('?');
+    });
+
+    it('notes when the app has no bridge for instant screenshots', () => {
+      apps();
+      const { rerender } = render(
+        <GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" bridgeMissing />,
+      );
+
+      expect(screen.getByText(/older starter kit/)).toBeInTheDocument();
+
+      rerender(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+      expect(screen.queryByText(/older starter kit/)).not.toBeInTheDocument();
+    });
+
+    it('shows the send and close keys on their buttons', () => {
+      apps();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      const send = screen.getByRole('button', { name: 'Send feedback' });
+      const cancel = screen.getByRole('button', { name: 'Cancel' });
+      expect(send.querySelector('kbd')).toBeInTheDocument();
+      expect(send).toHaveAttribute('aria-keyshortcuts');
+      expect(cancel.querySelector('kbd')).toHaveTextContent('Esc');
+      expect(cancel).toHaveAttribute('aria-keyshortcuts', 'Escape');
     });
 
     it('submits on Cmd/Ctrl+Enter', async () => {
@@ -1123,7 +1371,7 @@ describe('GiveAiAppFeedbackDialog', () => {
 
       await waitFor(() =>
         expect(mockMutate).toHaveBeenCalledWith(
-          { appUid: 'app-1', text: 'Nice app!' },
+          { appUid: 'app-1', text: 'Nice app!', reportKind: 'bug', priority: 'P2' },
           expect.objectContaining({ onSuccess: expect.any(Function) }),
         ),
       );
@@ -1141,7 +1389,7 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(mockOnFeedbackShortcutUsed).toHaveBeenCalledWith({ action: 'submit' });
     });
 
-    it('does not send on the open chord', () => {
+    it('does not send on Ctrl+Alt+Enter', () => {
       apps();
       const onClose = jest.fn();
       render(<GiveAiAppFeedbackDialog isOpen onClose={onClose} appUid="app-1" appName="My App" />);
@@ -1151,26 +1399,6 @@ describe('GiveAiAppFeedbackDialog', () => {
 
       expect(mockMutate).not.toHaveBeenCalled();
       expect(onClose).not.toHaveBeenCalled();
-    });
-
-    it('reports the submitted app so the next shortcut can reopen it', async () => {
-      apps();
-      const onSubmitted = jest.fn();
-      mockMutate.mockImplementation((_payload, options) => options?.onSuccess?.());
-      render(
-        <GiveAiAppFeedbackDialog
-          isOpen
-          onClose={jest.fn()}
-          onSubmitted={onSubmitted}
-          appUid="app-1"
-          appName="My App"
-        />,
-      );
-
-      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Nice app!' } });
-      sendChord();
-
-      await waitFor(() => expect(onSubmitted).toHaveBeenCalledWith({ label: 'My App', value: 'app-1' }));
     });
 
     it('ignores the send chord while a capture is in progress', async () => {
@@ -1396,9 +1624,15 @@ describe('GiveAiAppFeedbackDialog oversized submission', () => {
     clearFormDraft(AI_APP_FEEDBACK_DRAFT_KEY);
   });
 
+  /* In the Markdown view, where markup is kept as typed. */
+  const typeSource = (text: string) => {
+    fireEvent.click(screen.getByRole('tab', { name: 'Markdown' }));
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: text } });
+  };
+
   const submitText = async (text: string) => {
     render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
-    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: text } });
+    typeSource(text);
     fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
   };
 
@@ -1424,7 +1658,7 @@ describe('GiveAiAppFeedbackDialog oversized submission', () => {
   /* The editor's own limit cannot catch this: the visible text is two words. */
   it('is not caught by the visible-character limit', async () => {
     render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
-    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: bigDrawing } });
+    typeSource(bigDrawing);
 
     expect(screen.getByRole('button', { name: 'Send feedback' })).not.toBeDisabled();
   });

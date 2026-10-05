@@ -30,6 +30,9 @@ jest.mock('@/analytics/ai-apps.analytics', () => ({
     onFeedbackSubmitFailed: jest.fn(),
     onFeedbackReplySent: jest.fn(),
     onFeedbackReplyDeleted: jest.fn(),
+    onFeedbackReplyEdited: jest.fn(),
+    onFeedbackCommentEdited: jest.fn(),
+    onFeedbackCommentDeleted: jest.fn(),
   }),
 }));
 /* The conversation's data layer is tested on its own (feedback-comments-hooks); here it is a stub. */
@@ -37,6 +40,7 @@ let mockComments: AiAppFeedbackComment[] = [];
 const mockCommentsFetched = jest.fn();
 const mockAddReply = jest.fn();
 const mockDeleteReply = jest.fn();
+const mockEditReply = jest.fn();
 jest.mock('@/services/ai-app-feedback/hooks/useFeedbackComments', () => ({
   useFeedbackComments: (_appUid: string, feedbackUid: string, enabled: boolean) => {
     if (enabled) mockCommentsFetched(feedbackUid);
@@ -44,6 +48,13 @@ jest.mock('@/services/ai-app-feedback/hooks/useFeedbackComments', () => ({
   },
   useAddFeedbackComment: () => ({ mutateAsync: (text: string) => mockAddReply(text) }),
   useDeleteFeedbackComment: () => ({ mutate: (uid: string) => mockDeleteReply(uid) }),
+  useEditFeedbackComment: () => ({ mutate: (vars: unknown) => mockEditReply(vars) }),
+}));
+const mockEditNote = jest.fn();
+const mockDeleteItem = jest.fn();
+jest.mock('@/services/ai-app-feedback/hooks/useFeedbackItemActions', () => ({
+  useEditFeedbackNote: () => ({ mutate: (vars: unknown) => mockEditNote(vars) }),
+  useDeleteFeedbackItem: () => ({ mutate: (uid: string) => mockDeleteItem(uid) }),
 }));
 const mockToastError = jest.fn();
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { error: (...a: unknown[]) => mockToastError(...a) } }));
@@ -125,6 +136,8 @@ function makeController(bridge: Bridge, spies: Record<string, jest.Mock>): Eleme
   return {
     status: 'ready',
     capabilities: ['pick', 'describe', 'crop', 'locate'],
+    canCapture: false,
+    capture: jest.fn(),
     isPicking: bridge.isPicking,
     pins: bridge.pins,
     onFrameLoad: jest.fn(),
@@ -248,6 +261,9 @@ beforeEach(() => {
   mockCommentsFetched.mockReset();
   mockAddReply.mockReset().mockResolvedValue(undefined);
   mockDeleteReply.mockReset();
+  mockEditReply.mockReset();
+  mockEditNote.mockReset();
+  mockDeleteItem.mockReset();
   mockUpdateStatus.mockReset();
   mockSubmit.mockReset().mockResolvedValue({ uid: 'fb-new' });
   mockFeedbackTab.mockReset();
@@ -420,7 +436,11 @@ describe('CommentMode — writing', () => {
       expect.objectContaining({ n: 1, selector: '#save', note: 'Label is unclear', ox: 0.2, oy: 0.5, cropUrl: null }),
     ]);
     expect(sent.context).toEqual(CONTEXT);
+    expect(sent.kind).toBe('COMMENT');
     expect(sent.text).toContain('Label is unclear');
+    /* Comments are public: where it points travels as pin data, never as text. */
+    expect(sent.text).not.toContain('#save');
+    expect(sent.text).not.toContain('<code>');
     expect(t.spies.removePin).toHaveBeenCalledWith('pin-1');
     expect(screen.queryByRole('dialog', { name: 'New comment' })).not.toBeInTheDocument();
     t.cleanup();
@@ -623,15 +643,16 @@ describe('CommentMode — replies', () => {
     t.cleanup();
   });
 
-  it('lets you delete your own reply after confirming, and nobody else’s', () => {
+  it('lets you delete your own reply from its ⋮ after confirming, and offers nothing on anyone else’s', () => {
     mockComments = [
       reply('c-1', 'creator', 'Cleo Creator', 'Which chart?'),
       reply('c-2', 'me', 'Grace Hopper', 'Mine'),
     ];
     const t = openThread(withReplies('a', 2));
 
-    expect(within(thread()).getAllByRole('button', { name: 'Delete' })).toHaveLength(1);
-    fireEvent.click(within(thread()).getByRole('button', { name: 'Delete' }));
+    expect(within(thread()).queryByRole('button', { name: 'Actions for this reply' })).not.toBeInTheDocument();
+    fireEvent.click(within(thread()).getByRole('button', { name: 'Actions for your reply' }));
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Delete' }));
     expect(mockDeleteReply).not.toHaveBeenCalled();
     fireEvent.click(
       within(within(thread()).getByRole('group', { name: 'Delete this reply?' })).getByRole('button', {
@@ -639,6 +660,58 @@ describe('CommentMode — replies', () => {
       }),
     );
     expect(mockDeleteReply).toHaveBeenCalledWith('c-2');
+    t.cleanup();
+  });
+
+  it('edits your own reply inline: Save sends the new text, Cancel puts the reply back', () => {
+    mockComments = [reply('c-2', 'me', 'Grace Hopper', 'Mine')];
+    const t = openThread(withReplies('a', 1));
+
+    fireEvent.click(within(thread()).getByRole('button', { name: 'Actions for your reply' }));
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Edit' }));
+    const field = within(thread()).getByRole('textbox', { name: 'Edit your reply' });
+    expect(field).toHaveValue('Mine');
+    expect(within(thread()).getByRole('button', { name: 'Save' })).toBeDisabled();
+
+    fireEvent.click(within(thread()).getByRole('button', { name: 'Cancel' }));
+    expect(within(thread()).queryByRole('textbox', { name: 'Edit your reply' })).not.toBeInTheDocument();
+    expect(within(thread()).getByText('Mine')).toBeInTheDocument();
+
+    fireEvent.click(within(thread()).getByRole('button', { name: 'Actions for your reply' }));
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Edit' }));
+    fireEvent.change(within(thread()).getByRole('textbox', { name: 'Edit your reply' }), {
+      target: { value: '  Mine, fixed  ' },
+    });
+    fireEvent.click(within(thread()).getByRole('button', { name: 'Save' }));
+    expect(mockEditReply).toHaveBeenCalledWith({ commentUid: 'c-2', text: 'Mine, fixed' });
+    expect(within(thread()).queryByRole('textbox', { name: 'Edit your reply' })).not.toBeInTheDocument();
+    t.cleanup();
+  });
+
+  it('marks an edited reply', () => {
+    mockComments = [
+      reply('c-1', 'creator', 'Cleo Creator', 'Which chart?', { editedAt: '2026-10-02T10:00:00.000Z' }),
+      reply('c-2', 'creator', 'Cleo Creator', 'As posted'),
+    ];
+    const t = openThread(withReplies('a', 2));
+    expect(within(thread()).getAllByText(/· edited/)).toHaveLength(1);
+    t.cleanup();
+  });
+
+  it('a directory admin may delete anyone’s reply, never edit it', () => {
+    mockComments = [reply('c-1', 'creator', 'Cleo Creator', 'Which chart?')];
+    const t = openThread(withReplies('a', 1));
+    t.propsAre({ isAdmin: true });
+
+    fireEvent.click(within(thread()).getByRole('button', { name: 'Actions for this reply' }));
+    expect(within(screen.getByRole('menu')).queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Delete' }));
+    fireEvent.click(
+      within(within(thread()).getByRole('group', { name: 'Delete this reply?' })).getByRole('button', {
+        name: 'Delete',
+      }),
+    );
+    expect(mockDeleteReply).toHaveBeenCalledWith('c-1');
     t.cleanup();
   });
 
@@ -675,6 +748,141 @@ describe('comments panel helpers', () => {
     expect(shortAgo('2026-10-02T11:55:00.000Z', now)).toBe('5m ago');
     expect(shortAgo('2026-10-02T07:00:00.000Z', now)).toBe('5h ago');
     expect(shortAgo('2026-09-26T12:00:00.000Z', now)).toBe('6d ago');
+  });
+});
+
+describe('CommentMode — editing and deleting a comment', () => {
+  const ME = { uid: 'me', name: 'Grace Hopper', image: null };
+  const mine = (overrides: Partial<OverlayFeedbackPin['feedback']> = {}) =>
+    stored('a', { feedback: { ...stored('a').feedback, member: ME, kind: 'COMMENT', ...overrides } });
+  const open = (pin: OverlayFeedbackPin, props: Partial<React.ComponentProps<typeof CommentMode>> = {}) => {
+    const t = setup({ pins: [pin], openPinUid: pin.uid, ...props });
+    t.fromApp('ready', LOCATE_READY);
+    t.fromApp('locate:result', { results: { [pin.uid]: { pinId: 'loc-1', rect: { x: 100, y: 200, w: 80, h: 40 } } } });
+    return t;
+  };
+  const card = (name = 'Grace Hopper') => screen.getByRole('dialog', { name: `Comment by ${name}` });
+
+  it('edits your own comment inline and sends the new note', () => {
+    const t = open(mine());
+
+    fireEvent.click(within(card()).getByRole('button', { name: 'Actions for your comment' }));
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Edit' }));
+    const field = within(card()).getByRole('textbox', { name: 'Edit your comment' });
+    expect(field).toHaveValue('Note a');
+    fireEvent.change(field, { target: { value: 'Note a, clearer' } });
+    fireEvent.click(within(card()).getByRole('button', { name: 'Save' }));
+
+    expect(mockEditNote).toHaveBeenCalledWith({ feedbackUid: 'fb-a', note: 'Note a, clearer' });
+    expect(within(card()).queryByRole('textbox', { name: 'Edit your comment' })).not.toBeInTheDocument();
+    t.cleanup();
+  });
+
+  it('shows "edited" on an edited comment', () => {
+    const t = open(mine({ editedAt: '2026-10-02T10:00:00.000Z' }));
+    expect(within(card()).getByText(/· edited/)).toBeInTheDocument();
+    t.cleanup();
+  });
+
+  it('deleting your comment says how many replies go with it, then closes the thread', () => {
+    const t = open(mine({ commentCount: 3 }));
+
+    fireEvent.click(within(card()).getByRole('button', { name: 'Actions for your comment' }));
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Delete' }));
+    const confirm = within(card()).getByRole('group', { name: 'Delete comment?' });
+    expect(confirm).toHaveTextContent('Also deletes 3 replies.');
+    expect(mockDeleteItem).not.toHaveBeenCalled();
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Delete' }));
+
+    expect(mockDeleteItem).toHaveBeenCalledWith('fb-a');
+    expect(t.onOpenPinChange).toHaveBeenCalledWith(null);
+    t.cleanup();
+  });
+
+  it('a comment without replies asks plainly', () => {
+    const t = open(mine({ commentCount: 0 }));
+    fireEvent.click(within(card()).getByRole('button', { name: 'Actions for your comment' }));
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Delete' }));
+    expect(within(card()).getByRole('group', { name: 'Delete comment?' })).not.toHaveTextContent('Also deletes');
+    t.cleanup();
+  });
+
+  it('the app’s creator gets no actions on someone else’s comment (moderation is for admins)', () => {
+    const t = open(stored('a', { feedback: { ...stored('a').feedback, kind: 'COMMENT' } }), { canManage: true });
+    expect(within(card('Ada Lovelace')).queryByRole('button', { name: /^Actions for/ })).not.toBeInTheDocument();
+    t.cleanup();
+  });
+
+  it('a directory admin may delete someone else’s comment, never edit it', () => {
+    const t = open(stored('a', { feedback: { ...stored('a').feedback, kind: 'COMMENT' } }), { isAdmin: true });
+    fireEvent.click(within(card('Ada Lovelace')).getByRole('button', { name: 'Actions for this comment' }));
+    expect(within(screen.getByRole('menu')).queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
+    expect(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Delete' })).toBeInTheDocument();
+    t.cleanup();
+  });
+
+  it('your own private feedback can be deleted but not edited (the API edits comments only)', () => {
+    const t = open(mine({ kind: 'FEEDBACK' }));
+    fireEvent.click(within(card()).getByRole('button', { name: 'Actions for your comment' }));
+    expect(within(screen.getByRole('menu')).queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
+    expect(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Delete' })).toBeInTheDocument();
+    t.cleanup();
+  });
+
+  it('Esc closes the ⋮ menu and leaves the thread open', () => {
+    const t = open(mine());
+    fireEvent.click(within(card()).getByRole('button', { name: 'Actions for your comment' }));
+    fireEvent.keyDown(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Edit' }), { key: 'Escape' });
+
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(t.onOpenPinChange).not.toHaveBeenCalledWith(null);
+    t.cleanup();
+  });
+
+  /* The thread card scrolls; a menu inside it was clipped (dev, 2026-10-02). */
+  it('the ⋮ menu opens outside the thread card, so its scroll area cannot clip it', () => {
+    const t = open(mine());
+    fireEvent.click(within(card()).getByRole('button', { name: 'Actions for your comment' }));
+
+    const menu = screen.getByRole('menu', { name: 'Actions for your comment' });
+    expect(card()).not.toContainElement(menu);
+    expect(menu.parentElement).toBe(document.body);
+    t.cleanup();
+  });
+
+  it('the ⋮ menu closes when anything scrolls, rather than drifting from its button', () => {
+    const t = open(mine());
+    fireEvent.click(within(card()).getByRole('button', { name: 'Actions for your comment' }));
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+
+    fireEvent.scroll(card());
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    t.cleanup();
+  });
+
+  it('the ⋮ menu opens upward when its button is near the window’s bottom', () => {
+    const t = open(mine());
+    const trigger = within(card()).getByRole('button', { name: 'Actions for your comment' });
+    trigger.getBoundingClientRect = () =>
+      ({ top: window.innerHeight - 30, bottom: window.innerHeight - 6, left: 300, right: 324 }) as DOMRect;
+    fireEvent.click(trigger);
+
+    const menu = screen.getByRole('menu');
+    expect(menu.style.bottom).toBe('34px');
+    expect(menu.style.top).toBe('');
+    t.cleanup();
+  });
+
+  it('tells the reader everyone who can open the app sees comments', () => {
+    const t = setup();
+    expect(screen.getByRole('region', { name: 'Comments on this app' })).toHaveTextContent(
+      'Everyone who can open this app can see it.',
+    );
+    compose(t);
+    expect(screen.getByRole('dialog', { name: 'New comment' })).toHaveTextContent(
+      'Everyone who can open this app can see it',
+    );
+    t.cleanup();
   });
 });
 

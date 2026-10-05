@@ -3,8 +3,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/components/core/ToastContainer';
 import { AiAppFeedbackQueryKeys } from '@/services/ai-app-feedback/constants';
+import { forgetFeedbackItem, isGone } from '@/services/ai-app-feedback/hooks/useFeedbackItemActions';
 import {
   deleteFeedbackComment,
+  editFeedbackComment,
   fetchFeedbackComments,
   postFeedbackComment,
   type AiAppFeedbackComment,
@@ -68,9 +70,10 @@ export function useAddFeedbackComment(appUid: string, feedbackUid: string, autho
         (list ?? []).map((c) => (c.uid === context?.optimisticUid ? comment : c)),
       );
     },
-    onError: (_error, _text, context) => {
+    onError: (error, _text, context) => {
       queryClient.setQueryData(key, context?.previous);
-      toast.error('Your reply didn’t send. It’s back in the field; try again.');
+      if (isGone(error)) forgetFeedbackItem(queryClient, appUid, feedbackUid);
+      else toast.error('Your reply didn’t send. It’s back in the field; try again.');
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: key });
@@ -95,7 +98,9 @@ export function useDeleteFeedbackComment(appUid: string, feedbackUid: string) {
       );
       return { previous };
     },
-    onError: (_error, _uid, context) => {
+    onError: (error, _uid, context) => {
+      /* Already gone is what was asked for. */
+      if (isGone(error)) return;
       queryClient.setQueryData(key, context?.previous);
       toast.error('Couldn’t delete the reply. Try again.');
     },
@@ -103,6 +108,38 @@ export function useDeleteFeedbackComment(appUid: string, feedbackUid: string) {
       queryClient.invalidateQueries({ queryKey: key });
       queryClient.invalidateQueries({ queryKey: [AiAppFeedbackQueryKeys.AI_APP_FEEDBACK_PINS] });
       queryClient.invalidateQueries({ queryKey: [AiAppFeedbackQueryKeys.AI_APP_FEEDBACK_LIST] });
+    },
+  });
+}
+
+/** Change one of your replies. The new text shows at once, marked edited; it goes back if the API refuses. */
+export function useEditFeedbackComment(appUid: string, feedbackUid: string) {
+  const queryClient = useQueryClient();
+  const key = commentsKey(appUid, feedbackUid);
+  return useMutation({
+    mutationFn: ({ commentUid, text }: { commentUid: string; text: string }) =>
+      editFeedbackComment(appUid, feedbackUid, commentUid, text),
+    onMutate: async ({ commentUid, text }) => {
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<AiAppFeedbackComment[]>(key);
+      const editedAt = new Date().toISOString();
+      queryClient.setQueryData<AiAppFeedbackComment[]>(
+        key,
+        (previous ?? []).map((c) => (c.uid === commentUid ? { ...c, text, editedAt } : c)),
+      );
+      return { previous };
+    },
+    onSuccess: (comment) => {
+      queryClient.setQueryData<AiAppFeedbackComment[]>(key, (list) =>
+        (list ?? []).map((c) => (c.uid === comment.uid ? comment : c)),
+      );
+    },
+    onError: (error, _vars, context) => {
+      queryClient.setQueryData(key, context?.previous);
+      toast.error(isGone(error) ? 'That reply was deleted.' : 'Couldn’t save your edit. Try again.');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: key });
     },
   });
 }

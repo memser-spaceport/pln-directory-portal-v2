@@ -77,6 +77,30 @@ export function useAiAppsAnalytics() {
       capture(AI_APPS_ANALYTICS.FEEDBACK_REPLY_SENT, params),
     onFeedbackReplyDeleted: (params: { appUid: string; feedbackUid: string }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_REPLY_DELETED, params),
+    onFeedbackReplyEdited: (params: { appUid: string; feedbackUid: string }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_REPLY_EDITED, params),
+    onFeedbackCommentEdited: (params: { appUid: string; feedbackUid: string }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_COMMENT_EDITED, params),
+    /* `byAuthor` false: an admin removed someone else's comment (moderation). */
+    onFeedbackCommentDeleted: (params: {
+      appUid: string;
+      feedbackUid: string;
+      byAuthor: boolean;
+      replyCount: number;
+    }) => capture(AI_APPS_ANALYTICS.FEEDBACK_COMMENT_DELETED, params),
+    /* Instant screenshots: one event per bridge capture (on open, Whole page, Pick a part), with how it went. */
+    onFeedbackAppCapture: (params: {
+      appUid?: string;
+      source: 'auto' | 'page' | 'part';
+      outcome: 'succeeded' | 'failed';
+      ms: number;
+      error?: string;
+    }) => capture(AI_APPS_ANALYTICS.FEEDBACK_APP_CAPTURE, params),
+    onFeedbackAutoShotRemoved: (params: { appUid?: string; whileCapturing: boolean }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_AUTO_SHOT_REMOVED, params),
+    onFeedbackPickPartCancelled: () => capture(AI_APPS_ANALYTICS.FEEDBACK_PICK_PART_CANCELLED),
+    onFeedbackScreenShareFallback: (params: { reason: 'chosen' | 'capture-failed' }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_SCREEN_SHARE_FALLBACK, params),
     onFeedbackPinDetached: (params: { appUid: string }) => capture(AI_APPS_ANALYTICS.FEEDBACK_PIN_DETACHED, params),
     onFeedbackPinCropFailed: (params: { appUid: string; error: string }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_PIN_CROP_FAILED, params),
@@ -117,7 +141,7 @@ export function useAiAppsAnalytics() {
     onFeedbackScreenshotEditSaved: (params: { hasAnnotations: boolean }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_EDIT_SAVED, params),
     onFeedbackScreenshotRemoved: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_REMOVED),
-    onFeedbackScreenshotToolSelected: (params: { tool: 'draw' | 'comment' | 'rect' | 'ellipse' | 'arrow' }) =>
+    onFeedbackScreenshotToolSelected: (params: { tool: 'draw' | 'comment' | 'rect' | 'ellipse' | 'arrow' | 'text' }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_TOOL_SELECTED, params),
     onViewFeedbackClicked: (params: { feedbackCount: number }) =>
       capture(AI_APPS_ANALYTICS.VIEW_FEEDBACK_CLICKED, params),
@@ -217,6 +241,7 @@ export function useAiAppsAnalytics() {
     onFiltersCleared: (params: { source: 'rail' | 'mobile' }) => capture(AI_APPS_ANALYTICS.FILTERS_CLEARED, params),
     onEmptyResultsShown: (params: { filterCount: number }) => capture(AI_APPS_ANALYTICS.EMPTY_RESULTS_SHOWN, params),
     onManageAccessOpened: (appUid: string) => capture(AI_APPS_ANALYTICS.MANAGE_ACCESS_OPENED, { appUid }),
+    onTestingUsersOpened: (appUid: string) => capture(AI_APPS_ANALYTICS.TESTING_USERS_OPENED, { appUid }),
     onAccessSaved: (params: {
       appUid: string;
       environment: 'prod' | 'preview';

@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 
 import { serializeAnnotations } from '@/components/page/ai-apps/components/screenshot-feedback/types';
 
@@ -72,12 +72,14 @@ const FEEDBACK = [
   },
 ];
 
-const STATUS_FILTER_TRIGGER = /^(All|New|Reviewed|Shipped)$/;
+const filterTrigger = (filterLabel: string) => within(screen.getByText(filterLabel).parentElement!).getByRole('button');
 
-const selectStatusFilter = (label: string) => {
-  fireEvent.click(screen.getByRole('button', { name: STATUS_FILTER_TRIGGER }));
-  fireEvent.click(screen.getByRole('menuitem', { name: label }));
+const selectFilter = (filterLabel: string, option: string) => {
+  fireEvent.click(filterTrigger(filterLabel));
+  fireEvent.click(screen.getByRole('menuitem', { name: option }));
 };
+
+const selectStatusFilter = (label: string) => selectFilter('Status:', label);
 
 describe('AiAppFeedbackPage', () => {
   beforeEach(() => {
@@ -178,8 +180,7 @@ describe('AiAppFeedbackPage', () => {
     it('shows every status on load', () => {
       render(<AiAppFeedbackPage />);
 
-      expect(screen.getByText('Status:')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument();
+      expect(filterTrigger('Status:')).toHaveTextContent('All');
       expect(screen.getByText('Loved it')).toBeInTheDocument();
       expect(screen.getByText('Needs work')).toBeInTheDocument();
       expect(screen.getByText('Already shipped')).toBeInTheDocument();
@@ -258,6 +259,89 @@ describe('AiAppFeedbackPage', () => {
 
       expect(mockExportAiAppFeedbackCsv).toHaveBeenCalledWith([FEEDBACK[2]], 'ai-app-feedback-alpha-shipped.csv');
       expect(mockOnFeedbackExported).toHaveBeenCalledWith(1, 'IMPLEMENTED');
+    });
+  });
+
+  describe('kind and priority filters', () => {
+    // fb-3 predates kind and priority, so both are empty.
+    const TRIAGED = [
+      { ...FEEDBACK[0], reportKind: 'bug' as const, priority: 'P0' as const },
+      { ...FEEDBACK[1], reportKind: 'request' as const, priority: 'P2' as const },
+      FEEDBACK[2],
+    ];
+
+    beforeEach(() => {
+      mockUseAiAppFeedbackList.mockReturnValue({ feedback: TRIAGED, isLoading: false, isError: false });
+    });
+
+    it('offers every kind and the form’s priority lines', () => {
+      render(<AiAppFeedbackPage />);
+
+      fireEvent.click(filterTrigger('Kind:'));
+      expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+        'All',
+        'bug',
+        'request',
+        'question',
+        'chore',
+      ]);
+      fireEvent.click(screen.getByRole('menuitem', { name: 'All' }));
+
+      fireEvent.click(filterTrigger('Priority:'));
+      expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+        'All',
+        'P0 — Blocking — nobody can work around this',
+        'P1 — Serious — there is a workaround and it hurts',
+        'P2 — Normal — worth doing, not urgent',
+        'P3 — Someday — a good idea with no clock on it',
+      ]);
+    });
+
+    it('shows reports with no kind or priority under All, and hides them once one is chosen', () => {
+      render(<AiAppFeedbackPage />);
+
+      expect(screen.getByText('Already shipped')).toBeInTheDocument();
+
+      selectFilter('Kind:', 'request');
+      expect(screen.getByText('Needs work')).toBeInTheDocument();
+      expect(screen.queryByText('Loved it')).not.toBeInTheDocument();
+      expect(screen.queryByText('Already shipped')).not.toBeInTheDocument();
+
+      selectFilter('Kind:', 'All');
+      selectFilter('Priority:', 'P2 — Normal — worth doing, not urgent');
+      expect(screen.getByText('Needs work')).toBeInTheDocument();
+      expect(screen.queryByText('Already shipped')).not.toBeInTheDocument();
+    });
+
+    it('combines with status and the app tab, keeping the tab and recounting it', () => {
+      render(<AiAppFeedbackPage />);
+
+      fireEvent.click(screen.getByRole('button', { name: /^Alpha/ }));
+      selectFilter('Kind:', 'bug');
+      selectStatusFilter('New');
+
+      expect(screen.getByText('Loved it')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'All apps 1' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Alpha 1' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Beta 0' })).toBeInTheDocument();
+
+      selectFilter('Priority:', 'P3 — Someday — a good idea with no clock on it');
+
+      expect(
+        screen.getByRole('button', { name: 'Alpha 0' }).querySelector('[class*="activeIndicator"]'),
+      ).toBeInTheDocument();
+      expect(screen.getByText('No feedback matches the selected filters.')).toBeInTheDocument();
+    });
+
+    it('exports only the rows the filters leave, and still lets a reviewer change status', () => {
+      render(<AiAppFeedbackPage />);
+
+      selectFilter('Priority:', 'P0 — Blocking — nobody can work around this');
+      expect(filterTrigger('Priority:')).toHaveTextContent(/^P0$/);
+      fireEvent.click(screen.getByRole('button', { name: /Export CSV/ }));
+
+      expect(mockExportAiAppFeedbackCsv).toHaveBeenCalledWith([TRIAGED[0]], 'ai-app-feedback-all-apps.csv');
+      expect(screen.getByRole('button', { name: 'Change status (currently New)' })).toBeInTheDocument();
     });
   });
 

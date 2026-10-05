@@ -73,7 +73,13 @@ export function RegionSelectOverlay({ freezeSrc, onSelect, onCancel }: Props) {
     <div ref={surfaceRef} {...surfaceHandlers} className={s.root} role="dialog" aria-label="Select an area to capture">
       <img ref={imgRef} className={s.freeze} src={freezeSrc} alt="" draggable={false} />
       <div className={clsx(s.hint, controlsAtBottom && s.atBottom)}>
-        {adjusting ? 'Drag a corner to adjust, or draw again' : 'Drag to select any area · Esc to cancel'}
+        {adjusting ? (
+          'Drag a corner to adjust, or draw again'
+        ) : (
+          <>
+            Drag to select any area<span className={s.keyHint}> · Esc to cancel</span>
+          </>
+        )}
       </div>
       <div className={clsx(s.actions, controlsAtBottom && s.atBottom)}>
         {adjusting && (

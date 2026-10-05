@@ -95,7 +95,12 @@ export function useAiAppsAnalytics() {
       outcome: 'succeeded' | 'failed';
       ms: number;
       error?: string;
+      /** The automatic one, taken when a bridge answered after the form opened. */
+      late?: boolean;
     }) => capture(AI_APPS_ANALYTICS.FEEDBACK_APP_CAPTURE, params),
+    /* Once per open, when no automatic screenshot is taken at once: a kept draft, or a bridge not ready yet. */
+    onFeedbackAutoShotSkipped: (params: { appUid?: string; reason: 'draft' | 'no-bridge' }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_AUTO_SHOT_SKIPPED, params),
     onFeedbackAutoShotRemoved: (params: { appUid?: string; whileCapturing: boolean }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_AUTO_SHOT_REMOVED, params),
     onFeedbackPickPartCancelled: () => capture(AI_APPS_ANALYTICS.FEEDBACK_PICK_PART_CANCELLED),

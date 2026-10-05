@@ -293,6 +293,97 @@ describe('opening the form attaches the app', () => {
   });
 });
 
+/* A phone's frame can load after the form opens: the bridge answers late. */
+describe('a bridge that answers after the form opened', () => {
+  function renderLate(capture: (() => Promise<AppCapture>) | undefined = undefined) {
+    const props = { onClose: jest.fn(), appUid: 'app-1', appName: 'My App', frameRef, captureExpected: true };
+    const view = render(<GiveAiAppFeedbackDialog isOpen {...props} capture={capture} />);
+    const update = (next: { capture?: () => Promise<AppCapture>; isOpen?: boolean }) =>
+      view.rerender(<GiveAiAppFeedbackDialog isOpen={next.isOpen ?? true} {...props} capture={next.capture} />);
+    return { ...view, update };
+  }
+
+  it('takes the automatic screenshot when the bridge answers, and says it was late', async () => {
+    const { update } = renderLate();
+    expect(screen.queryByRole('status', { name: 'Capturing the app' })).not.toBeInTheDocument();
+    expect(mockAnalytics.onFeedbackAutoShotSkipped).toHaveBeenCalledWith({ appUid: 'app-1', reason: 'no-bridge' });
+
+    const pending = deferred();
+    const capture = jest.fn(() => pending.promise);
+    update({ capture });
+    expect(screen.getByRole('status', { name: 'Capturing the app' })).toBeInTheDocument();
+
+    await act(async () => pending.resolve(shot(SHOT_A)));
+
+    expect(screen.getByRole('img', { name: 'Screenshot 1' })).toHaveAttribute('src', SHOT_A);
+    expect(capture).toHaveBeenCalledTimes(1);
+    expect(mockAnalytics.onFeedbackAppCapture).toHaveBeenCalledWith(
+      expect.objectContaining({ source: 'auto', outcome: 'succeeded', late: true }),
+    );
+  });
+
+  it('takes it once, however often the capture function changes identity', async () => {
+    const { update } = renderLate();
+    const capture = jest.fn(() => Promise.resolve(shot(SHOT_A)));
+
+    update({ capture });
+    update({ capture: () => capture() });
+    update({ capture: () => capture() });
+    await flush();
+
+    expect(capture).toHaveBeenCalledTimes(1);
+    expect(screen.getAllByRole('img', { name: /^Screenshot \d$/ })).toHaveLength(1);
+  });
+
+  it('takes none when the member is already taking a screenshot', async () => {
+    const { update } = renderLate();
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+
+    const capture = jest.fn(() => Promise.resolve(shot(SHOT_A)));
+    update({ capture });
+    await flush();
+
+    expect(capture).not.toHaveBeenCalled();
+  });
+
+  it('takes none after the form closed, and a reopen captures as usual', async () => {
+    const { update } = renderLate();
+    update({ isOpen: false });
+
+    const capture = jest.fn(() => Promise.resolve(shot(SHOT_A)));
+    update({ capture, isOpen: false });
+    await flush();
+    expect(capture).not.toHaveBeenCalled();
+
+    update({ capture, isOpen: true });
+    await flush();
+    expect(capture).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('img', { name: 'Screenshot 1' })).toHaveAttribute('src', SHOT_A);
+  });
+
+  it('takes none over a kept draft, and records why', async () => {
+    const { update } = renderLate();
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Half a thought' } });
+    update({ isOpen: false });
+    mockAnalytics.onFeedbackAutoShotSkipped.mockClear();
+
+    update({ isOpen: true });
+    await flush();
+    expect(mockAnalytics.onFeedbackAutoShotSkipped).toHaveBeenCalledWith({ appUid: 'app-1', reason: 'draft' });
+
+    const capture = jest.fn(() => Promise.resolve(shot(SHOT_A)));
+    update({ capture });
+    await flush();
+    expect(capture).not.toHaveBeenCalled();
+  });
+
+  it('records nothing on an app with no bridge to wait for', () => {
+    renderDialog(undefined);
+
+    expect(mockAnalytics.onFeedbackAutoShotSkipped).not.toHaveBeenCalled();
+  });
+});
+
 describe('adding screenshots', () => {
   it('Whole page appends a capture after the automatic one', async () => {
     const capture = jest.fn().mockResolvedValueOnce(shot(SHOT_A)).mockResolvedValueOnce(shot(SHOT_B));

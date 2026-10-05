@@ -2733,6 +2733,7 @@ export const AI_APPS_ANALYTICS = {
   FEEDBACK_COMMENT_DELETED: 'ai_apps_feedback_comment_deleted',
   FEEDBACK_APP_CAPTURE: 'ai_apps_feedback_app_capture',
   FEEDBACK_AUTO_SHOT_REMOVED: 'ai_apps_feedback_auto_shot_removed',
+  FEEDBACK_AUTO_SHOT_SKIPPED: 'ai_apps_feedback_auto_shot_skipped',
   FEEDBACK_PICK_PART_CANCELLED: 'ai_apps_feedback_pick_part_cancelled',
   FEEDBACK_SCREEN_SHARE_FALLBACK: 'ai_apps_feedback_screen_share_fallback',
   FEEDBACK_PIN_DETACHED: 'ai_apps_feedback_pin_detached',

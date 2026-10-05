@@ -7,7 +7,7 @@ import { Menu } from '@base-ui-components/react/menu';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/core/ConfirmDialog';
 import { toast } from '@/components/core/ToastContainer';
-import { CloseIcon, SearchIcon } from '@/components/icons';
+import { ArrowBackIcon, CloseIcon, SearchIcon } from '@/components/icons';
 import { ShareIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/ReferMenu/components/Icons';
 import { AiSearchIcon } from '@/prototypes/components/AiSearchIcon/AiSearchIcon';
 
@@ -17,6 +17,7 @@ import menu from '@/components/page/home/TeamNews/components/NewsShareMenu/NewsS
 import lm from '../job-board/ListingMenu.module.scss';
 import av from '../ai-search/AiSearchView.module.scss';
 import am from '../ai-mode/AiMode.module.scss';
+import sf from '../ai-search/SearchField.module.scss';
 // The glossy primary the navbar's Sign in wears (see follow-shared).
 import fb from '../follow-shared/FollowButton.module.scss';
 
@@ -27,6 +28,8 @@ import { SUGGESTED_PROMPTS } from '../ai-search/mocks';
 import { HistoryList } from '../ai-mode/HistoryList';
 import { ClockGlyph, PanelGlyph, PlusGlyph } from '../ai-mode/icons';
 import { newThreadId, threadTitle, type ChatThread } from '../ai-mode/threads';
+import type { AiModeRequest } from '../ai-mode/AiModeSurface';
+import type { AiSearchScope } from '../ai-search/scope';
 import { DotsIcon } from '../news-shared/icons';
 import { DeleteIcon } from '../job-board/icons';
 
@@ -50,6 +53,17 @@ interface AiSearchPageProps {
   onSharedChange: (next: SharedChat | null) => void;
   onSignIn: () => void;
   onSignUp: () => void;
+  /**
+   * Hosted as AI Search mode (the ai-mode entry): what the header search asked
+   * for as the page opened — a question, a past chat, "All chats", or a row's
+   * Ask AI scope. Applied once per nonce.
+   */
+  request?: AiModeRequest | null;
+  /** Hosted as a mode: the way back to the header search, with the term you left. */
+  onBackToSearch?: () => void;
+  term?: string;
+  /** False while the host keeps the page mounted but hidden (⌘B stays off). */
+  open?: boolean;
 }
 
 /**
@@ -77,12 +91,18 @@ export function AiSearchPage({
   onSharedChange,
   onSignIn,
   onSignUp,
+  request,
+  onBackToSearch,
+  term,
+  open = true,
 }: AiSearchPageProps) {
   const [railOpen, setRailOpen] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [query, setQuery] = useState('');
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  /** The scope the next new chat is asked in (a result row's Ask AI); removable. */
+  const [newChatScope, setNewChatScope] = useState<AiSearchScope | null>(null);
 
   const active = useMemo(() => threads.find((t) => t.id === activeId) ?? null, [threads, activeId]);
   /* What the main column shows: a shared chat wins while it is open. */
@@ -103,19 +123,20 @@ export function AiSearchPage({
   /* ---------------------------------------------------------------------- */
 
   const startThread = useCallback(
-    (question: string) => {
+    (question: string, scope: AiSearchScope | null = null) => {
       const text = question.trim();
       if (!text) return;
       const thread: ChatThread = {
         id: newThreadId(),
         createdAt: new Date(),
-        scope: null,
+        scope,
         title: titleFor(text),
-        turns: [makeTurn(text)],
+        turns: [makeTurn(text, scope)],
       };
       onThreadsChange((prev) => [thread, ...prev]);
       onSharedChange(null);
       onActiveIdChange(thread.id);
+      setNewChatScope(null);
     },
     [onThreadsChange, onActiveIdChange, onSharedChange],
   );
@@ -155,14 +176,15 @@ export function AiSearchPage({
         toast.success(signedIn ? 'Saved a copy to your history' : 'Started your own copy of this chat');
         return;
       }
-      setTurns((prev) => [...prev, makeTurn(q)]);
+      setTurns((prev) => [...prev, makeTurn(q, active?.scope ?? null)]);
     },
-    [shared, setTurns, onThreadsChange, onSharedChange, onActiveIdChange, signedIn],
+    [shared, setTurns, onThreadsChange, onSharedChange, onActiveIdChange, signedIn, active],
   );
 
   const newChat = useCallback(() => {
     onSharedChange(null);
     onActiveIdChange(null);
+    setNewChatScope(null);
     setDrawerOpen(false);
     focusComposer();
   }, [onActiveIdChange, onSharedChange]);
@@ -190,8 +212,28 @@ export function AiSearchPage({
     toast.success('Link copied. Anyone with it can read this chat.');
   };
 
+  /* What the mode's host asked for, once per request. */
+  useEffect(() => {
+    if (!request) return;
+    onSharedChange(null);
+    if (request.question) startThread(request.question, request.scope ?? null);
+    else if (request.threadId != null) onActiveIdChange(request.threadId);
+    else {
+      onActiveIdChange(null);
+      setNewChatScope(request.scope ?? null);
+      focusComposer();
+    }
+    if (request.showHistory) {
+      setRailOpen(true);
+      /* Below tablet-landscape the rail is the drawer. */
+      if (window.innerWidth < 960) setDrawerOpen(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [request?.nonce]);
+
   /* ⌘B / Ctrl+B — production's rail shortcut, and its footer says so. */
   useEffect(() => {
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
         e.preventDefault();
@@ -200,7 +242,7 @@ export function AiSearchPage({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [open]);
 
   const draftKey = shown ? String(shown.id) : 'new';
   const setDraft = useCallback((text: string) => setDrafts((prev) => ({ ...prev, [draftKey]: text })), [draftKey]);
@@ -361,6 +403,16 @@ export function AiSearchPage({
     </div>
   );
 
+  /* Hosted as a mode: leaving it is going back to search, with the words you
+     left with (they go back into the header field). It leads every bar. */
+  const backButton = onBackToSearch && (
+    <button type="button" className={clsx(am.back, s.back)} onClick={onBackToSearch}>
+      <ArrowBackIcon width={16} height={16} />
+      <span className={clsx(am.backLabel, shown && s.hideOnPhone)}>Back to search</span>
+      {term && !shown && <span className={am.backTerm}>&ldquo;{term}&rdquo;</span>}
+    </button>
+  );
+
   /* ---------------------------------------------------------------------- */
   /* Title bar                                                                */
   /* ---------------------------------------------------------------------- */
@@ -371,6 +423,12 @@ export function AiSearchPage({
      full), Share, and ⋯ → Delete. On phones it also carries History. */
   const titleBar = (
     <div className={s.titleBar}>
+      {backButton && (
+        <>
+          {backButton}
+          <span className={s.barDivider} aria-hidden="true" />
+        </>
+      )}
       <button type="button" className={clsx(am.barBtn, am.mobileOnly)} onClick={() => setDrawerOpen(true)}>
         <ClockGlyph />
         History
@@ -455,17 +513,29 @@ export function AiSearchPage({
           </>
         ) : (
           <>
-            {/* Phones only: the way to History from the new-chat page. */}
-            <div className={clsx(s.titleBar, s.titleBarBare)}>
-              <button type="button" className={am.barBtn} onClick={() => setDrawerOpen(true)}>
+            {/* Phones only: the way to History from the new-chat page. As a
+                mode it also carries Back to search, so it shows on every width. */}
+            <div className={clsx(s.titleBar, s.titleBarBare, backButton && s.titleBarBack)}>
+              {backButton}
+              <button
+                type="button"
+                className={clsx(am.barBtn, backButton && am.mobileOnly)}
+                onClick={() => setDrawerOpen(true)}
+              >
                 <ClockGlyph />
                 History
               </button>
             </div>
             <NewChat
+              key={`new-${request?.nonce ?? 0}`}
+              scope={newChatScope}
+              onRemoveScope={() => {
+                setNewChatScope(null);
+                focusComposer();
+              }}
               onAsk={(q) => {
                 setDrafts((prev) => ({ ...prev, new: '' }));
-                startThread(q);
+                startThread(q, newChatScope);
               }}
               draft={drafts.new ?? ''}
               onDraftChange={(text) => setDrafts((prev) => ({ ...prev, new: text }))}
@@ -506,6 +576,9 @@ export function AiSearchPage({
 /* ------------------------------------------------------------------------ */
 
 interface NewChatProps {
+  /** A result row's Ask AI: the new chat is about this team or person until removed. */
+  scope: AiSearchScope | null;
+  onRemoveScope: () => void;
   onAsk: (question: string) => void;
   draft: string;
   onDraftChange: (text: string) => void;
@@ -523,10 +596,11 @@ interface NewChatProps {
  *    offer on a page whose whole job is to be asked something. While you type
  *    they yield to questions matching your words (the ai-search rule).
  */
-function NewChat({ onAsk, draft, onDraftChange }: NewChatProps) {
+function NewChat({ scope, onRemoveScope, onAsk, draft, onDraftChange }: NewChatProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [live, setLive] = useState(draft);
-  const suggestions = useMemo(() => suggestQuestions(live, {}), [live]);
+  const suggestions = useMemo(() => suggestQuestions(live, { pool: scope?.prompts }), [live, scope]);
+  const prompts = scope?.prompts ?? SUGGESTED_PROMPTS;
 
   useEffect(() => {
     const el = inputRef.current;
@@ -545,15 +619,40 @@ function NewChat({ onAsk, draft, onDraftChange }: NewChatProps) {
       <div className={s.homeColumn}>
         <div className={s.hero}>
           <h1 className={s.heroTitle}>Explore Protocol Labs with AI Search</h1>
-          <p className={s.heroLine}>Answers come from the directory: members, teams, projects, events and forum posts.</p>
+          <p className={s.heroLine}>
+            {scope
+              ? `Answers come from the ${scope.name} profile. Remove it to ask the whole network.`
+              : 'Answers come from the directory: members, teams, projects, events and forum posts.'}
+          </p>
         </div>
+
+        {scope && (
+          <span className={clsx(sf.scopeChip, av.titleChip, s.scopeChip)}>
+            <img
+              className={clsx(sf.scopeLogo, scope.kind === 'member' && sf.scopeLogoPerson)}
+              src={scope.logo}
+              alt=""
+              width={16}
+              height={16}
+            />
+            <span className={sf.scopeName}>About {scope.name}</span>
+            <button
+              type="button"
+              className={sf.scopeRemove}
+              onClick={onRemoveScope}
+              aria-label={`Remove ${scope.name}, ask the whole network`}
+            >
+              <CloseIcon width={12} height={12} />
+            </button>
+          </span>
+        )}
 
         <form className={s.composer} onSubmit={(e) => e.preventDefault()}>
           <Composer
             ref={inputRef}
             id={COMPOSER_ID}
             size="home"
-            placeholder="Ask anything about the network"
+            placeholder={scope ? `Ask about ${scope.name}` : 'Ask anything about the network'}
             rows={1}
             autoFocus
             defaultValue={draft}
@@ -587,7 +686,7 @@ function NewChat({ onAsk, draft, onDraftChange }: NewChatProps) {
             <>
               <div className={tt.label}>Try asking</div>
               <ul className={tt.list}>
-                {SUGGESTED_PROMPTS.map((p) => (
+                {prompts.map((p) => (
                   <li key={p.text}>
                     <button
                       type="button"

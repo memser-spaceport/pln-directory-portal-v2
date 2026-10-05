@@ -6,7 +6,7 @@ import clsx from 'clsx';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { ConfirmDialog } from '@/components/page/demo-day/FounderPendingView/components/ConfirmDialog';
-import { CloseIcon, CommentIcon, PencilSimpleLineIcon } from '@/components/icons';
+import { CloseIcon, PencilSimpleLineIcon } from '@/components/icons';
 import { useShortcutLabels } from '@/components/page/ai-apps/shortcutKeys';
 import { ConfirmLayer } from './ConfirmLayer';
 import { AnnotationCanvas, DEFAULT_DRAW_COLOR, DRAW_COLORS, type AnnotatorTool } from './AnnotationCanvas';
@@ -35,12 +35,10 @@ const TOOL_KEYS: Record<string, AnnotatorTool> = {
   r: 'rect',
   o: 'ellipse',
   a: 'arrow',
-  c: 'comment',
   t: 'text',
 };
 
 const TOOLS: { id: AnnotatorTool; name: string; letter: string; icon: ReactNode }[] = [
-  { id: 'comment', name: 'Comment', letter: 'C', icon: <CommentIcon /> },
   { id: 'draw', name: 'Draw', letter: 'P', icon: <PencilSimpleLineIcon width={16} height={16} /> },
   { id: 'rect', name: 'Box', letter: 'R', icon: <BoxIcon /> },
   { id: 'ellipse', name: 'Oval', letter: 'O', icon: <OvalIcon /> },
@@ -232,14 +230,9 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
                 style={{ background: color }}
                 aria-label={`Draw in ${color}`}
                 aria-pressed={strokeColor === color}
-                onClick={() => {
-                  setStrokeColor(color);
-                  /* Only the comment tool draws nothing, so only it has to be
-                     swapped out to make the new color mean something. Reaching
-                     for a color while Box is active is choosing the box's color,
-                     not asking to go back to freehand. */
-                  if (tool === 'comment') selectTool('draw');
-                }}
+                /* Reaching for a color while Box is active is choosing the box's
+                   color, not asking to go back to freehand. */
+                onClick={() => setStrokeColor(color)}
               />
             ))}
           </div>

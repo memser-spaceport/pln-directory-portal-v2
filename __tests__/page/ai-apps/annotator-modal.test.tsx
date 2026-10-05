@@ -31,7 +31,21 @@ describe('AnnotatorModal toolbar', () => {
     expect(tool('Oval')).toBeInTheDocument();
     expect(tool('Arrow')).toBeInTheDocument();
     expect(tool('Draw')).toBeInTheDocument();
-    expect(tool('Comment')).toBeInTheDocument();
+  });
+
+  /* LAB-2766: comments live in the feedback popup's Comments option now, so the
+     annotator keeps only the drawing tools. */
+  it('offers no comment tool, input or list', () => {
+    renderModal();
+
+    expect(screen.queryByRole('button', { name: 'Comment' })).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Add a comment')).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    const toolNames = screen
+      .getAllByRole('button')
+      .filter((button) => button.closest('[aria-label="Tool"]'))
+      .map((button) => button.getAttribute('aria-label'));
+    expect(toolNames).toEqual(['Draw', 'Box', 'Oval', 'Arrow', 'Text']);
   });
 
   it('opens on the draw tool, as before', () => {
@@ -86,16 +100,12 @@ describe('AnnotatorModal toolbar', () => {
     expect(tool('Draw')).toHaveAttribute('aria-pressed', 'false');
   });
 
-  /* The comment tool draws nothing, so a colour press there has to mean
-     "go back to drawing" for the colour to mean anything at all. */
-  it('leaves the comment tool for freehand when a colour is picked', () => {
+  it('keeps freehand selected when a colour is picked', () => {
     renderModal();
 
-    fireEvent.click(tool('Comment'));
     fireEvent.click(tool('Draw in #0a9952'));
 
     expect(tool('Draw')).toHaveAttribute('aria-pressed', 'true');
-    expect(tool('Comment')).toHaveAttribute('aria-pressed', 'false');
   });
 });
 
@@ -345,14 +355,54 @@ describe('AnnotatorModal keyboard shortcuts', () => {
     fireEvent.keyDown(document, { key: 'a' });
     expect(tool('Arrow')).toHaveAttribute('aria-pressed', 'true');
 
-    fireEvent.keyDown(document, { key: 'c' });
-    expect(tool('Comment')).toHaveAttribute('aria-pressed', 'true');
-
     fireEvent.keyDown(document, { key: 'p' });
     expect(tool('Draw')).toHaveAttribute('aria-pressed', 'true');
   });
 
-  it('does not change tools or confirm while a comment is being typed', () => {
+  it('selects nothing and opens no comment on C', () => {
+    const onToolSelected = jest.fn();
+    renderModal({ onToolSelected });
+
+    fireEvent.keyDown(document, { key: 'c' });
+
+    expect(onToolSelected).not.toHaveBeenCalled();
+    expect(tool('Draw')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByPlaceholderText('Add a comment')).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('places no comment pin when the canvas is clicked after C', () => {
+    const onAdd = jest.fn();
+    renderModal({ onAdd });
+    const canvas = document.querySelector('canvas')!;
+    jest.spyOn(canvas, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      left: 0,
+      bottom: 200,
+      right: 200,
+      width: 200,
+      height: 200,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    fireEvent.keyDown(document, { key: 'c' });
+    fireEvent(
+      canvas,
+      new MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0, clientX: 40, clientY: 40 }),
+    );
+    fireEvent(
+      canvas,
+      new MouseEvent('pointerup', { bubbles: true, cancelable: true, button: 0, clientX: 40, clientY: 40 }),
+    );
+
+    expect(screen.queryByPlaceholderText('Add a comment')).not.toBeInTheDocument();
+    fireEvent.keyDown(document, { key: 'Enter', ctrlKey: true });
+    expect(onAdd).toHaveBeenCalledWith(expect.objectContaining({ comments: [] }));
+  });
+
+  it('does not change tools or confirm while text is being typed', () => {
     const onAdd = jest.fn();
     renderModal({ onAdd });
     const textarea = document.createElement('textarea');

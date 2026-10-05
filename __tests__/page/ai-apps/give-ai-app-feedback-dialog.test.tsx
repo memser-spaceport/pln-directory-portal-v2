@@ -1217,8 +1217,8 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(mockOnFeedbackScreenshotEditOpened).toHaveBeenCalled();
       await waitFor(() => expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument());
 
-      fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
-      expect(mockOnFeedbackScreenshotToolSelected).toHaveBeenCalledWith({ tool: 'comment' });
+      fireEvent.click(screen.getByRole('button', { name: 'Box' }));
+      expect(mockOnFeedbackScreenshotToolSelected).toHaveBeenCalledWith({ tool: 'rect' });
 
       fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
       expect(mockOnFeedbackScreenshotAnnotatorDiscarded).toHaveBeenCalledWith({ isEditing: true });

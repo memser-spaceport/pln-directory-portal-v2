@@ -1,11 +1,19 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import clsx from 'clsx';
 
 import { CloseIcon } from '@/components/icons';
 import { isSendChord } from '@/components/page/ai-apps/shortcutKeys';
-import { type AnnotationState, type Point, type Shape, type ShapeKind, type Stroke, type TextLabel } from './types';
+import {
+  type AnnotationState,
+  type PinComment,
+  type Point,
+  type Shape,
+  type ShapeKind,
+  type Stroke,
+  type TextLabel,
+} from './types';
 
 import s from './AnnotationCanvas.module.scss';
 
@@ -15,15 +23,16 @@ export const DEFAULT_DRAW_COLOR = DRAW_COLORS[0];
 const STROKE_WIDTH_RATIO = 0.006;
 const DRAG_THRESHOLD_PX = 4;
 
-export type AnnotatorTool = 'draw' | 'text' | ShapeKind;
+export type AnnotatorTool = 'draw' | 'comment' | 'text' | ShapeKind;
 
 const SHAPE_TOOLS: AnnotatorTool[] = ['rect', 'ellipse', 'arrow'];
 
 /**
- * How much room a saved comment's note needs below and to the right of its pin.
+ * How much room a comment panel needs below and to the right of its pin.
  *
- * Mirrors `.bubble` in the stylesheet — 240px wide plus its 8px offset, and
- * roughly the tallest a note gets. Constants rather than a measurement because the flip has to be
+ * Mirrors `.bubble` / `.composer` in the stylesheet — 240px wide plus its 8px
+ * offset, and roughly the tallest the composer gets with its textarea and
+ * Remove link. Constants rather than a measurement because the flip has to be
  * decided before paint: measuring would mean rendering the panel in the wrong
  * place first and letting the user watch it jump.
  */
@@ -78,8 +87,19 @@ interface Props {
   tool?: AnnotatorTool;
   strokeColor?: string;
   readOnly?: boolean;
+  /**
+   * Whether comment pins can be placed, edited, moved or removed. Default true.
+   *
+   * The production annotator passes false (LAB-2766): comments live in the
+   * feedback popup's Comments option now, so pins saved before that only show
+   * their note on a press. The prototypes under `prototypes/` still use the
+   * comment tool and keep the default.
+   */
+  commentsEditable?: boolean;
   className?: string;
 }
+
+type DraftComment = PinComment & { input: string };
 
 type ShapeDrag = {
   kind: ShapeKind;
@@ -95,6 +115,15 @@ type LabelDrag = {
   origin: TextLabel;
   originWidthPx: number;
   latest: TextLabel | null;
+};
+
+type PinDrag = {
+  id: string;
+  isDraft: boolean;
+  pointerId: number;
+  startX: number;
+  startY: number;
+  moved: boolean;
 };
 
 /**
@@ -239,6 +268,7 @@ export function AnnotationCanvas({
   tool = 'draw',
   strokeColor = DEFAULT_DRAW_COLOR,
   readOnly = false,
+  commentsEditable = true,
   className,
 }: Props) {
   const imgRef = useRef<HTMLImageElement>(null);
@@ -246,7 +276,14 @@ export function AnnotationCanvas({
   const wrapRef = useRef<HTMLDivElement>(null);
   const drawing = useRef<Point[] | null>(null);
   const shaping = useRef<ShapeDrag | null>(null);
+  const pendingComment = useRef<Point | null>(null);
+  const ignoreBlur = useRef(false);
   const annotationsRef = useRef(annotations);
+  const draftRef = useRef<DraftComment | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const dragRef = useRef<PinDrag | null>(null);
+  const dragPosRef = useRef<{ id: string; x: number; y: number } | null>(null);
+  const nextCommentId = useRef(0);
   const pendingLabel = useRef<Point | null>(null);
   const nextLabelId = useRef(0);
   const labelDraftRef = useRef<TextLabel | null>(null);
@@ -260,7 +297,13 @@ export function AnnotationCanvas({
   const [activeLabelId, setActiveLabelId] = useState<string | null>(null);
   const [labelDrag, setLabelDrag] = useState<TextLabel | null>(null);
   const [lastLabelSize, setLastLabelSize] = useState<number | null>(null);
+  const [draft, setDraft] = useState<DraftComment | null>(null);
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
+  const [dragPos, setDragPos] = useState<{ id: string; x: number; y: number } | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const inputId = useId();
+  /* Pins that only show their note: in a read-only view, or wherever comments are switched off. */
+  const pinsLocked = readOnly || !commentsEditable;
 
   const syncSize = () => {
     const img = imgRef.current;
@@ -287,6 +330,23 @@ export function AnnotationCanvas({
   useEffect(() => {
     annotationsRef.current = annotations;
   }, [annotations]);
+
+  useEffect(() => {
+    draftRef.current = draft;
+  }, [draft]);
+
+  const draftId = draft?.id;
+  useLayoutEffect(() => {
+    if (!draftId) return;
+    const el = textareaRef.current;
+    if (!el) return;
+    el.focus();
+    const id = window.setTimeout(() => {
+      ignoreBlur.current = false;
+      el.focus();
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [draftId]);
 
   const labelDraftId = labelDraft?.id;
   useLayoutEffect(() => {
@@ -542,6 +602,52 @@ export function AnnotationCanvas({
     });
   };
 
+  const openCommentAt = (point: Point, width: number, height: number) => {
+    if (width === 0 || height === 0) return;
+    ignoreBlur.current = true;
+    setActiveCommentId(null);
+    const next = {
+      id: `c-${++nextCommentId.current}`,
+      x: roundNorm(point.x / width),
+      y: roundNorm(point.y / height),
+      text: '',
+      input: '',
+    };
+    draftRef.current = next;
+    setDraft(next);
+  };
+
+  const openEdit = (comment: PinComment) => {
+    ignoreBlur.current = true;
+    setActiveCommentId(null);
+    const next = { ...comment, input: comment.text };
+    draftRef.current = next;
+    setDraft(next);
+  };
+
+  const saveDraft = (fromBlur = false) => {
+    const current = draftRef.current;
+    if (fromBlur && ignoreBlur.current && !current?.input.trim()) return false;
+    if (!current || !onChange) return false;
+    const text = current.input.trim();
+    if (!text) {
+      if (!fromBlur) setDraft(null);
+      return false;
+    }
+    setDraft(null);
+    const base = annotationsRef.current;
+    const existing = base.comments.some((comment) => comment.id === current.id);
+    onChange({
+      ...base,
+      comments: existing
+        ? base.comments.map((comment) =>
+            comment.id === current.id ? { ...comment, x: current.x, y: current.y, text } : comment,
+          )
+        : [...base.comments, { id: current.id, x: current.x, y: current.y, text }],
+    });
+    return true;
+  };
+
   const onPointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
     if (readOnly || event.button > 0) return;
     const point = localPoint(event);
@@ -561,6 +667,17 @@ export function AnnotationCanvas({
     if (isShapeTool(tool)) {
       event.currentTarget.setPointerCapture(event.pointerId);
       shaping.current = { kind: tool, from: point, to: point };
+      return;
+    }
+    if (tool === 'comment' && commentsEditable) {
+      if (draftRef.current) {
+        event.preventDefault();
+        saveDraft(true);
+        return;
+      }
+      event.preventDefault();
+      pendingComment.current = point;
+      event.currentTarget.setPointerCapture(event.pointerId);
     }
   };
 
@@ -625,14 +742,131 @@ export function AnnotationCanvas({
       placeLabel(point, bounds.width || size.width, bounds.height || size.height);
       return;
     }
+    if (pendingComment.current) {
+      const bounds = event.currentTarget.getBoundingClientRect();
+      const img = imgRef.current;
+      const width = bounds.width || size.width || img?.clientWidth || 0;
+      const height = bounds.height || size.height || img?.clientHeight || 0;
+      const point = pendingComment.current;
+      pendingComment.current = null;
+      openCommentAt(point, width, height);
+      return;
+    }
     if (!drawing.current) return;
     const points = drawing.current;
     drawing.current = null;
     commitStroke(points);
   };
 
+  const removeComment = (id: string) => {
+    if (!onChange) return;
+    if (draftRef.current?.id === id) {
+      draftRef.current = null;
+      setDraft(null);
+    }
+    onChange({
+      ...annotationsRef.current,
+      comments: annotationsRef.current.comments.filter((comment) => comment.id !== id),
+    });
+    setActiveCommentId((current) => (current === id ? null : current));
+  };
+
+  const commentPointFromEvent = (event: React.PointerEvent): Point | null => {
+    const wrap = wrapRef.current;
+    if (!wrap) return null;
+    const bounds = wrap.getBoundingClientRect();
+    if (bounds.width === 0 || bounds.height === 0) return null;
+    return {
+      x: roundNorm(Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width))),
+      y: roundNorm(Math.min(1, Math.max(0, (event.clientY - bounds.top) / bounds.height))),
+    };
+  };
+
+  const beginPinDrag = (event: React.PointerEvent<HTMLElement>, id: string, isDraft: boolean) => {
+    if (pinsLocked || event.button > 0) return;
+    event.stopPropagation();
+    event.preventDefault();
+    ignoreBlur.current = true;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragRef.current = {
+      id,
+      isDraft,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      moved: false,
+    };
+    setDraggingId(id);
+  };
+
+  const movePinDrag = (event: React.PointerEvent<HTMLElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    if (!drag.moved) {
+      const dx = event.clientX - drag.startX;
+      const dy = event.clientY - drag.startY;
+      if (dx * dx + dy * dy < DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX) return;
+      drag.moved = true;
+    }
+    const point = commentPointFromEvent(event);
+    if (!point) return;
+    dragPosRef.current = { id: drag.id, ...point };
+    setDragPos({ id: drag.id, ...point });
+    const current = draftRef.current;
+    if (current && (drag.isDraft || current.id === drag.id)) {
+      const next = { ...current, x: point.x, y: point.y };
+      draftRef.current = next;
+      setDraft(next);
+    }
+  };
+
+  const endPinDrag = (event: React.PointerEvent<HTMLElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    dragRef.current = null;
+    setDraggingId(null);
+    const pos = dragPosRef.current;
+    dragPosRef.current = null;
+    setDragPos(null);
+
+    if (!drag.moved) {
+      if (!drag.isDraft) {
+        const comment = annotationsRef.current.comments.find((item) => item.id === drag.id);
+        if (comment && !pinsLocked) {
+          if (draftRef.current && draftRef.current.id !== comment.id) saveDraft(true);
+          openEdit(comment);
+        } else {
+          setActiveCommentId((id) => (id === drag.id ? null : drag.id));
+        }
+      }
+      window.setTimeout(() => {
+        ignoreBlur.current = false;
+      }, 0);
+      return;
+    }
+
+    if (drag.isDraft) {
+      window.setTimeout(() => {
+        ignoreBlur.current = false;
+        textareaRef.current?.focus();
+      }, 0);
+      return;
+    }
+
+    if (pos && onChange) {
+      onChange({
+        ...annotations,
+        comments: annotations.comments.map((comment) =>
+          comment.id === drag.id ? { ...comment, x: pos.x, y: pos.y } : comment,
+        ),
+      });
+    }
+  };
+
+  const pinPosition = (comment: Pick<PinComment, 'id' | 'x' | 'y'>) => (dragPos?.id === comment.id ? dragPos : comment);
+
   /**
-   * Where a saved comment's note should sit relative to its pin, as CSS variables.
+   * Where a comment panel should sit relative to its pin, as CSS variables.
    *
    * A pin near the right edge would otherwise push its panel past the image and
    * give the whole editor a horizontal scrollbar, since `.stage` scrolls. The
@@ -652,6 +886,26 @@ export function AnnotationCanvas({
 
   const canvasCursor = readOnly ? 'default' : tool === 'text' ? 'text' : 'crosshair';
 
+  /**
+   * The comment tool owns the cursor, pins included.
+   *
+   * A pin is a `<button>`, so its own `pointer` / `grab` beats the canvas's
+   * crosshair underneath it — and while someone is placing comments, crossing an
+   * existing pin flipped the cursor to "press me" over a surface whose whole job
+   * at that moment is "click to place". The mode is the thing being expressed,
+   * so the mode wins.
+   *
+   * Only while the comment tool is active: with the draw tool the pins are
+   * ordinary draggable objects and keep saying so.
+   */
+  const pinKeepsCrosshair = !pinsLocked && tool === 'comment';
+  const isEditingExisting = Boolean(draft && annotations.comments.some((comment) => comment.id === draft.id));
+
+  const cancelDraft = () => {
+    draftRef.current = null;
+    setDraft(null);
+  };
+
   return (
     <div ref={wrapRef} className={clsx(s.wrap, className)} style={{ '--label-scale': labelScale } as CSSProperties}>
       <img ref={imgRef} className={s.image} src={imageSrc} alt="" onLoad={syncSize} draggable={false} />
@@ -668,6 +922,7 @@ export function AnnotationCanvas({
         onPointerCancel={() => {
           drawing.current = null;
           shaping.current = null;
+          pendingComment.current = null;
           pendingLabel.current = null;
         }}
       />
@@ -765,30 +1020,139 @@ export function AnnotationCanvas({
           </div>
         );
       })}
-      {/* Saved before the annotator lost its Comment tool (LAB-2766): shown, never
-          edited, moved or removed here. Comments live in the feedback popup now. */}
-      {annotations.comments.map((comment, index) => (
-        <button
-          key={comment.id}
-          type="button"
-          className={s.pin}
-          style={{ left: `${comment.x * 100}%`, top: `${comment.y * 100}%` }}
-          aria-label={`Comment ${index + 1}`}
-          onPointerDown={(event) => event.stopPropagation()}
-          onClick={(event) => {
-            event.stopPropagation();
-            setActiveCommentId((id) => (id === comment.id ? null : comment.id));
-          }}
-        >
-          {index + 1}
-        </button>
-      ))}
+      {annotations.comments.map((comment, index) => {
+        const pos = pinPosition(comment);
+        return (
+          <button
+            key={comment.id}
+            type="button"
+            className={clsx(
+              s.pin,
+              !pinsLocked && !pinKeepsCrosshair && s.pinMove,
+              pinKeepsCrosshair && s.pinCrosshair,
+              draggingId === comment.id && s.pinDragging,
+            )}
+            style={{ left: `${pos.x * 100}%`, top: `${pos.y * 100}%` }}
+            aria-label={`Comment ${index + 1}`}
+            onClick={
+              pinsLocked
+                ? (event) => {
+                    event.stopPropagation();
+                    setActiveCommentId((id) => (id === comment.id ? null : comment.id));
+                  }
+                : undefined
+            }
+            onPointerDown={(event) => beginPinDrag(event, comment.id, false)}
+            onPointerMove={movePinDrag}
+            onPointerUp={endPinDrag}
+            onPointerCancel={() => {
+              dragRef.current = null;
+              dragPosRef.current = null;
+              setDragPos(null);
+              setDraggingId(null);
+            }}
+          >
+            {index + 1}
+          </button>
+        );
+      })}
       {annotations.comments.map((comment) =>
         activeCommentId === comment.id ? (
-          <div key={`${comment.id}-body`} className={s.bubble} style={panelPlacement(comment)}>
+          <div key={`${comment.id}-body`} className={s.bubble} style={panelPlacement(pinPosition(comment))}>
+            {!pinsLocked && (
+              <button
+                type="button"
+                className={s.remove}
+                aria-label="Remove comment"
+                onPointerDown={(event) => event.stopPropagation()}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  removeComment(comment.id);
+                }}
+              >
+                <CloseIcon width={12} height={12} />
+              </button>
+            )}
             {comment.text}
           </div>
         ) : null,
+      )}
+      {draft && (
+        <>
+          {!isEditingExisting && (
+            <span
+              className={clsx(
+                s.pin,
+                !pinKeepsCrosshair && s.pinMove,
+                pinKeepsCrosshair && s.pinCrosshair,
+                draggingId === draft.id && s.pinDragging,
+              )}
+              style={{ left: `${draft.x * 100}%`, top: `${draft.y * 100}%` }}
+              aria-hidden
+              onPointerDown={(event) => beginPinDrag(event, draft.id, true)}
+              onPointerMove={movePinDrag}
+              onPointerUp={endPinDrag}
+            >
+              +
+            </span>
+          )}
+          <div className={s.composer} style={panelPlacement(draft)} onPointerDown={(event) => event.stopPropagation()}>
+            <button
+              type="button"
+              className={s.remove}
+              aria-label="Cancel comment"
+              onMouseDown={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                cancelDraft();
+              }}
+            >
+              <CloseIcon width={12} height={12} />
+            </button>
+            <label className={s.visuallyHidden} htmlFor={inputId}>
+              Comment
+            </label>
+            <textarea
+              ref={textareaRef}
+              id={inputId}
+              className={s.composerInput}
+              value={draft.input}
+              rows={3}
+              placeholder={isEditingExisting ? 'Edit comment' : 'Add a comment'}
+              onChange={(event) => {
+                const next = { ...draft, input: event.target.value };
+                draftRef.current = next;
+                setDraft(next);
+              }}
+              onPointerDown={(event) => event.stopPropagation()}
+              onBlur={() => saveDraft(true)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                  event.preventDefault();
+                  saveDraft();
+                }
+                if (event.key === 'Escape') {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  cancelDraft();
+                }
+              }}
+            />
+            {isEditingExisting && (
+              <button
+                type="button"
+                className={s.removeText}
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  removeComment(draft.id);
+                }}
+              >
+                Remove
+              </button>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

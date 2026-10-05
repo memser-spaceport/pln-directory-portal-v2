@@ -417,3 +417,28 @@ describe('AnnotatorModal keyboard shortcuts', () => {
     textarea.remove();
   });
 });
+
+describe('AnnotatorModal with comments saved before LAB-2766', () => {
+  beforeEach(() => {
+    HTMLElement.prototype.setPointerCapture = jest.fn();
+    HTMLCanvasElement.prototype.setPointerCapture = jest.fn();
+  });
+
+  it('shows a saved note read-only and keeps it on save', () => {
+    const onAdd = jest.fn();
+    const comments = [{ id: 'c1', x: 0.5, y: 0.5, text: 'Existing' }];
+    renderModal({ onAdd, initialAnnotations: { version: 1, strokes: [], shapes: [], comments } });
+
+    const pin = screen.getByRole('button', { name: 'Comment 1' });
+    fireEvent.pointerDown(pin, { button: 0, pointerId: 1, clientX: 100, clientY: 100 });
+    fireEvent.pointerUp(pin, { button: 0, pointerId: 1, clientX: 100, clientY: 100 });
+    fireEvent.click(pin);
+
+    expect(screen.getByText('Existing')).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Remove comment' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+    expect(onAdd).toHaveBeenCalledWith(expect.objectContaining({ comments }));
+  });
+});

@@ -24,6 +24,7 @@ interface MessagesProps {
   layout?: 'dialog' | 'page';
   // True while the last message's answer is still streaming in
   isStreaming?: boolean;
+  showRating?: boolean;
   canRate?: boolean;
 }
 
@@ -39,6 +40,7 @@ const Messages: React.FC<MessagesProps> = ({
   isLoadingObject,
   layout = 'dialog',
   isStreaming = false,
+  showRating = true,
   canRate = true,
 }) => {
   return (
@@ -58,6 +60,7 @@ const Messages: React.FC<MessagesProps> = ({
             isAnswerLoading={isAnswerLoading}
             layout={layout}
             isStreaming={isStreaming && index === messages.length - 1}
+            showRating={showRating}
             canRate={canRate}
           />
         ))}

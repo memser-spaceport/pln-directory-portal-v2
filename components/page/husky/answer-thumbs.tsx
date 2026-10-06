@@ -3,7 +3,7 @@ import { getMemberInfo } from '@/services/members.service';
 import { saveFeedback } from '@/services/husky.service';
 import { getUserCredentialsInfo } from '@/utils/fetch-wrapper';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
-import { ThumbsUpOutlinedIcon } from '@/components/icons';
+import { ThumbsDownIcon, ThumbsUpOutlinedIcon } from '@/components/icons';
 
 type Vote = 'up' | 'down';
 
@@ -21,7 +21,7 @@ const AnswerThumbs = ({ question, answer, disabled = false }: AnswerThumbsProps)
   const [saved, setSaved] = useState<Vote | null>(null);
   const [pending, setPending] = useState<Vote | null>(null);
   const [hasError, setHasError] = useState(false);
-  const { trackFeedbackStatus } = useHuskyAnalytics();
+  const { trackFeedbackClick, trackFeedbackStatus } = useHuskyAnalytics();
 
   const isLocked = disabled || saved !== null || pending !== null;
 
@@ -31,9 +31,13 @@ const AnswerThumbs = ({ question, answer, disabled = false }: AnswerThumbsProps)
     }
     setPending(vote);
     setHasError(false);
+    trackFeedbackClick(question, answer);
     trackFeedbackStatus('initiated', vote, question);
     try {
       const { newAuthToken, newUserInfo: userInfo } = await getUserCredentialsInfo();
+      if (!newAuthToken) {
+        throw new Error('No auth token for feedback');
+      }
       let payload = {
         rating: VOTE_RATING[vote],
         comment: '',
@@ -41,16 +45,22 @@ const AnswerThumbs = ({ question, answer, disabled = false }: AnswerThumbsProps)
         response: answer,
       } as any;
 
+      // member details are optional context for the feedback; a failed lookup does not stop the vote
       if (userInfo) {
-        const memberInfo = await getMemberInfo(userInfo.uid);
-        const memberDetails = memberInfo.data;
-        payload = {
-          ...payload,
-          name: memberDetails.name,
-          email: memberDetails.email,
-          team: memberDetails.teamMemberRoles[0]?.teamTitle ?? '',
-          directoryId: memberDetails.uid,
-        };
+        try {
+          const memberDetails = (await getMemberInfo(userInfo.uid))?.data;
+          if (memberDetails) {
+            payload = {
+              ...payload,
+              name: memberDetails.name,
+              email: memberDetails.email,
+              team: memberDetails.teamMemberRoles?.[0]?.teamTitle ?? '',
+              directoryId: memberDetails.uid,
+            };
+          }
+        } catch (error) {
+          console.error('Error while loading member info for feedback', error);
+        }
       }
 
       const response = await saveFeedback(newAuthToken, payload);
@@ -88,14 +98,14 @@ const AnswerThumbs = ({ question, answer, disabled = false }: AnswerThumbsProps)
         </button>
         <button
           type="button"
-          className={`answer-thumbs__btn answer-thumbs__btn--down ${isChosen('down') ? 'answer-thumbs__btn--on' : ''}`}
+          className={`answer-thumbs__btn ${isChosen('down') ? 'answer-thumbs__btn--on' : ''}`}
           title="Not helpful"
           aria-label="Not helpful"
           aria-pressed={isChosen('down')}
           disabled={isLocked}
           onClick={() => onVote('down')}
         >
-          <ThumbsUpOutlinedIcon />
+          <ThumbsDownIcon />
         </button>
         {saved && (
           <span className="answer-thumbs__receipt" role="status">
@@ -136,10 +146,6 @@ const AnswerThumbs = ({ question, answer, disabled = false }: AnswerThumbsProps)
 
         .answer-thumbs__btn:disabled {
           cursor: default;
-        }
-
-        .answer-thumbs__btn--down :global(svg) {
-          transform: rotate(180deg);
         }
 
         .answer-thumbs__btn--on,

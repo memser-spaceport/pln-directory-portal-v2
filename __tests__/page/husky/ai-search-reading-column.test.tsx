@@ -7,9 +7,11 @@ jest.mock('@/components/core/husky/husky-code-block', () => ({
 }));
 
 const trackFeedbackStatus = jest.fn();
+const trackFeedbackClick = jest.fn();
 jest.mock('@/analytics/husky.analytics', () => ({
   useHuskyAnalytics: () => ({
     trackFeedbackStatus,
+    trackFeedbackClick,
     trackHuskyCitationClicked: jest.fn(),
     trackHuskySourceLinkClicked: jest.fn(),
     trackDirectoryResultsCardClicked: jest.fn(),
@@ -22,12 +24,14 @@ jest.mock('@/services/husky.service', () => ({
   saveFeedback: (...args: unknown[]) => saveFeedback(...args),
 }));
 
+const getMemberInfo = jest.fn();
 jest.mock('@/services/members.service', () => ({
-  getMemberInfo: jest.fn(),
+  getMemberInfo: (...args: unknown[]) => getMemberInfo(...args),
 }));
 
+const getUserCredentialsInfo = jest.fn();
 jest.mock('@/utils/fetch-wrapper', () => ({
-  getUserCredentialsInfo: async () => ({ newAuthToken: 'token', newUserInfo: null }),
+  getUserCredentialsInfo: () => getUserCredentialsInfo(),
 }));
 
 import PreviewMessage from '@/components/page/husky/preview-message';
@@ -77,6 +81,7 @@ const followsInDom = (first: Element, second: Element) =>
 describe('AI Search page answer: reading column layout', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    getUserCredentialsInfo.mockResolvedValue({ newAuthToken: 'token', newUserInfo: null });
   });
 
   it('lists the sources after the answer text and drops the "N source(s)" pill', () => {
@@ -139,6 +144,7 @@ describe('AI Search page answer: reading column layout', () => {
       }),
     );
     expect(trackFeedbackStatus).toHaveBeenCalledWith('success', 'up', 'Which teams work on storage?');
+    expect(trackFeedbackClick).toHaveBeenCalledWith('Which teams work on storage?', 'Saturn Grid works on storage.');
 
     const down = screen.getByRole('button', { name: 'Not helpful' });
     expect(up).toBeDisabled();
@@ -176,6 +182,53 @@ describe('AI Search page answer: reading column layout', () => {
     await waitFor(() => expect(up).toHaveAttribute('aria-pressed', 'true'));
     expect(saveFeedback).toHaveBeenCalledTimes(2);
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('hides the thumbs for a signed-out viewer (the feedback call needs a token)', () => {
+    renderMessage({ layout: 'page', showRating: false });
+
+    expect(screen.queryByRole('button', { name: 'Good answer' })).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Submit feedback')).not.toBeInTheDocument();
+  });
+
+  it('still saves the vote when the member lookup fails', async () => {
+    getUserCredentialsInfo.mockResolvedValue({ newAuthToken: 'token', newUserInfo: { uid: 'm-1' } });
+    getMemberInfo.mockRejectedValue(new Error('member api down'));
+    saveFeedback.mockResolvedValue({ isSaved: true });
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    renderMessage({ layout: 'page' });
+
+    const up = screen.getByRole('button', { name: 'Good answer' });
+    fireEvent.click(up);
+
+    await waitFor(() => expect(up).toHaveAttribute('aria-pressed', 'true'));
+    expect(saveFeedback).toHaveBeenCalledWith('token', expect.objectContaining({ rating: 5 }));
+  });
+
+  it('starts a different answer in the same list position with fresh thumbs', async () => {
+    saveFeedback.mockResolvedValue({ isSaved: true });
+    const { rerender } = renderMessage({ layout: 'page' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Good answer' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Good answer' })).toBeDisabled());
+
+    rerender(
+      <PreviewMessage
+        message={{ ...baseMessage, question: 'Who funds storage?', answer: 'Acme funds storage.' }}
+        isLastIndex
+        onFollowupClicked={noop}
+        onFeedback={asyncNoop}
+        onRegenerate={noop}
+        onQuestionEdit={noop}
+        onCopyAnswer={asyncNoop}
+        isLoadingObject={false}
+        isAnswerLoading={false}
+        layout="page"
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Good answer' })).not.toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Good answer' })).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('does not let a viewer rate an answer in a shared thread they do not own', () => {

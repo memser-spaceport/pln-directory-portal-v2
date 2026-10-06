@@ -34,7 +34,9 @@ interface PreviewMessageProps {
   layout?: 'dialog' | 'page';
   // True while this message's answer is still streaming in
   isStreaming?: boolean;
-  // False when the viewer may not rate (a shared thread they do not own)
+  // False hides the thumbs (signed out: the feedback endpoint needs a token)
+  showRating?: boolean;
+  // False disables the thumbs (a shared thread the viewer does not own)
   canRate?: boolean;
 }
 
@@ -50,6 +52,7 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
   isAnswerLoading,
   layout = 'dialog',
   isStreaming = false,
+  showRating = true,
   canRate = true,
 }) => {
   const isPage = layout === 'page';
@@ -58,8 +61,13 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
   let feedbackSlot;
   if (isPage) {
     feedbackSlot =
-      isStreaming || message.isError ? null : (
-        <AnswerThumbs question={message.question || ''} answer={message.answer || ''} disabled={!canRate} />
+      isStreaming || message.isError || !showRating ? null : (
+        <AnswerThumbs
+          key={`${message.question}::${message.answer}`}
+          question={message.question || ''}
+          answer={message.answer || ''}
+          disabled={!canRate}
+        />
       );
   }
 

@@ -464,6 +464,7 @@ const Chat: React.FC<ChatProps> = ({
               onQuestionEdit={onQuestionEdit}
               layout="page"
               isStreaming={chatIsLoading}
+              showRating={isLoggedIn}
               canRate={isOwnThread || fromRef.current !== 'detail'}
             />
           </div>

@@ -8,6 +8,7 @@ export const PAGE_ROUTES = {
   NOTIFICATIONS: '/notifications',
   ADD_TEAM: '/teams/add',
   SIGNUP: '/sign-up',
+  // The AI Search page (LAB-2772); the key keeps its old name, old /husky URLs redirect here.
   HUSKY: '/ai-search',
   EVENTS: '/events',
   FORUM: '/forum',

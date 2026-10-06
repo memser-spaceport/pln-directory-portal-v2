@@ -145,7 +145,7 @@ export const AiConversationHistory = ({ onClick, isLoggedIn }: Props) => {
           }}
           id="application-search-try-ai"
         >
-          AI Chat History
+          AI Search History
         </button>
       </div>
     </>

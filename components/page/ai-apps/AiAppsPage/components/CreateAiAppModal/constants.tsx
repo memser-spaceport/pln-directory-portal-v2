@@ -57,6 +57,16 @@ export const MODAL_INTRO =
 
 export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = [
   {
+    version: '1.17',
+    items: [
+      'Your agent now tells you when a newer kit is out, at the start of a chat, and asks whether to apply it. Nothing changes until you say yes',
+      'An update changes only kit files (agent instructions, skills, design system, styles), never your app code',
+      'If you edited a kit file yourself, your agent names it and asks again before overwriting it',
+      'Say no and your agent won’t ask about that version again. You can still ask it to “update the kit” anytime',
+      'Kits downloaded before this version don’t check for updates. Download this kit once; after that, your agent offers new versions itself',
+    ],
+  },
+  {
     version: '1.16',
     items: [
       'Ask your agent for Preview testing users — it creates them and gives you 24-hour session tokens for a load test. Tokens work on Preview only, not Production',

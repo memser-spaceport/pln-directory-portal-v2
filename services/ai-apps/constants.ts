@@ -38,7 +38,7 @@ export const SHOW_AI_APPS_FEEDBACK_OVERLAY: boolean = process.env.NEXT_PUBLIC_SH
 export const SHOW_AI_APPS_COMMENTS = true;
 
 /** Keep in sync with `AI_APPS_STARTER_KIT_VERSION` in pln-directory-portal web-api. */
-export const AI_APPS_STARTER_KIT_VERSION = '1.16';
+export const AI_APPS_STARTER_KIT_VERSION = '1.17';
 
 export const PL_INFRA_OS_APP_UID = 'cmst544z7008siz4g1d59fubr';
 export const PL_INFRA_OS_PATH = '/pl-infra-os';

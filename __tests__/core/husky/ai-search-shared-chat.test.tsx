@@ -9,7 +9,11 @@ const goToLogin = jest.fn();
 const toastError = jest.fn();
 const onSharedChatContinued = jest.fn();
 const onSigninPromptClicked = jest.fn();
+const stopChat = jest.fn();
 let mockParams: { id?: string } = {};
+let mockHasRefreshToken = true;
+let mockChatCount = 0;
+let mockChatLoading = false;
 
 jest.mock('next/navigation', () => ({
   useParams: () => mockParams,
@@ -49,10 +53,10 @@ jest.mock('@/utils/auth.utils', () => ({
 }));
 
 jest.mock('@/utils/husky.utlils', () => ({
-  getChatCount: () => 0,
+  getChatCount: () => mockChatCount,
   updateLimitType: () => undefined,
   updateChatCount: jest.fn(),
-  checkRefreshToken: () => true,
+  checkRefreshToken: () => mockHasRefreshToken,
 }));
 
 jest.mock('@/utils/common.utils', () => ({
@@ -76,10 +80,10 @@ jest.mock('@/services/husky/hooks/useHuskyChat', () => ({
 jest.mock('@ai-sdk/react', () => ({
   experimental_useObject: () => ({
     object: undefined,
-    isLoading: false,
+    isLoading: mockChatLoading,
     submit: submitChat,
     error: undefined,
-    stop: jest.fn(),
+    stop: stopChat,
   }),
 }));
 
@@ -135,6 +139,9 @@ const typeAndSend = (text: string) => {
 beforeEach(() => {
   jest.clearAllMocks();
   mockParams = {};
+  mockHasRefreshToken = true;
+  mockChatCount = 0;
+  mockChatLoading = false;
   localStorage.clear();
   sessionStorage.clear();
   getHuskyHistory.mockResolvedValue([]);
@@ -207,6 +214,31 @@ describe('LAB-2776: a shared chat continues from the normal input', () => {
     expect(threadId).toBe('shared-1');
     expect(guestUserId).toEqual(expect.any(String));
   });
+
+  it('makes no copy for a signed-out visitor who reached the daily limit', async () => {
+    mockHasRefreshToken = false;
+    mockChatCount = 10_000;
+    renderSharedChat({ isLoggedIn: false });
+
+    const input = typeAndSend('And in Asia?');
+    await act(async () => {});
+
+    expect(duplicateThread).not.toHaveBeenCalled();
+    expect(push).not.toHaveBeenCalled();
+    expect(input.value).toBe('And in Asia?');
+  });
+
+  it('makes one copy when the follow-up is sent twice quickly', async () => {
+    let resolve: (value: any) => void = () => {};
+    duplicateThread.mockReturnValue(new Promise((r) => (resolve = r)));
+    renderSharedChat();
+
+    typeAndSend('And in Asia?');
+    typeAndSend('And in Asia?');
+    await act(async () => resolve({ threadId: 'copy-1' }));
+
+    expect(duplicateThread).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('LAB-2776: signed out, the History rail stays', () => {
@@ -260,6 +292,17 @@ describe('LAB-2776: signed out, the History rail stays', () => {
 
     await waitFor(() => expect(getVisitChats()).toHaveLength(1));
     expect(getVisitChats()[0]).toMatchObject({ threadId: 'copy-2', title: 'Which teams work on storage?' });
+  });
+
+  it('stops a streaming answer when the visitor opens another chat from the rail', () => {
+    mockChatLoading = true;
+    render(<Chat isLoggedIn={false} userInfo={{} as any} initialMessages={sharedMessages} />);
+
+    act(() => {
+      document.dispatchEvent(new CustomEvent(OPEN_VISIT_CHAT_EVENT, { detail: { threadId: 'visit-1' } }));
+    });
+
+    expect(stopChat).toHaveBeenCalled();
   });
 
   it("does not add someone else's shared chat to this visit's chats", async () => {

@@ -51,14 +51,14 @@ const writeVisitChats = (chats: IVisitChat[]) => {
 export const getVisitChat = (threadId: string): IVisitChat | null =>
   getVisitChats().find((chat) => chat.threadId === threadId) ?? null;
 
-/** Adds the chat, or replaces its messages if it is already listed. */
-export const saveVisitChat = ({ threadId, messages }: { threadId: string; messages: any[] }) => {
-  if (!threadId || !messages?.length) return;
+/** Adds the chat, or replaces its messages if it is already listed. Returns true when it wrote. */
+export const saveVisitChat = ({ threadId, messages }: { threadId: string; messages: any[] }): boolean => {
+  if (!threadId || !messages?.length) return false;
   const now = new Date().toISOString();
   const chats = getVisitChats();
   const existing = chats.find((chat) => chat.threadId === threadId);
   // reopening a chat without asking anything must not move it to the top
-  if (existing && JSON.stringify(existing.messages) === JSON.stringify(messages)) return;
+  if (existing && JSON.stringify(existing.messages) === JSON.stringify(messages)) return false;
   const title = existing?.title || String(messages[0]?.question ?? '').trim() || 'New chat';
   const next: IVisitChat = {
     threadId,
@@ -68,6 +68,7 @@ export const saveVisitChat = ({ threadId, messages }: { threadId: string; messag
     messages,
   };
   writeVisitChats([next, ...chats.filter((chat) => chat.threadId !== threadId)]);
+  return true;
 };
 
 export const removeVisitChat = (threadId: string) => {

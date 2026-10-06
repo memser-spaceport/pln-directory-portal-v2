@@ -36,7 +36,8 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
   const router = useRouter();
 
   const handleClick = useCallback(() => {
-    if (!isActive) {
+    // a visit chat has no URL of its own, so it opens even when the rail still marks it as open
+    if (onOpen || !isActive) {
       if (onOpen) {
         onOpen(thread);
       } else {
@@ -375,7 +376,11 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
   useEffect(() => {
     fetchHistory(true); // Show loading on initial fetch
 
-    const handleRefreshHistory = () => {
+    const handleRefreshHistory = (e: Event) => {
+      const visitThreadId = (e as CustomEvent<{ visitThreadId?: string }>).detail?.visitThreadId;
+      if (visitThreadId) {
+        setActiveVisitChatId(visitThreadId);
+      }
       fetchHistory(false); // Don't show loading when called via event listener
     };
 

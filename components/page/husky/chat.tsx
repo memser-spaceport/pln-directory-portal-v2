@@ -23,7 +23,7 @@ import { z } from 'zod';
 import { huskySourceRefSchema } from '@/services/husky/hooks/useHuskyChat';
 import { useRouter } from 'next/navigation';
 import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
-import { saveVisitChat } from '@/utils/husky-visit-chats';
+import { OPEN_VISIT_CHAT_EVENT, saveVisitChat } from '@/utils/husky-visit-chats';
 
 interface ChatProps {
   id?: string;
@@ -71,6 +71,7 @@ const Chat: React.FC<ChatProps> = ({
   // Someone else's shared chat: a follow-up makes the reader's own copy instead of changing this one.
   const isSharedView = !isOwnThread && from === 'detail';
   const [isContinuingShared, setIsContinuingShared] = useState(false);
+  const isContinuingSharedRef = useRef(false);
 
   const {
     object: chatObject,
@@ -191,9 +192,25 @@ const Chat: React.FC<ChatProps> = ({
     if (isLoggedIn || isSharedView || chatIsLoading || isAnswerLoading) return;
     const lastMessage = messages[messages.length - 1];
     if (!threadUidRef.current || !lastMessage?.answer || lastMessage?.isError) return;
-    saveVisitChat({ threadId: threadUidRef.current, messages });
-    document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
+    if (saveVisitChat({ threadId: threadUidRef.current, messages })) {
+      // refresh sidebar history and mark this chat as the open one
+      document.dispatchEvent(
+        new CustomEvent('refresh-husky-history', { detail: { visitThreadId: threadUidRef.current } }),
+      );
+    }
   }, [messages, chatIsLoading, isAnswerLoading, isLoggedIn, isSharedView]);
+
+  // Signed out, opening another chat from the rail while an answer streams must not write that answer into it.
+  useEffect(() => {
+    const handleOpenVisitChat = () => {
+      if (chatIsLoading || isAnswerLoading) {
+        stopChat();
+        setIsAnswerLoading(false);
+      }
+    };
+    document.addEventListener(OPEN_VISIT_CHAT_EVENT, handleOpenVisitChat);
+    return () => document.removeEventListener(OPEN_VISIT_CHAT_EVENT, handleOpenVisitChat);
+  }, [chatIsLoading, isAnswerLoading, stopChat]);
 
   // handle all chat submission
   const handleChatSubmission = useCallback(
@@ -386,9 +403,15 @@ const Chat: React.FC<ChatProps> = ({
   // handle a follow-up asked on someone else's shared chat: copy the chat, open the copy, and ask it there
   const onSharedFollowUp = useCallback(
     async (followUp: string) => {
-      if (isContinuingShared) {
+      if (isContinuingSharedRef.current) {
         return;
       }
+      // signed out at the daily limit, the copy could not ask the follow-up: make no copy
+      if (!checkRefreshToken() && getChatCount() >= DAILY_CHAT_LIMIT) {
+        setLimitReached('warn');
+        return;
+      }
+      isContinuingSharedRef.current = true;
       setIsContinuingShared(true);
       try {
         analytics.trackContinueConversation(id ?? '');
@@ -437,10 +460,11 @@ const Chat: React.FC<ChatProps> = ({
         analytics.trackThreadDuplicateStatus(id ?? '', 'failed');
       } finally {
         triggerLoader(false);
+        isContinuingSharedRef.current = false;
         setIsContinuingShared(false);
       }
     },
-    [router, isLoggedIn, id, isContinuingShared, analytics, unifiedSearchAnalytics],
+    [router, isLoggedIn, id, analytics, unifiedSearchAnalytics],
   );
 
   useEffect(() => {

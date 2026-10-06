@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { compileString } from 'sass';
 
 /**
  * The candidate pane — the person as the directory shows them, with what they
@@ -201,16 +202,33 @@ describe('the profile sections', () => {
   });
 });
 
-/* LAB-2747: a note typed as one unbroken run (a pasted link, a key mash) ran out
-   of the Interest box, because `.note` kept the typed line breaks but had no
-   rule for breaking inside a word. jsdom applies no stylesheet, so the rule is
-   read from the source, next to a render that pins which element carries it. */
+/**
+ * LAB-2747: a note typed as one unbroken run (a pasted link, a key mash) ran
+ * out of the Interest box, because `.note` kept the typed line breaks but had
+ * no rule for breaking inside a word. jsdom applies no stylesheet and does no
+ * layout, so these tests compile the module and read the declarations every
+ * rule for a class makes — media queries and nested selectors included — next
+ * to a render that pins which element carries the class. They prove the rule
+ * is declared and nothing in the module undoes it, not that the box measures
+ * right; that was checked in a browser.
+ */
 describe('a note with no spaces in it', () => {
-  const css = readFileSync(
-    join(process.cwd(), 'components/page/team-details/TeamApplicants/components/ApplicantPane.module.scss'),
-    'utf8',
-  );
-  const rule = (selector: string) => css.match(new RegExp(`(?:^|\\n)\\.${selector} \\{([^}]*)\\}`))?.[1] ?? '';
+  const css = compileString(
+    readFileSync(
+      join(process.cwd(), 'components/page/team-details/TeamApplicants/components/ApplicantPane.module.scss'),
+      'utf8',
+    ),
+  ).css;
+
+  /** Every value `property` is given by any rule whose selector targets `.className`. */
+  const valuesOf = (className: string, property: string) => {
+    const targets = new RegExp(`\\.${className}(?![\\w-])`);
+    const blocks = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(([, selector]) => targets.test(selector));
+    if (blocks.length === 0) throw new Error(`ApplicantPane.module.scss has no rule for .${className}`);
+    return blocks.flatMap(([, , body]) =>
+      [...body.matchAll(new RegExp(`(?:^|;)\\s*${property}:\\s*([^;]+)`, 'g'))].map(([, value]) => value.trim()),
+    );
+  };
 
   it('is quoted whole, in the element that carries the note rule', () => {
     const unbroken = 'x'.repeat(240);
@@ -221,15 +239,16 @@ describe('a note with no spaces in it', () => {
     expect(note).toHaveClass(paneCss.note);
   });
 
-  it('breaks inside the word instead of running past the box', () => {
-    expect(rule('note')).toMatch(/overflow-wrap:\s*anywhere;/);
+  it('declares breaking inside a word, and no rule in the module undoes it', () => {
+    expect(valuesOf('note', 'overflow-wrap')).toEqual(['anywhere']);
+    expect(valuesOf('note', 'word-break')).toEqual([]);
   });
 
   it('keeps the paragraphs somebody typed', () => {
-    expect(rule('note')).toMatch(/white-space:\s*pre-line;/);
+    expect(valuesOf('note', 'white-space')).toEqual(['pre-line']);
   });
 
-  it('cannot widen the pane it sits in', () => {
-    expect(rule('column')).toMatch(/min-width:\s*0;/);
+  it('sits in a column that cannot be widened by its content', () => {
+    expect(valuesOf('column', 'min-width')).toEqual(['0']);
   });
 });

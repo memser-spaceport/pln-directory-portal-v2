@@ -36,6 +36,7 @@ const ChatComposer = React.forwardRef<HTMLTextAreaElement, ChatComposerProps>(fu
     isLimitReached: _isLimitReached,
     onChange,
     onKeyDown,
+    onFocus,
     size = 'thread',
     defaultValue,
     ...props
@@ -44,10 +45,14 @@ const ChatComposer = React.forwardRef<HTMLTextAreaElement, ChatComposerProps>(fu
 ) {
   const [hasText, setHasText] = useState(() => String(defaultValue ?? '').trim().length > 0);
 
-  // Parents clear the textarea directly after a send, which fires no change event, so re-read the value.
+  // Parents write the textarea directly (clear after a send, fill on question edit), which fires no change
+  // event, so re-read the value. An empty field also drops the height it grew to.
   const syncHasText = () => {
     if (ref && 'current' in ref && ref.current) {
-      setHasText(ref.current.value.trim().length > 0);
+      const el = ref.current;
+      const filled = el.value.trim().length > 0;
+      if (!el.value) el.style.height = '';
+      setHasText(filled);
     }
   };
 
@@ -61,7 +66,8 @@ const ChatComposer = React.forwardRef<HTMLTextAreaElement, ChatComposerProps>(fu
     el.style.height = `${el.scrollHeight}px`;
   };
 
-  const isStreaming = !!isLoadingObject;
+  // While the answer is still pending there is nothing to stop yet: show the disabled send, as ChatInput did.
+  const isStreaming = !!isLoadingObject && !isAnswerLoading;
   const canSend = hasText && !isAnswerLoading && !isStreaming;
 
   return (
@@ -78,7 +84,11 @@ const ChatComposer = React.forwardRef<HTMLTextAreaElement, ChatComposerProps>(fu
         }}
         onKeyDown={(e) => {
           onKeyDown?.(e);
-          setTimeout(syncHasText, 0);
+          if (e.key === 'Enter') setTimeout(syncHasText, 0);
+        }}
+        onFocus={(e) => {
+          onFocus?.(e);
+          syncHasText();
         }}
       />
       {isStreaming ? (

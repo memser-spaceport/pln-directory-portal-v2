@@ -167,6 +167,24 @@ describe('ChatComposer (field used on the new-chat page and under an open chat)'
     expect(screen.getByTestId('chat-composer-send')).toBeDisabled();
   });
 
+  it('shows the disabled send, not stop, while the answer is still pending', () => {
+    const ref = createRef<HTMLTextAreaElement>();
+    render(<ChatComposer ref={ref} placeholder="Ask" isAnswerLoading isLoadingObject />);
+    expect(screen.queryByTestId('chat-composer-stop')).not.toBeInTheDocument();
+    expect(screen.getByTestId('chat-composer-send')).toBeDisabled();
+  });
+
+  it('enables send when the parent fills the field and focuses it (question edit)', () => {
+    const ref = createRef<HTMLTextAreaElement>();
+    render(<ChatComposer ref={ref} placeholder="Ask" />);
+    expect(screen.getByTestId('chat-composer-send')).toBeDisabled();
+    act(() => {
+      ref.current!.value = 'Edited question';
+      ref.current!.focus();
+    });
+    expect(screen.getByTestId('chat-composer-send')).toBeEnabled();
+  });
+
   it('dims the send button again after the parent clears the field on Enter', async () => {
     const ref = createRef<HTMLTextAreaElement>();
     const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

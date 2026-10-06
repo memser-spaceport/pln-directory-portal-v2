@@ -135,7 +135,7 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
             isLimitReached={limitReached}
           />
         </form>
-        {limitReached ? (
+        {limitReached && (
           <div className="chat-home__error" data-testid="chat-home-limit">
             <div className="chat-home__error-wrapper">
               <div className="chat-home__error-warning">
@@ -155,30 +155,29 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
               </div>
             </div>
           </div>
-        ) : (
-          visiblePrompts.length > 0 && (
-            <div className="chat-home__prompts" data-testid="chat-home-prompts">
-              <div className="chat-home__prompts-title">Try asking</div>
-              <ul className="chat-home__prompts-list">
-                {visiblePrompts.map((prompt, index) => (
-                  <li key={index}>
-                    <button
-                      type="button"
-                      className="chat-home__prompts-item"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        onExplorationPromptClicked(prompt);
-                      }}
-                      data-testid={`prompt-${index}`}
-                    >
-                      {prompt.icon && <img alt="" src={prompt.icon} className="chat-home__prompts-item-icon" />}
-                      <span className="chat-home__prompts-item-text">{prompt.question}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )
+        )}
+        {visiblePrompts.length > 0 && (
+          <div className="chat-home__prompts" data-testid="chat-home-prompts">
+            <div className="chat-home__prompts-title">Try asking</div>
+            <ul className="chat-home__prompts-list">
+              {visiblePrompts.map((prompt, index) => (
+                <li key={prompt.uid ?? index}>
+                  <button
+                    type="button"
+                    className="chat-home__prompts-item"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onExplorationPromptClicked(prompt);
+                    }}
+                    data-testid={`prompt-${index}`}
+                  >
+                    {prompt.icon && <img alt="" src={prompt.icon} className="chat-home__prompts-item-icon" />}
+                    <span className="chat-home__prompts-item-text">{prompt.question}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </div>
       <style jsx>{`

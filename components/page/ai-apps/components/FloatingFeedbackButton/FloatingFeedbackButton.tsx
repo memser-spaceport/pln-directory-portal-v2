@@ -315,6 +315,8 @@ function FeedbackFab({
         capture={elementPins?.canCapture ? elementPins.capture : undefined}
         /* The bridge never answered: an app built before it (kit < 1.15). */
         bridgeMissing={elementPins?.status === 'unavailable'}
+        /* Its bridge may still answer (a slow frame on a phone): the automatic screenshot waits for it. */
+        captureExpected={Boolean(elementPins) && elementPins?.status !== 'off'}
         frameRef={iframeRef}
         onHiddenChange={setIsFormHidden}
         headerTabs={

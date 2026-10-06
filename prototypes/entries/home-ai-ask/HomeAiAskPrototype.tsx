@@ -23,21 +23,12 @@ import clsx from 'clsx';
 import NewsfeedPrototype from '../newsfeed/NewsfeedPrototype';
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
 
-import { HomeAsk, type AskMode, type FieldSize } from './HomeAsk';
+import { HomeAsk, type AskViewer, type FieldSize } from './HomeAsk';
 import homeAsk from './HomeAsk.module.scss';
 
 const SIZES: { value: FieldSize; label: string; note: string }[] = [
   { value: 'box', label: 'Search box', note: 'One line with the AI Search mark inside it.' },
   { value: 'composer', label: 'Big field', note: "The AI Search page's own field, two lines tall at rest." },
-];
-
-const MODES: { value: AskMode; label: string; note: string }[] = [
-  {
-    value: 'overview',
-    label: 'Answers here',
-    note: 'A short answer under the field; Continue in AI Search for follow-ups.',
-  },
-  { value: 'handoff', label: 'Opens AI Search', note: 'Enter opens the AI Search page, already answering.' },
 ];
 
 function Switch<T extends string>({
@@ -75,27 +66,35 @@ function Switch<T extends string>({
   );
 }
 
+const VIEWERS: { value: AskViewer; label: string; note: string }[] = [
+  {
+    value: 'founder',
+    label: 'Portfolio founder',
+    note: 'LAB-2704: a request ("Help me get intros…") goes to the PL team instead of AI Search.',
+  },
+  { value: 'member', label: 'Member', note: 'AI Search only, as today.' },
+];
+
 export default function HomeAiAskPrototype() {
+  const [viewer, setViewer] = useState<AskViewer>('founder');
   const [size, setSize] = useState<FieldSize>('box');
-  const [mode, setMode] = useState<AskMode>('overview');
   const [signedIn, setSignedIn] = useState(true);
 
   const reviewExtras = (
     <>
+      {signedIn && (
+        <Switch label="Viewer" ariaLabel="Who is asking" options={VIEWERS} value={viewer} onChange={setViewer} />
+      )}
       <Switch label="Field" ariaLabel="Size of the Home field" options={SIZES} value={size} onChange={setSize} />
-      <Switch
-        label="Ask field"
-        ariaLabel="How the Home field answers"
-        options={MODES}
-        value={mode}
-        onChange={setMode}
-      />
     </>
   );
 
+  /* The field answers on Home (the overview); the host keeps one team and
+     upcoming events without their switches. */
   return (
     <NewsfeedPrototype
-      leadSlot={<HomeAsk mode={mode} size={size} signedIn={signedIn} />}
+      hostSwitches={false}
+      leadSlot={<HomeAsk mode="overview" size={size} signedIn={signedIn} viewer={viewer} />}
       reviewExtras={reviewExtras}
       onSignedInChange={setSignedIn}
       newsTitleClassName={homeAsk.homeNewsTitle}

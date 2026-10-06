@@ -152,16 +152,18 @@ export function SupportModal({ open, initialTopic, viewer, onClose }: Props) {
           <TopicPills value={topic} onChange={(next) => setValue('topic', next, { shouldValidate: true })} />
         </FormLabel>
 
+        {/* Production prefills (and locks) only what it knows: a signed-out
+            viewer gets editable, unlabelled fields (`isEmailPrefilled`). */}
         <LabeledInput
-          label="Email Address (Prefilled)"
+          label={viewer.email ? 'Email Address (Prefilled)' : 'Email Address'}
           error={errors.email?.message}
-          input={{ type: 'email', placeholder: 'Enter your email', readOnly: true, ...register('email') }}
+          input={{ type: 'email', placeholder: 'Enter your email', readOnly: !!viewer.email, ...register('email') }}
         />
 
         <LabeledInput
-          label="Name (Prefilled)"
+          label={viewer.name ? 'Name (Prefilled)' : 'Name'}
           error={errors.name?.message}
-          input={{ placeholder: 'Enter your name', readOnly: true, ...register('name') }}
+          input={{ placeholder: 'Enter your name', readOnly: !!viewer.name, ...register('name') }}
         />
 
         <FormEditor

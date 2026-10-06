@@ -8,7 +8,8 @@ export const PAGE_ROUTES = {
   NOTIFICATIONS: '/notifications',
   ADD_TEAM: '/teams/add',
   SIGNUP: '/sign-up',
-  HUSKY: '/husky/chat',
+  // The AI Search page (LAB-2772); the key keeps its old name, old /husky URLs redirect here.
+  HUSKY: '/ai-search',
   EVENTS: '/events',
   FORUM: '/forum',
   JOBS: '/jobs',
@@ -2733,6 +2734,7 @@ export const AI_APPS_ANALYTICS = {
   FEEDBACK_COMMENT_DELETED: 'ai_apps_feedback_comment_deleted',
   FEEDBACK_APP_CAPTURE: 'ai_apps_feedback_app_capture',
   FEEDBACK_AUTO_SHOT_REMOVED: 'ai_apps_feedback_auto_shot_removed',
+  FEEDBACK_AUTO_SHOT_SKIPPED: 'ai_apps_feedback_auto_shot_skipped',
   FEEDBACK_PICK_PART_CANCELLED: 'ai_apps_feedback_pick_part_cancelled',
   FEEDBACK_SCREEN_SHARE_FALLBACK: 'ai_apps_feedback_screen_share_fallback',
   FEEDBACK_PIN_DETACHED: 'ai_apps_feedback_pin_detached',
@@ -2829,6 +2831,8 @@ export const SPV_SPOTLIGHT_ANALYTICS = {
   ON_SIGN_IN_CLICKED: 'spv-spotlight-sign-in-clicked',
   ON_OPEN_DATA_ROOM_CLICKED: 'spv-spotlight-open-data-room-clicked',
   ON_INVESTOR_PROFILE_CLICKED: 'spv-spotlight-investor-profile-clicked',
+  ON_INVESTOR_PROFILE_SAVED: 'spv-spotlight-investor-profile-saved',
+  ON_CONTACT_US_CLICKED: 'spv-spotlight-contact-us-clicked',
   ON_EXPLORE_TILE_CLICKED: 'spv-spotlight-explore-tile-clicked',
   ON_FOUNDER_PROFILE_CLICKED: 'spv-spotlight-founder-profile-clicked',
 };

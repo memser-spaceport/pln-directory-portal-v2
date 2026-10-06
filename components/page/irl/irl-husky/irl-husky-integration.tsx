@@ -24,7 +24,7 @@ const IrlHuskyIntegration = ({ currentLocation }: IrlHuskyIntegrationProps) => {
             className="root__irlhusky__text--highlighted"
             onClick={onChatWithHusky}
           >
-            Husky AI
+            AI Search
           </a>
           for quick answers
         </div>
@@ -36,7 +36,7 @@ const IrlHuskyIntegration = ({ currentLocation }: IrlHuskyIntegrationProps) => {
           onClick={onChatWithHusky}
         >
           <img src="/icons/irl/irl-husky.svg" alt="husky" />
-          <div className="root__irlhusky__btn__text">Launch Husky</div>
+          <div className="root__irlhusky__btn__text">Open AI Search</div>
           <img src="/icons/irl/arrow-white.svg" alt="arrow" />
         </a>
       </div>

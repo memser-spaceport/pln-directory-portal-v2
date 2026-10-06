@@ -115,6 +115,10 @@
   font-weight: 600;
   letter-spacing: 0;
   line-height: 14px;
+
+  @include media.no-fine-pointer {
+    display: none;
+  }
 }
 
 @mixin expanded-label {

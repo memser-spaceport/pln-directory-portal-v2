@@ -433,6 +433,8 @@ export interface NewsfeedHostProps {
   onSignedInChange?: (signedIn: boolean) => void;
   /** Leads the page, above Quick Actions / the signed-out banner (`home-ai-ask`'s field). */
   leadSlot?: ReactNode;
+  /** False hides the Your teams and Events switches; the page stays on their first states (one team, upcoming events). */
+  hostSwitches?: boolean;
   /** Re-ranks the Network Updates heading when the host's lead slot carries the page headline. */
   newsTitleClassName?: string;
 }
@@ -444,6 +446,7 @@ export default function NewsfeedPrototype({
   onSignedInChange,
   leadSlot,
   newsTitleClassName,
+  hostSwitches = true,
 }: NewsfeedHostProps = {}) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -1410,7 +1413,7 @@ export default function NewsfeedPrototype({
           </div>
           <span className={clsx(v0.switchNote, local.reviewNote)}>{VIEWER_NOTE[viewer]}</span>
         </div>
-        {signedIn && (
+        {hostSwitches && signedIn && (
           <div className={v0.switchBar}>
             <span className={v0.switchLabel}>Your teams</span>
             <div className={v0.switch} role="tablist" aria-label="How many teams the viewer belongs to">
@@ -1430,6 +1433,7 @@ export default function NewsfeedPrototype({
             <span className={clsx(v0.switchNote, local.reviewNote)}>{TEAMS_NOTE[viewerTeams]}</span>
           </div>
         )}
+        {hostSwitches && (
         <div className={v0.switchBar}>
           <span className={v0.switchLabel}>Events</span>
           <div className={v0.switch} role="tablist" aria-label="Upcoming events in the next 30 days">
@@ -1448,6 +1452,7 @@ export default function NewsfeedPrototype({
           </div>
           <span className={clsx(v0.switchNote, local.reviewNote)}>{EVENTS_NOTE[eventsState]}</span>
         </div>
+        )}
         {reviewExtras}
       </div>
     </div>

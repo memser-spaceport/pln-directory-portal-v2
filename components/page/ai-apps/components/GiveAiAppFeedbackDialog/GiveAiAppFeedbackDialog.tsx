@@ -231,6 +231,12 @@ interface Props {
   /** The app has no bridge (older starter kit), so it misses instant screenshots. */
   bridgeMissing?: boolean;
   /**
+   * The app has a bridge that may still announce itself — its frame is slow
+   * to load (a phone) or was late to answer. An open without `capture` then
+   * waits for it, and takes the automatic screenshot when it arrives.
+   */
+  captureExpected?: boolean;
+  /**
    * The panel hid itself for a capture (true) or came back (false). The host
    * hides its own floating controls with it, so a screen share shows only the app.
    */
@@ -243,7 +249,8 @@ interface Props {
  * runs against the latest state rather than a closure.
  */
 type AutoShot =
-  | { token: number; status: 'capturing' | 'attached' | 'failed' | 'removed' }
+  | { token: number; status: 'waiting' | 'draft' | 'attached' | 'failed' | 'removed' }
+  | { token: number; status: 'capturing'; late?: boolean }
   | { token: number; status: 'landed'; dataUrl: string };
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -330,6 +337,7 @@ export function GiveAiAppFeedbackDialog({
   capture,
   frameRef,
   bridgeMissing = false,
+  captureExpected = false,
   onHiddenChange,
 }: Props) {
   const { currentUser } = useCurrentUserStore();
@@ -350,6 +358,13 @@ export function GiveAiAppFeedbackDialog({
   /* The new screenshot area (stacked previews, Whole page / Pick a part) is the flag's; the
      bridge decides only whether captures skip the screen share. */
   const canCapture = Boolean(capture);
+  /* `waiting`: the bridge isn't ready yet; it is taken when it is. `draft`: a
+     kept draft brings its own pictures, so none is taken (said once, for the record). */
+  const autoAtOpen = (hasDraft: boolean, token: number): AutoShot | null => {
+    if (!canCapture && !captureExpected) return null;
+    if (hasDraft) return { token, status: 'draft' };
+    return { token, status: canCapture ? 'capturing' : 'waiting' };
+  };
 
   const getDefaults = useCallback(
     (): FormValues => ({
@@ -491,7 +506,7 @@ export function GiveAiAppFeedbackDialog({
       setOpenCount(openCount + 1);
       setIsWide(readWide());
       const hasDraft = Boolean(readFeedbackDraft(feedbackDraftKey(place)));
-      setAuto(canCapture && !hasDraft ? { token: openCount + 1, status: 'capturing' } : null);
+      setAuto(autoAtOpen(hasDraft, openCount + 1));
       setBridgeFailed(false);
     } else {
       /* What was in the panel stays as a draft; the next open loads it from there. */
@@ -523,7 +538,16 @@ export function GiveAiAppFeedbackDialog({
     ]);
   }
 
+  /* The bridge answered after this open: its picture is taken now — unless the
+     member has moved on (added a picture, is taking one, or is sending), when a
+     late one would only surprise them. */
+  if (auto?.status === 'waiting' && canCapture) {
+    const fresh = screenshots.length === 0 && !isBusy && !isPending && !showSent;
+    setAuto(fresh ? { token: auto.token, status: 'capturing', late: true } : { token: auto.token, status: 'removed' });
+  }
+
   const autoCapturing = auto?.status === 'capturing';
+  const autoLate = auto?.status === 'capturing' && auto.late === true;
   const autoToken = auto?.token;
   useEffect(() => {
     const take = captureRef.current;
@@ -543,6 +567,7 @@ export function GiveAiAppFeedbackDialog({
           source: 'auto',
           outcome: 'succeeded',
           ms: Math.round(performance.now() - startedAt),
+          ...(autoLate && { late: true }),
         });
       })
       .catch((error: unknown) => {
@@ -553,9 +578,10 @@ export function GiveAiAppFeedbackDialog({
           outcome: 'failed',
           ms: Math.round(performance.now() - startedAt),
           error: error instanceof Error ? error.message.slice(0, 60) : 'failed',
+          ...(autoLate && { late: true }),
         });
       });
-  }, [autoCapturing, autoToken, appUid]);
+  }, [autoCapturing, autoLate, autoToken, appUid]);
 
   const removeAutoChip = () => {
     if (!auto) return;
@@ -604,6 +630,9 @@ export function GiveAiAppFeedbackDialog({
   useEffect(() => {
     if (isOpen) loadDraft(here);
     else loadTicketRef.current += 1;
+    if (isOpen && (auto?.status === 'waiting' || auto?.status === 'draft')) {
+      analytics.onFeedbackAutoShotSkipped({ appUid, reason: auto.status === 'draft' ? 'draft' : 'no-bridge' });
+    }
     // Once per open: `here` is set in the render that opens it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, openCount]);
@@ -650,7 +679,7 @@ export function GiveAiAppFeedbackDialog({
 
   /* The draft in the panel is already kept as it stands. */
   const openDraft = (draft: SavedDraft) => {
-    if (auto?.status === 'capturing') setAuto({ token: auto.token, status: 'removed' });
+    if (auto?.status === 'capturing' || auto?.status === 'waiting') setAuto({ token: auto.token, status: 'removed' });
     setShowDrafts(false);
     loadDraft(draft.place ?? {});
   };
@@ -720,11 +749,12 @@ export function GiveAiAppFeedbackDialog({
   /* A fresh form for the place this panel was opened on, as if it had just been opened. */
   const giveMoreFeedback = useCallback(() => {
     const hasDraft = Boolean(readFeedbackDraft(feedbackDraftKey(here)));
-    setAuto(canCapture && !hasDraft ? { token: openCount + 1, status: 'capturing' } : null);
+    setAuto(autoAtOpen(hasDraft, openCount + 1));
     setBridgeFailed(false);
     setOpenCount(openCount + 1);
     setShowSent(false);
-  }, [here, canCapture, openCount]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [here, canCapture, captureExpected, openCount]);
 
   /**
    * One place to land a failed capture: report it, say the right thing, and
@@ -741,7 +771,13 @@ export function GiveAiAppFeedbackDialog({
     if (isPersistentReason(error.reason)) setCaptureClosedBy(error.reason);
   };
 
+  /* The member asked for a picture themselves: a late automatic one would be a second, unasked. */
+  const dropWaitingAuto = () => {
+    if (auto?.status === 'waiting') setAuto({ token: auto.token, status: 'removed' });
+  };
+
   const onTakeScreenshot = async () => {
+    dropWaitingAuto();
     analytics.onFeedbackScreenshotClicked();
     /* Hidden before the share prompt, not after it: the stream's first frame is
        painted when the member accepts, and the grab below reads that frame. Hiding
@@ -961,7 +997,7 @@ export function GiveAiAppFeedbackDialog({
       return;
     }
     /* Sending doesn't wait for the automatic screenshot: it goes without it. */
-    if (auto?.status === 'capturing') setAuto({ token: auto.token, status: 'removed' });
+    if (auto?.status === 'capturing' || auto?.status === 'waiting') setAuto({ token: auto.token, status: 'removed' });
 
     /* Context and pins-as-data describe the app on screen; feedback switched to
        another app in the picker gets neither (its pins would be located on the
@@ -1199,7 +1235,7 @@ export function GiveAiAppFeedbackDialog({
               )}
               <button
                 type="button"
-                className={s.shortcutsLink}
+                className={clsx(s.shortcutsLink, s.shortcutsHelpLink)}
                 onClick={() => {
                   analytics.onFeedbackShortcutsHelpOpened();
                   setShortcutsOpen(true);
@@ -1245,7 +1281,7 @@ export function GiveAiAppFeedbackDialog({
                   aria-keyshortcuts="Escape"
                 >
                   Close
-                  <kbd className={s.kbd} aria-hidden="true">
+                  <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
                     Esc
                   </kbd>
                 </Button>
@@ -1256,7 +1292,7 @@ export function GiveAiAppFeedbackDialog({
                   aria-keyshortcuts={shortcuts.sendAria}
                 >
                   Give more feedback
-                  <kbd className={clsx(s.kbd, s.kbdOnPrimary)} aria-hidden="true">
+                  <kbd className={clsx(s.kbd, s.kbdOnPrimary, s.kbdHint)} aria-hidden="true">
                     {shortcuts.send}
                   </kbd>
                 </Button>
@@ -1441,7 +1477,7 @@ export function GiveAiAppFeedbackDialog({
                             >
                               <CrosshairIcon />
                               Pick a part
-                              <kbd className={s.kbd} aria-hidden="true">
+                              <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
                                 {shortcuts.screenshot}
                               </kbd>
                             </button>
@@ -1455,13 +1491,16 @@ export function GiveAiAppFeedbackDialog({
                                   <button
                                     type="button"
                                     className={s.screenshotButton}
-                                    onClick={() => fileInputRef.current?.click()}
+                                    onClick={() => {
+                                      dropWaitingAuto();
+                                      fileInputRef.current?.click();
+                                    }}
                                     disabled={isPending}
                                     aria-keyshortcuts={shortcuts.screenshotAria}
                                   >
                                     <ImageIcon />
                                     Attach image
-                                    <kbd className={s.kbd} aria-hidden="true">
+                                    <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
                                       {shortcuts.screenshot}
                                     </kbd>
                                   </button>
@@ -1484,7 +1523,7 @@ export function GiveAiAppFeedbackDialog({
                                 >
                                   <CameraIcon />
                                   Take screenshot
-                                  <kbd className={s.kbd} aria-hidden="true">
+                                  <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
                                     {shortcuts.screenshot}
                                   </kbd>
                                 </button>
@@ -1617,7 +1656,7 @@ export function GiveAiAppFeedbackDialog({
                     aria-keyshortcuts="Escape"
                   >
                     Cancel
-                    <kbd className={s.kbd} aria-hidden="true">
+                    <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
                       Esc
                     </kbd>
                   </Button>
@@ -1628,7 +1667,7 @@ export function GiveAiAppFeedbackDialog({
                     aria-keyshortcuts={shortcuts.sendAria}
                   >
                     {isPending ? 'Sending…' : 'Send feedback'}
-                    <kbd className={clsx(s.kbd, s.kbdOnPrimary)} aria-hidden="true">
+                    <kbd className={clsx(s.kbd, s.kbdOnPrimary, s.kbdHint)} aria-hidden="true">
                       {shortcuts.send}
                     </kbd>
                   </Button>

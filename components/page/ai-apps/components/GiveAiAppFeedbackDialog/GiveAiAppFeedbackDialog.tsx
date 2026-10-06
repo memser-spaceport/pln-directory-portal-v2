@@ -236,6 +236,11 @@ interface Props {
    * waits for it, and takes the automatic screenshot when it arrives.
    */
   captureExpected?: boolean;
+  /**
+   * The panel hid itself for a capture (true) or came back (false). The host
+   * hides its own floating controls with it, so a screen share shows only the app.
+   */
+  onHiddenChange?: (hidden: boolean) => void;
 }
 
 /**
@@ -333,6 +338,7 @@ export function GiveAiAppFeedbackDialog({
   frameRef,
   bridgeMissing = false,
   captureExpected = false,
+  onHiddenChange,
 }: Props) {
   const { currentUser } = useCurrentUserStore();
   const [overlayStyle, setOverlayStyle] = useState<CSSProperties>();
@@ -429,6 +435,7 @@ export function GiveAiAppFeedbackDialog({
   const [bridgeFailed, setBridgeFailed] = useState(false);
   const useBridge = canCapture && !bridgeFailed;
   const isBusy = isCapturing || Boolean(freezeSrc) || Boolean(cropSrc) || isPickingPart;
+  const isHidden = isOpen && isBusy;
   const isPending = isAppFeedbackPending || isContactSupportPending || isHostingImages || isRequestedCapture;
   /* The picture still on its way counts: it's a slot the member can see. */
   const shotCount = screenshots.length + (auto?.status === 'capturing' ? 1 : 0);
@@ -437,10 +444,17 @@ export function GiveAiAppFeedbackDialog({
   /* Fresh refs for the capture effect, which must not re-run (and re-capture) when they change identity. */
   const captureRef = useRef(capture);
   const analyticsRef = useRef(analytics);
+  const onHiddenChangeRef = useRef(onHiddenChange);
   useEffect(() => {
     captureRef.current = capture;
     analyticsRef.current = analytics;
+    onHiddenChangeRef.current = onHiddenChange;
   });
+
+  /* Declared after the fresh refs, so it reads this render's callback. */
+  useEffect(() => {
+    onHiddenChangeRef.current?.(isHidden);
+  }, [isHidden]);
 
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -767,10 +781,15 @@ export function GiveAiAppFeedbackDialog({
   const onTakeScreenshot = async () => {
     dropWaitingAuto();
     analytics.onFeedbackScreenshotClicked();
+    /* Hidden before the share prompt, not after it: the stream's first frame is
+       painted when the member accepts, and the grab below reads that frame. Hiding
+       only once the stream exists left the panel in the picture (LAB-2759). */
+    flushSync(() => setIsCapturing(true));
     let stream: MediaStream;
     try {
       stream = await requestTabCapture();
     } catch (error) {
+      setIsCapturing(false);
       if (error instanceof CaptureError) {
         handleCaptureFailure(error, 'request');
         return;
@@ -780,7 +799,6 @@ export function GiveAiAppFeedbackDialog({
       return;
     }
 
-    flushSync(() => setIsCapturing(true));
     try {
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       const frame = await grabVideoFrame(stream);

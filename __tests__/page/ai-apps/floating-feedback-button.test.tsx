@@ -27,7 +27,9 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
     headerTabs,
     capture,
     bridgeMissing,
+    onHiddenChange,
   }: {
+    onHiddenChange?: (hidden: boolean) => void;
     bridgeMissing?: boolean;
     capture?: () => Promise<unknown>;
     headerTabs?: React.ReactNode;
@@ -48,6 +50,12 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
         {anchorRef?.current ? 'Feedback dialog open' : 'Feedback dialog unanchored'}
         <button type="button" onClick={() => onClose?.()}>
           Close feedback
+        </button>
+        <button type="button" onClick={() => onHiddenChange?.(true)}>
+          Start capture
+        </button>
+        <button type="button" onClick={() => onHiddenChange?.(false)}>
+          End capture
         </button>
       </div>
     ) : null;
@@ -113,6 +121,23 @@ describe('FloatingFeedbackButton', () => {
     // The trigger sits in the bottom-right corner; measuring down from it would
     // put the panel below the fold.
     expect(dialog).toHaveAttribute('data-placement', 'above');
+  });
+
+  /* LAB-2759: a screen share of the tab must show only the app, so the button
+     leaves the picture whenever the form hides itself for a capture. */
+  it('hides the floating button while the form is hidden for a capture, and brings it back after', () => {
+    withAccess();
+
+    const { container } = render(<FloatingFeedbackButton />);
+    fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+    const wrap = container.querySelector('[data-collapsed]');
+    expect(wrap?.className).not.toMatch(/wrapHidden/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Start capture' }));
+    expect(wrap?.className).toMatch(/wrapHidden/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'End capture' }));
+    expect(wrap?.className).not.toMatch(/wrapHidden/);
   });
 
   describe('the introduction', () => {
@@ -399,6 +424,29 @@ describe('FloatingFeedbackButton', () => {
       expect(screen.getByRole('complementary', { name: 'Pin feedback' })).toBeInTheDocument();
       expect(pins.startPicking).toHaveBeenCalledTimes(1);
       expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
+    });
+
+    /* LAB-2759: the pin markers sit over the app, so a screen share would grab them too. */
+    it('takes the pin markers out of the picture while the form is hidden for a capture', () => {
+      withAccess();
+      const pin = { id: 'pin-1', note: '', rect: { x: 10, y: 10, w: 40, h: 20 } };
+      const frameRef = { current: document.createElement('iframe') };
+      render(
+        <FloatingFeedbackButton
+          appUid="app-1"
+          appName="My App"
+          elementPins={controller('ready', [pin])}
+          iframeRef={frameRef}
+        />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+      expect(screen.getByRole('button', { name: 'Pin 1' })).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Start capture' }));
+      expect(screen.queryByRole('button', { name: 'Pin 1' })).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'End capture' }));
+      expect(screen.getByRole('button', { name: 'Pin 1' })).toBeInTheDocument();
     });
 
     it("hands the bridge's capture to the form when the app's bridge can capture", () => {

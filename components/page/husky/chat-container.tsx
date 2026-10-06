@@ -40,7 +40,11 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
       takePendingVisitChat();
       openVisitChat(threadId ? getVisitChat(threadId) : null);
     };
-    openVisitChat(takePendingVisitChat());
+    // a chat picked in the rail on another page: open it once this page is mounted
+    const pendingChat = takePendingVisitChat();
+    if (pendingChat) {
+      queueMicrotask(() => openVisitChat(pendingChat));
+    }
     document.addEventListener(OPEN_VISIT_CHAT_EVENT, handleOpenVisitChat);
     return () => {
       document.removeEventListener(OPEN_VISIT_CHAT_EVENT, handleOpenVisitChat);
@@ -53,9 +57,11 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
     if (initialChat) {
       try {
         const parsedChat = JSON.parse(initialChat);
-        setType(parsedChat.type);
-        setInitialMessages([{ ...parsedChat.message, isError: false }]);
         localStorage.removeItem('initialChat');
+        queueMicrotask(() => {
+          setType(parsedChat.type);
+          setInitialMessages([{ ...parsedChat.message, isError: false }]);
+        });
       } catch (error) {
         console.error('Error parsing initial chat:', error);
       }

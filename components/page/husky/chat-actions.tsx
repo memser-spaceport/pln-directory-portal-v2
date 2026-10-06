@@ -1,5 +1,5 @@
 import CopyText from '@/components/core/copy-text';
-import { memo } from 'react';
+import { memo, ReactNode } from 'react';
 
 type ChatMessageActions = {
   onQuestionEdit: (ques: string) => void;
@@ -11,6 +11,8 @@ type ChatMessageActions = {
   question: string;
   hideActions: boolean;
   isLoadingObject: boolean;
+  // Replaces the "Submit feedback" (1-5 dialog) button, e.g. with inline thumbs on the AI Search page
+  feedbackSlot?: ReactNode;
 };
 
 const ChatMessageActions = ({
@@ -23,6 +25,7 @@ const ChatMessageActions = ({
   question,
   hideActions,
   isLoadingObject,
+  feedbackSlot,
 }: ChatMessageActions) => {
   const handleFeedbackClick = async () => {
     await onFeedback(question, answer);
@@ -57,12 +60,15 @@ const ChatMessageActions = ({
               />
             </CopyText>
           )}
-          <img
-            className="chat-message-actions__item"
-            title="Submit feedback"
-            onClick={handleFeedbackClick}
-            src="/icons/feedback.svg"
-          />
+          {feedbackSlot === undefined && (
+            <img
+              className="chat-message-actions__item"
+              title="Submit feedback"
+              onClick={handleFeedbackClick}
+              src="/icons/feedback.svg"
+            />
+          )}
+          {feedbackSlot}
         </div>
       </div>
 

@@ -14,7 +14,7 @@ interface HuskySourceCardProps {
   sourceRefs?: HuskySourceRef[];
 }
 
-function sourceItems(sources: string[] | undefined, sourceRefs: HuskySourceRef[] | undefined): SourceItem[] {
+export function sourceItems(sources: string[] | undefined, sourceRefs: HuskySourceRef[] | undefined): SourceItem[] {
   if (sourceRefs?.length) {
     return sourceRefs.flatMap((ref) => {
       const href = ref.directoryLink || ref.externalUrl;

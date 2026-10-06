@@ -21,6 +21,10 @@ interface MessagesProps {
   onCopyAnswer: (answer: string) => Promise<void>;
   onFollowupClicked: (question: string) => void;
   isLoadingObject: boolean;
+  layout?: 'dialog' | 'page';
+  // True while the last message's answer is still streaming in
+  isStreaming?: boolean;
+  canRate?: boolean;
 }
 
 const Messages: React.FC<MessagesProps> = ({
@@ -33,6 +37,9 @@ const Messages: React.FC<MessagesProps> = ({
   onQuestionEdit,
   onCopyAnswer,
   isLoadingObject,
+  layout = 'dialog',
+  isStreaming = false,
+  canRate = true,
 }) => {
   return (
     <>
@@ -49,6 +56,9 @@ const Messages: React.FC<MessagesProps> = ({
             onCopyAnswer={onCopyAnswer}
             isLoadingObject={isLoadingObject}
             isAnswerLoading={isAnswerLoading}
+            layout={layout}
+            isStreaming={isStreaming && index === messages.length - 1}
+            canRate={canRate}
           />
         ))}
         {isAnswerLoading && <HuskyAnswerLoader label={statusLine} />}

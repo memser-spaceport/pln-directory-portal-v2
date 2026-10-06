@@ -8,6 +8,8 @@ import RelatedResults from './related-results';
 import FollowupQuestions from './followup-questions';
 import ChatMessageActions from '@/components/page/husky/chat-actions';
 import DirectoryResults from './directory-results';
+import AnswerSources from './answer-sources';
+import AnswerThumbs from './answer-thumbs';
 interface PreviewMessageProps {
   message: {
     answer: string;
@@ -28,6 +30,12 @@ interface PreviewMessageProps {
   onCopyAnswer: (answer: string) => Promise<void>;
   isLoadingObject: boolean;
   isAnswerLoading: boolean;
+  // 'page': the AI Search page reading column (sources after the answer, inline thumbs); 'dialog': the search dialog
+  layout?: 'dialog' | 'page';
+  // True while this message's answer is still streaming in
+  isStreaming?: boolean;
+  // False when the viewer may not rate (a shared thread they do not own)
+  canRate?: boolean;
 }
 
 const PreviewMessage: React.FC<PreviewMessageProps> = ({
@@ -40,7 +48,21 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
   onCopyAnswer,
   isLoadingObject,
   isAnswerLoading,
+  layout = 'dialog',
+  isStreaming = false,
+  canRate = true,
 }) => {
+  const isPage = layout === 'page';
+  const hasSources = (message.sourceRefs?.length || message.sources?.length || 0) > 0;
+
+  let feedbackSlot;
+  if (isPage) {
+    feedbackSlot =
+      isStreaming || message.isError ? null : (
+        <AnswerThumbs question={message.question || ''} answer={message.answer || ''} disabled={!canRate} />
+      );
+  }
+
   return (
     <div className={`preview-message`}>
       {/* question */}
@@ -64,7 +86,7 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
           {message?.answer && (
             <>
               {/* sources */}
-              {(message.sourceRefs?.length || message.sources?.length || 0) > 0 && (
+              {!isPage && hasSources && (
                 <div className="preview-message__header">
                   <PopoverDp.Wrapper>
                     <InfoBox
@@ -99,6 +121,9 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
 
               {/* related results */}
               {message.actions?.length > 0 && <RelatedResults actions={message.actions} />}
+
+              {/* sources after the answer (page) */}
+              {isPage && !isStreaming && <AnswerSources sources={message.sources} sourceRefs={message.sourceRefs} />}
             </>
           )}
 
@@ -113,6 +138,7 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
             question={message.question || ''}
             answer={message.answer || ''}
             hideActions={message.isError || false}
+            feedbackSlot={feedbackSlot}
           />
         </div>
       )}

@@ -1,0 +1,111 @@
+// AI Search question field (see chat-composer.tsx). Card border at rest, brand edge on focus,
+// a round send button in the bottom-right corner. Values from the LAB-2702 prototype.
+
+.root {
+  position: relative;
+  display: flex;
+  width: 100%;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 16px;
+  background: var(--background-neutral-primary, #fff);
+  box-shadow: 0 1px 2px var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  transition:
+    border-color 0.15s ease-out,
+    box-shadow 0.15s ease-out;
+  cursor: text;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+
+  &:focus-within {
+    border-color: var(--border-brand-primary, #1b4dff);
+    box-shadow: 0 0 0 3px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+// One line tall under an open chat; the send button sits on its line.
+.input {
+  flex: 1;
+  min-width: 0;
+  min-height: 56px;
+  max-height: 200px;
+  padding: 16px 56px 16px 16px;
+  border: 0;
+  outline: 0;
+  border-radius: 16px;
+  background: none;
+  resize: none;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 24px;
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+// The new-chat page's field: room for a real question before it grows.
+.home .input {
+  min-height: 104px;
+  padding-bottom: 56px;
+}
+
+.send {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--background-brand-primary, #1b4dff);
+  color: var(--foreground-neutral-inverse, #fff);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease-out,
+    opacity 0.15s ease-out;
+
+  &:hover:not(:disabled) {
+    background: var(--background-brand-primary-hover, #0f3cd9);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// One-line field: the send button centres on the line (56px tall, 32px button).
+.root:not(.home) .send {
+  bottom: 11px;
+}
+
+.stop {
+  background: var(--foreground-neutral-primary, #0a0c11);
+
+  &:hover:not(:disabled) {
+    background: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+.stopMark {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: currentColor;
+}

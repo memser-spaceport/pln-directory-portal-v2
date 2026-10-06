@@ -7,13 +7,13 @@ import Messages from './messages';
 import ChatFeedback from './chat-feedback';
 import HuskyLimitStrip from '@/components/core/husky/husky-limit-strip';
 import { DAILY_CHAT_LIMIT, PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
-import { generateUUID, getUniqueId, isMobileDevice, triggerLoader } from '@/utils/common.utils';
+import { generateUUID, getUniqueId, triggerLoader } from '@/utils/common.utils';
 import ChatHome from './chat-home';
 import { IAnalyticsUserInfo } from '@/types/shared.types';
 import { getUserCredentials } from '@/utils/auth.utils';
 import RegisterFormLoader from '@/components/core/register/register-form-loader';
 import { getChatCount, updateLimitType, updateChatCount, checkRefreshToken } from '@/utils/husky.utlils';
-import ChatInput from './chat-input';
+import ChatComposer from './chat-composer';
 import { createHuskyThread, createThreadTitle, duplicateThread } from '@/services/husky.service';
 import { useSidebar } from './sidebar';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
@@ -506,10 +506,10 @@ const Chat: React.FC<ChatProps> = ({
                     from="husky-chat"
                   />
                 )}
-                <ChatInput
+                <ChatComposer
                   ref={textareaRef}
                   placeholder="Go ahead, ask anything!"
-                  rows={isMobileDevice() ? 1 : 2}
+                  rows={1}
                   autoFocus
                   onKeyDown={handleKeyDown}
                   onTextSubmit={submitForm}

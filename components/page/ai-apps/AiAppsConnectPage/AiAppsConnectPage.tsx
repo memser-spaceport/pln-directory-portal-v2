@@ -40,7 +40,9 @@ export function AiAppsConnectPage() {
     setIsApproving(false);
   }
   const currentSessionIdRef = useRef(sessionId);
-  currentSessionIdRef.current = sessionId;
+  useEffect(() => {
+    currentSessionIdRef.current = sessionId;
+  }, [sessionId]);
 
   useEffect(() => {
     if (!sessionId) {

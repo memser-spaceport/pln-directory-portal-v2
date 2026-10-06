@@ -84,6 +84,7 @@ import {
 import s from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/GiveAiAppFeedbackDialog.module.scss';
 import local from './FeedbackDoors.module.scss';
 import { AnnotatorModal } from './AnnotatorModal';
+import { feedbackHref } from '../FeedbackPage';
 
 /**
  * COPY-SIMPLIFY of production `GiveAiAppFeedbackDialog` (develop, 2026-10-05):
@@ -96,7 +97,7 @@ import { AnnotatorModal } from './AnnotatorModal';
  * - nothing is uploaded — screenshots go into the sent text as data URLs;
  * - analytics are a no-op; element pins (the bridge's pin flow) are left out,
  *   comment mode replaces them;
- * - "See your feedback" goes to the ai-apps-feedback prototype.
+ * - "See your feedback" opens this prototype's Feedback page on "Given".
  */
 
 type Analytics = ReturnType<typeof useAiAppsAnalytics>;
@@ -1177,7 +1178,7 @@ export function GiveAiAppFeedbackDialog({
                 <h3 className={s.sentTitle}>Feedback sent</h3>
                 <p className={s.sentText}>Thanks for your feedback!</p>
                 {sentToApp && (
-                  <Link href="/prototypes/ai-apps-feedback" className={s.sentLink} onClick={onClose}>
+                  <Link href={feedbackHref('mine')} className={s.sentLink} onClick={onClose}>
                     See your feedback and its status
                   </Link>
                 )}

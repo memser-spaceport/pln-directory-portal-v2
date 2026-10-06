@@ -1,0 +1,260 @@
+@use 'styles/media';
+
+/*
+  The comments list as a drawer's content: it fills the drawer, the header
+  stays, and only the list scrolls.
+*/
+.panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: #fff;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  min-height: 64px;
+  padding: 12px 16px 12px 20px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.title {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.count {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.headActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* The feedback dialog's ✕: 16px grey glyph in a 24px disc. */
+.close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-subtle, #aebfff);
+    outline-offset: 1px;
+  }
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 4px 0;
+  overflow-y: auto;
+  list-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  li + li {
+    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-subtle, #aebfff);
+    outline-offset: -2px;
+  }
+}
+
+/* The thread that is open on the app — the brand wash the product uses for a selected row. */
+.rowOpen,
+.rowOpen:hover {
+  background: var(--background-brand-soft-surface, #f2f5ff);
+}
+
+.rowHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.who {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.time {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.badge {
+  flex-shrink: 0;
+}
+
+/* What the thread is about: the element's own words, quiet, one line. */
+.about {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.pinGlyph {
+  flex-shrink: 0;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.aboutLabel,
+.goneLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aboutGone {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.goneNote {
+  flex-shrink: 0;
+  font-weight: 500;
+
+  &::after {
+    content: '·';
+    margin-left: 4px;
+  }
+}
+
+.goneLabel {
+  text-decoration: line-through;
+}
+
+.text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.replies {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.empty {
+  margin: 0;
+  padding: 24px 20px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/*
+  Drawer iteration: the list as the feedback drawer's Comments tab. The drawer
+  header (24px gutter) names the app and closes, so this head explains the mode
+  instead of titling it; rows take the same 24px gutter so everything in the
+  drawer starts on one edge. The two lines are the old "Commenting" card's.
+*/
+.panelEmbedded {
+  flex: 1;
+  height: auto;
+
+  .row {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+.headEmbedded {
+  align-items: flex-start;
+  min-height: 0;
+  padding: 16px 24px;
+}
+
+.intro {
+  min-width: 0;
+}
+
+.introHint {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.introAudience {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

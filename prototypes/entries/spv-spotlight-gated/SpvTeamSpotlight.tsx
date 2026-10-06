@@ -10,8 +10,6 @@ import card from '@/components/page/demo-day/ActiveView/components/TeamsList/com
 import h from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileHeader/ProfileHeader.module.scss';
 // PL Spotlight's card primary (DemoDayActionButtons' Invest in Company).
 import act from '@/components/page/demo-day/DemoDayActionButtons/DemoDayActionButtons.module.scss';
-import { Tooltip } from '@/components/core/tooltip/tooltip';
-import { InfoCircleIconOutlined } from '@/components/icons/InfoCircleIconOutlined';
 import { SpvMediaCarousel } from './SpvMediaCarousel';
 import type { WebsiteImage } from './netholabs';
 import type { SpvTeam } from './teams';
@@ -46,22 +44,17 @@ export const SpvCardAction = ({
   href,
   onClick,
   note,
-  secondary,
 }: {
   label: string;
   // An href opens the DocSend in a new tab; otherwise it's a button.
   href?: string;
   onClick?: () => void;
   note?: React.ReactNode;
-  // The second call to action (2026-10-01 standup): set up the investor
-  // profile, to get the deals that fit. Review 2026-10-02: not a second button
-  // beside the primary but a link UNDER it, opening the note's sentence — the
-  // rest of the sentence is why it is worth doing.
-  // 2026-10-05: why it is worth doing moved off the page into a tooltip on an
-  // info icon beside the link, so the slot reads as one button and one link.
-  secondary?: { label: string; onClick: () => void; info?: React.ReactNode };
+  // (The investor-profile link that sat under the primary moved to a card of
+  // its own under the Spotlight description — SpvInvestorProfileCard, review
+  // 2026-10-05 — so this slot is the data room's alone.)
 }) => (
-  <div className={clsx(s.cardAction, (secondary || note) && s.cardActionWithNote)}>
+  <div className={clsx(s.cardAction, note && s.cardActionWithNote)}>
     <div className={s.cardActionButtons}>
       {href ? (
         <a
@@ -78,32 +71,7 @@ export const SpvCardAction = ({
         </button>
       )}
     </div>
-    {(secondary || note) && (
-      <div className={s.cardActionNote}>
-        {secondary && (
-          <span className={s.secondaryRow}>
-            <button type="button" className={clsx(s.inlineLink, s.secondaryLink)} onClick={secondary.onClick}>
-              {secondary.label} <ArrowRightIcon />
-            </button>
-            {secondary.info && (
-              <Tooltip
-                asChild
-                side="bottom"
-                align="center"
-                trigger={
-                  <button type="button" className={s.infoTrigger} aria-label="Why set up your investor profile">
-                    <InfoCircleIconOutlined width={16} height={16} />
-                  </button>
-                }
-                content={<span className={s.infoTooltip}>{secondary.info}</span>}
-              />
-            )}
-          </span>
-        )}
-        {secondary && note ? ' — ' : null}
-        {note}
-      </div>
-    )}
+    {note && <div className={s.cardActionNote}>{note}</div>}
   </div>
 );
 

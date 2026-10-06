@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+
+import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
 
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED } from '@/constants/filters';
@@ -17,6 +20,9 @@ import { AiAppsFilterView } from './AiAppsFilterView';
 import { AiAppsMobileFiltersView } from './AiAppsMobileFiltersView';
 import { FloatingFeedbackButton } from './prod/FeedbackButton';
 import { ViewFeedbackLink } from './ViewFeedbackLink';
+import { FeedbackPage, feedbackHref, type FeedbackView } from './FeedbackPage';
+import type { SubmittedFeedback } from './prod/FeedbackDialog';
+import { mockFeedbackRows } from './feedbackMocks';
 import { CreateAiAppModal } from './CreateAiAppModal';
 import { ManageAppModal } from './ManageAppModal';
 import { DeploymentSettingsModal } from './DeploymentSettingsModal';
@@ -71,6 +77,19 @@ export default function AiAppsFeedbackCommentsPrototype() {
 
   const { params, setParam } = useMockAiAppsFilterStore();
 
+  // Every feedback item; the Feedback page's two tabs are views of this list.
+  const [feedbackRows, setFeedbackRows] = useState<AiAppFeedbackRow[]>(mockFeedbackRows);
+  // The Feedback page is a URL state (?feedback=received|mine), so the masthead
+  // doors and the dialog's "See your feedback" link are plain links, and Back works.
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const rawView = searchParams.get('feedback');
+  const feedbackView: FeedbackView | null = rawView === 'received' || rawView === 'mine' ? rawView : null;
+  // Opening the page from an app's dialog leaves the app: "Back to all" is the grid.
+  useEffect(() => {
+    if (feedbackView) setSelectedUid(null);
+  }, [feedbackView]);
+
   const selected = apps.find((a) => a.uid === selectedUid) ?? null;
   const actionApp = action ? (apps.find((a) => a.uid === action.uid) ?? null) : null;
   const viewerApp = viewerUid ? (apps.find((a) => a.uid === viewerUid) ?? null) : null;
@@ -98,15 +117,36 @@ export default function AiAppsFeedbackCommentsPrototype() {
    * is dropped — dev routes it to contact-support, which this prototype has no
    * business faking.
    */
-  const submitFeedback = (appUid: string) =>
+  const submitFeedback = (f: SubmittedFeedback) => {
+    if (!apps.some((a) => a.uid === f.appUid)) return;
     setApps((prev) =>
       prev.map((a) =>
-        a.uid === appUid && a.activity ? { ...a, activity: { ...a.activity, feedback: a.activity.feedback + 1 } } : a,
+        a.uid === f.appUid && a.activity ? { ...a, activity: { ...a.activity, feedback: a.activity.feedback + 1 } } : a,
       ),
     );
+    // …and lands on the sender's "Given" tab as New.
+    setFeedbackRows((prev) => [
+      {
+        uid: `fb-sent-${Date.now()}`,
+        appUid: f.appUid,
+        appName: f.appName,
+        text: f.text,
+        status: 'NEW',
+        createdAt: new Date().toISOString(),
+        kind: 'FEEDBACK',
+        reportKind: f.reportKind ?? null,
+        priority: f.priority ?? null,
+        member: { uid: viewer.uid, name: viewer.name },
+      },
+      ...prev,
+    ]);
+  };
 
-  // Production's View feedback badge is the total reviewable feedback, not unread.
-  const feedbackTotal = apps.reduce((n, a) => n + (a.activity?.feedback ?? 0), 0);
+  const viewer = isCreator ? currentUser : visitorUser;
+  // Production's badges are totals, not unread: no read state exists on the backend.
+  const myAppUids = new Set(apps.filter((a) => a.member.uid === viewer.uid).map((a) => a.uid));
+  const receivedRows = feedbackRows.filter((r) => myAppUids.has(r.appUid));
+  const myRows = feedbackRows.filter((r) => r.member?.uid === viewer.uid);
 
   const filterCount = countAppliedFilters(params);
 
@@ -220,6 +260,24 @@ export default function AiAppsFeedbackCommentsPrototype() {
 
   if (!mounted) return <div className={proto.shell} />;
 
+  if (feedbackView) {
+    return (
+      <div className={proto.shell}>
+        {renderRoleToggle(true)}
+        <FeedbackPage
+          view={feedbackView}
+          received={receivedRows}
+          mine={myRows}
+          canReview={isCreator}
+          onViewChange={(v) => router.replace(feedbackHref(v))}
+          onStatusChange={(row, status) =>
+            setFeedbackRows((prev) => prev.map((r) => (r.uid === row.uid ? { ...r, status } : r)))
+          }
+        />
+      </div>
+    );
+  }
+
   if (selected) {
     return (
       <div className={`${proto.shell} ${commentsDrawer ? proto.shellWithDrawer : ''}`}>
@@ -254,8 +312,10 @@ export default function AiAppsFeedbackCommentsPrototype() {
         has both an identity block and a filter rail: title + description on the
         left, the list control and the page action on the right.
 
-        Production's masthead, as on main: Sort and, for admins and app
-        creators, "View feedback" with the total count. Giving feedback is the
+        Production's masthead, as on develop (5 Oct), has Sort plus two feedback
+        buttons ("Your feedback", "View feedback") leading to two pages. Here the
+        feedback you got and gave are tabs on one page, so there is one Feedback
+        door. Giving feedback is the
         floating door at the bottom of the page (production floats it on the
         grid too), not a masthead button — the `ai-apps` prototype moved it into
         this row; this copy puts it back where production has it.
@@ -285,7 +345,10 @@ export default function AiAppsFeedbackCommentsPrototype() {
               onSortChange={(v) => setParam('sort', v)}
             />
           </div>
-          {isCreator && <ViewFeedbackLink count={feedbackTotal} />}
+          <ViewFeedbackLink
+            newReceivedCount={receivedRows.filter((r) => r.status === 'NEW').length}
+            canReview={isCreator}
+          />
         </div>
       </div>
 
@@ -331,7 +394,7 @@ export default function AiAppsFeedbackCommentsPrototype() {
       <FloatingFeedbackButton
         apps={apps}
         viewer={isCreator ? currentUser : visitorUser}
-        onSubmit={(f) => submitFeedback(f.appUid)}
+        onSubmit={submitFeedback}
       />
     </div>
   );

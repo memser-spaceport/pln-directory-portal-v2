@@ -22,6 +22,15 @@ export interface Thread extends AppComment {
   annotations: AnnotationState | null;
   /** Ids of the comment (the thread's own id) and replies changed after posting — they read "Edited". */
   editedIds?: string[];
+  /** Kind and Priority picked in the composer (2026-10-06), the feedback form's triage. */
+  kind?: string;
+  priority?: string;
+}
+
+/** The composer's triage, posted with the comment. */
+export interface Triage {
+  kind: string;
+  priority: string;
 }
 
 /** A screenshot attached in the composer, with what was drawn on it. */
@@ -179,7 +188,7 @@ export function useThreads(appUid: string, viewer: Viewer) {
   );
 
   const add = useCallback(
-    (text: string, pin: PinTarget, attachment: Attachment | null): Thread => {
+    (text: string, pin: PinTarget, attachment: Attachment | null, triage?: Triage): Thread => {
       const thread: Thread = {
         ...pin.anchor,
         id: newId('t'),
@@ -193,6 +202,8 @@ export function useThreads(appUid: string, viewer: Viewer) {
         annotations: attachment?.annotations ?? null,
         replies: [],
         label: pin.label,
+        kind: triage?.kind,
+        priority: triage?.priority,
       };
       update((prev) => [thread, ...prev]);
       return thread;

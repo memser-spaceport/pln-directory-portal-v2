@@ -84,7 +84,6 @@ import {
 import s from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/GiveAiAppFeedbackDialog.module.scss';
 import local from './FeedbackDoors.module.scss';
 import { AnnotatorModal } from './AnnotatorModal';
-import { KindPills } from './KindPills';
 import polish from './FeedbackPolish.module.scss';
 import { FeedbackDrawerFrame } from './FeedbackDrawer';
 import dw from './FeedbackDrawer.module.scss';
@@ -105,7 +104,8 @@ import { feedbackHref } from '../FeedbackPage';
  *
  * POLISH PASS (ai-apps-feedback-polish, 2026-10-05) — deliberate deviations from
  * the transcription, each marked `Polish:` where it lives:
- * - Kind is production's TopicPills row instead of a select (`KindPills`);
+ * - (Superseded 2026-10-06 in the drawer: Kind is a select again, beside Priority.)
+ *   Kind is production's TopicPills row instead of a select (`KindPills`);
  *   labels are sentence case instead of the raw enum.
  * - Priority's field reads "P2 · Normal"; the explanation moves to the menu.
  * - Kind and Priority are hidden while the picker is on "LabOS - AI Apps":
@@ -206,7 +206,7 @@ interface Option {
 const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
 /* Polish: production showed the raw enum ("bug"). Same values, sentence-case labels. */
-const REPORT_KIND_OPTIONS: Option[] = AI_APP_FEEDBACK_REPORT_KINDS.map((kind) => ({
+export const REPORT_KIND_OPTIONS: Option[] = AI_APP_FEEDBACK_REPORT_KINDS.map((kind) => ({
   label: capitalize(kind),
   value: kind,
 }));
@@ -217,15 +217,17 @@ const REPORT_KIND_OPTIONS: Option[] = AI_APP_FEEDBACK_REPORT_KINDS.map((kind) =>
  * split in two: the field shows "P2 · Normal", and the menu lists the rest under
  * each option through FormSelect's own `description` line.
  */
-const PRIORITY_OPTIONS: (Option & { description: string })[] = Object.entries(AI_APP_FEEDBACK_PRIORITY_LABELS).map(
-  ([value, label]) => {
-    const [code, name, ...rest] = label.split(' — ');
-    return { label: `${code} · ${name}`, value, description: capitalize(rest.join(' — ')) };
-  },
-);
+export const PRIORITY_OPTIONS: (Option & { description: string })[] = Object.entries(
+  AI_APP_FEEDBACK_PRIORITY_LABELS,
+).map(([value, label]) => {
+  const [code, name, ...rest] = label.split(' — ');
+  return { label: `${code} · ${name}`, value, description: capitalize(rest.join(' — ')) };
+});
 
-const DEFAULT_REPORT_KIND: Option = REPORT_KIND_OPTIONS[0];
-const DEFAULT_PRIORITY: Option = PRIORITY_OPTIONS.find((option) => option.value === 'P2') ?? PRIORITY_OPTIONS[0];
+/* 2026-10-06: Request is the default Kind (was Bug, the first option). */
+export const DEFAULT_REPORT_KIND: Option =
+  REPORT_KIND_OPTIONS.find((option) => option.value === 'request') ?? REPORT_KIND_OPTIONS[0];
+export const DEFAULT_PRIORITY: Option = PRIORITY_OPTIONS.find((option) => option.value === 'P2') ?? PRIORITY_OPTIONS[0];
 
 /* Polish: the note's counter stays out of the way until the limit is close. */
 const COUNT_SHOWS_FROM = MAX_LENGTH * 0.9;
@@ -477,7 +479,6 @@ export function GiveAiAppFeedbackDialog({
   const noteLength = visibleFeedbackLength(noteView === 'rich' ? rich : markdownToHtml(markdown));
   const isOverLimit = noteLength > MAX_LENGTH;
   const noteLabelId = useId();
-  const kindLabelId = useId();
   /* Polish: a support send ("LabOS - AI Apps") drops Kind and Priority, so they aren't asked. */
   const isSupport = app?.value === LABOS_AI_APPS_OPTION.value;
 
@@ -1189,7 +1190,8 @@ export function GiveAiAppFeedbackDialog({
   /* Drawer: the Comments tab is a list beside the app, so it is always the narrow drawer. */
   const isWideShown = isWide && !showingAlt;
   /* Drawer: inside an app, the app it is about names the panel (it follows a draft picked from Drafts). */
-  const title = isDrawer && appUid ? `Feedback · ${app?.label ?? appName ?? 'this app'}` : 'Give feedback';
+  /* 2026-10-06: the app name alone — "Feedback ·" repeated the switch under it and stayed wrong on the Comments tab. */
+  const title = isDrawer && appUid ? (app?.label ?? appName ?? 'This app') : 'Give feedback';
   const draftNoteShown = restoredSince !== null && worthKeeping;
   /* Without the picker (and no draft note) the wide grid's first right-hand row is empty: move up into it. */
   const lift = isWideShown && !showAppPicker && !draftNoteShown;
@@ -1197,158 +1199,157 @@ export function GiveAiAppFeedbackDialog({
   /* Drawer: with a switch, the form's own links sit beside it, so the title row keeps room for the app's name. */
   const formLinks = (
     <>
-              {!showingAlt && !showSent && otherDrafts.length > 0 && (
-                <button
-                  type="button"
-                  className={clsx(s.shortcutsLink, local.textLink)}
-                  aria-expanded={showDrafts}
-                  onClick={() => setShowDrafts((open) => !open)}
-                >
-                  Drafts · {otherDrafts.length}
-                </button>
-              )}
-              {!showingAlt && (
-                <button
-                  type="button"
-                  className={clsx(s.shortcutsLink, s.shortcutsHelpLink, local.textLink)}
-                  onClick={() => {
-                    analytics.onFeedbackShortcutsHelpOpened();
-                    setShortcutsOpen(true);
-                  }}
-                >
-                  Shortcuts
-                </button>
-              )}
+      {!showingAlt && !showSent && otherDrafts.length > 0 && (
+        <button
+          type="button"
+          className={clsx(s.shortcutsLink, local.textLink)}
+          aria-expanded={showDrafts}
+          onClick={() => setShowDrafts((open) => !open)}
+        >
+          Drafts · {otherDrafts.length}
+        </button>
+      )}
+      {!showingAlt && (
+        <button
+          type="button"
+          className={clsx(s.shortcutsLink, s.shortcutsHelpLink, local.textLink)}
+          onClick={() => {
+            analytics.onFeedbackShortcutsHelpOpened();
+            setShortcutsOpen(true);
+          }}
+        >
+          Shortcuts
+        </button>
+      )}
     </>
   );
 
   const panel = (
-        <div className={clsx(s.root, isDrawer && dw.root)}>
-          <div className={clsx(s.header, isDrawer && switchSlot && dw.headerWithSwitch)}>
-            {headerTabs ?? <h2 className={clsx(s.title, isDrawer && dw.title)}>{title}</h2>}
-            <div className={clsx(s.headerActions, isDrawer && dw.headerActions)}>
-              {!switchSlot && formLinks}
-              {!showingAlt && (
-                /* Drawer: the arrows alone didn't say what they do. The word is the state a press gives you. */
-                <button
-                  type="button"
-                  className={clsx(s.closeButton, polish.hideOnPhone, dw.sizeToggle)}
-                  aria-label={isWide ? 'Narrow' : 'Wide'}
-                  title={isWide ? 'Narrower' : 'Wider'}
-                  onClick={() => {
-                    writeWide(!isWide);
-                    setIsWide(!isWide);
-                  }}
-                >
-                  {isWide ? <NarrowerIcon /> : <WiderIcon />}
-                  <span className={clsx(s.kbd, dw.sizeLabel)} aria-hidden="true">
-                    {isWide ? 'Narrow' : 'Wide'}
-                  </span>
-                </button>
-              )}
-              <button type="button" className={s.closeButton} onClick={onClose} aria-label="Close">
-                <CloseIcon width={16} height={16} />
-              </button>
-            </div>
-          </div>
-          {switchSlot && (
-            <div className={dw.switchRow}>
-              {switchSlot}
-              <div className={dw.formLinks}>{formLinks}</div>
-            </div>
+    <div className={clsx(s.root, isDrawer && dw.root)}>
+      <div className={clsx(s.header, isDrawer && switchSlot && dw.headerWithSwitch)}>
+        {headerTabs ?? <h2 className={clsx(s.title, isDrawer && dw.title)}>{title}</h2>}
+        <div className={clsx(s.headerActions, isDrawer && dw.headerActions)}>
+          {!switchSlot && formLinks}
+          {!showingAlt && (
+            /* Drawer: the arrows alone didn't say what they do. The word is the state a press gives you. */
+            <button
+              type="button"
+              className={clsx(s.closeButton, polish.hideOnPhone, dw.sizeToggle)}
+              aria-label={isWide ? 'Narrow' : 'Wide'}
+              title={isWide ? 'Narrower' : 'Wider'}
+              onClick={() => {
+                writeWide(!isWide);
+                setIsWide(!isWide);
+              }}
+            >
+              {isWide ? <NarrowerIcon /> : <WiderIcon />}
+              <span className={clsx(s.kbd, dw.sizeLabel)} aria-hidden="true">
+                {isWide ? 'Narrow' : 'Wide'}
+              </span>
+            </button>
           )}
-          {showingAlt && <div className={dw.altPane}>{altBody}</div>}
+          <button type="button" className={s.closeButton} onClick={onClose} aria-label="Close">
+            <CloseIcon width={16} height={16} />
+          </button>
+        </div>
+      </div>
+      {switchSlot && (
+        <div className={dw.switchRow}>
+          {switchSlot}
+          <div className={dw.formLinks}>{formLinks}</div>
+        </div>
+      )}
+      {showingAlt && <div className={dw.altPane}>{altBody}</div>}
 
-          <div className={clsx(dw.formPane, showingAlt && dw.paneHidden)}>
-          {showSent ? (
+      <div className={clsx(dw.formPane, showingAlt && dw.paneHidden)}>
+        {showSent ? (
+          <div className={s.content}>
+            <div className={s.sent} role="status">
+              <h3 className={s.sentTitle}>Feedback sent</h3>
+              <p className={s.sentText}>Thanks for your feedback!</p>
+              {sentToApp && (
+                <Link href={feedbackHref('mine')} className={s.sentLink} onClick={onClose}>
+                  See your feedback and its status
+                </Link>
+              )}
+            </div>
+            <div className={s.footerActions}>
+              <Button
+                style="border"
+                variant="neutral"
+                className={s.footerButton}
+                onClick={onClose}
+                aria-keyshortcuts="Escape"
+              >
+                Close
+                <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
+                  Esc
+                </kbd>
+              </Button>
+              <Button
+                autoFocus
+                className={s.footerButton}
+                onClick={giveMoreFeedback}
+                aria-keyshortcuts={shortcuts.sendAria}
+              >
+                Give more feedback
+                <kbd className={clsx(s.kbd, s.kbdOnPrimary, s.kbdHint)} aria-hidden="true">
+                  {shortcuts.send}
+                </kbd>
+              </Button>
+            </div>
+            {sentReports.length > 1 && (
+              <div className={s.drafts}>
+                <p className={s.fieldLabel}>Sent while this was open · {sentReports.length}</p>
+                <ul className={s.draftList}>
+                  {sentReports.map((opening, index) => (
+                    <li key={index} className={s.sentRow}>
+                      {opening || 'No text'}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
             <div className={s.content}>
-              <div className={s.sent} role="status">
-                <h3 className={s.sentTitle}>Feedback sent</h3>
-                <p className={s.sentText}>Thanks for your feedback!</p>
-                {sentToApp && (
-                  <Link href={feedbackHref('mine')} className={s.sentLink} onClick={onClose}>
-                    See your feedback and its status
-                  </Link>
-                )}
-              </div>
-              <div className={s.footerActions}>
-                <Button
-                  style="border"
-                  variant="neutral"
-                  className={s.footerButton}
-                  onClick={onClose}
-                  aria-keyshortcuts="Escape"
-                >
-                  Close
-                  <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
-                    Esc
-                  </kbd>
-                </Button>
-                <Button
-                  autoFocus
-                  className={s.footerButton}
-                  onClick={giveMoreFeedback}
-                  aria-keyshortcuts={shortcuts.sendAria}
-                >
-                  Give more feedback
-                  <kbd className={clsx(s.kbd, s.kbdOnPrimary, s.kbdHint)} aria-hidden="true">
-                    {shortcuts.send}
-                  </kbd>
-                </Button>
-              </div>
-              {sentReports.length > 1 && (
+              {topSlot}
+              {showDrafts && otherDrafts.length > 0 && (
                 <div className={s.drafts}>
-                  <p className={s.fieldLabel}>Sent while this was open · {sentReports.length}</p>
+                  <p className={s.fieldLabel}>Unsent, kept in this browser · {otherDrafts.length}</p>
                   <ul className={s.draftList}>
-                    {sentReports.map((opening, index) => (
-                      <li key={index} className={s.sentRow}>
-                        {opening || 'No text'}
+                    {otherDrafts.map((draft) => (
+                      <li key={draft.key}>
+                        <button type="button" className={s.draftRow} onClick={() => openDraft(draft)}>
+                          <span className={s.draftTitle}>
+                            {firstLine(draft.view ? markdownToHtml(draft.message) : draft.message) || 'No words yet'}
+                          </span>
+                          <span className={s.draftMeta}>
+                            {placeLabel(draft.place ?? {})} · {formatDraftTime(draft.savedAt)}
+                            {draft.pictures
+                              ? ` · ${draft.pictures} ${draft.pictures === 1 ? 'picture' : 'pictures'}`
+                              : ''}
+                          </span>
+                        </button>
                       </li>
                     ))}
                   </ul>
+                  <p className={s.shotNote}>
+                    Choosing one puts it in this panel, pictures and all
+                    {worthKeeping ? '; the one here now is kept' : ''}.
+                  </p>
                 </div>
               )}
-            </div>
-          ) : (
-            <>
-              <div className={s.content}>
-                {topSlot}
-                {showDrafts && otherDrafts.length > 0 && (
-                  <div className={s.drafts}>
-                    <p className={s.fieldLabel}>Unsent, kept in this browser · {otherDrafts.length}</p>
-                    <ul className={s.draftList}>
-                      {otherDrafts.map((draft) => (
-                        <li key={draft.key}>
-                          <button type="button" className={s.draftRow} onClick={() => openDraft(draft)}>
-                            <span className={s.draftTitle}>
-                              {firstLine(draft.view ? markdownToHtml(draft.message) : draft.message) || 'No words yet'}
-                            </span>
-                            <span className={s.draftMeta}>
-                              {placeLabel(draft.place ?? {})} · {formatDraftTime(draft.savedAt)}
-                              {draft.pictures
-                                ? ` · ${draft.pictures} ${draft.pictures === 1 ? 'picture' : 'pictures'}`
-                                : ''}
-                            </span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                    <p className={s.shotNote}>
-                      Choosing one puts it in this panel, pictures and all
-                      {worthKeeping ? '; the one here now is kept' : ''}.
-                    </p>
-                  </div>
-                )}
-                <FormProvider {...methods}>
-                  <div
-                    className={s.form}
-                    onKeyDownCapture={(event) => {
-                      /* Kept from Quill, which would type a tab: Tab moves to the next field. */
-                      if (event.key === 'Tab' && (event.target as HTMLElement).isContentEditable)
-                        event.stopPropagation();
-                    }}
-                  >
-                    {(showAppPicker || draftNoteShown) && (
+              <FormProvider {...methods}>
+                <div
+                  className={s.form}
+                  onKeyDownCapture={(event) => {
+                    /* Kept from Quill, which would type a tab: Tab moves to the next field. */
+                    if (event.key === 'Tab' && (event.target as HTMLElement).isContentEditable) event.stopPropagation();
+                  }}
+                >
+                  {(showAppPicker || draftNoteShown) && (
                     <div className={s.formGroup}>
                       {draftNoteShown && (
                         <p className={s.draftNote}>
@@ -1379,325 +1380,324 @@ export function GiveAiAppFeedbackDialog({
                         <p className={s.fieldError}>Please select an app</p>
                       )}
                     </div>
-                    )}
+                  )}
 
-                    <div className={clsx(s.formGroup, s.shotsColumn)}>
-                      {/* Production: PinSummary for the bridge pin flow — not in this copy. */}
+                  <div className={clsx(s.formGroup, s.shotsColumn)}>
+                    {/* Production: PinSummary for the bridge pin flow — not in this copy. */}
 
-                      <div className={s.shots}>
-                        <p className={s.fieldLabel}>
-                          Screenshots
-                          {shotCount > 0 && <span className={s.shotCount}> · {shotCount}</span>}
+                    <div className={s.shots}>
+                      <p className={s.fieldLabel}>
+                        Screenshots
+                        {shotCount > 0 && <span className={s.shotCount}> · {shotCount}</span>}
+                      </p>
+                      {auto?.status === 'capturing' && (
+                        <div className={clsx(s.shot, s.shotPending)} role="status" aria-label="Capturing the app">
+                          <span className={s.shotPendingText}>Capturing the app…</span>
+                          <div className={s.shotActions}>
+                            <button
+                              type="button"
+                              className={s.shotAction}
+                              aria-label="Remove screenshot"
+                              onClick={removeAutoChip}
+                            >
+                              <CloseIcon width={12} height={12} />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {bridgeMissing && (
+                        <p className={s.shotNote}>
+                          This app is built on an older starter kit, so instant screenshots aren&apos;t available. Its
+                          author can update it to turn them on.
                         </p>
-                        {auto?.status === 'capturing' && (
-                          <div className={clsx(s.shot, s.shotPending)} role="status" aria-label="Capturing the app">
-                            <span className={s.shotPendingText}>Capturing the app…</span>
+                      )}
+                      {auto?.status === 'failed' && screenshots.length === 0 && (
+                        <p className={s.shotNote}>Couldn’t capture the app automatically — add a screenshot below.</p>
+                      )}
+                      {screenshots.map((shot, index) => (
+                        <figure key={shot.id} className={s.shotFigure}>
+                          <div className={s.shot}>
+                            <button
+                              type="button"
+                              className={s.shotImage}
+                              aria-label={`Open screenshot ${index + 1}`}
+                              onClick={() => onEditShot(shot)}
+                            >
+                              {/* Marks show on the preview too, so nothing drawn is out of sight (prototype). */}
+                              {hasAnyAnnotation(shot.annotations) ? (
+                                <AnnotatedPreview
+                                  src={shot.imageDataUrl}
+                                  alt={`Screenshot ${index + 1}`}
+                                  annotations={shot.annotations}
+                                />
+                              ) : (
+                                <img src={shot.imageDataUrl} alt={`Screenshot ${index + 1}`} />
+                              )}
+                            </button>
                             <div className={s.shotActions}>
                               <button
                                 type="button"
                                 className={s.shotAction}
-                                aria-label="Remove screenshot"
-                                onClick={removeAutoChip}
+                                aria-label={`Annotate screenshot ${index + 1}`}
+                                onClick={() => onEditShot(shot)}
+                              >
+                                <PencilSimpleLineIcon width={12} height={12} />
+                                <span aria-hidden="true">Annotate</span>
+                              </button>
+                              <button
+                                type="button"
+                                className={s.shotAction}
+                                aria-label={`Remove screenshot ${index + 1}`}
+                                onClick={() => {
+                                  if (shot.source === 'auto') {
+                                    analytics.onFeedbackAutoShotRemoved({ appUid, whileCapturing: false });
+                                  }
+                                  requestRemoveShot(shot);
+                                }}
                               >
                                 <CloseIcon width={12} height={12} />
                               </button>
                             </div>
                           </div>
-                        )}
-                        {bridgeMissing && (
-                          <p className={s.shotNote}>
-                            This app is built on an older starter kit, so instant screenshots aren&apos;t available. Its
-                            author can update it to turn them on.
-                          </p>
-                        )}
-                        {auto?.status === 'failed' && screenshots.length === 0 && (
-                          <p className={s.shotNote}>Couldn’t capture the app automatically — add a screenshot below.</p>
-                        )}
-                        {screenshots.map((shot, index) => (
-                          <figure key={shot.id} className={s.shotFigure}>
-                            <div className={s.shot}>
-                              <button
-                                type="button"
-                                className={s.shotImage}
-                                aria-label={`Open screenshot ${index + 1}`}
-                                onClick={() => onEditShot(shot)}
-                              >
-                                {/* Marks show on the preview too, so nothing drawn is out of sight (prototype). */}
-                                {hasAnyAnnotation(shot.annotations) ? (
-                                  <AnnotatedPreview
-                                    src={shot.imageDataUrl}
-                                    alt={`Screenshot ${index + 1}`}
-                                    annotations={shot.annotations}
-                                  />
-                                ) : (
-                                  <img src={shot.imageDataUrl} alt={`Screenshot ${index + 1}`} />
-                                )}
-                              </button>
-                              <div className={s.shotActions}>
-                                <button
-                                  type="button"
-                                  className={s.shotAction}
-                                  aria-label={`Annotate screenshot ${index + 1}`}
-                                  onClick={() => onEditShot(shot)}
-                                >
-                                  <PencilSimpleLineIcon width={12} height={12} />
-                                  <span aria-hidden="true">Annotate</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  className={s.shotAction}
-                                  aria-label={`Remove screenshot ${index + 1}`}
-                                  onClick={() => {
-                                    if (shot.source === 'auto') {
-                                      analytics.onFeedbackAutoShotRemoved({ appUid, whileCapturing: false });
-                                    }
-                                    requestRemoveShot(shot);
-                                  }}
-                                >
-                                  <CloseIcon width={12} height={12} />
-                                </button>
-                              </div>
-                            </div>
-                            {shot.source === 'page' && <figcaption className={s.shotCaption}>Whole page</figcaption>}
-                            {shot.source === 'part' && (
-                              <figcaption className={s.shotCaption}>Part of the page</figcaption>
-                            )}
-                          </figure>
-                        ))}
-                        {canCapture ? (
+                          {shot.source === 'page' && <figcaption className={s.shotCaption}>Whole page</figcaption>}
+                          {shot.source === 'part' && (
+                            <figcaption className={s.shotCaption}>Part of the page</figcaption>
+                          )}
+                        </figure>
+                      ))}
+                      {canCapture ? (
+                        <div className={s.shotButtons}>
+                          <button
+                            type="button"
+                            className={s.screenshotButton}
+                            onClick={() => void onWholePage()}
+                            disabled={isPending || atShotLimit}
+                          >
+                            <CameraIcon />
+                            Whole page
+                          </button>
+                          <button
+                            type="button"
+                            className={s.screenshotButton}
+                            onClick={onPickPart}
+                            disabled={isPending || atShotLimit}
+                            aria-keyshortcuts={shortcuts.screenshotAria}
+                          >
+                            <CrosshairIcon />
+                            Pick a part
+                            <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
+                              {shortcuts.screenshot}
+                            </kbd>
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <p className={s.screenshotHint}>{SCREENSHOT_HINTS[captureClosedBy ?? 'open']}</p>
                           <div className={s.shotButtons}>
-                            <button
-                              type="button"
-                              className={s.screenshotButton}
-                              onClick={() => void onWholePage()}
-                              disabled={isPending || atShotLimit}
-                            >
-                              <CameraIcon />
-                              Whole page
-                            </button>
-                            <button
-                              type="button"
-                              className={s.screenshotButton}
-                              onClick={onPickPart}
-                              disabled={isPending || atShotLimit}
-                              aria-keyshortcuts={shortcuts.screenshotAria}
-                            >
-                              <CrosshairIcon />
-                              Pick a part
-                              <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
-                                {shortcuts.screenshot}
-                              </kbd>
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            <p className={s.screenshotHint}>{SCREENSHOT_HINTS[captureClosedBy ?? 'open']}</p>
-                            <div className={s.shotButtons}>
-                              {captureClosedBy ? (
-                                <>
-                                  <button
-                                    type="button"
-                                    className={s.screenshotButton}
-                                    onClick={() => fileInputRef.current?.click()}
-                                    disabled={isPending}
-                                    aria-keyshortcuts={shortcuts.screenshotAria}
-                                  >
-                                    <ImageIcon />
-                                    Attach image
-                                    <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
-                                      {shortcuts.screenshot}
-                                    </kbd>
-                                  </button>
-                                  <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    className={s.fileInput}
-                                    onChange={onAttachImage}
-                                    aria-label="Attach image"
-                                  />
-                                </>
-                              ) : (
+                            {captureClosedBy ? (
+                              <>
                                 <button
                                   type="button"
                                   className={s.screenshotButton}
-                                  onClick={onTakeScreenshot}
+                                  onClick={() => fileInputRef.current?.click()}
                                   disabled={isPending}
                                   aria-keyshortcuts={shortcuts.screenshotAria}
                                 >
-                                  <CameraIcon />
-                                  Take screenshot
+                                  <ImageIcon />
+                                  Attach image
                                   <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
                                     {shortcuts.screenshot}
                                   </kbd>
                                 </button>
-                              )}
-                            </div>
-                          </>
-                        )}
-                        {atShotLimit && <p className={s.shotNote}>Up to {MAX_SCREENSHOTS} screenshots.</p>}
+                                <input
+                                  ref={fileInputRef}
+                                  type="file"
+                                  accept="image/*"
+                                  className={s.fileInput}
+                                  onChange={onAttachImage}
+                                  aria-label="Attach image"
+                                />
+                              </>
+                            ) : (
+                              <button
+                                type="button"
+                                className={s.screenshotButton}
+                                onClick={onTakeScreenshot}
+                                disabled={isPending}
+                                aria-keyshortcuts={shortcuts.screenshotAria}
+                              >
+                                <CameraIcon />
+                                Take screenshot
+                                <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
+                                  {shortcuts.screenshot}
+                                </kbd>
+                              </button>
+                            )}
+                          </div>
+                        </>
+                      )}
+                      {atShotLimit && <p className={s.shotNote}>Up to {MAX_SCREENSHOTS} screenshots.</p>}
+                    </div>
+                  </div>
+
+                  <div className={s.writing} style={lift ? { gridRow: 1 } : undefined}>
+                    <div className={s.noteHeader}>
+                      <p className={s.fieldLabel} id={noteLabelId}>
+                        Your feedback
+                      </p>
+                      <div className={s.noteViews} role="tablist" aria-label="Show the note as">
+                        {(['rich', 'markdown'] as const).map((view) => (
+                          <button
+                            key={view}
+                            type="button"
+                            role="tab"
+                            aria-selected={noteView === view}
+                            className={clsx(s.noteView, noteView === view && s.noteViewActive)}
+                            onClick={() => switchNoteView(view)}
+                          >
+                            {view === 'rich' ? 'Rich' : 'Markdown'}
+                          </button>
+                        ))}
                       </div>
                     </div>
-
-                    <div className={s.writing} style={lift ? { gridRow: 1 } : undefined}>
-                      <div className={s.noteHeader}>
-                        <p className={s.fieldLabel} id={noteLabelId}>
-                          Your feedback
-                        </p>
-                        <div className={s.noteViews} role="tablist" aria-label="Show the note as">
-                          {(['rich', 'markdown'] as const).map((view) => (
-                            <button
-                              key={view}
-                              type="button"
-                              role="tab"
-                              aria-selected={noteView === view}
-                              className={clsx(s.noteView, noteView === view && s.noteViewActive)}
-                              onClick={() => switchNoteView(view)}
-                            >
-                              {view === 'rich' ? 'Rich' : 'Markdown'}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      {noteView === 'rich' ? (
-                        <FormEditor
-                          name="rich"
-                          placeholder={FEEDBACK_PLACEHOLDER}
-                          simplified
-                          toolbarConfig={FEEDBACK_TOOLBAR}
-                          markdownShortcuts
-                          minHeight={isWideShown ? 360 : 120}
-                          className={s.editor}
-                        />
-                      ) : (
-                        <textarea
-                          {...register('markdown')}
-                          aria-labelledby={noteLabelId}
-                          placeholder={FEEDBACK_PLACEHOLDER}
-                          className={s.noteSource}
-                          style={{ minHeight: isWideShown ? 402 : 162 }}
-                        />
-                      )}
-                      {/* Polish: production said nothing here — Send with an empty form simply didn't send. */}
-                      {submitAttempted && !hasFeedbackContent(note, screenshots.length) && (
-                        <p className={clsx(s.fieldError, polish.noteError)} role="alert">
-                          Write a note or add a screenshot to send.
-                        </p>
-                      )}
-                      {noteLength >= COUNT_SHOWS_FROM && (
-                        <span className={clsx(s.noteCount, isOverLimit && s.noteCountOver)}>
-                          {noteLength} / {MAX_LENGTH}
-                        </span>
-                      )}
-                    </div>
-
-                    {!isSupport && (
-                      <div className={clsx(s.triage, polish.triage)} style={lift ? { gridRow: 2 } : undefined}>
-                        <div className={polish.kind}>
-                          <p className={s.fieldLabel} id={kindLabelId}>
-                            Kind
-                          </p>
-                          <KindPills
-                            aria-labelledby={kindLabelId}
-                            options={REPORT_KIND_OPTIONS}
-                            value={reportKind ?? DEFAULT_REPORT_KIND.value}
-                            onChange={(option) => setValue('reportKind', option, { shouldDirty: true })}
-                          />
-                        </div>
-                        <div className={polish.priority}>
-                          <FormSelect
-                            name="priority"
-                            label="Priority"
-                            placeholder="Priority"
-                            options={PRIORITY_OPTIONS}
-                            menuPortalTarget={typeof document === 'undefined' ? null : document.body}
-                          />
-                        </div>
-                      </div>
+                    {noteView === 'rich' ? (
+                      <FormEditor
+                        name="rich"
+                        placeholder={FEEDBACK_PLACEHOLDER}
+                        simplified
+                        toolbarConfig={FEEDBACK_TOOLBAR}
+                        markdownShortcuts
+                        minHeight={isWideShown ? 360 : 120}
+                        className={s.editor}
+                      />
+                    ) : (
+                      <textarea
+                        {...register('markdown')}
+                        aria-labelledby={noteLabelId}
+                        placeholder={FEEDBACK_PLACEHOLDER}
+                        className={s.noteSource}
+                        style={{ minHeight: isWideShown ? 402 : 162 }}
+                      />
+                    )}
+                    {/* Polish: production said nothing here — Send with an empty form simply didn't send. */}
+                    {submitAttempted && !hasFeedbackContent(note, screenshots.length) && (
+                      <p className={clsx(s.fieldError, polish.noteError)} role="alert">
+                        Write a note or add a screenshot to send.
+                      </p>
+                    )}
+                    {noteLength >= COUNT_SHOWS_FROM && (
+                      <span className={clsx(s.noteCount, isOverLimit && s.noteCountOver)}>
+                        {noteLength} / {MAX_LENGTH}
+                      </span>
                     )}
                   </div>
-                </FormProvider>
 
-                {/* Portalled out: this panel is a small anchored popover, and a
+                  {!isSupport && (
+                    <div className={clsx(s.triage, polish.triage)} style={lift ? { gridRow: 2 } : undefined}>
+                      {/* 2026-10-06: Kind back to a select, on one line with Priority. */}
+                      <div className={polish.kind}>
+                        <FormSelect
+                          name="reportKind"
+                          label="Kind"
+                          placeholder="Kind"
+                          options={REPORT_KIND_OPTIONS}
+                          menuPortalTarget={typeof document === 'undefined' ? null : document.body}
+                        />
+                      </div>
+                      <div className={polish.priority}>
+                        <FormSelect
+                          name="priority"
+                          label="Priority"
+                          placeholder="Priority"
+                          options={PRIORITY_OPTIONS}
+                          menuPortalTarget={typeof document === 'undefined' ? null : document.body}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </FormProvider>
+
+              {/* Portalled out: this panel is a small anchored popover, and a
                 `fixed` child of it is laid out against the popover rather than
                 the viewport wherever a transform survives on the container. */}
-                <ConfirmLayer isOpen={Boolean(pendingRemoveShot)}>
-                  <ConfirmDialog
-                    isOpen
-                    title="Delete screenshot?"
-                    message="This screenshot and the annotations on it will be removed from your feedback."
-                    confirmText="Delete"
-                    cancelText="Keep"
-                    onConfirm={() => {
-                      if (pendingRemoveShot) onRemoveShot(pendingRemoveShot.id);
-                      setPendingRemoveId(null);
-                    }}
-                    onCancel={() => setPendingRemoveId(null)}
-                  />
-                </ConfirmLayer>
-                <ConfirmLayer isOpen={isDiscardPending}>
-                  <ConfirmDialog
-                    isOpen
-                    title="Discard this draft?"
-                    message="What you wrote and your screenshots, with the marks on them, will be deleted from this browser."
-                    confirmText="Discard"
-                    cancelText="Keep"
-                    onConfirm={discardDraft}
-                    onCancel={() => setIsDiscardPending(false)}
-                  />
-                </ConfirmLayer>
+              <ConfirmLayer isOpen={Boolean(pendingRemoveShot)}>
+                <ConfirmDialog
+                  isOpen
+                  title="Delete screenshot?"
+                  message="This screenshot and the annotations on it will be removed from your feedback."
+                  confirmText="Delete"
+                  cancelText="Keep"
+                  onConfirm={() => {
+                    if (pendingRemoveShot) onRemoveShot(pendingRemoveShot.id);
+                    setPendingRemoveId(null);
+                  }}
+                  onCancel={() => setPendingRemoveId(null)}
+                />
+              </ConfirmLayer>
+              <ConfirmLayer isOpen={isDiscardPending}>
+                <ConfirmDialog
+                  isOpen
+                  title="Discard this draft?"
+                  message="What you wrote and your screenshots, with the marks on them, will be deleted from this browser."
+                  confirmText="Discard"
+                  cancelText="Keep"
+                  onConfirm={discardDraft}
+                  onCancel={() => setIsDiscardPending(false)}
+                />
+              </ConfirmLayer>
 
-                <div className={clsx(s.postingAs, polish.postingAs)}>
-                  <CommentIcon />
-                  <span>
-                    {/* Polish: the source's literal space before "·" never rendered ("Bublii· visible"). */}
-                    Posting as <strong>{currentUser?.name ?? 'you'}</strong>
-                    {' · '}visible to the app&apos;s author and LabOS admins
-                  </span>
-                </div>
+              <div className={clsx(s.postingAs, polish.postingAs)}>
+                <CommentIcon />
+                <span>
+                  {/* Polish: the source's literal space before "·" never rendered ("Bublii· visible"). */}
+                  Posting as <strong>{currentUser?.name ?? 'you'}</strong>
+                  {' · '}visible to the app&apos;s author and LabOS admins
+                </span>
               </div>
+            </div>
 
-              <div className={s.footer}>
-                <div className={s.footerActions}>
-                  {worthKeeping && (
-                    <Button
-                      style="link"
-                      variant="error"
-                      className={s.discardButton}
-                      onClick={() => setIsDiscardPending(true)}
-                    >
-                      Discard
-                    </Button>
-                  )}
+            <div className={s.footer}>
+              <div className={s.footerActions}>
+                {worthKeeping && (
                   <Button
-                    style="border"
-                    variant="neutral"
-                    className={s.footerButton}
-                    onClick={onClose}
-                    aria-keyshortcuts="Escape"
+                    style="link"
+                    variant="error"
+                    className={s.discardButton}
+                    onClick={() => setIsDiscardPending(true)}
                   >
-                    Cancel
-                    <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
-                      Esc
-                    </kbd>
+                    Discard
                   </Button>
-                  <Button
-                    className={s.footerButton}
-                    onClick={onSubmit}
-                    disabled={isPending || isOverLimit}
-                    aria-keyshortcuts={shortcuts.sendAria}
-                  >
-                    {isPending ? 'Sending…' : 'Send feedback'}
-                    <kbd className={clsx(s.kbd, s.kbdOnPrimary, s.kbdHint)} aria-hidden="true">
-                      {shortcuts.send}
-                    </kbd>
-                  </Button>
-                </div>
+                )}
+                <Button
+                  style="border"
+                  variant="neutral"
+                  className={s.footerButton}
+                  onClick={onClose}
+                  aria-keyshortcuts="Escape"
+                >
+                  Cancel
+                  <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
+                    Esc
+                  </kbd>
+                </Button>
+                <Button
+                  className={s.footerButton}
+                  onClick={onSubmit}
+                  disabled={isPending || isOverLimit}
+                  aria-keyshortcuts={shortcuts.sendAria}
+                >
+                  {isPending ? 'Sending…' : 'Send feedback'}
+                  <kbd className={clsx(s.kbd, s.kbdOnPrimary, s.kbdHint)} aria-hidden="true">
+                    {shortcuts.send}
+                  </kbd>
+                </Button>
               </div>
-            </>
-          )}
-          </div>
-        </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 
   return (
@@ -1707,11 +1707,11 @@ export function GiveAiAppFeedbackDialog({
           {panel}
         </FeedbackDrawerFrame>
       ) : (
-      <Modal
-        isOpen={isOpen}
-        onClose={onClose}
-        closeOnBackdropClick={false}
-        /* `pendingRemoveId` is in here but NOT in `isBusy`, which also hides this
+        <Modal
+          isOpen={isOpen}
+          onClose={onClose}
+          closeOnBackdropClick={false}
+          /* `pendingRemoveId` is in here but NOT in `isBusy`, which also hides this
            overlay: while the delete confirmation is up, Escape has to stop
            reaching this dialog, but the dialog it is asking about must stay
            visible behind it.
@@ -1720,18 +1720,18 @@ export function GiveAiAppFeedbackDialog({
            the typed draft with it — `Modal` registers its handler on `document`
            in the capture phase and calls `stopImmediatePropagation`, so nothing
            the confirmation registers later could ever intercept it. */
-        closeOnEscape={!isBusy && !pendingRemoveId && !shortcutsOpen && !isDiscardPending}
-        overlayClassname={clsx(
-          s.overlay,
-          placement === 'above' && s.overlayAbove,
-          isWide && s.overlayWide,
-          isBusy && s.overlayHidden,
-        )}
-        overlayStyle={overlayStyle}
-        className={clsx(s.modalContainer, isWide && s.modalContainerWide)}
-      >
-        {panel}
-      </Modal>
+          closeOnEscape={!isBusy && !pendingRemoveId && !shortcutsOpen && !isDiscardPending}
+          overlayClassname={clsx(
+            s.overlay,
+            placement === 'above' && s.overlayAbove,
+            isWide && s.overlayWide,
+            isBusy && s.overlayHidden,
+          )}
+          overlayStyle={overlayStyle}
+          className={clsx(s.modalContainer, isWide && s.modalContainerWide)}
+        >
+          {panel}
+        </Modal>
       )}
       {freezeSrc && (
         <RegionSelectOverlay freezeSrc={freezeSrc} onSelect={onCropSelected} onCancel={onRegionSelectCancel} />

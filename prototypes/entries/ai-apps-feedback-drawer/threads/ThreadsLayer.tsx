@@ -13,7 +13,7 @@ import cl from '../../feedback-shared/comments/CommentLayer.module.scss';
 import { CommentComposer } from './CommentComposer';
 import { ThreadCard } from './ThreadCard';
 import { describeElement } from './describe';
-import type { Attachment, PinTarget, Thread, ThreadStore, Viewer } from './useThreads';
+import type { Attachment, PinTarget, Thread, ThreadStore, Triage, Viewer } from './useThreads';
 import s from './ThreadsLayer.module.scss';
 
 const THREAD_WIDTH = 340;
@@ -243,9 +243,9 @@ export function ThreadsLayer(props: Props) {
     setComposing({ target, text: '', attachment: null });
   };
 
-  const post = () => {
+  const post = (triage: Triage) => {
     if (!composing || !composing.text.trim()) return;
-    const thread = store.add(composing.text.trim(), composing.target, composing.attachment);
+    const thread = store.add(composing.text.trim(), composing.target, composing.attachment, triage);
     setComposing(null);
     onOpen(thread.id);
   };

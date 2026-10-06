@@ -1,0 +1,62 @@
+// Additions to the current sources pill (ai-search/AnswerSources.module.scss).
+
+/* The citation pill's own drawing (AnswerProse .cite), so "2" in the prose and
+   "2" here are visibly the same thing. */
+.num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+/* Record pictures in place of initials: 16 in the pill's stack (with the
+   stack's white ring), 24 in a row. */
+.pic,
+.picBig {
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--background-neutral-primary, #fff);
+}
+
+.pic {
+  width: 16px;
+  height: 16px;
+  box-shadow: 0 0 0 1.5px var(--background-neutral-primary, #fff);
+
+  & + & {
+    margin-left: -5px;
+  }
+}
+
+.picBig {
+  width: 24px;
+  height: 24px;
+}
+
+/* Hover/open goes brand, not grey (2026-10-06): the same soft-brand state as
+   the citation pill (AnswerProse .cite), so the sources pill and the numbers
+   it lists react as one family. Doubled class beats the shared pill's rule
+   without touching ai-search/AnswerSources (older entries still use it). */
+.pill.pill {
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+
+  &:hover,
+  &[data-popup-open] {
+    border-color: var(--border-brand-subtle, #aebfff);
+    background: var(--background-brand-soft-surface, #f2f5ff);
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}

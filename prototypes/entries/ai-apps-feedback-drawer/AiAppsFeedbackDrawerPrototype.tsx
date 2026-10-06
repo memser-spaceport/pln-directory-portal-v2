@@ -20,7 +20,8 @@ import { AiAppsFilterView } from './AiAppsFilterView';
 import { AiAppsMobileFiltersView } from './AiAppsMobileFiltersView';
 import { FloatingFeedbackButton } from './prod/FeedbackButton';
 import { ViewFeedbackLink } from './ViewFeedbackLink';
-import { FeedbackPage, feedbackHref, type FeedbackView } from './FeedbackPage';
+import { FeedbackPage, feedbackAppNames, feedbackHref, type FeedbackView } from './FeedbackPage';
+import { FeedbackFilterView } from './FeedbackFilterView';
 import type { SubmittedFeedback } from './prod/FeedbackDialog';
 import { ADMIN_APP_UIDS, mockFeedbackRows } from './feedbackMocks';
 import { CreateAiAppModal } from './CreateAiAppModal';
@@ -260,18 +261,31 @@ export default function AiAppsFeedbackDrawerPrototype() {
   if (!mounted) return <div className={proto.shell} />;
 
   if (feedbackView) {
+    /* 2026-10-06: the Feedback page gets the grid's frame, a filter rail on the left. */
+    const activeView: FeedbackView = isCreator ? feedbackView : 'mine';
+    const activeRows = activeView === 'received' ? receivedRows : myRows;
     return (
       <div className={proto.shell}>
         {renderRoleToggle(true)}
-        <FeedbackPage
-          view={feedbackView}
-          received={receivedRows}
-          mine={myRows}
-          canReview={isCreator}
-          adminApps={adminApps.map((a) => ({ uid: a.uid, name: a.name }))}
-          onViewChange={(v) => router.replace(feedbackHref(v))}
-          onStatusChange={(row, status) =>
-            setFeedbackRows((prev) => prev.map((r) => (r.uid === row.uid ? { ...r, status } : r)))
+        <DashboardPagesLayout
+          filters={
+            <FeedbackFilterView
+              rows={activeRows}
+              appNames={feedbackAppNames(activeView, adminApps, activeRows)}
+              showFrom={activeView === 'received'}
+            />
+          }
+          content={
+            <FeedbackPage
+              view={feedbackView}
+              received={receivedRows}
+              mine={myRows}
+              canReview={isCreator}
+              onViewChange={(v) => router.replace(feedbackHref(v))}
+              onStatusChange={(row, status) =>
+                setFeedbackRows((prev) => prev.map((r) => (r.uid === row.uid ? { ...r, status } : r)))
+              }
+            />
           }
         />
       </div>
@@ -387,11 +401,7 @@ export default function AiAppsFeedbackDrawerPrototype() {
     <div className={proto.shell}>
       <DashboardPagesLayout filters={<AiAppsFilterView apps={apps} />} content={content} />
       {/* Production floats the door on the grid too, outside the page frame. */}
-      <FloatingFeedbackButton
-        apps={apps}
-        viewer={isCreator ? currentUser : visitorUser}
-        onSubmit={submitFeedback}
-      />
+      <FloatingFeedbackButton apps={apps} viewer={isCreator ? currentUser : visitorUser} onSubmit={submitFeedback} />
     </div>
   );
 }

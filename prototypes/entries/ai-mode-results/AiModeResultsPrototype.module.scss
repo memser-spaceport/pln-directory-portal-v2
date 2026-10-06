@@ -1,0 +1,58 @@
+// Review-band extras for the ai-search-page entry: the "What changed" toggle
+// and its before/after table. Not part of the proposal.
+
+.changesToggle {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.changes {
+  max-width: 1264px;
+  margin: 0 auto;
+  padding: 0 16px 16px;
+  overflow-x: auto;
+}
+
+.changesTable {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-size: 12px;
+  line-height: 16px;
+
+  th,
+  td {
+    padding: 8px 12px 8px 0;
+    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    text-align: left;
+    vertical-align: top;
+  }
+
+  thead th {
+    border-top: 0;
+    color: var(--foreground-neutral-tertiary, #8897ae);
+    font-weight: 500;
+  }
+
+  tbody th {
+    width: 96px;
+    color: var(--foreground-neutral-primary, #0a0c11);
+    font-weight: 500;
+  }
+
+  td {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}

@@ -1,15 +1,6 @@
 'use client';
 
-/*
-  COPY of production `AnnotatorModal` (screenshot-feedback), verbatim except two
-  strings and one cut: the primary says "Add to comment", the discard dialog says
-  "comment" where production says "feedback", and the Comment tool (notes pinned
-  on the picture) is left out, button and C key, because those notes never show
-  up under the app's Comments (Anuj's review). Everything else is production's.
-*/
-'use client';
-
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import clsx from 'clsx';
 
 import { Modal } from '@/components/common/Modal/Modal';
@@ -26,7 +17,19 @@ import {
 } from '@/components/page/ai-apps/components/screenshot-feedback/AnnotationCanvas';
 import { emptyAnnotations, type AnnotationState } from '@/components/page/ai-apps/components/screenshot-feedback/types';
 
+// Production stylesheet, verbatim.
 import s from '@/components/page/ai-apps/components/screenshot-feedback/AnnotatorModal.module.scss';
+
+/*
+ * COPY of production `AnnotatorModal` (develop, 2026-10-05), regenerated from it
+ * 2026-10-06 so it matches prod (Text tool, data-tip tooltips, icon-only tools).
+ * Changes: the primary says "Add to comment" and the discard copy says
+ * "comment"; and
+ * the Comment tool (pins with notes on the screenshot) is left out, button and
+ * C key. Review (Anuj): notes placed on a capture never show up under the
+ * app's Comments, so two different things called "comment" confused people.
+ * Draw, Box, Oval, Arrow and Text stay.
+ */
 
 interface Props {
   imageSrc: string;
@@ -49,16 +52,16 @@ const TOOL_KEYS: Record<string, AnnotatorTool> = {
   r: 'rect',
   o: 'ellipse',
   a: 'arrow',
+  t: 'text',
 };
 
-const TOOL_LETTERS: Record<AnnotatorTool, string> = {
-  draw: 'P',
-  rect: 'R',
-  ellipse: 'O',
-  arrow: 'A',
-  comment: 'C',
-  text: 'T',
-};
+const TOOLS: { id: AnnotatorTool; name: string; letter: string; icon: ReactNode }[] = [
+  { id: 'draw', name: 'Draw', letter: 'P', icon: <PencilSimpleLineIcon width={16} height={16} /> },
+  { id: 'rect', name: 'Box', letter: 'R', icon: <BoxIcon /> },
+  { id: 'ellipse', name: 'Oval', letter: 'O', icon: <OvalIcon /> },
+  { id: 'arrow', name: 'Arrow', letter: 'A', icon: <ArrowIcon /> },
+  { id: 'text', name: 'Text', letter: 'T', icon: <TextIcon /> },
+];
 
 type History = {
   entries: AnnotationState[];
@@ -218,62 +221,22 @@ export function CommentAnnotator({ imageSrc, onDiscard, onAdd, onToolSelected, i
         </div>
 
         <div className={s.toolbar} role="toolbar" aria-label="Annotation tools">
-          <button
-            type="button"
-            className={clsx(s.tool, tool === 'draw' && s.toolActive)}
-            aria-pressed={tool === 'draw'}
-            aria-keyshortcuts="P"
-            title="Draw (P)"
-            onClick={() => selectTool('draw')}
-          >
-            <PencilSimpleLineIcon width={16} height={16} />
-            Draw
-            <kbd className={s.toolKey} aria-hidden="true">
-              {TOOL_LETTERS.draw}
-            </kbd>
-          </button>
-          <button
-            type="button"
-            className={clsx(s.tool, tool === 'rect' && s.toolActive)}
-            aria-pressed={tool === 'rect'}
-            aria-keyshortcuts="R"
-            title="Box (R)"
-            onClick={() => selectTool('rect')}
-          >
-            <BoxIcon />
-            Box
-            <kbd className={s.toolKey} aria-hidden="true">
-              {TOOL_LETTERS.rect}
-            </kbd>
-          </button>
-          <button
-            type="button"
-            className={clsx(s.tool, tool === 'ellipse' && s.toolActive)}
-            aria-pressed={tool === 'ellipse'}
-            aria-keyshortcuts="O"
-            title="Oval (O)"
-            onClick={() => selectTool('ellipse')}
-          >
-            <OvalIcon />
-            Oval
-            <kbd className={s.toolKey} aria-hidden="true">
-              {TOOL_LETTERS.ellipse}
-            </kbd>
-          </button>
-          <button
-            type="button"
-            className={clsx(s.tool, tool === 'arrow' && s.toolActive)}
-            aria-pressed={tool === 'arrow'}
-            aria-keyshortcuts="A"
-            title="Arrow (A)"
-            onClick={() => selectTool('arrow')}
-          >
-            <ArrowIcon />
-            Arrow
-            <kbd className={s.toolKey} aria-hidden="true">
-              {TOOL_LETTERS.arrow}
-            </kbd>
-          </button>
+          <div className={s.tools} role="group" aria-label="Tool">
+            {TOOLS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={clsx(s.tool, tool === item.id && s.toolActive)}
+                aria-pressed={tool === item.id}
+                aria-label={item.name}
+                aria-keyshortcuts={item.letter}
+                data-tip={`${item.name} (${item.letter})`}
+                onClick={() => selectTool(item.id)}
+              >
+                {item.icon}
+              </button>
+            ))}
+          </div>
 
           <div className={s.colors} role="group" aria-label="Draw color">
             {DRAW_COLORS.map((color) => (
@@ -304,7 +267,7 @@ export function CommentAnnotator({ imageSrc, onDiscard, onAdd, onToolSelected, i
               disabled={!canUndo}
               aria-label="Undo"
               aria-keyshortcuts={shortcuts.undoAria}
-              title={`Undo (${shortcuts.mod}+Z)`}
+              data-tip={`Undo (${shortcuts.undo})`}
             >
               <UndoIcon />
             </button>
@@ -315,7 +278,7 @@ export function CommentAnnotator({ imageSrc, onDiscard, onAdd, onToolSelected, i
               disabled={!canRedo}
               aria-label="Redo"
               aria-keyshortcuts={shortcuts.redoAria}
-              title={`Redo (${shortcuts.mod}+Shift+Z)`}
+              data-tip={`Redo (${shortcuts.redo})`}
             >
               <RedoIcon />
             </button>
@@ -382,6 +345,20 @@ export function CommentAnnotator({ imageSrc, onDiscard, onAdd, onToolSelected, i
         />
       </ConfirmLayer>
     </Modal>
+  );
+}
+
+function TextIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M3.5 4.5V3h9v1.5M8 3v10M6.2 13h3.6"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

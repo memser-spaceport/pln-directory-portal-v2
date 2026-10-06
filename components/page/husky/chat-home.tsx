@@ -109,8 +109,10 @@ const ChatHome = ({ onSubmit, setMessages, setType }: ChatHomeProps) => {
     }
   };
 
+  // The limit box shows at rest now (no focus needed), so check the limit once after mount.
   useEffect(() => {
-    setLimitReached(checkIsLimitReached());
+    const frame = requestAnimationFrame(() => setLimitReached(checkIsLimitReached()));
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   return (

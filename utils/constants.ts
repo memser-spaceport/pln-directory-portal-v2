@@ -2831,6 +2831,8 @@ export const SPV_SPOTLIGHT_ANALYTICS = {
   ON_SIGN_IN_CLICKED: 'spv-spotlight-sign-in-clicked',
   ON_OPEN_DATA_ROOM_CLICKED: 'spv-spotlight-open-data-room-clicked',
   ON_INVESTOR_PROFILE_CLICKED: 'spv-spotlight-investor-profile-clicked',
+  ON_INVESTOR_PROFILE_SAVED: 'spv-spotlight-investor-profile-saved',
+  ON_CONTACT_US_CLICKED: 'spv-spotlight-contact-us-clicked',
   ON_EXPLORE_TILE_CLICKED: 'spv-spotlight-explore-tile-clicked',
   ON_FOUNDER_PROFILE_CLICKED: 'spv-spotlight-founder-profile-clicked',
 };

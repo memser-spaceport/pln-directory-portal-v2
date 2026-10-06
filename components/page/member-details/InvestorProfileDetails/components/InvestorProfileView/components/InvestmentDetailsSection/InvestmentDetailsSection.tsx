@@ -1,4 +1,5 @@
 import React from 'react';
+import { clsx } from 'clsx';
 import { formatUSD } from '@/utils/formatUSD';
 import s from './InvestmentDetailsSection.module.scss';
 
@@ -10,6 +11,8 @@ interface Props {
   secRulesAccepted?: boolean | undefined;
   isEditable: boolean;
   onEdit?: () => void;
+  /** Marks the `+ Add …` pills (the fields still empty) in amber. */
+  highlightEmpty?: boolean;
 }
 
 const PlusIcon = () => (
@@ -28,7 +31,9 @@ export const InvestmentDetailsSection: React.FC<Props> = ({
   secRulesAccepted,
   isEditable,
   onEdit,
+  highlightEmpty,
 }) => {
+  const addPillClassName = clsx(s.addPill, highlightEmpty && s.addPillNeedsFill);
   const hasStartupStages = !!investInStartupStages?.length && secRulesAccepted;
   const hasTypicalCheckSize = !!typicalCheckSize && secRulesAccepted;
   const hasInvestmentFocus = !!investmentFocusAreas?.length && secRulesAccepted;
@@ -41,7 +46,7 @@ export const InvestmentDetailsSection: React.FC<Props> = ({
           {hasStartupStages ? (
             investInStartupStages?.join(', ')
           ) : isEditable ? (
-            <button type="button" className={s.addPill} onClick={onEdit}>
+            <button type="button" className={addPillClassName} onClick={onEdit}>
               <PlusIcon />
               <span>Add startup stages</span>
             </button>
@@ -57,7 +62,7 @@ export const InvestmentDetailsSection: React.FC<Props> = ({
           {hasTypicalCheckSize ? (
             <div className={s.badge}>{formatUSD.format(+typicalCheckSize)}</div>
           ) : isEditable ? (
-            <button type="button" className={s.addPill} onClick={onEdit}>
+            <button type="button" className={addPillClassName} onClick={onEdit}>
               <PlusIcon />
               <span>Typical check size</span>
             </button>
@@ -73,7 +78,7 @@ export const InvestmentDetailsSection: React.FC<Props> = ({
           {hasInvestmentFocus ? (
             investmentFocusAreas?.join(', ')
           ) : isEditable ? (
-            <button type="button" className={s.addPill} onClick={onEdit}>
+            <button type="button" className={addPillClassName} onClick={onEdit}>
               <PlusIcon />
               <span>Investment focus</span>
             </button>

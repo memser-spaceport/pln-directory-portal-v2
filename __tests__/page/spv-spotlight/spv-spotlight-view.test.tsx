@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { SpvSpotlightView } from '@/components/page/spv-spotlight/SpvSpotlightView';
 import { useCurrentUserStore } from '@/services/auth/store';
+import { useContactSupportStore } from '@/services/contact-support/store';
 import { useGetSpvSpotlight } from '@/services/spv-spotlight/hooks/useGetSpvSpotlight';
 import { buildSpvSpotlight, SPV_FIXTURE_SLUG as MOCK_SPV_SLUG } from '@/services/spv-spotlight/spv-spotlight.fixture';
 import {
@@ -19,7 +20,21 @@ const mockRequestAccess = jest.fn();
 const mockEmitAuthEvent = jest.fn();
 const mockClearAuthCookies = jest.fn();
 let mockShowExplore = false;
+let mockRequestFlow = false;
+let mockSearch = '';
+let mockMember: unknown = undefined;
 
+jest.mock('@/services/spv-spotlight/constants', () => ({
+  ...jest.requireActual('@/services/spv-spotlight/constants'),
+  get REQUEST_FLOW_ENABLED() {
+    return mockRequestFlow;
+  },
+}));
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn(), prefetch: jest.fn() }),
+  usePathname: () => '/mock-path',
+  useSearchParams: () => new URLSearchParams(mockSearch),
+}));
 jest.mock('@/services/explore-pl-network/constants', () => ({
   ...jest.requireActual('@/services/explore-pl-network/constants'),
   get SHOW_EXPLORE_PL_NETWORK() {
@@ -31,7 +46,7 @@ jest.mock('@/services/spv-spotlight/hooks/useGetSpvSpotlight', () => ({ useGetSp
 jest.mock('@/services/spv-spotlight/hooks/useRequestSpvAccess', () => ({
   useRequestSpvAccess: () => ({ mutateAsync: (...args: unknown[]) => mockRequestAccess(...args) }),
 }));
-jest.mock('@/services/members/hooks/useMember', () => ({ useMember: () => ({ data: undefined }) }));
+jest.mock('@/services/members/hooks/useMember', () => ({ useMember: () => ({ data: mockMember }) }));
 jest.mock('@/components/core/login/utils', () => ({
   useLoginRedirect: () => mockGoToLogin,
   authEvents: { emit: (...args: unknown[]) => mockEmitAuthEvent(...args) },
@@ -69,7 +84,12 @@ beforeAll(() => {
   base = buildSpvSpotlight();
 });
 
-const renderView = (status: SpvSpotlightStatus, viewerAccess: SpvViewerAccess, { signedIn = false } = {}) => {
+const renderView = (
+  status: SpvSpotlightStatus,
+  viewerAccess: SpvViewerAccess,
+  // The page passes its server read only with the request flow on.
+  { signedIn = false, initial = true } = {},
+) => {
   useCurrentUserStore.setState({
     currentUser: signedIn ? ({ uid: 'u1', email: 'maya@northfield.vc', name: 'Maya Chen' } as never) : null,
     isHydrated: true,
@@ -81,7 +101,7 @@ const renderView = (status: SpvSpotlightStatus, viewerAccess: SpvViewerAccess, {
     docSendUrl: status === 'OPEN' && viewerAccess === 'APPROVED' ? 'https://docsend.com/view/x' : null,
   };
   mockedUseGetSpvSpotlight.mockReturnValue({ data: spotlight, isError: false });
-  return render(<SpvSpotlightView slug={MOCK_SPV_SLUG} initialSpotlight={spotlight} />);
+  return render(<SpvSpotlightView slug={MOCK_SPV_SLUG} initialSpotlight={initial ? spotlight : null} />);
 };
 
 const topBar = () => screen.getByText('PL Spotlight').closest('header') as HTMLElement;
@@ -89,12 +109,21 @@ const card = () => screen.getByRole('article');
 
 const requestButton = () => screen.queryByRole('button', { name: /Request access to data room/ });
 
-describe('SpvSpotlightView — the card action slot', () => {
+beforeEach(() => {
+  mockGoToLogin.mockReset();
+  mockEmitAuthEvent.mockReset();
+  mockClearAuthCookies.mockReset();
+  mockedUseGetSpvSpotlight.mockReset();
+  mockShowExplore = false;
+  mockRequestFlow = false;
+  mockSearch = '';
+  mockMember = undefined;
+  useContactSupportStore.getState().actions.closeModal();
+});
+
+describe('SpvSpotlightView — request flow (REQUEST_FLOW_ENABLED on)', () => {
   beforeEach(() => {
-    mockGoToLogin.mockReset();
-    mockEmitAuthEvent.mockReset();
-    mockClearAuthCookies.mockReset();
-    mockShowExplore = false;
+    mockRequestFlow = true;
   });
 
   it('offers Request access and a Sign in link to a signed-out visitor', async () => {
@@ -121,14 +150,14 @@ describe('SpvSpotlightView — the card action slot', () => {
 
   it('opens the DocSend for an approved viewer of an open spotlight', () => {
     renderView('OPEN', 'APPROVED', { signedIn: true });
-    const link = screen.getByRole('link', { name: /Open data room/ });
+    const link = screen.getByRole('link', { name: /Request data room access/ });
     expect(link).toHaveAttribute('href', 'https://docsend.com/view/x');
     expect(link).toHaveAttribute('target', '_blank');
     expect(screen.getByRole('button', { name: /investor profile/ })).toBeInTheDocument();
   });
 
   it.each([
-    ['DRAFT', 'APPROVED', 'Approved, data room opens soon'],
+    ['DRAFT', 'APPROVED', 'Data room opens soon'],
     ['OPEN', 'PENDING', 'Data room access pending review'],
     ['OPEN', 'REJECTED', 'Data room access not approved'],
     ['CLOSED', 'APPROVED', 'Data room closed'],
@@ -137,7 +166,7 @@ describe('SpvSpotlightView — the card action slot', () => {
     renderView(status, access, { signedIn: access !== 'NONE' });
     expect(screen.getByText(line)).toBeInTheDocument();
     expect(requestButton()).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /Open data room/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Request data room access/ })).not.toBeInTheDocument();
   });
 
   it('shows the applied stepper and the full About while pending', () => {
@@ -285,6 +314,162 @@ describe('SpvSpotlightView — the card action slot', () => {
     const tile = screen.getByRole('link', { name: /Explore the PL Network/ });
     expect(tile).toHaveAttribute('href', '/explore-pl-network');
     // The same count the Explore landing states, not the map's portfolio size.
-    expect(tile).toHaveTextContent('750+ teams');
+    expect(within(tile).getByText('Organizations in the network').nextSibling).toHaveTextContent('750+');
+  });
+});
+
+describe('SpvSpotlightView — gated (the default)', () => {
+  const lockedSignedOutTitle = 'Sign in to view this Spotlight';
+  const noAccessTitle = 'You don’t have access to this Spotlight';
+
+  // Nothing of the deal: no title, no team, no FAQ, no support email.
+  const expectNoDealContent = (container: HTMLElement) => {
+    expect(screen.queryByRole('heading', { name: base.title })).not.toBeInTheDocument();
+    expect(screen.queryByText(base.team.name)).not.toBeInTheDocument();
+    expect(screen.queryByRole('article')).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Questions investors ask' })).not.toBeInTheDocument();
+    expect(container.querySelector('a[href^="mailto:"]')).toBeNull();
+    expect(container).not.toHaveTextContent(base.supportEmail);
+  };
+
+  describe('signed out', () => {
+    it('shows only the sign-in lock, and never reads the spotlight', () => {
+      const { container } = renderView('OPEN', 'NONE', { initial: false });
+      expect(screen.getByRole('heading', { level: 1, name: lockedSignedOutTitle })).toBeInTheDocument();
+      expectNoDealContent(container);
+      expect(screen.queryByRole('region', { name: 'Your investor profile' })).not.toBeInTheDocument();
+      expect(mockedUseGetSpvSpotlight).toHaveBeenCalledWith(MOCK_SPV_SLUG, { enabled: false });
+    });
+
+    it('signs in back to this page, and Contact us opens the support modal', async () => {
+      renderView('OPEN', 'NONE', { initial: false });
+      const hero = screen.getByRole('heading', { level: 1 }).closest('section') as HTMLElement;
+      await userEvent.click(within(hero).getByRole('button', { name: 'Sign in' }));
+      expect(mockGoToLogin).toHaveBeenCalledWith(
+        expect.objectContaining({ returnTo: `/spv-spotlight/${MOCK_SPV_SLUG}` }),
+      );
+      await userEvent.click(within(hero).getByRole('button', { name: 'Contact us' }));
+      expect(useContactSupportStore.getState().open).toBe(true);
+    });
+
+    it('waits, showing nothing, while an invitation link signs the viewer in', () => {
+      mockSearch = 'loginToken=t0k&prefillEmail=maya%40northfield.vc';
+      renderView('OPEN', 'NONE', { initial: false });
+      expect(screen.queryByText(lockedSignedOutTitle)).not.toBeInTheDocument();
+      expect(screen.getByLabelText('Loading Spotlight')).toBeInTheDocument();
+    });
+  });
+
+  describe.each(['NONE', 'PENDING', 'REJECTED'] as const)('signed in, %s', (access) => {
+    it.each(['DRAFT', 'OPEN', 'CLOSED'] as const)('%s: only the no-access message and Contact us', async (status) => {
+      const { container } = renderView(status, access, { signedIn: true, initial: false });
+      expect(screen.getByRole('heading', { level: 1, name: noAccessTitle })).toBeInTheDocument();
+      expect(
+        screen.getByText('PL Spotlights are shared by invitation. If you think you should have access, contact us.'),
+      ).toBeInTheDocument();
+      expectNoDealContent(container);
+
+      const hero = screen.getByRole('heading', { level: 1 }).closest('section') as HTMLElement;
+      // No other-account option: Contact us is the only door.
+      expect(
+        within(hero)
+          .getAllByRole('button')
+          .map((b) => b.textContent),
+      ).toEqual(['Contact us']);
+      expect(screen.queryByText(/another account|different account/i)).not.toBeInTheDocument();
+      await userEvent.click(within(hero).getByRole('button', { name: 'Contact us' }));
+      expect(useContactSupportStore.getState().open).toBe(true);
+    });
+  });
+
+  it('shows the Explore tile on a locked page', () => {
+    mockShowExplore = true;
+    renderView('OPEN', 'NONE', { signedIn: true, initial: false });
+    expect(screen.getByRole('link', { name: /Explore the PL Network/ })).toBeInTheDocument();
+  });
+
+  describe('approved', () => {
+    it('puts the investor profile card between the hero and the team card', () => {
+      renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
+      const heading = screen.getByRole('heading', { level: 1, name: base.title });
+      const profileCard = screen.getByRole('region', { name: 'Your investor profile' });
+      const teamCard = screen.getByRole('article');
+      expect(heading.compareDocumentPosition(profileCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(profileCard.compareDocumentPosition(teamCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(within(profileCard).getByText('For future deals')).toBeInTheDocument();
+      expect(within(profileCard).getByText('Takes about 1 min')).toBeInTheDocument();
+    });
+
+    it('links the data room from the team card, its one filled primary', () => {
+      renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
+      const link = within(screen.getByRole('article')).getByRole('link', { name: /Request data room access/ });
+      expect(link).toHaveAttribute('href', 'https://docsend.com/view/x');
+      // The old hero link is gone; the card is the profile's only door on the page.
+      expect(
+        screen.getAllByRole('button', { name: /^(Set up investor profile|Edit investor profile|Review and update)/ }),
+      ).toHaveLength(1);
+    });
+
+    it('offers to set up a profile when the investor has none, and opens the drawer', async () => {
+      renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
+      await userEvent.click(screen.getByRole('button', { name: 'Set up investor profile' }));
+      expect(screen.getByText('Investor profile drawer')).toBeInTheDocument();
+    });
+
+    it('offers to review a profile that has a type (Demo Day, a past deal)', () => {
+      mockMember = { memberInfo: { investorProfile: { type: 'ANGEL' } } };
+      renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
+      expect(screen.getByRole('button', { name: 'Review and update' })).toBeInTheDocument();
+    });
+
+    it('still says set up for a profile without a type (created by an access request)', () => {
+      mockMember = { memberInfo: { investorProfile: { type: null, secRulesAccepted: true } } };
+      renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
+      expect(screen.getByRole('button', { name: 'Set up investor profile' })).toBeInTheDocument();
+    });
+
+    it('says the data room opens soon while the spotlight is a draft, with the profile card', () => {
+      renderView('DRAFT', 'APPROVED', { signedIn: true, initial: false });
+      expect(screen.getByText('Data room opens soon')).toBeInTheDocument();
+      expect(screen.getByRole('region', { name: 'Your investor profile' })).toBeInTheDocument();
+    });
+
+    it('shows the closed state, without the profile card', () => {
+      renderView('CLOSED', 'APPROVED', { signedIn: true, initial: false });
+      expect(screen.getByText('Data room closed')).toBeInTheDocument();
+      expect(screen.queryByRole('region', { name: 'Your investor profile' })).not.toBeInTheDocument();
+    });
+
+    it('asks the token-link questions', () => {
+      renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
+      expect(screen.getByText('How do I see the materials?')).toBeInTheDocument();
+      expect(screen.queryByText('Who can request access?')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('until the viewer’s state is known', () => {
+    it('shows neither content nor a lock before the auth store hydrates', () => {
+      useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+      mockedUseGetSpvSpotlight.mockReturnValue({ data: undefined, isError: false });
+      render(<SpvSpotlightView slug={MOCK_SPV_SLUG} initialSpotlight={null} />);
+      expect(screen.getByLabelText('Loading Spotlight')).toBeInTheDocument();
+      expect(screen.queryByText(lockedSignedOutTitle)).not.toBeInTheDocument();
+    });
+
+    it('never flashes a lock at a signed-in viewer whose read is in flight', () => {
+      useCurrentUserStore.setState({ currentUser: { uid: 'u1' } as never, isHydrated: true });
+      mockedUseGetSpvSpotlight.mockReturnValue({ data: undefined, isError: false });
+      render(<SpvSpotlightView slug={MOCK_SPV_SLUG} initialSpotlight={null} />);
+      expect(screen.getByLabelText('Loading Spotlight')).toBeInTheDocument();
+      expect(screen.queryByText(noAccessTitle)).not.toBeInTheDocument();
+    });
+
+    it('says the read failed rather than locking the viewer out', () => {
+      useCurrentUserStore.setState({ currentUser: { uid: 'u1' } as never, isHydrated: true });
+      mockedUseGetSpvSpotlight.mockReturnValue({ data: undefined, isError: true });
+      render(<SpvSpotlightView slug={MOCK_SPV_SLUG} initialSpotlight={null} />);
+      expect(screen.getByRole('alert')).toHaveTextContent("We couldn't load this Spotlight");
+      expect(screen.queryByText(noAccessTitle)).not.toBeInTheDocument();
+    });
   });
 });

@@ -53,10 +53,20 @@ export const useUnifiedSearchAnalytics = () => {
     captureEvent(UNIFIED_SEARCH_ANALYTICS_EVENTS.AI_CONVERSATION_HISTORY_OPEN_CLICK, {});
   }
 
+  function onSharedChatContinued(sharedThreadId: string, copyThreadId: string) {
+    captureEvent(UNIFIED_SEARCH_ANALYTICS_EVENTS.SHARED_CHAT_CONTINUED, { sharedThreadId, copyThreadId });
+  }
+
+  function onSigninPromptClicked(action: 'sign-in' | 'sign-up') {
+    captureEvent(UNIFIED_SEARCH_ANALYTICS_EVENTS.SIGNIN_PROMPT_CLICKED, { action });
+  }
+
   return {
     onAutocompleteSearch,
     onFullSearch,
     onFullSearchOpen,
+    onSharedChatContinued,
+    onSigninPromptClicked,
     onSearchResultClick,
     onRecentSearchClick,
     onRecentSearchDeleteClick,

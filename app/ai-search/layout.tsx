@@ -10,7 +10,8 @@ export default async function Layout({ children }: { children: React.ReactNode }
   return (
     <>
       <SidebarProvider defaultOpen={true}>
-        {isLoggedIn && <AppSidebar isLoggedIn={isLoggedIn} />}
+        {/* Signed out the rail stays: it lists this visit's chats and asks the visitor to sign in to keep them. */}
+        <AppSidebar isLoggedIn={isLoggedIn} />
         {children}
       </SidebarProvider>
     </>

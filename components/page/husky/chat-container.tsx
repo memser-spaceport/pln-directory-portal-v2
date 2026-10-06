@@ -5,6 +5,7 @@ import Chat from './chat';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import ChatHeader from './chat-header';
 import { useRouter } from 'next/navigation';
+import { IVisitChat, OPEN_VISIT_CHAT_EVENT, getVisitChat, takePendingVisitChat } from '@/utils/husky-visit-chats';
 
 interface ChatContainerProps {
   isLoggedIn: boolean;
@@ -14,14 +15,37 @@ interface ChatContainerProps {
 const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
   const [initialMessages, setInitialMessages] = useState<any>([]);
   const [type, setType] = useState<string>('');
+  // a signed-out visitor's chat from this visit, reopened from the History rail
+  const [visitThreadId, setVisitThreadId] = useState<string | undefined>();
   const analytics = useHuskyAnalytics();
   const router = useRouter();
 
   const resetChat = () => {
     setInitialMessages([]);
     setType('');
+    setVisitThreadId(undefined);
     analytics.trackMobileHeaderNewConversationClicked();
   };
+
+  const openVisitChat = (chat: IVisitChat | null) => {
+    if (!chat) return;
+    setType('');
+    setVisitThreadId(chat.threadId);
+    setInitialMessages(chat.messages);
+  };
+
+  useEffect(() => {
+    const handleOpenVisitChat = (e: Event) => {
+      const threadId = (e as CustomEvent<{ threadId: string }>).detail?.threadId;
+      takePendingVisitChat();
+      openVisitChat(threadId ? getVisitChat(threadId) : null);
+    };
+    openVisitChat(takePendingVisitChat());
+    document.addEventListener(OPEN_VISIT_CHAT_EVENT, handleOpenVisitChat);
+    return () => {
+      document.removeEventListener(OPEN_VISIT_CHAT_EVENT, handleOpenVisitChat);
+    };
+  }, []);
 
   useEffect(() => {
     // Retrieve and parse initial chat message from local storage
@@ -46,9 +70,10 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
   return (
     <>
       <div className="chat-container">
-        {isLoggedIn && <ChatHeader resetChat={resetChat} />}
+        <ChatHeader resetChat={resetChat} />
         <div className="chat-container__body">
           <Chat
+            id={visitThreadId}
             isLoggedIn={isLoggedIn}
             userInfo={userInfo}
             initialMessages={initialMessages}

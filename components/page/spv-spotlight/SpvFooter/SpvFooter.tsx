@@ -3,8 +3,9 @@ import { PRIVACY_POLICY_URL, TERMS_AND_CONDITIONS_URL } from '@/app/constants/de
 import s from './SpvFooter.module.scss';
 
 type Props = {
-  supportEmail: string;
-  /** Replaces the default disclaimer (the Explore landing words its own). */
+  /** For the default disclaimer; unused when `note` replaces it. */
+  supportEmail?: string;
+  /** Replaces the default disclaimer and its email (the Explore landing words its own; locked pages show none). */
   note?: React.ReactNode;
 };
 

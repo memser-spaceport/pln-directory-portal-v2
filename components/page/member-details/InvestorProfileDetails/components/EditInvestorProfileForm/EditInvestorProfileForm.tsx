@@ -47,6 +47,10 @@ interface Props {
   userInfo: IUserInfo;
   useInlineAddTeam?: boolean;
   source?: 'investor-drawer';
+  /** Marks the fields that still need filling in amber, updating as they're filled (SPV Spotlight). */
+  highlightUnfilled?: boolean;
+  /** After a successful save, before the form closes. */
+  onSaved?: () => void;
 }
 
 const INVESTOR_PROFILE_FIELDS = [
@@ -80,7 +84,15 @@ function formatValueForAnalytics(value: unknown): unknown {
   return value;
 }
 
-export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAddTeam, source }: Props) => {
+export const EditInvestorProfileForm = ({
+  onClose,
+  member,
+  userInfo,
+  useInlineAddTeam,
+  source,
+  highlightUnfilled,
+  onSaved,
+}: Props) => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const updateInvestorProfileMutation = useUpdateInvestorProfile();
@@ -175,6 +187,22 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
   const secRulesAccepted = watch('secRulesAccepted');
   const isInvestViaFund = watch('isInvestViaFund');
   const selectedTeam = watch('team');
+
+  // The fields that still need filling, as the viewer sees them now (only drawn
+  // with `highlightUnfilled`). A field counts only while its section is open.
+  const isBlank = (value: unknown) =>
+    Array.isArray(value) ? value.length === 0 : !(typeof value === 'string' ? value.trim() : value);
+  const unfilled = {
+    how: !secRulesAccepted && !isInvestViaFund,
+    stages: secRulesAccepted && isBlank(watch('investInStartupStages')),
+    checkSize: secRulesAccepted && isBlank(watch('typicalCheckSize')),
+    focus: secRulesAccepted && isBlank(watch('investmentFocusAreas')),
+    team: isInvestViaFund && !selectedTeam,
+    teamStages: isInvestViaFund && isBlank(watch('teamInvestInStartupStages')),
+    teamCheckSize: isInvestViaFund && isBlank(watch('teamTypicalCheckSize')),
+  };
+  const needsFill = (key: keyof typeof unfilled) => highlightUnfilled && unfilled[key] && s.needsFill;
+  const tickClassName = clsx(s.Label, highlightUnfilled && unfilled.how && s.needsFillTick);
 
   const isTeamLead =
     member?.teams.find((team) => team.id === selectedTeam?.value)?.teamLead || selectedTeam?.originalObject?.teamLead;
@@ -580,6 +608,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
         reportAnalytics.mutate(profileUpdatedEvent);
       }
 
+      onSaved?.();
       toast.success('Investor profile updated successfully!');
       router.refresh();
       reset();
@@ -609,7 +638,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                 <h3>How do you invest (select all that apply)?</h3>
               </div>
               <section>
-                <label className={s.Label}>
+                <label className={tickClassName}>
                   <Checkbox.Root
                     className={s.Checkbox}
                     checked={secRulesAccepted}
@@ -638,7 +667,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
 
                 {secRulesAccepted && (
                   <>
-                    <div className={s.row}>
+                    <div className={clsx(s.row, needsFill('stages'))}>
                       <FormMultiSelect
                         name="investInStartupStages"
                         label="Startup stage(s) you invest in?"
@@ -648,7 +677,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                         // showNone
                       />
                     </div>
-                    <div className={s.row}>
+                    <div className={clsx(s.row, needsFill('checkSize'))}>
                       <FormCurrencyField
                         name="typicalCheckSize"
                         label="Typical Check Size"
@@ -658,7 +687,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                         isRequired
                       />
                     </div>
-                    <div className={s.row}>
+                    <div className={clsx(s.row, needsFill('focus'))}>
                       <FormTagsInput
                         selectLabel="Add Investment Focus"
                         name="investmentFocusAreas"
@@ -672,7 +701,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                 )}
               </section>
               <section>
-                <label className={s.Label}>
+                <label className={tickClassName}>
                   <Checkbox.Root
                     className={s.Checkbox}
                     checked={isInvestViaFund}
@@ -734,7 +763,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                             </button>
                           </div>
                         )}
-                        <div className={s.infoSectionContent}>
+                        <div className={clsx(s.infoSectionContent, needsFill('team'))}>
                           <FormSelect
                             name="team"
                             backLabel="Teams"
@@ -811,6 +840,10 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                           investmentFocusAreas: 'teamInvestmentFocusAreas',
                           fundTypes: 'teamInvestInFundTypes',
                         }}
+                        fieldClassNames={{
+                          startupStages: needsFill('teamStages') || undefined,
+                          typicalCheckSize: needsFill('teamCheckSize') || undefined,
+                        }}
                         onClose={() => setIsAddingTeamInline(false)}
                       />
                     )}
@@ -881,7 +914,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                               />
                             </div>
 
-                            <div className={s.row}>
+                            <div className={clsx(s.row, needsFill('teamStages'))}>
                               <FormMultiSelect
                                 name="teamInvestInStartupStages"
                                 label="Startup stage(s) you invest in?"
@@ -892,7 +925,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                               />
                             </div>
 
-                            <div className={s.row}>
+                            <div className={clsx(s.row, needsFill('teamCheckSize'))}>
                               <FormCurrencyField
                                 name="teamTypicalCheckSize"
                                 label="Typical Check Size"

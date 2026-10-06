@@ -179,3 +179,6 @@ export function SpvTeamCard({ team, media, aboutOpen = false, action, onFounderC
     </article>
   );
 }
+
+/** The page's primary button look, for doors outside the card (the locked hero). */
+export const spvPrimaryButtonClassName = s.cardActionButton;

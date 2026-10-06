@@ -7,8 +7,8 @@ import { PushNotification } from '@/types/push-notifications.types';
 const starterKitUpdate = {
   id: 'n-1',
   category: 'AI_APP',
-  title: 'AI Apps',
-  description: "AI Apps Starter Kit — updated to v1.17. Review what's new!",
+  title: 'Starter Kit v1.17 is out',
+  description: "See what's new and download the latest kit — or ask your agent to update an existing one.",
   link: '/pl-infra/ai-apps?dialog=addAiApp',
   linkText: 'Get the starter kit →',
   metadata: { eventType: 'ai_app_starter_kit', trigger: 'starter_kit_updated', version: '1.17' },
@@ -20,7 +20,7 @@ describe('NotificationItem — AI Apps starter kit update', () => {
   it('shows the AI Apps badge and the notification CTA', () => {
     render(<NotificationItem notification={starterKitUpdate} onNotificationClick={jest.fn()} />);
 
-    expect(screen.getByText('AI Apps', { selector: 'div' })).toBeInTheDocument();
+    expect(screen.getByText('AI Apps')).toBeInTheDocument();
     expect(screen.getByText('Get the starter kit →')).toBeInTheDocument();
   });
 

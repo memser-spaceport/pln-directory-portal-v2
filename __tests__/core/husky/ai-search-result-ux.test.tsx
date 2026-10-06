@@ -24,7 +24,7 @@ jest.mock('@/analytics/husky.analytics', () => ({
 jest.mock('next/navigation', () => ({
   useParams: () => ({ id: 'thread-1' }),
   useRouter: () => ({ push: jest.fn() }),
-  usePathname: () => '/husky/chat/thread-1',
+  usePathname: () => '/ai-search/thread-1',
   useSearchParams: () => new URLSearchParams(),
 }));
 

@@ -1,6 +1,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { withPostHogConfig } from '@posthog/nextjs-config';
+import aiSearchRedirects from './utils/ai-search-redirects.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -94,6 +95,7 @@ const nextConfig = {
         destination: '/spotlight/:slug',
         permanent: true,
       },
+      ...aiSearchRedirects.AI_SEARCH_REDIRECTS,
     ];
   },
   env: {

@@ -399,6 +399,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/ai-search-page/AiSearchPagePrototype'),
   },
   {
+    key: 'ai-mode-results',
+    title: 'AI mode — answer components refresh',
+    description:
+      'A visual pass on what an answer is made of inside AI mode (from the 2026-10-05 review: the page flow is fine, the answer components look dated). The ai-search-page view, unchanged, with an "Answers: Current / Proposed" switch in the review band that redraws the same conversation. Proposed: the answer leaves its bordered card and runs on the page under the question as a right-aligned bubble; prose at 16/26 with one rhythm; directory records named in the prose become inline mentions with their picture; numbered citation pills (production\'s sourceRefs) open a hover card and match the numbered Sources list; "Results from the directory" is one panel of rows with "Available to connect" on members with office hours; the comparison table leads with the entities and turns into fact blocks on phones instead of scrolling sideways; actions move under what they act on (sources pill first, copy and thumbs, then regenerate and edit on the last turn); follow-ups are a hairline list with a reply glyph instead of grey slabs under an orange heading; the thinking line gains a four-step meter and an orbiting mark, and a caret blinks at the end of streaming text. PROPOSAL.md in the folder lists each component before → after and its production counterpart. Everything mocked.',
+    category: 'Cross-product',
+    load: () => import('./entries/ai-mode-results/AiModeResultsPrototype'),
+  },
+  {
     key: 'home-ai-ask',
     title: 'Home — AI Search field',
     description:

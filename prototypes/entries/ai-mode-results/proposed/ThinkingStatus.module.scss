@@ -1,0 +1,123 @@
+// The wait before the first word (see ThinkingStatus.tsx).
+
+.root {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  min-height: 28px;
+}
+
+/* 28px soft brand disc with a slow orbiting arc: the alive signal. */
+.orb {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1.5px solid transparent;
+    border-top-color: var(--foreground-brand-primary, #1b4dff);
+    animation: orbit 1.4s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::after {
+      animation: none;
+      border-color: var(--border-brand-subtle, #aebfff);
+    }
+  }
+}
+
+@keyframes orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* The current line's shimmer, at the answer's own 14/20. */
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+  background: linear-gradient(
+      90deg,
+      var(--foreground-neutral-secondary, #455468) 0%,
+      var(--foreground-neutral-secondary, #455468) 35%,
+      var(--foreground-neutral-quaternary, #c9d2de) 50%,
+      var(--foreground-neutral-secondary, #455468) 65%,
+      var(--foreground-neutral-secondary, #455468) 100%
+    )
+    0 0 / 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation:
+    enter 240ms ease-out,
+    sweep 1.6s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    -webkit-text-fill-color: currentColor;
+  }
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+}
+
+@keyframes sweep {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+/* How far: one segment per step. Track = the border family, filled = brand. */
+.meter {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.seg {
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  transition: background-color 0.3s ease;
+}
+
+.segDone {
+  background: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* The step in progress: half-lit, pulsing. */
+.segNow {
+  background: var(--border-brand-subtle, #aebfff);
+  animation: pulse 1.2s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.4;
+  }
+}

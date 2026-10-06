@@ -16,10 +16,17 @@ import fd from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/Giv
 // becomes are the same card in two states.
 import pt from '../../feedback-shared/comments/PinThread.module.scss';
 import pc from '../../feedback-shared/comments/PinComposer.module.scss';
+import { FormProvider, useForm } from 'react-hook-form';
+import { FormSelect } from '@/components/form/FormSelect/FormSelect';
+import { DEFAULT_PRIORITY, DEFAULT_REPORT_KIND, PRIORITY_OPTIONS, REPORT_KIND_OPTIONS } from '../prod/FeedbackDialog';
+// The feedback form's Kind | Priority row (two equal columns), reused as is.
+import polish from '../prod/FeedbackPolish.module.scss';
 import { CommentAnnotator } from './CommentAnnotator';
 import { CAPTURE_IGNORE_ATTR, captureViewport } from './nativeCapture';
-import type { Attachment } from './useThreads';
+import type { Attachment, Triage } from './useThreads';
 import s from './CommentComposer.module.scss';
+
+type TriageForm = { reportKind: { label: string; value: string }; priority: { label: string; value: string } };
 
 const MAX_LENGTH = 5000;
 
@@ -29,7 +36,7 @@ interface Props {
   attachment: Attachment | null;
   onAttachment: (attachment: Attachment | null) => void;
   onCancel: () => void;
-  onPost: () => void;
+  onPost: (triage: Triage) => void;
   style?: React.CSSProperties;
   flip: boolean;
 }
@@ -68,6 +75,18 @@ export function CommentComposer(props: Props) {
     ref.current?.focus();
   }, []);
 
+  /* Kind and Priority (2026-10-06): the feedback form's triage, same defaults. */
+  const triageForm = useForm<TriageForm>({
+    defaultValues: { reportKind: DEFAULT_REPORT_KIND, priority: DEFAULT_PRIORITY },
+  });
+  const submit = () => {
+    const { reportKind, priority } = triageForm.getValues();
+    onPost({
+      kind: reportKind?.value ?? DEFAULT_REPORT_KIND.value,
+      priority: priority?.value ?? DEFAULT_PRIORITY.value,
+    });
+  };
+
   const canPost = text.trim().length > 0;
   const busy = capturing || !!freezeSrc;
 
@@ -90,7 +109,7 @@ export function CommentComposer(props: Props) {
       {...{ [CAPTURE_IGNORE_ATTR]: '' }}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className={pc.field}>
+      <div className={clsx(pc.field, s.field)}>
         <textarea
           ref={ref}
           className={pt.textarea}
@@ -102,7 +121,7 @@ export function CommentComposer(props: Props) {
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey && canPost) {
               e.preventDefault();
-              onPost();
+              submit();
             }
           }}
         />
@@ -142,6 +161,30 @@ export function CommentComposer(props: Props) {
             {capturing ? 'Capturing…' : 'Screenshot'}
           </button>
         )}
+
+        {/* Kind | Priority, the feedback form's triage row (2026-10-06). */}
+        <FormProvider {...triageForm}>
+          <div className={clsx(polish.triage, s.triage)}>
+            <div className={polish.kind}>
+              <FormSelect
+                name="reportKind"
+                label="Kind"
+                placeholder="Kind"
+                options={REPORT_KIND_OPTIONS}
+                menuPortalTarget={typeof document === 'undefined' ? null : document.body}
+              />
+            </div>
+            <div className={polish.priority}>
+              <FormSelect
+                name="priority"
+                label="Priority"
+                placeholder="Priority"
+                options={PRIORITY_OPTIONS}
+                menuPortalTarget={typeof document === 'undefined' ? null : document.body}
+              />
+            </div>
+          </div>
+        </FormProvider>
       </div>
 
       <div className={clsx(fd.footer, pt.footer, s.footer)}>
@@ -149,7 +192,7 @@ export function CommentComposer(props: Props) {
         <Button style="border" variant="neutral" size="xs" onClick={onCancel}>
           Cancel
         </Button>
-        <Button size="xs" disabled={!canPost} onClick={onPost}>
+        <Button size="xs" disabled={!canPost} onClick={submit}>
           Post
         </Button>
       </div>

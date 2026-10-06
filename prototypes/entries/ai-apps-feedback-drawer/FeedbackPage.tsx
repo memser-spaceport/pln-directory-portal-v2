@@ -1,29 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import type { AiAppFeedbackStatus } from '@/services/ai-app-feedback/constants';
 import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
 
 import { ArrowBackIcon } from '@/components/icons';
 import { Button } from '@/components/common/Button/Button';
-import { SortDropdown, type SortOption } from '@/components/common/filters/SortDropdown';
 
-import type {
-  FeedbackPriorityFilterValue,
-  FeedbackReportKindFilterValue,
-  FeedbackStatusFilterValue,
-} from '@/components/page/ai-apps/AiAppFeedbackPage/types';
+import { decodeFilterValues } from '@/services/filters/decodeFilterValues';
 import type { FeedbackImage } from '@/components/page/ai-apps/AiAppFeedbackPage/utils/splitFeedbackMedia';
-import {
-  ALL_FEEDBACK_STATUSES,
-  ALL_FEEDBACK_PRIORITIES,
-  ALL_FEEDBACK_REPORT_KINDS,
-  FEEDBACK_STATUS_FILTER_OPTIONS,
-  FEEDBACK_PRIORITY_FILTER_OPTIONS,
-  FEEDBACK_REPORT_KIND_FILTER_OPTIONS,
-} from '@/components/page/ai-apps/AiAppFeedbackPage/constants';
 import { exportAiAppFeedbackCsv } from '@/components/page/ai-apps/AiAppFeedbackPage/utils/exportAiAppFeedbackCsv';
 import { buildFeedbackCsvFilename } from '@/components/page/ai-apps/AiAppFeedbackPage/utils/buildFeedbackCsvFilename';
 import { FeedbackTabs } from '@/components/page/ai-apps/AiAppFeedbackPage/components/FeedbackTabs';
@@ -33,6 +20,10 @@ import { FeedbackImageLightbox } from '@/components/page/ai-apps/AiAppFeedbackPa
 
 // Production page stylesheet, verbatim.
 import s from '@/components/page/ai-apps/AiAppFeedbackPage/AiAppFeedbackPage.module.scss';
+// The grid's content column, so with the rail on the left the page sits where the grid does.
+import page from '@/components/page/ai-apps/AiAppsPage/AiAppsPage.module.scss';
+import proto from './AiAppsPrototype.module.scss';
+import { FEEDBACK_PARAM, clearFeedbackParams, useMockFeedbackFilterStore } from './mockFeedbackFilterStore';
 
 export type FeedbackView = 'received' | 'mine';
 
@@ -43,7 +34,15 @@ export function feedbackHref(view: FeedbackView) {
   return `${ROUTE}?feedback=${view}`;
 }
 
-const ALL_APPS = 'ALL';
+/**
+ * The App facet's options. Received: the apps the viewer admins, every one of
+ * them, quiet ones included, so the list is "my apps" rather than "whichever
+ * apps happen to have rows". Given: the apps in the viewer's own rows (other
+ * people's apps, which an admin list cannot describe).
+ */
+export function feedbackAppNames(view: FeedbackView, adminApps: { name: string }[], rows: AiAppFeedbackRow[]) {
+  return view === 'received' ? adminApps.map((a) => a.name) : Array.from(new Set(rows.map((r) => r.appName))).sort();
+}
 
 const TAB_LABEL: Record<FeedbackView, string> = {
   received: 'Received',
@@ -63,8 +62,6 @@ interface Props {
   mine: AiAppFeedbackRow[];
   /** Stand-in for production's `canReview`; without it there is one list and no tabs. */
   canReview: boolean;
-  /** The apps the viewer admins (created, or made admin of): what Received's App filter offers. */
-  adminApps: { uid: string; name: string }[];
   onViewChange: (view: FeedbackView) => void;
   onStatusChange: (row: AiAppFeedbackRow, status: AiAppFeedbackStatus) => void;
 }
@@ -76,59 +73,46 @@ interface Props {
  * with a tab each — as an app author you see what others sent you and what you
  * sent others, and what happened to it, in one place (Anuj, 5 Oct). Tabs: Received and Given.
  *
- * Production's per-app tabs move into an "App:" menu beside Status / Kind /
- * Priority, so the tab row can carry the two halves of the page instead of a
- * second row of tabs under it. Everything else is production's: the table,
+ * Production's per-app tabs, and the Status / Kind / Priority menus, became the
+ * left filter rail (`FeedbackFilterView`, 2026-10-06) with search, Type, App
+ * and From, so the tab row carries the two halves of the page and Export CSV
+ * only. Everything else is production's: the table,
  * status selector (read-only on your own items), lightbox, Export CSV and the
  * page stylesheet.
  */
-export function FeedbackPage({ view, received, mine, canReview, adminApps, onViewChange, onStatusChange }: Props) {
+export function FeedbackPage({ view, received, mine, canReview, onViewChange, onStatusChange }: Props) {
   const active: FeedbackView = canReview ? view : 'mine';
   const feedback = active === 'received' ? received : mine;
 
-  const [appFilter, setAppFilter] = useState(ALL_APPS);
-  const [statusFilter, setStatusFilter] = useState<FeedbackStatusFilterValue>(ALL_FEEDBACK_STATUSES);
-  const [reportKindFilter, setReportKindFilter] = useState<FeedbackReportKindFilterValue>(ALL_FEEDBACK_REPORT_KINDS);
-  const [priorityFilter, setPriorityFilter] = useState<FeedbackPriorityFilterValue>(ALL_FEEDBACK_PRIORITIES);
   const [lightbox, setLightbox] = useState<FeedbackImage | null>(null);
+  const { params } = useMockFeedbackFilterStore();
 
   /*
-   * Drawer iteration (review 2026-10-05): on Received the App filter lists the
-   * apps the viewer admins, every one of them, quiet ones included, so the menu
-   * is "my apps" rather than "whichever apps happen to have rows". Each option
-   * carries its count, so an app with nothing yet says so before it is picked.
-   * Given keeps the earlier menu built from its rows: those are other people's
-   * apps, which an admin list cannot describe.
+   * 2026-10-06: the filters live in the left rail (FeedbackFilterView), like
+   * every other list in the product; they were SortDropdowns in this tab row.
+   * Each facet is multi-select (`|`-joined); an empty facet means all.
    */
-  const appNames = useMemo(
-    () =>
-      active === 'received'
-        ? adminApps.map((a) => a.name)
-        : Array.from(new Set(feedback.map((r) => r.appName))).sort(),
-    [active, adminApps, feedback],
-  );
-  const appOptions: SortOption[] = [
-    { value: ALL_APPS, label: active === 'received' ? 'All my apps' : 'All' },
-    ...appNames.map((name) => {
-      const count = feedback.filter((r) => r.appName === name).length;
-      return { value: name, label: active === 'received' ? `${name} (${count})` : name };
-    }),
-  ];
-  // The two lists cover different apps; a pick from the other tab means "all" here.
-  const app = appNames.includes(appFilter) ? appFilter : ALL_APPS;
+  const pick = (key: string) => decodeFilterValues(params.get(key));
+  const search = (params.get(FEEDBACK_PARAM.SEARCH) ?? '').trim().toLowerCase();
+  const types = pick(FEEDBACK_PARAM.TYPE);
+  const apps = pick(FEEDBACK_PARAM.APP);
+  const statuses = pick(FEEDBACK_PARAM.STATUS);
+  const kinds = pick(FEEDBACK_PARAM.KIND);
+  const priorities = pick(FEEDBACK_PARAM.PRIORITY);
+  const people = active === 'received' ? pick(FEEDBACK_PARAM.FROM) : [];
+  const has = (list: string[], v: string | null | undefined) => list.length === 0 || (!!v && list.includes(v));
 
-  const isFiltered =
-    app !== ALL_APPS ||
-    statusFilter !== ALL_FEEDBACK_STATUSES ||
-    reportKindFilter !== ALL_FEEDBACK_REPORT_KINDS ||
-    priorityFilter !== ALL_FEEDBACK_PRIORITIES;
+  const isFiltered = [search, types, apps, statuses, kinds, priorities, people].some((f) => f.length > 0);
 
   const visibleRows = feedback.filter(
     (r) =>
-      (app === ALL_APPS || r.appName === app) &&
-      (statusFilter === ALL_FEEDBACK_STATUSES || r.status === statusFilter) &&
-      (reportKindFilter === ALL_FEEDBACK_REPORT_KINDS || r.reportKind === reportKindFilter) &&
-      (priorityFilter === ALL_FEEDBACK_PRIORITIES || r.priority === priorityFilter),
+      (!search || r.text.toLowerCase().includes(search)) &&
+      has(types, r.kind === 'COMMENT' ? 'COMMENT' : 'FEEDBACK') &&
+      has(apps, r.appName) &&
+      has(statuses, r.status) &&
+      has(kinds, r.reportKind) &&
+      has(priorities, r.priority) &&
+      has(people, r.member?.name),
   );
 
   const tabs = (['received', 'mine'] as const).map((v) => ({
@@ -137,54 +121,28 @@ export function FeedbackPage({ view, received, mine, canReview, adminApps, onVie
   }));
 
   const emptyCopy = active === 'received' ? 'No feedback on your apps yet.' : 'You haven’t sent any feedback yet.';
+  const onlyApp = apps.length === 1 ? apps[0] : null;
 
-  const filters = (
+  // The tab row keeps the page action only.
+  const actions = active === 'received' && feedback.length > 0 && (
     <div className={s.tabsActions}>
-      {appNames.length > 1 && (
-        <SortDropdown sortByLabel="App:" options={appOptions} currentSort={app} onSortChange={setAppFilter} />
-      )}
-      <SortDropdown
-        sortByLabel="Status:"
-        options={FEEDBACK_STATUS_FILTER_OPTIONS}
-        currentSort={statusFilter}
-        onSortChange={(value) => setStatusFilter(value as FeedbackStatusFilterValue)}
-      />
-      <SortDropdown
-        sortByLabel="Kind:"
-        options={FEEDBACK_REPORT_KIND_FILTER_OPTIONS}
-        currentSort={reportKindFilter}
-        onSortChange={(value) => setReportKindFilter(value as FeedbackReportKindFilterValue)}
-      />
-      <SortDropdown
-        sortByLabel="Priority:"
-        options={FEEDBACK_PRIORITY_FILTER_OPTIONS}
-        currentSort={priorityFilter}
-        onSortChange={(value) => setPriorityFilter(value as FeedbackPriorityFilterValue)}
-      />
-      {active === 'received' && (
-        <Button
-          size="s"
-          style="fill"
-          variant="primary"
-          onClick={() =>
-            exportAiAppFeedbackCsv(
-              visibleRows,
-              buildFeedbackCsvFilename(app === ALL_APPS ? 'All apps' : app, statusFilter),
-            )
-          }
-          disabled={visibleRows.length === 0}
-          className={s.exportButton}
-        >
-          <DownloadIcon />
-          Export CSV
-        </Button>
-      )}
+      <Button
+        size="s"
+        style="fill"
+        variant="primary"
+        onClick={() => exportAiAppFeedbackCsv(visibleRows, buildFeedbackCsvFilename(onlyApp ?? 'All apps', 'ALL'))}
+        disabled={visibleRows.length === 0}
+        className={s.exportButton}
+      >
+        <DownloadIcon />
+        Export CSV
+      </Button>
     </div>
   );
 
   return (
-    <div className={s.pageFrame}>
-      <div className={s.content}>
+    <>
+      <div className={`${page.content} ${proto.column}`}>
         <Link href={ROUTE} className={s.backLink}>
           <ArrowBackIcon width={16} height={16} />
           Back to all
@@ -200,20 +158,24 @@ export function FeedbackPage({ view, received, mine, canReview, adminApps, onVie
             <FeedbackTabs
               tabs={tabs}
               activeTab={TAB_LABEL[active]}
-              onTabClick={(name) => onViewChange(name === TAB_LABEL.received ? 'received' : 'mine')}
+              onTabClick={(name) => {
+                // App and From list different things on each tab; the rest carry over.
+                clearFeedbackParams([FEEDBACK_PARAM.APP, FEEDBACK_PARAM.FROM]);
+                onViewChange(name === TAB_LABEL.received ? 'received' : 'mine');
+              }}
             />
           ) : (
             <span />
           )}
-          {feedback.length > 0 && filters}
+          {actions}
         </div>
 
         {feedback.length === 0 ? (
           <div className={s.state}>{emptyCopy}</div>
         ) : visibleRows.length === 0 ? (
           <div className={s.state}>
-            {app !== ALL_APPS && !feedback.some((r) => r.appName === app)
-              ? `No feedback on ${app} yet.`
+            {onlyApp && !feedback.some((r) => r.appName === onlyApp)
+              ? `No feedback on ${onlyApp} yet.`
               : isFiltered
                 ? 'No feedback matches the selected filters.'
                 : 'No feedback for this app yet.'}
@@ -227,6 +189,6 @@ export function FeedbackPage({ view, received, mine, canReview, adminApps, onVie
         )}
       </div>
       <FeedbackImageLightbox image={lightbox} onClose={() => setLightbox(null)} />
-    </div>
+    </>
   );
 }

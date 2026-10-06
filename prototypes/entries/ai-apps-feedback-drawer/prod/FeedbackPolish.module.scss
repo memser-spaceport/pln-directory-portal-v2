@@ -13,47 +13,21 @@
 }
 
 /*
-  Kind (pills) over Priority (select). Production's `.triage` is a two-column grid
-  of two selects; a pill row needs the full width to stay on one line, so the
-  pair stacks. Doubled class so it beats production's `.triage` whatever order the
-  two stylesheets load in; production's wide-mode grid placement still applies.
+  Kind and Priority: two selects on one line (2026-10-06, drawer). Equal
+  columns, so both fields line up and neither label floats. They stay side by
+  side on phones too: "Bug" and "P2 · Normal" fit half a 390px drawer. Doubled
+  class so it beats production's `.triage` whatever order the two stylesheets
+  load in; production's wide-mode grid placement still applies.
 */
 .triage.triage {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
-/* Label → field spacing matches the picker's: production's FormSelect label sits 8px over its control. */
-.kind {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-
-  /*
-    The chips are tapped on a phone, and at 22px they are too small for a finger.
-    32px is the size the help form's Topic pills settled on after review
-    (help-feedback-menu). Desktop keeps the verbatim 22px. `button` + the
-    radio role out-specify production's `.categoryBadge.active`, which repeats
-    padding and type, so the chosen pill grows along with the rest.
-  */
-  @include media.mobile-only {
-    button[role='radio'] {
-      padding: 5px 12px;
-      font-size: 14px;
-      line-height: 20px;
-    }
-  }
-}
-
-/* A priority is a short value now; a full-width field would be a 432px box around "P2 · Normal". */
+.kind,
 .priority {
-  width: 50%;
-  min-width: 200px;
-
-  @include media.mobile-only {
-    width: 100%;
-  }
+  min-width: 0;
 }
 
 /*

@@ -37,7 +37,10 @@ export function AiAppsConnectPage() {
     setLoadedSessionId(sessionId);
     setSession(null);
     setView(sessionId ? 'loading' : 'invalid');
+    setIsApproving(false);
   }
+  const currentSessionIdRef = useRef(sessionId);
+  currentSessionIdRef.current = sessionId;
 
   useEffect(() => {
     if (!sessionId) {
@@ -81,6 +84,8 @@ export function AiAppsConnectPage() {
   const onApprove = useCallback(async () => {
     setIsApproving(true);
     const result = await approveConnectSession(sessionId);
+    // The URL moved to another session while this approval was in flight: its result is not this page's.
+    if (currentSessionIdRef.current !== sessionId) return;
     setIsApproving(false);
     const nextView = result?.status ?? 'error';
     setView(nextView);

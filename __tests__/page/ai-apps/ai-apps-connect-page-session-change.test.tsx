@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import { AiAppsConnectPage } from '@/components/page/ai-apps/AiAppsConnectPage';
 import { ConnectSession } from '@/services/ai-apps/ai-apps.service';
@@ -31,10 +31,11 @@ jest.mock('@/services/auth/store', () => ({
 }));
 
 const mockFetchConnectSession = jest.fn();
+const mockApproveConnectSession = jest.fn();
 
 jest.mock('@/services/ai-apps/ai-apps.service', () => ({
   fetchConnectSession: (...args: unknown[]) => mockFetchConnectSession(...args),
-  approveConnectSession: jest.fn(),
+  approveConnectSession: (...args: unknown[]) => mockApproveConnectSession(...args),
 }));
 
 function buildSession(overrides: Partial<ConnectSession> = {}): ConnectSession {
@@ -68,6 +69,7 @@ describe('AiAppsConnectPage when only ?session= changes', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetchConnectSession.mockReset();
+    mockApproveConnectSession.mockReset();
   });
 
   it('shows "Loading…" and then the new session, never the old one', async () => {
@@ -128,6 +130,32 @@ describe('AiAppsConnectPage when only ?session= changes', () => {
 
     expect(screen.queryByText('OLD-CODE')).not.toBeInTheDocument();
     expect(screen.getByText('NEW-CODE')).toBeInTheDocument();
+  });
+
+  it('ignores an approval of the old session that finishes after the URL changed', async () => {
+    const { rerender } = await renderWithSession('session-old', buildSession({ status: 'pending' }));
+
+    const approval = deferred<{ status: 'approved' } | null>();
+    mockApproveConnectSession.mockReturnValueOnce(approval.promise);
+    fireEvent.click(screen.getByRole('button', { name: 'Approve' }));
+    expect(screen.getByRole('button', { name: 'Approving…' })).toBeInTheDocument();
+
+    mockFetchConnectSession.mockResolvedValueOnce(
+      buildSession({ sessionId: 'session-new', userCode: 'NEW-CODE', status: 'pending' }),
+    );
+    mockSearch = new URLSearchParams({ session: 'session-new' });
+    rerender(<AiAppsConnectPage />);
+    await act(async () => {});
+
+    expect(screen.getByRole('button', { name: 'Approve' })).toBeEnabled();
+
+    await act(async () => {
+      approval.resolve({ status: 'approved' });
+    });
+
+    expect(screen.getByText('NEW-CODE')).toBeInTheDocument();
+    expect(screen.queryByText(/Connected\./)).not.toBeInTheDocument();
+    expect(mockAnalytics.onConnectApproved).not.toHaveBeenCalled();
   });
 
   it('keeps first-load behavior: "Loading…", then the session', async () => {

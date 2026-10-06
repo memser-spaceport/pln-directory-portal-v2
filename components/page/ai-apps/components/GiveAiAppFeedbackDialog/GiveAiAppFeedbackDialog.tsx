@@ -436,11 +436,6 @@ export function GiveAiAppFeedbackDialog({
   const useBridge = canCapture && !bridgeFailed;
   const isBusy = isCapturing || Boolean(freezeSrc) || Boolean(cropSrc) || isPickingPart;
   const isHidden = isOpen && isBusy;
-  const onHiddenChangeRef = useRef(onHiddenChange);
-  onHiddenChangeRef.current = onHiddenChange;
-  useEffect(() => {
-    onHiddenChangeRef.current?.(isHidden);
-  }, [isHidden]);
   const isPending = isAppFeedbackPending || isContactSupportPending || isHostingImages || isRequestedCapture;
   /* The picture still on its way counts: it's a slot the member can see. */
   const shotCount = screenshots.length + (auto?.status === 'capturing' ? 1 : 0);
@@ -449,10 +444,17 @@ export function GiveAiAppFeedbackDialog({
   /* Fresh refs for the capture effect, which must not re-run (and re-capture) when they change identity. */
   const captureRef = useRef(capture);
   const analyticsRef = useRef(analytics);
+  const onHiddenChangeRef = useRef(onHiddenChange);
   useEffect(() => {
     captureRef.current = capture;
     analyticsRef.current = analytics;
+    onHiddenChangeRef.current = onHiddenChange;
   });
+
+  /* Declared after the fresh refs, so it reads this render's callback. */
+  useEffect(() => {
+    onHiddenChangeRef.current?.(isHidden);
+  }, [isHidden]);
 
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);

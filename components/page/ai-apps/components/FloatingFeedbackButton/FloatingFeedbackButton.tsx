@@ -252,7 +252,8 @@ function FeedbackFab({
         </button>
       </div>
 
-      {elementPins && iframeRef && elementPins.pins.length > 0 && (isPinMode || isOpen) && (
+      {/* Out of the picture during a capture too: the screen share grabs whatever is on screen. */}
+      {elementPins && iframeRef && elementPins.pins.length > 0 && (isPinMode || isOpen) && !isFormHidden && (
         <PinOverlay
           iframeRef={iframeRef}
           pins={elementPins.pins}

@@ -1775,6 +1775,7 @@ describe('GiveAiAppFeedbackDialog hides itself during a screen-share capture', (
 
     await waitFor(() => expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument());
     expect(overlay()?.className).not.toMatch(/overlayHidden/);
+    expect(onHiddenChange).toHaveBeenCalledWith(true);
     expect(onHiddenChange).toHaveBeenLastCalledWith(false);
   });
 
@@ -1818,6 +1819,8 @@ describe('GiveAiAppFeedbackDialog hides itself during a screen-share capture', (
 
     await waitFor(() => expect(mockOnFeedbackScreenshotCaptureFailed).toHaveBeenCalledWith({ stage: 'grab' }));
     await waitFor(() => expect(overlay()?.className).not.toMatch(/overlayHidden/));
+    // It did hide: the dialog also reports `false` once on mount, so the last call alone proves nothing.
+    expect(onHiddenChange).toHaveBeenCalledWith(true);
     expect(onHiddenChange).toHaveBeenLastCalledWith(false);
     expect(screen.queryByAltText('Screenshot 1')).not.toBeInTheDocument();
   });

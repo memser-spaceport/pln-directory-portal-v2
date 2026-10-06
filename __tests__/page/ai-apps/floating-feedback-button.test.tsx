@@ -426,6 +426,29 @@ describe('FloatingFeedbackButton', () => {
       expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
     });
 
+    /* LAB-2759: the pin markers sit over the app, so a screen share would grab them too. */
+    it('takes the pin markers out of the picture while the form is hidden for a capture', () => {
+      withAccess();
+      const pin = { id: 'pin-1', note: '', rect: { x: 10, y: 10, w: 40, h: 20 } };
+      const frameRef = { current: document.createElement('iframe') };
+      render(
+        <FloatingFeedbackButton
+          appUid="app-1"
+          appName="My App"
+          elementPins={controller('ready', [pin])}
+          iframeRef={frameRef}
+        />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+      expect(screen.getByRole('button', { name: 'Pin 1' })).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Start capture' }));
+      expect(screen.queryByRole('button', { name: 'Pin 1' })).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'End capture' }));
+      expect(screen.getByRole('button', { name: 'Pin 1' })).toBeInTheDocument();
+    });
+
     it("hands the bridge's capture to the form when the app's bridge can capture", () => {
       withAccess();
       const pins = { ...controller('unavailable'), canCapture: true, capture: jest.fn() };

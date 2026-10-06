@@ -12,13 +12,24 @@ import { SpvExploreTile } from './SpvExploreTile';
 import { SpvNavBar } from './SpvNavBar';
 import { SpvCardAction, SpvCardStatus, SpvTeamSpotlight } from './SpvTeamSpotlight';
 import { netholabs, NETHOLABS_FACTS, NETHOLABS_SUMMARY, NETHOLABS_WEBSITE_IMAGES } from './netholabs';
-import { SpvInvestorProfileDrawer, type InvestorRecord } from './SpvInvestorProfileDrawer';
+import {
+  SpvInvestorProfileDrawer,
+  hasInvestorProfile,
+  type InvestorRecord,
+  type SpvFund,
+} from './SpvInvestorProfileDrawer';
+import { SpvInvestorProfileCard } from './SpvInvestorProfileCard';
+// The product's contact-support modal, as the help-menu prototype copies it.
+import { SupportModal } from '../help-feedback-menu/SupportModal';
 import { SpvApplyModal, SpvAppliedModal } from './SpvApplyModal';
 import {
   mockSignedInUser,
   mockInvestorProfile,
   mockInvestorDetails,
   mockSpotlight,
+  MOCK_FUNDS,
+  INVESTOR_KIND_OPTIONS,
+  type InvestorKind,
   REQUEST_FLOW_ENABLED,
   spvFaqItems,
   VIEWER_OPTIONS,
@@ -39,17 +50,21 @@ import s from './SpvSpotlight.module.scss';
  *   Demo Day taught us — and the primary is **Request data room access**, a plain
  *   link to the team's DocSend (no DocSend integration).
  * - **Locked states.** Without the token and a login, the page shows nothing of
- *   the deal — no title, no team, no FAQ: a lock message with Sign in (or "Use a
- *   different account" when logged in as someone not on the list), Contact us,
- *   and **Explore PL Network as a bigger tile** so a visitor has somewhere to
- *   go. This reverses the earlier "team info is public before login".
- * - **Secondary call to action: Set up investor profile**, beside Open data
- *   room, "so we can send you the deals you'd be interested in" (a deal is the
- *   venture word for a startup investment opportunity). It opens the investor
- *   profile drawer; Investor Details already asks what they invest in (focus,
- *   stages, check size), so it only gains one tick: "Email me deals that match".
- * - Contact us (mailto) replaces the questions block on the locked states; the
- *   FAQ stays for invited viewers, rewritten for the token model.
+ *   the deal — no title, no team, no FAQ: a lock message with Sign in and
+ *   Contact us, and **Explore PL Network as a bigger tile** so a visitor has
+ *   somewhere to go. Signed in but not on the list (e.g. a forwarded link) is
+ *   only "You don't have access" + Contact us: no other-account option and no
+ *   email address (review 2026-10-05). Contact us opens the product's
+ *   contact-support modal.
+ * - **Investor profile card** (review 2026-10-05): its own card under the
+ *   Spotlight description, because it is about future deals, not this team —
+ *   "Fine-tune future deal outreach", the reason on the card at rest, and one
+ *   bordered button: "Set up investor profile" for a new investor, "Review and
+ *   update investor profile" for one who already has a profile (Demo Day, a
+ *   past deal). It opens the investor-profile drawer, which matches
+ *   production's Demo Day investor drawer (see SpvInvestorProfileDrawer). One
+ *   drawer, no wizard.
+ * - The FAQ stays for invited viewers, rewritten for the token model.
  *
  * Still open, to confirm with Anuj / Remy / Mark: what the token link does once
  * it expires or is used on a second device; whether "not on the list" should
@@ -93,14 +108,20 @@ export default function SpvSpotlightGatedPrototype() {
   // The investor's own profile, edited in the investor-profile drawer.
   const [profileOpen, setProfileOpen] = useState(false);
   const [profile, setProfile] = useState(mockInvestorProfile);
-  const [investor, setInvestor] = useState<InvestorRecord>(mockInvestorDetails);
+  const [investorKind, setInvestorKind] = useState<InvestorKind>('new');
+  const [investor, setInvestor] = useState<InvestorRecord>(mockInvestorDetails.new);
+  const [funds, setFunds] = useState<SpvFund[]>(MOCK_FUNDS);
+  const [supportOpen, setSupportOpen] = useState(false);
 
   useEffect(() => setMounted(true), []);
   if (!mounted) return <div className={s.page} />;
 
   const isLoggedIn = viewer !== 'signedOut';
-  // The secondary call to action reads "Set up" until Investor Details says what
-  // they invest in: a focus and a check size, so there is something to match on.
+  // "Set up" until the investor has told us how they invest at all, then
+  // "Review and update" (review 2026-10-05). Saving a profile in the drawer
+  // flips a new investor over, as it would in production.
+  const hasProfile = hasInvestorProfile(investor);
+  // The legacy pending stepper's step 2 still reads this.
   const profileComplete = investor.focus.length > 0 && !!investor.checkSize;
   const variant = resolveVariant(status, viewer);
   const locked = variant === 'lockedSignedOut' || variant === 'lockedNoAccess';
@@ -133,13 +154,6 @@ export default function SpvSpotlightGatedPrototype() {
             // still asks for access on DocSend, so the label names that step.
             label="Request data room access"
             href={mockSpotlight.docSendUrl}
-            // The investor-profile door (2026-10-01), a link under the primary;
-            // what it is for sits in the info tooltip beside it (2026-10-05).
-            secondary={{
-              label: profileComplete ? 'Edit your investor profile' : 'Set up your investor profile',
-              onClick: () => setProfileOpen(true),
-              info: 'Your investor preferences are used to fine-tune the deals we notify you about.',
-            }}
           />
         );
       case 'pending':
@@ -174,6 +188,29 @@ export default function SpvSpotlightGatedPrototype() {
             </button>
           ))}
         </div>
+        {/* Which investor is looking (review 2026-10-05). Only where the
+            investor-profile card shows. */}
+        {(variant === 'open' || variant === 'openingSoon') && (
+          <>
+            <span className={s.demoLabel}>Investor</span>
+            <div className={s.segmented}>
+              {INVESTOR_KIND_OPTIONS.map((o) => (
+                <button
+                  key={o.value}
+                  type="button"
+                  className={clsx(s.segment, { [s.segmentActive]: investorKind === o.value })}
+                  onClick={() => {
+                    setInvestorKind(o.value);
+                    setInvestor(mockInvestorDetails[o.value]);
+                    setFunds(MOCK_FUNDS);
+                  }}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
         <span className={s.demoHint}>{hint}</span>
       </div>
 
@@ -202,11 +239,15 @@ export default function SpvSpotlightGatedPrototype() {
             description={mockSpotlight.description}
             profileComplete={profileComplete}
             onEditProfile={() => setProfileOpen(true)}
-            email={profile.contacts.email}
-            supportEmail={mockSpotlight.supportEmail}
             onSignIn={() => setViewer('invited')}
-            onSignOut={() => setViewer('signedOut')}
+            onContactUs={() => setSupportOpen(true)}
           />
+
+          {/* Under the Spotlight description, before the team: the profile is
+              about the deals we send next, not this one (review 2026-10-05). */}
+          {(variant === 'open' || variant === 'openingSoon') && (
+            <SpvInvestorProfileCard existing={hasProfile} investor={investor} onOpen={() => setProfileOpen(true)} />
+          )}
 
           {/* The team is only for invited viewers: a locked page shows nothing
               of the deal (2026-10-01; earlier it was public directory info). */}
@@ -253,15 +294,20 @@ export default function SpvSpotlightGatedPrototype() {
 
           <footer className={d.footer}>
             <div className={d.note}>
-              © 2026 Protocol Labs.{' '}
-              {locked
-                ? ''
-                : 'All content is provided by the founders. Protocol Labs does not endorse or recommend any investment, and is not a broker, dealer, or advisor. '}
-              Questions? Write to{' '}
-              <a href={`mailto:${mockSpotlight.supportEmail}`} className={d.infoLink}>
-                {mockSpotlight.supportEmail}
-              </a>
-              .
+              © 2026 Protocol Labs.
+              {/* Locked pages carry no address: Contact us above is the way to
+                  ask (review 2026-10-05). */}
+              {!locked && (
+                <>
+                  {' '}
+                  All content is provided by the founders. Protocol Labs does not endorse or recommend any investment,
+                  and is not a broker, dealer, or advisor. Questions? Write to{' '}
+                  <a href={`mailto:${mockSpotlight.supportEmail}`} className={d.infoLink}>
+                    {mockSpotlight.supportEmail}
+                  </a>
+                  .
+                </>
+              )}
             </div>
             <div className={d.bottom}>
               <div className={d.links}>
@@ -321,6 +367,17 @@ export default function SpvSpotlightGatedPrototype() {
         onProfileChange={setProfile}
         investor={investor}
         onInvestorChange={setInvestor}
+        funds={funds}
+        onFundsChange={setFunds}
+        onContactSupport={() => setSupportOpen(true)}
+      />
+
+      <SupportModal
+        open={supportOpen}
+        initialTopic="Contact support"
+        // Signed out, the fields start empty (production prefills only what it knows).
+        viewer={isLoggedIn ? { name: profile.name, email: profile.contacts.email } : { name: '', email: '' }}
+        onClose={() => setSupportOpen(false)}
       />
     </div>
   );

@@ -1,0 +1,98 @@
+@use 'styles/media';
+
+/*
+  Polish pass on the transcribed feedback popover (see the POLISH PASS note in
+  FeedbackDialog.tsx). Every rule here layers on a production class; nothing
+  restyles production itself.
+*/
+
+/* Production's `.fieldError` (the app picker's "Please select an app"), minus the
+   -12px pull-up that assumes a 20px gap: inside `.writing` the gap is 4px. */
+.noteError {
+  margin: 0;
+}
+
+/*
+  Kind (pills) over Priority (select). Production's `.triage` is a two-column grid
+  of two selects; a pill row needs the full width to stay on one line, so the
+  pair stacks. Doubled class so it beats production's `.triage` whatever order the
+  two stylesheets load in; production's wide-mode grid placement still applies.
+*/
+.triage.triage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Label → field spacing matches the picker's: production's FormSelect label sits 8px over its control. */
+.kind {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  /*
+    The chips are tapped on a phone, and at 22px they are too small for a finger.
+    32px is the size the help form's Topic pills settled on after review
+    (help-feedback-menu). Desktop keeps the verbatim 22px. `button` + the
+    radio role out-specify production's `.categoryBadge.active`, which repeats
+    padding and type, so the chosen pill grows along with the rest.
+  */
+  @include media.mobile-only {
+    button[role='radio'] {
+      padding: 5px 12px;
+      font-size: 14px;
+      line-height: 20px;
+    }
+  }
+}
+
+/* A priority is a short value now; a full-width field would be a 432px box around "P2 · Normal". */
+.priority {
+  width: 50%;
+  min-width: 200px;
+
+  @include media.mobile-only {
+    width: 100%;
+  }
+}
+
+/*
+  "Posting as …" keeps its words (where the feedback goes is the one thing on the
+  form nothing else says) but loses the grey slab: a filled box at the end of a
+  form reads as a notice to act on, and this is a caption.
+*/
+.postingAs.postingAs {
+  align-items: flex-start;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  font-size: 12px;
+  line-height: 16px;
+
+  svg {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    margin-top: 1px;
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+/* Wider/Narrower: on a phone both are already the full width of the screen. */
+.hideOnPhone {
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+/*
+  The floating button while its form is open on a phone. There the form is
+  centred over the whole screen, and the button stayed on top of it, covering
+  Send. The form's own ✕ closes it, so the button steps aside until then.
+*/
+.fabOpen {
+  @include media.mobile-only {
+    visibility: hidden;
+    pointer-events: none;
+  }
+}

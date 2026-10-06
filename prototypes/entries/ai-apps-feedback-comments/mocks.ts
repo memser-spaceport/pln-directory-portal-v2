@@ -751,7 +751,7 @@ export const mockAiApps: AiAppWithDoc[] = [
     createdAt: '2026-08-25T15:05:00.000Z',
     updatedAt: '2026-08-25T15:05:00.000Z',
     member: { uid: 'm-1', name: 'Polina Bublii', image: null },
-    activity: { views: 8, feedback: 0 },
+    activity: { views: 8, feedback: 1 },
   },
   {
     uid: 'app-8',
@@ -822,7 +822,7 @@ export const mockAiApps: AiAppWithDoc[] = [
     updatedAt: '2026-08-18T12:00:00.000Z',
     member: { uid: 'm-1', name: 'Polina Bublii', image: null },
     lastUpdate: { byUid: 'm-1', byName: 'Polina Bublii', minutesAgo: 60 * 24 * 9 },
-    activity: { views: 210, feedback: 0 },
+    activity: { views: 210, feedback: 2 },
   },
 ];
 

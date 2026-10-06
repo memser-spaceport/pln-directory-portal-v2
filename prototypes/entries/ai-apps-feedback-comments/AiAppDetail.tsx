@@ -11,6 +11,7 @@ import bb from '@/components/ui/BackButton/BackButton.module.scss';
 import dev from '@/components/page/ai-apps/AiAppDetailPage/AiAppDetailPage.module.scss';
 
 import { FloatingFeedbackButton } from './prod/FeedbackButton';
+import type { SubmittedFeedback } from './prod/FeedbackDialog';
 import { type AiAppWithDoc } from './mocks';
 import { AppActionsMenu } from './AppActionsMenu';
 import { COMMENTS_DRAWER_WIDTH, CommentsDrawer } from './threads/CommentsDrawer';
@@ -38,7 +39,7 @@ interface Props {
   /** Comment mode on/off, so the shell can make room for the drawer. */
   onCommentingChange?: (on: boolean) => void;
   /** Called on every send, so the card's activity count moves. */
-  onSubmitFeedback: (appUid: string) => void;
+  onSubmitFeedback: (feedback: SubmittedFeedback) => void;
 }
 
 export function AiAppDetail(props: Props) {
@@ -196,7 +197,7 @@ export function AiAppDetail(props: Props) {
         viewer={viewer}
         iframeRef={iframeRef}
         capture={capture}
-        onSubmit={(feedback) => onSubmitFeedback(feedback.appUid)}
+        onSubmit={onSubmitFeedback}
         commentMode={{
           available: true,
           active: commenting,

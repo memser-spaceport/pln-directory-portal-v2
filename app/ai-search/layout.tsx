@@ -10,7 +10,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   return (
     <>
       <SidebarProvider defaultOpen={true}>
-        {isLoggedIn && <AppSidebar isLoggedIn={isLoggedIn} />}
+        <AppSidebar isLoggedIn={isLoggedIn} />
         {children}
       </SidebarProvider>
     </>

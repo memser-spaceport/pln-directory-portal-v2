@@ -1,6 +1,6 @@
 'use client';
 
-import { type PropsWithChildren, useEffect } from 'react';
+import { type PropsWithChildren, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
@@ -48,6 +48,14 @@ interface Props {
  * in the accessibility tree.
  */
 export function FeedbackDrawerFrame({ isOpen, wide, hidden, reserveSpace, label, children }: PropsWithChildren<Props>) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  /* The button that opened it steps aside, so focus moves into the drawer rather than stay on a hidden control. */
+  useEffect(() => {
+    if (!isOpen) return;
+    const panel = panelRef.current;
+    if (panel && !panel.contains(document.activeElement)) panel.focus({ preventScroll: true });
+  }, [isOpen]);
+
   const reserve = isOpen && !wide && reserveSpace;
   useEffect(() => {
     if (!reserve) return;
@@ -69,6 +77,8 @@ export function FeedbackDrawerFrame({ isOpen, wide, hidden, reserveSpace, label,
     >
       <motion.div
         className={clsx(s.modalContainer, wide && s.modalContainerWide, dw.panel, wide ? dw.panelWide : dw.panelNarrow)}
+        ref={panelRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal={wide}
         aria-label={label}

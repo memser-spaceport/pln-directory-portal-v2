@@ -259,17 +259,22 @@ function FeedbackFab({
       </div>
 
       {/* Out of the picture during a capture too: the screen share grabs whatever is on screen. */}
-      {elementPins && iframeRef && elementPins.pins.length > 0 && (isPinMode || isOpen) && !isFormHidden && (
-        <PinOverlay
-          iframeRef={iframeRef}
-          pins={elementPins.pins}
-          activePinId={activePinId}
-          onPinClick={(pinId) => {
-            if (!isPinMode) openPinMode();
-            setActivePinId(pinId);
-          }}
-        />
-      )}
+      {/* Not in comment mode: there the pins are comment mode's own, drawn by the page. */}
+      {elementPins &&
+        iframeRef &&
+        elementPins.pins.length > 0 &&
+        (isPinMode || (isOpen && !inCommentMode)) &&
+        !isFormHidden && (
+          <PinOverlay
+            iframeRef={iframeRef}
+            pins={elementPins.pins}
+            activePinId={activePinId}
+            onPinClick={(pinId) => {
+              if (!isPinMode) openPinMode();
+              setActivePinId(pinId);
+            }}
+          />
+        )}
 
       {elementPins && isPinMode && (
         <PinPanel

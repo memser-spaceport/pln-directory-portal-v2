@@ -558,6 +558,7 @@ describe('FloatingFeedbackButton', () => {
 
     it('choosing Comments turns comment mode on, keeps the drawer open and tracks the click', () => {
       withAccess();
+      const frameRef = { current: document.createElement('iframe') };
       const commentMode = comments();
       const { rerender } = render(
         <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={commentMode} />,
@@ -589,6 +590,47 @@ describe('FloatingFeedbackButton', () => {
 
       expect(inMode.onClose).toHaveBeenCalled();
       expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+    });
+
+    /* Comment mode draws its own pins; the old pin flow's overlay would stack a second set over them. */
+    it('draws no pin-flow overlay over comment mode', () => {
+      withAccess();
+      const pins = {
+        status: 'ready',
+        isPicking: true,
+        pins: [{ id: 'pin-1', note: '', rect: { x: 10, y: 10, w: 40, h: 20 } }],
+        onFrameLoad: jest.fn(),
+        startPicking: jest.fn(),
+        stopPicking: jest.fn(),
+        setNote: jest.fn(),
+        removePin: jest.fn(),
+        clearPins: jest.fn(),
+      } as any;
+      const frameRef = { current: document.createElement('iframe') };
+      const commentMode = comments();
+      const { rerender } = render(
+        <FloatingFeedbackButton
+          appUid="app-1"
+          appName="Grant Tracker"
+          elementPins={pins}
+          iframeRef={frameRef}
+          commentMode={commentMode}
+        />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Feedback & comments' }));
+      fireEvent.click(screen.getByRole('tab', { name: /Comments/ }));
+      rerender(
+        <FloatingFeedbackButton
+          appUid="app-1"
+          appName="Grant Tracker"
+          elementPins={pins}
+          iframeRef={frameRef}
+          commentMode={comments({ active: true })}
+        />,
+      );
+
+      expect(screen.getByText('Comments list')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Pin 1' })).not.toBeInTheDocument();
     });
 
     it('closing the drawer on the Comments tab leaves comment mode too', () => {

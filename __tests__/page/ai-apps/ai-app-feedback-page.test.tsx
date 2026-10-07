@@ -161,12 +161,13 @@ describe('AiAppFeedbackPage', () => {
 
   it('says it covers every app for a directory admin', () => {
     mockUseAiAppFeedbackReviewAccess.mockReturnValue({ isDirectoryAdmin: true, canReview: true });
-    mockUseAiAppFeedbackList.mockReturnValue({ feedback: [], isLoading: false, isError: false });
+    mockUseAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
 
     render(<AiAppFeedbackPage />);
 
     expect(screen.getByRole('heading', { name: 'Feedback' })).toBeInTheDocument();
     expect(screen.getByText(/Feedback on every app across the directory/)).toBeInTheDocument();
+    expect(appOptionLabels()[0]).toBe('All apps · 3');
   });
 
   it('shows a loading state', () => {

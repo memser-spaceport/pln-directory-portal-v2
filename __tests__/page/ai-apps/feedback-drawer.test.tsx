@@ -361,6 +361,13 @@ describe('GiveAiAppFeedbackDialog, drawer variant', () => {
     expect(screen.getByTestId('feedback-drawer')).toHaveAttribute('data-wide', 'false');
   });
 
+  it('moves focus into the drawer when it opens', () => {
+    render(<GiveAiAppFeedbackDialog variant="drawer" isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+    expect(screen.getByRole('dialog', { name: 'Feedback · My App' })).toContainElement(
+      document.activeElement as HTMLElement,
+    );
+  });
+
   it('does not reserve page width on the list, where there is no app beside it', () => {
     render(<GiveAiAppFeedbackDialog variant="drawer" isOpen onClose={jest.fn()} />);
     expect(document.documentElement.style.getPropertyValue('--ai-app-comments-inset')).toBe('');

@@ -123,7 +123,8 @@ $quiet: var(--foreground-neutral-secondary, #455468);
    beside its pin. Fixed in the window, so it can hang past the frame. */
 .card {
   position: fixed;
-  z-index: 11;
+  /* Above the feedback drawer (1000), which is the whole screen on a phone; below every Modal (9999). */
+  z-index: 1001;
   width: 340px;
   max-height: min(70vh, 520px);
   border: 1px solid $border;
@@ -373,7 +374,8 @@ $quiet: var(--foreground-neutral-secondary, #455468);
 /* The small card beside a new pin (prototype PinComposer). */
 .composer {
   position: fixed;
-  z-index: 11;
+  /* Above the feedback drawer (1000), as the thread card is. */
+  z-index: 1001;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -606,10 +608,10 @@ $quiet: var(--foreground-neutral-secondary, #455468);
 }
 
 /* Portalled to the body and placed beside its button (inline style): above the
-   thread card (z-index 11), whose scroll area used to clip it. */
+   thread card (z-index 1001), whose scroll area used to clip it. */
 .itemActionsMenu {
   position: fixed;
-  z-index: 12;
+  z-index: 1002;
   display: flex;
   flex-direction: column;
   min-width: 120px;

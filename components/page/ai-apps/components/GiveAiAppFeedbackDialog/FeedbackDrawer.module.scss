@@ -37,6 +37,7 @@
   background: #fff;
   box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
   pointer-events: auto;
+  outline: none;
 
   @include media.mobile-only {
     width: 100vw;

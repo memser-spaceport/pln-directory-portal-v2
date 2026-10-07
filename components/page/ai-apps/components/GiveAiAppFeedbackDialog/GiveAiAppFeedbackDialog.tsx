@@ -725,7 +725,8 @@ export function GiveAiAppFeedbackDialog({
   };
 
   useLayoutEffect(() => {
-    if (!isOpen) {
+    /* The drawer is not anchored: nothing to measure. */
+    if (!isOpen || isDrawer) {
       setOverlayStyle(undefined);
       return;
     }
@@ -748,7 +749,7 @@ export function GiveAiAppFeedbackDialog({
       cancelAnimationFrame(frame);
       rootStyle?.disconnect();
     };
-  }, [isOpen, anchorRef, placement]);
+  }, [isOpen, isDrawer, anchorRef, placement]);
 
   const resetCapture = () => {
     setIsCapturing(false);

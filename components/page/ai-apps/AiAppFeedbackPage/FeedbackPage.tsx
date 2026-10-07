@@ -126,6 +126,9 @@ export function FeedbackPage({ view }: { view: FeedbackView }) {
     [managedAppNames, feedback],
   );
 
+  /* A Directory admin's Received list is every app, not only theirs. */
+  const allAppsLabel = isReceived && isDirectoryAdmin ? ALL_TAB : ALL_APPS_LABEL[view];
+
   /* Status, Kind and Priority; the App filter applies after, so its counts follow the other three. */
   const facetRows = useMemo(
     () =>
@@ -140,14 +143,14 @@ export function FeedbackPage({ view }: { view: FeedbackView }) {
 
   const appOptions: SortOption[] = useMemo(
     () => [
-      { value: ALL_APPS, label: `${ALL_APPS_LABEL[view]} · ${facetRows.length}`, selectedLabel: ALL_APPS_LABEL[view] },
+      { value: ALL_APPS, label: `${allAppsLabel} · ${facetRows.length}`, selectedLabel: allAppsLabel },
       ...appNames.map((name) => ({
         value: name,
         label: `${name} · ${facetRows.filter((row) => row.appName === name).length}`,
         selectedLabel: name,
       })),
     ],
-    [view, appNames, facetRows],
+    [allAppsLabel, appNames, facetRows],
   );
 
   const visibleRows = appFilter === ALL_APPS ? facetRows : facetRows.filter((row) => row.appName === appFilter);

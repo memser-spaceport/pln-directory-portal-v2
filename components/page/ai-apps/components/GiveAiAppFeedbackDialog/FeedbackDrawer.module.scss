@@ -1,0 +1,133 @@
+@use 'styles/media';
+
+/*
+  The feedback drawer (FeedbackDrawerFrame.tsx, LAB-2767). Layers only: the
+  dialog's .overlayWide / .modalContainerWide and its .root / .header are kept
+  as they are; these rules turn the anchored popover's box into a full-height
+  column on the right.
+*/
+
+/*
+  The fixed layer the panel slides along. Narrow, it lets clicks through to the
+  page (the panel takes them back): you comment on, and pick parts of, the app
+  beside it. Wide adds .overlayWide, whose scrim does block the page. z-index:
+  above the page and the floating button (9), below every Modal (9999), which
+  is where the confirms, the shortcuts sheet and the annotator open.
+*/
+.frame {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.frameWide {
+  pointer-events: auto;
+}
+
+/* Doubled: the dialog's .modalContainer (max-width 480px) loads in either order. */
+.panel.panel {
+  display: flex;
+  flex-direction: column;
+  max-width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+  pointer-events: auto;
+
+  @include media.mobile-only {
+    width: 100vw;
+  }
+}
+
+.panelNarrow.panelNarrow {
+  width: 480px;
+
+  @include media.mobile-only {
+    width: 100vw;
+  }
+}
+
+/* The Wider width, restated: .panel's max-width would otherwise cap it. */
+.panelWide.panelWide {
+  width: min(1120px, 80vw);
+
+  @include media.mobile-only {
+    width: 100vw;
+  }
+}
+
+/* The dialog's .root is a rounded, shadowed popover capped to the window; in a drawer it is the column. */
+.root.root {
+  height: 100%;
+  max-height: none;
+  border-radius: 0;
+  box-shadow: none;
+
+  /*
+    Quill's snow theme sets .ql-container { height: 100% }. In the popover its
+    parent's height is auto, so that resolves to nothing; in a fixed-height
+    drawer it resolves to the whole editor and the box runs past its field.
+    The editor's min-height still sizes it.
+  */
+  :global(.ql-container) {
+    height: auto;
+  }
+}
+
+/* The app's name can be long; it gives way before the header's controls do. */
+.title.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.headerActions.headerActions {
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+/* With the switcher under it, the header's rule moves below the switcher: title and switcher are one block. */
+.headerWithSwitch.headerWithSwitch {
+  padding-bottom: 12px;
+  border-bottom: none;
+}
+
+/* The switcher on the left; on the Feedback tab the form's own links (Drafts, Shortcuts) on the right. */
+.switchRow {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 24px 16px;
+  border-bottom: 1px solid rgba(203, 213, 225, 0.5);
+}
+
+.formLinks {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* The form stays mounted under the Comments tab, so a half-written note survives the switch. */
+.formPane {
+  display: contents;
+}
+
+.paneHidden {
+  display: none;
+}
+
+/* The comments list fills what is left of the drawer and scrolls inside. */
+.altPane {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}

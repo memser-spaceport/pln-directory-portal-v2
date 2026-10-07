@@ -2714,6 +2714,7 @@ export const AI_APPS_ANALYTICS = {
   FEEDBACK_EXPORTED: 'ai_apps_feedback_exported',
   FEEDBACK_STATUS_CHANGED: 'ai_apps_feedback_status_changed',
   FEEDBACK_DIALOG_OPENED: 'ai_apps_feedback_dialog_opened',
+  FEEDBACK_COMMENTS_TAB_CLICKED: 'ai-apps-feedback-comments-tab-clicked',
   FEEDBACK_SCREENSHOT_CLICKED: 'ai_apps_feedback_screenshot_clicked',
   FEEDBACK_SCREENSHOT_CAPTURE_DENIED: 'ai_apps_feedback_screenshot_capture_denied',
   FEEDBACK_SCREENSHOT_CAPTURE_FAILED: 'ai_apps_feedback_screenshot_capture_failed',

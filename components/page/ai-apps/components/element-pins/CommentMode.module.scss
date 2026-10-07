@@ -321,42 +321,6 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   resize: none;
 }
 
-/* ---------- the dock ---------- */
-
-/* Open for as long as the mode is on, above the feedback button (the
-   prototype's DraftsPanel position). Only the middle scrolls. */
-.dock {
-  position: fixed;
-  right: 24px;
-
-  bottom: 88px;
-  z-index: 10;
-  gap: 12px;
-  width: min(420px, calc(100vw - 24px));
-  max-height: min(64vh, 560px);
-  padding: 16px;
-  border: 1px solid $border;
-  animation: threadIn 160ms ease-out both;
-
-  /* Beside the comments panel while it is open (hidden on phones). */
-  @include media.tablet-portrait {
-    right: calc(24px + var(--ai-app-comments-inset, 0px));
-  }
-
-  @include media.mobile-only {
-    right: 12px;
-    bottom: 72px;
-  }
-}
-
-.top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
 .hint {
   margin: 0;
   color: $quiet;
@@ -480,19 +444,12 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   }
 
   .card,
-  .dock,
   .pinDraft {
     animation: none;
   }
 }
 
-/* ---------- the Comment tab's card and the composer (prototype ai-apps-comments) ---------- */
-
-.hintBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
+/* ---------- the composer (prototype ai-apps-comments) ---------- */
 
 .hintLead {
   margin: 0;

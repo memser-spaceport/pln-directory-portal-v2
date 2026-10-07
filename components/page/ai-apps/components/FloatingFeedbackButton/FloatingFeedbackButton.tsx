@@ -1,6 +1,6 @@
 'use client';
 
-import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
+import { type ReactNode, type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import { usePermissions } from '@/services/rbac/hooks/usePermissions';
 import { canViewAiApps } from '@/services/rbac/utils/aiApps/canViewAiApps';
@@ -14,7 +14,7 @@ import {
   useShortcutLabels,
 } from '@/components/page/ai-apps/shortcutKeys';
 import { GiveAiAppFeedbackDialog, ShortcutHelp } from '../GiveAiAppFeedbackDialog';
-import { FeedbackTabs } from '../FeedbackTabs/FeedbackTabs';
+import { FeedbackTabs, type FeedbackTab } from '../FeedbackTabs/FeedbackTabs';
 import { PinOverlay, PinPanel, type ElementPinsController } from '../element-pins';
 import type { FeedbackContext } from '@/services/ai-app-feedback/ai-app-feedback.service';
 
@@ -43,22 +43,25 @@ interface Props {
   getContext?: () => FeedbackContext | null;
   /**
    * Comments on the live app (detail page, flag on, bridge can locate). When
-   * available, the button is "Feedback & comments": it opens one panel with two
-   * tabs (prototype ai-apps-comments) — Feedback, the written form (this
-   * dialog), and Comment, where comment mode draws the card and the pins. The
-   * resting mark carries the count of comments (all of them, as the panel does).
+   * available, the button is "Feedback & comments": its drawer has a
+   * Feedback | Comments switcher under the title (prototype
+   * ai-apps-feedback-drawer) — Feedback, the written form, and Comments, which
+   * turns comment mode on and lists the threads in the drawer body. The resting
+   * mark carries the count of comments (all of them, as the list does).
    */
   commentMode?: {
     available: boolean;
-    /** The Comment tab is open (comment mode on). */
+    /** The Comments tab is open (comment mode on). */
     active: boolean;
     count: number;
-    /** The Comment tab was chosen. */
+    /** The Comments tab was chosen. */
     onOpen: () => void;
-    /** Leave comment mode (the button pressed again). */
+    /** Leave comment mode (the Feedback tab, or the drawer closed). */
     onClose: () => void;
-    /** Bumped by the page when the comment card's Feedback tab is chosen: open the dialog. */
-    feedbackRequest: number;
+    /** The Comments tab's body: the thread list, drawn by the page. */
+    body: ReactNode;
+    /** Bumped by the page when comment mode asks the whole drawer to close (Esc with nothing open). */
+    closeRequest: number;
   };
 }
 
@@ -101,7 +104,6 @@ function FeedbackFab({
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   /* The form hid itself for a capture: the button steps out of the picture with it. */
   const [isFormHidden, setIsFormHidden] = useState(false);
-  const wrapRef = useRef<HTMLDivElement>(null);
   const introStartedAtRef = useRef<number | null>(null);
   const analytics = useAiAppsAnalytics();
   const shortcuts = useShortcutLabels();
@@ -120,8 +122,7 @@ function FeedbackFab({
     introStartedAtRef.current = Date.now();
   }, [isVisible]);
 
-  // Paused while the feedback popover is open — collapsing the anchor mid-use
-  // repositions the panel and closes the app picker.
+  // Paused while the feedback drawer is open: the label is spent on arrival, not behind the drawer.
   useEffect(() => {
     if (!isVisible || isOpen || isCollapsed) {
       return;
@@ -142,7 +143,7 @@ function FeedbackFab({
     if (elementPins.pins.length === 0) elementPins.startPicking();
   }, [elementPins, appUid, analytics]);
 
-  /* Today's door, minus the comment mode: pin mode when the bridge answered, the dialog otherwise. */
+  /* Today's door, minus the comment mode: pin mode when the bridge answered, the drawer otherwise. */
   const startFeedback = useCallback(() => {
     if (canPin && !commentsAvailable) {
       openPinMode();
@@ -152,25 +153,34 @@ function FeedbackFab({
     setIsOpen(true);
   }, [canPin, commentsAvailable, openPinMode, analytics, appUid, appName]);
 
-  /* The comment card's Feedback tab: the page bumps the request, the dialog opens. */
-  const feedbackRequest = commentMode?.feedbackRequest ?? 0;
-  const [seenFeedbackRequest, setSeenFeedbackRequest] = useState(feedbackRequest);
-  if (feedbackRequest !== seenFeedbackRequest) {
-    setSeenFeedbackRequest(feedbackRequest);
-    setIsOpen(true);
+  /* Comment mode's Esc with nothing left to dismiss: the page bumps the request, the whole drawer closes. */
+  const closeRequest = commentMode?.closeRequest ?? 0;
+  const [seenCloseRequest, setSeenCloseRequest] = useState(closeRequest);
+  if (closeRequest !== seenCloseRequest) {
+    setSeenCloseRequest(closeRequest);
+    setIsOpen(false);
   }
 
-  /* One mark, one panel: pressed again it closes whichever tab is open. */
-  const onButton = () => {
-    if (inCommentMode) {
+  /* Comment mode is the drawer's Comments tab, so it holds the drawer open too. */
+  const drawerOpen = isOpen || inCommentMode;
+
+  const closeDrawer = () => {
+    /* Closing the drawer (Cancel, ✕, Close after sending) ends the pin session and comment mode too. */
+    elementPins?.clearPins();
+    setIsOpen(false);
+    if (inCommentMode) commentMode?.onClose();
+  };
+
+  /* The switcher. The drawer stays open either way; only what fills it changes. */
+  const selectTab = (tab: FeedbackTab) => {
+    setIsOpen(true);
+    if (tab === 'comment') {
+      if (inCommentMode) return;
+      if (appUid) analytics.onFeedbackCommentsTabClicked({ appUid });
+      commentMode?.onOpen();
+    } else if (inCommentMode) {
       commentMode?.onClose();
-      return;
     }
-    if (commentsAvailable && isOpen) {
-      setIsOpen(false);
-      return;
-    }
-    startFeedback();
   };
 
   const leavePinMode = () => {
@@ -190,9 +200,9 @@ function FeedbackFab({
     }
   }
 
-  /* The open form owns its keys, `?` included. */
+  /* The open drawer owns its keys, `?` included. */
   useEffect(() => {
-    if (!isVisible || isOpen || isPinMode || shortcutsOpen) return;
+    if (!isVisible || drawerOpen || isPinMode || shortcutsOpen) return;
 
     const onKey = (event: KeyboardEvent) => {
       if (isShortcutsKey(event) && !isAnyDialogOpen()) {
@@ -204,39 +214,35 @@ function FeedbackFab({
       if (!isOpenFeedbackKey(event)) return;
       event.preventDefault();
       analytics.onFeedbackShortcutUsed({ action: 'open' });
-      /* What the button does while the form is closed. */
-      if (inCommentMode) commentMode?.onClose();
-      else startFeedback();
+      /* What the button does while the drawer is closed. */
+      startFeedback();
     };
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isVisible, isOpen, isPinMode, shortcutsOpen, inCommentMode, commentMode, startFeedback, analytics]);
+  }, [isVisible, drawerOpen, isPinMode, shortcutsOpen, startFeedback, analytics]);
 
   if (!isVisible) {
     return null;
   }
 
-  const panelOpen = inCommentMode || (commentsAvailable && isOpen);
   const name = commentsAvailable ? 'Feedback & comments' : 'Give feedback';
 
   return (
     <>
+      {/* The button steps aside while its drawer is open, at every width; ✕ and Esc bring it back. */}
       <div
-        ref={wrapRef}
-        className={clsx(s.wrap, isFormHidden && s.wrapHidden)}
-        data-collapsed={isCollapsed || panelOpen}
+        className={clsx(s.wrap, isFormHidden && s.wrapHidden, drawerOpen && s.fabHidden)}
+        data-collapsed={isCollapsed || drawerOpen}
+        aria-hidden={drawerOpen || undefined}
       >
-        {/* With comments available the button opens one panel (Comment / Feedback)
-            and, while it is open, settles to the outlined glyph that closes it.
-            The count rides the resting mark only — in the mode the pins are the count. */}
         <button
           type="button"
-          className={clsx(s.button, panelOpen && s.buttonActive)}
-          aria-label={panelOpen ? 'Close feedback and comments' : name}
-          aria-expanded={commentsAvailable ? panelOpen : undefined}
+          className={s.button}
+          aria-label={name}
           aria-keyshortcuts={shortcuts.openAria}
-          onClick={onButton}
+          tabIndex={drawerOpen ? -1 : undefined}
+          onClick={startFeedback}
         >
           {/* CommentIcon hardcodes its own 16px box and ignores props. */}
           <CommentIcon />
@@ -244,7 +250,7 @@ function FeedbackFab({
             <span>{name}</span>
             <kbd className={s.labelKbd}>{shortcuts.open}</kbd>
           </span>
-          {commentsAvailable && !panelOpen && (commentMode?.count ?? 0) > 0 && (
+          {commentsAvailable && (commentMode?.count ?? 0) > 0 && (
             <span className={s.count} aria-label={`${commentMode?.count} comments`}>
               {commentMode?.count}
             </span>
@@ -290,12 +296,9 @@ function FeedbackFab({
       )}
 
       <GiveAiAppFeedbackDialog
-        isOpen={isOpen}
-        onClose={() => {
-          /* Closing the dialog (Cancel, ✕, Close after sending) ends the pin session too. */
-          elementPins?.clearPins();
-          setIsOpen(false);
-        }}
+        variant="drawer"
+        isOpen={drawerOpen}
+        onClose={closeDrawer}
         /* Pins belong to comment mode when it is there; the old pin flow feeds the dialog otherwise. */
         pins={commentsAvailable ? undefined : elementPins?.pins}
         onSent={() => elementPins?.clearPins()}
@@ -310,8 +313,6 @@ function FeedbackFab({
         getContext={getContext}
         appUid={appUid}
         appName={appName}
-        anchorRef={wrapRef}
-        placement="above"
         /* Instant screenshots: the app's bridge takes the picture, no screen-share prompt. */
         capture={elementPins?.canCapture ? elementPins.capture : undefined}
         /* The bridge never answered: an app built before it (kit < 1.15). */
@@ -320,19 +321,16 @@ function FeedbackFab({
         captureExpected={Boolean(elementPins) && elementPins?.status !== 'off'}
         frameRef={iframeRef}
         onHiddenChange={setIsFormHidden}
-        headerTabs={
+        switchSlot={
           commentsAvailable ? (
             <FeedbackTabs
-              active="feedback"
+              active={inCommentMode ? 'comment' : 'feedback'}
               commentCount={commentMode?.count ?? 0}
-              onSelect={(tab) => {
-                if (tab !== 'comment') return;
-                setIsOpen(false);
-                commentMode?.onOpen();
-              }}
+              onSelect={selectTab}
             />
           ) : undefined
         }
+        altBody={inCommentMode ? commentMode?.body : undefined}
       />
 
       <ShortcutHelp isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} shortcuts={shortcuts} />

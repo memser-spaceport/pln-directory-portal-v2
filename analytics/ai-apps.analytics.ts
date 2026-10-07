@@ -65,6 +65,9 @@ export function useAiAppsAnalytics() {
       capture(AI_APPS_ANALYTICS.FEEDBACK_STATUS_CHANGED, params),
     onFeedbackDialogOpened: (params: { appUid?: string; appName?: string } = {}) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_DIALOG_OPENED, params),
+    /* The drawer's Comments tab was chosen (LAB-2767): with dialog_opened, the share of openers who use Comments. */
+    onFeedbackCommentsTabClicked: (params: { appUid: string }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_COMMENTS_TAB_CLICKED, params),
     onFeedbackScreenshotClicked: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_CLICKED),
     /* Element pins (bridge spike). `bridge_unavailable` fires when the feedback
        button falls back to screenshots because the app never said `ready` —

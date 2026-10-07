@@ -20,7 +20,6 @@ jest.mock('@/services/ai-app-feedback/hooks/useUpdateAiAppFeedbackStatus', () =>
   useUpdateAiAppFeedbackStatus: () => ({ mutate: mockUpdateStatus, isPending: false, variables: undefined }),
 }));
 const mockSubmit = jest.fn();
-const mockFeedbackTab = jest.fn();
 jest.mock('@/services/ai-app-feedback/hooks/useSubmitAiAppFeedback', () => ({
   useSubmitAiAppFeedback: () => ({ mutateAsync: mockSubmit }),
 }));
@@ -221,8 +220,7 @@ function Harness({ bridge, spies, ...props }: HarnessProps) {
       onExit={jest.fn()}
       elementPins={makeController(bridge, spies)}
       viewerName="Grace Hopper"
-      commentCount={2}
-      onFeedbackTab={mockFeedbackTab}
+      listSlot={document.body}
       viewer={{ uid: 'me', name: 'Grace Hopper', image: null }}
       getContext={() => CONTEXT}
       {...props}
@@ -314,7 +312,6 @@ beforeEach(() => {
   mockDeleteItem.mockReset();
   mockUpdateStatus.mockReset();
   mockSubmit.mockReset().mockResolvedValue({ uid: 'fb-new' });
-  mockFeedbackTab.mockReset();
   mockToastError.mockReset();
   mockCommentSubmitted.mockReset();
   mockAnnotatorOpened.mockReset();
@@ -429,7 +426,7 @@ describe('CommentMode — viewing', () => {
     });
 
     const panel = screen.getByRole('complementary', { name: 'Comments' });
-    expect(panel).toHaveTextContent('Comments 3');
+    // The total rides the drawer's Comments tab (LAB-2767); the list holds the rows.
     const rows = within(panel).getAllByRole('listitem');
     expect(rows.map((r) => r.textContent)).toEqual([
       expect.stringContaining('Note a'),
@@ -484,11 +481,18 @@ describe('CommentMode — viewing', () => {
     t.cleanup();
   });
 
-  it('makes room for the panel while the mode is on', () => {
+  /* LAB-2767: the list is the feedback drawer's Comments tab, and the drawer makes room for itself. */
+  it('leaves making room to the feedback drawer, which holds the list', () => {
     const t = setup();
-    expect(document.documentElement.style.getPropertyValue('--ai-app-comments-inset')).toBe('380px');
-    t.unmount();
     expect(document.documentElement.style.getPropertyValue('--ai-app-comments-inset')).toBe('');
+    expect(screen.getByRole('complementary', { name: 'Comments' })).toBeInTheDocument();
+    t.unmount();
+    t.cleanup();
+  });
+
+  it('lists nothing until the drawer has drawn its Comments tab', () => {
+    const t = setup({ listSlot: null });
+    expect(screen.queryByRole('complementary', { name: 'Comments' })).not.toBeInTheDocument();
     t.cleanup();
   });
 
@@ -505,7 +509,7 @@ describe('CommentMode — viewing', () => {
   it('draws nothing while the mode is off, and stops picking', () => {
     const t = setup({ active: false });
     expect(screen.queryByTestId('comment-mode-layer')).not.toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: 'Comments on this app' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('complementary', { name: 'Comments' })).not.toBeInTheDocument();
     expect(t.spies.stopPicking).toHaveBeenCalled();
     t.cleanup();
   });
@@ -796,17 +800,15 @@ describe('CommentMode — writing', () => {
     t.cleanup();
   });
 
-  it('the card says how to comment, and its Feedback tab hands over to the written form', () => {
+  /* LAB-2767: the Commenting card is gone; the drawer's switcher is the way to Feedback and back. */
+  it('the list says how to comment and who sees it, with no card or tabs of its own', () => {
     const t = setup();
-    const card = screen.getByRole('region', { name: 'Comments on this app' });
-    expect(card).toHaveTextContent('Click anywhere on the app to leave a comment.');
-    expect(within(card).getByRole('tab', { name: /Comment/ })).toHaveAttribute('aria-selected', 'true');
-    expect(within(card).getByRole('tab', { name: /Comment/ })).toHaveTextContent('2');
-
-    fireEvent.click(within(card).getByRole('tab', { name: 'Feedback' }));
-    expect(mockFeedbackTab).toHaveBeenCalled();
-    fireEvent.click(within(card).getByRole('button', { name: 'Close comments' }));
-    expect(t.onExit).toHaveBeenCalled();
+    const list = screen.getByRole('complementary', { name: 'Comments' });
+    expect(list).toHaveTextContent('Click anywhere on the app to leave a comment.');
+    expect(list).toHaveTextContent('Everyone who can open this app can see it.');
+    expect(screen.queryByRole('region', { name: 'Comments on this app' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: 'Feedback' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Close comments panel' })).not.toBeInTheDocument();
     t.cleanup();
   });
 });
@@ -1133,7 +1135,7 @@ describe('CommentMode — editing and deleting a comment', () => {
 
   it('tells the reader everyone who can open the app sees comments', () => {
     const t = setup();
-    expect(screen.getByRole('region', { name: 'Comments on this app' })).toHaveTextContent(
+    expect(screen.getByRole('complementary', { name: 'Comments' })).toHaveTextContent(
       'Everyone who can open this app can see it.',
     );
     compose(t);

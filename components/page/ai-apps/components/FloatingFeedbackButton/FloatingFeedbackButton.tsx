@@ -322,6 +322,8 @@ function FeedbackFab({
         appName={appName}
         /* Instant screenshots: the app's bridge takes the picture, no screen-share prompt. */
         capture={elementPins?.canCapture ? elementPins.capture : undefined}
+        /* Pick a part's layer covers the frame: the wheel reaches the app through its bridge. */
+        scrollApp={elementPins?.canScroll ? elementPins.scrollApp : undefined}
         /* The bridge never answered: an app built before it (kit < 1.15). */
         bridgeMissing={elementPins?.status === 'unavailable'}
         /* Its bridge may still answer (a slow frame on a phone): the automatic screenshot waits for it. */

@@ -230,6 +230,8 @@ interface Props {
   capture?: () => Promise<AppCapture>;
   /** The app frame, for Pick a part (the drag counts over it). */
   frameRef?: RefObject<HTMLIFrameElement | null>;
+  /** Scrolls the app through its bridge, for a wheel turned over Pick a part's layer. */
+  scrollApp?: (x: number, y: number, dx: number, dy: number) => void;
   /** The app has no bridge (older starter kit), so it misses instant screenshots. */
   bridgeMissing?: boolean;
   /**
@@ -350,6 +352,7 @@ export function GiveAiAppFeedbackDialog({
   getContext,
   headerTabs,
   capture,
+  scrollApp,
   frameRef,
   bridgeMissing = false,
   captureExpected = false,
@@ -1772,7 +1775,12 @@ export function GiveAiAppFeedbackDialog({
         <RegionSelectOverlay freezeSrc={freezeSrc} onSelect={onCropSelected} onCancel={onRegionSelectCancel} />
       )}
       {isPickingPart && frameRef && (
-        <LiveRegionOverlay frameRef={frameRef} onSelect={(rect) => void onPartSelected(rect)} onCancel={onPartCancel} />
+        <LiveRegionOverlay
+          frameRef={frameRef}
+          scrollApp={scrollApp}
+          onSelect={(rect) => void onPartSelected(rect)}
+          onCancel={onPartCancel}
+        />
       )}
       {cropSrc && (
         <AnnotatorModal

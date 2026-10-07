@@ -131,12 +131,12 @@ const SCREENSHOT_HINTS: Record<PersistentCaptureReason | 'open', string> = {
   unreadable: 'Your browser couldn’t read the screen — attach a screenshot instead.',
 };
 
-function hasFeedbackContent(html: string, attachmentCount = 0): boolean {
-  return !isBlankHtml(html) || /<img\b/i.test(html) || attachmentCount > 0;
+function hasFeedbackContent(html: string): boolean {
+  return !isBlankHtml(html) || /<img\b/i.test(html);
 }
 
-function visibleFeedbackLength(html: string): number {
-  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').length;
+function visibleFeedbackText(html: string): string {
+  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ');
 }
 
 export const LABOS_AI_APPS_OPTION = {
@@ -415,8 +415,11 @@ export function GiveAiAppFeedbackDialog({
   const priority = watch('priority')?.value as AiAppFeedbackPriority | undefined;
   const [noteView, setNoteView] = useState<NoteView>('rich');
   const note = noteView === 'rich' ? htmlToMarkdown(rich) : markdown;
-  const noteLength = visibleFeedbackLength(noteView === 'rich' ? rich : markdownToHtml(markdown));
+  const noteText = visibleFeedbackText(noteView === 'rich' ? rich : markdownToHtml(markdown));
+  const noteLength = noteText.length;
   const isOverLimit = noteLength > MAX_LENGTH;
+  /* Send needs words: screenshots, pins and images alone leave the message empty. */
+  const hasMessageText = noteText.trim().length > 0;
   const noteLabelId = useId();
 
   const switchNoteView = (view: NoteView) => {
@@ -1030,7 +1033,7 @@ export function GiveAiAppFeedbackDialog({
     let trimmedMessage = note.trimEnd();
     const opening = firstLine(markdownToHtml(trimmedMessage));
 
-    if (!app?.value || !hasFeedbackContent(trimmedMessage, screenshots.length + pins.length)) {
+    if (!app?.value || !hasMessageText) {
       return;
     }
     /* Sending doesn't wait for the automatic screenshot: it goes without it. */
@@ -1205,7 +1208,7 @@ export function GiveAiAppFeedbackDialog({
 
       if (isBusy || !isSendChord(event)) return;
       event.preventDefault();
-      if (isPending || isOverLimit) return;
+      if (isPending || isOverLimit || !hasMessageText) return;
       analytics.onFeedbackShortcutUsed({ action: 'submit' });
       void onSubmit();
     };
@@ -1220,6 +1223,7 @@ export function GiveAiAppFeedbackDialog({
     isBusy,
     isPending,
     isOverLimit,
+    hasMessageText,
     captureClosedBy,
     showSent,
     giveMoreFeedback,
@@ -1716,7 +1720,7 @@ export function GiveAiAppFeedbackDialog({
                 <Button
                   className={s.footerButton}
                   onClick={onSubmit}
-                  disabled={isPending || isOverLimit}
+                  disabled={isPending || isOverLimit || !hasMessageText}
                   aria-keyshortcuts={shortcuts.sendAria}
                 >
                   {isPending ? 'Sending…' : 'Send feedback'}

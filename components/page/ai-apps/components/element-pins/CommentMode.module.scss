@@ -489,21 +489,31 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   background: var(--background-neutral-secondary, #f8fafc);
   line-height: 0;
 
+  /* Never stretched past its own size: a small element's crop blown up to the
+     full width is a blur. The hairline shows where a light crop ends on the
+     frame's light background. */
   img {
     display: block;
-    width: 100%;
+    width: auto;
+    height: auto;
+    max-width: 100%;
     max-height: 120px;
-    object-fit: contain;
-    object-position: left top;
+    box-shadow: 0 0 0 1px $border;
   }
 }
 
 /* The attached picture opens the annotate dialog (LAB-2768). The chip says so,
-   always, since nothing else hints that the picture can be drawn on. */
+   always, since nothing else hints that the picture can be drawn on.
+   The frame is at least 72px tall whatever the crop's shape: a short, wide one
+   (a single input) would otherwise leave a frame a few pixels tall that clips
+   the chip and the remove button (LAB-2795). */
 .composerShotOpen {
   position: relative;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
+  min-height: 72px;
   padding: 0;
   border: none;
   background: none;

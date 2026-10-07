@@ -1,4 +1,7 @@
+import React from 'react';
 import type { FAQItem } from '@/app/constants/demoday';
+// The FAQ subtitle's link style, so the address in an answer reads as a link.
+import d from '@/components/page/demo-day/DemodayCompletedView/DemodayCompletedView.module.scss';
 import { SEED_PROFILE } from '../member-profile-edit/mocks';
 import { EMPTY_CONTACTS, type ProfileRecord } from '../profile-shared/SectionEditor/types';
 import type { InvestorRecord, SpvFund } from './SpvInvestorProfileDrawer';
@@ -40,8 +43,11 @@ export const mockSpotlight = {
   description:
     'Netholabs builds digital mammals for neuroscience, drug discovery and mind uploading. Protocol Labs is leading an SPV into their round and opening it to a small group of outside investors.',
   docSendUrl: 'https://docsend.com/view/netholabs-spv',
+  // When the SPV stops taking commitments (review 2026-10-07: investors want
+  // the deadline). Set per spotlight in the back office; placeholder date.
+  closesOn: 'Oct 31, 2026',
   // Placeholder — the SPV's reply-to is set per spotlight in the back office.
-  supportEmail: 'spotlight@protocol.ai',
+  supportEmail: 'labos@plnetwork.io',
 };
 
 export const mockSignedInUser = {
@@ -160,17 +166,25 @@ export const spvFaqItems: FAQItem[] = [
   {
     question: 'How do I see the materials?',
     answer:
-      "Request data room access takes you to the team's DocSend, where you ask for access and then read the pitch and the SPV terms. Nothing is uploaded to this page.",
+      "Access data room opens the team's DocSend. On your first visit you ask for access there; once it is granted, the same button takes you straight to the pitch and the SPV terms. Nothing is uploaded to this page.",
   },
   {
     question: 'What does the investor profile do?',
     answer:
       'It tells us your check size, stages and focus, so we only send you deals that fit. You can change it any time from the avatar menu.',
   },
+  // Phrased as a question like the others, and the answer carries the address
+  // itself (review 2026-10-07: "Where is contact us?" — the locked page's
+  // Contact us isn't on this page).
   {
-    question: 'The page says I do not have access.',
-    answer:
-      'Spotlights are shared by invitation, so a forwarded link opens only for the people it was sent to. Use Contact us on that page and we will check the invitation list.',
+    question: "Why can't I open this page?",
+    answer: React.createElement(
+      React.Fragment,
+      null,
+      'Spotlights are shared by invitation, so a link opens only for the people it was sent to, signed in with the email it was sent to. If you think you should have access, email ',
+      React.createElement('a', { href: `mailto:${mockSpotlight.supportEmail}`, className: d.infoLink }, mockSpotlight.supportEmail),
+      ' and we will check the invitation list.',
+    ),
   },
   {
     question: 'What happens when a Spotlight closes?',

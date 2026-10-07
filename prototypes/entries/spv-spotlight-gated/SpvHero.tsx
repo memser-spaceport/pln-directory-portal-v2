@@ -13,7 +13,7 @@ import s from './SpvSpotlight.module.scss';
 
 /**
  * The page's hero: title, description, then only what isn't the data-room
- * door. Request access and Request data room access live in the team card's action slot
+ * door. Request access and Access data room live in the team card's action slot
  * (SpvTeamSpotlight), so there is one door, not two. The hero keeps the
  * pending stepper and the state messages; the investor-profile card sits
  * right under it (SpvInvestorProfileCard, placed by the page).
@@ -32,7 +32,7 @@ export type SpvHeroVariant =
   | 'pending' // requested, awaiting admin review
   | 'rejected' // request declined, no way to request again
   | 'openingSoon' // approved, spotlight still DRAFT
-  | 'open' // approved, spotlight OPEN (card: Request data room access)
+  | 'open' // approved, spotlight OPEN (card: Access data room)
   | 'closed'; // spotlight CLOSED, for everyone
 
 type Props = {
@@ -140,7 +140,7 @@ export const SpvHero = ({
         return <>You&apos;re approved. We&apos;ll email you when this Spotlight opens and the data room goes live.</>;
       case 'closed':
         return <>This Spotlight has closed and its data room is no longer available.</>;
-      // Open + approved says nothing here: the card's Request data room access already
+      // Open + approved says nothing here: the card's Access data room already
       // is the state.
       default:
         return null;

@@ -270,7 +270,6 @@ export function AnnotatorModal({ imageSrc, onDiscard, onAdd, onToolSelected, ini
             onChange={push}
             tool={tool}
             strokeColor={strokeColor}
-            commentsEditable={false}
           />
         </div>
 

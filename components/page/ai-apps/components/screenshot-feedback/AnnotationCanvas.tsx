@@ -88,12 +88,12 @@ interface Props {
   strokeColor?: string;
   readOnly?: boolean;
   /**
-   * Whether comment pins can be placed, edited, moved or removed. Default true.
+   * Whether comment pins can be placed, edited, moved or removed. Default false.
    *
-   * The production annotator passes false (LAB-2766): comments live in the
-   * feedback popup's Comments option now, so pins saved before that only show
-   * their note on a press. The prototypes under `prototypes/` still use the
-   * comment tool and keep the default.
+   * Production leaves it off (LAB-2766): comments live in the feedback popup's
+   * Comments option now, so pins saved before that only show their note on a
+   * press. Only the prototypes under `prototypes/`, which still use the comment
+   * tool, turn it on.
    */
   commentsEditable?: boolean;
   className?: string;
@@ -268,7 +268,7 @@ export function AnnotationCanvas({
   tool = 'draw',
   strokeColor = DEFAULT_DRAW_COLOR,
   readOnly = false,
-  commentsEditable = true,
+  commentsEditable = false,
   className,
 }: Props) {
   const imgRef = useRef<HTMLImageElement>(null);

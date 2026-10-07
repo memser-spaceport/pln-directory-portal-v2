@@ -133,7 +133,7 @@ export const SpvCardStatus = ({ children }: { children: React.ReactNode }) => (
         </div>
         <div className={s.spotlightIdentityText}>
           <h3 className={clsx(h.memberName, s.spotlightName)}>{team.name}</h3>
-          <p className={s.spotlightOneLiner}>{team.shortDescription}</p>
+          <p className={s.spotlightOneLiner}>{keepTailTogether(team.shortDescription)}</p>
         </div>
         {action && <div className={s.spotlightActionSlot}>{action}</div>}
       </header>
@@ -218,6 +218,19 @@ export const SpvCardStatus = ({ children }: { children: React.ReactNode }) => (
     </article>
   );
 }
+
+// The one-liner's last three words never split (2026-10-08): on smaller
+// desktops "uploading." was left alone on the second line, so "and mind
+// uploading." now moves down together. Wide screens fit it on one line anyway.
+const keepTailTogether = (text: string) => {
+  const words = text.split(' ');
+  if (words.length <= 4) return text;
+  return (
+    <>
+      {words.slice(0, -3).join(' ')} <span className={s.noWrap}>{words.slice(-3).join(' ')}</span>
+    </>
+  );
+};
 
 const ArrowUpRight = () => (
   <svg width="14" height="14" viewBox="0 0 18 18" fill="none" aria-hidden>

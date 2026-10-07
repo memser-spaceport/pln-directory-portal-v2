@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import clsx from 'clsx';
+import { CalendarBlankIcon } from '@/components/icons';
 import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
 import { PRIVACY_POLICY_URL, TERMS_AND_CONDITIONS_URL } from '@/app/constants/demoday';
 // The page keeps the completed Demo Day template's root, white content sheet,
@@ -47,7 +48,8 @@ import s from './SpvSpotlight.module.scss';
  *   logs them in. So "Request access to data room" and the request modal, the
  *   pending stepper and the approval states are hidden behind
  *   REQUEST_FLOW_ENABLED (mocks.ts) — "feature flag it, don't remove it", as
- *   Demo Day taught us — and the primary is **Request data room access**, a plain
+ *   Demo Day taught us — and the primary is **Access data room** (or **Request
+ *   data room access**, switchable in the demo bar), a plain
  *   link to the team's DocSend (no DocSend integration).
  * - **Locked states.** Without the token and a login, the page shows nothing of
  *   the deal — no title, no team, no FAQ: a lock message with Sign in and
@@ -56,14 +58,15 @@ import s from './SpvSpotlight.module.scss';
  *   only "You don't have access" + Contact us: no other-account option and no
  *   email address (review 2026-10-05). Contact us opens the product's
  *   contact-support modal.
- * - **Investor profile card** (review 2026-10-05): its own card under the
- *   Spotlight description, because it is about future deals, not this team —
- *   "Fine-tune future deal outreach", the reason on the card at rest, and one
- *   bordered button: "Set up investor profile" for a new investor, "Review and
- *   update investor profile" for one who already has a profile (Demo Day, a
- *   past deal). It opens the investor-profile drawer, which matches
- *   production's Demo Day investor drawer (see SpvInvestorProfileDrawer). One
- *   drawer, no wizard.
+ * - **Investor profile ask** (review 2026-10-07): one sentence with a link,
+ *   above the team card ("Set up your investor profile" for a new investor,
+ *   "Review your investor profile" for one who has a profile). It was a card
+ *   (2026-10-05). The link opens the investor-profile drawer, which matches
+ *   production's Demo Day investor drawer. One drawer, no wizard.
+ * - **Deadline** (review 2026-10-07): the close date and "allocation, minimum
+ *   check and SPV terms are in the data room" under the team card's button.
+ *   The data-room button repeats in a band above the FAQ (Charlotte's ask;
+ *   removed on 2026-10-07, back 2026-10-08), with the SPV name and close date.
  * - The FAQ stays for invited viewers, rewritten for the token model.
  *
  * Still open, to confirm with Anuj / Remy / Mark: what the token link does once
@@ -88,6 +91,13 @@ const resolveVariant = (status: SpvStatus, viewer: SpvViewer): SpvHeroVariant =>
   return 'landing';
 };
 
+// Two labels for the data-room button, compared in the demo bar (2026-10-08).
+// "Access" is true on every visit (no DocSend integration, so the page can't
+// tell whether access was already requested or granted); "Request" names the
+// step a first visit starts (review 2026-10-02). The FAQ follows the choice.
+const DATA_ROOM_LABELS = ['Access data room', 'Request data room access'] as const;
+type DataRoomLabel = (typeof DATA_ROOM_LABELS)[number];
+
 const HINTS: Record<SpvHeroVariant, string> = {
   lockedSignedOut: 'No token and not logged in: locked. Nothing of the deal shows, only Explore PL Network.',
   lockedNoAccess: 'Logged in, but not on this Spotlight’s invitation list: locked, no deal.',
@@ -95,7 +105,7 @@ const HINTS: Record<SpvHeroVariant, string> = {
   pending: 'Legacy request flow (flag on).',
   rejected: 'Legacy request flow (flag on).',
   openingSoon: 'Invited, Spotlight still in draft. No DocSend yet.',
-  open: 'The token link logged them in: Request data room access goes straight to the DocSend.',
+  open: 'The token link logged them in: the button opens the DocSend (no integration, so one label for every visit).',
   closed: 'Closed — the same message for every viewer.',
 };
 
@@ -109,6 +119,7 @@ export default function SpvSpotlightGatedPrototype() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [profile, setProfile] = useState(mockInvestorProfile);
   const [investorKind, setInvestorKind] = useState<InvestorKind>('new');
+  const [dataRoomLabel, setDataRoomLabel] = useState<DataRoomLabel>('Access data room');
   const [investor, setInvestor] = useState<InvestorRecord>(mockInvestorDetails.new);
   const [funds, setFunds] = useState<SpvFund[]>(MOCK_FUNDS);
   const [supportOpen, setSupportOpen] = useState(false);
@@ -150,10 +161,16 @@ export default function SpvSpotlightGatedPrototype() {
       case 'open':
         return (
           <SpvCardAction
-            // "Request", not "Open" (review 2026-10-02): an invited investor
-            // still asks for access on DocSend, so the label names that step.
-            label="Request data room access"
+            // Picked in the demo bar: see DATA_ROOM_LABELS.
+            label={dataRoomLabel}
             href={mockSpotlight.docSendUrl}
+            // The deadline and where the terms are (review 2026-10-07).
+            note={
+              <>
+                <span className={s.cardActionDeadline}>Closes {mockSpotlight.closesOn}</span>
+                <span className={s.cardActionTerms}>Allocation, minimum check and SPV terms are inside.</span>
+              </>
+            }
           />
         );
       case 'pending':
@@ -211,6 +228,23 @@ export default function SpvSpotlightGatedPrototype() {
             </div>
           </>
         )}
+        {variant === 'open' && (
+          <>
+            <span className={s.demoLabel}>Button label</span>
+            <div className={s.segmented}>
+              {DATA_ROOM_LABELS.map((l) => (
+                <button
+                  key={l}
+                  type="button"
+                  className={clsx(s.segment, { [s.segmentActive]: dataRoomLabel === l })}
+                  onClick={() => setDataRoomLabel(l)}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
         <span className={s.demoHint}>{hint}</span>
       </div>
 
@@ -243,10 +277,10 @@ export default function SpvSpotlightGatedPrototype() {
             onContactUs={() => setSupportOpen(true)}
           />
 
-          {/* Under the Spotlight description, before the team: the profile is
-              about the deals we send next, not this one (review 2026-10-05). */}
+          {/* One sentence with a link (Anuj, review 2026-10-07), above the team
+              card: briefly after it, moved back above the same day. */}
           {(variant === 'open' || variant === 'openingSoon') && (
-            <SpvInvestorProfileCard existing={hasProfile} investor={investor} onOpen={() => setProfileOpen(true)} />
+            <SpvInvestorProfileCard existing={hasProfile} onOpen={() => setProfileOpen(true)} />
           )}
 
           {/* The team is only for invited viewers: a locked page shows nothing
@@ -274,11 +308,41 @@ export default function SpvSpotlightGatedPrototype() {
             <SpvExploreTile featured />
           </section>
 
+          {/* The data-room button again before the FAQ, to drive click-through
+              (Charlotte, review 2026-10-07; back 2026-10-08). Open state only. */}
+          {variant === 'open' && (
+            <section className={s.ctaBand} aria-label="Data room">
+              {/* More in the band (2026-10-08), all facts the page already has:
+                  the logo, who leads the SPV into which round (the Spotlight
+                  description, the team's stage), what the data room holds,
+                  and the close date. */}
+              <img className={s.ctaBandLogo} src={netholabs.logoUrl} alt="" />
+              <div className={s.ctaBandText}>
+                <h2 className={s.ctaBandTitle}>{netholabs.name} SPV</h2>
+                <p className={s.ctaBandBody}>
+                  Protocol Labs is leading an SPV into the {netholabs.name}{' '}
+                  {(netholabs.team.fundingStage?.title ?? '').toLowerCase()} round. The pitch, allocation, minimum check
+                  and SPV terms are in the data room.
+                </p>
+                <p className={s.ctaBandMeta}>
+                  <CalendarBlankIcon width={16} height={16} aria-hidden />
+                  Closes {mockSpotlight.closesOn}
+                </p>
+              </div>
+              <SpvCardAction label={dataRoomLabel} href={mockSpotlight.docSendUrl} />
+            </section>
+          )}
+
           {!locked && (
             <section className={d.sectionFaq}>
               <FAQ
                 title="Questions investors ask"
-                items={spvFaqItems}
+                // The FAQ names the button, so it follows the label switch.
+                items={spvFaqItems.map((item) =>
+                  typeof item.answer === 'string'
+                    ? { ...item, answer: item.answer.replace('Access data room', dataRoomLabel) }
+                    : item,
+                )}
                 subtitle={
                   <p className={d.infoText}>
                     Reach out to us at{' '}

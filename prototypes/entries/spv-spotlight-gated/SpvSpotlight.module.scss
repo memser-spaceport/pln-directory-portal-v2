@@ -121,14 +121,15 @@
 }
 
 // ---- Identity: logo, name, one-liner, nothing else --------------------------
+// Top-aligned (2026-10-07): the action slot grew a close date and a terms line,
+// and centring on that taller column pushed the name below the button's top.
 .spotlightIdentity {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 20px;
   width: 100%;
 
   @include media.mobile-only {
-    align-items: flex-start;
     gap: 12px;
   }
 }
@@ -222,11 +223,33 @@
 // two-button row and sat under neither). Centred under the button since
 // 2026-10-05: the note is now one link line about as wide as the button, and
 // shared left edges left a ~30px near-miss on the right.
+// 2026-10-08: "Access data room" is shorter than the old label, and a
+// button-wide column wrapped the note into a tall narrow block.
+// 2026-10-08 later: the column is as wide as the note's longest line (up to
+// 360px), so the terms sentence runs on one line; the button is centred over it.
 .cardActionWithNote {
   align-items: stretch;
-  max-width: 280px;
+  max-width: 360px;
+
+  // The button hugs its label, centred over the note (2026-10-08: "make
+  // button smaller"; filling the 248px column made it long). Phones keep the
+  // full-width button.
+  .cardActionButtons {
+    justify-content: center;
+  }
+
+  // Longer, not taller, than the shared card primary (2026-10-08: "just
+  // longer"): same 10px top/bottom, 28px sides. Desktop only; phones fill the row.
+  .cardActionButton.cardActionButton {
+    padding: 10px 28px;
+
+    @include media.mobile-only {
+      padding: 10px 12px;
+    }
+  }
 
   @include media.mobile-only {
+    width: auto;
     max-width: none;
   }
 }
@@ -236,6 +259,12 @@
   min-width: 100%;
   margin: 0;
   text-align: center;
+  text-wrap: balance; // no one-word last line under the button
+
+  .cardActionWithNote & {
+    width: auto;
+    min-width: 0;
+  }
   color: var(--foreground-neutral-secondary, #455468);
   font-size: 13px;
   line-height: 18px;
@@ -1116,171 +1145,148 @@
   }
 }
 
-// ---- Investor profile card (review 2026-10-05, second pass) -------------------
-// A plain page card like the team card and the Explore tile (same column, same
-// border and 8px radius), not an alert band, and no icon. Desktop: text |
-// button on the first row, the read-back under it. Phone: one column, button last.
-.profileCard {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  // The read-back row ('fields fields') is hidden (SHOW_READBACK in the card);
-  // an empty named row would still add a row-gap under the text.
-  grid-template-areas: 'head cta';
-  column-gap: 16px;
-  row-gap: 16px;
+// ---- Investor profile ask (review 2026-10-07) --------------------------------
+// One sentence with a link, above the team card (Anuj: "a plain sentence w/ a
+// link vs a sectional tile"). Centred on a grey strip as wide as the card
+// (2026-10-07): the Explore tile's slate ground, no border, so it reads as a
+// note beside the card rather than a second card. Slate, not the soft surface
+// (#f9fafb), which barely separates from the white sheet.
+.profileAsk {
+  width: 100%;
+  max-width: 948px;
+  margin: 0 auto;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
+  text-wrap: balance;
+}
+
+// ---- Close date under the data-room button (review 2026-10-07) ---------------
+// Charlotte: investors want the deadline, and to know where allocation, minimum
+// check and SPV terms are. The date leads in primary ink; the terms line is the
+// note's own secondary ink.
+.cardActionDeadline {
+  display: block;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 500;
+}
+
+// The terms line a step under the note's 13px (2026-10-07: read as loud as
+// the date): 12/16, the DS caption size.
+.cardActionTerms {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+// ---- Data-room band above the FAQ (review 2026-10-07, back 2026-10-08) ------
+// The team card's button again, with the SPV's name and close date beside it.
+// White card, the team card's border and radius.
+.ctaBand {
+  display: flex;
+  align-items: center;
+  gap: 20px;
   width: 100%;
   max-width: 948px;
   margin: 0 auto;
   padding: 24px;
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   border-radius: 8px;
-  // Super soft grey (2026-10-06), production SpvHero's own soft surface.
-  background: var(--background-neutral-soft-surface, #f9fafb);
+  background: var(--background-neutral-base, #fff);
+
+  // The button keeps its end of the row.
+  > :last-child {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  // The whole card is clickable (2026-10-08): the button's link stretches over
+  // the card with ::after, so there is one link, not a link inside a link.
+  // Hover is the Explore tile's; the button's own hover fires with it.
+  position: relative;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow:
+      0 0 1px 0 rgba(15, 23, 42, 0.16),
+      0 8px 16px 0 rgba(15, 23, 42, 0.08);
+  }
+
+  .cardActionButton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+  }
 
   @include media.mobile-only {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'head'
-      'cta';
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
     padding: 20px 16px;
+
+    > :last-child {
+      margin-left: 0;
+    }
   }
 }
 
-.profileCardHead {
-  grid-area: head;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
+// The team card's logo treatment, smaller (56px, 10px radius).
+.ctaBandLogo {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 10px;
+  object-fit: cover;
+
+  @include media.mobile-only {
+    width: 48px;
+    height: 48px;
+  }
 }
 
-.profileCardTitle {
+.ctaBandBody {
   margin: 0;
-  color: var(--foreground-neutral-primary, #0a0c11);
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 24px;
-  letter-spacing: -0.3px;
-}
-
-.profileCardBody {
-  margin: 0;
+  max-width: 520px;
   color: var(--foreground-neutral-secondary, #455468);
   font-size: 14px;
   line-height: 20px;
 }
 
-// The read-back: three label/value pairs, the same key-value grammar as the
-// team card's fact strip. White inset on the card's soft grey plus the card
-// border so it still reads. The padding lives on the cells (4 + 8 / 4 + 12 =
-// the old 12/16), so each cell's hover fill reaches the cell's edge.
-.profileCardFields {
-  grid-area: fields;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.ctaBandText {
+  display: flex;
+  flex-direction: column;
   gap: 4px;
-  margin: 0;
-  padding: 4px;
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  border-radius: 8px;
-  background: var(--background-neutral-base, #fff);
-
-  @include media.mobile-only {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-// The whole cell, label and value, is one button that opens the drawer.
-.profileCardField {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
   min-width: 0;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 6px;
-  background: none;
-  cursor: pointer;
-  text-align: left;
-  font: inherit;
-  transition: background-color 150ms ease-out;
-
-  &:hover {
-    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
-    outline-offset: 0;
-  }
-
-  // Two per row on phones: Focus, the longest value, gets the second row whole.
-  @include media.mobile-only {
-    &:nth-child(3) {
-      grid-column: 1 / -1;
-    }
-  }
 }
 
-.profileCardFieldLabel {
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  font-size: 12px;
-  line-height: 16px;
-}
-
-.profileCardFieldValue {
-  display: block;
-  max-width: 100%;
+.ctaBandTitle {
+  margin: 0;
   color: var(--foreground-neutral-primary, #0a0c11);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
 }
 
-.profileCardNotSet {
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  font-weight: 400;
-}
-
-// Bottom-aligned with the title block (2026-10-06): the button lands where the
-// sentence ends, not floating mid-height; the hint under the button.
-.profileCardCta {
-  grid-area: cta;
+.ctaBandMeta {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  align-self: end;
-  gap: 4px; // the hint belongs to the button: tight, not a separate row
-
-  @include media.mobile-only {
-    align-items: stretch;
-  }
-}
-
-.profileCardButton.profileCardButton {
-  white-space: nowrap;
-
-  // The DS Button has no :focus-visible of its own.
-  &:focus-visible {
-    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
-    outline-offset: 2px;
-  }
-
-  @include media.mobile-only {
-    width: 100%;
-    min-height: 44px;
-  }
-}
-
-.profileCardHint {
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  font-size: 12px;
-  line-height: 16px;
-  text-align: center;
+  gap: 6px;
+  margin: 4px 0 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
 }
 
 // ---- Investor drawer: fields that still need filling (review 2026-10-05) -----
@@ -1337,4 +1343,9 @@
 // the grey-✕ selects and tags field need the width stated.
 .addFundField {
   width: 100%;
+}
+
+// Keeps a run of words on one line (the one-liner's tail).
+.noWrap {
+  white-space: nowrap;
 }

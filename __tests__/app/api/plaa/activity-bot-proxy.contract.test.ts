@@ -169,6 +169,37 @@ describe('activity bot proxy route', () => {
     expect(claims.aud).toBe('plaa-activity-bot');
   });
 
+  describe('environment claim', () => {
+    afterEach(() => {
+      delete process.env.PLAA_BOT_ENV;
+    });
+
+    it('marks the token as production when PLAA_BOT_ENV is production', async () => {
+      process.env.PLAA_BOT_ENV = 'production';
+
+      await postTurn(makeRequest());
+
+      expect(forwardedClaims().env).toBe('production');
+    });
+
+    it.each([[undefined], ['uat'], ['Production'], ['']])(
+      'sends no env claim when PLAA_BOT_ENV is %p',
+      async (value) => {
+        if (value !== undefined) process.env.PLAA_BOT_ENV = value;
+
+        await postTurn(makeRequest());
+
+        expect(forwardedClaims()).not.toHaveProperty('env');
+      },
+    );
+
+    it('ignores an env value supplied by the browser', async () => {
+      await postTurn(makeRequest({ body: { ...TURN, env: 'production' }, headers: { 'x-plaa-env': 'production' } }));
+
+      expect(forwardedClaims()).not.toHaveProperty('env');
+    });
+  });
+
   it('signs a token that lasts one minute', async () => {
     await postTurn(makeRequest());
 

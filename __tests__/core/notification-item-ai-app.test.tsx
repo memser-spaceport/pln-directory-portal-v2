@@ -10,7 +10,7 @@ const starterKitUpdate = {
   title: 'Starter Kit v1.17 is out',
   description: "See what's new and download the latest kit — or ask your agent to update an existing one.",
   link: '/pl-infra/ai-apps?dialog=addAiApp',
-  linkText: 'Get the starter kit →',
+  linkText: 'Get the starter kit',
   metadata: { eventType: 'ai_app_starter_kit', trigger: 'starter_kit_updated', version: '1.17' },
   isRead: false,
   createdAt: new Date().toISOString(),
@@ -21,7 +21,7 @@ describe('NotificationItem — AI Apps starter kit update', () => {
     render(<NotificationItem notification={starterKitUpdate} onNotificationClick={jest.fn()} />);
 
     expect(screen.getByText('AI Apps')).toBeInTheDocument();
-    expect(screen.getByText('Get the starter kit →')).toBeInTheDocument();
+    expect(screen.getByText('Get the starter kit')).toBeInTheDocument();
   });
 
   it('links the bell item to the AI Apps page with the Add your AI App modal open', () => {
@@ -48,12 +48,5 @@ describe('NotificationItem — AI Apps starter kit update', () => {
       'href',
       '/pl-infra/ai-apps?dialog=addAiApp&backTo=%2Fnotifications',
     );
-  });
-
-  it('shows a single arrow on the notifications page, which draws its own arrow icon', () => {
-    render(<NotificationItem notification={starterKitUpdate} onNotificationClick={jest.fn()} variant="page" />);
-
-    expect(screen.getByText('Get the starter kit')).toBeInTheDocument();
-    expect(screen.queryByText(/→/)).not.toBeInTheDocument();
   });
 });

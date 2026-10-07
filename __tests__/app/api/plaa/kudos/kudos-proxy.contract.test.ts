@@ -94,6 +94,14 @@ describe('kudos proxy routes — upstream contract', () => {
     await expect(res.json()).resolves.toEqual({ items: [], nextCursor: null });
   });
 
+  it('feed: forwards the page number for numbered pages', async () => {
+    mockUpstreamOnce({ items: [], nextCursor: null, total: 0, totalPages: 0 });
+    await getFeed(makeRequest('http://localhost/api/plaa/kudos?limit=24&page=3', { auth: 'Bearer privy-1' }));
+
+    const [url] = (global.fetch as jest.Mock).mock.calls[0];
+    expect(url).toBe(`${PLAA_API_URL}/api/v1/kudos?limit=24&page=3`);
+  });
+
   it('community-pool: proxies to GET /api/v1/kudos/community-pool', async () => {
     mockUpstreamOnce({ roundId: 'round-18', totalBudget: 100, pointsUsed: 0, pointsRemaining: 100 });
     const res = await getPool(

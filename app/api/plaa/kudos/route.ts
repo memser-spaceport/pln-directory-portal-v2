@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     const url = plaaUpstreamUrl(baseUrl, ['kudos'], {
       limit: searchParams.get('limit'),
       cursor: searchParams.get('cursor'),
+      page: searchParams.get('page'),
     }) as string;
 
     const res = await fetch(url, {

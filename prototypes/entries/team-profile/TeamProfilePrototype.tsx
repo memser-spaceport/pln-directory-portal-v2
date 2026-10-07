@@ -109,7 +109,6 @@ import {
   MOCK_SUGGESTED,
   MOCK_ROLE_CRITERIA,
   visibleSuggested,
-  sortSuggested,
   MOCK_TEAM_FACTS,
   type TeamStatus,
 } from './mocks';
@@ -699,7 +698,7 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
         teamName={team.name ?? 'your team'}
         recipientName={`${MOCK_MEMBERS.find((m) => m.teamLead)?.name ?? 'Team lead'} (team lead)`}
         roleTitle={emailRole.roleTitle}
-        people={sortSuggested(visibleSuggested(MOCK_SUGGESTED[emailRole.uid] ?? [], emailCriteria), emailCriteria)}
+        people={visibleSuggested(MOCK_SUGGESTED[emailRole.uid] ?? [], emailCriteria, MOCK_TEAM.name)}
         criteria={emailCriteria}
         hrefFor={(personId) =>
           `/prototypes/team-profile?candidates=${emailRole.uid}&tab=suggested${personId ? `&candidate=${personId}` : ''}`
@@ -1039,9 +1038,10 @@ export default function TeamProfilePrototype({ newsCallout = true }: { newsCallo
                     ? {
                         metaFor: (uid) => roleListings.get(uid),
                         candidatesFor: (uid) => MOCK_CANDIDATES[uid] ?? [],
-                        // The count line counts who the page will list: at or above the floor.
+                        // The count line counts who the page will list: the top 5 at or
+                        // above the floor, minus anyone who worked at the team.
                         suggestedFor: (uid) =>
-                          visibleSuggested(MOCK_SUGGESTED[uid] ?? [], MOCK_ROLE_CRITERIA[uid] ?? []),
+                          visibleSuggested(MOCK_SUGGESTED[uid] ?? [], MOCK_ROLE_CRITERIA[uid] ?? [], MOCK_TEAM.name),
                         openCandidates: (uid, tab) => {
                           setCandidatesTab(tab);
                           setCandidatesRole(uid);

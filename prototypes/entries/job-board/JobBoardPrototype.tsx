@@ -1800,7 +1800,7 @@ export default function JobBoardPrototype() {
               candidatesFor: showsCandidates ? candidatesForRole : () => [],
               /* Same gate as the candidates: the plain `team-lead` view is
                  about managing listings, and keeps its rows bare. */
-              suggestedFor: showsCandidates ? visibleSuggestedForRole : () => [],
+              suggestedFor: showsCandidates ? (uid) => visibleSuggestedForRole(uid, group.team.name) : () => [],
               openCandidates: (roleUid, tab) => openCandidates(group.team.uid, roleUid, tab),
             }
           : undefined

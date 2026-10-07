@@ -353,9 +353,12 @@ export const suggestedForRole = (roleUid: string): RoleSuggested[] =>
 export const criteriaForRole = (roleUid: string): RoleCriterion[] =>
   BOARD_CRITERIA[roleUid] ?? MOCK_ROLE_CRITERIA[roleUid] ?? [];
 
-/** Who the count line counts: at or above the floor with every criterion on. */
-export const visibleSuggestedForRole = (roleUid: string): RoleSuggested[] =>
-  visibleSuggested(suggestedForRole(roleUid), criteriaForRole(roleUid));
+/**
+ * Who the count line counts: the top 5 at or above the floor with every
+ * criterion on, minus anyone who worked at the role's team.
+ */
+export const visibleSuggestedForRole = (roleUid: string, teamName: string): RoleSuggested[] =>
+  visibleSuggested(suggestedForRole(roleUid), criteriaForRole(roleUid), teamName);
 
 export const candidatesForRole = (roleUid: string): RoleCandidate[] =>
   BOARD_CANDIDATES[roleUid] ?? MOCK_CANDIDATES[roleUid] ?? [];

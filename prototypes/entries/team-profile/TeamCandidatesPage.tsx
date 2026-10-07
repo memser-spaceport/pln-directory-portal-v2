@@ -45,7 +45,7 @@ import { Tabs } from '@/components/ui/tabs/Tabs';
 
 import {
   matchWorking,
-  sortSuggested,
+  SUGGESTED_LIMIT,
   suggestionMatch,
   visibleSuggested,
   type RoleCandidate,
@@ -231,10 +231,14 @@ interface Props {
  *     name in the email opens that person (`initialSelectedId`).
  *   - **Sorted by the share the band is read off, not by date** — nothing
  *     happened, so there is no date, and a Good match above a Strong one
- *     reads as a bug. One spine, no top-N band; ties go to the stronger
- *     network signal. Applied and Interested stay newest-first: those people
- *     chose to be here, and re-ranking them by our guess would bury someone
- *     the founder owes a look.
+ *     reads as a bug. Ties go to the stronger network signal. Applied and
+ *     Interested stay newest-first: those people chose to be here, and
+ *     re-ranking them by our guess would bury someone the founder owes a look.
+ *   - **The top 5, and nobody the team already knows (2026-10-05, LAB-2687).**
+ *     The list stops at `SUGGESTED_LIMIT` — five is a list a lead finishes —
+ *     and anyone with an experience entry at the team is never on it, however
+ *     well they match. The note under the tabs says both, so a lead who
+ *     expected a former colleague knows why they are missing.
  *   - **The press is Invite to apply**, not Email or Mark as reviewed. It is
  *     the one thing a team does with a suggestion, and it cannot be taken back
  *     (the member is notified), so it turns into the state and stays.
@@ -289,19 +293,20 @@ export function TeamCandidatesPage({
   const role = roles.find((r) => r.uid === roleUid) ?? roles[0];
   const criteria = role.criteria ?? [];
   const off = criteriaOff[role.uid] ?? NO_CRITERIA_OFF;
-  // Members at or above the floor against the criteria that are on.
+  // The top 5 at or above the floor against the criteria that are on, minus
+  // anyone who worked at the team — already sorted best match first.
   const suggestedShown = useMemo(
-    () => visibleSuggested(role.suggested ?? [], criteria, off),
-    [role.suggested, criteria, off],
+    () => visibleSuggested(role.suggested ?? [], criteria, teamName, off),
+    [role.suggested, criteria, teamName, off],
   );
   const newest = useMemo<Person[]>(
     () =>
       tab === SUGGESTED_TAB
-        ? sortSuggested(suggestedShown, criteria, off)
+        ? suggestedShown
         : [...(tab === INTERESTED_TAB ? role.interested : role.candidates)].sort((a, b) =>
             personDate(b).localeCompare(personDate(a)),
           ),
-    [role, tab, suggestedShown, criteria, off],
+    [role, tab, suggestedShown],
   );
   const term = query.trim().toLowerCase();
   const shown = term
@@ -590,7 +595,8 @@ export function TeamCandidatesPage({
             {tab === SUGGESTED_TAB && (
               <div className={s.suggestedNote}>
                 <p className={s.tabNote}>
-                  Members who let hiring teams find them, matched to this role on their profile. They haven’t applied.
+                  The top {SUGGESTED_LIMIT} members who let hiring teams find them, matched to this role on their
+                  profile. They haven’t applied. People who worked at {teamName} are not suggested.
                 </p>
                 {/* What every row below was matched against, said once, so a
                     lead reading "4 of 5 requirements" knows which five. Edit
@@ -735,6 +741,7 @@ export function TeamCandidatesPage({
           open={criteriaOpen}
           onClose={() => setCriteriaOpen(false)}
           roleTitle={role.title}
+          teamName={teamName}
           criteria={criteria}
           people={role.suggested}
           off={off}

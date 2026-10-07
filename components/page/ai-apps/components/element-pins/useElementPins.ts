@@ -295,6 +295,19 @@ export function useElementPins({ iframeRef, appOrigin, frameKey, enabled, appUid
     [send],
   );
 
+  /**
+   * Scrolls the app as a wheel at `x`,`y` (the app's viewport, CSS px) would
+   * have: Pick a part's layer sits over the frame and catches the wheel. A
+   * no-op unless the bridge says it can.
+   */
+  const scrollApp = useCallback(
+    (x: number, y: number, dx: number, dy: number) => {
+      if (statusRef.current !== 'ready' || !capabilitiesRef.current.includes('scroll')) return;
+      send({ type: 'scroll', payload: { x, y, dx, dy } });
+    },
+    [send],
+  );
+
   /** Wire to the iframe's `onLoad`. Asks a bridge that loaded before we listened to announce itself again. */
   const onFrameLoad = useCallback(() => {
     if (!enabled || !appOrigin) return;
@@ -351,6 +364,9 @@ export function useElementPins({ iframeRef, appOrigin, frameKey, enabled, appUid
     /** The bridge can take a picture of the app (`capture()` won't reject as `unsupported`). */
     canCapture: status === 'ready' && capabilities.includes('capture'),
     capture,
+    /** The bridge can scroll the app for Pick a part (`scrollApp` won't be a no-op). */
+    canScroll: status === 'ready' && capabilities.includes('scroll'),
+    scrollApp,
     isPicking,
     pins,
     onFrameLoad,

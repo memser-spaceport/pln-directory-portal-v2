@@ -128,8 +128,21 @@ jest.mock('@/components/page/ai-apps/components/screenshot-feedback', () => {
         </button>
       </div>
     ),
-    LiveRegionOverlay: ({ onSelect, onCancel }: { onSelect: (r: unknown) => void; onCancel: () => void }) => (
+    LiveRegionOverlay: ({
+      onSelect,
+      onCancel,
+      scrollApp,
+    }: {
+      onSelect: (r: unknown) => void;
+      onCancel: () => void;
+      scrollApp?: (x: number, y: number, dx: number, dy: number) => void;
+    }) => (
       <div data-testid="live-region-overlay">
+        {scrollApp && (
+          <button type="button" onClick={() => scrollApp(1, 2, 0, 120)}>
+            Wheel
+          </button>
+        )}
         <button type="button" onClick={() => onSelect({ x: 10, y: 20, width: 100, height: 50 })}>
           Drag done
         </button>
@@ -450,6 +463,28 @@ describe('adding screenshots', () => {
     expect(screen.queryByTestId('live-region-overlay')).not.toBeInTheDocument();
     expect(capture).toHaveBeenCalledTimes(1);
     expect(mockAnalytics.onFeedbackPickPartCancelled).toHaveBeenCalled();
+  });
+
+  it('Pick a part hands the wheel to the app’s bridge when it can scroll', async () => {
+    const capture = jest.fn().mockResolvedValueOnce(shot(SHOT_A));
+    const scrollApp = jest.fn();
+    render(
+      <GiveAiAppFeedbackDialog
+        isOpen
+        onClose={jest.fn()}
+        appUid="app-1"
+        appName="My App"
+        capture={capture}
+        scrollApp={scrollApp}
+        frameRef={frameRef}
+      />,
+    );
+    await flush();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pick a part' }));
+    fireEvent.click(within(screen.getByTestId('live-region-overlay')).getByRole('button', { name: 'Wheel' }));
+
+    expect(scrollApp).toHaveBeenCalledWith(1, 2, 0, 120);
   });
 
   it('a failed capture is reported, and only the NEXT click falls back to screen sharing', async () => {

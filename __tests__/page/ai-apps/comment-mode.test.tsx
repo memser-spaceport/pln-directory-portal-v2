@@ -185,6 +185,8 @@ function makeController(bridge: Bridge, spies: Record<string, jest.Mock>): Eleme
     capabilities: ['pick', 'describe', 'crop', 'locate'],
     canCapture: false,
     capture: jest.fn(),
+    canScroll: false,
+    scrollApp: jest.fn(),
     isPicking: bridge.isPicking,
     pins: bridge.pins,
     onFrameLoad: jest.fn(),

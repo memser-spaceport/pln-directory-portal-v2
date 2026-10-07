@@ -225,8 +225,8 @@
 // shared left edges left a ~30px near-miss on the right.
 // 2026-10-08: "Access data room" is shorter than the old label, and a
 // button-wide column wrapped the note into a tall narrow block.
-// 2026-10-08 later: the column is as wide as the note's longest line (up to
-// 360px), so the terms sentence runs on one line; the button is centred over it.
+// 2026-10-08, last: the note wraps to the primary button's width again ("fit
+// primary button width"), so button, date and terms read as one column.
 .cardActionWithNote {
   align-items: stretch;
   max-width: 360px;
@@ -239,9 +239,10 @@
   }
 
   // Longer, not taller, than the shared card primary (2026-10-08: "just
-  // longer"): same 10px top/bottom, 28px sides. Desktop only; phones fill the row.
+  // longer"): same 10px top/bottom, 22px sides (28 was a bit long, 2026-10-08).
+  // Desktop only; phones fill the row.
   .cardActionButton.cardActionButton {
-    padding: 10px 28px;
+    padding: 10px 22px;
 
     @include media.mobile-only {
       padding: 10px 12px;
@@ -259,12 +260,10 @@
   min-width: 100%;
   margin: 0;
   text-align: center;
-  text-wrap: balance; // no one-word last line under the button
-
-  .cardActionWithNote & {
-    width: auto;
-    min-width: 0;
-  }
+  // pretty, not balance (2026-10-08): balance evened the two lines and left
+  // both well short of the button; pretty fills the line to the button's
+  // width and only steps in to avoid a one-word last line.
+  text-wrap: pretty;
   color: var(--foreground-neutral-secondary, #455468);
   font-size: 13px;
   line-height: 18px;

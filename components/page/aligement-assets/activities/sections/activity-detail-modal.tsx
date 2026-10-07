@@ -337,6 +337,13 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                 )}
               </div>
             )}
+
+            {activity.isSunset && (
+              <p className="activity-modal__sunset-note">
+                <Image src="/icons/sunset.svg" alt="" width={18} height={18} />
+                <span>This activity is being retired and will close at the end of the current snapshot.</span>
+              </p>
+            )}
           </div>
 
           <div className="activity-modal__footer">
@@ -656,6 +663,25 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           color: #64748b;
           margin: 8px 0 0 0;
           font-style: italic;
+        }
+
+        .activity-modal__sunset-note {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin: 0;
+          padding: 10px 12px;
+          font-size: 14px;
+          line-height: 20px;
+          font-style: italic;
+          color: #9a3412;
+          background: #fff7ed;
+          border: 1px solid #fed7aa;
+          border-radius: 8px;
+        }
+
+        .activity-modal__sunset-note :global(img) {
+          flex-shrink: 0;
         }
 
         .activity-modal__footer {

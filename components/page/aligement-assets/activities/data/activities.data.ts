@@ -19,13 +19,12 @@ export const activitiesData: ActivitiesData = {
       cta: 'confirm',
       popupContent: {
         title: 'Thoughtful Responder',
-        overview: 'Write a thoughtful, substantive response to an existing LabOS Forum discussion that moves the conversation forward. Strong responses should meet one of the requirements below, but should generally be geared towards creating the opportunity for further and deeper responses.',
+        overview: 'Write a thoughtful, substantive response to an existing LabOS Forum discussion that moves the conversation forward. Strong responses should generally be geared towards creating the opportunity for further and deeper responses.',
         networkBenefits: 'Sharing knowledge and experience through thoughtful forum posts, office hours, and published resources is core to the knowledge sharing that builds a stronger PL Network.',
         rules: [
-          'Add meaningful insight to the post',
-          'Ask a sharp follow-up question',
-          'Synthesize relevant personal or professional experience',
-          'Introduce useful evidence, context, or interpretation',
+          'Responses must do at least one of the following: add meaningful insight, ask a sharp follow-up question, share relevant personal or professional experience, or introduce useful evidence, context, or interpretation',
+          'Responses must be posted by a human user, not an agent',
+          'Only responses posted within 7 days of the original thread will count',
           'Responses will be reviewed by the PLAA Working Group before points are awarded'
         ],
         links: [
@@ -208,12 +207,11 @@ export const activitiesData: ActivitiesData = {
       networkValue: 'Test an approved product, tool, or workflow on a real task and share meaningful, actionable feedback',
       points: '100',
       frequency: 'Repeatable',
-      isNew: true,
       verificationType: 'Manual Review',
       cta: 'confirm',
       popupContent: {
         title: 'Provide Product Testing + Feedback',
-        overview: `Test an approved product, tool, workflow, or process on a real work task and provide meaningful, actionable feedback on the experience.\n\nCurrent eligible requests for product testing:\n\nFactorio Weekly Updates — Submit your weekly update, then provide feedback using the LabOS feedback feature in the bottom-right corner of the screen. Collect an additional 100 points for sharing meaningful feedback on the broader UX and the features you would find most useful in your daily workflow. Feedback will be eligible for points through Friday, September 18, 2026.`,
+        overview: `Test an approved product, tool, workflow, or process on a real work task and provide meaningful, actionable feedback on the experience.\n\nCurrent eligible requests for product testing:\n\nFactorio Weekly Updates — Submit your weekly update, then provide feedback using the LabOS feedback feature in the bottom-right corner of the screen. Collect an additional 100 points for sharing meaningful feedback on the broader UX and the features you would find most useful in your daily workflow. Feedback will be eligible for points through Saturday, October 31, 2026.`,
         networkBenefits: 'Helps teams improve shared products and workflows through real-world use, identifying friction, missing capabilities, and opportunities to improve the user experience.',
         rules: [
           'Participate in an eligible product-testing request and complete the defined task',
@@ -223,7 +221,7 @@ export const activitiesData: ActivitiesData = {
           'Attendance, account creation, routine use, demos, logins, praise alone, or general reactions do not qualify'
         ],
         links: [
-          { text: 'Factorio Weekly Updates', url: 'https://os.pl.xyz/pl-infra/ai-apps/cmst544z7008siz4g1d59fubr/weekly' }
+          { text: 'Factorio Weekly Updates', url: '/pl-infra/ai-apps/cmst544z7008siz4g1d59fubr/weekly' }
         ]
       }
     },
@@ -409,6 +407,7 @@ export const activitiesData: ActivitiesData = {
       networkValue: 'Deploy an app on LabOS',
       points: '1000',
       frequency: 'Recurring',
+      isSunset: true,
       verificationType: 'Manual Review',
       cta: 'confirm',
       popupContent: {
@@ -431,25 +430,23 @@ export const activitiesData: ActivitiesData = {
       id: 'contribute-reusable-prompt-or-skill',
       category: 'Network Tooling',
       activity: 'Contribute a Reusable Prompt or Skill',
-      networkValue: 'Contribute a reusable prompt, AI resource, or skill to the PLAAbook or PL Infra Toolkit',
+      networkValue: 'Contribute a reusable prompt, AI resource, or skill to the PLaybook',
       points: '350',
       frequency: 'Recurring',
-      isNew: true,
       verificationType: 'Manual Review',
       cta: 'confirm',
       popupContent: {
         title: 'Contribute a Reusable Prompt or Skill',
-        overview: 'Contribute a reusable resource, prompt or AI skill to the PLAAbook or PL Infra Toolkit for PL Infra users. Receive 100 points for an approved resource or prompt and also 250 points for an approved skill, up to 350 points total.',
+        overview: 'Contribute a reusable resource, prompt or AI skill to the PLaybook for PL Infra users. Receive 100 points for an approved resource or prompt and also 250 points for an approved skill, up to 350 points total.',
         networkBenefits: 'Builds a library of useful, reusable AI resources while encouraging PL Infra members to share proven knowledge resources, workflows and tools with the broader network.',
         rules: [
           '100 points are awarded for an approved reusable resource or prompt; 250 points are awarded for an approved skill (up to 350 points total)',
-          'Available to current PLAA participants with verified PL Infra membership and Toolkit access',
+          'Available to current PLAA participants with verified PL Infra membership',
           'Submit up to one prompt or AI-related resource and one AI skill',
           'Contributions must be publication-verified, useful, reproducible, safe, and non-duplicative'
         ],
         links: [
-          { text: 'PLAAbook', url: 'https://directory.plnetwork.io/pl-infra/ai-apps/cmthpnpeo059vnz4g9kf55xrv' },
-          { text: 'PL Infra Toolkit', url: 'https://directory.plnetwork.io/pl-infra/ai-apps/cmr2wll3y0a07ot4gjdy8ma6b' }
+          { text: 'PLaybook', url: '/pl-infra/ai-apps/cmuqgrc1j043ov34fw48iu5ou' }
         ]
       }
     },

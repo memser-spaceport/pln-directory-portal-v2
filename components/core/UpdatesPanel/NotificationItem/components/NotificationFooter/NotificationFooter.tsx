@@ -25,6 +25,8 @@ export function NotificationFooter(props: Props) {
 
   const details = getFooterDetails(notification);
 
+  const actionText = notification.linkText ?? getActionText(notification.category);
+
   return (
     <div className={s.root}>
       <div className={s.details}>
@@ -35,7 +37,8 @@ export function NotificationFooter(props: Props) {
 
       {(notification.link || isIrlGathering) && (
         <span className={s.actionLink}>
-          {notification.linkText ?? getActionText(notification.category)}
+          {/* The page variant draws its own arrow, so a text arrow at the end of linkText would double it. */}
+          {variant === 'page' ? actionText.replace(/\s*→\s*$/, '') : actionText}
           {variant === 'page' && <ArrowRightIcon />}
         </span>
       )}

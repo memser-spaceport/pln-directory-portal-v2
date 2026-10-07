@@ -49,4 +49,11 @@ describe('NotificationItem — AI Apps starter kit update', () => {
       '/pl-infra/ai-apps?dialog=addAiApp&backTo=%2Fnotifications',
     );
   });
+
+  it('shows a single arrow on the notifications page, which draws its own arrow icon', () => {
+    render(<NotificationItem notification={starterKitUpdate} onNotificationClick={jest.fn()} variant="page" />);
+
+    expect(screen.getByText('Get the starter kit')).toBeInTheDocument();
+    expect(screen.queryByText(/→/)).not.toBeInTheDocument();
+  });
 });

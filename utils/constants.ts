@@ -625,8 +625,6 @@ export const UNIFIED_SEARCH_ANALYTICS_EVENTS = {
   RECENT_SEARCH_DELETE_CLICK: 'unified-search-recent-delete-clicked',
   AI_CONVERSATION_HISTORY_CLICK: 'unified-search-ai-conversation-history-clicked',
   AI_CONVERSATION_HISTORY_OPEN_CLICK: 'unified-search-ai-conversation-history-open-clicked',
-  SHARED_CHAT_CONTINUED: 'unified-search-shared-chat-continued',
-  SIGNIN_PROMPT_CLICKED: 'unified-search-signin-prompt-clicked',
 };
 
 export const FORUM_ANALYTICS_EVENTS = {

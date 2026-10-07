@@ -5,7 +5,9 @@ import Chat from './chat';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import ChatHeader from './chat-header';
 import { useRouter } from 'next/navigation';
-import { IVisitChat, OPEN_VISIT_CHAT_EVENT, getVisitChat, takePendingVisitChat } from '@/utils/husky-visit-chats';
+import type { IVisitChat } from './types/visitChat';
+import { OPEN_VISIT_CHAT_EVENT } from './constants/visitChats';
+import { takePendingVisitChat } from './utils/takePendingVisitChat';
 
 interface ChatContainerProps {
   isLoggedIn: boolean;
@@ -15,7 +17,6 @@ interface ChatContainerProps {
 const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
   const [initialMessages, setInitialMessages] = useState<any>([]);
   const [type, setType] = useState<string>('');
-  // a signed-out visitor's chat from this visit, reopened from the History rail
   const [visitThreadId, setVisitThreadId] = useState<string | undefined>();
   const analytics = useHuskyAnalytics();
   const router = useRouter();
@@ -28,19 +29,17 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
   };
 
   const openVisitChat = (chat: IVisitChat | null) => {
-    if (!chat) return;
+    if (!chat) {
+      return;
+    }
     setType('');
     setVisitThreadId(chat.threadId);
     setInitialMessages(chat.messages);
   };
 
   useEffect(() => {
-    const handleOpenVisitChat = (e: Event) => {
-      const threadId = (e as CustomEvent<{ threadId: string }>).detail?.threadId;
-      takePendingVisitChat();
-      openVisitChat(threadId ? getVisitChat(threadId) : null);
-    };
-    // a chat picked in the rail on another page: open it once this page is mounted
+    const handleOpenVisitChat = () => openVisitChat(takePendingVisitChat());
+    // A chat picked in the rail on another page opens once this page is mounted.
     const pendingChat = takePendingVisitChat();
     if (pendingChat) {
       queueMicrotask(() => openVisitChat(pendingChat));
@@ -79,6 +78,7 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
         <ChatHeader resetChat={resetChat} />
         <div className="chat-container__body">
           <Chat
+            key={visitThreadId ?? 'new-chat'}
             id={visitThreadId}
             isLoggedIn={isLoggedIn}
             userInfo={userInfo}

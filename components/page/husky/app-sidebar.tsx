@@ -11,8 +11,10 @@ import { useParams, useRouter } from 'next/navigation';
 import Modal from '@/components/core/modal';
 import { PAGE_ROUTES } from '@/utils/constants';
 import { useLoginRedirect } from '@/components/core/login/utils';
-import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
-import { OPEN_VISIT_CHAT_EVENT, getVisitChats, removeVisitChat, setPendingVisitChat } from '@/utils/husky-visit-chats';
+import { OPEN_VISIT_CHAT_EVENT } from './constants/visitChats';
+import { getVisitChats } from './utils/getVisitChats';
+import { removeVisitChat } from './utils/removeVisitChat';
+import { setPendingVisitChat } from './utils/setPendingVisitChat';
 
 interface IThread {
   title: string;
@@ -36,7 +38,7 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
   const router = useRouter();
 
   const handleClick = useCallback(() => {
-    // a visit chat has no URL of its own, so it opens even when the rail still marks it as open
+    // A visit chat has no URL of its own, so it opens even when the rail still marks it as open.
     if (onOpen || !isActive) {
       if (onOpen) {
         onOpen(thread);
@@ -154,14 +156,11 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const deleteModalRef = useRef<HTMLDialogElement>(null);
   const [isMac, setIsMac] = useState(false);
-  // signed out: the chat from this visit that is open on /ai-search (it has no URL of its own)
   const [activeVisitChatId, setActiveVisitChatId] = useState<string | null>(null);
   const goToLogin = useLoginRedirect();
-  const unifiedSearchAnalytics = useUnifiedSearchAnalytics();
 
   const fetchHistory = async (showLoading = true) => {
     if (!isLoggedIn) {
-      // signed out, chats are not saved on the server: list this visit's chats
       setHistory(getVisitChats());
       setIsLoading(false);
       return;
@@ -206,24 +205,18 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
   const handleOpenVisitChat = useCallback(
     (thread: IThread) => {
       setActiveVisitChatId(thread.threadId);
-      // the /ai-search page opens it when it mounts, or at once through the event if it is already open
+      // The /ai-search page opens it on mount, or at once through the event when it is already open.
       setPendingVisitChat(thread.threadId);
-      document.dispatchEvent(new CustomEvent(OPEN_VISIT_CHAT_EVENT, { detail: { threadId: thread.threadId } }));
+      document.dispatchEvent(new Event(OPEN_VISIT_CHAT_EVENT));
       router.push(PAGE_ROUTES.HUSKY);
     },
     [router],
   );
 
-  const handleSignIn = useCallback(() => {
-    unifiedSearchAnalytics.onSigninPromptClicked('sign-in');
-    goToLogin();
-  }, [goToLogin, unifiedSearchAnalytics]);
-
   const handleSignUp = useCallback(() => {
-    unifiedSearchAnalytics.onSigninPromptClicked('sign-up');
     const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
     router.push(`${PAGE_ROUTES.SIGNUP}?returnTo=${returnTo}`);
-  }, [router, unifiedSearchAnalytics]);
+  }, [router]);
 
   const handleOpenSidebar = useCallback(() => {
     if (state === 'collapsed') {
@@ -255,9 +248,12 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
       removeVisitChat(deleteId);
       setHistory(getVisitChats());
       analytics.trackThreadDeleteConfirmationStatus(deleteId, 'success');
-      if (deleteId === activeVisitChatId) {
+      if (deleteId === activeVisitChatId || deleteId === id) {
         setActiveVisitChatId(null);
         document.dispatchEvent(new CustomEvent('new-chat'));
+      }
+      if (deleteId === id) {
+        router.push(PAGE_ROUTES.HUSKY);
       }
       return;
     }
@@ -510,7 +506,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                   <button type="button" onClick={handleSignUp} className="sidebar__body__keep__signup">
                     Sign up
                   </button>
-                  <button type="button" onClick={handleSignIn} className="sidebar__body__keep__signin">
+                  <button type="button" onClick={() => goToLogin()} className="sidebar__body__keep__signin">
                     Sign in
                   </button>
                 </div>

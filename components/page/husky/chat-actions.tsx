@@ -4,7 +4,7 @@ import { memo, ReactNode } from 'react';
 type ChatMessageActions = {
   onQuestionEdit: (ques: string) => void;
   onFeedback?: (ques: string, answer: string) => Promise<void>;
-  onRegenerate: (ques: string) => void;
+  onRegenerate?: (ques: string) => void;
   onCopyAnswer: (answer: string) => Promise<void>;
   answer: string;
   isLastIndex: boolean;
@@ -30,9 +30,9 @@ const ChatMessageActions = ({
     <>
       <div className="chat-message-actions">
         <div data-state={isLoadingObject ? 'loading' : ''} className={`chat-message-actions__container`}>
-          {isLastIndex && (
+          {isLastIndex && onRegenerate && (
             <img
-              onClick={async () => await onRegenerate(question)}
+              onClick={() => onRegenerate(question)}
               className="chat-message-actions__item"
               title="Regenerate response"
               src="/icons/refresh-circle.svg"

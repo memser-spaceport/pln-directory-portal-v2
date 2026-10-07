@@ -7,8 +7,6 @@ const duplicateThread = jest.fn();
 const getHuskyHistory = jest.fn();
 const goToLogin = jest.fn();
 const toastError = jest.fn();
-const onSharedChatContinued = jest.fn();
-const onSigninPromptClicked = jest.fn();
 const stopChat = jest.fn();
 let mockParams: { id?: string } = {};
 let mockHasRefreshToken = true;
@@ -30,10 +28,6 @@ jest.mock('@/analytics/husky.analytics', () => ({
         get: () => jest.fn(),
       },
     ),
-}));
-
-jest.mock('@/analytics/unified-search.analytics', () => ({
-  useUnifiedSearchAnalytics: () => ({ onSharedChatContinued, onSigninPromptClicked }),
 }));
 
 jest.mock('@/components/page/husky/sidebar', () => ({
@@ -93,11 +87,23 @@ jest.mock('@/components/core/ToastContainer', () => ({
 
 jest.mock('@/components/page/husky/messages', () => ({
   __esModule: true,
-  default: ({ messages }: { messages: any[] }) => (
+  default: ({
+    messages,
+    onFollowupClicked,
+    onRegenerate,
+  }: {
+    messages: any[];
+    onFollowupClicked: (question: string) => void;
+    onRegenerate?: (question: string) => void;
+  }) => (
     <div>
       {messages.map((m, i) => (
         <p key={i}>{m.question}</p>
       ))}
+      <button type="button" onClick={() => onFollowupClicked('Who funds it?')}>
+        Suggested follow-up
+      </button>
+      {onRegenerate && <button type="button">Regenerate response</button>}
     </div>
   ),
 }));
@@ -106,7 +112,13 @@ jest.mock('@/components/core/husky/husky-limit-strip', () => ({ __esModule: true
 
 import Chat from '@/components/page/husky/chat';
 import AppSidebar from '@/components/page/husky/app-sidebar';
-import { OPEN_VISIT_CHAT_EVENT, PENDING_VISIT_CHAT_KEY, getVisitChats, saveVisitChat } from '@/utils/husky-visit-chats';
+import {
+  OPEN_VISIT_CHAT_EVENT,
+  PENDING_VISIT_CHAT_KEY,
+  PENDING_FOLLOW_UP_KEY_PREFIX,
+} from '@/components/page/husky/constants/visitChats';
+import { getVisitChats } from '@/components/page/husky/utils/getVisitChats';
+import { saveVisitChat } from '@/components/page/husky/utils/saveVisitChat';
 
 const sharedMessages = [{ question: 'Which teams work on storage?', answer: 'Filecoin and others.' }];
 const owner = { name: 'Maya Chen', image: '/maya.png' };
@@ -165,10 +177,10 @@ describe('LAB-2776: a shared chat continues from the normal input', () => {
 
     await waitFor(() => expect(push).toHaveBeenCalledWith('/ai-search/copy-1'));
     expect(duplicateThread).toHaveBeenCalledWith('token', 'shared-1', undefined);
-    expect(localStorage.getItem('input')).toBe('And in Asia?');
+    expect(sessionStorage.getItem(`${PENDING_FOLLOW_UP_KEY_PREFIX}copy-1`)).toBe('And in Asia?');
+    expect(localStorage.getItem('input')).toBeNull();
     expect(refresh).toHaveBeenCalled();
     expect(submitChat).not.toHaveBeenCalled(); // nothing is asked on the sharer's chat
-    expect(onSharedChatContinued).toHaveBeenCalledWith('shared-1', 'copy-1');
     document.removeEventListener('refresh-husky-history', refresh);
   });
 
@@ -183,9 +195,8 @@ describe('LAB-2776: a shared chat continues from the normal input', () => {
     await waitFor(() => expect(toastError).toHaveBeenCalled());
     expect(input.value).toBe('And in Asia?');
     expect(push).not.toHaveBeenCalled();
-    expect(localStorage.getItem('input')).toBeNull();
+    expect(sessionStorage.length).toBe(0);
     expect(refresh).not.toHaveBeenCalled();
-    expect(onSharedChatContinued).not.toHaveBeenCalled();
     document.removeEventListener('refresh-husky-history', refresh);
   });
 
@@ -226,6 +237,27 @@ describe('LAB-2776: a shared chat continues from the normal input', () => {
     expect(input.value).toBe('And in Asia?');
   });
 
+  it('makes a copy when a suggested follow-up is clicked, and hides Regenerate on the shared chat', async () => {
+    duplicateThread.mockResolvedValue({ threadId: 'copy-1' });
+    renderSharedChat();
+
+    expect(screen.queryByText('Regenerate response')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('Suggested follow-up'));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/ai-search/copy-1'));
+    expect(sessionStorage.getItem(`${PENDING_FOLLOW_UP_KEY_PREFIX}copy-1`)).toBe('Who funds it?');
+    expect(submitChat).not.toHaveBeenCalled();
+  });
+
+  it("asks the handed-over follow-up when the copy's page opens", async () => {
+    sessionStorage.setItem(`${PENDING_FOLLOW_UP_KEY_PREFIX}copy-1`, 'And in Asia?');
+    renderSharedChat({ id: 'copy-1', isOwnThread: true });
+
+    await waitFor(() => expect(submitChat).toHaveBeenCalled());
+    expect(submitChat.mock.calls[0][0]).toMatchObject({ threadId: 'copy-1', question: 'And in Asia?' });
+    expect(sessionStorage.getItem(`${PENDING_FOLLOW_UP_KEY_PREFIX}copy-1`)).toBeNull();
+  });
+
   it('makes one copy when the follow-up is sent twice quickly', async () => {
     let resolve: (value: any) => void = () => {};
     duplicateThread.mockReturnValue(new Promise((r) => (resolve = r)));
@@ -255,11 +287,9 @@ describe('LAB-2776: signed out, the History rail stays', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Sign in' }));
     expect(goToLogin).toHaveBeenCalled();
-    expect(onSigninPromptClicked).toHaveBeenCalledWith('sign-in');
 
     fireEvent.click(screen.getByRole('button', { name: 'Sign up' }));
     expect(push).toHaveBeenCalledWith(expect.stringMatching(/^\/sign-up\?returnTo=/));
-    expect(onSigninPromptClicked).toHaveBeenCalledWith('sign-up');
   });
 
   it("lists this visit's chats and opens one on the AI Search page", async () => {
@@ -297,7 +327,7 @@ describe('LAB-2776: signed out, the History rail stays', () => {
     render(<Chat isLoggedIn={false} userInfo={{} as any} initialMessages={sharedMessages} />);
 
     act(() => {
-      document.dispatchEvent(new CustomEvent(OPEN_VISIT_CHAT_EVENT, { detail: { threadId: 'visit-1' } }));
+      document.dispatchEvent(new Event(OPEN_VISIT_CHAT_EVENT));
     });
 
     expect(stopChat).toHaveBeenCalled();
@@ -306,6 +336,18 @@ describe('LAB-2776: signed out, the History rail stays', () => {
   it("does not add someone else's shared chat to this visit's chats", async () => {
     renderSharedChat({ isLoggedIn: false });
     await act(async () => {});
+    expect(getVisitChats()).toHaveLength(0);
+  });
+
+  it('leaves the page of a visit chat the visitor deletes while viewing it', async () => {
+    mockParams = { id: 'copy-2' };
+    saveVisitChat({ threadId: 'copy-2', messages: [{ question: 'Who builds IPFS?', answer: 'Many teams.' }] });
+    render(<AppSidebar isLoggedIn={false} />);
+
+    fireEvent.click(await screen.findByAltText('delete'));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete', hidden: true }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/ai-search'));
     expect(getVisitChats()).toHaveLength(0);
   });
 

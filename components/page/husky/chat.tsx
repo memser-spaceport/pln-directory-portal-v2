@@ -20,8 +20,8 @@ import { experimental_useObject as useObject } from '@ai-sdk/react';
 import { z } from 'zod';
 import { huskySourceRefSchema } from '@/services/husky/hooks/useHuskyChat';
 import { useRouter } from 'next/navigation';
-import { useUnifiedSearchAnalytics } from '@/analytics/unified-search.analytics';
-import { OPEN_VISIT_CHAT_EVENT, saveVisitChat } from '@/utils/husky-visit-chats';
+import { OPEN_VISIT_CHAT_EVENT, PENDING_FOLLOW_UP_KEY_PREFIX } from './constants/visitChats';
+import { saveVisitChat } from './utils/saveVisitChat';
 
 interface ChatProps {
   id?: string;
@@ -62,7 +62,6 @@ const Chat: React.FC<ChatProps> = ({
   const [isAnswerLoading, setIsAnswerLoading] = useState(false);
   const [question, setQuestion] = useState('');
   const analytics = useHuskyAnalytics();
-  const unifiedSearchAnalytics = useUnifiedSearchAnalytics();
   const router = useRouter();
   // Someone else's shared chat: a follow-up makes the reader's own copy instead of changing this one.
   const isSharedView = !isOwnThread && from === 'detail';
@@ -185,18 +184,20 @@ const Chat: React.FC<ChatProps> = ({
 
   // Signed out, chats are not saved on the server: keep this visit's chats for the History rail.
   useEffect(() => {
-    if (isLoggedIn || isSharedView || chatIsLoading || isAnswerLoading) return;
+    if (isLoggedIn || isSharedView || chatIsLoading || isAnswerLoading) {
+      return;
+    }
     const lastMessage = messages[messages.length - 1];
-    if (!threadUidRef.current || !lastMessage?.answer || lastMessage?.isError) return;
+    if (!threadUidRef.current || !lastMessage?.answer || lastMessage?.isError) {
+      return;
+    }
     if (saveVisitChat({ threadId: threadUidRef.current, messages })) {
-      // refresh sidebar history and mark this chat as the open one
       document.dispatchEvent(
         new CustomEvent('refresh-husky-history', { detail: { visitThreadId: threadUidRef.current } }),
       );
     }
   }, [messages, chatIsLoading, isAnswerLoading, isLoggedIn, isSharedView]);
 
-  // Signed out, opening another chat from the rail while an answer streams must not write that answer into it.
   useEffect(() => {
     const handleOpenVisitChat = () => {
       if (chatIsLoading || isAnswerLoading) {
@@ -317,34 +318,33 @@ const Chat: React.FC<ChatProps> = ({
   // handle husky input submission
   const onHuskyInput = (query: string) => handleChatSubmission({ question: query, type: 'user-input' });
 
-  // handle regenerate by clicking the regenerate button
-  const onRegenerate = useCallback(
-    (query: string) => {
-      if (chatIsLoading || (!isOwnThread && fromRef.current === 'detail')) {
-        return;
-      }
-      onHuskyInput(query);
-      analytics.trackRegenerate();
-    },
-    [chatIsLoading],
-  );
+  const onRegenerate = (query: string) => {
+    if (chatIsLoading) {
+      return;
+    }
+    onHuskyInput(query);
+    analytics.trackRegenerate();
+  };
 
   const onFollowupClicked = (question: string) => {
-    if (chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')) {
+    if (chatIsLoading || isAnswerLoading) {
+      return;
+    }
+    if (isSharedView) {
+      onSharedFollowUp(question);
       return;
     }
     handleChatSubmission({ question, type: 'followup' });
   };
 
-  // handle question edit by clicking the edit button
-  const onQuestionEdit = useCallback((question: string) => {
-    if (chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')) {
+  const onQuestionEdit = (question: string) => {
+    if (chatIsLoading || isAnswerLoading) {
       return;
     }
     analytics.trackQuestionEdit(question);
     textareaRef.current!.value = question;
     textareaRef.current!.focus();
-  }, []);
+  };
 
   // handle copy answer by clicking the copy button
   const onCopyAnswer = async (answer: string) => {
@@ -358,7 +358,7 @@ const Chat: React.FC<ChatProps> = ({
       return;
     }
     if (isSharedView) {
-      // the text stays in the input until the copy exists, so a failed send loses nothing
+      // The text stays in the input until the copy exists, so a failed send loses nothing.
       onSharedFollowUp(trimmedValue);
       return;
     }
@@ -380,13 +380,12 @@ const Chat: React.FC<ChatProps> = ({
     stopChat();
   }, [question]);
 
-  // handle a follow-up asked on someone else's shared chat: copy the chat, open the copy, and ask it there
   const onSharedFollowUp = useCallback(
     async (followUp: string) => {
       if (isContinuingSharedRef.current) {
         return;
       }
-      // signed out at the daily limit, the copy could not ask the follow-up: make no copy
+      // Signed out at the daily limit, the copy could not ask the follow-up: make no copy.
       if (!checkRefreshToken() && getChatCount() >= DAILY_CHAT_LIMIT) {
         setLimitReached('warn');
         return;
@@ -425,12 +424,8 @@ const Chat: React.FC<ChatProps> = ({
           analytics.trackThreadDuplicateStatus(id ?? '', 'failed');
           return;
         }
-        // the copy's page asks the follow-up when it opens
-        localStorage.setItem('input', followUp);
-        if (textareaRef.current) {
-          textareaRef.current.value = '';
-        }
-        unifiedSearchAnalytics.onSharedChatContinued(id ?? '', duplicateThreadResponse.threadId);
+        sessionStorage.setItem(PENDING_FOLLOW_UP_KEY_PREFIX + duplicateThreadResponse.threadId, followUp);
+        textareaRef.current!.value = '';
         router.push(`${PAGE_ROUTES.HUSKY}/${duplicateThreadResponse.threadId}`);
         document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
         analytics.trackThreadDuplicateStatus(id ?? '', 'success');
@@ -444,10 +439,18 @@ const Chat: React.FC<ChatProps> = ({
         setIsContinuingShared(false);
       }
     },
-    [router, isLoggedIn, id, analytics, unifiedSearchAnalytics],
+    [router, isLoggedIn, id, analytics],
   );
 
+  // A question handed over by another page: the copy of a shared chat, or the AI Search entry points.
   useEffect(() => {
+    const followUpKey = PENDING_FOLLOW_UP_KEY_PREFIX + id;
+    const followUp = id ? sessionStorage.getItem(followUpKey) : null;
+    if (followUp) {
+      sessionStorage.removeItem(followUpKey);
+      handleChatSubmission({ question: followUp, type: 'user-input' });
+      return;
+    }
     const storedInput = localStorage.getItem('input');
     if (storedInput) {
       handleChatSubmission({ question: storedInput, type: 'user-input' });
@@ -520,8 +523,8 @@ const Chat: React.FC<ChatProps> = ({
               onFollowupClicked={onFollowupClicked}
               isAnswerLoading={isAnswerLoading}
               statusLine={chatObject?.steps?.filter(Boolean).at(-1)}
-              isLoadingObject={chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')}
-              onRegenerate={onRegenerate}
+              isLoadingObject={chatIsLoading || isAnswerLoading}
+              onRegenerate={isSharedView ? undefined : onRegenerate}
               onCopyAnswer={onCopyAnswer}
               onQuestionEdit={onQuestionEdit}
               layout="page"

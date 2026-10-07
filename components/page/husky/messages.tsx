@@ -16,7 +16,7 @@ interface MessagesProps {
   isAnswerLoading: boolean;
   statusLine?: string;
   onFeedback?: (question: string, answer: string) => Promise<void>;
-  onRegenerate: (question: string) => void;
+  onRegenerate?: (question: string) => void;
   onQuestionEdit: (question: string) => void;
   onCopyAnswer: (answer: string) => Promise<void>;
   onFollowupClicked: (question: string) => void;

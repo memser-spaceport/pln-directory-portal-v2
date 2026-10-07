@@ -66,6 +66,7 @@ import {
   type ScreenshotAttachment,
 } from '../screenshot-feedback';
 import type { AppCapture } from '../element-pins';
+import { CAPTURE_TOO_SLOW } from '@/ai-apps-bridge/protocol';
 import {
   PinSummary,
   appendPinsHtml,
@@ -266,7 +267,7 @@ interface Props {
  * runs against the latest state rather than a closure.
  */
 type AutoShot =
-  | { token: number; status: 'waiting' | 'draft' | 'attached' | 'failed' | 'removed' }
+  | { token: number; status: 'waiting' | 'draft' | 'attached' | 'failed' | 'skipped' | 'removed' }
   | { token: number; status: 'capturing'; late?: boolean }
   | { token: number; status: 'landed'; dataUrl: string };
 
@@ -603,7 +604,9 @@ export function GiveAiAppFeedbackDialog({
         });
       })
       .catch((error: unknown) => {
-        settle({ token: autoToken, status: 'failed' });
+        /* A page too heavy to draw in time gets no picture and no apology: the member never asked for one. */
+        const tooSlow = error instanceof Error && error.message === CAPTURE_TOO_SLOW;
+        settle({ token: autoToken, status: tooSlow ? 'skipped' : 'failed' });
         analyticsRef.current.onFeedbackAppCapture({
           appUid,
           source: 'auto',

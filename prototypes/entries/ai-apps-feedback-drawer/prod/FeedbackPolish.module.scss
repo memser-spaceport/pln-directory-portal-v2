@@ -1,0 +1,72 @@
+@use 'styles/media';
+
+/*
+  Polish pass on the transcribed feedback popover (see the POLISH PASS note in
+  FeedbackDialog.tsx). Every rule here layers on a production class; nothing
+  restyles production itself.
+*/
+
+/* Production's `.fieldError` (the app picker's "Please select an app"), minus the
+   -12px pull-up that assumes a 20px gap: inside `.writing` the gap is 4px. */
+.noteError {
+  margin: 0;
+}
+
+/*
+  Kind and Priority: two selects on one line (2026-10-06, drawer). Equal
+  columns, so both fields line up and neither label floats. They stay side by
+  side on phones too: "Bug" and "P2 · Normal" fit half a 390px drawer. Doubled
+  class so it beats production's `.triage` whatever order the two stylesheets
+  load in; production's wide-mode grid placement still applies.
+*/
+.triage.triage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.kind,
+.priority {
+  min-width: 0;
+}
+
+/*
+  "Posting as …" keeps its words (where the feedback goes is the one thing on the
+  form nothing else says) but loses the grey slab: a filled box at the end of a
+  form reads as a notice to act on, and this is a caption.
+*/
+.postingAs.postingAs {
+  align-items: flex-start;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  font-size: 12px;
+  line-height: 16px;
+
+  svg {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    margin-top: 1px;
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+/* Wider/Narrower: on a phone both are already the full width of the screen. */
+.hideOnPhone {
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+/*
+  The floating button while its form is open on a phone. There the form is
+  centred over the whole screen, and the button stayed on top of it, covering
+  Send. The form's own ✕ closes it, so the button steps aside until then.
+*/
+.fabOpen {
+  @include media.mobile-only {
+    visibility: hidden;
+    pointer-events: none;
+  }
+}

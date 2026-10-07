@@ -4,6 +4,7 @@ import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { useState, useRef, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSidebar } from './sidebar';
+import { PAGE_ROUTES } from '@/utils/constants';
 
 interface ChatHeaderProps {
   resetChat?: () => void;
@@ -40,7 +41,7 @@ const ChatHeader = ({ resetChat, showActions, title }: ChatHeaderProps) => {
     if (resetChat) {
       resetChat();
     } else {
-      router.push('/husky/chat');
+      router.push(PAGE_ROUTES.HUSKY);
     }
   };
 
@@ -62,12 +63,12 @@ const ChatHeader = ({ resetChat, showActions, title }: ChatHeaderProps) => {
     <div className="chat-header">
       <button onClick={handleToggleSidebar} className="chat-header__thread-list-button">
         <img src="/icons/message-blue-v2.svg" alt="thread-list" />
-        <span className="chat-header__thread-list-button__text">Threads</span>
+        <span className="chat-header__thread-list-button__text">History</span>
       </button>
       <div className="chat-header__actions">
         <button onClick={handleNewConversation} className="chat-header__new-conversation-button">
           <img src="/icons/add-blue.svg" alt="new-conversation" />
-          <span className="chat-header__new-conversation-button__text">New Conversation</span>
+          <span className="chat-header__new-conversation-button__text">New chat</span>
         </button>
         {showActions && (
           <div className="chat-header__menu-container" ref={menuRef}>

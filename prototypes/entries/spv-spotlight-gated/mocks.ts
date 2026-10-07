@@ -1,7 +1,7 @@
 import type { FAQItem } from '@/app/constants/demoday';
 import { SEED_PROFILE } from '../member-profile-edit/mocks';
 import { EMPTY_CONTACTS, type ProfileRecord } from '../profile-shared/SectionEditor/types';
-import type { InvestorRecord } from './SpvInvestorProfileDrawer';
+import type { InvestorRecord, SpvFund } from './SpvInvestorProfileDrawer';
 
 // Mocked data for the investor-facing SPV Spotlight (LAB-2669). Nothing here is
 // fetched. One SPV Spotlight = one team (confirmed on the 2026-09-28 sync), so
@@ -71,14 +71,75 @@ export const mockInvestorProfile: ProfileRecord = {
   experiences: [],
 };
 
-export const mockInvestorDetails: InvestorRecord = {
-  angel: false,
-  stages: [],
-  checkSize: '',
-  focus: [],
-  viaFund: false,
-  fundId: null,
+// Two investors (review 2026-10-05), switched in the preview bar:
+// - `new`: never told us how they invest. Investor Details is empty, so the
+//   drawer opens on Demo Day's "+ Add startup stages" state with the amber
+//   incomplete strip, and the page card says "Set up investor profile".
+// - `existing`: has a profile from Demo Day or a past deal. It is partly
+//   filled (no check size), which is common, so the one field still to fill
+//   is marked amber; the page card says "Review and update investor profile".
+export type InvestorKind = 'new' | 'existing';
+
+export const INVESTOR_KIND_OPTIONS: { value: InvestorKind; label: string }[] = [
+  { value: 'new', label: 'New investor' },
+  { value: 'existing', label: 'Has a profile' },
+];
+
+export const mockInvestorDetails: Record<InvestorKind, InvestorRecord> = {
+  new: {
+    angel: false,
+    stages: [],
+    checkSize: '',
+    focus: [],
+    viaFund: false,
+    fundId: null,
+    fundRole: '',
+    dealEmails: true,
+  },
+  existing: {
+    angel: true,
+    stages: ['Seed', 'Series A'],
+    checkSize: '',
+    focus: ['Infrastructure', 'DeSci', 'Neurotech'],
+    viaFund: true,
+    fundId: 'fund-northfield',
+    fundRole: 'Partner',
+    dealEmails: true,
+  },
 };
+
+// Mocked directory teams marked as investment funds (production's select lists
+// every directory team). Maya leads Northfield, so she edits its details, and
+// is a member of Lattice, so she can't: picking it shows production's "You
+// don't have access to edit team information" box.
+export const MOCK_FUNDS: SpvFund[] = [
+  {
+    id: 'fund-northfield',
+    name: 'Northfield Ventures',
+    logo: '',
+    website: 'https://northfield.vc',
+    teamLead: true,
+    investorProfile: {
+      investInFundTypes: ['Early stage'],
+      typicalCheckSize: '500000',
+      investInStartupStages: ['Seed', 'Series A'],
+      investmentFocus: ['Infrastructure', 'DeSci', 'AI'],
+    },
+  },
+  {
+    id: 'fund-lattice',
+    name: 'Lattice Capital',
+    logo: '',
+    website: 'https://lattice.capital',
+    teamLead: false,
+    investorProfile: {
+      investInFundTypes: ['Late stage', 'Growth'],
+      typicalCheckSize: '1500000',
+      investInStartupStages: ['Series A', 'Series B'],
+      investmentFocus: ['Crypto', 'Fintech'],
+    },
+  },
+];
 
 // Emails the mocked backend already has an application for. Typing one of these
 // into the signed-out Apply form swaps the modal to the sign-in prompt.
@@ -99,17 +160,17 @@ export const spvFaqItems: FAQItem[] = [
   {
     question: 'How do I see the materials?',
     answer:
-      "Open data room takes you to the team's DocSend, where the pitch and the SPV terms are. Nothing is uploaded to this page.",
+      "Request data room access takes you to the team's DocSend, where you ask for access and then read the pitch and the SPV terms. Nothing is uploaded to this page.",
   },
   {
     question: 'What does the investor profile do?',
     answer:
-      'It tells us what you invest in and your typical check size, so we can send you the deals that fit. You can change it any time from the avatar menu.',
+      'It tells us your check size, stages and focus, so we only send you deals that fit. You can change it any time from the avatar menu.',
   },
   {
     question: 'The page says I do not have access.',
     answer:
-      'Spotlights are shared by invitation, and each link is tied to the email it was sent to. Sign in with that email, or write to us and we will check the invitation list.',
+      'Spotlights are shared by invitation, so a forwarded link opens only for the people it was sent to. Use Contact us on that page and we will check the invitation list.',
   },
   {
     question: 'What happens when a Spotlight closes?',
@@ -131,31 +192,3 @@ const REQUEST_VIEWERS: { value: SpvViewer; label: string }[] = [
 ];
 
 export const VIEWER_OPTIONS = REQUEST_FLOW_ENABLED ? [...TOKEN_VIEWERS, ...REQUEST_VIEWERS] : TOKEN_VIEWERS;
-
-// ---- Deal preferences ---------------------------------------------------------
-// What the secondary call to action collects (2026-10-01): in venture a "deal"
-// is a startup investment opportunity, and the data room is the "deal room".
-// Anuj: two or three fields — what you invest in, your check size, and that is
-// it — so PL can send the deals that fit. Stages ride along because the drawer
-// already asks for them.
-export type DealPrefs = {
-  sectors: string[];
-  stages: string[];
-  checkSize: string;
-};
-
-export const EMPTY_DEAL_PREFS: DealPrefs = { sectors: [], stages: [], checkSize: '' };
-
-// PL's four focus areas first (the Explore landing's), then the keywords an
-// investor names a thesis in. Placeholder list.
-export const SECTOR_OPTIONS = [
-  'AI & Robotics',
-  'Neurotechnology',
-  'Digital Human Rights',
-  'Economies & Governance',
-  'Frontier tech',
-  'Crypto & Web3',
-  'DeSci & biotech',
-  'Infrastructure',
-  'Hardware',
-].map((v) => ({ value: v, label: v }));

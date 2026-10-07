@@ -1,0 +1,8 @@
+/*
+  Additions to the shared comment layer's classes (imported as `cl`), which
+  already make the overlay take the pointer with a crosshair: in comment mode a
+  click on the app places a comment, it does not press the app.
+*/
+.overlay {
+  overflow: visible;
+}

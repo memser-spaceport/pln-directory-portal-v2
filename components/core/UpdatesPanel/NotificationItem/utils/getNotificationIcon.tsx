@@ -1,6 +1,6 @@
 import React from 'react';
 import { PushNotification } from '@/types/push-notifications.types';
-import { DemoDayIcon, EventIcon, ForumIcon, SystemIcon } from '@/components/core/UpdatesPanel/icons';
+import { AiAppsIcon, DemoDayIcon, EventIcon, ForumIcon, SystemIcon } from '@/components/core/UpdatesPanel/icons';
 
 export function getNotificationIcon(notification: PushNotification) {
   switch (notification.category) {
@@ -22,6 +22,8 @@ export function getNotificationIcon(notification: PushNotification) {
     case 'NEW_FEATURE':
     case 'GANTRY':
       return <SystemIcon />;
+    case 'AI_APP':
+      return <AiAppsIcon />;
     case 'SYSTEM':
     default:
       return <SystemIcon />;

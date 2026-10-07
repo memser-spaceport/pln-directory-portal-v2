@@ -29,6 +29,21 @@ export function AiAppsConnectPage() {
   const [isApproving, setIsApproving] = useState(false);
   const trackedViewRef = useRef<string | null>(null);
 
+  // Only `?session=` changed (client-side navigation keeps this component mounted): drop the old
+  // session's state during render, so neither the old view/userCode nor the analytics effect (keyed
+  // on `${sessionId}:${view}`) ever sees the previous session's result paired with the new ID.
+  const [loadedSessionId, setLoadedSessionId] = useState(sessionId);
+  if (loadedSessionId !== sessionId) {
+    setLoadedSessionId(sessionId);
+    setSession(null);
+    setView(sessionId ? 'loading' : 'invalid');
+    setIsApproving(false);
+  }
+  const currentSessionIdRef = useRef(sessionId);
+  useEffect(() => {
+    currentSessionIdRef.current = sessionId;
+  }, [sessionId]);
+
   useEffect(() => {
     if (!sessionId) {
       return;
@@ -71,6 +86,8 @@ export function AiAppsConnectPage() {
   const onApprove = useCallback(async () => {
     setIsApproving(true);
     const result = await approveConnectSession(sessionId);
+    // The URL moved to another session while this approval was in flight: its result is not this page's.
+    if (currentSessionIdRef.current !== sessionId) return;
     setIsApproving(false);
     const nextView = result?.status ?? 'error';
     setView(nextView);

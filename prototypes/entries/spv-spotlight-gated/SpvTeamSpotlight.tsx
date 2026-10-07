@@ -44,26 +44,18 @@ export const SpvCardAction = ({
   href,
   onClick,
   note,
-  secondary,
 }: {
   label: string;
   // An href opens the DocSend in a new tab; otherwise it's a button.
   href?: string;
   onClick?: () => void;
   note?: React.ReactNode;
-  // The second call to action (2026-10-01 standup): set up the investor
-  // profile, to get the deals that fit. DemoDayActionButtons' light-brand
-  // secondary beside the primary, as its card row pairs Make an Intro with
-  // Invest in Company.
-  secondary?: { label: string; onClick: () => void };
+  // (The investor-profile link that sat under the primary moved to a card of
+  // its own under the Spotlight description — SpvInvestorProfileCard, review
+  // 2026-10-05 — so this slot is the data room's alone.)
 }) => (
-  <div className={s.cardAction}>
+  <div className={clsx(s.cardAction, note && s.cardActionWithNote)}>
     <div className={s.cardActionButtons}>
-      {secondary && (
-        <button type="button" className={clsx(act.secondaryButton, s.cardActionButton)} onClick={secondary.onClick}>
-          {secondary.label}
-        </button>
-      )}
       {href ? (
         <a
           href={href}
@@ -79,7 +71,7 @@ export const SpvCardAction = ({
         </button>
       )}
     </div>
-    {note && <p className={s.cardActionNote}>{note}</p>}
+    {note && <div className={s.cardActionNote}>{note}</div>}
   </div>
 );
 

@@ -28,6 +28,8 @@ interface Props {
   onHideSection?: () => void;
   isInvestor?: boolean | null;
   signUpSource?: string;
+  /** Marks each `+ Add …` pill (a field still empty) in amber. */
+  highlightUnfilled?: boolean;
 }
 
 export const InvestorProfileView = (props: Props) => {
@@ -48,6 +50,7 @@ export const InvestorProfileView = (props: Props) => {
     onHideSection,
     isInvestor,
     signUpSource,
+    highlightUnfilled,
   } = props;
 
   const investmentTeams = member?.teams.filter((team) => team.investmentTeam) ?? [];
@@ -91,7 +94,7 @@ export const InvestorProfileView = (props: Props) => {
 
           {showEmptyFundState && (
             <div className={s.block}>
-              <InvestmentDetailsSection isEditable={isEditable} />
+              <InvestmentDetailsSection isEditable={isEditable} highlightEmpty={highlightUnfilled} />
             </div>
           )}
 
@@ -106,6 +109,7 @@ export const InvestorProfileView = (props: Props) => {
                 secRulesAccepted={secRulesAccepted}
                 isEditable={isEditable}
                 onEdit={onEdit}
+                highlightEmpty={highlightUnfilled}
               />
             </div>
           )}

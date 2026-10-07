@@ -31,13 +31,17 @@ import {
  *   (its viewport), with typed values, select choices, editable text and
  *   anything the app marks `data-labos-mask` masked, and nothing of the
  *   bridge's own UI. It is taken only when LabOS asks, for the feedback form.
+ * - `scroll` moves the viewer's own view of the page, as the wheel LabOS's
+ *   Pick a part layer caught would have. It reads nothing and answers nothing.
  */
 
 export const MARKER_ATTR = 'data-pln-bridge';
-const CAPABILITIES: BridgeCapability[] = ['pick', 'describe', 'crop', 'locate', 'capture'];
+const CAPABILITIES: BridgeCapability[] = ['pick', 'describe', 'crop', 'locate', 'capture', 'scroll'];
 const CROP_LOAD_TIMEOUT_MS = 10_000;
 const ACCENT = '#1b4dff';
 const RECT_FALLBACK_MS = 100;
+
+const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
 
 type CropFn = (el: Element) => Promise<string>;
 type CaptureFn = () => Promise<{ dataUrl: string; width: number; height: number }>;
@@ -408,6 +412,59 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
     }
   }
 
+  /* ---------- scroll: a wheel turned over LabOS's Pick a part layer ---------- */
+
+  /* What a wheel at that point would scroll: the nearest ancestor that scrolls
+     on that axis and still has room that way, else the page. Each axis finds
+     its own, so a sideways strip doesn't swallow a vertical wheel.
+     `overscroll-behavior` is not honoured. */
+  function hasRoom(el: Element, axis: 'x' | 'y', delta: number) {
+    const overflow = win.getComputedStyle(el)[axis === 'y' ? 'overflowY' : 'overflowX'];
+    if (!/^(auto|scroll|overlay)$/.test(overflow)) return false;
+    const [pos, size, total] =
+      axis === 'y' ? [el.scrollTop, el.clientHeight, el.scrollHeight] : [el.scrollLeft, el.clientWidth, el.scrollWidth];
+    return delta > 0 ? pos + size < total - 1 : pos > 0;
+  }
+
+  function scrollerFor(start: Element | null, axis: 'x' | 'y', delta: number): Element | null {
+    /* The root's overflow is usually `visible` while it scrolls: it is the window's job. */
+    for (let el = start; el && el !== doc.documentElement && el !== doc.body; el = el.parentElement) {
+      if (hasRoom(el, axis, delta)) return el;
+    }
+    return null;
+  }
+
+  function scrollAt(x: number, y: number, dx: number, dy: number) {
+    const start = doc.elementFromPoint(x, y);
+    /* `instant`: the picture LabOS asks for next must see where it ended, even under `scroll-behavior: smooth`. */
+    const by = (target: Element | Window, left: number, top: number) => {
+      if (left || top) target.scrollBy({ left, top, behavior: 'instant' });
+    };
+    const xs = dx ? scrollerFor(start, 'x', dx) : null;
+    const ys = dy ? scrollerFor(start, 'y', dy) : null;
+    if (xs && xs === ys) {
+      by(xs, dx, dy);
+      return;
+    }
+    if (xs) by(xs, dx, 0);
+    if (ys) by(ys, 0, dy);
+    by(win, xs ? 0 : dx, ys ? 0 : dy);
+  }
+
+  function readScroll(payload: Record<string, unknown> | undefined) {
+    if (!payload) return null;
+    const { x, y, dx, dy } = payload;
+    const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+    if (!finite(x) || !finite(y) || !finite(dx) || !finite(dy)) return null;
+    const max = LIMITS.scrollDelta;
+    return {
+      x: clamp(x, 0, win.innerWidth),
+      y: clamp(y, 0, win.innerHeight),
+      dx: clamp(dx, -max, max),
+      dy: clamp(dy, -max, max),
+    };
+  }
+
   /* ---------- the feedback shortcut ---------- */
 
   /* Same rules as LabOS's own Alt+F: the physical key (Option+F types "ƒ" on a
@@ -456,6 +513,11 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
       case 'capture':
         if (typeof payload?.key === 'string' && payload.key.length <= LIMITS.captureKey) void capture(payload.key);
         return;
+      case 'scroll': {
+        const scroll = readScroll(payload);
+        if (scroll) scrollAt(scroll.x, scroll.y, scroll.dx, scroll.dy);
+        return;
+      }
       default:
         /* Unknown commands are ignored: a newer LabOS may speak to an older bridge. */
         return;

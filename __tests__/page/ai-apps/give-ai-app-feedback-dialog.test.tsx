@@ -1221,8 +1221,8 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(mockOnFeedbackScreenshotEditOpened).toHaveBeenCalled();
       await waitFor(() => expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument());
 
-      fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
-      expect(mockOnFeedbackScreenshotToolSelected).toHaveBeenCalledWith({ tool: 'comment' });
+      fireEvent.click(screen.getByRole('button', { name: 'Box' }));
+      expect(mockOnFeedbackScreenshotToolSelected).toHaveBeenCalledWith({ tool: 'rect' });
 
       fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
       expect(mockOnFeedbackScreenshotAnnotatorDiscarded).toHaveBeenCalledWith({ isEditing: true });
@@ -1309,6 +1309,19 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(screen.getByRole('heading', { name: 'Give feedback' })).toBeInTheDocument();
     });
 
+    /* LAB-2766: the annotator has no Comment tool, so its C key must not be listed. */
+    it('lists no Comment shortcut under Annotate', () => {
+      apps();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Shortcuts' }));
+
+      const annotate = screen.getByRole('heading', { name: 'Annotate' }).closest('section')!;
+      const labels = Array.from(annotate.querySelectorAll('li > span:first-child')).map((el) => el.textContent);
+      expect(labels).toEqual(expect.arrayContaining(['Draw', 'Box', 'Oval', 'Arrow', 'Text']));
+      expect(labels).not.toContain('Comment');
+    });
+
     it('opens and closes the shortcut list on ?, outside text fields', async () => {
       apps();
       const onClose = jest.fn();
@@ -1364,6 +1377,26 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(send).toHaveAttribute('aria-keyshortcuts');
       expect(cancel.querySelector('kbd')).toHaveTextContent('Esc');
       expect(cancel).toHaveAttribute('aria-keyshortcuts', 'Escape');
+    });
+
+    /* jsdom can't evaluate the touch-only media query, so this holds the class
+       that carries it: a new key hint on a button without it would show on phones. */
+    it('marks every key hint on a button as one to hide on touch, and no key in the shortcut list', () => {
+      apps();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      const dialog = screen.getByRole('heading', { name: 'Give feedback' }).closest('[role="dialog"]') ?? document;
+      const buttonKeys = Array.from(dialog.querySelectorAll('button kbd'));
+      expect(buttonKeys.length).toBeGreaterThan(0);
+      buttonKeys.forEach((key) => expect(key).toHaveClass('kbdHint'));
+      expect(screen.getByRole('button', { name: 'Shortcuts' })).toHaveClass('shortcutsHelpLink');
+
+      fireEvent.click(screen.getByRole('button', { name: 'Shortcuts' }));
+
+      const sheet = screen.getByRole('heading', { name: 'Keyboard shortcuts' }).closest('[role="dialog"]');
+      const sheetKeys = Array.from(sheet!.querySelectorAll('kbd'));
+      expect(sheetKeys.length).toBeGreaterThan(0);
+      sheetKeys.forEach((key) => expect(key).not.toHaveClass('kbdHint'));
     });
 
     it('submits on Cmd/Ctrl+Enter', async () => {
@@ -1784,5 +1817,132 @@ describe('GiveAiAppFeedbackDialog oversized submission', () => {
     await waitFor(() => expect(mockMutate).toHaveBeenCalled());
     expect(mockOnFeedbackTooLarge).not.toHaveBeenCalled();
     expect(toast.error).not.toHaveBeenCalled();
+  });
+});
+
+/* LAB-2759: the screen-share screenshot showed the feedback popup itself. */
+describe('GiveAiAppFeedbackDialog hides itself during a screen-share capture', () => {
+  const overlay = () => document.querySelector('[class*="overlay"]');
+
+  beforeEach(() => {
+    asCapableBrowser();
+    window.localStorage.clear();
+    mockUseCurrentUserStore.mockReturnValue({
+      currentUser: { uid: 'member-1', name: 'Ada Lovelace', email: 'ada@example.com' },
+    });
+    mockUseAiApps.mockReturnValue({ apps: [{ uid: 'app-1', name: 'My App' }], isLoading: false, isError: false });
+    (requestTabCapture as jest.Mock).mockReset();
+    (grabVideoFrame as jest.Mock).mockReset();
+    (stopCaptureStream as jest.Mock).mockReset();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    clearFormDraft(AI_APP_FEEDBACK_DRAFT_KEY);
+    clearFormDraft(APP_1_DRAFT_KEY);
+  });
+
+  it('is already hidden, with its host told, when the share prompt opens and when the frame is grabbed', async () => {
+    const onHiddenChange = jest.fn();
+    let hiddenAtPrompt: boolean | undefined;
+    let hiddenAtGrab: boolean | undefined;
+    (requestTabCapture as jest.Mock).mockImplementation(async () => {
+      hiddenAtPrompt = Boolean(overlay()?.className.includes('overlayHidden'));
+      return { getTracks: () => [{ stop: jest.fn() }] };
+    });
+    (grabVideoFrame as jest.Mock).mockImplementation(async () => {
+      hiddenAtGrab = Boolean(overlay()?.className.includes('overlayHidden'));
+      return PIXEL_PNG;
+    });
+
+    render(
+      <GiveAiAppFeedbackDialog
+        isOpen
+        onClose={jest.fn()}
+        appUid="app-1"
+        appName="My App"
+        onHiddenChange={onHiddenChange}
+      />,
+    );
+    expect(overlay()?.className).not.toMatch(/overlayHidden/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
+
+    expect(hiddenAtPrompt).toBe(true);
+    expect(hiddenAtGrab).toBe(true);
+    expect(onHiddenChange).toHaveBeenLastCalledWith(true);
+  });
+
+  it('comes back with the new screenshot attached when the capture finishes', async () => {
+    const onHiddenChange = jest.fn();
+    (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
+    (grabVideoFrame as jest.Mock).mockResolvedValue(PIXEL_PNG);
+
+    render(
+      <GiveAiAppFeedbackDialog
+        isOpen
+        onClose={jest.fn()}
+        appUid="app-1"
+        appName="My App"
+        onHiddenChange={onHiddenChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Select region' })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Select region' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Add to feedback' })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Add to feedback' }));
+
+    await waitFor(() => expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument());
+    expect(overlay()?.className).not.toMatch(/overlayHidden/);
+    expect(onHiddenChange).toHaveBeenCalledWith(true);
+    expect(onHiddenChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it('comes back with nothing attached when the share prompt is cancelled', async () => {
+    const onHiddenChange = jest.fn();
+    (requestTabCapture as jest.Mock).mockRejectedValue(new CaptureError('cancelled', '', 'AbortError'));
+
+    render(
+      <GiveAiAppFeedbackDialog
+        isOpen
+        onClose={jest.fn()}
+        appUid="app-1"
+        appName="My App"
+        onHiddenChange={onHiddenChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+
+    await waitFor(() => expect(mockOnFeedbackScreenshotCaptureDenied).toHaveBeenCalled());
+    await waitFor(() => expect(overlay()?.className).not.toMatch(/overlayHidden/));
+    expect(onHiddenChange).toHaveBeenCalledWith(true);
+    expect(onHiddenChange).toHaveBeenLastCalledWith(false);
+    expect(screen.queryByAltText('Screenshot 1')).not.toBeInTheDocument();
+  });
+
+  it('comes back with nothing attached when the capture fails', async () => {
+    const onHiddenChange = jest.fn();
+    (requestTabCapture as jest.Mock).mockResolvedValue({ getTracks: () => [{ stop: jest.fn() }] });
+    (grabVideoFrame as jest.Mock).mockRejectedValue(new Error('grab failed'));
+
+    render(
+      <GiveAiAppFeedbackDialog
+        isOpen
+        onClose={jest.fn()}
+        appUid="app-1"
+        appName="My App"
+        onHiddenChange={onHiddenChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+
+    await waitFor(() => expect(mockOnFeedbackScreenshotCaptureFailed).toHaveBeenCalledWith({ stage: 'grab' }));
+    await waitFor(() => expect(overlay()?.className).not.toMatch(/overlayHidden/));
+    // It did hide: the dialog also reports `false` once on mount, so the last call alone proves nothing.
+    expect(onHiddenChange).toHaveBeenCalledWith(true);
+    expect(onHiddenChange).toHaveBeenLastCalledWith(false);
+    expect(screen.queryByAltText('Screenshot 1')).not.toBeInTheDocument();
   });
 });

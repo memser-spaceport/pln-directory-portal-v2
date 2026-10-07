@@ -1,9 +1,106 @@
 @use 'styles/media';
 
 /*
-  Proposal additions to production's FloatingFeedbackButton stylesheet (`s`),
-  the feedback popover's card (`fd`) and the Updates panel's switch (`vs`).
+  Proposal additions to production's FloatingFeedbackButton stylesheet (`s`)
+  and the feedback popover's card (`fd`).
 */
+
+/*
+  The "Comment on the app" door — the feedback form's first row. A full-width
+  press with a name, a line saying what happens, and a chevron, so it reads as
+  a way somewhere else rather than as a form field. Brand soft surface, the
+  product's selected-row wash, so it stands apart from the white fields under
+  it without competing with the filled Send.
+*/
+.commentDoor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  border-radius: 8px;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-subtle, #aebfff);
+    outline-offset: 2px;
+  }
+}
+
+/* The bubble's own chat glyph, in a white disc. */
+.commentDoorIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.commentDoorText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.commentDoorTitle {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.commentDoorCount {
+  font-weight: 400;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.commentDoorSub {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.commentDoorChevron {
+  flex-shrink: 0;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* The card's title, a step under the form's "Give feedback" — it is the form, shrunk. */
+.commentTitle.commentTitle {
+  font-size: 16px;
+  line-height: 24px;
+}
+
+/* The way back, full width under the card's two lines. */
+.commentFoot {
+  padding: 14px 24px 0;
+}
+
+/* The DS Button is inline-block, so an inline svg sits on the text baseline and
+   rides high (and `gap` does nothing). Flex centres the chevron on the label. */
+.backButton.backButton {
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  justify-content: center;
+  gap: 6px;
+}
 
 /* The count badge hangs off the bubble's corner. */
 .trigger {
@@ -44,16 +141,10 @@
   line-height: 14px;
 }
 
-/* The switch sits where the popover's 18px title did; its 30px height fits the
-   header row the ✕ already sets. */
-.switch {
-  flex-shrink: 0;
-}
-
 /*
   Comment mode's card: the feedback popover, shrunk to what the mode needs, in
-  the spot the popover opens — above the bubble, right edges shared — so the
-  switch is in the same place in both modes. Fixed like the bubble, one layer
+  the spot the popover opens — above the bubble, right edges shared — so it
+  reads as the same panel changing state. Fixed like the bubble, one layer
   above it. Bottom = the bubble's own inset + its 48px + the popover's 8px gap.
 */
 .commentCard {
@@ -82,7 +173,7 @@
   }
 }
 
-/* The popover's header (switch + ✕) without its divider — the card has one line under it, not a form. */
+/* The popover's header (title + ✕) without its divider — the card has one line under it, not a form. */
 .commentHead.commentHead {
   border-bottom: none;
   padding: 16px 20px 10px 24px;
@@ -110,15 +201,3 @@
   }
 }
 
-/* The chat glyph inside the Comment segment. CommentIcon hardcodes a 16px box;
-   14px sits in the 13px label's line, and currentColor follows the segment's
-   ink (grey at rest, near-black when selected). */
-.switchIcon {
-  display: inline-flex;
-  margin-right: -1px;
-
-  svg {
-    width: 14px;
-    height: 14px;
-  }
-}

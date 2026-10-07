@@ -216,15 +216,29 @@
   }
 }
 
+// With a note, the column is exactly as wide as the primary button and the
+// note wraps inside it (width 0 + min-width 100%), so it sits right under the
+// call to action (review 2026-10-02: it used to hang off the right of a
+// two-button row and sat under neither). Centred under the button since
+// 2026-10-05: the note is now one link line about as wide as the button, and
+// shared left edges left a ~30px near-miss on the right.
+.cardActionWithNote {
+  align-items: stretch;
+  max-width: 280px;
+
+  @include media.mobile-only {
+    max-width: none;
+  }
+}
+
 .cardActionNote {
+  width: 0;
+  min-width: 100%;
   margin: 0;
+  text-align: center;
   color: var(--foreground-neutral-secondary, #455468);
   font-size: 13px;
   line-height: 18px;
-
-  @include media.mobile-only {
-    text-align: center;
-  }
 }
 
 // The quiet line that holds the slot when there's nothing to press.
@@ -958,12 +972,34 @@
 // Nothing of the deal shows: a centred message, then Explore as the way out.
 .heroLocked.heroLocked {
   padding-top: 48px;
+  // Room between the buttons and the Explore card below (2026-10-05).
+  padding-bottom: 40px;
   align-items: center;
   text-align: center;
+
+  @include media.mobile-only {
+    padding-bottom: 24px;
+  }
 }
 
 .lockHeadline.lockHeadline {
   align-items: center;
+
+  // The headline's 8px gap is the lock badge's spacing too; only the title
+  // gets more air before the message (16px total, 2026-10-05).
+  h1 {
+    margin-bottom: 8px;
+  }
+
+  // Production's 18/24 is tight for a three-line message with the email chip
+  // in it; 18/28 lets it read as a paragraph (2026-10-05).
+  p {
+    line-height: 28px;
+
+    @include media.mobile-only {
+      line-height: 24px;
+    }
+  }
 }
 
 .lockBadge {
@@ -991,7 +1027,12 @@
   }
 }
 
+// A text button now (it opens the contact-support modal), so no button chrome.
 .contactLink {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
   color: var(--foreground-brand-primary, #1b4dff);
   font-size: 14px;
   line-height: 20px;
@@ -1075,10 +1116,225 @@
   }
 }
 
-// One line under "Deal preferences", saying what the section is for.
-.dealLead {
-  margin: 0 0 16px;
+// ---- Investor profile card (review 2026-10-05, second pass) -------------------
+// A plain page card like the team card and the Explore tile (same column, same
+// border and 8px radius), not an alert band, and no icon. Desktop: text |
+// button on the first row, the read-back under it. Phone: one column, button last.
+.profileCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  // The read-back row ('fields fields') is hidden (SHOW_READBACK in the card);
+  // an empty named row would still add a row-gap under the text.
+  grid-template-areas: 'head cta';
+  column-gap: 16px;
+  row-gap: 16px;
+  width: 100%;
+  max-width: 948px;
+  margin: 0 auto;
+  padding: 24px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  // Super soft grey (2026-10-06), production SpvHero's own soft surface.
+  background: var(--background-neutral-soft-surface, #f9fafb);
+
+  @include media.mobile-only {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'head'
+      'cta';
+    padding: 20px 16px;
+  }
+}
+
+.profileCardHead {
+  grid-area: head;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.profileCardTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+}
+
+.profileCardBody {
+  margin: 0;
   color: var(--foreground-neutral-secondary, #455468);
   font-size: 14px;
   line-height: 20px;
+}
+
+// The read-back: three label/value pairs, the same key-value grammar as the
+// team card's fact strip. White inset on the card's soft grey plus the card
+// border so it still reads. The padding lives on the cells (4 + 8 / 4 + 12 =
+// the old 12/16), so each cell's hover fill reaches the cell's edge.
+.profileCardFields {
+  grid-area: fields;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+  padding: 4px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-base, #fff);
+
+  @include media.mobile-only {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+// The whole cell, label and value, is one button that opens the drawer.
+.profileCardField {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  transition: background-color 150ms ease-out;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 0;
+  }
+
+  // Two per row on phones: Focus, the longest value, gets the second row whole.
+  @include media.mobile-only {
+    &:nth-child(3) {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+.profileCardFieldLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.profileCardFieldValue {
+  display: block;
+  max-width: 100%;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profileCardNotSet {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-weight: 400;
+}
+
+// Bottom-aligned with the title block (2026-10-06): the button lands where the
+// sentence ends, not floating mid-height; the hint under the button.
+.profileCardCta {
+  grid-area: cta;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-self: end;
+  gap: 4px; // the hint belongs to the button: tight, not a separate row
+
+  @include media.mobile-only {
+    align-items: stretch;
+  }
+}
+
+.profileCardButton.profileCardButton {
+  white-space: nowrap;
+
+  // The DS Button has no :focus-visible of its own.
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+
+  @include media.mobile-only {
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
+.profileCardHint {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+}
+
+// ---- Investor drawer: fields that still need filling (review 2026-10-05) -----
+// Amber, the product's mark for missing profile data (MemberDetailHeader's
+// `+ Your Role`, the incomplete strip). Production's form controls take no
+// class, so the wrapper reaches the one box that draws each field's border:
+// react-select's control, and the `.input` of FormCurrencyField / FormField /
+// FormTagsInput. `!important` because react-select's border is inline-emitted
+// with `!important`.
+.needsFill {
+  [class*='-control'],
+  [class$='__input'],
+  [class*='__input '] {
+    border-color: var(--action-background-warning-normal, #f59e0b) !important;
+    background: var(--background-warning-soft-surface, rgba(245, 158, 11, 0.1)) !important;
+  }
+
+  // The input inside FormCurrencyField's / FormTagsInput's box is white of its
+  // own; let the box's tint show through.
+  [class$='__input'] input,
+  [class*='__input '] input {
+    background: transparent;
+  }
+}
+
+// Neither "How do you invest" tick is set: both boxes wear the amber edge.
+.needsFillTick {
+  [class$='__Checkbox'],
+  [class*='__Checkbox '] {
+    border-color: var(--action-background-warning-normal, #f59e0b);
+  }
+}
+
+// The view's `+ Add startup stages` pills (InvestmentDetailsSection) only
+// render for an empty field, so every one of them is amber here.
+.needsFillPills {
+  [class$='__addPill'],
+  [class*='__addPill '] {
+    color: var(--foreground-warning-secondary, #d97706);
+    background: var(--background-warning-soft-surface, rgba(245, 158, 11, 0.1));
+
+    &:hover {
+      color: var(--foreground-warning-primary, #b45309);
+    }
+  }
+}
+
+// AddTeamInlineForm's container, inside the fund section's column.
+.addFundInline {
+  margin-top: 12px;
+}
+
+// Its body is a flex column of FormFields, which are full-width on their own;
+// the grey-✕ selects and tags field need the width stated.
+.addFundField {
+  width: 100%;
 }

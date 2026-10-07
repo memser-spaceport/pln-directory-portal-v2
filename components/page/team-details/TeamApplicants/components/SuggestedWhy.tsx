@@ -2,7 +2,6 @@
 
 import clsx from 'clsx';
 
-import { Badge } from '@/components/common/Badge';
 import {
   DetailsSection,
   DetailsSectionGreyContentContainer,
@@ -11,7 +10,8 @@ import {
 import { ReviewCheckIcon } from '@/components/icons';
 import type { SuggestedCandidate } from '@/schema/suggested-candidates';
 
-import { SUGGESTION_BAND_VARIANT, metCount } from './suggestionBand';
+import { metCount } from './suggestionBand';
+import { SuggestionBadge } from './SuggestionBadge';
 import s from './SuggestedWhy.module.scss';
 
 /**
@@ -38,9 +38,7 @@ export function SuggestedWhy({ suggestion }: { suggestion: SuggestedCandidate })
               {met} of {total} requirements
             </span>
           )}
-          <Badge variant={SUGGESTION_BAND_VARIANT[suggestion.label]} className={s.matchBadge}>
-            {suggestion.label}
-          </Badge>
+          <SuggestionBadge label={suggestion.label} />
         </span>
       </DetailsSectionHeader>
       <DetailsSectionGreyContentContainer>

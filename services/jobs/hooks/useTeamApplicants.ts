@@ -11,6 +11,7 @@ import {
   fetchSuggestedCandidates,
   markApplicantSeen,
   setApplicantReviewed,
+  TeamApplicantsError,
 } from '@/services/jobs/team-applicants.service';
 
 /**
@@ -112,6 +113,9 @@ export function useSuggestedCandidates({
     enabled: enabled && !!viewerUid && !!roleUid,
     staleTime: 60_000,
     refetchOnWindowFocus: false,
+    /* A refusal or a contract drift will answer the same way again; only a
+       server error is worth one more try. */
+    retry: (failureCount, error) => failureCount < 1 && !(error instanceof TeamApplicantsError && error.status < 500),
   });
 }
 

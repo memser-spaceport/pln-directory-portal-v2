@@ -312,14 +312,6 @@ export function TeamApplicantsView({
    * always empty at the moment this can fire, so the two are the same list. It
    * is the conservative read, not a behaviour the tests can tell apart.
    */
-  /* The Suggested tab's version of the preselect below: two-column only, and
-     with no unread state to clear. */
-  useEffect(() => {
-    if (selectedUid || isNarrow || !suggestedRows.length) return;
-    selectSuggested(suggestedRows[0]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isNarrow, selectedUid, suggestedRows]);
-
   useEffect(() => {
     if (selectedUid || !rows.length) return;
     /* A lead arriving from the email came for one person, so that person opens
@@ -333,6 +325,15 @@ export function TeamApplicantsView({
        the guards above are what stop this running twice. */
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isNarrow, selectedUid, rows]);
+
+  /* The Suggested tab's version of the preselect above: two-column only, and
+     with no unread state to clear. It sets the selection without the "opened"
+     event — the lead did not press anyone, and counting the page's own choice
+     would inflate rank 1 in the opened-to-contacted funnel. */
+  useEffect(() => {
+    if (selectedUid || isNarrow || !suggestedRows.length) return;
+    setSelectedUid(suggestedRows[0].memberUid);
+  }, [isNarrow, selectedUid, suggestedRows]);
 
   const selected = shown.find((row) => row.uid === selectedUid) ?? null;
   const position = selected ? shown.findIndex((row) => row.uid === selected.uid) : -1;

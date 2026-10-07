@@ -216,6 +216,13 @@ describe('the Suggested tab', () => {
     expect(screen.getByText('Led a Rust consensus rewrite.')).toBeInTheDocument();
   });
 
+  it('does not count the page’s own preselect as the lead opening someone', async () => {
+    renderView();
+    await openSuggested();
+
+    expect(analytics.onJobSuggestedCandidateOpened).not.toHaveBeenCalled();
+  });
+
   it('shows an empty state for a role with no suggestions', async () => {
     setSuggestions([]);
 

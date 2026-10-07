@@ -2,11 +2,11 @@
 
 import clsx from 'clsx';
 
-import { Badge } from '@/components/common/Badge';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import type { SuggestedCandidate } from '@/schema/suggested-candidates';
 
-import { SUGGESTION_BAND_VARIANT, metCount } from './suggestionBand';
+import { metCount } from './suggestionBand';
+import { SuggestionBadge } from './SuggestionBadge';
 import row from './ApplicantRow.module.scss';
 import s from './SuggestedRow.module.scss';
 
@@ -57,9 +57,7 @@ export function SuggestedRow({ suggestion, last, selected, onSelect }: Props) {
       </span>
 
       <span className={row.right}>
-        <Badge variant={SUGGESTION_BAND_VARIANT[suggestion.label]} className={s.matchBadge}>
-          {suggestion.label}
-        </Badge>
+        <SuggestionBadge label={suggestion.label} />
       </span>
     </button>
   );

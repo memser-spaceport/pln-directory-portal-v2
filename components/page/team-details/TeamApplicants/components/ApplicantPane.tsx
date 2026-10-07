@@ -118,8 +118,6 @@ export function MemberProfilePane({
   const { currentUser: userInfo } = useCurrentUserStore();
   const { data: member, isLoading, isError } = useCandidateMember(memberUid, isLoggedIn);
 
-  const application = section;
-
   if (isLoading) {
     return (
       <div className={s.state}>
@@ -128,7 +126,7 @@ export function MemberProfilePane({
     );
   }
 
-  /* The application still shows. It is the part this page owns, it is what the
+  /* The section still shows. It is the part this page owns, it is what the
      lead came to read, and a profile that failed to load is no reason to
      withhold the note somebody wrote. */
   if (isError || !member) {
@@ -137,7 +135,7 @@ export function MemberProfilePane({
         <DetailsSectionGreyContentContainer>
           <NoDataBlock>This member’s profile could not be loaded.</NoDataBlock>
         </DetailsSectionGreyContentContainer>
-        {application}
+        {section}
       </div>
     );
   }
@@ -152,7 +150,7 @@ export function MemberProfilePane({
         <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
       </ProfileSection>
 
-      {application}
+      {section}
 
       {!jobAspirant && (
         <ProfileSection name="Office Hours">

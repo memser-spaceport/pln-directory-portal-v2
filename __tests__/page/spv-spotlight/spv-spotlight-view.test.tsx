@@ -320,7 +320,7 @@ describe('SpvSpotlightView — request flow (REQUEST_FLOW_ENABLED on)', () => {
 
 describe('SpvSpotlightView — gated (the default)', () => {
   const lockedSignedOutTitle = 'Sign in to view this Spotlight';
-  const noAccessTitle = 'You don’t have access to this Spotlight';
+  const noAccessTitle = 'This Spotlight is invite-only';
 
   // Nothing of the deal: no title, no team, no FAQ, no support email.
   const expectNoDealContent = (container: HTMLElement) => {
@@ -365,7 +365,7 @@ describe('SpvSpotlightView — gated (the default)', () => {
       const { container } = renderView(status, access, { signedIn: true, initial: false });
       expect(screen.getByRole('heading', { level: 1, name: noAccessTitle })).toBeInTheDocument();
       expect(
-        screen.getByText('PL Spotlights are shared by invitation. If you think you should have access, contact us.'),
+        screen.getByText('If you think you should have access, contact us.'),
       ).toBeInTheDocument();
       expectNoDealContent(container);
 

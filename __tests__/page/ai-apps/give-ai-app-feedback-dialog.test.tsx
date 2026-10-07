@@ -1217,8 +1217,8 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(mockOnFeedbackScreenshotEditOpened).toHaveBeenCalled();
       await waitFor(() => expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument());
 
-      fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
-      expect(mockOnFeedbackScreenshotToolSelected).toHaveBeenCalledWith({ tool: 'comment' });
+      fireEvent.click(screen.getByRole('button', { name: 'Box' }));
+      expect(mockOnFeedbackScreenshotToolSelected).toHaveBeenCalledWith({ tool: 'rect' });
 
       fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
       expect(mockOnFeedbackScreenshotAnnotatorDiscarded).toHaveBeenCalledWith({ isEditing: true });
@@ -1303,6 +1303,19 @@ describe('GiveAiAppFeedbackDialog', () => {
         expect(screen.queryByRole('heading', { name: 'Keyboard shortcuts' })).not.toBeInTheDocument(),
       );
       expect(screen.getByRole('heading', { name: 'Give feedback' })).toBeInTheDocument();
+    });
+
+    /* LAB-2766: the annotator has no Comment tool, so its C key must not be listed. */
+    it('lists no Comment shortcut under Annotate', () => {
+      apps();
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} appUid="app-1" appName="My App" />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Shortcuts' }));
+
+      const annotate = screen.getByRole('heading', { name: 'Annotate' }).closest('section')!;
+      const labels = Array.from(annotate.querySelectorAll('li > span:first-child')).map((el) => el.textContent);
+      expect(labels).toEqual(expect.arrayContaining(['Draw', 'Box', 'Oval', 'Arrow', 'Text']));
+      expect(labels).not.toContain('Comment');
     });
 
     it('opens and closes the shortcut list on ?, outside text fields', async () => {

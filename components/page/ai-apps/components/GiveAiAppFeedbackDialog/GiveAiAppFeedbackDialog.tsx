@@ -1840,7 +1840,6 @@ export function ShortcutHelp({
         ['R', 'Box'],
         ['O', 'Oval'],
         ['A', 'Arrow'],
-        ['C', 'Comment'],
         ['T', 'Text'],
         [shortcuts.enter, 'New line in a label'],
         [shortcuts.send, 'Leave a label, keeping the text'],

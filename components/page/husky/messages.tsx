@@ -15,14 +15,13 @@ interface MessagesProps {
   }[];
   isAnswerLoading: boolean;
   statusLine?: string;
-  onFeedback: (question: string, answer: string) => Promise<void>;
+  onFeedback?: (question: string, answer: string) => Promise<void>;
   onRegenerate: (question: string) => void;
   onQuestionEdit: (question: string) => void;
   onCopyAnswer: (answer: string) => Promise<void>;
   onFollowupClicked: (question: string) => void;
   isLoadingObject: boolean;
   layout?: 'dialog' | 'page';
-  // True while the last message's answer is still streaming in
   isStreaming?: boolean;
   showRating?: boolean;
   canRate?: boolean;

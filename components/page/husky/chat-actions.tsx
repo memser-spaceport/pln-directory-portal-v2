@@ -3,7 +3,7 @@ import { memo, ReactNode } from 'react';
 
 type ChatMessageActions = {
   onQuestionEdit: (ques: string) => void;
-  onFeedback: (ques: string, answer: string) => Promise<void>;
+  onFeedback?: (ques: string, answer: string) => Promise<void>;
   onRegenerate: (ques: string) => void;
   onCopyAnswer: (answer: string) => Promise<void>;
   answer: string;
@@ -11,7 +11,6 @@ type ChatMessageActions = {
   question: string;
   hideActions: boolean;
   isLoadingObject: boolean;
-  // Replaces the "Submit feedback" (1-5 dialog) button, e.g. with inline thumbs on the AI Search page
   feedbackSlot?: ReactNode;
 };
 
@@ -27,10 +26,6 @@ const ChatMessageActions = ({
   isLoadingObject,
   feedbackSlot,
 }: ChatMessageActions) => {
-  const handleFeedbackClick = async () => {
-    await onFeedback(question, answer);
-  };
-
   return (
     <>
       <div className="chat-message-actions">
@@ -60,11 +55,11 @@ const ChatMessageActions = ({
               />
             </CopyText>
           )}
-          {feedbackSlot === undefined && (
+          {onFeedback && (
             <img
               className="chat-message-actions__item"
               title="Submit feedback"
-              onClick={handleFeedbackClick}
+              onClick={() => onFeedback(question, answer)}
               src="/icons/feedback.svg"
             />
           )}

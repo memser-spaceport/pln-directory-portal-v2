@@ -8,8 +8,8 @@ import RelatedResults from './related-results';
 import FollowupQuestions from './followup-questions';
 import ChatMessageActions from '@/components/page/husky/chat-actions';
 import DirectoryResults from './directory-results';
-import AnswerSources from './answer-sources';
-import AnswerThumbs from './answer-thumbs';
+import { AnswerSources } from './AnswerSources';
+import { AnswerThumbs } from './AnswerThumbs';
 interface PreviewMessageProps {
   message: {
     answer: string;
@@ -24,19 +24,15 @@ interface PreviewMessageProps {
   };
   isLastIndex: boolean;
   onFollowupClicked: (question: string) => void;
-  onFeedback: (question: string, answer: string) => Promise<void>;
+  onFeedback?: (question: string, answer: string) => Promise<void>;
   onRegenerate: (question: string) => void;
   onQuestionEdit: (question: string) => void;
   onCopyAnswer: (answer: string) => Promise<void>;
   isLoadingObject: boolean;
   isAnswerLoading: boolean;
-  // 'page': the AI Search page reading column (sources after the answer, inline thumbs); 'dialog': the search dialog
   layout?: 'dialog' | 'page';
-  // True while this message's answer is still streaming in
   isStreaming?: boolean;
-  // False hides the thumbs (signed out: the feedback endpoint needs a token)
   showRating?: boolean;
-  // False disables the thumbs (a shared thread the viewer does not own)
   canRate?: boolean;
 }
 
@@ -57,19 +53,7 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
 }) => {
   const isPage = layout === 'page';
   const hasSources = (message.sourceRefs?.length || message.sources?.length || 0) > 0;
-
-  let feedbackSlot;
-  if (isPage) {
-    feedbackSlot =
-      isStreaming || message.isError || !showRating ? null : (
-        <AnswerThumbs
-          key={`${message.question}::${message.answer}`}
-          question={message.question || ''}
-          answer={message.answer || ''}
-          disabled={!canRate}
-        />
-      );
-  }
+  const showThumbs = isPage && !isStreaming && !message.isError && showRating;
 
   return (
     <div className={`preview-message`}>
@@ -130,7 +114,6 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
               {/* related results */}
               {message.actions?.length > 0 && <RelatedResults actions={message.actions} />}
 
-              {/* sources after the answer (page) */}
               {isPage && !isStreaming && <AnswerSources sources={message.sources} sourceRefs={message.sourceRefs} />}
             </>
           )}
@@ -142,11 +125,20 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
             onCopyAnswer={onCopyAnswer || (async () => {})}
             onRegenerate={onRegenerate}
             onQuestionEdit={onQuestionEdit || (() => {})}
-            onFeedback={onFeedback}
+            onFeedback={isPage ? undefined : onFeedback}
             question={message.question || ''}
             answer={message.answer || ''}
             hideActions={message.isError || false}
-            feedbackSlot={feedbackSlot}
+            feedbackSlot={
+              showThumbs && (
+                <AnswerThumbs
+                  key={`${message.question}::${message.answer}`}
+                  question={message.question || ''}
+                  answer={message.answer || ''}
+                  disabled={!canRate}
+                />
+              )
+            }
           />
         </div>
       )}

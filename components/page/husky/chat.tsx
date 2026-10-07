@@ -326,9 +326,6 @@ const Chat: React.FC<ChatProps> = ({
     textareaRef.current!.value = '';
   };
 
-  // the page rates answers with inline thumbs (AnswerThumbs); the 1-5 feedback dialog is not used here
-  const onFeedback = async () => {};
-
   // handle submit by pressing enter key
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
@@ -458,14 +455,13 @@ const Chat: React.FC<ChatProps> = ({
               isAnswerLoading={isAnswerLoading}
               statusLine={chatObject?.steps?.filter(Boolean).at(-1)}
               isLoadingObject={chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')}
-              onFeedback={onFeedback}
               onRegenerate={onRegenerate}
               onCopyAnswer={onCopyAnswer}
               onQuestionEdit={onQuestionEdit}
               layout="page"
               isStreaming={chatIsLoading}
               showRating={isLoggedIn}
-              canRate={isOwnThread || fromRef.current !== 'detail'}
+              canRate={isOwnThread || from !== 'detail'}
             />
           </div>
 

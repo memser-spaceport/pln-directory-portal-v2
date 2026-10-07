@@ -58,7 +58,6 @@ async function resolveMemberUid(authToken: string): Promise<string> {
 }
 
 function signMemberToken(signingKey: string, memberUid: string, sessionId: string): string {
-  // The bot writes submissions only for tokens marked production.
   const claims = process.env.PLAA_BOT_ENV === 'production' ? { sid: sessionId, env: 'production' } : { sid: sessionId };
   return sign(claims, signingKey.replace(/\\n/g, '\n'), {
     algorithm: 'ES256',

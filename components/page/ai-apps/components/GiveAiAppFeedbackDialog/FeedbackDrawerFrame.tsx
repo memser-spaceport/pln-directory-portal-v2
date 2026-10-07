@@ -1,6 +1,6 @@
 'use client';
 
-import { type PropsWithChildren, useEffect, useState } from 'react';
+import { type PropsWithChildren, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
@@ -48,9 +48,6 @@ interface Props {
  * in the accessibility tree.
  */
 export function FeedbackDrawerFrame({ isOpen, wide, hidden, reserveSpace, label, children }: PropsWithChildren<Props>) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
   const reserve = isOpen && !wide && reserveSpace;
   useEffect(() => {
     if (!reserve) return;
@@ -61,7 +58,8 @@ export function FeedbackDrawerFrame({ isOpen, wide, hidden, reserveSpace, label,
     };
   }, [reserve]);
 
-  if (!mounted || !isOpen) return null;
+  /* Opened by a click, so always on the client; closed, it draws nothing (and nothing on the server). */
+  if (!isOpen || typeof document === 'undefined') return null;
 
   return createPortal(
     <div

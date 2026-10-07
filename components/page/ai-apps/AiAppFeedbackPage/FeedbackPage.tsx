@@ -92,6 +92,7 @@ export function FeedbackPage({ view }: { view: FeedbackView }) {
   const { canReview, isDirectoryAdmin } = useAiAppFeedbackReviewAccess();
   const { apps } = useAiApps();
   const { currentUser } = useCurrentUserStore();
+  const viewerUid = currentUser?.uid;
   const updateStatus = useUpdateAiAppFeedbackStatus();
   const analytics = useAiAppsAnalytics();
   const hasTrackedView = useRef(false);
@@ -115,11 +116,9 @@ export function FeedbackPage({ view }: { view: FeedbackView }) {
   const managedAppNames = useMemo(
     () =>
       isReceived
-        ? apps
-            .filter((app) => app.canManage ?? (!!currentUser?.uid && app.member?.uid === currentUser.uid))
-            .map((app) => app.name)
+        ? apps.filter((app) => app.canManage ?? (!!viewerUid && app.member?.uid === viewerUid)).map((app) => app.name)
         : [],
-    [isReceived, apps, currentUser?.uid],
+    [isReceived, apps, viewerUid],
   );
 
   const appNames = useMemo(

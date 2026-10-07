@@ -8,24 +8,11 @@ import s from './chat-composer.module.scss';
 type ChatComposerProps = React.ComponentProps<'textarea'> & {
   onTextSubmit?: () => void;
   onStopStreaming?: () => void;
-  /** Waiting for the answer: nothing to stop yet, and nothing can be sent. */
   isAnswerLoading?: boolean;
-  /** Streaming: the send button becomes Stop. */
   isLoadingObject?: boolean;
-  /** Kept for parity with `ChatInput`; the parent's submit handler owns the limit check. */
-  isLimitReached?: boolean;
-  /** `home` is the new-chat page's field: taller at rest. */
   size?: 'home' | 'thread';
 };
 
-/**
- * The AI Search question field (LAB-2773, design LAB-2702). Same contract as `ChatInput`
- * (a forwarded textarea ref read on submit, `onTextSubmit`, `onStopStreaming`, the two loading flags).
- *
- * - A card border at rest; the brand edge only on focus.
- * - No "Shift + Enter to add new line" hint.
- * - A round arrow send button, dimmed and disabled while the field is empty; a stop square while streaming.
- */
 const ChatComposer = React.forwardRef<HTMLTextAreaElement, ChatComposerProps>(function ChatComposer(
   {
     className,
@@ -33,7 +20,6 @@ const ChatComposer = React.forwardRef<HTMLTextAreaElement, ChatComposerProps>(fu
     onStopStreaming,
     isAnswerLoading,
     isLoadingObject,
-    isLimitReached: _isLimitReached,
     onChange,
     onKeyDown,
     onFocus,
@@ -50,9 +36,10 @@ const ChatComposer = React.forwardRef<HTMLTextAreaElement, ChatComposerProps>(fu
   const syncHasText = () => {
     if (ref && 'current' in ref && ref.current) {
       const el = ref.current;
-      const filled = el.value.trim().length > 0;
-      if (!el.value) el.style.height = '';
-      setHasText(filled);
+      if (!el.value) {
+        el.style.height = '';
+      }
+      setHasText(el.value.trim().length > 0);
     }
   };
 
@@ -66,7 +53,7 @@ const ChatComposer = React.forwardRef<HTMLTextAreaElement, ChatComposerProps>(fu
     el.style.height = `${el.scrollHeight}px`;
   };
 
-  // While the answer is still pending there is nothing to stop yet: show the disabled send, as ChatInput did.
+  // While the answer is still pending there is nothing to stop yet, so the send button stays, disabled.
   const isStreaming = !!isLoadingObject && !isAnswerLoading;
   const canSend = hasText && !isAnswerLoading && !isStreaming;
 
@@ -84,7 +71,7 @@ const ChatComposer = React.forwardRef<HTMLTextAreaElement, ChatComposerProps>(fu
         }}
         onKeyDown={(e) => {
           onKeyDown?.(e);
-          if (e.key === 'Enter') setTimeout(syncHasText, 0);
+          syncHasText();
         }}
         onFocus={(e) => {
           onFocus?.(e);

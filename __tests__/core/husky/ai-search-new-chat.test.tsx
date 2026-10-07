@@ -1,11 +1,9 @@
 import '@testing-library/jest-dom';
 import React, { createRef } from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import ChatHome, { SCOPE_LINE } from '@/components/page/husky/chat-home';
+import { ChatHome } from '@/components/page/husky/ChatHome';
 import ChatComposer from '@/components/page/husky/chat-composer';
 import { getChatQuestions } from '@/services/discovery.service';
-
-// LAB-2773: AI Search new-chat page shows suggestions under the field, and the field gets the new look.
 
 jest.mock('@/services/discovery.service', () => ({
   getChatQuestions: jest.fn(),
@@ -82,7 +80,9 @@ describe('AI Search new-chat page (ChatHome)', () => {
     (getChatQuestions as jest.Mock).mockResolvedValue({ data: PROMPTS });
     renderHome();
     expect(screen.getByText('Explore Protocol Labs with AI')).toBeInTheDocument();
-    expect(screen.getByTestId('chat-home-scope')).toHaveTextContent(SCOPE_LINE);
+    expect(screen.getByTestId('chat-home-scope')).toHaveTextContent(
+      'Answers come from the directory: members, teams, projects, events and forum posts.',
+    );
     await screen.findByTestId('chat-home-prompts');
   });
 

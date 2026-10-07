@@ -8,7 +8,7 @@ import ChatFeedback from './chat-feedback';
 import HuskyLimitStrip from '@/components/core/husky/husky-limit-strip';
 import { DAILY_CHAT_LIMIT, PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
 import { generateUUID, getUniqueId, triggerLoader } from '@/utils/common.utils';
-import ChatHome from './chat-home';
+import { ChatHome } from './ChatHome';
 import { IAnalyticsUserInfo } from '@/types/shared.types';
 import { getUserCredentials } from '@/utils/auth.utils';
 import RegisterFormLoader from '@/components/core/register/register-form-loader';
@@ -516,7 +516,6 @@ const Chat: React.FC<ChatProps> = ({
                   onStopStreaming={onStopStreaming}
                   isAnswerLoading={isAnswerLoading}
                   isLoadingObject={chatIsLoading}
-                  isLimitReached={limitReached === 'warn' || limitReached === 'finalRequest'}
                 />
               </form>
             </div>

@@ -1,6 +1,3 @@
-// AI Search question field (see chat-composer.tsx). Card border at rest, brand edge on focus,
-// a round send button in the bottom-right corner. Values from the LAB-2702 prototype.
-
 .root {
   position: relative;
   display: flex;
@@ -88,11 +85,6 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
-}
-
-// One-line field: the send button centres on the line (56px tall, 32px button).
-.root:not(.home) .send {
-  bottom: 11px;
 }
 
 .stop {

@@ -128,8 +128,21 @@ jest.mock('@/components/page/ai-apps/components/screenshot-feedback', () => {
         </button>
       </div>
     ),
-    LiveRegionOverlay: ({ onSelect, onCancel }: { onSelect: (r: unknown) => void; onCancel: () => void }) => (
+    LiveRegionOverlay: ({
+      onSelect,
+      onCancel,
+      scrollApp,
+    }: {
+      onSelect: (r: unknown) => void;
+      onCancel: () => void;
+      scrollApp?: (x: number, y: number, dx: number, dy: number) => void;
+    }) => (
       <div data-testid="live-region-overlay">
+        {scrollApp && (
+          <button type="button" onClick={() => scrollApp(1, 2, 0, 120)}>
+            Wheel
+          </button>
+        )}
         <button type="button" onClick={() => onSelect({ x: 10, y: 20, width: 100, height: 50 })}>
           Drag done
         </button>
@@ -284,12 +297,115 @@ describe('opening the form attaches the app', () => {
     );
   });
 
+  it('skips quietly when the page is too heavy to draw in time, but still records it', async () => {
+    renderDialog(() => Promise.reject(new Error('too-slow')));
+    await flush();
+
+    expect(screen.queryByText(/Couldn’t capture the app automatically/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: /^Screenshot \d$/ })).not.toBeInTheDocument();
+    expect(requestTabCapture).not.toHaveBeenCalled();
+    expect(mockAnalytics.onFeedbackAppCapture).toHaveBeenCalledWith(
+      expect.objectContaining({ source: 'auto', outcome: 'failed', error: 'too-slow' }),
+    );
+  });
+
   it('attaches nothing on an app without the bridge, and keeps the screen-share button', () => {
     renderDialog(undefined);
 
     expect(screen.queryByRole('status', { name: 'Capturing the app' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Whole page' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Pick a part' })).not.toBeInTheDocument();
+  });
+});
+
+/* A phone's frame can load after the form opens: the bridge answers late. */
+describe('a bridge that answers after the form opened', () => {
+  function renderLate(capture: (() => Promise<AppCapture>) | undefined = undefined) {
+    const props = { onClose: jest.fn(), appUid: 'app-1', appName: 'My App', frameRef, captureExpected: true };
+    const view = render(<GiveAiAppFeedbackDialog isOpen {...props} capture={capture} />);
+    const update = (next: { capture?: () => Promise<AppCapture>; isOpen?: boolean }) =>
+      view.rerender(<GiveAiAppFeedbackDialog isOpen={next.isOpen ?? true} {...props} capture={next.capture} />);
+    return { ...view, update };
+  }
+
+  it('takes the automatic screenshot when the bridge answers, and says it was late', async () => {
+    const { update } = renderLate();
+    expect(screen.queryByRole('status', { name: 'Capturing the app' })).not.toBeInTheDocument();
+    expect(mockAnalytics.onFeedbackAutoShotSkipped).toHaveBeenCalledWith({ appUid: 'app-1', reason: 'no-bridge' });
+
+    const pending = deferred();
+    const capture = jest.fn(() => pending.promise);
+    update({ capture });
+    expect(screen.getByRole('status', { name: 'Capturing the app' })).toBeInTheDocument();
+
+    await act(async () => pending.resolve(shot(SHOT_A)));
+
+    expect(screen.getByRole('img', { name: 'Screenshot 1' })).toHaveAttribute('src', SHOT_A);
+    expect(capture).toHaveBeenCalledTimes(1);
+    expect(mockAnalytics.onFeedbackAppCapture).toHaveBeenCalledWith(
+      expect.objectContaining({ source: 'auto', outcome: 'succeeded', late: true }),
+    );
+  });
+
+  it('takes it once, however often the capture function changes identity', async () => {
+    const { update } = renderLate();
+    const capture = jest.fn(() => Promise.resolve(shot(SHOT_A)));
+
+    update({ capture });
+    update({ capture: () => capture() });
+    update({ capture: () => capture() });
+    await flush();
+
+    expect(capture).toHaveBeenCalledTimes(1);
+    expect(screen.getAllByRole('img', { name: /^Screenshot \d$/ })).toHaveLength(1);
+  });
+
+  it('takes none when the member is already taking a screenshot', async () => {
+    const { update } = renderLate();
+    fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+
+    const capture = jest.fn(() => Promise.resolve(shot(SHOT_A)));
+    update({ capture });
+    await flush();
+
+    expect(capture).not.toHaveBeenCalled();
+  });
+
+  it('takes none after the form closed, and a reopen captures as usual', async () => {
+    const { update } = renderLate();
+    update({ isOpen: false });
+
+    const capture = jest.fn(() => Promise.resolve(shot(SHOT_A)));
+    update({ capture, isOpen: false });
+    await flush();
+    expect(capture).not.toHaveBeenCalled();
+
+    update({ capture, isOpen: true });
+    await flush();
+    expect(capture).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('img', { name: 'Screenshot 1' })).toHaveAttribute('src', SHOT_A);
+  });
+
+  it('takes none over a kept draft, and records why', async () => {
+    const { update } = renderLate();
+    fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Half a thought' } });
+    update({ isOpen: false });
+    mockAnalytics.onFeedbackAutoShotSkipped.mockClear();
+
+    update({ isOpen: true });
+    await flush();
+    expect(mockAnalytics.onFeedbackAutoShotSkipped).toHaveBeenCalledWith({ appUid: 'app-1', reason: 'draft' });
+
+    const capture = jest.fn(() => Promise.resolve(shot(SHOT_A)));
+    update({ capture });
+    await flush();
+    expect(capture).not.toHaveBeenCalled();
+  });
+
+  it('records nothing on an app with no bridge to wait for', () => {
+    renderDialog(undefined);
+
+    expect(mockAnalytics.onFeedbackAutoShotSkipped).not.toHaveBeenCalled();
   });
 });
 
@@ -359,6 +475,28 @@ describe('adding screenshots', () => {
     expect(screen.queryByTestId('live-region-overlay')).not.toBeInTheDocument();
     expect(capture).toHaveBeenCalledTimes(1);
     expect(mockAnalytics.onFeedbackPickPartCancelled).toHaveBeenCalled();
+  });
+
+  it('Pick a part hands the wheel to the app’s bridge when it can scroll', async () => {
+    const capture = jest.fn().mockResolvedValueOnce(shot(SHOT_A));
+    const scrollApp = jest.fn();
+    render(
+      <GiveAiAppFeedbackDialog
+        isOpen
+        onClose={jest.fn()}
+        appUid="app-1"
+        appName="My App"
+        capture={capture}
+        scrollApp={scrollApp}
+        frameRef={frameRef}
+      />,
+    );
+    await flush();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pick a part' }));
+    fireEvent.click(within(screen.getByTestId('live-region-overlay')).getByRole('button', { name: 'Wheel' }));
+
+    expect(scrollApp).toHaveBeenCalledWith(1, 2, 0, 120);
   });
 
   it('a failed capture is reported, and only the NEXT click falls back to screen sharing', async () => {
@@ -707,6 +845,46 @@ describe('drafts', () => {
     expect(mockMutate.mock.calls[0][0].text).toContain('<p>Started on My App · /orders</p>');
     expect(window.localStorage.getItem(`${DRAFT_KEY}:/orders`)).toBeNull();
     expect(window.localStorage.getItem(`${DRAFT_KEY}:/settings`)).toContain('About settings');
+    mockMutate.mockReset();
+  });
+
+  /* The drawer inside an app has no picker, so nothing it loads may point the report at another app. */
+  it('in the drawer inside an app, lists only this app’s drafts and always sends to this app', async () => {
+    const seed = (key: string, data: object) =>
+      window.localStorage.setItem(key, JSON.stringify({ v: 1, savedAt: Date.now(), data }));
+    seed(`${AI_APP_FEEDBACK_DRAFT_KEY}:app-2`, { message: 'About app two', place: { appUid: 'app-2' } });
+    seed(AI_APP_FEEDBACK_DRAFT_KEY, { message: 'From the list', app: null, place: {} });
+    /* Started in the popover on this app's /orders, then switched to another app in its picker. */
+    seed(`${DRAFT_KEY}:/orders`, {
+      message: 'About orders',
+      app: { label: 'Other app', value: 'app-2' },
+      place: { appUid: 'app-1', screen: '/orders' },
+    });
+
+    render(
+      <GiveAiAppFeedbackDialog
+        isOpen
+        onClose={jest.fn()}
+        variant="drawer"
+        appUid="app-1"
+        appName="My App"
+        frameRef={frameRef}
+        getContext={() => ({ appPath: '/settings' }) as never}
+      />,
+    );
+    await flush();
+
+    expect(screen.queryByLabelText('Which app is this about?')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Drafts · 1' }));
+    expect(screen.queryByText('About app two')).not.toBeInTheDocument();
+    expect(screen.queryByText('From the list')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('About orders'));
+    await flush();
+
+    mockMutate.mockImplementation((_payload, options) => options?.onSuccess?.());
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+    await waitFor(() => expect(mockMutate).toHaveBeenCalled());
+    expect(mockMutate.mock.calls[0][0].appUid).toBe('app-1');
     mockMutate.mockReset();
   });
 

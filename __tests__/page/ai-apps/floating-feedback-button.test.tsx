@@ -17,37 +17,52 @@ jest.mock('@/services/rbac/hooks/usePermissions', () => ({
   usePermissions: () => mockUsePermissions(),
 }));
 
+const mockCapture = jest.fn();
+jest.mock('posthog-js/react', () => ({
+  usePostHog: () => ({ capture: (...args: unknown[]) => mockCapture(...args) }),
+}));
+
 jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => ({
   GiveAiAppFeedbackDialog: ({
     isOpen,
-    anchorRef,
-    placement,
+    variant,
     appName,
     onClose,
-    headerTabs,
+    switchSlot,
+    altBody,
     capture,
     bridgeMissing,
+    onHiddenChange,
   }: {
+    onHiddenChange?: (hidden: boolean) => void;
     bridgeMissing?: boolean;
     capture?: () => Promise<unknown>;
-    headerTabs?: React.ReactNode;
+    switchSlot?: React.ReactNode;
+    altBody?: React.ReactNode;
     isOpen: boolean;
-    anchorRef?: { current: HTMLElement | null };
-    placement?: string;
+    variant?: string;
     appName?: string;
     onClose?: () => void;
   }) => {
     return isOpen ? (
       <div
-        data-placement={placement}
+        data-testid="feedback-dialog"
+        data-variant={variant ?? 'popover'}
         data-app-name={appName ?? ''}
         data-capture={capture ? 'bridge' : 'none'}
         data-bridge-missing={bridgeMissing ? 'true' : 'false'}
       >
-        {headerTabs}
-        {anchorRef?.current ? 'Feedback dialog open' : 'Feedback dialog unanchored'}
+        {switchSlot}
+        {altBody ?? <span>Feedback form</span>}
+        <span>Feedback dialog open</span>
         <button type="button" onClick={() => onClose?.()}>
           Close feedback
+        </button>
+        <button type="button" onClick={() => onHiddenChange?.(true)}>
+          Start capture
+        </button>
+        <button type="button" onClick={() => onHiddenChange?.(false)}>
+          End capture
         </button>
       </div>
     ) : null;
@@ -101,18 +116,38 @@ describe('FloatingFeedbackButton', () => {
     expect(button.className).not.toMatch(/headerButton/);
   });
 
-  it('anchors the dialog to the trigger wrapper, opening above it', () => {
+  /* LAB-2767: the button opens a drawer on the right, not a popover above it, and steps aside while it is open. */
+  it('opens the feedback drawer and hides the button while the drawer is open', () => {
     withAccess();
 
-    render(<FloatingFeedbackButton />);
+    const { container } = render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" />);
     fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
 
-    const dialog = screen.getByText('Feedback dialog open');
-    expect(dialog).toBeInTheDocument();
-    expect(screen.queryByText('Feedback dialog unanchored')).not.toBeInTheDocument();
-    // The trigger sits in the bottom-right corner; measuring down from it would
-    // put the panel below the fold.
-    expect(dialog).toHaveAttribute('data-placement', 'above');
+    expect(screen.getByTestId('feedback-dialog')).toHaveAttribute('data-variant', 'drawer');
+    const wrap = container.querySelector('[data-collapsed]');
+    expect(wrap?.className).toMatch(/fabHidden/);
+    expect(wrap).toHaveAttribute('aria-hidden', 'true');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close feedback' }));
+    expect(screen.queryByTestId('feedback-dialog')).not.toBeInTheDocument();
+    expect(wrap?.className).not.toMatch(/fabHidden/);
+  });
+
+  /* LAB-2759: a screen share of the tab must show only the app, so the button
+     leaves the picture whenever the form hides itself for a capture. */
+  it('hides the floating button while the form is hidden for a capture, and brings it back after', () => {
+    withAccess();
+
+    const { container } = render(<FloatingFeedbackButton />);
+    fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+    const wrap = container.querySelector('[data-collapsed]');
+    expect(wrap?.className).not.toMatch(/wrapHidden/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Start capture' }));
+    expect(wrap?.className).toMatch(/wrapHidden/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'End capture' }));
+    expect(wrap?.className).not.toMatch(/wrapHidden/);
   });
 
   describe('the introduction', () => {
@@ -175,7 +210,8 @@ describe('FloatingFeedbackButton', () => {
       expect(wrapOf(container)).toHaveAttribute('data-collapsed', 'false');
     });
 
-    it('does not collapse while the feedback dialog is open', () => {
+    /* LAB-2767: the drawer is not anchored to the button, which steps aside while it is open. */
+    it('settles to the glyph and steps aside while the feedback drawer is open', () => {
       withAccess();
 
       const { container } = render(<FloatingFeedbackButton />);
@@ -186,7 +222,8 @@ describe('FloatingFeedbackButton', () => {
       });
 
       expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
-      expect(wrapOf(container)).toHaveAttribute('data-collapsed', 'false');
+      expect(wrapOf(container)).toHaveAttribute('data-collapsed', 'true');
+      expect(wrapOf(container)?.className).toMatch(/fabHidden/);
     });
   });
 
@@ -208,7 +245,7 @@ describe('FloatingFeedbackButton', () => {
       expect(screen.queryByText('Ctrl+Alt+Enter')).not.toBeInTheDocument();
       openChord();
 
-      expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', '');
+      expect(screen.getByTestId('feedback-dialog')).toHaveAttribute('data-app-name', '');
     });
 
     it('opens from Ctrl+Alt+Enter too, even while typing in a field', () => {
@@ -306,7 +343,7 @@ describe('FloatingFeedbackButton', () => {
       render(<FloatingFeedbackButton appUid="app-a" appName="App A" />);
       openChord();
 
-      expect(screen.getByText('Feedback dialog open')).toHaveAttribute('data-app-name', 'App A');
+      expect(screen.getByTestId('feedback-dialog')).toHaveAttribute('data-app-name', 'App A');
     });
 
     it('hides the button and ignores the shortcut when feedback is off', () => {
@@ -401,6 +438,29 @@ describe('FloatingFeedbackButton', () => {
       expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
     });
 
+    /* LAB-2759: the pin markers sit over the app, so a screen share would grab them too. */
+    it('takes the pin markers out of the picture while the form is hidden for a capture', () => {
+      withAccess();
+      const pin = { id: 'pin-1', note: '', rect: { x: 10, y: 10, w: 40, h: 20 } };
+      const frameRef = { current: document.createElement('iframe') };
+      render(
+        <FloatingFeedbackButton
+          appUid="app-1"
+          appName="My App"
+          elementPins={controller('ready', [pin])}
+          iframeRef={frameRef}
+        />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+      expect(screen.getByRole('button', { name: 'Pin 1' })).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Start capture' }));
+      expect(screen.queryByRole('button', { name: 'Pin 1' })).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'End capture' }));
+      expect(screen.getByRole('button', { name: 'Pin 1' })).toBeInTheDocument();
+    });
+
     it("hands the bridge's capture to the form when the app's bridge can capture", () => {
       withAccess();
       const pins = { ...controller('unavailable'), canCapture: true, capture: jest.fn() };
@@ -463,111 +523,188 @@ describe('FloatingFeedbackButton', () => {
     });
   });
 
-  describe('feedback & comments (one panel, two tabs)', () => {
+  describe('feedback & comments (one drawer, a switcher under its title)', () => {
     const openChord = () => fireEvent.keyDown(window, { key: 'ƒ', code: 'KeyF', altKey: true });
-    const comments = (overrides: Partial<{ active: boolean; count: number; feedbackRequest: number }> = {}) => ({
+    const comments = (overrides: Partial<{ active: boolean; count: number; closeRequest: number }> = {}) => ({
       available: true,
       active: false,
       count: 0,
       onOpen: jest.fn(),
       onClose: jest.fn(),
-      feedbackRequest: 0,
+      body: <div>Comments list</div>,
+      closeRequest: 0,
       ...overrides,
     });
 
-    it('is named Feedback & comments and opens on the Feedback tab', () => {
+    it('is named Feedback & comments and opens on Feedback: Feedback left and selected, Comments right with its count', () => {
       withAccess();
       render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments({ count: 3 })} />);
 
       fireEvent.click(screen.getByRole('button', { name: 'Feedback & comments' }));
 
       expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+      expect(screen.getByText('Feedback form')).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: 'Feedback' })).toHaveAttribute('aria-selected', 'true');
-      expect(screen.getByRole('tab', { name: /Comment/ })).toHaveTextContent('3');
-      /* Feedback is the primary door: left of Comment (prototype ai-apps-comments). */
-      expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual(['Feedback', 'Comment3']);
+      expect(screen.getByRole('tab', { name: /Comments/ })).toHaveAttribute('aria-selected', 'false');
+      expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual(['Feedback', 'Comments3']);
     });
 
-    it('the Comment tab closes the form and turns comment mode on', () => {
+    it('shows no count beside Comments when there are none', () => {
       withAccess();
-      const commentMode = comments();
-      render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={commentMode} />);
+      render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments()} />);
       fireEvent.click(screen.getByRole('button', { name: 'Feedback & comments' }));
-
-      fireEvent.click(screen.getByRole('tab', { name: /Comment/ }));
-
-      expect(commentMode.onOpen).toHaveBeenCalled();
-      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Comments/ })).toHaveTextContent(/^Comments$/);
     });
 
-    it('the Comment tab closes the form at once: what was written stays as a draft', () => {
+    it('choosing Comments turns comment mode on, keeps the drawer open and tracks the click', () => {
       withAccess();
+      const frameRef = { current: document.createElement('iframe') };
       const commentMode = comments();
-      render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={commentMode} />);
-      fireEvent.click(screen.getByRole('button', { name: 'Feedback & comments' }));
-
-      fireEvent.click(screen.getByRole('tab', { name: /Comment/ }));
-
-      expect(commentMode.onOpen).toHaveBeenCalled();
-      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
-    });
-
-    it('pressed again it closes whichever tab is open', () => {
-      withAccess();
       const { rerender } = render(
-        <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments()} />,
+        <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={commentMode} />,
       );
       fireEvent.click(screen.getByRole('button', { name: 'Feedback & comments' }));
-      fireEvent.click(screen.getByRole('button', { name: 'Close feedback and comments' }));
-      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
 
-      const inMode = comments({ active: true });
-      rerender(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={inMode} />);
-      fireEvent.click(screen.getByRole('button', { name: 'Close feedback and comments' }));
-      expect(inMode.onClose).toHaveBeenCalled();
+      fireEvent.click(screen.getByRole('tab', { name: /Comments/ }));
+
+      expect(commentMode.onOpen).toHaveBeenCalled();
+      expect(mockCapture).toHaveBeenCalledWith('ai-apps-feedback-comments-tab-clicked', { appUid: 'app-1' });
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+
+      /* The page turns the mode on: the drawer body is the list, the switcher stays. */
+      rerender(
+        <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments({ active: true })} />,
+      );
+      expect(screen.getByText('Comments list')).toBeInTheDocument();
+      expect(screen.queryByText('Feedback form')).not.toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Comments/ })).toHaveAttribute('aria-selected', 'true');
     });
 
-    it('the shortcut leaves comment mode', () => {
+    it('choosing Feedback from Comments leaves comment mode and shows the form in the same drawer', () => {
       withAccess();
       const inMode = comments({ active: true });
       render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={inMode} />);
-      openChord();
+      expect(screen.getByText('Comments list')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('tab', { name: 'Feedback' }));
+
       expect(inMode.onClose).toHaveBeenCalled();
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
     });
 
-    it('opens the form when the page asks (the comment card’s Feedback tab)', () => {
+    /* Comment mode draws its own pins; the old pin flow's overlay would stack a second set over them. */
+    it('draws no pin-flow overlay over comment mode', () => {
       withAccess();
+      const pins = {
+        status: 'ready',
+        isPicking: true,
+        pins: [{ id: 'pin-1', note: '', rect: { x: 10, y: 10, w: 40, h: 20 } }],
+        onFrameLoad: jest.fn(),
+        startPicking: jest.fn(),
+        stopPicking: jest.fn(),
+        setNote: jest.fn(),
+        removePin: jest.fn(),
+        clearPins: jest.fn(),
+      } as any;
+      const frameRef = { current: document.createElement('iframe') };
+      const commentMode = comments();
       const { rerender } = render(
-        <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments()} />,
+        <FloatingFeedbackButton
+          appUid="app-1"
+          appName="Grant Tracker"
+          elementPins={pins}
+          iframeRef={frameRef}
+          commentMode={commentMode}
+        />,
       );
-      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Feedback & comments' }));
+      fireEvent.click(screen.getByRole('tab', { name: /Comments/ }));
       rerender(
         <FloatingFeedbackButton
           appUid="app-1"
           appName="Grant Tracker"
-          commentMode={comments({ feedbackRequest: 1 })}
+          elementPins={pins}
+          iframeRef={frameRef}
+          commentMode={comments({ active: true })}
         />,
+      );
+
+      expect(screen.getByText('Comments list')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Pin 1' })).not.toBeInTheDocument();
+    });
+
+    it('closing the drawer on the Comments tab leaves comment mode too', () => {
+      withAccess();
+      const inMode = comments({ active: true });
+      render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={inMode} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Close feedback' }));
+
+      expect(inMode.onClose).toHaveBeenCalled();
+    });
+
+    it('closes the drawer when the page asks (Esc in comment mode with nothing left open)', () => {
+      withAccess();
+      const { rerender } = render(
+        <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments()} />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Feedback & comments' }));
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+
+      rerender(
+        <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments({ closeRequest: 1 })} />,
+      );
+      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
+    });
+
+    /* After one Esc the request is 1: comments dropping out (and back) must not read as a new request. */
+    it('keeps the drawer open when comments drop out and come back after an earlier close request', () => {
+      withAccess();
+      const fab = (commentMode?: ReturnType<typeof comments>) => (
+        <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={commentMode} />
+      );
+      const { rerender } = render(fab(comments({ closeRequest: 1 })));
+      fireEvent.click(screen.getByRole('button', { name: 'Feedback & comments' }));
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+
+      rerender(fab(undefined));
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+
+      rerender(fab(comments({ closeRequest: 1 })));
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+
+      /* A real bump still closes it. */
+      rerender(fab(comments({ closeRequest: 2 })));
+      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
+    });
+
+    /* Mounted with comments off and turned on later with a non-zero request: adopted, not obeyed. */
+    it('does not close on the first close request it sees after comments arrive', () => {
+      withAccess();
+      const { rerender } = render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" />);
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+
+      rerender(
+        <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments({ closeRequest: 3 })} />,
       );
       expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
     });
 
-    it('carries the comment count while the panel is closed', () => {
+    it('the shortcut opens the drawer on Feedback', () => {
       withAccess();
-      const { rerender } = render(
-        <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments({ count: 3 })} />,
-      );
-      expect(screen.getByLabelText('3 comments')).toHaveTextContent('3');
-      rerender(
-        <FloatingFeedbackButton
-          appUid="app-1"
-          appName="Grant Tracker"
-          commentMode={comments({ count: 3, active: true })}
-        />,
-      );
-      expect(screen.queryByLabelText(/\d+ comments/)).not.toBeInTheDocument();
+      render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments()} />);
+      openChord();
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: 'Feedback' })).toHaveAttribute('aria-selected', 'true');
     });
 
-    it('without comments it stays "Give feedback", with no tabs', () => {
+    it('carries the comment count while the drawer is closed', () => {
+      withAccess();
+      render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments({ count: 3 })} />);
+      expect(screen.getByLabelText('3 comments')).toHaveTextContent('3');
+    });
+
+    it('without comments it stays "Give feedback": the drawer has the form and no switcher', () => {
       withAccess();
       render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" />);
       fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));

@@ -3,20 +3,22 @@ import { PRIVACY_POLICY_URL, TERMS_AND_CONDITIONS_URL } from '@/app/constants/de
 import s from './SpvFooter.module.scss';
 
 type Props = {
-  supportEmail: string;
-  /** Replaces the default disclaimer (the Explore landing words its own). */
+  /** For the default disclaimer; unused when `note` replaces it. */
+  supportEmail?: string;
+  /** Replaces the default disclaimer and its email (the Explore landing words its own; locked pages show none). */
   note?: React.ReactNode;
+  onSupportEmailClicked?: () => void;
 };
 
 /** The completed Demo Day's footer: the disclaimer, then the legal links. */
-export const SpvFooter = ({ supportEmail, note }: Props) => (
+export const SpvFooter = ({ supportEmail, note, onSupportEmailClicked }: Props) => (
   <footer className={s.root}>
     <p className={s.note}>
       {note ?? (
         <>
           © {new Date().getFullYear()} Protocol Labs. All content is provided by the founders. Protocol Labs does not
           endorse or recommend any investment, and is not a broker, dealer, or advisor. Questions? Write to{' '}
-          <a href={`mailto:${supportEmail}`} className={s.mail}>
+          <a href={`mailto:${supportEmail}`} className={s.mail} onClick={onSupportEmailClicked}>
             {supportEmail}
           </a>
           .

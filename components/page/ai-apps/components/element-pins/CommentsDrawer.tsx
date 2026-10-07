@@ -2,7 +2,6 @@
 
 import { clsx } from 'clsx';
 import { useState } from 'react';
-import { CloseIcon } from '@/components/icons';
 import { getAvatarColor } from '@/components/page/ai-apps/AiAppFeedbackPage/utils/getAvatarColor';
 import {
   AI_APP_FEEDBACK_STATUSES,
@@ -10,6 +9,7 @@ import {
   type AiAppFeedbackStatus,
 } from '@/services/ai-app-feedback/constants';
 import type { OverlayFeedbackPin } from '@/services/ai-app-feedback/ai-app-feedback.service';
+import type { OverlayStatus } from './useFeedbackOverlay';
 // The status pill the author sets, so the list reads the same.
 import st from '@/components/page/ai-apps/AiAppFeedbackPage/components/FeedbackStatusSelector/FeedbackStatusSelector.module.scss';
 
@@ -34,7 +34,8 @@ type Props = {
   /** The pin whose thread is open; its row is highlighted. */
   openPinUid: string | null;
   onSelect: (item: CommentListItem) => void;
-  onClose: () => void;
+  /** The overlay's state: an app that cannot locate says its comments open from the list. */
+  status: OverlayStatus;
 };
 
 function initials(name: string) {
@@ -126,18 +127,25 @@ function PinMarkIcon() {
  * Every comment on the app, newest first (prototype ai-apps-comments
  * CommentsDrawer): who, when, its status, what it points at — or that the
  * element isn't on the current version any more — what was said, and how many
- * replies. A row opens its thread. Open for as long as comment mode is.
+ * replies. A row opens its thread. It is the body of the feedback drawer's
+ * Comments tab (LAB-2767), so the drawer's title, switcher and ✕ head it; above
+ * the list it says how to leave a comment and who sees it.
  */
-export function CommentsDrawer({ items, openPinUid, onSelect, onClose }: Props) {
+export function CommentsDrawer({ items, openPinUid, onSelect, status }: Props) {
   const [filter, setFilter] = useState<Filter>('ALL');
   const shown = filter === 'ALL' ? items : items.filter((item) => item.pin.feedback.status === filter);
 
   return (
     <aside className={s.drawer} aria-label="Comments">
       <header className={s.head}>
-        <h2 className={s.title}>
-          Comments <span className={s.total}>{items.length}</span>
-        </h2>
+        <div className={s.hint}>
+          <p className={s.hintLead}>
+            {status === 'unsupported'
+              ? 'Click anywhere on the app to leave a comment. This app can’t show where earlier comments point; open them from the list.'
+              : 'Click anywhere on the app to leave a comment.'}
+          </p>
+          <p className={s.audience}>Everyone who can open this app can see it.</p>
+        </div>
         <select
           className={s.filter}
           aria-label="Show comments"
@@ -145,15 +153,12 @@ export function CommentsDrawer({ items, openPinUid, onSelect, onClose }: Props) 
           onChange={(e) => setFilter(e.target.value as Filter)}
         >
           <option value="ALL">All</option>
-          {AI_APP_FEEDBACK_STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {AI_APP_FEEDBACK_STATUS_LABELS[status]}
+          {AI_APP_FEEDBACK_STATUSES.map((value) => (
+            <option key={value} value={value}>
+              {AI_APP_FEEDBACK_STATUS_LABELS[value]}
             </option>
           ))}
         </select>
-        <button type="button" className={s.close} onClick={onClose} aria-label="Close comments panel">
-          <CloseIcon width={14} height={14} />
-        </button>
       </header>
 
       {shown.length === 0 ? (

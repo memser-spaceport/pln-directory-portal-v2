@@ -292,6 +292,7 @@ export function CommentAnnotator({ imageSrc, onDiscard, onAdd, onToolSelected, i
             onChange={push}
             tool={tool}
             strokeColor={strokeColor}
+            commentsEditable
           />
         </div>
 

@@ -11,12 +11,24 @@ import { SPV_SPOTLIGHT_ANALYTICS } from '@/utils/constants';
  */
 export type SpvSpotlightBaseParams = {
   spotlight_slug: string;
-  spotlight_status: SpvSpotlightStatus;
+  /** Null on a signed-out locked page: the page never reads the spotlight for it. */
+  spotlight_status: SpvSpotlightStatus | null;
   view_state: SpvViewState;
 };
 
-export type SpvSignInSource = 'top-bar' | 'card' | 'already-requested-prompt' | 'applied-steps' | 'success-sheet';
-export type SpvInvestorProfileSource = 'top-bar' | 'hero' | 'applied-steps' | 'success-sheet';
+export type SpvSignInSource =
+  | 'top-bar'
+  | 'card'
+  | 'locked-hero'
+  | 'already-requested-prompt'
+  | 'applied-steps'
+  | 'success-sheet';
+export type SpvInvestorProfileSource = 'top-bar' | 'profile-card' | 'applied-steps' | 'success-sheet';
+/** Whether the viewer had an investor profile yet: what the profile card's button said. */
+export type SpvInvestorProfileState = 'setup' | 'review';
+export type SpvContactUsSource = 'locked-signed-out' | 'locked-no-access' | 'rejected';
+export type SpvTeamWebsiteSource = 'fact-strip' | 'carousel';
+export type SpvSupportEmailSource = 'faq' | 'footer';
 
 export const useSpvSpotlightAnalytics = () => {
   const postHog = usePostHog();
@@ -61,14 +73,28 @@ export const useSpvSpotlightAnalytics = () => {
   const onOpenDataRoomClicked = (params: SpvSpotlightBaseParams) =>
     captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_OPEN_DATA_ROOM_CLICKED, params);
 
-  const onInvestorProfileClicked = (params: SpvSpotlightBaseParams & { source: SpvInvestorProfileSource }) =>
-    captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_INVESTOR_PROFILE_CLICKED, params);
+  const onInvestorProfileClicked = (
+    params: SpvSpotlightBaseParams & { source: SpvInvestorProfileSource; profile_state: SpvInvestorProfileState },
+  ) => captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_INVESTOR_PROFILE_CLICKED, params);
+
+  /** A save in the investor-profile drawer opened from this page. */
+  const onInvestorProfileSaved = (params: SpvSpotlightBaseParams) =>
+    captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_INVESTOR_PROFILE_SAVED, params);
+
+  const onContactUsClicked = (params: SpvSpotlightBaseParams & { source: SpvContactUsSource }) =>
+    captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_CONTACT_US_CLICKED, params);
 
   const onExploreTileClicked = (params: SpvSpotlightBaseParams) =>
     captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_EXPLORE_TILE_CLICKED, params);
 
   const onFounderProfileClicked = (params: SpvSpotlightBaseParams & { member_uid: string }) =>
     captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_FOUNDER_PROFILE_CLICKED, params);
+
+  const onTeamWebsiteClicked = (params: SpvSpotlightBaseParams & { source: SpvTeamWebsiteSource }) =>
+    captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_TEAM_WEBSITE_CLICKED, params);
+
+  const onSupportEmailClicked = (params: SpvSpotlightBaseParams & { source: SpvSupportEmailSource }) =>
+    captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_SUPPORT_EMAIL_CLICKED, params);
 
   return {
     onPageViewed,
@@ -79,7 +105,11 @@ export const useSpvSpotlightAnalytics = () => {
     onSignInClicked,
     onOpenDataRoomClicked,
     onInvestorProfileClicked,
+    onInvestorProfileSaved,
+    onContactUsClicked,
     onExploreTileClicked,
     onFounderProfileClicked,
+    onTeamWebsiteClicked,
+    onSupportEmailClicked,
   };
 };

@@ -189,3 +189,15 @@
   font-weight: 600;
   line-height: 14px;
 }
+
+/* Out of the picture while the feedback form takes a screenshot (it hides itself too). */
+.wrapHidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* The button steps aside while its feedback drawer is open, at every width; ✕ and Esc bring it back. */
+.fabHidden {
+  visibility: hidden;
+  pointer-events: none;
+}

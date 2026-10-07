@@ -9,6 +9,12 @@ import { triggerLoader } from '@/utils/common.utils';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { useParams, useRouter } from 'next/navigation';
 import Modal from '@/components/core/modal';
+import { PAGE_ROUTES } from '@/utils/constants';
+import { useLoginRedirect } from '@/components/core/login/utils';
+import { OPEN_VISIT_CHAT_EVENT } from './constants/visitChats';
+import { getVisitChats } from './utils/getVisitChats';
+import { removeVisitChat } from './utils/removeVisitChat';
+import { setPendingVisitChat } from './utils/setPendingVisitChat';
 
 interface IThread {
   title: string;
@@ -23,23 +29,29 @@ interface ThreadItemProps {
   isMobile: boolean;
   toggleSidebar: () => void;
   handleDeleteModalOpen: (thread: IThread) => void;
+  onOpen?: (thread: IThread) => void;
 }
 
 // Extracted ThreadItem component and memoized it to prevent unnecessary re-renders
-const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteModalOpen }: ThreadItemProps) => {
+const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteModalOpen, onOpen }: ThreadItemProps) => {
   const analytics = useHuskyAnalytics();
   const router = useRouter();
 
   const handleClick = useCallback(() => {
-    if (!isActive) {
-      triggerLoader(true);
-      router.push(`/husky/chat/${thread.threadId}`);
+    // A visit chat has no URL of its own, so it opens even when the rail still marks it as open.
+    if (onOpen || !isActive) {
+      if (onOpen) {
+        onOpen(thread);
+      } else {
+        triggerLoader(true);
+        router.push(`${PAGE_ROUTES.HUSKY}/${thread.threadId}`);
+      }
       if (isMobile) {
         toggleSidebar();
       }
       analytics.trackHistoryListItemClicked({ threadId: thread.threadId, title: thread.title });
     }
-  }, [isActive, thread, router, isMobile, toggleSidebar, analytics]);
+  }, [isActive, thread, router, isMobile, toggleSidebar, analytics, onOpen]);
 
   const handleDeleteClick = useCallback(
     (e: React.MouseEvent) => {
@@ -47,7 +59,7 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
       analytics.trackDeleteThread(thread.threadId, thread.title);
       handleDeleteModalOpen(thread);
     },
-    [thread, handleDeleteModalOpen],
+    [thread, handleDeleteModalOpen, analytics],
   );
 
   return (
@@ -144,8 +156,15 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const deleteModalRef = useRef<HTMLDialogElement>(null);
   const [isMac, setIsMac] = useState(false);
+  const [activeVisitChatId, setActiveVisitChatId] = useState<string | null>(null);
+  const goToLogin = useLoginRedirect();
 
   const fetchHistory = async (showLoading = true) => {
+    if (!isLoggedIn) {
+      setHistory(getVisitChats());
+      setIsLoading(false);
+      return;
+    }
     try {
       if (showLoading) {
         setIsLoading(true);
@@ -178,10 +197,26 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     if (isMobile) {
       handleSidebarToggle();
     }
-    router.push('/husky/chat');
+    router.push(PAGE_ROUTES.HUSKY);
     document.dispatchEvent(new CustomEvent('new-chat'));
     analytics.trackSidebarNewConversationClicked();
   }, [isMobile, handleSidebarToggle, router, analytics]);
+
+  const handleOpenVisitChat = useCallback(
+    (thread: IThread) => {
+      setActiveVisitChatId(thread.threadId);
+      // The /ai-search page opens it on mount, or at once through the event when it is already open.
+      setPendingVisitChat(thread.threadId);
+      document.dispatchEvent(new Event(OPEN_VISIT_CHAT_EVENT));
+      router.push(PAGE_ROUTES.HUSKY);
+    },
+    [router],
+  );
+
+  const handleSignUp = useCallback(() => {
+    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+    router.push(`${PAGE_ROUTES.SIGNUP}?returnTo=${returnTo}`);
+  }, [router]);
 
   const handleOpenSidebar = useCallback(() => {
     if (state === 'collapsed') {
@@ -208,6 +243,20 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     if (!deleteId) return;
     const toast = (await import('react-toastify')).toast;
     analytics.trackThreadDeleteConfirmationStatus(deleteId, 'initiated');
+    if (!isLoggedIn) {
+      handleDeleteModalClose();
+      removeVisitChat(deleteId);
+      setHistory(getVisitChats());
+      analytics.trackThreadDeleteConfirmationStatus(deleteId, 'success');
+      if (deleteId === activeVisitChatId || deleteId === id) {
+        setActiveVisitChatId(null);
+        document.dispatchEvent(new CustomEvent('new-chat'));
+      }
+      if (deleteId === id) {
+        router.push(PAGE_ROUTES.HUSKY);
+      }
+      return;
+    }
     triggerLoader(true);
     const { authToken } = await getUserCredentials(isLoggedIn);
     handleDeleteModalClose();
@@ -242,7 +291,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
       // Redirect to home if the deleted thread is the current one
       document.dispatchEvent(new CustomEvent('new-chat'));
       if (deleteId === id) {
-        router.push('/husky/chat');
+        router.push(PAGE_ROUTES.HUSKY);
       }
     } catch (error) {
       console.error('Error deleting thread:', error);
@@ -257,7 +306,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     } finally {
       triggerLoader(false);
     }
-  }, [deleteId, id, router, fetchHistory, handleDeleteModalClose, isLoggedIn]);
+  }, [deleteId, id, router, fetchHistory, handleDeleteModalClose, isLoggedIn, activeVisitChatId]);
 
   const groupChatsByDate = useCallback((chats: IThread[]) => {
     const now = new Date();
@@ -323,7 +372,11 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
   useEffect(() => {
     fetchHistory(true); // Show loading on initial fetch
 
-    const handleRefreshHistory = () => {
+    const handleRefreshHistory = (e: Event) => {
+      const visitThreadId = (e as CustomEvent<{ visitThreadId?: string }>).detail?.visitThreadId;
+      if (visitThreadId) {
+        setActiveVisitChatId(visitThreadId);
+      }
       fetchHistory(false); // Don't show loading when called via event listener
     };
 
@@ -343,12 +396,16 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
 
     detectMac();
 
+    const handleNewChat = () => setActiveVisitChatId(null);
+
     document.addEventListener('refresh-husky-history', handleRefreshHistory as EventListener);
     document.addEventListener('delete-thread', handleDeleteThread as EventListener);
+    document.addEventListener('new-chat', handleNewChat);
 
     return () => {
       document.removeEventListener('refresh-husky-history', handleRefreshHistory as EventListener);
       document.removeEventListener('delete-thread', handleDeleteThread as EventListener);
+      document.removeEventListener('new-chat', handleNewChat);
     };
   }, []);
 
@@ -363,7 +420,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           </div>
           <button onClick={handleNewConversation} className="sidebar__header__newConversation">
             <img src="/icons/add.svg" alt="plus" />
-            <span className="sidebar__header__newConversation__text">New Conversation</span>
+            <span className="sidebar__header__newConversation__text">New chat</span>
           </button>
         </div>
         <div data-state={state} className="sidebar__body">
@@ -371,12 +428,32 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
             <div onClick={handleOpenSidebar} className="sidebar__body__history__header">
               <div className="sidebar__body__history__header__title">
                 <img width={22} height={22} src="/icons/history.svg" alt="history" />
-                <span className="sidebar__body__history__header__title__text">Threads</span>
+                <span className="sidebar__body__history__header__title__text">
+                  {isLoggedIn ? 'History' : 'This visit'}
+                </span>
               </div>
             </div>
             <div className="sidebar__body__history__list">
               {isLoading ? (
                 <SkeletonLoader />
+              ) : !isLoggedIn ? (
+                history.length === 0 ? (
+                  <div className="sidebar__body__history__list__empty">Chats you start appear here.</div>
+                ) : (
+                  <ul className="sidebar__body__history__list__ul">
+                    {history.map((chat: IThread) => (
+                      <ThreadItem
+                        isActive={chat.threadId === (id ?? activeVisitChatId)}
+                        key={chat.threadId}
+                        thread={chat}
+                        isMobile={isMobile}
+                        toggleSidebar={handleSidebarToggle}
+                        handleDeleteModalOpen={handleDeleteModalOpen}
+                        onOpen={id === chat.threadId ? undefined : handleOpenVisitChat}
+                      />
+                    ))}
+                  </ul>
+                )
               ) : history.length === 0 ? (
                 <div className="sidebar__body__history__list__empty">
                   Your conversations will appear here once you start chatting!
@@ -418,6 +495,23 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                 </ul>
               )}
             </div>
+            {!isLoggedIn && (
+              <div className="sidebar__body__keep">
+                <p className="sidebar__body__keep__title">Sign in to keep your chats</p>
+                <p className="sidebar__body__keep__text">
+                  Chats you start signed out are gone when you leave. Signed in, every chat is kept here with its own
+                  link.
+                </p>
+                <div className="sidebar__body__keep__actions">
+                  <button type="button" onClick={handleSignUp} className="sidebar__body__keep__signup">
+                    Sign up
+                  </button>
+                  <button type="button" onClick={() => goToLogin()} className="sidebar__body__keep__signin">
+                    Sign in
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <div data-state={state} className="sidebar__footer">
@@ -486,6 +580,69 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           padding: 0px 8px 10px 18px;
           overflow-y: auto;
           overflow-x: hidden;
+        }
+
+        .sidebar__body__keep {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          margin: 12px 10px 0 0;
+          padding: 12px;
+          border: 1px solid rgba(27, 56, 96, 0.12);
+          border-radius: 8px;
+          background-color: #ffffff;
+        }
+
+        .sidebar__body[data-state='collapsed'] .sidebar__body__keep {
+          display: none;
+        }
+
+        .sidebar__body__keep__title {
+          margin: 0;
+          color: #0a0c11;
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 20px;
+        }
+
+        .sidebar__body__keep__text {
+          margin: 0;
+          color: #455468;
+          font-size: 12px;
+          line-height: 16px;
+        }
+
+        .sidebar__body__keep__actions {
+          display: flex;
+          gap: 8px;
+          margin-top: 8px;
+        }
+
+        .sidebar__body__keep__signup,
+        .sidebar__body__keep__signin {
+          flex: 1;
+          height: 32px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 500;
+          line-height: 20px;
+          cursor: pointer;
+        }
+
+        .sidebar__body__keep__signup {
+          border: 1px solid #cbd5e1;
+          background-color: #ffffff;
+          color: #0f172a;
+        }
+
+        .sidebar__body__keep__signin {
+          border: none;
+          background-color: #156ff7;
+          color: #ffffff;
+        }
+
+        .sidebar__body__keep__signin:hover {
+          background-color: #1d4ed8;
         }
 
         .sidebar__body__history__list__empty {

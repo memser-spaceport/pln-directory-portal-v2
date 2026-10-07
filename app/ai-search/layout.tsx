@@ -10,7 +10,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   return (
     <>
       <SidebarProvider defaultOpen={true}>
-        {isLoggedIn && <AppSidebar isLoggedIn={isLoggedIn} />}
+        <AppSidebar isLoggedIn={isLoggedIn} />
         {children}
       </SidebarProvider>
     </>
@@ -18,8 +18,8 @@ export default async function Layout({ children }: { children: React.ReactNode }
 }
 
 export const metadata: Metadata = {
-  title: 'AI Chat | Protocol Labs Directory',
-  description: 'AI chat for Protocol Labs Directory',
+  title: 'AI Search | Protocol Labs Directory',
+  description: 'AI Search for Protocol Labs Directory',
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,

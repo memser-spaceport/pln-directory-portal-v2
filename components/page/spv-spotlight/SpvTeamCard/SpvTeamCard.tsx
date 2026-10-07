@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import type { SpvTeamWebsiteSource } from '@/analytics/spv-spotlight.analytics';
 import type { SpvMedia, SpvTeam } from '@/services/spv-spotlight/types';
 import { sanitizeSpvHtml } from '@/utils/html/sanitizeSpvHtml';
 import { ArrowRightIcon, ArrowUpRightIcon, ExternalIcon, LockIcon } from '../icons';
@@ -15,6 +16,7 @@ type Props = {
   /** The header's action slot: SpvCardAction or SpvCardStatus, chosen by the page. */
   action?: React.ReactNode;
   onFounderClicked?: (memberUid: string) => void;
+  onWebsiteClicked?: (source: SpvTeamWebsiteSource) => void;
 };
 
 /**
@@ -61,7 +63,7 @@ export const SpvCardStatus = ({ children }: { children: React.ReactNode }) => (
  * video were; About, Focus and Founders beside them. Founder tiles open the
  * founder's directory profile in a new tab, so the page stays where it is.
  */
-export function SpvTeamCard({ team, media, aboutOpen = false, action, onFounderClicked }: Props) {
+export function SpvTeamCard({ team, media, aboutOpen = false, action, onFounderClicked, onWebsiteClicked }: Props) {
   const [showFull, setShowFull] = useState(aboutOpen);
   const aboutHtml = useMemo(() => sanitizeSpvHtml(team.longDescription), [team.longDescription]);
   const rawWebsite = team.website?.trim() ?? '';
@@ -78,7 +80,13 @@ export function SpvTeamCard({ team, media, aboutOpen = false, action, onFounderC
     {
       label: 'Website',
       value: website ? (
-        <a href={website} target="_blank" rel="noopener noreferrer" className={s.factLink}>
+        <a
+          href={website}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={s.factLink}
+          onClick={() => onWebsiteClicked?.('fact-strip')}
+        >
           {host}
           <ArrowUpRightIcon />
         </a>
@@ -110,7 +118,12 @@ export function SpvTeamCard({ team, media, aboutOpen = false, action, onFounderC
 
       <div className={s.body}>
         {media.length > 0 && (
-          <SpvMediaCarousel images={media} label={`${team.name}, from its website`} sourceUrl={website} />
+          <SpvMediaCarousel
+            images={media}
+            label={`${team.name}, from its website`}
+            sourceUrl={website}
+            onSourceClicked={() => onWebsiteClicked?.('carousel')}
+          />
         )}
 
         <div className={s.aside}>

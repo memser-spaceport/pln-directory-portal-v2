@@ -14,6 +14,8 @@ import {
   type SpvInvestorProfileSource,
   type SpvSignInSource,
   type SpvSpotlightBaseParams,
+  type SpvSupportEmailSource,
+  type SpvTeamWebsiteSource,
 } from '@/analytics/spv-spotlight.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useContactSupportStore } from '@/services/contact-support/store';
@@ -168,6 +170,16 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
     const params = baseParams();
     if (params) analytics.onContactUsClicked({ ...params, source });
     openContactSupport();
+  };
+
+  const websiteClicked = (source: SpvTeamWebsiteSource) => {
+    const params = baseParams();
+    if (params) analytics.onTeamWebsiteClicked({ ...params, source });
+  };
+
+  const supportEmailClicked = (source: SpvSupportEmailSource) => {
+    const params = baseParams();
+    if (params) analytics.onSupportEmailClicked({ ...params, source });
   };
 
   // Production's AccountMenu logout; AuthBox (mounted on bare routes too) then
@@ -387,6 +399,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
                 const params = baseParams();
                 if (params) analytics.onFounderProfileClicked({ ...params, member_uid: memberUid });
               }}
+              onWebsiteClicked={websiteClicked}
             />
           </section>
 
@@ -399,7 +412,11 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
               subtitle={
                 <p className={s.faqSubtitle}>
                   Reach out to us at{' '}
-                  <a href={`mailto:${spotlight.supportEmail}`} className={s.faqLink}>
+                  <a
+                    href={`mailto:${spotlight.supportEmail}`}
+                    className={s.faqLink}
+                    onClick={() => supportEmailClicked('faq')}
+                  >
                     {spotlight.supportEmail}
                   </a>{' '}
                   for any other questions.
@@ -408,7 +425,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
             />
           </section>
 
-          <SpvFooter supportEmail={spotlight.supportEmail} />
+          <SpvFooter supportEmail={spotlight.supportEmail} onSupportEmailClicked={() => supportEmailClicked('footer')} />
         </div>
       </div>
 

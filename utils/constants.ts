@@ -2837,6 +2837,8 @@ export const SPV_SPOTLIGHT_ANALYTICS = {
   ON_CONTACT_US_CLICKED: 'spv-spotlight-contact-us-clicked',
   ON_EXPLORE_TILE_CLICKED: 'spv-spotlight-explore-tile-clicked',
   ON_FOUNDER_PROFILE_CLICKED: 'spv-spotlight-founder-profile-clicked',
+  ON_TEAM_WEBSITE_CLICKED: 'spv-spotlight-team-website-clicked',
+  ON_SUPPORT_EMAIL_CLICKED: 'spv-spotlight-support-email-clicked',
 };
 
 export const EXPLORE_PL_NETWORK_ANALYTICS = {

@@ -1,0 +1,18 @@
+/* "4 of 5 requirements" — the band's working, in the role line's caption ink. */
+.working {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #64748b);
+  white-space: nowrap;
+}
+
+/* Smaller than the DS Badge's 14/20, as in the design: a tag's size beside
+   the name rather than a second heading. Doubled class to outrank the Badge's
+   own padding and type. */
+.matchBadge.matchBadge {
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 16px;
+  padding: 2px 6px;
+}

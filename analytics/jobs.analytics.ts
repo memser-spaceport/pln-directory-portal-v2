@@ -537,8 +537,36 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_APPLICANT_EMAIL_CLICKED, { ...args });
   };
 
-  const onJobHiringTabChanged = (args: { team_id: string; job_id: string | null; tab: 'applied' | 'interested' }) => {
+  const onJobHiringTabChanged = (args: {
+    team_id: string;
+    job_id: string | null;
+    tab: 'applied' | 'interested' | 'suggested';
+  }) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_HIRING_TAB_CHANGED, { ...args });
+  };
+
+  /* LAB-2771. `count` is how many people the tab showed, so the funnel can
+     tell a role with suggestions from one without. */
+  const onJobSuggestedCandidatesViewed = (args: { team_id: string; job_id: string | null; count: number }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_SUGGESTED_CANDIDATES_VIEWED, { ...args });
+  };
+
+  const onJobSuggestedCandidateOpened = (args: {
+    team_id: string;
+    job_id: string | null;
+    rank: number;
+    label: string;
+  }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_SUGGESTED_CANDIDATE_OPENED, { ...args });
+  };
+
+  const onJobSuggestedCandidateContacted = (args: {
+    team_id: string;
+    job_id: string | null;
+    rank: number;
+    label: string;
+  }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_SUGGESTED_CANDIDATE_CONTACTED, { ...args });
   };
 
   const onJobSaved = (args: { job_id: string; team_id: string; source: JobSurface }) => {
@@ -625,6 +653,9 @@ export const useJobsAnalytics = () => {
     onJobApplicantReviewFailed,
     onJobApplicantEmailClicked,
     onJobHiringTabChanged,
+    onJobSuggestedCandidatesViewed,
+    onJobSuggestedCandidateOpened,
+    onJobSuggestedCandidateContacted,
     onJobSaved,
     onJobUnsaved,
     onJobSaveFailed,

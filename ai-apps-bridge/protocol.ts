@@ -105,6 +105,12 @@ export const LIMITS = {
   scrollDelta: 5000,
 } as const;
 
+/**
+ * A `capture:result` error: the page is too heavy to draw within the renderer's
+ * budget. The feedback form skips its automatic picture quietly on this one.
+ */
+export const CAPTURE_TOO_SLOW = 'too-slow';
+
 let counter = 0;
 export function nextMessageId(): string {
   counter += 1;

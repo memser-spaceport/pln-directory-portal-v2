@@ -297,6 +297,18 @@ describe('opening the form attaches the app', () => {
     );
   });
 
+  it('skips quietly when the page is too heavy to draw in time, but still records it', async () => {
+    renderDialog(() => Promise.reject(new Error('too-slow')));
+    await flush();
+
+    expect(screen.queryByText(/Couldn’t capture the app automatically/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: /^Screenshot \d$/ })).not.toBeInTheDocument();
+    expect(requestTabCapture).not.toHaveBeenCalled();
+    expect(mockAnalytics.onFeedbackAppCapture).toHaveBeenCalledWith(
+      expect.objectContaining({ source: 'auto', outcome: 'failed', error: 'too-slow' }),
+    );
+  });
+
   it('attaches nothing on an app without the bridge, and keeps the screen-share button', () => {
     renderDialog(undefined);
 

@@ -59,6 +59,45 @@ export function AiAppsIcon() {
   );
 }
 
+/** Same lightbulb as the Gantry entry in the navbar menu. */
+export function GantryIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"
+        stroke="#1B4DFF"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M9 18h6" stroke="#1B4DFF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10 22h4" stroke="#1B4DFF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** Same newspaper as the "Updates from the team" header (TeamNewsDetails). */
+export function NewsIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M2 4.25A1.25 1.25 0 0 1 3.25 3h7.5A1.25 1.25 0 0 1 12 4.25v7.5A1.25 1.25 0 0 0 13.25 13H3.25A1.25 1.25 0 0 1 2 11.75v-7.5Z"
+        stroke="#1B4DFF"
+        strokeWidth="1.1"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 6.5h1.75A.25.25 0 0 1 14 6.75v5a1.25 1.25 0 0 1-2.5 0"
+        stroke="#1B4DFF"
+        strokeWidth="1.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M4.25 5.75h5.5M4.25 8h5.5M4.25 10.25h3.5" stroke="#1B4DFF" strokeWidth="1.1" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function SystemIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">

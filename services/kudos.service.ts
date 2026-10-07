@@ -58,12 +58,15 @@ export interface IGetKudosFeedParams {
   roundId?: string;
   limit?: number;
   cursor?: string;
+  /** 1-based page number; the server prefers it over `cursor`. */
+  page?: number;
 }
 
 export function getKudosFeed(params: IGetKudosFeedParams): Promise<IKudosFeedPage> {
   const qs = new URLSearchParams();
   if (params.limit) qs.set('limit', String(params.limit));
   if (params.cursor) qs.set('cursor', params.cursor);
+  if (params.page) qs.set('page', String(params.page));
   const query = qs.toString();
   return request<IKudosFeedPage>(`/kudos${query ? `?${query}` : ''}`);
 }

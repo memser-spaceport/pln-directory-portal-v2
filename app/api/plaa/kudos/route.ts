@@ -17,8 +17,10 @@ export async function GET(request: NextRequest) {
     const qs = new URLSearchParams();
     const limit = searchParams.get('limit');
     const cursor = searchParams.get('cursor');
+    const page = searchParams.get('page');
     if (limit) qs.set('limit', limit);
     if (cursor) qs.set('cursor', cursor);
+    if (page) qs.set('page', page);
     const query = qs.toString();
 
     const res = await fetch(`${baseUrl}/api/v1/kudos${query ? `?${query}` : ''}`, {

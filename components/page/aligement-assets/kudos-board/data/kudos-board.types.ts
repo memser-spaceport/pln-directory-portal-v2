@@ -18,6 +18,9 @@ export interface ICommunityKudos {
 export interface IKudosFeedPage {
   items: ICommunityKudos[];
   nextCursor: string | null;
+  /** Kudos still on the board (archived ones excluded), capped at the last page. */
+  total: number;
+  totalPages: number;
 }
 
 export interface ICommunityPool {

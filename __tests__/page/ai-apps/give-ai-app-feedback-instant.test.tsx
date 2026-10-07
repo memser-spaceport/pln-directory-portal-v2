@@ -801,6 +801,46 @@ describe('drafts', () => {
     mockMutate.mockReset();
   });
 
+  /* The drawer inside an app has no picker, so nothing it loads may point the report at another app. */
+  it('in the drawer inside an app, lists only this app’s drafts and always sends to this app', async () => {
+    const seed = (key: string, data: object) =>
+      window.localStorage.setItem(key, JSON.stringify({ v: 1, savedAt: Date.now(), data }));
+    seed(`${AI_APP_FEEDBACK_DRAFT_KEY}:app-2`, { message: 'About app two', place: { appUid: 'app-2' } });
+    seed(AI_APP_FEEDBACK_DRAFT_KEY, { message: 'From the list', app: null, place: {} });
+    /* Started in the popover on this app's /orders, then switched to another app in its picker. */
+    seed(`${DRAFT_KEY}:/orders`, {
+      message: 'About orders',
+      app: { label: 'Other app', value: 'app-2' },
+      place: { appUid: 'app-1', screen: '/orders' },
+    });
+
+    render(
+      <GiveAiAppFeedbackDialog
+        isOpen
+        onClose={jest.fn()}
+        variant="drawer"
+        appUid="app-1"
+        appName="My App"
+        frameRef={frameRef}
+        getContext={() => ({ appPath: '/settings' }) as never}
+      />,
+    );
+    await flush();
+
+    expect(screen.queryByLabelText('Which app is this about?')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Drafts · 1' }));
+    expect(screen.queryByText('About app two')).not.toBeInTheDocument();
+    expect(screen.queryByText('From the list')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('About orders'));
+    await flush();
+
+    mockMutate.mockImplementation((_payload, options) => options?.onSuccess?.());
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+    await waitFor(() => expect(mockMutate).toHaveBeenCalled());
+    expect(mockMutate.mock.calls[0][0].appUid).toBe('app-1');
+    mockMutate.mockReset();
+  });
+
   it('a failed send keeps the draft; a successful one removes it', async () => {
     renderAt('/orders');
     typeFeedback('Broken button');

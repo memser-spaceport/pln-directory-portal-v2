@@ -427,7 +427,7 @@ describe('AiAppFeedbackPage', () => {
 
     expect(appOptionLabels()).toEqual(['All my apps · 3', 'Alpha · 2', 'Beta · 1', 'Quiet · 0']);
     selectApp('Quiet');
-    expect(screen.getByText('No feedback on Quiet yet.')).toBeInTheDocument();
+    expect(screen.getByText('No feedback matches the selected filters.')).toBeInTheDocument();
   });
 
   it('renders HTML headings, links, and images', () => {

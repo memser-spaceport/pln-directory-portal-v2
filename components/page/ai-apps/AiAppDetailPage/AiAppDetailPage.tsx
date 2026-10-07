@@ -458,6 +458,8 @@ export function AiAppDetailPage(props: Props) {
   const [openFeedbackPin, setOpenFeedbackPin] = useState<string | null>(null);
   /* Bumped when comment mode asks the feedback drawer to close (Esc with nothing left open). */
   const [drawerCloseRequest, setDrawerCloseRequest] = useState(0);
+  /* Whether comments were available last render; compared below, past the early returns (a hook can't live there). */
+  const [seenCommentModeAvailable, setSeenCommentModeAvailable] = useState(false);
   /* The feedback drawer's Comments tab body, where comment mode lists the comments. */
   const [commentsListSlot, setCommentsListSlot] = useState<HTMLDivElement | null>(null);
   const deepLinkHandled = useRef(false);
@@ -587,6 +589,15 @@ export function AiAppDetailPage(props: Props) {
   // them the feedback button stays today's door (pins or the dialog).
   const commentModeAvailable =
     overlayScope !== null && elementPins.status === 'ready' && frameStatus === 'live' && !showSetupCard;
+  // Comments dropping out ends comment mode: left on, the drawer would reopen by itself on Comments
+  // when they come back. Only the drop counts — the deep link turns the mode on before they arrive.
+  if (seenCommentModeAvailable !== commentModeAvailable) {
+    setSeenCommentModeAvailable(commentModeAvailable);
+    if (!commentModeAvailable) {
+      setCommentModeOn(false);
+      setOpenFeedbackPin(null);
+    }
+  }
 
   // Close a card action; if the deployment modal was opened via the
   // `?settings=deployment` deep link, drop the param so a refresh/back doesn't

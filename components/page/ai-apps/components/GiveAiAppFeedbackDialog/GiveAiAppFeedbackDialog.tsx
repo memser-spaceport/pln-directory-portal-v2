@@ -622,7 +622,8 @@ export function GiveAiAppFeedbackDialog({
     const since = saved ? (saved.startedAt ?? saved.savedAt) : null;
     const values: FormValues = {
       ...getDefaults(),
-      app: saved?.app ?? getDefaults().app,
+      /* With no picker (the drawer inside an app) the app on screen is the only one it can go to. */
+      app: showAppPicker ? (saved?.app ?? getDefaults().app) : getDefaults().app,
       reportKind: REPORT_KIND_OPTIONS.find((option) => option.value === saved?.reportKind) ?? DEFAULT_REPORT_KIND,
       priority: PRIORITY_OPTIONS.find((option) => option.value === saved?.priority) ?? DEFAULT_PRIORITY,
     };
@@ -700,8 +701,14 @@ export function GiveAiAppFeedbackDialog({
   }, [isOpen, loadedKey, draftKey, draftPlace, note, noteView, app, reportKind, priority, screenshots, worthKeeping]);
 
   useEffect(() => {
-    if (isOpen) setOtherDrafts(listFeedbackDrafts().filter((draft) => draft.key !== draftKey));
-  }, [isOpen, draftKey, showDrafts]);
+    if (!isOpen) return;
+    setOtherDrafts(
+      listFeedbackDrafts().filter(
+        /* No picker: a draft about another app (or the list) can't be sent from here, so only this app's other screens. */
+        (draft) => draft.key !== draftKey && (showAppPicker || draft.place?.appUid === appUid),
+      ),
+    );
+  }, [isOpen, draftKey, showDrafts, showAppPicker, appUid]);
 
   /* The draft in the panel is already kept as it stands. */
   const openDraft = (draft: SavedDraft) => {

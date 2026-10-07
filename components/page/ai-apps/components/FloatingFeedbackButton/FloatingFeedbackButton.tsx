@@ -153,12 +153,14 @@ function FeedbackFab({
     setIsOpen(true);
   }, [canPin, commentsAvailable, openPinMode, analytics, appUid, appName]);
 
-  /* Comment mode's Esc with nothing left to dismiss: the page bumps the request, the whole drawer closes. */
-  const closeRequest = commentMode?.closeRequest ?? 0;
+  /* Comment mode's Esc with nothing left to dismiss: the page bumps the request, the whole drawer closes.
+     Only a bump while comments are on counts: comments dropping out (bridge, frame, setup card) takes the
+     prop away, and reading that as 0 — or its return as a new value — would close a drawer mid-typing. */
+  const closeRequest = commentMode?.closeRequest;
   const [seenCloseRequest, setSeenCloseRequest] = useState(closeRequest);
-  if (closeRequest !== seenCloseRequest) {
+  if (closeRequest !== undefined && closeRequest !== seenCloseRequest) {
     setSeenCloseRequest(closeRequest);
-    setIsOpen(false);
+    if (seenCloseRequest !== undefined) setIsOpen(false);
   }
 
   /* Comment mode is the drawer's Comments tab, so it holds the drawer open too. */

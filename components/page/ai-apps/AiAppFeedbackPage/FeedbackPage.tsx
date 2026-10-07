@@ -61,6 +61,9 @@ const EMPTY_COPY: Record<FeedbackView, string> = {
   mine: 'You haven’t sent any feedback yet.',
 };
 
+/* One message whenever the filters hide everything, an app with no feedback picked in App included. */
+const FILTERED_EMPTY_COPY = 'No feedback matches the selected filters.';
+
 const ALL_APPS_LABEL: Record<FeedbackView, string> = {
   received: 'All my apps',
   mine: ALL_TAB,
@@ -195,11 +198,6 @@ export function FeedbackPage({ view }: { view: FeedbackView }) {
     );
   };
 
-  const filteredEmptyCopy =
-    appFilter !== ALL_APPS && !feedback.some((row) => row.appName === appFilter)
-      ? `No feedback on ${appFilter} yet.`
-      : 'No feedback matches the selected filters.';
-
   return (
     <div className={s.pageFrame}>
       <div className={s.content}>
@@ -270,7 +268,7 @@ export function FeedbackPage({ view }: { view: FeedbackView }) {
         ) : feedback.length === 0 ? (
           <div className={s.state}>{EMPTY_COPY[view]}</div>
         ) : visibleRows.length === 0 ? (
-          <div className={s.state}>{isFiltered ? filteredEmptyCopy : EMPTY_COPY[view]}</div>
+          <div className={s.state}>{isFiltered ? FILTERED_EMPTY_COPY : EMPTY_COPY[view]}</div>
         ) : (
           <FeedbackTable
             rows={visibleRows}

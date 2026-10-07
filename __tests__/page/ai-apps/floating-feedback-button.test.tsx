@@ -657,6 +657,39 @@ describe('FloatingFeedbackButton', () => {
       expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
     });
 
+    /* After one Esc the request is 1: comments dropping out (and back) must not read as a new request. */
+    it('keeps the drawer open when comments drop out and come back after an earlier close request', () => {
+      withAccess();
+      const fab = (commentMode?: ReturnType<typeof comments>) => (
+        <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={commentMode} />
+      );
+      const { rerender } = render(fab(comments({ closeRequest: 1 })));
+      fireEvent.click(screen.getByRole('button', { name: 'Feedback & comments' }));
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+
+      rerender(fab(undefined));
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+
+      rerender(fab(comments({ closeRequest: 1 })));
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+
+      /* A real bump still closes it. */
+      rerender(fab(comments({ closeRequest: 2 })));
+      expect(screen.queryByText('Feedback dialog open')).not.toBeInTheDocument();
+    });
+
+    /* Mounted with comments off and turned on later with a non-zero request: adopted, not obeyed. */
+    it('does not close on the first close request it sees after comments arrive', () => {
+      withAccess();
+      const { rerender } = render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" />);
+      fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+
+      rerender(
+        <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments({ closeRequest: 3 })} />,
+      );
+      expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+    });
+
     it('the shortcut opens the drawer on Feedback', () => {
       withAccess();
       render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments()} />);

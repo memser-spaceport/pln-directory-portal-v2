@@ -15,6 +15,7 @@ import { useUpdateAiAppFeedbackStatus } from '@/services/ai-app-feedback/hooks/u
 import { useSubmitAiAppFeedback } from '@/services/ai-app-feedback/hooks/useSubmitAiAppFeedback';
 import type { FeedbackContext } from '@/services/ai-app-feedback/ai-app-feedback.service';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
+import { FEEDBACK_DRAWER_NARROW } from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/FeedbackDrawerFrame';
 import { toast } from '@/components/core/ToastContainer';
 import type { BridgeRect } from '@/ai-apps-bridge/protocol';
 // Forum comment rows (avatar, name, time, body), so a thread on a pin reads like
@@ -31,7 +32,6 @@ import { AnnotatorModal } from '../screenshot-feedback/AnnotatorModal';
 import { flattenAnnotations } from '../screenshot-feedback/flattenAnnotations';
 import { hasAnyAnnotation, type AnnotationState } from '../screenshot-feedback/types';
 import { commentHtml, toPinInput } from './commentPost';
-import { CommentCard } from './CommentCard';
 import { CommentsDrawer, type CommentListItem, type CommentWhere } from './CommentsDrawer';
 import { useFeedbackReplies, type ThreadViewer } from './FeedbackReplies';
 import { ConfirmDelete, EditedMark, InlineEdit, ItemActionsMenu } from './ItemActions';
@@ -53,14 +53,12 @@ import s from './CommentMode.module.scss';
  */
 
 const THREAD_WIDTH = 340;
-/** The comments panel's width; the app, the button and the cards keep out of it. */
-const DRAWER_WIDTH = 380;
-/** Below this the panel is hidden (phones), so nothing makes room for it. */
+/** Below this the feedback drawer is the whole screen (phones), so there is no edge to keep clear of. */
 const DRAWER_MIN_VIEWPORT = 640;
 
-/** How much of the window's right edge the comments panel covers now. */
+/** How much of the window's right edge the feedback drawer (its Comments tab lists the comments) covers now. */
 function drawerInset() {
-  return typeof window !== 'undefined' && window.innerWidth >= DRAWER_MIN_VIEWPORT ? DRAWER_WIDTH : 0;
+  return typeof window !== 'undefined' && window.innerWidth >= DRAWER_MIN_VIEWPORT ? FEEDBACK_DRAWER_NARROW : 0;
 }
 const THREAD_GAP = 20;
 
@@ -512,10 +510,12 @@ type Props = {
   /** The bridge, for picking new pins and their crops. */
   elementPins: ElementPinsController;
   viewerName: string;
-  /** Every comment on the app (Shipped included), beside the Comment tab. */
-  commentCount: number;
-  /** The card's Feedback tab: leave the mode and open the written form. */
-  onFeedbackTab: () => void;
+  /**
+   * Where the list of comments goes: the body of the feedback drawer's Comments
+   * tab (LAB-2767). Null until the drawer has drawn it; the pins and threads
+   * on the app do not wait for it.
+   */
+  listSlot: HTMLElement | null;
   /** The signed-in member, for the thread's replies; null when unknown. */
   viewer: ThreadViewer | null;
   getContext: () => FeedbackContext | null;
@@ -541,8 +541,7 @@ export function CommentMode({
   elementPins,
   viewerName,
   viewer,
-  commentCount,
-  onFeedbackTab,
+  listSlot,
   getContext,
   isAdmin = false,
 }: Props) {
@@ -555,8 +554,6 @@ export function CommentMode({
   const [posting, setPosting] = useState(false);
   /** The composer's annotate dialog is open: Escape is its, not the mode's. */
   const [annotating, setAnnotating] = useState(false);
-  /** The Comment card's corner on screen; threads keep clear of it. */
-  const [cardBounds, setCardBounds] = useState<Obstacle>(null);
 
   /* ---------- a new pick: the composer, or (thread open) just closing the thread ---------- */
 
@@ -660,16 +657,6 @@ export function CommentMode({
     onOpenPinChange(item.pin.uid);
   };
 
-  /* The app, the button and the card make room for the panel while the mode is on. */
-  useEffect(() => {
-    if (!active) return;
-    const root = document.documentElement;
-    root.style.setProperty('--ai-app-comments-inset', `${DRAWER_WIDTH}px`);
-    return () => {
-      root.style.removeProperty('--ai-app-comments-inset');
-    };
-  }, [active]);
-
   /* ---------- post: one feedback item per comment, sent at once; then its thread opens ---------- */
 
   /* The item just posted; its thread opens once the pin comes back from the API. */
@@ -738,8 +725,7 @@ export function CommentMode({
 
   const open = overlay.placed.find((p) => p.pin.uid === openPinUid && p.rect);
   const outlined = overlay.placed.find((p) => p.pin.uid === (hoverPinUid ?? openPinUid) && p.rect);
-  const threadStyle =
-    open?.rect && box ? cardPosition(box, pointIn(open.rect, open.pin), THREAD_ROOM, cardBounds) : null;
+  const threadStyle = open?.rect && box ? cardPosition(box, pointIn(open.rect, open.pin), THREAD_ROOM) : null;
   /* A comment whose element isn't on the page (gone, or unknown without `locate`): its thread
      opens beside the panel instead of at a pin. */
   const floating = !open
@@ -752,7 +738,7 @@ export function CommentMode({
         Math.max(8, window.innerWidth - drawerInset() - THREAD_WIDTH - 24),
         Math.max(8, (box?.top ?? 0) + 16),
         THREAD_ROOM,
-        cardBounds,
+        null,
       )
     : null;
   const thread =
@@ -764,7 +750,7 @@ export function CommentMode({
 
   const composingPin = composingPinId ? elementPins.pins.find((p) => p.id === composingPinId) : null;
   const composingPoint = composingPin ? draftPoint(composingPin.rect, composingPin.point) : null;
-  const composerStyle = composingPoint && box ? cardPosition(box, composingPoint, 200, cardBounds) : null;
+  const composerStyle = composingPoint && box ? cardPosition(box, composingPoint, 200) : null;
   const viewerColor = getAvatarColor(viewerName);
 
   return createPortal(
@@ -860,15 +846,12 @@ export function CommentMode({
         />
       )}
 
-      <CommentCard
-        commentCount={commentCount}
-        onFeedbackTab={onFeedbackTab}
-        onClose={onExit}
-        status={overlay.status}
-        onBoundsChange={setCardBounds}
-      />
-
-      <CommentsDrawer items={listItems} openPinUid={openPinUid} onSelect={selectItem} onClose={onExit} />
+      {/* The list lives in the feedback drawer's Comments tab, under its switcher. */}
+      {listSlot &&
+        createPortal(
+          <CommentsDrawer items={listItems} openPinUid={openPinUid} onSelect={selectItem} status={overlay.status} />,
+          listSlot,
+        )}
     </>,
     document.body,
   );

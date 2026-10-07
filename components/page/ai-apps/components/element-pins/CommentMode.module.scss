@@ -123,7 +123,8 @@ $quiet: var(--foreground-neutral-secondary, #455468);
    beside its pin. Fixed in the window, so it can hang past the frame. */
 .card {
   position: fixed;
-  z-index: 11;
+  /* Above the feedback drawer (1000), which is the whole screen on a phone; below every Modal (9999). */
+  z-index: 1001;
   width: 340px;
   max-height: min(70vh, 520px);
   border: 1px solid $border;
@@ -321,42 +322,6 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   resize: none;
 }
 
-/* ---------- the dock ---------- */
-
-/* Open for as long as the mode is on, above the feedback button (the
-   prototype's DraftsPanel position). Only the middle scrolls. */
-.dock {
-  position: fixed;
-  right: 24px;
-
-  bottom: 88px;
-  z-index: 10;
-  gap: 12px;
-  width: min(420px, calc(100vw - 24px));
-  max-height: min(64vh, 560px);
-  padding: 16px;
-  border: 1px solid $border;
-  animation: threadIn 160ms ease-out both;
-
-  /* Beside the comments panel while it is open (hidden on phones). */
-  @include media.tablet-portrait {
-    right: calc(24px + var(--ai-app-comments-inset, 0px));
-  }
-
-  @include media.mobile-only {
-    right: 12px;
-    bottom: 72px;
-  }
-}
-
-.top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
 .hint {
   margin: 0;
   color: $quiet;
@@ -409,7 +374,8 @@ $quiet: var(--foreground-neutral-secondary, #455468);
 /* The small card beside a new pin (prototype PinComposer). */
 .composer {
   position: fixed;
-  z-index: 11;
+  /* Above the feedback drawer (1000), as the thread card is. */
+  z-index: 1001;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -480,19 +446,12 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   }
 
   .card,
-  .dock,
   .pinDraft {
     animation: none;
   }
 }
 
-/* ---------- the Comment tab's card and the composer (prototype ai-apps-comments) ---------- */
-
-.hintBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
+/* ---------- the composer (prototype ai-apps-comments) ---------- */
 
 .hintLead {
   margin: 0;
@@ -649,10 +608,10 @@ $quiet: var(--foreground-neutral-secondary, #455468);
 }
 
 /* Portalled to the body and placed beside its button (inline style): above the
-   thread card (z-index 11), whose scroll area used to clip it. */
+   thread card (z-index 1001), whose scroll area used to clip it. */
 .itemActionsMenu {
   position: fixed;
-  z-index: 12;
+  z-index: 1002;
   display: flex;
   flex-direction: column;
   min-width: 120px;

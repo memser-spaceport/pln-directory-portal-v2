@@ -5,8 +5,45 @@ import { MyAiAppFeedbackPage } from '@/components/page/ai-apps/AiAppFeedbackPage
 
 const mockUseMyAiAppFeedbackList = jest.fn();
 
+const mockUseAiAppFeedbackList = jest.fn(() => ({ feedback: [] as unknown[], isLoading: false, isError: false }));
+const mockUseAiAppFeedbackReviewAccess = jest.fn(() => ({
+  canReview: false,
+  isDirectoryAdmin: false,
+  isLoading: false,
+}));
+
 jest.mock('@/services/ai-app-feedback/hooks/useMyAiAppFeedbackList', () => ({
   useMyAiAppFeedbackList: () => mockUseMyAiAppFeedbackList(),
+}));
+
+jest.mock('@/services/ai-app-feedback/hooks/useAiAppFeedbackList', () => ({
+  useAiAppFeedbackList: () => mockUseAiAppFeedbackList(),
+}));
+
+jest.mock('@/services/ai-app-feedback/hooks/useAiAppFeedbackReviewAccess', () => ({
+  useAiAppFeedbackReviewAccess: () => mockUseAiAppFeedbackReviewAccess(),
+}));
+
+jest.mock('@/services/ai-app-feedback/hooks/useUpdateAiAppFeedbackStatus', () => ({
+  useUpdateAiAppFeedbackStatus: () => ({ mutate: jest.fn(), isPending: false, variables: undefined }),
+}));
+
+jest.mock('@/services/ai-apps/hooks/useAiApps', () => ({
+  useAiApps: () => ({ apps: [], isLoading: false, isError: false }),
+}));
+
+jest.mock('@/services/auth/store', () => ({
+  useCurrentUserStore: () => ({ currentUser: { uid: 'me', name: 'Me' } }),
+}));
+
+jest.mock('@/analytics/ai-apps.analytics', () => ({
+  useAiAppsAnalytics: () => ({
+    onFeedbackReviewViewed: jest.fn(),
+    onFeedbackTabFiltered: jest.fn(),
+    onFeedbackExported: jest.fn(),
+    onFeedbackStatusFiltered: jest.fn(),
+    onFeedbackStatusChanged: jest.fn(),
+  }),
 }));
 
 const FEEDBACK = [
@@ -42,6 +79,11 @@ const selectFilter = (filterLabel: string, option: string) => {
 };
 
 describe('MyAiAppFeedbackPage', () => {
+  beforeEach(() => {
+    mockUseAiAppFeedbackReviewAccess.mockReturnValue({ canReview: false, isDirectoryAdmin: false, isLoading: false });
+    mockUseAiAppFeedbackList.mockReturnValue({ feedback: [], isLoading: false, isError: false });
+  });
+
   it('shows the app, kind, note, date and status of each report', () => {
     mockUseMyAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
 
@@ -76,19 +118,24 @@ describe('MyAiAppFeedbackPage', () => {
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 
-  it('has an All apps tab and a tab per app, each with a count', () => {
+  it('filters by app, with All apps first and the apps in the rows', () => {
     mockUseMyAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
 
     render(<MyAiAppFeedbackPage />);
 
-    expect(screen.getByRole('button', { name: 'All apps 2' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Beta 1' }));
+    fireEvent.click(filterTrigger('App:'));
+    expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+      'All apps · 2',
+      'Alpha · 1',
+      'Beta · 1',
+    ]);
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Beta · 1' }));
 
     expect(screen.getByText('Add dark mode')).toBeInTheDocument();
     expect(screen.queryByText('search')).not.toBeInTheDocument();
   });
 
-  it('filters by status, kind and priority together, recounting the tabs', () => {
+  it('filters by status, kind and priority together, recounting the apps', () => {
     mockUseMyAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
 
     render(<MyAiAppFeedbackPage />);
@@ -98,12 +145,51 @@ describe('MyAiAppFeedbackPage', () => {
     selectFilter('Priority:', 'P1 — Serious — there is a workaround and it hurts');
 
     expect(screen.getByText('Add dark mode')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'All apps 1' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Alpha 0' })).toBeInTheDocument();
+    fireEvent.click(filterTrigger('App:'));
+    expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+      'All apps · 1',
+      'Alpha · 0',
+      'Beta · 1',
+    ]);
+    fireEvent.click(screen.getByRole('menuitem', { name: 'All apps · 1' }));
 
     selectFilter('Status:', 'Shipped');
 
     expect(screen.getByText('No feedback matches the selected filters.')).toBeInTheDocument();
+  });
+
+  /* LAB-2767: the one Feedback page; without review access there is one list and no tabs. */
+  it('is titled Feedback and shows no tabs to a member who reviews nothing', () => {
+    mockUseMyAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
+
+    render(<MyAiAppFeedbackPage />);
+
+    expect(screen.getByRole('heading', { name: 'Feedback' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Received/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Given/ })).not.toBeInTheDocument();
+  });
+
+  it('shows Received and Given tabs to an app creator, Given selected', () => {
+    mockUseAiAppFeedbackReviewAccess.mockReturnValue({ canReview: true, isDirectoryAdmin: false, isLoading: false });
+    mockUseAiAppFeedbackList.mockReturnValue({ feedback: [FEEDBACK[0]], isLoading: false, isError: false });
+    mockUseMyAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
+
+    render(<MyAiAppFeedbackPage />);
+
+    expect(screen.getByRole('button', { name: 'Received 1' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Given 2' }).querySelector('[class*="activeIndicator"]'),
+    ).toBeInTheDocument();
+    mockUseAiAppFeedbackReviewAccess.mockReturnValue({ canReview: false, isDirectoryAdmin: false, isLoading: false });
+  });
+
+  it('shows no filters when nothing has been sent', () => {
+    mockUseMyAiAppFeedbackList.mockReturnValue({ feedback: [], isLoading: false, isError: false });
+
+    render(<MyAiAppFeedbackPage />);
+
+    expect(screen.queryByText('App:')).not.toBeInTheDocument();
+    expect(screen.queryByText('Status:')).not.toBeInTheDocument();
   });
 
   it('has no Export CSV', () => {

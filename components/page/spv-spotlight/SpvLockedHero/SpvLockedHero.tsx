@@ -19,8 +19,8 @@ const COPY = {
     body: 'PL Spotlights are shared by invitation. Open the link in your invitation email, or sign in with the email it was sent to.',
   },
   lockedNoAccess: {
-    title: 'You don’t have access to this Spotlight',
-    body: 'PL Spotlights are shared by invitation. If you think you should have access, contact us.',
+    title: 'This Spotlight is invite-only',
+    body: 'If you think you should have access, contact us.',
   },
 };
 

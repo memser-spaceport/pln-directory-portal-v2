@@ -27,6 +27,8 @@ export type SpvInvestorProfileSource = 'top-bar' | 'profile-card' | 'applied-ste
 /** Whether the viewer had an investor profile yet: what the profile card's button said. */
 export type SpvInvestorProfileState = 'setup' | 'review';
 export type SpvContactUsSource = 'locked-signed-out' | 'locked-no-access' | 'rejected';
+export type SpvTeamWebsiteSource = 'fact-strip' | 'carousel';
+export type SpvSupportEmailSource = 'faq' | 'footer';
 
 export const useSpvSpotlightAnalytics = () => {
   const postHog = usePostHog();
@@ -88,6 +90,12 @@ export const useSpvSpotlightAnalytics = () => {
   const onFounderProfileClicked = (params: SpvSpotlightBaseParams & { member_uid: string }) =>
     captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_FOUNDER_PROFILE_CLICKED, params);
 
+  const onTeamWebsiteClicked = (params: SpvSpotlightBaseParams & { source: SpvTeamWebsiteSource }) =>
+    captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_TEAM_WEBSITE_CLICKED, params);
+
+  const onSupportEmailClicked = (params: SpvSpotlightBaseParams & { source: SpvSupportEmailSource }) =>
+    captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_SUPPORT_EMAIL_CLICKED, params);
+
   return {
     onPageViewed,
     onRequestAccessClicked,
@@ -101,5 +109,7 @@ export const useSpvSpotlightAnalytics = () => {
     onContactUsClicked,
     onExploreTileClicked,
     onFounderProfileClicked,
+    onTeamWebsiteClicked,
+    onSupportEmailClicked,
   };
 };

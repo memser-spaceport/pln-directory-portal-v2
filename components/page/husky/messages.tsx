@@ -15,12 +15,16 @@ interface MessagesProps {
   }[];
   isAnswerLoading: boolean;
   statusLine?: string;
-  onFeedback: (question: string, answer: string) => Promise<void>;
+  onFeedback?: (question: string, answer: string) => Promise<void>;
   onRegenerate: (question: string) => void;
   onQuestionEdit: (question: string) => void;
   onCopyAnswer: (answer: string) => Promise<void>;
   onFollowupClicked: (question: string) => void;
   isLoadingObject: boolean;
+  layout?: 'dialog' | 'page';
+  isStreaming?: boolean;
+  showRating?: boolean;
+  canRate?: boolean;
 }
 
 const Messages: React.FC<MessagesProps> = ({
@@ -33,6 +37,10 @@ const Messages: React.FC<MessagesProps> = ({
   onQuestionEdit,
   onCopyAnswer,
   isLoadingObject,
+  layout = 'dialog',
+  isStreaming = false,
+  showRating = true,
+  canRate = true,
 }) => {
   return (
     <>
@@ -49,6 +57,10 @@ const Messages: React.FC<MessagesProps> = ({
             onCopyAnswer={onCopyAnswer}
             isLoadingObject={isLoadingObject}
             isAnswerLoading={isAnswerLoading}
+            layout={layout}
+            isStreaming={isStreaming && index === messages.length - 1}
+            showRating={showRating}
+            canRate={canRate}
           />
         ))}
         {isAnswerLoading && <HuskyAnswerLoader label={statusLine} />}

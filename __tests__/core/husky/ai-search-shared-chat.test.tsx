@@ -101,9 +101,7 @@ jest.mock('@/components/page/husky/messages', () => ({
     </div>
   ),
 }));
-jest.mock('@/components/page/husky/chat-home', () => ({ __esModule: true, default: () => <div>chat home</div> }));
-jest.mock('@/components/page/husky/chat-feedback', () => ({ __esModule: true, default: () => null }));
-jest.mock('@/components/core/register/register-form-loader', () => ({ __esModule: true, default: () => null }));
+jest.mock('@/components/page/husky/ChatHome', () => ({ ChatHome: () => <div>chat home</div> }));
 jest.mock('@/components/core/husky/husky-limit-strip', () => ({ __esModule: true, default: () => null }));
 
 import Chat from '@/components/page/husky/chat';

@@ -2716,6 +2716,7 @@ export const AI_APPS_ANALYTICS = {
   FEEDBACK_EXPORTED: 'ai_apps_feedback_exported',
   FEEDBACK_STATUS_CHANGED: 'ai_apps_feedback_status_changed',
   FEEDBACK_DIALOG_OPENED: 'ai_apps_feedback_dialog_opened',
+  FEEDBACK_COMMENTS_TAB_CLICKED: 'ai-apps-feedback-comments-tab-clicked',
   FEEDBACK_SCREENSHOT_CLICKED: 'ai_apps_feedback_screenshot_clicked',
   FEEDBACK_SCREENSHOT_CAPTURE_DENIED: 'ai_apps_feedback_screenshot_capture_denied',
   FEEDBACK_SCREENSHOT_CAPTURE_FAILED: 'ai_apps_feedback_screenshot_capture_failed',
@@ -2732,6 +2733,7 @@ export const AI_APPS_ANALYTICS = {
   FEEDBACK_REPLY_SENT: 'ai_apps_feedback_reply_sent',
   FEEDBACK_REPLY_DELETED: 'ai_apps_feedback_reply_deleted',
   FEEDBACK_REPLY_EDITED: 'ai_apps_feedback_reply_edited',
+  FEEDBACK_COMMENT_SUBMITTED: 'ai_apps_feedback_comment_submitted',
   FEEDBACK_COMMENT_EDITED: 'ai_apps_feedback_comment_edited',
   FEEDBACK_COMMENT_DELETED: 'ai_apps_feedback_comment_deleted',
   FEEDBACK_APP_CAPTURE: 'ai_apps_feedback_app_capture',
@@ -2837,6 +2839,8 @@ export const SPV_SPOTLIGHT_ANALYTICS = {
   ON_CONTACT_US_CLICKED: 'spv-spotlight-contact-us-clicked',
   ON_EXPLORE_TILE_CLICKED: 'spv-spotlight-explore-tile-clicked',
   ON_FOUNDER_PROFILE_CLICKED: 'spv-spotlight-founder-profile-clicked',
+  ON_TEAM_WEBSITE_CLICKED: 'spv-spotlight-team-website-clicked',
+  ON_SUPPORT_EMAIL_CLICKED: 'spv-spotlight-support-email-clicked',
 };
 
 export const EXPLORE_PL_NETWORK_ANALYTICS = {

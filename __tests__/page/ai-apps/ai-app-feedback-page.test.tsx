@@ -28,6 +28,21 @@ jest.mock('@/services/ai-app-feedback/hooks/useUpdateAiAppFeedbackStatus', () =>
   useUpdateAiAppFeedbackStatus: () => mockUseUpdateAiAppFeedbackStatus(),
 }));
 
+const mockUseMyAiAppFeedbackList = jest.fn(() => ({ feedback: [] as unknown[], isLoading: false, isError: false }));
+const mockUseAiApps = jest.fn(() => ({ apps: [] as unknown[], isLoading: false, isError: false }));
+
+jest.mock('@/services/ai-app-feedback/hooks/useMyAiAppFeedbackList', () => ({
+  useMyAiAppFeedbackList: () => mockUseMyAiAppFeedbackList(),
+}));
+
+jest.mock('@/services/ai-apps/hooks/useAiApps', () => ({
+  useAiApps: () => mockUseAiApps(),
+}));
+
+jest.mock('@/services/auth/store', () => ({
+  useCurrentUserStore: () => ({ currentUser: { uid: 'me', name: 'Me' } }),
+}));
+
 jest.mock('@/components/page/ai-apps/AiAppFeedbackPage/utils/exportAiAppFeedbackCsv', () => ({
   exportAiAppFeedbackCsv: (...args: unknown[]) => mockExportAiAppFeedbackCsv(...args),
 }));
@@ -81,9 +96,24 @@ const selectFilter = (filterLabel: string, option: string) => {
 
 const selectStatusFilter = (label: string) => selectFilter('Status:', label);
 
+/* The App filter's options carry their counts: "Alpha · 2". */
+const appOption = (name: string) => screen.getByRole('menuitem', { name: new RegExp(`^${name} · `) });
+const selectApp = (name: string) => {
+  fireEvent.click(filterTrigger('App:'));
+  fireEvent.click(appOption(name));
+};
+const appOptionLabels = () => {
+  fireEvent.click(filterTrigger('App:'));
+  const labels = screen.getAllByRole('menuitem').map((item) => item.textContent);
+  fireEvent.click(screen.getAllByRole('menuitem')[0]);
+  return labels;
+};
+
 describe('AiAppFeedbackPage', () => {
   beforeEach(() => {
     mockUseAiAppFeedbackReviewAccess.mockReturnValue({ isDirectoryAdmin: false });
+    mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+    mockUseMyAiAppFeedbackList.mockReturnValue({ feedback: [], isLoading: false, isError: false });
     mockUseUpdateAiAppFeedbackStatus.mockReturnValue({
       mutate: mockMutate,
       isPending: false,
@@ -103,24 +133,41 @@ describe('AiAppFeedbackPage', () => {
     expect(screen.getByRole('link', { name: /Back to all/ })).toHaveAttribute('href', '/pl-infra/ai-apps');
   });
 
-  it('shows the app-creator heading/subtitle for a non-admin reviewer', () => {
-    mockUseAiAppFeedbackReviewAccess.mockReturnValue({ isDirectoryAdmin: false });
-    mockUseAiAppFeedbackList.mockReturnValue({ feedback: [], isLoading: false, isError: false });
+  /* LAB-2767: one Feedback page with Received and Given tabs, in place of "Feedback on your apps" and "Your feedback". */
+  it('is titled Feedback, with Received and Given tabs and their counts', () => {
+    mockUseAiAppFeedbackReviewAccess.mockReturnValue({ isDirectoryAdmin: false, canReview: true });
+    mockUseAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
+    mockUseMyAiAppFeedbackList.mockReturnValue({ feedback: [FEEDBACK[0]], isLoading: false, isError: false });
 
     render(<AiAppFeedbackPage />);
 
-    expect(screen.getByRole('heading', { name: 'Feedback on your apps' })).toBeInTheDocument();
-    expect(screen.getByText('Only the apps you build — not every app on the page.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Feedback' })).toBeInTheDocument();
+    expect(screen.getByText(/Feedback others gave on the apps you build/)).toBeInTheDocument();
+    const received = screen.getByRole('button', { name: 'Received 3' });
+    expect(received.querySelector('[class*="activeIndicator"]')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Given 1' })).toBeInTheDocument();
   });
 
-  it('shows the admin heading/subtitle for a directory admin', () => {
-    mockUseAiAppFeedbackReviewAccess.mockReturnValue({ isDirectoryAdmin: true });
-    mockUseAiAppFeedbackList.mockReturnValue({ feedback: [], isLoading: false, isError: false });
+  it('the Given tab opens the feedback the viewer gave', () => {
+    const push = jest.fn();
+    jest.spyOn(require('next/navigation'), 'useRouter').mockReturnValue({ push });
+    mockUseAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
+
+    render(<AiAppFeedbackPage />);
+    fireEvent.click(screen.getByRole('button', { name: /^Given/ }));
+
+    expect(push).toHaveBeenCalledWith('/pl-infra/ai-apps/feedback/mine');
+  });
+
+  it('says it covers every app for a directory admin', () => {
+    mockUseAiAppFeedbackReviewAccess.mockReturnValue({ isDirectoryAdmin: true, canReview: true });
+    mockUseAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
 
     render(<AiAppFeedbackPage />);
 
-    expect(screen.getByRole('heading', { name: 'All app feedback' })).toBeInTheDocument();
-    expect(screen.getByText('Every app across the directory.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Feedback' })).toBeInTheDocument();
+    expect(screen.getByText(/Feedback on every app across the directory/)).toBeInTheDocument();
+    expect(appOptionLabels()[0]).toBe('All apps · 3');
   });
 
   it('shows a loading state', () => {
@@ -139,16 +186,18 @@ describe('AiAppFeedbackPage', () => {
     expect(screen.getByText('Unable to load feedback. Please try again later.')).toBeInTheDocument();
   });
 
-  it('shows an empty state with no Export button when there is no feedback at all', () => {
+  it('shows an empty state with no filters and no Export button when there is no feedback at all', () => {
     mockUseAiAppFeedbackList.mockReturnValue({ feedback: [], isLoading: false, isError: false });
 
     render(<AiAppFeedbackPage />);
 
-    expect(screen.getByText('No feedback has been submitted yet.')).toBeInTheDocument();
+    expect(screen.getByText('No feedback on your apps yet.')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Export CSV/ })).not.toBeInTheDocument();
+    expect(screen.queryByText('App:')).not.toBeInTheDocument();
+    expect(screen.queryByText('Status:')).not.toBeInTheDocument();
   });
 
-  it('lists feedback in a table, filters by app tab, and exports only the visible rows', () => {
+  it('lists feedback in a table, filters by app, and exports only the visible rows', () => {
     mockUseAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
 
     render(<AiAppFeedbackPage />);
@@ -158,9 +207,7 @@ describe('AiAppFeedbackPage', () => {
     expect(screen.getByText('Needs work')).toBeInTheDocument();
     expect(screen.getByText('Ada Lovelace')).toBeInTheDocument();
 
-    // The tab is a <button> with the count in a separate span; the table cell below
-    // also shows "Alpha" as plain text (not a button), so role + name disambiguates.
-    fireEvent.click(screen.getByRole('button', { name: /Alpha/ }));
+    selectApp('Alpha');
 
     expect(mockOnFeedbackTabFiltered).toHaveBeenCalledWith('Alpha');
     expect(screen.getByText('Loved it')).toBeInTheDocument();
@@ -218,10 +265,10 @@ describe('AiAppFeedbackPage', () => {
       expect(screen.getByText('Already shipped')).toBeInTheDocument();
     });
 
-    it('combines with the app tab, narrowing rows within the selected app', () => {
+    it('combines with the App filter, narrowing rows within the selected app', () => {
       render(<AiAppFeedbackPage />);
 
-      fireEvent.click(screen.getByRole('button', { name: /^Alpha/ }));
+      selectApp('Alpha');
       selectStatusFilter('New');
 
       expect(screen.getByText('Loved it')).toBeInTheDocument();
@@ -229,21 +276,19 @@ describe('AiAppFeedbackPage', () => {
       expect(screen.queryByText('Needs work')).not.toBeInTheDocument();
     });
 
-    /* A tab counting rows the status filter hides would send reviewers to an empty table. */
-    it('counts each tab against the active status filter without dropping the tab', () => {
+    /* An app counting rows the status filter hides would send reviewers to an empty table. */
+    it('counts each app against the active status filter without dropping the app', () => {
       render(<AiAppFeedbackPage />);
 
       selectStatusFilter('New');
 
-      expect(screen.getByRole('button', { name: 'All apps 1' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Alpha 1' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Beta 0' })).toBeInTheDocument();
+      expect(appOptionLabels()).toEqual(['All my apps · 1', 'Alpha · 1', 'Beta · 0']);
     });
 
     it('explains an empty table caused by the filters', () => {
       render(<AiAppFeedbackPage />);
 
-      fireEvent.click(screen.getByRole('button', { name: /^Beta/ }));
+      selectApp('Beta');
       selectStatusFilter('Shipped');
 
       expect(screen.getByText('No feedback matches the selected filters.')).toBeInTheDocument();
@@ -253,7 +298,7 @@ describe('AiAppFeedbackPage', () => {
     it('exports only the rows left by both filters, naming the file after them', () => {
       render(<AiAppFeedbackPage />);
 
-      fireEvent.click(screen.getByRole('button', { name: /^Alpha/ }));
+      selectApp('Alpha');
       selectStatusFilter('Shipped');
       fireEvent.click(screen.getByRole('button', { name: /Export CSV/ }));
 
@@ -313,23 +358,20 @@ describe('AiAppFeedbackPage', () => {
       expect(screen.queryByText('Already shipped')).not.toBeInTheDocument();
     });
 
-    it('combines with status and the app tab, keeping the tab and recounting it', () => {
+    it('combines with status and the App filter, keeping the app chosen and recounting it', () => {
       render(<AiAppFeedbackPage />);
 
-      fireEvent.click(screen.getByRole('button', { name: /^Alpha/ }));
+      selectApp('Alpha');
       selectFilter('Kind:', 'bug');
       selectStatusFilter('New');
 
       expect(screen.getByText('Loved it')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'All apps 1' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Alpha 1' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Beta 0' })).toBeInTheDocument();
+      expect(appOptionLabels()).toEqual(['All my apps · 1', 'Alpha · 1', 'Beta · 0']);
 
+      selectApp('Alpha');
       selectFilter('Priority:', 'P3 — Someday — a good idea with no clock on it');
 
-      expect(
-        screen.getByRole('button', { name: 'Alpha 0' }).querySelector('[class*="activeIndicator"]'),
-      ).toBeInTheDocument();
+      expect(filterTrigger('App:')).toHaveTextContent(/^Alpha$/);
       expect(screen.getByText('No feedback matches the selected filters.')).toBeInTheDocument();
     });
 
@@ -369,22 +411,23 @@ describe('AiAppFeedbackPage', () => {
     );
   });
 
-  it('moves the sliding active-tab indicator to whichever tab was clicked', () => {
+  it('offers every app the viewer manages under App, quiet ones included, with All my apps first', () => {
+    mockUseAiApps.mockReturnValue({
+      apps: [
+        { uid: 'app-1', name: 'Alpha', canManage: true, member: { uid: 'me' } },
+        { uid: 'app-9', name: 'Quiet', canManage: true, member: { uid: 'me' } },
+        { uid: 'app-7', name: 'Someone else', canManage: false, member: { uid: 'm-7' } },
+      ],
+      isLoading: false,
+      isError: false,
+    });
     mockUseAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
 
     render(<AiAppFeedbackPage />);
 
-    const allAppsTab = screen.getByRole('button', { name: /All apps/ });
-    const alphaTab = screen.getByRole('button', { name: /Alpha/ });
-
-    // Framer Motion's layoutId indicator is only rendered inside the active tab.
-    expect(allAppsTab.querySelector('[class*="activeIndicator"]')).toBeInTheDocument();
-    expect(alphaTab.querySelector('[class*="activeIndicator"]')).not.toBeInTheDocument();
-
-    fireEvent.click(alphaTab);
-
-    expect(allAppsTab.querySelector('[class*="activeIndicator"]')).not.toBeInTheDocument();
-    expect(alphaTab.querySelector('[class*="activeIndicator"]')).toBeInTheDocument();
+    expect(appOptionLabels()).toEqual(['All my apps · 3', 'Alpha · 2', 'Beta · 1', 'Quiet · 0']);
+    selectApp('Quiet');
+    expect(screen.getByText('No feedback matches the selected filters.')).toBeInTheDocument();
   });
 
   it('renders HTML headings, links, and images', () => {

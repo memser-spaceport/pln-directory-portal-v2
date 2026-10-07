@@ -456,8 +456,12 @@ export function AiAppDetailPage(props: Props) {
     if (commentModeOn && overlayScope !== null) void refetchPins();
   }, [commentModeOn, overlayScope, refetchPins]);
   const [openFeedbackPin, setOpenFeedbackPin] = useState<string | null>(null);
-  /* Bumped when the comment card's Feedback tab is chosen: the button opens the written form. */
-  const [feedbackRequest, setFeedbackRequest] = useState(0);
+  /* Bumped when comment mode asks the feedback drawer to close (Esc with nothing left open). */
+  const [drawerCloseRequest, setDrawerCloseRequest] = useState(0);
+  /* Whether comments were available last render; compared below, past the early returns (a hook can't live there). */
+  const [seenCommentModeAvailable, setSeenCommentModeAvailable] = useState(false);
+  /* The feedback drawer's Comments tab body, where comment mode lists the comments. */
+  const [commentsListSlot, setCommentsListSlot] = useState<HTMLDivElement | null>(null);
   const deepLinkHandled = useRef(false);
   // Every comment, Shipped included — the button, the Comment tab and the comments panel
   // show the same total (prototype). One item may carry several pins (older feedback).
@@ -585,6 +589,15 @@ export function AiAppDetailPage(props: Props) {
   // them the feedback button stays today's door (pins or the dialog).
   const commentModeAvailable =
     overlayScope !== null && elementPins.status === 'ready' && frameStatus === 'live' && !showSetupCard;
+  // Comments dropping out ends comment mode: left on, the drawer would reopen by itself on Comments
+  // when they come back. Only the drop counts — the deep link turns the mode on before they arrive.
+  if (seenCommentModeAvailable !== commentModeAvailable) {
+    setSeenCommentModeAvailable(commentModeAvailable);
+    if (!commentModeAvailable) {
+      setCommentModeOn(false);
+      setOpenFeedbackPin(null);
+    }
+  }
 
   // Close a card action; if the deployment modal was opened via the
   // `?settings=deployment` deep link, drop the param so a refresh/back doesn't
@@ -887,7 +900,8 @@ export function AiAppDetailPage(props: Props) {
                   setCommentModeOn(false);
                   setOpenFeedbackPin(null);
                 },
-                feedbackRequest,
+                body: <div ref={setCommentsListSlot} className={s.commentsListSlot} />,
+                closeRequest: drawerCloseRequest,
               }
             : undefined
         }
@@ -910,15 +924,11 @@ export function AiAppDetailPage(props: Props) {
           onExit={() => {
             setCommentModeOn(false);
             setOpenFeedbackPin(null);
+            setDrawerCloseRequest((n) => n + 1);
           }}
           elementPins={elementPins}
           viewerName={currentUser?.name ?? 'You'}
-          commentCount={commentCount}
-          onFeedbackTab={() => {
-            setCommentModeOn(false);
-            setOpenFeedbackPin(null);
-            setFeedbackRequest((n) => n + 1);
-          }}
+          listSlot={commentsListSlot}
           viewer={
             currentUser?.uid
               ? { uid: currentUser.uid, name: currentUser.name ?? 'You', image: currentUser.profileImageUrl ?? null }

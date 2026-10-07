@@ -34,7 +34,13 @@ describe('AnnotationCanvas comments', () => {
   it('keeps the composer after click and saves a pin on Enter', () => {
     const onChange = jest.fn();
     const { container } = render(
-      <AnnotationCanvas imageSrc={PIXEL_PNG} annotations={EMPTY_ANNOTATIONS} onChange={onChange} tool="comment" />,
+      <AnnotationCanvas
+        imageSrc={PIXEL_PNG}
+        annotations={EMPTY_ANNOTATIONS}
+        onChange={onChange}
+        tool="comment"
+        commentsEditable
+      />,
     );
 
     const canvas = container.querySelector('canvas');
@@ -78,7 +84,13 @@ describe('AnnotationCanvas comments', () => {
   it('saves the comment when clicking outside the composer', () => {
     const onChange = jest.fn();
     const { container } = render(
-      <AnnotationCanvas imageSrc={PIXEL_PNG} annotations={EMPTY_ANNOTATIONS} onChange={onChange} tool="comment" />,
+      <AnnotationCanvas
+        imageSrc={PIXEL_PNG}
+        annotations={EMPTY_ANNOTATIONS}
+        onChange={onChange}
+        tool="comment"
+        commentsEditable
+      />,
     );
     const canvas = container.querySelector('canvas')!;
     jest.spyOn(canvas, 'getBoundingClientRect').mockReturnValue({
@@ -118,6 +130,7 @@ describe('AnnotationCanvas comments', () => {
         imageSrc={PIXEL_PNG}
         annotations={{ version: 1, strokes: [], shapes: [], comments: [{ id: 'c1', x: 0.5, y: 0.5, text: 'Hi' }] }}
         onChange={onChange}
+        commentsEditable
         tool="comment"
       />,
     );
@@ -144,6 +157,7 @@ describe('AnnotationCanvas comments', () => {
         imageSrc={PIXEL_PNG}
         annotations={{ version: 1, strokes: [], shapes: [], comments: [{ id: 'c1', x: 0.5, y: 0.5, text: 'Hi' }] }}
         onChange={onChange}
+        commentsEditable
         tool="comment"
       />,
     );
@@ -163,6 +177,7 @@ describe('AnnotationCanvas comments', () => {
         imageSrc={PIXEL_PNG}
         annotations={{ version: 1, strokes: [], shapes: [], comments: [{ id: 'c1', x: 0.5, y: 0.5, text: 'Hi' }] }}
         onChange={onChange}
+        commentsEditable
         tool="comment"
       />,
     );
@@ -191,6 +206,111 @@ describe('AnnotationCanvas comments', () => {
         comments: [expect.objectContaining({ id: 'c1', x: 0.7, y: 0.4, text: 'Hi' })],
       }),
     );
+  });
+});
+
+/**
+ * Comments are off unless a caller opts in, and the production annotator never
+ * does (LAB-2766): comments live in the feedback popup's Comments option, and
+ * pins saved before that only show.
+ */
+describe('AnnotationCanvas with comments switched off, as by default', () => {
+  const WITH_COMMENT = {
+    ...EMPTY_ANNOTATIONS,
+    comments: [{ id: 'c1', x: 0.5, y: 0.5, text: 'Hi' }],
+  };
+
+  beforeEach(() => {
+    HTMLElement.prototype.setPointerCapture = jest.fn();
+    HTMLElement.prototype.releasePointerCapture = jest.fn();
+    HTMLCanvasElement.prototype.setPointerCapture = jest.fn();
+    HTMLCanvasElement.prototype.releasePointerCapture = jest.fn();
+    jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      left: 0,
+      bottom: 200,
+      right: 200,
+      width: 200,
+      height: 200,
+      toJSON: () => ({}),
+    });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('places no pin and opens no note field, even under the comment tool', () => {
+    const onChange = jest.fn();
+    const { container } = render(
+      <AnnotationCanvas imageSrc={PIXEL_PNG} annotations={EMPTY_ANNOTATIONS} onChange={onChange} tool="comment" />,
+    );
+    const canvas = container.querySelector('canvas')!;
+
+    fireEvent(
+      canvas,
+      new MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0, clientX: 40, clientY: 60 }),
+    );
+    fireEvent(
+      canvas,
+      new MouseEvent('pointerup', { bubbles: true, cancelable: true, button: 0, clientX: 40, clientY: 60 }),
+    );
+
+    expect(screen.queryByPlaceholderText('Add a comment')).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('shows a saved note without an input or a remove button', () => {
+    const onChange = jest.fn();
+    render(<AnnotationCanvas imageSrc={PIXEL_PNG} annotations={WITH_COMMENT} onChange={onChange} tool="draw" />);
+
+    const pin = screen.getByRole('button', { name: 'Comment 1' });
+    fireEvent.pointerDown(pin, { button: 0, pointerId: 1, clientX: 100, clientY: 100 });
+    fireEvent.pointerUp(pin, { button: 0, pointerId: 1, clientX: 100, clientY: 100 });
+    fireEvent.click(pin);
+
+    expect(screen.getByText('Hi')).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Remove comment' })).not.toBeInTheDocument();
+    expect(pin.className).not.toContain(canvasStyles.pinMove);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('does not move a saved pin when it is dragged', () => {
+    const onChange = jest.fn();
+    render(<AnnotationCanvas imageSrc={PIXEL_PNG} annotations={WITH_COMMENT} onChange={onChange} tool="draw" />);
+
+    const pin = screen.getByRole('button', { name: 'Comment 1' });
+    fireEvent(
+      pin,
+      new MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0, clientX: 100, clientY: 100 }),
+    );
+    fireEvent(pin, new MouseEvent('pointermove', { bubbles: true, clientX: 140, clientY: 80 }));
+    fireEvent(pin, new MouseEvent('pointerup', { bubbles: true, clientX: 140, clientY: 80 }));
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('keeps saved pins in the annotations when something is drawn', () => {
+    const onChange = jest.fn();
+    const { container } = render(
+      <AnnotationCanvas imageSrc={PIXEL_PNG} annotations={WITH_COMMENT} onChange={onChange} tool="rect" />,
+    );
+    const canvas = container.querySelector('canvas')!;
+    Object.defineProperty(canvas, 'width', { value: 200, configurable: true });
+    Object.defineProperty(canvas, 'height', { value: 200, configurable: true });
+
+    fireEvent(
+      canvas,
+      new MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0, clientX: 20, clientY: 20 }),
+    );
+    fireEvent(canvas, new MouseEvent('pointermove', { bubbles: true, cancelable: true, clientX: 120, clientY: 120 }));
+    fireEvent(canvas, new MouseEvent('pointerup', { bubbles: true, cancelable: true, clientX: 120, clientY: 120 }));
+
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ comments: WITH_COMMENT.comments }));
   });
 });
 
@@ -283,7 +403,15 @@ describe('AnnotationCanvas pin cursor', () => {
   const pin = () => screen.getByRole('button', { name: 'Comment 1' });
 
   it('holds the crosshair over pins while the comment tool is active', () => {
-    render(<AnnotationCanvas imageSrc={PIXEL_PNG} annotations={WITH_COMMENT} onChange={jest.fn()} tool="comment" />);
+    render(
+      <AnnotationCanvas
+        imageSrc={PIXEL_PNG}
+        annotations={WITH_COMMENT}
+        onChange={jest.fn()}
+        tool="comment"
+        commentsEditable
+      />,
+    );
 
     expect(pin().className).toContain(canvasStyles.pinCrosshair);
     expect(pin().className).not.toContain(canvasStyles.pinMove);
@@ -293,7 +421,15 @@ describe('AnnotationCanvas pin cursor', () => {
      so — the crosshair belongs to the mode that places them, not to the canvas
      for ever. */
   it('leaves the drag cursor alone under the draw tool', () => {
-    render(<AnnotationCanvas imageSrc={PIXEL_PNG} annotations={WITH_COMMENT} onChange={jest.fn()} tool="draw" />);
+    render(
+      <AnnotationCanvas
+        imageSrc={PIXEL_PNG}
+        annotations={WITH_COMMENT}
+        onChange={jest.fn()}
+        tool="draw"
+        commentsEditable
+      />,
+    );
 
     expect(pin().className).toContain(canvasStyles.pinMove);
     expect(pin().className).not.toContain(canvasStyles.pinCrosshair);
@@ -667,7 +803,13 @@ describe('AnnotationCanvas coordinate precision', () => {
   it('rounds a comment pin', () => {
     const onChange = jest.fn();
     const { container } = render(
-      <AnnotationCanvas imageSrc={PIXEL_PNG} annotations={EMPTY_ANNOTATIONS} onChange={onChange} tool="comment" />,
+      <AnnotationCanvas
+        imageSrc={PIXEL_PNG}
+        annotations={EMPTY_ANNOTATIONS}
+        onChange={onChange}
+        tool="comment"
+        commentsEditable
+      />,
     );
     const canvas = canvasIn(container);
 

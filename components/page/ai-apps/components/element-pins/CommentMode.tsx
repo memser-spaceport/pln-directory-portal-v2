@@ -8,12 +8,14 @@ import { CloseIcon } from '@/components/icons';
 import { Button } from '@/components/common/Button/Button';
 import { getAvatarColor } from '@/components/page/ai-apps/AiAppFeedbackPage/utils/getAvatarColor';
 import { FeedbackStatusSelector } from '@/components/page/ai-apps/AiAppFeedbackPage/components/FeedbackStatusSelector';
+import { FeedbackImageLightbox } from '@/components/page/ai-apps/AiAppFeedbackPage/components/FeedbackImageLightbox';
 import { AI_APP_FEEDBACK_STATUS_LABELS, type AiAppFeedbackStatus } from '@/services/ai-app-feedback/constants';
 import type { AiAppEnvironment, OverlayFeedbackPin } from '@/services/ai-app-feedback/ai-app-feedback.service';
 import { useUpdateAiAppFeedbackStatus } from '@/services/ai-app-feedback/hooks/useUpdateAiAppFeedbackStatus';
 import { useSubmitAiAppFeedback } from '@/services/ai-app-feedback/hooks/useSubmitAiAppFeedback';
 import type { FeedbackContext } from '@/services/ai-app-feedback/ai-app-feedback.service';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
+import { FEEDBACK_DRAWER_NARROW } from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/FeedbackDrawerFrame';
 import { toast } from '@/components/core/ToastContainer';
 import type { BridgeRect } from '@/ai-apps-bridge/protocol';
 // Forum comment rows (avatar, name, time, body), so a thread on a pin reads like
@@ -25,9 +27,11 @@ import fd from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/Giv
 import st from '@/components/page/ai-apps/AiAppFeedbackPage/components/FeedbackStatusSelector/FeedbackStatusSelector.module.scss';
 import { otherEnvLabel, useFeedbackOverlay } from './useFeedbackOverlay';
 import type { ElementPinsController } from './useElementPins';
-import { hostPinCrops } from './pinsHtml';
+import { hostImage } from './pinsHtml';
+import { AnnotatorModal } from '../screenshot-feedback/AnnotatorModal';
+import { flattenAnnotations } from '../screenshot-feedback/flattenAnnotations';
+import { hasAnyAnnotation, type AnnotationState } from '../screenshot-feedback/types';
 import { commentHtml, toPinInput } from './commentPost';
-import { CommentCard } from './CommentCard';
 import { CommentsDrawer, type CommentListItem, type CommentWhere } from './CommentsDrawer';
 import { useFeedbackReplies, type ThreadViewer } from './FeedbackReplies';
 import { ConfirmDelete, EditedMark, InlineEdit, ItemActionsMenu } from './ItemActions';
@@ -49,14 +53,12 @@ import s from './CommentMode.module.scss';
  */
 
 const THREAD_WIDTH = 340;
-/** The comments panel's width; the app, the button and the cards keep out of it. */
-const DRAWER_WIDTH = 380;
-/** Below this the panel is hidden (phones), so nothing makes room for it. */
+/** Below this the feedback drawer is the whole screen (phones), so there is no edge to keep clear of. */
 const DRAWER_MIN_VIEWPORT = 640;
 
-/** How much of the window's right edge the comments panel covers now. */
+/** How much of the window's right edge the feedback drawer (its Comments tab lists the comments) covers now. */
 function drawerInset() {
-  return typeof window !== 'undefined' && window.innerWidth >= DRAWER_MIN_VIEWPORT ? DRAWER_WIDTH : 0;
+  return typeof window !== 'undefined' && window.innerWidth >= DRAWER_MIN_VIEWPORT ? FEEDBACK_DRAWER_NARROW : 0;
 }
 const THREAD_GAP = 20;
 
@@ -156,6 +158,9 @@ export function PinThreadCard({
   const analytics = useAiAppsAnalytics();
   const [editing, setEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [shotOpen, setShotOpen] = useState(false);
+  /* The URL that failed, not a flag: another comment's picture in this card starts fresh. */
+  const [failedShot, setFailedShot] = useState<string | null>(null);
   const isOwn = Boolean(viewer && pin.feedback.member?.uid === viewer.uid);
   /* Only comments can be edited (the API refuses FEEDBACK items), and only by their author. */
   const canEdit = isOwn && pin.feedback.kind === 'COMMENT';
@@ -235,11 +240,40 @@ export function PinThreadCard({
             />
           )}
         </div>
-        {pin.cropUrl && (
-          <a className={s.shot} href={pin.cropUrl} target="_blank" rel="noopener noreferrer" title="View full size">
-            <img src={pin.cropUrl} alt="The part of the app this comment points at" />
-          </a>
-        )}
+        {pin.cropUrl &&
+          (failedShot === pin.cropUrl ? (
+            <p className={s.shotUnavailable}>Screenshot unavailable</p>
+          ) : (
+            <button
+              type="button"
+              className={s.shot}
+              onClick={() => setShotOpen(true)}
+              aria-label="Open screenshot full size"
+              title="View full size"
+            >
+              <img
+                src={pin.cropUrl}
+                alt="The part of the app this comment points at"
+                onError={() => setFailedShot(pin.cropUrl)}
+              />
+            </button>
+          ))}
+        {/* A Modal on <body>: its Escape is captured first, so it closes only the
+            picture, never the thread behind it. Marks are already in the picture. */}
+        <FeedbackImageLightbox
+          image={
+            shotOpen && pin.cropUrl
+              ? {
+                  src: pin.cropUrl,
+                  alt: 'The part of the app this comment points at',
+                  annotations: null,
+                  hasVisibleAnnotations: false,
+                  isPinCrop: true,
+                }
+              : null
+          }
+          onClose={() => setShotOpen(false)}
+        />
         {replies.list}
       </div>
       {replies.field}
@@ -284,24 +318,78 @@ function cardPosition(box: FrameBox, point: Point, minRoom = 320, obstacle: Obst
 
 type ComposerShot = { status: 'pending' | 'done' | 'failed'; dataUrl: string | null };
 
+/** The picture a comment posts: the crop, or the crop with the member's marks drawn in. */
+export type PostedShot = { dataUrl: string; annotated: boolean };
+
+/**
+ * An attached screenshot. The marks stay as data so reopening edits them on the
+ * clean crop; `flatUrl` is the crop with them drawn in, made when the editor is
+ * saved, so the preview is exactly the picture that will be posted.
+ */
+type AttachedShot = { annotations: AnnotationState | null; flatUrl: string | null };
+
 type ComposerProps = {
   onCancel: () => void;
-  onPost: (note: string, withShot: boolean) => void;
+  onPost: (note: string, shot: PostedShot | null) => void;
   style: { left: number; top: number; maxHeight?: number };
   /** The element's crop from the bridge; attaching it is the member's choice. */
   shot: ComposerShot;
   posting: boolean;
+  /** The annotate dialog opened or closed: comment mode leaves Escape to it meanwhile. */
+  onAnnotatingChange: (annotating: boolean) => void;
 };
 
 /**
  * The small card beside a new pin (prototype ai-apps-comments): what to say,
  * an optional screenshot of the element, and Post — the comment goes at once.
+ * The screenshot opens the annotate dialog on click (LAB-2768), so the member
+ * can mark what the comment is about.
  */
-function PinComposer({ onCancel, onPost, style, shot, posting }: ComposerProps) {
+function PinComposer({ onCancel, onPost, style, shot, posting, onAnnotatingChange }: ComposerProps) {
+  const analytics = useAiAppsAnalytics();
   const [text, setText] = useState('');
-  const [withShot, setWithShot] = useState(false);
-  const canPost = text.trim().length > 0 && !posting && !(withShot && shot.status === 'pending');
-  const post = () => canPost && onPost(text, withShot && shot.status === 'done');
+  const [attached, setAttached] = useState<AttachedShot | null>(null);
+  const [annotating, setAnnotating] = useState(false);
+  const withShot = attached !== null;
+  const canPost = text.trim().length > 0 && !posting && !annotating && !(withShot && shot.status === 'pending');
+  const post = () => {
+    if (!canPost) return;
+    const dataUrl = attached?.flatUrl ?? (shot.status === 'done' ? shot.dataUrl : null);
+    onPost(text, withShot && dataUrl ? { dataUrl, annotated: Boolean(attached?.flatUrl) } : null);
+  };
+
+  const setAnnotatingState = (next: boolean) => {
+    setAnnotating(next);
+    onAnnotatingChange(next);
+  };
+  /* The dialog goes with the composer (Cancel, the mode closing, the pin removed
+     elsewhere): comment mode must get Escape back. */
+  const onAnnotatingChangeRef = useRef(onAnnotatingChange);
+  useEffect(() => {
+    onAnnotatingChangeRef.current = onAnnotatingChange;
+  });
+  useEffect(() => () => onAnnotatingChangeRef.current(false), []);
+
+  const openAnnotator = () => {
+    if (posting || shot.status !== 'done') return;
+    analytics.onFeedbackScreenshotEditOpened({ source: 'comment' });
+    setAnnotatingState(true);
+  };
+  const saveAnnotations = async (next: AnnotationState) => {
+    const annotated = hasAnyAnnotation(next);
+    analytics.onFeedbackScreenshotEditSaved({ hasAnnotations: annotated, source: 'comment' });
+    if (!annotated || !shot.dataUrl) {
+      setAttached({ annotations: null, flatUrl: null });
+    } else {
+      try {
+        setAttached({ annotations: next, flatUrl: await flattenAnnotations(shot.dataUrl, next) });
+      } catch {
+        toast.error('Your drawing couldn’t be added to the screenshot. Try again.');
+      }
+    }
+    setAnnotatingState(false);
+  };
+
   return (
     <div className={clsx(fd.root, s.composer)} style={style} role="dialog" aria-label="New comment">
       <textarea
@@ -312,7 +400,7 @@ function PinComposer({ onCancel, onPost, style, shot, posting }: ComposerProps) 
         aria-label="Comment"
         placeholder="Add a comment"
         value={text}
-        disabled={posting}
+        disabled={posting || annotating}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {
           if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
@@ -324,16 +412,28 @@ function PinComposer({ onCancel, onPost, style, shot, posting }: ComposerProps) 
       {withShot && shot.status !== 'failed' ? (
         <div className={s.composerShot}>
           {shot.dataUrl ? (
-            <img src={shot.dataUrl} alt="Screenshot of the element" />
+            <button
+              type="button"
+              className={s.composerShotOpen}
+              onClick={openAnnotator}
+              disabled={posting}
+              aria-label="Annotate screenshot"
+              title="Draw on the screenshot to show what you mean"
+            >
+              <img src={attached?.flatUrl ?? shot.dataUrl} alt="Screenshot of the element" />
+              <span className={s.composerShotHint} aria-hidden>
+                {attached?.flatUrl ? 'Edit drawing' : 'Click to draw on it'}
+              </span>
+            </button>
           ) : (
             <span className={s.composerShotPending}>Preparing screenshot…</span>
           )}
           <button
             type="button"
             className={s.composerShotRemove}
-            onClick={() => setWithShot(false)}
+            onClick={() => setAttached(null)}
             aria-label="Remove screenshot"
-            disabled={posting}
+            disabled={posting || annotating}
           >
             <CloseIcon width={12} height={12} />
           </button>
@@ -342,7 +442,7 @@ function PinComposer({ onCancel, onPost, style, shot, posting }: ComposerProps) 
         <button
           type="button"
           className={s.composerShotButton}
-          onClick={() => setWithShot(true)}
+          onClick={() => setAttached({ annotations: null, flatUrl: null })}
           disabled={posting || shot.status === 'failed'}
           title={
             shot.status === 'failed'
@@ -364,6 +464,14 @@ function PinComposer({ onCancel, onPost, style, shot, posting }: ComposerProps) 
           {posting ? 'Posting…' : 'Post'}
         </Button>
       </div>
+      {annotating && shot.dataUrl && (
+        <AnnotatorModal
+          imageSrc={shot.dataUrl}
+          initialAnnotations={attached?.annotations ?? undefined}
+          onDiscard={() => setAnnotatingState(false)}
+          onAdd={(next) => void saveAnnotations(next)}
+        />
+      )}
     </div>
   );
 }
@@ -402,10 +510,12 @@ type Props = {
   /** The bridge, for picking new pins and their crops. */
   elementPins: ElementPinsController;
   viewerName: string;
-  /** Every comment on the app (Shipped included), beside the Comment tab. */
-  commentCount: number;
-  /** The card's Feedback tab: leave the mode and open the written form. */
-  onFeedbackTab: () => void;
+  /**
+   * Where the list of comments goes: the body of the feedback drawer's Comments
+   * tab (LAB-2767). Null until the drawer has drawn it; the pins and threads
+   * on the app do not wait for it.
+   */
+  listSlot: HTMLElement | null;
   /** The signed-in member, for the thread's replies; null when unknown. */
   viewer: ThreadViewer | null;
   getContext: () => FeedbackContext | null;
@@ -431,8 +541,7 @@ export function CommentMode({
   elementPins,
   viewerName,
   viewer,
-  commentCount,
-  onFeedbackTab,
+  listSlot,
   getContext,
   isAdmin = false,
 }: Props) {
@@ -443,8 +552,8 @@ export function CommentMode({
   const { mutateAsync: submitFeedback } = useSubmitAiAppFeedback();
   const analytics = useAiAppsAnalytics();
   const [posting, setPosting] = useState(false);
-  /** The Comment card's corner on screen; threads keep clear of it. */
-  const [cardBounds, setCardBounds] = useState<Obstacle>(null);
+  /** The composer's annotate dialog is open: Escape is its, not the mode's. */
+  const [annotating, setAnnotating] = useState(false);
 
   /* ---------- a new pick: the composer, or (thread open) just closing the thread ---------- */
 
@@ -508,6 +617,9 @@ export function CommentMode({
     if (!active) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || event.defaultPrevented) return;
+      /* The dialog handles its own Escape, but lets one through from a text
+         label it's editing — that must not throw the comment away. */
+      if (annotating) return;
       event.preventDefault();
       if (composingPinId) cancelComposer();
       else if (openPinUid) onOpenPinChange(null);
@@ -515,7 +627,7 @@ export function CommentMode({
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [active, composingPinId, cancelComposer, openPinUid, onOpenPinChange, onExit]);
+  }, [active, annotating, composingPinId, cancelComposer, openPinUid, onOpenPinChange, onExit]);
 
   /* ---------- the comments panel: one row per item, newest first, with where its element is ---------- */
 
@@ -545,16 +657,6 @@ export function CommentMode({
     onOpenPinChange(item.pin.uid);
   };
 
-  /* The app, the button and the card make room for the panel while the mode is on. */
-  useEffect(() => {
-    if (!active) return;
-    const root = document.documentElement;
-    root.style.setProperty('--ai-app-comments-inset', `${DRAWER_WIDTH}px`);
-    return () => {
-      root.style.removeProperty('--ai-app-comments-inset');
-    };
-  }, [active]);
-
   /* ---------- post: one feedback item per comment, sent at once; then its thread opens ---------- */
 
   /* The item just posted; its thread opens once the pin comes back from the API. */
@@ -568,12 +670,14 @@ export function CommentMode({
     onOpenPinChange(posted.uid);
   }, [pins, onOpenPinChange]);
 
-  const post = async (note: string, withShot: boolean) => {
+  const post = async (note: string, shot: PostedShot | null) => {
     const pin = composingPinId ? elementPins.pins.find((p) => p.id === composingPinId) : null;
     if (!pin || posting) return;
     setPosting(true);
     try {
-      const [cropUrl] = withShot ? await hostPinCrops([pin]) : [null];
+      const cropUrl = shot ? await hostImage(shot.dataUrl) : null;
+      /* Attached but not hosted: posting now would drop the screenshot without a word. */
+      if (shot && !cropUrl) throw new Error('The screenshot could not be uploaded');
       const comment = {
         note,
         element: pin.element,
@@ -596,8 +700,13 @@ export function CommentMode({
         appUid,
         appName,
         screenshotCount: comment.cropUrl ? 1 : 0,
-        hasAnnotations: false,
+        hasAnnotations: shot?.annotated ?? false,
         pinCount: 1,
+      });
+      analytics.onFeedbackCommentSubmitted({
+        appUid,
+        hasScreenshot: Boolean(comment.cropUrl),
+        hasAnnotations: shot?.annotated ?? false,
       });
     } catch {
       analytics.onFeedbackSubmitFailed(appUid);
@@ -616,8 +725,7 @@ export function CommentMode({
 
   const open = overlay.placed.find((p) => p.pin.uid === openPinUid && p.rect);
   const outlined = overlay.placed.find((p) => p.pin.uid === (hoverPinUid ?? openPinUid) && p.rect);
-  const threadStyle =
-    open?.rect && box ? cardPosition(box, pointIn(open.rect, open.pin), THREAD_ROOM, cardBounds) : null;
+  const threadStyle = open?.rect && box ? cardPosition(box, pointIn(open.rect, open.pin), THREAD_ROOM) : null;
   /* A comment whose element isn't on the page (gone, or unknown without `locate`): its thread
      opens beside the panel instead of at a pin. */
   const floating = !open
@@ -630,7 +738,7 @@ export function CommentMode({
         Math.max(8, window.innerWidth - drawerInset() - THREAD_WIDTH - 24),
         Math.max(8, (box?.top ?? 0) + 16),
         THREAD_ROOM,
-        cardBounds,
+        null,
       )
     : null;
   const thread =
@@ -642,7 +750,7 @@ export function CommentMode({
 
   const composingPin = composingPinId ? elementPins.pins.find((p) => p.id === composingPinId) : null;
   const composingPoint = composingPin ? draftPoint(composingPin.rect, composingPin.point) : null;
-  const composerStyle = composingPoint && box ? cardPosition(box, composingPoint, 200, cardBounds) : null;
+  const composerStyle = composingPoint && box ? cardPosition(box, composingPoint, 200) : null;
   const viewerColor = getAvatarColor(viewerName);
 
   return createPortal(
@@ -728,7 +836,8 @@ export function CommentMode({
           key={composingPin.id}
           style={composerStyle}
           onCancel={cancelComposer}
-          onPost={(note, withShot) => void post(note, withShot)}
+          onPost={(note, shot) => void post(note, shot)}
+          onAnnotatingChange={setAnnotating}
           shot={{
             status: composingPin.crop.status,
             dataUrl: composingPin.crop.status === 'done' ? composingPin.crop.dataUrl : null,
@@ -737,15 +846,12 @@ export function CommentMode({
         />
       )}
 
-      <CommentCard
-        commentCount={commentCount}
-        onFeedbackTab={onFeedbackTab}
-        onClose={onExit}
-        status={overlay.status}
-        onBoundsChange={setCardBounds}
-      />
-
-      <CommentsDrawer items={listItems} openPinUid={openPinUid} onSelect={selectItem} onClose={onExit} />
+      {/* The list lives in the feedback drawer's Comments tab, under its switcher. */}
+      {listSlot &&
+        createPortal(
+          <CommentsDrawer items={listItems} openPinUid={openPinUid} onSelect={selectItem} status={overlay.status} />,
+          listSlot,
+        )}
     </>,
     document.body,
   );

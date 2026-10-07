@@ -195,3 +195,9 @@
   visibility: hidden;
   pointer-events: none;
 }
+
+/* The button steps aside while its feedback drawer is open, at every width; ✕ and Esc bring it back. */
+.fabHidden {
+  visibility: hidden;
+  pointer-events: none;
+}

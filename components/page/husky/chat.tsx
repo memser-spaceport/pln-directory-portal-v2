@@ -4,16 +4,14 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
 
 import Messages from './messages';
-import ChatFeedback from './chat-feedback';
 import HuskyLimitStrip from '@/components/core/husky/husky-limit-strip';
 import { DAILY_CHAT_LIMIT, PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
-import { generateUUID, getUniqueId, isMobileDevice, triggerLoader } from '@/utils/common.utils';
-import ChatHome from './chat-home';
+import { generateUUID, getUniqueId, triggerLoader } from '@/utils/common.utils';
+import { ChatHome } from './ChatHome';
 import { IAnalyticsUserInfo } from '@/types/shared.types';
 import { getUserCredentials } from '@/utils/auth.utils';
-import RegisterFormLoader from '@/components/core/register/register-form-loader';
 import { getChatCount, updateLimitType, updateChatCount, checkRefreshToken } from '@/utils/husky.utlils';
-import ChatInput from './chat-input';
+import ChatComposer from './chat-composer';
 import { createHuskyThread, createThreadTitle, duplicateThread } from '@/services/husky.service';
 import { useSidebar } from './sidebar';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
@@ -53,9 +51,7 @@ const Chat: React.FC<ChatProps> = ({
   threadOwner,
   title,
 }) => {
-  const [feedbackQandA, setFeedbackQandA] = useState({ question: '', answer: '' });
   const [limitReached, setLimitReached] = useState<'warn' | 'info' | 'finalRequest'>(); // daily limit
-  const feedbackPopupRef = useRef<HTMLDialogElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const { state } = useSidebar();
@@ -321,12 +317,6 @@ const Chat: React.FC<ChatProps> = ({
   // handle husky input submission
   const onHuskyInput = (query: string) => handleChatSubmission({ question: query, type: 'user-input' });
 
-  // handle close feedback popup
-  const onCloseFeedback = () => {
-    setFeedbackQandA({ question: '', answer: '' });
-    feedbackPopupRef.current?.close();
-  };
-
   // handle regenerate by clicking the regenerate button
   const onRegenerate = useCallback(
     (query: string) => {
@@ -374,16 +364,6 @@ const Chat: React.FC<ChatProps> = ({
     }
     onHuskyInput(trimmedValue);
     textareaRef.current!.value = '';
-  };
-
-  // handle feedback submission
-  const onFeedback = async (question: string, answer: string) => {
-    if (chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')) {
-      return;
-    }
-    analytics.trackFeedbackClick(question, answer);
-    feedbackPopupRef.current?.showModal();
-    setFeedbackQandA({ question, answer });
   };
 
   // handle submit by pressing enter key
@@ -541,10 +521,13 @@ const Chat: React.FC<ChatProps> = ({
               isAnswerLoading={isAnswerLoading}
               statusLine={chatObject?.steps?.filter(Boolean).at(-1)}
               isLoadingObject={chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')}
-              onFeedback={onFeedback}
               onRegenerate={onRegenerate}
               onCopyAnswer={onCopyAnswer}
               onQuestionEdit={onQuestionEdit}
+              layout="page"
+              isStreaming={chatIsLoading}
+              showRating={isLoggedIn}
+              canRate={isOwnThread || from !== 'detail'}
             />
           </div>
 
@@ -558,33 +541,19 @@ const Chat: React.FC<ChatProps> = ({
                   from="husky-chat"
                 />
               )}
-              <ChatInput
+              <ChatComposer
                 ref={textareaRef}
                 placeholder="Go ahead, ask anything!"
-                rows={isMobileDevice() ? 1 : 2}
+                rows={1}
                 autoFocus
                 onKeyDown={handleKeyDown}
                 onTextSubmit={submitForm}
                 onStopStreaming={onStopStreaming}
                 isAnswerLoading={isAnswerLoading || isContinuingShared}
                 isLoadingObject={chatIsLoading}
-                isLimitReached={limitReached === 'warn' || limitReached === 'finalRequest'}
               />
             </form>
           </div>
-
-          <dialog onClose={onCloseFeedback} ref={feedbackPopupRef} className="feedback-popup">
-            {feedbackQandA.answer && feedbackQandA.question && (
-              <>
-                <ChatFeedback
-                  question={feedbackQandA.question}
-                  answer={feedbackQandA.answer}
-                  onClose={onCloseFeedback}
-                />
-                <RegisterFormLoader />
-              </>
-            )}
-          </dialog>
         </div>
       )}
 
@@ -594,12 +563,14 @@ const Chat: React.FC<ChatProps> = ({
           flex-direction: column;
           height: 100%;
           width: 100%;
-          max-width: 954px;
+          /* reading column: 768px of content plus the 16px page gutter on each side */
+          max-width: calc(768px + 32px);
+          box-sizing: border-box;
           background-color: #f4faff;
           margin: 0px auto;
           position: relative;
           overflow: hidden;
-          padding: 26px 0px 90px 0px;
+          padding: 26px 16px 90px 16px;
         }
 
         .chat__header {
@@ -659,9 +630,10 @@ const Chat: React.FC<ChatProps> = ({
           padding-bottom: 20px;
         }
 
+        /* pinned input: same width and centre as the reading column */
         .chat__form-wrapper {
           position: fixed;
-          width: calc(100% - 20px);
+          width: min(768px, calc(100% - 32px));
           left: 50%;
           transform: translateX(-50%);
           bottom: 0;
@@ -675,16 +647,6 @@ const Chat: React.FC<ChatProps> = ({
           width: 100%;
         }
 
-        .feedback-popup {
-          background: white;
-          border-radius: 8px;
-          border: none;
-          max-height: 1000px;
-          width: 656px;
-          margin: auto;
-          overflow: hidden;
-        }
-
         @media (min-width: 768px) {
           .chat__header {
             margin: 0 20px 16px;
@@ -694,20 +656,18 @@ const Chat: React.FC<ChatProps> = ({
             display: inline;
           }
 
-          .chat__form-wrapper {
-            width: 989px;
-          }
-
           .chat__form {
-            padding: 20px;
+            padding: 20px 0px;
           }
 
           .chat__form-wrapper[data-state='expanded'] {
             left: calc(50% + 150px);
+            width: min(768px, calc(100% - 300px - 32px));
           }
 
           .chat__form-wrapper[data-state='collapsed'] {
             left: calc(50% + 32px);
+            width: min(768px, calc(100% - 64px - 32px));
           }
         }
       `}</style>

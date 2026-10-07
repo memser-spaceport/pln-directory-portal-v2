@@ -1,9 +1,9 @@
 import CopyText from '@/components/core/copy-text';
-import { memo } from 'react';
+import { memo, ReactNode } from 'react';
 
 type ChatMessageActions = {
   onQuestionEdit: (ques: string) => void;
-  onFeedback: (ques: string, answer: string) => Promise<void>;
+  onFeedback?: (ques: string, answer: string) => Promise<void>;
   onRegenerate: (ques: string) => void;
   onCopyAnswer: (answer: string) => Promise<void>;
   answer: string;
@@ -11,6 +11,7 @@ type ChatMessageActions = {
   question: string;
   hideActions: boolean;
   isLoadingObject: boolean;
+  feedbackSlot?: ReactNode;
 };
 
 const ChatMessageActions = ({
@@ -23,11 +24,8 @@ const ChatMessageActions = ({
   question,
   hideActions,
   isLoadingObject,
+  feedbackSlot,
 }: ChatMessageActions) => {
-  const handleFeedbackClick = async () => {
-    await onFeedback(question, answer);
-  };
-
   return (
     <>
       <div className="chat-message-actions">
@@ -57,12 +55,15 @@ const ChatMessageActions = ({
               />
             </CopyText>
           )}
-          <img
-            className="chat-message-actions__item"
-            title="Submit feedback"
-            onClick={handleFeedbackClick}
-            src="/icons/feedback.svg"
-          />
+          {onFeedback && (
+            <img
+              className="chat-message-actions__item"
+              title="Submit feedback"
+              onClick={() => onFeedback(question, answer)}
+              src="/icons/feedback.svg"
+            />
+          )}
+          {feedbackSlot}
         </div>
       </div>
 

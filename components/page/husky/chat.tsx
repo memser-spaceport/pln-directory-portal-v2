@@ -54,6 +54,10 @@ const Chat: React.FC<ChatProps> = ({
   const [limitReached, setLimitReached] = useState<'warn' | 'info' | 'finalRequest'>(); // daily limit
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  /* The signed-in token for the request `submitChat` is about to send. The API gates
+     member-only tools (Investor DB, warm intros, investor profiles) on it, so without
+     it every answer on this page is the signed-out one. */
+  const tokenRef = useRef<string | null>(null);
   const { state } = useSidebar();
   const [messages, setMessages] = useState<any[]>(initialMessages ?? []);
   const messagesRef = useRef<any[]>(initialMessages ?? []);
@@ -79,6 +83,14 @@ const Chat: React.FC<ChatProps> = ({
     headers: {
       'Content-Type': 'application/json',
     },
+    fetch: (url, init) =>
+      fetch(url, {
+        ...init,
+        headers: {
+          ...init?.headers,
+          ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}),
+        },
+      }),
     schema: z.object({
       content: z.string(),
       steps: z.array(z.string()).optional(),
@@ -221,6 +233,7 @@ const Chat: React.FC<ChatProps> = ({
     }) => {
       try {
         const { userInfo, authToken } = await getUserCredentials(isLoggedIn);
+        tokenRef.current = authToken ?? null;
         const hasRefreshToken = checkRefreshToken();
 
         if (!hasRefreshToken) {

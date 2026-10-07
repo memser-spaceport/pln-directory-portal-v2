@@ -79,6 +79,9 @@ export function useAiAppsAnalytics() {
       capture(AI_APPS_ANALYTICS.FEEDBACK_REPLY_DELETED, params),
     onFeedbackReplyEdited: (params: { appUid: string; feedbackUid: string }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_REPLY_EDITED, params),
+    /* A comment posted from comment mode (`onFeedbackSubmitted` fires for it too, as for any item). */
+    onFeedbackCommentSubmitted: (params: { appUid: string; hasScreenshot: boolean; hasAnnotations: boolean }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_COMMENT_SUBMITTED, params),
     onFeedbackCommentEdited: (params: { appUid: string; feedbackUid: string }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_COMMENT_EDITED, params),
     /* `byAuthor` false: an admin removed someone else's comment (moderation). */
@@ -142,8 +145,10 @@ export function useAiAppsAnalytics() {
       capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_ADDED, params),
     onFeedbackScreenshotAnnotatorDiscarded: (params: { isEditing: boolean }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_ANNOTATOR_DISCARDED, params),
-    onFeedbackScreenshotEditOpened: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_EDIT_OPENED),
-    onFeedbackScreenshotEditSaved: (params: { hasAnnotations: boolean }) =>
+    /* `source: 'comment'`: a comment's screenshot, opened from the comment composer (LAB-2768). */
+    onFeedbackScreenshotEditOpened: (params?: { source: 'comment' }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_EDIT_OPENED, params),
+    onFeedbackScreenshotEditSaved: (params: { hasAnnotations: boolean; source?: 'comment' }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_EDIT_SAVED, params),
     onFeedbackScreenshotRemoved: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_REMOVED),
     onFeedbackScreenshotToolSelected: (params: { tool: 'draw' | 'comment' | 'rect' | 'ellipse' | 'arrow' | 'text' }) =>

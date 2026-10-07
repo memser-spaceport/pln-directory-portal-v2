@@ -2730,6 +2730,7 @@ export const AI_APPS_ANALYTICS = {
   FEEDBACK_REPLY_SENT: 'ai_apps_feedback_reply_sent',
   FEEDBACK_REPLY_DELETED: 'ai_apps_feedback_reply_deleted',
   FEEDBACK_REPLY_EDITED: 'ai_apps_feedback_reply_edited',
+  FEEDBACK_COMMENT_SUBMITTED: 'ai_apps_feedback_comment_submitted',
   FEEDBACK_COMMENT_EDITED: 'ai_apps_feedback_comment_edited',
   FEEDBACK_COMMENT_DELETED: 'ai_apps_feedback_comment_deleted',
   FEEDBACK_APP_CAPTURE: 'ai_apps_feedback_app_capture',

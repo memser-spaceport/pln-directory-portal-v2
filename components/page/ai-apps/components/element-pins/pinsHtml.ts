@@ -90,7 +90,8 @@ export function pinsHtml(pins: ElementPin[], crops: (string | null)[]): string {
   return `<p><strong>Pinned elements</strong></p>${list}${images}`;
 }
 
-async function hostCrop(dataUrl: string): Promise<string | null> {
+/** Hosts one picture; `null` when it couldn't be hosted. */
+export async function hostImage(dataUrl: string): Promise<string | null> {
   const hosted = await hostDataUriImages(`<img src="${dataUrl}">`);
   const match = hosted.match(/\bsrc=["']([^"']+)["']/i);
   return match?.[1] && !match[1].startsWith('data:') ? match[1] : null;
@@ -98,7 +99,7 @@ async function hostCrop(dataUrl: string): Promise<string | null> {
 
 /** Hosts every finished crop once, in pin order. A crop that failed or is still rendering is `null`. */
 export async function hostPinCrops(pins: ElementPin[]): Promise<(string | null)[]> {
-  return Promise.all(pins.map((pin) => (pin.crop.status === 'done' ? hostCrop(pin.crop.dataUrl) : null)));
+  return Promise.all(pins.map((pin) => (pin.crop.status === 'done' ? hostImage(pin.crop.dataUrl) : null)));
 }
 
 /** Appends the readable pin block, using crops already hosted by `hostPinCrops`. */

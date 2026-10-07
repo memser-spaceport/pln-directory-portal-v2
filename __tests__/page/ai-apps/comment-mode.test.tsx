@@ -24,8 +24,12 @@ const mockFeedbackTab = jest.fn();
 jest.mock('@/services/ai-app-feedback/hooks/useSubmitAiAppFeedback', () => ({
   useSubmitAiAppFeedback: () => ({ mutateAsync: mockSubmit }),
 }));
+const mockCommentSubmitted = jest.fn();
 jest.mock('@/analytics/ai-apps.analytics', () => ({
   useAiAppsAnalytics: () => ({
+    onFeedbackCommentSubmitted: (params: unknown) => mockCommentSubmitted(params),
+    onFeedbackScreenshotEditOpened: jest.fn(),
+    onFeedbackScreenshotEditSaved: jest.fn(),
     onFeedbackSubmitted: jest.fn(),
     onFeedbackSubmitFailed: jest.fn(),
     onFeedbackReplySent: jest.fn(),
@@ -58,12 +62,56 @@ jest.mock('@/services/ai-app-feedback/hooks/useFeedbackItemActions', () => ({
 }));
 const mockToastError = jest.fn();
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { error: (...a: unknown[]) => mockToastError(...a) } }));
+const mockHostImage = jest.fn((_dataUrl: string) =>
+  Promise.resolve<string | null>('https://cdn.example/hosted-crop.png'),
+);
 jest.mock('@/components/page/ai-apps/components/element-pins/pinsHtml', () => ({
   ...jest.requireActual('@/components/page/ai-apps/components/element-pins/pinsHtml'),
-  hostPinCrops: () => Promise.resolve(['https://cdn.example/hosted-crop.png']),
+  hostImage: (dataUrl: string) => mockHostImage(dataUrl),
 }));
+/* A box drawn on the picture: what "Save drawing" hands back. */
+const MARKED = {
+  version: 1 as const,
+  strokes: [],
+  shapes: [{ kind: 'rect' as const, color: '#f00', width: 0.004, x: 0.1, y: 0.1, w: 0.2, h: 0.2 }],
+  comments: [],
+};
+const mockAnnotatorOpened = jest.fn();
 jest.mock('@/components/page/ai-apps/components/screenshot-feedback/AnnotatorModal', () => ({
-  AnnotatorModal: () => <div>Annotator</div>,
+  AnnotatorModal: ({
+    imageSrc,
+    initialAnnotations,
+    onAdd,
+    onDiscard,
+  }: {
+    imageSrc: string;
+    initialAnnotations?: unknown;
+    onAdd: (a: unknown) => void;
+    onDiscard: () => void;
+  }) => {
+    mockAnnotatorOpened({ imageSrc, initialAnnotations });
+    return (
+      <div role="dialog" aria-label="Annotate screenshot dialog">
+        <button type="button" onClick={() => onAdd(MARKED)}>
+          Save drawing
+        </button>
+        <button type="button" onClick={() => onAdd({ version: 1, strokes: [], shapes: [], comments: [] })}>
+          Save without marks
+        </button>
+        <button type="button" onClick={onDiscard}>
+          Discard drawing
+        </button>
+        <label>
+          Label text
+          <textarea />
+        </label>
+      </div>
+    );
+  },
+}));
+const mockFlatten = jest.fn((_src: string, _marks: unknown) => Promise.resolve('data:image/png;base64,FLAT'));
+jest.mock('@/components/page/ai-apps/components/screenshot-feedback/flattenAnnotations', () => ({
+  flattenAnnotations: (src: string, marks: unknown) => mockFlatten(src, marks),
 }));
 
 const APP = 'https://demo.os.pl.xyz';
@@ -268,6 +316,10 @@ beforeEach(() => {
   mockSubmit.mockReset().mockResolvedValue({ uid: 'fb-new' });
   mockFeedbackTab.mockReset();
   mockToastError.mockReset();
+  mockCommentSubmitted.mockReset();
+  mockAnnotatorOpened.mockReset();
+  mockHostImage.mockReset().mockResolvedValue('https://cdn.example/hosted-crop.png');
+  mockFlatten.mockReset().mockResolvedValue('data:image/png;base64,FLAT');
   window.localStorage.clear();
 });
 
@@ -297,6 +349,50 @@ describe('CommentMode — viewing', () => {
     expect(screen.getByRole('dialog', { name: 'Comment by Ada Lovelace' })).toHaveTextContent('Note a');
     expect(screen.getAllByRole('button', { name: /Change status/ }).length).toBeGreaterThan(0);
     t.cleanup();
+  });
+
+  describe('a comment’s screenshot (LAB-2768)', () => {
+    const thread = () => screen.getByRole('dialog', { name: 'Comment by Ada Lovelace' });
+
+    it('opens full size on the page, not in a new tab', () => {
+      const t = setup({ pins: VIEW_PINS, openPinUid: 'a' });
+      placeAll(t);
+      expect(within(thread()).queryByRole('link', { name: /View full size/ })).not.toBeInTheDocument();
+      fireEvent.click(within(thread()).getByRole('button', { name: 'Open screenshot full size' }));
+      const viewer = screen.getByRole('dialog', { name: 'Full size image' });
+      expect(within(viewer).getByRole('img')).toHaveAttribute('src', 'https://cdn.example/crop.webp');
+      t.cleanup();
+    });
+
+    it('Esc closes the picture, not the thread behind it', async () => {
+      const t = setup({ pins: VIEW_PINS, openPinUid: 'a' });
+      placeAll(t);
+      fireEvent.click(within(thread()).getByRole('button', { name: 'Open screenshot full size' }));
+      expect(screen.getByRole('dialog', { name: 'Full size image' })).toBeInTheDocument();
+      fireEvent.keyDown(document, { key: 'Escape' });
+      /* It fades out before it unmounts. */
+      await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Full size image' })).not.toBeInTheDocument());
+      expect(t.onOpenPinChange).not.toHaveBeenCalledWith(null);
+      t.cleanup();
+    });
+
+    it('says the screenshot is unavailable when it does not load, and keeps the comment', () => {
+      const t = setup({ pins: VIEW_PINS, openPinUid: 'a' });
+      placeAll(t);
+      fireEvent.error(within(thread()).getByRole('img', { name: 'The part of the app this comment points at' }));
+      expect(within(thread()).getByText('Screenshot unavailable')).toBeInTheDocument();
+      expect(within(thread()).queryByRole('button', { name: 'Open screenshot full size' })).not.toBeInTheDocument();
+      expect(thread()).toHaveTextContent('Note a');
+      t.cleanup();
+    });
+
+    it('shows no picture area for a comment without one', () => {
+      const t = setup({ pins: [stored('a', { cropUrl: null })], openPinUid: 'a' });
+      placeAll(t);
+      expect(within(thread()).queryByRole('img')).not.toBeInTheDocument();
+      expect(within(thread()).queryByText('Screenshot unavailable')).not.toBeInTheDocument();
+      t.cleanup();
+    });
   });
 
   it('shows a member a status only once it says something, read-only', () => {
@@ -478,6 +574,168 @@ describe('CommentMode — writing', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot' }));
     await post();
     expect(mockSubmit.mock.calls[0][0].pins[0].cropUrl).toBeNull();
+    t.cleanup();
+  });
+
+  describe('drawing on the screenshot (LAB-2768)', () => {
+    const attach = (t: ReturnType<typeof setup>) => {
+      compose(t);
+      fireEvent.click(screen.getByRole('button', { name: 'Screenshot' }));
+    };
+    const draw = async (button = 'Save drawing') => {
+      fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot' }));
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: button }));
+      });
+    };
+
+    it('opens the annotate dialog on the crop when the screenshot is clicked', () => {
+      const t = setup();
+      attach(t);
+      expect(screen.queryByRole('dialog', { name: 'Annotate screenshot dialog' })).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot' }));
+      expect(screen.getByRole('dialog', { name: 'Annotate screenshot dialog' })).toBeInTheDocument();
+      expect(mockAnnotatorOpened).toHaveBeenLastCalledWith({
+        imageSrc: 'data:image/png;base64,AAAA',
+        initialAnnotations: undefined,
+      });
+      t.cleanup();
+    });
+
+    it('shows the picture with the marks drawn in, and posts that one', async () => {
+      const t = setup();
+      attach(t);
+      await draw();
+
+      expect(mockFlatten).toHaveBeenCalledWith('data:image/png;base64,AAAA', MARKED);
+      expect(screen.queryByRole('dialog', { name: 'Annotate screenshot dialog' })).not.toBeInTheDocument();
+      expect(screen.getByRole('img', { name: 'Screenshot of the element' })).toHaveAttribute(
+        'src',
+        'data:image/png;base64,FLAT',
+      );
+
+      await post();
+      expect(mockHostImage).toHaveBeenCalledWith('data:image/png;base64,FLAT');
+      const [sent] = mockSubmit.mock.calls[0];
+      expect(sent.pins[0].cropUrl).toBe('https://cdn.example/hosted-crop.png');
+      /* The marks are in the picture: nothing for a reader to draw a second time. */
+      expect(sent.text).not.toContain('data-annotations');
+      expect(mockCommentSubmitted).toHaveBeenCalledWith({ appUid: 'app-1', hasScreenshot: true, hasAnnotations: true });
+      t.cleanup();
+    });
+
+    it('reopens on the clean crop with the marks still editable', async () => {
+      const t = setup();
+      attach(t);
+      await draw();
+      fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot' }));
+      expect(mockAnnotatorOpened).toHaveBeenLastCalledWith({
+        imageSrc: 'data:image/png;base64,AAAA',
+        initialAnnotations: MARKED,
+      });
+      t.cleanup();
+    });
+
+    it('discarding the dialog keeps the screenshot as it was', async () => {
+      const t = setup();
+      attach(t);
+      await draw('Discard drawing');
+      expect(mockFlatten).not.toHaveBeenCalled();
+      expect(screen.getByRole('img', { name: 'Screenshot of the element' })).toHaveAttribute(
+        'src',
+        'data:image/png;base64,AAAA',
+      );
+      await post();
+      expect(mockHostImage).toHaveBeenCalledWith('data:image/png;base64,AAAA');
+      expect(mockCommentSubmitted).toHaveBeenCalledWith({
+        appUid: 'app-1',
+        hasScreenshot: true,
+        hasAnnotations: false,
+      });
+      t.cleanup();
+    });
+
+    it('saving with every mark erased goes back to the plain crop', async () => {
+      const t = setup();
+      attach(t);
+      await draw();
+      await draw('Save without marks');
+      expect(screen.getByRole('img', { name: 'Screenshot of the element' })).toHaveAttribute(
+        'src',
+        'data:image/png;base64,AAAA',
+      );
+      t.cleanup();
+    });
+
+    it('removing the screenshot drops its marks with it', async () => {
+      const t = setup();
+      attach(t);
+      await draw();
+      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Screenshot' }));
+      expect(screen.getByRole('img', { name: 'Screenshot of the element' })).toHaveAttribute(
+        'src',
+        'data:image/png;base64,AAAA',
+      );
+      t.cleanup();
+    });
+
+    it('says so, and keeps the screenshot, when the marks cannot be drawn in', async () => {
+      mockFlatten.mockRejectedValueOnce(new Error('no canvas'));
+      const t = setup();
+      attach(t);
+      await draw();
+      expect(mockToastError).toHaveBeenCalledWith(expect.stringMatching(/drawing couldn’t be added/));
+      expect(screen.queryByRole('dialog', { name: 'Annotate screenshot dialog' })).not.toBeInTheDocument();
+      expect(screen.getByRole('img', { name: 'Screenshot of the element' })).toHaveAttribute(
+        'src',
+        'data:image/png;base64,AAAA',
+      );
+      t.cleanup();
+    });
+
+    it('Esc while drawing (even from a label being typed) keeps the comment and the mode', () => {
+      const t = setup();
+      attach(t);
+      fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot' }));
+      fireEvent.keyDown(screen.getByRole('textbox', { name: 'Label text' }), { key: 'Escape' });
+      expect(screen.getByRole('dialog', { name: 'New comment' })).toBeInTheDocument();
+      expect(t.spies.removePin).not.toHaveBeenCalled();
+      expect(t.onExit).not.toHaveBeenCalled();
+      t.cleanup();
+    });
+
+    it('cannot post while the dialog is open', () => {
+      const t = setup();
+      attach(t);
+      expect(screen.getByRole('button', { name: 'Post' })).toBeEnabled();
+      fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot' }));
+      expect(screen.getByRole('button', { name: 'Post' })).toBeDisabled();
+      t.cleanup();
+    });
+
+    it('gives Esc back to the mode once the composer (and its dialog) is gone', () => {
+      const t = setup();
+      attach(t);
+      fireEvent.click(screen.getByRole('button', { name: 'Annotate screenshot' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+      expect(screen.queryByRole('dialog', { name: 'New comment' })).not.toBeInTheDocument();
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(t.onExit).toHaveBeenCalled();
+      t.cleanup();
+    });
+  });
+
+  it('does not post a comment whose screenshot could not be uploaded', async () => {
+    mockHostImage.mockResolvedValueOnce(null);
+    const t = setup();
+    compose(t);
+    fireEvent.click(screen.getByRole('button', { name: 'Screenshot' }));
+    await post();
+    expect(mockSubmit).not.toHaveBeenCalled();
+    expect(mockToastError).toHaveBeenCalled();
+    expect(screen.getByRole('textbox', { name: 'Comment' })).toHaveValue('Label is unclear');
+    expect(t.spies.removePin).not.toHaveBeenCalled();
     t.cleanup();
   });
 

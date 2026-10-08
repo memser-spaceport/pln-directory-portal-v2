@@ -464,6 +464,22 @@ describe('adding screenshots', () => {
     }
   });
 
+  it('says Capturing… while Pick a part is taking the picture', async () => {
+    const pending = deferred();
+    const capture = jest.fn().mockResolvedValueOnce(shot(SHOT_A)).mockReturnValueOnce(pending.promise);
+    renderDialog(capture);
+    await flush();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pick a part' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Drag done' }));
+
+    expect(screen.getByRole('button', { name: 'Capturing…' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Sending…' })).not.toBeInTheDocument();
+
+    pending.resolve(shot(SHOT_B));
+    await flush();
+  });
+
   it('Pick a part can be cancelled without taking a picture', async () => {
     const capture = jest.fn().mockResolvedValueOnce(shot(SHOT_A));
     renderDialog(capture);

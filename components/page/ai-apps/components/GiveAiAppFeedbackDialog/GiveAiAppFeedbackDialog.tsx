@@ -467,7 +467,8 @@ export function GiveAiAppFeedbackDialog({
   const useBridge = canCapture && !bridgeFailed;
   const isBusy = isCapturing || Boolean(freezeSrc) || Boolean(cropSrc) || isPickingPart;
   const isHidden = isOpen && isBusy;
-  const isPending = isAppFeedbackPending || isContactSupportPending || isHostingImages || isRequestedCapture;
+  const isSending = isAppFeedbackPending || isContactSupportPending || isHostingImages;
+  const isPending = isSending || isRequestedCapture;
   /* The picture still on its way counts: it's a slot the member can see. */
   const shotCount = screenshots.length + (auto?.status === 'capturing' ? 1 : 0);
   const atShotLimit = shotCount >= MAX_SCREENSHOTS;
@@ -1726,7 +1727,7 @@ export function GiveAiAppFeedbackDialog({
                   disabled={isPending || isOverLimit || !hasMessageText}
                   aria-keyshortcuts={shortcuts.sendAria}
                 >
-                  {isPending ? 'Sending…' : 'Send feedback'}
+                  {isSending ? 'Sending…' : isRequestedCapture ? 'Capturing…' : 'Send feedback'}
                   <kbd className={clsx(s.kbd, s.kbdOnPrimary, s.kbdHint)} aria-hidden="true">
                     {shortcuts.send}
                   </kbd>

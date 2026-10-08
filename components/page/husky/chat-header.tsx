@@ -17,7 +17,7 @@ const ChatHeader = ({ resetChat, showActions, title }: ChatHeaderProps) => {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { id } = useParams();
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, isMobile } = useSidebar();
   const analytics = useHuskyAnalytics();
   const router = useRouter();
 
@@ -34,7 +34,11 @@ const ChatHeader = ({ resetChat, showActions, title }: ChatHeaderProps) => {
     // Implement delete functionality
     setShowMenu(false);
     document.dispatchEvent(new CustomEvent('delete-thread', { detail: { threadId: id } }));
-    analytics.trackMobileDeleteThread(id as string, title ?? '');
+    if (isMobile) {
+      analytics.trackMobileDeleteThread(id as string, title ?? '');
+    } else {
+      analytics.trackDeleteThread(id as string, title ?? '');
+    }
   };
 
   const handleNewConversation = () => {
@@ -59,12 +63,22 @@ const ChatHeader = ({ resetChat, showActions, title }: ChatHeaderProps) => {
     };
   }, []);
 
+  // On tablet and desktop the History rail holds History and New chat, so the bar shows only for an open chat.
+  const hasTitleBar = !!title || !!showActions;
+
   return (
-    <div className="chat-header">
-      <button onClick={handleToggleSidebar} className="chat-header__thread-list-button">
-        <img src="/icons/message-blue-v2.svg" alt="thread-list" />
-        <span className="chat-header__thread-list-button__text">History</span>
-      </button>
+    <div className={`chat-header${hasTitleBar ? '' : ' chat-header--phone-only'}`}>
+      <div className="chat-header__start">
+        <button onClick={handleToggleSidebar} className="chat-header__thread-list-button">
+          <img src="/icons/message-blue-v2.svg" alt="thread-list" />
+          <span className="chat-header__thread-list-button__text">History</span>
+        </button>
+        {title && (
+          <h1 className="chat-header__title" title={title}>
+            {title}
+          </h1>
+        )}
+      </div>
       <div className="chat-header__actions">
         <button onClick={handleNewConversation} className="chat-header__new-conversation-button">
           <img src="/icons/add-blue.svg" alt="new-conversation" />
@@ -92,6 +106,7 @@ const ChatHeader = ({ resetChat, showActions, title }: ChatHeaderProps) => {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          gap: 8px;
           height: 40px;
           background-color: #dbeafe;
           padding: 8px 12px;
@@ -100,15 +115,38 @@ const ChatHeader = ({ resetChat, showActions, title }: ChatHeaderProps) => {
           z-index: 1;
         }
 
+        .chat-header__start {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex: 1;
+          min-width: 0;
+        }
+
+        .chat-header__title {
+          flex: 1;
+          min-width: 0;
+          margin: 0;
+          color: #0f172a;
+          font-weight: 600;
+          font-size: 14px;
+          line-height: 20px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
         .chat-header__actions {
           display: flex;
           align-items: center;
+          flex-shrink: 0;
           gap: 8px;
           position: relative;
         }
 
         .chat-header__thread-list-button,
         .chat-header__new-conversation-button {
+          flex-shrink: 0;
           display: flex;
           align-items: center;
           gap: 4px;
@@ -188,7 +226,21 @@ const ChatHeader = ({ resetChat, showActions, title }: ChatHeaderProps) => {
 
         @media (min-width: 768px) {
           .chat-header {
+            height: 48px;
+            padding: 8px 24px;
+            background-color: #ffffff;
+            border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+          }
+
+          .chat-header--phone-only,
+          .chat-header__thread-list-button,
+          .chat-header__new-conversation-button {
             display: none;
+          }
+
+          .chat-header__title {
+            font-size: 16px;
+            line-height: 24px;
           }
         }
       `}</style>

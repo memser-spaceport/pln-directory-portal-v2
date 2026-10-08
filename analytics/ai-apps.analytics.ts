@@ -3,6 +3,16 @@ import { useCallback } from 'react';
 
 import { AI_APPS_ANALYTICS } from '@/utils/constants';
 
+const STARTER_KIT_UPDATE_TRIGGER = 'starter_kit_updated';
+
+export function starterKitUpdateClick(notification: {
+  metadata?: Record<string, unknown> | null;
+}): { version?: string } | null {
+  if (notification.metadata?.trigger !== STARTER_KIT_UPDATE_TRIGGER) return null;
+  const version = notification.metadata.version;
+  return typeof version === 'string' ? { version } : {};
+}
+
 export function useAiAppsAnalytics() {
   const posthog = usePostHog();
 
@@ -19,6 +29,11 @@ export function useAiAppsAnalytics() {
     onCreateModalClosed: () => capture(AI_APPS_ANALYTICS.CREATE_MODAL_CLOSED),
     onStarterKitDownloaded: () => capture(AI_APPS_ANALYTICS.STARTER_KIT_DOWNLOADED),
     onStarterKitDownloadFailed: () => capture(AI_APPS_ANALYTICS.STARTER_KIT_DOWNLOAD_FAILED),
+    onStarterKitNotificationClicked: (params: { source: 'updates_panel' | 'recent_updates'; version?: string }) =>
+      capture(AI_APPS_ANALYTICS.STARTER_KIT_NOTIFICATION_CLICKED, {
+        source: params.source,
+        ...(params.version ? { version: params.version } : {}),
+      }),
     onCardClicked: (appUid: string, appName: string) => capture(AI_APPS_ANALYTICS.CARD_CLICKED, { appUid, appName }),
     onAuthorClicked: (appUid: string, memberUid: string, memberName: string) =>
       capture(AI_APPS_ANALYTICS.AUTHOR_CLICKED, { appUid, memberUid, memberName }),

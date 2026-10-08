@@ -2694,6 +2694,7 @@ export const AI_APPS_ANALYTICS = {
   CREATE_MODAL_CLOSED: 'ai_apps_create_modal_closed',
   STARTER_KIT_DOWNLOADED: 'ai_apps_starter_kit_downloaded',
   STARTER_KIT_DOWNLOAD_FAILED: 'ai_apps_starter_kit_download_failed',
+  STARTER_KIT_NOTIFICATION_CLICKED: 'ai_apps_starter_kit_notification_clicked',
   CARD_CLICKED: 'ai_apps_card_clicked',
   AUTHOR_CLICKED: 'ai_apps_author_clicked',
   DETAIL_PAGE_VIEWED: 'ai_apps_detail_page_viewed',

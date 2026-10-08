@@ -6,3 +6,86 @@
 .overlay {
   overflow: visible;
 }
+
+/*
+  Phone (2026-10-08). The bar stands where the drawer was while a spot is being
+  picked: one line of instruction and its way out, or — once something is
+  tapped — what was picked and "Comment here". Production Drawer's white and
+  top shadow, the dialog's 16px radius on the top corners.
+*/
+.bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  border-radius: 16px 16px 0 0;
+  background: #fff;
+  box-shadow: 0 -4px 24px rgba(14, 15, 17, 0.12);
+  animation: sheetIn 200ms ease-out both;
+}
+
+.barText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* What the tap picked, in the words its row in the list will use. */
+.barLabel {
+  display: block;
+  overflow: hidden;
+  margin-bottom: 2px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.barActions {
+  display: flex;
+  gap: 8px;
+
+  > * {
+    flex: 1;
+  }
+}
+
+/*
+  The composer and the thread as bottom sheets: the popover card, full width,
+  pinned to the bottom, top corners rounded. Doubled to beat the shared card's
+  absolute placement and its 340px width.
+*/
+.sheet.sheet {
+  position: fixed;
+  top: auto;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1001;
+  width: 100%;
+  /* 60%: with the spot lifted to the top fifth, its pin stays in view above the sheet. */
+  max-height: 60dvh;
+  overflow-y: auto;
+  border-radius: 16px 16px 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  animation: sheetIn 200ms ease-out both;
+}
+
+@keyframes sheetIn {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+
+/* See the data-phone-commenting effect in ThreadsLayer.tsx. */
+:global(body[data-phone-commenting] [data-comment-layer]),
+:global(body[data-phone-comments-list] [data-comment-layer]) {
+  display: none;
+}

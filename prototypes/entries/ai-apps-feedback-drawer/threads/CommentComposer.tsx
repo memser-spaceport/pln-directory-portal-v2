@@ -38,6 +38,8 @@ interface Props {
   onCancel: () => void;
   onPost: (triage: Triage) => void;
   style?: React.CSSProperties;
+  /** Phone: the card is a bottom sheet instead of a popover beside the pin. */
+  className?: string;
   flip: boolean;
 }
 
@@ -62,7 +64,7 @@ interface Props {
  * reads a comment left on someone else's app.
  */
 export function CommentComposer(props: Props) {
-  const { text, onText, attachment, onAttachment, onCancel, onPost, style, flip } = props;
+  const { text, onText, attachment, onAttachment, onCancel, onPost, style, flip, className } = props;
   const ref = useRef<HTMLTextAreaElement>(null);
   /** The frame is being grabbed: the card hides so it isn't in the shot. */
   const [capturing, setCapturing] = useState(false);
@@ -103,7 +105,7 @@ export function CommentComposer(props: Props) {
 
   return (
     <div
-      className={clsx(fd.root, pt.card, flip && pt.flip, busy && s.stepAside)}
+      className={clsx(fd.root, pt.card, flip && pt.flip, className, busy && s.stepAside)}
       style={style}
       // Not in its own picture.
       {...{ [CAPTURE_IGNORE_ATTR]: '' }}
@@ -189,10 +191,10 @@ export function CommentComposer(props: Props) {
 
       <div className={clsx(fd.footer, pt.footer, s.footer)}>
         <span className={s.audience}>Everyone who can open this app can see it</span>
-        <Button style="border" variant="neutral" size="xs" onClick={onCancel}>
+        <Button style="border" variant="neutral" size="xs" className={s.footerButton} onClick={onCancel}>
           Cancel
         </Button>
-        <Button size="xs" disabled={!canPost} onClick={submit}>
+        <Button size="xs" className={s.footerButton} disabled={!canPost} onClick={submit}>
           Post
         </Button>
       </div>

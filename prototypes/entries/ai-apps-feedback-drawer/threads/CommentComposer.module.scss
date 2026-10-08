@@ -102,3 +102,21 @@
   opacity: 0;
   pointer-events: none;
 }
+
+/*
+  Phone (2026-10-08): the composer is a bottom sheet, so its footer matches the
+  feedback form's — the audience line on its own row, Cancel / Post sharing the
+  row under it in equal halves. Doubled to beat the DS Button's inline-block.
+*/
+@media (max-width: 639px) {
+  .audience {
+    flex-basis: 100%;
+  }
+
+  .footerButton.footerButton {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

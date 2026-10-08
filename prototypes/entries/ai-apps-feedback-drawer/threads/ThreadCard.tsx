@@ -151,6 +151,8 @@ interface Props {
   onDeleteReply: (replyId: string) => void;
   onClose: () => void;
   style?: React.CSSProperties;
+  /** Phone: the card is a bottom sheet instead of a popover beside the pin. */
+  className?: string;
   flip: boolean;
 }
 
@@ -172,7 +174,7 @@ interface Props {
  * a reply asks too, as every destroy in the product does.
  */
 export function ThreadCard(props: Props) {
-  const { thread, canManage, onReply, onStatus, onClose, style, flip } = props;
+  const { thread, canManage, onReply, onStatus, onClose, style, flip, className } = props;
   const { viewerUid, onEdit, onDeleteThread, onDeleteReply } = props;
   const [text, setText] = useState('');
   /** The delete awaiting confirmation: the thread itself, or one reply. */
@@ -186,7 +188,7 @@ export function ThreadCard(props: Props) {
   const annotations = thread.annotations && hasAnyAnnotation(thread.annotations) ? thread.annotations : null;
 
   return (
-    <div className={clsx(fd.root, pt.card, flip && pt.flip)} style={style} onClick={(e) => e.stopPropagation()}>
+    <div className={clsx(fd.root, pt.card, flip && pt.flip, className)} style={style} onClick={(e) => e.stopPropagation()}>
       <div className={pt.threadHead}>
         {showStatus &&
           (canManage ? (

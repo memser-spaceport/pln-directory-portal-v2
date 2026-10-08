@@ -1,8 +1,9 @@
 'use client';
 
 import { clsx } from 'clsx';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
+import { Button } from '@/components/common/Button/Button';
 import { CloseIcon } from '@/components/icons';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
 import { getAvatarColor } from '@/components/page/ai-apps/AiAppFeedbackPage/utils/getAvatarColor';
@@ -35,6 +36,12 @@ interface Props {
    * the head says how commenting works and who sees it, beside the filter.
    */
   embedded?: boolean;
+  /**
+   * Phone: there is no "click anywhere" — the drawer covers the app. The head
+   * leads with this button instead, which puts the drawer aside so a spot on the
+   * app can be tapped.
+   */
+  onAddComment?: () => void;
 }
 
 function initials(name: string) {
@@ -61,13 +68,27 @@ function initials(name: string) {
  * redeploy took the element away, the old words under "Not on the current
  * version". That last line is why the label is stored at pick time.
  */
-export function CommentsPanel({ threads, canManage, openId, isOnPage, onSelect, onHover, onClose, embedded }: Props) {
+export function CommentsPanel(props: Props) {
+  const { threads, canManage, openId, isOnPage, onSelect, onHover, onClose, embedded, onAddComment } = props;
   const [status, setStatus] = useState<string>(ALL_FEEDBACK_STATUSES);
   const rows = status === ALL_FEEDBACK_STATUSES ? threads : threads.filter((t) => t.status === status);
 
+  const isPhone = Boolean(onAddComment);
+  // Phone: the review widget's bubble would sit on the sticky "Add a comment" (rule in ThreadsLayer.module.scss).
+  useEffect(() => {
+    if (!isPhone) return;
+    document.body.setAttribute('data-phone-comments-list', '');
+    return () => document.body.removeAttribute('data-phone-comments-list');
+  }, [isPhone]);
+
   return (
     <aside className={clsx(s.panel, embedded && s.panelEmbedded)} aria-label="Comments">
-      {embedded ? (
+      {embedded && onAddComment ? (
+        <div className={clsx(s.phoneHead, s.phoneHeadRow)}>
+          <p className={s.introAudience}>Everyone who can open this app can see them.</p>
+          <SortDropdown options={FEEDBACK_STATUS_FILTER_OPTIONS} currentSort={status} onSortChange={setStatus} />
+        </div>
+      ) : embedded ? (
         <div className={clsx(s.head, s.headEmbedded)}>
           <div className={s.intro}>
             <p className={s.introHint}>Click anywhere on the app to leave a comment.</p>
@@ -93,7 +114,9 @@ export function CommentsPanel({ threads, canManage, openId, isOnPage, onSelect, 
         <p className={s.empty}>
           {threads.length > 0
             ? 'Nothing with this status.'
-            : 'No comments yet. Click anywhere on the app to start one.'}
+            : onAddComment
+              ? 'No comments yet.'
+              : 'No comments yet. Click anywhere on the app to start one.'}
         </p>
       ) : (
         <ul className={s.list}>
@@ -152,6 +175,16 @@ export function CommentsPanel({ threads, canManage, openId, isOnPage, onSelect, 
             );
           })}
         </ul>
+      )}
+
+      {/* Phone: the way to write stays in reach under the list, however long it gets. */}
+      {embedded && onAddComment && (
+        <div className={s.phoneFooter}>
+          <Button size="s" className={s.addButton} onClick={onAddComment}>
+            <PinGlyph />
+            Add a comment
+          </Button>
+        </div>
       )}
     </aside>
   );

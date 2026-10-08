@@ -70,3 +70,24 @@
     pointer-events: none;
   }
 }
+
+/*
+  Phone (2026-10-08, "Make buttons fill the row"): the footer's Cancel / Send
+  share the row in equal halves instead of hugging the right edge. The Discard
+  link, when it shows, keeps its own width. Doubled to beat .footerActions'
+  margin-left: auto.
+*/
+.phoneFillRow.phoneFillRow {
+  @include media.mobile-only {
+    flex: 1;
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+.phoneFillButton.phoneFillButton {
+  @include media.mobile-only {
+    flex: 1;
+    justify-content: center;
+  }
+}

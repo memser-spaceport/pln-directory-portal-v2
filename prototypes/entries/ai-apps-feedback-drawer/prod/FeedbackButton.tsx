@@ -18,6 +18,7 @@ import { CAPTURE_IGNORE_ATTR } from '../threads/nativeCapture';
 import { GiveAiAppFeedbackDialog, ShortcutHelp, type MockAppOption, type SubmittedFeedback } from './FeedbackDialog';
 import { DrawerSwitch, type DrawerTab } from './FeedbackDrawer';
 import dw from './FeedbackDrawer.module.scss';
+import polish from './FeedbackPolish.module.scss';
 
 /** How long the label stays before the pill settles to the glyph. */
 const INTRO_MS = 2200;
@@ -46,6 +47,8 @@ interface Props {
     onClose: () => void;
     /** The Comments tab: the thread list, drawn by the page. */
     body: ReactNode;
+    /** Phone: the drawer steps aside while a comment is placed on the app (the page draws its bar). */
+    collapsed?: boolean;
     /** Bumped by the page when comment mode asks the whole drawer to close (Esc with nothing open). */
     closeRequest: number;
   };
@@ -150,7 +153,7 @@ function FeedbackFab({ appUid, appName, apps, viewer, onSubmit, iframeRef, captu
           <CommentIcon />
           <span className={s.label} aria-hidden>
             <span>{name}</span>
-            <kbd className={s.labelKbd}>{shortcuts.open}</kbd>
+            <kbd className={clsx(s.labelKbd, polish.hideOnPhone)}>{shortcuts.open}</kbd>
           </span>
           {commentsAvailable && (commentMode?.count ?? 0) > 0 && (
             <span className={s.count} aria-label={`${commentMode?.count} comments`}>
@@ -181,6 +184,7 @@ function FeedbackFab({ appUid, appName, apps, viewer, onSubmit, iframeRef, captu
           ) : undefined
         }
         altBody={commenting ? commentMode?.body : undefined}
+        collapsed={commenting && Boolean(commentMode?.collapsed)}
       />
 
       <ShortcutHelp isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} shortcuts={shortcuts} />

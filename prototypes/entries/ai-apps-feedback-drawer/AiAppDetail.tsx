@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useMedia } from 'react-use';
 
 import { Button } from '@/components/common/Button';
 import { DocumentIcon } from '@/components/icons';
@@ -69,11 +70,25 @@ export function AiAppDetail(props: Props) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [hoverId, setHoverId] = useState<string | null>(null);
   const [focusTick, setFocusTick] = useState(0);
+  /*
+    Phone (2026-10-08): the drawer is the whole screen, so it can't sit beside
+    the app. "Add a comment" (or a row in the list) puts it aside and the app
+    takes taps, with the mode's bar at the bottom; Done brings the list back.
+  */
+  const isPhone = useMedia('(max-width: 639px)', false);
+  const [placing, setPlacing] = useState(false);
   // Switching viewer puts the page back to rest.
   useEffect(() => {
     setCommenting(false);
     setOpenId(null);
   }, [viewer.uid]);
+  useEffect(() => {
+    if (!commenting || !isPhone) setPlacing(false);
+  }, [commenting, isPhone]);
+  const backToList = useCallback(() => {
+    setPlacing(false);
+    setOpenId(null);
+  }, []);
 
   const capture = useCallback(() => captureFrame(iframeRef.current), []);
 
@@ -147,7 +162,9 @@ export function AiAppDetail(props: Props) {
           <ThreadsLayer
             iframeRef={iframeRef}
             frameGeneration={frameGeneration}
-            commenting={commenting}
+            commenting={commenting && (!isPhone || placing)}
+            touch={isPhone}
+            onDone={backToList}
             onExit={closeDrawer}
             openId={openId}
             onOpen={setOpenId}
@@ -178,6 +195,7 @@ export function AiAppDetail(props: Props) {
           onOpen: () => setCommenting(true),
           onClose: exitComments,
           closeRequest,
+          collapsed: isPhone && placing,
           body: (
             <CommentsPanel
               embedded
@@ -186,9 +204,16 @@ export function AiAppDetail(props: Props) {
               openId={openId}
               isOnPage={isOnPage}
               onSelect={(id) => {
-                setOpenId((cur) => (cur === id ? null : id));
+                // Phone: the thread opens as a sheet over the app, its pin in view.
+                if (isPhone) {
+                  setPlacing(true);
+                  setOpenId(id);
+                } else {
+                  setOpenId((cur) => (cur === id ? null : id));
+                }
                 setFocusTick((n) => n + 1);
               }}
+              onAddComment={isPhone ? () => setPlacing(true) : undefined}
               onHover={setHoverId}
               onClose={closeDrawer}
             />

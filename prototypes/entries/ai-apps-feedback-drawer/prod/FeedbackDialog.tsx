@@ -324,6 +324,8 @@ interface Props {
   switchSlot?: ReactNode;
   /** Drawer: when set (the Comments tab), shown instead of the form, which stays mounted underneath. */
   altBody?: ReactNode;
+  /** Drawer, phone: the drawer steps aside (kept mounted) while a comment is placed on the app. */
+  collapsed?: boolean;
 }
 
 /**
@@ -426,6 +428,7 @@ export function GiveAiAppFeedbackDialog({
   variant = 'popover',
   switchSlot,
   altBody,
+  collapsed = false,
 }: Props) {
   const isDrawer = variant === 'drawer';
   /* Drawer: on the Comments tab the form's keys (send, screenshot, ?) stand down. */
@@ -1212,7 +1215,7 @@ export function GiveAiAppFeedbackDialog({
       {!showingAlt && (
         <button
           type="button"
-          className={clsx(s.shortcutsLink, s.shortcutsHelpLink, local.textLink)}
+          className={clsx(s.shortcutsLink, s.shortcutsHelpLink, local.textLink, polish.hideOnPhone)}
           onClick={() => {
             analytics.onFeedbackShortcutsHelpOpened();
             setShortcutsOpen(true);
@@ -1282,7 +1285,7 @@ export function GiveAiAppFeedbackDialog({
                 aria-keyshortcuts="Escape"
               >
                 Close
-                <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
+                <kbd className={clsx(s.kbd, s.kbdHint, polish.hideOnPhone)} aria-hidden="true">
                   Esc
                 </kbd>
               </Button>
@@ -1293,7 +1296,7 @@ export function GiveAiAppFeedbackDialog({
                 aria-keyshortcuts={shortcuts.sendAria}
               >
                 Give more feedback
-                <kbd className={clsx(s.kbd, s.kbdOnPrimary, s.kbdHint)} aria-hidden="true">
+                <kbd className={clsx(s.kbd, s.kbdOnPrimary, s.kbdHint, polish.hideOnPhone)} aria-hidden="true">
                   {shortcuts.send}
                 </kbd>
               </Button>
@@ -1485,7 +1488,7 @@ export function GiveAiAppFeedbackDialog({
                           >
                             <CrosshairIcon />
                             Pick a part
-                            <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
+                            <kbd className={clsx(s.kbd, s.kbdHint, polish.hideOnPhone)} aria-hidden="true">
                               {shortcuts.screenshot}
                             </kbd>
                           </button>
@@ -1505,7 +1508,7 @@ export function GiveAiAppFeedbackDialog({
                                 >
                                   <ImageIcon />
                                   Attach image
-                                  <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
+                                  <kbd className={clsx(s.kbd, s.kbdHint, polish.hideOnPhone)} aria-hidden="true">
                                     {shortcuts.screenshot}
                                   </kbd>
                                 </button>
@@ -1528,7 +1531,7 @@ export function GiveAiAppFeedbackDialog({
                               >
                                 <CameraIcon />
                                 Take screenshot
-                                <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
+                                <kbd className={clsx(s.kbd, s.kbdHint, polish.hideOnPhone)} aria-hidden="true">
                                   {shortcuts.screenshot}
                                 </kbd>
                               </button>
@@ -1658,7 +1661,7 @@ export function GiveAiAppFeedbackDialog({
             </div>
 
             <div className={s.footer}>
-              <div className={s.footerActions}>
+              <div className={clsx(s.footerActions, polish.phoneFillRow)}>
                 {worthKeeping && (
                   <Button
                     style="link"
@@ -1672,23 +1675,23 @@ export function GiveAiAppFeedbackDialog({
                 <Button
                   style="border"
                   variant="neutral"
-                  className={s.footerButton}
+                  className={clsx(s.footerButton, polish.phoneFillButton)}
                   onClick={onClose}
                   aria-keyshortcuts="Escape"
                 >
                   Cancel
-                  <kbd className={clsx(s.kbd, s.kbdHint)} aria-hidden="true">
+                  <kbd className={clsx(s.kbd, s.kbdHint, polish.hideOnPhone)} aria-hidden="true">
                     Esc
                   </kbd>
                 </Button>
                 <Button
-                  className={s.footerButton}
+                  className={clsx(s.footerButton, polish.phoneFillButton)}
                   onClick={onSubmit}
                   disabled={isPending || isOverLimit}
                   aria-keyshortcuts={shortcuts.sendAria}
                 >
                   {isPending ? 'Sending…' : 'Send feedback'}
-                  <kbd className={clsx(s.kbd, s.kbdOnPrimary, s.kbdHint)} aria-hidden="true">
+                  <kbd className={clsx(s.kbd, s.kbdOnPrimary, s.kbdHint, polish.hideOnPhone)} aria-hidden="true">
                     {shortcuts.send}
                   </kbd>
                 </Button>
@@ -1703,7 +1706,7 @@ export function GiveAiAppFeedbackDialog({
   return (
     <>
       {isDrawer ? (
-        <FeedbackDrawerFrame isOpen={isOpen} wide={isWideShown} hidden={isBusy} reserveSpace={Boolean(appUid)}>
+        <FeedbackDrawerFrame isOpen={isOpen} wide={isWideShown} hidden={isBusy || collapsed} reserveSpace={Boolean(appUid)}>
           {panel}
         </FeedbackDrawerFrame>
       ) : (

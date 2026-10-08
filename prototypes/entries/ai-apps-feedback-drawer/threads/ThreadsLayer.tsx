@@ -2,7 +2,9 @@
 
 import { clsx } from 'clsx';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
+import { createPortal } from 'react-dom';
 
+import { Button } from '@/components/common/Button/Button';
 import { getAvatarColor } from '@/components/page/ai-apps/AiAppFeedbackPage/utils/getAvatarColor';
 
 import { captureElement, cssPath, pickTarget } from '../../feedback-shared/comments/capture';
@@ -13,6 +15,7 @@ import cl from '../../feedback-shared/comments/CommentLayer.module.scss';
 import { CommentComposer } from './CommentComposer';
 import { ThreadCard } from './ThreadCard';
 import { describeElement } from './describe';
+import { CAPTURE_IGNORE_ATTR } from './nativeCapture';
 import type { Attachment, PinTarget, Thread, ThreadStore, Triage, Viewer } from './useThreads';
 import s from './ThreadsLayer.module.scss';
 
@@ -50,6 +53,19 @@ interface Props {
   store: ThreadStore;
   /** The threads this viewer may see (all for the author, their own for anyone else). */
   threads: Thread[];
+  /**
+   * Phone (2026-10-08): the drawer has stepped aside and the app takes taps.
+   * A tap selects (outline + a bar asking "Comment here"); the composer and the
+   * thread open as bottom sheets; a drag scrolls the app.
+   */
+  touch?: boolean;
+  /** Phone: the bar's Done — back to the drawer's list. */
+  onDone?: () => void;
+}
+
+interface Selected {
+  el: Element;
+  target: PinTarget;
 }
 
 function initials(name: string) {
@@ -97,10 +113,14 @@ export function ThreadsLayer(props: Props) {
     canManage,
     store,
     threads,
+    touch = false,
+    onDone,
   } = props;
   const overlayRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<Box | null>(null);
   const [composing, setComposing] = useState<Composing | null>(null);
+  /** Phone: the tapped element, waiting for "Comment here". */
+  const [selected, setSelected] = useState<Selected | null>(null);
   const [tick, setTick] = useState(0);
   const bump = useCallback(() => setTick((t) => t + 1), []);
 
@@ -177,7 +197,13 @@ export function ThreadsLayer(props: Props) {
   // A row pressed in the panel: bring its element into the app's view first.
   useEffect(() => {
     if (!focusTick || !open?.anchor) return;
-    doc()?.querySelector(open.anchor)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    const el = doc()?.querySelector(open.anchor);
+    if (touch) {
+      // Phone: the thread is a sheet over the lower half, so the pin goes up top.
+      if (el) liftIntoView(el);
+      return;
+    }
+    el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
     const id = setTimeout(bump, 350);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -200,7 +226,74 @@ export function ThreadsLayer(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open?.id, open?.shot]);
 
+  /*
+    Phone: the prototype's review widget (bottom-right bubble) would sit on the
+    bar's and the sheet's buttons. It steps out while a comment is placed; it
+    is the reviewers' tool, not the product's.
+  */
+  useEffect(() => {
+    if (!touch || !commenting) return;
+    document.body.setAttribute('data-phone-commenting', '');
+    return () => document.body.removeAttribute('data-phone-commenting');
+  }, [touch, commenting]);
+
+  // Phone: leaving the mode drops a tap that was never confirmed.
+  useEffect(() => {
+    if (!commenting) setSelected(null);
+  }, [commenting]);
+
+  /*
+    Phone: the overlay takes every touch, so a drag would scroll nothing inside
+    the app. A vertical drag scrolls the app while it can, then the page (the
+    browser's own scroll, untouched). A tap stays a click.
+  */
+  useEffect(() => {
+    const el = overlayRef.current;
+    if (!touch || !commenting || !el) return;
+    let lastY: number | null = null;
+    const onStart = (e: TouchEvent) => {
+      lastY = e.touches[0]?.clientY ?? null;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      const y = e.touches[0]?.clientY;
+      const se = doc()?.scrollingElement;
+      if (lastY === null || y === undefined || !se) return;
+      const dy = lastY - y;
+      lastY = y;
+      const canScroll = dy > 0 ? se.scrollTop + se.clientHeight < se.scrollHeight - 1 : se.scrollTop > 0;
+      if (!canScroll) return;
+      e.preventDefault();
+      se.scrollTop += dy;
+    };
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onTouchMove);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [touch, commenting, frameGeneration]);
+
+  /**
+   * Phone: a bottom sheet covers the lower half of the screen, so the spot it
+   * is about scrolls up into the top quarter (the app first, then the page —
+   * the prototype body scrolls, not the document).
+   */
+  const liftIntoView = (el: Element) => {
+    el.scrollIntoView({ block: 'nearest' });
+    requestAnimationFrame(() => {
+      const f = iframeRef.current?.getBoundingClientRect();
+      if (!f) return;
+      const dy = f.top + el.getBoundingClientRect().top - window.innerHeight * 0.2;
+      window.scrollBy({ top: dy, behavior: 'smooth' });
+      document.body.scrollBy({ top: dy, behavior: 'smooth' });
+      setTimeout(bump, 350);
+    });
+  };
+
   const onMove = (e: React.MouseEvent) => {
+    // A tap fires a synthetic mousemove too; on a phone the outline is the selection's.
+    if (touch) return;
     if (composing || openId) {
       setHover(null);
       return;
@@ -240,7 +333,16 @@ export function ThreadsLayer(props: Props) {
       shot: null,
     };
     setHover(null);
-    setComposing({ target, text: '', attachment: null });
+    // Phone: a tap is a guess at a small target, so it selects; "Comment here" commits.
+    if (touch) setSelected({ el, target });
+    else setComposing({ target, text: '', attachment: null });
+  };
+
+  const commentHere = () => {
+    if (!selected) return;
+    setComposing({ target: selected.target, text: '', attachment: null });
+    setSelected(null);
+    liftIntoView(selected.el);
   };
 
   const post = (triage: Triage) => {
@@ -268,6 +370,13 @@ export function ThreadsLayer(props: Props) {
     : null;
   const openPoint = open ? pointOf(open.anchor, open.ox, open.oy) : null;
 
+  // Phone: popovers become bottom sheets, so they ignore the pin's placement.
+  const sheetOr = (p: { x: number; y: number } | null) =>
+    touch ? { flip: false, className: s.sheet } : placement(p);
+  const selectedBox = selected && selected.el.isConnected ? boxOf(selected.el) : null;
+  const showBar = touch && !composing && !open;
+  const outline = hover ?? selectedBox;
+
   return (
     <div
       ref={overlayRef}
@@ -277,10 +386,10 @@ export function ThreadsLayer(props: Props) {
       onMouseLeave={() => setHover(null)}
       onClick={onClick}
     >
-      {hover && (
+      {outline && (
         <div
           className={cl.highlight}
-          style={{ left: hover.left, top: hover.top, width: hover.width, height: hover.height }}
+          style={{ left: outline.left, top: outline.top, width: outline.width, height: outline.height }}
           aria-hidden
         />
       )}
@@ -302,7 +411,13 @@ export function ThreadsLayer(props: Props) {
               e.stopPropagation();
               setHover(null);
               if (composing && !composing.text.trim()) setComposing(null);
-              onOpen(t.id === openId ? null : t.id);
+              setSelected(null);
+              const opening = t.id !== openId;
+              onOpen(opening ? t.id : null);
+              if (touch && opening) {
+                const el = doc()?.querySelector(t.anchor);
+                if (el) liftIntoView(el);
+              }
             }}
             aria-label={`Thread by ${t.authorName}${t.replies.length ? `, ${t.replies.length} replies` : ''}`}
           >
@@ -332,7 +447,7 @@ export function ThreadsLayer(props: Props) {
             onAttachment={(attachment) => setComposing((cur) => (cur ? { ...cur, attachment } : cur))}
             onCancel={() => setComposing(null)}
             onPost={post}
-            {...placement(composingPoint)}
+            {...sheetOr(composingPoint)}
           />
         </>
       )}
@@ -351,9 +466,48 @@ export function ThreadsLayer(props: Props) {
             onOpen(null);
           }}
           onDeleteReply={(replyId) => store.deleteReply(open.id, replyId)}
-          {...placement(openPoint)}
+          {...sheetOr(openPoint)}
         />
       )}
+
+      {/* Phone: the mode's bar, where the drawer was. Portalled: fixed to the screen, not the stage. */}
+      {showBar &&
+        createPortal(
+          <div
+            className={s.bar}
+            role="region"
+            aria-label="Add a comment"
+            // Our own chrome stays out of the prototype's native screenshots.
+            {...{ [CAPTURE_IGNORE_ATTR]: '' }}
+          >
+            {selected ? (
+              <>
+                <p className={s.barText}>
+                  <span className={s.barLabel}>{selected.target.label}</span>
+                  Tap again to pick something else.
+                </p>
+                <div className={s.barActions}>
+                  <Button style="border" variant="neutral" size="s" onClick={() => setSelected(null)}>
+                    Cancel
+                  </Button>
+                  <Button size="s" onClick={commentHere}>
+                    Comment here
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className={s.barText}>Tap the part of the app your comment is about.</p>
+                <div className={s.barActions}>
+                  <Button style="border" variant="neutral" size="s" onClick={onDone}>
+                    Done
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

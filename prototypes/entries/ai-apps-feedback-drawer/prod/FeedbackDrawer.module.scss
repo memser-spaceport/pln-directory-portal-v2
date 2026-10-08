@@ -152,3 +152,10 @@
   visibility: hidden;
   pointer-events: none;
 }
+
+/* Phone: the drawer is the whole screen; the reviewers' bubble steps out so it doesn't cover Send. */
+@include media.mobile-only {
+  :global(body[data-feedback-drawer-open] [data-comment-layer]) {
+    display: none;
+  }
+}

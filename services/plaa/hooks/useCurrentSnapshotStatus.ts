@@ -29,7 +29,7 @@ export interface CurrentSnapshotStatus {
 function usePeriodStatus() {
   const { data: roundStats } = useCurrentRoundStats();
 
-  if (roundStats) {
+  if (roundStats?.period) {
     // roundStats.period is "YYYY-MM-DD"; useSnapshotPoints wants "YYYY-MM".
     const snapshotPeriod = roundStats.period.slice(0, 7);
     const { startDate, endDate } = getSnapshotDatesFromPeriod(roundStats.period);

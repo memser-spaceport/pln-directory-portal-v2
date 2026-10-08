@@ -51,7 +51,7 @@ function PlaaBackButton({ title = '' }: PlaaBackButtonProps) {
             gap: 4px;
             font-size: 14px;
             font-weight: 500;
-            color: #156ff7;
+            color: #0b4f66;
             cursor: pointer;
           }
 

@@ -595,7 +595,7 @@ export default function TermsOfUsePage() {
 
       <style jsx global>{`
         .terms-of-use__link {
-          color: #156ff7;
+          color: #0b4f66;
           text-decoration: underline;
           cursor: pointer;
         }

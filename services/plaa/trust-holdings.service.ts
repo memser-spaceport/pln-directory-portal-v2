@@ -45,6 +45,12 @@ export interface TrustHoldingsData {
 export const getTrustHoldings = async (
   authToken?: string,
 ): Promise<{ data?: TrustHoldingsData; error?: { message: string } }> => {
+  // Without this, a build with PLAA_API_URL unset hangs prerendering: two pages
+  // share the cached fetch of the same invalid URL and the second never settles.
+  if (!process.env.PLAA_API_URL) {
+    return { error: { message: 'PLAA_API_URL is not configured' } };
+  }
+
   try {
     const url = `${process.env.PLAA_API_URL}/api/v1/trust-holdings`;
     const response = await fetch(url, {

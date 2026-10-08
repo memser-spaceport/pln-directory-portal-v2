@@ -93,7 +93,7 @@ export interface OverviewToplineProps {
 export default function OverviewTopline({ trustHoldings }: OverviewToplineProps) {
   const { onOverviewPortfolioLinkClicked, onOverviewActivitiesLinkClicked } = useAlignmentAssetsAnalytics();
 
-  const handlePortfolioClick = () => onOverviewPortfolioLinkClicked('/alignment-asset/trust-holdings');
+  const handlePortfolioClick = () => onOverviewPortfolioLinkClicked('/alignment-asset/portfolio-holdings');
   const handleActivitiesClick = () => onOverviewActivitiesLinkClicked('/alignment-asset/activities', 'how-it-works');
 
   return (
@@ -118,7 +118,7 @@ export default function OverviewTopline({ trustHoldings }: OverviewToplineProps)
           <div className={styles.statValue}>{trustHoldings?.trustTotalValue ?? '—'}</div>
           <div className={styles.statDesc}>
             Net asset value backing PLAA — see{' '}
-            <Link href="/alignment-asset/trust-holdings" className={styles.link} onClick={handlePortfolioClick}>
+            <Link href="/alignment-asset/portfolio-holdings" className={styles.link} onClick={handlePortfolioClick}>
               Portfolio &amp; Holdings
             </Link>
           </div>

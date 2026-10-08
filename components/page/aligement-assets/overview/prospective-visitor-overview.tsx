@@ -181,7 +181,7 @@ export default function ProspectiveVisitorOverview({ trustHoldings }: Prospectiv
   useScrollDepthTracking('overview');
 
   const handleOnboardingClick = (source: 'hero' | 'cta-banner') => onOverviewOnboardingLinkClicked(SURUS_URL, source);
-  const handlePortfolioClick = () => onOverviewPortfolioLinkClicked('/alignment-asset/trust-holdings');
+  const handlePortfolioClick = () => onOverviewPortfolioLinkClicked('/alignment-asset/portfolio-holdings');
   const handleActivitiesClick = () => onOverviewActivitiesLinkClicked('/alignment-asset/activities', 'how-it-works');
   const handleFaqClick = () => onOverviewFaqLinkClicked('/alignment-asset/faqs#onboarding');
   const handleOfficeHoursClick = () => onSupportOfficeHoursClicked(SUPPORT_URL);
@@ -325,7 +325,7 @@ export default function ProspectiveVisitorOverview({ trustHoldings }: Prospectiv
             <div className={styles.statValue}>{trustHoldings?.trustTotalValue ?? '—'}</div>
             <div className={styles.statDesc}>
               Net asset value backing PLAA — see{' '}
-              <Link href="/alignment-asset/trust-holdings" className={styles.link} onClick={handlePortfolioClick}>
+              <Link href="/alignment-asset/portfolio-holdings" className={styles.link} onClick={handlePortfolioClick}>
                 Portfolio &amp; Holdings
               </Link>
             </div>

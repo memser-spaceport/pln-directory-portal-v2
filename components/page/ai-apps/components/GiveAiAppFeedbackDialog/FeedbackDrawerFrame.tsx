@@ -2,8 +2,9 @@
 
 import { type PropsWithChildren, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
+
+import { FEEDBACK_CAPTURE_IGNORE_ATTR } from '../screenshot-feedback/capturePage';
 
 import s from './GiveAiAppFeedbackDialog.module.scss';
 import dw from './FeedbackDrawer.module.scss';
@@ -43,9 +44,8 @@ interface Props {
  *   phone it is the whole screen.
  *
  * While a capture is on screen the drawer is hidden but keeps its inset, so the
- * app does not jump under the crosshair. No exit animation: `AnimatePresence`
- * does not unmount reliably here (see `Modal`), and a lingering panel would stay
- * in the accessibility tree.
+ * app does not jump under the crosshair. The panel appears in place: a slide
+ * would cover the page the member is about to capture. Closed, it draws nothing.
  */
 export function FeedbackDrawerFrame({ isOpen, wide, hidden, reserveSpace, label, children }: PropsWithChildren<Props>) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -71,23 +71,21 @@ export function FeedbackDrawerFrame({ isOpen, wide, hidden, reserveSpace, label,
 
   return createPortal(
     <div
+      {...{ [FEEDBACK_CAPTURE_IGNORE_ATTR]: '' }}
       className={clsx(dw.frame, wide && s.overlayWide, wide && dw.frameWide, hidden && s.overlayHidden)}
       data-testid="feedback-drawer"
       data-wide={wide ? 'true' : 'false'}
     >
-      <motion.div
+      <div
         className={clsx(s.modalContainer, wide && s.modalContainerWide, dw.panel, wide ? dw.panelWide : dw.panelNarrow)}
         ref={panelRef}
         tabIndex={-1}
         role="dialog"
         aria-modal={wide}
         aria-label={label}
-        initial={{ x: '100%' }}
-        animate={{ x: 0 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
       >
         {children}
-      </motion.div>
+      </div>
     </div>,
     document.body,
   );

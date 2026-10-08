@@ -13,6 +13,8 @@ export type ShortcutLabels = {
   redoAria: string;
   send: string;
   screenshot: string;
+  appList: string;
+  appListAria: string;
   undo: string;
   redo: string;
   redoAlt: string;
@@ -31,6 +33,8 @@ const WINDOWS: ShortcutLabels = {
   redoAria: 'Shift+Control+Z Control+Y',
   send: 'Ctrl+Enter',
   screenshot: 'Ctrl+Shift+S',
+  appList: 'Ctrl+Shift+A',
+  appListAria: 'Control+Shift+A',
   undo: 'Ctrl+Z',
   redo: 'Ctrl+Shift+Z',
   redoAlt: 'Ctrl+Y',
@@ -49,6 +53,8 @@ const MAC: ShortcutLabels = {
   redoAria: 'Shift+Meta+Z Meta+Y',
   send: '⌘↩',
   screenshot: '⌘⇧S',
+  appList: '⌘⇧A',
+  appListAria: 'Meta+Shift+A',
   undo: '⌘Z',
   redo: '⇧⌘Z',
   redoAlt: '⌘Y',
@@ -121,4 +127,9 @@ export function isShortcutsKey(event: KeyboardEvent): boolean {
 
 export function isScreenshotChord(event: KeyboardEvent): boolean {
   return event.key.toLowerCase() === 's' && hasPrimaryMod(event) && event.shiftKey && !event.altKey;
+}
+
+/** Opens the app list from anywhere in the feedback form. */
+export function isAppListChord(event: KeyboardEvent): boolean {
+  return event.key.toLowerCase() === 'a' && hasPrimaryMod(event) && event.shiftKey && !event.altKey;
 }

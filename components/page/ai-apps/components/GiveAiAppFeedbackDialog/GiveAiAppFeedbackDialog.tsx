@@ -11,6 +11,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import type { SelectInstance } from 'react-select';
 import { flushSync } from 'react-dom';
 import Link from 'next/link';
 import clsx from 'clsx';
@@ -35,6 +36,7 @@ import {
 } from '@/services/ai-app-feedback/constants';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import {
+  isAppListChord,
   isScreenshotChord,
   isSendChord,
   isShortcutsKey,
@@ -231,6 +233,11 @@ interface Props {
   capture?: () => Promise<AppCapture>;
   /** The app frame, for Pick a part (the drag counts over it). */
   frameRef?: RefObject<HTMLIFrameElement | null>;
+  /**
+   * Pick a part drags over the visible window (the AI Apps list). The app page
+   * passes `frameRef` instead, and the drag stays inside the app frame.
+   */
+  pickViewport?: boolean;
   /** Scrolls the app through its bridge, for a wheel turned over Pick a part's layer. */
   scrollApp?: (x: number, y: number, dx: number, dy: number) => void;
   /** The app has no bridge (older starter kit), so it misses instant screenshots. */
@@ -355,6 +362,7 @@ export function GiveAiAppFeedbackDialog({
   capture,
   scrollApp,
   frameRef,
+  pickViewport = false,
   bridgeMissing = false,
   captureExpected = false,
   onHiddenChange,
@@ -458,6 +466,9 @@ export function GiveAiAppFeedbackDialog({
     isCaptureSupported() ? null : 'unsupported',
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
+  /** The app list is open: Escape closes the list, then a later Escape closes the drawer. */
+  const [appMenuOpen, setAppMenuOpen] = useState(false);
+  const appSelectRef = useRef<SelectInstance | null>(null);
   const [auto, setAuto] = useState<AutoShot | null>(null);
   /** A Whole page / Pick a part capture the member asked for is on its way (Send waits for it). */
   const [isRequestedCapture, setIsRequestedCapture] = useState(false);
@@ -465,6 +476,8 @@ export function GiveAiAppFeedbackDialog({
   /** The bridge failed a capture this open: further captures use the screen share (after a click). */
   const [bridgeFailed, setBridgeFailed] = useState(false);
   const useBridge = canCapture && !bridgeFailed;
+  const canPickLive = useBridge && (pickViewport || Boolean(frameRef));
+  const captureNoun = appUid ? 'app' : 'page';
   const isBusy = isCapturing || Boolean(freezeSrc) || Boolean(cropSrc) || isPickingPart;
   const isHidden = isOpen && isBusy;
   const isSending = isAppFeedbackPending || isContactSupportPending || isHostingImages;
@@ -886,7 +899,7 @@ export function GiveAiAppFeedbackDialog({
       });
       /* No automatic screen share: the browser only allows one straight from a click. */
       setBridgeFailed(true);
-      toast.error('Couldn’t capture the app. Try again — it will use screen sharing.');
+      toast.error(`Couldn’t capture the ${captureNoun}. Try again — it will use screen sharing.`);
       return null;
     } finally {
       setIsRequestedCapture(false);
@@ -908,7 +921,7 @@ export function GiveAiAppFeedbackDialog({
   };
 
   const onPickPart = () => {
-    if (!useBridge || !frameRef) {
+    if (!canPickLive) {
       analytics.onFeedbackScreenShareFallback({ reason: 'capture-failed' });
       void onTakeScreenshot();
       return;
@@ -1195,12 +1208,21 @@ export function GiveAiAppFeedbackDialog({
         return;
       }
 
+      if (showAppPicker && isAppListChord(event)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (isBusy || isPending) return;
+        appSelectRef.current?.focus();
+        appSelectRef.current?.openMenu('first');
+        return;
+      }
+
       if (isScreenshotChord(event)) {
         event.preventDefault();
         event.stopImmediatePropagation();
         if (isBusy || isPending) return;
         analytics.onFeedbackShortcutUsed({ action: 'screenshot' });
-        if (useBridge && frameRef) {
+        if (canPickLive) {
           if (!atShotLimit) setIsPickingPart(true);
         } else if (captureClosedBy) {
           fileInputRef.current?.click();
@@ -1234,9 +1256,9 @@ export function GiveAiAppFeedbackDialog({
     onSubmit,
     onRemoveShot,
     analytics,
-    useBridge,
-    frameRef,
+    canPickLive,
     atShotLimit,
+    showAppPicker,
   ]);
 
   const closeOnEscape = !isBusy && !pendingRemoveId && !shortcutsOpen && !isDiscardPending;
@@ -1246,12 +1268,13 @@ export function GiveAiAppFeedbackDialog({
   useEffect(() => {
     if (!isDrawer || !formActive) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape' || event.defaultPrevented || !closeOnEscape) return;
+      /* The app list handles its own Escape. Closing the drawer here would throw the choice away. */
+      if (event.key !== 'Escape' || event.defaultPrevented || !closeOnEscape || appMenuOpen) return;
       onClose();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [isDrawer, formActive, closeOnEscape, onClose]);
+  }, [isDrawer, formActive, closeOnEscape, onClose, appMenuOpen]);
 
   /* Drawer: the Comments tab is a list beside the app, so it is always the narrow drawer. */
   const isWideShown = isWide && !showingAlt;
@@ -1424,6 +1447,9 @@ export function GiveAiAppFeedbackDialog({
                           options={appOptions}
                           disabled={isAppsLoading}
                           isRequired
+                          selectRef={appSelectRef}
+                          onMenuOpen={() => setAppMenuOpen(true)}
+                          onMenuClose={() => setAppMenuOpen(false)}
                           // Portalled + fixed so the menu escapes `.root`'s overflow mask and
                           // `auto` can measure viewport space below the control. Forcing
                           // `top` made the list open upward over the nav even though the
@@ -1444,8 +1470,12 @@ export function GiveAiAppFeedbackDialog({
                         {shotCount > 0 && <span className={s.shotCount}> · {shotCount}</span>}
                       </p>
                       {auto?.status === 'capturing' && (
-                        <div className={clsx(s.shot, s.shotPending)} role="status" aria-label="Capturing the app">
-                          <span className={s.shotPendingText}>Capturing the app…</span>
+                        <div
+                          className={clsx(s.shot, s.shotPending)}
+                          role="status"
+                          aria-label={`Capturing the ${captureNoun}`}
+                        >
+                          <span className={s.shotPendingText}>Capturing the {captureNoun}…</span>
                           <div className={s.shotActions}>
                             <button
                               type="button"
@@ -1465,7 +1495,9 @@ export function GiveAiAppFeedbackDialog({
                         </p>
                       )}
                       {auto?.status === 'failed' && screenshots.length === 0 && (
-                        <p className={s.shotNote}>Couldn’t capture the app automatically — add a screenshot below.</p>
+                        <p className={s.shotNote}>
+                          Couldn’t capture the {captureNoun} automatically — add a screenshot below.
+                        </p>
                       )}
                       {screenshots.map((shot, index) => (
                         <figure key={shot.id} className={s.shotFigure}>
@@ -1782,9 +1814,10 @@ export function GiveAiAppFeedbackDialog({
       {freezeSrc && (
         <RegionSelectOverlay freezeSrc={freezeSrc} onSelect={onCropSelected} onCancel={onRegionSelectCancel} />
       )}
-      {isPickingPart && frameRef && (
+      {isPickingPart && (pickViewport || frameRef) && (
         <LiveRegionOverlay
           frameRef={frameRef}
+          viewport={pickViewport}
           scrollApp={scrollApp}
           onSelect={(rect) => void onPartSelected(rect)}
           onCancel={onPartCancel}
@@ -1799,7 +1832,13 @@ export function GiveAiAppFeedbackDialog({
           initialAnnotations={editingShot?.annotations}
         />
       )}
-      <ShortcutHelp isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} shortcuts={shortcuts} />
+      <ShortcutHelp
+        isOpen={shortcutsOpen}
+        onClose={() => setShortcutsOpen(false)}
+        shortcuts={shortcuts}
+        screenshotAction={canPickLive ? 'Pick a part' : 'Take screenshot'}
+        appHotkeys={showAppPicker}
+      />
     </>
   );
 }
@@ -1808,10 +1847,16 @@ export function ShortcutHelp({
   isOpen,
   onClose,
   shortcuts,
+  screenshotAction = 'Take screenshot',
+  appHotkeys = false,
 }: {
   isOpen: boolean;
   onClose: () => void;
   shortcuts: ShortcutLabels;
+  /** What Ctrl/⌘+Shift+S does on this screen. */
+  screenshotAction?: string;
+  /** The app list is on screen (the AI Apps list). Open it, then move with the arrow keys. */
+  appHotkeys?: boolean;
 }) {
   useEffect(() => {
     if (!isOpen) return;
@@ -1834,7 +1879,15 @@ export function ShortcutHelp({
         [shortcuts.send, 'Give more feedback, once sent'],
         ['Esc', 'Close'],
         [['Tab', shortcuts.prevField], 'Next or previous field'],
-        [shortcuts.screenshot, 'Take screenshot'],
+        [shortcuts.screenshot, screenshotAction],
+        ...(appHotkeys
+          ? ([
+              [shortcuts.appList, 'Open the app list'],
+              ['↑ ↓', 'Move in the open list'],
+              ['Type', 'Find an app in the open list'],
+              [shortcuts.enter, 'Choose the highlighted app'],
+            ] as [string, string][])
+          : []),
         [shortcuts.enter, 'Use this part, after a touch or pen drag'],
         ['Esc', 'Cancel picking a part'],
       ],

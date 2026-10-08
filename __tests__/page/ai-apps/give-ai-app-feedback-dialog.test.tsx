@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import {
   AI_APP_FEEDBACK_DRAFT_KEY,
   FEEDBACK_PLACEHOLDER,
@@ -54,40 +54,61 @@ jest.mock('@/components/form/FormEditor', () => ({
   },
 }));
 
-jest.mock('react-select', () => ({
-  __esModule: true,
-  default: ({
-    options,
-    value,
-    onChange,
-    inputId,
-    placeholder,
-    menuPlacement,
-  }: {
-    options: Array<{ label: string; value: string }>;
-    value: { label: string; value: string } | null;
-    onChange: (value: { label: string; value: string } | null) => void;
-    inputId?: string;
-    placeholder?: string;
-    menuPlacement?: string;
-  }) => (
-    <div data-menu-placement={menuPlacement}>
-      <span data-testid={`selected-${inputId}`}>{value?.label ?? placeholder}</span>
-      {options.map((opt) => (
-        <button key={opt.value} type="button" onClick={() => onChange(opt)}>
-          {opt.label}
-        </button>
-      ))}
-      <input
-        id={inputId}
-        aria-label={inputId === 'app' ? 'Which app is this about?' : inputId}
-        readOnly
-        value={value?.label ?? ''}
-      />
-    </div>
-  ),
-  components: {},
-}));
+jest.mock('react-select', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: React.forwardRef(function MockSelect(
+      {
+        options,
+        value,
+        onChange,
+        inputId,
+        placeholder,
+        menuPlacement,
+        onKeyDown,
+        onMenuOpen,
+        onMenuClose,
+      }: {
+        options: Array<{ label: string; value: string }>;
+        value: { label: string; value: string } | null;
+        onChange: (value: { label: string; value: string } | null) => void;
+        inputId?: string;
+        placeholder?: string;
+        menuPlacement?: string;
+        onKeyDown?: (event: KeyboardEvent) => void;
+        onMenuOpen?: () => void;
+        onMenuClose?: () => void;
+      },
+      ref: React.Ref<{ focus: () => void; openMenu: () => void }>,
+    ) {
+      React.useImperativeHandle(ref, () => ({
+        focus: () => document.getElementById(inputId ?? '')?.focus(),
+        openMenu: () => onMenuOpen?.(),
+      }));
+      return (
+        <div data-menu-placement={menuPlacement}>
+          <span data-testid={`selected-${inputId}`}>{value?.label ?? placeholder}</span>
+          {options.map((opt) => (
+            <button key={opt.value} type="button" onClick={() => onChange(opt)}>
+              {opt.label}
+            </button>
+          ))}
+          <input
+            id={inputId}
+            aria-label={inputId === 'app' ? 'Which app is this about?' : inputId}
+            readOnly
+            value={value?.label ?? ''}
+            onKeyDown={onKeyDown}
+            onFocus={() => onMenuOpen?.()}
+            onBlur={() => onMenuClose?.()}
+          />
+        </div>
+      );
+    }),
+    components: {},
+  };
+});
 
 jest.mock('react-use', () => ({
   useMedia: () => false,
@@ -129,6 +150,8 @@ jest.mock('@/analytics/ai-apps.analytics', () => ({
     onFeedbackTooLarge: mockOnFeedbackTooLarge,
     onFeedbackShortcutUsed: mockOnFeedbackShortcutUsed,
     onFeedbackShortcutsHelpOpened: mockOnFeedbackShortcutsHelpOpened,
+    onFeedbackAppCapture: jest.fn(),
+    onFeedbackPickPartCancelled: jest.fn(),
   }),
 }));
 
@@ -1339,6 +1362,44 @@ describe('GiveAiAppFeedbackDialog', () => {
         expect(screen.queryByRole('heading', { name: 'Keyboard shortcuts' })).not.toBeInTheDocument(),
       );
       expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('on the list, the same keys pick a part and send, and typing finds any app', async () => {
+      apps();
+      const onClose = jest.fn();
+      const capture = jest.fn().mockResolvedValue({ dataUrl: 'data:image/jpeg;base64,QQ==', width: 10, height: 10 });
+      render(<GiveAiAppFeedbackDialog variant="drawer" isOpen onClose={onClose} capture={capture} pickViewport />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Shortcuts' }));
+      expect(screen.getByText('Pick a part', { selector: 'span' })).toBeInTheDocument();
+      expect(screen.getByText('Open the app list')).toBeInTheDocument();
+      expect(screen.getByText('Move in the open list')).toBeInTheDocument();
+      expect(screen.getByText('Find an app in the open list')).toBeInTheDocument();
+      expect(screen.getByText('Choose the highlighted app')).toBeInTheDocument();
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      const field = screen.getByLabelText('Which app is this about?');
+      fireEvent.keyDown(document, { key: 'A', ctrlKey: true, shiftKey: true });
+      expect(field).toHaveFocus();
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(onClose).not.toHaveBeenCalled();
+
+      fireEvent.click(screen.getByRole('button', { name: 'My App' }));
+      expect(screen.getByTestId('selected-app')).toHaveTextContent('My App');
+
+      fireEvent.keyDown(document, { key: 's', ctrlKey: true, shiftKey: true });
+      const overlay = screen.getByTestId('live-region-overlay');
+      expect(overlay).toBeInTheDocument();
+      fireEvent.click(within(overlay).getByRole('button', { name: 'Cancel' }));
+
+      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Broken tile' } });
+      fireEvent.keyDown(document, { key: 'Enter', ctrlKey: true });
+      await waitFor(() =>
+        expect(mockMutate).toHaveBeenCalledWith(
+          expect.objectContaining({ appUid: 'app-1', text: expect.stringContaining('Broken tile') }),
+          expect.anything(),
+        ),
+      );
     });
 
     it('lists the keys that work', () => {

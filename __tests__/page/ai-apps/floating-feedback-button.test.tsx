@@ -33,10 +33,14 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
     capture,
     bridgeMissing,
     onHiddenChange,
+    pickViewport,
+    scrollApp,
   }: {
     onHiddenChange?: (hidden: boolean) => void;
     bridgeMissing?: boolean;
     capture?: () => Promise<unknown>;
+    pickViewport?: boolean;
+    scrollApp?: (x: number, y: number, dx: number, dy: number) => void;
     switchSlot?: React.ReactNode;
     altBody?: React.ReactNode;
     isOpen: boolean;
@@ -49,7 +53,9 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
         data-testid="feedback-dialog"
         data-variant={variant ?? 'popover'}
         data-app-name={appName ?? ''}
-        data-capture={capture ? 'bridge' : 'none'}
+        data-capture={capture ? (pickViewport ? 'page' : 'bridge') : 'none'}
+        data-pick-viewport={pickViewport ? 'true' : 'false'}
+        data-scroll={scrollApp ? 'yes' : 'no'}
         data-bridge-missing={bridgeMissing ? 'true' : 'false'}
       >
         {switchSlot}
@@ -91,6 +97,34 @@ describe('FloatingFeedbackButton', () => {
     const { container } = render(<FloatingFeedbackButton />);
 
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('on the list, opens instant screenshots over the page and does not offer comments', () => {
+    withAccess();
+
+    render(<FloatingFeedbackButton />);
+    expect(screen.getByRole('button', { name: 'Give feedback' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Feedback & comments' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+
+    const dialog = screen.getByTestId('feedback-dialog');
+    expect(dialog).toHaveAttribute('data-capture', 'page');
+    expect(dialog).toHaveAttribute('data-pick-viewport', 'true');
+    expect(dialog).toHaveAttribute('data-scroll', 'yes');
+    expect(screen.queryByRole('tab', { name: /comment/i })).not.toBeInTheDocument();
+  });
+
+  it('an app page without a capturing bridge does not use the list capture', () => {
+    withAccess();
+
+    render(<FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+
+    const dialog = screen.getByTestId('feedback-dialog');
+    expect(dialog).toHaveAttribute('data-capture', 'none');
+    expect(dialog).toHaveAttribute('data-pick-viewport', 'false');
+    expect(dialog).toHaveAttribute('data-scroll', 'no');
   });
 
   it('renders the trigger and opens the dialog on click for members with access', () => {

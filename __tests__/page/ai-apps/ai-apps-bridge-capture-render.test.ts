@@ -29,6 +29,14 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+  const host = window as Window & {
+    __plnBridgeFontCss?: unknown;
+    __plnBridgeFontCssTask?: unknown;
+    __plnBridgeFontCssSig?: unknown;
+  };
+  delete host.__plnBridgeFontCss;
+  delete host.__plnBridgeFontCssTask;
+  delete host.__plnBridgeFontCssSig;
   mockCreateContext
     .mockReset()
     .mockImplementation(async (node: Node, options: object) => ({ node, ...options, drawImageCount: 0 }));
@@ -232,6 +240,77 @@ describe('capture renderer', () => {
       expect(filter(byId('deep'))).toBe(false);
     });
 
+    it('keeps a block above the viewport as an empty box and skips what is inside it', async () => {
+      document.body.innerHTML = '<section id="above"><p id="old">Earlier</p></section><p id="on">Seen</p>';
+      box(byId('above'), { top: -400, left: 0, width: 800, height: 200 });
+      box(byId('old'), { top: -300, left: 0, width: 100, height: 20 });
+      box(byId('on'), ON_SCREEN);
+      renderWith((context) => {
+        expect(context.filter(byId('above'))).toBe(true);
+        expect(context.filter(byId('old'))).toBe(false);
+        const clone = document.documentElement.cloneNode(true) as HTMLElement;
+        const above = clone.querySelector('#above') as HTMLElement;
+        above.style.width = '800px';
+        above.style.height = '200px';
+        context.onCloneNode(clone);
+        expect(above.style.getPropertyValue('flex')).toBe('0 0 auto');
+        expect(above.style.getPropertyValue('min-width')).toBe('800px');
+        expect(above.style.getPropertyValue('min-height')).toBe('200px');
+        expect(above.hasAttribute('data-pln-bridge-shell')).toBe(false);
+      });
+      await capture();
+      expect(byId('above').hasAttribute('data-pln-bridge-shell')).toBe(false);
+    });
+
+    it('still finds a fixed element nested two wrappers below the viewport', async () => {
+      document.body.innerHTML =
+        '<div id="wrap"><div id="inner"><div id="modal" style="position: fixed">Dialog</div></div></div>';
+      box(byId('wrap'), BELOW);
+      box(byId('inner'), BELOW);
+      box(byId('modal'), { top: 200, left: 200, width: 300, height: 100 });
+      let tag: string | null = null;
+      renderWith(() => {
+        tag = byId('modal').getAttribute('data-pln-bridge-place');
+      });
+      await capture();
+      expect(tag).toBe(`fixed:${200 + window.scrollY}:${200 + window.scrollX}`);
+    });
+
+    it('does not measure inside a long block that sits fully below', async () => {
+      const items = Array.from({ length: 40 }, (_, i) => `<li><span id="s${i}">x</span></li>`).join('');
+      document.body.innerHTML = `<ul id="list">${items}</ul>`;
+      box(byId('list'), BELOW);
+      let measured = false;
+      byId('s0').getBoundingClientRect = () => {
+        measured = true;
+        return rectOf(BELOW);
+      };
+      await capture();
+      expect(measured).toBe(false);
+    });
+
+    it('detaches an unloaded image that sits fully off screen, then puts it back', async () => {
+      document.body.innerHTML = '<img id="off" alt=""><img id="on" alt="">';
+      const off = byId('off') as HTMLImageElement;
+      const on = byId('on') as HTMLImageElement;
+      box(off, BELOW);
+      box(on, ON_SCREEN);
+      Object.defineProperty(off, 'complete', { configurable: true, get: () => false });
+      Object.defineProperty(on, 'complete', { configurable: true, get: () => false });
+      let offConnected: boolean | null = null;
+      let onConnected: boolean | null = null;
+      mockCreateContext.mockImplementation(async (node: Node, options: object) => {
+        offConnected = off.isConnected;
+        onConnected = on.isConnected;
+        return { node, ...options, drawImageCount: 0 };
+      });
+      await capture();
+      expect(offConnected).toBe(false);
+      expect(onConnected).toBe(true);
+      expect(off.isConnected).toBe(true);
+      expect(on.isConnected).toBe(true);
+    });
+
     it('keeps the way to anything on screen, like a fixed modal declared inside an off-screen container', async () => {
       document.body.innerHTML = '<div id="wrap"><div id="modal" style="position: fixed">Dialog</div></div>';
       box(byId('wrap'), BELOW);
@@ -348,8 +427,7 @@ describe('capture renderer', () => {
       mockDomToJpeg.mockImplementation(() => new Promise<string>((resolve) => (finish = resolve)));
       const first = capture();
       const second = capture();
-      await Promise.resolve();
-      await Promise.resolve();
+      while (mockDomToJpeg.mock.calls.length === 0) await Promise.resolve();
       finish('data:image/jpeg;base64,AAAA');
       expect(await second).toEqual(await first);
       expect(mockCreateContext).toHaveBeenCalledTimes(1);
@@ -358,6 +436,26 @@ describe('capture renderer', () => {
       expect((await capture()).dataUrl).toBe('data:image/jpeg;base64,BBBB');
       expect(mockCreateContext).toHaveBeenCalledTimes(2);
     });
+  });
+
+  it('gives the renderer font files that were already prepared', async () => {
+    const style = document.createElement('style');
+    style.textContent = "@font-face { font-family: 'Test'; src: url('/fonts/app.woff2') format('woff2'); }";
+    document.head.appendChild(style);
+    Object.defineProperty(window, 'fetch', {
+      configurable: true,
+      writable: true,
+      value: jest.fn().mockResolvedValue({
+        ok: true,
+        blob: async () => new Blob(['font'], { type: 'font/woff2' }),
+      } as Response),
+    });
+    try {
+      await capture();
+      expect(captureOptions().font.cssText).toContain('data:');
+    } finally {
+      style.remove();
+    }
   });
 
   it('element crops get the wider masking too', async () => {

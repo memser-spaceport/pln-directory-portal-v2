@@ -1,4 +1,5 @@
 import { describeElement, rectOf, visibleText } from './describe';
+import { scheduleFontCache } from './font-cache';
 import { pickTarget, pointWithin } from './target';
 import {
   BRIDGE_VERSION,
@@ -31,6 +32,8 @@ import {
  *   (its viewport), with typed values, select choices, editable text and
  *   anything the app marks `data-labos-mask` masked, and nothing of the
  *   bridge's own UI. It is taken only when LabOS asks, for the feedback form.
+ *   While the page is idle the bridge may fetch the page's own font files so
+ *   that picture can reuse them. It does not draw the picture then.
  * - `scroll` moves the viewer's own view of the page, as the wheel LabOS's
  *   Pick a part layer caught would have. It reads nothing and answers nothing.
  */
@@ -527,8 +530,10 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
   win.addEventListener('message', onMessage);
   win.addEventListener('keydown', onShortcutKey);
   announce();
+  const cancelFonts = scheduleFontCache(win);
 
   const destroy = () => {
+    cancelFonts();
     stopPicking();
     forget([...pins.keys()]);
     if (frame) win.cancelAnimationFrame(frame);

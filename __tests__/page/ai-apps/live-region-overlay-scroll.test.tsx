@@ -98,6 +98,25 @@ describe('LiveRegionOverlay: the wheel scrolls the app underneath', () => {
     expect(frames).toHaveLength(0);
   });
 
+  it('on the list, a wheel scrolls the window from coordinates inside it', () => {
+    const scrollApp = jest.fn();
+    const previous = { width: window.innerWidth, height: window.innerHeight };
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1200 });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 });
+    try {
+      render(<LiveRegionOverlay viewport onSelect={jest.fn()} onCancel={jest.fn()} scrollApp={scrollApp} />);
+      const layer = screen.getByTestId('live-region-overlay');
+
+      wheel(layer, { clientX: 100, clientY: 900, deltaY: 40 });
+      runFrame();
+
+      expect(scrollApp).toHaveBeenCalledWith(100, 800, 0, 40);
+    } finally {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: previous.width });
+      Object.defineProperty(window, 'innerHeight', { configurable: true, value: previous.height });
+    }
+  });
+
   it('drops a scroll still waiting for its frame when the layer closes', () => {
     const scrollApp = jest.fn();
     const { layer, unmount } = setup(scrollApp);

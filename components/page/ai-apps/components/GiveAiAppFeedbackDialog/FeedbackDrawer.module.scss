@@ -8,7 +8,7 @@
 */
 
 /*
-  The fixed layer the panel slides along. Narrow, it lets clicks through to the
+  The fixed layer the panel sits on. Narrow, it lets clicks through to the
   page (the panel takes them back): you comment on, and pick parts of, the app
   beside it. Wide adds .overlayWide, whose scrim does block the page. z-index:
   above the page and the floating button (9), below every Modal (9999), which

@@ -13,6 +13,8 @@ import {
   isShortcutsKey,
   useShortcutLabels,
 } from '@/components/page/ai-apps/shortcutKeys';
+import { scheduleFontCache } from '@/ai-apps-bridge/font-cache';
+import { capturePageViewport, FEEDBACK_CAPTURE_IGNORE_ATTR, scrollPage } from '../screenshot-feedback/capturePage';
 import { GiveAiAppFeedbackDialog, ShortcutHelp } from '../GiveAiAppFeedbackDialog';
 import { FeedbackTabs, type FeedbackTab } from '../FeedbackTabs/FeedbackTabs';
 import { PinOverlay, PinPanel, type ElementPinsController } from '../element-pins';
@@ -95,6 +97,8 @@ function FeedbackFab({
   commentMode,
 }: Props) {
   const commentsAvailable = Boolean(commentMode?.available);
+  /* The list has no app frame. A picture of this page replaces the screen-share prompt. */
+  const isListSurface = !appUid && !iframeRef;
   const inCommentMode = Boolean(commentMode?.available && commentMode.active);
   const [isOpen, setIsOpen] = useState(false);
   const [isPinMode, setIsPinMode] = useState(false);
@@ -109,6 +113,12 @@ function FeedbackFab({
   const shortcuts = useShortcutLabels();
   const { permsSet, isLoading } = usePermissions();
   const isVisible = !isLoading && canViewAiApps(permsSet) && feedbackEnabled;
+
+  /* The list page draws its own picture. Fetch its fonts while idle, before Give feedback. */
+  useEffect(() => {
+    if (!isListSurface || !isVisible) return;
+    return scheduleFontCache();
+  }, [isListSurface, isVisible]);
 
   // Gated on `isVisible` rather than left bare: hooks run before the early
   // return below, so an ungated timer would spend its 2.2s while this renders
@@ -234,6 +244,7 @@ function FeedbackFab({
     <>
       {/* The button steps aside while its drawer is open, at every width; ✕ and Esc bring it back. */}
       <div
+        {...{ [FEEDBACK_CAPTURE_IGNORE_ATTR]: '' }}
         className={clsx(s.wrap, isFormHidden && s.wrapHidden, drawerOpen && s.fabHidden)}
         data-collapsed={isCollapsed || drawerOpen}
         aria-hidden={drawerOpen || undefined}
@@ -320,10 +331,11 @@ function FeedbackFab({
         getContext={getContext}
         appUid={appUid}
         appName={appName}
-        /* Instant screenshots: the app's bridge takes the picture, no screen-share prompt. */
-        capture={elementPins?.canCapture ? elementPins.capture : undefined}
-        /* Pick a part's layer covers the frame: the wheel reaches the app through its bridge. */
-        scrollApp={elementPins?.canScroll ? elementPins.scrollApp : undefined}
+        /* Instant screenshots: the app's bridge, or a picture of this page on the list. */
+        capture={elementPins?.canCapture ? elementPins.capture : isListSurface ? capturePageViewport : undefined}
+        /* Pick a part's layer covers the page: the wheel reaches the app through its bridge, or scrolls this window. */
+        scrollApp={elementPins?.canScroll ? elementPins.scrollApp : isListSurface ? scrollPage : undefined}
+        pickViewport={isListSurface}
         /* The bridge never answered: an app built before it (kit < 1.15). */
         bridgeMissing={elementPins?.status === 'unavailable'}
         /* Its bridge may still answer (a slow frame on a phone): the automatic screenshot waits for it. */

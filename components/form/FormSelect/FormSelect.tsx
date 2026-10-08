@@ -40,6 +40,8 @@ interface Props {
   selectRef?: React.RefObject<SelectInstance | null>;
   menuPlacement?: 'top' | 'bottom' | 'auto';
   menuPortalTarget?: HTMLElement | null;
+  onMenuOpen?: () => void;
+  onMenuClose?: () => void;
   /**
    * The select's accessible name, for the rows that have no `label` of their own.
    *
@@ -70,6 +72,8 @@ export const FormSelect = (props: Props) => {
     formatOptionLabel,
     menuPlacement,
     menuPortalTarget,
+    onMenuOpen: onMenuOpenProp,
+    onMenuClose: onMenuCloseProp,
   } = props;
 
   const {
@@ -198,11 +202,15 @@ export const FormSelect = (props: Props) => {
             return option.label.toLowerCase().includes(inputValue.toLowerCase());
           }}
           onMenuOpen={() => {
+            onMenuOpenProp?.();
             if (!isMobile) {
               return;
             }
 
             toggleOpen();
+          }}
+          onMenuClose={() => {
+            onMenuCloseProp?.();
           }}
           styles={{
             container: (base) => ({
@@ -351,7 +359,10 @@ export const FormSelect = (props: Props) => {
               }
 
               return (
-                <div onClick={() => props.selectOption(props.data)} className={s.option}>
+                <div
+                  {...props.innerProps}
+                  className={clsx(s.option, props.isFocused && s.optionFocused)}
+                >
                   {renderSelectOption(props.data)}
                 </div>
               );

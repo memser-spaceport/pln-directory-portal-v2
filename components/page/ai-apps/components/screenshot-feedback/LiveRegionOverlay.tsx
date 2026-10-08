@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { type RefObject, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
+import { FEEDBACK_CAPTURE_IGNORE_ATTR } from './capturePage';
 import { CORNERS, useRegionPicker } from './useRegionPicker';
 
 import s from './LiveRegionOverlay.module.scss';
@@ -46,9 +47,13 @@ export function frameRectToCapturePixels(rect: FrameRect, viewportWidth: number,
   return { x: rect.x * scale, y: rect.y * scale, width: rect.width * scale, height: rect.height * scale };
 }
 
+type Box = { left: number; top: number; width: number; height: number };
+
 type Props = {
-  /** The app frame: the drag only counts over it. */
-  frameRef: RefObject<HTMLIFrameElement | null>;
+  /** The app frame: the drag only counts over it. Omitted when `viewport` is set. */
+  frameRef?: RefObject<HTMLIFrameElement | null>;
+  /** The drag covers the visible window (the AI Apps list) instead of an app frame. */
+  viewport?: boolean;
   onSelect: (rect: FrameRect) => void;
   onCancel: () => void;
   /** Scrolls the app (its bridge) as a wheel at `x`,`y` in the frame would. Without it the wheel does nothing. */
@@ -62,9 +67,14 @@ type Props = {
  * rectangle stays up to adjust until Use this part. Portalled to the body, above
  * the feedback popup (which hides meanwhile).
  */
-export function LiveRegionOverlay({ frameRef, onSelect, onCancel, scrollApp }: Props) {
-  const frameBox = () => {
-    const r = frameRef.current?.getBoundingClientRect();
+function viewportBox(): Box {
+  return { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+}
+
+export function LiveRegionOverlay({ frameRef, viewport = false, onSelect, onCancel, scrollApp }: Props) {
+  const frameBox = (): Box | null => {
+    if (viewport) return viewportBox();
+    const r = frameRef?.current?.getBoundingClientRect();
     return r ? { left: r.left, top: r.top, width: r.width, height: r.height } : null;
   };
 
@@ -106,7 +116,7 @@ export function LiveRegionOverlay({ frameRef, onSelect, onCancel, scrollApp }: P
       raf = 0;
       const { x, y, dx, dy } = pending;
       pending = { x: 0, y: 0, dx: 0, dy: 0 };
-      const box = frameRef.current?.getBoundingClientRect();
+      const box = frameBox();
       if (!box || (!dx && !dy)) return;
       const clamp = (v: number, size: number) => Math.min(Math.max(v, 0), size);
       scrollRef.current?.(clamp(x - box.left, box.width), clamp(y - box.top, box.height), dx, dy);
@@ -115,11 +125,7 @@ export function LiveRegionOverlay({ frameRef, onSelect, onCancel, scrollApp }: P
       event.preventDefault();
       if (event.ctrlKey || !scrollRef.current) return;
       const unit =
-        event.deltaMode === 1
-          ? WHEEL_LINE_PX
-          : event.deltaMode === 2
-            ? (frameRef.current?.getBoundingClientRect().height ?? window.innerHeight)
-            : 1;
+        event.deltaMode === 1 ? WHEEL_LINE_PX : event.deltaMode === 2 ? (frameBox()?.height ?? window.innerHeight) : 1;
       pending = {
         x: event.clientX,
         y: event.clientY,
@@ -133,7 +139,7 @@ export function LiveRegionOverlay({ frameRef, onSelect, onCancel, scrollApp }: P
       el.removeEventListener('wheel', onWheel);
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [surfaceRef, frameRef]);
+  }, [surfaceRef, frameRef, viewport]);
 
   const barOnTop =
     selection !== null &&
@@ -143,7 +149,14 @@ export function LiveRegionOverlay({ frameRef, onSelect, onCancel, scrollApp }: P
 
   if (typeof document === 'undefined') return null;
   return createPortal(
-    <div ref={surfaceRef} {...surfaceHandlers} className={s.root} tabIndex={-1} data-testid="live-region-overlay">
+    <div
+      ref={surfaceRef}
+      {...surfaceHandlers}
+      {...{ [FEEDBACK_CAPTURE_IGNORE_ATTR]: '' }}
+      className={s.root}
+      tabIndex={-1}
+      data-testid="live-region-overlay"
+    >
       {selection && (selection.width > 0 || selection.height > 0) && (
         <>
           <div

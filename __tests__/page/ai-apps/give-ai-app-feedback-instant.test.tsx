@@ -493,6 +493,45 @@ describe('adding screenshots', () => {
     expect(mockAnalytics.onFeedbackPickPartCancelled).toHaveBeenCalled();
   });
 
+  it('on the list, Pick a part crops without an app frame and the shortcut opens it', async () => {
+    const OriginalImage = window.Image;
+    window.Image = class {
+      onload: (() => void) | null = null;
+      naturalWidth = 1600;
+      set src(_value: string) {
+        setTimeout(() => this.onload?.());
+      }
+    } as unknown as typeof Image;
+    try {
+      const pending = deferred();
+      const capture = jest.fn().mockReturnValueOnce(pending.promise).mockResolvedValueOnce(shot(SHOT_B, 800));
+      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} variant="drawer" capture={capture} pickViewport />);
+
+      expect(screen.getByRole('status', { name: 'Capturing the page' })).toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /comment/i })).not.toBeInTheDocument();
+      await act(async () => pending.resolve(shot(SHOT_A)));
+
+      fireEvent.keyDown(document, { key: 's', ctrlKey: true, shiftKey: true });
+      const overlay = screen.getByTestId('live-region-overlay');
+      expect(overlay).toBeInTheDocument();
+      fireEvent.click(within(overlay).getByRole('button', { name: 'Cancel' }));
+
+      fireEvent.click(screen.getByRole('button', { name: 'Pick a part' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Drag done' }));
+
+      await waitFor(() => expect(screen.getByRole('img', { name: 'Screenshot 2' })).toHaveAttribute('src', CUT));
+      expect((cropImageToDataUrl as jest.Mock).mock.calls[0][1]).toEqual({
+        x: DRAG.x * 2,
+        y: DRAG.y * 2,
+        width: DRAG.width * 2,
+        height: DRAG.height * 2,
+      });
+      expect(requestTabCapture).not.toHaveBeenCalled();
+    } finally {
+      window.Image = OriginalImage;
+    }
+  });
+
   it('Pick a part hands the wheel to the app’s bridge when it can scroll', async () => {
     const capture = jest.fn().mockResolvedValueOnce(shot(SHOT_A));
     const scrollApp = jest.fn();

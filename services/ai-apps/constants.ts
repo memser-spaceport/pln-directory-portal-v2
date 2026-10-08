@@ -28,7 +28,7 @@ export const SHOW_AI_APPS_ELEMENT_PINS: boolean = process.env.NEXT_PUBLIC_SHOW_A
  * still stored with feedback; nothing is shown on the page. Needs the bridge's
  * `locate` capability, which every app with the 1.15+ tag already has.
  */
-export const SHOW_AI_APPS_FEEDBACK_OVERLAY: boolean = false;
+export const SHOW_AI_APPS_FEEDBACK_OVERLAY: boolean = process.env.NEXT_PUBLIC_SHOW_AI_APPS_FEEDBACK_OVERLAY === 'true';
 
 /**
  * Comments on the live app, the Feedback / Comment tabs, and the pin mode that

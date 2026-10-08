@@ -1,5 +1,5 @@
 import { clsx } from 'clsx';
-import Select, { components, ControlProps, ClearIndicatorProps, SelectInstance } from 'react-select';
+import Select, { components, ControlProps, ClearIndicatorProps, InputProps, SelectInstance } from 'react-select';
 import { useMedia, useToggle } from 'react-use';
 import React, { ReactNode, useMemo, useRef, useState } from 'react';
 
@@ -17,7 +17,7 @@ import { Option } from './types';
 /* A new function each render remounts this input. Choosing a row then drops
    focus while the blue ring stays. A chosen value also sets isHidden, so the
    input is opacity 0 and Tab lands on it with nothing to see. */
-function VisibleSelectInput(props: React.ComponentProps<typeof components.Input>) {
+function VisibleSelectInput(props: InputProps<Option, false>) {
   return <components.Input {...props} isHidden={false} />;
 }
 

@@ -65,6 +65,13 @@ export function FeedbackDrawerFrame({ isOpen, wide, hidden, reserveSpace, childr
     [],
   );
 
+  // Phone: the prototype review widget's bubble would sit on the footer's Send (rule in FeedbackDrawer.module.scss).
+  useEffect(() => {
+    if (!isOpen) return;
+    document.body.setAttribute('data-feedback-drawer-open', '');
+    return () => document.body.removeAttribute('data-feedback-drawer-open');
+  }, [isOpen]);
+
   if (!mounted) return null;
 
   return createPortal(

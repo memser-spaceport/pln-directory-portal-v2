@@ -191,10 +191,10 @@ export function CommentComposer(props: Props) {
 
       <div className={clsx(fd.footer, pt.footer, s.footer)}>
         <span className={s.audience}>Everyone who can open this app can see it</span>
-        <Button style="border" variant="neutral" size="xs" onClick={onCancel}>
+        <Button style="border" variant="neutral" size="xs" className={s.footerButton} onClick={onCancel}>
           Cancel
         </Button>
-        <Button size="xs" disabled={!canPost} onClick={submit}>
+        <Button size="xs" className={s.footerButton} disabled={!canPost} onClick={submit}>
           Post
         </Button>
       </div>

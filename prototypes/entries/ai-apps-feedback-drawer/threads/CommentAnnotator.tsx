@@ -19,6 +19,8 @@ import { emptyAnnotations, type AnnotationState } from '@/components/page/ai-app
 
 // Production stylesheet, verbatim.
 import s from '@/components/page/ai-apps/components/screenshot-feedback/AnnotatorModal.module.scss';
+// Key hints step out on phones (no keyboard to press them with).
+import polish from '../prod/FeedbackPolish.module.scss';
 
 /*
  * COPY of production `AnnotatorModal` (develop, 2026-10-05), regenerated from it
@@ -309,13 +311,13 @@ export function CommentAnnotator({ imageSrc, onDiscard, onAdd, onToolSelected, i
             onClick={requestDiscard}
           >
             {isEditing ? 'Discard changes' : 'Discard'}
-            <kbd className={s.kbd} aria-hidden="true">
+            <kbd className={clsx(s.kbd, polish.hideOnPhone)} aria-hidden="true">
               Esc
             </kbd>
           </Button>
           <Button className={s.action} aria-keyshortcuts={shortcuts.sendAria} onClick={() => onAdd(annotations)}>
             {isEditing ? 'Save changes' : 'Add to comment'}
-            <kbd className={s.kbdOnFill} aria-hidden="true">
+            <kbd className={clsx(s.kbdOnFill, polish.hideOnPhone)} aria-hidden="true">
               {shortcuts.send}
             </kbd>
           </Button>

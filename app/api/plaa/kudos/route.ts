@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveAuthHeader } from './_auth';
+import { plaaUpstreamUrl } from '../_upstream';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,14 +15,12 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const qs = new URLSearchParams();
-    const limit = searchParams.get('limit');
-    const cursor = searchParams.get('cursor');
-    if (limit) qs.set('limit', limit);
-    if (cursor) qs.set('cursor', cursor);
-    const query = qs.toString();
+    const url = plaaUpstreamUrl(baseUrl, ['kudos'], {
+      limit: searchParams.get('limit'),
+      cursor: searchParams.get('cursor'),
+    }) as string;
 
-    const res = await fetch(`${baseUrl}/api/v1/kudos${query ? `?${query}` : ''}`, {
+    const res = await fetch(url, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json', Authorization: authHeader },
     });

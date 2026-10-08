@@ -9,6 +9,7 @@ import {
 } from '@/components/core/botpress/constants';
 import { loadBotpressWebchat, unloadBotpressWebchat } from '@/components/core/botpress/botpress-webchat.utils';
 
+/** @deprecated Replaced by the activity chat. No longer mounted; kept until removal. */
 export function BotpressWebchat() {
   useEffect(() => {
     if (!isBotpressWebchatEnabled) {

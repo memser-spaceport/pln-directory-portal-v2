@@ -162,7 +162,7 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
                 CDNs and browsers serving the old bytes under the same URL. */}
             <div className="ph-hero__art">
               <Image
-                src="/images/alignment-assets/hero-v2.png"
+                src="/images/alignment-assets/hero-v2.webp"
                 alt=""
                 aria-hidden="true"
                 width={1180}
@@ -290,7 +290,7 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
         <div className="ph-flywheel" style={{ alignSelf: 'start' }}>
           <h3 className="ph-visually-hidden">The contribution flywheel</h3>
           <Image
-            src="/images/alignment-assets/flywheel-v2.png"
+            src="/images/alignment-assets/flywheel-v2.webp"
             alt="The contribution flywheel. Employees and members of the PL Network collect PLAA for their contributions to increasing network value. The cycle runs: contribute, collect points, receive PLAA, the network grows, and repeats."
             width={1254}
             height={1254}

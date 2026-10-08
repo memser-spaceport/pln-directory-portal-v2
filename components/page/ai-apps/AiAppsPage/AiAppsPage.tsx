@@ -34,12 +34,23 @@ export function AiAppsPage() {
 
   const openFromUrl = searchParams.get('dialog') === 'addAiApp';
   const isModalOpen = openFromUrl || manualOpen;
+  const trackedUrlModal = useRef(false);
 
   useEffect(() => {
     if (hasTrackedPageView.current) return;
     hasTrackedPageView.current = true;
     analytics.onPageViewed();
   }, [analytics]);
+
+  useEffect(() => {
+    if (!openFromUrl) {
+      trackedUrlModal.current = false;
+      return;
+    }
+    if (trackedUrlModal.current) return;
+    trackedUrlModal.current = true;
+    analytics.onCreateModalOpened();
+  }, [openFromUrl, analytics]);
 
   const handleOpenCreateModal = () => {
     analytics.onCreateModalOpened();

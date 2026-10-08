@@ -1,0 +1,215 @@
+// Comparison block, proposed (see AnswerShapes.tsx). DS Table values
+// (pl-design-system/components/Table) as token + fallback pairs.
+
+@use 'styles/media';
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.wrap {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-neutral-primary, #fff);
+}
+
+/* ---------------------------------------------------------------- table */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  @include media.mobile-only {
+    display: none;
+  }
+
+  tbody tr + tr {
+    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+
+  thead tr {
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+/* DS `.th` on the soft surface. */
+.th {
+  padding: 10px 16px;
+  text-align: left;
+  vertical-align: middle;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+}
+
+/* The corner is not a header for anything: white, so the soft surface reads
+   as "the things compared" and not as a frame. */
+.corner {
+  width: 168px;
+  background: transparent;
+}
+
+.colTh + .colTh {
+  border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.rowHead {
+  padding: 12px 16px;
+  text-align: left;
+  vertical-align: top;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.td {
+  padding: 12px 16px;
+  vertical-align: top;
+  border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+/* ---------------------------------------------------------------- shared */
+
+.colHead {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-decoration: none;
+
+  &:hover .colName {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.colName {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pic {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.picLg {
+  width: 24px;
+  height: 24px;
+}
+
+.logo {
+  border-radius: 6px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  padding: 2px;
+  object-fit: contain;
+}
+
+.none {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.entities {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entity {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover .entityName {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.entityName {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ---------------------------------------------------------------- phone */
+
+.stack {
+  display: none;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  @include media.mobile-only {
+    display: block;
+  }
+}
+
+.stackHead {
+  display: grid;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.fact {
+  padding: 10px 12px 12px;
+
+  & + & {
+    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+.factLabel {
+  margin-bottom: 6px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.factCells {
+  display: grid;
+  gap: 12px;
+}
+
+.factCell {
+  min-width: 0;
+}
+
+/* In a half-width fact cell a record's name wraps rather than truncating. */
+.factCell .entityName {
+  white-space: normal;
+}
+
+.factCell .entity {
+  align-items: flex-start;
+}

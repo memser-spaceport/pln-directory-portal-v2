@@ -1,0 +1,40 @@
+import { SidebarProvider } from '@/components/page/husky/sidebar';
+import AppSidebar from '@/components/page/husky/app-sidebar';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
+import { Metadata } from 'next';
+import { SOCIAL_IMAGE_URL } from '@/utils/constants';
+
+export default async function Layout({ children }: { children: React.ReactNode }) {
+  const { isLoggedIn } = await getCookiesFromHeaders();
+
+  return (
+    <>
+      <SidebarProvider defaultOpen={true}>
+        <AppSidebar isLoggedIn={isLoggedIn} />
+        {children}
+      </SidebarProvider>
+    </>
+  );
+}
+
+export const metadata: Metadata = {
+  title: 'AI Search | Protocol Labs Directory',
+  description: 'AI Search for Protocol Labs Directory',
+  openGraph: {
+    type: 'website',
+    url: process.env.APPLICATION_BASE_URL,
+    images: [
+      {
+        url: SOCIAL_IMAGE_URL,
+        width: 1280,
+        height: 640,
+        alt: 'Protocol Labs Directory',
+        type: 'image/jpeg',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: [SOCIAL_IMAGE_URL],
+  },
+};

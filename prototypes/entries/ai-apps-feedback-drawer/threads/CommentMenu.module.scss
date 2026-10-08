@@ -1,0 +1,25 @@
+/* A bare 24px hit area — the forum's trigger has no box of its own. */
+.trigger {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+
+  &:hover,
+  &[data-popup-open] {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-subtle, #aebfff);
+    outline-offset: 1px;
+  }
+}
+
+/* Above the thread card (it sits in the app stage's layer) and the drawer (10). */
+.positioner {
+  z-index: 20;
+}

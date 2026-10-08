@@ -33,8 +33,11 @@ const PLACE_ATTR = 'data-pln-bridge-place';
 const SHELL_ATTR = 'data-pln-bridge-shell';
 /** Past this, a viewport capture gives up (CAPTURE_TOO_SLOW) instead of holding the page's thread. */
 const CAPTURE_BUDGET_MS = 5000;
-/** How long the render runs before letting the page paint. */
-const SLICE_MS = 8;
+/**
+ * How long the render runs before it lets the page paint.
+ * A shorter slice kept the page responsive and made the picture wait.
+ */
+const SLICE_MS = 32;
 /** Safari/Firefox redraws of the finished picture, so late-decoding images still land. */
 const DRAW_RETRY_CAP = 3;
 
@@ -284,12 +287,13 @@ type BridgeRenderWindow = Window & {
  * The viewport, as the member sees it. `restoreScrollPosition` applies the
  * page's scroll (and inner scroll containers'); adding a scroll transform as
  * well would shift the picture twice. JPEG keeps a full viewport far under the
- * size cap (≈ 0.5 MB at 2× on a dense dashboard, measured).
+ * size cap. The long edge stays within MAX_EDGE, the same cap as a pin crop,
+ * so a retina viewport is not painted at 2×.
  *
  * Only what is on screen is drawn in full: off-screen subtrees stay as empty
  * boxes, so the cost follows the viewport, not the page. The render yields
- * every few ms and gives up with CAPTURE_TOO_SLOW past CAPTURE_BUDGET_MS rather than
- * hold the thread.
+ * every SLICE_MS and gives up with CAPTURE_TOO_SLOW past CAPTURE_BUDGET_MS rather than
+ * hold the thread. Scrollbar pseudos stay off: a feedback shot does not need them.
  *
  * Leans on three modern-screenshot 4.7.0 internals, hence the exact version in
  * package.json: every element gets its used width/height inline (so an empty
@@ -314,11 +318,11 @@ async function captureViewport(): Promise<CaptureResult> {
       type: 'image/jpeg',
       width,
       height,
-      scale: Math.min(window.devicePixelRatio || 1, 2),
+      scale: Math.min(window.devicePixelRatio || 1, 2, MAX_EDGE / Math.max(width, height, 1)),
       quality: 0.85,
       backgroundColor: backgroundBehind(document.body),
       timeout: 8000,
-      features: { restoreScrollPosition: true },
+      features: { restoreScrollPosition: true, copyScrollbar: false },
       filter: (node) => {
         if (!notBridge(node)) return false;
         const parent = node.parentNode instanceof ShadowRoot ? node.parentNode.host : node.parentNode;

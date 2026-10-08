@@ -30,6 +30,10 @@ interface EditInvestorProfileDrawerProps {
   uid: string;
   isLoggedIn: boolean;
   isInvestor?: boolean | null;
+  /** Marks the fields that still need filling in amber (SPV Spotlight). Off everywhere else. */
+  highlightUnfilled?: boolean;
+  /** After the investor details save. */
+  onSaved?: () => void;
 }
 
 export const EditInvestorProfileDrawer: React.FC<EditInvestorProfileDrawerProps> = ({
@@ -38,6 +42,8 @@ export const EditInvestorProfileDrawer: React.FC<EditInvestorProfileDrawerProps>
   uid,
   isLoggedIn,
   isInvestor: isInvestorProp,
+  highlightUnfilled,
+  onSaved,
 }) => {
   const { currentUser: userInfo } = useCurrentUserStore();
   const isAdmin = isAdminUser(userInfo);
@@ -85,6 +91,8 @@ export const EditInvestorProfileDrawer: React.FC<EditInvestorProfileDrawerProps>
               isInvestor={isInvestor}
               useInlineAddTeam
               source="investor-drawer"
+              highlightUnfilled={highlightUnfilled}
+              onSaved={onSaved}
             />
             <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="drawer" />
           </>

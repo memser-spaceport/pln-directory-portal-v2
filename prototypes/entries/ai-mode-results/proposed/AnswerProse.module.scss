@@ -1,0 +1,236 @@
+// The answer's prose (see AnswerProse.tsx). New UI on the PL type scale;
+// colours are token + fallback pairs (portal-v2 doesn't load DS tokens).
+
+@use 'styles/media';
+
+/* One rhythm, owned here. 16/26 on desktop is the reading size; phones keep
+   16 with 24 leading so a 358px column still holds ~45 characters a line. */
+.prose {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  line-height: 24px;
+  overflow-wrap: anywhere;
+
+  @include media.breakpoint-1024 {
+    line-height: 26px;
+  }
+
+  p,
+  ul,
+  ol {
+    margin: 0 0 12px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  ul,
+  ol {
+    padding-left: 20px;
+  }
+
+  ul {
+    list-style: disc;
+  }
+
+  ol {
+    list-style: decimal;
+  }
+
+  li + li {
+    margin-top: 4px;
+  }
+
+  /* Markers are structure, not content: tertiary, so the eye lands on the words. */
+  li::marker {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  strong {
+    font-weight: 600;
+  }
+
+  em {
+    font-style: italic;
+  }
+}
+
+/* A directory record named in the prose. Inline, so it wraps with the line;
+   the picture rides the x-height (vertical-align) rather than stretching it. */
+/* nowrap: the picture never ends a line apart from the name it belongs to. */
+.mention {
+  white-space: nowrap;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition:
+    color 0.15s ease,
+    text-decoration-color 0.15s ease;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration-color: currentColor;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.mentionPic {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  border-radius: 50%;
+  object-fit: cover;
+  vertical-align: -3px;
+}
+
+/* Teams, projects and events: the rounded square their own cards draw. */
+.mentionLogo {
+  border-radius: 4px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  object-fit: contain;
+}
+
+/* Any other link: brand, underlined — a link that leaves the directory. */
+.link {
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Citation pill, after the sentence's full stop ("…archives.[1]"). 16px of
+   line-height so it sits inside a 24/26px line without moving it; 10px/600
+   numerals; neutral at rest, brand on hover/open (the sources pill's pair).
+   `display: inline` on purpose: an inline-flex box is an atomic inline, and
+   Chrome breaks the line before it — the number wrapped away from the
+   sentence it backs. An inline box only breaks where there is a space. */
+.cite {
+  display: inline;
+  margin-left: 3px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  text-decoration: none;
+  vertical-align: 2px;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover,
+  &[data-popup-open] {
+    background: var(--background-brand-soft-surface, #f2f5ff);
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+/* Streaming caret: a 2px brand bar, blinking, after the last word. */
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  border-radius: 1px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  vertical-align: -2px;
+  animation: blink 1s steps(2, start) infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+/* Source hover card. Portalled; one above production's Modal overlay (9999)
+   so it also works when the page is hosted in the takeover. */
+.cardPositioner {
+  z-index: 10000;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 260px;
+  max-width: calc(100vw - 32px);
+  padding: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-neutral-primary, #fff);
+  box-shadow: 0 4px 16px rgba(14, 15, 17, 0.1);
+  outline: none;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cardPic,
+.cardMark {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
+.cardMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.cardOrigin {
+  overflow: hidden;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.cardTitle {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.cardOpen {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}

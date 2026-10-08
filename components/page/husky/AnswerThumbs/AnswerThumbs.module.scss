@@ -1,0 +1,47 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: rgba(15, 23, 42, 0.04);
+    color: #0f172a;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.chosen,
+.chosen:disabled {
+  color: #156ff7;
+}
+
+.receipt {
+  margin-left: 4px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.error {
+  margin-left: 4px;
+  color: #dc2626;
+  font-size: 12px;
+  line-height: 16px;
+}

@@ -78,7 +78,7 @@ describe('capture renderer', () => {
       type: 'image/jpeg',
       width: window.innerWidth,
       height: window.innerHeight,
-      features: { restoreScrollPosition: true },
+      features: { restoreScrollPosition: true, copyScrollbar: false },
     });
     expect(options.style).toBeUndefined();
     expect(mockDomToJpeg).toHaveBeenCalledWith(await mockCreateContext.mock.results[0].value);
@@ -88,6 +88,25 @@ describe('capture renderer', () => {
       width: window.innerWidth,
       height: window.innerHeight,
     });
+  });
+
+  it('caps the bitmap at 1600px on the long edge', async () => {
+    const previous = {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      ratio: window.devicePixelRatio,
+    };
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 2000 });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 1000 });
+    Object.defineProperty(window, 'devicePixelRatio', { configurable: true, value: 2 });
+    try {
+      await capture();
+      expect(captureOptions().scale).toBe(1600 / 2000);
+    } finally {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: previous.width });
+      Object.defineProperty(window, 'innerHeight', { configurable: true, value: previous.height });
+      Object.defineProperty(window, 'devicePixelRatio', { configurable: true, value: previous.ratio });
+    }
   });
 
   it('leaves the bridge’s own nodes out', async () => {
@@ -316,7 +335,7 @@ describe('capture renderer', () => {
       jest.spyOn(performance, 'now').mockImplementation(() => now);
       let yielded: unknown;
       renderWith(async (context) => {
-        now = 20;
+        now = 40;
         yielded = context.onCloneEachNode(document.createElement('div'));
         await yielded;
       });

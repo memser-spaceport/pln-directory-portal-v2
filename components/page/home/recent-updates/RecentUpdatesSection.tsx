@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { stripHtml, usePushNotificationsContext } from '@/providers/PushNotificationsProvider';
 import { useInfiniteNotifications } from '@/services/push-notifications/hooks';
+import { starterKitUpdateClick, useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useNotificationAnalytics } from '@/analytics/notification.analytics';
 import { PushNotification } from '@/types/push-notifications.types';
 import { EmptyState } from './components/EmptyState/EmptyState';
@@ -36,6 +37,7 @@ export function RecentUpdatesSection(props: Props) {
   // count is a snapshot from the first fetch, while the provider's is live —
   // it zeroes the moment mark-all runs (from either surface, or another tab).
   const { markAsRead, markAllAsRead, unreadCount } = usePushNotificationsContext();
+  const aiAppsAnalytics = useAiAppsAnalytics();
   const analytics = useNotificationAnalytics();
   const { notifications, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading } = useInfiniteNotifications({
     enabled: isLoggedIn,
@@ -118,6 +120,8 @@ export function RecentUpdatesSection(props: Props) {
   const handleNotificationClick = (notification: PushNotification) => {
     analytics.onRecentUpdatesNotificationClicked(notification);
     analytics.onNotificationActionLinkClicked(notification, 'recent_updates');
+    const kitClick = starterKitUpdateClick(notification);
+    if (kitClick) aiAppsAnalytics.onStarterKitNotificationClicked({ ...kitClick, source: 'recent_updates' });
     if (!notification.isRead) {
       markAsRead(notification.id);
     }

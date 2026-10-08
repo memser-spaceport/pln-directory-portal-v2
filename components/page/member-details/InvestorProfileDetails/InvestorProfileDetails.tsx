@@ -21,6 +21,9 @@ interface Props {
   isInvestor?: boolean | null;
   useInlineAddTeam?: boolean;
   source?: 'investor-drawer';
+  /** Marks the fields that still need filling in amber. */
+  highlightUnfilled?: boolean;
+  onSaved?: () => void;
 }
 
 /**
@@ -71,6 +74,8 @@ export const InvestorProfileDetails = ({
   isInvestor,
   useInlineAddTeam,
   source,
+  highlightUnfilled,
+  onSaved,
 }: Props) => {
   const [editView, setEditView] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
@@ -144,6 +149,8 @@ export const InvestorProfileDetails = ({
           userInfo={userInfo!}
           useInlineAddTeam={useInlineAddTeam}
           source={source}
+          highlightUnfilled={highlightUnfilled}
+          onSaved={onSaved}
         />
       ) : (
         <InvestorProfileView
@@ -163,6 +170,7 @@ export const InvestorProfileDetails = ({
           onHideSection={() => setIsHidden(true)}
           isInvestor={isInvestor}
           signUpSource={member.signUpSource}
+          highlightUnfilled={highlightUnfilled}
         />
       )}
     </DetailsSection>

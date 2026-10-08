@@ -13,9 +13,10 @@ import s from './SpvSpotlight.module.scss';
 
 /**
  * The page's hero: title, description, then only what isn't the data-room
- * door. Request access and Open data room live in the team card's action slot
+ * door. Request access and Access data room live in the team card's action slot
  * (SpvTeamSpotlight), so there is one door, not two. The hero keeps the
- * investor-profile link, the pending stepper and the state messages.
+ * pending stepper and the state messages; the investor-profile card sits
+ * right under it (SpvInvestorProfileCard, placed by the page).
  *
  * No status pill over the title (2026-09-29 review: "they don't add any
  * value"). Whether the data room is open is the card's action slot's to say,
@@ -31,7 +32,7 @@ export type SpvHeroVariant =
   | 'pending' // requested, awaiting admin review
   | 'rejected' // request declined, no way to request again
   | 'openingSoon' // approved, spotlight still DRAFT
-  | 'open' // approved, spotlight OPEN (card: Open data room)
+  | 'open' // approved, spotlight OPEN (card: Access data room)
   | 'closed'; // spotlight CLOSED, for everyone
 
 type Props = {
@@ -41,25 +42,27 @@ type Props = {
   profileComplete: boolean;
   onEditProfile: () => void;
   // Locked states only.
-  email?: string;
-  supportEmail?: string;
   onSignIn?: () => void;
-  onSignOut?: () => void;
+  onContactUs?: () => void;
 };
 
 // Locked copy. It names nothing about the deal: no team, no SPV title, nothing
 // a stranger holding the URL could read (2026-10-01: "everything else should be
 // locked out so they don't actually see").
-const lockedCopy = (variant: 'lockedSignedOut' | 'lockedNoAccess', email?: string) =>
-  variant === 'lockedSignedOut'
-    ? {
-        title: 'Sign in to view this Spotlight',
-        body: 'PL Spotlights are shared by invitation. Open the link in your invitation email, or sign in with the email it was sent to.',
-      }
-    : {
-        title: 'You don’t have access to this Spotlight',
-        body: `${email ?? 'This account'} isn’t on the invitation list for this Spotlight. Sign in with the email your invitation was sent to, or contact us if you think this is a mistake.`,
-      };
+// Signed in but not invited (review 2026-10-05): no "use a different account"
+// and no email address, quoted or otherwise — just that this account has no
+// access, and Contact us. That covers the person who arrives on a forwarded
+// link, who has no other account to switch to.
+const LOCKED_COPY = {
+  lockedSignedOut: {
+    title: 'Sign in to view this Spotlight',
+    body: 'PL Spotlights are shared by invitation. Open the link in your invitation email, or sign in with the email it was sent to.',
+  },
+  lockedNoAccess: {
+    title: 'This Spotlight is invite-only',
+    body: 'If you think you should have access, contact us.',
+  },
+};
 
 export const SpvHero = ({
   variant,
@@ -67,13 +70,11 @@ export const SpvHero = ({
   description,
   profileComplete,
   onEditProfile,
-  email,
-  supportEmail,
   onSignIn,
-  onSignOut,
+  onContactUs,
 }: Props) => {
   if (variant === 'lockedSignedOut' || variant === 'lockedNoAccess') {
-    const copy = lockedCopy(variant, email);
+    const copy = LOCKED_COPY[variant];
     return (
       <section className={clsx(d.heroSection, s.heroCompact, s.heroLocked)}>
         <div className={d.titleContainer}>
@@ -86,17 +87,24 @@ export const SpvHero = ({
           </div>
         </div>
         <div className={clsx(d.buttons, s.lockedButtons)}>
-          <button
-            type="button"
-            className={clsx(act.primaryButton, s.cardActionButton)}
-            onClick={variant === 'lockedSignedOut' ? onSignIn : onSignOut}
-          >
-            {variant === 'lockedSignedOut' ? 'Sign in' : 'Use a different account'}
-          </button>
-          {/* Questions go to Contact us, not an FAQ (2026-10-01). */}
-          <a className={s.contactLink} href={`mailto:${supportEmail}`}>
-            Contact us
-          </a>
+          {variant === 'lockedSignedOut' ? (
+            <>
+              <button type="button" className={clsx(act.primaryButton, s.cardActionButton)} onClick={onSignIn}>
+                Sign in
+              </button>
+              {/* Questions go to Contact us, not an FAQ (2026-10-01). It opens the
+                  product's contact-support modal, as Deals' no-access modal does. */}
+              <button type="button" className={s.contactLink} onClick={onContactUs}>
+                Contact us
+              </button>
+            </>
+          ) : (
+            // The only thing left to do is ask, so Contact us is the one
+            // button: a lone action is the filled primary (lesson 18).
+            <button type="button" className={clsx(act.primaryButton, s.cardActionButton)} onClick={onContactUs}>
+              Contact us
+            </button>
+          )}
         </div>
       </section>
     );
@@ -132,7 +140,7 @@ export const SpvHero = ({
         return <>You&apos;re approved. We&apos;ll email you when this Spotlight opens and the data room goes live.</>;
       case 'closed':
         return <>This Spotlight has closed and its data room is no longer available.</>;
-      // Open + approved says nothing here: the card's Open data room already
+      // Open + approved says nothing here: the card's Access data room already
       // is the state.
       default:
         return null;

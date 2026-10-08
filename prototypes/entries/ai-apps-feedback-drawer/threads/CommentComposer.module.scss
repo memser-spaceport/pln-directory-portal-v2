@@ -1,0 +1,122 @@
+/* The audience line takes the footer's free width; the two buttons keep theirs. */
+.footer {
+  align-items: center;
+  gap: 8px;
+}
+
+.audience {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* The shared field is `padding: 12px 12px 0`, so whatever came last sat on the
+   footer rule (the Screenshot button touched it). 16px under the last row
+   matches the footer's own 12–16px padding (2026-10-06). */
+.field {
+  padding-bottom: 16px;
+}
+
+/* Kind | Priority under the screenshot control: the feedback form's row
+   (two equal columns), 12px down from the button or strip above it. */
+.triage {
+  margin-top: 12px;
+
+  /* Compact selects for a 340px card (2026-10-06). FormSelect sizes itself with
+     react-select inline styles (42px input, 16px text, 140px min width), so
+     "P2 · Normal" truncated. Here: 32px control, 14/20 text, tighter padding.
+     react-select's emotion classes end in the part name. */
+  // `:global(...)` per selector: Turbopack rejects a bare `:global { }` block
+  // around attribute/element selectors ("ambiguous CSS module class").
+  // Only `-control`, `-singleValue` and `-indicatorContainer` keep their names
+  // in this build; the value container and input wrapper are bare `css-…`, so
+  // they are reached by structure. The 52px came from FormSelect's inline
+  // `height: 42px` on the <input> itself (measured 2026-10-06).
+  :global([class$='-control']) {
+    min-width: 0 !important;
+    min-height: 32px !important;
+    font-size: 14px !important;
+  }
+
+  // Value container: the control's first child.
+  :global([class$='-control'] > div:first-child) {
+    padding: 0 0 0 10px !important;
+  }
+
+  // Its children (the value and the input wrapper, which carries FormSelect's
+  // `height: 42px`): natural height, no stray 2px margins.
+  :global([class$='-control'] > div:first-child > div) {
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  input {
+    height: 20px !important;
+    font-size: 14px !important;
+  }
+
+  :global([class$='-singleValue']) {
+    font-size: 14px !important;
+    line-height: 20px !important;
+  }
+
+  :global([class$='-indicatorContainer']) {
+    padding: 0 8px 0 4px !important;
+  }
+
+  :global([class$='-indicatorContainer'] svg) {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* The labels, a step down to match: 12/16. */
+  label {
+    font-size: 12px;
+    line-height: 16px;
+  }
+}
+
+/* The feedback dialog's attach button and strip, compacted for a 340px card. */
+.attach {
+  height: 28px;
+  margin-top: 8px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+
+.strip {
+  margin-top: 8px;
+}
+
+/* While the page is grabbed and the area dragged: the card is not in its own
+   screenshot, and doesn't sit on the frozen page. Opacity, not visibility —
+   the DS Button sets its own visibility, so its buttons stayed in the shot.
+   Hidden, not unmounted, so the draft survives. */
+.stepAside.stepAside {
+  // The card's entrance animation fills forwards and pins opacity at 1, so it
+  // has to go too; it replays when the card comes back, which reads as returning.
+  animation: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/*
+  Phone (2026-10-08): the composer is a bottom sheet, so its footer matches the
+  feedback form's — the audience line on its own row, Cancel / Post sharing the
+  row under it in equal halves. Doubled to beat the DS Button's inline-block.
+*/
+@media (max-width: 639px) {
+  .audience {
+    flex-basis: 100%;
+  }
+
+  .footerButton.footerButton {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

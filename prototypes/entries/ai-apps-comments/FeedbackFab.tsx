@@ -3,14 +3,13 @@
 import { clsx } from 'clsx';
 import { useEffect, useRef, useState } from 'react';
 
+import { Button } from '@/components/common/Button/Button';
 import { CloseIcon, CommentIcon } from '@/components/icons';
 // Production stylesheet, verbatim: the 48px brand pill, the label that spends
 // itself on arrival, the hover/focus peek.
 import s from '@/components/page/ai-apps/components/FloatingFeedbackButton/FloatingFeedbackButton.module.scss';
 // The feedback popover's card, header and ✕ — the comment card is the same card, smaller.
 import fd from '@/components/page/ai-apps/components/GiveAiAppFeedbackDialog/GiveAiAppFeedbackDialog.module.scss';
-// The product's segmented control (Updates panel: All / Unread / Read).
-import vs from '@/components/core/UpdatesPanel/ViewSwitch/ViewSwitch.module.scss';
 
 import { ProductionFeedbackDialog, type SubmittedFeedback } from './ProductionFeedbackDialog';
 import type { AiAppWithDoc } from './mocks';
@@ -19,8 +18,6 @@ import local from './FeedbackFab.module.scss';
 
 /** How long the label stays before the pill settles to the glyph. */
 const INTRO_MS = 2200;
-
-type Mode = 'comment' | 'feedback';
 
 interface CommentsProps {
   /** Comment mode is on. */
@@ -42,6 +39,12 @@ interface Props {
   rightOffset?: number;
   /** Proposal only: the bubble also holds comment mode. Absent → production's button. */
   comments?: CommentsProps;
+  /**
+   * Proposal's feedback POC screenshots (native capture on open, Whole page /
+   * Pick a part). Defaults to on whenever `comments` is passed; the grid sets it
+   * on its own, since it has no comment mode.
+   */
+  nativeCapture?: boolean;
 }
 
 /**
@@ -50,27 +53,37 @@ interface Props {
  * settling to a 48px glyph, opening the anchored popover above itself. Keyed by
  * app so the intro replays when you move between apps, as production does.
  *
- * Proposal (`comments`): one door, two modes, switched in place. The popover's
- * title becomes a Feedback | Comment switch (the Updates panel's segmented
- * control). Feedback is production's form. Comment puts the app into comment
- * mode at once — the press completes the action — and the form shrinks to a
- * small card in the same corner, carrying the same switch, the one line the
- * mode needs ("Click anywhere on the app…") and the ✕ that ends it. That card
- * is the mode's only chrome; the switch never moves, so going back to Feedback
- * is the same press in the same place.
+ * Proposal (`comments`): one door, two modes, each with a labelled way to the
+ * other. The popover is production's feedback form, and its first row is a
+ * full-width **Comment on the app** door (chat glyph, the count, a chevron).
+ * Pressing it starts comment mode at once and the form shrinks to a small
+ * "Commenting" card in the same corner: the one line the mode needs, who sees
+ * it, and a **Back to feedback** button (✕ just stops commenting).
+ *
+ * It replaced a Feedback | Comment segmented switch in the popover's title.
+ * Manager review: the switch made comments hard to find and Feedback hard to
+ * get back to — a 26px segment in the header was the only door each way. Both
+ * doors are now full-size, named controls in the body.
  *
  * The popover opens on Feedback: that is what the bubble is for today (158 sends
  * in 90 days), and comment mode changes what a click on the app does, which
  * nobody should get without choosing it. While commenting, the bubble is lit and
  * a press ends the mode.
  *
+ * `nativeCapture` is separate from `comments`: the grid's bubble in Proposal
+ * gets the same POC screenshots in its Feedback form, with no Comment mode.
+ *
  * Dropped: the rbac gate (`canViewAiApps`) and analytics.
  */
 export function FeedbackFab(props: Props) {
-  return <Fab key={props.appUid ?? 'list'} {...props} />;
+  // Keyed by capture mode too: the form keeps its screenshots between opens, so
+  // flipping the review switch must start a fresh form rather than carry a
+  // Proposal (native) screenshot into the Production form.
+  const native = props.nativeCapture ?? !!props.comments;
+  return <Fab key={`${props.appUid ?? 'list'}:${native ? 'native' : 'browser'}`} {...props} />;
 }
 
-function Fab({ apps, appUid, appName, onSubmit, viewerName, rightOffset = 0, comments }: Props) {
+function Fab({ apps, appUid, appName, onSubmit, viewerName, rightOffset = 0, comments, nativeCapture }: Props) {
   const [isOpen, setOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -85,19 +98,16 @@ function Fab({ apps, appUid, appName, onSubmit, viewerName, rightOffset = 0, com
 
   const wrapStyle = rightOffset ? { right: 24 + rightOffset, transition: 'right 0.3s ease-out' } : undefined;
 
-  const switchTo = (mode: Mode) => {
+  const startCommenting = () => {
     if (!comments) return;
-    if (mode === 'comment') {
-      setOpen(false);
-      comments.onStart();
-    } else {
-      comments.onStop();
-      setOpen(true);
-    }
+    setOpen(false);
+    comments.onStart();
   };
 
-  const modeSwitch = (mode: Mode) =>
-    comments ? <ModeSwitch mode={mode} count={comments.count} onChange={switchTo} /> : undefined;
+  const backToFeedback = () => {
+    comments?.onStop();
+    setOpen(true);
+  };
 
   const onBubble = () => {
     if (active) comments?.onStop();
@@ -145,8 +155,24 @@ function Fab({ apps, appUid, appName, onSubmit, viewerName, rightOffset = 0, com
         placement="above"
         onSubmit={onSubmit}
         viewerName={viewerName}
-        headerSlot={modeSwitch('feedback')}
-        nativeCapture={!!comments}
+        topSlot={
+          comments ? (
+            <button type="button" className={local.commentDoor} onClick={startCommenting}>
+              <span className={local.commentDoorIcon} aria-hidden>
+                <CommentIcon />
+              </span>
+              <span className={local.commentDoorText}>
+                <span className={local.commentDoorTitle}>
+                  Comment on the app
+                  {comments.count > 0 && <span className={local.commentDoorCount}>{comments.count}</span>}
+                </span>
+                <span className={local.commentDoorSub}>Click any spot to leave a comment right there</span>
+              </span>
+              <ChevronIcon />
+            </button>
+          ) : undefined
+        }
+        nativeCapture={nativeCapture ?? !!comments}
       />
 
       {comments && active && (
@@ -157,53 +183,50 @@ function Fab({ apps, appUid, appName, onSubmit, viewerName, rightOffset = 0, com
           {...{ [CAPTURE_IGNORE_ATTR]: '' }}
         >
           <div className={clsx(fd.header, local.commentHead)}>
-            {modeSwitch('comment')}
+            <h2 className={clsx(fd.title, local.commentTitle)}>Commenting</h2>
             <button type="button" className={fd.closeButton} onClick={comments.onStop} aria-label="Stop commenting">
               <CloseIcon width={16} height={16} />
             </button>
           </div>
           <p className={local.commentHint}>Click anywhere on the app to leave a comment.</p>
           <p className={local.commentAudience}>Only the app&apos;s author and admins see it.</p>
+          <div className={local.commentFoot}>
+            <Button style="border" variant="neutral" size="s" className={local.backButton} onClick={backToFeedback}>
+              <BackIcon />
+              Back to feedback
+            </Button>
+          </div>
         </div>
       )}
     </>
   );
 }
 
-interface ModeSwitchProps {
-  mode: Mode;
-  count: number;
-  onChange: (mode: Mode) => void;
+/* Same 16px / 1.4 stroke family as the dialog's camera glyph. */
+function ChevronIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className={local.commentDoorChevron}>
+      <path
+        d="M6 3.5 10.5 8 6 12.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
-/** Feedback | Comment, in the Updates panel's segmented control. */
-function ModeSwitch({ mode, count, onChange }: ModeSwitchProps) {
-  // Feedback first — the popover's default and today's job — Comment second,
-  // marked with the chat glyph the bubble itself wears.
-  const options: { value: Mode; label: string }[] = [
-    { value: 'feedback', label: 'Feedback' },
-    { value: 'comment', label: 'Comment' },
-  ];
+function BackIcon() {
   return (
-    <div className={clsx(vs.segmented, local.switch)} role="tablist" aria-label="How to respond">
-      {options.map((opt) => (
-        <button
-          key={opt.value}
-          type="button"
-          role="tab"
-          aria-selected={mode === opt.value}
-          className={vs.segmentedBtn}
-          onClick={() => opt.value !== mode && onChange(opt.value)}
-        >
-          {opt.value === 'comment' && (
-            <span className={local.switchIcon} aria-hidden>
-              <CommentIcon />
-            </span>
-          )}
-          {opt.label}
-          {opt.value === 'comment' && count > 0 && <span className={vs.segmentCount}>{count}</span>}
-        </button>
-      ))}
-    </div>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M10 3.5 5.5 8 10 12.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

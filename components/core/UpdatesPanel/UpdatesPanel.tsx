@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link';
 import { PushNotification } from '@/types/push-notifications.types';
 import { AnimatePresence, motion } from 'framer-motion';
+import { starterKitUpdateClick, useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useNotificationAnalytics } from '@/analytics/notification.analytics';
 import { CloseIcon, ArrowRightIcon } from './icons';
 import { EmptyState } from './EmptyState';
@@ -34,6 +35,7 @@ export function UpdatesPanel({
   isLoggedIn = true,
 }: UpdatesPanelProps) {
   const analytics = useNotificationAnalytics();
+  const aiAppsAnalytics = useAiAppsAnalytics();
 
   // aria-live announcement — the only feedback this flow has (no toast/undo
   // by design), and on failure the only signal a person gets at all.
@@ -128,6 +130,8 @@ export function UpdatesPanel({
   const handleNotificationClick = (notification: PushNotification) => {
     analytics.onUpdatesPanelNotificationClicked(notification);
     analytics.onNotificationActionLinkClicked(notification, 'updates_panel');
+    const kitClick = starterKitUpdateClick(notification);
+    if (kitClick) aiAppsAnalytics.onStarterKitNotificationClicked({ ...kitClick, source: 'updates_panel' });
     if (!notification.isRead) {
       onMarkAsRead(notification.id);
     }

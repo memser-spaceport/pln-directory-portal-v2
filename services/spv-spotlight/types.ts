@@ -62,6 +62,8 @@ export type SpvSpotlight = {
   /** Admin-configured hero copy, as HTML. */
   description: string;
   supportEmail: string;
+  /** When the SPV stops taking commitments (ISO datetime). Admin-set and optional: no date, no "Closes" line. */
+  closesAt?: string | null;
   /** Only sent when the viewer is APPROVED and the spotlight is OPEN; null otherwise. */
   docSendUrl: string | null;
   team: SpvTeam;

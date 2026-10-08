@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Button } from '@/components/common/Button';
 import s from './SpvInvestorProfileCard.module.scss';
 
 type Props = {
@@ -11,29 +10,27 @@ type Props = {
 };
 
 /**
- * The investor-profile door, in a card of its own under the Spotlight's
- * description (review 2026-10-05): the profile is about the deals we send next,
- * not this team, so it stays out of the team card's action slot. A plain page
- * card, no icon, no read-back of the profile. The button is the DS blue outline,
- * so the team card's Request data room access stays the page's one filled primary.
+ * The investor-profile ask, as one sentence with a link (design review
+ * 2026-10-07: "better as just a plain sentence w/ a link vs a sectional tile").
+ * It sits above the team card; as one quiet line it no longer outranks the SPV.
+ * The link opens the investor-profile drawer.
  */
 export const SpvInvestorProfileCard = ({ hasProfile, onOpen }: Props) => (
-  <section className={s.root} aria-labelledby="spv-profile-card-title">
-    <div className={s.head}>
-      <span className={s.overline}>For future deals</span>
-      <h2 id="spv-profile-card-title" className={s.title}>
-        Get only the deals that fit you
-      </h2>
-      <p className={s.body}>
-        Set your check size, stages and focus once — we use it for every future deal we send you.
-      </p>
-    </div>
-
-    <div className={s.cta}>
-      <Button size="m" style="border" variant="primary" type="button" className={s.button} onClick={onOpen}>
-        {hasProfile ? 'Review and update' : 'Set up investor profile'}
-      </Button>
-      <span className={s.hint}>Takes about 1 min</span>
-    </div>
-  </section>
+  <p className={s.root}>
+    {hasProfile ? (
+      <>
+        <button type="button" className={s.link} onClick={onOpen}>
+          Review your investor profile
+        </button>{' '}
+        to keep the deals we send you matched to your check size, stages and focus.
+      </>
+    ) : (
+      <>
+        Tell us how you invest, and we&apos;ll only send you deals that fit your check size, stages and focus.{' '}
+        <button type="button" className={s.link} onClick={onOpen}>
+          Set up your investor profile
+        </button>
+      </>
+    )}
+  </p>
 );

@@ -92,11 +92,18 @@
   font-size: 16px;
   line-height: 24px;
   letter-spacing: -0.2px;
+  // A long word (a URL, a compound) breaks rather than running off a phone.
+  overflow-wrap: anywhere;
 
   @include media.mobile-only {
     font-size: 14px;
     line-height: 20px;
   }
+}
+
+// The one-liner's tail, held on one line (see keepTailTogether).
+.noWrap {
+  white-space: nowrap;
 }
 
 // ---- Action slot ---------------------------------------------------------------
@@ -170,6 +177,57 @@
   @include media.mobile-only {
     text-align: center;
   }
+}
+
+// With a note (the open data room's close date and terms), the column is as
+// wide as the button and the note wraps under it, centred. Phones keep the
+// full-width button.
+.cardActionWithNote {
+  align-items: stretch;
+  max-width: 360px;
+
+  .cardActionButton {
+    padding: 10px 22px;
+
+    @include media.mobile-only {
+      padding: 10px 12px;
+    }
+  }
+
+  .cardActionNote {
+    width: 0;
+    min-width: 100%;
+    text-align: center;
+    text-wrap: pretty;
+  }
+
+  @include media.mobile-only {
+    max-width: none;
+  }
+}
+
+// The deadline leads in primary ink; the terms line a step smaller.
+.cardActionDeadline {
+  display: block;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 500;
+}
+
+.cardActionTerms {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+// Spreads the link over the nearest positioned ancestor (the data room band),
+// making the whole band one link. Nothing between the link and the band may be
+// positioned, or the clickable area shrinks back to the button.
+.cardActionButtonStretch::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
 }
 
 .cardStatus {

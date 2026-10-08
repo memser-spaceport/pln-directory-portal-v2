@@ -11,6 +11,7 @@ import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/F
 import {
   useSpvSpotlightAnalytics,
   type SpvContactUsSource,
+  type SpvDataRoomSource,
   type SpvInvestorProfileSource,
   type SpvSignInSource,
   type SpvSpotlightBaseParams,
@@ -22,6 +23,7 @@ import { useContactSupportStore } from '@/services/contact-support/store';
 import { useMember } from '@/services/members/hooks/useMember';
 import { SHOW_EXPLORE_PL_NETWORK } from '@/services/explore-pl-network/constants';
 import { getSpvSpotlightPath, REQUEST_FLOW_ENABLED } from '@/services/spv-spotlight/constants';
+import { formatSpvClosesAt } from '@/services/spv-spotlight/formatSpvClosesAt';
 import { useGetSpvSpotlight } from '@/services/spv-spotlight/hooks/useGetSpvSpotlight';
 import { useRequestSpvAccess } from '@/services/spv-spotlight/hooks/useRequestSpvAccess';
 import { isSpvLockedState, resolveSpvViewState, type SpvViewState } from '@/services/spv-spotlight/resolveSpvViewState';
@@ -40,12 +42,13 @@ import { SpvTopBar } from './SpvTopBar/SpvTopBar';
 import { SpvHero } from './SpvHero/SpvHero';
 import { SpvLockedHero } from './SpvLockedHero/SpvLockedHero';
 import { SpvInvestorProfileCard } from './SpvInvestorProfileCard/SpvInvestorProfileCard';
-import { SpvCardAction, SpvCardStatus, SpvTeamCard } from './SpvTeamCard/SpvTeamCard';
+import { SpvCardAction, SpvCardStatus, SpvDataRoomNote, SpvTeamCard } from './SpvTeamCard/SpvTeamCard';
+import { SpvDataRoomBand } from './SpvDataRoomBand/SpvDataRoomBand';
 import { SpvExploreTile } from './SpvExploreTile/SpvExploreTile';
 import { SpvFooter } from './SpvFooter/SpvFooter';
 import { SpvRequestAccessModal, type SpvRequestAccessOutcome } from './SpvRequestAccessModal/SpvRequestAccessModal';
 import { SpvRequestReceivedModal } from './SpvRequestReceivedModal/SpvRequestReceivedModal';
-import { SPV_FAQ_ITEMS, SPV_REQUEST_FLOW_FAQ_ITEMS } from './faq';
+import { getSpvFaqItems, SPV_REQUEST_FLOW_FAQ_ITEMS } from './faq';
 import s from './SpvSpotlightView.module.scss';
 
 const TOP_BAR_LABEL = 'PL Spotlight';
@@ -182,6 +185,11 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
     if (params) analytics.onSupportEmailClicked({ ...params, source });
   };
 
+  const dataRoomClicked = (source: SpvDataRoomSource) => {
+    const params = baseParams();
+    if (params) analytics.onOpenDataRoomClicked({ ...params, source });
+  };
+
   // Production's AccountMenu logout; AuthBox (mounted on bare routes too) then
   // reloads the tab, so the page re-reads as signed out.
   const signOut = () => {
@@ -315,6 +323,11 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
     );
   }
 
+  // The DocSend only reaches approved viewers of an open spotlight; without it
+  // the card says the data room is being prepared and there's no band.
+  const dataRoomUrl = viewState === 'open' ? spotlight.docSendUrl : null;
+  const closesLabel = formatSpvClosesAt(spotlight.closesAt);
+
   const cardAction = (() => {
     switch (viewState) {
       case null:
@@ -341,14 +354,14 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
           />
         );
       case 'open':
-        return spotlight.docSendUrl ? (
+        // One label on every visit: without a DocSend integration the page can't
+        // know whether the investor already asked for access or has it.
+        return dataRoomUrl ? (
           <SpvCardAction
-            label="Request data room access"
-            href={spotlight.docSendUrl}
-            onClick={() => {
-              const params = baseParams();
-              if (params) analytics.onOpenDataRoomClicked(params);
-            }}
+            label="Access data room"
+            href={dataRoomUrl}
+            onClick={() => dataRoomClicked('team-card')}
+            note={<SpvDataRoomNote closesLabel={closesLabel} />}
           />
         ) : (
           <SpvCardStatus>Data room is being prepared</SpvCardStatus>
@@ -381,7 +394,8 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
             onContactUs={() => contactUs('rejected')}
           />
 
-          {(viewState === 'open' || viewState === 'openingSoon') && (
+          {/* Waits for the member read, so a returning investor never sees the set-up ask flip to review. */}
+          {(viewState === 'open' || viewState === 'openingSoon') && memberData && (
             <section className={s.section} aria-label="Your investor profile">
               <SpvInvestorProfileCard hasProfile={hasInvestorProfile} onOpen={() => openProfile('profile-card')} />
             </section>
@@ -405,10 +419,26 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
 
           {exploreTile}
 
+          {dataRoomUrl && (
+            <SpvDataRoomBand
+              team={spotlight.team}
+              docSendUrl={dataRoomUrl}
+              closesLabel={closesLabel}
+              onClick={() => dataRoomClicked('band')}
+            />
+          )}
+
           <section className={s.faqSection}>
             <FAQ
               title="Questions investors ask"
-              items={REQUEST_FLOW_ENABLED ? SPV_REQUEST_FLOW_FAQ_ITEMS : SPV_FAQ_ITEMS}
+              items={
+                REQUEST_FLOW_ENABLED
+                  ? SPV_REQUEST_FLOW_FAQ_ITEMS
+                  : getSpvFaqItems({
+                      supportEmail: spotlight.supportEmail,
+                      onSupportEmailClicked: () => supportEmailClicked('faq-answer'),
+                    })
+              }
               subtitle={
                 <p className={s.faqSubtitle}>
                   Reach out to us at{' '}

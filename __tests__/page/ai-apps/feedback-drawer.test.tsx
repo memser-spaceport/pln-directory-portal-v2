@@ -32,12 +32,26 @@ jest.mock('@/components/form/FormEditor', () => ({
     const { useFormContext } = require('react-hook-form');
     const { setValue, watch } = useFormContext();
     return (
-      <textarea
-        aria-label="Your feedback"
-        placeholder={placeholder}
-        value={watch(name) ?? ''}
-        onChange={(e) => setValue(name, e.target.value, { shouldDirty: true })}
-      />
+      <div>
+        <span role="button" tabIndex={0} aria-label="header">
+          H
+        </span>
+        <button type="button" aria-label="bold">
+          B
+        </button>
+        <button type="button" aria-label="link">
+          L
+        </button>
+        <button type="button" aria-label="image">
+          I
+        </button>
+        <textarea
+          aria-label="Your feedback"
+          placeholder={placeholder}
+          value={watch(name) ?? ''}
+          onChange={(e) => setValue(name, e.target.value, { shouldDirty: true })}
+        />
+      </div>
     );
   },
 }));
@@ -222,6 +236,45 @@ describe('GiveAiAppFeedbackDialog, drawer variant', () => {
     expect(screen.getByRole('heading', { name: 'Give feedback' })).toBeInTheDocument();
     expect(screen.getByLabelText('Which app is this about?')).toBeInTheDocument();
     expect(screen.getByTestId('selected-app')).toHaveTextContent('LabOS - AI Apps');
+  });
+
+  it('keeps Tab inside the drawer', () => {
+    render(<GiveAiAppFeedbackDialog variant="drawer" isOpen onClose={jest.fn()} />);
+
+    const drawer = screen.getByTestId('feedback-drawer');
+    const items = Array.from(drawer.querySelectorAll<HTMLElement>('button, input, textarea, a[href]')).filter(
+      (el) => !el.hasAttribute('disabled') && el.tabIndex >= 0 && !el.closest('[aria-hidden="true"]'),
+    );
+    expect(items.length).toBeGreaterThan(1);
+
+    items[items.length - 1].focus();
+    fireEvent.keyDown(document, { key: 'Tab' });
+    expect(document.activeElement).toBe(items[0]);
+    expect(document.activeElement).not.toBe(screen.getByRole('button', { name: 'Shortcuts' }));
+    expect(screen.getByRole('button', { name: 'Shortcuts' })).toHaveAttribute('tabindex', '-1');
+    expect(screen.getByRole('button', { name: 'Wider' })).toHaveAttribute('tabindex', '-1');
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveAttribute('tabindex', '-1');
+
+    fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(items[items.length - 1]);
+    expect(drawer.contains(document.activeElement)).toBe(true);
+
+    const note = screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER);
+    note.focus();
+    fireEvent.keyDown(document, { key: 'Tab' });
+    expect(document.activeElement).toBe(note);
+    expect(document.getElementById('reportKind')).not.toHaveAttribute('tabindex', '-1');
+    expect(document.getElementById('priority')).not.toHaveAttribute('tabindex', '-1');
+
+    const header = screen.getByRole('button', { name: 'header' });
+    header.focus();
+    fireEvent.keyDown(document, { key: 'Tab' });
+    expect(document.activeElement).toBe(header);
+    for (const name of ['bold', 'link', 'image']) {
+      const tool = screen.getByRole('button', { name });
+      expect(tool.tabIndex).toBeGreaterThanOrEqual(0);
+      expect(tool).not.toHaveAttribute('disabled');
+    }
   });
 
   it('puts the switcher directly under the title, not in its place', () => {

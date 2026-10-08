@@ -1296,6 +1296,7 @@ export function GiveAiAppFeedbackDialog({
       {!showingAlt && (
         <button
           type="button"
+          tabIndex={-1}
           className={clsx(s.shortcutsLink, s.shortcutsHelpLink)}
           onClick={() => {
             analytics.onFeedbackShortcutsHelpOpened();
@@ -1317,6 +1318,7 @@ export function GiveAiAppFeedbackDialog({
           {!showingAlt && (
             <button
               type="button"
+              tabIndex={-1}
               className={s.closeButton}
               aria-label={isWide ? 'Narrower' : 'Wider'}
               title={isWide ? 'Narrower' : 'Wider'}
@@ -1328,7 +1330,7 @@ export function GiveAiAppFeedbackDialog({
               {isWide ? <NarrowerIcon /> : <WiderIcon />}
             </button>
           )}
-          <button type="button" className={s.closeButton} onClick={onClose} aria-label="Close">
+          <button type="button" tabIndex={-1} className={s.closeButton} onClick={onClose} aria-label="Close">
             <CloseIcon width={16} height={16} />
           </button>
         </div>
@@ -1885,7 +1887,7 @@ export function ShortcutHelp({
               [shortcuts.appList, 'Open the app list'],
               ['↑ ↓', 'Move in the open list'],
               ['Type', 'Find an app in the open list'],
-              [shortcuts.enter, 'Choose the highlighted app'],
+              [shortcuts.enter, 'Open the list, or choose the highlighted app'],
             ] as [string, string][])
           : []),
         [shortcuts.enter, 'Use this part, after a touch or pen drag'],

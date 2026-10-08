@@ -39,6 +39,18 @@
   pointer-events: auto;
   outline: none;
 
+  /* Keyboard focus only. Mouse clicks do not draw it. The same quiet blue the
+     editor uses, as a thin ring, so the current control is obvious. */
+  button:focus-visible,
+  a:focus-visible,
+  [role='tab']:focus-visible,
+  [role='button']:focus-visible,
+  textarea:focus-visible,
+  [contenteditable='true']:focus-visible {
+    outline: 2px solid rgba(27, 77, 255, 0.65);
+    outline-offset: 2px;
+  }
+
   @include media.mobile-only {
     width: 100vw;
   }

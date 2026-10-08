@@ -9,6 +9,18 @@ import { FEEDBACK_CAPTURE_IGNORE_ATTR } from '../screenshot-feedback/capturePage
 import s from './GiveAiAppFeedbackDialog.module.scss';
 import dw from './FeedbackDrawer.module.scss';
 
+const TABBABLE =
+  'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [contenteditable="true"], [role="button"]';
+
+function tabbableIn(root: HTMLElement): HTMLElement[] {
+  return Array.from(root.querySelectorAll<HTMLElement>(TABBABLE)).filter((el) => {
+    if (el.tabIndex < 0) return false;
+    if (el.closest('[hidden], [aria-hidden="true"]')) return false;
+    const style = getComputedStyle(el);
+    return style.display !== 'none' && style.visibility !== 'hidden';
+  });
+}
+
 /** The narrow drawer: the popover's width, now full height on the right. */
 export const FEEDBACK_DRAWER_NARROW = 480;
 /** Read by the detail page (≥960px), which gives up the drawer's width beside it. */
@@ -55,6 +67,31 @@ export function FeedbackDrawerFrame({ isOpen, wide, hidden, reserveSpace, label,
     const panel = panelRef.current;
     if (panel && !panel.contains(document.activeElement)) panel.focus({ preventScroll: true });
   }, [isOpen]);
+
+  /* Tab stays in the drawer. The page beside it stays clickable (Pick a part, comments), so the
+     background is not inert — only Tab is pulled back. While a capture hides the panel, the
+     overlay owns the keys. */
+  useEffect(() => {
+    if (!isOpen || hidden) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab' || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
+      const items = tabbableIn(panel);
+      if (items.length === 0) return;
+      const active = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      const index = active ? items.findIndex((item) => item === active || item.contains(active)) : -1;
+      const leavingBackward = event.shiftKey && (index <= 0);
+      const leavingForward = !event.shiftKey && (index === -1 || index === items.length - 1);
+      if (!leavingBackward && !leavingForward) return;
+      event.preventDefault();
+      items[event.shiftKey ? items.length - 1 : 0].focus();
+    };
+
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen, hidden]);
 
   const reserve = isOpen && !wide && reserveSpace;
   useEffect(() => {

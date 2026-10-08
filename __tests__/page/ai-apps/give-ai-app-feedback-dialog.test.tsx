@@ -1375,7 +1375,7 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(screen.getByText('Open the app list')).toBeInTheDocument();
       expect(screen.getByText('Move in the open list')).toBeInTheDocument();
       expect(screen.getByText('Find an app in the open list')).toBeInTheDocument();
-      expect(screen.getByText('Choose the highlighted app')).toBeInTheDocument();
+      expect(screen.getByText('Open the list, or choose the highlighted app')).toBeInTheDocument();
       fireEvent.keyDown(document, { key: 'Escape' });
 
       const field = screen.getByLabelText('Which app is this about?');

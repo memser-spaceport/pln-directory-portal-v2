@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
 import Select, { components, ControlProps, ClearIndicatorProps, SelectInstance } from 'react-select';
 import { useMedia, useToggle } from 'react-use';
-import React, { ReactNode, useRef, useState } from 'react';
+import React, { ReactNode, useMemo, useRef, useState } from 'react';
 
 import { Field } from '@base-ui-components/react/field';
 import { useFormContext } from 'react-hook-form';
@@ -13,6 +13,13 @@ import { MobileFormSelectView } from './components/MobileFormSelectView';
 import s from './FormSelect.module.scss';
 
 import { Option } from './types';
+
+/* A new function each render remounts this input. Choosing a row then drops
+   focus while the blue ring stays. A chosen value also sets isHidden, so the
+   input is opacity 0 and Tab lands on it with nothing to see. */
+function VisibleSelectInput(props: React.ComponentProps<typeof components.Input>) {
+  return <components.Input {...props} isHidden={false} />;
+}
 
 type RenderOptionInput = {
   option: Option;
@@ -114,6 +121,19 @@ export const FormSelect = (props: Props) => {
 
   const internalSelectRef = useRef<SelectInstance | null>(null);
 
+  /* A new Control each render remounts the input. The blue ring then stays
+     while the field is no longer the active control. */
+  const Control = useMemo(() => {
+    return function FormSelectControl(controlProps: ControlProps<Option, false>) {
+      return (
+        <components.Control {...controlProps}>
+          {icon && <span className={s.icon}>{icon}</span>}
+          {controlProps.children}
+        </components.Control>
+      );
+    };
+  }, [icon]);
+
   const [open, toggleOpen] = useToggle(false);
   const isMobile = useMedia('(max-width: 960px)', false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -176,18 +196,23 @@ export const FormSelect = (props: Props) => {
           options={enhancedOptions}
           value={value}
           defaultValue={value}
-          onChange={(val) => {
+          onChange={(val, meta) => {
             // Don't allow selection of the notFoundContent option
             if (val && (val as any).isNotFoundContent) {
               return;
             }
             setValue(name, val, { shouldValidate: true, shouldDirty: true });
             onChange?.(val as { label: string; value: string } | null);
+            if (meta.action === 'select-option') {
+              requestAnimationFrame(() => internalSelectRef.current?.focus());
+            }
           }}
           isDisabled={disabled || open}
           inputId={name}
           aria-label={props['aria-label']}
           isClearable={isClearable}
+          /* Chrome reports TouchEvent, so react-select blurs the field when a row is chosen. Keep the field focused. Only the list closes. */
+          blurInputOnSelect={false}
           formatOptionLabel={formatOptionLabel}
           filterOption={(option, inputValue) => {
             if (hideOptionsWhenEmpty && !inputValue.trim()) {
@@ -211,6 +236,14 @@ export const FormSelect = (props: Props) => {
           }}
           onMenuClose={() => {
             onMenuCloseProp?.();
+          }}
+          onKeyDown={(event) => {
+            /* A closed list: Enter opens it. An open list keeps react-select's Enter, which chooses the row. */
+            if (event.key !== 'Enter' || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+            if (event.nativeEvent.isComposing) return;
+            if ((event.target as HTMLElement).getAttribute('aria-expanded') === 'true') return;
+            event.preventDefault();
+            internalSelectRef.current?.openMenu('first');
           }}
           styles={{
             container: (base) => ({
@@ -238,9 +271,12 @@ export const FormSelect = (props: Props) => {
                 boxShadow: '0 0 0 4px rgba(27, 56, 96, 0.12) !important',
                 borderColor: '#5E718D !important',
               },
-              '&:focus-visible, &:focus': {
-                borderColor: '#5E718D !important',
-                boxShadow: '0 0 0 4px rgba(27, 56, 96, 0.12) !important',
+              /* The ring follows the real input, not react-select's focused flag. */
+              '&:focus-within': {
+                borderColor: 'rgba(27, 77, 255, 0.65) !important',
+                boxShadow: 'none !important',
+                outline: '2px solid rgba(27, 77, 255, 0.65)',
+                outlineOffset: 2,
               },
               ...(!!errors[name]
                 ? {
@@ -302,6 +338,7 @@ export const FormSelect = (props: Props) => {
             }),
           }}
           components={{
+            Input: VisibleSelectInput,
             DropdownIndicator: (props) => {
               if (hideOptionsWhenEmpty) {
                 return null;
@@ -316,12 +353,7 @@ export const FormSelect = (props: Props) => {
 
               return <components.Menu {...props}>{props.children}</components.Menu>;
             },
-            Control: (controlProps: ControlProps<Option, false>) => (
-              <components.Control {...controlProps}>
-                {icon && <span className={s.icon}>{icon}</span>}
-                {controlProps.children}
-              </components.Control>
-            ),
+            Control,
             ClearIndicator: (props: ClearIndicatorProps<Option, false>) => (
               <div
                 {...props.innerProps}
@@ -360,6 +392,8 @@ export const FormSelect = (props: Props) => {
 
               return (
                 <div
+                  /* react-select scrolls the list to this node when arrows move the highlight. */
+                  ref={props.innerRef}
                   {...props.innerProps}
                   className={clsx(s.option, props.isFocused && s.optionFocused)}
                 >

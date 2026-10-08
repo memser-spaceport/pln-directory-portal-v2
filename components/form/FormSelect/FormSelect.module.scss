@@ -130,9 +130,12 @@
      option refuses to shrink no matter what the menu is willing to give it. */
   min-width: 0;
 
-  &:hover,
-  &.optionFocused {
+  &:hover {
     background: var(--Neutral-Slate-50);
+  }
+
+  &.optionFocused {
+    background: rgba(27, 77, 255, 0.1);
   }
 }
 

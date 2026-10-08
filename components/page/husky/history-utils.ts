@@ -1,4 +1,4 @@
-import { getYear, isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
+import { getYear, isSameDay, subDays, subMonths, subWeeks } from 'date-fns';
 
 export interface IHistoryThread {
   title: string;
@@ -13,8 +13,8 @@ const FIXED_GROUPS = ['Today', 'Yesterday', 'Last 7 days', 'Last 30 days'];
 const threadDate = (thread: IHistoryThread) => new Date(thread.updatedAt || thread.createdAt);
 
 const groupLabel = (date: Date, now: Date) => {
-  if (isToday(date)) return 'Today';
-  if (isYesterday(date)) return 'Yesterday';
+  if (isSameDay(date, now)) return 'Today';
+  if (isSameDay(date, subDays(now, 1))) return 'Yesterday';
   if (date > subWeeks(now, 1)) return 'Last 7 days';
   if (date > subMonths(now, 1)) return 'Last 30 days';
   return String(getYear(date));
@@ -25,13 +25,16 @@ const groupLabel = (date: Date, now: Date) => {
  * (newest year first). Chats are newest first inside a group; empty groups are left out.
  */
 export function groupThreadsByDate<T extends IHistoryThread>(threads: T[], now = new Date()): Array<[string, T[]]> {
-  const groups = new Map<string, T[]>();
+  const groups = new Map<string, Array<{ thread: T; time: number }>>();
 
   for (const thread of threads) {
     const date = threadDate(thread);
-    if (isNaN(date.getTime())) continue;
+    const time = date.getTime();
+    if (isNaN(time)) continue;
     const label = groupLabel(date, now);
-    groups.set(label, [...(groups.get(label) ?? []), thread]);
+    const group = groups.get(label);
+    if (group) group.push({ thread, time });
+    else groups.set(label, [{ thread, time }]);
   }
 
   const years = Array.from(groups.keys())
@@ -40,7 +43,13 @@ export function groupThreadsByDate<T extends IHistoryThread>(threads: T[], now =
 
   return [...FIXED_GROUPS, ...years]
     .filter((label) => groups.has(label))
-    .map((label) => [label, groups.get(label)!.sort((a, b) => threadDate(b).getTime() - threadDate(a).getTime())]);
+    .map((label) => [
+      label,
+      groups
+        .get(label)!
+        .sort((a, b) => b.time - a.time)
+        .map(({ thread }) => thread),
+    ]);
 }
 
 /** Chats whose title contains the query, ignoring letter case; every chat for an empty query. */

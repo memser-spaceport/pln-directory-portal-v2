@@ -315,11 +315,14 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
   const groupedChats = useMemo(() => groupThreadsByDate(filteredHistory), [filteredHistory]);
 
   const trimmedQuery = searchQuery.trim();
+  const resultCountRef = useRef(0);
+  resultCountRef.current = filteredHistory.length;
 
   useEffect(() => {
     if (!trimmedQuery) return;
     const timer = setTimeout(() => {
-      analytics.trackHistorySearched({ query: trimmedQuery, resultCount: filteredHistory.length });
+      // Only the length of the search text is sent: chat titles can hold private words.
+      analytics.trackHistorySearched({ queryLength: trimmedQuery.length, resultCount: resultCountRef.current });
     }, HISTORY_SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
     // The event fires once per search text; a refreshed list alone does not send it again.
@@ -390,7 +393,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                 </span>
               </div>
             </div>
-            {!isLoading && history.length > 0 && (
+            {!isLoading && (history.length > 0 || !!searchQuery) && (
               <div className="sidebar__body__history__search">
                 <img width={16} height={16} src="/icons/search-gray.svg" alt="" aria-hidden="true" />
                 <input

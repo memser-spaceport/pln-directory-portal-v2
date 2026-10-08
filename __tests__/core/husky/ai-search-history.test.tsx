@@ -4,6 +4,7 @@ import '@testing-library/jest-dom';
 const push = jest.fn();
 const trackHistorySearched = jest.fn();
 const trackMobileDeleteThread = jest.fn();
+const trackDeleteThread = jest.fn();
 const deleteThread = jest.fn();
 
 jest.mock('@/analytics/husky.analytics', () => ({
@@ -11,7 +12,7 @@ jest.mock('@/analytics/husky.analytics', () => ({
     trackMobileHeaderToggleClicked: jest.fn(),
     trackMobileDeleteThread,
     trackHistoryListItemClicked: jest.fn(),
-    trackDeleteThread: jest.fn(),
+    trackDeleteThread,
     trackSidebarToggleClicked: jest.fn(),
     trackSidebarNewConversationClicked: jest.fn(),
     trackThreadDeleteConfirmationStatus: jest.fn(),
@@ -181,7 +182,7 @@ describe('LAB-2774: Search chats in the History rail', () => {
     });
 
     expect(trackHistorySearched).toHaveBeenCalledTimes(1);
-    expect(trackHistorySearched).toHaveBeenCalledWith({ query: 'stor', resultCount: 1 });
+    expect(trackHistorySearched).toHaveBeenCalledWith({ queryLength: 4, resultCount: 1 });
   });
 
   it('shows the date group labels and marks the open chat', async () => {
@@ -253,7 +254,8 @@ describe('LAB-2774: Delete from the title bar', () => {
     fireEvent.click(screen.getByRole('button', { name: 'more options' }));
     fireEvent.click(screen.getByText('Delete'));
 
-    expect(trackMobileDeleteThread).toHaveBeenCalledWith('thread-1', 'Storage teams');
+    expect(trackDeleteThread).toHaveBeenCalledWith('thread-1', 'Storage teams');
+    expect(trackMobileDeleteThread).not.toHaveBeenCalled();
     const dialog = screen
       .getByText('Are you sure you want to delete this thread?')
       .closest('.delete-modal') as HTMLElement;

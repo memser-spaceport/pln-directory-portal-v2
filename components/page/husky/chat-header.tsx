@@ -17,7 +17,7 @@ const ChatHeader = ({ resetChat, showActions, title }: ChatHeaderProps) => {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { id } = useParams();
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, isMobile } = useSidebar();
   const analytics = useHuskyAnalytics();
   const router = useRouter();
 
@@ -34,7 +34,11 @@ const ChatHeader = ({ resetChat, showActions, title }: ChatHeaderProps) => {
     // Implement delete functionality
     setShowMenu(false);
     document.dispatchEvent(new CustomEvent('delete-thread', { detail: { threadId: id } }));
-    analytics.trackMobileDeleteThread(id as string, title ?? '');
+    if (isMobile) {
+      analytics.trackMobileDeleteThread(id as string, title ?? '');
+    } else {
+      analytics.trackDeleteThread(id as string, title ?? '');
+    }
   };
 
   const handleNewConversation = () => {

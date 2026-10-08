@@ -224,7 +224,7 @@ export const useHuskyAnalytics = () => {
     captureEvent(events.husky_duplicate_thread_status, { threadId, status });
   }
 
-  function trackHistorySearched(params: { query: string; resultCount: number }) {
+  function trackHistorySearched(params: { queryLength: number; resultCount: number }) {
     captureEvent(events.unified_search_history_searched, params);
   }
 

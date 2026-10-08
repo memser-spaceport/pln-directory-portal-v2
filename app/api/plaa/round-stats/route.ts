@@ -1,13 +1,23 @@
 import { NextResponse } from 'next/server';
-import { getCurrentRoundStats } from '@/services/plaa/rounds.service';
+import { plaaApiHeaders } from '@/services/plaa/plaa-api';
 
-/** Intentionally public, no-auth — round stats aren't user-specific. */
+/** Intentionally public, no-auth: served from the public summary. */
 export async function GET() {
-  const { data, error } = await getCurrentRoundStats();
+  try {
+    const res = await fetch(`${process.env.PLAA_API_URL}/api/v1/summary`, {
+      method: 'GET',
+      headers: plaaApiHeaders(),
+      cache: 'no-store',
+    });
 
-  if (error || !data) {
-    return NextResponse.json({ error: error?.message ?? 'Failed to fetch round stats' }, { status: 502 });
+    if (!res.ok) {
+      return NextResponse.json({ error: `PLAA API request failed: ${res.status}` }, { status: 502 });
+    }
+
+    const { round } = await res.json();
+    return NextResponse.json(round);
+  } catch (error) {
+    console.error('PLAA round-stats proxy error:', error);
+    return NextResponse.json({ error: 'Failed to fetch round stats' }, { status: 502 });
   }
-
-  return NextResponse.json(data);
 }

@@ -4,6 +4,7 @@ import styles from './plaa.module.css';
 import { currentRoundData } from '@/components/page/aligement-assets/rounds/data';
 import { getLeaderboard } from '@/services/plaa/leaderboard.service';
 import { getCurrentRoundStats, RoundStatsResponse } from '@/services/plaa/rounds.service';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { CurrentRoundData } from '@/components/page/aligement-assets/rounds/types/current-round.types';
 
 // The data file keeps only editorial content that never varies by round —
@@ -59,7 +60,8 @@ function mergeRoundStats(stats: RoundStatsResponse): CurrentRoundData {
 }
 
 export default async function PlaaPage() {
-  const { data: stats } = await getCurrentRoundStats();
+  const { authToken } = await getCookiesFromHeaders();
+  const { data: stats } = await getCurrentRoundStats(authToken);
   if (!stats) notFound();
   const data = mergeRoundStats(stats);
   const { data: leaderboardResponse } = await getLeaderboard(data.meta.roundNumber);

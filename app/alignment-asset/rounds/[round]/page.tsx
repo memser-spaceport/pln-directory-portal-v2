@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import PastRoundComponent from '@/components/page/aligement-assets/rounds/past-round-component';
 import { currentRoundData } from '@/components/page/aligement-assets/rounds/data';
 import { getRoundStats, RoundStatsResponse } from '@/services/plaa/rounds.service';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { IPastRoundData } from '@/components/page/aligement-assets/rounds/types/current-round.types';
 import styles from './page.module.css';
 
@@ -51,7 +52,8 @@ export default async function PastRoundPage({ params }: PastRoundPageProps) {
 
   if (isNaN(roundNumber) || roundNumber < 1) notFound();
 
-  const { data: stats } = await getRoundStats(roundNumber);
+  const { authToken } = await getCookiesFromHeaders();
+  const { data: stats } = await getRoundStats(roundNumber, authToken);
   if (!stats) notFound();
 
   if (stats.isCurrentRound) redirect('/alignment-asset');

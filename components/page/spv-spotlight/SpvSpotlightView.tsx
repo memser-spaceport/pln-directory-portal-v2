@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { authEvents, useLoginRedirect } from '@/components/core/login/utils';
 import { broadcastLogout } from '@/components/core/login/components/BroadcastChannel';
@@ -21,7 +21,11 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useContactSupportStore } from '@/services/contact-support/store';
 import { useMember } from '@/services/members/hooks/useMember';
 import { SHOW_EXPLORE_PL_NETWORK } from '@/services/explore-pl-network/constants';
-import { getSpvSpotlightPath, REQUEST_FLOW_ENABLED } from '@/services/spv-spotlight/constants';
+import {
+  getSpvSpotlightPath,
+  REDIRECT_UNAUTHORIZED_SPV_SPOTLIGHT,
+  REQUEST_FLOW_ENABLED,
+} from '@/services/spv-spotlight/constants';
 import { useGetSpvSpotlight } from '@/services/spv-spotlight/hooks/useGetSpvSpotlight';
 import { useRequestSpvAccess } from '@/services/spv-spotlight/hooks/useRequestSpvAccess';
 import { isSpvLockedState, resolveSpvViewState, type SpvViewState } from '@/services/spv-spotlight/resolveSpvViewState';
@@ -128,6 +132,12 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
       : null;
   })();
   const locked = isSpvLockedState(viewState);
+  const router = useRouter();
+  const redirectHome = REDIRECT_UNAUTHORIZED_SPV_SPOTLIGHT && locked;
+
+  useEffect(() => {
+    if (redirectHome) router.replace('/');
+  }, [redirectHome, router]);
 
   const baseParams = (): SpvSpotlightBaseParams | null =>
     viewState ? { spotlight_slug: slug, spotlight_status: spotlight?.status ?? null, view_state: viewState } : null;
@@ -274,7 +284,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
     }
   };
 
-  if (locked) {
+  if (locked && !redirectHome) {
     return (
       <div className={s.page}>
         {topBar}
@@ -296,7 +306,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
   }
 
   // Gated, nothing of the deal renders until the viewer's state is known.
-  if (!spotlight || (!REQUEST_FLOW_ENABLED && !viewState)) {
+  if (!spotlight || redirectHome || (!REQUEST_FLOW_ENABLED && !viewState)) {
     return (
       <div className={s.page}>
         {topBar}

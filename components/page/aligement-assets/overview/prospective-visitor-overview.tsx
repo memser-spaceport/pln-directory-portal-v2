@@ -33,7 +33,7 @@ import type { CSSProperties, ReactNode } from 'react';
 
 const cssVars = (vars: Record<string, string>) => vars as CSSProperties;
 
-const SURUS_URL = 'https://app.surus.io/';
+const SURUS_URL = 'https://app.surus.io/invest/PLAA1Trust';
 
 const AT_GLANCE_STATS = [
   { value: '4', unit: 'simple steps' },

@@ -28,13 +28,12 @@ import type { CSSProperties } from 'react';
 const cssVars = (vars: Record<string, string>) => vars as CSSProperties;
 
 const KPI_WEIGHTS_FALLBACK: KpiWeightEntry[] = [
-  { category: 'Knowledge Sharing', weight: null, percentOfTotal: 21.43, emissionsPerSnapshot: 2143 },
-  { category: 'Projects', weight: null, percentOfTotal: 20.0, emissionsPerSnapshot: 2000 },
-  { category: 'Network Tooling', weight: null, percentOfTotal: 18.57, emissionsPerSnapshot: 1857 },
-  { category: 'Programs', weight: null, percentOfTotal: 15.71, emissionsPerSnapshot: 1571 },
-  { category: 'People/Talent', weight: null, percentOfTotal: 14.29, emissionsPerSnapshot: 1429 },
-  { category: 'Capital', weight: null, percentOfTotal: 5.71, emissionsPerSnapshot: 571 },
-  { category: 'Brand', weight: null, percentOfTotal: 4.29, emissionsPerSnapshot: 429 },
+  { category: 'Knowledge Sharing', weight: null, percentOfTotal: 22.58, emissionsPerSnapshot: 2258 },
+  { category: 'Projects', weight: null, percentOfTotal: 20.97, emissionsPerSnapshot: 2097 },
+  { category: 'Network Tooling', weight: null, percentOfTotal: 19.35, emissionsPerSnapshot: 1935 },
+  { category: 'Programs', weight: null, percentOfTotal: 18.55, emissionsPerSnapshot: 1855 },
+  { category: 'People/Talent', weight: null, percentOfTotal: 14.52, emissionsPerSnapshot: 1452 },
+  { category: 'Brand', weight: null, percentOfTotal: 4.03, emissionsPerSnapshot: 403 },
 ];
 
 const REDEEM_STEPS = [
@@ -372,11 +371,11 @@ export default function ActiveMemberOverview({
                 </div>
                 <div className={styles.formulaRow}>
                   <span>× category allocation</span>
-                  <span>18.57%</span>
+                  <span>19.35%</span>
                 </div>
                 <div className={styles.formulaResult}>
                   <span className={styles.formulaResultValue} style={cssVars({ '--ov-accent': '#1b4dff' })}>
-                    1,857 PLAA
+                    1,935 PLAA
                   </span>
                 </div>
               </div>
@@ -438,7 +437,7 @@ export default function ActiveMemberOverview({
               >
                 <div className={styles.formulaRow}>
                   <span>category pool</span>
-                  <span>1,857</span>
+                  <span>1,935</span>
                 </div>
                 <div className={styles.formulaRow}>
                   <span>× my proportion</span>
@@ -446,7 +445,7 @@ export default function ActiveMemberOverview({
                 </div>
                 <div className={styles.formulaResult}>
                   <span className={styles.formulaResultValue} style={cssVars({ '--ov-accent': '#0b7a6d' })}>
-                    185 PLAA
+                    193 PLAA
                   </span>
                 </div>
               </div>

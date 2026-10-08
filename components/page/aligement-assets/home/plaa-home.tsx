@@ -22,7 +22,7 @@ import {
 } from '@phosphor-icons/react';
 
 const ACTIVITIES_URL = '/alignment-asset/activities';
-const TRUST_URL = '/alignment-asset/trust-holdings';
+const TRUST_URL = '/alignment-asset/portfolio-holdings';
 const PROFILE_URL = '/alignment-asset/profile';
 const OVERVIEW_URL = '/alignment-asset/overview';
 
@@ -269,9 +269,9 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
           </>
         ) : (
           <div className="ph-card ph-unavailable">
-            Trust &amp; holdings figures are unavailable right now.{' '}
+            Portfolio &amp; holdings figures are unavailable right now.{' '}
             <button type="button" className="ph-linkbtn" onClick={() => go('Trust & Holdings', TRUST_URL)}>
-              Open Trust &amp; Holdings
+              Open Portfolio &amp; Holdings
             </button>
           </div>
         )}

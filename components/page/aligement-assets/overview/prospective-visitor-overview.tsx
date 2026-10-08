@@ -82,7 +82,7 @@ const ONBOARDING_STEPS = [
 
 const ROLE_ITEMS = [
   { role: 'Founders', description: 'driving new ventures', icon: <RocketLaunch size={19} weight="regular" /> },
-  { role: 'Researchers', description: 'advancing core protocols', icon: <Flask size={19} weight="regular" /> },
+  { role: 'Researchers', description: 'accelerating frontier fields', icon: <Flask size={19} weight="regular" /> },
   {
     role: 'Builders',
     description: 'shipping tools, products, and experiments',

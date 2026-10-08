@@ -28,7 +28,10 @@ export type SpvInvestorProfileSource = 'top-bar' | 'profile-card' | 'applied-ste
 export type SpvInvestorProfileState = 'setup' | 'review';
 export type SpvContactUsSource = 'locked-signed-out' | 'locked-no-access' | 'rejected';
 export type SpvTeamWebsiteSource = 'fact-strip' | 'carousel';
-export type SpvSupportEmailSource = 'faq' | 'footer';
+// 'faq' is the FAQ subtitle's link; 'faq-answer' the one inside "Why can't I open this page?".
+export type SpvSupportEmailSource = 'faq' | 'faq-answer' | 'footer';
+/** Which of the page's two "Access data room" buttons was pressed. */
+export type SpvDataRoomSource = 'team-card' | 'band';
 
 export const useSpvSpotlightAnalytics = () => {
   const postHog = usePostHog();
@@ -70,7 +73,7 @@ export const useSpvSpotlightAnalytics = () => {
   const onSignInClicked = (params: SpvSpotlightBaseParams & { source: SpvSignInSource }) =>
     captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_SIGN_IN_CLICKED, params);
 
-  const onOpenDataRoomClicked = (params: SpvSpotlightBaseParams) =>
+  const onOpenDataRoomClicked = (params: SpvSpotlightBaseParams & { source: SpvDataRoomSource }) =>
     captureEvent(SPV_SPOTLIGHT_ANALYTICS.ON_OPEN_DATA_ROOM_CLICKED, params);
 
   const onInvestorProfileClicked = (

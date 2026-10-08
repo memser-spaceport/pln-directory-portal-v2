@@ -22,7 +22,9 @@ const mockClearAuthCookies = jest.fn();
 let mockShowExplore = false;
 let mockRequestFlow = false;
 let mockSearch = '';
-let mockMember: unknown = undefined;
+// Loaded, no investor profile. `undefined` is the member read still in flight.
+const MEMBER_WITHOUT_PROFILE = { memberInfo: {} };
+let mockMember: unknown = MEMBER_WITHOUT_PROFILE;
 
 jest.mock('@/services/spv-spotlight/constants', () => ({
   ...jest.requireActual('@/services/spv-spotlight/constants'),
@@ -58,14 +60,18 @@ jest.mock('@/utils/third-party.helper', () => ({
 }));
 jest.mock('@/components/core/ToastContainer', () => ({ toast: { success: jest.fn() } }));
 jest.mock('posthog-js/react', () => ({ usePostHog: () => ({ reset: jest.fn() }) }));
+// Stable fns for the events the tests assert on; every other event gets a
+// throwaway fn (a fresh jest.fn() per read can't be asserted).
+const mockAnalytics: Record<string, jest.Mock> = {
+  onOpenDataRoomClicked: jest.fn(),
+  onSupportEmailClicked: jest.fn(),
+  onInvestorProfileClicked: jest.fn(),
+};
 jest.mock('@/analytics/spv-spotlight.analytics', () => ({
   useSpvSpotlightAnalytics: () =>
-    new Proxy(
-      {},
-      {
-        get: () => jest.fn(),
-      },
-    ),
+    new Proxy(mockAnalytics, {
+      get: (target, key: string) => target[key] ?? jest.fn(),
+    }),
 }));
 jest.mock(
   '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfileDrawer/EditInvestorProfileDrawer',
@@ -88,7 +94,11 @@ const renderView = (
   status: SpvSpotlightStatus,
   viewerAccess: SpvViewerAccess,
   // The page passes its server read only with the request flow on.
-  { signedIn = false, initial = true } = {},
+  {
+    signedIn = false,
+    initial = true,
+    overrides = {},
+  }: { signedIn?: boolean; initial?: boolean; overrides?: Partial<SpvSpotlight> } = {},
 ) => {
   useCurrentUserStore.setState({
     currentUser: signedIn ? ({ uid: 'u1', email: 'maya@northfield.vc', name: 'Maya Chen' } as never) : null,
@@ -99,6 +109,7 @@ const renderView = (
     status,
     viewerAccess,
     docSendUrl: status === 'OPEN' && viewerAccess === 'APPROVED' ? 'https://docsend.com/view/x' : null,
+    ...overrides,
   };
   mockedUseGetSpvSpotlight.mockReturnValue({ data: spotlight, isError: false });
   return render(<SpvSpotlightView slug={MOCK_SPV_SLUG} initialSpotlight={initial ? spotlight : null} />);
@@ -106,6 +117,9 @@ const renderView = (
 
 const topBar = () => screen.getByText('PL Spotlight').closest('header') as HTMLElement;
 const card = () => screen.getByRole('article');
+
+const band = () => screen.queryByRole('region', { name: 'Data room' });
+const dataRoomLinks = () => screen.queryAllByRole('link', { name: /Access data room/ });
 
 const requestButton = () => screen.queryByRole('button', { name: /Request access to data room/ });
 
@@ -117,7 +131,8 @@ beforeEach(() => {
   mockShowExplore = false;
   mockRequestFlow = false;
   mockSearch = '';
-  mockMember = undefined;
+  mockMember = MEMBER_WITHOUT_PROFILE;
+  Object.values(mockAnalytics).forEach((fn) => fn.mockReset());
   useContactSupportStore.getState().actions.closeModal();
 });
 
@@ -150,10 +165,10 @@ describe('SpvSpotlightView — request flow (REQUEST_FLOW_ENABLED on)', () => {
 
   it('opens the DocSend for an approved viewer of an open spotlight', () => {
     renderView('OPEN', 'APPROVED', { signedIn: true });
-    const link = screen.getByRole('link', { name: /Request data room access/ });
+    const link = within(card()).getByRole('link', { name: /Access data room/ });
     expect(link).toHaveAttribute('href', 'https://docsend.com/view/x');
     expect(link).toHaveAttribute('target', '_blank');
-    expect(screen.getByRole('button', { name: /investor profile/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Set up your investor profile' })).toBeInTheDocument();
   });
 
   it.each([
@@ -166,7 +181,8 @@ describe('SpvSpotlightView — request flow (REQUEST_FLOW_ENABLED on)', () => {
     renderView(status, access, { signedIn: access !== 'NONE' });
     expect(screen.getByText(line)).toBeInTheDocument();
     expect(requestButton()).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /Request data room access/ })).not.toBeInTheDocument();
+    expect(dataRoomLinks()).toHaveLength(0);
+    expect(band()).not.toBeInTheDocument();
   });
 
   it('shows the applied stepper and the full About while pending', () => {
@@ -210,9 +226,9 @@ describe('SpvSpotlightView — request flow (REQUEST_FLOW_ENABLED on)', () => {
   it('has no Contact us link in the hero or the top bar (the FAQ carries the email)', () => {
     renderView('OPEN', 'APPROVED', { signedIn: true });
     expect(screen.queryByRole('link', { name: 'Contact us' })).not.toBeInTheDocument();
-    // The FAQ subtitle and the footer each carry it.
+    // The FAQ subtitle and the footer each carry it (the request flow's FAQ answers don't).
     expect(screen.getAllByRole('link', { name: base.supportEmail })).toHaveLength(2);
-    expect(screen.getByRole('button', { name: /investor profile/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Set up your investor profile' })).toBeInTheDocument();
   });
 
   it('gives a signed-in viewer the account menu: their name opens the investor profile, Sign out logs out', async () => {
@@ -364,9 +380,7 @@ describe('SpvSpotlightView — gated (the default)', () => {
     it.each(['DRAFT', 'OPEN', 'CLOSED'] as const)('%s: only the no-access message and Contact us', async (status) => {
       const { container } = renderView(status, access, { signedIn: true, initial: false });
       expect(screen.getByRole('heading', { level: 1, name: noAccessTitle })).toBeInTheDocument();
-      expect(
-        screen.getByText('If you think you should have access, contact us.'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('If you think you should have access, contact us.')).toBeInTheDocument();
       expectNoDealContent(container);
 
       const hero = screen.getByRole('heading', { level: 1 }).closest('section') as HTMLElement;
@@ -396,36 +410,123 @@ describe('SpvSpotlightView — gated (the default)', () => {
       const teamCard = screen.getByRole('article');
       expect(heading.compareDocumentPosition(profileCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
       expect(profileCard.compareDocumentPosition(teamCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-      expect(within(profileCard).getByText('For future deals')).toBeInTheDocument();
-      expect(within(profileCard).getByText('Takes about 1 min')).toBeInTheDocument();
+      expect(profileCard).toHaveTextContent(
+        "Tell us how you invest, and we'll only send you deals that fit your check size, stages and focus. Set up your investor profile",
+      );
+    });
+
+    it('holds the profile sentence back until the member read lands', () => {
+      mockMember = undefined;
+      renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
+      expect(screen.queryByRole('region', { name: 'Your investor profile' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /your investor profile/ })).not.toBeInTheDocument();
     });
 
     it('links the data room from the team card, its one filled primary', () => {
       renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
-      const link = within(screen.getByRole('article')).getByRole('link', { name: /Request data room access/ });
+      const link = within(card()).getByRole('link', { name: /Access data room/ });
       expect(link).toHaveAttribute('href', 'https://docsend.com/view/x');
-      // The old hero link is gone; the card is the profile's only door on the page.
-      expect(
-        screen.getAllByRole('button', { name: /^(Set up investor profile|Edit investor profile|Review and update)/ }),
-      ).toHaveLength(1);
+      // The sentence is the profile's only door in the page body.
+      expect(screen.getAllByRole('button', { name: /your investor profile/ })).toHaveLength(1);
+    });
+
+    it('notes the close date (UTC) and where the terms are under the card button', () => {
+      renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
+      expect(within(card()).getByText('Closes Oct 31, 2026')).toBeInTheDocument();
+      expect(within(card()).getByText('Allocation, minimum check and SPV terms are inside.')).toBeInTheDocument();
+    });
+
+    it('drops every "Closes" line when the spotlight has no close date', () => {
+      renderView('OPEN', 'APPROVED', { signedIn: true, initial: false, overrides: { closesAt: null } });
+      expect(screen.queryByText(/Closes/)).not.toBeInTheDocument();
+      expect(within(card()).getByText('Allocation, minimum check and SPV terms are inside.')).toBeInTheDocument();
+      expect(band()).toBeInTheDocument();
+    });
+
+    it('repeats the data room in a band between the Explore tile and the FAQ', () => {
+      mockShowExplore = true;
+      renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
+      const region = band() as HTMLElement;
+      expect(region).toBeInTheDocument();
+      expect(within(region).getByRole('heading', { name: 'Netholabs SPV' })).toBeInTheDocument();
+      expect(region).toHaveTextContent(
+        'Protocol Labs is leading an SPV into the Netholabs pre-seed round. The pitch, allocation, minimum check and SPV terms are in the data room.',
+      );
+      expect(within(region).getByText('Closes Oct 31, 2026')).toBeInTheDocument();
+      // One link (stretched over the band), nothing else to press.
+      const links = within(region).getAllByRole('link');
+      expect(links).toHaveLength(1);
+      expect(links[0]).toHaveAccessibleName(/Access data room/);
+      expect(links[0]).toHaveAttribute('href', 'https://docsend.com/view/x');
+      expect(links[0]).toHaveAttribute('target', '_blank');
+      expect(within(region).queryAllByRole('button')).toHaveLength(0);
+
+      const explore = screen.getByRole('link', { name: /Explore the PL Network/ });
+      const faq = screen.getByText('Questions investors ask');
+      expect(explore.compareDocumentPosition(region) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(region.compareDocumentPosition(faq) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it('still reads when the team has no funding stage', () => {
+      renderView('OPEN', 'APPROVED', {
+        signedIn: true,
+        initial: false,
+        overrides: { team: { ...base.team, fundingStage: null } },
+      });
+      expect(band()).toHaveTextContent('Protocol Labs is leading an SPV into the Netholabs round.');
+    });
+
+    it('has no band while the data room is being prepared (open, no DocSend yet)', () => {
+      renderView('OPEN', 'APPROVED', { signedIn: true, initial: false, overrides: { docSendUrl: null } });
+      expect(screen.getByText('Data room is being prepared')).toBeInTheDocument();
+      expect(band()).not.toBeInTheDocument();
+      expect(screen.queryByText(/Closes/)).not.toBeInTheDocument();
+    });
+
+    it.each([
+      ['DRAFT', 'Data room opens soon'],
+      ['CLOSED', 'Data room closed'],
+    ] as const)('has no band or close date when %s', (status, line) => {
+      renderView(status, 'APPROVED', { signedIn: true, initial: false });
+      expect(screen.getByText(line)).toBeInTheDocument();
+      expect(band()).not.toBeInTheDocument();
+      expect(screen.queryByText(/Closes/)).not.toBeInTheDocument();
+    });
+
+    it('tells the analytics which data room button was pressed', async () => {
+      renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
+      await userEvent.click(within(card()).getByRole('link', { name: /Access data room/ }));
+      expect(mockAnalytics.onOpenDataRoomClicked).toHaveBeenCalledTimes(1);
+      expect(mockAnalytics.onOpenDataRoomClicked).toHaveBeenLastCalledWith(
+        expect.objectContaining({ source: 'team-card', view_state: 'open' }),
+      );
+      await userEvent.click(within(band() as HTMLElement).getByRole('link'));
+      expect(mockAnalytics.onOpenDataRoomClicked).toHaveBeenCalledTimes(2);
+      expect(mockAnalytics.onOpenDataRoomClicked).toHaveBeenLastCalledWith(expect.objectContaining({ source: 'band' }));
     });
 
     it('offers to set up a profile when the investor has none, and opens the drawer', async () => {
       renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
-      await userEvent.click(screen.getByRole('button', { name: 'Set up investor profile' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Set up your investor profile' }));
       expect(screen.getByText('Investor profile drawer')).toBeInTheDocument();
+      expect(mockAnalytics.onInvestorProfileClicked).toHaveBeenCalledWith(
+        expect.objectContaining({ source: 'profile-card', profile_state: 'setup' }),
+      );
     });
 
     it('offers to review a profile that has a type (Demo Day, a past deal)', () => {
       mockMember = { memberInfo: { investorProfile: { type: 'ANGEL' } } };
       renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
-      expect(screen.getByRole('button', { name: 'Review and update' })).toBeInTheDocument();
+      expect(screen.getByRole('region', { name: 'Your investor profile' })).toHaveTextContent(
+        'Review your investor profile to keep the deals we send you matched to your check size, stages and focus.',
+      );
+      expect(screen.getByRole('button', { name: 'Review your investor profile' })).toBeInTheDocument();
     });
 
     it('still says set up for a profile without a type (created by an access request)', () => {
       mockMember = { memberInfo: { investorProfile: { type: null, secRulesAccepted: true } } };
       renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
-      expect(screen.getByRole('button', { name: 'Set up investor profile' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Set up your investor profile' })).toBeInTheDocument();
     });
 
     it('says the data room opens soon while the spotlight is a draft, with the profile card', () => {
@@ -443,7 +544,23 @@ describe('SpvSpotlightView — gated (the default)', () => {
     it('asks the token-link questions', () => {
       renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
       expect(screen.getByText('How do I see the materials?')).toBeInTheDocument();
+      expect(screen.getByText(/^Access data room opens the team.s DocSend\./)).toBeInTheDocument();
       expect(screen.queryByText('Who can request access?')).not.toBeInTheDocument();
+    });
+
+    it('answers "Why can\'t I open this page?" with the support email', async () => {
+      renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
+      expect(screen.queryByText('The page says I do not have access.')).not.toBeInTheDocument();
+      const answer = screen.getByText(/^Spotlights are shared by invitation/);
+      const mail = within(answer).getByRole('link', { name: base.supportEmail });
+      expect(mail).toHaveAttribute('href', `mailto:${base.supportEmail}`);
+      expect(screen.getByText("Why can't I open this page?")).toBeInTheDocument();
+      // The subtitle, this answer and the footer.
+      expect(screen.getAllByRole('link', { name: base.supportEmail })).toHaveLength(3);
+      await userEvent.click(mail);
+      expect(mockAnalytics.onSupportEmailClicked).toHaveBeenCalledWith(
+        expect.objectContaining({ source: 'faq-answer' }),
+      );
     });
   });
 

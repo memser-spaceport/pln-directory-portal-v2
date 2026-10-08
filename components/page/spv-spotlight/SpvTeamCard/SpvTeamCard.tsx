@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import clsx from 'clsx';
 import type { SpvTeamWebsiteSource } from '@/analytics/spv-spotlight.analytics';
 import type { SpvMedia, SpvTeam } from '@/services/spv-spotlight/types';
 import { sanitizeSpvHtml } from '@/utils/html/sanitizeSpvHtml';
@@ -20,23 +21,35 @@ type Props = {
 };
 
 /**
- * The data-room door: Request access, then Open data room. An `href` opens in a
- * new tab (the DocSend); otherwise it's a button.
+ * The data-room door: Request access, then Access data room. An `href` opens in
+ * a new tab (the DocSend); otherwise it's a button. With a note, the note wraps
+ * to the button's width so button, date and terms read as one column.
+ *
+ * `stretch` spreads the link over its nearest positioned ancestor (the data room
+ * band), so the whole band is one link: one tab stop, one click, one event.
  */
 export const SpvCardAction = ({
   label,
   href,
   onClick,
   note,
+  stretch = false,
 }: {
   label: string;
   href?: string;
   onClick?: () => void;
   note?: React.ReactNode;
+  stretch?: boolean;
 }) => (
-  <div className={s.cardAction}>
+  <div className={clsx(s.cardAction, note && s.cardActionWithNote)}>
     {href ? (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={s.cardActionButton} onClick={onClick}>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={clsx(s.cardActionButton, stretch && s.cardActionButtonStretch)}
+        onClick={onClick}
+      >
         {label} <ExternalIcon />
       </a>
     ) : (
@@ -46,6 +59,14 @@ export const SpvCardAction = ({
     )}
     {note && <p className={s.cardActionNote}>{note}</p>}
   </div>
+);
+
+/** The open data room's note: the close date (when the admin set one) and where the terms are. */
+export const SpvDataRoomNote = ({ closesLabel }: { closesLabel: string | null }) => (
+  <>
+    {closesLabel && <span className={s.cardActionDeadline}>Closes {closesLabel}</span>}
+    <span className={s.cardActionTerms}>Allocation, minimum check and SPV terms are inside.</span>
+  </>
 );
 
 /** The quiet line that holds the slot when there's nothing to press. */
@@ -102,7 +123,7 @@ export function SpvTeamCard({ team, media, aboutOpen = false, action, onFounderC
         <div className={s.logo}>{team.logoUrl && <img src={team.logoUrl} alt={`${team.name} logo`} />}</div>
         <div className={s.identityText}>
           <h2 className={s.name}>{team.name}</h2>
-          <p className={s.oneLiner}>{team.shortDescription}</p>
+          <p className={s.oneLiner}>{keepTailTogether(team.shortDescription)}</p>
         </div>
         {action && <div className={s.actionSlot}>{action}</div>}
       </header>
@@ -194,4 +215,23 @@ export function SpvTeamCard({ team, media, aboutOpen = false, action, onFounderC
 }
 
 /** The page's primary button look, for doors outside the card (the locked hero). */
+// Keeps the one-liner's last three words on one line, so it never ends on a
+// lone word. From 960px up only (.noWrap; narrower, the column can't take any
+// tail), and only for a tail that fits that column (~400px at 960px):
+// `nowrap` switches off `overflow-wrap`.
+const TAIL_WORDS = 3;
+const MAX_TAIL_LENGTH = 40;
+
+function keepTailTogether(text: string): React.ReactNode {
+  const words = text.trim().split(/\s+/);
+  if (words.length <= TAIL_WORDS + 1) return text;
+  const tail = words.slice(-TAIL_WORDS).join(' ');
+  if (tail.length > MAX_TAIL_LENGTH) return text;
+  return (
+    <>
+      {words.slice(0, -TAIL_WORDS).join(' ')} <span className={s.noWrap}>{tail}</span>
+    </>
+  );
+}
+
 export const spvPrimaryButtonClassName = s.cardActionButton;

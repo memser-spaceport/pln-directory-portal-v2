@@ -1,92 +1,34 @@
-@use 'styles/media';
-
-// The prototype's SpvInvestorProfileCard (spv-spotlight-gated, 2026-10-06).
+// The prototype's profile ask (spv-spotlight-gated, 2026-10-07): one sentence,
+// centred on a grey strip as wide as the team card. The Explore tile's slate
+// ground and no border, so it reads as a note beside the card, not a second card.
 .root {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: 'head cta';
-  column-gap: 16px;
-  row-gap: 16px;
   width: 100%;
   max-width: 948px;
   margin: 0 auto;
-  padding: 24px;
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  padding: 12px 16px;
   border-radius: 8px;
-  background: var(--background-neutral-soft-surface, #f9fafb);
-
-  @include media.mobile-only {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'head'
-      'cta';
-    padding: 20px 16px;
-  }
-}
-
-.head {
-  grid-area: head;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.overline {
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-
-.title {
-  margin: 0;
-  color: var(--foreground-neutral-primary, #0a0c11);
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 24px;
-  letter-spacing: -0.3px;
-}
-
-.body {
-  margin: 0;
+  background: var(--background-neutral-subtle, #f1f5f9);
   color: var(--foreground-neutral-secondary, #455468);
   font-size: 14px;
   line-height: 20px;
+  text-align: center;
+  text-wrap: balance;
 }
 
-.cta {
-  grid-area: cta;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  align-self: end;
-  gap: 4px;
-
-  @include media.mobile-only {
-    align-items: stretch;
-  }
-}
-
-.button.button {
-  white-space: nowrap;
+.link {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font: inherit;
+  font-weight: 500;
+  text-decoration: underline;
+  cursor: pointer;
 
   &:focus-visible {
-    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline: 2px solid #156ff7;
     outline-offset: 2px;
+    border-radius: 2px;
   }
-
-  @include media.mobile-only {
-    width: 100%;
-    min-height: 44px;
-  }
-}
-
-.hint {
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  font-size: 12px;
-  line-height: 16px;
-  text-align: center;
 }

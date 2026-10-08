@@ -29,15 +29,8 @@ const AUTHOR_VALUE_TYPES = new Set([
 const OPT_OUT_ATTR = 'data-labos-mask';
 /** Set on the live page for one capture only, to find sticky/fixed elements again in the clone. */
 const PLACE_ATTR = 'data-pln-bridge-place';
-/** Set on the live page for one capture only: an off-screen element drawn as an empty box. */
-const SHELL_ATTR = 'data-pln-bridge-shell';
-/** Past this, a viewport capture gives up (CAPTURE_TOO_SLOW) instead of holding the page's thread. */
+/** Past this, embedding the picture gives up (CAPTURE_TOO_SLOW). The clone itself is not paused. */
 const CAPTURE_BUDGET_MS = 5000;
-/**
- * How long the render runs before it lets the page paint.
- * A shorter slice kept the page responsive and made the picture wait.
- */
-const SLICE_MS = 32;
 /** Safari/Firefox redraws of the finished picture, so late-decoding images still land. */
 const DRAW_RETRY_CAP = 3;
 
@@ -96,73 +89,6 @@ function backgroundBehind(el: Element): string {
   return '#ffffff';
 }
 
-const isOnScreen = (box: DOMRect) =>
-  box.width > 0 &&
-  box.height > 0 &&
-  box.bottom > 0 &&
-  box.right > 0 &&
-  box.top < window.innerHeight &&
-  box.left < window.innerWidth;
-
-/**
- * Every element with a box on screen, plus all its ancestors — so a fixed
- * modal declared inside an off-screen container, or a child translated into
- * view, keeps the chain that leads to it. Read-only: layout is clean, so the
- * rects cost no reflow.
- */
-function markOnScreen(): Set<Element> {
-  const onScreen = new Set<Element>([document.documentElement]);
-  if (document.body) onScreen.add(document.body);
-  for (const el of document.querySelectorAll('body *')) {
-    if (!isOnScreen(el.getBoundingClientRect())) continue;
-    for (let node: Element | null = el; node && !onScreen.has(node); node = node.parentElement) onScreen.add(node);
-  }
-  return onScreen;
-}
-
-/**
- * Whether an off-screen element can be drawn as an empty box. The renderer
- * copies every element's used width and height, so a box kept without its
- * children still takes the room it took, and nothing on screen moves. Not
- * inline content (dropping it re-wraps the lines around it), not
- * `display: contents` (it has no box), not the inside of a drawing, and not an
- * <svg> holding ids another drawing may point at with `url(#…)`.
- */
-function canShell(el: Element): boolean {
-  if (el instanceof SVGElement) return el instanceof SVGSVGElement && !el.querySelector('[id]');
-  const display = getComputedStyle(el).display;
-  return display !== 'inline' && display !== 'contents';
-}
-
-/** The outermost off-screen elements that can be drawn empty — all a capture has to skip. */
-function findShells(onScreen: Set<Element>): Set<Element> {
-  const shells = new Set<Element>();
-  const visit = (parent: Element) => {
-    for (const child of parent.children) {
-      if (!onScreen.has(child) && canShell(child)) shells.add(child);
-      else visit(child);
-    }
-  };
-  visit(document.documentElement);
-  return shells;
-}
-
-/**
- * An empty box keeps its copied size, but a flex or grid item's automatic
- * minimum is its content's, and the content is gone: hold it at the size it had.
- */
-function pinShells(root: Node) {
-  if (!(root instanceof Element)) return;
-  root.querySelectorAll(`[${SHELL_ATTR}]`).forEach((el) => {
-    el.removeAttribute(SHELL_ATTR);
-    if (!(el instanceof HTMLElement)) return;
-    const { width, height } = el.style;
-    el.style.setProperty('flex', '0 0 auto', 'important');
-    if (width.endsWith('px')) el.style.setProperty('min-width', width, 'important');
-    if (height.endsWith('px')) el.style.setProperty('min-height', height, 'important');
-  });
-}
-
 /**
  * A DOM redraw lays sticky and fixed elements out where they sit in the
  * document, so a sticky header scrolls out of the picture and a fixed bar
@@ -174,24 +100,25 @@ function pinShells(root: Node) {
  *   never paints). All of one nesting level switch together — one reflow per
  *   level, not per element; a sticky inside a sticky is measured after its
  *   ancestor is back, or its offset would include the ancestor's.
- * Returns the elements it tagged, so the caller can untag them.
+ * Returns the elements it tagged, and the off-screen ancestors the filter must
+ * keep so a fixed or sticky element is still reached.
  */
-function tagPlacedElements(onScreen: Set<Element>): Element[] {
-  const tagged: Element[] = [];
+function tagPlacedElements(): { placed: Element[]; kept: Element[] } {
+  const placed: Element[] = [];
   const sticky: Array<{ el: HTMLElement; box: DOMRect }> = [];
-  for (const el of onScreen) {
-    if (!(el instanceof HTMLElement) || el === document.documentElement || el === document.body) continue;
-    const position = getComputedStyle(el).position;
-    if (position !== 'sticky' && position !== 'fixed') continue;
+  for (const el of document.querySelectorAll('body *')) {
+    if (!(el instanceof HTMLElement)) continue;
     if (el.closest('[data-pln-bridge]')) continue;
     const box = el.getBoundingClientRect();
     if (!box.width || !box.height || box.bottom < 0 || box.top > window.innerHeight) continue;
+    const position = getComputedStyle(el).position;
+    if (position !== 'sticky' && position !== 'fixed') continue;
     if (position === 'fixed') {
       el.setAttribute(
         PLACE_ATTR,
         `fixed:${Math.round(box.top + window.scrollY)}:${Math.round(box.left + window.scrollX)}`,
       );
-      tagged.push(el);
+      placed.push(el);
     } else {
       sticky.push({ el, box });
     }
@@ -222,10 +149,21 @@ function tagPlacedElements(onScreen: Set<Element>): Element[] {
         PLACE_ATTR,
         `sticky:${Math.round(box.top - flows[i].top)}:${Math.round(box.left - flows[i].left)}`,
       );
-      tagged.push(el);
+      placed.push(el);
     });
   }
-  return tagged;
+  const kept: Element[] = [];
+  const seen = new Set<Element>();
+  for (const el of placed) {
+    for (let node = el.parentElement; node && node !== document.documentElement; node = node.parentElement) {
+      if (seen.has(node)) break;
+      seen.add(node);
+      const box = node.getBoundingClientRect();
+      if (!(box.width > 0 && box.height > 0 && (box.top > window.innerHeight || box.left > window.innerWidth))) continue;
+      kept.push(node);
+    }
+  }
+  return { placed, kept };
 }
 
 function placeTagged(root: Node) {
@@ -249,18 +187,19 @@ function placeTagged(root: Node) {
   });
 }
 
-/** Lets the page — and LabOS, which shares its thread — paint between slices of the render. */
-function nextTask(): Promise<void> {
-  const { scheduler } = window as Window & { scheduler?: { yield?: () => Promise<void> } };
-  if (typeof scheduler?.yield === 'function') return scheduler.yield();
-  if (typeof MessageChannel === 'function') {
-    return new Promise((resolve) => {
-      const channel = new MessageChannel();
-      channel.port1.onmessage = () => resolve();
-      channel.port2.postMessage(null);
-    });
+/** Runs on each cloned node, synchronously: masking, and the same tidy-up the feedback kit applies. */
+function prepareCloneNode(node: Node) {
+  maskTypedValue(node);
+  if (!(node instanceof HTMLElement)) return;
+  for (const prop of ['overflow', 'overflow-x', 'overflow-y']) {
+    const value = node.style.getPropertyValue(prop);
+    if (value === 'auto' || value === 'scroll' || value === 'overlay') node.style.setProperty(prop, 'hidden');
   }
-  return new Promise((resolve) => setTimeout(resolve, 0));
+  /* Rows left after the ones below the fold are dropped must not stretch to the old table height. */
+  if (['TABLE', 'TBODY', 'THEAD', 'TFOOT', 'TR'].includes(node.tagName)) {
+    node.style.removeProperty('height');
+    node.style.removeProperty('block-size');
+  }
 }
 
 type CaptureResult = { dataUrl: string; width: number; height: number };
@@ -290,27 +229,37 @@ type BridgeRenderWindow = Window & {
  * size cap. The long edge stays within MAX_EDGE, the same cap as a pin crop,
  * so a retina viewport is not painted at 2×.
  *
- * Only what is on screen is drawn in full: off-screen subtrees stay as empty
- * boxes, so the cost follows the viewport, not the page. The render yields
- * every SLICE_MS and gives up with CAPTURE_TOO_SLOW past CAPTURE_BUDGET_MS rather than
- * hold the thread. Scrollbar pseudos stay off: a feedback shot does not need them.
+ * Same shape as the feedback kit's redraw: the filter drops a node that sits
+ * fully below or to the right of the viewport, so that subtree is never styled.
+ * Nodes above stay, or what is on screen would jump up. An image outside the
+ * viewport is dropped too. The clone is not paused between nodes. Scrollbar
+ * pseudos stay off. Embedding still gives up with CAPTURE_TOO_SLOW past the budget.
  *
- * Leans on three modern-screenshot 4.7.0 internals, hence the exact version in
- * package.json: every element gets its used width/height inline (so an empty
- * box keeps its room), `onCloneEachNode` is awaited per node (so it can
- * yield), and `onEmbedNode` runs before the redraw count is read.
+ * `onEmbedNode` runs before the redraw count is read (modern-screenshot 4.7.0).
  */
 async function captureViewport(): Promise<CaptureResult> {
   const startedAt = performance.now();
   const width = window.innerWidth;
   const height = window.innerHeight;
-  const onScreen = markOnScreen();
-  const tagged = tagPlacedElements(onScreen);
-  const shells = findShells(onScreen);
-  shells.forEach((el) => el.setAttribute(SHELL_ATTR, ''));
-  let sliceStartedAt = performance.now();
+  const { placed, kept } = tagPlacedElements();
+  const keep = new Set<Node>([...placed, ...kept]);
   const checkBudget = () => {
     if (performance.now() - startedAt > CAPTURE_BUDGET_MS) throw new Error(CAPTURE_TOO_SLOW);
+  };
+  const keepNode = (node: Node): boolean => {
+    if (!notBridge(node)) return false;
+    if (!(node instanceof Element)) return true;
+    const root = node.getRootNode();
+    if (root instanceof ShadowRoot && !keepNode(root.host)) return false;
+    if (keep.has(node)) return true;
+    const box = node.getBoundingClientRect();
+    if (node.tagName === 'IMG') {
+      return !(box.bottom < 0 || box.top > height || box.right < 0 || box.left > width);
+    }
+    if (box.width === 0 && box.height === 0) return true;
+    /* An <svg> of ids can be off screen and still paint an icon via url(#…). */
+    if (node instanceof SVGSVGElement && node.querySelector('[id]')) return true;
+    return !(box.top > height || box.left > width);
   };
   let context: Context<HTMLElement> | undefined;
   try {
@@ -323,21 +272,10 @@ async function captureViewport(): Promise<CaptureResult> {
       backgroundColor: backgroundBehind(document.body),
       timeout: 8000,
       features: { restoreScrollPosition: true, copyScrollbar: false },
-      filter: (node) => {
-        if (!notBridge(node)) return false;
-        const parent = node.parentNode instanceof ShadowRoot ? node.parentNode.host : node.parentNode;
-        return !(parent instanceof Element && shells.has(parent));
-      },
-      onCloneEachNode: async (node) => {
-        maskTypedValue(node);
-        if (performance.now() - sliceStartedAt < SLICE_MS) return;
-        checkBudget();
-        await nextTask();
-        sliceStartedAt = performance.now();
-      },
+      filter: keepNode,
+      onCloneEachNode: prepareCloneNode,
       onCloneNode: (root) => {
         placeTagged(root);
-        pinShells(root);
         maskFinishedClone(root);
       },
       onEmbedNode: () => {
@@ -350,8 +288,7 @@ async function captureViewport(): Promise<CaptureResult> {
     return { dataUrl, width, height };
   } finally {
     if (context) destroyContext(context);
-    tagged.forEach((el) => el.removeAttribute(PLACE_ATTR));
-    shells.forEach((el) => el.removeAttribute(SHELL_ATTR));
+    placed.forEach((el) => el.removeAttribute(PLACE_ATTR));
   }
 }
 

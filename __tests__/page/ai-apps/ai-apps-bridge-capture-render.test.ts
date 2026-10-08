@@ -3,7 +3,7 @@
  * is ours — and what is tested here — is what it is told to do: render the
  * viewport, mask what the member typed or chose and what the app opted out,
  * leave the bridge's own UI out, put sticky/fixed elements back where they are
- * on screen, skip what is off screen, and never hold the page's thread for long.
+ * on screen, and skip what sits fully below or to the right of the viewport.
  */
 
 type FakeContext = Record<string, any> & { node: Node; drawImageCount: number };
@@ -211,12 +211,12 @@ describe('capture renderer', () => {
     box(byId('off'), BELOW);
     mockDomToJpeg.mockRejectedValue(new Error('render-failed'));
     await expect(capture()).rejects.toThrow('render-failed');
-    expect(document.querySelector('[data-pln-bridge-place], [data-pln-bridge-shell]')).toBeNull();
+    expect(document.querySelector('[data-pln-bridge-place]')).toBeNull();
     expect(mockDestroyContext).toHaveBeenCalledTimes(1);
   });
 
   describe('drawing only what is on screen', () => {
-    it('draws an off-screen block as an empty box: kept itself, its contents skipped', async () => {
+    it('leaves out a block that sits fully below the viewport, and its contents', async () => {
       document.body.innerHTML =
         '<main id="main"><p id="on">Seen</p><section id="off"><p id="deep">Unseen</p></section></main>';
       box(byId('on'), ON_SCREEN);
@@ -228,7 +228,7 @@ describe('capture renderer', () => {
       expect(filter(byId('main'))).toBe(true);
       expect(filter(byId('on'))).toBe(true);
       expect(filter(byId('on').firstChild)).toBe(true);
-      expect(filter(byId('off'))).toBe(true);
+      expect(filter(byId('off'))).toBe(false);
       expect(filter(byId('deep'))).toBe(false);
     });
 
@@ -269,8 +269,9 @@ describe('capture renderer', () => {
       await capture();
       const { filter } = captureOptions();
 
+      expect(filter(byId('defs'))).toBe(true);
       expect(filter(byId('defs').firstElementChild!)).toBe(true);
-      expect(filter(byId('plain').querySelector('rect')!)).toBe(false);
+      expect(filter(byId('plain'))).toBe(false);
     });
 
     it('skips the shadow tree of an off-screen host, and keeps the one of a host on screen', async () => {
@@ -288,60 +289,45 @@ describe('capture renderer', () => {
       expect(filter(onRoot.firstChild)).toBe(true);
     });
 
-    it('holds each empty box at the size it had, then untags the page', async () => {
-      document.body.innerHTML = '<p id="on">Seen</p><section id="off"><p>Unseen</p></section>';
-      box(byId('on'), ON_SCREEN);
-      box(byId('off'), BELOW);
-      let taggedDuringRender = false;
-      renderWith((context) => {
-        taggedDuringRender = byId('off').hasAttribute('data-pln-bridge-shell');
-        const clone = document.documentElement.cloneNode(true) as HTMLElement;
-        const offClone = clone.querySelector('#off') as HTMLElement;
-        /* What the renderer copies onto every element: its used size. */
-        offClone.style.width = '300px';
-        offClone.style.height = '120px';
-        context.onCloneNode(clone);
-        expect(offClone.style.getPropertyValue('flex')).toBe('0 0 auto');
-        expect(offClone.style.getPropertyValue('min-width')).toBe('300px');
-        expect(offClone.style.getPropertyValue('min-height')).toBe('120px');
-        expect(offClone.hasAttribute('data-pln-bridge-shell')).toBe(false);
-        expect((clone.querySelector('#on') as HTMLElement).style.getPropertyValue('flex')).toBe('');
-      });
-
+    it('hides a cloned scrollbar and lets a shortened table size to its rows', async () => {
       await capture();
-      expect(taggedDuringRender).toBe(true);
-      expect(byId('off').hasAttribute('data-pln-bridge-shell')).toBe(false);
+      const { onCloneEachNode } = captureOptions();
+      const panel = document.createElement('div');
+      panel.style.overflow = 'auto';
+      onCloneEachNode(panel);
+      expect(panel.style.overflow).toBe('hidden');
+
+      const row = document.createElement('tr');
+      row.style.height = '400px';
+      onCloneEachNode(row);
+      expect(row.style.height).toBe('');
     });
   });
 
   describe('keeping the page responsive', () => {
-    it('gives up with too-slow past its budget, and leaves the page as it was', async () => {
-      document.body.innerHTML = '<section id="off">Below</section>';
-      box(byId('off'), BELOW);
+    it('gives up with too-slow past its budget while embedding, and leaves the page as it was', async () => {
+      document.body.innerHTML = '<div id="f" style="position: fixed">Bar</div>';
+      box(byId('f'), ON_SCREEN);
       let now = 0;
       jest.spyOn(performance, 'now').mockImplementation(() => now);
-      renderWith(async (context) => {
+      renderWith((context) => {
         now = 60_000;
-        await context.onCloneEachNode(document.createElement('div'));
+        context.onEmbedNode(document.documentElement);
       });
 
       await expect(capture()).rejects.toThrow('too-slow');
       expect(mockDestroyContext).toHaveBeenCalledTimes(1);
-      expect(document.querySelector('[data-pln-bridge-shell]')).toBeNull();
+      expect(document.querySelector('[data-pln-bridge-place]')).toBeNull();
     });
 
-    it('lets the page paint between slices of a render that is still within budget', async () => {
-      let now = 0;
-      jest.spyOn(performance, 'now').mockImplementation(() => now);
+    it('clones each node without waiting for a paint', async () => {
       let yielded: unknown;
-      renderWith(async (context) => {
-        now = 40;
+      renderWith((context) => {
         yielded = context.onCloneEachNode(document.createElement('div'));
-        await yielded;
       });
 
       await capture();
-      expect(yielded).toBeInstanceOf(Promise);
+      expect(yielded).toBeUndefined();
     });
 
     it('caps the Safari/Firefox redraws of the finished picture', async () => {

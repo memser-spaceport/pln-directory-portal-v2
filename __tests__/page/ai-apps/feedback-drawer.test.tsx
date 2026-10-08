@@ -221,6 +221,7 @@ describe('GiveAiAppFeedbackDialog, drawer variant', () => {
 
     expect(screen.getByRole('heading', { name: 'Give feedback' })).toBeInTheDocument();
     expect(screen.getByLabelText('Which app is this about?')).toBeInTheDocument();
+    expect(screen.getByTestId('selected-app')).toHaveTextContent('LabOS - AI Apps');
   });
 
   it('puts the switcher directly under the title, not in its place', () => {

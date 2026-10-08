@@ -1476,16 +1476,12 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(mockOnFeedbackShortcutUsed).toHaveBeenCalledWith({ action: 'submit' });
     });
 
-    it('shows validation instead of sending when the form is invalid', async () => {
+    it('on the list, LabOS - AI Apps is already selected', () => {
       apps();
-      render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} />);
+      render(<GiveAiAppFeedbackDialog variant="drawer" isOpen onClose={jest.fn()} />);
 
-      fireEvent.change(screen.getByPlaceholderText(FEEDBACK_PLACEHOLDER), { target: { value: 'Nice app!' } });
-      sendChord();
-
-      await waitFor(() => expect(screen.getByText('Please select an app')).toBeInTheDocument());
-      expect(mockMutate).not.toHaveBeenCalled();
-      expect(mockOnFeedbackShortcutUsed).toHaveBeenCalledWith({ action: 'submit' });
+      expect(screen.getByTestId('selected-app')).toHaveTextContent(LABOS_AI_APPS_OPTION.label);
+      expect(screen.queryByText('Please select an app')).not.toBeInTheDocument();
     });
 
     it('does not send on Ctrl+Alt+Enter', () => {

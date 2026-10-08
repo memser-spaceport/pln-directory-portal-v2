@@ -339,9 +339,9 @@ function getAnchorOverlayStyle(anchor: HTMLElement | null, placement: Placement)
   } as CSSProperties;
 }
 
-function getDefaultApp(appUid?: string, appName?: string): Option | null {
+function getDefaultApp(appUid?: string, appName?: string): Option {
   if (!appUid || !appName) {
-    return null;
+    return LABOS_AI_APPS_OPTION;
   }
 
   return { label: appName, value: appUid };

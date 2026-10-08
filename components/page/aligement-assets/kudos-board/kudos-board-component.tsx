@@ -4,9 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 
 import KudosCard from './kudos-card';
 import GiveCommunityKudosModal from './give-kudos-modal';
+import KudosPagination from './kudos-pagination';
 import { useKudosFeed, useCommunityPool, useRecipients } from '@/hooks/use-kudos';
 import { useKudosAnalytics } from '@/analytics/kudos.analytics';
 import { getCurrentRoundNumber } from '@/utils/plaa-round.utils';
+
+// 8 rows of 3 on desktop.
+export const KUDOS_PAGE_SIZE = 24;
 
 interface IKudosBoardComponentProps {
   /** Cache key only; the backend resolves the actual round server-side. */
@@ -21,6 +25,8 @@ export default function KudosBoardComponent({
   const roundId = roundIdProp ?? String(currentRoundNumber);
   const analytics = useKudosAnalytics();
   const [modalOpen, setModalOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const feedTopRef = useRef<HTMLDivElement>(null);
 
   // useKudosAnalytics returns a new object each render, so latch on a ref.
   const pageViewTracked = useRef(false);
@@ -30,7 +36,16 @@ export default function KudosBoardComponent({
     analytics.onKudosPageViewed();
   }, [analytics]);
 
-  const feed = useKudosFeed({ roundId, limit: 24 });
+  const feed = useKudosFeed({ roundId, limit: KUDOS_PAGE_SIZE, page });
+  const totalPages = feed.data?.totalPages ?? 0;
+
+  // Kudos can archive out from under the viewer; fall back to the last page that still exists.
+  if (totalPages > 0 && page > totalPages) setPage(totalPages);
+
+  function goToPage(next: number) {
+    setPage(next);
+    feedTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
   const pool = useCommunityPool(roundId);
   const recipients = useRecipients();
 
@@ -101,7 +116,9 @@ export default function KudosBoardComponent({
           </span>
         </div>
 
-        <div className="feed-heading">Shared Board</div>
+        <div className="feed-heading" ref={feedTopRef}>
+          Shared Board
+        </div>
         {feed.isPending ? (
           <FeedSkeleton />
         ) : feed.isError ? (
@@ -122,6 +139,9 @@ export default function KudosBoardComponent({
               />
             ))}
           </div>
+        )}
+        {!feed.isPending && !feed.isError && (
+          <KudosPagination page={page} totalPages={totalPages} onPageChange={goToPage} />
         )}
       </div>
 
@@ -282,6 +302,7 @@ export default function KudosBoardComponent({
         }
 
         .feed-heading {
+          scroll-margin-top: 80px;
           font-size: 13px;
           font-weight: 700;
           text-transform: uppercase;

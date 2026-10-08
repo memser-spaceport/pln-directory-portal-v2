@@ -1,6 +1,7 @@
 import { createContext, destroyContext, domToJpeg, type Context } from 'modern-screenshot';
 
 import { ensureFontCache } from '@/ai-apps-bridge/font-cache';
+import { paintedStyleProperties } from '@/ai-apps-bridge/style-properties';
 import { withViewportShot } from '@/ai-apps-bridge/viewport-shot-cache';
 import { CAPTURE_TOO_SLOW } from '@/ai-apps-bridge/protocol';
 
@@ -16,6 +17,7 @@ import { CAPTURE_TOO_SLOW } from '@/ai-apps-bridge/protocol';
  * the viewport does not hold the wait. A long block fully off screen is not
  * measured while sticky and fixed elements are found. Font files prepared
  * while the page is idle are reused, so the capture does not fetch them again.
+ * Only painted standard properties are copied per node (`style-properties.ts`).
  */
 
 export type PageCapture = { dataUrl: string; width: number; height: number };
@@ -313,6 +315,7 @@ async function renderViewport(): Promise<PageCapture> {
       backgroundColor: backgroundBehind(document.body),
       timeout: 8000,
       ...(fontCss ? { font: { cssText: fontCss } } : {}),
+      includeStyleProperties: paintedStyleProperties(),
       features: { restoreScrollPosition: true, copyScrollbar: false },
       filter: keepNode,
       onCloneNode: (root) => {

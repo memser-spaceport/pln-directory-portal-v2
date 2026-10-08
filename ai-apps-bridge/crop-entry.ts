@@ -1,6 +1,7 @@
 import { createContext, destroyContext, domToJpeg, domToPng, type Context } from 'modern-screenshot';
 
 import { ensureFontCache } from './font-cache';
+import { paintedStyleProperties } from './style-properties';
 import { withViewportShot } from './viewport-shot-cache';
 import { CAPTURE_TOO_SLOW } from './protocol';
 
@@ -352,6 +353,7 @@ type BridgeRenderWindow = Window & {
     scale,
     backgroundColor: backgroundBehind(el),
     timeout: 8000,
+    includeStyleProperties: paintedStyleProperties(),
     filter: notBridge,
     onCloneEachNode: maskTypedValue,
     onCloneNode: maskFinishedClone,
@@ -369,7 +371,8 @@ type BridgeRenderWindow = Window & {
  * so that subtree is never styled. A block fully above stays as an empty box of
  * the same size, so what is on screen does not jump up; its children are not
  * styled. An image outside the viewport is dropped. The clone is not paused
- * between nodes. Scrollbar pseudos stay off. Embedding still gives up with
+ * between nodes. Scrollbar pseudos stay off. Only painted standard properties
+ * are copied per node (`style-properties.ts`). Embedding still gives up with
  * CAPTURE_TOO_SLOW past the budget.
  *
  * `onEmbedNode` runs before the redraw count is read (modern-screenshot 4.7.0).
@@ -424,6 +427,7 @@ async function captureViewport(): Promise<CaptureResult> {
       backgroundColor: backgroundBehind(document.body),
       timeout: 8000,
       ...(fontCss ? { font: { cssText: fontCss } } : {}),
+      includeStyleProperties: paintedStyleProperties(),
       features: { restoreScrollPosition: true, copyScrollbar: false },
       filter: keepNode,
       onCloneEachNode: prepareCloneNode,

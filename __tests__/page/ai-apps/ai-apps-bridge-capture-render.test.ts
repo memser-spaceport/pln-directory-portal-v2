@@ -118,6 +118,16 @@ describe('capture renderer', () => {
     }
   });
 
+  it('copies only painted standard properties per node, never custom ones', async () => {
+    document.documentElement.style.setProperty('--brand', '#123');
+    document.documentElement.style.setProperty('color', 'red');
+    await capture();
+    const names: string[] = captureOptions().includeStyleProperties;
+    expect(names).toContain('color');
+    expect(names).not.toContain('--brand');
+    document.documentElement.removeAttribute('style');
+  });
+
   it('leaves the bridge’s own nodes out', async () => {
     await capture();
     const { filter } = captureOptions();

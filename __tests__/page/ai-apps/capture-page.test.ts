@@ -99,6 +99,16 @@ describe('capturePageViewport', () => {
     expect(mockCreateContext).toHaveBeenCalledTimes(2);
   });
 
+  it('copies only painted standard properties per node, never custom ones', async () => {
+    document.documentElement.style.setProperty('--brand', '#123');
+    document.documentElement.style.setProperty('color', 'red');
+    await capturePageViewport();
+    const names: string[] = captureOptions().includeStyleProperties;
+    expect(names).toContain('color');
+    expect(names).not.toContain('--brand');
+    document.documentElement.removeAttribute('style');
+  });
+
   it('leaves out a node marked to ignore, and anything inside it', async () => {
     await capturePageViewport();
     const { filter } = captureOptions();

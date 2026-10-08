@@ -1,6 +1,7 @@
 import { createContext, destroyContext, domToJpeg, type Context } from 'modern-screenshot';
 
 import { ensureFontCache } from '@/ai-apps-bridge/font-cache';
+import { withViewportShot } from '@/ai-apps-bridge/viewport-shot-cache';
 import { CAPTURE_TOO_SLOW } from '@/ai-apps-bridge/protocol';
 
 /**
@@ -335,9 +336,10 @@ async function renderViewport(): Promise<PageCapture> {
 
 let running: Promise<PageCapture> | null = null;
 
-/** The visible window, as a JPEG. A capture already under way answers a second request too. */
+/** The visible window, as a JPEG. A capture already under way answers a second request too.
+ *  A finished picture is reused while the viewport is the same one it was drawn from. */
 export function capturePageViewport(): Promise<PageCapture> {
-  running ??= renderViewport().finally(() => {
+  running ??= withViewportShot(renderViewport).finally(() => {
     running = null;
   });
   return running;

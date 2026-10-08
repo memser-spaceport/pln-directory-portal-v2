@@ -29,6 +29,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+  window.dispatchEvent(new Event('resize'));
   const host = window as Window & {
     __plnBridgeFontCss?: unknown;
     __plnBridgeFontCssTask?: unknown;
@@ -433,6 +434,10 @@ describe('capture renderer', () => {
       expect(mockCreateContext).toHaveBeenCalledTimes(1);
 
       mockDomToJpeg.mockResolvedValue('data:image/jpeg;base64,BBBB');
+      expect((await capture()).dataUrl).toBe('data:image/jpeg;base64,AAAA');
+      expect(mockCreateContext).toHaveBeenCalledTimes(1);
+
+      window.dispatchEvent(new Event('resize'));
       expect((await capture()).dataUrl).toBe('data:image/jpeg;base64,BBBB');
       expect(mockCreateContext).toHaveBeenCalledTimes(2);
     });

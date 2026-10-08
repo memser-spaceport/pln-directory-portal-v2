@@ -21,6 +21,7 @@ jest.mock('modern-screenshot', () => ({
 }));
 
 beforeEach(() => {
+  window.dispatchEvent(new Event('resize'));
   const host = window as Window & {
     __plnBridgeFontCss?: unknown;
     __plnBridgeFontCssTask?: unknown;
@@ -77,6 +78,25 @@ describe('capturePageViewport', () => {
       height: window.innerHeight,
     });
     expect(mockDestroyContext).toHaveBeenCalled();
+  });
+
+  it('reuses the picture while the viewport is unchanged, and draws again when the page changes', async () => {
+    await capturePageViewport();
+    expect(mockCreateContext).toHaveBeenCalledTimes(1);
+    mockDomToJpeg.mockResolvedValue('data:image/jpeg;base64,BBBB');
+
+    const ui = document.createElement('div');
+    ui.setAttribute('data-feedback-capture-ignore', '');
+    ui.textContent = 'drawer';
+    document.body.appendChild(ui);
+    await Promise.resolve();
+    expect((await capturePageViewport()).dataUrl).toBe('data:image/jpeg;base64,AAAA');
+    expect(mockCreateContext).toHaveBeenCalledTimes(1);
+
+    document.body.appendChild(document.createElement('p'));
+    await Promise.resolve();
+    expect((await capturePageViewport()).dataUrl).toBe('data:image/jpeg;base64,BBBB');
+    expect(mockCreateContext).toHaveBeenCalledTimes(2);
   });
 
   it('leaves out a node marked to ignore, and anything inside it', async () => {

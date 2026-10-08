@@ -1,6 +1,7 @@
 import { createContext, destroyContext, domToJpeg, domToPng, type Context } from 'modern-screenshot';
 
 import { ensureFontCache } from './font-cache';
+import { withViewportShot } from './viewport-shot-cache';
 import { CAPTURE_TOO_SLOW } from './protocol';
 
 /**
@@ -447,11 +448,12 @@ async function captureViewport(): Promise<CaptureResult> {
   }
 }
 
-/* A capture already under way answers a second request too: one render, not two. */
+/* A capture already under way answers a second request too: one render, not two.
+   A finished picture is reused while the viewport is the same one it was drawn from. */
 let running: Promise<CaptureResult> | null = null;
 
 (window as BridgeRenderWindow).__plnBridgeCapture = () => {
-  running ??= captureViewport().finally(() => {
+  running ??= withViewportShot(captureViewport).finally(() => {
     running = null;
   });
   return running;

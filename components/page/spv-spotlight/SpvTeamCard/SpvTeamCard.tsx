@@ -216,10 +216,11 @@ export function SpvTeamCard({ team, media, aboutOpen = false, action, onFounderC
 
 /** The page's primary button look, for doors outside the card (the locked hero). */
 // Keeps the one-liner's last three words on one line, so it never ends on a
-// lone word. Only for a short tail: `nowrap` switches off `overflow-wrap`, and
-// three long words held together would run off a small phone.
+// lone word. From 960px up only (.noWrap; narrower, the column can't take any
+// tail), and only for a tail that fits that column (~400px at 960px):
+// `nowrap` switches off `overflow-wrap`.
 const TAIL_WORDS = 3;
-const MAX_TAIL_LENGTH = 24;
+const MAX_TAIL_LENGTH = 40;
 
 function keepTailTogether(text: string): React.ReactNode {
   const words = text.trim().split(/\s+/);

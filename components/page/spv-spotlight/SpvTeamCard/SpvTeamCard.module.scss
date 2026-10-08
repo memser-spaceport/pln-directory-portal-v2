@@ -94,6 +94,9 @@
   letter-spacing: -0.2px;
   // A long word (a URL, a compound) breaks rather than running off a phone.
   overflow-wrap: anywhere;
+  // Below 960px, where the tail can't be held together (see .noWrap), this is
+  // what keeps the last line from being one lone word.
+  text-wrap: pretty;
 
   @include media.mobile-only {
     font-size: 14px;
@@ -101,9 +104,15 @@
   }
 }
 
-// The one-liner's tail, held on one line (see keepTailTogether).
+// The one-liner's tail, held on one line (see keepTailTogether), from 960px
+// up only. Below that the one-liner's column is too narrow for any tail and
+// nowrap would run it off the card: ~164px at 320px beside the logo, ~175px at
+// 640px beside the action slot (measured: "emulation, neurotech, AI-safety."
+// alone is 205px). There, .oneLiner's text-wrap: pretty avoids a lone last word.
 .noWrap {
-  white-space: nowrap;
+  @include media.tablet-landscape {
+    white-space: nowrap;
+  }
 }
 
 // ---- Action slot ---------------------------------------------------------------

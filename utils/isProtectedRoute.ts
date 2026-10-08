@@ -11,6 +11,12 @@ export const PROTECTED_ROUTES = ['/deals/', '/founder-guides', '/investors', '/p
  */
 const AI_APPS_PUBLIC_ROUTES = ['/pl-infra/ai-apps/connect', '/pl-infra/ai-apps/feedback'];
 
+export const ALIGNMENT_ASSET_PUBLIC_ROUTES = ['/alignment-asset'];
+
+function isAlignmentAssetRoute(pathname: string): boolean {
+  return pathname === '/alignment-asset' || pathname.startsWith('/alignment-asset/');
+}
+
 export function isAiAppsRoute(pathname: string): boolean {
   return (
     pathname === '/pl-infra/ai-apps' || pathname.startsWith('/pl-infra/ai-apps/') || pathname.startsWith('/pl-infra-os')
@@ -18,6 +24,9 @@ export function isAiAppsRoute(pathname: string): boolean {
 }
 
 export function isProtectedRoute(pathname: string): boolean {
+  if (isAlignmentAssetRoute(pathname)) {
+    return !ALIGNMENT_ASSET_PUBLIC_ROUTES.includes(pathname.replace(/\/$/, ''));
+  }
   if (isAiAppsRoute(pathname)) {
     return !AI_APPS_PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
   }

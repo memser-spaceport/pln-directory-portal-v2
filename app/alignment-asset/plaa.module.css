@@ -6,7 +6,7 @@
   width: 100%;
   min-height: 100vh;
 }
-  
+
 /* --------------------------------------------------------------------------
    Block: plaa
    -------------------------------------------------------------------------- */
@@ -23,21 +23,21 @@
 .plaa__menuBtn {
   display: none;
   position: fixed;
-  bottom: 65px; 
+  bottom: 65px;
   right: 24px;
   width: 40px;
   height: 40px;
   z-index: 5;
-  background-color: #FFFFFF;
-  border: 1px solid #156FF7;
+  background-color: #ffffff;
+  border: 1px solid #0b4f66;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0px 2px 6px 0px #0F172A29;
+  box-shadow: 0px 2px 6px 0px #0f172a29;
   transition: all 0.3s ease;
-  color: #156FF7;
+  color: #0b4f66;
 }
 
 /* --------------------------------------------------------------------------
@@ -74,9 +74,9 @@
   border-right: 1px solid var(--plaa-border-light);
   background-color: var(--plaa-neutral-white);
   position: sticky;
-  top: calc(var(--app-header-height) + 56px); /* Navbar + Banner */
+  top: var(--app-header-height);
   left: 0;
-  height: calc(100vh - var(--app-header-height) - 56px); /* Navbar + Banner */
+  height: calc(100vh - var(--app-header-height));
   overflow-y: auto;
   align-self: flex-start;
 }
@@ -99,6 +99,16 @@
   max-width: 1170px;
   margin: 0 auto;
   overflow-x: clip;
+}
+
+.plaa__content--fluid {
+  padding: 0;
+}
+
+.plaa__content--fluid .plaa__content-inner,
+.plaa__content-inner--fluid {
+  max-width: none;
+  margin: 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -164,13 +174,12 @@
   z-index: 1;
 }
 
-
 /* Menu Title */
 .plaa__menuTitle {
   font-size: 16px;
   font-weight: 600;
   line-height: 1;
-  color: #0F172A;
+  color: #0f172a;
 }
 
 /* Close Button */
@@ -322,9 +331,14 @@
 
   .plaa__content {
     padding: 20px 48px 225px 48px;
+  }
+
+  /* After the rule above on purpose: equal specificity, so source order decides. */
+  .plaa__content--fluid {
+    padding: 0;
     flex: 1;
   }
-  
+
   .plaa__menuBtn {
     display: none;
   }

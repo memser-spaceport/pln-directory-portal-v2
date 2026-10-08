@@ -47,6 +47,7 @@ export const useHuskyAnalytics = () => {
     husky_mobile_delete_thread_clicked: 'husky_mobile_delete_thread_clicked',
     husky_thread_delete_confirmation_status: 'husky_thread_delete_confirmation_status',
     husky_duplicate_thread_status: 'husky_duplicate_thread_status',
+    unified_search_history_searched: 'unified-search-history-searched',
   };
 
   const captureEvent = (eventName: string, eventParams = {}) => {
@@ -223,6 +224,10 @@ export const useHuskyAnalytics = () => {
     captureEvent(events.husky_duplicate_thread_status, { threadId, status });
   }
 
+  function trackHistorySearched(params: { query: string; resultCount: number }) {
+    captureEvent(events.unified_search_history_searched, params);
+  }
+
   return {
     trackSharedBlog,
     trackHuskyLogin,
@@ -263,5 +268,6 @@ export const useHuskyAnalytics = () => {
     trackMobileDeleteThread,
     trackThreadDeleteConfirmationStatus,
     trackThreadDuplicateStatus,
+    trackHistorySearched,
   };
 };

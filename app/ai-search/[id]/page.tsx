@@ -28,7 +28,8 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 
   return (
     <div className={styles.husky}>
-      <ChatHeader showActions={isLoggedIn && !!isOwnThread} title={thread?.title} />
+      {/* A shared chat shows its title above the answer with who shared it, so the bar does not repeat it. */}
+      <ChatHeader showActions={isLoggedIn && !!isOwnThread} title={isOwnThread ? thread?.title : undefined} />
       <Chat
         id={id}
         isLoggedIn={isLoggedIn}

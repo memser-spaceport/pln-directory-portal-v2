@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Sidebar, useSidebar } from './sidebar';
-import { getYear, isYesterday, isToday, subMonths, subWeeks } from 'date-fns';
 import { getHuskyHistory, deleteThread } from '@/services/husky.service';
 import { getUserCredentials } from '@/utils/auth.utils';
 import { triggerLoader } from '@/utils/common.utils';
@@ -15,13 +14,12 @@ import { OPEN_VISIT_CHAT_EVENT } from './constants/visitChats';
 import { getVisitChats } from './utils/getVisitChats';
 import { removeVisitChat } from './utils/removeVisitChat';
 import { setPendingVisitChat } from './utils/setPendingVisitChat';
+import { filterThreadsByTitle, groupThreadsByDate, IHistoryThread } from './history-utils';
 
-interface IThread {
-  title: string;
-  threadId: string;
-  createdAt: string;
-  updatedAt: string;
-}
+type IThread = IHistoryThread;
+
+// The search event waits until the member stops typing, so one search sends one event.
+const HISTORY_SEARCH_DEBOUNCE_MS = 800;
 
 interface ThreadItemProps {
   thread: IThread;
@@ -66,6 +64,7 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
     <li
       key={thread.threadId}
       data-active={isActive}
+      aria-current={isActive ? 'page' : undefined}
       className="sidebar__body__history__list__ul__li"
       onClick={handleClick}
     >
@@ -119,8 +118,10 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
         }
 
         .sidebar__body__history__list__ul__li[data-active='true'] {
-          background-color: #f1f5f9;
+          background-color: #e2e8f0;
           border-radius: 4px;
+          color: #0f172a;
+          font-weight: 500;
         }
 
         .sidebar__body__history__list__ul__li__actions__button {
@@ -157,6 +158,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
   const deleteModalRef = useRef<HTMLDialogElement>(null);
   const [isMac, setIsMac] = useState(false);
   const [activeVisitChatId, setActiveVisitChatId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const goToLogin = useLoginRedirect();
 
   const fetchHistory = async (showLoading = true) => {
@@ -308,66 +310,21 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     }
   }, [deleteId, id, router, fetchHistory, handleDeleteModalClose, isLoggedIn, activeVisitChatId]);
 
-  const groupChatsByDate = useCallback((chats: IThread[]) => {
-    const now = new Date();
-    const oneWeekAgo = subWeeks(now, 1);
-    const oneMonthAgo = subMonths(now, 1);
-    const currentYear = getYear(now);
+  const filteredHistory = useMemo(() => filterThreadsByTitle(history, searchQuery), [history, searchQuery]);
 
-    return chats.reduce(
-      (
-        groups: {
-          today: IThread[];
-          yesterday: IThread[];
-          lastWeek: IThread[];
-          lastMonth: IThread[];
-          [year: number]: IThread[];
-        },
-        chat: IThread,
-      ) => {
-        const chatDate = new Date(chat.createdAt);
-        const chatYear = getYear(chatDate);
+  const groupedChats = useMemo(() => groupThreadsByDate(filteredHistory), [filteredHistory]);
 
-        if (isNaN(chatDate.getTime())) return groups;
+  const trimmedQuery = searchQuery.trim();
 
-        if (isToday(chatDate)) {
-          groups.today.push(chat);
-        } else if (isYesterday(chatDate)) {
-          groups.yesterday.push(chat);
-        } else if (chatDate > oneWeekAgo) {
-          groups.lastWeek.push(chat);
-        } else if (chatDate > oneMonthAgo) {
-          groups.lastMonth.push(chat);
-        } else if (chatYear < currentYear) {
-          if (!groups[chatYear]) groups[chatYear] = [];
-          groups[chatYear].push(chat);
-        }
-
-        return groups;
-      },
-      {
-        today: [],
-        yesterday: [],
-        lastWeek: [],
-        lastMonth: [],
-      },
-    );
-  }, []);
-
-  // Memoize the grouped chats to prevent unnecessary recalculations
-  const groupedChats = useMemo(() => groupChatsByDate(history), [history, groupChatsByDate]);
-
-  // Memoize the ordered keys for better performance
-  const orderedKeys = useMemo(() => {
-    const fixedKeys = ['today', 'yesterday', 'lastWeek', 'lastMonth'];
-
-    // Get dynamically generated year sections and sort in descending order
-    const yearKeys = Object.keys(groupedChats)
-      .filter((key) => !fixedKeys.includes(key))
-      .sort((a, b) => Number(b) - Number(a));
-
-    return [...fixedKeys, ...yearKeys];
-  }, [groupedChats]);
+  useEffect(() => {
+    if (!trimmedQuery) return;
+    const timer = setTimeout(() => {
+      analytics.trackHistorySearched({ query: trimmedQuery, resultCount: filteredHistory.length });
+    }, HISTORY_SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+    // The event fires once per search text; a refreshed list alone does not send it again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trimmedQuery]);
 
   useEffect(() => {
     fetchHistory(true); // Show loading on initial fetch
@@ -433,15 +390,40 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                 </span>
               </div>
             </div>
+            {!isLoading && history.length > 0 && (
+              <div className="sidebar__body__history__search">
+                <img width={16} height={16} src="/icons/search-gray.svg" alt="" aria-hidden="true" />
+                <input
+                  type="search"
+                  className="sidebar__body__history__search__input"
+                  placeholder="Search chats"
+                  aria-label="Search chats"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    className="sidebar__body__history__search__clear"
+                    aria-label="Clear search"
+                    onClick={() => setSearchQuery('')}
+                  >
+                    <img width={14} height={14} src="/icons/close-gray.svg" alt="" aria-hidden="true" />
+                  </button>
+                )}
+              </div>
+            )}
             <div className="sidebar__body__history__list">
               {isLoading ? (
                 <SkeletonLoader />
+              ) : history.length > 0 && filteredHistory.length === 0 ? (
+                <div className="sidebar__body__history__list__empty">No chats match “{trimmedQuery}”.</div>
               ) : !isLoggedIn ? (
                 history.length === 0 ? (
                   <div className="sidebar__body__history__list__empty">Chats you start appear here.</div>
                 ) : (
                   <ul className="sidebar__body__history__list__ul">
-                    {history.map((chat: IThread) => (
+                    {filteredHistory.map((chat: IThread) => (
                       <ThreadItem
                         isActive={chat.threadId === (id ?? activeVisitChatId)}
                         key={chat.threadId}
@@ -460,38 +442,21 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                 </div>
               ) : (
                 <ul className="sidebar__body__history__list__ul">
-                  {orderedKeys.map((key) =>
-                    groupedChats[key as keyof typeof groupedChats]?.length > 0 ? (
-                      <React.Fragment key={key}>
-                        <div className="sidebar__body__history__list__ul__title">
-                          {key === 'lastWeek'
-                            ? 'Last 7 days'
-                            : key === 'lastMonth'
-                              ? 'Last 30 days'
-                              : key === 'today'
-                                ? 'Today'
-                                : key === 'yesterday'
-                                  ? 'Yesterday'
-                                  : key}
-                        </div>
-                        {groupedChats[key as keyof typeof groupedChats]
-                          .sort(
-                            (a: IThread, b: IThread) =>
-                              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-                          ) // Sort by createdAt (newest first)
-                          .map((chat: IThread) => (
-                            <ThreadItem
-                              isActive={chat.threadId === id}
-                              key={chat.threadId}
-                              thread={chat}
-                              isMobile={isMobile}
-                              toggleSidebar={handleSidebarToggle}
-                              handleDeleteModalOpen={handleDeleteModalOpen}
-                            />
-                          ))}
-                      </React.Fragment>
-                    ) : null,
-                  )}
+                  {groupedChats.map(([label, chats]) => (
+                    <React.Fragment key={label}>
+                      <div className="sidebar__body__history__list__ul__title">{label}</div>
+                      {chats.map((chat: IThread) => (
+                        <ThreadItem
+                          isActive={chat.threadId === id}
+                          key={chat.threadId}
+                          thread={chat}
+                          isMobile={isMobile}
+                          toggleSidebar={handleSidebarToggle}
+                          handleDeleteModalOpen={handleDeleteModalOpen}
+                        />
+                      ))}
+                    </React.Fragment>
+                  ))}
                 </ul>
               )}
             </div>
@@ -694,10 +659,48 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
 
         .sidebar__body__history__list__ul__title {
           font-weight: 500;
+          font-size: 12px;
+          line-height: 16px;
+          color: #64748b;
+          padding: 12px 0px 4px 8px;
+        }
+
+        .sidebar__body__history__search {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          height: 32px;
+          margin: 10px 10px 0 0;
+          padding: 0 8px;
+          border: 1px solid #cbd5e1;
+          border-radius: 8px;
+          background-color: #ffffff;
+        }
+
+        .sidebar__body__history__search:focus-within {
+          border-color: #156ff7;
+        }
+
+        .sidebar__body__history__search__input {
+          flex: 1;
+          min-width: 0;
+          border: none;
+          outline: none;
+          background: transparent;
+          color: #0f172a;
           font-size: 14px;
-          line-height: 22px;
-          color: #000000;
-          padding: 8px 0px 8px 8px;
+          line-height: 20px;
+        }
+
+        .sidebar__body__history__search__input::-webkit-search-cancel-button {
+          display: none;
+        }
+
+        .sidebar__body__history__search__clear {
+          display: flex;
+          align-items: center;
+          padding: 2px;
+          cursor: pointer;
         }
 
         .sidebar__body__history__list__ul__li {
@@ -832,7 +835,8 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
             transform: scaleX(-1);
           }
 
-          .sidebar__body[data-state='collapsed'] .sidebar__body__history__list {
+          .sidebar__body[data-state='collapsed'] .sidebar__body__history__list,
+          .sidebar__body[data-state='collapsed'] .sidebar__body__history__search {
             display: none;
           }
 

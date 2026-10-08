@@ -324,6 +324,8 @@ interface Props {
   switchSlot?: ReactNode;
   /** Drawer: when set (the Comments tab), shown instead of the form, which stays mounted underneath. */
   altBody?: ReactNode;
+  /** Drawer, phone: the drawer steps aside (kept mounted) while a comment is placed on the app. */
+  collapsed?: boolean;
 }
 
 /**
@@ -426,6 +428,7 @@ export function GiveAiAppFeedbackDialog({
   variant = 'popover',
   switchSlot,
   altBody,
+  collapsed = false,
 }: Props) {
   const isDrawer = variant === 'drawer';
   /* Drawer: on the Comments tab the form's keys (send, screenshot, ?) stand down. */
@@ -1703,7 +1706,7 @@ export function GiveAiAppFeedbackDialog({
   return (
     <>
       {isDrawer ? (
-        <FeedbackDrawerFrame isOpen={isOpen} wide={isWideShown} hidden={isBusy} reserveSpace={Boolean(appUid)}>
+        <FeedbackDrawerFrame isOpen={isOpen} wide={isWideShown} hidden={isBusy || collapsed} reserveSpace={Boolean(appUid)}>
           {panel}
         </FeedbackDrawerFrame>
       ) : (

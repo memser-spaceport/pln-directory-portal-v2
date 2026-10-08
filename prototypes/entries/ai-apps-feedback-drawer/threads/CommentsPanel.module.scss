@@ -258,3 +258,49 @@
   line-height: 16px;
   color: var(--foreground-neutral-tertiary, #8897ae);
 }
+
+/*
+  Phone (2026-10-08): the drawer is the whole screen, so the app can't be
+  clicked beside it. "Add a comment" (which puts the drawer aside for a tap on
+  the app) is pinned under the list; the head keeps the audience line and the
+  filter. Same 24px gutter as the rows.
+*/
+.phoneHead {
+  flex-shrink: 0;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.phoneHeadRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  .introAudience {
+    margin: 0;
+  }
+}
+
+/* Sticky under the list (the list scrolls, this doesn't); margin-top: auto keeps it down when the list is short or empty. */
+.phoneFooter {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 12px 24px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+}
+
+/* DS Button is inline-block: without flex the glyph sits on the baseline and gap is ignored. */
+.addButton.addButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+}
+
+/* The row's brand-blue pin would vanish on the primary button: it takes the label's white. */
+.addButton .pinGlyph {
+  color: currentColor;
+}

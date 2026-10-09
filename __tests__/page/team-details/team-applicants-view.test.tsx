@@ -173,8 +173,8 @@ beforeEach(() => {
   toggleReviewed.mockReset();
   useApplicantCounts.mockReturnValue({
     data: [
-      { roleUid: 'role-1', applicantCount: 2, interestCount: 1, newCount: 1, newestAvatars: [] },
-      { roleUid: 'role-2', applicantCount: 0, interestCount: 0, newCount: 0, newestAvatars: [] },
+      { roleUid: 'role-1', applicantCount: 2, interestCount: 1, suggestedCount: 0, newCount: 1, newestAvatars: [] },
+      { roleUid: 'role-2', applicantCount: 0, interestCount: 0, suggestedCount: 0, newCount: 0, newestAvatars: [] },
     ],
   });
   setLists({ applications: [DEVON, LINA], interests: [MAYA] });

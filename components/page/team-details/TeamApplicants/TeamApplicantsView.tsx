@@ -189,11 +189,18 @@ export function TeamApplicantsView({
     [],
   );
 
-  /* Applied unless it is empty and Interested is not — and only until someone
-     chooses, after which their choice stands even when it empties out under a
-     search. */
-  const tab =
-    pickedTab ?? (!lists.data?.applications.length && lists.data?.interests.length ? INTERESTED_TAB : APPLIED_TAB);
+  /* Applied unless it is empty and Interested is not, then Suggested when that
+     is all there is — and only until someone chooses, after which their choice
+     stands even when it empties out under a search. Suggested waits for the
+     lists: with them still loading, "no answers" is not yet known. */
+  const derivedTab = lists.data?.applications.length
+    ? APPLIED_TAB
+    : lists.data?.interests.length
+      ? INTERESTED_TAB
+      : lists.data && suggestions.data?.length
+        ? SUGGESTED_TAB
+        : APPLIED_TAB;
+  const tab = pickedTab ?? derivedTab;
 
   const isSuggestedTab = tab === SUGGESTED_TAB;
 

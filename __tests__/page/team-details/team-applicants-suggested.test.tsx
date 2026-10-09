@@ -57,6 +57,7 @@ jest.mock('@/hooks/useIsBelowTabletLandscape', () => ({
 }));
 
 const useSuggestedCandidates = jest.fn();
+const useRoleApplicants = jest.fn();
 const analytics = {
   onJobHiringViewed: jest.fn(),
   onJobApplicantOpened: jest.fn(),
@@ -75,7 +76,7 @@ jest.mock('@/analytics/jobs.analytics', () => ({
 
 jest.mock('@/services/jobs/hooks/useTeamApplicants', () => ({
   useApplicantCounts: () => ({ data: [] }),
-  useRoleApplicants: () => ({ data: { applications: [], interests: [] }, isPending: false }),
+  useRoleApplicants: (...args: unknown[]) => useRoleApplicants(...args),
   useMarkApplicantSeen: () => ({ mutate: jest.fn() }),
   useToggleApplicantReviewed: () => ({ mutate: jest.fn() }),
   useSuggestedCandidates: (...args: unknown[]) => useSuggestedCandidates(...args),
@@ -83,6 +84,7 @@ jest.mock('@/services/jobs/hooks/useTeamApplicants', () => ({
 
 import { TeamApplicantsView } from '@/components/page/team-details/TeamApplicants';
 import type { SuggestedCandidate } from '@/schema/suggested-candidates';
+import type { TeamApplicant } from '@/schema/team-applicants';
 import type { IJobRole } from '@/types/jobs.types';
 
 const ROLE = {
@@ -117,6 +119,28 @@ const suggestion = (rank: number, name: string, label: SuggestedCandidate['label
 const ANA = suggestion(1, 'Ana Lopez', 'Strong match');
 const BEN = suggestion(2, 'Ben Ito', 'Good match');
 
+const APPLICANT: TeamApplicant = {
+  uid: 'a1',
+  memberUid: 'm-a1',
+  kind: 'application',
+  name: 'Devon Park',
+  email: 'devon@example.com',
+  profileUrl: 'https://directory.plnetwork.io/members/devon',
+  avatarUrl: null,
+  headline: 'Protocol Engineer',
+  currentCompany: 'Lattice Compute',
+  location: 'Berlin, Germany',
+  tags: [],
+  createdAt: '2026-09-16T00:00:00.000Z',
+  coverLetter: 'note',
+  cv: null,
+  unseen: false,
+  reviewed: false,
+};
+
+const setLists = (data: { applications: TeamApplicant[]; interests: TeamApplicant[] } | undefined) =>
+  useRoleApplicants.mockReturnValue({ data, isPending: !data });
+
 const setSuggestions = (data: SuggestedCandidate[] | undefined, extra: Record<string, unknown> = {}) =>
   useSuggestedCandidates.mockReturnValue({ data, isPending: !data, isError: false, ...extra });
 
@@ -142,11 +166,15 @@ beforeEach(() => {
   memberEmail = 'ana@example.com';
   Object.values(analytics).forEach((fn) => fn.mockReset());
   useSuggestedCandidates.mockReset();
+  useRoleApplicants.mockReset();
   setSuggestions([ANA, BEN]);
+  setLists({ applications: [APPLICANT], interests: [] });
 });
 
 describe('the Suggested tab', () => {
   it('sits next to Applied and Interested', () => {
+    setLists({ applications: [], interests: [] });
+
     renderView();
 
     const labels = screen
@@ -161,7 +189,26 @@ describe('the Suggested tab', () => {
     expect(useSuggestedCandidates).toHaveBeenCalledWith({ roleUid: 'role-1', viewerUid: 'u1', enabled: true });
   });
 
-  it('is not the tab the page opens on', () => {
+  it('is not the tab the page opens on when someone applied', () => {
+    renderView();
+
+    expect(rowFor('Ana Lopez')).toBeUndefined();
+  });
+
+  /* A count line that says "2 suggested" must not lead to a page that opens on
+     "No one has applied to this role yet." */
+  it('is the tab the page opens on when nobody applied or is interested', () => {
+    setLists({ applications: [], interests: [] });
+
+    renderView();
+
+    expect(rowFor('Ana Lopez')).toBeTruthy();
+    expect(screen.queryByText(/No one has applied to this role yet/)).not.toBeInTheDocument();
+  });
+
+  it('waits for the applicants before deciding it is the only answer', () => {
+    setLists(undefined);
+
     renderView();
 
     expect(rowFor('Ana Lopez')).toBeUndefined();

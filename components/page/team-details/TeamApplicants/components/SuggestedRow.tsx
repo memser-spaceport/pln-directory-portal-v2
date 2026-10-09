@@ -5,7 +5,8 @@ import clsx from 'clsx';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import type { SuggestedCandidate } from '@/schema/suggested-candidates';
 
-import { metCount } from './suggestionBand';
+import { InterestedBadge } from './InterestedBadge';
+import { interestNote, metCount } from './suggestionBand';
 import { SuggestionBadge } from './SuggestionBadge';
 import row from './ApplicantRow.module.scss';
 import s from './SuggestedRow.module.scss';
@@ -24,10 +25,15 @@ interface Props {
  * nothing happened, so there is no "when". Under the role, the band's working
  * as a count ("4 of 5 requirements"); the requirements themselves are the
  * pane's, where each one can be checked.
+ *
+ * A member who said "I'm interested" carries an Interested mark beside the
+ * band, and their note under the count, cut to two lines; the pane shows the
+ * whole note (LAB-2789).
  */
 export function SuggestedRow({ suggestion, last, selected, onSelect }: Props) {
   const met = metCount(suggestion.criteria);
   const total = suggestion.criteria.length;
+  const note = interestNote(suggestion);
 
   return (
     <button
@@ -53,10 +59,16 @@ export function SuggestedRow({ suggestion, last, selected, onSelect }: Props) {
               {met === total ? `All ${total} requirements` : `${met} of ${total} requirements`}
             </span>
           )}
+          {note && (
+            <span className={s.note} data-testid="suggested-interest-note">
+              {note}
+            </span>
+          )}
         </span>
       </span>
 
       <span className={row.right}>
+        {suggestion.interested && <InterestedBadge />}
         <SuggestionBadge label={suggestion.label} />
       </span>
     </button>

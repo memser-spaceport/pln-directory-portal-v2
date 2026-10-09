@@ -522,6 +522,7 @@ export function TeamApplicantsView({
                       job_id: role?.uid ?? null,
                       rank: selectedSuggested.rank,
                       label: selectedSuggested.label,
+                      interested: selectedSuggested.interested === true,
                     })
                   }
                 />

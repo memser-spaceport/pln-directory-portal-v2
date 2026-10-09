@@ -560,11 +560,14 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_SUGGESTED_CANDIDATE_OPENED, { ...args });
   };
 
+  /* LAB-2789: `interested` compares the contact rate of members who said
+     "I'm interested" with the other suggestions. */
   const onJobSuggestedCandidateContacted = (args: {
     team_id: string;
     job_id: string | null;
     rank: number;
     label: string;
+    interested: boolean;
   }) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_SUGGESTED_CANDIDATE_CONTACTED, { ...args });
   };

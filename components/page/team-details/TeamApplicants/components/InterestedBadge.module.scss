@@ -1,0 +1,9 @@
+/* Sized as the match band beside it (SuggestionBadge): a tag beside the name,
+   not a second heading. Doubled class to outrank the Badge's own padding and type. */
+.root.root {
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 16px;
+  padding: 2px 6px;
+}

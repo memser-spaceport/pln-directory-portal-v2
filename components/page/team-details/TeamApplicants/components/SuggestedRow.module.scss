@@ -5,3 +5,16 @@
   color: var(--foreground-neutral-tertiary, #64748b);
   white-space: nowrap;
 }
+
+/* LAB-2789: the interested member's note, in their words, cut to two lines; the pane has the rest. */
+.note {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

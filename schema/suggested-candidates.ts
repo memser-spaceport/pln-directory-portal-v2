@@ -43,6 +43,8 @@ export const suggestedCandidateSchema = z
     criteria: z.array(suggestedCriterionSchema),
     /** The member said they are interested in this role or its team (LAB-2788, backend #3493). Optional until that ships. */
     interested: z.boolean().optional(),
+    /** The note the member wrote with their interest, when they wrote one (LAB-2789). Optional until the backend sends it. */
+    note: z.string().nullable().optional(),
   })
   .strict();
 

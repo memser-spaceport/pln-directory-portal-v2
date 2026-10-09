@@ -338,6 +338,12 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
               </div>
             )}
 
+            {popupContent.disclaimer && (
+              <p className="activity-modal__disclaimer">
+                <strong>Disclaimer:</strong> {popupContent.disclaimer}
+              </p>
+            )}
+
             {activity.isSunset && (
               <p className="activity-modal__sunset-note">
                 <Image src="/icons/sunset.svg" alt="" width={18} height={18} />
@@ -663,6 +669,17 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           color: #64748b;
           margin: 8px 0 0 0;
           font-style: italic;
+        }
+
+        .activity-modal__disclaimer {
+          margin: 0;
+          padding: 10px 12px;
+          font-size: 12px;
+          line-height: 18px;
+          color: #475569;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
         }
 
         .activity-modal__sunset-note {

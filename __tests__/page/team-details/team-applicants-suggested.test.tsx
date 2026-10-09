@@ -271,6 +271,7 @@ describe('the Suggested tab', () => {
       job_id: 'role-1',
       rank: 1,
       label: 'Strong match',
+      interested: false,
     });
   });
 
@@ -290,5 +291,90 @@ describe('the Suggested tab', () => {
 
     expect(screen.getByTestId('pane')).toHaveAttribute('data-member', 'm-2');
     expect(screen.getByText('2 of 2')).toBeInTheDocument();
+  });
+});
+
+/**
+ * LAB-2789: a suggestion from a member who said "I'm interested" (the flag
+ * from LAB-2788) carries an Interested mark, and their note when they wrote one.
+ */
+describe('interested members on the Suggested tab', () => {
+  const interested = (base: SuggestedCandidate, note?: string | null): SuggestedCandidate => ({
+    ...base,
+    interested: true,
+    ...(note !== undefined ? { note } : {}),
+  });
+
+  it('marks an interested suggestion as Interested, in the design system tag style', async () => {
+    setSuggestions([interested(ANA, 'Keen to work on consensus.'), BEN]);
+
+    renderView();
+    await openSuggested();
+
+    const mark = within(rowFor('Ana Lopez')!).getByText('Interested');
+    expect(mark.className).toMatch(/default/);
+  });
+
+  it('shows the interested member’s note in the row', async () => {
+    setSuggestions([interested(ANA, 'Keen to work on consensus.'), BEN]);
+
+    renderView();
+    await openSuggested();
+
+    expect(within(rowFor('Ana Lopez')!).getByText('Keen to work on consensus.')).toBeInTheDocument();
+  });
+
+  it('shows the mark and no note area when the interested member wrote no note', async () => {
+    setSuggestions([interested(ANA), interested(BEN, '   ')]);
+
+    renderView();
+    await openSuggested();
+
+    for (const name of ['Ana Lopez', 'Ben Ito']) {
+      const row = rowFor(name)!;
+      expect(within(row).getByText('Interested')).toBeInTheDocument();
+      expect(within(row).queryByTestId('suggested-interest-note')).not.toBeInTheDocument();
+    }
+  });
+
+  it('shows no mark and no note for a suggestion that is not marked interested', async () => {
+    setSuggestions([ANA, { ...BEN, interested: false, note: 'A note the flag does not back.' }]);
+
+    renderView();
+    await openSuggested();
+
+    for (const name of ['Ana Lopez', 'Ben Ito']) {
+      const row = rowFor(name)!;
+      expect(within(row).queryByText('Interested')).not.toBeInTheDocument();
+      expect(within(row).queryByTestId('suggested-interest-note')).not.toBeInTheDocument();
+    }
+    expect(screen.queryByText('A note the flag does not back.')).not.toBeInTheDocument();
+  });
+
+  it('shows the whole note in the pane for the selected interested member', async () => {
+    setSuggestions([interested(ANA, 'Keen to work on consensus.'), BEN]);
+
+    renderView();
+    await openSuggested();
+
+    const pane = screen.getByTestId('pane');
+    expect(within(pane).getByText('Keen to work on consensus.')).toBeInTheDocument();
+    expect(within(pane).getByText('Interested')).toBeInTheDocument();
+  });
+
+  it('records whether the contacted member was interested', async () => {
+    setSuggestions([interested(ANA), BEN]);
+
+    renderView();
+    await openSuggested();
+    await userEvent.click(screen.getByRole('link', { name: /Email Ana/ }));
+
+    expect(analytics.onJobSuggestedCandidateContacted).toHaveBeenCalledWith({
+      team_id: 'team-1',
+      job_id: 'role-1',
+      rank: 1,
+      label: 'Strong match',
+      interested: true,
+    });
   });
 });

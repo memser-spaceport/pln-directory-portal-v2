@@ -99,6 +99,22 @@ describe('fetchSuggestedCandidates', () => {
     expect(rows.map((row) => row.interested)).toEqual([true, undefined]);
   });
 
+  it('accepts the interested member’s note (LAB-2789)', async () => {
+    mockFetch.mockResolvedValue(
+      ok({
+        suggestions: [
+          suggestion(1, 'Strong match', { interested: true, note: 'Keen to help.' }),
+          suggestion(2, 'Good match', { interested: true, note: null }),
+          suggestion(3),
+        ],
+      }),
+    );
+
+    const rows = await fetchSuggestedCandidates('role-1');
+
+    expect(rows.map((row) => row.note)).toEqual(['Keen to help.', null, undefined]);
+  });
+
   it('fails loudly on a field the contract does not know', async () => {
     mockFetch.mockResolvedValue(ok({ suggestions: [suggestion(1, 'Strong match', { surprise: true })] }));
 

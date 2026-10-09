@@ -10,7 +10,8 @@ import {
 import { ReviewCheckIcon } from '@/components/icons';
 import type { SuggestedCandidate } from '@/schema/suggested-candidates';
 
-import { metCount } from './suggestionBand';
+import { InterestedBadge } from './InterestedBadge';
+import { interestNote, metCount } from './suggestionBand';
 import { SuggestionBadge } from './SuggestionBadge';
 import s from './SuggestedWhy.module.scss';
 
@@ -24,10 +25,14 @@ import s from './SuggestedWhy.module.scss';
  * A dash, not a ✕: the matcher reads profiles, so a miss means "not on their
  * profile", not "doesn't have it" — and a ✕ means dismiss everywhere else in
  * the product.
+ *
+ * A member who said "I'm interested" carries the Interested mark beside the
+ * band, and the whole of their note opens the body (LAB-2789).
  */
 export function SuggestedWhy({ suggestion }: { suggestion: SuggestedCandidate }) {
   const met = metCount(suggestion.criteria);
   const total = suggestion.criteria.length;
+  const note = interestNote(suggestion);
 
   return (
     <DetailsSection>
@@ -38,10 +43,16 @@ export function SuggestedWhy({ suggestion }: { suggestion: SuggestedCandidate })
               {met} of {total} requirements
             </span>
           )}
+          {suggestion.interested && <InterestedBadge />}
           <SuggestionBadge label={suggestion.label} />
         </span>
       </DetailsSectionHeader>
       <DetailsSectionGreyContentContainer>
+        {note && (
+          <blockquote className={s.note} aria-label="Their note">
+            {note}
+          </blockquote>
+        )}
         {suggestion.blurb && <p className={s.blurb}>{suggestion.blurb}</p>}
         {total > 0 && (
           <ul className={s.list} aria-label="Role requirements">

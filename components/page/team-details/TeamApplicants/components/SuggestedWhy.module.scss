@@ -12,6 +12,18 @@
   white-space: nowrap;
 }
 
+/* LAB-2789: the interested member's own words, whole, above the matcher's. */
+.note {
+  margin: 0 0 12px;
+  padding-left: 10px;
+  border-left: 2px solid var(--border-neutral-subtle, #e2e8f0);
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
 .blurb {
   margin: 0 0 12px;
   font-size: 14px;

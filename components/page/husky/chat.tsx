@@ -12,6 +12,7 @@ import { IAnalyticsUserInfo } from '@/types/shared.types';
 import { getUserCredentials } from '@/utils/auth.utils';
 import { getChatCount, updateLimitType, updateChatCount, checkRefreshToken } from '@/utils/husky.utlils';
 import ChatComposer from './chat-composer';
+import { ChatTitleBar } from './ChatTitleBar';
 import { createHuskyThread, createThreadTitle, duplicateThread } from '@/services/husky.service';
 import { useSidebar } from './sidebar';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
@@ -70,6 +71,8 @@ const Chat: React.FC<ChatProps> = ({
   // Someone else's shared chat: a follow-up makes the reader's own copy instead of changing this one.
   const isSharedView = !isOwnThread && from === 'detail';
   const [isContinuingShared, setIsContinuingShared] = useState(false);
+  // The thread the title bar shares and deletes: the page's id, or the one a new chat gets on its first question.
+  const [openThreadId, setOpenThreadId] = useState(id);
   const isContinuingSharedRef = useRef(false);
 
   const {
@@ -205,7 +208,7 @@ const Chat: React.FC<ChatProps> = ({
     }
     if (saveVisitChat({ threadId: threadUidRef.current, messages })) {
       document.dispatchEvent(
-        new CustomEvent('refresh-husky-history', { detail: { visitThreadId: threadUidRef.current } }),
+        new CustomEvent('refresh-husky-history', { detail: { openThreadId: threadUidRef.current } }),
       );
     }
   }, [messages, chatIsLoading, isAnswerLoading, isLoggedIn, isSharedView]);
@@ -250,6 +253,7 @@ const Chat: React.FC<ChatProps> = ({
         }
 
         const threadId = checkAndSetThreadId();
+        setOpenThreadId(threadId);
         const chatUid = generateUUID(); // check and set the thread ID for the current chat session
         setQuestion(question);
         addMessage(question); // add new chat message
@@ -297,7 +301,7 @@ const Chat: React.FC<ChatProps> = ({
               submitChat(submitParams),
             ]); //create thread title
             if (titleResponse) {
-              document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
+              document.dispatchEvent(new CustomEvent('refresh-husky-history', { detail: { openThreadId: threadId } }));
             }
           }
         } else {
@@ -481,6 +485,7 @@ const Chat: React.FC<ChatProps> = ({
   if (messages.length === 0) {
     return (
       <>
+        <ChatTitleBar />
         <div className="chat__home">
           <ChatHome
             onSubmit={onHuskyInput}
@@ -508,28 +513,15 @@ const Chat: React.FC<ChatProps> = ({
 
   return (
     <>
+      <ChatTitleBar
+        chat={{
+          threadId: openThreadId,
+          title: title || messages[0]?.question,
+          sharedBy: isSharedView ? threadOwner : undefined,
+        }}
+      />
       {messages?.length > 0 && (
         <div className="chat" ref={chatContainerRef}>
-          {isSharedView && threadOwner?.name && (
-            <div className="chat__header">
-              {title && (
-                <h1 className="chat__header-title" title={title}>
-                  {title}
-                </h1>
-              )}
-              <div className="chat__header-info">
-                <img
-                  className="chat__header-info-avatar"
-                  src={threadOwner?.image || '/icons/default_profile.svg'}
-                  alt=""
-                  width={16}
-                  height={16}
-                />
-                <span className="chat__header-info-text">Shared by {threadOwner.name}</span>
-                <span className="chat__header-info-hint">· Ask a follow-up to make your own copy</span>
-              </div>
-            </div>
-          )}
           <div className="chat__messages-wrapper">
             <Messages
               messages={messages}
@@ -586,58 +578,8 @@ const Chat: React.FC<ChatProps> = ({
           margin: 0px auto;
           position: relative;
           overflow: hidden;
-          padding: 26px 16px 90px 16px;
-        }
-
-        .chat__header {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          margin: 0 10px 12px;
-          padding-bottom: 12px;
-          border-bottom: 1px solid rgba(27, 56, 96, 0.12);
-          min-width: 0;
-        }
-
-        .chat__header-title {
-          margin: 0;
-          color: #0f172a;
-          font-weight: 600;
-          font-size: 16px;
-          line-height: 24px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .chat__header-info {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          min-width: 0;
-          color: #475569;
-          font-size: 12px;
-          line-height: 16px;
-        }
-
-        .chat__header-info-text {
-          flex-shrink: 0;
-          font-weight: 500;
-        }
-
-        .chat__header-info-hint {
-          overflow: hidden;
-          white-space: nowrap;
-          text-overflow: ellipsis;
-          color: #8897ae;
-          display: none;
-        }
-
-        .chat__header-info-avatar {
-          flex-shrink: 0;
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
+          /* the pinned title bar is 56px tall */
+          padding: 82px 16px 90px 16px;
         }
 
         .chat__messages-wrapper {
@@ -664,18 +606,13 @@ const Chat: React.FC<ChatProps> = ({
         }
 
         @media (min-width: 768px) {
-          .chat__header {
-            margin: 0 20px 16px;
-          }
-
-          .chat__header-info-hint {
-            display: inline;
-          }
-
           .chat__form {
             padding: 20px 0px;
           }
+        }
 
+        /* from 960px the rail sits beside the chat */
+        @media (min-width: 960px) {
           .chat__form-wrapper[data-state='expanded'] {
             left: calc(50% + 150px);
             width: min(768px, calc(100% - 300px - 32px));

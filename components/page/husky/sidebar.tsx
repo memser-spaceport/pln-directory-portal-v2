@@ -1,12 +1,12 @@
 'use client';
 
-import { useIsMobile } from '@/hooks/useIsMobile';
+import { useIsBelowTabletLandscape } from '@/hooks/useIsBelowTabletLandscape';
 import React from 'react';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar:state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = '300px';
-const SIDEBAR_WIDTH_MOBILE = '246px';
+const SIDEBAR_WIDTH_MOBILE = '320px';
 const SIDEBAR_WIDTH_ICON = '64px';
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b';
 
@@ -51,6 +51,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, React.ComponentProps<'div'> & {
           <style jsx>{`
             .sidebar--mobile {
               width: var(--sidebar-width);
+              max-width: 85vw;
               background-color: #ffffff;
               padding: 0;
               color: var(--sidebar-foreground, #333);
@@ -166,7 +167,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, React.ComponentProps<'div'> & {
               width: var(--sidebar-width-icon);
             }
 
-            @media (min-width: 768px) {
+            @media (min-width: 960px) {
               .block {
                 display: block;
               }
@@ -193,7 +194,7 @@ const SidebarProvider = React.forwardRef<
     onOpenChange?: (open: boolean) => void;
   }
 >(({ defaultOpen = true, open: openProp, onOpenChange: setOpenProp, className, style, children, ...props }, ref) => {
-  const isMobile = useIsMobile();
+  const isMobile = useIsBelowTabletLandscape();
   const [openMobile, setOpenMobile] = React.useState(false);
 
   // Internal controlled state

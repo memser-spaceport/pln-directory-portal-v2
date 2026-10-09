@@ -58,7 +58,7 @@ import HuskySourceCard from '@/components/core/husky/husky-source-card';
 import { DirectoryResultCards } from '@/components/core/application-search/components/DirectoryResultCards';
 import cards from '@/components/core/application-search/components/DirectoryResultCards/DirectoryResultCards.module.scss';
 import ChatMessageActions from '@/components/page/husky/chat-actions';
-import ChatHeader from '@/components/page/husky/chat-header';
+import { ChatTitleBar } from '@/components/page/husky/ChatTitleBar';
 import AppSidebar from '@/components/page/husky/app-sidebar';
 
 const newsRef = {
@@ -147,13 +147,13 @@ describe('AI search share controls', () => {
     expect(screen.queryByText('Share entire thread')).not.toBeInTheDocument();
   });
 
-  it('does not offer share in the chat header menu', () => {
-    render(<ChatHeader showActions title="Storage teams" />);
+  it('keeps Share out of the chat title bar menu, which only deletes', async () => {
+    render(<ChatTitleBar chat={{ threadId: 'thread-1', title: 'Storage teams' }} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'more options' }));
+    fireEvent.click(screen.getByRole('button', { name: 'More actions for this chat' }));
 
-    expect(screen.queryByText('Share')).not.toBeInTheDocument();
-    expect(screen.getByText('Delete')).toBeInTheDocument();
+    expect(await screen.findByRole('menuitem', { name: 'Delete' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: /Share/ })).not.toBeInTheDocument();
   });
 
   it('does not offer share on a sidebar thread', async () => {

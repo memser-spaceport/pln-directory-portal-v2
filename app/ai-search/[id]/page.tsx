@@ -2,7 +2,6 @@ import Chat from '@/components/page/husky/chat';
 import styles from './page.module.css';
 import { getHuskyThreadById } from '@/services/husky.service';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
-import ChatHeader from '@/components/page/husky/chat-header';
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 
@@ -28,7 +27,6 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 
   return (
     <div className={styles.husky}>
-      <ChatHeader showActions={isLoggedIn && !!isOwnThread} title={thread?.title} />
       <Chat
         id={id}
         isLoggedIn={isLoggedIn}

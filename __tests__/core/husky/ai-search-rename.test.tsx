@@ -56,7 +56,7 @@ jest.mock('@/utils/next-helpers', () => ({
 }));
 
 import { PAGE_ROUTES } from '@/utils/constants';
-import ChatHeader from '@/components/page/husky/chat-header';
+import { ChatTitleBar } from '@/components/page/husky/ChatTitleBar';
 import AppSidebar from '@/components/page/husky/app-sidebar';
 import { metadata } from '@/app/ai-search/layout';
 
@@ -83,10 +83,10 @@ describe('LAB-2772: the AI chat page is AI Search at /ai-search', () => {
     expect(container.textContent).not.toMatch(OLD_TEXT);
   });
 
-  it('labels the chat header "New chat" and "History", with no old names', () => {
-    const { container } = render(<ChatHeader showActions title="Storage teams" />);
+  it('labels the chat title bar "New chat" and "History", with no old names', () => {
+    const { container } = render(<ChatTitleBar chat={{ threadId: 'thread-1', title: 'Storage teams' }} />);
 
-    expect(screen.getByText('New chat')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'New chat' })).toBeInTheDocument();
     expect(screen.getByText('History')).toBeInTheDocument();
     expect(container.textContent).not.toMatch(OLD_TEXT);
   });
@@ -106,8 +106,8 @@ describe('LAB-2772: the AI chat page is AI Search at /ai-search', () => {
     expect(push).toHaveBeenLastCalledWith('/ai-search');
 
     push.mockClear();
-    render(<ChatHeader title="Storage teams" />);
-    fireEvent.click(screen.getAllByText('New chat')[1]);
+    render(<ChatTitleBar chat={{ threadId: 'thread-1', title: 'Storage teams' }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'New chat' }));
     expect(push).toHaveBeenLastCalledWith('/ai-search');
   });
 });

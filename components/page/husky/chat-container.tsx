@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import Chat from './chat';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
-import ChatHeader from './chat-header';
 import { useRouter } from 'next/navigation';
 import type { IVisitChat } from './types/visitChat';
 import { OPEN_VISIT_CHAT_EVENT } from './constants/visitChats';
@@ -75,7 +74,6 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
   return (
     <>
       <div className="chat-container">
-        <ChatHeader resetChat={resetChat} />
         <div className="chat-container__body">
           <Chat
             key={visitThreadId ?? 'new-chat'}

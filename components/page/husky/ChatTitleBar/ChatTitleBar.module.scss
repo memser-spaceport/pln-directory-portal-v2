@@ -1,0 +1,215 @@
+@use 'styles/media';
+
+// The rail's widths come from sidebar.tsx (300px open, 64px collapsed).
+$rail-width: 300px;
+$rail-width-collapsed: 64px;
+
+.root {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  padding: 8px 12px 8px 16px;
+  border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+  background: #ffffff;
+
+  @include media.tablet-landscape {
+    padding-left: 24px;
+  }
+}
+
+// Pinned under the app header like the chat input is pinned to the bottom: the page scrolls, not the chat.
+.pinned {
+  position: fixed;
+  top: var(--app-header-height);
+  right: 0;
+  left: 0;
+  z-index: 2;
+
+  @include media.tablet-landscape {
+    left: $rail-width;
+
+    &[data-state='collapsed'] {
+      left: $rail-width-collapsed;
+    }
+  }
+}
+
+// The new-chat page has nothing to title: the bar only carries History while the rail is a drawer.
+.bare {
+  @include media.tablet-landscape {
+    display: none;
+  }
+}
+
+.button {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #455468;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.04);
+  }
+}
+
+.shareLabel {
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.titleBlock {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  overflow: hidden;
+  color: #0a0c11;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sharedBy {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: #475569;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.sharedAvatar {
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.sharedName {
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+.sharedHint {
+  display: none;
+  overflow: hidden;
+  color: #8897ae;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  @include media.tablet-portrait {
+    display: inline;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.menuTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+
+  &:hover,
+  &[data-popup-open] {
+    background: rgba(14, 15, 17, 0.04);
+  }
+
+  // menu-dots.svg is drawn upright; the bar's ⋯ lies flat
+  img {
+    transform: rotate(90deg);
+  }
+}
+
+.newChat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.04);
+  }
+}
+
+.positioner {
+  z-index: 10000;
+  outline: 0;
+}
+
+.popup {
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  padding: 6px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 8px 28px rgba(14, 15, 17, 0.12);
+  outline: 0;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  outline: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+
+  &[data-highlighted] {
+    background: rgba(14, 15, 17, 0.04);
+  }
+}
+
+.danger {
+  color: #dc2626;
+}
+
+// Last, so it wins over the buttons' own display: History and New chat only stand in for the rail.
+.belowRail {
+  @include media.tablet-landscape {
+    display: none;
+  }
+}

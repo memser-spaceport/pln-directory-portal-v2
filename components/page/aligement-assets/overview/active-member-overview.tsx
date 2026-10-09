@@ -36,6 +36,10 @@ const KPI_WEIGHTS_FALLBACK: KpiWeightEntry[] = [
   { category: 'Brand', weight: null, percentOfTotal: 4.03, emissionsPerSnapshot: 403 },
 ];
 
+const MONTHLY_POOL = 10_000;
+const EXAMPLE_MY_POINTS = 100;
+const EXAMPLE_CATEGORY_POINTS = 1_000;
+
 const REDEEM_STEPS = [
   { title: 'Place a bid', description: 'Submit PLAA in a buyback auction.', icon: <Tag size={27} weight="regular" /> },
   { title: 'Auction clears', description: 'Accepted bids are determined.', icon: <Gavel size={27} weight="regular" /> },
@@ -87,21 +91,39 @@ export default function ActiveMemberOverview({
   const selectedRound = roundHistory.find((round) => round.roundNumber === selectedRoundNumber);
   const isCurrentRoundSelected = selectedRoundNumber !== undefined && selectedRoundNumber === currentRoundNumber;
 
+  const kpiRows = kpiWeights && kpiWeights.length > 0 ? kpiWeights : KPI_WEIGHTS_FALLBACK;
+
   const categoryStats = useMemo<CategoryStat[]>(() => {
+    // Only pillars in the emissions schedule get a spoke. The API also returns pillars that exist only in
+    // the token tables (e.g. Capital), which would otherwise show as an empty spoke.
+    const scheduled = new Set(kpiRows.map((row) => row.category));
+    const inSchedule = (stats: CategoryStat[]) => stats.filter((stat) => scheduled.has(stat.name));
     // History rounds share one category list across every round, so the chart keeps its shape while browsing.
-    if (selectedRound) return selectedRound.categories;
+    if (selectedRound) return inSchedule(selectedRound.categories);
     const points = roundStats?.chart ?? [];
     const plaa = roundStats?.tokenChart ?? [];
     const names = new Set<string>([...points.map((p) => p.name), ...plaa.map((p) => p.name)]);
     if (names.size === 0) return CATEGORY_STATS_FALLBACK;
-    return Array.from(names)
-      .sort()
-      .map((name) => ({
-        name,
-        points: points.find((p) => p.name === name)?.value ?? 0,
-        plaa: plaa.find((p) => p.name === name)?.value ?? 0,
-      }));
-  }, [roundStats, selectedRound]);
+    return inSchedule(
+      Array.from(names)
+        .sort()
+        .map((name) => ({
+          name,
+          points: points.find((p) => p.name === name)?.value ?? 0,
+          plaa: plaa.find((p) => p.name === name)?.value ?? 0,
+        })),
+    );
+  }, [kpiRows, roundStats, selectedRound]);
+
+  // The worked conversion example uses a real row from the schedule above, so its numbers always match it.
+  const exampleRow =
+    kpiRows.find((row) => row.category === 'Network Tooling' && row.percentOfTotal != null) ??
+    kpiRows.find((row) => row.percentOfTotal != null) ??
+    KPI_WEIGHTS_FALLBACK[2];
+  const examplePercent = exampleRow.percentOfTotal ?? 0;
+  const examplePool = exampleRow.emissionsPerSnapshot ?? Math.round((MONTHLY_POOL * examplePercent) / 100);
+  const exampleShare = EXAMPLE_MY_POINTS / EXAMPLE_CATEGORY_POINTS;
+  const examplePlaa = Math.floor(examplePool * exampleShare);
 
   // Mid-snapshot, points are in but PLAA hasn't converted yet.
   const isConversionPending = isCurrentRoundSelected && categoryStats.every((c) => c.plaa === 0);
@@ -109,13 +131,15 @@ export default function ActiveMemberOverview({
   const maxPoints = Math.max(1, ...categoryStats.map((c) => c.points));
   const maxPlaa = Math.max(1, ...categoryStats.map((c) => c.plaa));
 
-  const kpiRows = kpiWeights && kpiWeights.length > 0 ? kpiWeights : KPI_WEIGHTS_FALLBACK;
-
   const historyCategoryNames = useMemo(() => {
+    // Same rule as the radar: only pillars in the emissions schedule get a column.
+    const scheduled = new Set(kpiRows.map((row) => row.category));
     const names = new Set<string>();
     roundHistory.forEach((round) => round.categories.forEach((c) => names.add(c.name)));
-    return Array.from(names).sort();
-  }, [roundHistory]);
+    return Array.from(names)
+      .filter((name) => scheduled.has(name))
+      .sort();
+  }, [kpiRows, roundHistory]);
 
   const handleActivitiesClick = () => onOverviewActivitiesLinkClicked('/alignment-asset/activities', 'cta-banner');
   const handleFaqClick = () => onOverviewFaqLinkClicked('/alignment-asset/faqs');
@@ -352,7 +376,8 @@ export default function ActiveMemberOverview({
         <div>
           <div className={styles.conversionLabel}>The conversion happens in three steps</div>
           <div className={styles.conversionSubtext}>
-            Traced through one example: Network Tooling, where I collected 100 of the category’s 1,000 points.
+            Traced through one example: {exampleRow.category}, where I collected {EXAMPLE_MY_POINTS.toLocaleString()} of
+            the category’s {EXAMPLE_CATEGORY_POINTS.toLocaleString()} points.
           </div>
 
           <div className={styles.conversionGrid}>
@@ -367,15 +392,15 @@ export default function ActiveMemberOverview({
               <div className={styles.formulaBox}>
                 <div className={styles.formulaRow}>
                   <span>monthly pool</span>
-                  <span>10,000</span>
+                  <span>{MONTHLY_POOL.toLocaleString()}</span>
                 </div>
                 <div className={styles.formulaRow}>
                   <span>× category allocation</span>
-                  <span>19.35%</span>
+                  <span>{examplePercent.toFixed(2)}%</span>
                 </div>
                 <div className={styles.formulaResult}>
                   <span className={styles.formulaResultValue} style={cssVars({ '--ov-accent': '#1b4dff' })}>
-                    1,935 PLAA
+                    {examplePool.toLocaleString()} PLAA
                   </span>
                 </div>
               </div>
@@ -402,15 +427,15 @@ export default function ActiveMemberOverview({
               >
                 <div className={styles.formulaRow}>
                   <span>my points</span>
-                  <span>100</span>
+                  <span>{EXAMPLE_MY_POINTS.toLocaleString()}</span>
                 </div>
                 <div className={styles.formulaRow}>
                   <span style={{ whiteSpace: 'nowrap' }}>÷ points collected in category</span>
-                  <span>1,000</span>
+                  <span>{EXAMPLE_CATEGORY_POINTS.toLocaleString()}</span>
                 </div>
                 <div className={styles.formulaResult}>
                   <span className={styles.formulaResultValue} style={cssVars({ '--ov-accent': '#0e6e9e' })}>
-                    10%
+                    {exampleShare * 100}%
                   </span>
                 </div>
               </div>
@@ -437,15 +462,15 @@ export default function ActiveMemberOverview({
               >
                 <div className={styles.formulaRow}>
                   <span>category pool</span>
-                  <span>1,935</span>
+                  <span>{examplePool.toLocaleString()}</span>
                 </div>
                 <div className={styles.formulaRow}>
                   <span>× my proportion</span>
-                  <span>10%</span>
+                  <span>{exampleShare * 100}%</span>
                 </div>
                 <div className={styles.formulaResult}>
                   <span className={styles.formulaResultValue} style={cssVars({ '--ov-accent': '#0b7a6d' })}>
-                    193 PLAA
+                    {examplePlaa.toLocaleString()} PLAA
                   </span>
                 </div>
               </div>

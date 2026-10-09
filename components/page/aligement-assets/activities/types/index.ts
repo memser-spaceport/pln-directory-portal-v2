@@ -72,7 +72,6 @@ export interface ActivityPopupContent {
   };
   categories?: PointCategory[];
   additionalNote?: string;
-  /** Legal disclaimer shown at the bottom of the popup, just above the CTA. */
   disclaimer?: string;
 }
 

@@ -7,21 +7,107 @@ $padding-inline: 16px;
   z-index: 1;
   display: none;
   flex: 1;
+  align-items: center;
+  gap: 8px;
   max-width: 600px;
+  height: 36px;
+  padding: 0 8px 0 12px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: text;
+  transition: border-color 0.15s ease;
 
   @include media.tablet-landscape {
     display: flex;
   }
+
+  @media (hover: hover) {
+    &:hover {
+      border-color: rgba(14, 15, 17, 0.24);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 
+// The brand border holds while the popover is open under the field.
+.rootOpen.rootOpen {
+  border-color: #1b4dff;
+}
+
+.searchGlyph {
+  flex-shrink: 0;
+  color: #8897ae;
+}
+
+// DebouncedInput brings a grey 40px box of its own; inside this field it is only the text and Clear.
+.inputRoot.inputRoot {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border-radius: 0;
+  background: none;
+  gap: 8px;
+}
+
+// `!important` against app/globals.scss's `.root input { font-size: 16px !important }`, the iOS zoom guard:
+// this field only shows from 960px up, where there is no phone to guard.
+.input.input {
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: #0f172a;
+  font-size: 14px !important;
+  line-height: 20px;
+  text-overflow: ellipsis;
+
+  &:focus-visible {
+    border: 0;
+  }
+
+  &::placeholder {
+    color: #8897ae;
+    opacity: 1;
+  }
+}
+
+.clear.clear {
+  position: static;
+  flex-shrink: 0;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: 4px;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.04);
+  }
+}
+
+.clearLabel {
+  color: #156ff7;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  pointer-events: none;
+}
+
+// Wider than the field and lined up with its right edge (-1px: past the field's border), as in the prototype.
 .dropdown {
   position: absolute;
   top: calc(100% + 8px);
-  width: 100%;
+  right: -1px;
+  width: 600px;
+  max-width: calc(100vw - 32px);
   max-height: 600px;
   overflow: auto;
 
-  border-radius: 8px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 12px;
   background: #fff;
   box-shadow:
     0 1px 2px 0 rgba(15, 23, 42, 0.16),
@@ -81,21 +167,46 @@ $padding-inline: 16px;
   height: 100%;
 }
 
-/* DELETE WITH: the legacy header search.
-   `RecentSearch` used to draw its own dividers and vertical spacing. The dialog
-   rebuild moved that to the host — "the dialog is the only host now, and it owns
-   the rhythm between its sections", per the note in RecentSearch.tsx — so this
-   host has to draw them itself. Geometry is the component's own, at de644d92a:
-   a 12px gap above the list, 8px of padding around it, and a hairline top and
-   bottom with 8px either side. */
-.recentSearchBody {
-  margin-top: 12px;
-  padding-block: 8px;
+.idle {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 0;
 }
 
-.recentSearchDivider {
-  height: 1px;
-  width: 100%;
-  margin-block: 8px;
-  background: #e2e8f0;
+.hint {
+  margin: 0;
+  padding: 0 16px;
+  color: #8897ae;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.aiBadge {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2px;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid rgba(27, 56, 96, 0.24);
+  border-radius: 4px;
+  background: rgba(14, 15, 17, 0.04);
+  color: #455468;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.08);
+  }
+}
+
+.aiBadgeIcon {
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(285deg, #45d8ff 0%, #005bea 82.52%);
+  mask: url('/icons/ai-search.svg') center / contain no-repeat;
 }

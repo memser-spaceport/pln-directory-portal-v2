@@ -1,0 +1,92 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 16px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.label {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.showAll {
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #156ff7;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: #f8fafc;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.04);
+  }
+}
+
+// The AI Search mark in its brand gradient, as the popover's AI rows draw it.
+.aiIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(285deg, #45d8ff 0%, #005bea 82.52%);
+  mask: url('/icons/ai-search.svg') center / contain no-repeat;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: #475569;
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.when {
+  flex-shrink: 0;
+  color: #8897ae;
+  font-size: 12px;
+  line-height: 16px;
+}

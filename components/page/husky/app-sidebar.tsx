@@ -1,35 +1,32 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Sidebar, useSidebar } from './sidebar';
-import { getYear, isYesterday, isToday, subMonths, subWeeks } from 'date-fns';
 import { getHuskyHistory, deleteThread } from '@/services/husky.service';
 import { getUserCredentials } from '@/utils/auth.utils';
 import { triggerLoader } from '@/utils/common.utils';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { useParams, useRouter } from 'next/navigation';
-import Modal from '@/components/core/modal';
+import { ConfirmDialog } from '@/components/core/ConfirmDialog';
 import { PAGE_ROUTES } from '@/utils/constants';
 import { useLoginRedirect } from '@/components/core/login/utils';
 import { OPEN_VISIT_CHAT_EVENT } from './constants/visitChats';
 import { getVisitChats } from './utils/getVisitChats';
 import { removeVisitChat } from './utils/removeVisitChat';
 import { setPendingVisitChat } from './utils/setPendingVisitChat';
+import { groupThreadsByDate } from './utils/groupThreadsByDate';
+import type { IHistoryThread } from './types/historyThread';
+import { HistorySearch } from './HistorySearch';
 
-interface IThread {
-  title: string;
-  threadId: string;
-  createdAt: string;
-  updatedAt: string;
-}
+type DeleteTarget = Pick<IHistoryThread, 'threadId' | 'title'>;
 
 interface ThreadItemProps {
-  thread: IThread;
+  thread: IHistoryThread;
   isActive: boolean;
   isMobile: boolean;
   toggleSidebar: () => void;
-  handleDeleteModalOpen: (thread: IThread) => void;
-  onOpen?: (thread: IThread) => void;
+  handleDeleteModalOpen: (thread: IHistoryThread) => void;
+  onOpen?: (thread: IHistoryThread) => void;
 }
 
 // Extracted ThreadItem component and memoized it to prevent unnecessary re-renders
@@ -78,11 +75,12 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
       <style jsx>{`
         .sidebar__body__history__list__ul__li {
           list-style: none;
-          color: #64748b;
+          color: #455468;
           font-weight: 400;
           font-size: 14px;
           line-height: 22px;
           padding: 4px 8px;
+          border-radius: 4px;
           cursor: pointer;
           display: flex;
           align-items: center;
@@ -114,13 +112,13 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
         }
 
         .sidebar__body__history__list__ul__li:hover {
-          background-color: #f1f5f9;
-          border-radius: 4px;
+          background-color: rgba(14, 15, 17, 0.04);
         }
 
+        /* the open chat outranks the hovered one: a darker wash and the primary text colour */
         .sidebar__body__history__list__ul__li[data-active='true'] {
-          background-color: #f1f5f9;
-          border-radius: 4px;
+          background-color: rgba(14, 15, 17, 0.06);
+          color: #0a0c11;
         }
 
         .sidebar__body__history__list__ul__li__actions__button {
@@ -147,17 +145,18 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
 
 const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
   const { toggleSidebar, state, isMobile } = useSidebar();
-  const [history, setHistory] = useState<IThread[]>([]);
+  const [history, setHistory] = useState<IHistoryThread[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const analytics = useHuskyAnalytics();
   const { id } = useParams();
   const router = useRouter();
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const deleteModalRef = useRef<HTMLDialogElement>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [isMac, setIsMac] = useState(false);
-  const [activeVisitChatId, setActiveVisitChatId] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  // A chat open on /ai-search has no id in the URL; the chat announces it through refresh-husky-history.
+  const [announcedChatId, setAnnouncedChatId] = useState<string | null>(null);
   const goToLogin = useLoginRedirect();
+  const openChatId = (id as string | undefined) ?? announcedChatId;
 
   const fetchHistory = async (showLoading = true) => {
     if (!isLoggedIn) {
@@ -203,8 +202,8 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
   }, [isMobile, handleSidebarToggle, router, analytics]);
 
   const handleOpenVisitChat = useCallback(
-    (thread: IThread) => {
-      setActiveVisitChatId(thread.threadId);
+    (thread: IHistoryThread) => {
+      setAnnouncedChatId(thread.threadId);
       // The /ai-search page opens it on mount, or at once through the event when it is already open.
       setPendingVisitChat(thread.threadId);
       document.dispatchEvent(new Event(OPEN_VISIT_CHAT_EVENT));
@@ -224,23 +223,28 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     }
   }, [state, handleSidebarToggle]);
 
-  const handleDeleteModalOpen = useCallback((thread: IThread) => {
-    if (deleteModalRef.current) {
-      deleteModalRef.current.showModal();
-    }
-    setIsDeleteModalOpen(true);
-    setDeleteId(thread.threadId);
+  const handleDeleteModalOpen = useCallback((thread: IHistoryThread) => {
+    setDeleteTarget({ threadId: thread.threadId, title: thread.title });
   }, []);
 
   const handleDeleteModalClose = useCallback(() => {
-    if (deleteModalRef.current) {
-      deleteModalRef.current.close();
-    }
-    setIsDeleteModalOpen(false);
+    setDeleteTarget(null);
   }, []);
 
-  const handleDeleteThread = useCallback(async () => {
-    if (!deleteId) return;
+  const leaveDeletedChat = (deletedId: string) => {
+    if (deletedId !== openChatId) {
+      return;
+    }
+    setAnnouncedChatId(null);
+    document.dispatchEvent(new CustomEvent('new-chat'));
+    router.push(PAGE_ROUTES.HUSKY);
+  };
+
+  const handleDeleteThread = async () => {
+    if (!deleteTarget) {
+      return;
+    }
+    const deleteId = deleteTarget.threadId;
     const toast = (await import('react-toastify')).toast;
     analytics.trackThreadDeleteConfirmationStatus(deleteId, 'initiated');
     if (!isLoggedIn) {
@@ -248,13 +252,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
       removeVisitChat(deleteId);
       setHistory(getVisitChats());
       analytics.trackThreadDeleteConfirmationStatus(deleteId, 'success');
-      if (deleteId === activeVisitChatId || deleteId === id) {
-        setActiveVisitChatId(null);
-        document.dispatchEvent(new CustomEvent('new-chat'));
-      }
-      if (deleteId === id) {
-        router.push(PAGE_ROUTES.HUSKY);
-      }
+      leaveDeletedChat(deleteId);
       return;
     }
     triggerLoader(true);
@@ -288,11 +286,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         autoClose: 3000,
       });
       analytics.trackThreadDeleteConfirmationStatus(deleteId, 'success');
-      // Redirect to home if the deleted thread is the current one
-      document.dispatchEvent(new CustomEvent('new-chat'));
-      if (deleteId === id) {
-        router.push(PAGE_ROUTES.HUSKY);
-      }
+      leaveDeletedChat(deleteId);
     } catch (error) {
       console.error('Error deleting thread:', error);
       analytics.trackThreadDeleteConfirmationStatus(deleteId, 'failed');
@@ -306,87 +300,29 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     } finally {
       triggerLoader(false);
     }
-  }, [deleteId, id, router, fetchHistory, handleDeleteModalClose, isLoggedIn, activeVisitChatId]);
+  };
 
-  const groupChatsByDate = useCallback((chats: IThread[]) => {
-    const now = new Date();
-    const oneWeekAgo = subWeeks(now, 1);
-    const oneMonthAgo = subMonths(now, 1);
-    const currentYear = getYear(now);
+  const shownHistory = useMemo(() => {
+    const words = query.trim().toLowerCase();
+    return words ? history.filter((thread) => thread.title?.toLowerCase().includes(words)) : history;
+  }, [history, query]);
 
-    return chats.reduce(
-      (
-        groups: {
-          today: IThread[];
-          yesterday: IThread[];
-          lastWeek: IThread[];
-          lastMonth: IThread[];
-          [year: number]: IThread[];
-        },
-        chat: IThread,
-      ) => {
-        const chatDate = new Date(chat.createdAt);
-        const chatYear = getYear(chatDate);
-
-        if (isNaN(chatDate.getTime())) return groups;
-
-        if (isToday(chatDate)) {
-          groups.today.push(chat);
-        } else if (isYesterday(chatDate)) {
-          groups.yesterday.push(chat);
-        } else if (chatDate > oneWeekAgo) {
-          groups.lastWeek.push(chat);
-        } else if (chatDate > oneMonthAgo) {
-          groups.lastMonth.push(chat);
-        } else if (chatYear < currentYear) {
-          if (!groups[chatYear]) groups[chatYear] = [];
-          groups[chatYear].push(chat);
-        }
-
-        return groups;
-      },
-      {
-        today: [],
-        yesterday: [],
-        lastWeek: [],
-        lastMonth: [],
-      },
-    );
-  }, []);
-
-  // Memoize the grouped chats to prevent unnecessary recalculations
-  const groupedChats = useMemo(() => groupChatsByDate(history), [history, groupChatsByDate]);
-
-  // Memoize the ordered keys for better performance
-  const orderedKeys = useMemo(() => {
-    const fixedKeys = ['today', 'yesterday', 'lastWeek', 'lastMonth'];
-
-    // Get dynamically generated year sections and sort in descending order
-    const yearKeys = Object.keys(groupedChats)
-      .filter((key) => !fixedKeys.includes(key))
-      .sort((a, b) => Number(b) - Number(a));
-
-    return [...fixedKeys, ...yearKeys];
-  }, [groupedChats]);
+  const historyGroups = useMemo(() => groupThreadsByDate(shownHistory), [shownHistory]);
+  const deleteSubject = deleteTarget?.title ? `“${deleteTarget.title}”` : 'This chat';
 
   useEffect(() => {
     fetchHistory(true); // Show loading on initial fetch
 
     const handleRefreshHistory = (e: Event) => {
-      const visitThreadId = (e as CustomEvent<{ visitThreadId?: string }>).detail?.visitThreadId;
-      if (visitThreadId) {
-        setActiveVisitChatId(visitThreadId);
+      const openThreadId = (e as CustomEvent<{ openThreadId?: string }>).detail?.openThreadId;
+      if (openThreadId) {
+        setAnnouncedChatId(openThreadId);
       }
       fetchHistory(false); // Don't show loading when called via event listener
     };
 
-    const handleDeleteThread = (e: CustomEvent<{ threadId: string }>) => {
-      const { threadId } = e.detail;
-      setDeleteId(threadId);
-      setIsDeleteModalOpen(true);
-      if (deleteModalRef.current) {
-        deleteModalRef.current.showModal();
-      }
+    const handleDeleteThread = (e: CustomEvent<DeleteTarget>) => {
+      setDeleteTarget(e.detail);
     };
 
     // Detect if the user is on macOS
@@ -396,7 +332,7 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
 
     detectMac();
 
-    const handleNewChat = () => setActiveVisitChatId(null);
+    const handleNewChat = () => setAnnouncedChatId(null);
 
     document.addEventListener('refresh-husky-history', handleRefreshHistory as EventListener);
     document.addEventListener('delete-thread', handleDeleteThread as EventListener);
@@ -425,6 +361,9 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         </div>
         <div data-state={state} className="sidebar__body">
           <div className="sidebar__body__history">
+            <div className="sidebar__body__search">
+              <HistorySearch value={query} onChange={setQuery} />
+            </div>
             <div onClick={handleOpenSidebar} className="sidebar__body__history__header">
               <div className="sidebar__body__history__header__title">
                 <img width={22} height={22} src="/icons/history.svg" alt="history" />
@@ -436,63 +375,46 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
             <div className="sidebar__body__history__list">
               {isLoading ? (
                 <SkeletonLoader />
-              ) : !isLoggedIn ? (
-                history.length === 0 ? (
-                  <div className="sidebar__body__history__list__empty">Chats you start appear here.</div>
-                ) : (
-                  <ul className="sidebar__body__history__list__ul">
-                    {history.map((chat: IThread) => (
-                      <ThreadItem
-                        isActive={chat.threadId === (id ?? activeVisitChatId)}
-                        key={chat.threadId}
-                        thread={chat}
-                        isMobile={isMobile}
-                        toggleSidebar={handleSidebarToggle}
-                        handleDeleteModalOpen={handleDeleteModalOpen}
-                        onOpen={id === chat.threadId ? undefined : handleOpenVisitChat}
-                      />
-                    ))}
-                  </ul>
-                )
               ) : history.length === 0 ? (
                 <div className="sidebar__body__history__list__empty">
-                  Your conversations will appear here once you start chatting!
+                  {isLoggedIn
+                    ? 'Your conversations will appear here once you start chatting!'
+                    : 'Chats you start appear here.'}
                 </div>
-              ) : (
+              ) : shownHistory.length === 0 ? (
+                <div className="sidebar__body__history__list__empty">No chats match &ldquo;{query.trim()}&rdquo;.</div>
+              ) : !isLoggedIn ? (
                 <ul className="sidebar__body__history__list__ul">
-                  {orderedKeys.map((key) =>
-                    groupedChats[key as keyof typeof groupedChats]?.length > 0 ? (
-                      <React.Fragment key={key}>
-                        <div className="sidebar__body__history__list__ul__title">
-                          {key === 'lastWeek'
-                            ? 'Last 7 days'
-                            : key === 'lastMonth'
-                              ? 'Last 30 days'
-                              : key === 'today'
-                                ? 'Today'
-                                : key === 'yesterday'
-                                  ? 'Yesterday'
-                                  : key}
-                        </div>
-                        {groupedChats[key as keyof typeof groupedChats]
-                          .sort(
-                            (a: IThread, b: IThread) =>
-                              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-                          ) // Sort by createdAt (newest first)
-                          .map((chat: IThread) => (
-                            <ThreadItem
-                              isActive={chat.threadId === id}
-                              key={chat.threadId}
-                              thread={chat}
-                              isMobile={isMobile}
-                              toggleSidebar={handleSidebarToggle}
-                              handleDeleteModalOpen={handleDeleteModalOpen}
-                            />
-                          ))}
-                      </React.Fragment>
-                    ) : null,
-                  )}
+                  {shownHistory.map((chat) => (
+                    <ThreadItem
+                      isActive={chat.threadId === openChatId}
+                      key={chat.threadId}
+                      thread={chat}
+                      isMobile={isMobile}
+                      toggleSidebar={handleSidebarToggle}
+                      handleDeleteModalOpen={handleDeleteModalOpen}
+                      onOpen={id === chat.threadId ? undefined : handleOpenVisitChat}
+                    />
+                  ))}
                 </ul>
+              ) : (
+                historyGroups.map(([label, threads]) => (
+                  <div key={label} className="sidebar__body__history__group">
+                    <div className="sidebar__body__history__group__label">{label}</div>
+                    <ul className="sidebar__body__history__list__ul">
+                      {threads.map((chat) => (
+                        <ThreadItem
+                          isActive={chat.threadId === openChatId}
+                          key={chat.threadId}
+                          thread={chat}
+                          isMobile={isMobile}
+                          toggleSidebar={handleSidebarToggle}
+                          handleDeleteModalOpen={handleDeleteModalOpen}
+                        />
+                      ))}
+                    </ul>
+                  </div>
+                ))
               )}
             </div>
             {!isLoggedIn && (
@@ -526,14 +448,18 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           </button>
         </div>
       </Sidebar>
-      <Modal modalRef={deleteModalRef} onClose={handleDeleteModalClose}>
-        <DeleteModal
-          isOpen={isDeleteModalOpen}
-          onClose={handleDeleteModalClose}
-          onDelete={handleDeleteThread}
-          modalRef={deleteModalRef}
-        />
-      </Modal>
+      <ConfirmDialog
+        isOpen={deleteTarget !== null}
+        title="Delete chat?"
+        desc={
+          isLoggedIn
+            ? `${deleteSubject} will be removed from your history, and its link will stop working.`
+            : `${deleteSubject} will be removed from this visit's chats.`
+        }
+        confirmTitle="Delete"
+        onClose={handleDeleteModalClose}
+        onConfirm={handleDeleteThread}
+      />
       <style jsx>{`
         .sidebar__header {
           padding: 16px 12px;
@@ -692,12 +618,20 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           gap: 4px;
         }
 
-        .sidebar__body__history__list__ul__title {
+        .sidebar__body__search {
+          padding-right: 10px;
+        }
+
+        .sidebar__body__history__group + .sidebar__body__history__group {
+          margin-top: 16px;
+        }
+
+        .sidebar__body__history__group__label {
+          padding: 0 8px 4px;
+          color: #64748b;
+          font-size: 12px;
           font-weight: 500;
-          font-size: 14px;
-          line-height: 22px;
-          color: #000000;
-          padding: 8px 0px 8px 8px;
+          line-height: 16px;
         }
 
         .sidebar__body__history__list__ul__li {
@@ -791,7 +725,11 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           border-radius: 4px;
         }
 
-        @media (min-width: 768px) {
+        @media (min-width: 960px) {
+          .sidebar__body[data-state='collapsed'] .sidebar__body__search {
+            display: none;
+          }
+
           .sidebar__header[data-state='collapsed'] {
             padding: unset;
           }
@@ -874,126 +812,5 @@ const SkeletonLoader = () => (
     `}</style>
   </>
 );
-
-// Extracted DeleteModal component
-const DeleteModal = ({
-  isOpen,
-  onClose,
-  onDelete,
-  modalRef,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onDelete: () => void;
-  modalRef: React.RefObject<HTMLDialogElement | null>;
-}) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="delete-modal">
-      <div className="delete-modal__header">
-        <h1 className="delete-modal__title">Are you sure you want to delete this thread?</h1>
-      </div>
-      <div className="delete-modal__body">
-        <div className="delete-modal__content">Clicking delete will remove the thread from the list.</div>
-      </div>
-      <div className="delete-modal__footer">
-        <button onClick={onDelete} className="delete-modal__button delete-modal__button--delete">
-          Delete
-        </button>
-        <button onClick={onClose} className="delete-modal__button delete-modal__button--cancel">
-          Cancel
-        </button>
-      </div>
-      <style jsx>{`
-        .delete-modal {
-          width: 85vw;
-          background: #ffffff;
-          padding: 24px 12px 24px 24px;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          max-height: 85vh;
-        }
-
-        .delete-modal__header {
-        }
-
-        .delete-modal__title {
-          font-size: 24px;
-          font-weight: 700;
-          line-height: 32px;
-          text-align: left;
-          color: #0f172a;
-        }
-
-        .delete-modal__body {
-          flex: 1;
-          overflow: auto;
-          padding-right: 12px;
-        }
-
-        .delete-modal__content {
-          font-size: 14px;
-          font-weight: 400;
-          line-height: 20px;
-          color: #0f172a;
-        }
-
-        .delete-modal__footer {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          padding: 10px 12px 10px 0px;
-        }
-
-        .delete-modal__button {
-          box-shadow: 0px 1px 1px 0px #0f172a14;
-          border: 1px solid #cbd5e1;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 100%;
-          font-size: 14px;
-          font-weight: 500;
-          line-height: 20px;
-          border-radius: 8px;
-          padding: 0px 24px;
-        }
-
-        .delete-modal__button--delete {
-          background-color: #dd2c5a;
-          color: #ffffff;
-        }
-
-        .delete-modal__button--cancel {
-          background-color: #fff;
-          color: #0f172a;
-        }
-
-        @media (min-width: 768px) {
-          .delete-modal {
-            width: 656px;
-          }
-
-          .delete-modal__footer {
-            flex-direction: row-reverse;
-            justify-content: end;
-            gap: 10px;
-          }
-
-          .delete-modal__button--delete {
-            width: unset;
-          }
-
-          .delete-modal__button--cancel {
-            width: unset;
-          }
-        }
-      `}</style>
-    </div>
-  );
-};
 
 export default AppSidebar;

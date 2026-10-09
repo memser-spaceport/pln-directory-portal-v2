@@ -39,7 +39,7 @@ import styles from './page.module.scss';
  */
 async function Page(props: {
   params: Promise<ITeamDetailParams>;
-  searchParams: Promise<{ role?: string; candidate?: string }>;
+  searchParams: Promise<{ role?: string; candidate?: string; suggested?: string }>;
 }) {
   const params = await props.params;
   const searchParams = await props.searchParams;
@@ -116,6 +116,7 @@ async function Page(props: {
         roles={roles}
         initialRoleUid={searchParams?.role ?? null}
         initialCandidateUid={searchParams?.candidate ?? null}
+        initialSuggestedMemberUid={searchParams?.suggested ?? null}
         viewerUid={userInfo?.uid}
         isLoggedIn={!!isLoggedIn}
       />

@@ -56,6 +56,13 @@ jest.mock('@/hooks/useIsBelowTabletLandscape', () => ({
   useIsBelowTabletLandscape: () => isNarrow,
 }));
 
+const routerReplace = jest.fn();
+jest.mock('next/navigation', () => ({
+  usePathname: () => '/teams/team-1/applicants',
+  useRouter: () => ({ replace: routerReplace }),
+  useSearchParams: () => new URLSearchParams('role=role-1'),
+}));
+
 const useSuggestedCandidates = jest.fn();
 const useRoleApplicants = jest.fn();
 const analytics = {
@@ -164,6 +171,7 @@ const rowFor = (name: string) =>
 beforeEach(() => {
   isNarrow = false;
   memberEmail = 'ana@example.com';
+  routerReplace.mockReset();
   Object.values(analytics).forEach((fn) => fn.mockReset());
   useSuggestedCandidates.mockReset();
   useRoleApplicants.mockReset();
@@ -338,6 +346,34 @@ describe('the Suggested tab', () => {
 
     expect(screen.getByTestId('pane')).toHaveAttribute('data-member', 'm-2');
     expect(screen.getByText('2 of 2')).toBeInTheDocument();
+  });
+
+  it('puts the selected suggestion in the URL so the link can be shared', async () => {
+    renderView();
+    await openSuggested();
+    await userEvent.click(rowFor('Ben Ito')!);
+
+    expect(routerReplace).toHaveBeenCalledWith(
+      '/teams/team-1/applicants?role=role-1&suggested=m-2',
+      { scroll: false },
+    );
+  });
+
+  it('opens the Suggested tab on the member from a shared link', () => {
+    render(
+      <TeamApplicantsView
+        teamId="team-1"
+        teamName="Filecoin Foundation"
+        roles={[ROLE]}
+        initialRoleUid="role-1"
+        initialSuggestedMemberUid="m-2"
+        viewerUid="u1"
+        isLoggedIn
+      />,
+    );
+
+    expect(screen.getByTestId('pane')).toHaveAttribute('data-member', 'm-2');
+    expect(rowFor('Ben Ito')).toHaveAttribute('aria-pressed', 'true');
   });
 });
 

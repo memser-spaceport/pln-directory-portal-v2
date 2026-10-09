@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Select, { type StylesConfig } from 'react-select';
 
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
@@ -60,6 +61,8 @@ interface Props {
   initialRoleUid: string | null;
   /** `?candidate=` — a member uid, from the application email's link to the person. */
   initialCandidateUid: string | null;
+  /** `?suggested=` — a member uid, from a shared link to a suggested match. */
+  initialSuggestedMemberUid?: string | null;
   /**
    * The signed-in lead, handed down rather than read from the user store.
    *
@@ -92,6 +95,7 @@ export function TeamApplicantsView({
   roles,
   initialRoleUid,
   initialCandidateUid,
+  initialSuggestedMemberUid = null,
   viewerUid,
   isLoggedIn,
 }: Props) {
@@ -113,11 +117,41 @@ export function TeamApplicantsView({
    * survives the list arriving late, which an effect-and-setState would have to
    * chase with a flag.
    */
-  const [pickedTab, setPickedTab] = useState<string | null>(null);
+  const [pickedTab, setPickedTab] = useState<string | null>(() =>
+    initialSuggestedMemberUid ? SUGGESTED_TAB : null,
+  );
   const [query, setQuery] = useState('');
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [paneOpen, setPaneOpen] = useState(false);
   const [pendingCandidateUid, setPendingCandidateUid] = useState(initialCandidateUid);
+  const [pendingSuggestedMemberUid, setPendingSuggestedMemberUid] = useState(initialSuggestedMemberUid);
+
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const replaceApplicantsSearch = useCallback(
+    (patch: { roleUid?: string; suggestedUid?: string | null; candidateUid?: string | null }) => {
+      const params = new URLSearchParams(searchParams.toString());
+      const role = patch.roleUid ?? roleUid;
+      if (role) params.set('role', role);
+      else params.delete('role');
+
+      if (patch.suggestedUid !== undefined) {
+        if (patch.suggestedUid) params.set('suggested', patch.suggestedUid);
+        else params.delete('suggested');
+      }
+      if (patch.candidateUid !== undefined) {
+        if (patch.candidateUid) params.set('candidate', patch.candidateUid);
+        else params.delete('candidate');
+      }
+      if (patch.suggestedUid) params.delete('candidate');
+
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [pathname, router, roleUid, searchParams],
+  );
 
   const role = roles.find((r) => r.uid === roleUid) ?? roles[0] ?? null;
 
@@ -235,6 +269,8 @@ export function TeamApplicantsView({
     setSelectedUid(null);
     setQuery('');
     setPaneOpen(false);
+    setPendingSuggestedMemberUid(null);
+    replaceApplicantsSearch({ roleUid: next, suggestedUid: null, candidateUid: null });
   };
 
   const switchTab = (next: string) => {
@@ -243,6 +279,9 @@ export function TeamApplicantsView({
     setSelectedUid(null);
     setQuery('');
     setPaneOpen(false);
+    if (next !== SUGGESTED_TAB) {
+      replaceApplicantsSearch({ suggestedUid: null });
+    }
     analytics.onJobHiringTabChanged({
       team_id: teamId,
       job_id: role?.uid ?? null,
@@ -254,6 +293,11 @@ export function TeamApplicantsView({
      id here — unique within a role's list, which is all a selection needs. */
   const selectSuggested = (row: SuggestedCandidate) => {
     setSelectedUid(row.memberUid);
+    replaceApplicantsSearch({
+      roleUid: role?.uid ?? roleUid,
+      suggestedUid: row.memberUid,
+      candidateUid: null,
+    });
     analytics.onJobSuggestedCandidateOpened({
       team_id: teamId,
       job_id: role?.uid ?? null,
@@ -333,14 +377,27 @@ export function TeamApplicantsView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isNarrow, selectedUid, rows]);
 
+  /* A shared `?suggested=` link: open that person once the list is in. */
+  useEffect(() => {
+    if (!pendingSuggestedMemberUid || !suggestions.data) return;
+    const match = suggestions.data.find((row) => row.memberUid === pendingSuggestedMemberUid);
+    setPendingSuggestedMemberUid(null);
+    if (match) {
+      setSelectedUid(match.memberUid);
+      if (isNarrow) setPaneOpen(true);
+    } else if (!isNarrow && suggestedRows.length) {
+      setSelectedUid(suggestedRows[0].memberUid);
+    }
+  }, [isNarrow, pendingSuggestedMemberUid, suggestions.data, suggestedRows]);
+
   /* The Suggested tab's version of the preselect above: two-column only, and
      with no unread state to clear. It sets the selection without the "opened"
      event — the lead did not press anyone, and counting the page's own choice
      would inflate rank 1 in the opened-to-contacted funnel. */
   useEffect(() => {
-    if (selectedUid || isNarrow || !suggestedRows.length) return;
+    if (pendingSuggestedMemberUid || selectedUid || isNarrow || !suggestedRows.length) return;
     setSelectedUid(suggestedRows[0].memberUid);
-  }, [isNarrow, selectedUid, suggestedRows]);
+  }, [isNarrow, pendingSuggestedMemberUid, selectedUid, suggestedRows]);
 
   const selected = shown.find((row) => row.uid === selectedUid) ?? null;
   const position = selected ? shown.findIndex((row) => row.uid === selected.uid) : -1;

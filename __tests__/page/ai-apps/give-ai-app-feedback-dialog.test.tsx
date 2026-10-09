@@ -72,7 +72,7 @@ jest.mock('react-select', () => {
       }: {
         options: Array<{ label: string; value: string }>;
         value: { label: string; value: string } | null;
-        onChange: (value: { label: string; value: string } | null) => void;
+        onChange: (value: { label: string; value: string } | null, meta: { action: string }) => void;
         inputId?: string;
         placeholder?: string;
         menuPlacement?: string;
@@ -90,7 +90,7 @@ jest.mock('react-select', () => {
         <div data-menu-placement={menuPlacement}>
           <span data-testid={`selected-${inputId}`}>{value?.label ?? placeholder}</span>
           {options.map((opt) => (
-            <button key={opt.value} type="button" onClick={() => onChange(opt)}>
+            <button key={opt.value} type="button" onClick={() => onChange(opt, { action: 'select-option' })}>
               {opt.label}
             </button>
           ))}

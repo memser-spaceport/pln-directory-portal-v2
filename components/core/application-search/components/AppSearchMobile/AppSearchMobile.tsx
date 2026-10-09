@@ -4,32 +4,30 @@ import Image from 'next/image';
 import s from './AppSearchMobile.module.scss';
 import { DebouncedInput } from '@/components/core/application-search/components/DebouncedInput';
 import { FullSearchResults } from '@/components/core/application-search/components/FullSearchResults';
-import { AiChatPanel } from '@/components/core/application-search/components/AiChatPanel';
-import { IUserInfo } from '@/types/shared.types';
+import { RecentSearch } from '@/components/core/application-search/components/RecentSearch';
+import { AiSearchEntries } from '@/components/core/application-search/components/AiSearchEntries';
+import { RecentAiChats } from '@/components/core/application-search/components/RecentAiChats';
+import { openAiSearch } from '@/components/utils/openAiSearch';
+import { REOPEN_HEADER_SEARCH_EVENT } from '@/components/constants/aiSearchHandoff';
 import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
 import { useRecordRecentSearch } from '@/services/search/hooks/useRecordRecentSearch';
-import { SearchCategories } from '@/components/core/application-search/components/SearchCategories';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 interface Props {
-  userInfo: IUserInfo;
   isLoggedIn: boolean;
-  authToken: string;
 }
 
-export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
+export const AppSearchMobile = ({ isLoggedIn }: Props) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const open = searchParams.get('searchState') === 'open';
 
-  const [mode, setMode] = useState<'regular' | 'ai'>('regular');
   const [searchTerm, setSearchTerm] = useState('');
   const { data } = useFullApplicationSearch(searchTerm);
 
   /* Recent used to be written by that hook's fetcher; it is the caller's job
      now. See useRecordRecentSearch. */
   useRecordRecentSearch(searchTerm);
-  const [initialAiPrompt, setInitialAiPrompt] = useState('');
   const [activeCategory, setActiveCategory] = React.useState<
     'top' | 'members' | 'teams' | 'projects' | 'forumThreads' | 'events' | null
   >('top');
@@ -44,33 +42,54 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
     router.replace(newUrl, { scroll: false });
 
     setSearchTerm('');
-    setInitialAiPrompt('');
-    setMode('regular');
   }, [router, searchParams]);
 
   const handleChange = useCallback((val: string) => {
     setSearchTerm(val);
   }, []);
 
-  const handleTryAiSearch = useCallback(
-    (val?: string) => {
-      setMode('ai');
-      setInitialAiPrompt(val ?? searchTerm);
-    },
-    [searchTerm],
-  );
+  const openAi = (options: { question?: string; threadId?: string; showHistory?: boolean }) => {
+    openAiSearch({ router, term: searchTerm, ...options });
+    setSearchTerm('');
+  };
+
+  // "Back to search" on the AI Search page reopens this sheet (through ?searchState=open) with the term the member left with.
+  useEffect(() => {
+    const reopen = (e: Event) => setSearchTerm((e as CustomEvent<{ term: string }>).detail.term);
+    document.addEventListener(REOPEN_HEADER_SEARCH_EVENT, reopen);
+    return () => document.removeEventListener(REOPEN_HEADER_SEARCH_EVENT, reopen);
+  }, []);
 
   function renderContent() {
+    if (!searchTerm) {
+      return (
+        <div className={s.fullBleed}>
+          <AiSearchEntries term="" onAsk={(question) => openAi({ question })} />
+          <div className={s.idle}>
+            {isLoggedIn && <RecentSearch onSelect={handleChange} />}
+            {isLoggedIn && (
+              <RecentAiChats
+                onOpenChat={(threadId) => openAi({ threadId })}
+                onShowAll={() => openAi({ showHistory: true })}
+              />
+            )}
+            <p className={s.hint}>Search members, teams, projects, events and forum posts.</p>
+          </div>
+        </div>
+      );
+    }
     return (
-      <FullSearchResults
-        searchTerm={searchTerm}
-        onTryAiSearch={handleTryAiSearch}
-        // onClose={handleClose}
-        activeCategory={activeCategory}
-        setActiveCategory={setActiveCategory}
-        mode={mode}
-        onToggleMode={setMode}
-      />
+      <>
+        <div className={s.fullBleed}>
+          <AiSearchEntries term={searchTerm} results={data} onAsk={(question) => openAi({ question })} />
+        </div>
+        <FullSearchResults
+          searchTerm={searchTerm}
+          onTryAiSearch={() => openAi({ question: searchTerm })}
+          activeCategory={activeCategory}
+          setActiveCategory={setActiveCategory}
+        />
+      </>
     );
   }
 
@@ -87,11 +106,10 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
       >
         <SearchIcon />
       </button>
-      {open && mode === 'regular' && (
+      {open && (
         <div className={s.wrapper}>
           <div className={s.top}>
             <div className={s.header}>
-              {/*<SearchModeToggle active={mode} onChange={setMode} />*/}
               <span className={s.title}>Search</span>
               <button className={s.closeButton} onClick={handleClose}>
                 <Image
@@ -105,48 +123,15 @@ export const AppSearchMobile = ({ isLoggedIn, userInfo, authToken }: Props) => {
             </div>
             <div className={s.divider} />
             <div className={s.inputSection}>
-              <DebouncedInput onChange={handleChange} placeholder="Search" value={searchTerm} />
+              <DebouncedInput
+                onChange={handleChange}
+                placeholder="Search or ask AI Search a question"
+                value={searchTerm}
+              />
             </div>
             <div className={s.divider} />
           </div>
           <div className={s.content}>{renderContent()}</div>
-        </div>
-      )}
-      {open && mode === 'ai' && (
-        <div className={s.wrapper}>
-          <div className={s.top}>
-            <div className={s.header}>
-              {/*<SearchModeToggle active={mode} onChange={setMode} />*/}
-              <span className={s.title}>AI Search</span>
-              <button className={s.closeButton} onClick={handleClose}>
-                <Image
-                  src="/icons/close-gray.svg"
-                  alt="Close"
-                  width={20}
-                  height={20}
-                  style={{ pointerEvents: 'none' }}
-                />
-              </button>
-            </div>
-            <div className={s.divider} />
-            <div className={s.filtersWrapper}>
-              <SearchCategories
-                data={data}
-                activeCategory={activeCategory}
-                setActiveCategory={setActiveCategory}
-                mode={mode}
-                onToggleMode={setMode}
-              />
-            </div>
-          </div>
-          <AiChatPanel
-            className={s.mobileContent}
-            initialPrompt={initialAiPrompt}
-            mobileView
-            isLoggedIn={isLoggedIn}
-            userInfo={userInfo}
-            authToken={authToken}
-          />
         </div>
       )}
     </div>

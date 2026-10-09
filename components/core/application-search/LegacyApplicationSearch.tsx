@@ -23,8 +23,8 @@ interface Props {
  *
  * DELETE WITH: `SHOW_AI_SEARCH_DIALOG`, once the dialog is promoted. Going with
  * it: the `AppSearchDesktop`, `AppSearchMobile`, `FullSearchPanel`,
- * `FullSearchResults`, `AiChatPanel`, `AiConversationHistory` and `NothingFound`
- * folders, and `services/search/hooks/useRecordRecentSearch.ts`.
+ * `FullSearchResults`, `AiChatPanel`, `AiSearchEntries`, `RecentAiChats` and
+ * `NothingFound` folders, and `services/search/hooks/useRecordRecentSearch.ts`.
  *
  * Two surfaces can be mounted at once here — unlike the dialog, which must pick
  * one at runtime — because each one's trigger *and* panel sit inside the same
@@ -34,7 +34,7 @@ export const LegacyApplicationSearch = ({ isLoggedIn, userInfo, authToken }: Pro
   return (
     <>
       <AppSearchDesktop isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
-      <AppSearchMobile isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
+      <AppSearchMobile isLoggedIn={isLoggedIn} />
     </>
   );
 };

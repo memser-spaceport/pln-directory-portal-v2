@@ -17,6 +17,8 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
   const [initialMessages, setInitialMessages] = useState<any>([]);
   const [type, setType] = useState<string>('');
   const [visitThreadId, setVisitThreadId] = useState<string | undefined>();
+  // Each new chat mounts a fresh Chat, which asks a question handed over by the header search.
+  const [newChatCount, setNewChatCount] = useState(0);
   const analytics = useHuskyAnalytics();
   const router = useRouter();
 
@@ -24,6 +26,7 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
     setInitialMessages([]);
     setType('');
     setVisitThreadId(undefined);
+    setNewChatCount((count) => count + 1);
     analytics.trackMobileHeaderNewConversationClicked();
   };
 
@@ -76,7 +79,7 @@ const ChatContainer = ({ isLoggedIn, userInfo }: ChatContainerProps) => {
       <div className="chat-container">
         <div className="chat-container__body">
           <Chat
-            key={visitThreadId ?? 'new-chat'}
+            key={visitThreadId ?? `new-chat-${newChatCount}`}
             id={visitThreadId}
             isLoggedIn={isLoggedIn}
             userInfo={userInfo}

@@ -36,8 +36,59 @@ $rail-width-collapsed: 64px;
 }
 
 // The new-chat page has nothing to title: the bar only carries History while the rail is a drawer.
+// The new-chat page has nothing to title: Back to search leads, History sits at the far end while the rail is a drawer.
 .bare {
-  @include media.tablet-landscape {
+  justify-content: space-between;
+  padding-left: 12px;
+  border-bottom: 0;
+  background: transparent;
+}
+
+.back {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  margin-left: -4px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: #455468;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.04);
+  }
+}
+
+.backLabel {
+  white-space: nowrap;
+}
+
+// Beside a chat's title on a phone, the arrow alone leaves the title room.
+.backLabelBesideChat {
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.barDivider {
+  flex-shrink: 0;
+  width: 1px;
+  height: 20px;
+  background: rgba(27, 56, 96, 0.12);
+
+  @include media.mobile-only {
     display: none;
   }
 }

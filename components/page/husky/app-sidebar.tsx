@@ -6,9 +6,10 @@ import { getHuskyHistory, deleteThread } from '@/services/husky.service';
 import { getUserCredentials } from '@/utils/auth.utils';
 import { triggerLoader } from '@/utils/common.utils';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { ConfirmDialog } from '@/components/core/ConfirmDialog';
 import { PAGE_ROUTES } from '@/utils/constants';
+import { AI_SEARCH_HISTORY_PARAM } from '@/components/constants/aiSearchHandoff';
 import { useLoginRedirect } from '@/components/core/login/utils';
 import { OPEN_VISIT_CHAT_EVENT } from './constants/visitChats';
 import { getVisitChats } from './utils/getVisitChats';
@@ -144,7 +145,8 @@ const ThreadItem = ({ thread, isActive, isMobile, toggleSidebar, handleDeleteMod
 };
 
 const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
-  const { toggleSidebar, state, isMobile } = useSidebar();
+  const { toggleSidebar, setOpen, setOpenMobile, state, isMobile } = useSidebar();
+  const searchParams = useSearchParams();
   const [history, setHistory] = useState<IHistoryThread[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const analytics = useHuskyAnalytics();
@@ -309,6 +311,19 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
 
   const historyGroups = useMemo(() => groupThreadsByDate(shownHistory), [shownHistory]);
   const deleteSubject = deleteTarget?.title ? `“${deleteTarget.title}”` : 'This chat';
+
+  // "All chats" in the header search opens the page with History showing: the rail, or the drawer below 960px.
+  useEffect(() => {
+    if (searchParams.get(AI_SEARCH_HISTORY_PARAM) !== 'open') {
+      return;
+    }
+    if (window.innerWidth < 960) {
+      setOpenMobile(true);
+    } else {
+      setOpen(true);
+    }
+    router.replace(window.location.pathname, { scroll: false });
+  }, [searchParams, setOpen, setOpenMobile, router]);
 
   useEffect(() => {
     fetchHistory(true); // Show loading on initial fetch

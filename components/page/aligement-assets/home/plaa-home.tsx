@@ -35,8 +35,8 @@ const TEASER_ACTIVITY_COUNT = 3;
 
 const MODES: Record<string, { label: string; icon: Icon; tone: string }> = {
   Auto: { label: 'Auto-tracked', icon: ArrowsClockwise, tone: 'auto' },
-  Submission: { label: 'Proof of work', icon: PaperPlaneTilt, tone: 'proof' },
-  'Manual Review': { label: 'Reviewed', icon: CheckCircle, tone: 'confirm' },
+  Submission: { label: 'Submission', icon: PaperPlaneTilt, tone: 'proof' },
+  'Manual Review': { label: 'Manual Review', icon: CheckCircle, tone: 'confirm' },
 };
 
 const normaliseCategory = (value: string) => value.toLowerCase().replace(/[^a-z]/g, '');
@@ -90,8 +90,8 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
   const heroStats: { value: string; label: string }[] = [];
   if (trust) {
     heroStats.push({
-      value: `${formatNumber(trust.portfolioCompanies)}`,
-      label: 'Investments in Frontier-tech Ventures',
+      value: `${formatNumber(trust.portfolioCompanies)}+`,
+      label: 'Investments in Frontier Tech Ventures',
     });
     heroStats.push({ value: trust.navPerPlaaHeadline, label: 'NAV per PLAA' });
   }
@@ -108,7 +108,16 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
     busiestCategory > 0 &&
     (categoryPoints.get(normaliseCategory(category)) ?? 0) < busiestCategory * UNDERUTILIZED_RATIO;
 
-  const teaserActivities = [...activitiesData.activities]
+  // Use the same catalog records (including IDs and metadata) as the Activities page.
+  // Never promote the legacy restricted AI-app destination, even if its sunset flag changes.
+  const teaserActivities = activitiesData.activities
+    .filter(
+      (activity) =>
+        !activity.isSunset &&
+        activity.id !== 'build-ai-app' &&
+        (activity.activity.trim().toLowerCase() !== 'build an ai app' ||
+          (activity.cta === 'submit' && activity.audience === 'all-plaa-participants')),
+    )
     .sort((a, b) => {
       const boost = Number(isUnderutilised(b.category)) - Number(isUnderutilised(a.category));
       return boost !== 0 ? boost : parseInt(b.points, 10) - parseInt(a.points, 10);
@@ -136,12 +145,16 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
               </p>
               <div className="ph-hero__ctas">
                 {isMember ? (
-                  <button type="button" onClick={() => go('Contribute now', ACTIVITIES_URL)} className="ph-btn-white">
+                  <button
+                    type="button"
+                    onClick={() => go('Contribute now', ACTIVITIES_URL)}
+                    className="ph-btn-primary ph-btn-primary--hero"
+                  >
                     Contribute now
                     <ArrowRight weight="bold" size={17} aria-hidden />
                   </button>
                 ) : (
-                  <button type="button" onClick={openSignin} className="ph-btn-white">
+                  <button type="button" onClick={openSignin} className="ph-btn-primary ph-btn-primary--hero">
                     Get started
                     <ArrowRight weight="bold" size={17} aria-hidden />
                   </button>
@@ -411,18 +424,28 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
           gap: 12px;
           margin-top: 36px;
         }
-        .ph-btn-white {
+        .ph-btn-primary {
           height: 48px;
           padding: 0 24px;
           border: none;
-          background: #fff;
-          color: var(--color-brand-text);
+          background: var(--pl-blue-500);
+          color: #fff;
           font: var(--text-heading-sm);
           border-radius: var(--radius-lg);
           cursor: pointer;
           display: inline-flex;
           align-items: center;
           gap: 8px;
+        }
+        .ph-btn-primary:hover {
+          background: var(--pl-blue-600);
+        }
+        .ph-btn-primary--hero {
+          background: #fff;
+          color: var(--color-brand-text);
+        }
+        .ph-btn-primary--hero:hover {
+          background: var(--color-brand-subtle);
         }
         .ph-btn-ghost {
           height: 48px;
@@ -465,6 +488,10 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
           font-weight: 600;
           letter-spacing: 0.08em;
           text-transform: uppercase;
+          color: var(--color-brand-text);
+        }
+        .ph-h2,
+        .ph-h3 {
           color: var(--color-brand-text);
         }
         .ph-h2 {

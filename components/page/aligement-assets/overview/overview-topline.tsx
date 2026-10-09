@@ -103,7 +103,7 @@ export default function OverviewTopline({ trustHoldings }: OverviewToplineProps)
         <p className={styles.headerDesc}>
           The Protocol Labs Alignment Asset (PLAA) refers to both PLAA1 tokens and contractual rights to those tokens,
           redeemable through periodic buyback auctions. Whether you have rights or tokens, the experience is the same,
-          so we just call it all PLAA.
+          so we just call it all PLAA. Below is more information on how the program works.
         </p>
       </div>
 

@@ -1,0 +1,39 @@
+schema: spec-driven
+
+# OpenSpec project config for pln-directory-portal-v2 (Project Horizon test, 2026-10).
+# CLI: npx -y @fission-ai/openspec@1.14.1 <command>
+# Always run the CLI with telemetry off: OPENSPEC_TELEMETRY=0 DO_NOT_TRACK=1
+
+context: |
+  Repo: pln-directory-portal-v2, the Protocol Labs Directory frontend. A Next.js App Router monolith.
+  Stack (from package.json and .nvmrc; AGENTS.md and CLAUDE.md still name older versions, the code wins):
+  - Next.js 16 (App Router), React 19, TypeScript strict.
+  - Node 22 (.nvmrc). Package manager: npm (package-lock.json).
+  - Styling: SCSS modules co-located with components.
+  - Data: services/{domain}/{domain}.service.ts, TanStack Query hooks in services/{domain}/hooks, Zustand stores.
+  - Tests: Jest (npm run test). Lint: npm run lint.
+  - Format: Prettier, singleQuote true, printWidth 120.
+  - Analytics: PostHog. Event names are kebab-case `{domain}-{action}` or `{domain}-{context}-{action}`
+    (example: `job-saved`, `jobs-saved-filter-applied`). Constants are `ON_{DOMAIN}_{ACTION}` in utils/constants.ts.
+  Repo rules live in AGENTS.md and CLAUDE.md. Read them before you write design.md or tasks.md.
+  Capability names: use the Linear area names in kebab-case (job-board, profiles, teams, projects, ai-search, ...).
+  Reuse an existing capability under openspec/specs/ before you add a new one.
+  Specs are a hint, not the truth. When a spec and the code disagree, the code wins; record the difference.
+  Rule: a PR that changes behaviour in an area that has a spec must update that spec in the same PR.
+
+rules:
+  proposal:
+    - Link the Linear ticket (LAB-xxxx) in the Why section.
+    - Always state what is out of scope.
+  specs:
+    - Write scenarios as GIVEN / WHEN / THEN bullets.
+    - Describe behaviour a user or the API can see. Do not describe component names or file layout.
+    - Name PostHog events in a scenario only when the ticket adds or changes the event.
+  tasks:
+    - Include a task to run npm run lint and npm run test.
+    - Include a task to run openspec validate --json.
+
+operations:
+  archive:
+    guidance:
+      - Archive inside the same PR as the code, so openspec/specs/ changes only when the code merges.

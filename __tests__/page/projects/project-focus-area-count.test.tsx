@@ -88,4 +88,42 @@ describe('Focus area filter counts', () => {
     expect(screen.getByText('4')).toBeInTheDocument();
     expect(screen.queryByText('Data (4)')).not.toBeInTheDocument();
   });
+
+  it('expands a parent when one of its children becomes selected', () => {
+    const child = area({
+      uid: 'storage',
+      title: 'Storage',
+      parentUid: 'data',
+      projectCount: 2,
+      projectAncestorFocusAreas: projects(2),
+    });
+    const parent = area({
+      uid: 'data',
+      title: 'Data',
+      projectCount: 3,
+      projectAncestorFocusAreas: projects(3),
+      children: [child],
+    });
+    const rawData = [parent];
+
+    const { rerender } = render(
+      <ConnectedFocusAreaFilter
+        focusAreas={{ rawData, selectedFocusAreas: [] }}
+        countKey="projectAncestorFocusAreas"
+        searchParams={{}}
+        countInLabel
+      />,
+    );
+    expect(screen.queryByText('Storage (2)')).not.toBeInTheDocument();
+
+    rerender(
+      <ConnectedFocusAreaFilter
+        focusAreas={{ rawData, selectedFocusAreas: [child] }}
+        countKey="projectAncestorFocusAreas"
+        searchParams={{}}
+        countInLabel
+      />,
+    );
+    expect(screen.getByText('Storage (2)')).toBeInTheDocument();
+  });
 });

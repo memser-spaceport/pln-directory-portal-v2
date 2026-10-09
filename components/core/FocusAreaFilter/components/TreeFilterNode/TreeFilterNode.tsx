@@ -1,5 +1,5 @@
 import { clsx } from 'clsx';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { CaretRightIcon } from '@/components/icons';
 import { CheckboxListItemRepresentation } from '@/components/common/filters/GenericCheckboxList/components/CheckboxListItemRepresentation';
@@ -31,9 +31,12 @@ export function TreeFilterNode<T extends TreeFilterItem>(props: TreeFilterNodePr
 
   const [expanded, setExpanded] = useState(isSelected || isParentOfSelected);
 
-  useEffect(() => {
+  // Expand when this node becomes a parent of a selected item (state adjusted during render, not in an effect).
+  const [prevIsParentOfSelected, setPrevIsParentOfSelected] = useState(isParentOfSelected);
+  if (isParentOfSelected !== prevIsParentOfSelected) {
+    setPrevIsParentOfSelected(isParentOfSelected);
     if (isParentOfSelected) setExpanded(true);
-  }, [isParentOfSelected]);
+  }
 
   const onCheckboxClick = () => {
     if (hasVisibleChildren) setExpanded(true);

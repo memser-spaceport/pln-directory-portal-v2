@@ -106,6 +106,28 @@ describe('AI search citations and sources', () => {
     expect(link).toHaveAttribute('href', '/home?news=news-1');
     expect(screen.queryByText('https://news.example/acme')).not.toBeInTheDocument();
   });
+
+  it('shows only the cited team when a source title still contains the whole team line', () => {
+    const title = 'Teams: Speculative Technologies (Ancestor) [TeamLink](/teams/spec), Synchron (Ancestor)';
+    render(<HuskySourceCard sourceRefs={[{ index: 1, title, type: 'team', directoryLink: '/teams/synchron' }]} />);
+
+    const link = screen.getByRole('link', { name: 'Synchron (Ancestor)' });
+    expect(link).toHaveAttribute('href', '/teams/synchron');
+    expect(screen.queryByText(/TeamLink/)).not.toBeInTheDocument();
+  });
+
+  it('splits a source that is a raw team line into one link per team', () => {
+    const line =
+      'Teams: Speculative Technologies (Ancestor) [TeamLink](/teams/spec), Science (Ancestor) [TeamLink](/teams/science)';
+    render(<HuskySourceCard sources={[line]} />);
+
+    expect(screen.getByRole('link', { name: 'Speculative Technologies (Ancestor)' })).toHaveAttribute(
+      'href',
+      '/teams/spec',
+    );
+    expect(screen.getByRole('link', { name: 'Science (Ancestor)' })).toHaveAttribute('href', '/teams/science');
+    expect(screen.queryByText(/TeamLink/)).not.toBeInTheDocument();
+  });
 });
 
 describe('AI search result cards', () => {

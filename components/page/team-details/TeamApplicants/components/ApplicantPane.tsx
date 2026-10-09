@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { CvAttachmentLine } from '@/components/common/profile/StoredCv';
@@ -65,31 +65,58 @@ interface Props {
  * in sees exactly what they saw before.
  */
 export function ApplicantPane({ applicant, isLoggedIn }: Props) {
+  return (
+    <MemberProfilePane
+      memberUid={applicant.memberUid}
+      isLoggedIn={isLoggedIn}
+      section={<ApplicationSection applicant={applicant} />}
+    />
+  );
+}
+
+/**
+ * The member as `/members/[id]` shows them. The same key and the same call the
+ * member page and the investor drawer make, so a profile already read elsewhere
+ * in this session is a cache hit — and the Suggested tab's bar, which reads the
+ * address for its Email press, shares this one fetch with the pane under it.
+ */
+export function useCandidateMember(memberUid: string, isLoggedIn: boolean) {
   const { currentUser: userInfo } = useCurrentUserStore();
   const isAdmin = isAdminUser(userInfo);
 
-  /* The same key and the same call the member page and the investor drawer
-     make, so a profile already read elsewhere in this session is a cache hit. */
-  const {
-    data: member,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: [MembersQueryKeys.GET_MEMBER, applicant.memberUid, isLoggedIn, userInfo?.uid],
+  return useQuery({
+    queryKey: [MembersQueryKeys.GET_MEMBER, memberUid, isLoggedIn, userInfo?.uid],
     queryFn: () =>
       getMember(
-        applicant.memberUid,
+        memberUid,
         { with: 'image,skills,location,teamMemberRoles.team' },
         isLoggedIn,
         userInfo,
         !isAdmin,
         true,
       ),
-    enabled: !!applicant.memberUid,
+    enabled: !!memberUid,
     select: (data) => data?.data?.formattedData,
   });
+}
 
-  const application = <ApplicationSection applicant={applicant} />;
+/**
+ * The profile sections around one section of the page's own: Application or
+ * Interest for someone who answered, Why suggested for someone the product
+ * proposes (LAB-2771). The section is what the lead came to read, so it shows
+ * even when the profile fails to load.
+ */
+export function MemberProfilePane({
+  memberUid,
+  isLoggedIn,
+  section,
+}: {
+  memberUid: string;
+  isLoggedIn: boolean;
+  section: ReactNode;
+}) {
+  const { currentUser: userInfo } = useCurrentUserStore();
+  const { data: member, isLoading, isError } = useCandidateMember(memberUid, isLoggedIn);
 
   if (isLoading) {
     return (
@@ -99,7 +126,7 @@ export function ApplicantPane({ applicant, isLoggedIn }: Props) {
     );
   }
 
-  /* The application still shows. It is the part this page owns, it is what the
+  /* The section still shows. It is the part this page owns, it is what the
      lead came to read, and a profile that failed to load is no reason to
      withhold the note somebody wrote. */
   if (isError || !member) {
@@ -108,7 +135,7 @@ export function ApplicantPane({ applicant, isLoggedIn }: Props) {
         <DetailsSectionGreyContentContainer>
           <NoDataBlock>This member’s profile could not be loaded.</NoDataBlock>
         </DetailsSectionGreyContentContainer>
-        {application}
+        {section}
       </div>
     );
   }
@@ -123,7 +150,7 @@ export function ApplicantPane({ applicant, isLoggedIn }: Props) {
         <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
       </ProfileSection>
 
-      {application}
+      {section}
 
       {!jobAspirant && (
         <ProfileSection name="Office Hours">

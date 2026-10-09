@@ -57,6 +57,8 @@ jest.mock('@/components/common/filters/SearchInput', () => ({
  */
 jest.mock('@/components/page/team-details/TeamApplicants/components/ApplicantPane', () => ({
   ApplicantPane: ({ applicant }: any) => <div data-testid="pane">{applicant.name}</div>,
+  MemberProfilePane: ({ section }: any) => <div data-testid="pane">{section}</div>,
+  useCandidateMember: () => ({ data: undefined }),
 }));
 
 /* Two-column by default; one case below flips it to check the pane does NOT
@@ -79,6 +81,9 @@ const analytics = {
   onJobApplicantReviewFailed: jest.fn(),
   onJobApplicantEmailClicked: jest.fn(),
   onJobHiringTabChanged: jest.fn(),
+  onJobSuggestedCandidatesViewed: jest.fn(),
+  onJobSuggestedCandidateOpened: jest.fn(),
+  onJobSuggestedCandidateContacted: jest.fn(),
 };
 jest.mock('@/analytics/jobs.analytics', () => ({
   useJobsAnalytics: () => analytics,
@@ -89,6 +94,7 @@ jest.mock('@/services/jobs/hooks/useTeamApplicants', () => ({
   useRoleApplicants: (...args: unknown[]) => useRoleApplicants(...args),
   useMarkApplicantSeen: () => ({ mutate: markSeen }),
   useToggleApplicantReviewed: () => ({ mutate: toggleReviewed }),
+  useSuggestedCandidates: () => ({ data: [], isPending: false, isError: false }),
 }));
 
 import { TeamApplicantsView } from '@/components/page/team-details/TeamApplicants';

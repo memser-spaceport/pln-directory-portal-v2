@@ -1,0 +1,10 @@
+/* Smaller than the DS Badge's 14/20, as in the design: a tag's size beside the
+   name rather than a second heading. Doubled class to outrank the Badge's own
+   padding and type. */
+.root.root {
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 16px;
+  padding: 2px 6px;
+}

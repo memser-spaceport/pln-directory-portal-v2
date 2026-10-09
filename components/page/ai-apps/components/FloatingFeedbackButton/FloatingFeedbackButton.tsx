@@ -64,6 +64,8 @@ interface Props {
     body: ReactNode;
     /** Bumped by the page when comment mode asks the whole drawer to close (Esc with nothing open). */
     closeRequest: number;
+    /** Phone: the drawer steps aside while a comment is placed on the app (the page draws its bar). */
+    collapsed?: boolean;
   };
 }
 
@@ -352,6 +354,7 @@ function FeedbackFab({
           ) : undefined
         }
         altBody={inCommentMode ? commentMode?.body : undefined}
+        collapsed={inCommentMode && Boolean(commentMode?.collapsed)}
       />
 
       <ShortcutHelp isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} shortcuts={shortcuts} />

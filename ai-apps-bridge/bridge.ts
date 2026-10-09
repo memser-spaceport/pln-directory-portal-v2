@@ -108,7 +108,9 @@ export function createBridge(win: Window, { parentOrigin, cropScriptUrl }: Bridg
 
   const cursorStyle = doc.createElement('style');
   cursorStyle.setAttribute(MARKER_ATTR, 'cursor');
-  cursorStyle.textContent = '*{cursor:crosshair!important}';
+  /* iOS Safari fires `click` only on elements it thinks are clickable, and a listener on the window
+     doesn't count; `cursor: pointer` does. A finger shows no cursor, so nothing changes on screen. */
+  cursorStyle.textContent = '*{cursor:crosshair!important}@media (pointer:coarse){*{cursor:pointer!important}}';
 
   const isOwn = (node: EventTarget | null) => node instanceof Element && node.closest(`[${MARKER_ATTR}]`) !== null;
 

@@ -35,7 +35,9 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
     onHiddenChange,
     pickViewport,
     scrollApp,
+    collapsed,
   }: {
+    collapsed?: boolean;
     onHiddenChange?: (hidden: boolean) => void;
     bridgeMissing?: boolean;
     capture?: () => Promise<unknown>;
@@ -56,6 +58,7 @@ jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => 
         data-capture={capture ? (pickViewport ? 'page' : 'bridge') : 'none'}
         data-pick-viewport={pickViewport ? 'true' : 'false'}
         data-scroll={scrollApp ? 'yes' : 'no'}
+        data-collapsed={collapsed ? 'true' : 'false'}
         data-bridge-missing={bridgeMissing ? 'true' : 'false'}
       >
         {switchSlot}
@@ -559,7 +562,9 @@ describe('FloatingFeedbackButton', () => {
 
   describe('feedback & comments (one drawer, a switcher under its title)', () => {
     const openChord = () => fireEvent.keyDown(window, { key: 'ƒ', code: 'KeyF', altKey: true });
-    const comments = (overrides: Partial<{ active: boolean; count: number; closeRequest: number }> = {}) => ({
+    const comments = (
+      overrides: Partial<{ active: boolean; count: number; closeRequest: number; collapsed: boolean }> = {},
+    ) => ({
       available: true,
       active: false,
       count: 0,
@@ -581,6 +586,29 @@ describe('FloatingFeedbackButton', () => {
       expect(screen.getByRole('tab', { name: 'Feedback' })).toHaveAttribute('aria-selected', 'true');
       expect(screen.getByRole('tab', { name: /Comments/ })).toHaveAttribute('aria-selected', 'false');
       expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual(['Feedback', 'Comments3']);
+    });
+
+    /* LAB-2796: the page asks for it while a comment is placed on the app from a phone. */
+    it('puts the drawer aside only while comment mode is on and the page asks', () => {
+      withAccess();
+      const { rerender } = render(
+        <FloatingFeedbackButton
+          appUid="app-1"
+          appName="Grant Tracker"
+          commentMode={comments({ active: true, collapsed: true })}
+        />,
+      );
+      expect(screen.getByTestId('feedback-dialog')).toHaveAttribute('data-collapsed', 'true');
+      rerender(
+        <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments({ active: true })} />,
+      );
+      expect(screen.getByTestId('feedback-dialog')).toHaveAttribute('data-collapsed', 'false');
+      /* Out of the mode a stale ask can't hide the form. */
+      rerender(
+        <FloatingFeedbackButton appUid="app-1" appName="Grant Tracker" commentMode={comments({ collapsed: true })} />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Feedback & comments' }));
+      expect(screen.getByTestId('feedback-dialog')).toHaveAttribute('data-collapsed', 'false');
     });
 
     it('shows no count beside Comments when there are none', () => {

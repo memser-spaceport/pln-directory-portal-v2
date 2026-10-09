@@ -6,11 +6,9 @@ import { Menu } from '@base-ui-components/react/menu';
 
 import { PAGE_ROUTES } from '@/utils/constants';
 
-import { toast } from '@/components/core/ToastContainer';
-
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 
-import { ShareIcon, TrashIcon } from '@/components/icons';
+import { TrashIcon } from '@/components/icons';
 
 import { useSidebar } from '../sidebar';
 
@@ -26,15 +24,6 @@ interface Props {
   chat?: ShownChat;
 }
 
-async function copyChatLink(threadId: string) {
-  try {
-    await navigator.clipboard.writeText(`${window.location.origin}${PAGE_ROUTES.HUSKY}/${threadId}`);
-    toast.success('Link copied. Anyone with it can read this chat.');
-  } catch {
-    toast.error("Couldn't copy the link. Try again.");
-  }
-}
-
 export const ChatTitleBar = (props: Props) => {
   const { chat } = props;
 
@@ -42,7 +31,7 @@ export const ChatTitleBar = (props: Props) => {
   const { state, toggleSidebar } = useSidebar();
   const analytics = useHuskyAnalytics();
 
-  // Someone else's shared chat is read here; Share and Delete belong to the copy a follow-up makes.
+  // Someone else's shared chat is read here; Delete belongs to the copy a follow-up makes.
   const ownThreadId = chat && !chat.sharedBy ? chat.threadId : undefined;
 
   const openHistory = () => {
@@ -91,10 +80,6 @@ export const ChatTitleBar = (props: Props) => {
           <div className={s.actions}>
             {ownThreadId && (
               <>
-                <button type="button" className={s.button} onClick={() => copyChatLink(ownThreadId)} aria-label="Share">
-                  <ShareIcon width={14} height={14} />
-                  <span className={s.shareLabel}>Share</span>
-                </button>
                 <Menu.Root modal={false}>
                   <Menu.Trigger className={s.menuTrigger} aria-label="More actions for this chat">
                     <img src="/icons/menu-dots.svg" alt="" width={16} height={16} />

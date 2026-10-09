@@ -64,12 +64,6 @@ $rail-width-collapsed: 64px;
   }
 }
 
-.shareLabel {
-  @include media.mobile-only {
-    display: none;
-  }
-}
-
 .titleBlock {
   display: flex;
   flex: 1;

@@ -89,6 +89,16 @@ describe('fetchSuggestedCandidates', () => {
     expect(isApplicantsForbiddenError(error)).toBe(true);
   });
 
+  it('accepts the interested flag the backend adds in LAB-2788', async () => {
+    mockFetch.mockResolvedValue(
+      ok({ suggestions: [suggestion(1, 'Strong match', { interested: true }), suggestion(2)] }),
+    );
+
+    const rows = await fetchSuggestedCandidates('role-1');
+
+    expect(rows.map((row) => row.interested)).toEqual([true, undefined]);
+  });
+
   it('fails loudly on a field the contract does not know', async () => {
     mockFetch.mockResolvedValue(ok({ suggestions: [suggestion(1, 'Strong match', { surprise: true })] }));
 

@@ -422,6 +422,30 @@ describe('GiveAiAppFeedbackDialog, drawer variant', () => {
     );
   });
 
+  /* LAB-2796: full screen on a phone, the drawer would cover the app a comment is placed on. */
+  it('steps aside while collapsed, keeping the Comments list mounted, and takes focus back on return', () => {
+    const props = {
+      variant: 'drawer' as const,
+      isOpen: true,
+      onClose: jest.fn(),
+      appUid: 'app-1',
+      appName: 'My App',
+      switchSlot: switcher,
+      altBody: <button type="button">A comment row</button>,
+    };
+    const { rerender } = render(<GiveAiAppFeedbackDialog {...props} collapsed />);
+    const frame = screen.getByTestId('feedback-drawer');
+    expect(frame.className).toMatch(/overlayHidden/);
+    expect(screen.getByRole('button', { name: 'A comment row' })).toBeInTheDocument();
+
+    (document.activeElement as HTMLElement | null)?.blur();
+    rerender(<GiveAiAppFeedbackDialog {...props} collapsed={false} />);
+    expect(screen.getByTestId('feedback-drawer').className).not.toMatch(/overlayHidden/);
+    expect(screen.getByRole('dialog', { name: 'Feedback · My App' })).toContainElement(
+      document.activeElement as HTMLElement,
+    );
+  });
+
   it('does not reserve page width on the list, where there is no app beside it', () => {
     render(<GiveAiAppFeedbackDialog variant="drawer" isOpen onClose={jest.fn()} />);
     expect(document.documentElement.style.getPropertyValue('--ai-app-comments-inset')).toBe('');

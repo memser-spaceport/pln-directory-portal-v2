@@ -32,7 +32,8 @@ import { AnnotatorModal } from '../screenshot-feedback/AnnotatorModal';
 import { flattenAnnotations } from '../screenshot-feedback/flattenAnnotations';
 import { hasAnyAnnotation, type AnnotationState } from '../screenshot-feedback/types';
 import { commentHtml, toPinInput } from './commentPost';
-import { CommentsDrawer, type CommentListItem, type CommentWhere } from './CommentsDrawer';
+import { CommentsDrawer, describeTarget, type CommentListItem, type CommentWhere } from './CommentsDrawer';
+import { PlacingBar } from './PlacingBar';
 import { useFeedbackReplies, type ThreadViewer } from './FeedbackReplies';
 import { ConfirmDelete, EditedMark, InlineEdit, ItemActionsMenu } from './ItemActions';
 import { useDeleteFeedbackItem, useEditFeedbackNote } from '@/services/ai-app-feedback/hooks/useFeedbackItemActions';
@@ -337,6 +338,8 @@ type ComposerProps = {
   posting: boolean;
   /** The annotate dialog opened or closed: comment mode leaves Escape to it meanwhile. */
   onAnnotatingChange: (annotating: boolean) => void;
+  /** Phone: a bottom sheet instead of a card beside the pin (`style` is ignored then). */
+  sheet?: boolean;
 };
 
 /**
@@ -345,7 +348,7 @@ type ComposerProps = {
  * The screenshot opens the annotate dialog on click (LAB-2768), so the member
  * can mark what the comment is about.
  */
-function PinComposer({ onCancel, onPost, style, shot, posting, onAnnotatingChange }: ComposerProps) {
+function PinComposer({ onCancel, onPost, style, shot, posting, onAnnotatingChange, sheet = false }: ComposerProps) {
   const analytics = useAiAppsAnalytics();
   const [text, setText] = useState('');
   const [attached, setAttached] = useState<AttachedShot | null>(null);
@@ -391,7 +394,12 @@ function PinComposer({ onCancel, onPost, style, shot, posting, onAnnotatingChang
   };
 
   return (
-    <div className={clsx(fd.root, s.composer)} style={style} role="dialog" aria-label="New comment">
+    <div
+      className={clsx(fd.root, s.composer, sheet && s.sheet)}
+      style={sheet ? undefined : style}
+      role="dialog"
+      aria-label="New comment"
+    >
       <textarea
         className={s.composerField}
         rows={3}
@@ -521,6 +529,16 @@ type Props = {
   getContext: () => FeedbackContext | null;
   /** A directory admin: may delete anyone's comment (moderation). The app's creator may not. */
   isAdmin?: boolean;
+  /**
+   * Phone (LAB-2796, prototype ai-apps-feedback-drawer): the feedback drawer is
+   * the whole screen, so the list's "Add a comment" puts it aside (`placing`)
+   * and the app takes taps under a bar. A tap selects; "Comment here" commits.
+   * The composer and the thread open as bottom sheets.
+   */
+  touch?: boolean;
+  /** Phone: the drawer is aside and the app takes taps. */
+  placing?: boolean;
+  onPlacingChange?: (placing: boolean) => void;
 };
 
 export function CommentMode({
@@ -544,6 +562,9 @@ export function CommentMode({
   listSlot,
   getContext,
   isAdmin = false,
+  touch = false,
+  placing = false,
+  onPlacingChange,
 }: Props) {
   const overlay = useFeedbackOverlay({ iframeRef, appOrigin, frameKey, listening: true, active, pins, currentPath });
   const box = useFrameBox(iframeRef, active);
@@ -560,6 +581,8 @@ export function CommentMode({
   const newest = elementPins.pins.at(-1) ?? null;
   const [seen, setSeen] = useState({ newestId: newest?.id ?? null, count: elementPins.pins.length });
   const [composingPinId, setComposingPinId] = useState<string | null>(null);
+  /** Phone: the tapped element, outlined and waiting for "Comment here". Picking stays on meanwhile. */
+  const [selectedPinId, setSelectedPinId] = useState<string | null>(null);
   /** A pick made while a thread was open: it only closes the thread (prototype), so the pin is dropped. */
   const [discardPinId, setDiscardPinId] = useState<string | null>(null);
   if ((newest?.id ?? null) !== seen.newestId || elementPins.pins.length !== seen.count) {
@@ -569,9 +592,21 @@ export function CommentMode({
     setSeen({ newestId: newest?.id ?? null, count: elementPins.pins.length });
     if (added && active && newest) {
       if (openPinUid) setDiscardPinId(newest.id);
+      else if (touch) setSelectedPinId(newest.id);
       else setComposingPinId(newest.id);
     }
   }
+  /* Out of the mode, or the drawer back over the app: a tap never confirmed goes. */
+  if (selectedPinId && (!active || !placing)) setSelectedPinId(null);
+
+  /* A selection replaced (another tap), cancelled or given up: its bridge pin goes too.
+     "Comment here" hands it to the composer, which owns it from then on. */
+  const prevSelected = useRef<string | null>(null);
+  useEffect(() => {
+    const prev = prevSelected.current;
+    prevSelected.current = selectedPinId;
+    if (prev && prev !== selectedPinId && prev !== composingPinId) elementPins.removePin(prev);
+  }, [selectedPinId, composingPinId, elementPins]);
 
   /* Pending until the bridge's list drops it, so nothing here has to reset. */
   const discardPending = Boolean(discardPinId && elementPins.pins.some((p) => p.id === discardPinId));
@@ -600,13 +635,29 @@ export function CommentMode({
     if (wasPicking && !pickedSomething) {
       if (openPinUid) {
         onOpenPinChange(null);
+      } else if (selectedPinId) {
+        setSelectedPinId(null);
+      } else if (touch && placing) {
+        onPlacingChange?.(false);
       } else {
         onExit();
         return;
       }
     }
     elementPins.startPicking();
-  }, [active, composingPinId, discardPending, elementPins, openPinUid, onOpenPinChange, onExit]);
+  }, [
+    active,
+    composingPinId,
+    discardPending,
+    elementPins,
+    openPinUid,
+    onOpenPinChange,
+    onExit,
+    selectedPinId,
+    touch,
+    placing,
+    onPlacingChange,
+  ]);
 
   /* Esc with focus in LabOS: the composer, then a thread, then the mode. */
   const cancelComposer = useCallback(() => {
@@ -623,11 +674,51 @@ export function CommentMode({
       event.preventDefault();
       if (composingPinId) cancelComposer();
       else if (openPinUid) onOpenPinChange(null);
+      else if (selectedPinId) setSelectedPinId(null);
+      else if (touch && placing) onPlacingChange?.(false);
       else onExit();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [active, annotating, composingPinId, cancelComposer, openPinUid, onOpenPinChange, onExit]);
+  }, [
+    active,
+    annotating,
+    composingPinId,
+    cancelComposer,
+    openPinUid,
+    onOpenPinChange,
+    onExit,
+    selectedPinId,
+    touch,
+    placing,
+    onPlacingChange,
+  ]);
+
+  /* ---------- phone: lift the spot a sheet is about into the top fifth of the app ---------- */
+
+  /* The page doesn't scroll — the app does, inside its frame — so it goes through the bridge,
+     as Pick a part's wheel does. Without `scroll` the sheet still opens; the pin may sit under it. */
+  const { canScroll, scrollApp } = elementPins;
+  const lift = useCallback(
+    (point: Point) => {
+      if (!canScroll || !box) return;
+      const dy = point.y - box.height * 0.2;
+      if (Math.abs(dy) > 8) scrollApp(point.x, point.y, 0, dy);
+    },
+    [canScroll, scrollApp, box],
+  );
+  const openPlaced = overlay.placed.find((p) => p.pin.uid === openPinUid && p.rect);
+  const liftedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!touch || !openPinUid) {
+      liftedFor.current = null;
+      return;
+    }
+    /* Once per thread, when its element is known (another page's comment arrives after the navigation). */
+    if (!openPlaced?.rect || liftedFor.current === openPinUid) return;
+    liftedFor.current = openPinUid;
+    lift(pointIn(openPlaced.rect, openPlaced.pin));
+  }, [touch, openPinUid, openPlaced, lift]);
 
   /* ---------- the comments panel: one row per item, newest first, with where its element is ---------- */
 
@@ -655,6 +746,8 @@ export function CommentMode({
   const selectItem = (item: CommentListItem) => {
     if (item.where.kind === 'otherPage') onGoToPage(item.where.path);
     onOpenPinChange(item.pin.uid);
+    /* Phone: the thread opens as a sheet over the app, so the drawer steps aside. */
+    if (touch) onPlacingChange?.(true);
   };
 
   /* ---------- post: one feedback item per comment, sent at once; then its thread opens ---------- */
@@ -753,6 +846,17 @@ export function CommentMode({
   const composerStyle = composingPoint && box ? cardPosition(box, composingPoint, 200) : null;
   const viewerColor = getAvatarColor(viewerName);
 
+  /* Phone: the tap waiting for "Comment here" (gone with its frame on a reload). */
+  const selectedPin = selectedPinId ? elementPins.pins.find((p) => p.id === selectedPinId) : null;
+  const commentHere = () => {
+    if (!selectedPin) return;
+    setComposingPinId(selectedPin.id);
+    setSelectedPinId(null);
+    const point = draftPoint(selectedPin.rect, selectedPin.point);
+    if (point) lift(point);
+  };
+  const showBar = touch && placing && !composingPin && !thread;
+
   return createPortal(
     <>
       {box && (
@@ -761,6 +865,18 @@ export function CommentMode({
           style={{ left: box.left, top: box.top, width: box.width, height: box.height }}
           data-testid="comment-mode-layer"
         >
+          {selectedPin?.rect && !outlined && (
+            <div
+              className={s.highlight}
+              style={{
+                left: selectedPin.rect.x,
+                top: selectedPin.rect.y,
+                width: selectedPin.rect.w,
+                height: selectedPin.rect.h,
+              }}
+              data-testid="comment-mode-selection"
+            />
+          )}
           {outlined?.rect && (
             <div
               className={s.highlight}
@@ -781,7 +897,11 @@ export function CommentMode({
                   pin.uid === openPinUid && s.pinActive,
                 )}
                 style={{ left: point.x, top: point.y, ['--pin-color' as string]: getAvatarColor(name) }}
-                onClick={() => onOpenPinChange(pin.uid === openPinUid ? null : pin.uid)}
+                onClick={() => {
+                  /* Phone: a pin tapped instead of "Comment here" drops that tap. */
+                  setSelectedPinId(null);
+                  onOpenPinChange(pin.uid === openPinUid ? null : pin.uid);
+                }}
                 onMouseEnter={() => setHoverPinUid(pin.uid)}
                 onMouseLeave={() => setHoverPinUid((uid) => (uid === pin.uid ? null : uid))}
                 aria-label={`Comment by ${name}`}
@@ -811,8 +931,8 @@ export function CommentMode({
 
       {thread && (
         <div
-          className={clsx(fd.root, s.card)}
-          style={thread.style}
+          className={clsx(fd.root, s.card, touch && s.sheet)}
+          style={touch ? undefined : thread.style}
           role="dialog"
           aria-label={`Comment by ${authorOf(thread.pin)}`}
         >
@@ -835,6 +955,7 @@ export function CommentMode({
         <PinComposer
           key={composingPin.id}
           style={composerStyle}
+          sheet={touch}
           onCancel={cancelComposer}
           onPost={(note, shot) => void post(note, shot)}
           onAnnotatingChange={setAnnotating}
@@ -846,10 +967,25 @@ export function CommentMode({
         />
       )}
 
+      {showBar && (
+        <PlacingBar
+          selectedLabel={selectedPin ? describeTarget(selectedPin.element) : null}
+          onCancel={() => setSelectedPinId(null)}
+          onCommentHere={commentHere}
+          onDone={() => onPlacingChange?.(false)}
+        />
+      )}
+
       {/* The list lives in the feedback drawer's Comments tab, under its switcher. */}
       {listSlot &&
         createPortal(
-          <CommentsDrawer items={listItems} openPinUid={openPinUid} onSelect={selectItem} status={overlay.status} />,
+          <CommentsDrawer
+            items={listItems}
+            openPinUid={openPinUid}
+            onSelect={selectItem}
+            status={overlay.status}
+            onAddComment={touch ? () => onPlacingChange?.(true) : undefined}
+          />,
           listSlot,
         )}
     </>,

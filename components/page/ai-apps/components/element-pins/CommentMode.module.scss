@@ -681,3 +681,93 @@ $quiet: var(--foreground-neutral-secondary, #455468);
 .edited {
   color: $quiet;
 }
+
+/* ---------- phone (LAB-2796, prototype ai-apps-feedback-drawer) ---------- */
+
+/*
+  The bar stands where the drawer was while a spot is being picked: one line of
+  instruction and its way out, or — once something is tapped — what was picked
+  and "Comment here". The drawer's white, the dialog's 16px radius on top.
+*/
+.bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  /* Over the frame and the stepped-aside drawer (1000), as the cards are. */
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  border-radius: 16px 16px 0 0;
+  background: #fff;
+  box-shadow: 0 -4px 24px rgba(14, 15, 17, 0.12);
+  outline: none;
+  animation: sheetIn 200ms ease-out both;
+}
+
+.barText {
+  margin: 0;
+  color: $quiet;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* What the tap picked, in the words its row in the list will use. */
+.barLabel {
+  display: block;
+  overflow: hidden;
+  margin-bottom: 2px;
+  color: $ink;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barActions {
+  display: flex;
+  gap: 8px;
+
+  > * {
+    flex: 1;
+  }
+}
+
+/*
+  The composer and the thread as bottom sheets: the card, full width, pinned to
+  the bottom, top corners rounded. Doubled to beat the cards' fixed width and
+  height caps. 60%: with the spot lifted to the top fifth, its pin stays in view.
+*/
+.sheet.sheet {
+  top: auto;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  max-height: 60dvh;
+  overflow-y: auto;
+  border-radius: 16px 16px 0 0;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  animation: sheetIn 200ms ease-out both;
+}
+
+/* The composer's Cancel / Post share the row in equal halves, as the feedback form's footer does. */
+.sheet .composerFooter > * {
+  flex: 1;
+  justify-content: center;
+}
+
+@keyframes sheetIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar,
+  .sheet.sheet {
+    animation: none;
+  }
+}

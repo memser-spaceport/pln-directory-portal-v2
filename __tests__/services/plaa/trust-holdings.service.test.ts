@@ -25,6 +25,27 @@ describe('getTrustHoldings', () => {
     expect(result.error?.message).toBeDefined();
   });
 
+  it('forwards the member session and does not cache protected data', async () => {
+    process.env.PLAA_API_URL = 'https://plaa.example';
+    const history = { quarterly: [{ label: 'Q1 2026' }], monthly: Array.from({ length: 18 }, (_, i) => ({ totalPlaa: i })) };
+    fetchMock.mockResolvedValue({ ok: true, json: async () => history });
+
+    const result = await getTrustHoldings('test-member-session');
+
+    expect(fetchMock).toHaveBeenCalledWith('https://plaa.example/api/v1/trust-holdings', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-member-session' },
+      cache: 'no-store',
+    });
+    expect(result.data).toBe(history);
+  });
+
+  it('reports an unauthorized API response instead of returning sample history', async () => {
+    process.env.PLAA_API_URL = 'https://plaa.example';
+    fetchMock.mockResolvedValue({ ok: false, status: 401, statusText: 'Unauthorized' });
+    expect(await getTrustHoldings()).toEqual({ error: { message: 'API responded with 401: Unauthorized' } });
+  });
+
   it('fetches trust holdings from the PLAA API', async () => {
     process.env.PLAA_API_URL = 'https://plaa.example';
     fetchMock.mockResolvedValue({ ok: true, json: async () => ({ portfolioCompanies: 190 }) });

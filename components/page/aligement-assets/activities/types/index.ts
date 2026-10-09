@@ -93,6 +93,8 @@ export interface Activity {
    * Shows a "Sunset" badge on the activity card for activities being phased out.
    */
   isSunset?: boolean;
+  /** Verified eligibility from the activity source; omitted means unknown, not unrestricted. */
+  audience?: 'all-plaa-participants' | 'pl-infra-members';
   popupContent: ActivityPopupContent;
 }
 

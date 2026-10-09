@@ -1,6 +1,6 @@
 import { plaaApiHeaders } from '@/services/plaa/plaa-api';
 
-// Cache tag for this fetch, used by /api/revalidate.
+// Retained for /api/revalidate consumers.
 export const TRUST_HOLDINGS_CACHE_TAG = 'trust-holdings';
 
 export interface NavPoint {
@@ -56,7 +56,7 @@ export const getTrustHoldings = async (
     const response = await fetch(url, {
       method: 'GET',
       headers: plaaApiHeaders(authToken),
-      next: { revalidate: 300, tags: [TRUST_HOLDINGS_CACHE_TAG] },
+      cache: 'no-store',
     });
 
     if (!response.ok) {

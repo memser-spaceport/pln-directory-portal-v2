@@ -44,6 +44,7 @@ const SERIES_COLORS = {
   digital: '#0090ff',
   treasuries: '#64748b',
   nav: '#1e3a8a',
+  issuance: '#dc2626',
 };
 
 // Maroon, outside the series palette — reads against every bar and the green total.
@@ -52,6 +53,8 @@ const BUYBACK_COLOR = '#800000';
 // Single source for the chart's margin — used by the ComposedChart itself
 // and by perPlaaPixelY below, so the two can never drift apart.
 const CHART_MARGIN = { top: 48, right: 16, left: 16, bottom: 8 };
+const AXIS_TEXT_STYLE = { fontFamily: 'inherit', fontSize: 12, fontWeight: 500, fill: '#64748b' };
+const NAV_LINE_WIDTH = 2;
 
 const digitalTotal = (p: { btc: number; eth: number; fil: number }) => p.btc + p.eth + p.fil;
 
@@ -61,6 +64,7 @@ const KEY_ITEMS = [
   { label: 'US Treasuries', color: SERIES_COLORS.treasuries, line: false, dashed: false },
   { label: 'NAV / PLAA', color: SERIES_COLORS.nav, line: true, dashed: false },
   { label: 'Buyback clearing price', color: BUYBACK_COLOR, line: true, dashed: true },
+  { label: 'PLAA issuance', color: SERIES_COLORS.issuance, line: true, dashed: false, monthlyOnly: true },
 ];
 
 const keyMarkerStyle = (item: { color: string; dashed: boolean }) =>
@@ -77,6 +81,12 @@ const formatAsset = (value: number) => (value ? `$${Math.round(value).toLocaleSt
 const formatPerPlaa = (value: number) => `$${value.toFixed(2)}`;
 const formatMillions = (value: number) => `$${(value / 1_000_000).toFixed(2)}M`;
 const formatCount = (value: number) => value.toLocaleString('en-US');
+
+const renderIssuanceDot = ({ cx, cy, payload, index }: { cx?: number; cy?: number; payload?: NavPoint; index?: number }) => (
+  <circle key={`issuance-${index}`} cx={cx} cy={cy} r={3} fill={SERIES_COLORS.issuance} strokeWidth={0}>
+    <title>{payload ? `${payload.label}: ${formatCount(payload.totalPlaa)} PLAA in circulation` : ''}</title>
+  </circle>
+);
 
 // Pill centers sit on the line's points (Figma design).
 const PILL_HEIGHT = 26;
@@ -170,6 +180,9 @@ const renderTotalLabel = (rows: NavPoint[], offset: number = 10) => (props: any)
       y={baseline}
       textAnchor="middle"
       fill={highlight ? SERIES_COLORS.plvh : '#475569'}
+      stroke="#f8fafc"
+      strokeWidth={4}
+      paintOrder="stroke"
       fontSize={13}
       fontWeight={700}
     >
@@ -308,9 +321,9 @@ const renderAxisTick = (lastLabel: string, showAsterisk?: boolean) => (props: an
       y={y}
       dy={16}
       textAnchor="middle"
-      fill={isLast ? '#0090ff' : '#64748b'}
-      fontSize={12}
-      fontWeight={isLast ? 600 : 500}
+      {...AXIS_TEXT_STYLE}
+      fill={isLast ? '#0090ff' : AXIS_TEXT_STYLE.fill}
+      fontWeight={isLast ? 600 : AXIS_TEXT_STYLE.fontWeight}
     >
       {payload.value}{isLast && showAsterisk ? '*' : ''}
     </text>
@@ -321,10 +334,12 @@ function NavChart({
   data,
   markers,
   showPreliminaryNote,
+  showIssuance = false,
 }: {
   data: NavPoint[];
   markers: Record<string, BuybackMarker>;
   showPreliminaryNote?: boolean;
+  showIssuance?: boolean;
 }) {
   // A period with no auction plots no point — breaks the buyback track into
   // dotted spans between auctions.
@@ -346,7 +361,7 @@ function NavChart({
     return <p className="th-chart__empty">No data available for this view yet.</p>;
   }
   return (
-    <div className={`th-chart ${dense ? 'th-chart--dense' : ''}`}>
+    <div className={`th-chart ${dense || showIssuance ? 'th-chart--dense' : ''}`}>
       <div className="th-chart__inner">
       <ResponsiveContainer width="100%" height={420}>
         <ComposedChart data={chartData} margin={CHART_MARGIN} barCategoryGap="42%">
@@ -360,19 +375,54 @@ function NavChart({
           />
           <YAxis yAxisId="nav" hide domain={[0, (max: number) => max * 1.15]} />
           <YAxis yAxisId="perPlaa" hide domain={[0, PER_PLAA_DOMAIN_MAX]} />
+          {/* ponytail: fixed 32px clearance; recheck label spacing as live history changes. */}
+          {showIssuance && (
+            <YAxis
+              yAxisId="issuance"
+              orientation="right"
+              width={110}
+              domain={[0, (max: number) => Math.max(1, max)]}
+              padding={{ bottom: 32 }}
+              allowDecimals={false}
+              tickFormatter={formatCount}
+              tick={AXIS_TEXT_STYLE}
+              tickLine={false}
+              axisLine={false}
+              label={{
+                ...AXIS_TEXT_STYLE,
+                value: 'PLAA in circulation',
+                angle: -90,
+                position: 'insideRight',
+                style: { textAnchor: 'middle' },
+              }}
+            />
+          )}
+          {showIssuance && (
+            <Line
+              className="th-issuance-line"
+              yAxisId="issuance"
+              type="linear"
+              dataKey="totalPlaa"
+              name="PLAA issuance"
+              stroke={SERIES_COLORS.issuance}
+              strokeWidth={NAV_LINE_WIDTH}
+              dot={renderIssuanceDot}
+              activeDot={false}
+              isAnimationActive={false}
+            />
+          )}
           <Bar yAxisId="nav" dataKey="treasuries" stackId="nav" fill={SERIES_COLORS.treasuries} barSize={barSize} />
           <Bar yAxisId="nav" dataKey="digital" stackId="nav" fill={SERIES_COLORS.digital} barSize={barSize} />
           <Bar yAxisId="nav" dataKey="plvh" stackId="nav" fill={SERIES_COLORS.plvh} barSize={barSize} radius={[4, 4, 0, 0]}>
-            {/* A dense series packs the NAV/PLAA pills close to the bar tops,
-                so the total sits clear of a pill's height instead of 10px up. */}
-            <LabelList dataKey="nav" content={renderTotalLabel(chartData, dense ? PILL_HEIGHT + 10 : 10)} />
+            {/* Totals sit 10px above bars; the renderer still clears any price-pill collisions. */}
+            <LabelList dataKey="nav" content={renderTotalLabel(chartData)} />
           </Bar>
           <Line
             yAxisId="perPlaa"
             type="linear"
             dataKey="navPerPlaa"
             stroke={SERIES_COLORS.nav}
-            strokeWidth={2}
+            strokeWidth={NAV_LINE_WIDTH}
             dot={{ r: 3, fill: SERIES_COLORS.nav, strokeWidth: 0 }}
             label={renderNavLabel}
             isAnimationActive={false}
@@ -639,7 +689,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
             </div>
 
             <ul className="th-key">
-              {KEY_ITEMS.map((item) => (
+              {KEY_ITEMS.filter((item) => !item.monthlyOnly || view === 'monthly-graph').map((item) => (
                 <li key={item.label} className="th-key__item">
                   <span
                     className={`th-key__marker ${item.line ? 'th-key__marker--line' : ''}`}
@@ -652,7 +702,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           </div>
 
           {view === 'quarterly-graph' && <NavChart data={data.quarterly} markers={buybackMarkers} showPreliminaryNote />}
-          {view === 'monthly-graph' && <NavChart data={monthlyWindow} markers={buybackMarkers} />}
+          {view === 'monthly-graph' && <NavChart data={monthlyWindow} markers={buybackMarkers} showIssuance />}
           {view === 'table' && <NavTable data={data.monthly} />}
         </div>
       </section>
@@ -936,11 +986,9 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           width: 100%;
         }
 
-        /* Twelve months of bars stop being legible below roughly 900px — the
-           NAV/PLAA pills start overlapping each other. Rather than thin the
-           labels or shrink the type, the dense view scrolls sideways below a
-           readable minimum, matching how wide tables behave elsewhere. The
-           quarterly view never takes this branch. */
+        /* Keep monthly bars, price pills, and the circulation axis legible
+           on narrow screens by scrolling the graph instead of shrinking it.
+           Dense series keep the same readable minimum. */
         @media (max-width: 900px) {
           .th-chart--dense {
             overflow-x: auto;
@@ -997,6 +1045,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
         }
 
         .th-table td {
+          text-align: right;
           padding: 17px 24px;
           border-bottom: 1px solid #eef1f5;
           color: #475569;

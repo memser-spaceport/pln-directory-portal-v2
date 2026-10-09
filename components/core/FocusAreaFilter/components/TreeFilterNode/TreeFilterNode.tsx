@@ -15,11 +15,12 @@ interface TreeFilterNodeProps<T extends TreeFilterItem> {
   onToggle: (item: T) => void;
   getCount?: (item: T) => number;
   showDescription?: boolean;
+  countInLabel?: boolean;
   isRoot?: boolean;
 }
 
 export function TreeFilterNode<T extends TreeFilterItem>(props: TreeFilterNodeProps<T>) {
-  const { item, selectedIds, parentIds, onToggle, getCount, showDescription, isRoot } = props;
+  const { item, selectedIds, parentIds, onToggle, getCount, showDescription, countInLabel, isRoot } = props;
 
   const isSelected = selectedIds.has(item.id);
   const isParentOfSelected = parentIds.has(item.id);
@@ -58,8 +59,8 @@ export function TreeFilterNode<T extends TreeFilterItem>(props: TreeFilterNodePr
   return (
     <div className={s.root}>
       <CheckboxListItemRepresentation
-        label={item.label}
-        count={count}
+        label={countInLabel && typeof count === 'number' ? `${item.label} (${count})` : item.label}
+        count={countInLabel ? undefined : count}
         checked={isSelected}
         indeterminate={isParentOfSelected}
         disabled={disabled}
@@ -88,6 +89,7 @@ export function TreeFilterNode<T extends TreeFilterItem>(props: TreeFilterNodePr
                 parentIds={parentIds}
                 onToggle={onToggle}
                 getCount={getCount}
+                countInLabel={countInLabel}
               />
             );
           })}

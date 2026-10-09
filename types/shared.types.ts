@@ -86,6 +86,7 @@ export type IFocusArea = {
   children: IFocusArea[];
   teamAncestorFocusAreas: ITeam[];
   projectAncestorFocusAreas: any;
+  projectCount?: number;
 };
 
 export type IAnalyticsFocusArea = {

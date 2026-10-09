@@ -14,10 +14,11 @@ interface FocusAreaFilterProps<T extends TreeFilterItem> {
   onToggle: (item: T) => void;
   getCount?: (item: T) => number;
   showDescription?: boolean;
+  countInLabel?: boolean;
 }
 
 export function FocusAreaFilter<T extends TreeFilterItem>(props: FocusAreaFilterProps<T>) {
-  const { items, selectedIds, onToggle, getCount, showDescription } = props;
+  const { items, selectedIds, onToggle, getCount, showDescription, countInLabel } = props;
 
   const parentIds = useMemo(() => {
     const ids = new Set<string>();
@@ -39,6 +40,7 @@ export function FocusAreaFilter<T extends TreeFilterItem>(props: FocusAreaFilter
             onToggle={onToggle}
             getCount={getCount}
             showDescription={showDescription}
+            countInLabel={countInLabel}
             isRoot
           />
         ))}

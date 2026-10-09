@@ -33,6 +33,7 @@ export function ProjectFocusAreaFilter({ focusAreas, searchParams }: ProjectFocu
       countKey={FOCUS_AREAS_FILTER_KEYS.projects as 'teamAncestorFocusAreas' | 'projectAncestorFocusAreas'}
       searchParams={searchParams}
       onAnalytics={handleAnalytics}
+      countInLabel
     />
   );
 }

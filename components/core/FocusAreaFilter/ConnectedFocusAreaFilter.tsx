@@ -14,10 +14,11 @@ interface ConnectedFocusAreaFilterProps {
   countKey: 'teamAncestorFocusAreas' | 'projectAncestorFocusAreas';
   searchParams: any;
   onAnalytics?: (item: FocusAreaTreeItem) => void;
+  countInLabel?: boolean;
 }
 
 export function ConnectedFocusAreaFilter(props: ConnectedFocusAreaFilterProps) {
-  const { focusAreas, countKey, searchParams, onAnalytics } = props;
+  const { focusAreas, countKey, searchParams, onAnalytics, countInLabel } = props;
 
   const treeItems = useMemo(
     () => toTreeFilterItems(sortFocusAreas(focusAreas.rawData.filter((fa) => !fa.parentUid))),
@@ -38,5 +39,13 @@ export function ConnectedFocusAreaFilter(props: ConnectedFocusAreaFilterProps) {
     onAnalytics,
   });
 
-  return <FocusAreaFilter items={treeItems} selectedIds={selectedIds} onToggle={handleToggle} getCount={getCount} />;
+  return (
+    <FocusAreaFilter
+      items={treeItems}
+      selectedIds={selectedIds}
+      onToggle={handleToggle}
+      getCount={getCount}
+      countInLabel={countInLabel}
+    />
+  );
 }

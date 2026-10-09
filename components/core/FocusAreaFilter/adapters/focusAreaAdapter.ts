@@ -19,6 +19,9 @@ export function toTreeFilterItems(focusAreas: IFocusArea[]): FocusAreaTreeItem[]
 
 export function getCountForKey(key: 'teamAncestorFocusAreas' | 'projectAncestorFocusAreas') {
   return (item: FocusAreaTreeItem): number => {
+    if (key === 'projectAncestorFocusAreas' && typeof item.raw.projectCount === 'number') {
+      return item.raw.projectCount;
+    }
     return item.raw[key]?.length ?? 0;
   };
 }

@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Protocol Labs Directory frontend — a Next.js 14.2.3 (App Router) application for browsing and managing members, teams, projects, events, and forum content in the Protocol Labs network. Uses React 18, TypeScript, SCSS modules, and Zustand/React Query for state management.
 
+## Mandatory pre-PR authentication check
+
+Follow `AGENTS.md`'s pre-PR authentication check for every PR request: restore commented-out authentication, remove temporary member-preview wiring (`PLAA_MEMBER_PREVIEW` / `isPlaaMemberPreview`), and verify signed-out route protection and normal authenticated behavior before submitting. Keep this rule permanently.
+
 ## Commands
 
 - **Dev server:** `npm run dev` (runs on http://localhost:4200)

@@ -112,17 +112,17 @@ export default function PlaaHomeFooter() {
         }
         .pf__col-head {
           font: var(--text-label-md);
-          color: var(--text-tertiary);
+          color: var(--color-brand-text);
           text-transform: uppercase;
           letter-spacing: 0.05em;
         }
-        .pf__link {
+        .pf :global(.pf__link) {
           font: var(--text-body-md);
-          color: var(--text-secondary);
+          color: var(--color-brand-text);
           text-decoration: none;
         }
-        .pf__link:hover {
-          color: var(--color-brand-text);
+        .pf :global(.pf__link:hover) {
+          text-decoration: underline;
         }
         .pf__legal {
           margin-top: 20px;

@@ -186,12 +186,56 @@ export const matchWorking = (
   };
 };
 
-/** Only members at or above the floor, against the criteria that are on. */
+/**
+ * How many suggestions a role shows: the top 5 (product huddle, 2026-10-05,
+ * LAB-2687 / LAB-2771). A lead reads every suggestion before they invite, and
+ * five is a list they finish. The cap comes after the floor and the sort, so
+ * a role with fewer good matches shows fewer, never a weak one to fill a slot.
+ */
+export const SUGGESTED_LIMIT = 5;
+
+const companyKey = (name: string) => name.trim().toLowerCase();
+
+/**
+ * Whether the member has an experience entry at the hiring team, past or
+ * current. Such a member is never suggested, however well they match: the
+ * team already knows them, and a suggestion would read as the product not
+ * knowing its own data (product huddle, 2026-10-05). The check reads the
+ * profile's experience, the same fact the member page shows.
+ */
+export const workedAtTeam = (person: RoleSuggested, teamName: string): boolean =>
+  person.experience.some((e) => companyKey(e.company) === companyKey(teamName));
+
+/**
+ * Everyone the role could suggest: members at or above the floor against the
+ * criteria that are on, minus anyone who worked at the team, best match first
+ * (`sortSuggested`). Not capped — only Edit criteria reads it, to say how many
+ * members meet the floor before the top 5 are taken.
+ */
+export const eligibleSuggested = (
+  people: RoleSuggested[],
+  criteria: RoleCriterion[],
+  teamName: string,
+  off?: ReadonlySet<string>,
+): RoleSuggested[] =>
+  sortSuggested(
+    people.filter((p) => !workedAtTeam(p, teamName) && suggestionMatch(p, criteria, off).percent >= MATCH_FLOOR),
+    criteria,
+    off,
+  );
+
+/**
+ * Who the role suggests: the first `SUGGESTED_LIMIT` of `eligibleSuggested`.
+ * Every surface that shows people (the tab, its count, the role row's count
+ * line, the email) reads this one list, so they can never disagree about who
+ * is suggested.
+ */
 export const visibleSuggested = (
   people: RoleSuggested[],
   criteria: RoleCriterion[],
+  teamName: string,
   off?: ReadonlySet<string>,
-): RoleSuggested[] => people.filter((p) => suggestionMatch(p, criteria, off).percent >= MATCH_FLOOR);
+): RoleSuggested[] => eligibleSuggested(people, criteria, teamName, off).slice(0, SUGGESTED_LIMIT);
 
 /**
  * One spine, sorted by the share the band is read off: a Good match above a
@@ -345,6 +389,8 @@ export const MOCK_SUGGESTED: Record<string, RoleSuggested[]> = {
       },
       // Not "5+ yrs infra, senior": the title on his profile is Infrastructure
       // Engineer, and the matcher reads the profile, not his history's length.
+      // A Strong match that is never shown: he worked at Protocol Labs
+      // (2019–2021), and nobody who worked at the team is suggested.
       met: ['ds', 'rg', 'sn', 'tz'],
       evidence: {
         ds: 'S3-compatible gateway over Filecoin and IPFS at Filebase',
@@ -376,6 +422,8 @@ export const MOCK_SUGGESTED: Record<string, RoleSuggested[]> = {
         repositories: [{ name: 'rs-ucan-store', description: 'A content-addressed UCAN store in Rust.' }],
       },
       // Exactly at the floor, and no network signal: the row's third line is the count.
+      // Last of the four 3-of-5 matches (Priya's vouch goes first, then by
+      // name), so the top-5 cap leaves him off the list.
       met: ['ds', 'rg', 'tz'],
       evidence: {
         ds: 'Distributed systems on his profile; backend at Fission',
@@ -414,6 +462,93 @@ export const MOCK_SUGGESTED: Record<string, RoleSuggested[]> = {
         tz: 'Berlin, Germany',
       },
       reasons: [{ kind: 'vouch', text: 'Worked with 2 people on your team on the Tableland–Filecoin bridge' }],
+    },
+    {
+      // With the next two, the role has six people at or above the floor once
+      // Kofi (a past Protocol Labs engineer) is left out, so the list shows the
+      // top 5 and the sixth (Yuki) stays off it.
+      id: 'sug-8',
+      memberId: 'lena-hoffmann',
+      name: 'Lena Hoffmann',
+      role: 'Staff Engineer · Iroh',
+      title: 'Staff Engineer',
+      team: 'Iroh',
+      location: 'Hamburg, Germany',
+      email: 'lena@iroh.computer',
+      avatar: 'https://i.pravatar.cc/96?img=47',
+      skills: ['Rust', 'QUIC', 'Peer-to-peer Networking'],
+      experience: [
+        exp('lena-hoffmann', 'lh1', 'Staff Engineer', 'Iroh', '2022-01', null, 'Hamburg, Germany'),
+        exp('lena-hoffmann', 'lh2', 'Senior Engineer', 'Mozilla', '2016-05', '2021-12', 'Berlin, Germany'),
+      ],
+      profile: {
+        githubHandle: 'lhoffmann',
+        teams: [{ id: 'iroh', name: 'Iroh', role: 'Staff Engineer', mainTeam: true }],
+        contributions: [],
+        repositories: [],
+      },
+      met: ['rg', 'sn', 'sr', 'tz'],
+      evidence: {
+        rg: 'Rust on her profile; Staff Engineer at Iroh',
+        sn: 'Peer-to-peer networking and QUIC at Iroh',
+        sr: 'Staff Engineer since 2022, 9 years in total',
+        tz: 'Hamburg, Germany',
+      },
+      reasons: [],
+    },
+    {
+      id: 'sug-9',
+      memberId: 'daniel-okafor',
+      name: 'Daniel Okafor',
+      role: 'Site Reliability Engineer · Fleek',
+      title: 'Site Reliability Engineer',
+      team: 'Fleek',
+      location: 'Lagos, Nigeria',
+      email: 'daniel@fleek.xyz',
+      avatar: 'https://i.pravatar.cc/96?img=53',
+      skills: ['Go', 'Distributed Systems', 'Observability'],
+      experience: [
+        exp('daniel-okafor', 'do1', 'Site Reliability Engineer', 'Fleek', '2021-03', null, 'Lagos, Nigeria'),
+      ],
+      profile: {
+        teams: [{ id: 'fleek', name: 'Fleek', role: 'Site Reliability Engineer', mainTeam: true }],
+        contributions: [],
+        repositories: [],
+      },
+      met: ['ds', 'rg', 'tz'],
+      evidence: {
+        ds: 'Runs Fleek’s edge hosting in production',
+        rg: 'Go on his profile',
+        tz: 'Lagos, Nigeria',
+      },
+      reasons: [],
+    },
+    {
+      id: 'sug-10',
+      memberId: 'sam-whitaker',
+      name: 'Sam Whitaker',
+      role: 'Software Engineer · Textile',
+      title: 'Software Engineer',
+      team: 'Textile',
+      location: 'Seattle, United States',
+      email: 'sam@textile.io',
+      avatar: 'https://i.pravatar.cc/96?img=60',
+      skills: ['Go', 'libp2p'],
+      experience: [
+        exp('sam-whitaker', 'sw1', 'Software Engineer', 'Textile', '2022-07', null, 'Seattle, United States'),
+      ],
+      profile: {
+        teams: [{ id: 'textile', name: 'Textile', role: 'Software Engineer', mainTeam: true }],
+        contributions: [],
+        repositories: [],
+      },
+      met: ['rg', 'sn', 'tz'],
+      evidence: {
+        rg: 'Go on his profile',
+        sn: 'libp2p on his profile; networking at Textile',
+        tz: 'Seattle, United States',
+      },
+      reasons: [],
     },
     {
       // Under the floor with every requirement on (2 of 5 = 40%), so hidden.

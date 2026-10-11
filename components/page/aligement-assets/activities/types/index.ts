@@ -72,6 +72,7 @@ export interface ActivityPopupContent {
   };
   categories?: PointCategory[];
   additionalNote?: string;
+  disclaimer?: string;
 }
 
 export interface Activity {

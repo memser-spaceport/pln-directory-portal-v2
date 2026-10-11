@@ -79,6 +79,31 @@ export const activitiesData: ActivitiesData = {
       }
     },
     {
+      id: 'book-office-hours',
+      category: 'Knowledge Sharing',
+      activity: 'Book Office Hours',
+      networkValue: 'Book office hours with a PL Network member to get advice, feedback, or explore collaboration',
+      points: '100',
+      frequency: 'Repeatable',
+      verificationType: 'Auto',
+      cta: 'confirm',
+      popupContent: {
+        title: 'Book Office Hours',
+        overview: 'Book an office hours session with another member of the PL Network to seek advice, get feedback, or explore opportunities for collaboration. Connect directly with network experts through their PL Network profiles.\n\nYou can book office hours through the PL Network Directory. For meetings scheduled outside the Directory, add plaa-oh@plrs.xyz as an attendee to make the session eligible for automatic tracking.',
+        networkBenefits: 'Encourages knowledge sharing, mentorship, and collaboration by connecting members with expertise across the network.',
+        rules: [
+          'Sessions must either be scheduled through the Directory or include plaa-oh@plrs.xyz as an attendee on the calendar invitation',
+          'Each session must run for at least 15 minutes',
+          'The tracking email must be added to the calendar invitation before the session occurs',
+          'Cancelled, declined, duplicated, or unverified sessions are not eligible',
+          'Points are awarded to the member booking and attending the session, not the host'
+        ],
+        links: [
+          { text: 'plaa-oh@plrs.xyz', url: 'mailto:plaa-oh@plrs.xyz' }
+        ]
+      }
+    },
+    {
       id: 'comment-on-network-news',
       category: 'Knowledge Sharing',
       activity: 'Comment on News from the Network',
@@ -98,6 +123,34 @@ export const activitiesData: ActivitiesData = {
           'Each post may qualify only once per participant',
           'Participants may earn points once per month for completing this activity'
         ]
+      }
+    },
+    {
+      id: 'submit-deal-debrief',
+      category: 'Knowledge Sharing',
+      activity: 'Submit a Deal Debrief',
+      networkValue: 'Share the lessons from a VC, M&A, or other deal through the PL Deal Debrief app',
+      points: '250',
+      frequency: 'Repeatable',
+      verificationType: 'Manual Review',
+      cta: 'submit',
+      popupContent: {
+        title: 'Submit a Deal Debrief',
+        overview: 'Share the lesson, not just the deal. Submit a substantive debrief through the PL Deal Debrief app, drawing on your own perspective on a VC, M&A, or other deal. Explain what worked, what was challenging, and what others could learn (without disclosing confidential, privileged, or identifying deal information).',
+        networkBenefits: 'Builds a repository of practical deal knowledge that can inform reports and advice for network companies and PL Infra, helping them improve deal processes and outcomes.',
+        rules: [
+          'Submit all deal information for this activity through the Deal Debrief app and complete all required fields, using generalized, non-confidential information.',
+          'Provide substantive information: meaningful context, insights, and reusable lessons from your own perspective. Empty, generic, or copied answers do not qualify.',
+          'The Legal Ops team will review all deal information before you collect the 250 points. Submission alone does not guarantee points.',
+          'Multiple people may submit the same deal, provided each person supplies unique answers representing their own perspective on that deal.',
+          `Do not submit confidential or privileged information about any deal. Follow the app's guidance: no names, exact figures, dates, non-public diligence reports, third-party term sheets, documents subject to NDAs, or confidential links in your deal narrative. Do not submit information you are not authorized to share; if you cannot answer safely, do not submit it.`,
+          'Providing confidential or privileged deal information will result in immediate point forfeiture and potential removal from the activity program.'
+        ],
+        ctaLink: '/pl-infra/ai-apps/cmtdebct4000otb4fqp4vyim8',
+        links: [
+          { text: 'Deal Debrief app', url: '/pl-infra/ai-apps/cmtdebct4000otb4fqp4vyim8' }
+        ],
+        disclaimer: 'By submitting this activity, I warrant my submission is accurate, authorized, and breaches no confidentiality, securities, IP, or privacy obligation, and I release PL from all liability arising from it.'
       }
     },
     {

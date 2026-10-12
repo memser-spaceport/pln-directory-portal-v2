@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import clsx from 'clsx';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { authEvents, useLoginRedirect } from '@/components/core/login/utils';
@@ -249,7 +250,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
   // For every viewer, locked ones included: someone who can't see the Spotlight
   // still needs somewhere to go.
   const exploreTile = SHOW_EXPLORE_PL_NETWORK && (
-    <section className={s.section} aria-label="Explore the PL Network">
+    <section className={clsx(s.section, s.lowerExplore)} aria-label="Explore the PL Network">
       <SpvExploreTile
         onClick={() => {
           const params = baseParams();
@@ -495,6 +496,8 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
               onClick={() => dataRoomClicked('band')}
             />
           )}
+
+          {exploreTile}
 
           <SpvFooter supportEmail={spotlight.supportEmail} onSupportEmailClicked={() => supportEmailClicked('footer')} />
         </div>

@@ -78,15 +78,40 @@ export const SpvExploreTile = ({ featured = false }: Props) => (
         Explore PL Network <ArrowRight />
       </span>
     </div>
-    <svg className={s.exploreTileArt} viewBox="-2 -2 31.5 31" aria-hidden>
-      {CUBE_CELLS.map(([x, y, f], i) => (
-        <polygon
-          key={i}
-          points={hex(x + FACET_OFFSET[f].dx, y + FACET_OFFSET[f].dy, CUBE_HEX_RADIUS * 0.8)}
-          fill={FACET_SHADE[f]}
-        />
-      ))}
-    </svg>
+    <CubeArt className={s.exploreTileArt} />
+  </a>
+);
+
+// The exploded mini cube, shared by the big tile and the small one.
+const CubeArt = ({ className }: { className: string }) => (
+  <svg className={className} viewBox="-2 -2 31.5 31" aria-hidden>
+    {CUBE_CELLS.map(([x, y, f], i) => (
+      <polygon
+        key={i}
+        points={hex(x + FACET_OFFSET[f].dx, y + FACET_OFFSET[f].dy, CUBE_HEX_RADIUS * 0.8)}
+        fill={FACET_SHADE[f]}
+      />
+    ))}
+  </svg>
+);
+
+/**
+ * The small version (2026-10-12: "should be a small tile and stand out
+ * more"), in place of the one-line "or explore…" link under the investor
+ * profile card: the mini cube, one title, one line, an arrow. A brand-tinted
+ * ground so it reads as a door rather than as more page text; the whole tile
+ * is the link.
+ */
+export const SpvExploreMiniTile = () => (
+  <a className={s.exploreMini} href={EXPLORE_PL_NETWORK_URL} target="_blank" rel="noopener noreferrer">
+    <CubeArt className={s.exploreMiniArt} />
+    <span className={s.exploreMiniText}>
+      <span className={s.exploreMiniTitle}>Explore the PL network</span>
+      <span className={s.exploreMiniBody}>750+ organizations across AI, neurotech, digital rights and new economies</span>
+    </span>
+    <span className={s.exploreMiniArrow}>
+      <ArrowRight />
+    </span>
   </a>
 );
 

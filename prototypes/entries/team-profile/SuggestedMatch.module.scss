@@ -85,12 +85,23 @@
   min-width: 0;
 }
 
-/* The working: caption ink, a step under the label, so the list still scans
- * as labels and the facts are there for whoever reads down. */
+/* The working: a step under the label in size, in the secondary ink — it is
+ * the argument for the tick (Juicebox reads its evidence at body weight), not
+ * a caption. A miss's "Not on their profile" stays faded with its row. */
 .evidence {
   font-size: 12px;
   line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.unmet .evidence {
   color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* Edit criteria at the end of the header's cluster, a step apart from the
+ * count and band it is not part of. */
+.editLink {
+  margin-left: 4px;
 }
 
 /* A 8×1.5px rule in the mark's ink — the standup's "— no protocol

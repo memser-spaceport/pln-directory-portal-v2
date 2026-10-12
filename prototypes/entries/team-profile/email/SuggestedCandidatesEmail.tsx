@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import clsx from 'clsx';
 
 import { Badge } from '@/components/common/Badge';
@@ -12,10 +13,9 @@ import digest from '../../newsfeed/Newsfeed.module.scss';
 // The application email's review panel, under the card — same scaffolding.
 import notes from '../../job-board/email/ApplicationEmailPreview.module.scss';
 
-import { ReviewCheckIcon } from '../icons';
 import {
-  matchWorking,
   suggestionMatch,
+  suggestionWhy,
   SUGGESTION_BAND_LABEL,
   SUGGESTION_BAND_VARIANT,
   type RoleCriterion,
@@ -26,10 +26,8 @@ import s from './SuggestedCandidatesEmail.module.scss';
 /** Same sender and budget as the application email (`job-board/email/applicationEmail.ts`). */
 const FROM_LINE = 'Protocol Labs Network <jobs@protocol.ai>';
 const SUBJECT_BUDGET = 60;
-/** How many people the email names. The rest are one line and the CTA. */
+/** How many people the email names. The rest are one link. */
 const TOP = 3;
-/** How many met requirements each named person carries — the email sells, the page triages. */
-const MET_SHOWN = 2;
 
 interface Props {
   teamName: string;
@@ -45,7 +43,8 @@ interface Props {
 
 /**
  * The email a team lead gets when members are suggested for one of their live
- * roles (LAB-2687, Comms). Review surface: `?email=suggested` on team-profile.
+ * roles (LAB-2687, Comms; the card layout is LAB-2809 option 3, built in
+ * LAB-2819). Review surface: `?email=suggested` on team-profile.
  *
  * **What it is for.** Suggestions are the weakest signal on the Candidates
  * page — nobody did anything — so, unlike an application, nothing brings a
@@ -62,14 +61,18 @@ interface Props {
  * tail, the half the lead can guess (the application email makes the same
  * trade and says so).
  *
- * **Three people, each with a band and two met requirements.** The band is
- * the page's own word (Strong / Good match, never a number — lesson 26); the
- * two requirements are the first two the profile meets, in the role's order,
- * so the email says *why* in the role's own terms. It shows only what is met:
- * an email is read in seconds and sells a click, while what each person is
- * missing is the page's job, where the whole checklist and its evidence sit
- * beside the profile. Names link to that person's pane; the rest collapse to
- * "and N more"; one CTA, **Review candidates**.
+ * **At most three cards, and each card is the link.** Photo, name, the band
+ * (the page's own word — Strong / Good match, never a number, lesson 26), the
+ * current role, and one line of why. A card opens the Candidates page on that
+ * person; there is no "Review candidates" button under them, because three
+ * cards already are three buttons and a fourth that goes nearly the same
+ * place splits the click. The rest are one link, "and N more matches", to the
+ * same list with nobody picked. What each person is missing is the page's
+ * job, where the whole checklist and its evidence sit beside the profile.
+ *
+ * **The page is behind sign-in.** There is no public candidate page (Polina,
+ * LAB-2809), so a card a signed-out lead taps goes through sign-in first and
+ * comes back to that person (LAB-2818 for production).
  *
  * **When it sends (the rules, not states — they live here, not on screen):**
  *   - a live role gains suggestions the lead has not been emailed about;
@@ -93,6 +96,7 @@ export function SuggestedCandidatesEmail({ teamName, recipientName, roleTitle, p
   const rest = count - top.length;
   const firstNames = top.map((p) => p.name.split(' ')[0]);
   const preview = `${listNames(firstNames, rest)} ${count === 1 ? 'matches' : 'match'} the role on their profiles.`;
+  const [stopped, setStopped] = useState(false);
 
   return (
     <div className={s.page}>
@@ -127,55 +131,44 @@ export function SuggestedCandidatesEmail({ teamName, recipientName, roleTitle, p
           </header>
 
           <section className={digest.emailSection}>
-            {/* The one sentence the list can't say: who these people are and
-              that they haven't applied — the same two facts the Suggested
-              tab's note leads with, in the same words. */}
+            {/* The one sentence the cards can't say: who these people are and
+              that they haven't applied. */}
             <p className={s.lede}>
-              {count} {count === 1 ? 'member' : 'members'} who let hiring teams find them{' '}
+              {count} {count === 1 ? 'member' : 'members'} of the Protocol Labs network{' '}
               {count === 1 ? 'matches' : 'match'} your <strong>{roleTitle}</strong> role at {teamName}. They haven’t
               applied.
             </p>
 
-            <ul className={digest.emailList}>
+            <ul className={s.cards}>
               {top.map((p) => {
                 const match = suggestionMatch(p, criteria);
-                const met = matchWorking(p, criteria).met.slice(0, MET_SHOWN);
                 return (
-                  <li key={p.id} className={clsx(digest.emailHiringItem, s.person)}>
-                    <img className={s.avatar} src={p.avatar} alt="" width={40} height={40} />
-                    <div className={s.personText}>
-                      <div className={s.nameLine}>
-                        <a className={digest.emailItemLink} href={hrefFor(p.id)}>
-                          {p.name}
-                        </a>
-                        <Badge variant={SUGGESTION_BAND_VARIANT[match.band]} className={s.band}>
-                          {SUGGESTION_BAND_LABEL[match.band]}
-                        </Badge>
-                      </div>
-                      <span className={s.role}>{p.role}</span>
-                      <span className={s.met}>
-                        {met.map((c) => (
-                          <span key={c.id} className={s.metItem}>
-                            <ReviewCheckIcon size={14} state="bare" />
-                            {c.label}
-                          </span>
-                        ))}
+                  <li key={p.id}>
+                    <a className={s.card} href={hrefFor(p.id)}>
+                      <img className={s.avatar} src={p.avatar} alt="" width={40} height={40} />
+                      <span className={s.personText}>
+                        <span className={s.nameLine}>
+                          <span className={s.name}>{p.name}</span>
+                          <Badge variant={SUGGESTION_BAND_VARIANT[match.band]} className={s.band}>
+                            {SUGGESTION_BAND_LABEL[match.band]}
+                          </Badge>
+                        </span>
+                        <span className={s.role}>{p.role}</span>
+                        <span className={s.why}>{suggestionWhy(p, criteria)}</span>
                       </span>
-                    </div>
+                      <ChevronIcon />
+                    </a>
                   </li>
                 );
               })}
             </ul>
 
+            {/* The rest, as the one link to the whole list. */}
             {rest > 0 && (
-              <p className={s.more}>
+              <a className={s.more} href={hrefFor()}>
                 and {rest} more {rest === 1 ? 'match' : 'matches'} on the Candidates page
-              </p>
+              </a>
             )}
-
-            <a className={digest.emailCta} href={hrefFor()}>
-              Review candidates
-            </a>
           </section>
 
           <footer className={digest.emailFoot}>
@@ -183,10 +176,24 @@ export function SuggestedCandidatesEmail({ teamName, recipientName, roleTitle, p
               You’re getting this because you lead {teamName}, which posted {roleTitle} on the job board. At most one a
               week per role.
             </p>
-            <p>
-              <a href="/settings/email-preferences">Choose which hiring emails you get</a> ·{' '}
-              <a href="/settings/email-preferences">Unsubscribe</a>
-            </p>
+            {stopped ? (
+              <p role="status">You won’t get suggested-candidate emails any more.</p>
+            ) : (
+              <p>
+                {/* One click, no page: the link itself is the unsubscribe. The
+                    prototype records nothing. */}
+                <a
+                  href="#stop"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setStopped(true);
+                  }}
+                >
+                  Stop these emails
+                </a>{' '}
+                · <a href="/settings/email">Email settings</a>
+              </p>
+            )}
           </footer>
         </div>
 
@@ -194,8 +201,13 @@ export function SuggestedCandidatesEmail({ teamName, recipientName, roleTitle, p
         <div className={notes.notes}>
           <p className={notes.notesTitle}>Where it lands</p>
           <p className={notes.note}>
-            Review candidates opens the Candidates page on this role with the Suggested tab open; a name opens that
-            person’s pane. The bell carries the same event (notifications-hub).
+            A card opens the Candidates page on this role, Suggested tab, on that person — after sign-in, because the
+            page is for signed-in leads only. “and N more” opens the same list with nobody picked. The bell carries the
+            same event (notifications-hub).
+          </p>
+          <p className={notes.note}>
+            Here the links add <code>&amp;signedout=1</code> so the prototype plays the sign-in step. Production’s link
+            is <code>/teams/&lt;id&gt;/candidates?role=&lt;roleUid&gt;&amp;suggested=&lt;memberUid&gt;</code>.
           </p>
           <p className={notes.note}>
             Sent at most weekly per live role, to its leads only. Applications have their own email; an “I’m interested”
@@ -213,3 +225,10 @@ function listNames(names: string[], rest: number): string {
   if (names.length <= 1) return names.join('');
   return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }
+
+/** The card's affordance: it goes somewhere. Inline, as an email would carry it. */
+const ChevronIcon = () => (
+  <svg className={s.chevron} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);

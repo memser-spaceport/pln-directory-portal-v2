@@ -2,6 +2,8 @@
 
 import clsx from 'clsx';
 
+import btn from '@/components/common/Button/Button.module.scss';
+
 import { Badge } from '@/components/common/Badge';
 import {
   DetailsSection,
@@ -26,6 +28,8 @@ interface Props {
   /** Criteria the lead has switched off — they are not part of the match, so they are not listed. */
   off: ReadonlySet<string>;
   match: SuggestionMatch;
+  /** Opens Edit criteria. Absent → no control (a host with nothing to edit). */
+  onEditCriteria?: () => void;
 }
 
 /**
@@ -58,14 +62,22 @@ interface Props {
  * before a Strong one, and it has no check or ✕ because it is a fact, not a
  * requirement. Absent when the member has none.
  *
+ * **Edit criteria lives here (LAB-2819, after Juicebox's "Why we matched this
+ * profile").** It sat under the tab note in the list column, which scrolls
+ * away while the lead reads a person. The checklist is the thing it changes,
+ * so the control sits in this header's action slot, where every profile
+ * section keeps its Edit. The title says who, in words: "Why we suggested
+ * Inês". The evidence under each line reads as the argument (secondary
+ * ink); a miss stays faded.
+ *
  * **Only requirements that are switched on.** The lead can turn criteria off in
  * Edit criteria; a switched-off one is not part of the count, so listing it
  * with a mark would show a working that does not add up.
  */
-export function SuggestedWhy({ person, criteria, off, match }: Props) {
+export function SuggestedWhy({ person, criteria, off, match, onEditCriteria }: Props) {
   return (
     <DetailsSection>
-      <DetailsSectionHeader title="Why suggested">
+      <DetailsSectionHeader title={`Why we suggested ${person.name.split(' ')[0]}`}>
         <span className={s.headerRight}>
           <span className={s.count}>
             {match.met} of {match.total} requirements
@@ -73,6 +85,15 @@ export function SuggestedWhy({ person, criteria, off, match }: Props) {
           <Badge variant={SUGGESTION_BAND_VARIANT[match.band]} className={s.matchBadge}>
             {SUGGESTION_BAND_LABEL[match.band]}
           </Badge>
+          {onEditCriteria && (
+            <button
+              type="button"
+              className={clsx(btn.root, btn.xs, btn.link, btn.primary, s.editLink)}
+              onClick={onEditCriteria}
+            >
+              Edit criteria
+            </button>
+          )}
         </span>
       </DetailsSectionHeader>
       <DetailsSectionGreyContentContainer>

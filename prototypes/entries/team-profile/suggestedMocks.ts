@@ -186,6 +186,24 @@ export const matchWorking = (
   };
 };
 
+/**
+ * One line of why, for a person's row and their card in the email (LAB-2819):
+ * the strongest network signal when there is one — what only this product
+ * knows, and the block "Why suggested" leads with — else the first two met
+ * requirements in the role's own words. The full working is the pane's.
+ */
+export const suggestionWhy = (
+  person: RoleSuggested,
+  criteria: RoleCriterion[],
+  off?: ReadonlySet<string>,
+): string => {
+  if (person.reasons[0]) return person.reasons[0].text;
+  const met = matchWorking(person, criteria, off).met;
+  const named = met.slice(0, 2).map((c) => c.label);
+  const extra = met.length - named.length;
+  return `Matches on ${named.join(', ')}${extra > 0 ? ` +${extra}` : ''}`;
+};
+
 /** Only members at or above the floor, against the criteria that are on. */
 export const visibleSuggested = (
   people: RoleSuggested[],

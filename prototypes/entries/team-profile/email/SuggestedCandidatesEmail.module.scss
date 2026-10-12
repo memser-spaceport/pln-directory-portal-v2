@@ -35,12 +35,46 @@
   }
 }
 
-// A person: the avatar beside a three-line stack — name + band, role · team,
-// the met requirements. The digest item is a column; this one is a row.
-.person.person {
-  flex-direction: row;
+// The cards: a column of bordered boxes, each one link. The card border and
+// hover are the house card pair (prototypes/CLAUDE.md §4). The digest has no
+// card of its own (its items are rules between rows), so this is new.
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
   align-items: flex-start;
   gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-base-white, #fff);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    text-decoration: none;
+
+    .name {
+      color: var(--foreground-brand-primary, #1b4dff);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
 }
 
 .avatar {
@@ -53,6 +87,7 @@
 
 .personText {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
@@ -63,6 +98,15 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 8px;
+}
+
+.name {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  transition: color 160ms ease;
 }
 
 // The page's badge, at the page's size (CandidateRow's `.matchBadge`).
@@ -80,12 +124,8 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-// The met requirements: a check in the success ink per label. Green is free
-// here — on the page it means Reviewed, which an email never shows.
-.met {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 12px;
+// The one line of why — primary ink, so it reads as the reason, not as meta.
+.why {
   margin-top: 2px;
   font-size: 12px;
   line-height: 18px;
@@ -93,22 +133,30 @@
   color: var(--foreground-neutral-primary, #0a0c11);
 }
 
-.metItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+.chevron {
+  flex-shrink: 0;
+  align-self: center;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
 
-  svg {
-    flex-shrink: 0;
-    color: var(--foreground-success-primary, #0a9952);
+// "and 1 more match on the Candidates page" — the rest, as one link.
+.more {
+  display: inline-block;
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
   }
 }
 
-// "and 1 more match on the Candidates page" — the rest, as one caption line.
-.more {
-  margin: 4px 0 0;
-  font-size: 12px;
-  line-height: 18px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .name {
+    transition: none;
+  }
 }

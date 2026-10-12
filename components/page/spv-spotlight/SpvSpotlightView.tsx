@@ -55,7 +55,7 @@ import { SpvRequestReceivedModal } from './SpvRequestReceivedModal/SpvRequestRec
 import { getSpvFaqItems, SPV_REQUEST_FLOW_FAQ_ITEMS } from './faq';
 import s from './SpvSpotlightView.module.scss';
 
-const TOP_BAR_LABEL = 'PL Spotlight';
+const TOP_BAR_LABEL = 'PL Capital Spotlight';
 
 type Props = {
   slug: string;

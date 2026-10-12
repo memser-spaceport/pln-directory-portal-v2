@@ -115,7 +115,7 @@ const renderView = (
   return render(<SpvSpotlightView slug={MOCK_SPV_SLUG} initialSpotlight={initial ? spotlight : null} />);
 };
 
-const topBar = () => screen.getByText('PL Spotlight').closest('header') as HTMLElement;
+const topBar = () => screen.getByText('PL Capital Spotlight').closest('header') as HTMLElement;
 const card = () => screen.getByRole('article');
 
 const band = () => screen.queryByRole('region', { name: 'Data room' });

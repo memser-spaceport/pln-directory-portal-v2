@@ -490,11 +490,13 @@ describe('SpvSpotlightView — gated (the default)', () => {
       expect(within(region).queryAllByRole('button')).toHaveLength(0);
 
       const explore = screen.getByRole('link', { name: /Explore the PL network/ });
+      const exploreCard = screen.getByRole('link', { name: /Explore the PL Network/ });
       const profile = screen.getByRole('region', { name: 'Your investor profile' });
       const faq = screen.getByText('Questions investors ask');
       expect(profile.compareDocumentPosition(explore) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
       expect(explore.compareDocumentPosition(faq) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
       expect(faq.compareDocumentPosition(region) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(region.compareDocumentPosition(exploreCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
 
     it('still reads when the team has no funding stage', () => {
@@ -548,7 +550,7 @@ describe('SpvSpotlightView — gated (the default)', () => {
       mockMember = { memberInfo: { investorProfile: { type: 'ANGEL' } } };
       renderView('OPEN', 'APPROVED', { signedIn: true, initial: false });
       expect(screen.getByRole('region', { name: 'Your investor profile' })).toHaveTextContent(
-        'Keep the deals you see filtered to your check size, stage and sector.',
+        "Set your preferences for check size, stage and sector, and we'll filter the deals you see to match. Update or review your investor profile",
       );
       expect(screen.getByRole('button', { name: 'Update or review your investor profile' })).toBeInTheDocument();
     });

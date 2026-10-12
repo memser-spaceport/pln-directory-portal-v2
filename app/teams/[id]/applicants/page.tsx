@@ -3,6 +3,7 @@ import { RedirectType, redirect } from 'next/navigation';
 
 import Error from '@/components/core/error';
 import { TeamApplicantsView } from '@/components/page/team-details/TeamApplicants';
+import { applicantsEarlyRedirect } from '@/components/page/team-details/TeamApplicants/applicantsEarlyRedirect';
 import { canReadApplicants } from '@/components/page/team-details/TeamApplicants/canReadApplicants';
 import { knowsPermissions } from '@/components/page/team-details/utils/viewerPermissions';
 import { selectTeamOpenRoles } from '@/components/page/team-details/TeamOpenRoles/selectTeamOpenRoles';
@@ -51,14 +52,22 @@ async function Page(props: {
   /* The half of the rule that needs no team, before any fetch: with the flag off
      this route does not exist, and a signed-out reader can never pass it. A
      redirect is the cheapest way to say so without a 404 page that hints
-     something is coming.
+     something is coming. A signed-out reader goes to sign-in rather than the
+     profile, and comes back here with the same role and person (LAB-2818).
 
      A necessary condition of `canReadApplicants`, deliberately NOT a second copy
      of it — the authoritative call is below, once the team is in hand. The rest
      of the rule cannot be asked yet: excluding Protocol Labs reads the team's
      name, and all this route has up here is an id out of the URL. */
-  if (!SHOW_TEAM_APPLICANTS || !isLoggedIn) {
-    redirect(teamProfile, RedirectType.replace);
+  const earlyRedirect = applicantsEarlyRedirect({
+    flagOn: SHOW_TEAM_APPLICANTS,
+    isLoggedIn,
+    teamId,
+    searchParams,
+  });
+
+  if (earlyRedirect) {
+    redirect(earlyRedirect, RedirectType.replace);
   }
 
   const { team, roles, redirectTeamUid, isError, isNotFound } = await getPageData(teamId);

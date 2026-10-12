@@ -550,7 +550,7 @@ describe('SpvSpotlightView — gated (the default)', () => {
       expect(screen.getByRole('region', { name: 'Your investor profile' })).toHaveTextContent(
         'Keep the deals you see filtered to your check size, stage and sector.',
       );
-      expect(screen.getByRole('button', { name: 'Review your investor profile' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Update or review your investor profile' })).toBeInTheDocument();
     });
 
     it('still says set up for a profile without a type (created by an access request)', () => {

@@ -80,11 +80,16 @@
   border: none;
   color: #64748b;
   cursor: pointer;
-  padding: 8px;
+  padding:  10px 8px;
   flex-shrink: 0;
 
+  position: absolute;
+  right: 0;
+  background: white;
+  border-radius: 0 7px 7px 0;
+
   &:hover {
-    filter: brightness(0.8);
+    color: #64748b80;
   }
 
   svg {

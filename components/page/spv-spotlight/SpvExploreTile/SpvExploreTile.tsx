@@ -1,7 +1,7 @@
 import React from 'react';
 import { PlCubeMark } from '@/components/common/PlCubeMark/PlCubeMark';
 import { FOCUS_AREAS, PL_FACTS } from '@/components/page/explore-pl-network/data/content';
-import { EXPLORE_PL_NETWORK_PATH } from '@/services/explore-pl-network/constants';
+import { EXPLORE_PL_NETWORK_PATH, PL_NETWORK_ORGANIZATIONS_LABEL } from '@/services/explore-pl-network/constants';
 import { ArrowRightIcon } from '../icons';
 import s from './SpvExploreTile.module.scss';
 
@@ -47,5 +47,21 @@ export const SpvExploreTile = ({ onClick }: Props) => (
       </span>
     </div>
     <PlCubeMark className={s.art} />
+  </a>
+);
+
+/** The invited page's small door to Explore. The locked page keeps the large tile. */
+export const SpvExploreMiniTile = ({ onClick }: Props) => (
+  <a className={s.mini} href={EXPLORE_PL_NETWORK_PATH} target="_blank" rel="noopener noreferrer" onClick={onClick}>
+    <PlCubeMark className={s.miniArt} />
+    <span className={s.miniText}>
+      <span className={s.miniTitle}>Explore the PL network</span>
+      <span className={s.miniBody}>
+        {PL_NETWORK_ORGANIZATIONS_LABEL} organizations across AI, neurotech, digital rights and new economies
+      </span>
+    </span>
+    <span className={s.miniArrow} aria-hidden>
+      <ArrowRightIcon />
+    </span>
   </a>
 );

@@ -9,28 +9,14 @@ type Props = {
   onOpen: () => void;
 };
 
-/**
- * The investor-profile ask, as one sentence with a link (design review
- * 2026-10-07: "better as just a plain sentence w/ a link vs a sectional tile").
- * It sits above the team card; as one quiet line it no longer outranks the SPV.
- * The link opens the investor-profile drawer.
- */
+/** Grey card: one sentence and an inline link. */
 export const SpvInvestorProfileCard = ({ hasProfile, onOpen }: Props) => (
   <p className={s.root}>
-    {hasProfile ? (
-      <>
-        <button type="button" className={s.link} onClick={onOpen}>
-          Review your investor profile
-        </button>{' '}
-        to keep the deals we send you matched to your check size, stages and focus.
-      </>
-    ) : (
-      <>
-        Tell us how you invest, and we&apos;ll only send you deals that fit your check size, stages and focus.{' '}
-        <button type="button" className={s.link} onClick={onOpen}>
-          Set up your investor profile
-        </button>
-      </>
-    )}
+    {hasProfile
+      ? 'Keep the deals you see filtered to your check size, stage and sector. '
+      : "Set your preferences for check size, stage and sector, and we'll filter the deals you see to match. "}
+    <button type="button" className={s.link} onClick={onOpen}>
+      {hasProfile ? 'Review your investor profile' : 'Set up your investor profile'}
+    </button>
   </p>
 );

@@ -34,18 +34,18 @@ export function SpvDataRoomBand({ team, docSendUrl, closesLabel, onClick }: Prop
       <div className={s.text}>
         <h2 className={s.title}>{team.name} SPV</h2>
         <p className={s.body}>
-          Protocol Labs is leading an SPV into the {round} round. The pitch, allocation, minimum check and SPV terms are
-          in the data room.
+          Protocol Labs Capital is leading an SPV into the {round} round. The pitch, allocation, minimum check and SPV
+          terms are in the data room.
         </p>
         {closesLabel && (
           <p className={s.meta}>
             <CalendarBlankIcon width={16} height={16} aria-hidden />
-            Closes {closesLabel}
+            Target close {closesLabel}
           </p>
         )}
       </div>
       <div className={s.action}>
-        <SpvCardAction label="Access data room" href={docSendUrl} stretch onClick={onClick} />
+        <SpvCardAction label="Access data room" href={docSendUrl} tone="success" stretch onClick={onClick} />
       </div>
     </section>
   );

@@ -25,6 +25,11 @@
   text-align: center;
 }
 
+.paragraph {
+  display: block;
+  margin-top: 8px;
+}
+
 .mail {
   color: var(--foreground-brand-secondary_inverted, #4174ff);
   font-weight: 500;

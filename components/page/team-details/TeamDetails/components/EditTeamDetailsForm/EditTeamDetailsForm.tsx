@@ -225,7 +225,7 @@ export const EditTeamDetailsForm = ({ team, userInfo, onClose }: Props) => {
               name="shortDescription"
               placeholder="Add a short description"
               label="Short Description"
-              max={100}
+              max={150}
               description={
                 <>
                   This description appears on your team&apos;s card in the{' '}

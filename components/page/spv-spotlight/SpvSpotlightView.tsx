@@ -36,6 +36,7 @@ import {
   SpvAccessRequestValidationError,
   SpvSpotlightClosedError,
   type SpvAccessRequestPayload,
+  type SpvDetails,
   type SpvSpotlight,
   type SpvViewerAccess,
 } from '@/services/spv-spotlight/types';
@@ -43,19 +44,35 @@ import { checkInvestorProfileComplete } from '@/utils/member.utils';
 import { clearAllAuthCookies } from '@/utils/third-party.helper';
 import { TOAST_MESSAGES } from '@/utils/constants';
 import { SpvTopBar } from './SpvTopBar/SpvTopBar';
+import { PlCapitalLogo } from './PlCapitalLogo';
 import { SpvHero } from './SpvHero/SpvHero';
 import { SpvLockedHero } from './SpvLockedHero/SpvLockedHero';
 import { SpvInvestorProfileCard } from './SpvInvestorProfileCard/SpvInvestorProfileCard';
 import { SpvCardAction, SpvCardStatus, SpvDataRoomNote, SpvTeamCard } from './SpvTeamCard/SpvTeamCard';
+import { SpvDealCard } from './SpvDealCard/SpvDealCard';
 import { SpvDataRoomBand } from './SpvDataRoomBand/SpvDataRoomBand';
-import { SpvExploreTile } from './SpvExploreTile/SpvExploreTile';
+import { SpvExploreMiniTile, SpvExploreTile } from './SpvExploreTile/SpvExploreTile';
 import { SpvFooter } from './SpvFooter/SpvFooter';
 import { SpvRequestAccessModal, type SpvRequestAccessOutcome } from './SpvRequestAccessModal/SpvRequestAccessModal';
 import { SpvRequestReceivedModal } from './SpvRequestReceivedModal/SpvRequestReceivedModal';
 import { getSpvFaqItems, SPV_REQUEST_FLOW_FAQ_ITEMS } from './faq';
 import s from './SpvSpotlightView.module.scss';
 
-const TOP_BAR_LABEL = 'PL Capital Spotlight';
+const TOP_BAR_LABEL = 'Spotlight';
+
+const DEAL_TERM_FIELDS = [
+  ['targetSpvSize', 'Target SPV size'],
+  ['minimumInvestment', 'Minimum investment'],
+  ['managementFee', 'Management fee'],
+  ['expenseReserve', 'Expense reserve'],
+] as const satisfies ReadonlyArray<readonly [keyof SpvDetails, string]>;
+
+function dealTerms(details: SpvDetails) {
+  return DEAL_TERM_FIELDS.flatMap(([key, label]) => {
+    const value = details[key]?.trim();
+    return value ? [{ label, value }] : [];
+  });
+}
 
 type Props = {
   slug: string;
@@ -65,7 +82,7 @@ type Props = {
 /**
  * Investor-facing SPV Spotlight: one SPV, one team. Chromeless (see
  * isBareRoute), unlisted, and built on the completed Demo Day template: hero →
- * team card → Explore PL Network tile → footer.
+ * SPV card → team card → profile and Explore → FAQ → data-room band → footer.
  *
  * Where the viewer stands comes from the backend (`viewerAccess`); this page
  * only renders it.
@@ -213,6 +230,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
   const topBar = (
     <SpvTopBar
       label={TOP_BAR_LABEL}
+      brandMark={<PlCapitalLogo />}
       account={
         isLoggedIn
           ? {
@@ -239,6 +257,15 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
         }}
       />
     </section>
+  );
+
+  const exploreMini = SHOW_EXPLORE_PL_NETWORK && (
+    <SpvExploreMiniTile
+      onClick={() => {
+        const params = baseParams();
+        if (params) analytics.onExploreTileClicked(params);
+      }}
+    />
   );
 
   // The account menu's name item opens it on every state, locked ones included:
@@ -370,8 +397,9 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
           <SpvCardAction
             label="Access data room"
             href={dataRoomUrl}
-            onClick={() => dataRoomClicked('team-card')}
-            note={<SpvDataRoomNote closesLabel={closesLabel} />}
+            tone="success"
+            onClick={() => dataRoomClicked('deal-card')}
+            note={closesLabel ? <SpvDataRoomNote closesLabel={closesLabel} /> : undefined}
           />
         ) : (
           <SpvCardStatus>Data room is being prepared</SpvCardStatus>
@@ -404,12 +432,7 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
             onContactUs={() => contactUs('rejected')}
           />
 
-          {/* Waits for the member read, so a returning investor never sees the set-up ask flip to review. */}
-          {(viewState === 'open' || viewState === 'openingSoon') && memberData && (
-            <section className={s.section} aria-label="Your investor profile">
-              <SpvInvestorProfileCard hasProfile={hasInvestorProfile} onOpen={() => openProfile('profile-card')} />
-            </section>
-          )}
+          <SpvDealCard fundName={spotlight.spvDetails.fundName} terms={dealTerms(spotlight.spvDetails)} action={cardAction} />
 
           <section className={s.section} aria-label={`About ${spotlight.team.name}`}>
             <SpvTeamCard
@@ -418,7 +441,6 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
               team={spotlight.team}
               media={spotlight.media}
               aboutOpen={viewState === 'pending'}
-              action={cardAction}
               onFounderClicked={(memberUid) => {
                 const params = baseParams();
                 if (params) analytics.onFounderProfileClicked({ ...params, member_uid: memberUid });
@@ -427,16 +449,16 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
             />
           </section>
 
-          {exploreTile}
-
-          {dataRoomUrl && (
-            <SpvDataRoomBand
-              team={spotlight.team}
-              docSendUrl={dataRoomUrl}
-              closesLabel={closesLabel}
-              onClick={() => dataRoomClicked('band')}
-            />
-          )}
+          {((viewState === 'open' || viewState === 'openingSoon') && memberData) || exploreMini ? (
+            <div className={s.profileBlock}>
+              {(viewState === 'open' || viewState === 'openingSoon') && memberData && (
+                <section className={s.section} aria-label="Your investor profile">
+                  <SpvInvestorProfileCard hasProfile={hasInvestorProfile} onOpen={() => openProfile('profile-card')} />
+                </section>
+              )}
+              {exploreMini}
+            </div>
+          ) : null}
 
           <section className={s.faqSection}>
             <FAQ
@@ -464,6 +486,15 @@ export function SpvSpotlightView({ slug, initialSpotlight }: Props) {
               }
             />
           </section>
+
+          {dataRoomUrl && (
+            <SpvDataRoomBand
+              team={spotlight.team}
+              docSendUrl={dataRoomUrl}
+              closesLabel={closesLabel}
+              onClick={() => dataRoomClicked('band')}
+            />
+          )}
 
           <SpvFooter supportEmail={spotlight.supportEmail} onSupportEmailClicked={() => supportEmailClicked('footer')} />
         </div>

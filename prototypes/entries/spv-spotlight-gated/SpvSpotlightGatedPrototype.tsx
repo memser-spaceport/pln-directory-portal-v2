@@ -9,10 +9,17 @@ import { PRIVACY_POLICY_URL, TERMS_AND_CONDITIONS_URL } from '@/app/constants/de
 // hero and footer (DemodayCompletedView).
 import d from '@/components/page/demo-day/DemodayCompletedView/DemodayCompletedView.module.scss';
 import { SpvHero, type SpvHeroVariant } from './SpvHero';
-import { SpvExploreTile } from './SpvExploreTile';
+import { SpvExploreMiniTile, SpvExploreTile } from './SpvExploreTile';
 import { SpvNavBar } from './SpvNavBar';
 import { SpvCardAction, SpvCardStatus, SpvTeamSpotlight } from './SpvTeamSpotlight';
-import { netholabs, NETHOLABS_FACTS, NETHOLABS_SUMMARY, NETHOLABS_WEBSITE_IMAGES } from './netholabs';
+import { SpvDealCard } from './SpvDealCard';
+import {
+  netholabs,
+  NETHOLABS_ABOUT,
+  NETHOLABS_BACKED_BY,
+  NETHOLABS_FACTS,
+  NETHOLABS_WEBSITE_IMAGES,
+} from './netholabs';
 import {
   SpvInvestorProfileDrawer,
   hasInvestorProfile,
@@ -33,6 +40,13 @@ import {
   type InvestorKind,
   REQUEST_FLOW_ENABLED,
   spvFaqItems,
+  SPV_FUND_NAME,
+  SPV_TERMS,
+  EXPLORE_CARDS,
+  EXPLORE_OPTIONS,
+  PROFILE_PLACEMENT_OPTIONS,
+  type ExploreOption,
+  type ProfilePlacement,
   VIEWER_OPTIONS,
   type SpvStatus,
   type SpvViewer,
@@ -65,9 +79,20 @@ import s from './SpvSpotlight.module.scss';
  *   production's Demo Day investor drawer. One drawer, no wizard.
  * - **Deadline** (review 2026-10-07): the close date and "allocation, minimum
  *   check and SPV terms are in the data room" under the team card's button.
- *   The data-room button repeats in a band above the FAQ (Charlotte's ask;
- *   removed on 2026-10-07, back 2026-10-08), with the SPV name and close date.
+ *   The data-room button repeats in a band (Charlotte's ask; removed on
+ *   2026-10-07, back 2026-10-08), with the SPV name and close date. It sits
+ *   below the FAQ since 2026-10-12.
  * - The FAQ stays for invited viewers, rewritten for the token model.
+ * - **Netholabs UX updates** (doc, 2026-10-09). The page's job is one click on
+ *   Access data room. Order: hero, a thin SPV card (five key terms, the green
+ *   button, target close; split out of the team card on the 2026-10-12 call),
+ *   the company card (key facts, About with traction and "Backed by PLC
+ *   Neurotech", team), the Q&A, the lower SPV card (moved below the Q&A on
+ *   2026-10-12), and the investor profile card, before or after the Q&A
+ *   (demo bar). The profile strip left the top of
+ *   the page, and the big Explore card became one of three options (demo bar).
+ *   Protocol Labs Capital leads the SPV; the contact address is the SPV's own
+ *   PL Capital mailbox; the footer is legal's text.
  *
  * Still open, to confirm with Anuj / Remy / Mark: what the token link does once
  * it expires or is used on a second device; whether "not on the list" should
@@ -105,7 +130,7 @@ const HINTS: Record<SpvHeroVariant, string> = {
   pending: 'Legacy request flow (flag on).',
   rejected: 'Legacy request flow (flag on).',
   openingSoon: 'Invited, Spotlight still in draft. No DocSend yet.',
-  open: 'The token link logged them in: the button opens the DocSend (no integration, so one label for every visit).',
+  open: 'The token link logged them in: the button opens the SPV’s DocSend. Production also emails them the link from the SPV mailbox.',
   closed: 'Closed — the same message for every viewer.',
 };
 
@@ -123,6 +148,9 @@ export default function SpvSpotlightGatedPrototype() {
   const [investor, setInvestor] = useState<InvestorRecord>(mockInvestorDetails.new);
   const [funds, setFunds] = useState<SpvFund[]>(MOCK_FUNDS);
   const [supportOpen, setSupportOpen] = useState(false);
+  // The lower half of the page, still being decided (open item 5).
+  const [profilePlacement, setProfilePlacement] = useState<ProfilePlacement>('beforeFaq');
+  const [exploreOption, setExploreOption] = useState<ExploreOption>('line');
 
   useEffect(() => setMounted(true), []);
   if (!mounted) return <div className={s.page} />;
@@ -164,13 +192,11 @@ export default function SpvSpotlightGatedPrototype() {
             // Picked in the demo bar: see DATA_ROOM_LABELS.
             label={dataRoomLabel}
             href={mockSpotlight.docSendUrl}
-            // The deadline and where the terms are (review 2026-10-07).
-            note={
-              <>
-                <span className={s.cardActionDeadline}>Closes {mockSpotlight.closesOn}</span>
-                <span className={s.cardActionTerms}>Allocation, minimum check and SPV terms are inside.</span>
-              </>
-            }
+            tone="success"
+            // The deadline (review 2026-10-07). "Allocation, minimum check and
+            // SPV terms are inside" went when the SPV card started showing the
+            // terms beside this button (call, 2026-10-12).
+            note={<span className={s.cardActionDeadline}>Target close {mockSpotlight.closesOn}</span>}
           />
         );
       case 'pending':
@@ -185,6 +211,22 @@ export default function SpvSpotlightGatedPrototype() {
   })();
 
   const hint = HINTS[variant];
+
+  // The investor-profile card, lower on the page (UX updates doc, 2026-10-09):
+  // before or after the Q&A, switched in the demo bar. Options 1 and 3 put a
+  // small Explore tile under it in place of the big Explore card (a text line
+  // until 2026-10-12: "should be a small tile and stand out more"). Both are
+  // left-aligned to the content edge. `lower` adds the extra space the
+  // sections under the Q&A get.
+  const showProfile = variant === 'open' || variant === 'openingSoon';
+  const showExploreMini = !locked && (exploreOption === 'line' || exploreOption === 'lineAndCard');
+  const profileBlock = (lower: boolean) =>
+    showProfile || showExploreMini ? (
+      <div className={clsx(s.profileBlock, lower && s.lowerSection)}>
+        {showProfile && <SpvInvestorProfileCard existing={hasProfile} onOpen={() => setProfileOpen(true)} />}
+        {showExploreMini && <SpvExploreMiniTile />}
+      </div>
+    ) : null;
 
   return (
     <div className={s.page}>
@@ -245,11 +287,41 @@ export default function SpvSpotlightGatedPrototype() {
             </div>
           </>
         )}
+        {!locked && (
+          <>
+            <span className={s.demoLabel}>Profile card</span>
+            <div className={s.segmented}>
+              {PROFILE_PLACEMENT_OPTIONS.map((o) => (
+                <button
+                  key={o.value}
+                  type="button"
+                  className={clsx(s.segment, { [s.segmentActive]: profilePlacement === o.value })}
+                  onClick={() => setProfilePlacement(o.value)}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+            <span className={s.demoLabel}>Explore</span>
+            <div className={s.segmented}>
+              {EXPLORE_OPTIONS.map((o) => (
+                <button
+                  key={o.value}
+                  type="button"
+                  className={clsx(s.segment, { [s.segmentActive]: exploreOption === o.value })}
+                  onClick={() => setExploreOption(o.value)}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
         <span className={s.demoHint}>{hint}</span>
       </div>
 
       <SpvNavBar
-        label="PL Spotlight"
+        label="Spotlight"
         account={
           isLoggedIn
             ? {
@@ -277,11 +349,10 @@ export default function SpvSpotlightGatedPrototype() {
             onContactUs={() => setSupportOpen(true)}
           />
 
-          {/* One sentence with a link (Anuj, review 2026-10-07), above the team
-              card: briefly after it, moved back above the same day. */}
-          {(variant === 'open' || variant === 'openingSoon') && (
-            <SpvInvestorProfileCard existing={hasProfile} onOpen={() => setProfileOpen(true)} />
-          )}
+          {/* The SPV first, then the team it invests in (call, 2026-10-12): a
+              thin card with the vehicle's five key terms and the data-room
+              button, above the fold. */}
+          {!locked && <SpvDealCard fundName={SPV_FUND_NAME} details={SPV_TERMS} action={cardAction} />}
 
           {/* The team is only for invited viewers: a locked page shows nothing
               of the deal (2026-10-01; earlier it was public directory info). */}
@@ -290,51 +361,31 @@ export default function SpvSpotlightGatedPrototype() {
               <SpvTeamSpotlight
                 team={netholabs}
                 facts={NETHOLABS_FACTS}
-                summary={NETHOLABS_SUMMARY}
-                images={NETHOLABS_WEBSITE_IMAGES}
-                aboutHtml={netholabs.team.longDescription ?? undefined}
+                about={NETHOLABS_ABOUT}
                 aboutOpen={variant === 'pending'}
-                action={cardAction}
+                images={NETHOLABS_WEBSITE_IMAGES}
+                backedBy={NETHOLABS_BACKED_BY}
                 // Remount when the state changes so the default open/closed applies.
                 key={variant === 'pending' ? 'open' : 'closed'}
               />
             </section>
           )}
 
-          {/* Explore PL Network stays on the page, in its big version for
-              everyone: the KPIs and focus areas give a snapshot of the network
-              (review 2026-10-02 — it started as the locked page's version). */}
-          <section className={s.exploreSection} aria-label="Explore the PL Network">
-            <SpvExploreTile featured />
-          </section>
-
-          {/* The data-room button again before the FAQ, to drive click-through
-              (Charlotte, review 2026-10-07; back 2026-10-08). Open state only. */}
-          {variant === 'open' && (
-            <section className={s.ctaBand} aria-label="Data room">
-              {/* More in the band (2026-10-08), all facts the page already has:
-                  the logo, who leads the SPV into which round (the Spotlight
-                  description, the team's stage), what the data room holds,
-                  and the close date. */}
-              <img className={s.ctaBandLogo} src={netholabs.logoUrl} alt="" />
-              <div className={s.ctaBandText}>
-                <h2 className={s.ctaBandTitle}>{netholabs.name} SPV</h2>
-                <p className={s.ctaBandBody}>
-                  Protocol Labs is leading an SPV into the {netholabs.name}{' '}
-                  {(netholabs.team.fundingStage?.title ?? '').toLowerCase()} round. The pitch, allocation, minimum check
-                  and SPV terms are in the data room.
-                </p>
-                <p className={s.ctaBandMeta}>
-                  <CalendarBlankIcon width={16} height={16} aria-hidden />
-                  Closes {mockSpotlight.closesOn}
-                </p>
-              </div>
-              <SpvCardAction label={dataRoomLabel} href={mockSpotlight.docSendUrl} />
+          {/* A locked page keeps the big Explore card: it is a visitor's only
+              door (2026-10-01). Invited viewers get one of the lower-half
+              options instead (UX updates doc, 2026-10-09). */}
+          {locked && (
+            <section className={s.exploreSection} aria-label="Explore the PL Network">
+              <SpvExploreTile featured />
             </section>
           )}
 
+          {profilePlacement === 'beforeFaq' && profileBlock(false)}
+
           {!locked && (
-            <section className={d.sectionFaq}>
+            <section
+              className={clsx(d.sectionFaq, profilePlacement === 'beforeFaq' && profileBlock(false) && s.faqAfterProfile)}
+            >
               <FAQ
                 title="Questions investors ask"
                 // The FAQ names the button, so it follows the label switch.
@@ -356,20 +407,79 @@ export default function SpvSpotlightGatedPrototype() {
             </section>
           )}
 
-          <footer className={d.footer}>
+          {/* The data-room button again, to drive click-through (Charlotte, review
+              2026-10-07; back 2026-10-08). Open state only. Below the Q&A since
+              2026-10-12: the last thing on the page before the footer area. */}
+          {variant === 'open' && (
+            <section className={clsx(s.ctaBand, s.lowerSection)} aria-label="Data room">
+              {/* More in the band (2026-10-08), all facts the page already has:
+                  the logo, who leads the SPV into which round (the Spotlight
+                  description, the team's stage), what the data room holds,
+                  and the close date. */}
+              <img className={s.ctaBandLogo} src={netholabs.logoUrl} alt="" />
+              <div className={s.ctaBandText}>
+                <h2 className={s.ctaBandTitle}>{netholabs.name} SPV</h2>
+                <p className={s.ctaBandBody}>
+                  Protocol Labs Capital is leading an SPV into the {netholabs.name}{' '}
+                  {(netholabs.team.fundingStage?.title ?? '').toLowerCase()} round. The pitch, allocation, minimum check
+                  and SPV terms are in the data room.
+                </p>
+                <p className={s.ctaBandMeta}>
+                  <CalendarBlankIcon width={16} height={16} aria-hidden />
+                  Target close {mockSpotlight.closesOn}
+                </p>
+              </div>
+              <SpvCardAction label={dataRoomLabel} href={mockSpotlight.docSendUrl} tone="success" />
+            </section>
+          )}
+
+          {profilePlacement === 'afterFaq' && profileBlock(true)}
+
+          {!locked && exploreOption === 'cards' && (
+            <section className={clsx(s.exploreCards, s.lowerSection)} aria-label="Explore more">
+              {EXPLORE_CARDS.map((c) => (
+                <a key={c.title} className={s.exploreCard} href={c.href} target="_blank" rel="noopener noreferrer">
+                  <span className={s.exploreCardTitle}>
+                    {c.title} <ArrowRightIcon />
+                  </span>
+                  <span className={s.exploreCardBody}>{c.body}</span>
+                </a>
+              ))}
+            </section>
+          )}
+
+          {!locked && exploreOption === 'lineAndCard' && (
+            <section className={clsx(s.exploreSection, s.lowerSection)} aria-label="Explore the PL Network">
+              <SpvExploreTile featured />
+            </section>
+          )}
+
+          <footer className={clsx(d.footer, s.lowerSection)}>
             <div className={d.note}>
               © 2026 Protocol Labs.
               {/* Locked pages carry no address: Contact us above is the way to
                   ask (review 2026-10-05). */}
+              {/* Legal's text in full (UX updates doc, 2026-10-09). It ended
+                  with labos@plnetwork.io; the SPV's PL Capital mailbox is
+                  swapped in, as legal asked for a PL Capital address. Michael
+                  to confirm. */}
               {!locked && (
                 <>
                   {' '}
-                  All content is provided by the founders. Protocol Labs does not endorse or recommend any investment,
-                  and is not a broker, dealer, or advisor. Questions? Write to{' '}
-                  <a href={`mailto:${mockSpotlight.supportEmail}`} className={d.infoLink}>
-                    {mockSpotlight.supportEmail}
-                  </a>
-                  .
+                  This is a webpage for PLC Neurotech SPV - Netholabs I LLC, managed by PLC Neurotech MGMT LP. The SPV
+                  relies on Rule 506(c) and anticipates investing in Netholabs Ltd. SPV interests are unregistered,
+                  illiquid securities with a high degree of risk offered only to verified accredited investors and only
+                  through the SPV&apos;s offering documents, which govern over this page. There is no guarantee the SPV
+                  will complete its anticipated investment or that any investment will perform.
+                  <span className={s.footerParagraph}>
+                    Information about the featured team is provided by its founders. Protocol Labs does not endorse or
+                    recommend any investment, may hold an interest in the featured company, and is not a broker, dealer,
+                    or advisor. Questions? Write to{' '}
+                    <a href={`mailto:${mockSpotlight.supportEmail}`} className={d.infoLink}>
+                      {mockSpotlight.supportEmail}
+                    </a>
+                    .
+                  </span>
                 </>
               )}
             </div>
@@ -446,3 +556,15 @@ export default function SpvSpotlightGatedPrototype() {
     </div>
   );
 }
+
+const ArrowRightIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+    <path
+      d="M3 8h10M9 4l4 4-4 4"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);

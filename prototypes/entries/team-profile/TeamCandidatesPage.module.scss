@@ -401,10 +401,120 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-/* Invited to apply: the Reviewed state's paint on a status, not a press. */
-.invited {
-  cursor: default;
-  user-select: none;
+/* Suggested tab — Good match / Not a match, then Email past a divider
+ * (LAB-2819). Good match is the Reviewed switch (`.reviewBtn.isReviewed`);
+ * Not a match is the same bordered neutral at rest and a quiet grey once
+ * pressed — a verdict on the matcher, not an alarm, so no error red. */
+.ratingGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.actionsDivider {
+  align-self: stretch;
+  width: 1px;
+  margin: 4px 4px;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.notMatchIcon {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  transition: color 160ms ease;
+}
+
+.notMatchBtn:hover:not(:disabled) .notMatchIcon,
+.notMatchBtn:focus-visible .notMatchIcon {
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Under `.paneActions` for the same specificity reason as `.isReviewed`. */
+.paneActions .notMatchBtn.isNotMatch {
+  &,
+  &:hover:not(:disabled),
+  &:active:not(:disabled) {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    box-shadow: none;
+  }
+
+  .notMatchIcon {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+/* Why not — a white strip under the bar, the bar's own card treatment. */
+.reasonStrip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 8px;
+  padding: 12px 16px;
+  background: var(--background-base-white, #fff);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.08);
+}
+
+.reasonLabel {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.reasonOptional {
+  margin-left: 4px;
+  font-weight: 400;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.reasonChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.reasonChip {
+  white-space: nowrap;
+}
+
+/* The picked reason: the control-chip lineage's brand selected state. */
+.reasonChips .reasonChip.reasonChipOn {
+  &,
+  &:hover:not(:disabled) {
+    color: var(--foreground-brand-primary, #1b4dff);
+    border-color: var(--foreground-brand-primary, #1b4dff);
+    background: var(--background-brand-subtle, #e6eeff);
+    box-shadow: none;
+  }
+}
+
+@include media.mobile-only {
+  .actionsDivider {
+    display: none;
+  }
+
+  .paneActions {
+    flex-wrap: wrap;
+  }
+
+  .ratingGroup {
+    width: 100%;
+
+    > * {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notMatchIcon {
+    transition: none;
+  }
 }
 
 /* The note and its one control on a wrapping row: the sentence, then Edit

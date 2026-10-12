@@ -44,7 +44,6 @@ import { CandidateMemberPage } from './CandidateMemberPage';
 import { Tabs } from '@/components/ui/tabs/Tabs';
 
 import {
-  matchWorking,
   sortSuggested,
   suggestionMatch,
   visibleSuggested,
@@ -235,13 +234,16 @@ interface Props {
  *     network signal. Applied and Interested stay newest-first: those people
  *     chose to be here, and re-ranking them by our guess would bury someone
  *     the founder owes a look.
- *   - **The press is Invite to apply**, not Email or Mark as reviewed. It is
- *     the one thing a team does with a suggestion, and it cannot be taken back
- *     (the member is notified), so it turns into the state and stays.
+ *   - **Rate, then contact — two separate acts (LAB-2819).** The bar carries
+ *     **Good match** and **Not a match**, a pair of switches, and **Email**
+ *     beside them past a divider. Rating tells the matcher whether it was
+ *     right and writes to nobody; Email is the contact and records no rating.
+ *     "Not a match" opens five optional reasons under the bar (Wrong skills,
+ *     Wrong seniority, Wrong location, Already know them, Other). The rating
+ *     is the team's working, never shown to the member. (This replaced
+ *     **Invite to apply**, which was a contact and a verdict in one press.)
  * The note under the tabs says the one thing nothing else on the page can:
- * these members agreed to be found. No "Not a fit" dismissal — a short list
- * needs no pruning, and hidden negative marks on members are the score's
- * problem again.
+ * these members are in the network and haven't applied.
  *
  * **Mobile: one column at a time.** The split needs ~900px; below the tablet
  * breakpoint the list shows alone and a row opens the pane full-width with a
@@ -274,10 +276,21 @@ export function TeamCandidatesPage({
       else next.add(id);
       return next;
     });
-  // Who the team has invited to apply, and when — session-local, like `seenIds`.
-  const [invitedAt, setInvitedAt] = useState<Record<string, string>>({});
-  const invite = (id: string) =>
-    setInvitedAt((prev) => (prev[id] ? prev : { ...prev, [id]: new Date().toISOString() }));
+  // The lead's rating of each suggestion, and the optional reason for a miss —
+  // session-local, like `seenIds`. Pressing the pressed rating clears it.
+  const [ratings, setRatings] = useState<Record<string, SuggestionRating>>({});
+  const rate = (id: string, verdict: SuggestionRating['verdict']) =>
+    setRatings((prev) => {
+      const next = { ...prev };
+      if (prev[id]?.verdict === verdict) delete next[id];
+      else next[id] = { verdict };
+      return next;
+    });
+  const giveReason = (id: string, reason: NotAMatchReason) =>
+    setRatings((prev) => ({
+      ...prev,
+      [id]: { verdict: 'not', reason: prev[id]?.reason === reason ? undefined : reason },
+    }));
   // Mobile only: whether the pane is showing instead of the list.
   // A link to one person (the email's names) opens on their pane there too.
   const [paneOpen, setPaneOpen] = useState(Boolean(initialSelectedId));
@@ -449,12 +462,24 @@ export function TeamCandidatesPage({
     const next = shown[position + delta];
     if (next) select(next);
   };
-  const emailHref =
-    selected && !isSuggested(selected)
-      ? `mailto:${selected.email}?subject=${encodeURIComponent(
-          'note' in selected ? `Your application for ${role.title}` : `Your interest in ${role.title}`,
-        )}`
-      : '';
+  const emailHref = selected
+    ? `mailto:${selected.email}?subject=${encodeURIComponent(
+        isSuggested(selected)
+          ? `Our ${role.title} role at ${teamName}`
+          : 'note' in selected
+            ? `Your application for ${role.title}`
+            : `Your interest in ${role.title}`,
+      )}`
+    : '';
+  const rating = selected ? ratings[selected.id] : undefined;
+  /* The page's one filled press, so it wears the product's headline-primary
+     treatment (`fb.glossy`) — see the import. */
+  const emailButton = selected && (
+    <a href={emailHref} className={clsx(btn.root, btn.small, btn.fill, btn.primary, fb.glossy, s.actionLink)}>
+      <EnvelopeIcon size={14} />
+      Email {selected.name.split(' ')[0]}
+    </a>
+  );
 
   const paneBar = selected && (
     <div className={s.paneBar} data-tour="candidate-actions">
@@ -485,28 +510,39 @@ export function TeamCandidatesPage({
       </div>
       {isSuggested(selected) ? (
         <div className={s.paneActions}>
-          {/* One press, and it stays pressed: the member is notified, so there
-              is no second press that takes it back. At rest it is the page's
-              filled primary; once sent it is the Reviewed state's own success
-              pair, as a status and no longer a button. */}
-          {invitedAt[selected.id] ? (
-            <span
-              className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.reviewBtn, s.isReviewed, s.invited)}
-              role="status"
-            >
-              <ReviewCheckIcon size={16} state="filled" className={s.reviewIcon} />
-              Invited to apply
-            </span>
-          ) : (
+          {/* The rating, apart from the contact (LAB-2819): a pair of switches
+              the lead can press without writing to anyone, and Email beside
+              them that records nothing. A divider keeps them two groups. */}
+          <div className={s.ratingGroup} role="group" aria-label="Rate this match">
             <button
               type="button"
-              className={clsx(btn.root, btn.small, btn.fill, btn.primary, fb.glossy, s.actionLink)}
-              onClick={() => invite(selected.id)}
+              className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.reviewBtn, {
+                [s.isReviewed]: rating?.verdict === 'good',
+              })}
+              onClick={() => rate(selected.id, 'good')}
+              aria-pressed={rating?.verdict === 'good'}
             >
-              <EnvelopeIcon size={14} />
-              Invite {selected.name.split(' ')[0]} to apply
+              <ReviewCheckIcon
+                size={16}
+                state={rating?.verdict === 'good' ? 'filled' : 'outline'}
+                className={s.reviewIcon}
+              />
+              Good match
             </button>
-          )}
+            <button
+              type="button"
+              className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.reviewBtn, s.notMatchBtn, {
+                [s.isNotMatch]: rating?.verdict === 'not',
+              })}
+              onClick={() => rate(selected.id, 'not')}
+              aria-pressed={rating?.verdict === 'not'}
+            >
+              <NotMatchIcon filled={rating?.verdict === 'not'} />
+              Not a match
+            </button>
+          </div>
+          <span className={s.actionsDivider} aria-hidden="true" />
+          {emailButton}
         </div>
       ) : (
         <div className={s.paneActions}>
@@ -529,14 +565,35 @@ export function TeamCandidatesPage({
             />
             {reviewedIds.has(selected.id) ? 'Reviewed' : 'Mark as reviewed'}
           </button>
-          {/* The page's one filled press, so it wears the product's headline-primary
-            treatment (`fb.glossy`) — see the import. */}
-          <a href={emailHref} className={clsx(btn.root, btn.small, btn.fill, btn.primary, fb.glossy, s.actionLink)}>
-            <EnvelopeIcon size={14} />
-            Email {selected.name.split(' ')[0]}
-          </a>
+          {emailButton}
         </div>
       )}
+    </div>
+  );
+
+  /* Why not — optional, under the bar, only once "Not a match" is pressed.
+     Five reasons as one-tap chips; ignoring them is skipping, so there is no
+     Skip button to press. The picked one stays pressed and can be unpicked. */
+  const reasonStrip = selected && isSuggested(selected) && rating?.verdict === 'not' && (
+    <div className={s.reasonStrip} role="group" aria-label="Why not a match (optional)">
+      <span className={s.reasonLabel}>
+        Why not? <span className={s.reasonOptional}>Optional</span>
+      </span>
+      <div className={s.reasonChips}>
+        {NOT_A_MATCH_REASONS.map((r) => (
+          <button
+            key={r}
+            type="button"
+            className={clsx(btn.root, btn.xs, btn.border, btn.neutral, s.reasonChip, {
+              [s.reasonChipOn]: rating.reason === r,
+            })}
+            aria-pressed={rating.reason === r}
+            onClick={() => giveReason(selected.id, r)}
+          >
+            {r}
+          </button>
+        ))}
+      </div>
     </div>
   );
 
@@ -590,12 +647,12 @@ export function TeamCandidatesPage({
             {tab === SUGGESTED_TAB && (
               <div className={s.suggestedNote}>
                 <p className={s.tabNote}>
-                  Members who let hiring teams find them, matched to this role on their profile. They haven’t applied.
+                  Members of the Protocol Labs network, matched to this role on their profile. They haven’t applied.
                 </p>
                 {/* What every row below was matched against, said once, so a
                     lead reading "4 of 5 requirements" knows which five. Edit
-                    criteria moved here from the end of the sentence above: a
-                    control sits beside the thing it changes. */}
+                    criteria is in the pane's Why we suggested header now
+                    (LAB-2819), beside the checklist it changes. */}
                 {criteria.length > 0 && (
                   <div className={s.tabNoteRow}>
                     <p className={s.tabNote}>
@@ -605,13 +662,6 @@ export function TeamCandidatesPage({
                         .map((c) => c.label)
                         .join(' · ')}
                     </p>
-                    <button
-                      type="button"
-                      className={clsx(btn.root, btn.xs, btn.link, btn.primary)}
-                      onClick={() => setCriteriaOpen(true)}
-                    >
-                      Edit criteria
-                    </button>
                   </div>
                 )}
               </div>
@@ -627,9 +677,8 @@ export function TeamCandidatesPage({
                     candidate={a}
                     isNew={!isSuggested(a) && a.unseen && !seenIds.has(a.id)}
                     reviewed={reviewedIds.has(a.id)}
-                    invitedAt={invitedAt[a.id]}
+                    rating={isSuggested(a) ? ratings[a.id]?.verdict : undefined}
                     match={isSuggested(a) ? suggestionMatch(a, criteria, off) : undefined}
-                    unmet={isSuggested(a) ? matchWorking(a, criteria, off).unmet : undefined}
                     last={index === shown.length - 1}
                     selected={!isMobile && a.id === selectedId}
                     onSelect={() => select(a)}
@@ -655,6 +704,7 @@ export function TeamCandidatesPage({
         {showPane && selected && (
           <div className={s.paneCol}>
             {paneBar}
+            {reasonStrip}
             <CandidateMemberPage
               key={selected.id}
               candidate={selected}
@@ -669,6 +719,7 @@ export function TeamCandidatesPage({
                     criteria={criteria}
                     off={off}
                     match={suggestionMatch(selected, criteria, off)}
+                    onEditCriteria={criteria.length > 0 ? () => setCriteriaOpen(true) : undefined}
                   />
                 ) : !('note' in selected) ? (
                   /* The interest press: its date, the note when the candidate
@@ -748,6 +799,32 @@ export function TeamCandidatesPage({
     </div>
   );
 }
+
+/** The five reasons a lead can give for "Not a match" (LAB-2819), in this order. */
+const NOT_A_MATCH_REASONS = [
+  'Wrong skills',
+  'Wrong seniority',
+  'Wrong location',
+  'Already know them',
+  'Other',
+] as const;
+type NotAMatchReason = (typeof NOT_A_MATCH_REASONS)[number];
+/** A lead's rating of one suggestion; `reason` only on a miss, and optional there. */
+interface SuggestionRating {
+  verdict: 'good' | 'not';
+  reason?: NotAMatchReason;
+}
+
+/* "Not a match"'s glyph — a ring with a dash, the counterpart of Good match's
+   ring with a check (`ReviewCheckIcon`), filled grey once pressed. A dash, not
+   the DS ✕: the ✕ means dismiss everywhere else, and the person stays in the
+   list. */
+const NotMatchIcon = ({ filled }: { filled: boolean }) => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" className={s.notMatchIcon}>
+    <circle cx="8" cy="8" r="6.3" stroke="currentColor" strokeWidth="1.4" fill={filled ? 'currentColor' : 'none'} />
+    <path d="M5.5 8h5" stroke={filled ? '#fff' : 'currentColor'} strokeWidth="1.4" strokeLinecap="round" />
+  </svg>
+);
 
 /* BackButton's glyph, which it doesn't export. */
 const BackIcon = () => (

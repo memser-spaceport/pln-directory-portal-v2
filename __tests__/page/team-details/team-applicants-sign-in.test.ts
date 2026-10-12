@@ -79,6 +79,12 @@ describe('applicantsEarlyRedirect', () => {
     expect(backlinkOf(target)).toBe('/teams/team-1/applicants?role=r%26x%3D1');
   });
 
+  it('keeps a team id with reserved characters inside the return path', () => {
+    expect(backlinkOf(ask({ teamId: 'a?b#c', searchParams: { role: 'role-1' } }))).toBe(
+      '/teams/a%3Fb%23c/applicants?role=role-1',
+    );
+  });
+
   /* `isLoggedIn` is `''` for a signed-out request, as for `canReadApplicants`. */
   it("treats the header's empty string as signed out", () => {
     expect(backlinkOf(ask({ isLoggedIn: '' }))).toBe('/teams/team-1/applicants?role=role-1&suggested=member-1');

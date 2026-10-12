@@ -3,7 +3,10 @@ import { RedirectType, redirect } from 'next/navigation';
 
 import Error from '@/components/core/error';
 import { TeamApplicantsView } from '@/components/page/team-details/TeamApplicants';
-import { applicantsEarlyRedirect } from '@/components/page/team-details/TeamApplicants/applicantsEarlyRedirect';
+import {
+  applicantsEarlyRedirect,
+  type CandidatesLinkFields,
+} from '@/components/page/team-details/TeamApplicants/applicantsEarlyRedirect';
 import { canReadApplicants } from '@/components/page/team-details/TeamApplicants/canReadApplicants';
 import { knowsPermissions } from '@/components/page/team-details/utils/viewerPermissions';
 import { selectTeamOpenRoles } from '@/components/page/team-details/TeamOpenRoles/selectTeamOpenRoles';
@@ -38,10 +41,7 @@ import styles from './page.module.scss';
  * None of this is a security boundary — the endpoints enforce the same rule
  * server-side. This is the affordance.
  */
-async function Page(props: {
-  params: Promise<ITeamDetailParams>;
-  searchParams: Promise<{ role?: string; candidate?: string; suggested?: string }>;
-}) {
+async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: Promise<CandidatesLinkFields> }) {
   const params = await props.params;
   const searchParams = await props.searchParams;
   const teamId: string = params?.id;

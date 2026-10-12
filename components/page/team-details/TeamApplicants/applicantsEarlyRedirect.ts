@@ -3,7 +3,7 @@ import { PAGE_ROUTES } from '@/utils/constants';
 /** The link fields the Candidates page reads. Nothing else survives sign-in. */
 const KEPT_FIELDS = ['role', 'candidate', 'suggested'] as const;
 
-type CandidatesLinkFields = Partial<Record<(typeof KEPT_FIELDS)[number], string>>;
+export type CandidatesLinkFields = Partial<Record<(typeof KEPT_FIELDS)[number], string>>;
 
 /**
  * Where the Candidates page sends a reader before it fetches the team, or
@@ -55,7 +55,9 @@ export function applicantsEarlyRedirect({
   }
 
   const query = kept.toString();
-  const returnTo = `${teamProfile}/applicants${query ? `?${query}` : ''}`;
+  /* Encoded here, unlike the profile path: Next hands the page a decoded id, and
+     a `?` or `#` in it would end the return path early. */
+  const returnTo = `${PAGE_ROUTES.TEAMS}/${encodeURIComponent(teamId)}/applicants${query ? `?${query}` : ''}`;
 
   return `/members?backlink=${encodeURIComponent(returnTo)}#login`;
 }

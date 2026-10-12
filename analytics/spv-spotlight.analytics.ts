@@ -31,7 +31,7 @@ export type SpvTeamWebsiteSource = 'fact-strip' | 'carousel';
 // 'faq' is the FAQ subtitle's link; 'faq-answer' the one inside "Why can't I open this page?".
 export type SpvSupportEmailSource = 'faq' | 'faq-answer' | 'footer';
 /** Which of the page's two "Access data room" buttons was pressed. */
-export type SpvDataRoomSource = 'team-card' | 'band';
+export type SpvDataRoomSource = 'deal-card' | 'band';
 
 export const useSpvSpotlightAnalytics = () => {
   const postHog = usePostHog();

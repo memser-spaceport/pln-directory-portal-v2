@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import type { SpvTeamWebsiteSource } from '@/analytics/spv-spotlight.analytics';
 import type { SpvMedia, SpvTeam } from '@/services/spv-spotlight/types';
 import { sanitizeSpvHtml } from '@/utils/html/sanitizeSpvHtml';
+import { collapseSpvAbout } from '@/utils/html/collapseSpvAbout';
 import { ArrowRightIcon, ArrowUpRightIcon, ExternalIcon, LockIcon } from '../icons';
 import { SpvMediaCarousel } from '../SpvMediaCarousel/SpvMediaCarousel';
 import s from './SpvTeamCard.module.scss';
@@ -34,12 +35,15 @@ export const SpvCardAction = ({
   onClick,
   note,
   stretch = false,
+  tone = 'brand',
 }: {
   label: string;
   href?: string;
   onClick?: () => void;
   note?: React.ReactNode;
   stretch?: boolean;
+  /** Green for Access data room. The request button stays brand blue. */
+  tone?: 'brand' | 'success';
 }) => (
   <div className={clsx(s.cardAction, note && s.cardActionWithNote)}>
     {href ? (
@@ -47,13 +51,17 @@ export const SpvCardAction = ({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className={clsx(s.cardActionButton, stretch && s.cardActionButtonStretch)}
+        className={clsx(s.cardActionButton, tone === 'success' && s.cardActionButtonSuccess, stretch && s.cardActionButtonStretch)}
         onClick={onClick}
       >
         {label} <ExternalIcon />
       </a>
     ) : (
-      <button type="button" className={s.cardActionButton} onClick={onClick}>
+      <button
+        type="button"
+        className={clsx(s.cardActionButton, tone === 'success' && s.cardActionButtonSuccess)}
+        onClick={onClick}
+      >
         {label} <ArrowRightIcon />
       </button>
     )}
@@ -61,12 +69,9 @@ export const SpvCardAction = ({
   </div>
 );
 
-/** The open data room's note: the close date (when the admin set one) and where the terms are. */
-export const SpvDataRoomNote = ({ closesLabel }: { closesLabel: string | null }) => (
-  <>
-    {closesLabel && <span className={s.cardActionDeadline}>Closes {closesLabel}</span>}
-    <span className={s.cardActionTerms}>Allocation, minimum check and SPV terms are inside.</span>
-  </>
+/** The open data room's close date, when the admin set one. */
+export const SpvDataRoomNote = ({ closesLabel }: { closesLabel: string }) => (
+  <span className={s.cardActionDeadline}>Target close {closesLabel}</span>
 );
 
 /** The quiet line that holds the slot when there's nothing to press. */
@@ -87,16 +92,24 @@ export const SpvCardStatus = ({ children }: { children: React.ReactNode }) => (
 export function SpvTeamCard({ team, media, aboutOpen = false, action, onFounderClicked, onWebsiteClicked }: Props) {
   const [showFull, setShowFull] = useState(aboutOpen);
   const aboutHtml = useMemo(() => sanitizeSpvHtml(team.longDescription), [team.longDescription]);
+  const collapsedAbout = useMemo(() => collapseSpvAbout(aboutHtml), [aboutHtml]);
   const rawWebsite = team.website?.trim() ?? '';
   // Directory websites are free text ("www.netholabs.com"); without a scheme the
   // href would resolve as a path on this site.
   const website = rawWebsite && !/^https?:\/\//i.test(rawWebsite) ? `https://${rawWebsite}` : rawWebsite;
   const host = rawWebsite.replace(/^https?:\/\//i, '').replace(/\/$/, '');
-  const summary = team.summary?.trim() || team.shortDescription;
 
   const facts: { label: string; value: React.ReactNode }[] = [
     { label: 'Stage', value: team.fundingStage || 'Not specified' },
-    { label: 'Headquarters', value: team.location || '—' },
+    {
+      label: 'Offices',
+      value: (
+        <span className={s.factLines}>
+          <span>🇺🇸 San Francisco, US</span>
+          <span>🇬🇧 London, UK</span>
+        </span>
+      ),
+    },
     { label: 'Team size', value: team.teamSize ? `${team.teamSize} people` : '—' },
     {
       label: 'Website',
@@ -138,31 +151,47 @@ export function SpvTeamCard({ team, media, aboutOpen = false, action, onFounderC
       </dl>
 
       <div className={s.body}>
-        {media.length > 0 && (
-          <SpvMediaCarousel
-            images={media}
-            label={`${team.name}, from its website`}
-            sourceUrl={website}
-            onSourceClicked={() => onWebsiteClicked?.('carousel')}
-          />
-        )}
+        <div className={s.mediaColumn}>
+          {media.length > 0 && (
+            <SpvMediaCarousel
+              images={media}
+              label={`${team.name}, from its website`}
+              sourceUrl={website}
+              onSourceClicked={() => onWebsiteClicked?.('carousel')}
+            />
+          )}
+          <div className={s.backedBy}>
+            <span className={s.asideLabel}>Backed by</span>
+            <a
+              className={s.backedByLink}
+              href="https://www.plneuro.xyz/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="PLC Neurotech (opens in a new tab)"
+            >
+              <img src="/images/spv-spotlight/plc-neurotech-logo.png" alt="PLC Neurotech" className={s.backedByLogo} />
+              <ExternalIcon />
+            </a>
+          </div>
+        </div>
 
         <div className={s.aside}>
           <section className={s.asideBlock}>
             <h3 className={s.asideLabel}>About</h3>
-            {showFull && aboutHtml ? (
-              <div className={s.aboutFull} dangerouslySetInnerHTML={{ __html: aboutHtml }} />
-            ) : (
-              <p className={s.summary}>{summary}</p>
-            )}
-            {aboutHtml && (
+            {aboutHtml ? (
+              <div
+                className={s.aboutFull}
+                dangerouslySetInnerHTML={{ __html: showFull ? aboutHtml : collapsedAbout.html }}
+              />
+            ) : null}
+            {aboutHtml && collapsedAbout.hasMore && (
               <button
                 type="button"
                 className={s.aboutToggle}
                 onClick={() => setShowFull((v) => !v)}
                 aria-expanded={showFull}
               >
-                {showFull ? 'Show less' : 'Read all'}
+                {showFull ? 'Show less' : 'Show more'}
               </button>
             )}
           </section>

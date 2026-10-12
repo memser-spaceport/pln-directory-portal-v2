@@ -90,10 +90,14 @@
   justify-content: center;
   background: none;
   border: none;
-  padding: 4px 12px 4px 4px;
+  padding: 10px;
   cursor: pointer;
   flex-shrink: 0;
   color: #94a3b8;
+
+  position: absolute;
+  right: 17px;
+  background: white;
 
   &:hover {
     color: #64748b;

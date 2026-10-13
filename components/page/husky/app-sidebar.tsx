@@ -365,6 +365,10 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
       <Sidebar>
         <div data-state={state} className="sidebar__header">
           <div className="sidebar__header__logo-container">
+            <span className="sidebar__header__title">
+              <span className="sidebar__header__title__icon" aria-hidden="true" />
+              AI Search
+            </span>
             <button className="sidebar__header__logo-icon-button" onClick={handleSidebarToggle}>
               <img src="/icons/sidenav-close.svg" alt="toggle sidebar" />
             </button>
@@ -486,8 +490,27 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           height: 35px;
           display: flex;
           align-items: center;
-          justify-content: flex-end;
+          justify-content: space-between;
           padding-bottom: 12px;
+        }
+
+        .sidebar__header__title {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          color: #0a0c11;
+          font-size: 16px;
+          font-weight: 600;
+          line-height: 24px;
+          white-space: nowrap;
+        }
+
+        .sidebar__header__title__icon {
+          flex-shrink: 0;
+          width: 20px;
+          height: 20px;
+          background: linear-gradient(285deg, #45d8ff 0%, #005bea 82.52%);
+          mask: url('/icons/ai-search.svg') center / contain no-repeat;
         }
 
         .sidebar__header__newConversation {
@@ -793,7 +816,8 @@ const AppSidebar = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
             display: flex;
           }
 
-          .sidebar__header__logo-container {
+          .sidebar__header__logo-icon-button,
+          .sidebar__header[data-state='collapsed'] .sidebar__header__logo-container {
             display: none;
           }
         }

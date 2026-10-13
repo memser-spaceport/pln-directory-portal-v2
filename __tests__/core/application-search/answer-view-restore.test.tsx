@@ -121,7 +121,7 @@ describe('AnswerView continue link', () => {
   it('links to the thread once the backend has one', () => {
     render(<AnswerView {...baseProps} isThreadPersisted />);
 
-    expect(continueLink()).toHaveAttribute('href', '/husky/chat/t1');
+    expect(continueLink()).toHaveAttribute('href', '/ai-search/t1');
     expect(screen.getByRole('link', { name: /Continue in AI Search/i })).toBeInTheDocument();
   });
 

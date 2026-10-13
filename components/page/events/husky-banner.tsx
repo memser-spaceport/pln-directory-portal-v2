@@ -39,10 +39,10 @@ export default function HuskyBanner(props: any) {
               iconWidth={24}
               iconHeight={24}
               buttonHeight="48px"
-              buttonWidth="172px"
+              buttonWidth="188px"
               textColor="#156FF7"
             >
-              Ask Husky
+              Ask AI Search
             </ShadowButton>
           </a>
         </div>

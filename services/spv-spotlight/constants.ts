@@ -4,6 +4,21 @@
  */
 export const SHOW_SPV_SPOTLIGHT: boolean = process.env.NEXT_PUBLIC_SHOW_SPV_SPOTLIGHT === 'true';
 
+/**
+ * When 'true', a viewer who is signed out or not approved is redirected home
+ * instead of seeing the locked views. Inlined at build time.
+ */
+export const REDIRECT_UNAUTHORIZED_SPV_SPOTLIGHT: boolean =
+  process.env.NEXT_PUBLIC_REDIRECT_UNAUTHORIZED_SPV_SPOTLIGHT === 'true';
+
+/**
+ * The request-access flow from LAB-2675: a Request access card, the request and
+ * received modals, the pending stepper and the rejected state. Off since the
+ * 2026-10-01 standup: investors arrive by a whitelisted token link instead, so
+ * the page is locked to anyone not approved. Kept so it can come back.
+ */
+export const REQUEST_FLOW_ENABLED: boolean = false;
+
 export enum SpvSpotlightQueryKeys {
   GET_SPOTLIGHT = 'spv-spotlight',
 }

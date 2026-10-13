@@ -225,7 +225,6 @@ describe('AnnotatorModal with text labels', () => {
     renderModal();
 
     for (const [name, letter] of [
-      ['Comment', 'C'],
       ['Draw', 'P'],
       ['Box', 'R'],
       ['Oval', 'O'],
@@ -247,16 +246,6 @@ describe('AnnotatorModal with text labels', () => {
 
     expect(screen.getByRole('button', { name: 'Text' })).toHaveAttribute('aria-pressed', 'true');
     expect(onToolSelected).toHaveBeenCalledWith('text');
-  });
-
-  it('keeps comments a pin and a note beside text labels', () => {
-    renderModal();
-    const canvas = document.querySelector('canvas')!;
-    jest.spyOn(canvas, 'getBoundingClientRect').mockReturnValue(BOUNDS);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
-    clickCanvas(20, 20);
-    expect(screen.getByPlaceholderText('Add a comment')).toBeInTheDocument();
   });
 
   it('steps Esc out of a label one level at a time before discarding', () => {

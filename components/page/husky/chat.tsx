@@ -4,16 +4,15 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
 
 import Messages from './messages';
-import ChatFeedback from './chat-feedback';
 import HuskyLimitStrip from '@/components/core/husky/husky-limit-strip';
-import { DAILY_CHAT_LIMIT, TOAST_MESSAGES } from '@/utils/constants';
-import { generateUUID, getUniqueId, isMobileDevice, triggerLoader } from '@/utils/common.utils';
-import ChatHome from './chat-home';
+import { DAILY_CHAT_LIMIT, PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
+import { generateUUID, getUniqueId, triggerLoader } from '@/utils/common.utils';
+import { ChatHome } from './ChatHome';
 import { IAnalyticsUserInfo } from '@/types/shared.types';
 import { getUserCredentials } from '@/utils/auth.utils';
-import RegisterFormLoader from '@/components/core/register/register-form-loader';
 import { getChatCount, updateLimitType, updateChatCount, checkRefreshToken } from '@/utils/husky.utlils';
-import ChatInput from './chat-input';
+import ChatComposer from './chat-composer';
+import { ChatTitleBar } from './ChatTitleBar';
 import { createHuskyThread, createThreadTitle, duplicateThread } from '@/services/husky.service';
 import { useSidebar } from './sidebar';
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
@@ -22,6 +21,9 @@ import { experimental_useObject as useObject } from '@ai-sdk/react';
 import { z } from 'zod';
 import { huskySourceRefSchema } from '@/services/husky/hooks/useHuskyChat';
 import { useRouter } from 'next/navigation';
+import { OPEN_VISIT_CHAT_EVENT, PENDING_FOLLOW_UP_KEY_PREFIX } from './constants/visitChats';
+import { saveVisitChat } from './utils/saveVisitChat';
+
 interface ChatProps {
   id?: string;
   isLoggedIn: boolean;
@@ -35,6 +37,7 @@ interface ChatProps {
     name: string;
     image: string;
   };
+  title?: string;
 }
 
 const Chat: React.FC<ChatProps> = ({
@@ -47,12 +50,15 @@ const Chat: React.FC<ChatProps> = ({
   setType,
   isOwnThread,
   threadOwner,
+  title,
 }) => {
-  const [feedbackQandA, setFeedbackQandA] = useState({ question: '', answer: '' });
   const [limitReached, setLimitReached] = useState<'warn' | 'info' | 'finalRequest'>(); // daily limit
-  const feedbackPopupRef = useRef<HTMLDialogElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  /* The signed-in token for the request `submitChat` is about to send. The API gates
+     member-only tools (Investor DB, warm intros, investor profiles) on it, so without
+     it every answer on this page is the signed-out one. */
+  const tokenRef = useRef<string | null>(null);
   const { state } = useSidebar();
   const [messages, setMessages] = useState<any[]>(initialMessages ?? []);
   const messagesRef = useRef<any[]>(initialMessages ?? []);
@@ -62,6 +68,12 @@ const Chat: React.FC<ChatProps> = ({
   const [question, setQuestion] = useState('');
   const analytics = useHuskyAnalytics();
   const router = useRouter();
+  // Someone else's shared chat: a follow-up makes the reader's own copy instead of changing this one.
+  const isSharedView = !isOwnThread && from === 'detail';
+  const [isContinuingShared, setIsContinuingShared] = useState(false);
+  // The thread the title bar shares and deletes: the page's id, or the one a new chat gets on its first question.
+  const [openThreadId, setOpenThreadId] = useState(id);
+  const isContinuingSharedRef = useRef(false);
 
   const {
     object: chatObject,
@@ -74,6 +86,14 @@ const Chat: React.FC<ChatProps> = ({
     headers: {
       'Content-Type': 'application/json',
     },
+    fetch: (url, init) =>
+      fetch(url, {
+        ...init,
+        headers: {
+          ...init?.headers,
+          ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}),
+        },
+      }),
     schema: z.object({
       content: z.string(),
       steps: z.array(z.string()).optional(),
@@ -177,6 +197,33 @@ const Chat: React.FC<ChatProps> = ({
     setMessages([...initialMessages]);
   }, [initialMessages]);
 
+  // Signed out, chats are not saved on the server: keep this visit's chats for the History rail.
+  useEffect(() => {
+    if (isLoggedIn || isSharedView || chatIsLoading || isAnswerLoading) {
+      return;
+    }
+    const lastMessage = messages[messages.length - 1];
+    if (!threadUidRef.current || !lastMessage?.answer || lastMessage?.isError) {
+      return;
+    }
+    if (saveVisitChat({ threadId: threadUidRef.current, messages })) {
+      document.dispatchEvent(
+        new CustomEvent('refresh-husky-history', { detail: { openThreadId: threadUidRef.current } }),
+      );
+    }
+  }, [messages, chatIsLoading, isAnswerLoading, isLoggedIn, isSharedView]);
+
+  useEffect(() => {
+    const handleOpenVisitChat = () => {
+      if (chatIsLoading || isAnswerLoading) {
+        stopChat();
+        setIsAnswerLoading(false);
+      }
+    };
+    document.addEventListener(OPEN_VISIT_CHAT_EVENT, handleOpenVisitChat);
+    return () => document.removeEventListener(OPEN_VISIT_CHAT_EVENT, handleOpenVisitChat);
+  }, [chatIsLoading, isAnswerLoading, stopChat]);
+
   // handle all chat submission
   const handleChatSubmission = useCallback(
     async ({
@@ -189,6 +236,7 @@ const Chat: React.FC<ChatProps> = ({
     }) => {
       try {
         const { userInfo, authToken } = await getUserCredentials(isLoggedIn);
+        tokenRef.current = authToken ?? null;
         const hasRefreshToken = checkRefreshToken();
 
         if (!hasRefreshToken) {
@@ -205,6 +253,7 @@ const Chat: React.FC<ChatProps> = ({
         }
 
         const threadId = checkAndSetThreadId();
+        setOpenThreadId(threadId);
         const chatUid = generateUUID(); // check and set the thread ID for the current chat session
         setQuestion(question);
         addMessage(question); // add new chat message
@@ -252,7 +301,7 @@ const Chat: React.FC<ChatProps> = ({
               submitChat(submitParams),
             ]); //create thread title
             if (titleResponse) {
-              document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
+              document.dispatchEvent(new CustomEvent('refresh-husky-history', { detail: { openThreadId: threadId } }));
             }
           }
         } else {
@@ -286,40 +335,33 @@ const Chat: React.FC<ChatProps> = ({
   // handle husky input submission
   const onHuskyInput = (query: string) => handleChatSubmission({ question: query, type: 'user-input' });
 
-  // handle close feedback popup
-  const onCloseFeedback = () => {
-    setFeedbackQandA({ question: '', answer: '' });
-    feedbackPopupRef.current?.close();
+  const onRegenerate = (query: string) => {
+    if (chatIsLoading) {
+      return;
+    }
+    onHuskyInput(query);
+    analytics.trackRegenerate();
   };
 
-  // handle regenerate by clicking the regenerate button
-  const onRegenerate = useCallback(
-    (query: string) => {
-      if (chatIsLoading || (!isOwnThread && fromRef.current === 'detail')) {
-        return;
-      }
-      onHuskyInput(query);
-      analytics.trackRegenerate();
-    },
-    [chatIsLoading],
-  );
-
   const onFollowupClicked = (question: string) => {
-    if (chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')) {
+    if (chatIsLoading || isAnswerLoading) {
+      return;
+    }
+    if (isSharedView) {
+      onSharedFollowUp(question);
       return;
     }
     handleChatSubmission({ question, type: 'followup' });
   };
 
-  // handle question edit by clicking the edit button
-  const onQuestionEdit = useCallback((question: string) => {
-    if (chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')) {
+  const onQuestionEdit = (question: string) => {
+    if (chatIsLoading || isAnswerLoading) {
       return;
     }
     analytics.trackQuestionEdit(question);
     textareaRef.current!.value = question;
     textareaRef.current!.focus();
-  }, []);
+  };
 
   // handle copy answer by clicking the copy button
   const onCopyAnswer = async (answer: string) => {
@@ -332,18 +374,13 @@ const Chat: React.FC<ChatProps> = ({
     if (!trimmedValue) {
       return;
     }
-    onHuskyInput(trimmedValue);
-    textareaRef.current!.value = '';
-  };
-
-  // handle feedback submission
-  const onFeedback = async (question: string, answer: string) => {
-    if (chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')) {
+    if (isSharedView) {
+      // The text stays in the input until the copy exists, so a failed send loses nothing.
+      onSharedFollowUp(trimmedValue);
       return;
     }
-    analytics.trackFeedbackClick(question, answer);
-    feedbackPopupRef.current?.showModal();
-    setFeedbackQandA({ question, answer });
+    onHuskyInput(trimmedValue);
+    textareaRef.current!.value = '';
   };
 
   // handle submit by pressing enter key
@@ -360,55 +397,77 @@ const Chat: React.FC<ChatProps> = ({
     stopChat();
   }, [question]);
 
-  // handle continue conversation button click for shared conversation
-  const handleContinueConversation = useCallback(async () => {
-    try {
-      analytics.trackContinueConversation(id ?? '');
-      triggerLoader(true);
-
-      let guestUserId;
-      if (!isLoggedIn) {
-        // Get guestId from cookie or create a new one if it doesn't exist
-        guestUserId = Cookies.get('guestId');
-
-        if (!guestUserId) {
-          guestUserId = generateUUID();
-
-          // Set cookie with expiration at midnight
-          const midnight = new Date();
-          midnight.setHours(23, 59, 59, 999);
-
-          Cookies.set('guestId', guestUserId, {
-            expires: midnight,
-            path: '/',
-          });
-        }
+  const onSharedFollowUp = useCallback(
+    async (followUp: string) => {
+      if (isContinuingSharedRef.current) {
+        return;
       }
+      // Signed out at the daily limit, the copy could not ask the follow-up: make no copy.
+      if (!checkRefreshToken() && getChatCount() >= DAILY_CHAT_LIMIT) {
+        setLimitReached('warn');
+        return;
+      }
+      isContinuingSharedRef.current = true;
+      setIsContinuingShared(true);
+      try {
+        analytics.trackContinueConversation(id ?? '');
+        triggerLoader(true);
 
-      const { authToken } = await getUserCredentials(isLoggedIn);
+        let guestUserId;
+        if (!isLoggedIn) {
+          // Get guestId from cookie or create a new one if it doesn't exist
+          guestUserId = Cookies.get('guestId');
 
-      if (!isOwnThread && fromRef.current === 'detail') {
+          if (!guestUserId) {
+            guestUserId = generateUUID();
+
+            // Set cookie with expiration at midnight
+            const midnight = new Date();
+            midnight.setHours(23, 59, 59, 999);
+
+            Cookies.set('guestId', guestUserId, {
+              expires: midnight,
+              path: '/',
+            });
+          }
+        }
+
+        const { authToken } = await getUserCredentials(isLoggedIn);
+
         analytics.trackThreadDuplicateStatus(id ?? '', 'initiated');
         const duplicateThreadResponse = await duplicateThread(authToken, id ?? '', guestUserId);
-        if (duplicateThreadResponse.isError) {
+        if (!duplicateThreadResponse || duplicateThreadResponse.isError || !duplicateThreadResponse.threadId) {
           toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
           analytics.trackThreadDuplicateStatus(id ?? '', 'failed');
           return;
         }
-        router.push(`/husky/chat/${duplicateThreadResponse.threadId}`);
+        sessionStorage.setItem(PENDING_FOLLOW_UP_KEY_PREFIX + duplicateThreadResponse.threadId, followUp);
+        textareaRef.current!.value = '';
+        router.push(`${PAGE_ROUTES.HUSKY}/${duplicateThreadResponse.threadId}`);
         document.dispatchEvent(new Event('refresh-husky-history')); // refresh sidebar history
         analytics.trackThreadDuplicateStatus(id ?? '', 'success');
+      } catch (error) {
+        console.error('Error duplicating thread:', error);
+        toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+        analytics.trackThreadDuplicateStatus(id ?? '', 'failed');
+      } finally {
+        triggerLoader(false);
+        isContinuingSharedRef.current = false;
+        setIsContinuingShared(false);
       }
-    } catch (error) {
-      console.error('Error duplicating thread:', error);
-      toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
-      analytics.trackThreadDuplicateStatus(id ?? '', 'failed');
-    } finally {
-      triggerLoader(false);
-    }
-  }, [router, isLoggedIn, isOwnThread, fromRef, id]);
+    },
+    [router, isLoggedIn, id, analytics],
+  );
 
+  // A question handed over by another page: the copy of a shared chat, or the AI Search entry points.
   useEffect(() => {
+    const followUpKey = PENDING_FOLLOW_UP_KEY_PREFIX + id;
+    const followUp = id ? sessionStorage.getItem(followUpKey) : null;
+    if (followUp) {
+      sessionStorage.removeItem(followUpKey);
+      handleChatSubmission({ question: followUp, type: 'user-input' });
+      return;
+    }
     const storedInput = localStorage.getItem('input');
     if (storedInput) {
       handleChatSubmission({ question: storedInput, type: 'user-input' });
@@ -426,6 +485,7 @@ const Chat: React.FC<ChatProps> = ({
   if (messages.length === 0) {
     return (
       <>
+        <ChatTitleBar />
         <div className="chat__home">
           <ChatHome
             onSubmit={onHuskyInput}
@@ -453,87 +513,55 @@ const Chat: React.FC<ChatProps> = ({
 
   return (
     <>
+      <ChatTitleBar
+        chat={{
+          threadId: openThreadId,
+          title: title || messages[0]?.question,
+          sharedBy: isSharedView ? threadOwner : undefined,
+        }}
+      />
       {messages?.length > 0 && (
         <div className="chat" ref={chatContainerRef}>
-          {!isOwnThread && threadOwner?.name && fromRef.current === 'detail' && (
-            <div className="chat__header">
-              <div className="chat__header-info">
-                <span className="chat__header-info-text">Shared conversation from</span>
-                <img
-                  title={threadOwner?.name}
-                  className="chat__header-info-avatar"
-                  src={threadOwner?.image || '/icons/default_profile.svg'}
-                  alt="user"
-                />
-              </div>
-            </div>
-          )}
           <div className="chat__messages-wrapper">
             <Messages
               messages={messages}
               onFollowupClicked={onFollowupClicked}
               isAnswerLoading={isAnswerLoading}
               statusLine={chatObject?.steps?.filter(Boolean).at(-1)}
-              isLoadingObject={chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')}
-              onFeedback={onFeedback}
-              onRegenerate={onRegenerate}
+              isLoadingObject={chatIsLoading || isAnswerLoading}
+              onRegenerate={isSharedView ? undefined : onRegenerate}
               onCopyAnswer={onCopyAnswer}
               onQuestionEdit={onQuestionEdit}
+              layout="page"
+              isStreaming={chatIsLoading}
+              showRating={isLoggedIn}
+              canRate={isOwnThread || from !== 'detail'}
             />
           </div>
 
-          {!isOwnThread && fromRef.current === 'detail' ? (
-            <div data-state={isLoggedIn ? state : ''} className="chat__new-conversation-wrapper">
-              <div className="chat__new-conversation-info">
-                <div className="chat__new-conversation-content">
-                  <div className="chat__new-conversation-text">
-                    Click &ldquo;Continue Conversation&ldquo; to start a new chat instance with this conversation
-                  </div>
-                </div>
-                <button className="chat__new-conversation-button" onClick={handleContinueConversation}>
-                  Continue Conversation
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div data-state={isLoggedIn ? state : ''} className="chat__form-wrapper">
-              <form className="chat__form">
-                {limitReached && (
-                  <HuskyLimitStrip
-                    mode="chat"
-                    count={DAILY_CHAT_LIMIT - getChatCount()}
-                    type={limitReached}
-                    from="husky-chat"
-                  />
-                )}
-                <ChatInput
-                  ref={textareaRef}
-                  placeholder="Go ahead, ask anything!"
-                  rows={isMobileDevice() ? 1 : 2}
-                  autoFocus
-                  onKeyDown={handleKeyDown}
-                  onTextSubmit={submitForm}
-                  onStopStreaming={onStopStreaming}
-                  isAnswerLoading={isAnswerLoading}
-                  isLoadingObject={chatIsLoading}
-                  isLimitReached={limitReached === 'warn' || limitReached === 'finalRequest'}
+          <div data-state={state} className="chat__form-wrapper">
+            <form className="chat__form">
+              {limitReached && (
+                <HuskyLimitStrip
+                  mode="chat"
+                  count={DAILY_CHAT_LIMIT - getChatCount()}
+                  type={limitReached}
+                  from="husky-chat"
                 />
-              </form>
-            </div>
-          )}
-
-          <dialog onClose={onCloseFeedback} ref={feedbackPopupRef} className="feedback-popup">
-            {feedbackQandA.answer && feedbackQandA.question && (
-              <>
-                <ChatFeedback
-                  question={feedbackQandA.question}
-                  answer={feedbackQandA.answer}
-                  onClose={onCloseFeedback}
-                />
-                <RegisterFormLoader />
-              </>
-            )}
-          </dialog>
+              )}
+              <ChatComposer
+                ref={textareaRef}
+                placeholder="Go ahead, ask anything!"
+                rows={1}
+                autoFocus
+                onKeyDown={handleKeyDown}
+                onTextSubmit={submitForm}
+                onStopStreaming={onStopStreaming}
+                isAnswerLoading={isAnswerLoading || isContinuingShared}
+                isLoadingObject={chatIsLoading}
+              />
+            </form>
+          </div>
         </div>
       )}
 
@@ -543,40 +571,15 @@ const Chat: React.FC<ChatProps> = ({
           flex-direction: column;
           height: 100%;
           width: 100%;
-          max-width: 954px;
+          /* reading column: 768px of content plus the 16px page gutter on each side */
+          max-width: calc(768px + 32px);
+          box-sizing: border-box;
           background-color: #f4faff;
           margin: 0px auto;
           position: relative;
           overflow: hidden;
-          padding: 26px 0px 90px 0px;
-        }
-
-        .chat__header {
-          margin-left: 10px;
-        }
-
-        .chat__header-info {
-          border: 1px solid #cbd5e1;
-          border-radius: 4px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 6px 10px;
-          width: fit-content;
-          background-color: #fff;
-        }
-
-        .chat__header-info-text {
-          color: #475569;
-          font-weight: 500;
-          font-size: 14px;
-          line-height: 14px;
-        }
-
-        .chat__header-info-avatar {
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
+          /* the pinned title bar is 56px tall */
+          padding: 82px 16px 90px 16px;
         }
 
         .chat__messages-wrapper {
@@ -585,9 +588,10 @@ const Chat: React.FC<ChatProps> = ({
           padding-bottom: 20px;
         }
 
+        /* pinned input: same width and centre as the reading column */
         .chat__form-wrapper {
           position: fixed;
-          width: calc(100% - 20px);
+          width: min(768px, calc(100% - 32px));
           left: 50%;
           transform: translateX(-50%);
           bottom: 0;
@@ -601,107 +605,22 @@ const Chat: React.FC<ChatProps> = ({
           width: 100%;
         }
 
-        .feedback-popup {
-          background: white;
-          border-radius: 8px;
-          border: none;
-          max-height: 1000px;
-          width: 656px;
-          margin: auto;
-          overflow: hidden;
-        }
-
-        .chat__new-conversation-wrapper {
-          position: fixed;
-          bottom: 0;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 100%;
-          display: flex;
-          justify-content: center;
-        }
-
-        .chat__new-conversation-info {
-          display: flex;
-          justify-content: space-between;
-          flex-direction: column;
-          gap: 12px;
-          background-color: #000000;
-          padding: 20px;
-          border: 1px solid #cbd5e1;
-          width: 721px;
-        }
-
-        .chat__new-conversation-content {
-          display: flex;
-          gap: 12px;
-          max-width: 100%;
-          align-items: center;
-        }
-
-        .chat__new-conversation-text {
-          color: #ffffff;
-          font-size: 14px;
-          line-height: 20px;
-          font-weight: 400;
-        }
-
-        .chat__new-conversation-button {
-          background-color: #156ff7;
-          color: white;
-          padding: 10px 24px;
-          border-radius: 8px;
-          border: none;
-          cursor: pointer;
-          transition: background-color 0.2s;
-          width: 100%;
-          max-width: 194px;
-          font-weight: 500;
-          font-size: 14px;
-          line-height: 20px;
-        }
-
-        .chat__new-conversation-button:hover {
-          background-color: #1d4ed8;
-        }
-
         @media (min-width: 768px) {
-          .chat__form-wrapper {
-            width: 989px;
-          }
-
           .chat__form {
-            padding: 20px;
+            padding: 20px 0px;
           }
+        }
 
+        /* from 960px the rail sits beside the chat */
+        @media (min-width: 960px) {
           .chat__form-wrapper[data-state='expanded'] {
             left: calc(50% + 150px);
+            width: min(768px, calc(100% - 300px - 32px));
           }
 
           .chat__form-wrapper[data-state='collapsed'] {
             left: calc(50% + 32px);
-          }
-
-          .chat__new-conversation-wrapper {
-            bottom: 20px;
-          }
-
-          .chat__new-conversation-wrapper[data-state='expanded'] {
-            left: calc(50% + 150px);
-          }
-
-          .chat__new-conversation-wrapper[data-state='collapsed'] {
-            left: calc(50% + 32px);
-          }
-
-          .chat__header {
-            margin-left: 20px;
-          }
-
-          .chat__new-conversation-info {
-            flex-direction: row;
-            border-radius: 8px;
-            gap: 21px;
+            width: min(768px, calc(100% - 64px - 32px));
           }
         }
       `}</style>

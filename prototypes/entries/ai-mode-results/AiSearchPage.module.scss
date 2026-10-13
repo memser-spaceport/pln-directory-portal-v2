@@ -1,0 +1,424 @@
+// Production's /husky page, refactored. Rows and glyph buttons come from the
+// ai-mode entry's stylesheet (itself transcribed from production's
+// app-sidebar.tsx); this sheet holds what differs: production's own widths
+// (300px rail, 64px collapsed), the rail's search and footer, the signed-out
+// card, the title bar and the new-chat page. Token/fallback pairs are copied
+// from neighbouring production sheets.
+
+@use 'styles/media';
+@use 'styles/mixins';
+
+/* ------------------------------------------------------------------------ */
+/* Frame                                                                      */
+/* ------------------------------------------------------------------------ */
+
+/* The page fills the viewport under the sticky header, so the thread scrolls
+   inside and its input stays at the bottom edge. 80px is production's own
+   figure (`app/husky/chat/page.module.css`: calc(100dvh - 80px)) —
+   `--app-header-height` resolves to 0 on prototype routes. Production paints
+   the page #f4faff (no token); the refactor goes white with a grey rail,
+   which is how the answer's own cards and borders were drawn to sit. */
+.page {
+  position: relative;
+  display: flex;
+  height: calc(100dvh - 80px);
+  scroll-margin-top: 80px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-primary, #fff);
+}
+
+/* ------------------------------------------------------------------------ */
+/* Rail                                                                       */
+/* ------------------------------------------------------------------------ */
+
+/* Production `sidebar.tsx`: SIDEBAR_WIDTH 300px, SIDEBAR_WIDTH_ICON 64px. */
+.rail {
+  display: none;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: 300px;
+  min-height: 0;
+  border-right: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-soft-surface, #f9fafb);
+
+  /* No width animation: the contents swap at once (full rail ↔ glyph strip),
+     so a sliding edge would only animate an empty box. */
+  @include media.tablet-landscape {
+    display: flex;
+  }
+}
+
+.railCollapsed {
+  width: 64px;
+}
+
+/* Search chats: the one thing a long history needs that scrolling isn't. */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  height: 32px;
+  margin: 0 8px 12px;
+  padding: 0 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-primary, #fff);
+  cursor: text;
+
+  &:focus-within {
+    border-color: var(--border-brand-primary, #1b4dff);
+  }
+}
+
+.searchIcon {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  /* The clear button below is the one ✕. */
+  &::-webkit-search-cancel-button {
+    display: none;
+  }
+}
+
+.searchClear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+/* Production's footer (64px, hairline above): the ⌘B hint and the toggle. */
+.railFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  height: 56px;
+  padding: 0 8px 0 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 4px;
+  background: var(--background-neutral-primary, #fff);
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+/* Collapsed: the doors at the top, the toggle where it always is. */
+.strip {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+}
+
+.stripTop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Production mirrors its toggle when collapsed (`transform: scaleX(-1)`). */
+.flip svg {
+  transform: scaleX(-1);
+}
+
+/* Signed out: why the rail is nearly empty, and the two doors out of that. */
+.keep {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 12px 0 0;
+  padding: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-primary, #fff);
+}
+
+.keepTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.keepBody {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.keepActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+
+  > * {
+    flex: 1;
+  }
+}
+
+/* The drawer is production's mobile sidebar; the ai-mode sheet with its
+   scroll region allowed to fill. */
+.drawer {
+  padding-bottom: 16px;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Main column + title bar                                                    */
+/* ------------------------------------------------------------------------ */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.titleBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  min-height: 56px;
+  padding: 8px 12px 8px 24px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include media.mobile-only {
+    padding-left: 12px;
+  }
+}
+
+/* Phones only: the new-chat page's way to History. */
+.titleBarBare {
+  border-bottom: 0;
+
+  @include media.tablet-landscape {
+    display: none;
+  }
+}
+
+/* Hosted as AI Search mode: the bare bar carries Back to search, so it stands
+   on every width, with History pushed to the far end on phones. */
+.titleBarBack.titleBarBack {
+  justify-content: space-between;
+  padding-left: 12px;
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
+}
+
+/* The ai-mode back button, inset to line up with the title bar's own buttons. */
+.back.back {
+  flex-shrink: 0;
+  margin-left: -4px;
+}
+
+.barDivider {
+  flex-shrink: 0;
+  width: 1px;
+  height: 20px;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+/* The scope chip (a row's Ask AI) sits centred over the 602px field. */
+.scopeChip.scopeChip {
+  align-self: center;
+  max-width: 100%;
+  margin: 0;
+}
+
+.titleBlock {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+
+  /* Phones: History, Share, ⋯ and New chat already fill the bar, and the
+     question is the heading right under it — production's phone header has
+     no title either. */
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.sharedBy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.sharedAvatar {
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.sharedHint {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.titleActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.hideOnPhone {
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* New chat (production ChatHome)                                             */
+/* ------------------------------------------------------------------------ */
+
+/* Production: banner 387×341 at top centre, 102px down to the headline, the
+   form 602px wide; on phones the banner shrinks to 235×230. */
+.home {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12vh 16px 32px;
+  background-image: url('/images/husky/husky-banner.svg');
+  background-repeat: no-repeat;
+  background-position: center calc(12vh - 88px);
+  background-size: 387px 341px;
+
+  @include media.mobile-only {
+    padding-top: 56px;
+    background-position: center 8px;
+    background-size: 235px 230px;
+  }
+}
+
+.homeColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 602px;
+  margin: 0 auto;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+/* Production: 28.8/34.85, 500 — on the scale as 28/36. */
+.heroTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 36px;
+  text-wrap: balance;
+
+  @include media.mobile-only {
+    font-size: 20px;
+    line-height: 28px;
+  }
+}
+
+.heroLine {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+  text-wrap: pretty;
+}
+
+.composer {
+  width: 100%;
+}
+
+/* TryToSearch carries 16px side padding for the old overlay's column; here the
+   column is the inset. */
+.prompts.prompts {
+  padding: 0;
+}

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Fragment, useMemo, type ReactNode } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import type { ITag, ITeam } from '@/types/teams.types';
 
@@ -47,6 +47,8 @@ interface Props {
   headerAction?: ReactNode;
   /** Slot rendered on its own row just above the About section. */
   beforeAbout?: ReactNode;
+  /** Slot rendered under the About section (team-profile's "Actions → Under bio" state). */
+  afterAbout?: ReactNode;
   /** Hide the stage / fund / industry badges row (test the no-badges team). */
   hideBadges?: boolean;
   /** Founding year, headcount and place — the facts line under the team name.
@@ -72,6 +74,7 @@ export function TeamDetailsView({
   team,
   headerAction,
   beforeAbout,
+  afterAbout,
   hideBadges,
   facts,
   status = 'active',
@@ -79,6 +82,7 @@ export function TeamDetailsView({
   demoDayPlacement = 'name-emblem-series',
 }: Props) {
   const isMobile = useIsMobile();
+  const tagsInline = useTagsFitInline();
   const teamName = team?.name ?? '';
   // Compact code for the name-emblem: strip a leading "PL" and the words
   // "Demo Day" wherever they sit, e.g. "PL Demo Day W26.2" → "DDW26.2".
@@ -196,37 +200,58 @@ export function TeamDetailsView({
             )}
             {!hideBadges && (
               <div className={`${s.tagsContainer} ${local.tagsBlock}`}>
-                <div className={s.tags2}>
-                  {team?.fundingStage?.title && (
-                    <>
-                      <div className={`${s.fundingStage} ${local.fromTablet}`}>Stage: {team.fundingStage.title}</div>
-                      {/* Phone: the stage joins the chip row as a chip — the DS
-                          `Tag` in the fund tag's own tint — rather than a
-                          square grey label standing among round pills. */}
-                      <Tag
-                        value={`Stage: ${team.fundingStage.title}`}
-                        className={`${s.iTag} ${local.mobileOnly} ${local.stageTag}`}
+                <div ref={tagsInline.ref} className={s.tags2}>
+                  {/* Deviation from production: dividers go only BETWEEN the
+                      classification badges, and the industry tags always start
+                      a line of their own. Production puts a divider after every
+                      badge, so whenever the tags wrapped (most widths, beside
+                      the header's action cluster) a divider was left hanging at
+                      the end of the first line. When everything fits on one
+                      line (measured, `useTagsFitInline`), the tags join the
+                      badges' line after their own leading divider. */}
+                  {[
+                    team?.fundingStage?.title && (
+                      <Fragment key="stage">
+                        <div className={`${s.fundingStage} ${local.fromTablet}`}>Stage: {team.fundingStage.title}</div>
+                        {/* Phone: the stage joins the chip row as a chip — the DS
+                            `Tag` in the fund tag's own tint — rather than a
+                            square grey label standing among round pills. */}
+                        <Tag
+                          value={`Stage: ${team.fundingStage.title}`}
+                          className={`${s.iTag} ${local.mobileOnly} ${local.stageTag}`}
+                        />
+                      </Fragment>
+                    ),
+                    team?.isFund && (
+                      <Tag key="fund" value="Investment Fund" className={`${s.iTag} ${local.tagFullMobile}`} />
+                    ),
+                    demoDayParticipation && demoDayPlacement === 'tags-chip' && (
+                      <DemoDayLinkBadge
+                        key="demoday"
+                        participation={demoDayParticipation}
+                        className={local.demoDayChip}
                       />
-                      <Divider />
-                    </>
-                  )}
-                  {team?.isFund && (
-                    <>
-                      <Tag value="Investment Fund" className={`${s.iTag} ${local.tagFullMobile}`} />
-                      <Divider />
-                    </>
-                  )}
-                  {demoDayParticipation && demoDayPlacement === 'tags-chip' && (
-                    <>
-                      <DemoDayLinkBadge participation={demoDayParticipation} className={local.demoDayChip} />
-                      <Divider />
-                    </>
-                  )}
-                  {/* Mobile: show fewer industry tags so the whole row (Stage +
-                      Fund + tags + the "+n" chip) collapses to ~2 lines. TagsList's
+                    ),
+                  ]
+                    .filter(Boolean)
+                    .map((badge, i) => (
+                      <Fragment key={i}>
+                        {i > 0 && <Divider />}
+                        {badge}
+                      </Fragment>
+                    ))}
+                  {/* Mobile: show fewer industry tags so the whole block (Stage +
+                      Fund, then tags + the "+n" chip) stays at ~2 lines. TagsList's
                       "+n" counts all hidden tags and renders last, so it stays in-row. */}
                   {!!tags?.length && (
-                    <TagsList tags={tags} tagsToShow={isMobile ? 2 : 3} classes={{ tag: local.tagFullMobile }} />
+                    <div
+                      className={`${local.tagsOwnLine} ${tagsInline.fits && !isMobile ? local.tagsInline : ''}`}
+                    >
+                      <span className={local.tagsLeadDivider}>
+                        <Divider />
+                      </span>
+                      <TagsList tags={tags} tagsToShow={isMobile ? 2 : 3} classes={{ tag: local.tagFullMobile }} />
+                    </div>
                   )}
                 </div>
               </div>
@@ -259,6 +284,7 @@ export function TeamDetailsView({
           </ExpandableDescription>
         </div>
       )}
+      {afterAbout}
     </DetailsSection>
   );
 }
@@ -329,6 +355,43 @@ const CalendarGlyph = () => (
     <path d="M8 2.5v4M16 2.5v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
   </svg>
 );
+
+/**
+ * Whether the badges (Stage, Fund, Demo Day) and the industry tags fit on one
+ * line. Measures the chips' own widths — label lengths and the optional Demo
+ * Day chip vary too much for a fixed breakpoint — and re-checks on resize.
+ */
+function useTagsFitInline() {
+  // Callback ref (element in state) so the observer re-attaches when the row
+  // mounts later, e.g. after the "no badges" review toggle.
+  const [row, ref] = useState<HTMLDivElement | null>(null);
+  const [fits, setFits] = useState(false);
+
+  const measure = useCallback(() => {
+    const own = row?.querySelector<HTMLElement>(`.${local.tagsOwnLine}`);
+    const list = own?.lastElementChild as HTMLElement | null;
+    if (!row || !own || !list) return;
+    const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
+    const widthOf = (els: Element[]) =>
+      els
+        .filter((el) => getComputedStyle(el).display !== 'none')
+        .reduce((sum, el, i) => sum + el.getBoundingClientRect().width + (i > 0 ? gap : 0), 0);
+    const badges = widthOf([...row.children].filter((el) => el !== own));
+    const tags = widthOf([...list.children]);
+    // badges + gap + divider (1px) + gap + tags
+    setFits(badges + gap + 1 + gap + tags <= row.clientWidth);
+  }, [row]);
+
+  useEffect(() => {
+    if (!row) return;
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(row);
+    return () => ro.disconnect();
+  }, [row, measure]);
+
+  return { ref, fits };
+}
 
 /** Linked Demo Day badge used by the tags-chip / events placements. */
 export function DemoDayLinkBadge({

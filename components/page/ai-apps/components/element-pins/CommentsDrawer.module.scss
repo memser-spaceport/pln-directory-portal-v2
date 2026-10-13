@@ -1,8 +1,8 @@
 @use 'styles/media';
 
-/* The comments panel (prototype ai-apps-comments CommentsDrawer): the right
-   edge below the site header, the app narrowed beside it (see
-   --ai-app-comments-inset). Too narrow a screen keeps the card alone. */
+/* The comments list (prototype ai-apps-comments CommentsDrawer), now the body of
+   the feedback drawer's Comments tab (LAB-2767): it fills what is left of the
+   drawer under the switcher and scrolls inside. */
 
 $border: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 $ink: var(--foreground-neutral-primary, #0a0c11);
@@ -10,56 +10,41 @@ $quiet: var(--foreground-neutral-secondary, #455468);
 $brand: var(--foreground-brand-primary, #1b4dff);
 
 .drawer {
-  position: fixed;
-  top: var(--app-header-height, 0px);
-  right: 0;
-  bottom: 0;
-  z-index: 10;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  width: 380px;
-  border-left: 1px solid $border;
+  min-height: 0;
   background: #fff;
-  box-shadow: -8px 0 24px rgba(14, 15, 17, 0.06);
-  animation: drawerIn 180ms ease-out both;
-
-  @include media.mobile-only {
-    display: none;
-  }
-}
-
-@keyframes drawerIn {
-  from {
-    transform: translateX(16px);
-    opacity: 0;
-  }
-  to {
-    transform: none;
-    opacity: 1;
-  }
 }
 
 .head {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 16px 16px 14px 20px;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 24px 14px;
   border-bottom: 1px solid $border;
 }
 
-.title {
-  margin: 0 auto 0 0;
-  color: $ink;
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 24px;
+.hint {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
-.total {
-  margin-left: 4px;
-  color: $quiet;
+.hintLead {
+  margin: 0;
+  color: $ink;
   font-size: 14px;
-  font-weight: 400;
+  line-height: 20px;
+}
+
+.audience {
+  margin: 0;
+  color: $quiet;
+  font-size: 12px;
+  line-height: 16px;
 }
 
 .filter {
@@ -70,20 +55,6 @@ $brand: var(--foreground-brand-primary, #1b4dff);
   background: #fff;
   color: $ink;
   font-size: 13px;
-  cursor: pointer;
-}
-
-.close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: var(--background-neutral-secondary, #f1f5f9);
-  color: $quiet;
   cursor: pointer;
 }
 

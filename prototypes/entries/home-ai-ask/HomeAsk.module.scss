@@ -180,22 +180,6 @@
   }
 }
 
-.overviewHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.overviewName {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--foreground-neutral-secondary, #455468);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 16px;
-}
-
 .dismiss {
   display: inline-flex;
   align-items: center;
@@ -212,6 +196,22 @@
   &:hover {
     color: var(--foreground-neutral-secondary, #455468);
   }
+}
+
+/* Neither card has a header: the ✕ sits in the corner (on the card's own
+   20px padding) and the first line keeps clear of it. */
+.cornerCard {
+  position: relative;
+}
+
+.cornerClose {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.clearOfClose.clearOfClose {
+  padding-right: 36px;
 }
 
 /* The answer's prose, capped to the reading width. */
@@ -253,4 +253,106 @@
   color: var(--foreground-neutral-tertiary, #8897ae);
   font-size: 12px;
   line-height: 16px;
+}
+
+/* ------------------------------------------------------------------------ */
+/* LAB-2704 — a founder's request for the PL team, in the overview's card     */
+/* ------------------------------------------------------------------------ */
+
+.requestForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Title and its sentence are one unit (lesson 11): 4px, not the card's 16. */
+.requestHead {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.requestTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.requestNote {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.requestFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+/* The door between the two cards: a text press in brand ink, so it reads as
+   pressable at rest, not only on hover. */
+.switchDoor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* In the answer's footer it takes the row's far end. */
+.footDoor {
+  margin-left: auto;
+
+  @include media.mobile-only {
+    margin-left: 0;
+  }
+}
+
+.sent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sentCheck {
+  flex-shrink: 0;
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+/* The request quoted back: a container, so it gets an edge as well as a fill. */
+.sentQuote {
+  margin: 0;
+  padding: 12px 16px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-secondary, #f8fafc);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  line-height: 20px;
+  white-space: pre-wrap;
 }

@@ -1,0 +1,223 @@
+@use 'styles/media';
+
+/*
+  Prototype additions to production's FloatingFeedbackButton stylesheet and the
+  feedback popover's card (copied from ai-apps-comments, where review settled them).
+*/
+
+/*
+  The "Comment on the app" door — the feedback form's first row. A full-width
+  press with a name, a line saying what happens, and a chevron, so it reads as
+  a way somewhere else rather than as a form field. Brand soft surface, the
+  product's selected-row wash, so it stands apart from the white fields under
+  it without competing with the filled Send.
+*/
+.commentDoor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  border-radius: 8px;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-subtle, #aebfff);
+    outline-offset: 2px;
+  }
+}
+
+/* The bubble's own chat glyph, in a white disc. */
+.commentDoorIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.commentDoorText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.commentDoorTitle {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.commentDoorCount {
+  font-weight: 400;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.commentDoorSub {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.commentDoorChevron {
+  flex-shrink: 0;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* The card's title, a step under the form's "Give feedback" — it is the form, shrunk. */
+.commentTitle.commentTitle {
+  font-size: 16px;
+  line-height: 24px;
+}
+
+/* The way back, full width under the card's two lines. */
+.commentFoot {
+  padding: 14px 24px 0;
+}
+
+/* The DS Button is inline-block, so an inline svg sits on the text baseline and
+   rides high (and `gap` does nothing). Flex centres the chevron on the label. */
+.backButton.backButton {
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* The count badge hangs off the bubble's corner. */
+.trigger {
+  position: relative;
+}
+
+/* Doubled to beat production's .button whatever order the sheets load in.
+   Comment mode on: the same tool, lit — white face, brand ring and glyph. */
+.buttonActive.buttonActive {
+  background: #fff;
+  color: var(--foreground-brand-primary, #1b4dff);
+  box-shadow:
+    0 0 0 2px var(--foreground-brand-primary, #1b4dff),
+    0 6px 18px rgba(27, 77, 255, 0.2);
+
+  &:hover {
+    box-shadow:
+      0 0 0 2px var(--foreground-brand-primary, #1b4dff),
+      0 10px 24px rgba(27, 77, 255, 0.28);
+  }
+}
+
+/* Threads on the app, on the resting bubble's corner, in the white-ringed dark
+   pill the pins use for their reply counts. */
+.count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  border: 2px solid #fff;
+  background: var(--foreground-neutral-primary, #0a0c11);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+}
+
+/*
+  Comment mode's card: the feedback popover, shrunk to what the mode needs, in
+  the spot the popover opens — above the bubble, right edges shared — so it
+  reads as the same panel changing state. Fixed like the bubble, one layer
+  above it. Bottom = the bubble's own inset + its 48px + the popover's 8px gap.
+*/
+.commentCard {
+  right: calc(24px + var(--ai-app-comments-inset, 0px));
+  position: fixed;
+  bottom: calc(72px + 48px + 8px);
+  z-index: 10;
+  width: 320px;
+  max-width: calc(100vw - 24px);
+  padding-bottom: 16px;
+  transition: right 0.3s ease-out;
+  animation: cardIn 160ms ease-out both;
+
+  @include media.tablet-landscape {
+    bottom: calc(24px + 48px + 8px);
+  }
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The popover's header (title + ✕) without its divider — the card has one line under it, not a form. */
+.commentHead.commentHead {
+  border-bottom: none;
+  padding: 16px 20px 10px 24px;
+}
+
+.commentHint {
+  margin: 0;
+  padding: 0 24px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.commentAudience {
+  margin: 4px 0 0;
+  padding: 0 24px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .commentCard {
+    animation: none;
+  }
+}
+
+
+/*
+  The popover's text controls (Shortcuts, Drafts). Production draws them as a
+  quiet grey label that only underlines on hover; review found Shortcuts "hard
+  to spot" top right. A text control has to look pressable at rest: brand ink
+  and an underline, at production's own 13/18. Same fix the ai-apps entry got.
+*/
+.textLink.textLink {
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration-thickness: 2px;
+  }
+}

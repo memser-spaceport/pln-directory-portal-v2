@@ -209,3 +209,11 @@
     color: var(--foreground-neutral-primary, #0f172a);
   }
 }
+
+/* The Suggested tab's one sentence, between the tabs and the search (LAB-2771). */
+.suggestedNote {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}

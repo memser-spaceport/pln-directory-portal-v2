@@ -23,6 +23,7 @@ import { getUserCredentialsInfo } from '@/utils/fetch-wrapper';
 import type { HuskyTurn, StreamStatus } from '@/services/husky/hooks/useHuskyChat';
 import type { LimitLevel } from '@/services/husky/hooks/useDailyChatLimit';
 import { DirectoryResultCards } from '@/components/core/application-search/components/DirectoryResultCards';
+import { PAGE_ROUTES } from '@/utils/constants';
 
 import s from './AnswerView.module.scss';
 
@@ -206,7 +207,7 @@ export const AnswerView = ({
             mid-answer would land on a thread that does not exist yet. */}
         <a
           className={s.barButton}
-          href={canContinue ? `/husky/chat/${threadId}` : undefined}
+          href={canContinue ? `${PAGE_ROUTES.HUSKY}/${threadId}` : undefined}
           aria-disabled={!canContinue}
           data-disabled={!canContinue || undefined}
           onClick={(e) => {

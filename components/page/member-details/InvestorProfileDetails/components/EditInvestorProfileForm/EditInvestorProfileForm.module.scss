@@ -558,3 +558,26 @@
   line-height: 22px;
   letter-spacing: -0.2px;
 }
+
+// A field that still needs filling (SPV Spotlight's drawer only). The fields
+// are shared form components, so this reaches into them: react-select's control
+// (emotion labels its class `…-control`) and the CSS-module `__input` boxes,
+// whose names keep the `__name` suffix in production builds too.
+.needsFill {
+  [class*='-control'],
+  [class$='__input'],
+  [class*='__input '] {
+    border-color: var(--action-background-warning-normal, #f59e0b) !important;
+    background: var(--background-warning-soft-surface, rgba(245, 158, 11, 0.1)) !important;
+  }
+
+  [class$='__input'] input,
+  [class*='__input '] input {
+    background: transparent;
+  }
+}
+
+// "How do you invest": neither box ticked yet.
+.needsFillTick .Checkbox {
+  border-color: var(--action-background-warning-normal, #f59e0b);
+}

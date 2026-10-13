@@ -76,40 +76,6 @@
   }
 }
 
-// The investor-profile link's row.
-.links {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 8px 20px;
-  margin-top: 4px;
-}
-
-// The completed Demo Day's underlined text link ("Give Feedback").
-.textLink {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  text-decoration: none;
-  padding: 0;
-  border: none;
-  border-bottom: 1px solid #1b4dff;
-  background: none;
-  color: var(--foreground-brand-secondary_inverted, #1b4dff);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-  cursor: pointer;
-  transition: opacity 0.2s ease;
-
-  &:hover {
-    opacity: 0.8;
-  }
-}
-
 .appliedSteps {
   width: 100%;
   max-width: 600px;
@@ -137,6 +103,11 @@
 }
 
 .inlineLink {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
   color: var(--foreground-brand-primary, #1b4dff);
   font-weight: 500;
   text-decoration: underline;

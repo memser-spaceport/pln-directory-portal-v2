@@ -3,12 +3,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { ApplicantCount, ApplicantKind, TeamApplicant } from '@/schema/team-applicants';
+import type { SuggestedCandidate } from '@/schema/suggested-candidates';
 import { JobsQueryKey } from '@/services/jobs/constants';
 import {
   fetchApplicantCounts,
   fetchRoleApplicants,
+  fetchSuggestedCandidates,
   markApplicantSeen,
   setApplicantReviewed,
+  TeamApplicantsError,
 } from '@/services/jobs/team-applicants.service';
 
 /**
@@ -80,6 +83,39 @@ export function useRoleApplicants({
     enabled: enabled && !!viewerUid && !!teamUid && !!roleUid,
     staleTime: 30_000,
     refetchOnWindowFocus: false,
+  });
+}
+
+export const suggestedCandidatesQueryKey = (viewerUid: string, roleUid: string) =>
+  [JobsQueryKey.SuggestedCandidates, viewerUid, roleUid] as const;
+
+/**
+ * One live role's suggested candidates (LAB-2771). Read-only: the team does
+ * nothing to a suggestion that this page writes back.
+ *
+ * Viewer-scoped for the reason the keys above give — the answer depends on who
+ * asks (a non-member gets a 403) — and no refetch on focus for the reason
+ * `useRoleApplicants` gives: a refetch would re-sort the list under the person
+ * being read.
+ */
+export function useSuggestedCandidates({
+  roleUid,
+  viewerUid,
+  enabled,
+}: {
+  roleUid: string | undefined;
+  viewerUid: string | undefined;
+  enabled: boolean;
+}) {
+  return useQuery<SuggestedCandidate[]>({
+    queryKey: suggestedCandidatesQueryKey(viewerUid ?? '', roleUid ?? ''),
+    queryFn: () => fetchSuggestedCandidates(roleUid as string),
+    enabled: enabled && !!viewerUid && !!roleUid,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    /* A refusal or a contract drift will answer the same way again; only a
+       server error is worth one more try. */
+    retry: (failureCount, error) => failureCount < 1 && !(error instanceof TeamApplicantsError && error.status < 500),
   });
 }
 

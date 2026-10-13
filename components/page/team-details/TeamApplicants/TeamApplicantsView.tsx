@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Select, { type StylesConfig } from 'react-select';
 
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
@@ -14,25 +15,42 @@ import { ArrowUpRightIcon } from '@/components/icons/ArrowUpRightIcon';
 import { CaretLeftIcon } from '@/components/icons/CaretLeftIcon';
 import type { Option } from '@/components/form/FormSelect/types';
 import { useIsBelowTabletLandscape } from '@/hooks/useIsBelowTabletLandscape';
+import { SUGGESTED_LIMIT, type SuggestedCandidate } from '@/schema/suggested-candidates';
 import type { TeamApplicant } from '@/schema/team-applicants';
 import { SHOW_TEAM_APPLICANTS } from '@/services/jobs/constants';
 import {
   useApplicantCounts,
   useMarkApplicantSeen,
   useRoleApplicants,
+  useSuggestedCandidates,
   useToggleApplicantReviewed,
 } from '@/services/jobs/hooks/useTeamApplicants';
 import type { IJobRole } from '@/types/jobs.types';
 import { formatRelativeDays, getJobDate, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
-import { ApplicantPane } from './components/ApplicantPane';
+import { ApplicantPane, MemberProfilePane } from './components/ApplicantPane';
 import { ApplicantRow } from './components/ApplicantRow';
+import { SuggestedPaneBar } from './components/SuggestedPaneBar';
+import { SuggestedRow } from './components/SuggestedRow';
+import { SuggestedWhy } from './components/SuggestedWhy';
 import { ScrollPageToTop } from './ScrollPageToTop';
 import { ApplicantsPaneBar } from './components/ApplicantsPaneBar';
 import s from './TeamApplicantsView.module.scss';
 
 export const APPLIED_TAB = 'Applied';
 export const INTERESTED_TAB = 'Interested';
+/**
+ * Members the product proposes for the role (LAB-2771) — the third tab and the
+ * weakest signal: applied sent something, interested raised a hand, suggested
+ * did nothing. Never the derived default; a lead opens it on purpose.
+ */
+export const SUGGESTED_TAB = 'Suggested';
+
+const TAB_EVENT: Record<string, 'applied' | 'interested' | 'suggested'> = {
+  [APPLIED_TAB]: 'applied',
+  [INTERESTED_TAB]: 'interested',
+  [SUGGESTED_TAB]: 'suggested',
+};
 
 interface Props {
   teamId: string;
@@ -43,6 +61,8 @@ interface Props {
   initialRoleUid: string | null;
   /** `?candidate=` — a member uid, from the application email's link to the person. */
   initialCandidateUid: string | null;
+  /** `?suggested=` — a member uid, from a shared link to a suggested match. */
+  initialSuggestedMemberUid?: string | null;
   /**
    * The signed-in lead, handed down rather than read from the user store.
    *
@@ -75,6 +95,7 @@ export function TeamApplicantsView({
   roles,
   initialRoleUid,
   initialCandidateUid,
+  initialSuggestedMemberUid = null,
   viewerUid,
   isLoggedIn,
 }: Props) {
@@ -96,11 +117,41 @@ export function TeamApplicantsView({
    * survives the list arriving late, which an effect-and-setState would have to
    * chase with a flag.
    */
-  const [pickedTab, setPickedTab] = useState<string | null>(null);
+  const [pickedTab, setPickedTab] = useState<string | null>(() =>
+    initialSuggestedMemberUid ? SUGGESTED_TAB : null,
+  );
   const [query, setQuery] = useState('');
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [paneOpen, setPaneOpen] = useState(false);
   const [pendingCandidateUid, setPendingCandidateUid] = useState(initialCandidateUid);
+  const [pendingSuggestedMemberUid, setPendingSuggestedMemberUid] = useState(initialSuggestedMemberUid);
+
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const replaceApplicantsSearch = useCallback(
+    (patch: { roleUid?: string; suggestedUid?: string | null; candidateUid?: string | null }) => {
+      const params = new URLSearchParams(searchParams.toString());
+      const role = patch.roleUid ?? roleUid;
+      if (role) params.set('role', role);
+      else params.delete('role');
+
+      if (patch.suggestedUid !== undefined) {
+        if (patch.suggestedUid) params.set('suggested', patch.suggestedUid);
+        else params.delete('suggested');
+      }
+      if (patch.candidateUid !== undefined) {
+        if (patch.candidateUid) params.set('candidate', patch.candidateUid);
+        else params.delete('candidate');
+      }
+      if (patch.suggestedUid) params.delete('candidate');
+
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [pathname, router, roleUid, searchParams],
+  );
 
   const role = roles.find((r) => r.uid === roleUid) ?? roles[0] ?? null;
 
@@ -112,6 +163,12 @@ export function TeamApplicantsView({
 
   const lists = useRoleApplicants({
     teamUid: teamId,
+    roleUid: role?.uid,
+    viewerUid,
+    enabled: SHOW_TEAM_APPLICANTS,
+  });
+
+  const suggestions = useSuggestedCandidates({
     roleUid: role?.uid,
     viewerUid,
     enabled: SHOW_TEAM_APPLICANTS,
@@ -166,16 +223,31 @@ export function TeamApplicantsView({
     [],
   );
 
-  /* Applied unless it is empty and Interested is not — and only until someone
-     chooses, after which their choice stands even when it empties out under a
-     search. */
-  const tab =
-    pickedTab ?? (!lists.data?.applications.length && lists.data?.interests.length ? INTERESTED_TAB : APPLIED_TAB);
+  /* Applied unless it is empty and Interested is not, then Suggested when that
+     is all there is — and only until someone chooses, after which their choice
+     stands even when it empties out under a search. Suggested waits for the
+     lists: with them still loading, "no answers" is not yet known. */
+  const derivedTab = lists.data?.applications.length
+    ? APPLIED_TAB
+    : lists.data?.interests.length
+      ? INTERESTED_TAB
+      : lists.data && suggestions.data?.length
+        ? SUGGESTED_TAB
+        : APPLIED_TAB;
+  const tab = pickedTab ?? derivedTab;
+
+  const isSuggestedTab = tab === SUGGESTED_TAB;
 
   const rows: TeamApplicant[] = useMemo(() => {
+    if (tab === SUGGESTED_TAB) return [];
     const source = tab === INTERESTED_TAB ? lists.data?.interests : lists.data?.applications;
     return source ?? [];
   }, [lists.data, tab]);
+
+  const suggestedRows: SuggestedCandidate[] = useMemo(
+    () => (tab === SUGGESTED_TAB ? (suggestions.data ?? []) : []),
+    [suggestions.data, tab],
+  );
 
   const term = query.trim().toLowerCase();
   const shown = term
@@ -183,6 +255,9 @@ export function TeamApplicantsView({
         [row.name, row.headline, row.currentCompany].some((field) => field?.toLowerCase().includes(term)),
       )
     : rows;
+  const shownSuggested = term
+    ? suggestedRows.filter((row) => [row.name, row.role].some((field) => field?.toLowerCase().includes(term)))
+    : suggestedRows;
 
   const switchRole = (next: string) => {
     if (next === roleUid) return;
@@ -194,6 +269,8 @@ export function TeamApplicantsView({
     setSelectedUid(null);
     setQuery('');
     setPaneOpen(false);
+    setPendingSuggestedMemberUid(null);
+    replaceApplicantsSearch({ roleUid: next, suggestedUid: null, candidateUid: null });
   };
 
   const switchTab = (next: string) => {
@@ -202,12 +279,47 @@ export function TeamApplicantsView({
     setSelectedUid(null);
     setQuery('');
     setPaneOpen(false);
+    if (next !== SUGGESTED_TAB) {
+      replaceApplicantsSearch({ suggestedUid: null });
+    }
     analytics.onJobHiringTabChanged({
       team_id: teamId,
       job_id: role?.uid ?? null,
-      tab: next === INTERESTED_TAB ? 'interested' : 'applied',
+      tab: TAB_EVENT[next] ?? 'applied',
     });
   };
+
+  /* A suggestion has no row of its own on the server, so its member uid is its
+     id here — unique within a role's list, which is all a selection needs. */
+  const selectSuggested = (row: SuggestedCandidate) => {
+    setSelectedUid(row.memberUid);
+    replaceApplicantsSearch({
+      roleUid: role?.uid ?? roleUid,
+      suggestedUid: row.memberUid,
+      candidateUid: null,
+    });
+    analytics.onJobSuggestedCandidateOpened({
+      team_id: teamId,
+      job_id: role?.uid ?? null,
+      rank: row.rank,
+      label: row.label,
+    });
+    if (isNarrow) setPaneOpen(true);
+  };
+
+  /* Once per role, when the tab is open and its answer is in: the count is the
+     number the lead actually saw. */
+  const suggestedViewedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!isSuggestedTab || !role || !suggestions.data) return;
+    if (suggestedViewedFor.current === role.uid) return;
+    suggestedViewedFor.current = role.uid;
+    analytics.onJobSuggestedCandidatesViewed({
+      team_id: teamId,
+      job_id: role.uid,
+      count: suggestions.data.length,
+    });
+  }, [analytics, isSuggestedTab, role, suggestions.data, teamId]);
 
   const select = (row: TeamApplicant) => {
     setSelectedUid(row.uid);
@@ -265,13 +377,48 @@ export function TeamApplicantsView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isNarrow, selectedUid, rows]);
 
+  /* A shared `?suggested=` link: open that person once the list is in. */
+  useEffect(() => {
+    if (!pendingSuggestedMemberUid || !suggestions.data) return;
+    const match = suggestions.data.find((row) => row.memberUid === pendingSuggestedMemberUid);
+    setPendingSuggestedMemberUid(null);
+    if (match) {
+      setSelectedUid(match.memberUid);
+      if (isNarrow) setPaneOpen(true);
+    } else if (!isNarrow && suggestedRows.length) {
+      setSelectedUid(suggestedRows[0].memberUid);
+    }
+  }, [isNarrow, pendingSuggestedMemberUid, suggestions.data, suggestedRows]);
+
+  /* The Suggested tab's version of the preselect above: two-column only, and
+     with no unread state to clear. It sets the selection without the "opened"
+     event — the lead did not press anyone, and counting the page's own choice
+     would inflate rank 1 in the opened-to-contacted funnel. */
+  useEffect(() => {
+    if (pendingSuggestedMemberUid || selectedUid || isNarrow || !suggestedRows.length) return;
+    setSelectedUid(suggestedRows[0].memberUid);
+  }, [isNarrow, pendingSuggestedMemberUid, selectedUid, suggestedRows]);
+
   const selected = shown.find((row) => row.uid === selectedUid) ?? null;
   const position = selected ? shown.findIndex((row) => row.uid === selected.uid) : -1;
 
+  const selectedSuggested = shownSuggested.find((row) => row.memberUid === selectedUid) ?? null;
+  const suggestedPosition = selectedSuggested
+    ? shownSuggested.findIndex((row) => row.memberUid === selectedSuggested.memberUid)
+    : -1;
+
   const step = (delta: number) => {
+    if (isSuggestedTab) {
+      const next = shownSuggested[suggestedPosition + delta];
+      if (next) selectSuggested(next);
+      return;
+    }
     const next = shown[position + delta];
     if (next) select(next);
   };
+
+  const listLength = isSuggestedTab ? shownSuggested.length : shown.length;
+  const hasSelection = isSuggestedTab ? !!selectedSuggested : !!selected;
 
   const showList = !isNarrow || !paneOpen;
   const showPane = !isNarrow || paneOpen;
@@ -362,15 +509,38 @@ export function TeamApplicantsView({
                 tabs={[
                   { name: APPLIED_TAB, count: lists.data?.applications.length },
                   { name: INTERESTED_TAB, count: lists.data?.interests.length },
+                  { name: SUGGESTED_TAB, count: suggestions.data?.length },
                 ]}
               />
             </div>
+
+            {/* What this list is, in the one sentence nothing else here can say:
+                nobody on it did anything, and the people the team already knows
+                are left out on purpose. */}
+            {isSuggestedTab && (
+              <p className={s.suggestedNote}>
+                The top {SUGGESTED_LIMIT} members matched to this role on their profile. They haven’t applied. People
+                who worked at {teamName || 'this team'} are not suggested.
+              </p>
+            )}
 
             <div className={s.searchWrap}>
               <SearchInput value={query} onChange={setQuery} placeholder="Search by name or role" />
             </div>
 
-            {shown.length > 0 ? (
+            {isSuggestedTab && shownSuggested.length > 0 ? (
+              <div className={s.list}>
+                {shownSuggested.map((row, index) => (
+                  <SuggestedRow
+                    key={row.memberUid}
+                    suggestion={row}
+                    last={index === shownSuggested.length - 1}
+                    selected={!isNarrow && row.memberUid === selectedUid}
+                    onSelect={() => selectSuggested(row)}
+                  />
+                ))}
+              </div>
+            ) : !isSuggestedTab && shown.length > 0 ? (
               <div className={s.list}>
                 {shown.map((row, index) => (
                   <ApplicantRow
@@ -384,15 +554,50 @@ export function TeamApplicantsView({
               </div>
             ) : (
               <DetailsSectionGreyContentContainer>
-                <NoDataBlock>{emptyCopy({ roles, role, tab, term, isLoading: lists.isPending })}</NoDataBlock>
+                <NoDataBlock>
+                  {emptyCopy({
+                    roles,
+                    role,
+                    tab,
+                    term,
+                    isLoading: isSuggestedTab ? suggestions.isPending : lists.isPending,
+                    isError: isSuggestedTab && suggestions.isError,
+                  })}
+                </NoDataBlock>
               </DetailsSectionGreyContentContainer>
             )}
           </div>
         )}
 
         {showPane && (
-          <div className={clsx(s.paneCol, !selected && s.paneEmpty)}>
-            {selected ? (
+          <div className={clsx(s.paneCol, !hasSelection && s.paneEmpty)}>
+            {isSuggestedTab && selectedSuggested ? (
+              <>
+                <SuggestedPaneBar
+                  suggestion={selectedSuggested}
+                  roleTitle={role?.roleTitle ?? ''}
+                  isLoggedIn={isLoggedIn}
+                  position={suggestedPosition}
+                  total={listLength}
+                  onStep={step}
+                  onEmailClick={() =>
+                    analytics.onJobSuggestedCandidateContacted({
+                      team_id: teamId,
+                      job_id: role?.uid ?? null,
+                      rank: selectedSuggested.rank,
+                      label: selectedSuggested.label,
+                      interested: selectedSuggested.interested === true,
+                    })
+                  }
+                />
+                <MemberProfilePane
+                  key={selectedSuggested.memberUid}
+                  memberUid={selectedSuggested.memberUid}
+                  isLoggedIn={isLoggedIn}
+                  section={<SuggestedWhy suggestion={selectedSuggested} />}
+                />
+              </>
+            ) : !isSuggestedTab && selected ? (
               <>
                 <ApplicantsPaneBar
                   applicant={selected}
@@ -454,15 +659,19 @@ function emptyCopy({
   tab,
   term,
   isLoading,
+  isError = false,
 }: {
   roles: IJobRole[];
   role: IJobRole | null;
   tab: string;
   term: string;
   isLoading: boolean;
+  isError?: boolean;
 }) {
   if (!roles.length || !role) return 'This team has no open roles, so there is nobody to read yet.';
+  if (isError) return 'Suggested candidates could not be loaded. Try again later.';
   if (isLoading) return 'Loading…';
   if (term) return `Nobody here matches “${term}”.`;
+  if (tab === SUGGESTED_TAB) return 'No one to suggest for this role yet.';
   return tab === INTERESTED_TAB ? 'No one has said they’re interested yet.' : 'No one has applied to this role yet.';
 }

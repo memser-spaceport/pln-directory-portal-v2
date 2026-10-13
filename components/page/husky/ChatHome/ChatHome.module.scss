@@ -1,0 +1,64 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  padding: 0 16px 32px;
+  background-image: url('/images/husky/husky-banner.svg');
+  background-size: 235px 230px;
+  background-repeat: no-repeat;
+  background-position: center 20px;
+
+  @media (min-width: 768px) {
+    width: 602px;
+    max-width: 100%;
+    padding: 102px 0 32px;
+    background-size: 387px 341px;
+    background-position: top center;
+  }
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding-top: 54px;
+  text-align: center;
+
+  @media (min-width: 768px) {
+    padding-top: 0;
+  }
+}
+
+.title {
+  max-width: 267px;
+  color: #1e3a8a;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 26px;
+  text-align: center;
+
+  @media (min-width: 768px) {
+    max-width: 587px;
+    font-size: 28.8px;
+    line-height: 34.85px;
+  }
+}
+
+.scope {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+  text-wrap: pretty;
+}
+
+.form {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}

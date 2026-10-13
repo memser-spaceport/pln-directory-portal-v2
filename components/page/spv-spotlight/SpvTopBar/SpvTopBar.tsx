@@ -21,8 +21,10 @@ type Account = {
 };
 
 type Props = {
-  /** The product's name beside the cube. */
+  /** The product's name beside the mark. */
   label: string;
+  /** Replaces the cube. The spotlight page passes the PL Capital wordmark. */
+  brandMark?: React.ReactNode;
   /** Shows "Contact us" on the right. Pages that put it in their own body leave it out. */
   supportEmail?: string;
   /** Signed-in viewer: production's avatar menu (profile, sign out). */
@@ -38,12 +40,19 @@ type Props = {
  * left; on the right, Contact us and/or the viewer's account (avatar menu, or
  * Sign in). The logo isn't a link and there are no nav items.
  */
-export const SpvTopBar = ({ label, supportEmail, account, onSignIn, tone = 'light' }: Props) => (
+export const SpvTopBar = ({ label, brandMark, supportEmail, account, onSignIn, tone = 'light' }: Props) => (
   <header className={clsx(s.root, { [s.dark]: tone === 'dark' })}>
     <div className={s.brand}>
-      <span className={s.logo} aria-hidden>
-        <AppLogo />
-      </span>
+      {brandMark ? (
+        <>
+          <span className={s.wordmark}>{brandMark}</span>
+          <span className={s.divider} aria-hidden />
+        </>
+      ) : (
+        <span className={s.logo} aria-hidden>
+          <AppLogo />
+        </span>
+      )}
       <span className={s.label}>{label}</span>
     </div>
     <div className={s.right}>

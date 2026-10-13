@@ -130,6 +130,9 @@ export function MemberProfilePage({ askAi, follow = false }: { askAi: AskAiPlace
      hours question. A review-band state ("add a state when no office hours
      available") flips it. */
   const [hasOfficeHours, setHasOfficeHours] = useState(true);
+  /* Where Follow and the contact press stand: the header cluster (the Sep 28
+     decision, default) or a row under the bio, to compare. */
+  const [actionsAt, setActionsAt] = useState<'header' | 'bio'>('header');
   /* Follow, session-local, with the team page's green receipt. */
   const [following, setFollowing] = useState(false);
   const [followToast, setFollowToast] = useState(false);
@@ -258,6 +261,26 @@ export function MemberProfilePage({ askAi, follow = false }: { askAi: AskAiPlace
           </div>
         </div>
 
+        <div className={s.demoSwitchGroup}>
+          <span className={s.demoSwitchLabel}>Actions</span>
+          <div className={s.demoSwitchRow}>
+            {(
+              [
+                ['header', 'In header'],
+                ['bio', 'Under bio'],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className={clsx(s.demoSwitchBtn, { [s.active]: value === actionsAt })}
+                onClick={() => setActionsAt(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className={page.memberDetail}>
@@ -276,6 +299,7 @@ export function MemberProfilePage({ askAi, follow = false }: { askAi: AskAiPlace
                 onAskAi={() => openAi()}
                 follow={follow ? { following, onToggle: toggleFollow } : undefined}
                 hasOfficeHours={hasOfficeHours}
+                actionsUnderBio={actionsAt === 'bio'}
                 askAbout={
                   askAi === 'strip' ? (
                     <AskAboutStrip
@@ -374,8 +398,8 @@ export function MemberProfilePage({ askAi, follow = false }: { askAi: AskAiPlace
       {intro.layer}
       {followToast && (
         <FollowToast>
-          You&apos;re following <strong>{MOCK_MEMBER.name}</strong> — their posts and their teams&apos; news rank
-          first in your feed.
+          You&apos;re following <strong>{MOCK_MEMBER.name}</strong> — their posts and their teams&apos; news rank first
+          in your feed.
         </FollowToast>
       )}
       {/* The AI Search view, opened by "Ask AI about Maya" with her profile as
@@ -393,7 +417,10 @@ function ProfileHeaderCard({
   askAbout,
   follow,
   hasOfficeHours,
+  actionsUnderBio,
 }: {
+  /** Review band "Actions": Follow + the contact press under the bio instead of the header. */
+  actionsUnderBio: boolean;
   introRequested: boolean;
   onRequestIntro: () => void;
   /** Without a booking link there is no Schedule Meeting; the intro stands alone. */
@@ -466,6 +493,7 @@ function ProfileHeaderCard({
               introRequested={introRequested}
               onRequestIntro={onRequestIntro}
               size="xs"
+              part={actionsUnderBio ? 'askAi' : 'all'}
             />
           </div>
         </div>
@@ -482,6 +510,7 @@ function ProfileHeaderCard({
             introRequested={introRequested}
             onRequestIntro={onRequestIntro}
             size="s"
+            part={actionsUnderBio ? 'askAi' : 'all'}
           />
         </div>
 
@@ -523,6 +552,22 @@ function ProfileHeaderCard({
             makes the intro — is the modal's first sentence, one press away
             and before anything is sent. The strip entries keep the question
             chips here, as content. */}
+        {/* Review band "Actions → Under bio": Follow and the contact press
+            come back here as a row under the bio (Ask AI stays in the
+            header), to compare against the header cluster. */}
+        {actionsUnderBio && (
+          <div className={s.bioActions}>
+            <ProfileActions
+              onAskAi={onAskAi}
+              follow={follow}
+              hasOfficeHours={hasOfficeHours}
+              introRequested={introRequested}
+              onRequestIntro={onRequestIntro}
+              size={isMobile ? 's' : 'xs'}
+              part="presses"
+            />
+          </div>
+        )}
         {askAbout}
       </div>
     </div>
@@ -544,6 +589,7 @@ function ProfileActions({
   introRequested,
   onRequestIntro,
   size,
+  part = 'all',
 }: {
   onAskAi: () => void;
   follow?: { following: boolean; onToggle: () => void };
@@ -551,11 +597,19 @@ function ProfileActions({
   introRequested: boolean;
   onRequestIntro: () => void;
   size: 'xs' | 's';
+  /** The review band's "Under bio" state splits the cluster: Ask AI stays
+      in the header (`askAi`), Follow and the contact press go under the bio
+      (`presses`). */
+  part?: 'all' | 'askAi' | 'presses';
 }) {
   const phone = size === 's';
+  if (part === 'askAi')
+    return <AskAiButton onClick={onAskAi} iconSize={phone ? 12 : 18} className={phone ? s.askAiBadge : undefined} />;
   return (
     <>
-      <AskAiButton onClick={onAskAi} iconSize={phone ? 12 : 18} className={phone ? s.askAiBadge : undefined} />
+      {part === 'all' && (
+        <AskAiButton onClick={onAskAi} iconSize={phone ? 12 : 18} className={phone ? s.askAiBadge : undefined} />
+      )}
       {follow && (
         <FollowPill
           following={follow.following}
@@ -567,15 +621,20 @@ function ProfileActions({
       )}
       {/* On the phone's stack the contact press leads (`.contactFirst`):
           the primary opens a column, as the corner closes a row. */}
+      {/* Under the bio the row is left-aligned, so the primary leads there
+          too (`.pressFirst`): it opens the row instead of closing it. */}
       {hasOfficeHours ? (
-        <ScheduleMeetingButton size={size} className={phone ? clsx(s.rowPressFull, s.contactFirst) : undefined} />
+        <ScheduleMeetingButton
+          size={size}
+          className={phone ? clsx(s.rowPressFull, s.contactFirst) : part === 'presses' ? s.pressFirst : undefined}
+        />
       ) : (
         <RequestIntroButton
           requested={introRequested}
           onClick={onRequestIntro}
           name={MOCK_MEMBER.name}
           size={size}
-          className={phone ? clsx(s.rowPressFull, s.contactFirst) : undefined}
+          className={phone ? clsx(s.rowPressFull, s.contactFirst) : part === 'presses' ? s.pressFirst : undefined}
         />
       )}
     </>
@@ -686,26 +745,26 @@ function OfficeHoursCard() {
               <span className={s.ohFactValue}>{MOCK_MEMBER.scheduleMeetingCount}</span>
             </div>
             <div className={s.ohGroups}>
-            {(
-              [
-                ['Interested in', MOCK_MEMBER.ohInterest],
-                ['Can help with', MOCK_MEMBER.ohHelpWith],
-              ] as const
-            ).map(([label, items]) => (
-              <div key={label} className={s.ohGroup}>
-                <p className={s.ohGroupLabel}>{label}</p>
-                <ul className={s.ohChips}>
-                  {/* The DS tag — production's own `badge` class for these
+              {(
+                [
+                  ['Interested in', MOCK_MEMBER.ohInterest],
+                  ['Can help with', MOCK_MEMBER.ohHelpWith],
+                ] as const
+              ).map(([label, items]) => (
+                <div key={label} className={s.ohGroup}>
+                  <p className={s.ohGroupLabel}>{label}</p>
+                  <ul className={s.ohChips}>
+                    {/* The DS tag — production's own `badge` class for these
                       very topics — not the mock's white bordered chip ("Make
                       badges in the same style we had in DS"). */}
-                  {items.map((item) => (
-                    <li key={item} className={office.badge}>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+                    {items.map((item) => (
+                      <li key={item} className={office.badge}>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
           </div>
         </DetailsSectionGreyContentContainer>

@@ -255,6 +255,25 @@ describe('useElementPins', () => {
       }
     });
   });
+
+  describe('scrollApp() (a wheel over Pick a part’s layer)', () => {
+    it('sends the wheel to the app only once its bridge says it can scroll', () => {
+      const t = setup();
+      act(() => t.hook.result.current.scrollApp(10, 20, 0, 120));
+      t.fromApp('ready', { capabilities: ['pick', 'capture'], session: 's1' });
+      expect(t.hook.result.current.canScroll).toBe(false);
+      act(() => t.hook.result.current.scrollApp(10, 20, 0, 120));
+      expect(t.toApp.some((m) => m.type === 'scroll')).toBe(false);
+
+      t.fromApp('ready', { capabilities: ['pick', 'capture', 'scroll'], session: 's1' });
+      expect(t.hook.result.current.canScroll).toBe(true);
+      act(() => t.hook.result.current.scrollApp(10, 20, 0, 120));
+      expect(t.toApp.filter((m) => m.type === 'scroll')).toEqual([
+        expect.objectContaining({ ns: BRIDGE_NS, payload: { x: 10, y: 20, dx: 0, dy: 120 } }),
+      ]);
+      t.cleanup();
+    });
+  });
 });
 
 describe('pinsHtml', () => {

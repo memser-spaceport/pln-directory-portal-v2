@@ -51,6 +51,7 @@
   has to read as an object above the page.
 */
 .button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -105,6 +106,45 @@
     margin-left: 0;
     opacity: 0;
   }
+}
+
+/*
+  Comment mode is on. The same mark, inverted — white with the brand ink and a
+  brand ring — which is how a toolbar shows the tool that is currently in your
+  hand. The label comes back ("Done") because the press now does something
+  other than what the resting glyph promises, and a changed promise is said
+  out loud.
+*/
+.buttonActive {
+  background: #fff;
+  color: var(--foreground-brand-primary, #1b4dff);
+  box-shadow:
+    0 0 0 2px var(--foreground-brand-primary, #1b4dff),
+    0 6px 18px rgba(27, 77, 255, 0.2);
+
+  &:hover {
+    box-shadow:
+      0 0 0 2px var(--foreground-brand-primary, #1b4dff),
+      0 10px 24px rgba(27, 77, 255, 0.28);
+  }
+}
+
+/* How many pins comment mode will show. Sits on the disc's outer corner in the
+   same white-ringed dark pill the pins use for their reply counts. */
+.count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  border: 2px solid #fff;
+  background: var(--foreground-neutral-primary, #0a0c11);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
 }
 
 /* The introduction is information, so it still happens — it just stops being a

@@ -1,0 +1,167 @@
+@use 'styles/media';
+
+// Prototype-only additions to production's GiveAiAppFeedbackDialog stylesheet
+// (LAB-2700). Everything not here is dev's, imported verbatim in the dialog.
+
+// The anchor for the shortcuts panel; production's .root is unpositioned.
+.root {
+  position: relative;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+// Quiet text control beside the ✕: 12/16, the footer hints' old type, in the
+// ✕'s ink and hover wash. A keyboard reference has nothing to offer a phone.
+.shortcutsButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover,
+  &[aria-expanded='true'] {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-subtle, #aebfff);
+    outline-offset: 1px;
+  }
+
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+// Drops from the header, right edge on the ✕'s column. 12px radius and the
+// dialog's own shadow: a surface floating over the dialog, not a card in it.
+.shortcutsPanel {
+  position: absolute;
+  top: 56px;
+  right: 16px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 264px;
+  max-height: calc(100% - 72px);
+  padding: 12px;
+  overflow-y: auto;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow:
+    0px 10px 20px -5px rgba(14, 15, 17, 0.08),
+    0px 20px 65px -5px rgba(14, 15, 17, 0.12);
+}
+
+.shortcutsGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.shortcutsGroupTitle {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.shortcutsList {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.shortcutsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  dt,
+  dd {
+    margin: 0;
+  }
+}
+
+// One pill per chord — production's .kbd values (1/5 pad, 11/14/600), with
+// `nowrap` so "Ctrl+Shift+S" can never split across two lines.
+.chord {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-secondary, #455468);
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+// The screenshot section: label, capture button, helper line, strip.
+// It leads the form body under the app picker (LAB-2700), so capture is the
+// first thing offered rather than a row under the editor.
+// 4px label-to-control, FormEditor's `.field` gap, so "Screenshot" and "Your
+// feedback" are spaced as the same kind of label. Production's .screenshotRow
+// already hides the offer on a phone (capture can't work there); the label goes
+// with it, the strip stays.
+.screenshotSection {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.screenshotStrip {
+  margin-top: 4px;
+}
+
+.screenshotLabel {
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.screenshotHelper {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// Keeps the chord pill off the label inside production's 6px-gap button.
+.inlineChord {
+  margin-left: 2px;
+  white-space: nowrap;
+
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+// Footer without the hints row: the chords now ride their buttons.
+.footerEnd {
+  justify-content: flex-end;
+}

@@ -15,6 +15,7 @@ interface PreviewMessageProps {
     relatedResults: Array<{ name: string; role: string }>;
     followUpQuestions: string[];
     sources?: Array<any>;
+    sourceRefs?: Array<{ index: number; title: string; type: string; directoryLink?: string; externalUrl?: string }>;
     actions: Array<{ name: string; type: string; directoryLink: string }>;
     isError?: boolean;
     sql: Array<{ name: string; type: string; source: string }>;
@@ -27,7 +28,6 @@ interface PreviewMessageProps {
   onCopyAnswer: (answer: string) => Promise<void>;
   isLoadingObject: boolean;
   isAnswerLoading: boolean;
-  threadId?: string;
 }
 
 const PreviewMessage: React.FC<PreviewMessageProps> = ({
@@ -40,7 +40,6 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
   onCopyAnswer,
   isLoadingObject,
   isAnswerLoading,
-  threadId,
 }) => {
   return (
     <div className={`preview-message`}>
@@ -65,12 +64,15 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
           {message?.answer && (
             <>
               {/* sources */}
-              {message.sources && message.sources.length > 0 && (
+              {(message.sourceRefs?.length || message.sources?.length || 0) > 0 && (
                 <div className="preview-message__header">
                   <PopoverDp.Wrapper>
-                    <InfoBox info={`${message.sources.length} source(s)`} imgUrl="/icons/globe-blue.svg" />
+                    <InfoBox
+                      info={`${message.sourceRefs?.length || message.sources?.length || 0} source(s)`}
+                      imgUrl="/icons/globe-blue.svg"
+                    />
                     <PopoverDp.Pane position="bottom">
-                      <HuskySourceCard sources={message.sources} />
+                      <HuskySourceCard sources={message.sources} sourceRefs={message.sourceRefs} />
                     </PopoverDp.Pane>
                   </PopoverDp.Wrapper>
                 </div>
@@ -78,7 +80,7 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
 
               {/* answer */}
               <div className="preview-message__content">
-                <Markdown>{message.answer}</Markdown>
+                <Markdown sourceRefs={message.sourceRefs}>{message.answer}</Markdown>
               </div>
 
               {/* sql results */}
@@ -111,7 +113,6 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
             question={message.question || ''}
             answer={message.answer || ''}
             hideActions={message.isError || false}
-            threadId={threadId}
           />
         </div>
       )}

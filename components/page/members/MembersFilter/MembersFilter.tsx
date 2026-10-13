@@ -28,6 +28,7 @@ import { FilterCheckboxListWithSearch } from './FilterCheckboxListWithSearch';
 import { GenericCheckboxList } from '@/components/common/filters/GenericCheckboxList';
 import { GenericFilterToggle } from '@/components/common/filters/GenericFilterToggle';
 import { useAffinityAccess } from '@/services/access-control/hooks/useAffinityAccess';
+import { useOfficeHoursAccess } from '@/services/access-control/hooks/useOfficeHoursAccess';
 
 import s from './MembersFilter.module.scss';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -46,6 +47,7 @@ export const MembersFilter = (props: IMembersFilter) => {
   const { currentUser } = useCurrentUserStore();
   const canSearch = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'member.search.read');
   const { hasAccess: hasAffinityAccess } = useAffinityAccess();
+  const { canViewDemand: canViewOfficeHours } = useOfficeHoursAccess();
 
   const { setParam, clearParams, params } = useFilterStore();
   const appliedFiltersCount = useGetMembersFilterCount();
@@ -100,29 +102,32 @@ export const MembersFilter = (props: IMembersFilter) => {
         </FilterSection>
       )}
 
-      <FilterSection
-        title="Office Hours"
-        titleIcon={<CalendarIcon color="#1B4DFF" />}
-        description="OH are short 1:1 calls to connect about topics of interest or help others with your expertise."
-      >
-        <FiltersPanelToggle
-          label={
-            <>
-              Show all members with <br /> office hours
-            </>
-          }
-          paramKey={OFFICE_HOURS_FILTER_PARAM_KEY}
-          onChange={(checked) => {
-            if (checked) {
-              setParam(TOPICS_FILTER_PARAM_KEY, undefined);
-              setShouldClearTopicsSearch(true);
-            } else {
-              setShouldClearTopicsSearch(false);
+      {canViewOfficeHours && (
+        <FilterSection
+          title="Office Hours"
+          titleIcon={<CalendarIcon color="#1B4DFF" />}
+          description="OH are short 1:1 calls to connect about topics of interest or help others with your expertise."
+        >
+          <FiltersPanelToggle
+            label={
+              <>
+                Show all members with <br /> office hours
+              </>
             }
-          }}
-        />
+            paramKey={OFFICE_HOURS_FILTER_PARAM_KEY}
+            onChange={(checked) => {
+              if (checked) {
+                setParam(TOPICS_FILTER_PARAM_KEY, undefined);
+                setShouldClearTopicsSearch(true);
+              } else {
+                setShouldClearTopicsSearch(false);
+              }
+            }}
+          />
+        </FilterSection>
+      )}
 
-        <div className={s.delimiter} />
+      <FilterSection title="Topics">
         <FilterCheckboxListWithSearch
           label="Search topics"
           paramKey={TOPICS_FILTER_PARAM_KEY}

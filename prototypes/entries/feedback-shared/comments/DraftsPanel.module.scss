@@ -1,0 +1,358 @@
+/*
+  The comment mode's dock, transcribed from Cofounder's review popover: a white
+  card, 16px inset, 12px between blocks. Geometry is the reference's; every colour
+  is a PL token pair. `.panel` sits on `fd.root` (radius 16, the two-layer shadow).
+
+  It is open for as long as the mode is on, fixed to the window's bottom-right
+  corner in both modes (in a frame the overlay is only the app's stage, and the
+  dock belongs to the window). Its right edge clears the review widget's tab on
+  the window edge; in a frame it starts above the floating comment button. Only
+  the queue scrolls, so a long one grows the card to its cap and no further, and
+  the plain-comment box and Send never leave the view.
+*/
+.panel {
+  position: fixed;
+  right: 56px;
+  bottom: 88px;
+  z-index: 5;
+  gap: 12px;
+  width: min(420px, calc(100vw - 24px));
+  // The dialog's `.root` caps against a popover's offset from the header.
+  max-height: min(64vh, 560px);
+  padding: 16px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  cursor: default;
+  animation: panelIn 160ms ease-out both;
+
+  @media (max-width: 639px) {
+    right: 12px;
+    bottom: 72px;
+  }
+}
+
+/* The page has no floating button under the dock. */
+.panelPage {
+  bottom: 24px;
+
+  @media (max-width: 639px) {
+    bottom: 12px;
+  }
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* What the black toolbar used to say, in the queue's place while it is empty. */
+.hint {
+  flex-shrink: 0;
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* The reference's pills: a hairline, a quiet fill, a glyph and a label. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 999px;
+  background: var(--background-neutral-secondary, #f8fafc);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+
+  svg {
+    flex-shrink: 0;
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+/* The count's glyph is the one brand mark up here, as in the reference. */
+.chipCount svg {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.chipText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+/* The queue is the only part that scrolls. Its cards keep their own height
+   (`flex-shrink: 0`): a shrinkable card in a capped column is squeezed and
+   stretched instead of scrolled. */
+.comments {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+/* A queued comment: hairline card with the brand family's subtle edge down its
+   left side (chrome takes the border family, not the action blue). */
+.comment {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 10px 10px 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-left: 2px solid var(--border-brand-subtle, #aebfff);
+  border-radius: 8px;
+  flex-shrink: 0;
+  scroll-margin-block: 8px;
+}
+
+/* The number its pin carries on the page, in the reference's grey disc. */
+.number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 50%;
+  background: var(--background-neutral-secondary, #f8fafc);
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.commentBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 4px;
+  min-width: 0;
+}
+
+.commentHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+}
+
+.commentLabel {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+/* In the quote chip's place: the picked element's picture, small, and the word
+   that says what a press opens. */
+.shotChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 8px 0 3px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 999px;
+  background: var(--background-neutral-secondary, #f8fafc);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+
+  img,
+  .shotChipPending {
+    display: block;
+    width: 26px;
+    height: 18px;
+    border-radius: 999px;
+    object-fit: cover;
+    object-position: left top;
+    background-color: #fff;
+  }
+}
+
+button.shotChip {
+  cursor: pointer;
+
+  svg {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+.commentText {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+/* The grey box: what the plain comment is about, and the field for it. */
+.whole {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  flex-shrink: 0;
+  background: var(--background-neutral-secondary, #f8fafc);
+}
+
+.wholeHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.wholeLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+
+  svg {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+.field {
+  width: 100%;
+  min-height: 84px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: #fff;
+  outline: none;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  resize: vertical;
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  &:focus {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+  }
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  // Close is a bare text button with no padding of its own, so the 8px that
+  // separates two boxed buttons put its word right against Send's edge.
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+/* The plane sits 6px from its word, the reference's spacing. As a margin on the
+   glyph: the DS Button wraps its children, so a `gap` on the button never reaches them. */
+.footer .send {
+  white-space: nowrap;
+
+  svg {
+    margin-right: 6px;
+    vertical-align: -3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+  }
+}

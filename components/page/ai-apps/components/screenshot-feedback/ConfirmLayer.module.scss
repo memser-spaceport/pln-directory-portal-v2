@@ -1,0 +1,8 @@
+/* Above the annotator overlay (10001) and the feedback dialog's Modal (9999).
+   A stacking context, so `ConfirmDialog`'s own z-index: 1000 is scoped inside
+   it rather than competing with the overlays. */
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+}

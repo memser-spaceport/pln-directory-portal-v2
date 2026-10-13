@@ -1,0 +1,6 @@
+/* Production's page column (`page.memberDetail__container`: 8px gaps, 16px at
+ * tablet-landscape, capped at 900px) placed in a grid track beside the
+ * candidate list — so it may shrink with the track instead of forcing it. */
+.column {
+  min-width: 0;
+}

@@ -1,31 +1,49 @@
 'use client';
 
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
+import type { HuskySourceRef } from '@/services/husky/hooks/useHuskyChat';
 
-/* The wire shape is `sources: string[]` — see the husky chat response schema.
-   The old declaration promised objects while the body rendered the raw value,
-   so every caller either passed `any` or lied to the compiler. */
-interface HuskySourceCardProps {
-  sources: string[];
+interface SourceItem {
+  key: string;
+  href: string;
+  title: string;
 }
-function HuskySourceCard({ sources }: HuskySourceCardProps) {
+
+interface HuskySourceCardProps {
+  sources?: string[];
+  sourceRefs?: HuskySourceRef[];
+}
+
+function sourceItems(sources: string[] | undefined, sourceRefs: HuskySourceRef[] | undefined): SourceItem[] {
+  if (sourceRefs?.length) {
+    return sourceRefs.flatMap((ref) => {
+      const href = ref.directoryLink || ref.externalUrl;
+      if (!href) return [];
+      return [{ key: String(ref.index), href, title: ref.title || href }];
+    });
+  }
+  return (sources ?? []).map((source, index) => ({ key: String(index), href: source, title: source }));
+}
+
+function HuskySourceCard({ sources, sourceRefs }: HuskySourceCardProps) {
   const { trackHuskySourceLinkClicked } = useHuskyAnalytics();
+  const items = sourceItems(sources, sourceRefs);
   return (
     <>
       <div className="sources">
         <h3 className="sources__title">Sources</h3>
-        {sources.map((source: string, index: number) => (
+        {items.map((item) => (
           <a
             target="_blank"
-            href={source}
-            onClick={() => trackHuskySourceLinkClicked(source)}
-            key={`husky-chat${index}`}
+            rel="noreferrer"
+            href={item.href}
+            onClick={() => trackHuskySourceLinkClicked(item.href)}
+            key={`husky-chat${item.key}`}
             className="sources__item"
           >
             <div className="sources__item__head">
-              <p className="sources__item__head__title">{source}</p>
+              <p className="sources__item__head__title">{item.title}</p>
             </div>
-            {/* <div className="sources__item__body">{source.description}</div> */}
           </a>
         ))}
       </div>
@@ -81,6 +99,7 @@ function HuskySourceCard({ sources }: HuskySourceCardProps) {
           .sources__item__head__title {
             font-size: 12px;
             font-weight: 500;
+            white-space: normal;
           }
 
           @media (min-width: 1024px) {

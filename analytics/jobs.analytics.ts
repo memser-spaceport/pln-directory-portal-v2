@@ -423,6 +423,14 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_CREATE_PROFILE_CLICKED, { ...args });
   };
 
+  const onJobInterestComposerOpened = (args: JobApplyBaseParams) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_INTEREST_COMPOSER_OPENED, { ...args });
+  };
+
+  const onJobInterestComposerCancelled = (args: JobApplyBaseParams & { had_note: boolean }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_INTEREST_COMPOSER_CANCELLED, { ...args });
+  };
+
   /**
    * The light signal beside Apply.
    *
@@ -433,8 +441,12 @@ export const useJobsAnalytics = () => {
    * A logged-out press fires nothing here — it is a sign-up intent, and
    * `onJobApplyClicked` already counts those with `trigger`. The mark event
    * fires when the signal actually exists.
+   *
+   * `has_note` (LAB-2713): whether a note went with the signal. The note-attach
+   * rate LAB-2726's Metrics section reads is marks with `has_note = true` over
+   * all marks, so this is set on every mark, the login round-trip included.
    */
-  const onJobInterestMarked = (args: JobApplyBaseParams & { resumed: boolean }) => {
+  const onJobInterestMarked = (args: JobApplyBaseParams & { resumed: boolean; has_note: boolean }) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_INTEREST_MARKED, { ...args });
   };
 
@@ -484,6 +496,72 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_FOLLOW_FAILED, { ...args });
   };
 
+  const onJobHiringViewed = (args: { team_id: string; job_id: string | null }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_HIRING_VIEWED, { ...args });
+  };
+
+  const onJobApplicantOpened = (args: { team_id: string; job_id: string | null; kind: 'application' | 'interest' }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLICANT_OPENED, { ...args });
+  };
+
+  const onJobApplicantReviewed = (args: {
+    team_id: string;
+    job_id: string | null;
+    kind: 'application' | 'interest';
+  }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLICANT_REVIEWED, { ...args });
+  };
+
+  const onJobApplicantReviewUndone = (args: {
+    team_id: string;
+    job_id: string | null;
+    kind: 'application' | 'interest';
+  }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLICANT_REVIEW_UNDONE, { ...args });
+  };
+
+  const onJobApplicantReviewFailed = (args: {
+    team_id: string;
+    job_id: string | null;
+    kind: 'application' | 'interest';
+    action: 'mark' | 'undo';
+  }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLICANT_REVIEW_FAILED, { ...args });
+  };
+
+  const onJobApplicantEmailClicked = (args: {
+    team_id: string;
+    job_id: string | null;
+    kind: 'application' | 'interest';
+  }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLICANT_EMAIL_CLICKED, { ...args });
+  };
+
+  const onJobHiringTabChanged = (args: { team_id: string; job_id: string | null; tab: 'applied' | 'interested' }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_HIRING_TAB_CHANGED, { ...args });
+  };
+
+  const onJobSaved = (args: { job_id: string; team_id: string; source: JobSurface }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_SAVED, { ...args });
+  };
+
+  const onJobUnsaved = (args: { job_id: string; team_id: string; source: JobSurface }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_UNSAVED, { ...args });
+  };
+
+  const onJobSaveFailed = (args: {
+    job_id: string;
+    team_id: string;
+    source: JobSurface;
+    action: 'save' | 'unsave';
+  }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_SAVE_FAILED, { ...args });
+  };
+
+  const onJobsSavedFilterApplied = (args: { filter_state: FilterStateParam }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOBS_SAVED_FILTER_APPLIED, { ...args });
+  };
+
   return {
     onJobsPageViewed,
     onJobsFiltersApplied,
@@ -530,6 +608,8 @@ export const useJobsAnalytics = () => {
     onJobApplyExternalRedirected,
     onJobUnlockInfoOpened,
     onJobCreateProfileClicked,
+    onJobInterestComposerOpened,
+    onJobInterestComposerCancelled,
     onJobInterestMarked,
     onJobInterestUndone,
     onJobInterestFailed,
@@ -538,5 +618,16 @@ export const useJobsAnalytics = () => {
     onJobApplyFollowDeclined,
     onJobInterestFollowDeclined,
     onJobApplyFollowFailed,
+    onJobHiringViewed,
+    onJobApplicantOpened,
+    onJobApplicantReviewed,
+    onJobApplicantReviewUndone,
+    onJobApplicantReviewFailed,
+    onJobApplicantEmailClicked,
+    onJobHiringTabChanged,
+    onJobSaved,
+    onJobUnsaved,
+    onJobSaveFailed,
+    onJobsSavedFilterApplied,
   };
 };

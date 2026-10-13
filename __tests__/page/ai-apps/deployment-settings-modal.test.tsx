@@ -9,6 +9,9 @@ const mockAnalytics = {
   onSecretsDeployClicked: jest.fn(),
   onSecretsDeploySucceeded: jest.fn(),
   onSecretsDeployFailed: jest.fn(),
+  onPublicEndpointsSaved: jest.fn(),
+  onPublicEndpointsSaveFailed: jest.fn(),
+  onPublicEndpointsRedeployClicked: jest.fn(),
 };
 jest.mock('@/analytics/ai-apps.analytics', () => ({
   useAiAppsAnalytics: () => mockAnalytics,

@@ -13,6 +13,7 @@ import nf from '@/components/core/UpdatesPanel/NotificationItem/components/Notif
 
 import { formatCount, formatMinutesAgo, type AiAppWithDoc } from './mocks';
 import { AppActionsMenu } from './AppActionsMenu';
+import { AiAppTagChips } from './AiAppTagChips';
 
 import s from './AiAppCard.module.scss';
 
@@ -153,6 +154,14 @@ export function AiAppCard({ app, canManage, onSelect, onEdit, onDeployment, onLo
             {isDraft && <span className={s.draftBadge}>Draft</span>}
           </div>
           <p className={s.description}>{app.description}</p>
+
+          {/* Dev's tag row, in dev's position — between the description and the
+              activity row — but drawn the way the teams list draws a team's
+              industry tags: two chips and a "+n" (one and a "+n" on a phone),
+              each capped so the row is the same width whatever the labels say.
+              Dev wraps every tag onto as many lines as it takes, which on a
+              scanning grid makes the tags taller than the app they qualify. */}
+          <AiAppTagChips tags={app.tags} className={s.tagsRow} />
 
           {/* Sits inside the body, bound to the description by its 8px gap:
               activity is a property of the app, answering "is this worth

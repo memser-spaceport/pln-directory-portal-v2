@@ -52,13 +52,16 @@ export default function PlaaProspectBanner({ portfolioCompanies, onGetStarted }:
           height: 32px;
           padding: 0 14px;
           border: none;
-          background: #fff;
-          color: var(--pl-slate-900);
+          background: var(--pl-blue-500);
+          color: #fff;
           border-radius: var(--radius-md);
           font: var(--text-label-lg);
           font-weight: 600;
           cursor: pointer;
           flex: none;
+        }
+        .ppb__cta:hover {
+          background: var(--pl-blue-600);
         }
         @media (max-width: 768px) {
           .ppb {

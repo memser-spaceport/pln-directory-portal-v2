@@ -349,6 +349,150 @@
   flex-wrap: wrap;
 }
 
+.snapshotHeaderControls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+
+  @include mobile-only {
+    align-items: flex-start;
+  }
+}
+
+.snapshotHeaderNote {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ov-text-tertiary);
+  margin-top: 4px;
+}
+
+.roundPickerRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.roundPicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--ov-radius-md);
+  background: var(--ov-surface-card);
+  box-shadow: var(--ov-ring-hairline), var(--ov-shadow-xs);
+}
+
+.roundPickerArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ov-text-secondary);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--ov-surface-hover);
+    color: var(--ov-text-primary);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ov-blue-500);
+    outline-offset: 1px;
+  }
+}
+
+.roundPickerSelect {
+  height: 32px;
+  max-width: 240px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ov-text-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--ov-surface-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ov-blue-500);
+    outline-offset: 1px;
+  }
+}
+
+.roundCurrentButton,
+.roundCurrentButtonActive {
+  display: inline-grid;
+  justify-items: center;
+  align-items: center;
+  height: 36px;
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--ov-radius-md);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &:focus-visible {
+    outline: 2px solid var(--ov-blue-500);
+    outline-offset: 1px;
+  }
+}
+
+.roundCurrentButton {
+  background: var(--ov-surface-card);
+  color: var(--ov-blue-500);
+  box-shadow: var(--ov-ring-hairline), var(--ov-shadow-xs);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--ov-blue-subtle);
+  }
+}
+
+.roundCurrentButtonActive {
+  background: var(--ov-blue-subtle);
+  color: var(--ov-blue-500);
+  box-shadow: inset 0 0 0 1px rgba(27, 77, 255, 0.3);
+  cursor: default;
+}
+
+.roundCurrentLabel,
+.roundCurrentLabelHidden {
+  grid-area: 1 / 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.roundCurrentLabelHidden {
+  visibility: hidden;
+}
+
+.roundCurrentDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ov-blue-500);
+  box-shadow: 0 0 0 3px rgba(27, 77, 255, 0.18);
+}
+
 .legendItem {
   display: inline-flex;
   align-items: center;

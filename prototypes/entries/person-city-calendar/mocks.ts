@@ -22,7 +22,12 @@ export interface Trip {
   /** set when source === 'event' — the RSVP this trip was derived from */
   eventName?: string;
   note?: string;
-  /** event-derived trips start unconfirmed: the user confirms rather than authors */
+  /**
+   * false only for a stay the product guessed from an RSVP made before this
+   * feature existed. It is a suggestion in the owner's edit list and invisible
+   * to everyone else until they add it. An RSVP made with "Add these dates to
+   * your location" ticked arrives true — the tick was the consent.
+   */
   confirmed: boolean;
 }
 
@@ -423,19 +428,30 @@ export const CITY_OPTIONS: { city: string; country: string }[] = [
  */
 export const PROFILE_EXTRAS: Record<
   string,
-  { bio: string; ohInterest: string[]; ohHelpWith: string[]; officeHoursNote: string }
+  {
+    bio: string;
+    ohInterest: string[];
+    ohHelpWith: string[];
+    officeHoursNote: string;
+    /* page.tsx:283 mounts IRL Contributions only for a member with event
+       guests, so a day-one profile leaves this off rather than getting a
+       section that claims a history it doesn't have. */
+    irl?: { attended: number; spoke: number };
+  }
 > = {
   'maya-okonkwo': {
     bio: 'Building verifiable compute markets on top of Filecoin. Previously infra at a hyperscaler; now trying to make proof generation cheap enough that nobody thinks about it.',
     ohInterest: ['Proof systems', 'GPU markets', 'Seed fundraising'],
     ohHelpWith: ['Distributed systems design', 'Hiring your first infra engineer'],
     officeHoursNote: 'is available for a short 1:1 call to connect or help — no introduction needed.',
+    irl: { attended: 6, spoke: 2 },
   },
   'lucas-moreau': {
     bio: 'Head of Product at Protocol Labs. IPFS maintainer. Interested in how protocol teams decide what not to build.',
     ohInterest: ['Product strategy', 'Developer experience'],
     ohHelpWith: ['Roadmapping', 'Positioning a protocol product'],
     officeHoursNote: 'is happy to talk product strategy with teams building on IPFS.',
+    irl: { attended: 4, spoke: 1 },
   },
 };
 
@@ -579,17 +595,6 @@ export const GATHERING = {
     'A week of protocol engineering in Berlin — six events across storage, consensus and cryptography, plus whatever happens in between.',
   subEvents: ['Protocol Berg — Main', 'Storage Day', 'ZK Sessions'],
 };
-
-/**
- * Visibility groups. Rendered but disabled everywhere — the user explicitly
- * deferred building privacy, so this only fixes the *shape* so it isn't
- * retrofitted later.
- */
-export const VISIBILITY_OPTIONS = [
-  { value: 'everyone', label: 'Everyone' },
-  { value: 'network', label: 'My teams & direct relationships' },
-  { value: 'pl', label: 'PL Infra only' },
-] as const;
 
 /**
  * The cold start.

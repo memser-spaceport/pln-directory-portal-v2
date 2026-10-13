@@ -1,5 +1,6 @@
-import { AI_APP_FEEDBACK_STATUS_LABELS } from '@/services/ai-app-feedback/constants';
 import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
+
+import { AI_APP_FEEDBACK_STATUS_LABELS } from '@/services/ai-app-feedback/constants';
 
 /**
  * Serialize a value for CSV: quote if it contains comma / quote / newline.
@@ -14,9 +15,12 @@ function csvCell(value: unknown): string {
   return str;
 }
 
-/** Flatten stored Quill HTML for spreadsheets: keep image URLs, drop the rest of the markup. */
+/**
+ * Flatten stored HTML for spreadsheets: keep image URLs, drop the rest of the markup. A markdown
+ * note is kept as it is, unless screenshots follow it as HTML.
+ */
 export function htmlToPlainText(value: string): string {
-  if (!/^\s*</.test(value)) {
+  if (!/<[a-z][^>]*>/i.test(value)) {
     return value;
   }
 

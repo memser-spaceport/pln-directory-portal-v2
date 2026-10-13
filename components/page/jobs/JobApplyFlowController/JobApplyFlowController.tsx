@@ -234,7 +234,11 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
   /* The light signal beside Apply. Same member-scoped whole-map read as the
      application above it, so the drawer answers "has this person acted on this
      role" from two caches with one shape rather than two idioms. */
-  const { isInterested, isSettled: interestSettled } = useRoleInterest(flowRole?.uid ?? '', {
+  const {
+    isInterested,
+    isSettled: interestSettled,
+    note: interestNote,
+  } = useRoleInterest(flowRole?.uid ?? '', {
     memberUid: viewer.memberUid,
     enabled: state.step === 'flow' && !!viewer.memberUid,
   });
@@ -250,7 +254,7 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
   const [interestError, setInterestError] = useState<{ roleUid: string; message: string } | null>(null);
   const interestErrorForRole = interestError && interestError.roleUid === flowRole?.uid ? interestError.message : null;
 
-  const handleToggleInterest = (nextInterested: boolean, followRequested = false, followOffered = false) => {
+  const handleToggleInterest = (nextInterested: boolean, followRequested = false, followOffered = false, note = '') => {
     if (state.step !== 'flow') return;
     const target = state.target;
     const analyticsBase = {
@@ -273,15 +277,19 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
       return;
     }
 
+    /* The note as the server keeps it (trimmed, blank = none), decided once so
+       the write and the event agree on whether one went. */
+    const trimmedNote = nextInterested ? note.trim() : '';
+
     toggleInterest.mutate(
-      { roleUid: target.role.uid, nextInterested },
+      { roleUid: target.role.uid, nextInterested, note: trimmedNote || undefined },
       {
         /* Reported from the server's answer rather than from the press, so a
            press that turned out to be a no-op (both writes are idempotent) is
            not counted as a state change that never happened. */
         onSuccess: (result) => {
           if (result.viewerIsInterested) {
-            analytics.onJobInterestMarked({ ...analyticsBase, resumed: false });
+            analytics.onJobInterestMarked({ ...analyticsBase, resumed: false, has_note: trimmedNote.length > 0 });
             /* The banner's follow tick, honoured the way the apply footer's is:
                the signal is on record, so a failed follow costs the follow and
                nothing else. Only ever added — Undo is not an unfollow. */
@@ -375,8 +383,24 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
               ? {
                   isInterested,
                   isSettled: interestSettled,
+                  note: interestNote,
                   error: interestErrorForRole,
                   onToggle: handleToggleInterest,
+                  onComposerOpened: () =>
+                    analytics.onJobInterestComposerOpened({
+                      job_id: state.target.role.uid,
+                      team_id: state.target.teamId,
+                      viewer_state: viewer.viewer,
+                      source,
+                    }),
+                  onComposerCancelled: (hadNote) =>
+                    analytics.onJobInterestComposerCancelled({
+                      job_id: state.target.role.uid,
+                      team_id: state.target.teamId,
+                      viewer_state: viewer.viewer,
+                      source,
+                      had_note: hadNote,
+                    }),
                 }
               : undefined
           }

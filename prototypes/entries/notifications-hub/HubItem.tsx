@@ -93,13 +93,17 @@ export function HubItem(props: Props) {
     >
       {link ? (
         // Prototype: mocked destinations, so the click is intercepted rather
-        // than navigating away from the prototype.
+        // than navigating away from the prototype — except a link into
+        // another prototype, which is a real place in this repo and is the
+        // hand-off under review (the suggested-candidates landing, the feed's
+        // `?news=` story). Those mark read, then go.
         <a
           href={link}
           className={s.itemLink}
           onClick={(e) => {
             e.preventDefault();
             onOpen(notification);
+            if (link.startsWith('/prototypes/')) window.location.assign(link);
           }}
         >
           {body}

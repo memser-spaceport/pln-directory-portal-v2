@@ -38,11 +38,11 @@ export async function getJobsList(query: string, authToken?: string): Promise<Re
   }
 }
 
-export async function getJobsFilters(query: string): Promise<Result<IJobsFiltersResponse>> {
+export async function getJobsFilters(query: string, authToken?: string): Promise<Result<IJobsFiltersResponse>> {
   try {
     const response = await fetch(`${jobsAPI}/filters?${query}`, {
       method: 'GET',
-      headers: getHeader(''),
+      headers: getHeader(authToken ?? ''),
       cache: 'no-store',
     });
     if (!response.ok) {

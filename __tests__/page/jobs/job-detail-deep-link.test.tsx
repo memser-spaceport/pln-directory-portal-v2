@@ -19,8 +19,7 @@ const openDetail = jest.fn();
 const closeFlow = jest.fn();
 
 /** Only the three members this hook actually reads. */
-const flowAt = (state: Flow['state']): Flow =>
-  ({ state, onViewJob: openDetail, close: closeFlow }) as unknown as Flow;
+const flowAt = (state: Flow['state']): Flow => ({ state, onViewJob: openDetail, close: closeFlow }) as unknown as Flow;
 
 const IDLE = flowAt({ step: 'idle' });
 

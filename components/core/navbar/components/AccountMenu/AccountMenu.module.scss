@@ -158,6 +158,15 @@
   flex: 1;
 }
 
+// A divider with no group label. The labelled `.SeparatorWrapper` row was 14px
+// tall (the label's line-height) with the 1px line centred in it; the block
+// margin keeps that footprint so the items below do not shift.
+.SeparatorRow {
+  height: 1px;
+  margin-block: 6.5px;
+  background-color: #e2e8f0;
+}
+
 .Avatar {
   position: relative;
   display: inline-flex;

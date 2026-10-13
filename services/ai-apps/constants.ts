@@ -7,10 +7,38 @@ export enum AiAppsQueryKeys {
   // ships, sinceMinutes must join the key or windows cross-contaminate the cache.
   AI_APP_LOGS = 'ai-app-logs',
   AI_APP_TAGS = 'ai-app-tags',
+  AI_APP_ACCESS = 'ai-app-access',
+  AI_APP_ACCESS_CANDIDATES = 'ai-app-access-candidates',
+  AI_APP_PUBLIC_PATHS = 'ai-app-public-paths',
+  AI_APP_TESTING_USERS = 'ai-app-testing-users',
 }
 
+/**
+ * Element pins on the app detail page: the feedback button talks to the
+ * in-app bridge (`ai-apps-bridge/`, served at /ai-apps/bridge/v1.js) so a member
+ * can pin notes to elements instead of screenshotting. Off = today's screenshot
+ * flow only. The bridge file itself is served regardless — the flag only
+ * decides whether LabOS ever sends it a command.
+ */
+export const SHOW_AI_APPS_ELEMENT_PINS: boolean = process.env.NEXT_PUBLIC_SHOW_AI_APPS_ELEMENT_PINS === 'true';
+
+/**
+ * Feedback in context: the app's creator (and directory admins) see members'
+ * element pins on the live app, and a member sees their own. Off = pins are
+ * still stored with feedback; nothing is shown on the page. Needs the bridge's
+ * `locate` capability, which every app with the 1.15+ tag already has.
+ */
+export const SHOW_AI_APPS_FEEDBACK_OVERLAY: boolean = false;
+
+/**
+ * Comments on the live app, the Feedback / Comment tabs, and the pin mode that
+ * came before them. Off for now, so every app's button is "Give feedback" and
+ * opens the form; the bridge only adds instant screenshots there.
+ */
+export const SHOW_AI_APPS_COMMENTS = false;
+
 /** Keep in sync with `AI_APPS_STARTER_KIT_VERSION` in pln-directory-portal web-api. */
-export const AI_APPS_STARTER_KIT_VERSION = '1.12';
+export const AI_APPS_STARTER_KIT_VERSION = '1.16';
 
 export const PL_INFRA_OS_APP_UID = 'cmst544z7008siz4g1d59fubr';
 export const PL_INFRA_OS_PATH = '/pl-infra-os';

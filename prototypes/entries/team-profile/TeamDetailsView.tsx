@@ -118,7 +118,7 @@ export function TeamDetailsView({
   if (facts?.teamSize) factItems.push(<span key="size">{facts.teamSize} people</span>);
   if (facts?.location)
     factItems.push(
-      <span key="location" className={mh.location}>
+      <span key="location" className={`${mh.location} ${local.factLocation}`}>
         <LocationGlyph />
         {facts.location}
       </span>,
@@ -138,12 +138,19 @@ export function TeamDetailsView({
             width={72}
             layout="intrinsic"
             priority={true}
-            className={s.teamLogo}
+            className={`${s.teamLogo} ${local.logoCell}`}
             src={logo}
           />
-          <div className={s.nameTagContainer}>
+          {/* Phone: this column dissolves (`display: contents`) into a grid on
+              its parent, so the name and facts sit beside the logo while the
+              tag row runs full width under both — see `.logoTagsGrow`. */}
+          <div className={`${s.nameTagContainer} ${local.nameTagCol}`}>
             <div className={`${s.nameAndActions} ${local.nameRowWrap}`}>
-              <Tooltip asChild trigger={<h1 className={s.teamName}>{teamName}</h1>} content={teamName} />
+              <Tooltip
+                asChild
+                trigger={<h1 className={`${s.teamName} ${local.teamNameMobile}`}>{teamName}</h1>}
+                content={teamName}
+              />
               {/* Status renders ONLY when the team is inactive, and it sits by the
                   name rather than in the facts line below — because it isn't a
                   fact of the same kind. Founded / size / location describe a team
@@ -181,24 +188,31 @@ export function TeamDetailsView({
               <div className={`${mh.roleAndLocation} ${local.factsRow}`}>
                 {factItems.map((item, i) => (
                   <Fragment key={i}>
-                    {i > 0 && <span className={mh.divider} />}
+                    {i > 0 && <span className={`${mh.divider} ${local.factDivider}`} />}
                     {item}
                   </Fragment>
                 ))}
               </div>
             )}
             {!hideBadges && (
-              <div className={s.tagsContainer}>
+              <div className={`${s.tagsContainer} ${local.tagsBlock}`}>
                 <div className={s.tags2}>
                   {team?.fundingStage?.title && (
                     <>
-                      <div className={s.fundingStage}>Stage: {team.fundingStage.title}</div>
+                      <div className={`${s.fundingStage} ${local.fromTablet}`}>Stage: {team.fundingStage.title}</div>
+                      {/* Phone: the stage joins the chip row as a chip — the DS
+                          `Tag` in the fund tag's own tint — rather than a
+                          square grey label standing among round pills. */}
+                      <Tag
+                        value={`Stage: ${team.fundingStage.title}`}
+                        className={`${s.iTag} ${local.mobileOnly} ${local.stageTag}`}
+                      />
                       <Divider />
                     </>
                   )}
                   {team?.isFund && (
                     <>
-                      <Tag value="Investment Fund" className={s.iTag} />
+                      <Tag value="Investment Fund" className={`${s.iTag} ${local.tagFullMobile}`} />
                       <Divider />
                     </>
                   )}
@@ -211,7 +225,9 @@ export function TeamDetailsView({
                   {/* Mobile: show fewer industry tags so the whole row (Stage +
                       Fund + tags + the "+n" chip) collapses to ~2 lines. TagsList's
                       "+n" counts all hidden tags and renders last, so it stays in-row. */}
-                  {!!tags?.length && <TagsList tags={tags} tagsToShow={isMobile ? 2 : 3} />}
+                  {!!tags?.length && (
+                    <TagsList tags={tags} tagsToShow={isMobile ? 2 : 3} classes={{ tag: local.tagFullMobile }} />
+                  )}
                 </div>
               </div>
             )}

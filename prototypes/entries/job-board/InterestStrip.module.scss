@@ -93,32 +93,38 @@
 // Success soft-surface on a success border, same radius as the strip it replaces.
 .alert {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 6px;
   width: 100%;
-  min-height: 52px;
-  padding: 8px 16px;
+  padding: 8px 12px;
   border: 1px solid var(--border-success-subtle, rgba(4, 135, 70, 0.32));
   border-radius: 12px;
   background: var(--background-success-soft-surface, rgba(10, 153, 82, 0.1));
 }
 
+.alertRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .alertIcon {
   flex-shrink: 0;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   color: var(--foreground-success-primary, #0a9952);
 }
 
-// Label/Medium/strong.
+// Label/Small/strong — one size down from the Figma frame, so the receipt sits
+// quieter than the offer it replaced.
 .alertText {
   flex: 1;
   min-width: 0;
   margin: 0;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
-  line-height: 24px;
-  letter-spacing: -0.3px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
   color: var(--foreground-success-primary, #0a9952);
 }
 
@@ -132,10 +138,67 @@
   border: 0;
   border-bottom: 1px solid var(--action-border-success-normal, #11a75c);
   background: none;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
-  line-height: 24px;
-  letter-spacing: -0.3px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
   color: var(--action-foreground-success-normal, #0a9952);
   cursor: pointer;
+}
+
+// The note, quoted back under the confirmation — only when one was sent. Inset
+// to the text column (20px icon + 8px gap), white so it reads as the
+// person's own words rather than as more of the alert's voice.
+.sentComment {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 0 4px 28px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--background-base-white, #fff);
+}
+
+.sentLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.sentValue {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+// --- the note (LAB-2713) --------------------------------------------------------
+
+// The strip, opened: same surface and radius, so the press reads as the strip
+// growing a field rather than as a new thing arriving.
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  border-radius: 12px;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+}
+
+.composerActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+
+  @include media.mobile-only {
+    > * {
+      flex: 1;
+    }
+  }
 }

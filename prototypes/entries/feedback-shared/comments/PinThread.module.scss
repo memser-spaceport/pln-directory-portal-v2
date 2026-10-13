@@ -1,0 +1,163 @@
+/*
+  Popover beside a pin. `.card` is the feedback dialog's `.root` (radius 16,
+  the two-layer shadow) narrowed to a thread's width and anchored to the pin
+  rather than centred. Position comes inline from CommentLayer, which knows
+  where the pin is; `.flip` is the mirrored placement when the right side of
+  the frame has no room.
+*/
+.card {
+  position: absolute;
+  z-index: 3;
+  width: 340px;
+  // The dialog's stylesheet caps `.root` against the viewport; a pin popover
+  // lives inside the frame's stage, so it caps against that instead.
+  max-height: min(70vh, 520px);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  animation: threadIn 160ms ease-out both;
+
+  @media (max-width: 639px) {
+    width: min(340px, calc(100vw - 48px));
+  }
+}
+
+@keyframes threadIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.threadHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px 0 16px;
+}
+
+/* The close disc keeps its own place when there is no status to sit opposite. */
+.close {
+  margin-left: auto;
+}
+
+.body {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/*
+  The element that was pointed at. Bordered because it is a picture of the app
+  inside a card on the app, and without an edge a white capture on a white card
+  has none. `object-fit: contain` on a capped height: it is a thumbnail for
+  recognising the spot, never a stand-in for looking at the app.
+*/
+.shot {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-secondary, #f8fafc);
+
+  img {
+    display: block;
+    width: 100%;
+    max-height: 160px;
+    object-fit: contain;
+    object-position: left top;
+  }
+}
+
+/* The whole picture is the press that opens it full size. */
+.shotOpen {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+  line-height: 0;
+}
+
+/* While html2canvas is on its way: the box is already there so nothing jumps. */
+.shotPending {
+  display: block;
+  height: 72px;
+  background: linear-gradient(
+    90deg,
+    var(--transparent-dark-4, rgba(14, 15, 17, 0.04)) 25%,
+    rgba(14, 15, 17, 0.08) 50%,
+    var(--transparent-dark-4, rgba(14, 15, 17, 0.04)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Production FormTextArea's field, transcribed (the component needs a form
+   context this popover has no reason to carry). */
+.textarea {
+  width: 100%;
+  min-height: 60px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  background: #fff;
+  outline: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: none;
+
+  &::placeholder {
+    color: #cbd5e1;
+  }
+
+  &:focus {
+    border-color: #5e718d;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+  }
+}
+
+.footer {
+  align-items: center;
+  padding: 12px 16px;
+}
+
+.replyRow {
+  gap: 8px;
+}
+
+.replyInput {
+  flex: 1;
+  min-height: 0;
+  padding: 8px 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .shotPending {
+    animation: none;
+  }
+}

@@ -938,7 +938,7 @@ export const EditInvestorProfileForm = ({ onClose, member, userInfo, useInlineAd
                   </div>
                   <div className={s.col}>
                     <div className={s.ctaLink}>Manage your investor settings</div>
-                    <p>Update demo day invites and investor profile visibility in Account Settings → </p>
+                    <p>Update demo day invites and investor profile visibility in Settings → </p>
                     <p className={s.link}>
                       Email Preferences <LinkIcon />
                     </p>

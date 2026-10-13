@@ -9,6 +9,26 @@ export const ClockIcon = () => {
   );
 };
 
+export const BookmarkGlyph = ({ filled }: { filled: boolean }) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="18"
+      height="18"
+      viewBox="0 0 16 16"
+      fill={filled ? 'currentColor' : 'none'}
+      aria-hidden="true"
+    >
+      <path
+        d="M4 2.6h8c.33 0 .6.27.6.6v10.2L8 10.55 3.4 13.4V3.2c0-.33.27-.6.6-.6Z"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
 export const ArrowIcon = () => {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">

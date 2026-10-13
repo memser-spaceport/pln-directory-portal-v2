@@ -97,18 +97,29 @@ export async function fetchJobInterests(): Promise<JobInterest[]> {
 }
 
 /**
- * Signal interest in one role.
+ * Signal interest in one role, with an optional short note for the team.
  *
  * **Idempotent**, which is the whole reason there is no "already interested"
  * refusal to classify below: a second press answers 200 with
  * `viewerIsInterested: true` rather than a 409, so the caller never has to treat
- * an error as a success.
+ * an error as a success. A repeat press WITH a note replaces the stored one
+ * (LAB-2726).
+ *
+ * The note is sent only when there are words: the server stores a blank as no
+ * note, so `{}` keeps the write byte-identical to what it was for everyone who
+ * types nothing. Trimmed here so the limit the server enforces (280 after
+ * trimming) is counted the same way on both sides.
  *
  * Note the singular `/interest` on the write. The read below is `/interests`.
  * That asymmetry is the server's; do not "correct" either one.
  */
-export async function markJobInterest(roleUid: string): Promise<JobInterestToggle> {
-  const response = await customFetch(`${JOB_OPENINGS_API_URL}/${roleUid}/interest`, JSON_WRITE('POST'), true);
+export async function markJobInterest(roleUid: string, note?: string): Promise<JobInterestToggle> {
+  const trimmed = note?.trim();
+  const response = await customFetch(
+    `${JOB_OPENINGS_API_URL}/${roleUid}/interest`,
+    trimmed ? { ...JSON_WRITE('POST'), body: JSON.stringify({ note: trimmed }) } : JSON_WRITE('POST'),
+    true,
+  );
 
   if (!response?.ok) {
     throw await errorFrom(response, 'Could not save your interest');

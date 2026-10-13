@@ -1,66 +1,42 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { clsx } from 'clsx';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Button } from '@/components/common/Button/Button';
-import { Modal } from '@/components/common/Modal/Modal';
-import { ArrowBackIcon } from '@/components/icons';
+import { useEffect, useMemo, useRef, useState } from 'react';
+
+import type { AiAppFeedbackStatus } from '@/services/ai-app-feedback/constants';
+import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
+
+import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useAiAppFeedbackList } from '@/services/ai-app-feedback/hooks/useAiAppFeedbackList';
 import { useAiAppFeedbackReviewAccess } from '@/services/ai-app-feedback/hooks/useAiAppFeedbackReviewAccess';
 import { useUpdateAiAppFeedbackStatus } from '@/services/ai-app-feedback/hooks/useUpdateAiAppFeedbackStatus';
-import type { AiAppFeedbackStatus } from '@/services/ai-app-feedback/constants';
-import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
-import { QuillContent } from '@/components/ui/QuillContent/QuillContent';
-import { sanitizeForumPostHtml } from '@/utils/html';
-import { FeedbackStatusSelector } from './FeedbackStatusSelector/FeedbackStatusSelector';
+
+import { ArrowBackIcon } from '@/components/icons';
+import { Button } from '@/components/common/Button/Button';
+import { SortDropdown } from '@/components/common/filters/SortDropdown';
+
+import type { FeedbackPriorityFilterValue, FeedbackReportKindFilterValue, FeedbackStatusFilterValue } from './types';
+import type { FeedbackImage } from './utils/splitFeedbackMedia';
+
+import {
+  ALL_TAB,
+  ALL_FEEDBACK_STATUSES,
+  ALL_FEEDBACK_PRIORITIES,
+  ALL_FEEDBACK_REPORT_KINDS,
+  FEEDBACK_STATUS_FILTER_OPTIONS,
+  FEEDBACK_PRIORITY_FILTER_OPTIONS,
+  FEEDBACK_REPORT_KIND_FILTER_OPTIONS,
+} from './constants';
+
 import { exportAiAppFeedbackCsv } from './utils/exportAiAppFeedbackCsv';
-import { getAvatarColor } from './utils/getAvatarColor';
+import { buildFeedbackCsvFilename } from './utils/buildFeedbackCsvFilename';
+
+import { FeedbackTabs } from './components/FeedbackTabs';
+import { DownloadIcon } from './components/DownloadIcon';
+import { FeedbackTable } from './components/FeedbackTable';
+import { FeedbackImageLightbox } from './components/FeedbackImageLightbox';
 
 import s from './AiAppFeedbackPage.module.scss';
- 
-const ALL_TAB = 'All apps';
-
-function looksLikeHtml(text: string): boolean {
-  return /^\s*</.test(text);
-}
-
-function FeedbackBody({
-  text,
-  onImageClick,
-}: {
-  text: string;
-  onImageClick: (image: { src: string; alt: string }) => void;
-}) {
-  if (!looksLikeHtml(text)) {
-    return <div className={s.messageText}>{text}</div>;
-  }
-
-  return (
-    <div
-      onClick={(event) => {
-        const img = (event.target as HTMLElement).closest('img');
-        if (!img?.src) return;
-        onImageClick({ src: img.currentSrc || img.src, alt: img.alt });
-      }}
-    >
-      <QuillContent html={sanitizeForumPostHtml(text)} className={s.richMessage} />
-    </div>
-  );
-}
-
-const DownloadIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M8 1.5V10.5M8 10.5L4.5 7M8 10.5L11.5 7M2.5 13.5H13.5"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 export function AiAppFeedbackPage() {
   const { feedback, isLoading, isError } = useAiAppFeedbackList();
@@ -69,7 +45,10 @@ export function AiAppFeedbackPage() {
   const analytics = useAiAppsAnalytics();
   const hasTrackedView = useRef(false);
   const [activeTab, setActiveTab] = useState(ALL_TAB);
-  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
+  const [statusFilter, setStatusFilter] = useState<FeedbackStatusFilterValue>(ALL_FEEDBACK_STATUSES);
+  const [reportKindFilter, setReportKindFilter] = useState<FeedbackReportKindFilterValue>(ALL_FEEDBACK_REPORT_KINDS);
+  const [priorityFilter, setPriorityFilter] = useState<FeedbackPriorityFilterValue>(ALL_FEEDBACK_PRIORITIES);
+  const [lightbox, setLightbox] = useState<FeedbackImage | null>(null);
 
   useEffect(() => {
     if (hasTrackedView.current) return;
@@ -79,15 +58,31 @@ export function AiAppFeedbackPage() {
 
   const appNames = useMemo(() => Array.from(new Set(feedback.map((row) => row.appName))).sort(), [feedback]);
 
-  const tabs = useMemo(
-    () => [
-      { name: ALL_TAB, count: feedback.length },
-      ...appNames.map((name) => ({ name, count: feedback.filter((row) => row.appName === name).length })),
-    ],
-    [feedback, appNames],
+  const isFiltered =
+    statusFilter !== ALL_FEEDBACK_STATUSES ||
+    reportKindFilter !== ALL_FEEDBACK_REPORT_KINDS ||
+    priorityFilter !== ALL_FEEDBACK_PRIORITIES;
+
+  const filteredRows = useMemo(
+    () =>
+      feedback.filter(
+        (row) =>
+          (statusFilter === ALL_FEEDBACK_STATUSES || row.status === statusFilter) &&
+          (reportKindFilter === ALL_FEEDBACK_REPORT_KINDS || row.reportKind === reportKindFilter) &&
+          (priorityFilter === ALL_FEEDBACK_PRIORITIES || row.priority === priorityFilter),
+      ),
+    [feedback, statusFilter, reportKindFilter, priorityFilter],
   );
 
-  const visibleRows = activeTab === ALL_TAB ? feedback : feedback.filter((row) => row.appName === activeTab);
+  const tabs = useMemo(
+    () => [
+      { name: ALL_TAB, count: filteredRows.length },
+      ...appNames.map((name) => ({ name, count: filteredRows.filter((row) => row.appName === name).length })),
+    ],
+    [filteredRows, appNames],
+  );
+
+  const visibleRows = activeTab === ALL_TAB ? filteredRows : filteredRows.filter((row) => row.appName === activeTab);
 
   const handleTabClick = (tab: string) => {
     setActiveTab(tab);
@@ -95,12 +90,11 @@ export function AiAppFeedbackPage() {
   };
 
   const handleExport = () => {
-    const slug = activeTab.toLowerCase().replace(/\s+/g, '-');
-    exportAiAppFeedbackCsv(visibleRows, `ai-app-feedback-${slug}.csv`);
-    analytics.onFeedbackExported(visibleRows.length);
+    exportAiAppFeedbackCsv(visibleRows, buildFeedbackCsvFilename(activeTab, statusFilter));
+    analytics.onFeedbackExported(visibleRows.length, statusFilter);
   };
 
-  const handleStatusSelect = (row: (typeof visibleRows)[number], status: AiAppFeedbackStatus) => {
+  const handleStatusSelect = (row: AiAppFeedbackRow, status: AiAppFeedbackStatus) => {
     if (status === row.status) return;
     const from = row.status;
     updateStatus.mutate(
@@ -137,111 +131,61 @@ export function AiAppFeedbackPage() {
         ) : (
           <>
             <div className={s.tabsRow}>
-              <div className={s.tabs}>
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.name}
-                    type="button"
-                    className={clsx(s.tab, { [s.tabActive]: tab.name === activeTab })}
-                    onClick={() => handleTabClick(tab.name)}
-                  >
-                    {tab.name}
-                    <span className={s.tabCount}>{tab.count}</span>
-                    {tab.name === activeTab && (
-                      <motion.span
-                        layoutId="aiAppFeedbackActiveTab"
-                        className={s.activeIndicator}
-                        transition={{ type: 'spring', stiffness: 500, damping: 40 }}
-                      />
-                    )}
-                  </button>
-                ))}
+              <FeedbackTabs tabs={tabs} activeTab={activeTab} onTabClick={handleTabClick} />
+              <div className={s.tabsActions}>
+                <SortDropdown
+                  sortByLabel="Status:"
+                  options={FEEDBACK_STATUS_FILTER_OPTIONS}
+                  currentSort={statusFilter}
+                  onSortChange={(value) => {
+                    const next = value as FeedbackStatusFilterValue;
+                    if (next === statusFilter) return;
+                    setStatusFilter(next);
+                    analytics.onFeedbackStatusFiltered(next);
+                  }}
+                />
+                <SortDropdown
+                  sortByLabel="Kind:"
+                  options={FEEDBACK_REPORT_KIND_FILTER_OPTIONS}
+                  currentSort={reportKindFilter}
+                  onSortChange={(value) => setReportKindFilter(value as FeedbackReportKindFilterValue)}
+                />
+                <SortDropdown
+                  sortByLabel="Priority:"
+                  options={FEEDBACK_PRIORITY_FILTER_OPTIONS}
+                  currentSort={priorityFilter}
+                  onSortChange={(value) => setPriorityFilter(value as FeedbackPriorityFilterValue)}
+                />
+                <Button
+                  size="s"
+                  style="fill"
+                  variant="primary"
+                  onClick={handleExport}
+                  disabled={visibleRows.length === 0}
+                  className={s.exportButton}
+                >
+                  <DownloadIcon />
+                  Export CSV
+                </Button>
               </div>
-              <Button
-                size="s"
-                style="fill"
-                variant="primary"
-                onClick={handleExport}
-                disabled={visibleRows.length === 0}
-                className={s.exportButton}
-              >
-                <DownloadIcon />
-                Export CSV
-              </Button>
             </div>
 
             {visibleRows.length === 0 ? (
-              <div className={s.state}>No feedback for this app yet.</div>
-            ) : (
-              <div className={s.tableWrapper}>
-                <table className={s.table}>
-                  <thead>
-                    <tr>
-                      <th className={s.appCol}>App</th>
-                      <th>Feedback</th>
-                      <th className={s.fromCol}>From</th>
-                      <th className={s.statusCol}>Status</th>
-                      <th className={s.dateCol}>Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visibleRows.map((row) => {
-                      const submitterName = row.member?.name ?? 'Unknown member';
-                      return (
-                        <tr key={row.uid}>
-                          <td className={s.appNameCell} title={row.appName}>
-                            {row.appName}
-                          </td>
-                          <td title={looksLikeHtml(row.text) ? undefined : row.text}>
-                            <FeedbackBody text={row.text} onImageClick={setLightbox} />
-                          </td>
-                          <td>
-                            <div className={s.submitter}>
-                              <span className={s.avatar} style={{ background: getAvatarColor(submitterName) }}>
-                                {submitterName.charAt(0).toUpperCase()}
-                              </span>
-                              <span className={s.submitterName} title={submitterName}>
-                                {submitterName}
-                              </span>
-                            </div>
-                          </td>
-                          <td>
-                            <FeedbackStatusSelector
-                              status={row.status}
-                              isPending={updateStatus.isPending && updateStatus.variables?.feedbackUid === row.uid}
-                              onStatusSelect={(status) => handleStatusSelect(row, status)}
-                            />
-                          </td>
-                          <td className={s.dateCell}>
-                            {new Date(row.createdAt).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className={s.state}>
+                {isFiltered ? 'No feedback matches the selected filters.' : 'No feedback for this app yet.'}
               </div>
+            ) : (
+              <FeedbackTable
+                rows={visibleRows}
+                pendingFeedbackUid={updateStatus.isPending ? updateStatus.variables?.feedbackUid : undefined}
+                onStatusSelect={handleStatusSelect}
+                onImageClick={setLightbox}
+              />
             )}
           </>
         )}
       </div>
-      <Modal
-        isOpen={Boolean(lightbox)}
-        onClose={() => setLightbox(null)}
-        lockScroll
-        overlayClassname={s.lightboxOverlay}
-        className={s.lightboxContent}
-        ariaLabelledBy="ai-app-feedback-lightbox-title"
-      >
-        <h2 id="ai-app-feedback-lightbox-title" className={s.visuallyHidden}>
-          Full size image
-        </h2>
-        {lightbox && <img src={lightbox.src} alt={lightbox.alt} />}
-      </Modal>
+      <FeedbackImageLightbox image={lightbox} onClose={() => setLightbox(null)} />
     </div>
   );
 }

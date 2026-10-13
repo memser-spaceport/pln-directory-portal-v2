@@ -18,8 +18,8 @@ export default async function Layout({ children }: { children: React.ReactNode }
 }
 
 export const metadata: Metadata = {
-  title: 'Husky | Protocol Labs Directory',
-  description: 'Husky interaction page for Protocol Labs Directory',
+  title: 'AI Chat | Protocol Labs Directory',
+  description: 'AI chat for Protocol Labs Directory',
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,

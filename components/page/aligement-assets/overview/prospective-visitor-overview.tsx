@@ -33,7 +33,7 @@ import type { CSSProperties, ReactNode } from 'react';
 
 const cssVars = (vars: Record<string, string>) => vars as CSSProperties;
 
-const SURUS_URL = 'https://app.surus.io/';
+const SURUS_URL = 'https://app.surus.io/invest/PLAA1Trust';
 
 const AT_GLANCE_STATS = [
   { value: '4', unit: 'simple steps' },
@@ -82,7 +82,7 @@ const ONBOARDING_STEPS = [
 
 const ROLE_ITEMS = [
   { role: 'Founders', description: 'driving new ventures', icon: <RocketLaunch size={19} weight="regular" /> },
-  { role: 'Researchers', description: 'advancing core protocols', icon: <Flask size={19} weight="regular" /> },
+  { role: 'Researchers', description: 'accelerating frontier fields', icon: <Flask size={19} weight="regular" /> },
   {
     role: 'Builders',
     description: 'shipping tools, products, and experiments',
@@ -181,7 +181,7 @@ export default function ProspectiveVisitorOverview({ trustHoldings }: Prospectiv
   useScrollDepthTracking('overview');
 
   const handleOnboardingClick = (source: 'hero' | 'cta-banner') => onOverviewOnboardingLinkClicked(SURUS_URL, source);
-  const handlePortfolioClick = () => onOverviewPortfolioLinkClicked('/alignment-asset/trust-holdings');
+  const handlePortfolioClick = () => onOverviewPortfolioLinkClicked('/alignment-asset/portfolio-holdings');
   const handleActivitiesClick = () => onOverviewActivitiesLinkClicked('/alignment-asset/activities', 'how-it-works');
   const handleFaqClick = () => onOverviewFaqLinkClicked('/alignment-asset/faqs#onboarding');
   const handleOfficeHoursClick = () => onSupportOfficeHoursClicked(SUPPORT_URL);
@@ -325,7 +325,7 @@ export default function ProspectiveVisitorOverview({ trustHoldings }: Prospectiv
             <div className={styles.statValue}>{trustHoldings?.trustTotalValue ?? '—'}</div>
             <div className={styles.statDesc}>
               Net asset value backing PLAA — see{' '}
-              <Link href="/alignment-asset/trust-holdings" className={styles.link} onClick={handlePortfolioClick}>
+              <Link href="/alignment-asset/portfolio-holdings" className={styles.link} onClick={handlePortfolioClick}>
                 Portfolio &amp; Holdings
               </Link>
             </div>

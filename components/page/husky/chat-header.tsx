@@ -14,7 +14,6 @@ interface ChatHeaderProps {
 
 const ChatHeader = ({ resetChat, showActions, title }: ChatHeaderProps) => {
   const [showMenu, setShowMenu] = useState(false);
-  const [copied, setCopied] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { id } = useParams();
   const { toggleSidebar } = useSidebar();
@@ -35,21 +34,6 @@ const ChatHeader = ({ resetChat, showActions, title }: ChatHeaderProps) => {
     setShowMenu(false);
     document.dispatchEvent(new CustomEvent('delete-thread', { detail: { threadId: id } }));
     analytics.trackMobileDeleteThread(id as string, title ?? '');
-  };
-
-  const handleShare = () => {
-    // Copy the current URL to clipboard
-    navigator.clipboard.writeText(`${window.location.origin}/husky/chat/${id}`);
-    setCopied(true);
-    setShowMenu(false);
-
-    // Reset copied state after 1.5 seconds
-    setTimeout(() => {
-      setCopied(false);
-    }, 1500);
-
-    // Track analytics event if available
-    analytics.trackMobileThreadShareClicked({ threadId: id as string, title: title ?? '' });
   };
 
   const handleNewConversation = () => {
@@ -96,15 +80,10 @@ const ChatHeader = ({ resetChat, showActions, title }: ChatHeaderProps) => {
                   <img src="/icons/delete.svg" alt="delete" />
                   <span>Delete</span>
                 </button>
-                <button onClick={handleShare} className="chat-header__dropdown-item share-button">
-                  <img src="/icons/share-blue.svg" alt="share" />
-                  <span>Share</span>
-                </button>
               </div>
             )}
           </div>
         )}
-        {copied && <div className="copied-tooltip">Copied!</div>}
       </div>
 
       <style jsx>{`
@@ -199,23 +178,6 @@ const ChatHeader = ({ resetChat, showActions, title }: ChatHeaderProps) => {
         .chat-header__dropdown-item img {
           width: 16px;
           height: 16px;
-        }
-
-        .share-button {
-          position: relative;
-        }
-
-        .copied-tooltip {
-          position: absolute;
-          bottom: -30px;
-          right: 0;
-          padding: 4px 8px;
-          font-size: 12px;
-          background: black;
-          color: white;
-          border-radius: 8px;
-          white-space: nowrap;
-          z-index: 10;
         }
 
         button {

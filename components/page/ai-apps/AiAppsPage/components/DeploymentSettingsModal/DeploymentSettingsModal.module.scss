@@ -31,6 +31,83 @@
   color: var(--foreground-neutral-primary, #0a0c11);
 }
 
+.envSwitch {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.envSwitchOn,
+.envSwitchOff {
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.envSwitchOn {
+  border: 1px solid #1d4ed8;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.envSwitchOff {
+  border: 1px solid rgba(27, 56, 96, 0.16);
+  background: #fff;
+  color: #334155;
+}
+
+.keys {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.keyList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.keyList li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.keyMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.keyPrefix {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.keyTime {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.keyOnce {
+  margin: 0;
+  padding: 8px;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  word-break: break-all;
+}
+
 .close {
   display: flex;
   padding: 4px;
@@ -173,6 +250,38 @@
   }
 }
 
+.dangerBtn {
+  flex-shrink: 0;
+  padding: 6px 8px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-error-primary, #d21a0e);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.stackedOverlay {
+  z-index: 10000;
+}
+
+.keyRevealBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 24px;
+}
+
 .statusBody {
   display: flex;
   flex-direction: column;
@@ -221,4 +330,145 @@
   .footer {
     flex-direction: column-reverse;
   }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  code {
+    padding: 0 4px;
+    border-radius: 4px;
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    font-family: 'SF Mono', 'Roboto Mono', ui-monospace, monospace;
+    font-size: 12px;
+  }
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.sectionLabel {
+  flex: 1;
+  min-width: 0;
+}
+
+.sectionToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.chevronCollapsed {
+  transform: rotate(-90deg);
+}
+
+.statusNote {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// Same amber palette as the Draft badge and the Manage access notices.
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fef3c7;
+}
+
+.noticeTitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.noticeText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: #92400e;
+}
+
+.pathList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pathItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .input {
+    font-family: 'SF Mono', 'Roboto Mono', ui-monospace, monospace;
+  }
+}
+
+.removeBtn {
+  display: flex;
+  flex-shrink: 0;
+  padding: 6px;
+  border: none;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.sectionFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sectionActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.savedText {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-success-primary, #0a9952);
 }

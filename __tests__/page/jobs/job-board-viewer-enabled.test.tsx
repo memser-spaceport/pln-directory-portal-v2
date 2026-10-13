@@ -20,10 +20,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 );
 
 const render = (isLoggedIn: unknown, userInfo?: IUserInfo) =>
-  renderHook(
-    () => useJobBoardViewer({ isLoggedIn: isLoggedIn as boolean, userInfo, enabled: true }),
-    { wrapper },
-  );
+  renderHook(() => useJobBoardViewer({ isLoggedIn: isLoggedIn as boolean, userInfo, enabled: true }), { wrapper });
 
 describe('useJobBoardViewer feeding react-query', () => {
   /**

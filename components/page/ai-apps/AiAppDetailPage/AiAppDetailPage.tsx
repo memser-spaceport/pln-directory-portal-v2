@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
@@ -8,19 +8,39 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
 import { useAiAppManageAccess } from '@/services/ai-apps/hooks/useAiAppManageAccess';
-import { checkAiAppLive, deployFailureKind, hasPrd, recordAiAppView } from '@/services/ai-apps/ai-apps.service';
+import {
+  AiAppTargetEnvironment,
+  aiAppStatusLabel,
+  aiAppTarget,
+  checkAiAppLive,
+  deployFailureKind,
+  hasPrd,
+  isPrivateAiApp,
+  recordAiAppView,
+} from '@/services/ai-apps/ai-apps.service';
 import { DocumentIcon } from '@/components/icons';
 import { Button } from '@/components/common/Button';
 import { AppActionsMenu } from '@/components/page/ai-apps/AiAppsPage/components/AppActionsMenu';
 import {
   EditAiAppModal,
+  ManageAccessModal,
   DeploymentSettingsModal,
   DeploymentLogsModal,
   DeleteAiAppDialog,
   AiAppDetailsModal,
 } from '@/components/page/ai-apps/dynamicActionModals';
+import {
+  SHOW_AI_APPS_COMMENTS,
+  SHOW_AI_APPS_ELEMENT_PINS,
+  SHOW_AI_APPS_FEEDBACK_OVERLAY,
+} from '@/services/ai-apps/constants';
+import { BRIDGE_VERSION } from '@/ai-apps-bridge/protocol';
+import type { FeedbackContext } from '@/services/ai-app-feedback/ai-app-feedback.service';
+import { useAppFeedbackPins } from '@/services/ai-app-feedback/hooks/useAppFeedbackPins';
 import { FloatingFeedbackButton } from '../components/FloatingFeedbackButton';
+import { CommentMode, normalizeAppPath, useElementPins } from '../components/element-pins';
 import { AiAppTagChips } from '../components/AiAppTagChips';
+import { LockIcon } from '../AiAppsPage/components/ManageAccessModal/icons';
 
 import { AppSecretsPanel } from './components/AppSecretsPanel';
 
@@ -31,7 +51,7 @@ interface Props {
   basePath: string;
 }
 
-type Action = 'edit' | 'deployment' | 'logs' | 'delete';
+type Action = 'edit' | 'access' | 'deployment' | 'logs' | 'delete';
 
 const SETUP_STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Draft',
@@ -57,36 +77,119 @@ type FrameStatus = 'checking' | 'live' | 'down';
 /**
  * Sent by the embedded app (starter kit ≥1.10) on load and on every in-app
  * navigation: `{ type, path, title }`. The frame is cross-origin, so this is
- * the only way to learn which subpage is open. Kits ≥1.12 send the pathname
- * only, addressed to this origin; kits 1.10–1.11 sent pathname + query + hash
- * to `'*'`, so the listener keeps only the pathname regardless of sender.
+ * the only way to learn which subpage is open. Kits ≥1.14 send pathname +
+ * query (never the hash), addressed to this origin. Kits 1.12–1.13 sent the
+ * pathname only; kits 1.10–1.11 sent pathname + query + hash to `'*'`. The
+ * listener drops the hash, reserved portal params, and secret-like query keys
+ * no matter what the sender included.
  */
 const APP_ROUTE_MESSAGE = 'pln-ai-app:route';
 const MAX_APP_PATH_LENGTH = 2048;
 const MAX_APP_TITLE_LENGTH = 200;
 
+/**
+ * Portal-owned keys on this page's query string. They stay on the parent URL
+ * and are never forwarded into the iframe (`?settings=deployment` opens a
+ * LabOS modal; `path` is the legacy deep-link param; `feedback=<uid>` opens
+ * that feedback's pins on the page).
+ */
+const RESERVED_PORTAL_PARAMS = new Set(['settings', 'path', 'feedback']);
+
+/**
+ * Exact, case-insensitive. These names are where OAuth callbacks (`?code=`),
+ * magic links and tokens land — they must not be mirrored into a shareable
+ * URL or replayed as the iframe's initial query. `state` is ordinary UI state
+ * in apps, so it is not listed.
+ */
+const DENIED_APP_PARAMS = new Set([
+  'code',
+  'token',
+  'access_token',
+  'id_token',
+  'refresh_token',
+  'secret',
+  'client_secret',
+  'key',
+  'api_key',
+  'apikey',
+  'auth',
+  'authorization',
+  'password',
+  'passwd',
+  'pwd',
+  'jwt',
+  'bearer',
+  'otp',
+]);
+
+function isReservedPortalParam(key: string): boolean {
+  return RESERVED_PORTAL_PARAMS.has(key.toLowerCase());
+}
+
+function isDeniedAppParam(key: string): boolean {
+  return DENIED_APP_PARAMS.has(key.toLowerCase());
+}
+
+/** App-owned query string: reserved portal keys and the secret denylist are dropped. */
+function filterAppSearch(params: URLSearchParams): string {
+  const kept = new URLSearchParams();
+  for (const [key, value] of params) {
+    if (isReservedPortalParam(key) || isDeniedAppParam(key)) continue;
+    kept.append(key, value);
+  }
+  const qs = kept.toString();
+  return qs ? `?${qs}` : '';
+}
+
 // Accepts only a path on the app's own origin; the origin comparison rejects
-// `//host`, absolute URLs, backslashes and non-http schemes in one go. Keeps
-// the pathname only: it is mirrored into this page's address bar and tab
-// title, and an app's query string is where OAuth callbacks (`?code=…`),
-// magic links and tokens land.
+// `//host`, absolute URLs, backslashes and non-http schemes in one go.
+// Returns pathname + safe query. The hash is never kept.
 function resolveAppPath(appOrigin: string, raw: unknown): string | null {
   if (typeof raw !== 'string' || !raw || raw.length > MAX_APP_PATH_LENGTH) return null;
   try {
     const url = new URL(raw, appOrigin);
     if (url.origin !== appOrigin) return null;
-    return url.pathname;
+    const path = `${url.pathname}${filterAppSearch(url.searchParams)}`;
+    if (path.length > MAX_APP_PATH_LENGTH) return null;
+    return path;
   } catch {
     return null;
   }
 }
 
+/** Pathname segment plus the query captured on first load, if either is present. */
+function initialAppRoute(path: string | null, search: string): string | null {
+  if (!path && !search) return null;
+  return `${path ?? '/'}${search}`;
+}
+
+/**
+ * Parent query after a route report: the app's filtered params, then reserved
+ * portal params copied from the current address bar so they win and survive
+ * an in-app navigation that reports no query.
+ */
+function parentSearchForAppRoute(appPath: string): string {
+  const merged = new URLSearchParams(new URL(appPath, 'https://placeholder.invalid').search);
+  for (const [key, value] of new URLSearchParams(window.location.search)) {
+    if (isReservedPortalParam(key)) merged.append(key, value);
+  }
+  const qs = merged.toString();
+  return qs ? `?${qs}` : '';
+}
+
+function mirroredAppUrl(basePath: string, appPath: string): string {
+  const queryAt = appPath.indexOf('?');
+  const appPathname = queryAt === -1 ? appPath : appPath.slice(0, queryAt);
+  const segment = appPathname === '/' ? '' : appPathname;
+  return `${basePath}${segment}${parentSearchForAppRoute(appPath)}`;
+}
+
 export function AiAppDetailPage(props: Props) {
   const { uid, basePath } = props;
 
-  const { app, isLoading, isError } = useAiApp(uid);
+  const { app, errorKind, isLoading, isError } = useAiApp(uid);
   const { currentUser } = useCurrentUserStore();
-  const { canLikelyManage } = useAiAppManageAccess();
+  const { canLikelyManage, isDirectoryAdmin } = useAiAppManageAccess();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -95,19 +198,32 @@ export function AiAppDetailPage(props: Props) {
   const openedSettingsFromUrl = useRef(false);
   const trackedAppUid = useRef<string | null>(null);
   const trackedDraftSetupUid = useRef<string | null>(null);
+  const trackedPrivateBlockUid = useRef<string | null>(null);
   const iframeTracked = useRef<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   // Latest subpage reported by the app; seeds the frame src on a redeploy remount.
   const appPathRef = useRef<string | null>(null);
   // The app subpage is the URL segment after the route's base path, e.g.
-  // `/pl-infra-os/flywheels` → `/flywheels`.
+  // `/pl-infra-os/flywheels` → `/flywheels`. Captured once: later replaceState
+  // updates must not recompute the iframe src (that reloads the frame).
   const [initialPath] = useState(() => (pathname.startsWith(`${basePath}/`) ? pathname.slice(basePath.length) : null));
+  // window is the source of truth in the browser. On the server (no window)
+  // fall back to the router snapshot so a deep link's query survives SSR.
+  const [initialSearch, setInitialSearch] = useState(() => {
+    if (typeof window !== 'undefined') return window.location.search;
+    const qs = searchParams.toString();
+    return qs ? `?${qs}` : '';
+  });
   const [appPageTitle, setAppPageTitle] = useState<string | null>(null);
+  // The app page on screen, for the feedback overlay (only this page's pins are
+  // looked for). Seeded from the deep link; then from the app's route reports.
+  const [currentAppPath, setCurrentAppPath] = useState<string | null>(initialPath);
   const [isRedeploying, setIsRedeploying] = useState(false);
   const [action, setAction] = useState<Action | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   // Bumped by "Try again" to restart the polling effect after it gave up.
   const [retryToken, setRetryToken] = useState(0);
+  const [previewEnv, setPreviewEnv] = useState<AiAppTargetEnvironment>('prod');
   // Result of the liveness polling, tagged with the generation it probed. A new
   // generation (fresh deploy or retry) makes the derived status fall back to
   // 'checking' without the effect having to reset any state synchronously.
@@ -160,6 +276,12 @@ export function AiAppDetailPage(props: Props) {
   const deployInProgress = app?.status === 'DEPLOYING' && !isRedeploying;
 
   useEffect(() => {
+    if (errorKind !== 'forbidden' || app || trackedPrivateBlockUid.current === uid) return;
+    trackedPrivateBlockUid.current = uid;
+    analytics.onPrivateBlocked(uid);
+  }, [errorKind, app, uid, analytics]);
+
+  useEffect(() => {
     if (!app || app.status !== 'DRAFT' || !needsSetup || trackedDraftSetupUid.current === app.uid) return;
     trackedDraftSetupUid.current = app.uid;
     analytics.onDraftSetupViewed({ appUid: app.uid, appName: app.name });
@@ -171,7 +293,13 @@ export function AiAppDetailPage(props: Props) {
     }
   }, [isError, uid, analytics]);
 
-  const appUrl = app?.url ?? null;
+  const prodTarget = app ? aiAppTarget(app, 'prod') : null;
+  const previewRow = app?.deployments?.preview ?? null;
+  const canOpenPreview = !!previewRow && !!app?.canViewPreview;
+  const previewTargetRow = app ? aiAppTarget(app, 'preview') : null;
+  const selectedEnv = canOpenPreview ? previewEnv : 'prod';
+  const previewTarget = selectedEnv === 'preview' ? previewTargetRow : prodTarget;
+  const appUrl = previewTarget?.url ?? (selectedEnv === 'prod' ? (app?.url ?? null) : null);
   const appOrigin = useMemo(() => {
     if (!appUrl) return null;
     try {
@@ -192,7 +320,7 @@ export function AiAppDetailPage(props: Props) {
   // updatedAt would remount a visitor's working previous version whenever a
   // FAILED deploy bumps the row (warning state). updatedAt stays as the
   // fallback for pre-contract API responses that lack the field.
-  const deployGeneration = app?.lastDeployedAt ?? app?.updatedAt ?? '';
+  const deployGeneration = previewTarget?.lastDeployedAt ?? app?.updatedAt ?? '';
   // One probe "generation" per deployed version and per manual retry; probe
   // results from older generations are ignored, so a fresh deploy always
   // re-checks.
@@ -201,12 +329,40 @@ export function AiAppDetailPage(props: Props) {
 
   // Recomputed only per deployed version: every route message re-renders this
   // component through the synced pathname, and a changed src would reload the
-  // frame. Reading the ref makes a redeploy remount reopen the same subpage.
+  // frame. Reading the ref makes a redeploy remount reopen the same subpage
+  // and query. Reserved and denylisted keys never reach the iframe.
   const frameSrc = useMemo(() => {
-    const path = appOrigin ? resolveAppPath(appOrigin, appPathRef.current ?? initialPath) : null;
-    return path && appOrigin ? `${appOrigin}${path}` : (appUrl ?? undefined);
+    if (!appOrigin) return appUrl ?? undefined;
+    const seed = appPathRef.current ?? initialAppRoute(initialPath, initialSearch);
+    const path = seed ? resolveAppPath(appOrigin, seed) : null;
+    if (!path || path === '/') return appUrl ?? undefined;
+    return `${appOrigin}${path}`;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [appUrl, appOrigin, initialPath, deployGeneration]);
+  }, [appUrl, appOrigin, initialPath, initialSearch, deployGeneration]);
+
+  // A pasted link can already carry `?code=` / `?token=`. Drop those before the
+  // app reports a route so they don't sit in the address bar.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    let removed = false;
+    for (const key of [...params.keys()]) {
+      if (!isDeniedAppParam(key)) continue;
+      params.delete(key);
+      removed = true;
+    }
+    if (!removed) return;
+    const qs = params.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
+  }, []);
+
+  // A server render has no window, and useState does not re-run on hydration.
+  // If that left the query empty, pick it up before the liveness probe mounts
+  // the iframe (the probe is async) so the deep link is the first src.
+  useEffect(() => {
+    if (initialSearch) return;
+    const live = window.location.search;
+    if (live) setInitialSearch(live);
+  }, [initialSearch]);
 
   useEffect(() => {
     if (!appOrigin) return;
@@ -221,7 +377,8 @@ export function AiAppDetailPage(props: Props) {
       const path = resolveAppPath(appOrigin, event.data.path);
       if (!path) return;
       appPathRef.current = path;
-      window.history.replaceState(null, '', `${basePath}${path === '/' ? '' : path}${window.location.search}`);
+      setCurrentAppPath(path);
+      window.history.replaceState(null, '', mirroredAppUrl(basePath, path));
     };
 
     window.addEventListener('message', onMessage);
@@ -240,7 +397,7 @@ export function AiAppDetailPage(props: Props) {
     let timer: ReturnType<typeof setTimeout> | undefined;
 
     const probe = async () => {
-      const live = await checkAiAppLive(uid);
+      const live = await checkAiAppLive(uid, selectedEnv);
       if (cancelled) return;
       if (live) {
         setProbeResult({ generation: probeGeneration, status: 'live' });
@@ -260,9 +417,120 @@ export function AiAppDetailPage(props: Props) {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [uid, appUrl, probeGeneration, isRedeploying]);
+  }, [uid, appUrl, probeGeneration, isRedeploying, selectedEnv]);
+
+  // The in-app bridge (starter kit script). Pin state lives here, next to the
+  // iframe it belongs to; the feedback button only drives it. Keyed on the
+  // same generation as the iframe, so a redeploy remount starts clean.
+  const elementPins = useElementPins({
+    iframeRef,
+    appOrigin,
+    frameKey: deployGeneration,
+    enabled: SHOW_AI_APPS_ELEMENT_PINS,
+    appUid: uid,
+  });
+
+  // Feedback in context. Comments are public: everyone who can open the app reads
+  // them all, and the API adds the private feedback each viewer may also see
+  // (creator and admins: all of it; anyone else: their own). Nothing is fetched
+  // when signed out: these are authenticated requests (customFetch reloads on a
+  // missing session).
+  const canManageApp = !!app && (app.canManage ?? (!!currentUser?.uid && currentUser.uid === app.member?.uid));
+  const overlayScope: 'all' | null =
+    !SHOW_AI_APPS_COMMENTS || !SHOW_AI_APPS_FEEDBACK_OVERLAY || !app || !currentUser?.uid ? null : 'all';
+  // Comment mode (prototype `CommentLayer`): the feedback button toggles it; pins
+  // are only drawn while it is on. Needs the app's bridge, and a running frame.
+  const [commentModeOn, setCommentModeOn] = useState(false);
+  // Shipped comments stay on the page, faded (prototype), so they're always fetched.
+  // While the mode is on, other members' new comments come in without a reload.
+  const feedbackPins = useAppFeedbackPins({
+    appUid: uid,
+    scope: overlayScope,
+    includeResolved: true,
+    enabled: overlayScope !== null,
+    live: commentModeOn,
+  });
+  // Opening the mode reads the pins afresh, however recently they were fetched.
+  const refetchPins = feedbackPins.refetch;
+  useEffect(() => {
+    if (commentModeOn && overlayScope !== null) void refetchPins();
+  }, [commentModeOn, overlayScope, refetchPins]);
+  const [openFeedbackPin, setOpenFeedbackPin] = useState<string | null>(null);
+  /* Bumped when the comment card's Feedback tab is chosen: the button opens the written form. */
+  const [feedbackRequest, setFeedbackRequest] = useState(0);
+  const deepLinkHandled = useRef(false);
+  // Every comment, Shipped included — the button, the Comment tab and the comments panel
+  // show the same total (prototype). One item may carry several pins (older feedback).
+  const commentCount = useMemo(
+    () => new Set(feedbackPins.pins.map((pin) => pin.feedbackUid)).size,
+    [feedbackPins.pins],
+  );
+
+  const goToAppPage = useCallback(
+    (pagePath: string) => {
+      const frame = iframeRef.current;
+      if (!frame || !appOrigin) return;
+      /* A cross-origin frame can still be sent somewhere; the app then reports the
+         route itself. Set it here too, for apps that never report one. */
+      setCurrentAppPath(pagePath);
+      frame.src = `${appOrigin}${pagePath}`;
+    },
+    [appOrigin],
+  );
+
+  // `?feedback=<uid>` (from the feedback list's "Show on page"): once the pins
+  // are in, turn the overlay on at that feedback's first pin, on its page. The
+  // param is dropped either way, so a refresh doesn't replay it.
+  const deepLinkFeedback = searchParams.get('feedback');
+  useEffect(() => {
+    if (deepLinkHandled.current || !deepLinkFeedback || overlayScope === null || feedbackPins.isLoading) return;
+    if (frameStatus !== 'live') return;
+    deepLinkHandled.current = true;
+    const first = feedbackPins.pins.find((pin) => pin.feedbackUid === deepLinkFeedback);
+    if (first) {
+      setCommentModeOn(true);
+      setOpenFeedbackPin(first.uid);
+      if (normalizeAppPath(first.pagePath) !== normalizeAppPath(appPathRef.current ?? currentAppPath ?? '/')) {
+        goToAppPage(first.pagePath);
+      }
+    }
+    const params = new URLSearchParams(window.location.search);
+    params.delete('feedback');
+    const qs = params.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
+  }, [
+    deepLinkFeedback,
+    overlayScope,
+    feedbackPins.isLoading,
+    feedbackPins.pins,
+    frameStatus,
+    currentAppPath,
+    goToAppPage,
+  ]);
+
+  // What the feedback dialog records with a report: where it was left, on what.
+  const getFeedbackContext = useCallback((): FeedbackContext | null => {
+    if (!appOrigin) return null;
+    const frame = iframeRef.current;
+    const href = window.location.href;
+    return {
+      env: selectedEnv,
+      appPath: (appPathRef.current ?? currentAppPath ?? '/').slice(0, 2000),
+      labosUrl: href.length <= 2000 ? href : `${window.location.origin}${window.location.pathname}`.slice(0, 2000),
+      viewport: {
+        w: Math.round(frame?.clientWidth ?? window.innerWidth),
+        h: Math.round(frame?.clientHeight ?? window.innerHeight),
+      },
+      pixelRatio: Math.min(10, window.devicePixelRatio || 1),
+      touch: window.matchMedia?.('(pointer: coarse)').matches ?? false,
+      userAgent: navigator.userAgent.slice(0, 500),
+      bridge:
+        elementPins.status === 'ready' ? { version: BRIDGE_VERSION, capabilities: elementPins.capabilities } : null,
+    };
+  }, [appOrigin, selectedEnv, currentAppPath, elementPins.status, elementPins.capabilities]);
 
   const handleIframeLoad = () => {
+    elementPins.onFrameLoad();
     if (!app || iframeTracked.current === app.uid) return;
     iframeTracked.current = app.uid;
     analytics.onIframeLoaded(app.uid, app.name);
@@ -279,6 +547,25 @@ export function AiAppDetailPage(props: Props) {
     return <div className={s.state}>Unable to load this app. Please try again later.</div>;
   }
 
+  if (errorKind === 'forbidden' && !app) {
+    return (
+      <div className={s.state}>
+        <div className={s.privateState}>
+          <span className={s.privateStateIcon}>
+            <LockIcon size={20} />
+          </span>
+          <h1 className={s.privateStateTitle}>This app is private</h1>
+          <p className={s.privateStateText}>
+            Only its owner and the people they add can open it. Ask the owner to add you.
+          </p>
+          <Link href="/pl-infra/ai-apps" className={s.privateStateLink}>
+            Back to AI Apps
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if ((!isLoading && !appUrl) || !app) {
     return <div className={s.state}>App not found.</div>;
   }
@@ -291,7 +578,13 @@ export function AiAppDetailPage(props: Props) {
   // Shown both for an app that genuinely isn't deployed yet (needsSetup) and
   // for a deploy in progress or failed with nothing serving — a 'warning'
   // failure (previous revision still up) renders the normal layout instead.
-  const showSetupCard = needsSetup || (deployFailed && failureKind !== 'warning') || deployInProgress;
+  const showSetupCard =
+    selectedEnv !== 'preview' && (needsSetup || (deployFailed && failureKind !== 'warning') || deployInProgress);
+
+  // Comment mode needs the app's bridge (kit 1.15+) and a running frame; without
+  // them the feedback button stays today's door (pins or the dialog).
+  const commentModeAvailable =
+    overlayScope !== null && elementPins.status === 'ready' && frameStatus === 'live' && !showSetupCard;
 
   // Close a card action; if the deployment modal was opened via the
   // `?settings=deployment` deep link, drop the param so a refresh/back doesn't
@@ -299,18 +592,21 @@ export function AiAppDetailPage(props: Props) {
   // the subpage URL remounts the page subtree and reloads the frame.
   const closeAction = () => {
     setAction(null);
-    if (searchParams.get('settings')) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete('settings');
-      const qs = params.toString();
-      window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
-    }
+    // Live URL, not the hook snapshot: route sync writes app params via
+    // replaceState, which does not update useSearchParams. Reading the hook
+    // here would drop those params when the modal closes.
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('settings')) return;
+    params.delete('settings');
+    const qs = params.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
   };
 
   const openFailureLogs = (source: 'detail-banner' | 'detail-error-card') => {
     analytics.onDeploymentLogsOpened({
       appUid: app.uid,
       appName: app.name,
+      environment: 'prod',
       source,
       variant: failureKind ?? undefined,
     });
@@ -324,8 +620,10 @@ export function AiAppDetailPage(props: Props) {
           <div className={s.setupHeader}>
             <h1 className={s.setupTitle}>{app.name}</h1>
             <span className={s.statusBadge} data-status={app.status}>
-              {SETUP_STATUS_LABELS[app.status] ?? app.status}
+              Prod {aiAppStatusLabel(prodTarget?.status ?? app.status)}
+              {previewRow ? ` · Preview ${aiAppStatusLabel(previewRow.status)}` : ''}
             </span>
+            {isPrivateAiApp(app) && <span className={s.privateBadge}>Private</span>}
           </div>
           {app.description && <p className={s.setupDescription}>{app.description}</p>}
           <AiAppTagChips tags={app.tags} />
@@ -373,6 +671,23 @@ export function AiAppDetailPage(props: Props) {
   );
 
   const renderFrameArea = () => {
+    if (selectedEnv === 'preview' && !appUrl) {
+      return (
+        <div className={s.frameState}>
+          <div className={s.progress}>
+            <p className={s.progressTitle}>
+              {previewTargetRow?.status === 'DEPLOYING' ? 'Deploying preview' : 'Preview is not deployed yet'}
+            </p>
+            <p className={s.progressText}>
+              {previewTargetRow?.status === 'DEPLOYING'
+                ? 'A deploy is in progress — this page updates automatically once it finishes.'
+                : 'Switch back to Production, or open settings to deploy this environment.'}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     if (isRedeploying) {
       return (
         <div className={s.frameState}>
@@ -432,53 +747,100 @@ export function AiAppDetailPage(props: Props) {
     );
   };
 
+  const appHeader = (
+    <div className={s.topBar}>
+      <Link href="/pl-infra/ai-apps" className={s.backLink}>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M11 14L5 8L11 2"
+            stroke="#5E718D"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          ></path>
+        </svg>
+        Back
+      </Link>
+      <div className={s.topBarActions}>
+        {canOpenPreview && (
+          <div className={s.envSwitch} role="tablist" aria-label="App environment">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={selectedEnv === 'prod'}
+              className={selectedEnv === 'prod' ? s.envOn : s.envOff}
+              onClick={() => {
+                if (selectedEnv === 'prod') return;
+                analytics.onEnvironmentSelected({ environment: 'prod', surface: 'detail' });
+                setPreviewEnv('prod');
+              }}
+            >
+              Production
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={selectedEnv === 'preview'}
+              className={selectedEnv === 'preview' ? s.envOn : s.envOff}
+              onClick={() => {
+                if (selectedEnv === 'preview') return;
+                analytics.onEnvironmentSelected({ environment: 'preview', surface: 'detail' });
+                setPreviewEnv('preview');
+              }}
+            >
+              Preview
+            </button>
+          </div>
+        )}
+        <span className={s.envMeta}>{aiAppStatusLabel(previewTarget?.status ?? '')}</span>
+        {isPrivateAiApp(app) && (
+          <span className={s.privateBadge} title="Only the owner and people they add can see this app">
+            <LockIcon size={12} />
+            Private
+          </span>
+        )}
+        {hasPrd(app) && (
+          <Button
+            style="border"
+            variant="neutral"
+            size="xxs"
+            className={s.topBarBtn}
+            onClick={() => setShowDetails(true)}
+            aria-label={`App details for ${app.name}`}
+          >
+            <DocumentIcon aria-hidden />
+            App Details
+          </Button>
+        )}
+        {canLikelyManage(app.member.uid) && (
+          <AppActionsMenu
+            app={app}
+            onEdit={() => setAction('edit')}
+            onAccess={() => setAction('access')}
+            onDeployment={() => setAction('deployment')}
+            onLogs={() => {
+              analytics.onDeploymentLogsOpened({
+                appUid: app.uid,
+                appName: app.name,
+                environment: 'prod',
+                source: 'menu',
+              });
+              setAction('logs');
+            }}
+            onDelete={() => setAction('delete')}
+          />
+        )}
+      </div>
+    </div>
+  );
+
   const normalLayout = (
     <div className={s.root}>
-      <div className={s.topBar}>
-        <Link href="/pl-infra/ai-apps" className={s.backLink}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M11 14L5 8L11 2"
-              stroke="#5E718D"
-              strokeWidth="1.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            ></path>
-          </svg>
-          Back
-        </Link>
-        <div className={s.topBarActions}>
-          {hasPrd(app) && (
-            <Button
-              style="border"
-              variant="neutral"
-              size="xxs"
-              className={s.topBarBtn}
-              onClick={() => setShowDetails(true)}
-              aria-label={`App details for ${app.name}`}
-            >
-              <DocumentIcon aria-hidden />
-              App Details
-            </Button>
-          )}
-          {canLikelyManage(app.member.uid) && (
-            <AppActionsMenu
-              app={app}
-              onEdit={() => setAction('edit')}
-              onDeployment={() => setAction('deployment')}
-              onLogs={() => {
-                analytics.onDeploymentLogsOpened({ appUid: app.uid, appName: app.name, source: 'menu' });
-                setAction('logs');
-              }}
-              onDelete={() => setAction('delete')}
-            />
-          )}
-        </div>
-      </div>
+      {appHeader}
       {/* The previous revision still serves — the app below works, only its
           creator needs to know the latest change didn't ship. Hidden during the
           creator's own redeploy (the frame area shows that story). */}
-      {isCreator && failureKind === 'warning' && !isRedeploying && (
+      {isCreator && failureKind === 'warning' && !isRedeploying && selectedEnv !== 'preview' && (
         <div className={s.warningBanner}>
           <span className={s.warningBannerLabel}>Latest deploy didn&apos;t ship</span>
           <button type="button" className={s.warningBannerButton} onClick={() => openFailureLogs('detail-banner')}>
@@ -495,12 +857,77 @@ export function AiAppDetailPage(props: Props) {
   // settling warning → danger) must never unmount an open modal mid-result.
   return (
     <>
-      {showSetupCard ? setupCard : normalLayout}
+      {showSetupCard ? (
+        <>
+          {canOpenPreview && appHeader}
+          {setupCard}
+        </>
+      ) : (
+        normalLayout
+      )}
       {/* Floats over both branches, for the same reason the modals sit here: it
           owns an open dialog, and a status flip must not unmount it mid-typing.
           It also gives the setup / deploying / failed states a feedback door —
           they had none, and a failed deploy is when people most want one. */}
-      <FloatingFeedbackButton appUid={app.uid} appName={app.name} />
+      <FloatingFeedbackButton
+        appUid={app.uid}
+        appName={app.name}
+        feedbackEnabled={app.feedbackEnabled !== false}
+        elementPins={SHOW_AI_APPS_ELEMENT_PINS ? elementPins : undefined}
+        iframeRef={iframeRef}
+        getContext={getFeedbackContext}
+        commentMode={
+          commentModeAvailable
+            ? {
+                available: true,
+                active: commentModeOn,
+                count: commentCount,
+                onOpen: () => setCommentModeOn(true),
+                onClose: () => {
+                  setCommentModeOn(false);
+                  setOpenFeedbackPin(null);
+                },
+                feedbackRequest,
+              }
+            : undefined
+        }
+      />
+      {commentModeAvailable && (
+        <CommentMode
+          appUid={app.uid}
+          appName={app.name}
+          iframeRef={iframeRef}
+          appOrigin={appOrigin}
+          frameKey={deployGeneration}
+          pins={feedbackPins.pins}
+          canManage={canManageApp}
+          currentPath={currentAppPath}
+          currentEnv={selectedEnv}
+          active={commentModeOn}
+          openPinUid={openFeedbackPin}
+          onOpenPinChange={setOpenFeedbackPin}
+          onGoToPage={goToAppPage}
+          onExit={() => {
+            setCommentModeOn(false);
+            setOpenFeedbackPin(null);
+          }}
+          elementPins={elementPins}
+          viewerName={currentUser?.name ?? 'You'}
+          commentCount={commentCount}
+          onFeedbackTab={() => {
+            setCommentModeOn(false);
+            setOpenFeedbackPin(null);
+            setFeedbackRequest((n) => n + 1);
+          }}
+          viewer={
+            currentUser?.uid
+              ? { uid: currentUser.uid, name: currentUser.name ?? 'You', image: currentUser.profileImageUrl ?? null }
+              : null
+          }
+          getContext={getFeedbackContext}
+          isAdmin={isDirectoryAdmin}
+        />
+      )}
       {showDetails && (
         <AiAppDetailsModal
           isOpen
@@ -511,6 +938,9 @@ export function AiAppDetailPage(props: Props) {
         />
       )}
       {action === 'edit' && <EditAiAppModal app={app} onClose={closeAction} />}
+      {action === 'access' && (
+        <ManageAccessModal app={app} onClose={closeAction} onRedeploy={() => setAction('deployment')} />
+      )}
       {action === 'deployment' && (
         <DeploymentSettingsModal app={app} onClose={closeAction} onDeployingChange={setIsRedeploying} />
       )}

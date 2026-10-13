@@ -2,10 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/components/core/ToastContainer';
-import {
-  updateAiAppFeedbackStatus,
-  type AiAppFeedbackRow,
-} from '@/services/ai-app-feedback/ai-app-feedback.service';
+import { updateAiAppFeedbackStatus, type AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
 import { AiAppFeedbackQueryKeys, type AiAppFeedbackStatus } from '@/services/ai-app-feedback/constants';
 
 export interface UpdateAiAppFeedbackStatusData {
@@ -44,6 +41,7 @@ export function useUpdateAiAppFeedbackStatus() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: LIST_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: [AiAppFeedbackQueryKeys.AI_APP_FEEDBACK_PINS] });
     },
   });
 }

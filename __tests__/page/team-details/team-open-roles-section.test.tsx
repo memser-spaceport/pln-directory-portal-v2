@@ -12,6 +12,12 @@ import '@testing-library/jest-dom';
 jest.mock('@/services/jobs/constants', () => ({
   ...jest.requireActual('@/services/jobs/constants'),
   SHOW_JOB_BOARD_APPLY: true,
+  /* Pinned OFF for the same reason the one above is pinned ON, and it was read
+     from the ambient environment until a `.env` gained the variable and turned
+     this suite's "while the flag is off" case into an assertion about somebody's
+     local machine. CI, where it is blank, would never have noticed. The
+     flag-ON behaviour has its own file — `team-open-roles-applicants-line`. */
+  SHOW_TEAM_APPLICANTS: false,
 }));
 
 type SurfaceArgs = {
@@ -39,9 +45,39 @@ jest.mock('@/components/page/jobs/hooks/useJobApplySurface', () => ({
 }));
 
 jest.mock('@/components/page/team-details/TeamOpenRoles/TeamOpenRoles', () => ({
-  TeamOpenRoles: (props: { group: { team: { uid: string } }; apply?: unknown }) => (
-    <div data-testid="roles-list" data-team={props.group.team.uid} data-has-apply={String(Boolean(props.apply))} />
+  TeamOpenRoles: (props: {
+    group: { team: { uid: string } };
+    apply?: unknown;
+    renderRoleFooter?: unknown;
+    ownsListings?: boolean;
+  }) => (
+    <div
+      data-testid="roles-list"
+      data-team={props.group.team.uid}
+      data-has-apply={String(Boolean(props.apply))}
+      data-has-footer={String(Boolean(props.renderRoleFooter))}
+      data-owns={String(Boolean((props as { ownsListings?: boolean }).ownsListings))}
+    />
   ),
+}));
+
+/* The applicants count line rides on this host. Its query is captured rather
+   than run: what matters here is whether the host asks for privileged counts at
+   all, because every applicants read is authenticated and an ungated one on a
+   public team profile makes customFetch reload the page forever. */
+/* The hydrated viewer, which is where permissions actually live — the cookie
+   carries none. `null` unless a case says otherwise. */
+let storeUser: unknown = null;
+jest.mock('@/services/auth/store', () => ({
+  useCurrentUserStore: () => ({ currentUser: storeUser }),
+}));
+
+const countsCalls: { enabled: boolean; teamUid: string }[] = [];
+jest.mock('@/services/jobs/hooks/useTeamApplicants', () => ({
+  useApplicantCounts: (args: { enabled: boolean; teamUid: string }) => {
+    countsCalls.push(args);
+    return { data: undefined };
+  },
 }));
 
 import { TeamOpenRolesSection } from '@/components/page/team-details/TeamOpenRoles/TeamOpenRolesSection';
@@ -76,8 +112,12 @@ const GROUP = {
 const lastCall = () => surfaceCalls[surfaceCalls.length - 1];
 
 beforeEach(() => {
+  storeUser = null;
   surfaceCalls.length = 0;
+  countsCalls.length = 0;
 });
+
+const lastCounts = () => countsCalls[countsCalls.length - 1];
 
 describe('TeamOpenRolesSection', () => {
   it('renders the list and the drawer stack when the team is hiring', () => {
@@ -109,6 +149,51 @@ describe('TeamOpenRolesSection', () => {
 
     expect(screen.queryByTestId('roles-list')).not.toBeInTheDocument();
     expect(screen.getByTestId('controller')).toBeInTheDocument();
+  });
+
+  /**
+   * The ⋯ menu is built and deliberately not shown yet.
+   *
+   * `RoleOwnerMenu` works — see its own suite — but turning it on redraws every
+   * role row for leads and admins, which is not what the applicants work is for.
+   * `SHOW_ROLE_OWNER_MENU` holds it, and these cases pin that the holding is
+   * real rather than a prop nobody wired: an admin and a lead both get the
+   * ordinary row.
+   */
+  describe('whose listings these are', () => {
+    it('offers the ⋯ menu to nobody while it is held back', () => {
+      render(
+        <TeamOpenRolesSection group={GROUP} isLoggedIn userInfo={{ uid: 'u1', leadingTeams: ['team-1'] } as any} />,
+      );
+
+      expect(screen.getByTestId('roles-list')).toHaveAttribute('data-owns', 'false');
+    });
+
+    /* The same for an admin, whose permission only the store carries — so this
+       also pins that the union below is not what is hiding the menu. */
+    it('not even to an admin the store knows about', () => {
+      storeUser = { uid: 'u1', leadingTeams: [], rbac: { effectivePermissions: [{ code: 'directory.admin.full' }] } };
+
+      render(<TeamOpenRolesSection group={GROUP} isLoggedIn userInfo={{ uid: 'u1', leadingTeams: [] } as any} />);
+
+      expect(screen.getByTestId('roles-list')).toHaveAttribute('data-owns', 'false');
+    });
+  });
+
+  /* The applicants flag is off in this suite (only SHOW_JOB_BOARD_APPLY is
+     pinned on), which is the state every environment is in today. */
+  it('asks for no applicant counts, and offers no count line, while the flag is off', () => {
+    render(<TeamOpenRolesSection group={GROUP} isLoggedIn userInfo={{ uid: 'u1', leadingTeams: ['team-1'] } as any} />);
+
+    expect(lastCounts().enabled).toBe(false);
+    expect(screen.getByTestId('roles-list')).toHaveAttribute('data-has-footer', 'false');
+  });
+
+  it('asks for no applicant counts for a signed-out visitor', () => {
+    render(<TeamOpenRolesSection group={GROUP} isLoggedIn={false} userInfo={undefined} />);
+
+    expect(lastCounts().enabled).toBe(false);
+    expect(screen.getByTestId('roles-list')).toHaveAttribute('data-has-footer', 'false');
   });
 
   it('never writes ?job= on a team profile, and says which surface it is', () => {

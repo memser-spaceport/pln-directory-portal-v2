@@ -177,7 +177,7 @@ describe('DeploymentLogsModal', () => {
     expect(screen.getByText('server listening on 3000')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', { name: /build/i }));
     expect(screen.getByText('Step 1/5 : FROM node:20')).toBeInTheDocument();
-    expect(mockAnalytics.onDeploymentLogsTabSwitched).toHaveBeenCalledWith('app-1', 'build');
+    expect(mockAnalytics.onDeploymentLogsTabSwitched).toHaveBeenCalledWith('app-1', 'build', 'prod');
   });
 
   it('filters lines by search and offers a clear CTA when nothing matches', () => {
@@ -275,7 +275,7 @@ describe('DeploymentLogsModal', () => {
     expect(writeText.mock.calls[0][0]).toContain('npm install completed');
     expect(writeText.mock.calls[0][0]).not.toContain('Step 1/5');
     await screen.findByRole('button', { name: /copied/i });
-    expect(mockAnalytics.onDeploymentLogsExported).toHaveBeenCalledWith('app-1', 'build', 1);
+    expect(mockAnalytics.onDeploymentLogsExported).toHaveBeenCalledWith('app-1', 'build', 1, 'prod');
     // Counts only — never message or query text.
     expect(JSON.stringify(mockAnalytics.onDeploymentLogsExported.mock.calls)).not.toContain('npm');
   });

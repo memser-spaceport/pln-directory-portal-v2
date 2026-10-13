@@ -22,13 +22,34 @@
   padding-right: 64px;
 }
 
-/* "Ask AI" on the row's top-right, level with the name (the header's 24px
-   avatar row, 8px from the row's top). The same 12px/500 brand text the
-   dialog's other text buttons wear, with the AI glyph from the band above. */
-.ask {
+/* Two actions: the compact "Request an intro" (100.5px measured, at the
+   badge's 10px type and its 4px inner gap) + the 4px gap + Ask AI, plus 8px
+   so the badge stops one gap short of the button (measured in the browser,
+   2026-09-28). */
+.headerTwoActions {
+  padding-right: 169px;
+}
+
+/* The intro alone (a host with no Ask AI): its width and the same 8px gap. */
+.headerIntroOnly {
+  padding-right: 109px;
+}
+
+/* The row's actions, on its top-right, level with the name (the header's 24px
+   avatar row, 8px from the row's top). One cluster, one rhythm: 4px between
+   discs, the AI answer's actions row. */
+.rowActions {
   position: absolute;
   top: 8px;
   right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* "Ask AI": the same 12px/500 brand text the dialog's other text buttons
+   wear, with the AI glyph from the band above. */
+.ask {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -51,4 +72,61 @@
 .ask:focus-visible {
   outline: 2px solid var(--foreground-brand-primary, #1b4dff);
   outline-offset: 1px;
+}
+
+/* The intro press before Ask AI is `intro-shared/RequestIntroButton` at
+   `size="compact"` — the "Available to connect" badge's box, its own paint,
+   nothing local. The 24px cluster centres it on the name line, where the
+   badge is centred too. */
+
+/* The intro line (founder seat, investor rows). Indented to the text column —
+   production's header is a 24px avatar + 8px gap — so it reads as the row's
+   last line, not as a second row. */
+.intro {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  padding-left: 32px;
+}
+
+.introLabel {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.introAction {
+  display: inline-flex;
+  margin-left: auto;
+}
+
+/* Filled brand, in the geometry of the row's other text action ("Ask AI"):
+   this is the press the line exists for, where Ask AI is a side door. The
+   paint is the DS `fill` + `primary` pair hand-rolled — the line's 24px slot
+   is under the DS Button's smallest size — so it reads as the same button the
+   Fundraising rows carry. */
+.introAsk {
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--foreground-brand-primary, #1b4dff);
+  border-radius: 6px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: var(--background-base-white, #fff);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  cursor: pointer;
+
+  &:hover {
+    background: #0f3cd9;
+    border-color: #0f3cd9;
+  }
+
+  /* 2px of offset, not 1: the ring is the button's own ink, so it needs a
+     band of white between it and the fill to be seen at all. */
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
 }

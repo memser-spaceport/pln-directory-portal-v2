@@ -143,6 +143,7 @@ describe('AiAppsGrid', () => {
     expect(mockLogsOpened).toHaveBeenCalledWith({
       appUid: 'a1',
       appName: 'Alpha',
+      environment: 'prod',
       source: 'failure-strip',
       variant: 'warning',
     });

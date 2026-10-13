@@ -1,0 +1,69 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+  min-height: calc(100vh - 80px);
+  background-color: #f1f5f9;
+}
+
+.back {
+  width: 120px;
+  height: 20px;
+  border-radius: 4px;
+  background: #e2e8f0;
+}
+
+.title {
+  width: 220px;
+  height: 32px;
+  border-radius: 6px;
+  background: #e2e8f0;
+}
+
+.roleBar {
+  width: 100%;
+  max-width: 420px;
+  height: 40px;
+  border-radius: 8px;
+  background: #e2e8f0;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (min-width: 960px) {
+  .split {
+    grid-template-columns: 440px minmax(0, 1fr);
+  }
+}
+
+.listCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+}
+
+.row {
+  height: 56px;
+  border-radius: 8px;
+  background: #f1f5f9;
+}
+
+.paneCol {
+  min-height: 320px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+}

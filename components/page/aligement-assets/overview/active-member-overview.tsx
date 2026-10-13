@@ -21,20 +21,24 @@ import type { KpiWeightEntry } from '@/services/plaa/kpi-weights.service';
 import type { RoundStatsResponse } from '@/services/plaa/rounds.service';
 import type { TrustHoldingsData } from '@/services/plaa/trust-holdings.service';
 import OverviewTopline from './overview-topline';
+import SnapshotRoundPicker, { RoundChangeMethod } from './snapshot-round-picker';
 import styles from './overview.module.scss';
 import type { CSSProperties } from 'react';
 
 const cssVars = (vars: Record<string, string>) => vars as CSSProperties;
 
 const KPI_WEIGHTS_FALLBACK: KpiWeightEntry[] = [
-  { category: 'Knowledge Sharing', weight: null, percentOfTotal: 21.43, emissionsPerSnapshot: 2143 },
-  { category: 'Projects', weight: null, percentOfTotal: 20.0, emissionsPerSnapshot: 2000 },
-  { category: 'Network Tooling', weight: null, percentOfTotal: 18.57, emissionsPerSnapshot: 1857 },
-  { category: 'Programs', weight: null, percentOfTotal: 15.71, emissionsPerSnapshot: 1571 },
-  { category: 'People/Talent', weight: null, percentOfTotal: 14.29, emissionsPerSnapshot: 1429 },
-  { category: 'Capital', weight: null, percentOfTotal: 5.71, emissionsPerSnapshot: 571 },
-  { category: 'Brand', weight: null, percentOfTotal: 4.29, emissionsPerSnapshot: 429 },
+  { category: 'Knowledge Sharing', weight: null, percentOfTotal: 22.58, emissionsPerSnapshot: 2258 },
+  { category: 'Projects', weight: null, percentOfTotal: 20.97, emissionsPerSnapshot: 2097 },
+  { category: 'Network Tooling', weight: null, percentOfTotal: 19.35, emissionsPerSnapshot: 1935 },
+  { category: 'Programs', weight: null, percentOfTotal: 18.55, emissionsPerSnapshot: 1855 },
+  { category: 'People/Talent', weight: null, percentOfTotal: 14.52, emissionsPerSnapshot: 1452 },
+  { category: 'Brand', weight: null, percentOfTotal: 4.03, emissionsPerSnapshot: 403 },
 ];
+
+const MONTHLY_POOL = 10_000;
+const EXAMPLE_MY_POINTS = 100;
+const EXAMPLE_CATEGORY_POINTS = 1_000;
 
 const REDEEM_STEPS = [
   { title: 'Place a bid', description: 'Submit PLAA in a buyback auction.', icon: <Tag size={27} weight="regular" /> },
@@ -78,36 +82,70 @@ export default function ActiveMemberOverview({
   roundHistory = [],
 }: ActiveMemberOverviewProps) {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const { onOverviewActivitiesLinkClicked, onOverviewFaqLinkClicked } = useAlignmentAssetsAnalytics();
+  const [selectedRoundNumber, setSelectedRoundNumber] = useState(roundStats?.roundNumber);
+  const { onOverviewActivitiesLinkClicked, onOverviewFaqLinkClicked, onOverviewSnapshotRoundChanged } =
+    useAlignmentAssetsAnalytics();
   useScrollDepthTracking('overview');
 
+  const currentRoundNumber = roundStats?.roundNumber;
+  const selectedRound = roundHistory.find((round) => round.roundNumber === selectedRoundNumber);
+  const isCurrentRoundSelected = selectedRoundNumber !== undefined && selectedRoundNumber === currentRoundNumber;
+
+  const kpiRows = kpiWeights && kpiWeights.length > 0 ? kpiWeights : KPI_WEIGHTS_FALLBACK;
+
+  // Only pillars in the emissions schedule get a spoke or a history column. The API also returns pillars
+  // that exist only in the token tables (e.g. Capital), which would otherwise show up empty.
+  const scheduled = useMemo(() => new Set(kpiRows.map((row) => row.category)), [kpiRows]);
+
   const categoryStats = useMemo<CategoryStat[]>(() => {
+    const inSchedule = (stats: CategoryStat[]) => stats.filter((stat) => scheduled.has(stat.name));
+    // History rounds share one category list across every round, so the chart keeps its shape while browsing.
+    if (selectedRound) return inSchedule(selectedRound.categories);
     const points = roundStats?.chart ?? [];
     const plaa = roundStats?.tokenChart ?? [];
     const names = new Set<string>([...points.map((p) => p.name), ...plaa.map((p) => p.name)]);
     if (names.size === 0) return CATEGORY_STATS_FALLBACK;
-    return Array.from(names)
-      .sort()
-      .map((name) => ({
-        name,
-        points: points.find((p) => p.name === name)?.value ?? 0,
-        plaa: plaa.find((p) => p.name === name)?.value ?? 0,
-      }));
-  }, [roundStats]);
+    return inSchedule(
+      Array.from(names)
+        .sort()
+        .map((name) => ({
+          name,
+          points: points.find((p) => p.name === name)?.value ?? 0,
+          plaa: plaa.find((p) => p.name === name)?.value ?? 0,
+        })),
+    );
+  }, [scheduled, roundStats, selectedRound]);
+
+  // The worked conversion example uses a real row from the schedule above, so its numbers always match it.
+  const exampleRow =
+    kpiRows.find((row) => row.category === 'Network Tooling' && row.percentOfTotal != null) ??
+    kpiRows.find((row) => row.percentOfTotal != null) ??
+    KPI_WEIGHTS_FALLBACK[2];
+  const examplePercent = exampleRow.percentOfTotal ?? 0;
+  const examplePool = exampleRow.emissionsPerSnapshot ?? Math.round((MONTHLY_POOL * examplePercent) / 100);
+  const exampleShare = EXAMPLE_MY_POINTS / EXAMPLE_CATEGORY_POINTS;
+  const examplePlaa = Math.floor(examplePool * exampleShare);
+
+  // Mid-snapshot, points are in but PLAA hasn't converted yet.
+  const isConversionPending = isCurrentRoundSelected && categoryStats.every((c) => c.plaa === 0);
 
   const maxPoints = Math.max(1, ...categoryStats.map((c) => c.points));
   const maxPlaa = Math.max(1, ...categoryStats.map((c) => c.plaa));
 
-  const kpiRows = kpiWeights && kpiWeights.length > 0 ? kpiWeights : KPI_WEIGHTS_FALLBACK;
-
   const historyCategoryNames = useMemo(() => {
     const names = new Set<string>();
     roundHistory.forEach((round) => round.categories.forEach((c) => names.add(c.name)));
-    return Array.from(names).sort();
-  }, [roundHistory]);
+    return Array.from(names)
+      .filter((name) => scheduled.has(name))
+      .sort();
+  }, [scheduled, roundHistory]);
 
   const handleActivitiesClick = () => onOverviewActivitiesLinkClicked('/alignment-asset/activities', 'cta-banner');
   const handleFaqClick = () => onOverviewFaqLinkClicked('/alignment-asset/faqs');
+  const handleRoundChange = (roundNumber: number, method: RoundChangeMethod) => {
+    onOverviewSnapshotRoundChanged(selectedRoundNumber, roundNumber, method);
+    setSelectedRoundNumber(roundNumber);
+  };
 
   return (
     <div className={styles.wrapper}>
@@ -128,20 +166,37 @@ export default function ActiveMemberOverview({
             <div>
               <div className={styles.snapshotHeaderTitle}>Points and PLAA collected by category</div>
               <div className={styles.snapshotHeaderDesc}>
-                {roundStats
-                  ? `Round ${roundStats.roundNumber} — ${roundStats.month} ${roundStats.year}`
-                  : 'Illustrative example, not a specific snapshot'}
+                {selectedRound
+                  ? `Round ${selectedRound.roundNumber} — ${selectedRound.label}`
+                  : roundStats
+                    ? `Round ${roundStats.roundNumber} — ${roundStats.month} ${roundStats.year}`
+                    : 'Illustrative example, not a specific snapshot'}
               </div>
+              {isConversionPending && (
+                <div className={styles.snapshotHeaderNote}>
+                  In progress. Points convert to PLAA at the end of the snapshot period.
+                </div>
+              )}
             </div>
-            <div className={styles.legendRow}>
-              <span className={styles.legendItem}>
-                <span className={styles.legendDot} style={cssVars({ '--ov-dot': '#0a9952' })} />
-                Points collected
-              </span>
-              <span className={styles.legendItem}>
-                <span className={styles.legendDot} style={cssVars({ '--ov-dot': '#1b4dff' })} />
-                PLAA distributed
-              </span>
+            <div className={styles.snapshotHeaderControls}>
+              {roundHistory.length > 1 && selectedRoundNumber !== undefined && (
+                <SnapshotRoundPicker
+                  rounds={roundHistory}
+                  selectedRound={selectedRoundNumber}
+                  currentRound={currentRoundNumber}
+                  onChange={handleRoundChange}
+                />
+              )}
+              <div className={styles.legendRow}>
+                <span className={styles.legendItem}>
+                  <span className={styles.legendDot} style={cssVars({ '--ov-dot': '#0a9952' })} />
+                  Points collected
+                </span>
+                <span className={styles.legendItem}>
+                  <span className={styles.legendDot} style={cssVars({ '--ov-dot': '#1b4dff' })} />
+                  PLAA distributed
+                </span>
+              </div>
             </div>
           </div>
 
@@ -320,7 +375,8 @@ export default function ActiveMemberOverview({
         <div>
           <div className={styles.conversionLabel}>The conversion happens in three steps</div>
           <div className={styles.conversionSubtext}>
-            Traced through one example: Network Tooling, where I collected 100 of the category’s 1,000 points.
+            Traced through one example: {exampleRow.category}, where I collected {EXAMPLE_MY_POINTS.toLocaleString()} of
+            the category’s {EXAMPLE_CATEGORY_POINTS.toLocaleString()} points.
           </div>
 
           <div className={styles.conversionGrid}>
@@ -335,15 +391,15 @@ export default function ActiveMemberOverview({
               <div className={styles.formulaBox}>
                 <div className={styles.formulaRow}>
                   <span>monthly pool</span>
-                  <span>10,000</span>
+                  <span>{MONTHLY_POOL.toLocaleString()}</span>
                 </div>
                 <div className={styles.formulaRow}>
                   <span>× category allocation</span>
-                  <span>18.57%</span>
+                  <span>{examplePercent.toFixed(2)}%</span>
                 </div>
                 <div className={styles.formulaResult}>
                   <span className={styles.formulaResultValue} style={cssVars({ '--ov-accent': '#1b4dff' })}>
-                    1,857 PLAA
+                    {examplePool.toLocaleString()} PLAA
                   </span>
                 </div>
               </div>
@@ -370,15 +426,15 @@ export default function ActiveMemberOverview({
               >
                 <div className={styles.formulaRow}>
                   <span>my points</span>
-                  <span>100</span>
+                  <span>{EXAMPLE_MY_POINTS.toLocaleString()}</span>
                 </div>
                 <div className={styles.formulaRow}>
                   <span style={{ whiteSpace: 'nowrap' }}>÷ points collected in category</span>
-                  <span>1,000</span>
+                  <span>{EXAMPLE_CATEGORY_POINTS.toLocaleString()}</span>
                 </div>
                 <div className={styles.formulaResult}>
                   <span className={styles.formulaResultValue} style={cssVars({ '--ov-accent': '#0e6e9e' })}>
-                    10%
+                    {exampleShare * 100}%
                   </span>
                 </div>
               </div>
@@ -405,15 +461,15 @@ export default function ActiveMemberOverview({
               >
                 <div className={styles.formulaRow}>
                   <span>category pool</span>
-                  <span>1,857</span>
+                  <span>{examplePool.toLocaleString()}</span>
                 </div>
                 <div className={styles.formulaRow}>
                   <span>× my proportion</span>
-                  <span>10%</span>
+                  <span>{exampleShare * 100}%</span>
                 </div>
                 <div className={styles.formulaResult}>
                   <span className={styles.formulaResultValue} style={cssVars({ '--ov-accent': '#0b7a6d' })}>
-                    185 PLAA
+                    {examplePlaa.toLocaleString()} PLAA
                   </span>
                 </div>
               </div>
@@ -437,8 +493,8 @@ export default function ActiveMemberOverview({
         </div>
       </div>
 
-      <div className={styles.redeemCard}>
-        <div>
+      <div className={styles.section}>
+        <div className={styles.sectionIntro}>
           <h2 className={styles.sectionTitle}>Redeeming PLAA</h2>
           <p className={styles.sectionDesc}>
             PLAA is redeemed through periodic buyback auctions run by the Trust. Bids are collected as a batch, settled
@@ -446,27 +502,29 @@ export default function ActiveMemberOverview({
           </p>
         </div>
 
-        <div className={styles.stepGridWrap}>
-          <div className={styles.stepConnector} />
-          <div className={styles.stepGrid}>
-            {REDEEM_STEPS.map((step) => (
-              <div key={step.title} className={styles.stepItem}>
-                <span className={styles.stepIcon}>{step.icon}</span>
-                <div className={styles.stepTitle}>{step.title}</div>
-                <div className={styles.stepDesc}>{step.description}</div>
-              </div>
-            ))}
+        <div className={styles.redeemCard}>
+          <div className={styles.stepGridWrap}>
+            <div className={styles.stepConnector} />
+            <div className={styles.stepGrid}>
+              {REDEEM_STEPS.map((step) => (
+                <div key={step.title} className={styles.stepItem}>
+                  <span className={styles.stepIcon}>{step.icon}</span>
+                  <div className={styles.stepTitle}>{step.title}</div>
+                  <div className={styles.stepDesc}>{step.description}</div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
 
-        <div className={styles.redeemFaqRow}>
-          <Question size={18} weight="regular" className={styles.redeemFaqIcon} />
-          <div className={styles.redeemFaqText}>
-            For details on eligibility, auctions, and settlement, see the{' '}
-            <Link href="/alignment-asset/faqs" onClick={handleFaqClick}>
-              FAQ
-            </Link>
-            .
+          <div className={styles.redeemFaqRow}>
+            <Question size={18} weight="regular" className={styles.redeemFaqIcon} />
+            <div className={styles.redeemFaqText}>
+              For details on eligibility, auctions, and settlement, see the{' '}
+              <Link href="/alignment-asset/faqs" onClick={handleFaqClick}>
+                FAQ
+              </Link>
+              .
+            </div>
           </div>
         </div>
       </div>

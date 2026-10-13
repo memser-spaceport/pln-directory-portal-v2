@@ -16,18 +16,21 @@ export const LocationIcon = ({ fill = '#455468' }: { fill?: string }) => (
    city text alone would read as "Theo moved to Berlin" — the plane is what says
    the state is temporary. Drawn to sit on the same 16px box as LocationIcon. */
 /**
- * Paper plane. Straight lines only — the previous path was a hand-drawn
- * side-on airliner whose curves collapsed into a blob below ~16px, which is
- * every place it is actually used. There is no plane in production
- * (`public/icons` has none, and the "send" SVGs are stroke-only with baked-in
- * colours and 29x30 boxes), so this is drawn here rather than reused.
+ * An aircraft seen from above, nose up-right. Straight lines only, so it holds
+ * at 12px (an earlier side-on airliner's curves collapsed into a blob there).
  *
- * Four points on a 16 box: tip (14.9,1.1) → tail (1.6,6.5) → fold (7.2,8.7) →
- * base (9.4,14.3).
+ * It replaces a paper plane: production's IRL gathering modal uses that exact
+ * glyph for its "Telegram: Link" row, so on the one page where both appear the
+ * same mark meant "message" and "travelling". There is no aircraft in
+ * production (`public/icons`, `components/icons`), so it is drawn here.
  */
 export const PlaneIcon = ({ fill = '#1B4DFF', size = 16 }: { fill?: string; size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M14.9 1.1 1.6 6.5l5.6 2.2 2.2 5.6L14.9 1.1Z" fill={fill} />
+    <path
+      transform="rotate(45 8 8)"
+      d="M8 .8 9.1 2v4.1l5.6 3.5v1.6L9.1 9.5v3.2l1.7 1.3v1.2L8 14.4l-2.8.8V14l1.7-1.3V9.5l-5.6 1.7V9.6l5.6-3.5V2L8 .8Z"
+      fill={fill}
+    />
   </svg>
 );
 

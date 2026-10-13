@@ -1,36 +1,17 @@
-@use 'styles/media';
-
-/* The (?) + "Contact us", in the left-hand nav items' grammar (production
-   `.Trigger`: 6px gap, 14/20/500 menu ink, 40px tall, 12px sides). Production
-   deleted the old `.supportButton` geometry, so the box lives here. Below
-   tablet-landscape, where production hides the labelled items, the label goes
-   and it is a 40px icon box. Shared with PrototypeNavBar's static (?). */
+/* The (?) alone, a 40px icon box on every width, in the menu ink of the
+   left-hand nav items. The "Contact us" label was removed (2026-09-28): the
+   hover menu names its own topics. Production deleted the old
+   `.supportButton` geometry, so the box lives here. Shared with
+   PrototypeNavBar's static (?). */
 .contact {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  width: 40px;
   height: 40px;
-  min-width: 40px;
   padding: 0;
   border-radius: 8px;
   color: var(--Text-text-menu, #475569);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  white-space: nowrap;
-
-  @include media.tablet-landscape {
-    padding: 0 12px;
-  }
-}
-
-.contactLabel {
-  display: none;
-
-  @include media.tablet-landscape {
-    display: inline;
-  }
 }
 
 /* The (?) as a real button needs the browser chrome taken off. Hover and open

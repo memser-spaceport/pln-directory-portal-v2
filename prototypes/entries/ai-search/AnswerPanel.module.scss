@@ -16,6 +16,28 @@
   min-height: 0;
 }
 
+/* The `ai-mode` page: the scroll region stays full width (its edge is the
+   page's edge), and the turns and the input share one 768px reading column
+   centred in it, so a wide screen reads like a page and not a stretched card.
+   The input loses its hairline: on a page the column's end is the edge. */
+.rootPage {
+  .messages,
+  .inputWrap {
+    padding-left: max(16px, calc((100% - 768px) / 2));
+    padding-right: max(16px, calc((100% - 768px) / 2));
+  }
+
+  .messages {
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+
+  .inputWrap {
+    padding-bottom: 16px;
+    border-top: 0;
+  }
+}
+
 /* Pinned above the thread, so Back is reachable at any scroll position. */
 .bar {
   display: flex;
@@ -90,19 +112,19 @@
   background: #fff;
 }
 
-/* .preview-message__header */
-.sourcesRow {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
 /* .preview-message__content */
 .content {
   font-size: 14px;
   line-height: 26px;
   margin-bottom: 16px;
   color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* Prose that ends in "Side by side:" and hands over to a block: the block is
+   the rest of the sentence, so the paragraph's 16px stands down to the card's
+   own 10px gap. */
+.contentLead {
+  margin-bottom: 0;
 }
 
 /* Scoped answers only. What was read, in one grey line, with the lock pill
@@ -138,23 +160,31 @@
   gap: 8px;
 }
 
-/* .chat-message-actions */
+/* .chat-message-actions. Production's fixed 42px is a minimum here: the row
+   now ends in the sources pill, and on a phone pill + receipt + five discs
+   wrap to a second line rather than squeeze. */
 .actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  height: 42px;
+  gap: 4px 12px;
+  min-height: 42px;
 }
 
 .actionsBusy {
   pointer-events: none;
 }
 
-/* .chat-message-actions__container */
+/* .chat-message-actions__container. Production's 16px gap was set for bare 18px
+   glyphs; once each action became a 24px disc the same 16px put 24px of air
+   between marks ("put icons closer"). 4px between discs is the thumbs pair's
+   own spacing, so the row is one rhythm; the pair keeps a wider break before
+   it (see `.thumbs`) because rating is a different job from acting on the text. */
 .actionsRow {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 4px;
 }
 
 /* One treatment for all five actions: a 16px `currentColor` glyph centred in
@@ -184,12 +214,13 @@
   }
 }
 
-/* The pair reads as one control: tighter inside than the 16px between
-   unrelated actions. */
+/* The pair reads as one control: the row's 4px inside, 12px (8 + the row gap)
+   before it and before the receipt after it. */
 .thumbs {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  margin: 0 8px;
 }
 
 .thumbDown svg {

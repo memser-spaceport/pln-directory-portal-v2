@@ -8,7 +8,7 @@ const CHROME_HEIGHT_VAR = '--app-header-height';
 /**
  * Publishes the site header's real height as `--app-header-height`.
  *
- * `SiteHeader` is a stack, not a row: `DomainMigrationBanner` and
+ * `SiteHeader` is a stack, not a row: `PlaaTopBannerCarousel` and
  * `CompleteYourProfile` sit above the navbar inside the same sticky `<header>`,
  * and two more bars are one uncomment away. Each is conditional, so the chrome
  * is 56px tall for one person and 96px for the next on the same page.

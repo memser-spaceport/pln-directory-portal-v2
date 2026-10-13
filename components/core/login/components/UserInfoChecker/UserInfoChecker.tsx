@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 
 import { useMember } from '@/services/members/hooks/useMember';
-import { clearAllAuthCookies } from '@/utils/third-party.helper';
+import { clearAllAuthCookies, expireSharedCookie } from '@/utils/third-party.helper';
 import { authEvents } from '@/components/core/login/utils';
 import { broadcastLogout } from '../BroadcastChannel';
 import { IUserInfo } from '@/types/shared.types';
@@ -95,9 +95,8 @@ export function UserInfoChecker({ uid }: { uid: string }) {
 
     if (cookieRbacChanged) {
       const updatedRbac = { ...(parsedCookie as IUserInfo), rbac: memberInfo.rbac };
-      setUserInfoCookie(JSON.stringify(updatedRbac), {
-        domain: process.env.COOKIE_DOMAIN || '',
-      });
+      expireSharedCookie('userInfo');
+      setUserInfoCookie(JSON.stringify(updatedRbac));
       useCurrentUserStore.getState().actions.setCurrentUserFromApi(updatedRbac);
       router.refresh();
       return;
@@ -115,9 +114,8 @@ export function UserInfoChecker({ uid }: { uid: string }) {
     const serverRoles = memberInfo.memberRoles?.map((r: { name: string }) => r.name) || [];
     if (!areRolesEqual(serverRoles, parsedCookie.roles as [])) {
       const updatedRoles = { ...(parsedCookie as IUserInfo), roles: serverRoles };
-      setUserInfoCookie(JSON.stringify(updatedRoles), {
-        domain: process.env.COOKIE_DOMAIN || '',
-      });
+      expireSharedCookie('userInfo');
+      setUserInfoCookie(JSON.stringify(updatedRoles));
       useCurrentUserStore.getState().actions.setCurrentUserFromApi(updatedRoles);
       router.refresh();
       return;
@@ -132,9 +130,8 @@ export function UserInfoChecker({ uid }: { uid: string }) {
 
     if (leadingTeamsChanged) {
       const updatedLeadingTeams = { ...(parsedCookie as IUserInfo), leadingTeams: serverLeadingTeams };
-      setUserInfoCookie(JSON.stringify(updatedLeadingTeams), {
-        domain: process.env.COOKIE_DOMAIN || '',
-      });
+      expireSharedCookie('userInfo');
+      setUserInfoCookie(JSON.stringify(updatedLeadingTeams));
       useCurrentUserStore.getState().actions.setCurrentUserFromApi(updatedLeadingTeams);
       router.refresh();
       return;
@@ -147,7 +144,8 @@ export function UserInfoChecker({ uid }: { uid: string }) {
         name: memberInfo.name,
         profileImageUrl: memberInfo.imageUrl,
       };
-      setUserInfoCookie(JSON.stringify(updatedProfile), { domain: process.env.COOKIE_DOMAIN || '' });
+      expireSharedCookie('userInfo');
+      setUserInfoCookie(JSON.stringify(updatedProfile));
       useCurrentUserStore.getState().actions.setCurrentUserFromApi(updatedProfile);
       router.refresh();
     }

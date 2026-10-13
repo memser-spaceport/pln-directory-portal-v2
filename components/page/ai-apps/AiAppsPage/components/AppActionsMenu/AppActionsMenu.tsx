@@ -38,6 +38,15 @@ function PencilIcon() {
   );
 }
 
+function LockIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="7" width="10" height="7" rx="1.5" />
+      <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
+    </svg>
+  );
+}
+
 function TerminalIcon() {
   return (
     <svg {...iconProps}>
@@ -77,6 +86,8 @@ interface Props {
   app: AiApp;
   /** Called when "Edit details" is chosen. */
   onEdit: () => void;
+  /** Called when "Manage access" is chosen. */
+  onAccess: () => void;
   /** Called when "Deployment settings" is chosen. */
   onDeployment: () => void;
   /** Called when "Deployment logs" is chosen. */
@@ -94,7 +105,7 @@ interface Props {
  * entirely; a failed check only degrades to disabled items — it must never
  * yank the menu out from under the pointer.
  */
-export function AppActionsMenu({ app, onEdit, onDeployment, onLogs, onDelete }: Props) {
+export function AppActionsMenu({ app, onEdit, onAccess, onDeployment, onLogs, onDelete }: Props) {
   const analytics = useAiAppsAnalytics();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -135,6 +146,10 @@ export function AppActionsMenu({ app, onEdit, onDeployment, onLogs, onDelete }: 
             <Menu.Item className={s.item} disabled={verifying} onClick={onEdit}>
               <PencilIcon />
               Edit details
+            </Menu.Item>
+            <Menu.Item className={s.item} disabled={verifying} onClick={onAccess}>
+              <LockIcon />
+              Manage access
             </Menu.Item>
             <Menu.Item className={s.item} disabled={verifying} onClick={onDeployment}>
               <TerminalIcon />

@@ -8,12 +8,17 @@ import { htmlToPlainText } from '../team-profile/newsUrl';
  * one mocked "backend" the team profile and the network feed both read, so an
  * edit or a removal made on the profile is what the feed shows next.
  *
- * WHO IS AUTHORIZED. Production's rule for the team's own surfaces is
- * `isCurrentUserTeamMember || isAdmin` for *reading* and *posting*; editing or
- * removing a published post is narrower: a directory admin, a lead of the
- * team, or the person who posted it. A teammate who didn't post it gets no
- * control at all — not a disabled one. `canManageTeamPost` is that rule in one
- * place, so the rail, the archive and the story modal cannot disagree.
+ * WHO IS AUTHORIZED. The same people who can post: production's rule for the
+ * team's own surfaces is `isCurrentUserTeamMember || isAdmin`, and editing or
+ * removing a published post draws no narrower line — a directory admin, a lead
+ * of the team, or any member of the team. The post is the team's, not the
+ * poster's: the card is attributed to the team, the feed shows it under the
+ * team's name, and a teammate fixing a typo or pulling a stale announcement
+ * should not have to find whoever pressed Post. (An earlier version limited a
+ * plain member to their own posts; that was corrected — post rights and edit
+ * rights are one right.) A visitor gets no control at all — not a disabled
+ * one. `canManageTeamPost` is that rule in one place, so the rail, the archive
+ * and the story modal cannot disagree.
  *
  * WHAT IS EDITABLE. Only what the compose form collected: headline, body,
  * link. Enriched coverage (the pipeline's summaries of outlet articles) has no
@@ -49,11 +54,9 @@ export type NewsItemWithPost = ITeamNewsItem & { post?: TeamPostMeta };
 /** The signed-in reviewer — the same person every prototype signs its forms as. */
 export const TEAM_POST_VIEWER = { uid: 'viewer', name: MOCK_VIEWER.name };
 
-export function canManageTeamPost(item: NewsItemWithPost, role: TeamPostRole, viewerUid: string): boolean {
+export function canManageTeamPost(item: NewsItemWithPost, role: TeamPostRole, _viewerUid: string): boolean {
   if (!item.post) return false;
-  if (role === 'admin' || role === 'lead') return true;
-  if (role === 'member') return item.post.posterUid === viewerUid;
-  return false;
+  return role === 'admin' || role === 'lead' || role === 'member';
 }
 
 // ---------- Seeds ----------
@@ -66,9 +69,11 @@ const CAMP_BODY =
 
 /**
  * Two posts already on the team's page when the demo opens: one by the
- * reviewer, one by a teammate. That pair is what lets each viewer role show its
- * rule — a member sees the menu on the first and not the second; a lead or an
- * admin sees it on both; a visitor sees neither.
+ * reviewer, one by a teammate. Every team seat (admin, lead, member) gets the
+ * menu on both; a visitor sees neither. The pair still earns its place: the
+ * menu's heading reads "Posted by you" on the first and "Posted by Molly
+ * Mackinlay" on the second, which is the one fact a teammate needs before
+ * removing something they didn't write.
  *
  * The same two items are in the network feed's fixture, so what happens to
  * them on the profile can be checked on the feed.

@@ -40,3 +40,5 @@ export * from './ConfettiIcon';
 export * from './DocumentIcon';
 export * from './MagicSparklesIcon';
 export * from './ThumbsDownIcon';
+export * from './ReviewCheckIcon';
+export * from './EnvelopeIcon';

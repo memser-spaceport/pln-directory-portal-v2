@@ -1,0 +1,121 @@
+/**
+ * The wire contract between LabOS and the bridge script running inside an
+ * embedded AI App. Imported by BOTH sides: `bridge.ts` (bundled into
+ * `public/ai-apps/bridge/v1.js` and loaded by apps) and the LabOS feedback UI.
+ *
+ * Nothing in here may import from the app tree — it ships inside every app.
+ *
+ * Adding a feature = adding a named message type and advertising it in
+ * `capabilities`. There is deliberately no generic "run this" or "read that"
+ * message: the bridge is a fixed menu, not a remote control.
+ */
+
+export const BRIDGE_NS = 'pln-bridge';
+export const BRIDGE_VERSION = 1;
+
+export type BridgeCapability = 'pick' | 'describe' | 'crop' | 'locate' | 'capture';
+
+/** A rectangle in the app's viewport (CSS px). LabOS offsets it by the iframe's own rect. */
+export type BridgeRect = { x: number; y: number; w: number; h: number };
+
+/** What the bridge reports about a picked element. Every field is capped by the bridge AND re-validated by LabOS. */
+export type ElementDescriptor = {
+  /** Best-effort unique CSS selector within the app document. */
+  selector: string;
+  tag: string;
+  /** Visible text, whitespace-collapsed, ≤ 200 chars. */
+  text: string;
+  /** Redacted, truncated `outerHTML` (≤ 2000 chars). Text only — never rendered. */
+  html: string;
+  role: string | null;
+  ariaLabel: string | null;
+  /** Nearest named React component, when the app is a React app and the name survived minification. */
+  component: string | null;
+  /** `file:line` when React dev builds expose `_debugSource`. Almost always null in production. */
+  source: string | null;
+  rect: BridgeRect;
+  page: { path: string; title: string; viewportW: number; viewportH: number };
+};
+
+/**
+ * Find a stored pin's element again (the feedback overlay). `key` is LabOS's
+ * own id for the pin and is opaque to the bridge.
+ */
+export type LocateRequest = { key: string; selector: string; tag: string; text: string };
+
+/** A found element, now tracked like a picked one. `rect: null` = it exists but is not visible. */
+export type LocateResult = { pinId: string; rect: BridgeRect | null };
+
+type Msg<T extends string, P = undefined> = P extends undefined ? { type: T } : { type: T; payload: P };
+
+/** LabOS → app. */
+export type ParentMessage =
+  | Msg<'hello'>
+  | Msg<'pick:start'>
+  | Msg<'pick:stop'>
+  | Msg<'pins:unwatch', { pinIds: string[] }>
+  | Msg<'pins:clear'>
+  | Msg<'crop', { pinId: string }>
+  | Msg<'locate', { requests: LocateRequest[] }>
+  /** A picture of the app as it is on screen (the viewport). `key` is LabOS's and comes back on the result. */
+  | Msg<'capture', { key: string }>;
+
+/** App → LabOS. */
+export type AppMessage =
+  /** `session` is random per page load: a new value means the app loaded a new document and our pins are gone. */
+  | Msg<'ready', { capabilities: BridgeCapability[]; session: string }>
+  /** `point`: where in the element the click landed, as a fraction of its box (0–1). */
+  | Msg<'pick:selected', { pinId: string; element: ElementDescriptor; point: { ox: number; oy: number } }>
+  | Msg<'pick:cancelled'>
+  | Msg<'pins:rects', { rects: Record<string, BridgeRect | null> }>
+  | Msg<'crop:result', { pinId: string; dataUrl?: string; error?: string }>
+  /** One entry per request key; `null` = no single element matched. */
+  | Msg<'locate:result', { results: Record<string, LocateResult | null> }>
+  /** `width`/`height`: the viewport in CSS px the picture shows, so LabOS can map a dragged rectangle onto it. */
+  | Msg<'capture:result', { key: string; dataUrl?: string; width?: number; height?: number; error?: string }>
+  /** Alt/⌥+F was pressed in the app. Keys pressed in the frame never reach LabOS's window. */
+  | Msg<'shortcut:feedback'>;
+
+export type Envelope<M> = M & { ns: typeof BRIDGE_NS; v: typeof BRIDGE_VERSION; id: string };
+
+export const LIMITS = {
+  selector: 500,
+  text: 200,
+  html: 2000,
+  name: 120,
+  path: 2048,
+  title: 200,
+  /** A data URL longer than this is refused on both sides (≈ 3 MB of PNG). */
+  cropDataUrl: 4_000_000,
+  pins: 20,
+  /** Stored pins located per `locate` command (the overlay sends one page's worth). */
+  locate: 200,
+  /** A stored selector may be longer than one this bridge generates (an older bridge, a hand edit). */
+  locateSelector: 1000,
+  locateKey: 100,
+  /** A `capture` key (LabOS's correlation id). */
+  captureKey: 40,
+} as const;
+
+/**
+ * A `capture:result` error: the page is too heavy to draw within the renderer's
+ * budget. The feedback form skips its automatic picture quietly on this one.
+ */
+export const CAPTURE_TOO_SLOW = 'too-slow';
+
+let counter = 0;
+export function nextMessageId(): string {
+  counter += 1;
+  return `${Date.now().toString(36)}-${counter}`;
+}
+
+export function envelope<M extends { type: string }>(message: M): Envelope<M> {
+  return { ns: BRIDGE_NS, v: BRIDGE_VERSION, id: nextMessageId(), ...message };
+}
+
+/** Structural check only; the caller still validates each payload it uses. */
+export function isEnvelope(data: unknown): data is Envelope<{ type: string; payload?: unknown }> {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  return d.ns === BRIDGE_NS && d.v === BRIDGE_VERSION && typeof d.type === 'string' && typeof d.id === 'string';
+}

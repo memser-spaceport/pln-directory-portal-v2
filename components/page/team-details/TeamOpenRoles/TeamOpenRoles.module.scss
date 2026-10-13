@@ -36,3 +36,14 @@
     text-decoration: underline;
   }
 }
+
+/* A role that carries an applicants line wraps both in one card, so the row and
+ * its line read as one block rather than two stacked things. The row keeps its
+ * own background; this only supplies the ground underneath the line.
+ *
+ * Only rendered when there IS a line, so a role without applicants stays
+ * pixel-identical to what every other viewer sees. */
+.roleBlock {
+  border-radius: 16px;
+  background-color: var(--background-neutral-subtle, #f9fafb);
+}

@@ -5,6 +5,11 @@
   flex-direction: column;
   height: calc(100vh - var(--app-header-height));
   width: 100%;
+
+  /* The app narrows beside the comments panel rather than sit under it. */
+  @include media.tablet-portrait {
+    padding-right: var(--ai-app-comments-inset, 0px);
+  }
 }
 
 .iframe {
@@ -169,6 +174,67 @@
   }
 }
 
+.privateBadge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.privateState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 360px;
+}
+
+.privateStateIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.privateStateTitle {
+  margin: 0;
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.privateStateText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: #64748b;
+}
+
+.privateStateLink {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #156ff7;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .setupDescription {
   margin: 0;
   font-size: 14px;
@@ -319,6 +385,47 @@
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+}
+
+.envSwitch {
+  display: flex;
+  gap: 4px;
+}
+
+.envOn,
+.envOff {
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 16px;
+  cursor: pointer;
+}
+
+.envOn {
+  border: 1px solid #1d4ed8;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.envOff {
+  border: 1px solid rgba(27, 56, 96, 0.16);
+  background: #fff;
+  color: #475569;
+}
+
+.envMeta,
+.envLink {
+  font-size: 12px;
+  line-height: 16px;
+  color: #475569;
+}
+
+.envLink {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 // "App Details" action; mirrors AiAppCard's (AiAppCard.module.scss) so the two

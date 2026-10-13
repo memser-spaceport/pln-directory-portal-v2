@@ -70,7 +70,10 @@ export function MemberCardStatic({ member, presence }: MemberCardStaticProps) {
           {/* The only divergence from production: the same slot, but the label
               swaps to the travel state when the person is away. */}
           <div className={s.locationWrapper}>
-            <PresenceLabel presence={presence} home={member.home} variant="card" />
+            {/* Away, the card still says where they're based: under a role or
+                skills filter, "Berlin · Aug 25-27" alone reads as where Lucas
+                lives. */}
+            <PresenceLabel presence={presence} home={member.home} variant="card" showHomeHint />
           </div>
 
           {/* No overlap line. The card already shows the city and dates in its

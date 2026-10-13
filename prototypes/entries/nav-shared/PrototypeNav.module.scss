@@ -90,6 +90,21 @@
   border-radius: 8px;
 }
 
+/* The bell's unread dot: `.navDot`'s marker, riding the glyph's top-right. */
+.navBell {
+  position: relative;
+}
+
+.bellDot {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--foreground-brand-primary, #1b4dff);
+}
+
 /* Search as a small field: glyph + "Search" placeholder inside the DS
    SearchInput's chrome (pl-design-system/components/SearchInput — 40px, subtle
    border, 8px radius, white surface, 16px tertiary glyph at 12px, 14px
@@ -236,6 +251,182 @@
   }
 }
 
+/* ---------- The field you type in (`searchField`) ---------- */
+
+/* The slot holds the field's place in the row: the 40px glyph box below
+   tablet-landscape, 200px from there, 278px from 1440 up. The field has one
+   width and keeps it while you type (Relume, Zendesk, Craft on Mobbin: the
+   field holds still and the dropdown does the growing). 278 is what the bar
+   has room for: measured at 1440 the nav's last item ends 86px left of a 200px
+   slot, so 278 leaves the same 8px the row gives it at narrower widths. Below
+   1440 there is no spare width, so it stays 200. The popover measures this
+   box, and its right edge is the field's right edge. */
+.navSearchSlot {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+
+  @include tablet-landscape {
+    width: 200px;
+    height: 36px;
+  }
+
+  @include desktop-hd {
+    width: 278px;
+  }
+}
+
+/* The glyph button, for the widths with no room for a field. */
+.navSearchCompact {
+  @include tablet-landscape {
+    display: none;
+  }
+}
+
+/* Same chrome as the button form above (the DS SearchInput's), now on a real
+   input. Fills its slot and never changes size. The popover under it is
+   wider (520px, its rows need the room) and shares the field's right edge. */
+.navSearchField {
+  display: none;
+
+  @include tablet-landscape {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 36px;
+    padding: 0 8px 0 12px;
+    border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    border-radius: 8px;
+    background: var(--surface-light, #ffffff);
+    color: var(--foreground-neutral-tertiary, #8897ae);
+    cursor: text;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        border-color: var(--action-border-neutral-normal, rgba(14, 15, 17, 0.24));
+      }
+    }
+
+    /* The glyph: the DS 16px mark in the placeholder's ink, non-scaling
+       stroke, as on the button form. */
+    > svg {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+    }
+
+    > svg circle,
+    > svg path {
+      stroke: currentColor;
+    }
+  }
+}
+
+/* Open: the DS Input's focus border, held for as long as the popover is up (a
+   press inside the results takes the caret, not the search). Nothing else
+   changes: size, type and padding stay the resting field's.
+
+   No 3px `--transparent-brand-8` ring, although DS Input/SearchInput draw one:
+   the popover hangs 8px under this field and shares its right edge, so the
+   ring spilt 3px past that edge (the two stopped lining up) and read as a
+   thick glow on a 36px navbar control. The brand border alone marks focus;
+   the popover under it says the rest. */
+.navSearchFieldOpen {
+  @include tablet-landscape {
+    border-color: var(--foreground-brand-primary, #1b4dff);
+
+    @media (hover: hover) {
+      &:hover {
+        border-color: var(--foreground-brand-primary, #1b4dff);
+      }
+    }
+  }
+}
+
+/* `min-width: 0` or the input's intrinsic size pushes the AI badge out of the
+   200px box (design-thinking lesson 2, the FilterSearch case). A kept term
+   truncates in the collapsed field.
+
+   Type is DS Input size-sm's (`--type-label-sm-strong-font-size`, 14px), the
+   navbar items' 14px/20px. `app/globals.scss` sets `.root input { font-size:
+   16px !important }` (the iOS focus-zoom guard) on every input in the app; it
+   beat the plain 14px below and made the typed term larger than everything
+   else in the bar. This field only renders from tablet-landscape up, where
+   that guard has no phone to protect, so it is overridden: `!important` on a
+   doubled selector, (0,2,0) against the global's (0,1,1). */
+.navSearchInput.navSearchInput {
+  font-size: 14px !important;
+}
+
+.navSearchInput {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--foreground-neutral-primary, #0f172a);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  text-overflow: ellipsis;
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+    opacity: 1;
+  }
+}
+
+/* Type and colour come from `ChatSubheader .button` (12px/500 brand); this
+   gives it a hit area. 20px tall, the AI chip's height, so the two trailing
+   items share one box with 7px of field above and below; line-height drops to
+   DS label-xs's 16px to fit it. Doubled to beat `.button` whatever the sheet
+   order. */
+.navSearchClear.navSearchClear {
+  flex-shrink: 0;
+  height: 20px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 4px;
+  line-height: 16px;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+/* The AI badge as a flex child of the field instead of pinned over a button,
+   scaled to sit inside a 36px field: 20px tall (DS Badge's 12px/16px/500
+   label, 1px border, 1px air), Badge size-sm's 6px sides, 4px radius, 12px
+   mark (PrototypeNavBar passes size 12). The 22px, 8px-sided, 16px-mark badge
+   above belongs to the button form, which has 40px to sit in. */
+.navAiBadgeInline.navAiBadgeInline {
+  @include tablet-landscape {
+    position: static;
+    flex-shrink: 0;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 4px;
+    transform: none;
+  }
+}
+
 .navAvatar {
   display: inline-flex;
   align-items: center;
@@ -248,4 +439,17 @@
   font-size: 12px;
   font-weight: 600;
   letter-spacing: -0.2px;
+  /* It is the account menu's trigger (PrototypeAccountMenu) — a button. */
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* The account menu's group dividers without their labels. Production's
+   `.SeparatorWrapper` row is 14px tall (the label's line-height) with the 1px
+   line centred in it; this keeps that footprint so items don't move. */
+.accountSeparator {
+  height: 1px;
+  margin-block: 6.5px;
+  background-color: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }

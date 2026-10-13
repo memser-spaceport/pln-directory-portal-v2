@@ -8,8 +8,8 @@ export default function PlaaHomeTokens() {
   return (
     <style jsx global>{`
       .plaa-home {
-        --color-brand: #0b4f66;
-        --color-brand-text: #094157;
+        --color-brand: #0c5259;
+        --color-brand-text: var(--color-brand);
         --color-brand-subtle: #e6f1f5;
         --color-chart: #365a83;
         --surface-card: #ffffff;
@@ -24,8 +24,9 @@ export default function PlaaHomeTokens() {
         --pl-blue-200: #bcd4f0;
         --pl-blue-300: #90b6e4;
         --pl-blue-400: #4f86c6;
-        --pl-blue-500: #156ff7;
-        --pl-blue-600: #1d4ed8;
+        /* Homepage-only action aliases; shared Directory colors remain unchanged. */
+        --pl-blue-500: var(--color-brand);
+        --pl-blue-600: #09434a;
         --pl-green-500: #30c593;
         --pl-green-600: #0a9952;
         --pl-slate-50: #f8fafc;

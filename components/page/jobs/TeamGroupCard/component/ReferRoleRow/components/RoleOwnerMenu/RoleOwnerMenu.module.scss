@@ -1,0 +1,16 @@
+/* Only what `NewsShareMenu.module.scss` does not already say. The trigger, the
+   popup and the items are that stylesheet's, so this holds the two differences:
+   a ⋯ at the end of a row rather than a share icon on a card, and a submenu
+   trigger that has to push its chevron to the far edge. */
+
+.trigger {
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.submenuTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}

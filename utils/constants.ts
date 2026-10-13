@@ -105,6 +105,8 @@ export const JOBS_ANALYTICS = {
   ON_JOB_APPLY_EXTERNAL_REDIRECTED: 'job-apply-external-redirected',
   ON_JOB_UNLOCK_INFO_OPENED: 'job-unlock-info-opened',
   ON_JOB_CREATE_PROFILE_CLICKED: 'job-create-profile-clicked',
+  ON_JOB_INTEREST_COMPOSER_OPENED: 'job-interest-composer-opened',
+  ON_JOB_INTEREST_COMPOSER_CANCELLED: 'job-interest-composer-cancelled',
   ON_JOB_INTEREST_MARKED: 'job-interest-marked',
   ON_JOB_INTEREST_UNDONE: 'job-interest-undone',
   ON_JOB_INTEREST_FAILED: 'job-interest-failed',
@@ -121,6 +123,17 @@ export const JOBS_ANALYTICS = {
   ON_JOB_APPLY_FOLLOW_DECLINED: 'job-apply-follow-declined',
   ON_JOB_INTEREST_FOLLOW_DECLINED: 'job-interest-follow-declined',
   ON_JOB_APPLY_FOLLOW_FAILED: 'job-apply-follow-failed',
+  ON_JOB_HIRING_VIEWED: 'job-hiring-viewed',
+  ON_JOB_APPLICANT_OPENED: 'job-applicant-opened',
+  ON_JOB_APPLICANT_REVIEWED: 'job-applicant-reviewed',
+  ON_JOB_APPLICANT_REVIEW_UNDONE: 'job-applicant-review-undone',
+  ON_JOB_APPLICANT_REVIEW_FAILED: 'job-applicant-review-failed',
+  ON_JOB_APPLICANT_EMAIL_CLICKED: 'job-applicant-email-clicked',
+  ON_JOB_HIRING_TAB_CHANGED: 'job-hiring-tab-changed',
+  ON_JOB_SAVED: 'job-saved',
+  ON_JOB_UNSAVED: 'job-unsaved',
+  ON_JOB_SAVE_FAILED: 'job-save-failed',
+  ON_JOBS_SAVED_FILTER_APPLIED: 'jobs-saved-filter-applied',
 };
 
 export const EVENTS = {
@@ -927,6 +940,28 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.6.3 - Candidates, Saved Roles & AI Search',
+    tag: 'New Feature',
+    date: '25, Sep 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Candidates</span> - Team leads can see who applied and who's interested on each open role, open a profile, and mark them reviewed.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Save a role</span> - Bookmark a role to find it later under Saved on the board.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">AI Search</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Sources</span> - Sources for a team, member, news story, or job open inside the Directory and show the title.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Top teams</span> - Asking for the top or best teams returns the teams that do that work.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Forum & Deals</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Images</span> - Resize an image and wrap text around it when you add one.</li>
+        </ul>
+        </div>`,
+  },
   {
     title: 'Version 4.6.2 - CV Management, Team Follow & Custom Skills',
     tag: 'New Feature',
@@ -2678,6 +2713,34 @@ export const AI_APPS_ANALYTICS = {
   FEEDBACK_EXPORTED: 'ai_apps_feedback_exported',
   FEEDBACK_STATUS_CHANGED: 'ai_apps_feedback_status_changed',
   FEEDBACK_DIALOG_OPENED: 'ai_apps_feedback_dialog_opened',
+  FEEDBACK_SCREENSHOT_CLICKED: 'ai_apps_feedback_screenshot_clicked',
+  FEEDBACK_SCREENSHOT_CAPTURE_DENIED: 'ai_apps_feedback_screenshot_capture_denied',
+  FEEDBACK_SCREENSHOT_CAPTURE_FAILED: 'ai_apps_feedback_screenshot_capture_failed',
+  FEEDBACK_SCREENSHOT_CAPTURE_CANCELLED: 'ai_apps_feedback_screenshot_capture_cancelled',
+  FEEDBACK_SCREENSHOT_REGION_SELECTED: 'ai_apps_feedback_screenshot_region_selected',
+  FEEDBACK_SCREENSHOT_ADDED: 'ai_apps_feedback_screenshot_added',
+  FEEDBACK_SCREENSHOT_ANNOTATOR_DISCARDED: 'ai_apps_feedback_screenshot_annotator_discarded',
+  FEEDBACK_SCREENSHOT_EDIT_OPENED: 'ai_apps_feedback_screenshot_edit_opened',
+  FEEDBACK_SCREENSHOT_EDIT_SAVED: 'ai_apps_feedback_screenshot_edit_saved',
+  FEEDBACK_SCREENSHOT_REMOVED: 'ai_apps_feedback_screenshot_removed',
+  FEEDBACK_PINS_OPENED: 'ai_apps_feedback_pins_opened',
+  FEEDBACK_PIN_ADDED: 'ai_apps_feedback_pin_added',
+  FEEDBACK_PIN_REMOVED: 'ai_apps_feedback_pin_removed',
+  FEEDBACK_REPLY_SENT: 'ai_apps_feedback_reply_sent',
+  FEEDBACK_REPLY_DELETED: 'ai_apps_feedback_reply_deleted',
+  FEEDBACK_REPLY_EDITED: 'ai_apps_feedback_reply_edited',
+  FEEDBACK_COMMENT_EDITED: 'ai_apps_feedback_comment_edited',
+  FEEDBACK_COMMENT_DELETED: 'ai_apps_feedback_comment_deleted',
+  FEEDBACK_APP_CAPTURE: 'ai_apps_feedback_app_capture',
+  FEEDBACK_AUTO_SHOT_REMOVED: 'ai_apps_feedback_auto_shot_removed',
+  FEEDBACK_PICK_PART_CANCELLED: 'ai_apps_feedback_pick_part_cancelled',
+  FEEDBACK_SCREEN_SHARE_FALLBACK: 'ai_apps_feedback_screen_share_fallback',
+  FEEDBACK_PIN_DETACHED: 'ai_apps_feedback_pin_detached',
+  FEEDBACK_PIN_CROP_FAILED: 'ai_apps_feedback_pin_crop_failed',
+  FEEDBACK_BRIDGE_UNAVAILABLE: 'ai_apps_feedback_bridge_unavailable',
+  FEEDBACK_SCREENSHOT_TOOL_SELECTED: 'ai_apps_feedback_screenshot_tool_selected',
+  FEEDBACK_IMAGE_ATTACHED: 'ai_apps_feedback_image_attached',
+  FEEDBACK_TOO_LARGE: 'ai_apps_feedback_too_large',
   VIEW_FEEDBACK_CLICKED: 'ai_apps_view_feedback_clicked',
   SECRETS_PANEL_OPENED: 'ai_apps_secrets_panel_opened',
   SECRETS_DEPLOY_CLICKED: 'ai_apps_secrets_deploy_clicked',
@@ -2688,6 +2751,7 @@ export const AI_APPS_ANALYTICS = {
   EDIT_DETAILS_OPENED: 'ai_apps_edit_details_opened',
   EDIT_DETAILS_SAVED: 'ai_apps_edit_details_saved',
   EDIT_DETAILS_FAILED: 'ai_apps_edit_details_failed',
+  FEEDBACK_SETTING_CHANGED: 'ai_apps_feedback_setting_changed',
   DEPLOYMENT_SETTINGS_OPENED: 'ai_apps_deployment_settings_opened',
   DELETE_APP_OPENED: 'ai_apps_delete_app_opened',
   DELETE_APP_CANCELLED: 'ai_apps_delete_app_cancelled',
@@ -2705,6 +2769,34 @@ export const AI_APPS_ANALYTICS = {
   SORT_CHANGED: 'ai_apps_sort_changed',
   FILTERS_CLEARED: 'ai_apps_filters_cleared',
   EMPTY_RESULTS_SHOWN: 'ai_apps_empty_results_shown',
+  MANAGE_ACCESS_OPENED: 'ai_apps_manage_access_opened',
+  // LAB-2745: named in the ticket's Metrics section (kebab-case, unlike the older events above).
+  TESTING_USERS_OPENED: 'ai-apps-testing-users-opened',
+  ACCESS_SAVED: 'ai_apps_access_saved',
+  ACCESS_SAVE_FAILED: 'ai_apps_access_save_failed',
+  PRIVATE_BLOCKED: 'ai_apps_private_blocked',
+  ACCESS_REDEPLOY_PROMPTED: 'ai_apps_access_redeploy_prompted',
+  ACCESS_REDEPLOY_CLICKED: 'ai_apps_access_redeploy_clicked',
+  ACCESS_REDEPLOY_DISMISSED: 'ai_apps_access_redeploy_dismissed',
+  PUBLIC_ENDPOINTS_SAVED: 'ai_apps_public_endpoints_saved',
+  PUBLIC_ENDPOINTS_SAVE_FAILED: 'ai_apps_public_endpoints_save_failed',
+  PUBLIC_ENDPOINTS_REDEPLOY_CLICKED: 'ai_apps_public_endpoints_redeploy_clicked',
+  FEEDBACK_SHORTCUT_USED: 'ai_apps_feedback_shortcut_used',
+  FEEDBACK_SHORTCUTS_HELP_OPENED: 'ai_apps_feedback_shortcuts_help_opened',
+  ENVIRONMENT_SELECTED: 'ai_apps_environment_selected',
+  TARGET_TEARDOWN_CLICKED: 'ai_apps_target_teardown_clicked',
+  TARGET_TEARDOWN_CONFIRMED: 'ai_apps_target_teardown_confirmed',
+  TARGET_TEARDOWN_FAILED: 'ai_apps_target_teardown_failed',
+  DEPLOY_KEY_CREATED: 'ai_apps_deploy_key_created',
+  DEPLOY_KEY_CREATE_FAILED: 'ai_apps_deploy_key_create_failed',
+  DEPLOY_KEY_COPIED: 'ai_apps_deploy_key_copied',
+  DEPLOY_KEY_REVOKE_OPENED: 'ai_apps_deploy_key_revoke_opened',
+  DEPLOY_KEY_REVOKE_CANCELLED: 'ai_apps_deploy_key_revoke_cancelled',
+  DEPLOY_KEY_REVOKED: 'ai_apps_deploy_key_revoked',
+  DEPLOY_KEY_REVOKE_FAILED: 'ai_apps_deploy_key_revoke_failed',
+  FEEDBACK_STATUS_FILTERED: 'ai_apps_feedback_status_filtered',
+  APP_SESSION_STARTED: 'ai_apps_app_session_started',
+  APP_SESSION_FAILED: 'ai_apps_app_session_failed',
 };
 
 export const MCP_ANALYTICS_EVENTS = {
@@ -2722,4 +2814,31 @@ export const MCP_ANALYTICS_EVENTS = {
   WARM_PATH_NOTE_OPENED: 'mcp-warm-path-note-opened',
   WARM_PATH_NOTE_SUBMITTED: 'mcp-warm-path-note-submitted',
   WARM_PATH_NOTE_CLEARED: 'mcp-warm-path-note-cleared',
+};
+
+export const EDITOR_ANALYTICS = {
+  IMAGE_RESIZED: 'editor-image-resized',
+};
+
+export const SPV_SPOTLIGHT_ANALYTICS = {
+  ON_PAGE_VIEWED: 'spv-spotlight-page-viewed',
+  ON_REQUEST_ACCESS_CLICKED: 'spv-spotlight-request-access-clicked',
+  ON_REQUEST_ACCESS_SUBMITTED: 'spv-spotlight-request-access-submitted',
+  ON_REQUEST_ACCESS_BLOCKED: 'spv-spotlight-request-access-blocked',
+  ON_REQUEST_ACCESS_FAILED: 'spv-spotlight-request-access-failed',
+  ON_SIGN_IN_CLICKED: 'spv-spotlight-sign-in-clicked',
+  ON_OPEN_DATA_ROOM_CLICKED: 'spv-spotlight-open-data-room-clicked',
+  ON_INVESTOR_PROFILE_CLICKED: 'spv-spotlight-investor-profile-clicked',
+  ON_EXPLORE_TILE_CLICKED: 'spv-spotlight-explore-tile-clicked',
+  ON_FOUNDER_PROFILE_CLICKED: 'spv-spotlight-founder-profile-clicked',
+};
+
+export const EXPLORE_PL_NETWORK_ANALYTICS = {
+  ON_PAGE_VIEWED: 'explore-pl-network-page-viewed',
+  ON_PORTFOLIO_VIEW_CHANGED: 'explore-pl-network-portfolio-view-changed',
+  ON_MAP_TILE_OPENED: 'explore-pl-network-map-tile-opened',
+  ON_TEAM_PROFILE_CLICKED: 'explore-pl-network-team-profile-clicked',
+  ON_LIST_SHOW_ALL_TOGGLED: 'explore-pl-network-list-show-all-toggled',
+  ON_LOGO_WALL_SHOW_ALL_TOGGLED: 'explore-pl-network-logo-wall-show-all-toggled',
+  ON_ENTITY_CLICKED: 'explore-pl-network-entity-clicked',
 };

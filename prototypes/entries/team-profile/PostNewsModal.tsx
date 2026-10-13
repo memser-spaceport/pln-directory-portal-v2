@@ -10,6 +10,7 @@ import { Button } from '@/components/common/Button';
 import { CloseIcon } from '@/components/icons';
 import { FormField } from '@/components/form/FormField';
 import { FormEditor } from '@/components/form/FormEditor/FormEditor';
+import { FormSelect } from '@/components/form/FormSelect';
 import { useFormDraft } from '@/hooks/useFormDraft';
 import { DraftSaveStatus } from '@/components/page/gantry/ideas/SubmitIdeaModal/DraftSaveStatus';
 import { DiscardDraftDialog } from '@/components/page/gantry/ideas/DiscardDraftDialog';
@@ -24,6 +25,7 @@ import ideaModalStyles from '@/components/page/gantry/ideas/SubmitIdeaModal/Subm
 import ideaFieldStyles from '@/components/page/gantry/shared/IdeaFormFields.module.scss';
 
 import { findNewsByUrl, htmlToPlainText, isSafeHttpUrl } from './newsUrl';
+import local from './TeamProfile.module.scss';
 
 export interface PostNewsFormData {
   title: string;
@@ -71,6 +73,17 @@ interface Props {
    */
   editing?: NewsItemWithPost | null;
   onSave?: (uid: string, post: PostNewsSubmission) => void;
+  /**
+   * The teams this person may post as, when there is more than one — the
+   * network feed's door, where the page names no team. Adds a "Post as"
+   * picker above the headline, opened on `teamUid`; the host owns the choice
+   * (`onTeamChange`) so `teamName` and `existing` follow it. Absent or a
+   * single team: no picker, as on the team's own page, where the page is the
+   * answer. The draft is then kept once, not per team, so switching the team
+   * never swaps the text out from under the person.
+   */
+  teamChoices?: { uid: string; name: string }[];
+  onTeamChange?: (uid: string) => void;
 }
 
 /**
@@ -106,7 +119,29 @@ interface Props {
  * a visible Saving… / Saved status in the title row, the backdrop inert while
  * open, and an explicit Discard step — Cancel and Escape keep the draft.
  */
-export function PostNewsModal({ open, onClose, teamUid, teamName, existing, onPublish, editing, onSave }: Props) {
+export function PostNewsModal({
+  open,
+  onClose,
+  teamUid,
+  teamName,
+  existing,
+  onPublish,
+  editing,
+  onSave,
+  teamChoices,
+  onTeamChange,
+}: Props) {
+  const showTeamPicker = !editing && (teamChoices?.length ?? 0) > 1;
+  const teamOptions = (teamChoices ?? []).map((c) => ({ value: c.uid, label: c.name }));
+  // Its own small form: the team is not part of the post's draft, it is where
+  // the post goes, and the host holds it.
+  const teamMethods = useForm<{ postAs: { value: string; label: string } | null }>({
+    defaultValues: { postAs: teamOptions.find((o) => o.value === teamUid) ?? null },
+  });
+  useEffect(() => {
+    if (open) teamMethods.reset({ postAs: teamOptions.find((o) => o.value === teamUid) ?? null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
   const [discardOpen, setDiscardOpen] = useState(false);
   /** What the form opens on: the published post when editing, blank otherwise. */
   const getInitial = (): PostNewsFormData =>
@@ -147,7 +182,11 @@ export function PostNewsModal({ open, onClose, teamUid, teamName, existing, onPu
   const bodyTooLong = bodyLength > BODY_MAX_LENGTH;
 
   const { clearDraft } = useFormDraft<PostNewsFormData, PostNewsFormData>({
-    storageKey: editing ? `team-news-edit:${editing.uid}` : `team-news-post:${teamUid}`,
+    storageKey: editing
+      ? `team-news-edit:${editing.uid}`
+      : teamChoices && teamChoices.length > 1
+        ? 'team-news-post:any-team'
+        : `team-news-post:${teamUid}`,
     enabled: open,
     methods,
     getDefaults: getInitial,
@@ -255,6 +294,19 @@ export function PostNewsModal({ open, onClose, teamUid, teamName, existing, onPu
           </div>
 
           <div className={dealModalStyles.content}>
+            {showTeamPicker && (
+              <FormProvider {...teamMethods}>
+                <div className={local.postAsField}>
+                  <FormSelect
+                    name="postAs"
+                    label="Post as"
+                    placeholder="Select a team"
+                    options={teamOptions}
+                    onChange={(val) => val && onTeamChange?.(val.value)}
+                  />
+                </div>
+              </FormProvider>
+            )}
             <FormProvider {...methods}>
               <div className={dealModalStyles.form}>
                 <div className={ideaFieldStyles.titleField}>

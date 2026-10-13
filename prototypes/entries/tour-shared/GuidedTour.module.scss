@@ -1,0 +1,143 @@
+// The guided tour's chrome. New UI, so everything is on the type scale and in
+// token/fallback pairs copied from production stylesheets (see prototypes/CLAUDE.md).
+
+.root {
+  position: fixed;
+  inset: 0;
+  // Above `Modal` (9999): a tour step can stand on a dialog, as the AI view is.
+  z-index: 10050;
+  pointer-events: none;
+}
+
+// The DS modal scrim (`AppSearchDialog`), without `Modal`'s blur: a tour dims the
+// page to point at part of it, and a blurred page is one you can't be shown.
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--transparent-dark-50, rgba(14, 15, 17, 0.5));
+  // The clip-path hole is a hole for the pointer too, so the target stays live.
+  pointer-events: auto;
+}
+
+// Chrome takes the border family: the brand member of it, not the action blue.
+.ring {
+  position: absolute;
+  border: 2px solid var(--border-brand-subtle, #aebfff);
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  width: min(320px, calc(100vw - 32px));
+  padding: 16px;
+  // 12px: the product's radius for a surface that floats over the page.
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+  box-shadow: 0 4px 8px rgba(14, 15, 17, 0.12);
+  pointer-events: auto;
+  // Measured unplaced, shown placed: no frame in the corner.
+  opacity: 0;
+}
+
+.cardPlaced {
+  opacity: 1;
+  transition: opacity 0.16s ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.arrow {
+  position: absolute;
+  top: -6px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  transform: rotate(45deg);
+  background: var(--background-base-white, #fff);
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.cardAbove .arrow {
+  top: auto;
+  bottom: -6px;
+  transform: rotate(225deg);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.eyebrow {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+// The product's standard close: a 16px stroked ✕ in a 24px grey disc.
+.close {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: var(--spacing-4xs, 4px);
+  border: none;
+  border-radius: var(--corner-radius-full-round, 9999px);
+  background: var(--action-background-neutral-light_normal, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.count {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

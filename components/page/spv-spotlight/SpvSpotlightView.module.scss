@@ -1,0 +1,110 @@
+@use 'styles/media';
+
+.page {
+  min-height: 100vh;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+// DemodayCompletedView's .root, with a side gutter: a chromeless page doesn't
+// get one from the app layout.
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1344px;
+  margin: 0 auto;
+  padding: 16px 16px 60px;
+
+  @include media.mobile-only {
+    padding: 12px 8px 40px;
+  }
+}
+
+// The white content sheet.
+.content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  padding: 10px 80px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+
+  @include media.mobile-only {
+    gap: 24px;
+    padding: 0 16px;
+  }
+
+  @include media.tablet-portrait-only {
+    padding: 10px 32px;
+  }
+
+  @include media.desktop-hd {
+    padding: 24px 80px 20px;
+  }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 948px;
+  margin: 0 auto;
+}
+
+.faqSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 948px;
+  padding-top: 24px;
+}
+
+.faqSubtitle {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-align: center;
+  font-size: 14px;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+}
+
+.faqLink {
+  color: var(--foreground-brand-secondary_inverted, #4174ff);
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.inlineLink {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font: inherit;
+  font-weight: 500;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.stateMessage {
+  margin: 80px 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 16px;
+  line-height: 24px;
+  text-align: center;
+}
+
+.loading {
+  width: 100%;
+  min-height: 60vh;
+}

@@ -39,10 +39,33 @@ export const FORUM_POST_SANITIZE_CONFIG = {
     'hr',
   ],
   // Mention anchors keep their identity in class/data-* (same as comments).
-  ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'target', 'rel', 'data-uid', 'data-name', 'data-external-id'],
+  // `width`/`height` carry an author's image size (RichTextEditor writes width
+  // as a percentage): layout hints with no script surface, and without them a
+  // resized image renders here at full width instead of the size it was saved
+  // at.
+  ALLOWED_ATTR: [
+    'href',
+    'src',
+    'alt',
+    'class',
+    'target',
+    'rel',
+    'width',
+    'height',
+    'data-uid',
+    'data-name',
+    'data-external-id',
+  ],
   // Root-relative allowed (mention hrefs, forum-hosted uploads) but not
   // protocol-relative `//evil.example`, and never `javascript:`.
   ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|\/(?!\/))/i,
+  // DOMPurify runs ALLOWED_URI_REGEXP against the value of EVERY attribute
+  // that isn't one of its own URI-safe names, and `width="45%"` is not a URL,
+  // so listing width/height above is not on its own enough to keep them —
+  // that regexp would reject the value and drop the attribute. (It is the same
+  // trap the hook below exists for: `target="_blank"` has to be set after
+  // sanitizing for exactly this reason.)
+  ADD_URI_SAFE_ATTR: ['width', 'height'],
 };
 
 // Registered at module scope: DOMPurify hooks are global and stack if added

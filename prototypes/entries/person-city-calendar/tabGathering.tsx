@@ -30,7 +30,7 @@ import irl from '@/app/events/irl/page.module.css';
 import ok from '@/components/page/founder-guides/RequestGuide/RequestGuideSuccessModal/RequestGuideSuccessModal.module.scss';
 
 import { GATHERING, type PersonCityMember, type Trip } from './mocks';
-import { eachDay, presenceOn } from './presence';
+import { companionsFor, eachDay, nameList, presenceOn } from './presence';
 import { CITY_ART } from './irlCityArt';
 import { CalendarIcon, ChevronIcon, PlaneIcon } from './icons';
 import s from './Screens.module.scss';
@@ -73,6 +73,14 @@ export function GatheringTab({ onTripAdded, alreadyGoing, onGoToCalendar, people
   const [search, setSearch] = useState('');
   // Opt-out, not opt-in: see the offer copy in step 2.
   const [addToLocation, setAddToLocation] = useState(true);
+  const companions = companionsFor(
+    GATHERING.city,
+    GATHERING.startDate,
+    GATHERING.endDate,
+    people,
+    trips,
+    'maya-okonkwo',
+  );
 
   // Anyone in the city at any point during the gathering — matching only the
   // first day drops people who arrive on day two, which is most of them.
@@ -103,7 +111,9 @@ export function GatheringTab({ onTripAdded, alreadyGoing, onGoToCalendar, people
       endDate: GATHERING.endDate,
       source: 'event',
       eventName: GATHERING.name,
-      confirmed: false,
+      // They ticked "Add these dates to your location" — that was the consent.
+      // Asking them to confirm it again on the profile is asking twice.
+      confirmed: true,
     });
     setStep('done');
   };
@@ -482,6 +492,15 @@ export function GatheringTab({ onTripAdded, alreadyGoing, onGoToCalendar, people
                   View
                 </button>
               </div>
+            )}
+
+            {/* What the dates bought: who they put you next to. The attendee
+                list above already exists for the event; this is the people
+                whose *own* locations cross yours, which only this feature knows. */}
+            {addToLocation && companions.length > 0 && (
+              <p className={s.successCompanions}>
+                {nameList(companions.map((c) => c.member.name))} will be in {GATHERING.city} then.
+              </p>
             )}
           </div>
 

@@ -4,6 +4,7 @@ import { useCallback, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { getFollowedTeams } from '../follow.service';
+import type { MemberScopedOptions } from '@/services/types/memberScopedOptions';
 
 /**
  * The followed-team set, built the same way as the applied/interested maps
@@ -30,11 +31,6 @@ async function fetchFollowedTeamUids(): Promise<string[]> {
     page += 1;
   }
   return uids;
-}
-
-interface MemberScopedOptions {
-  memberUid: string | undefined;
-  enabled: boolean;
 }
 
 export function useFollowedTeamUids({ memberUid, enabled }: MemberScopedOptions): {

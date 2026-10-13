@@ -37,7 +37,7 @@ interface Props {
  * secondary to opening the story, which is the definition of an overflow menu.
  * The forum's own post header does the same (`ItemMenu`: a dots trigger, Edit).
  *
- * The heading names who posted it. That is the one fact a lead or an admin
+ * The heading names who posted it. That is the one fact a teammate or an admin
  * needs before removing something, and the one thing the card doesn't show:
  * the card is attributed to the team, on purpose.
  *

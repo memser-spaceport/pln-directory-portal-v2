@@ -6,6 +6,8 @@ import s from './SortDropdown.module.scss';
 export interface SortOption {
   value: string;
   label: React.ReactNode;
+  /** Shown in the trigger instead of `label` once selected. */
+  selectedLabel?: React.ReactNode;
 }
 
 interface SortDropdownProps {
@@ -18,7 +20,8 @@ interface SortDropdownProps {
 }
 
 export function SortDropdown({ options, currentSort, onSortChange, className, sortByLabel }: SortDropdownProps) {
-  const currentLabel = options.find((o) => o.value === currentSort)?.label || options[0]?.label;
+  const currentOption = options.find((o) => o.value === currentSort) ?? options[0];
+  const currentLabel = currentOption?.selectedLabel ?? currentOption?.label;
 
   const dropdown = (
     <Menu.Root modal={false}>

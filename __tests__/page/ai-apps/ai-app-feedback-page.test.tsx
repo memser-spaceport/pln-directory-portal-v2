@@ -1,5 +1,8 @@
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+
+import { serializeAnnotations } from '@/components/page/ai-apps/components/screenshot-feedback/types';
+
 import { AiAppFeedbackPage } from '@/components/page/ai-apps/AiAppFeedbackPage';
 
 const mockUseAiAppFeedbackList = jest.fn();
@@ -9,6 +12,7 @@ const mockExportAiAppFeedbackCsv = jest.fn();
 const mockOnFeedbackReviewViewed = jest.fn();
 const mockOnFeedbackTabFiltered = jest.fn();
 const mockOnFeedbackExported = jest.fn();
+const mockOnFeedbackStatusFiltered = jest.fn();
 const mockOnFeedbackStatusChanged = jest.fn();
 const mockMutate = jest.fn();
 
@@ -33,6 +37,7 @@ jest.mock('@/analytics/ai-apps.analytics', () => ({
     onFeedbackReviewViewed: mockOnFeedbackReviewViewed,
     onFeedbackTabFiltered: mockOnFeedbackTabFiltered,
     onFeedbackExported: mockOnFeedbackExported,
+    onFeedbackStatusFiltered: mockOnFeedbackStatusFiltered,
     onFeedbackStatusChanged: mockOnFeedbackStatusChanged,
   }),
 }));
@@ -56,7 +61,25 @@ const FEEDBACK = [
     member: { uid: 'm-2', name: 'Alan Turing' },
     createdAt: '2026-07-02T00:00:00.000Z',
   },
+  {
+    uid: 'fb-3',
+    appUid: 'app-1',
+    appName: 'Alpha',
+    text: 'Already shipped',
+    status: 'IMPLEMENTED' as const,
+    member: { uid: 'm-3', name: 'Grace Hopper' },
+    createdAt: '2026-07-03T00:00:00.000Z',
+  },
 ];
+
+const filterTrigger = (filterLabel: string) => within(screen.getByText(filterLabel).parentElement!).getByRole('button');
+
+const selectFilter = (filterLabel: string, option: string) => {
+  fireEvent.click(filterTrigger(filterLabel));
+  fireEvent.click(screen.getByRole('menuitem', { name: option }));
+};
+
+const selectStatusFilter = (label: string) => selectFilter('Status:', label);
 
 describe('AiAppFeedbackPage', () => {
   beforeEach(() => {
@@ -145,8 +168,181 @@ describe('AiAppFeedbackPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Export CSV/ }));
 
-    expect(mockExportAiAppFeedbackCsv).toHaveBeenCalledWith([FEEDBACK[0]], 'ai-app-feedback-alpha.csv');
-    expect(mockOnFeedbackExported).toHaveBeenCalledWith(1);
+    expect(mockExportAiAppFeedbackCsv).toHaveBeenCalledWith([FEEDBACK[0], FEEDBACK[2]], 'ai-app-feedback-alpha.csv');
+    expect(mockOnFeedbackExported).toHaveBeenCalledWith(2, 'ALL');
+  });
+
+  describe('status filter', () => {
+    beforeEach(() => {
+      mockUseAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
+    });
+
+    it('shows every status on load', () => {
+      render(<AiAppFeedbackPage />);
+
+      expect(filterTrigger('Status:')).toHaveTextContent('All');
+      expect(screen.getByText('Loved it')).toBeInTheDocument();
+      expect(screen.getByText('Needs work')).toBeInTheDocument();
+      expect(screen.getByText('Already shipped')).toBeInTheDocument();
+    });
+
+    it('narrows the table to the chosen status', () => {
+      render(<AiAppFeedbackPage />);
+
+      selectStatusFilter('Reviewed');
+
+      expect(mockOnFeedbackStatusFiltered).toHaveBeenCalledWith('VIEWED');
+      expect(screen.getByText('Needs work')).toBeInTheDocument();
+      expect(screen.queryByText('Loved it')).not.toBeInTheDocument();
+      expect(screen.queryByText('Already shipped')).not.toBeInTheDocument();
+    });
+
+    it('is single-select \u2014 picking another status replaces the previous one', () => {
+      render(<AiAppFeedbackPage />);
+
+      selectStatusFilter('Reviewed');
+      selectStatusFilter('Shipped');
+
+      expect(screen.getByText('Already shipped')).toBeInTheDocument();
+      expect(screen.queryByText('Needs work')).not.toBeInTheDocument();
+    });
+
+    it('returns to every status when All is chosen again', () => {
+      render(<AiAppFeedbackPage />);
+
+      selectStatusFilter('Shipped');
+      selectStatusFilter('All');
+
+      expect(screen.getByText('Loved it')).toBeInTheDocument();
+      expect(screen.getByText('Needs work')).toBeInTheDocument();
+      expect(screen.getByText('Already shipped')).toBeInTheDocument();
+    });
+
+    it('combines with the app tab, narrowing rows within the selected app', () => {
+      render(<AiAppFeedbackPage />);
+
+      fireEvent.click(screen.getByRole('button', { name: /^Alpha/ }));
+      selectStatusFilter('New');
+
+      expect(screen.getByText('Loved it')).toBeInTheDocument();
+      expect(screen.queryByText('Already shipped')).not.toBeInTheDocument();
+      expect(screen.queryByText('Needs work')).not.toBeInTheDocument();
+    });
+
+    /* A tab counting rows the status filter hides would send reviewers to an empty table. */
+    it('counts each tab against the active status filter without dropping the tab', () => {
+      render(<AiAppFeedbackPage />);
+
+      selectStatusFilter('New');
+
+      expect(screen.getByRole('button', { name: 'All apps 1' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Alpha 1' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Beta 0' })).toBeInTheDocument();
+    });
+
+    it('explains an empty table caused by the filters', () => {
+      render(<AiAppFeedbackPage />);
+
+      fireEvent.click(screen.getByRole('button', { name: /^Beta/ }));
+      selectStatusFilter('Shipped');
+
+      expect(screen.getByText('No feedback matches the selected filters.')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Export CSV/ })).toBeDisabled();
+    });
+
+    it('exports only the rows left by both filters, naming the file after them', () => {
+      render(<AiAppFeedbackPage />);
+
+      fireEvent.click(screen.getByRole('button', { name: /^Alpha/ }));
+      selectStatusFilter('Shipped');
+      fireEvent.click(screen.getByRole('button', { name: /Export CSV/ }));
+
+      expect(mockExportAiAppFeedbackCsv).toHaveBeenCalledWith([FEEDBACK[2]], 'ai-app-feedback-alpha-shipped.csv');
+      expect(mockOnFeedbackExported).toHaveBeenCalledWith(1, 'IMPLEMENTED');
+    });
+  });
+
+  describe('kind and priority filters', () => {
+    // fb-3 predates kind and priority, so both are empty.
+    const TRIAGED = [
+      { ...FEEDBACK[0], reportKind: 'bug' as const, priority: 'P0' as const },
+      { ...FEEDBACK[1], reportKind: 'request' as const, priority: 'P2' as const },
+      FEEDBACK[2],
+    ];
+
+    beforeEach(() => {
+      mockUseAiAppFeedbackList.mockReturnValue({ feedback: TRIAGED, isLoading: false, isError: false });
+    });
+
+    it('offers every kind and the form’s priority lines', () => {
+      render(<AiAppFeedbackPage />);
+
+      fireEvent.click(filterTrigger('Kind:'));
+      expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+        'All',
+        'bug',
+        'request',
+        'question',
+        'chore',
+      ]);
+      fireEvent.click(screen.getByRole('menuitem', { name: 'All' }));
+
+      fireEvent.click(filterTrigger('Priority:'));
+      expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+        'All',
+        'P0 — Blocking — nobody can work around this',
+        'P1 — Serious — there is a workaround and it hurts',
+        'P2 — Normal — worth doing, not urgent',
+        'P3 — Someday — a good idea with no clock on it',
+      ]);
+    });
+
+    it('shows reports with no kind or priority under All, and hides them once one is chosen', () => {
+      render(<AiAppFeedbackPage />);
+
+      expect(screen.getByText('Already shipped')).toBeInTheDocument();
+
+      selectFilter('Kind:', 'request');
+      expect(screen.getByText('Needs work')).toBeInTheDocument();
+      expect(screen.queryByText('Loved it')).not.toBeInTheDocument();
+      expect(screen.queryByText('Already shipped')).not.toBeInTheDocument();
+
+      selectFilter('Kind:', 'All');
+      selectFilter('Priority:', 'P2 — Normal — worth doing, not urgent');
+      expect(screen.getByText('Needs work')).toBeInTheDocument();
+      expect(screen.queryByText('Already shipped')).not.toBeInTheDocument();
+    });
+
+    it('combines with status and the app tab, keeping the tab and recounting it', () => {
+      render(<AiAppFeedbackPage />);
+
+      fireEvent.click(screen.getByRole('button', { name: /^Alpha/ }));
+      selectFilter('Kind:', 'bug');
+      selectStatusFilter('New');
+
+      expect(screen.getByText('Loved it')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'All apps 1' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Alpha 1' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Beta 0' })).toBeInTheDocument();
+
+      selectFilter('Priority:', 'P3 — Someday — a good idea with no clock on it');
+
+      expect(
+        screen.getByRole('button', { name: 'Alpha 0' }).querySelector('[class*="activeIndicator"]'),
+      ).toBeInTheDocument();
+      expect(screen.getByText('No feedback matches the selected filters.')).toBeInTheDocument();
+    });
+
+    it('exports only the rows the filters leave, and still lets a reviewer change status', () => {
+      render(<AiAppFeedbackPage />);
+
+      selectFilter('Priority:', 'P0 — Blocking — nobody can work around this');
+      expect(filterTrigger('Priority:')).toHaveTextContent(/^P0$/);
+      fireEvent.click(screen.getByRole('button', { name: /Export CSV/ }));
+
+      expect(mockExportAiAppFeedbackCsv).toHaveBeenCalledWith([TRIAGED[0]], 'ai-app-feedback-all-apps.csv');
+      expect(screen.getByRole('button', { name: 'Change status (currently New)' })).toBeInTheDocument();
+    });
   });
 
   it('shows each row’s current status without marking it viewed', () => {
@@ -213,6 +409,45 @@ describe('AiAppFeedbackPage', () => {
     expect(screen.getByRole('heading', { name: 'Broken screenshot' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'docs' })).toHaveAttribute('href', 'https://example.com/docs');
     expect(screen.getByAltText('shot')).toHaveAttribute('src', 'https://cdn.test/shot.png');
+    expect(screen.queryByText('View annotations')).not.toBeInTheDocument();
+  });
+
+  describe('rendered markup is sanitizer output', () => {
+    const renderFeedbackText = (text: string) => {
+      mockUseAiAppFeedbackList.mockReturnValue({
+        feedback: [{ ...FEEDBACK[0], uid: 'fb-xss', text }],
+        isLoading: false,
+        isError: false,
+      });
+      return render(<AiAppFeedbackPage />);
+    };
+
+    const eventHandlerAttributes = (root: HTMLElement) =>
+      Array.from(root.querySelectorAll('*')).flatMap((el) =>
+        Array.from(el.attributes)
+          .filter((attr) => attr.name.toLowerCase().startsWith('on'))
+          .map((attr) => `${el.tagName.toLowerCase()}[${attr.name}]`),
+      );
+
+    it('does not let the image split turn a data-* value into an event handler', () => {
+      const { container } = renderFeedbackText(
+        '<p data-x="<img a=">x&quot; onmouseover=&quot;alert(1)&quot; y=&quot;</p>',
+      );
+      expect(eventHandlerAttributes(container)).toEqual([]);
+    });
+
+    it('does not let linkify turn a data-* value into an event handler', () => {
+      const { container } = renderFeedbackText('<p data-x="a>https://x.test/onmouseover=alert(1)//">text</p>');
+      expect(eventHandlerAttributes(container)).toEqual([]);
+    });
+
+    it('still renders linkified bare URLs as new-tab links', () => {
+      renderFeedbackText('<p>See https://example.com/page for details</p>');
+      const link = screen.getByRole('link', { name: 'https://example.com/page' });
+      expect(link).toHaveAttribute('href', 'https://example.com/page');
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    });
   });
 
   it('opens a feedback image fullscreen and closes on Escape or overlay click', async () => {
@@ -250,6 +485,49 @@ describe('AiAppFeedbackPage', () => {
     });
   });
 
+  it('replays drawings and bubble comments in the lightbox', async () => {
+    const encoded = serializeAnnotations({
+      version: 1,
+      shapes: [],
+      strokes: [
+        {
+          color: '#1b4dff',
+          width: 0.006,
+          points: [
+            { x: 0.1, y: 0.1 },
+            { x: 0.4, y: 0.4 },
+          ],
+        },
+      ],
+      comments: [{ id: 'c1', x: 0.5, y: 0.5, text: 'Broken button' }],
+    });
+    mockUseAiAppFeedbackList.mockReturnValue({
+      feedback: [
+        {
+          uid: 'fb-html',
+          appUid: 'app-1',
+          appName: 'Alpha',
+          text: `<p><img src="https://cdn.test/shot.png" alt="shot" class="ai-app-annotated-screenshot" data-annotations="${encoded}"></p>`,
+          status: 'NEW' as const,
+          member: { uid: 'm-1', name: 'Ada Lovelace' },
+          createdAt: '2026-07-01T00:00:00.000Z',
+        },
+      ],
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<AiAppFeedbackPage />);
+
+    expect(screen.getByText('View annotations')).toBeInTheDocument();
+    expect(screen.getByAltText('shot').closest('[title="View annotations"]')).toBeTruthy();
+
+    fireEvent.click(screen.getByText('View annotations'));
+    expect(screen.getByRole('dialog', { name: 'Full size image' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Comment 1' }));
+    expect(screen.getByText('Broken button')).toBeInTheDocument();
+  });
+
   it('renders legacy plain-text feedback as text, not HTML', () => {
     mockUseAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
 
@@ -257,5 +535,109 @@ describe('AiAppFeedbackPage', () => {
 
     expect(screen.getByText('Loved it')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Loved it' })).not.toBeInTheDocument();
+  });
+
+  /**
+   * Screenshots are lifted out of the body and given identical tiles.
+   *
+   * Left inline they stack at whatever size each capture happens to be, so one
+   * tall phone screenshot makes a table row hundreds of pixels deep.
+   */
+  describe('screenshot strip', () => {
+    const withBody = (text: string) =>
+      mockUseAiAppFeedbackList.mockReturnValue({
+        feedback: [
+          {
+            uid: 'fb-html',
+            appUid: 'app-1',
+            appName: 'Alpha',
+            text,
+            status: 'NEW' as const,
+            member: { uid: 'm-1', name: 'Ada Lovelace' },
+            createdAt: '2026-07-01T00:00:00.000Z',
+          },
+        ],
+        isLoading: false,
+        isError: false,
+      });
+
+    it('moves every screenshot out of the message text and into one row', () => {
+      withBody(
+        '<p>Two problems</p><p><img src="https://cdn.test/a.png" alt="first"></p><p><img src="https://cdn.test/b.png" alt="second"></p>',
+      );
+
+      render(<AiAppFeedbackPage />);
+
+      const strip = screen.getByRole('list');
+      expect(screen.getByAltText('first').closest('ul')).toBe(strip);
+      expect(screen.getByAltText('second').closest('ul')).toBe(strip);
+      expect(screen.getByText('Two problems').querySelector('img')).toBeNull();
+    });
+
+    it('makes each tile a button, so the lightbox is reachable by keyboard', () => {
+      withBody('<p><img src="https://cdn.test/a.png" alt="shot"></p>');
+
+      render(<AiAppFeedbackPage />);
+
+      const tile = screen.getByAltText('shot').closest('button');
+      expect(tile).toBeInTheDocument();
+
+      fireEvent.click(tile!);
+      expect(screen.getByRole('dialog', { name: 'Full size image' })).toBeInTheDocument();
+    });
+
+    it('names an unlabelled screenshot by its position', () => {
+      withBody('<p><img src="https://cdn.test/a.png"><img src="https://cdn.test/b.png"></p>');
+
+      render(<AiAppFeedbackPage />);
+
+      expect(screen.getByAltText('Screenshot 1')).toBeInTheDocument();
+      expect(screen.getByAltText('Screenshot 2')).toBeInTheDocument();
+    });
+
+    /* Image-only feedback is a supported submission; an empty editor block for
+       it would leave padding under nothing. */
+    it('renders no message block when the feedback is only a screenshot', () => {
+      withBody('<p><img src="https://cdn.test/a.png" alt="shot"></p>');
+
+      const { container } = render(<AiAppFeedbackPage />);
+
+      expect(screen.getByAltText('shot')).toBeInTheDocument();
+      expect(container.querySelector('.ql-editor')).toBeNull();
+    });
+
+    it('badges only the screenshots that carry annotations', () => {
+      const encoded = serializeAnnotations({
+        version: 1,
+        strokes: [],
+        shapes: [],
+        comments: [{ id: 'c1', x: 0.5, y: 0.5, text: 'Here' }],
+      });
+      withBody(
+        `<p><img src="https://cdn.test/plain.png" alt="plain"><img src="https://cdn.test/marked.png" alt="marked" data-annotations="${encoded}"></p>`,
+      );
+
+      render(<AiAppFeedbackPage />);
+
+      expect(screen.getAllByText('View annotations')).toHaveLength(1);
+      expect(screen.getByAltText('marked').closest('[title="View annotations"]')).toBeTruthy();
+      expect(screen.getByAltText('plain').closest('[title="View annotations"]')).toBeNull();
+    });
+
+    /* A shape-only annotation is what a `strokes || comments` check misses: no
+       error, the screenshot just quietly stops looking annotated. */
+    it('badges a screenshot annotated with only a shape', () => {
+      const encoded = serializeAnnotations({
+        version: 1,
+        strokes: [],
+        shapes: [{ kind: 'rect', color: '#dc2626', width: 0.006, x: 0.1, y: 0.1, w: 0.3, h: 0.2 }],
+        comments: [],
+      });
+      withBody(`<p><img src="https://cdn.test/a.png" alt="shot" data-annotations="${encoded}"></p>`);
+
+      render(<AiAppFeedbackPage />);
+
+      expect(screen.getByText('View annotations')).toBeInTheDocument();
+    });
   });
 });

@@ -1,0 +1,501 @@
+// AI Search as a mode with its own page (LAB-2702).
+//
+// Rows reuse production classes where they exist (ChatHistory's group label,
+// TryToSearch's prompt rows, ChatSubheader's text button, the ai-search
+// entry's field chip); what is new — the rail, the page bar, the new-chat
+// front page, the drawer — is written on the PL scale with token/fallback
+// pairs from neighbouring production sheets.
+
+@use 'styles/media';
+@use 'styles/mixins';
+
+/* ------------------------------------------------------------------------ */
+/* Frame                                                                      */
+/* ------------------------------------------------------------------------ */
+
+/* The page fills the viewport under the sticky header, so the thread scrolls
+   inside and its input stays at the bottom edge. (The prototype banner and the
+   demo band above scroll away first; the body scrolls, not the document.) */
+.surface {
+  position: relative;
+  display: flex;
+  height: calc(100dvh - var(--app-header-height));
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-primary, #fff);
+}
+
+/* The modal alternative: the same surface filling the takeover card. */
+.surfaceModal {
+  height: 100%;
+  border-top: 0;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Rail                                                                       */
+/* ------------------------------------------------------------------------ */
+
+.rail {
+  display: none;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: 272px;
+  min-height: 0;
+  border-right: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-soft-surface, #f9fafb);
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
+}
+
+.railIsCollapsed {
+  width: 56px;
+}
+
+.railHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 48px;
+  flex-shrink: 0;
+  padding: 0 8px 0 16px;
+}
+
+/* Where you are: the mode's name, with the mark the header's AI badge wears. */
+.modeName {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+/* Production's "New Conversation": brand text with a bare plus, full width.
+   A white bordered row on the grey rail rather than a filled button — the
+   composer's send is the one filled press on the page. */
+.newChat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin: 0 8px 12px;
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-primary, #fff);
+  color: var(--foreground-brand-primary, #1b4dff);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+/* The section's name, with production's history glyph (its "Threads"
+   header). "History", because that is the word people look for. */
+.historyHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 4px 16px 8px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.railScroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 8px 16px;
+
+  @include mixins.hide-scrollbar;
+}
+
+.historyGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.historyGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.groupLabel {
+  padding: 0 8px;
+}
+
+.threadList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Production `ThreadItem`: 14/22, 4px 8px, 4px radius, wash on hover and on
+   the open thread; delete shows on hover and on the open row. */
+.threadRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 4px;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.threadRowActive,
+.threadRowActive:hover {
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+
+  .threadOpen {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.threadOpen {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
+  border: 0;
+  background: none;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: left;
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 14px;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+.threadDelete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  margin-right: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+  opacity: 0;
+
+  &:hover {
+    color: var(--foreground-neutral-secondary, #455468);
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  .threadRow:hover &,
+  .threadRowActive & {
+    opacity: 1;
+  }
+
+  /* No hover on touch: the control stands at rest. */
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+.showAllHistory {
+  align-self: flex-start;
+  margin: 4px 8px 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.historyEmpty {
+  margin: 0;
+  padding: 0 8px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+/* 56px: the same three doors as glyphs. */
+.railStrip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Glyph buttons (rail, page bar)                                             */
+/* ------------------------------------------------------------------------ */
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+/* New chat keeps its brand ink when it is only a glyph. */
+.iconBtnBrand,
+.iconBtnBrand:hover {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* ------------------------------------------------------------------------ */
+/* Main column                                                                */
+/* ------------------------------------------------------------------------ */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* The way out of the mode, and — on phones — the rail's doors. */
+.pageBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 48px;
+  flex-shrink: 0;
+  padding: 0 8px 0 12px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  height: 32px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.backLabel {
+  white-space: nowrap;
+}
+
+.backTerm {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-weight: 400;
+
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.pageBarEnd {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* A labelled glyph button, the page bar's History on phones. */
+.barBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-primary, #fff);
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+.mobileOnly {
+  @include media.tablet-landscape {
+    display: none;
+  }
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ------------------------------------------------------------------------ */
+/* New chat                                                                   */
+/* ------------------------------------------------------------------------ */
+
+.newChatPage {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10vh 16px 32px;
+
+  @include media.mobile-only {
+    padding-top: 24px;
+  }
+}
+
+.newChatColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.heroTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+}
+
+.heroLine {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.scopeChip.scopeChip {
+  align-self: flex-start;
+  max-width: 100%;
+  margin-left: 0;
+}
+
+.composer {
+  width: 100%;
+}
+
+/* TryToSearch carries its own 16px side padding for the overlay's column;
+   here the column is the inset. */
+.prompts.prompts {
+  padding: 0;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Drawer (below tablet-landscape)                                            */
+/* ------------------------------------------------------------------------ */
+
+.drawerScrim {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: var(--transparent-dark-50, rgba(14, 15, 17, 0.5));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-out;
+
+  @include media.tablet-landscape {
+    display: none;
+  }
+}
+
+.drawerScrimOpen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 21;
+  display: flex;
+  flex-direction: column;
+  width: min(320px, 86vw);
+  background: var(--background-neutral-soft-surface, #f9fafb);
+  box-shadow: 4px 0 20px var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+  transform: translateX(-100%);
+  visibility: hidden;
+  transition:
+    transform 0.25s ease-out,
+    visibility 0s linear 0.25s;
+
+  @include media.tablet-landscape {
+    display: none;
+  }
+}
+
+.drawerOpen {
+  transform: none;
+  visibility: visible;
+  transition: transform 0.25s ease-out;
+}

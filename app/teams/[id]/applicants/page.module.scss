@@ -1,0 +1,23 @@
+@use 'styles/media';
+
+/**
+ * Wider than the team profile's own 900px column: this page carries a 440px
+ * list and a full member profile beside it, and squeezing both into the
+ * profile's width would make the pane narrower than the page it is quoting.
+ */
+.applicants {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  padding-bottom: 40px;
+  min-height: calc(100vh - 80px);
+  background-color: var(--background-neutral-subtle, #f1f5f9);
+
+  @include media.tablet-landscape {
+    padding: 0 4px;
+    padding-bottom: 40px;
+  }
+}

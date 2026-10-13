@@ -52,8 +52,12 @@ interface ProfileDetailsCardProps {
   todayKey: string;
   onTripsChange: (next: Trip[]) => void;
   isOwner: boolean;
-  /** open straight into the edit form with the date picker showing — the RSVP hand-off */
+  /** open straight into the edit form with the add row showing — the members-page hand-off */
   startEditing?: boolean;
+  /** stays other people can see, for "who else is there"; defaults to `trips` */
+  networkTrips?: Trip[];
+  /** the person reading someone else's profile — drives "You'll be there too" */
+  viewer?: { homeCity: string; stays: Trip[] };
 }
 
 export function ProfileDetailsCard({
@@ -64,11 +68,20 @@ export function ProfileDetailsCard({
   onTripsChange,
   isOwner,
   startEditing = false,
+  networkTrips,
+  viewer,
 }: ProfileDetailsCardProps) {
   const [editView, setEditView] = useState(startEditing);
   const [home, setHome] = useState(member.home);
+  // Set by the header's "+ Add travel dates" prompt, so the form it opens lands
+  // with the add row already showing — the same destination the members-page
+  // hand-off and the RSVP flow reach, from the third direction.
+  const [addStayOnOpen, setAddStayOnOpen] = useState(false);
 
   const myTrips = tripsFor(member.id, trips);
+  // A stay the product only guessed isn't on the profile until it's added.
+  const shownTrips = myTrips.filter((trip) => trip.confirmed);
+  const hasUpcoming = shownTrips.some((trip) => trip.endDate >= todayKey);
 
   const methods = useForm({
     defaultValues: {
@@ -92,6 +105,7 @@ export function ProfileDetailsCard({
 
   const closeEdit = () => {
     setEditView(false);
+    setAddStayOnOpen(false);
     methods.reset();
   };
 
@@ -124,9 +138,10 @@ export function ProfileDetailsCard({
                     onTripsChange([...trips.filter((trip) => trip.memberId !== member.id), ...next]);
                     touch();
                   }}
+                  networkTrips={networkTrips ?? trips.filter((trip) => trip.confirmed)}
                   memberId={member.id}
                   todayKey={todayKey}
-                  autoOpen={startEditing}
+                  autoOpen={startEditing || addStayOnOpen}
                 />
               </div>
 
@@ -206,16 +221,53 @@ export function ProfileDetailsCard({
                       chip. Same on your own profile and on someone else's, so
                       the pin means one thing everywhere. */}
                   {home.city ? (
-                    <div className={s.locationGroup}>
-                      <span className={s.locationSlot}>
-                        <PresenceLabel
-                          presence={{ city: home.city, country: home.country }}
-                          home={home}
-                          variant="inline"
-                        />
-                      </span>
-                      <UpcomingChip stays={myTrips} todayKey={todayKey} />
-                    </div>
+                    <>
+                      <div className={s.locationGroup}>
+                        <span className={s.locationSlot}>
+                          <PresenceLabel
+                            presence={{ city: home.city, country: home.country }}
+                            home={home}
+                            variant="inline"
+                          />
+                        </span>
+                        <UpcomingChip stays={shownTrips} todayKey={todayKey} viewer={viewer} />
+                      </div>
+
+                      {/* Nothing else on the page says a location can have dates
+                          on it. Edit → Location → Other locations is three steps
+                          behind a pencil, and a field you have already filled in
+                          gives you no reason to open it again — so the offer has
+                          to stand in the slot the answer will appear in.
+
+                          It is the strip's own prompt, not a variant of one:
+                          `h.addButton` and an `h.divider` before it, exactly as
+                          `+ Your Role` and `+ Your Location` are rendered a few
+                          lines up. One prompt lineage in one row — the earlier
+                          blue version argued that amber means *required* and
+                          travel dates aren't, which made the newest thing in the
+                          strip the one item that didn't look like its
+                          neighbours.
+
+                          Owner only, and only while the chip has nothing to
+                          show — once a stay is on the profile the chip is the
+                          thing that says dates exist, and more of them go in the
+                          list behind Edit. */}
+                      {isOwner && !hasUpcoming && (
+                        <>
+                          <div className={h.divider} />
+                          <button
+                            type="button"
+                            className={h.addButton}
+                            onClick={() => {
+                              setAddStayOnOpen(true);
+                              setEditView(true);
+                            }}
+                          >
+                            + Add travel dates
+                          </button>
+                        </>
+                      )}
+                    </>
                   ) : (
                     isOwner && (
                       <button type="button" className={h.addButton} onClick={() => setEditView(true)}>

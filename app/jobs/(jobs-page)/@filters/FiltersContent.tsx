@@ -8,7 +8,11 @@ import { JobsFilterBody } from '@/components/page/jobs/JobsFilterBody';
 import { useJobsFilters, useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
 import { useJobsFilterStore, useJobsFilterCount } from '@/services/jobs/store';
 
-export default function FiltersContent() {
+interface FiltersContentProps {
+  isLoggedIn: boolean;
+}
+
+export default function FiltersContent({ isLoggedIn }: FiltersContentProps) {
   const filtersQuery = useJobsFilters();
   const { totalRoles } = useInfiniteJobsList();
   const { clearParams } = useJobsFilterStore();
@@ -28,7 +32,7 @@ export default function FiltersContent() {
 
   return (
     <FiltersSidePanel clearParams={onClearAll} appliedFiltersCount={appliedCount} hideFooter>
-      <JobsFilterBody />
+      <JobsFilterBody isLoggedIn={isLoggedIn} />
     </FiltersSidePanel>
   );
 }

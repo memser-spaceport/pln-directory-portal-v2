@@ -1,15 +1,11 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 
 import { Markdown } from '@/components/common/Markdown';
 import { Button } from '@/components/common/Button';
 import { Tag } from '@/components/ui/Tag';
-import InfoBox from '@/components/ui/info-box';
-import { PopoverDp } from '@/components/core/popover-dp';
-import HuskySourceCard from '@/components/core/husky/husky-source-card';
-import HuskyAnswerLoader from '@/components/core/husky/husky-answer-loader';
 import FollowupQuestions from '@/components/page/husky/followup-questions';
 import ChatInput from '@/components/page/husky/chat-input';
 import { NotePencilIcon, ThumbsUpOutlinedIcon } from '@/components/icons';
@@ -17,7 +13,11 @@ import { NotePencilIcon, ThumbsUpOutlinedIcon } from '@/components/icons';
 import { PlTeamOnlyPill } from '../profile-shared/PlTeamOnlyPill';
 import { buildAnswer, FEEDBACK_REASONS, type CannedAnswer } from './mocks';
 import type { AiSearchScope } from './scope';
+import type { AiSearchViewer } from './viewer';
 import { DirectoryResultsCards } from './DirectoryResultsCards';
+import { AnswerBlocks } from './AnswerBlocks';
+import { AnswerSources } from './AnswerSources';
+import { AnswerStatus, AnswerStatusVariantContext, thinkingMsFor } from './AnswerStatus';
 import s from './AnswerPanel.module.scss';
 
 export type TurnStatus = 'thinking' | 'streaming' | 'done';
@@ -35,14 +35,14 @@ export interface Turn extends CannedAnswer {
 let nextId = 1;
 
 /** A new turn. Inside a scope the scope answers; otherwise the network does. */
-export function makeTurn(question: string, scope?: AiSearchScope | null): Turn {
+export function makeTurn(question: string, scope?: AiSearchScope | null, viewer: AiSearchViewer = 'member'): Turn {
   return {
     id: nextId++,
     question,
     shown: '',
     status: 'thinking',
     feedback: 'none',
-    ...(scope ? scope.answer(question) : buildAnswer(question)),
+    ...(scope ? scope.answer(question) : buildAnswer(question, viewer)),
   };
 }
 
@@ -56,11 +56,30 @@ interface AnswerPanelProps {
   backLabel?: string;
   /** Leaves the thread for the view's idle state, to start another. */
   onNewQuestion?: () => void;
-  /** Follows a scoped answer's door ("Open applicants"). Only scoped answers have one. */
+  /** Follows a scoped answer's door ("Open candidates"). Only scoped answers have one. */
   onOpenTarget?: (target: string) => void;
   /** What was typed into this thread's input and not sent, from the last visit. */
   draft?: string;
   onDraftChange?: (text: string) => void;
+  /** Member cards offer an intro through the PL team (see `DirectoryResultsCards`). */
+  requestIntro?: React.ComponentProps<typeof DirectoryResultsCards>['requestIntro'];
+  /**
+   * Drops the Back / New question bar. The `ai-mode` page carries both exits
+   * in its own chrome (Back to search in the page bar, New chat in the history
+   * rail), so a second copy above the thread would be two doors to one room.
+   */
+  hideBar?: boolean;
+  /**
+   * `page`: the thread and its input sit in a centred reading column while the
+   * scroll region stays full width (the `ai-mode` page). The default, `dialog`,
+   * is unchanged for every other host.
+   */
+  layout?: 'dialog' | 'page';
+  /**
+   * The follow-up field. Defaults to production's `ChatInput`; the
+   * ai-search-page entry passes its redone composer (same props, same ref).
+   */
+  InputComponent?: typeof ChatInput;
 }
 
 /**
@@ -69,10 +88,13 @@ interface AnswerPanelProps {
  *
  * Copy-simplify of production's `AiChatPanel` (components/core/application-search)
  * and the Husky page's `Messages` → `PreviewMessage` → `ChatMessageActions`.
- * The answer anatomy is production's, imported: `InfoBox` + `HuskySourceCard`
- * for sources, the local `DirectoryResultsCards` for "Results from the
+ * The answer anatomy is production's, imported — except sources: production's
+ * "N source(s)" `InfoBox` above the prose, over a popover of raw URLs, is the
+ * local `AnswerSources` pill at the end of the actions row (see that file).
+ * The rest: the local `DirectoryResultsCards` for "Results from the
  * directory" (production's `DirectoryResults` redrawn — see that file),
- * `FollowupQuestions`, `HuskyAnswerLoader`, `ChatInput`, `Markdown`. What is
+ * `FollowupQuestions`, `ChatInput`, `Markdown`. The wait before the first
+ * word is the local `AnswerStatus`, not `HuskyAnswerLoader` (see that file). What is
  * transcribed rather than imported is `PreviewMessage`'s card (its styles are
  * styled-jsx, so the values are copied into AnswerPanel.module.scss verbatim)
  * and the actions row, which this prototype changes on purpose:
@@ -100,13 +122,18 @@ export function AnswerPanel({
   onOpenTarget,
   draft = '',
   onDraftChange,
+  requestIntro,
+  hideBar = false,
+  layout = 'dialog',
+  InputComponent = ChatInput,
 }: AnswerPanelProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const endRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
   const last = turns[turns.length - 1];
   const busy = !!last && last.status !== 'done';
+  const loader = useContext(AnswerStatusVariantContext);
 
-  /* Simulated stream. `thinking` shows the skeleton for a beat, then words
+  /* Simulated stream. `thinking` walks `AnswerStatus` through its steps, then words
      arrive in small bursts until the whole answer is on screen. */
   useEffect(() => {
     if (!last || last.status === 'done') return;
@@ -115,7 +142,7 @@ export function AnswerPanel({
     if (last.status === 'thinking') {
       const t = setTimeout(() => {
         onTurnsChange((prev) => prev.map((x) => (x.id === id ? { ...x, status: 'streaming' } : x)));
-      }, 700);
+      }, thinkingMsFor(loader));
       return () => clearTimeout(t);
     }
 
@@ -130,11 +157,15 @@ export function AnswerPanel({
       onTurnsChange((prev) => prev.map((x) => (x.id === id ? { ...x, shown: next } : x)));
     }, 45);
     return () => clearTimeout(t);
-  }, [last, onTurnsChange]);
+  }, [last, onTurnsChange, loader]);
 
   /* Keep the newest turn in view as it grows. */
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: 'end' });
+    /* Scrolls the thread's own list only. scrollIntoView also scrolled every
+       ancestor, so on a page host (ai-mode, ai-search-page) it dragged the
+       body up and left the input under the fold. */
+    const box = messagesRef.current;
+    if (box) box.scrollTop = box.scrollHeight;
   }, [turns.length, last?.status]);
 
   const stop = () => {
@@ -193,28 +224,30 @@ export function AnswerPanel({
   };
 
   return (
-    <div className={s.root}>
+    <div className={clsx(s.root, layout === 'page' && s.rootPage)}>
       {/* One bar, two exits. Back returns the list this answer was reached
           from; New question returns to the view's idle state for a fresh
           thread. ("Continue in AI Search" stood in the second slot when this
           was a small dialog and the AI Search page was the bigger surface;
           the view is the bigger surface now, so the link had nowhere to go.) */}
-      <div className={s.bar}>
-        {onBackToResults ? (
-          <Button style="link" variant="neutral" size="xs" onClick={onBackToResults}>
-            ← {backLabel}
-          </Button>
-        ) : (
-          <span />
-        )}
-        {onNewQuestion && (
-          <Button style="link" variant="primary" size="xs" onClick={onNewQuestion}>
-            New question
-          </Button>
-        )}
-      </div>
+      {!hideBar && (
+        <div className={s.bar}>
+          {onBackToResults ? (
+            <Button style="link" variant="neutral" size="xs" onClick={onBackToResults}>
+              ← {backLabel}
+            </Button>
+          ) : (
+            <span />
+          )}
+          {onNewQuestion && (
+            <Button style="link" variant="primary" size="xs" onClick={onNewQuestion}>
+              New question
+            </Button>
+          )}
+        </div>
+      )}
 
-      <div className={s.messages}>
+      <div className={s.messages} ref={messagesRef}>
         {turns.map((turn, i) => (
           <Message
             key={turn.id}
@@ -226,15 +259,15 @@ export function AnswerPanel({
             onEdit={() => editQuestion(turn)}
             onFeedback={(f) => setFeedback(turn, f)}
             onOpenTarget={onOpenTarget}
+            requestIntro={requestIntro}
           />
         ))}
-        <div ref={endRef} />
       </div>
 
       <form className={s.inputWrap} onSubmit={(e) => e.preventDefault()}>
-        <ChatInput
+        <InputComponent
           ref={inputRef}
-          placeholder="Go ahead, ask anything!"
+          placeholder="Ask a follow-up"
           rows={1}
           defaultValue={draft}
           onChange={(e) => onDraftChange?.(e.target.value)}
@@ -258,9 +291,20 @@ interface MessageProps {
   onEdit: () => void;
   onFeedback: (f: FeedbackState) => void;
   onOpenTarget?: (target: string) => void;
+  requestIntro?: AnswerPanelProps['requestIntro'];
 }
 
-function Message({ turn, isLast, busy, onFollowup, onRegenerate, onEdit, onFeedback, onOpenTarget }: MessageProps) {
+function Message({
+  turn,
+  isLast,
+  busy,
+  onFollowup,
+  onRegenerate,
+  onEdit,
+  onFeedback,
+  onOpenTarget,
+  requestIntro,
+}: MessageProps) {
   const streaming = turn.status === 'streaming';
   const scoped = turn.scoped;
 
@@ -269,7 +313,7 @@ function Message({ turn, isLast, busy, onFollowup, onRegenerate, onEdit, onFeedb
       <h2 className={s.question}>{turn.question}</h2>
 
       {turn.status === 'thinking' ? (
-        <HuskyAnswerLoader />
+        <AnswerStatus hits={turn.sql} sourceCount={turn.sources.length} scoped={scoped} />
       ) : (
         <div className={s.card}>
           {/* A scoped answer leads with what was read, then the objects, then
@@ -287,24 +331,25 @@ function Message({ turn, isLast, busy, onFollowup, onRegenerate, onEdit, onFeedb
               {scoped.restrictedTo && <PlTeamOnlyPill label={scoped.restrictedTo} />}
             </div>
           )}
-          {scoped && turn.sql.length > 0 && <DirectoryResultsCards hits={turn.sql} title="Found on the profile" />}
-
-          {!scoped && turn.sources.length > 0 && !streaming && (
-            <div className={s.sourcesRow}>
-              <PopoverDp.Wrapper>
-                <InfoBox info={`${turn.sources.length} source(s)`} imgUrl="/icons/globe-blue.svg" />
-                <PopoverDp.Pane position="bottom">
-                  <HuskySourceCard sources={turn.sources as any} />
-                </PopoverDp.Pane>
-              </PopoverDp.Wrapper>
-            </div>
+          {scoped && turn.sql.length > 0 && (
+            <DirectoryResultsCards hits={turn.sql} title="Found on the profile" requestIntro={requestIntro} />
           )}
 
-          <div className={clsx(s.content, scoped && s.summary)}>
+          <div className={clsx(s.content, scoped && s.summary, turn.blocks?.length && s.contentLead)}>
             <Markdown>{turn.shown}</Markdown>
           </div>
 
-          {!scoped && !streaming && turn.sql.length > 0 && <DirectoryResultsCards hits={turn.sql} />}
+          {/* The shape the prose leads into — a comparison table, for now —
+              lands whole once the sentence introducing it is on screen; a
+              table has nothing to stream. */}
+          {!streaming && turn.blocks && turn.blocks.length > 0 && <AnswerBlocks blocks={turn.blocks} />}
+
+          {/* Intro rows are the same investors as the cards, with the path and
+              the press added — the richer drawing of one list, so the plain
+              one steps aside rather than repeating it underneath. */}
+          {!scoped && !streaming && turn.sql.length > 0 && !turn.blocks?.some((b) => b.kind === 'intros') && (
+            <DirectoryResultsCards hits={turn.sql} requestIntro={requestIntro} />
+          )}
 
           {/* A door, not a rival list: the section on the page is where these
               records are read and acted on, so the answer hands over to it. */}
@@ -449,6 +494,10 @@ function Actions({ turn, isLast, busy, onRegenerate, onEdit, onFeedback }: Actio
             </span>
           )}
         </div>
+
+        {/* What the answer was read from, after it: a receipt, in the row's
+            own grey. A scoped answer has none — the profile is the source. */}
+        {!turn.scoped && <AnswerSources sources={turn.sources} />}
       </div>
 
       {/* The "why" only after a thumbs-down, only for this answer, and never

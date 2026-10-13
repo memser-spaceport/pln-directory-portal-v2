@@ -90,9 +90,11 @@ export interface Activity {
   isAutoTracked?: boolean;
   hasFormLink?: boolean;
   /**
-   * Shows a generic "New" outline badge on the activity card.
+   * Shows a "Sunset" badge on the activity card for activities being phased out.
    */
-  isNew?: boolean;
+  isSunset?: boolean;
+  /** Set only when the activity is restricted; omitted means open to every PLAA participant. */
+  audience?: 'pl-infra-members';
   popupContent: ActivityPopupContent;
 }
 

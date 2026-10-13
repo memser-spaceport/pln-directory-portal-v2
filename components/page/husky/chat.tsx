@@ -20,6 +20,7 @@ import { useHuskyAnalytics } from '@/analytics/husky.analytics';
 import { toast } from '@/components/core/ToastContainer';
 import { experimental_useObject as useObject } from '@ai-sdk/react';
 import { z } from 'zod';
+import { huskySourceRefSchema } from '@/services/husky/hooks/useHuskyChat';
 import { useRouter } from 'next/navigation';
 interface ChatProps {
   id?: string;
@@ -75,8 +76,10 @@ const Chat: React.FC<ChatProps> = ({
     },
     schema: z.object({
       content: z.string(),
+      steps: z.array(z.string()).optional(),
       followUpQuestions: z.array(z.string()),
       sources: z.array(z.string()).optional(),
+      sourceRefs: z.array(huskySourceRefSchema).optional(),
       actions: z
         .array(
           z.object({
@@ -105,6 +108,7 @@ const Chat: React.FC<ChatProps> = ({
           answer: '',
           followUpQuestions: [],
           sources: [],
+          sourceRefs: [],
           actions: [],
           sql: [],
         },
@@ -159,6 +163,7 @@ const Chat: React.FC<ChatProps> = ({
           answer: chatObject?.content || newMessages[lastIndex]?.answer || '',
           followUpQuestions: chatObject?.followUpQuestions || newMessages[lastIndex]?.followUpQuestions || [],
           sources: chatObject?.sources || newMessages[lastIndex]?.sources || [],
+          sourceRefs: chatObject?.sourceRefs || newMessages[lastIndex]?.sourceRefs || [],
           actions: chatObject?.actions || newMessages[lastIndex]?.actions || [],
           sql: [],
         };
@@ -468,12 +473,12 @@ const Chat: React.FC<ChatProps> = ({
               messages={messages}
               onFollowupClicked={onFollowupClicked}
               isAnswerLoading={isAnswerLoading}
+              statusLine={chatObject?.steps?.filter(Boolean).at(-1)}
               isLoadingObject={chatIsLoading || isAnswerLoading || (!isOwnThread && fromRef.current === 'detail')}
               onFeedback={onFeedback}
               onRegenerate={onRegenerate}
               onCopyAnswer={onCopyAnswer}
               onQuestionEdit={onQuestionEdit}
-              threadId={threadUidRef.current}
             />
           </div>
 
@@ -481,9 +486,6 @@ const Chat: React.FC<ChatProps> = ({
             <div data-state={isLoggedIn ? state : ''} className="chat__new-conversation-wrapper">
               <div className="chat__new-conversation-info">
                 <div className="chat__new-conversation-content">
-                  <div className="chat__new-conversation-icon">
-                    <img src="/icons/husky/husky-face-trans.svg" alt="Husky icon" />
-                  </div>
                   <div className="chat__new-conversation-text">
                     Click &ldquo;Continue Conversation&ldquo; to start a new chat instance with this conversation
                   </div>
@@ -630,10 +632,6 @@ const Chat: React.FC<ChatProps> = ({
           width: 721px;
         }
 
-        .chat__new-conversation-icon {
-          display: none;
-        }
-
         .chat__new-conversation-content {
           display: flex;
           gap: 12px;
@@ -696,16 +694,6 @@ const Chat: React.FC<ChatProps> = ({
             left: calc(50% + 32px);
           }
 
-          .chat__new-conversation-icon {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #ffffff33;
-            border-radius: 50%;
-          }
-
           .chat__header {
             margin-left: 20px;
           }
@@ -714,11 +702,6 @@ const Chat: React.FC<ChatProps> = ({
             flex-direction: row;
             border-radius: 8px;
             gap: 21px;
-          }
-
-          .chat__new-conversation-icon img {
-            width: 40px;
-            height: 40px;
           }
         }
       `}</style>

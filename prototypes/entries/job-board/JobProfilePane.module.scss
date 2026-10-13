@@ -597,3 +597,25 @@
     }
   }
 }
+
+/* The opt-in under the two status options. It takes a status option's own
+   geometry (12px pad, 12px gap, top-aligned) so the box lines up under the
+   radios, and a hairline above it because it is a second question, not a
+   third answer to the first. The DS Checkbox ships as a button; the label
+   owns the hit area, so the inner control must not swallow the press (the
+   drawer footer's tick has the same guard). */
+.discoverable {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 4px;
+  padding: 16px 12px 4px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  cursor: pointer;
+
+  button {
+    pointer-events: none;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+}

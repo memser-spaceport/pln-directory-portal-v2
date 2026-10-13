@@ -17,6 +17,8 @@ export type HubCategory =
   | 'NEW_FEATURE'
   | 'GANTRY'
   | 'TEAM_NEWS'
+  /** Proposed (LAB-2687): members suggested for a team's live role, sent to its leads. */
+  | 'JOB_CANDIDATES'
   | 'SYSTEM';
 
 export type HubNotification = {
@@ -54,6 +56,23 @@ export const MOCK_NOTIFICATIONS: HubNotification[] = [
     isRead: false,
     link: '/forum',
     metadata: { viewCount: 214, voteCount: 12, postCount: 9 },
+  },
+  {
+    // The in-app half of the suggested-candidates email (team-profile
+    // `?email=suggested`): same event, same count, same landing. The title is
+    // the email's subject, so a lead who got both recognises one event; the
+    // description names people, because in the panel there is room for the
+    // one thing a count can't say. Only a team's leads get it — this is the
+    // Team lead seat of the team-profile prototype.
+    id: 'n-jobs-1',
+    category: 'JOB_CANDIDATES',
+    title: '4 suggested candidates for Senior Distributed Systems Engineer',
+    description:
+      'Inês Carvalho, Kofi Mensah, Yuki Tanabe and 1 more match the role on their profiles. They haven’t applied.',
+    minutesAgo: 25,
+    isRead: false,
+    link: '/prototypes/team-profile?candidates=pl-1&tab=suggested',
+    linkText: 'Review candidates',
   },
   {
     id: 'n-02',

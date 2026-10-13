@@ -1,0 +1,140 @@
+export type Point = {
+  x: number;
+  y: number;
+};
+
+export type Stroke = {
+  color: string;
+  width: number;
+  points: Point[];
+};
+
+export type ShapeKind = 'rect' | 'ellipse' | 'arrow';
+
+/**
+ * A dragged outline, normalized to the image.
+ *
+ * `w`/`h` mean different things either side of a line the kind draws:
+ *
+ * - **Box shapes** (`rect`, `ellipse`) — `x`/`y` is the top-left corner and
+ *   `w`/`h` a non-negative extent. A drag made up-and-left is normalized at
+ *   commit, so nothing downstream has to reason about a negative box.
+ * - **`arrow`** — `x`/`y` is the TAIL and `w`/`h` a SIGNED delta to the head.
+ *   Direction is the entire content of an arrow; normalizing it would make one
+ *   pointing up-left identical to one pointing down-right, and the annotation
+ *   would silently come back pointing at the wrong thing.
+ */
+export type Shape = {
+  kind: ShapeKind;
+  color: string;
+  width: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+};
+
+export type PinComment = {
+  id: string;
+  x: number;
+  y: number;
+  text: string;
+};
+
+/**
+ * Words drawn on the picture — not a comment, which is a pin with a note.
+ *
+ * `x`/`y` is the top-left corner, normalized like everything else. `size` is in
+ * pixels of the saved image, not of the screen, so a label reads the same in the
+ * editor, the strip's thumbnail and the lightbox. `width` is the wrap width as a
+ * share of the image's width, set once the corner handle is dragged; absent, the
+ * label is as wide as its longest line and wraps at the picture's right edge.
+ */
+export type TextLabel = {
+  id: string;
+  x: number;
+  y: number;
+  text: string;
+  color: string;
+  size: number;
+  bold: boolean;
+  width?: number;
+};
+
+export type AnnotationState = {
+  /**
+   * Deliberately NOT bumped when `shapes` was added.
+   *
+   * `parseAnnotations` rejects anything that isn't version 1, and every
+   * annotation already stored on a feedback row says 1. Bumping would make the
+   * whole back catalogue unparseable — no badge, no outline, no lightbox replay
+   * — to announce a field that older payloads are allowed to omit anyway.
+   */
+  version: 1;
+  strokes: Stroke[];
+  shapes: Shape[];
+  comments: PinComment[];
+  /** Optional for the same reason `version` stays 1: every payload saved before labels omits it. */
+  labels?: TextLabel[];
+};
+
+export type ScreenshotAttachment = {
+  id: string;
+  imageDataUrl: string;
+  annotations: AnnotationState;
+  /**
+   * How it was taken: attached when the form opened (`auto`), the app's whole
+   * visible page (`whole`), a dragged part (`part`), or a screen share / file
+   * (absent). Drives the caption under it.
+   */
+  source?: 'auto' | 'page' | 'part';
+};
+
+export const EMPTY_ANNOTATIONS: AnnotationState = {
+  version: 1,
+  strokes: [],
+  shapes: [],
+  comments: [],
+};
+
+export const ANNOTATED_SCREENSHOT_CLASS = 'ai-app-annotated-screenshot';
+export const ANNOTATION_ATTR = 'data-annotations';
+
+export function serializeAnnotations(state: AnnotationState): string {
+  return encodeURIComponent(JSON.stringify(state));
+}
+
+export function parseAnnotations(raw: string | null | undefined): AnnotationState | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(decodeURIComponent(raw)) as AnnotationState;
+    if (parsed?.version !== 1 || !Array.isArray(parsed.strokes) || !Array.isArray(parsed.comments)) {
+      return null;
+    }
+    /* Strict on the two fields that have always been there, tolerant on the one
+       that has not: every annotation saved before shapes existed omits the key,
+       and rejecting those would erase them from the UI. */
+    return {
+      ...parsed,
+      shapes: Array.isArray(parsed.shapes) ? parsed.shapes : [],
+      labels: Array.isArray(parsed.labels) ? parsed.labels : undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function emptyAnnotations(): AnnotationState {
+  return { version: 1, strokes: [], shapes: [], comments: [] };
+}
+
+/** Whether there is anything on this screenshot worth flagging to a reviewer. */
+export function hasAnyAnnotation(state: AnnotationState | null | undefined): boolean {
+  return Boolean(
+    state &&
+      (state.strokes.length > 0 ||
+        state.shapes.length > 0 ||
+        state.comments.length > 0 ||
+        (state.labels?.length ?? 0) > 0),
+  );
+}

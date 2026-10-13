@@ -32,11 +32,20 @@ export async function getAiSearchThread(id: string, authToken: string): Promise<
     threadId: thread.threadId,
     title: thread.title,
     turns: chats.map(
-      (chat: { id?: string; question?: string; answer?: string; sources?: string[]; actions?: HuskyTurn['actions']; followUpQuestions?: string[] }): HuskyTurn => ({
+      (chat: {
+        id?: string;
+        question?: string;
+        answer?: string;
+        sources?: string[];
+        sourceRefs?: HuskyTurn['sourceRefs'];
+        actions?: HuskyTurn['actions'];
+        followUpQuestions?: string[];
+      }): HuskyTurn => ({
         chatId: chat.id ?? `${thread.threadId}-${chat.question ?? ''}`,
         question: chat.question ?? '',
         answer: chat.answer ?? '',
         sources: chat.sources ?? [],
+        sourceRefs: chat.sourceRefs ?? [],
         actions: chat.actions ?? [],
         followUpQuestions: chat.followUpQuestions ?? [],
       }),

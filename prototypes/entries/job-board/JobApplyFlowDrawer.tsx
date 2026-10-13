@@ -247,7 +247,9 @@ interface JobApplyFlowDrawerProps {
    * tab may want it and because it has to outlive this drawer closing.
    */
   interested?: boolean;
-  onSetInterested?: (interested: boolean) => void;
+  /** The note that went with it, when the aspirant wrote one (LAB-2713). */
+  interestComment?: string;
+  onSetInterested?: (interested: boolean, comment?: string) => void;
   /**
    * Present when the drawer is the **interest route** — "I'm interested" on a
    * team's open role, with no posting behind it. `role` and `team` are null;
@@ -358,6 +360,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     applied,
     appliedAt,
     interested = false,
+    interestComment,
     onSetInterested,
     interest,
     canvasImport,
@@ -1235,7 +1238,8 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               jobAspirant && !managed && onSetInterested
                 ? {
                     interested,
-                    onInterested: () => onSetInterested(true),
+                    comment: interestComment,
+                    onInterested: (comment) => onSetInterested(true, comment),
                     onUndo: () => onSetInterested(false),
                   }
                 : undefined

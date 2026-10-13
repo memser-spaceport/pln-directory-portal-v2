@@ -1,4 +1,5 @@
 import Cookies from 'js-cookie';
+import { setSessionCookie } from '@/utils/third-party.helper';
 import { User } from '@privy-io/react-auth';
 import { decodeToken } from '@/utils/auth.utils';
 import { usePostHog } from 'posthog-js/react';
@@ -56,21 +57,18 @@ export function useAuthTokens() {
 
       localStorage.removeItem('stateUid');
 
-      Cookies.set('authToken', JSON.stringify(response.accessToken), {
+      setSessionCookie('authToken', JSON.stringify(response.accessToken), {
         expires: new Date(accessTokenExpiry.exp * 1000),
-        domain: COOKIE_DOMAIN,
       });
 
-      Cookies.set('refreshToken', JSON.stringify(response.refreshToken), {
+      setSessionCookie('refreshToken', JSON.stringify(response.refreshToken), {
         expires: new Date(refreshTokenExpiry.exp * 1000),
         path: '/',
-        domain: COOKIE_DOMAIN,
       });
 
-      Cookies.set('userInfo', JSON.stringify(response.userInfo), {
+      setSessionCookie('userInfo', JSON.stringify(response.userInfo), {
         expires: new Date(accessTokenExpiry.exp * 1000),
         path: '/',
-        domain: COOKIE_DOMAIN,
       });
 
       Cookies.set('authLinkedAccounts', JSON.stringify(linkedAccounts), {

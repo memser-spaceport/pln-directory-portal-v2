@@ -338,7 +338,9 @@ describe('FeedCommentsThread — replies', () => {
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
-    fireEvent.change(screen.getByPlaceholderText('Write your comment here, use @ to mention someone'), { target: { value: 'Top-level text' } });
+    fireEvent.change(screen.getByPlaceholderText('Write your comment here, use @ to mention someone'), {
+      target: { value: 'Top-level text' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
 
     // No parentUid — typing in the main composer must never become a reply.
@@ -636,7 +638,9 @@ describe('FeedCommentsThread — forum posts', () => {
     const mutation = mockMutation(useAddFeedCommentMock);
     render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
 
-    fireEvent.change(screen.getByPlaceholderText('Write your comment here, use @ to mention someone'), { target: { value: 'Nice work' } });
+    fireEvent.change(screen.getByPlaceholderText('Write your comment here, use @ to mention someone'), {
+      target: { value: 'Nice work' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
 
     expect(mutation.mutate).toHaveBeenCalledWith({ text: 'Nice work' }, expect.any(Object));
@@ -702,8 +706,21 @@ describe('FeedCommentsThread — forum posts', () => {
     expect(screen.queryByRole('link', { name: /on the forum/ })).not.toBeInTheDocument();
   });
 
+  it('renders an image-only forum comment as the image, not the attachment label', () => {
+    // The whole comment is one markdown image — no text at all. It must not be
+    // mistaken for empty and swapped for the "shared an image or file" line.
+    mockThread([comment('c1', '![shot.png](https://images.example.com/uploads/shot.png#w=50)')], forumTopicMeta(1));
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
+
+    // By alt, not the first <img> in the tree — that one is an author avatar.
+    expect(screen.getByAltText('shot.png')).toHaveAttribute('src', 'https://images.example.com/uploads/shot.png');
+    expect(screen.queryByText(/Shared an image or file/)).not.toBeInTheDocument();
+  });
+
   it('labels an attachment-only comment instead of rendering a blank row', () => {
-    // A comment that was just an image strips to empty text by contract.
+    // What's left for the fallback now images render: a comment whose content
+    // sanitizes away to nothing (a bare file attachment, say).
     mockThread([comment('c1', '')], forumTopicMeta(1));
     mockMutation(useAddFeedCommentMock);
     render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);

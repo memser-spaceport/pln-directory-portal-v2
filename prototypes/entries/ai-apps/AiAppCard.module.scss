@@ -1,6 +1,12 @@
 .root {
   position: relative;
   height: 100%;
+  /* A grid item defaults to `min-width: auto` — it refuses to be narrower than
+     its content's min-content width, so any unbreakable row inside it widens
+     the whole column. The tag chips cap their own width now, so nothing is
+     currently pushing; this keeps the card's width a fact about the grid
+     rather than about its longest line. */
+  min-width: 0;
 }
 
 // The creator's ⋯ menu, vertically centered on the app name's first line
@@ -228,6 +234,10 @@
   }
 }
 
+/* One line. Every card now carries a tag row, which answers "what kind of app
+   is this" better than the second sentence of a description does — so the
+   description is down to its opening clause and the card stops being three
+   blocks of text. (Dev clamps at 3 and reserves 60px for them.) */
 .description {
   margin: 0;
   color: #475569;
@@ -235,10 +245,19 @@
   font-weight: 400;
   line-height: 20px;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* `.body`'s 8px gap binds every block to the next one equally, which reads as
+   "these are all the same kind of line". The tags aren't: a set of labels
+   between a sentence above and a metrics row below wants to be seen as its own
+   band. 4px of margin on each side takes it to 12px without touching the gap,
+   which would move the name and the metrics too. */
+.tagsRow {
+  margin: 4px 0;
 }
 
 .footer {

@@ -74,6 +74,12 @@ const NEUTRAL: CategoryTone = {
 
 const GANTRY: CategoryTone = { ...NEUTRAL, label: 'Gantry' };
 
+/* Jobs has no production category yet (applications email; nothing reaches
+   the bell). It takes the neutral tone the way Gantry does rather than a
+   ninth hue: the eight hues are spent, and a new one is a palette decision,
+   not a notification's. */
+const JOBS: CategoryTone = { ...NEUTRAL, label: 'Jobs' };
+
 const BY_CATEGORY: Record<HubCategory, CategoryTone> = {
   DEMO_DAY_LIKE: DEMO_DAY,
   DEMO_DAY_CONNECT: DEMO_DAY,
@@ -88,6 +94,7 @@ const BY_CATEGORY: Record<HubCategory, CategoryTone> = {
   NEW_FEATURE,
   GANTRY,
   TEAM_NEWS: NETWORK_NEWS,
+  JOB_CANDIDATES: JOBS,
   SYSTEM: NEUTRAL,
 };
 
@@ -103,6 +110,7 @@ export function getActionText(category: HubCategory): string {
   if (category.startsWith('GUIDE')) return 'View guide';
   if (category === 'TEAM_NEWS') return 'Read update';
   if (category === 'GANTRY') return 'View request';
+  if (category === 'JOB_CANDIDATES') return 'Review candidates';
   return 'View';
 }
 

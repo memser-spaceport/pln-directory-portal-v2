@@ -13,10 +13,15 @@ export function useAiApp(uid: string, options?: { enabled?: boolean }) {
     retry: 2,
     // The card menu mounts this hook per card but must only fetch while open.
     enabled: options?.enabled ?? true,
-    // While a deploy is in flight (e.g. agent-triggered), keep polling so the
-    // page picks up the settled READY/ERROR state — including the backend
-    // marking a stuck deploy as failed — without a manual reload.
-    refetchInterval: (query) => (query.state.data?.app?.status === 'DEPLOYING' ? 5000 : false),
+    // Deploys run in the background (the deploy request answers 202), so while
+    // either target is DEPLOYING keep polling until the page picks up the
+    // settled READY/ERROR state — including the backend marking a stuck deploy
+    // as failed — without a manual reload.
+    refetchInterval: (query) => {
+      const app = query.state.data?.app;
+      const deploying = app?.status === 'DEPLOYING' || app?.deployments?.preview?.status === 'DEPLOYING';
+      return deploying ? 5000 : false;
+    },
   });
 
   return {

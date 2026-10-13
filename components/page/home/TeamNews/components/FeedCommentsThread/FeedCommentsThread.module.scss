@@ -457,6 +457,26 @@
    and will otherwise push a card wider than the feed. */
 .richText {
   overflow-wrap: anywhere;
+  /* Contains a floated image. globals.scss does this for rich text elsewhere
+     via `div:has(> p > img.ql-img-float-*)`, which never matches here: a forum
+     comment is stored as plain text, so its image has no <p> around it. */
+  display: flow-root;
+
+  /* The sanitizer drops the style attribute, so an image's sizing has to live
+     here — same rules as ForumPostModal's .postBody, which renders the same
+     forum content one level up. */
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+
+  /* A floated image takes its margins from globals.scss. That rule and this one
+     have equal specificity, so a blanket margin here would beat it or lose to
+     it on source order alone. */
+  img:not([class*='ql-img-float']) {
+    margin: 8px 0;
+  }
 
   p {
     margin: 0;

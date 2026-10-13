@@ -144,7 +144,9 @@ describe('AppSecretsPanel', () => {
     fireEvent.change(screen.getByPlaceholderText('Enter new value'), { target: { value: 'new-secret' } });
     fireEvent.click(screen.getByRole('button', { name: 'Re-deploy' }));
 
-    await waitFor(() => expect(mockDeployAiApp).toHaveBeenCalledWith('app-1', { PERPLEXITY_API_KEY: 'new-secret' }));
+    await waitFor(() =>
+      expect(mockDeployAiApp).toHaveBeenCalledWith('app-1', { PERPLEXITY_API_KEY: 'new-secret' }, 'prod'),
+    );
     await waitFor(() => expect(screen.getByText('••••••••••••••••')).toBeInTheDocument());
     expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
   });
@@ -160,7 +162,11 @@ describe('AppSecretsPanel', () => {
 
     await waitFor(() => expect(screen.getByText('Sandbox rejected the key.')).toBeInTheDocument());
     expect(screen.getByPlaceholderText('Enter new value')).toHaveValue('new-secret');
-    expect(mockAnalytics.onSecretsDeployFailed).toHaveBeenCalledWith({ appUid: 'app-1', isDraft: false });
+    expect(mockAnalytics.onSecretsDeployFailed).toHaveBeenCalledWith({
+      appUid: 'app-1',
+      isDraft: false,
+      environment: 'prod',
+    });
   });
 
   it('calls onDeploySucceeded only after a successful deploy, once the deploying flag has cleared', async () => {

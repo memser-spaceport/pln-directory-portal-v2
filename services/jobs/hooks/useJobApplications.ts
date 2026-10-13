@@ -6,6 +6,7 @@ import {
   JobApplication,
   submitJobApplication,
 } from '@/services/jobs/job-applications.service';
+import type { MemberScopedOptions } from '@/services/types/memberScopedOptions';
 
 /**
  * The applied map is ONE whole-list query — the universe ("roles this viewer
@@ -22,11 +23,6 @@ import {
  */
 
 export const jobApplicationsQueryKey = (memberUid: string) => [JobsQueryKey.ApplicationStatuses, memberUid] as const;
-
-interface MemberScopedOptions {
-  memberUid: string | undefined;
-  enabled: boolean;
-}
 
 export function useJobApplications({ memberUid, enabled }: MemberScopedOptions) {
   return useQuery<JobApplication[]>({

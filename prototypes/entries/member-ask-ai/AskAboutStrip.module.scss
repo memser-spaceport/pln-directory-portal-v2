@@ -1,0 +1,83 @@
+@use 'styles/media';
+
+/* Under the bio, inside the header card: a hairline above (the bio has one
+   above it too, so the card reads as name / facts / tags / bio / ask), the
+   label, then the chips wrapping. */
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+/* The bio's own label size (12/18, secondary ink) with the AI glyph in front:
+   the strip is a section of the card, ranked like Bio, not a heading. */
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A control chip: white, hairline, 999 radius, 13/20 type — the search
+   dialog's category chips at the form's tap-friendly size, hover to brand
+   (the DS's control-chip lineage; label chips have no hover). */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 999px;
+  background: var(--background-base-white, #fff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font: inherit;
+  font-size: 13px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    color 120ms ease,
+    background-color 120ms ease;
+
+  &:hover {
+    border-color: var(--border-brand-subtle, #aebfff);
+    background: var(--background-brand-subtle, #f1f5ff);
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-subtle, #aebfff);
+    outline-offset: 2px;
+  }
+
+  @include media.mobile-only {
+    /* A finger's target (lesson 12, tenth example): 32px on a phone. */
+    padding: 6px 12px;
+    min-height: 32px;
+  }
+}
+
+/* The text action at the end of the chip row: the header's own link lineage,
+   14/20 like the chips' neighbours, 4px more air so it does not read as one
+   more chip missing its border. */
+.own {
+  white-space: nowrap;
+  margin-left: 4px;
+}

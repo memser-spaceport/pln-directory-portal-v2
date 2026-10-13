@@ -1,0 +1,145 @@
+/*
+  Comment mode over the embedded app. The overlay covers the frame's stage and
+  takes the pointer while the mode is on; the popover and pins may hang past the
+  frame's edge, which is why this sits beside `.previewWrap` (overflow hidden)
+  rather than inside it.
+*/
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  cursor: crosshair;
+}
+
+/* The element under the cursor: brand outline, no fill, so the app stays legible
+   through it. Outline rather than border so the box costs no layout. */
+.highlight {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 4px;
+  outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 4px rgba(27, 77, 255, 0.12);
+  transition:
+    left 60ms linear,
+    top 60ms linear,
+    width 60ms linear,
+    height 60ms linear;
+}
+
+/*
+  The same layer on the page itself (no frame): fixed to the window and above
+  everything the page stacks — the sticky header included, because the header
+  is as commentable as anything under it. Below nothing of ours: a Modal opened
+  while commenting would be a bug, since the layer takes every click.
+*/
+.overlayPage {
+  position: fixed;
+  z-index: 1000;
+}
+
+/*
+  A pin is the commenter's avatar in Figma's teardrop — round everywhere except
+  the corner that points at the spot. The colour is the same deterministic
+  per-name palette the feedback table's avatars use, so a pin and its row in
+  the table are the same person. `left`/`top` are the point; the pin's
+  bottom-left corner sits on it.
+*/
+.pin {
+  position: absolute;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  transform: translate(0, -100%);
+  border: 2px solid #fff;
+  border-radius: 50% 50% 50% 4px;
+  background: var(--pin-color, #1b4dff);
+  box-shadow:
+    0 1px 2px rgba(14, 15, 17, 0.2),
+    0 4px 10px rgba(14, 15, 17, 0.18);
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    opacity 120ms ease;
+
+  &:hover {
+    transform: translate(0, -100%) scale(1.08);
+  }
+}
+
+.pinFace {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  user-select: none;
+}
+
+.pinActive {
+  z-index: 4;
+  transform: translate(0, -100%) scale(1.12);
+  box-shadow:
+    0 0 0 3px rgba(27, 77, 255, 0.24),
+    0 4px 10px rgba(14, 15, 17, 0.18);
+}
+
+.pinDraft {
+  animation: pinDrop 200ms ease-out both;
+}
+
+@keyframes pinDrop {
+  from {
+    transform: translate(0, -100%) scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: translate(0, -100%);
+    opacity: 1;
+  }
+}
+
+/* Shipped: the pin stays, quieter, so the author sees what has been answered
+   and the reader sees their own point landed. */
+.pinShipped {
+  opacity: 0.45;
+
+  &:hover,
+  &.pinActive {
+    opacity: 1;
+  }
+}
+
+/* Replies count, on the pin's outer corner — "3" means three voices, not three unread. */
+.pinCount {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  border: 1.5px solid #fff;
+  background: var(--foreground-neutral-primary, #0a0c11);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 13px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .highlight,
+  .pin {
+    transition: none;
+  }
+
+  .pinDraft {
+    animation: none;
+  }
+}

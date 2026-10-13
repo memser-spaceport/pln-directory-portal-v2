@@ -24,7 +24,7 @@ export const currentRoundData: CurrentRoundData = {
       },
       {
         label: 'Manage your Surus Account',
-        url: 'https://app.surus.io/',
+        url: 'https://app.surus.io/invest/PLAA1Trust',
         type: 'secondary',
         icon: '/icons/rounds/filecoin.svg',
         openInNewTab: true

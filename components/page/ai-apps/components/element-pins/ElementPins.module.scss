@@ -1,0 +1,321 @@
+@use 'styles/media';
+
+$accent: var(--foreground-brand-primary, #1b4dff);
+$border: rgba(203, 213, 225, 0.5);
+$ink: var(--foreground-neutral-primary, #0a0c11);
+$quiet: var(--foreground-neutral-secondary, #455468);
+
+/* ---------- overlay (over the iframe) ---------- */
+
+/* Click-through: only the badges take pointer events. z-index 8 sits just
+   under the floating feedback button (9) and above the page. */
+.overlay {
+  position: fixed;
+  z-index: 8;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.pinBox {
+  position: absolute;
+  border: 2px solid $accent;
+  border-radius: 4px;
+  background: rgba(27, 77, 255, 0.06);
+  box-sizing: border-box;
+  transition:
+    left 80ms linear,
+    top 80ms linear,
+    width 80ms linear,
+    height 80ms linear;
+
+  &[data-active='true'] {
+    background: rgba(27, 77, 255, 0.14);
+    box-shadow: 0 0 0 3px rgba(27, 77, 255, 0.25);
+  }
+}
+
+.pinBadge {
+  position: absolute;
+  top: -11px;
+  left: -11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: $accent;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 2px 6px rgba(14, 15, 17, 0.25);
+}
+
+/* ---------- docked panel ---------- */
+
+/* Docked above the floating button in the bottom-right corner, where the
+   feedback popover opens — the member's eye is already there. Not a modal: no
+   backdrop, the app stays interactive. */
+.panel {
+  position: fixed;
+  right: 24px;
+  bottom: 136px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  width: 340px;
+  max-height: calc(100vh - 136px - 88px);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow:
+    0px 10px 20px -5px rgba(14, 15, 17, 0.08),
+    0px 20px 65px -5px rgba(14, 15, 17, 0.12);
+  overflow: hidden;
+
+  @include media.tablet-landscape {
+    bottom: 88px;
+    max-height: calc(100vh - 88px - 88px);
+  }
+
+  @include media.mobile-only {
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid $border;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+  color: $ink;
+}
+
+.panelBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  overflow-y: auto;
+}
+
+.pickButton {
+  align-self: stretch;
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 17px;
+  color: $quiet;
+}
+
+.kbd {
+  padding: 0 4px;
+  border-radius: 4px;
+  background: rgba(14, 15, 17, 0.06);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.pinList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pinItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid $border;
+  border-radius: 10px;
+
+  &[data-active='true'] {
+    border-color: $accent;
+  }
+
+  &[data-detached='true'] .pinNumber {
+    background: #94a3b8;
+  }
+}
+
+.pinHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pinNumber {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: $accent;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pinWhat {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 16px;
+  color: $quiet;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detached {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: #92400e;
+}
+
+.crop {
+  max-width: 100%;
+  max-height: 120px;
+  align-self: flex-start;
+  border: 1px solid $border;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
+.cropPending {
+  height: 48px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.note {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  line-height: 18px;
+  color: $ink;
+  resize: vertical;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: $accent;
+    box-shadow: 0 0 0 3px rgba(27, 77, 255, 0.15);
+  }
+}
+
+.iconButton {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: $quiet;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.06);
+  }
+}
+
+.panelFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid $border;
+}
+
+.footerActions {
+  display: flex;
+  gap: 8px;
+}
+
+.linkButton {
+  padding: 0;
+  border: none;
+  background: none;
+  color: $quiet;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover {
+    color: $ink;
+  }
+}
+
+/* ---------- summary inside the feedback dialog ---------- */
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--background-neutral-secondary, #f8fafc);
+}
+
+.summaryHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  color: $ink;
+}
+
+.summaryList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 18px;
+  color: $quiet;
+}

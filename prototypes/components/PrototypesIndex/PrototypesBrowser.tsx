@@ -90,7 +90,6 @@ export function PrototypesBrowser({ groups }: Props) {
           <section key={group.category} className={s.section}>
             <h2 className={s.sectionTitle}>
               {group.category}
-              {group.category === 'Ideation' && <span className={s.sectionDraftNote}>Drafts — work in progress</span>}
             </h2>
             <div className={s.grid}>
               {group.items.map((entry) => (

@@ -1,12 +1,18 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import type { IJobTeamGroup } from '@/types/jobs.types';
 import type { IUserInfo } from '@/types/shared.types';
-import { SHOW_JOB_BOARD_APPLY } from '@/services/jobs/constants';
+import { SHOW_JOB_BOARD_APPLY, SHOW_TEAM_APPLICANTS } from '@/services/jobs/constants';
+import { useApplicantCounts } from '@/services/jobs/hooks/useTeamApplicants';
 import { useJobApplySurface } from '@/components/page/jobs/hooks/useJobApplySurface';
+import { canReadApplicants } from '@/components/page/team-details/TeamApplicants/canReadApplicants';
+import { isTeamLeaderOrAdmin } from '@/components/page/team-details/utils/isTeamLeaderOrAdmin';
+import { unionViewerInfo } from '@/components/page/team-details/utils/viewerPermissions';
+import { useCurrentUserStore } from '@/services/auth/store';
 
+import { RoleApplicantsLine } from './components/RoleApplicantsLine';
 import { TeamOpenRoles } from './TeamOpenRoles';
 
 interface TeamOpenRolesSectionProps {
@@ -34,8 +40,84 @@ interface TeamOpenRolesSectionProps {
  * The board reaches the same hook from `JobsContent`; it is one pipeline with two
  * hosts, so the two surfaces cannot drift the way they did before.
  */
+/**
+ * The ⋯ menu is built and held back.
+ *
+ * `RoleOwnerMenu` collapses Refer, Share and View job into one control on a
+ * lead's own rows, and it works — it is just not what this change is for, and
+ * turning it on would redraw every role row on every team profile for leads and
+ * admins alongside a feature about applicants.
+ *
+ * A constant rather than deleted code: the menu, its styles and its tests stay,
+ * so turning it on is this line and nothing else. Grep `SHOW_ROLE_OWNER_MENU`.
+ */
+const SHOW_ROLE_OWNER_MENU = false;
+
 export function TeamOpenRolesSection({ group, isLoggedIn, userInfo }: TeamOpenRolesSectionProps) {
   const groups = useMemo(() => (group ? [group] : []), [group]);
+
+  const teamUid = group?.team.uid ?? '';
+  /**
+   * The applicants count line, for a lead of this team (or an admin).
+   *
+   * The same rule the applicants page redirects on, asked here so the line and
+   * the page it opens can never disagree — a line offering a page the viewer
+   * gets bounced off is the specific way two copies of this would drift.
+   *
+   * It gates the QUERY, not just the render. Every applicants read is
+   * authenticated, and `customFetch` answers a missing session by logging out
+   * and reloading — so an ungated one on a team profile, which is a public
+   * page, would be a reload loop for every signed-out visitor.
+   *
+   * The whole team goes in rather than `teamUid`: the rule excludes Protocol
+   * Labs, and it reads the name as well as the uid to do that.
+   */
+  /**
+   * The cookie AND the store, because they disagree and each is right about
+   * something.
+   *
+   * `userInfo` arrives from the server-rendered cookie, which carries
+   * `leadingTeams` but — today, for everyone — no permissions at all: the sync
+   * that fills it reads an endpoint that omits `rbac`. The store is hydrated
+   * from the API and has them, which is why Focus Areas offers a directory admin
+   * its Edit control on this very page while this section refused them.
+   *
+   * See `unionViewerInfo`. Both gates below ask the same merged viewer, so the
+   * count line and the ⋯ menu cannot disagree about who this is.
+   */
+  const { currentUser } = useCurrentUserStore();
+  const viewer = useMemo(() => unionViewerInfo(userInfo, currentUser), [userInfo, currentUser]);
+
+  const canReadApplicantCounts = canReadApplicants({
+    flagOn: SHOW_TEAM_APPLICANTS,
+    isLoggedIn,
+    userInfo: viewer,
+    team: group?.team,
+  });
+
+  const ownsListings = SHOW_ROLE_OWNER_MENU && isTeamLeaderOrAdmin(viewer, teamUid);
+
+  const { data: counts } = useApplicantCounts({
+    teamUid,
+    viewerUid: viewer?.uid,
+    enabled: canReadApplicantCounts,
+  });
+
+  /* `useCallback`, because `TeamOpenRoles` is memoized so that typing a cover
+     letter in the apply drawer — whose state lives in this host — does not
+     re-render every visible row. An inline function would hand it a new prop on
+     every keystroke and undo exactly that. */
+  const renderRoleFooter = useCallback(
+    (roleUid: string) =>
+      canReadApplicantCounts ? (
+        <RoleApplicantsLine
+          teamId={teamUid}
+          roleUid={roleUid}
+          count={counts?.find((count) => count.roleUid === roleUid)}
+        />
+      ) : null,
+    [canReadApplicantCounts, teamUid, counts],
+  );
 
   const surface = useJobApplySurface({
     /* The flag, and nothing else. Narrowing this to "teams that have roles" was
@@ -61,7 +143,15 @@ export function TeamOpenRolesSection({ group, isLoggedIn, userInfo }: TeamOpenRo
 
   return (
     <>
-      {group && <TeamOpenRoles group={group} userInfo={userInfo} apply={surface.applyProps} />}
+      {group && (
+        <TeamOpenRoles
+          group={group}
+          userInfo={userInfo}
+          apply={surface.applyProps}
+          renderRoleFooter={canReadApplicantCounts ? renderRoleFooter : undefined}
+          ownsListings={ownsListings}
+        />
+      )}
       {surface.controller}
     </>
   );

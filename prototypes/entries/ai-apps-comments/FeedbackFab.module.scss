@@ -1,0 +1,124 @@
+@use 'styles/media';
+
+/*
+  Proposal additions to production's FloatingFeedbackButton stylesheet (`s`),
+  the feedback popover's card (`fd`) and the Updates panel's switch (`vs`).
+*/
+
+/* The count badge hangs off the bubble's corner. */
+.trigger {
+  position: relative;
+}
+
+/* Doubled to beat production's .button whatever order the sheets load in.
+   Comment mode on: the same tool, lit — white face, brand ring and glyph. */
+.buttonActive.buttonActive {
+  background: #fff;
+  color: var(--foreground-brand-primary, #1b4dff);
+  box-shadow:
+    0 0 0 2px var(--foreground-brand-primary, #1b4dff),
+    0 6px 18px rgba(27, 77, 255, 0.2);
+
+  &:hover {
+    box-shadow:
+      0 0 0 2px var(--foreground-brand-primary, #1b4dff),
+      0 10px 24px rgba(27, 77, 255, 0.28);
+  }
+}
+
+/* Threads on the app, on the resting bubble's corner, in the white-ringed dark
+   pill the pins use for their reply counts. */
+.count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  border: 2px solid #fff;
+  background: var(--foreground-neutral-primary, #0a0c11);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+}
+
+/* The switch sits where the popover's 18px title did; its 30px height fits the
+   header row the ✕ already sets. */
+.switch {
+  flex-shrink: 0;
+}
+
+/*
+  Comment mode's card: the feedback popover, shrunk to what the mode needs, in
+  the spot the popover opens — above the bubble, right edges shared — so the
+  switch is in the same place in both modes. Fixed like the bubble, one layer
+  above it. Bottom = the bubble's own inset + its 48px + the popover's 8px gap.
+*/
+.commentCard {
+  position: fixed;
+  bottom: calc(72px + 48px + 8px);
+  z-index: 10;
+  width: 320px;
+  max-width: calc(100vw - 24px);
+  padding-bottom: 16px;
+  transition: right 0.3s ease-out;
+  animation: cardIn 160ms ease-out both;
+
+  @include media.tablet-landscape {
+    bottom: calc(24px + 48px + 8px);
+  }
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The popover's header (switch + ✕) without its divider — the card has one line under it, not a form. */
+.commentHead.commentHead {
+  border-bottom: none;
+  padding: 16px 20px 10px 24px;
+}
+
+.commentHint {
+  margin: 0;
+  padding: 0 24px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.commentAudience {
+  margin: 4px 0 0;
+  padding: 0 24px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .commentCard {
+    animation: none;
+  }
+}
+
+/* The chat glyph inside the Comment segment. CommentIcon hardcodes a 16px box;
+   14px sits in the 13px label's line, and currentColor follows the segment's
+   ink (grey at rest, near-black when selected). */
+.switchIcon {
+  display: inline-flex;
+  margin-right: -1px;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}

@@ -2,6 +2,8 @@
 
 import { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
+
+import { authStatus } from '@/components/core/login/utils';
 import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 import type { IJobTeamGroup, IJobsListResponse } from '@/types/jobs.types';
@@ -9,11 +11,12 @@ import type { IJobTeamGroup, IJobsListResponse } from '@/types/jobs.types';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 
 import { JobsQueryKey } from '../constants';
+import { SAVED_PARAM } from '../savedParam';
 import { FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED } from '@/constants/filters';
 
 import { fetchJobsFilters, fetchJobsList } from '../jobs.service';
 
-const SINGLE_VALUE_KEYS = ['q', 'sort'] as const;
+const SINGLE_VALUE_KEYS = ['q', 'sort', SAVED_PARAM] as const;
 const MULTI_VALUE_KEYS = ['roleCategory', 'seniority', 'focus', 'location', 'workplaceType'] as const;
 
 export const pickJobsParams = (searchParams: URLSearchParams): URLSearchParams => {
@@ -36,7 +39,18 @@ export const pickJobsParams = (searchParams: URLSearchParams): URLSearchParams =
 
 export function useJobsSearchParams(): URLSearchParams {
   const raw = useSearchParams();
-  return useMemo(() => pickJobsParams(new URLSearchParams(raw.toString())), [raw]);
+
+  return useMemo(() => {
+    const picked = pickJobsParams(new URLSearchParams(raw.toString()));
+    /* The saved scope is the one filter the API refuses without a session — it
+       answers 401 rather than widening, which would put the whole board on the
+       error state. A shared link, or a logout that left the box ticked, is how
+       a signed-out visitor gets here. */
+    if (!authStatus.isLoggedIn()) {
+      picked.delete(SAVED_PARAM);
+    }
+    return picked;
+  }, [raw]);
 }
 
 export function useInfiniteJobsList() {

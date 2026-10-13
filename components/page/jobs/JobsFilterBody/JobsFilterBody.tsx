@@ -19,11 +19,16 @@ import {
 } from '@/utils/jobs.utils';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 
+import { SavedJobsFilter } from './components/SavedJobsFilter/SavedJobsFilter';
 import { facetToFilterItems } from './utils/facetToFilterItems';
 
 import { useGetFilterValuesWithDisabledState } from './hooks/useGetFilterValuesWithDisabledState';
 
-export function JobsFilterBody() {
+interface JobsFilterBodyProps {
+  isLoggedIn: boolean;
+}
+
+export function JobsFilterBody({ isLoggedIn }: JobsFilterBodyProps) {
   const { focus, workMode, location, seniority, roleCategory } = useGetFilterValuesWithDisabledState();
 
   const { totalRoles } = useInfiniteJobsList();
@@ -88,6 +93,12 @@ export function JobsFilterBody() {
       <FilterSection title="Search for a Job">
         <SearchInput value={qFromUrl} onChange={handleSearchChange} placeholder="Search a team or role" />
       </FilterSection>
+
+      {isLoggedIn && (
+        <FilterSection title="My Activity">
+          <SavedJobsFilter />
+        </FilterSection>
+      )}
 
       <FilterSection title="Role Category">
         <GenericCheckboxList

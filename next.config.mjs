@@ -47,9 +47,20 @@ const nextConfig = {
   // through a tunnel domain instead of localhost directly. No effect on
   // `next build`/`next start` — Next.js only enforces this origin check
   // in `next dev`.
-  allowedDevOrigins: ['plaa.i.beandev.xyz', 'plaa.test'],
+  allowedDevOrigins: ['plaa.i.beandev.xyz', 'plaa.test', 'directory-local.dev.os.pl.xyz'],
   sassOptions: {
     loadPaths: [__dirname, path.join(__dirname, 'styles')],
+  },
+  async headers() {
+    return [
+      {
+        // The AI Apps bridge is loaded by every embedded app on every page view.
+        // Short-lived so a fix reaches apps within minutes without a redeploy;
+        // the path carries the major version, so a breaking change is a new file.
+        source: '/ai-apps/bridge/:file*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=300, stale-while-revalidate=3600' }],
+      },
+    ];
   },
   async redirects() {
     return [
@@ -84,6 +95,11 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: '/alignment-asset/trust-holdings',
+        destination: '/alignment-asset/portfolio-holdings',
+        permanent: true,
+      },
+      {
         source: '/pitch/:slug',
         destination: '/spotlight/:slug',
         permanent: true,
@@ -101,6 +117,7 @@ const nextConfig = {
     APPLICATION_BASE_URL: process.env.APPLICATION_BASE_URL,
     AUTH_API_URL: process.env.AUTH_API_URL,
     COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
+    AI_APPS_SHARE_AUTH_TOKEN: process.env.AI_APPS_SHARE_AUTH_TOKEN,
     HUSKY_API_URL: process.env.HUSKY_API_URL,
     TEXT_EDITOR_API_KEY: process.env.TEXT_EDITOR_API_KEY,
     GOOGLE_SITE_KEY: process.env.GOOGLE_SITE_KEY,

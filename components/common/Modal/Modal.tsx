@@ -158,6 +158,7 @@ export const Modal: React.FC<ModalProps> = (props) => {
       {isOpen && (
         <motion.div
           ref={overlayRef}
+          data-modal
           className={clsx(s.overlay, overlayClassname)}
           style={overlayStyle}
           initial={{ opacity: 0 }}

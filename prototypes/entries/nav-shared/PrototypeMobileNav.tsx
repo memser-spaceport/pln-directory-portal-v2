@@ -12,10 +12,6 @@ import {
   JOBS_LINK,
   DEALS_LINK,
   FOUNDER_GUIDES_LINK,
-  GANTRY_LINK,
-  INVESTOR_DB_LINK,
-  AI_APPS_LINK,
-  AGENT_SESSIONS_LINK,
 } from '@/components/core/navbar/constants/navLinks';
 import { MoreIcon, StarFourIcon } from '@/components/core/navbar/components/icons';
 import { MobileNavItemWithMenu } from '@/components/core/MobileBottomNav/components/MobileMenuItem';
@@ -27,6 +23,9 @@ import local from './PrototypeNav.module.scss';
 
 import { HomeIcon } from './icons';
 import { scrollToTop } from './home';
+/* One list for both bars — see plInfraLinks.tsx. It used to be a local const
+   here, which is how the desktop copy came to have no PL Infra selector at all. */
+import { PL_INFRA_LINKS } from './plInfraLinks';
 
 /**
  * Copy of the production `MobileBottomNav` with the same proposal applied.
@@ -92,10 +91,6 @@ interface PrototypeMobileNavProps {
    */
   plInfra?: boolean;
 }
-
-/* Static stand-in for `useGetPlInfraNavItems()`, which resolves this same list
-   one permission at a time. A prototype viewer either has the slot or doesn't. */
-const PL_INFRA_LINKS = [GANTRY_LINK, INVESTOR_DB_LINK, AI_APPS_LINK, AGENT_SESSIONS_LINK];
 
 /* Production's MobileNavItemWithMenu reports every sub-item navigation to PostHog
    and requires the handler. A prototype is a design preview behind /prototypes —

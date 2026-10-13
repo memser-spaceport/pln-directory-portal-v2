@@ -6,7 +6,7 @@ import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analyt
 import type { PlaaHomeProps } from './home.types';
 import { formatNumber } from './home.types';
 import NavAreaChart from './nav-area-chart';
-import { activitiesData } from '../activities/data';
+import { activitiesData, isOpenActivity } from '../activities/data';
 import { UNDERUTILIZED_RATIO } from '../leaderboard/leaderboard.mapper';
 import PlaaProspectBanner from './plaa-prospect-banner';
 import PlaaDisclaimerBox from './plaa-disclaimer-box';
@@ -22,7 +22,7 @@ import {
 } from '@phosphor-icons/react';
 
 const ACTIVITIES_URL = '/alignment-asset/activities';
-const TRUST_URL = '/alignment-asset/trust-holdings';
+const TRUST_URL = '/alignment-asset/portfolio-holdings';
 const PROFILE_URL = '/alignment-asset/profile';
 const OVERVIEW_URL = '/alignment-asset/overview';
 
@@ -35,8 +35,8 @@ const TEASER_ACTIVITY_COUNT = 3;
 
 const MODES: Record<string, { label: string; icon: Icon; tone: string }> = {
   Auto: { label: 'Auto-tracked', icon: ArrowsClockwise, tone: 'auto' },
-  Submission: { label: 'Proof of work', icon: PaperPlaneTilt, tone: 'proof' },
-  'Manual Review': { label: 'Reviewed', icon: CheckCircle, tone: 'confirm' },
+  Submission: { label: 'Submission', icon: PaperPlaneTilt, tone: 'proof' },
+  'Manual Review': { label: 'Manual Review', icon: CheckCircle, tone: 'confirm' },
 };
 
 const normaliseCategory = (value: string) => value.toLowerCase().replace(/[^a-z]/g, '');
@@ -90,8 +90,8 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
   const heroStats: { value: string; label: string }[] = [];
   if (trust) {
     heroStats.push({
-      value: `${formatNumber(trust.portfolioCompanies)}`,
-      label: 'Investments in Frontier-tech Ventures',
+      value: `${formatNumber(trust.portfolioCompanies)}+`,
+      label: 'Investments in Frontier Tech Ventures',
     });
     heroStats.push({ value: trust.navPerPlaaHeadline, label: 'NAV per PLAA' });
   }
@@ -108,7 +108,8 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
     busiestCategory > 0 &&
     (categoryPoints.get(normaliseCategory(category)) ?? 0) < busiestCategory * UNDERUTILIZED_RATIO;
 
-  const teaserActivities = [...activitiesData.activities]
+  const teaserActivities = activitiesData.activities
+    .filter(isOpenActivity)
     .sort((a, b) => {
       const boost = Number(isUnderutilised(b.category)) - Number(isUnderutilised(a.category));
       return boost !== 0 ? boost : parseInt(b.points, 10) - parseInt(a.points, 10);
@@ -136,12 +137,16 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
               </p>
               <div className="ph-hero__ctas">
                 {isMember ? (
-                  <button type="button" onClick={() => go('Contribute now', ACTIVITIES_URL)} className="ph-btn-white">
+                  <button
+                    type="button"
+                    onClick={() => go('Contribute now', ACTIVITIES_URL)}
+                    className="ph-btn-primary ph-btn-primary--hero"
+                  >
                     Contribute now
                     <ArrowRight weight="bold" size={17} aria-hidden />
                   </button>
                 ) : (
-                  <button type="button" onClick={openSignin} className="ph-btn-white">
+                  <button type="button" onClick={openSignin} className="ph-btn-primary ph-btn-primary--hero">
                     Get started
                     <ArrowRight weight="bold" size={17} aria-hidden />
                   </button>
@@ -162,7 +167,7 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
                 CDNs and browsers serving the old bytes under the same URL. */}
             <div className="ph-hero__art">
               <Image
-                src="/images/alignment-assets/hero-v2.png"
+                src="/images/alignment-assets/hero-v2.webp"
                 alt=""
                 aria-hidden="true"
                 width={1180}
@@ -269,9 +274,9 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
           </>
         ) : (
           <div className="ph-card ph-unavailable">
-            Trust &amp; holdings figures are unavailable right now.{' '}
+            Portfolio &amp; holdings figures are unavailable right now.{' '}
             <button type="button" className="ph-linkbtn" onClick={() => go('Trust & Holdings', TRUST_URL)}>
-              Open Trust &amp; Holdings
+              Open Portfolio &amp; Holdings
             </button>
           </div>
         )}
@@ -290,7 +295,7 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
         <div className="ph-flywheel" style={{ alignSelf: 'start' }}>
           <h3 className="ph-visually-hidden">The contribution flywheel</h3>
           <Image
-            src="/images/alignment-assets/flywheel-v2.png"
+            src="/images/alignment-assets/flywheel-v2.webp"
             alt="The contribution flywheel. Employees and members of the PL Network collect PLAA for their contributions to increasing network value. The cycle runs: contribute, collect points, receive PLAA, the network grows, and repeats."
             width={1254}
             height={1254}
@@ -411,18 +416,28 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
           gap: 12px;
           margin-top: 36px;
         }
-        .ph-btn-white {
+        .ph-btn-primary {
           height: 48px;
           padding: 0 24px;
           border: none;
-          background: #fff;
-          color: var(--color-brand-text);
+          background: var(--pl-blue-500);
+          color: #fff;
           font: var(--text-heading-sm);
           border-radius: var(--radius-lg);
           cursor: pointer;
           display: inline-flex;
           align-items: center;
           gap: 8px;
+        }
+        .ph-btn-primary:hover {
+          background: var(--pl-blue-600);
+        }
+        .ph-btn-primary--hero {
+          background: #fff;
+          color: var(--color-brand-text);
+        }
+        .ph-btn-primary--hero:hover {
+          background: var(--color-brand-subtle);
         }
         .ph-btn-ghost {
           height: 48px;
@@ -465,6 +480,10 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
           font-weight: 600;
           letter-spacing: 0.08em;
           text-transform: uppercase;
+          color: var(--color-brand-text);
+        }
+        .ph-h2,
+        .ph-h3 {
           color: var(--color-brand-text);
         }
         .ph-h2 {

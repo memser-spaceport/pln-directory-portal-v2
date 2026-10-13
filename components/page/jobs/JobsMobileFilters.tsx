@@ -7,7 +7,11 @@ import { useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
 import { useJobsFilterStore, useJobsFilterCount } from '@/services/jobs/store';
 import { JOBS_SORT_OPTIONS } from '@/services/jobs/constants';
 
-export default function JobsMobileFilters() {
+interface JobsMobileFiltersProps {
+  isLoggedIn: boolean;
+}
+
+export default function JobsMobileFilters({ isLoggedIn }: JobsMobileFiltersProps) {
   const { params, setParam, clearParams } = useJobsFilterStore();
   const { totalRoles } = useInfiniteJobsList();
   const analytics = useJobsAnalytics();
@@ -36,7 +40,7 @@ export default function JobsMobileFilters() {
       sortByLabel="Sort by:"
       onSortChange={onSortChange}
       onClearFilters={onClearFilters}
-      renderFilter={() => <JobsFilterBody />}
+      renderFilter={() => <JobsFilterBody isLoggedIn={isLoggedIn} />}
     />
   );
 }

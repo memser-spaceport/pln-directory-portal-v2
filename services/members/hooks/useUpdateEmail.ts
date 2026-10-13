@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import Cookies from 'js-cookie';
+import { setSessionCookie } from '@/utils/third-party.helper';
 
 import { useAuthAnalytics, type EmailUpdateSource } from '@/analytics/auth.analytics';
 import { authEvents } from '@/components/core/login/utils';
@@ -131,17 +132,14 @@ export function useUpdateEmail({ uid, email, userInfo, onFailure, source }: Para
         const accessTokenExpiry = decodeToken(accessToken);
         const refreshTokenExpiry = decodeToken(refreshToken);
 
-        Cookies.set('authToken', JSON.stringify(accessToken), {
+        setSessionCookie('authToken', JSON.stringify(accessToken), {
           expires: new Date(accessTokenExpiry.exp * 1000),
-          domain: process.env.COOKIE_DOMAIN || '',
         });
-        Cookies.set('refreshToken', JSON.stringify(refreshToken), {
+        setSessionCookie('refreshToken', JSON.stringify(refreshToken), {
           expires: new Date(refreshTokenExpiry.exp * 1000),
-          domain: process.env.COOKIE_DOMAIN || '',
         });
-        Cookies.set('userInfo', JSON.stringify(newUserInfo), {
+        setSessionCookie('userInfo', JSON.stringify(newUserInfo), {
           expires: new Date(refreshTokenExpiry.exp * 1000),
-          domain: process.env.COOKIE_DOMAIN || '',
         });
 
         currentAnalytics.onUpdateEmailSuccess({ newEmail, oldEmail: currentEmail }, currentSource);

@@ -1,0 +1,152 @@
+@use 'styles/media';
+
+// The completed Demo Day template, as SPV Spotlight uses it: grey page, white
+// sheet, and its section titles (CompletedDemoDayTeamsList) and FAQ spacing.
+.page {
+  min-height: 100vh;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1344px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+
+  @include media.mobile-only {
+    padding: 16px 8px 40px;
+  }
+}
+
+.content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  width: 100%;
+  padding: 10px 80px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+
+  @include media.mobile-only {
+    gap: 32px;
+    padding: 0 16px;
+  }
+
+  @include media.tablet-portrait-only {
+    padding: 10px 32px;
+  }
+
+  @include media.desktop-hd {
+    padding: 40px 80px 20px;
+  }
+}
+
+.sectionTeams {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  width: 100%;
+  max-width: 1184px;
+  padding-top: 40px;
+  // The page's anchors (#portfolio) land below the sticky top bar.
+  scroll-margin-top: 80px;
+
+  @include media.mobile-only {
+    gap: 32px;
+    padding-top: 32px;
+  }
+}
+
+.subtitle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 900px;
+}
+
+.label {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-align: center;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 42px;
+  letter-spacing: -0.8px;
+
+  @include media.mobile-only {
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: -0.6px;
+  }
+}
+
+.supportingText {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-align: center;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+
+  @include media.mobile-only {
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+  }
+}
+
+.sectionPartners {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  width: 100%;
+  max-width: 1184px;
+
+  @include media.mobile-only {
+    gap: 32px;
+    padding-top: 32px;
+  }
+}
+
+.sectionFaq {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 1184px;
+  padding-top: 40px;
+
+  @include media.mobile-only {
+    padding-top: 32px;
+  }
+}
+
+.infoText {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-align: center;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+}
+
+.infoLink {
+  color: var(--foreground-brand-secondary_inverted, #4174ff);
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

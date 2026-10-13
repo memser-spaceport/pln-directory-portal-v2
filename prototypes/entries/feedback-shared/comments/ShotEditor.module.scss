@@ -1,0 +1,130 @@
+/*
+  The screenshot viewer/editor. It is the feedback dialog's card (`fd.root`,
+  header, close disc, footer) opened out to fit a picture, in Modal's own overlay
+  — so it dims and blurs the page like every other dialog and the comment layer
+  underneath stays put. Modal's container is 600px wide; the specificity below
+  lifts that, since Modal's stylesheet may load on either side of this one.
+*/
+.overlay .modal {
+  max-width: 960px;
+}
+
+.overlay .card {
+  // `fd.root` caps against a popover's offset from the header; a dialog centred
+  // in the window only has to leave the overlay's own gutter.
+  max-height: calc(100dvh - 48px);
+}
+
+.header {
+  flex-shrink: 0;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 10px 24px;
+  border-bottom: 1px solid rgba(203, 213, 225, 0.5);
+
+  @media (max-width: 639px) {
+    padding: 10px 16px;
+  }
+}
+
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* A glyph and its word, so the three marks need no tooltip to be read. Tertiary
+   at rest and secondary on hover — the pair every DS icon control uses — and the
+   brand tint says which mark is in your hand. */
+.tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  &:hover:not(:disabled) {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:disabled {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  @media (max-width: 639px) {
+    padding: 0 8px;
+
+    span {
+      display: none;
+    }
+  }
+}
+
+.toolOn,
+.toolOn:hover:not(:disabled) {
+  background: var(--background-brand-subtle, #eef6ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* The picture sits on the DS's quiet grey so its own white edge reads. The stage
+   scrolls only if the window is too short for the capped canvas. */
+.stage {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px 24px;
+  background: var(--background-neutral-secondary, #f8fafc);
+
+  @media (max-width: 639px) {
+    padding: 12px 16px;
+  }
+}
+
+/* The canvas keeps the picture's own pixel size and CSS scales it to the stage —
+   width and height both `auto` with two maxima keeps the ratio, and the stage's
+   height budget is the card's cap less its header, toolbar and footer. */
+.canvas {
+  display: block;
+  min-width: 0;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(100dvh - 300px);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: #fff;
+}
+
+.canvasEditing {
+  cursor: crosshair;
+  // A finger drawing must not scroll the stage under it.
+  touch-action: none;
+}
+
+.footer {
+  flex-shrink: 0;
+}

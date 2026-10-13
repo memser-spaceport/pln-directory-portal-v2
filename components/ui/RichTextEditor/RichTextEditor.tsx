@@ -14,10 +14,18 @@ import { toast } from '@/components/core/ToastContainer';
 import { saveRegistrationImage } from '@/services/registration.service';
 import { useMembersSearch } from '@/services/members/hooks/useMembersSearch';
 
-import { useMentionDetection, useMentionKeyboard, useMentionClickHandler } from './hooks';
+import {
+  useMentionDetection,
+  useMentionKeyboard,
+  useMentionClickHandler,
+  useImageLayout,
+  useImageDragMove,
+} from './hooks';
 
+import { registerImageBlot } from './ImageBlot';
 import { registerMentionBlot } from './MentionBlot';
 import { MentionDropdown, MentionDropdownRef } from './MentionDropdown';
+import { ImageLayoutOverlay } from './ImageLayoutOverlay';
 
 import s from './RichTextEditor.module.scss';
 
@@ -42,6 +50,8 @@ interface Props {
    *  because only this component knows whether the mention dropdown is open,
    *  and Enter belongs to the dropdown whenever it is. */
   onSubmit?: () => void;
+  /** `**bold**` turns bold as the closing `*` is typed. (`- ` and `1. ` lists are Quill's own.) */
+  markdownShortcuts?: boolean;
 }
 
 const QL_EDITOR_CLASS = 'ql-editor';
@@ -68,6 +78,9 @@ function ignoreQuillNativeUpload() {}
 
 // Register mention blot
 registerMentionBlot();
+
+// Replaces Quill's Image blot with the one that also carries a text wrap.
+registerImageBlot();
 
 // Register icons
 (Quill.import('ui/icons') as Record<string, unknown>)['officeHours'] = officeHours;
@@ -101,11 +114,13 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
     toolbarConfig,
     minHeight,
     onSubmit,
+    markdownShortcuts,
   } = props;
 
   const quillRef = useRef<any>(null);
   const mentionDropdownRef = useRef<MentionDropdownRef>(null);
   const editorContainerRef = useRef<HTMLDivElement>(null);
+  const imageOverlayRef = useRef<HTMLDivElement>(null);
 
   const [mentionState, setMentionState] = useState<{
     isOpen: boolean;
@@ -337,6 +352,26 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
   }, []);
 
   useEffect(() => {
+    const editor = quillRef.current?.getEditor();
+    if (!editor || !markdownShortcuts) return;
+    editor.keyboard.addBinding(
+      { key: '*', shiftKey: null, collapsed: true, prefix: /\*\*[^*\s](?:[^*]*[^*\s])?\*$/ },
+      (range: { index: number }, context: { prefix: string }) => {
+        const inner = context.prefix.match(/\*\*([^*]+)\*$/)![1];
+        const start = range.index - inner.length - 3;
+        editor.deleteText(range.index - 1, 1, 'user');
+        editor.deleteText(start, 2, 'user');
+        editor.formatText(start, inner.length, 'bold', true, 'user');
+        editor.setSelection(start + inner.length, 0, 'user');
+        editor.format('bold', false, 'user');
+        return false;
+      },
+    );
+    // Once: bindings can't be removed, and the editor lives as long as this component.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (quillRef.current && autoFocus) {
       quillRef.current.focus();
     }
@@ -418,6 +453,18 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
     qlEditorClass: QL_EDITOR_CLASS,
   });
 
+  // Select an image to resize it or wrap text around it, drag it to move it.
+  // Not gated on the toolbar carrying an image button: an editor without one
+  // can still be handed content that already has images in it.
+  const imageLayout = useImageLayout({
+    quillRef,
+    editorContainerRef,
+    overlayRef: imageOverlayRef,
+    qlEditorClass: QL_EDITOR_CLASS,
+  });
+
+  useImageDragMove({ quillRef });
+
   const handleChange = (content: string) => {
     const { editor } = quillRef.current || {};
 
@@ -465,6 +512,18 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
         modules={modules}
         placeholder={placeholder}
       />
+      {imageLayout.overlay && (
+        <ImageLayoutOverlay
+          ref={imageOverlayRef}
+          rect={imageLayout.overlay.rect}
+          float={imageLayout.overlay.float}
+          canMoveUp={imageLayout.overlay.canMoveUp}
+          canMoveDown={imageLayout.overlay.canMoveDown}
+          onHandlePointerDown={imageLayout.onHandlePointerDown}
+          onFloatChange={imageLayout.onFloatChange}
+          onMove={imageLayout.onMove}
+        />
+      )}
       {errorMessage && <div className={s.error}>{errorMessage}</div>}
       {enableMentions && mentionState.isOpen && (
         <MentionDropdown

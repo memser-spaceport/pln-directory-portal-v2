@@ -28,6 +28,32 @@ export interface AiAppDeploymentInfo {
   failureStream?: AiAppLogStream;
 }
 
+/**
+ * Who may find and open an app. OPEN = every PL Infra member; PRIVATE = the
+ * owner, directory admins, and the members on its whitelist. New apps start
+ * PRIVATE.
+ */
+export type AiAppAccessMode = 'OPEN' | 'PRIVATE';
+
+export type AiAppTargetEnvironment = 'prod' | 'preview';
+
+export interface AiAppTargetView {
+  environment: AiAppTargetEnvironment;
+  status: string;
+  url: string | null;
+  httpUrl: string | null;
+  host: string | null;
+  lastDeployedAt?: string | null;
+  serving: AiAppServing;
+  requiredEnvVars: string[];
+  providedEnvVars: string[];
+  hasBuild: boolean;
+  kitVersion?: string | null;
+  agentClient?: string | null;
+  failureReason?: string;
+  failureStream?: AiAppLogStream;
+}
+
 export interface AiApp {
   uid: string;
   memberUid: string;
@@ -59,6 +85,11 @@ export interface AiApp {
   prd?: string | null;
   /** Slugs from the controlled vocabulary (see `fetchAiAppTags`). Absent on older API versions. */
   tags?: string[];
+  /**
+   * LabOS Give feedback on the open app. Absent on older API versions — treat
+   * as on (`!== false`), matching the server default.
+   */
+  feedbackEnabled?: boolean;
   createdAt: string;
   updatedAt: string;
   member: {
@@ -71,6 +102,82 @@ export interface AiApp {
   viewCount?: number;
   /** Distinct signed-in members who loaded the iframe in the last 7 days. */
   weeklyActiveUsers?: number;
+  /** Absent on older API versions — treat as OPEN (every app was open before access control). */
+  access?: AiAppAccessMode;
+  /**
+   * Managers only. False while the app still runs an auth sidecar from before
+   * per-app access: a PRIVATE setting hides it in LabOS, but its direct URL
+   * stays open to PL Infra members until the next deploy.
+   */
+  directLinkGateReady?: boolean;
+  /**
+   * Managers only. Path patterns (e.g. `/api/*`) the deployed app serves to
+   * anyone without LabOS sign-in. Absent for non-managers and older API versions.
+   */
+  publicPaths?: string[];
+  /**
+   * Managers only. False while the app still runs an auth sidecar that doesn't
+   * forward the request path — its public paths take effect after one redeploy.
+   */
+  publicPathsGateReady?: boolean;
+  /** Whether the requester may open the preview target. */
+  canViewPreview?: boolean;
+  /** Per-environment deploy targets. Absent on older API versions — prod is the app itself. */
+  deployments?: { prod: AiAppTargetView; preview: AiAppTargetView | null };
+}
+
+export function aiAppTarget(app: AiApp, environment: AiAppTargetEnvironment): AiAppTargetView {
+  const fromApi = app.deployments?.[environment];
+  if (fromApi) return fromApi;
+  if (environment === 'preview') {
+    return {
+      environment: 'preview',
+      status: 'IN_DEVELOPMENT',
+      url: null,
+      httpUrl: null,
+      host: null,
+      lastDeployedAt: null,
+      serving: 'none',
+      requiredEnvVars: [],
+      providedEnvVars: [],
+      hasBuild: false,
+    };
+  }
+  const shipped =
+    app.status === 'DRAFT' || app.status === 'DEPLOYING' || app.status === 'READY' || app.status === 'ERROR';
+  return {
+    environment: 'prod',
+    status: app.status,
+    url: app.url,
+    httpUrl: app.httpUrl,
+    host: app.host,
+    lastDeployedAt: app.lastDeployedAt ?? null,
+    serving: app.deployment?.serving ?? (shipped ? 'previous' : 'none'),
+    requiredEnvVars: app.requiredEnvVars ?? [],
+    providedEnvVars: app.providedEnvVars ?? [],
+    hasBuild: shipped,
+    failureReason: app.notes ?? undefined,
+    failureStream: app.deployment?.failureStream,
+  };
+}
+
+export function aiAppStatusLabel(status: string): string {
+  switch (status) {
+    case 'READY':
+      return 'Live';
+    case 'DEPLOYING':
+      return 'Deploying';
+    case 'DRAFT':
+      return 'Draft';
+    case 'ERROR':
+      return 'Failed';
+    default:
+      return 'Not deployed';
+  }
+}
+
+export function isPrivateAiApp(app: Pick<AiApp, 'access'>): boolean {
+  return app.access === 'PRIVATE';
 }
 
 export type AiAppFailureKind = 'warning' | 'danger' | 'legacy';
@@ -107,13 +214,20 @@ export interface DeployAiAppResult {
  * persisted in the directory DB). A 400 (e.g. missing required vars) surfaces
  * its message so the page can show it.
  */
-export async function deployAiApp(uid: string, secrets: Record<string, string>): Promise<DeployAiAppResult> {
+export async function deployAiApp(
+  uid: string,
+  secrets: Record<string, string>,
+  environment: AiAppTargetEnvironment = 'prod',
+): Promise<DeployAiAppResult> {
   const response = await customFetch(
     `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/deploy`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(Object.keys(secrets).length ? { secrets } : {}),
+      body: JSON.stringify({
+        ...(Object.keys(secrets).length ? { secrets } : {}),
+        environment,
+      }),
     },
     true,
   );
@@ -137,15 +251,86 @@ export async function deployAiApp(uid: string, secrets: Record<string, string>):
   return { app: await response.json(), error: null };
 }
 
+export interface AiAppDeployKeySummary {
+  uid: string;
+  environment: AiAppTargetEnvironment;
+  tokenPrefix: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+}
+
+export async function fetchAiAppDeployKeys(uid: string): Promise<AiAppDeployKeySummary[]> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/deploy-keys`,
+    { method: 'GET' },
+    true,
+  );
+  if (!response?.ok) return [];
+  const body = await response.json();
+  return Array.isArray(body?.keys) ? body.keys : [];
+}
+
+export async function createAiAppDeployKey(
+  uid: string,
+  environment: AiAppTargetEnvironment,
+): Promise<{ token: string; tokenPrefix: string; uid: string } | { error: string }> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/deploy-keys`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ environment }),
+    },
+    true,
+  );
+  if (!response?.ok) return { error: 'Could not create a deployment key.' };
+  return response.json();
+}
+
+export async function revokeAiAppDeployKey(uid: string, keyUid: string): Promise<boolean> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/deploy-keys/${encodeURIComponent(keyUid)}/revoke`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    },
+    true,
+  );
+  return !!response?.ok;
+}
+
+export async function deleteAiAppTarget(uid: string, environment: AiAppTargetEnvironment): Promise<string | null> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/deployments/${environment}`,
+    { method: 'DELETE' },
+    true,
+  );
+  if (!response?.ok) {
+    try {
+      const body = await response?.json();
+      if (typeof body?.message === 'string' && body.message) return body.message;
+    } catch {
+      // keep the generic message
+    }
+    return 'Could not tear down this environment.';
+  }
+  return null;
+}
+
 /**
  * Server-side reachability probe of the app's public URL (one attempt per call).
  * The detail page polls this before mounting/remounting the iframe so the user
  * sees our own loading/error state instead of a raw gateway error page. Any
  * failure (network, 404, …) is treated as "not live yet".
  */
-export async function checkAiAppLive(uid: string): Promise<boolean> {
+export async function checkAiAppLive(uid: string, environment: AiAppTargetEnvironment = 'prod'): Promise<boolean> {
   try {
-    const response = await customFetch(`${AI_APPS_API_URL}/${encodeURIComponent(uid)}/live`, { method: 'GET' }, true);
+    const response = await customFetch(
+      `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/live?environment=${environment}`,
+      { method: 'GET' },
+      true,
+    );
     if (!response || !response.ok) {
       return false;
     }
@@ -309,9 +494,9 @@ function sortLogEvents(events: AiAppLogEvent[]): AiAppLogEvent[] {
 export async function fetchAiAppLogsPage(
   uid: string,
   stream: AiAppLogStream,
-  opts: { signal?: AbortSignal; sinceMinutes?: number; nextToken?: string } = {},
+  opts: { signal?: AbortSignal; sinceMinutes?: number; nextToken?: string; environment?: AiAppTargetEnvironment } = {},
 ): Promise<AiAppLogsPage> {
-  const { signal, sinceMinutes } = opts;
+  const { signal, sinceMinutes, environment } = opts;
   const startedAt = Date.now();
   let sentToken = opts.nextToken;
 
@@ -322,6 +507,7 @@ export async function fetchAiAppLogsPage(
     // with numeric timestamps.
     const params = new URLSearchParams({ order: 'desc', limit: String(AI_APP_LOGS_PAGE_SIZE) });
     if (sinceMinutes !== undefined) params.set('sinceMinutes', String(sinceMinutes));
+    if (environment) params.set('environment', environment);
     if (sentToken !== undefined) params.set('nextToken', sentToken);
 
     let response: Response | undefined;
@@ -375,6 +561,168 @@ export async function fetchAiAppLogsPage(
   return { events: [], nextToken: sentToken };
 }
 
+export interface AiAppAllowedMember {
+  uid: string;
+  name: string;
+  image: string | null;
+  addedAt: string;
+}
+
+export interface AiAppAccessSettings {
+  access: AiAppAccessMode;
+  directLinkGateReady: boolean;
+  members: AiAppAllowedMember[];
+  preview?: AiAppAccessSettings;
+}
+
+export interface AiAppAccessCandidate {
+  uid: string;
+  name: string;
+  image: string | null;
+  teamName: string | null;
+  /** Members without AI Apps access could never open the app, so the picker hides them. */
+  hasAiAppsAccess: boolean;
+  alreadyAdded: boolean;
+}
+
+export interface AiAppAccessResult {
+  data: AiAppAccessSettings | null;
+  error: string | null;
+}
+
+async function parseAccessResponse(response: Response | undefined, fallback: string): Promise<AiAppAccessResult> {
+  if (!response) {
+    return { data: null, error: fallback };
+  }
+  if (!response.ok) {
+    let message = fallback;
+    if (response.status === 403) {
+      message = 'Only the app creator or a directory admin can manage access.';
+    } else if (response.status === 404) {
+      message = 'This app no longer exists.';
+    } else {
+      try {
+        const body = await response.json();
+        if (typeof body?.message === 'string' && body.message) {
+          message = body.message;
+        }
+      } catch {
+        // Non-JSON error body — keep the generic message.
+      }
+    }
+    return { data: null, error: message };
+  }
+  return { data: await response.json(), error: null };
+}
+
+/** Access mode + whitelist. Creator or directory admin only. */
+export async function fetchAiAppAccess(uid: string): Promise<AiAppAccessResult> {
+  const response = await customFetch(`${AI_APPS_API_URL}/${encodeURIComponent(uid)}/access`, { method: 'GET' }, true);
+  return parseAccessResponse(response, 'Could not load who has access. Please try again.');
+}
+
+/** Replaces the access mode and the WHOLE whitelist (the backend keeps the list while the app is OPEN). */
+export async function saveAiAppAccess(
+  uid: string,
+  input: { access: AiAppAccessMode; memberUids: string[]; environment?: AiAppTargetEnvironment },
+): Promise<AiAppAccessResult> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/access`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    },
+    true,
+  );
+  return parseAccessResponse(response, 'Saving failed. Please try again.');
+}
+
+export interface AiAppPublicPathsSettings {
+  publicPaths: string[];
+  publicPathsGateReady: boolean;
+}
+
+export interface AiAppPublicPathsResult {
+  data: AiAppPublicPathsSettings | null;
+  /** On a 400 the backend's message names each invalid pattern and why. */
+  error: string | null;
+}
+
+async function parsePublicPathsResponse(
+  response: Response | undefined,
+  fallback: string,
+): Promise<AiAppPublicPathsResult> {
+  if (!response) {
+    return { data: null, error: fallback };
+  }
+  if (!response.ok) {
+    let message = fallback;
+    if (response.status === 403) {
+      message = 'Only the app creator or a directory admin can manage public endpoints.';
+    } else if (response.status === 404) {
+      message = 'This app no longer exists.';
+    } else {
+      try {
+        const body = await response.json();
+        if (typeof body?.message === 'string' && body.message) {
+          message = body.message;
+        }
+      } catch {
+        // Non-JSON error body — keep the generic message.
+      }
+    }
+    return { data: null, error: message };
+  }
+  return { data: await response.json(), error: null };
+}
+
+/** Public path patterns of one app. Creator or directory admin only. */
+export async function fetchAiAppPublicPaths(uid: string): Promise<AiAppPublicPathsResult> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/public-paths`,
+    { method: 'GET' },
+    true,
+  );
+  return parsePublicPathsResponse(response, 'Could not load public endpoints. Please try again.');
+}
+
+/** Replaces the WHOLE public path list (`[]` clears it). Applies on the next request — no redeploy. */
+export async function saveAiAppPublicPaths(uid: string, publicPaths: string[]): Promise<AiAppPublicPathsResult> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/public-paths`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ publicPaths }),
+    },
+    true,
+  );
+  return parsePublicPathsResponse(response, 'Saving failed. Please try again.');
+}
+
+/** Member name search for the whitelist picker; an empty list on any failure. */
+export async function searchAiAppAccessCandidates(
+  uid: string,
+  search: string,
+  environment: AiAppTargetEnvironment = 'prod',
+): Promise<AiAppAccessCandidate[]> {
+  try {
+    const params = new URLSearchParams({ search, environment });
+    const response = await customFetch(
+      `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/access/candidates?${params}`,
+      { method: 'GET' },
+      true,
+    );
+    if (!response || !response.ok) {
+      return [];
+    }
+    return response.json();
+  } catch {
+    return [];
+  }
+}
+
 export interface UpdateAiAppPatch {
   name?: string;
   description?: string;
@@ -382,6 +730,8 @@ export interface UpdateAiAppPatch {
   prd?: string | null;
   /** Replaces the whole tag list. */
   tags?: string[];
+  /** LabOS Give feedback on the open app. */
+  feedbackEnabled?: boolean;
 }
 
 export interface UpdateAiAppResult {
@@ -432,6 +782,8 @@ export interface UpdateAiAppFileInput {
   name?: string;
   description?: string;
   tags?: string[];
+  /** LabOS Give feedback on the open app. Sent as `"true"` / `"false"`. */
+  feedbackEnabled?: boolean;
   /** The one-pager file itself — the backend derives `prd` from its contents. */
   file: File;
 }
@@ -448,6 +800,7 @@ export async function updateAiAppFile(uid: string, input: UpdateAiAppFileInput):
   if (input.description !== undefined) formData.append('description', input.description);
   // Multipart carries the list as a JSON string; the backend parses it back.
   if (input.tags !== undefined) formData.append('tags', JSON.stringify(input.tags));
+  if (input.feedbackEnabled !== undefined) formData.append('feedbackEnabled', String(input.feedbackEnabled));
   formData.append('file', input.file);
 
   const response = await customFetch(

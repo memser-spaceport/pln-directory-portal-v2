@@ -70,7 +70,7 @@ const HOW_ITEMS: HowItem[] = [
 
 const ROLE_ITEMS = [
   { role: 'Founders', description: 'driving new ventures', icon: <RocketLaunch size={19} weight="regular" /> },
-  { role: 'Researchers', description: 'advancing core protocols', icon: <Flask size={19} weight="regular" /> },
+  { role: 'Researchers', description: 'accelerating frontier fields', icon: <Flask size={19} weight="regular" /> },
   {
     role: 'Builders',
     description: 'shipping tools, products, and experiments',
@@ -93,7 +93,7 @@ export interface OverviewToplineProps {
 export default function OverviewTopline({ trustHoldings }: OverviewToplineProps) {
   const { onOverviewPortfolioLinkClicked, onOverviewActivitiesLinkClicked } = useAlignmentAssetsAnalytics();
 
-  const handlePortfolioClick = () => onOverviewPortfolioLinkClicked('/alignment-asset/trust-holdings');
+  const handlePortfolioClick = () => onOverviewPortfolioLinkClicked('/alignment-asset/portfolio-holdings');
   const handleActivitiesClick = () => onOverviewActivitiesLinkClicked('/alignment-asset/activities', 'how-it-works');
 
   return (
@@ -103,7 +103,7 @@ export default function OverviewTopline({ trustHoldings }: OverviewToplineProps)
         <p className={styles.headerDesc}>
           The Protocol Labs Alignment Asset (PLAA) refers to both PLAA1 tokens and contractual rights to those tokens,
           redeemable through periodic buyback auctions. Whether you have rights or tokens, the experience is the same,
-          so we just call it all PLAA.
+          so we just call it all PLAA. Below is more information on how the program works.
         </p>
       </div>
 
@@ -118,7 +118,7 @@ export default function OverviewTopline({ trustHoldings }: OverviewToplineProps)
           <div className={styles.statValue}>{trustHoldings?.trustTotalValue ?? '—'}</div>
           <div className={styles.statDesc}>
             Net asset value backing PLAA — see{' '}
-            <Link href="/alignment-asset/trust-holdings" className={styles.link} onClick={handlePortfolioClick}>
+            <Link href="/alignment-asset/portfolio-holdings" className={styles.link} onClick={handlePortfolioClick}>
               Portfolio &amp; Holdings
             </Link>
           </div>

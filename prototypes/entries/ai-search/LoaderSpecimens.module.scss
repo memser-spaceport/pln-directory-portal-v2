@@ -1,0 +1,64 @@
+// The looping loader specimens under the page's lede. Type values are the
+// page's own (AiSearchPrototype.module.scss: 14/20 secondary copy).
+
+@use 'styles/media';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0 0 32px;
+}
+
+.heading {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.specimen {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.label {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 500;
+}
+
+.note {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* The AI view's thread padding (AnswerPanel .messages) on white, so each
+   loader sits under its question exactly as it does in the view. The height
+   holds the finished build, so the page below doesn't move as it draws. */
+.frame {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+}
+
+.specimen:last-child .frame {
+  min-height: 370px;
+
+  @include media.mobile-only {
+    min-height: 500px;
+  }
+}

@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 import { getParsedValue } from './common.utils';
 import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from './constants';
-import { clearAllAuthCookies } from './third-party.helper';
+import { clearAllAuthCookies, setSessionCookie } from './third-party.helper';
 import { authEvents } from '@/components/core/login/utils';
 
 const getAuthInfoFromCookie = () => {
@@ -85,21 +85,18 @@ export const setNewTokenAndUserInfoAtClientSide = (details: any) => {
   const refreshTokenExpiry = decodeToken(refreshToken) as any;
 
   if (refreshToken && accessToken && userInfo) {
-    Cookies.set('authToken', JSON.stringify(accessToken), {
+    setSessionCookie('authToken', JSON.stringify(accessToken), {
       expires: new Date(accessTokenExpiry.exp * 1000),
       path: '/',
-      domain: process.env.COOKIE_DOMAIN || '',
     });
 
-    Cookies.set('refreshToken', JSON.stringify(refreshToken), {
+    setSessionCookie('refreshToken', JSON.stringify(refreshToken), {
       expires: new Date(refreshTokenExpiry.exp * 1000),
       path: '/',
-      domain: process.env.COOKIE_DOMAIN || '',
     });
-    Cookies.set('userInfo', JSON.stringify(userInfo), {
+    setSessionCookie('userInfo', JSON.stringify(userInfo), {
       expires: new Date(accessTokenExpiry.exp * 1000),
       path: '/',
-      domain: process.env.COOKIE_DOMAIN || '',
     });
   }
 };

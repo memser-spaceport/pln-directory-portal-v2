@@ -2,7 +2,7 @@ import type { CannedAnswer, CorpusItem, DirectoryHit } from '../ai-search/mocks'
 import { hit, pick, tokenize } from '../ai-search/mocks';
 import type { AiSearchScope } from '../ai-search/scope';
 import type { FeedComment } from '../newsfeed-v0/mocks';
-import type { RoleApplicant } from './applicantMocks';
+import type { RoleCandidate } from './candidateMocks';
 import type { ContributionEvent, TeamFollower } from './mocks';
 
 /**
@@ -11,8 +11,8 @@ import type { ContributionEvent, TeamFollower } from './mocks';
  * leads on this page.
  *
  * Every prompt is tied to a section the page renders *for this viewer right
- * now*. No open roles, no applicants prompt; a member who isn't a lead can't
- * read applicants on the page, so the dialog doesn't offer to read them
+ * now*. No open roles, no candidates prompt; a member who isn't a lead can't
+ * read candidates on the page, so the dialog doesn't offer to read them
  * either. The answers are computed from the same fixtures the sections draw,
  * so an answer and the section its door opens always agree.
  *
@@ -29,9 +29,9 @@ export interface TeamScopeInput {
   members: { id: string; name: string; skills?: { title: string }[]; teams?: { role?: string }[] }[];
   /** The Open roles section's roles, or null when it isn't drawn. */
   roles: { uid: string; roleTitle: string }[] | null;
-  applicantsFor: (roleUid: string) => RoleApplicant[];
-  /** Leads and admins. The applicants page is theirs. */
-  canSeeApplicants: boolean;
+  candidatesFor: (roleUid: string) => RoleCandidate[];
+  /** Leads and admins. The candidates page is theirs. */
+  canSeeCandidates: boolean;
   /**
    * On the team's side of the page (admin, lead, member). A visitor asks in
    * the third person and can't read the follower list, so they get neither
@@ -72,13 +72,13 @@ export function buildTeamAiScope(input: TeamScopeInput): AiSearchScope {
   type Entry = { text: string; icon: string; answer: () => CannedAnswer };
   const entries: Entry[] = [];
 
-  // Open roles → applicants. The role with the most applications this week.
+  // Open roles → candidates. The role with the most applications this week.
   const role =
-    input.canSeeApplicants && roles?.length
-      ? [...roles].sort((a, b) => recent(input.applicantsFor(b.uid)).length - recent(input.applicantsFor(a.uid)).length)[0]
+    input.canSeeCandidates && roles?.length
+      ? [...roles].sort((a, b) => recent(input.candidatesFor(b.uid)).length - recent(input.candidatesFor(a.uid)).length)[0]
       : null;
-  if (role && recent(input.applicantsFor(role.uid)).length > 0) {
-    const applied = recent(input.applicantsFor(role.uid));
+  if (role && recent(input.candidatesFor(role.uid)).length > 0) {
+    const applied = recent(input.candidatesFor(role.uid));
     const unseen = applied.filter((a) => a.unseen).map((a) => a.name.split(' ')[0]);
     entries.push({
       text: `Who applied to ${role.roleTitle} this week?`,
@@ -103,7 +103,7 @@ export function buildTeamAiScope(input: TeamScopeInput): AiSearchScope {
         scoped: {
           retrieved: `applications to ${role.roleTitle}, last 7 days`,
           restrictedTo: LEADS_ONLY,
-          door: { label: 'Open applicants', target: `applicants:${role.uid}` },
+          door: { label: 'Open candidates', target: `candidates:${role.uid}` },
         },
       }),
     });
@@ -248,11 +248,11 @@ export function buildTeamAiScope(input: TeamScopeInput): AiSearchScope {
       input.isTeamView ? `${followers.length} followers` : null,
       news.length ? `${news.length} news ${news.length === 1 ? 'post' : 'posts'}` : null,
     ].filter(Boolean) as string[];
-    const newApplicants =
-      input.canSeeApplicants && roles ? roles.flatMap((r) => input.applicantsFor(r.uid)).filter((a) => a.unseen).length : 0;
+    const newCandidates =
+      input.canSeeCandidates && roles ? roles.flatMap((r) => input.candidatesFor(r.uid)).filter((a) => a.unseen).length : 0;
     return {
       answer: `${teamName} has ${list(parts)}.${
-        newApplicants ? ` ${newApplicants} applications haven't been opened yet.` : ''
+        newCandidates ? ` ${newCandidates} applications haven't been opened yet.` : ''
       } Ask about any of them to see the people behind the numbers.`,
       sources: [],
       sql: members.map(
@@ -337,7 +337,7 @@ export function buildTeamAiScope(input: TeamScopeInput): AiSearchScope {
   };
 }
 
-function recent(applicants: RoleApplicant[]) {
+function recent(candidates: RoleCandidate[]) {
   const now = Date.now();
-  return applicants.filter((a) => now - new Date(a.appliedAt).getTime() <= WEEK_MS);
+  return candidates.filter((a) => now - new Date(a.appliedAt).getTime() <= WEEK_MS);
 }

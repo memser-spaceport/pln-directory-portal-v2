@@ -1,0 +1,374 @@
+.wrap {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  line-height: 0;
+}
+
+.image {
+  display: block;
+  max-width: 100%;
+  max-height: min(70vh, 720px);
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.pin {
+  position: absolute;
+  z-index: 2;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-left: -11px;
+  margin-top: -11px;
+  border: 2px solid #fff;
+  border-radius: 9999px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  user-select: none;
+}
+
+.pinMove {
+  cursor: grab;
+}
+
+/* No padding or border: the box is the text, so a label wraps on the same
+   words here as in a preview, where nothing is drawn around it. */
+.label {
+  position: absolute;
+  z-index: 2;
+  box-sizing: border-box;
+  width: max-content;
+  line-height: 1.3;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  text-align: left;
+  pointer-events: none;
+  user-select: none;
+}
+
+.labelMove {
+  pointer-events: auto;
+  touch-action: none;
+  cursor: move;
+}
+
+.labelActive {
+  z-index: 4;
+  outline: 1px dashed var(--foreground-brand-primary, #1b4dff);
+  outline-offset: 3px;
+}
+
+.labelTyping {
+  cursor: text;
+
+  .labelText {
+    visibility: hidden;
+  }
+}
+
+.labelText {
+  display: block;
+}
+
+.labelField {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow: hidden;
+  resize: none;
+
+  &::placeholder {
+    color: currentColor;
+    opacity: 0.45;
+  }
+}
+
+.labelGrip {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  width: 10px;
+  height: 10px;
+  border: 1px solid #fff;
+  border-radius: 2px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  cursor: ew-resize;
+  touch-action: none;
+
+  /* A 10px square to look at, a 34px one to hit with a finger. */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -12px;
+  }
+}
+
+.labelBar {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow:
+    0px 10px 20px -5px rgba(14, 15, 17, 0.08),
+    0px 20px 65px -5px rgba(14, 15, 17, 0.12);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.labelBarBelow {
+  top: calc(100% + 10px);
+  bottom: auto;
+}
+
+.labelBarEnd {
+  right: 0;
+  left: auto;
+}
+
+.labelBarButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.labelBold {
+  font-weight: 700;
+}
+
+.labelBarButtonOn {
+  background: rgba(27, 77, 255, 0.08);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.labelSize {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  margin-right: 2px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 6px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:focus-within {
+    border-color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  input {
+    width: 30px;
+    padding: 0 2px 0 6px;
+    border: 0;
+    outline: none;
+    background: none;
+    color: var(--foreground-neutral-primary, #0a0c11);
+    font: inherit;
+    appearance: textfield;
+    -moz-appearance: textfield;
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  }
+
+  /* Only the chevron shows: the number beside it already says the size. */
+  select {
+    width: 20px;
+    height: 100%;
+    margin-left: 4px;
+    padding: 0;
+    border: 0;
+    border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    border-radius: 0 5px 5px 0;
+    appearance: none;
+    color: transparent;
+    cursor: pointer;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 5'%3E%3Cpath d='M1 1l3 3 3-3' fill='none' stroke='%23455468' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+      center / 8px 5px no-repeat;
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  option {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+/* The comment tool's crosshair, held over the pin rather than replaced by it —
+   see `pinKeepsCrosshair`. Declared before `.pinDragging` so a drag that IS
+   under way still says so: losing `grab` at rest is the point, losing
+   `grabbing` mid-drag would leave a moving pin with no feedback at all. */
+.pinCrosshair {
+  cursor: crosshair;
+}
+
+.pinDragging {
+  z-index: 4;
+  cursor: grabbing;
+}
+
+/**
+ * The panel hangs down-and-right of its pin by default, and flips to the other
+ * side of either axis when that would put it past the image's edge.
+ *
+ * `--flip-x` / `--flip-y` are set to 0 or 1 by the component, which is the only
+ * place that knows how much room is left. Driving both the transform and the
+ * offset's sign from the same variable keeps the gap to the pin equal on
+ * whichever side the panel ends up.
+ *
+ * It has to flip rather than simply overhang: `.stage` scrolls, so a panel that
+ * spills off the right adds a horizontal scrollbar to the whole editor.
+ */
+.bubble,
+.composer {
+  --flip-x: 0;
+  --flip-y: 0;
+  position: absolute;
+  z-index: 3;
+  box-sizing: border-box;
+  margin-top: calc(14px - var(--flip-y) * 28px);
+  margin-left: calc(8px - var(--flip-x) * 16px);
+  transform: translate(calc(var(--flip-x) * -100%), calc(var(--flip-y) * -100%));
+  width: 240px;
+  max-width: calc(100% - 16px);
+  padding: 8px 32px 8px 10px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow:
+    0px 10px 20px -5px rgba(14, 15, 17, 0.08),
+    0px 20px 65px -5px rgba(14, 15, 17, 0.12);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 13px;
+  line-height: 18px;
+  text-align: left;
+  white-space: pre-wrap;
+  overflow: visible;
+}
+
+.remove {
+  position: absolute;
+  top: 8px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 0;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.composer {
+  pointer-events: auto;
+}
+
+.composerInput {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 6px;
+  padding: 6px 8px;
+  font: inherit;
+  line-height: 18px;
+  resize: none;
+}
+
+.removeText {
+  display: block;
+  margin-top: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

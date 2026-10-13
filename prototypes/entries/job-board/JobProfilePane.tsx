@@ -194,6 +194,7 @@ import {
   type JobSearchStatus,
   type MemberProfile,
 } from './viewerState';
+import { Checkbox } from '@/components/common/Checkbox';
 import d from './JobProfilePane.module.scss';
 // The flow's shared chrome, for the one class this pane reaches into: `.lede`,
 // the sentence each step opens with. Imported rather than restated so the
@@ -1235,6 +1236,8 @@ export function JobProfilePane(props: JobProfilePaneProps) {
             <JobSearchStatusInput
               value={draft.jobSearchStatus}
               onChange={(value) => setDraft((prev) => ({ ...prev, jobSearchStatus: value }))}
+              discoverable={draft.discoverable ?? false}
+              onDiscoverableChange={(next) => setDraft((prev) => ({ ...prev, discoverable: next }))}
             />
           </div>
         </DetailsSection>
@@ -2650,9 +2653,20 @@ export function JobSearchStatusInput({
   value,
   onChange,
   name = 'job-search-status',
+  discoverable,
+  onDiscoverableChange,
 }: {
   value: JobSearchStatus | '';
   onChange: (next: JobSearchStatus) => void;
+  /**
+   * The opt-in under the options: "Let hiring teams in the network find me".
+   * Passed by the profile step only. The account step and the sign-up modal
+   * leave it out — a stranger's first act is opening an account, not deciding
+   * who may be shown their profile — and the privacy sentence stands there as
+   * before.
+   */
+  discoverable?: boolean;
+  onDiscoverableChange?: (next: boolean) => void;
   /**
    * The radio group's `name`. Defaulted, because for a long time there was only
    * one of these on the board and the name was a literal.
@@ -2689,9 +2703,15 @@ export function JobSearchStatusInput({
           Still one sentence in the same 12px tertiary voice as the option
           hints, so it reads as a note on the section rather than a second
           announcement competing with the pill. */}
-      <p className={d.statusPrivacyNote}>
-        Used to decide whether to surface your profile to founders who are hiring — never to your current team.
-      </p>
+      {/* With the opt-in below, that sentence would narrate what the tick now
+          decides ("used to surface your profile to founders"), so the host that
+          passes the tick drops it and the tick's own hint carries both halves:
+          what a team sees, and who never does. */}
+      {!onDiscoverableChange && (
+        <p className={d.statusPrivacyNote}>
+          Used to decide whether to surface your profile to founders who are hiring — never to your current team.
+        </p>
+      )}
 
       <div className={d.statusOptions} role="radiogroup" aria-label="Job search status">
         {JOB_SEARCH_STATUS_OPTIONS.map((option) => (
@@ -2712,6 +2732,24 @@ export function JobSearchStatusInput({
           </label>
         ))}
       </div>
+
+      {/* Offer, don't announce: whether a member is proposed to hiring teams
+          is a consequence for them, so it is a tick and not a sentence. Off by
+          default. The status above stays "Only visible to you" either way — a
+          suggestion carries the public profile, never this answer — which is
+          why the pill does not change when this is on. */}
+      {onDiscoverableChange && (
+        <label className={d.discoverable}>
+          <Checkbox checked={discoverable ?? false} onChange={onDiscoverableChange} />
+          <span className={pc.root}>
+            <span className={pc.label}>Let hiring teams in the network find me</span>
+            <span className={pc.hint}>
+              Teams with a role that fits see your public profile as a suggestion and can invite you to apply. They
+              never see this status, and your current team is never shown you.
+            </span>
+          </span>
+        </label>
+      )}
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   AiAppLogsError,
   AiAppLogsPage,
   AiAppLogStream,
+  AiAppTargetEnvironment,
 } from '@/services/ai-apps/ai-apps.service';
 
 /**
@@ -43,9 +44,14 @@ export const RUNTIME_WINDOW_LABEL = 'last hour';
  * refetch runs — accepted. retry 0: a retry would hit the CloudWatch proxy
  * exactly when the runner is unhealthy, and the user has Refresh.
  */
-export function useAiAppLogs(uid: string, stream: AiAppLogStream, options: { enabled: boolean }) {
+export function useAiAppLogs(
+  uid: string,
+  stream: AiAppLogStream,
+  options: { enabled: boolean; environment?: AiAppTargetEnvironment },
+) {
   const queryClient = useQueryClient();
-  const queryKey = [AiAppsQueryKeys.AI_APP_LOGS, uid, stream];
+  const environment = options.environment ?? 'prod';
+  const queryKey = [AiAppsQueryKeys.AI_APP_LOGS, uid, environment, stream];
 
   const query = useInfiniteQuery<AiAppLogsPage, Error>({
     queryKey,
@@ -55,6 +61,7 @@ export function useAiAppLogs(uid: string, stream: AiAppLogStream, options: { ena
         signal,
         nextToken: pageParam as string | undefined,
         sinceMinutes: stream === 'runtime' ? RUNTIME_WINDOW_MINUTES : undefined,
+        environment,
       }),
     getNextPageParam: (lastPage) => lastPage.nextToken,
     enabled: options.enabled,

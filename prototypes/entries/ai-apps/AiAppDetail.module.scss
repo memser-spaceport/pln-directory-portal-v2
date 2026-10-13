@@ -206,6 +206,12 @@
   color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
+/* Positioning context for comment mode's overlay; nothing else about the frame
+   changes. Overflow stays visible so a pin's popover can leave the frame. */
+.previewStage {
+  position: relative;
+}
+
 .previewWrap {
   height: 480px;
   overflow: hidden;

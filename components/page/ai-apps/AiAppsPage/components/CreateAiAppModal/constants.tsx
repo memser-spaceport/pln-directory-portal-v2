@@ -57,6 +57,46 @@ export const MODAL_INTRO =
 
 export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = [
   {
+    version: '1.16',
+    items: [
+      'Ask your agent for Preview testing users — it creates them and gives you 24-hour session tokens for a load test. Tokens work on Preview only, not Production',
+      'Ask your agent to add the new LabOS feedback script to every page of your app — the kit tells it how. It lets people attach a picture of your app to their feedback without sharing their screen',
+      'Feedback pictures of your app never show what people typed. Ask your agent to hide anything else private, and LabOS greys it out in every picture',
+    ],
+  },
+  {
+    version: '1.15',
+    items: [
+      'Deploys no longer time out. Your agent gets an answer right away and then follows the build until it is live or has failed, so it no longer reports a failure for a deploy that actually worked',
+      'If a deploy fails, your agent sees why — whether the build or the running app failed — and goes straight to the right logs',
+      'Kits downloaded before this version report "deployed" as soon as the upload is accepted, while the build is still running. The app page always shows the real status. Download this kit so your agent waits for the result',
+      'Your agent can read the feedback people leave on your app, including screenshots, and work through it with you',
+      'When your agent starts on an item it marks it Viewed. Once the fix is deployed it marks it Implemented. You see the same status on the app page',
+      'Agents never move an item back to New. That, and any other status change, is still yours to make from LabOS',
+    ],
+  },
+  {
+    version: '1.14',
+    items: [
+      'Preview is for testing, QA, and development. It sits next to Production and does not change the live app',
+      'Preview is private by default. Share it with a few people from Manage access. Switch between Production and Preview on the app page',
+      '(Via UI) In Deployment settings, create a deployment key and give it to your agent or GitHub Actions. It deploys the app to this environment (Production or Preview), so you do not approve a new LabOS link each time. The full key is shown once. Revoke it anytime',
+      'Your app now learns who is signed in from its own address — there is no LabOS token for your code to read or pass around',
+      'The sign-in your app receives works for your app only, not for LabOS or other apps',
+      'Apps built with earlier kits keep working as they are — no redeploy needed. Download this kit so your agent also knows how to deploy a Preview and use a deployment key',
+    ],
+  },
+  {
+    version: '1.13',
+    items: [
+      'Choose who can open your app: all PL Infra members (the default) or private to you. Your agent asks before the first deploy',
+      '(Via UI) Manage access from your app’s ⋮ menu: make it private and add specific members, or open it to all PL Infra members again. Switch anytime — your list of people is kept',
+      'Members you haven’t added don’t see a private app in the catalog, and get a “no access” page if they open its link',
+      'Public endpoints: paths that skip LabOS sign-in, so a cron job, a webhook (Stripe, GitHub), an MCP endpoint, or a public page can reach the app. Your agent sets them at deploy, with your approval. LabOS does not check sign-in on these paths, so the app has to (a signature or its own API key)',
+      '(Via UI) Add, edit, or remove public endpoints anytime in Deployment settings — changes apply right away, no redeploy',
+    ],
+  },
+  {
     version: '1.12',
     items: [
       '(Via UI) You can now see logs from your previous deploy too — Deployment logs cover everything your app printed in the chosen time window, with a marker where the earlier deployment starts',

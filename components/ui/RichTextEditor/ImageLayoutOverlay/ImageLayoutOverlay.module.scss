@@ -1,0 +1,99 @@
+.root {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  outline: 1px solid #1b4dff;
+  outline-offset: 1px;
+}
+
+.handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: #fff;
+  border: 1px solid #1b4dff;
+  border-radius: 2px;
+  pointer-events: auto;
+  // Without this a touch drag on a handle scrolls the page instead.
+  touch-action: none;
+}
+
+.nw {
+  top: -5px;
+  left: -5px;
+  cursor: nwse-resize;
+}
+
+.ne {
+  top: -5px;
+  right: -5px;
+  cursor: nesw-resize;
+}
+
+.sw {
+  bottom: -5px;
+  left: -5px;
+  cursor: nesw-resize;
+}
+
+.se {
+  bottom: -5px;
+  right: -5px;
+  cursor: nwse-resize;
+}
+
+// Below the image rather than above it: the space above can be the editor's
+// own toolbar when the image is the first thing in the body.
+.wrapBar {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background-color: #fff;
+  border: 1px solid rgba(27, 56, 96, 0.24);
+  border-radius: 6px;
+  pointer-events: auto;
+  box-shadow:
+    0 10px 15px 0 rgba(14, 15, 17, 0.12),
+    0 4px 6px 0 rgba(14, 15, 17, 0.06);
+}
+
+.wrapButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background-color: transparent;
+  color: #455468;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background-color: rgba(27, 56, 96, 0.08);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+}
+
+.separator {
+  width: 1px;
+  margin: 2px 2px;
+  background-color: rgba(27, 56, 96, 0.16);
+}
+
+.wrapButtonActive {
+  color: #1b4dff;
+  background-color: rgba(27, 77, 255, 0.08);
+
+  &:hover {
+    background-color: rgba(27, 77, 255, 0.16);
+  }
+}

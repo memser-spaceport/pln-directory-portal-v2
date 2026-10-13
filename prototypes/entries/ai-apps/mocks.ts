@@ -154,6 +154,42 @@ export type AiAppWithDoc = AiApp & {
 /** The member browsing the prototype — "you" in the Created by filter and the feedback dialog. */
 export const currentUser = { uid: 'm-1', name: 'Polina Bublii' };
 
+/**
+ * The controlled tag vocabulary. On dev this is `GET /v1/ai-apps/tags`, read
+ * through the `useAiAppTags` react-query hook and capped per app by `maxPerApp`
+ * — so it's mocked here, with labels of the length the real ones run to. (The
+ * endpoint was down when this was written; swap in the real list when it's up.)
+ */
+export const aiAppTags: { slug: string; label: string }[] = [
+  { slug: 'directory-data', label: 'Directory data' },
+  { slug: 'research', label: 'Research' },
+  { slug: 'fundraising', label: 'Fundraising' },
+  { slug: 'events', label: 'Events' },
+  { slug: 'knowledge', label: 'Knowledge & docs' },
+  { slug: 'productivity', label: 'Productivity' },
+  { slug: 'agents', label: 'Agents' },
+  { slug: 'analytics', label: 'Analytics' },
+  { slug: 'onboarding', label: 'Onboarding' },
+  { slug: 'comms', label: 'Communications' },
+  { slug: 'dev-tooling', label: 'Developer tooling' },
+  { slug: 'data-pipelines', label: 'Data pipelines' },
+  { slug: 'network-insights', label: 'Network insights' },
+  { slug: 'meeting-productivity', label: 'Meeting productivity' },
+  { slug: 'recruiting', label: 'Recruiting' },
+];
+
+/**
+ * The per-app cap. Deliberately high enough that the overflow is the normal
+ * case rather than an edge one: a card ~300px wide holds two or three of these
+ * labels, so a well-tagged app spends most of its row on the "+n".
+ */
+export const maxTagsPerApp = 8;
+
+/** Mirrors the hook's `getLabel`: falls back to the slug so a newer tag still renders. */
+export function getTagLabel(slug: string): string {
+  return aiAppTags.find((tag) => tag.slug === slug)?.label ?? slug;
+}
+
 /** Transcribed from dev's GiveAiAppFeedbackDialog: feedback about the platform itself. */
 export const LABOS_AI_APPS_OPTION = { label: 'LabOS - AI Apps', value: '__labos_ai_apps__' };
 
@@ -295,6 +331,7 @@ export const mockAiApps: AiAppWithDoc[] = [
     appId: 'intro-matcher',
     name: 'Warm Intro Matcher',
     description: 'Suggests the strongest mutual connection for a target investor and drafts the intro request.',
+    tags: ['fundraising', 'directory-data', 'agents', 'comms', 'network-insights', 'research'],
     status: 'READY',
     notes: null,
     url: '',
@@ -371,6 +408,7 @@ export const mockAiApps: AiAppWithDoc[] = [
     appId: 'founder-digest',
     name: 'Founder Digest',
     description: 'Weekly summary of new founders in the directory, ranked by alignment with PL Infra focus areas.',
+    tags: ['research', 'directory-data', 'analytics', 'network-insights'],
     status: 'READY',
     notes: null,
     url: '',
@@ -440,6 +478,7 @@ export const mockAiApps: AiAppWithDoc[] = [
     appId: 'event-scout',
     name: 'Event Scout',
     description: 'Finds upcoming IRL events relevant to a team and flags which network members are already attending.',
+    tags: ['events', 'directory-data', 'research'],
     status: 'READY',
     notes: null,
     url: '',
@@ -502,6 +541,7 @@ export const mockAiApps: AiAppWithDoc[] = [
     appId: 'deal-notes',
     name: 'Deal Notes Assistant',
     description: 'Turns raw call notes into a structured deal memo and syncs it to the team Notion workspace.',
+    tags: ['fundraising', 'productivity', 'knowledge', 'agents', 'meeting-productivity'],
     // Last deploy failed — the app still serves its previous revision, but the
     // creator needs the logs to see why the new one never went live.
     status: 'ERROR',
@@ -591,6 +631,7 @@ export const mockAiApps: AiAppWithDoc[] = [
     appId: 'grant-tracker',
     name: 'Grant Tracker',
     description: 'Tracks open grant programs across the network and nudges teams before application deadlines.',
+    tags: ['fundraising', 'analytics', 'productivity'],
     // First deploy never built, so this app has never run — the runtime stream
     // is genuinely empty, not just quiet.
     status: 'ERROR',
@@ -658,6 +699,18 @@ export const mockAiApps: AiAppWithDoc[] = [
     appId: 'skill-graph',
     name: 'Skill Graph Explorer',
     description: 'Maps who knows what across the network and finds the shortest path to expertise you need.',
+    // The worst case, at the cap: three fit on a ~300px card, so five go behind
+    // the "+n". This is the app the overflow treatment is sized against.
+    tags: [
+      'directory-data',
+      'research',
+      'analytics',
+      'agents',
+      'knowledge',
+      'network-insights',
+      'data-pipelines',
+      'dev-tooling',
+    ],
     status: 'READY',
     notes: null,
     url: '',
@@ -684,6 +737,7 @@ export const mockAiApps: AiAppWithDoc[] = [
     appId: 'meeting-notes-sync',
     name: 'Meeting Notes Sync',
     description: 'Pulls action items out of meeting notes and files them against the right team and project.',
+    tags: ['productivity', 'meeting-productivity', 'knowledge'],
     // Never deployed by choice — the creator is still filling in secrets.
     status: 'DRAFT',
     notes: null,
@@ -705,6 +759,7 @@ export const mockAiApps: AiAppWithDoc[] = [
     appId: 'portfolio-pulse',
     name: 'Portfolio Pulse',
     description: 'Weekly rollup of portfolio-team news, hiring and funding, written as a single briefing.',
+    tags: ['analytics', 'research', 'comms', 'network-insights'],
     status: 'READY',
     notes: null,
     url: '',
@@ -731,6 +786,7 @@ export const mockAiApps: AiAppWithDoc[] = [
     appId: 'docs-qa',
     name: 'Docs Q&A Bot',
     description: 'Answers questions about internal handbooks and links straight to the paragraph it used.',
+    tags: ['knowledge', 'agents', 'dev-tooling'],
     status: 'READY',
     notes: null,
     url: '',
@@ -752,6 +808,7 @@ export const mockAiApps: AiAppWithDoc[] = [
     appId: 'onboarding-buddy',
     name: 'Onboarding Buddy',
     description: 'Walks a new member through their first week: profile, office hours, and who to meet.',
+    tags: ['onboarding', 'directory-data', 'comms', 'recruiting'],
     status: 'READY',
     notes: null,
     url: '',

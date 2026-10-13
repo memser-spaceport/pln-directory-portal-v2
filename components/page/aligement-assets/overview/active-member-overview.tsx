@@ -23,9 +23,7 @@ import type { TrustHoldingsData } from '@/services/plaa/trust-holdings.service';
 import OverviewTopline from './overview-topline';
 import SnapshotRoundPicker, { RoundChangeMethod } from './snapshot-round-picker';
 import styles from './overview.module.scss';
-import type { CSSProperties } from 'react';
-
-const cssVars = (vars: Record<string, string>) => vars as CSSProperties;
+import { cssVars } from './css-vars';
 
 const KPI_WEIGHTS_FALLBACK: KpiWeightEntry[] = [
   { category: 'Knowledge Sharing', weight: null, percentOfTotal: 22.58, emissionsPerSnapshot: 2258 },

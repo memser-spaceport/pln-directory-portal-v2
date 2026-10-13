@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
 import { usePlaaAccess } from '@/services/rbac/hooks/usePlaaAccess';
+import { isAlignmentAssetRoute } from '@/utils/isProtectedRoute';
 import { useCurrentSnapshotStatus } from '@/services/plaa/hooks/useCurrentSnapshotStatus';
 import { PlaaBuybackBannerBar, useBuybackBannerSlide } from '@/components/core/navbar/components/PlaaBuybackBanner/PlaaBuybackBanner';
 import { PlaaSnapshotBarBar } from '@/components/core/navbar/components/PlaaSnapshotBar/PlaaSnapshotBar';
@@ -24,8 +25,7 @@ export function PlaaTopBannerCarousel() {
   const pathname = usePathname();
   const { canView } = usePlaaAccess();
 
-  const isPlaaRoute = pathname === '/alignment-asset' || pathname?.startsWith('/alignment-asset/');
-  if (!isPlaaRoute || !canView) {
+  if (!pathname || !isAlignmentAssetRoute(pathname) || !canView) {
     return null;
   }
 

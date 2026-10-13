@@ -13,7 +13,7 @@ const AI_APPS_PUBLIC_ROUTES = ['/pl-infra/ai-apps/connect', '/pl-infra/ai-apps/f
 
 export const ALIGNMENT_ASSET_PUBLIC_ROUTES = ['/alignment-asset'];
 
-function isAlignmentAssetRoute(pathname: string): boolean {
+export function isAlignmentAssetRoute(pathname: string): boolean {
   return pathname === '/alignment-asset' || pathname.startsWith('/alignment-asset/');
 }
 

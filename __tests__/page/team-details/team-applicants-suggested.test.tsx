@@ -87,10 +87,12 @@ jest.mock('@/services/jobs/hooks/useTeamApplicants', () => ({
   useMarkApplicantSeen: () => ({ mutate: jest.fn() }),
   useToggleApplicantReviewed: () => ({ mutate: jest.fn() }),
   useSuggestedCandidates: (...args: unknown[]) => useSuggestedCandidates(...args),
+  useSaveMatchCriteria: () => ({ mutate: jest.fn(), isPending: false }),
+  useContactSuggestedCandidate: () => ({ mutate: jest.fn(), isPending: false }),
 }));
 
 import { TeamApplicantsView } from '@/components/page/team-details/TeamApplicants';
-import type { SuggestedCandidate } from '@/schema/suggested-candidates';
+import type { RoleCriterion, SuggestedCandidate } from '@/schema/suggested-candidates';
 import type { TeamApplicant } from '@/schema/team-applicants';
 import type { IJobRole } from '@/types/jobs.types';
 
@@ -148,8 +150,17 @@ const APPLICANT: TeamApplicant = {
 const setLists = (data: { applications: TeamApplicant[]; interests: TeamApplicant[] } | undefined) =>
   useRoleApplicants.mockReturnValue({ data, isPending: !data });
 
-const setSuggestions = (data: SuggestedCandidate[] | undefined, extra: Record<string, unknown> = {}) =>
-  useSuggestedCandidates.mockReturnValue({ data, isPending: !data, isError: false, ...extra });
+const setSuggestions = (
+  data: SuggestedCandidate[] | undefined,
+  extra: Record<string, unknown> = {},
+  criteria: RoleCriterion[] | null = null,
+) =>
+  useSuggestedCandidates.mockReturnValue({
+    data: data ? { suggestions: data, criteria } : undefined,
+    isPending: !data,
+    isError: false,
+    ...extra,
+  });
 
 const renderView = () =>
   render(
@@ -353,10 +364,7 @@ describe('the Suggested tab', () => {
     await openSuggested();
     await userEvent.click(rowFor('Ben Ito')!);
 
-    expect(routerReplace).toHaveBeenCalledWith(
-      '/teams/team-1/applicants?role=role-1&suggested=m-2',
-      { scroll: false },
-    );
+    expect(routerReplace).toHaveBeenCalledWith('/teams/team-1/applicants?role=role-1&suggested=m-2', { scroll: false });
   });
 
   it('opens the Suggested tab on the member from a shared link', () => {
@@ -366,6 +374,7 @@ describe('the Suggested tab', () => {
         teamName="Filecoin Foundation"
         roles={[ROLE]}
         initialRoleUid="role-1"
+        initialCandidateUid={null}
         initialSuggestedMemberUid="m-2"
         viewerUid="u1"
         isLoggedIn

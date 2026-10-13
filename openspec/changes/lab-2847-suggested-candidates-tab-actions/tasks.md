@@ -7,10 +7,10 @@
 
 ## 2. Service, mock and hooks
 
-- [ ] 2.1 Change `fetchSuggestedCandidates` to return `{ suggestions, criteria: RoleCriterion[] | null }`, update `useSuggestedCandidates` and every read of `suggestions.data` in `TeamApplicantsView.tsx`. Verify: existing service and `team-applicants-suggested.test.tsx` tests pass on the new shape.
-- [ ] 2.2 Add `matchCriteriaResponseSchema` and `contactSuggestedResponseSchema` to the schema file, and `saveMatchCriteria(roleUid, disabled)` (PUT) and `contactSuggestedCandidate(roleUid, memberUid, message)` (POST) to `services/jobs/team-applicants.service.ts` via `customFetch()` with a JSON `Content-Type`, plus `isAlreadyContactedError`. Verify: service tests assert URL, method, body, parsed answer, 403, 409 and 500.
-- [ ] 2.3 Add `services/jobs/suggested-candidates.mock.ts` (session state, read overlay, both writes, 409 on second contact, a documented failure marker) and the `SUGGESTED_ACTIONS_MOCKED` switch in the service. Verify: unit tests cover overlay, 409 and failure.
-- [ ] 2.4 Add `useSaveMatchCriteria` and `useContactSuggestedCandidate` to `services/jobs/hooks/useTeamApplicants.ts` (cache patch from the server's answer; 409 invalidates; no optimistic patch) and update the hook's "read-only" comment. Verify: hook tests check the cache after success, 409 and failure.
+- [x] 2.1 Change `fetchSuggestedCandidates` to return `{ suggestions, criteria: RoleCriterion[] | null }`, update `useSuggestedCandidates` and every read of `suggestions.data` in `TeamApplicantsView.tsx`. Verify: existing service and `team-applicants-suggested.test.tsx` tests pass on the new shape.
+- [x] 2.2 Add `matchCriteriaResponseSchema` and `contactSuggestedResponseSchema` to the schema file, and `saveMatchCriteria(roleUid, disabled)` (PUT) and `contactSuggestedCandidate(roleUid, memberUid, message)` (POST) to `services/jobs/team-applicants.service.ts` via `customFetch()` with a JSON `Content-Type`, plus `isAlreadyContactedError`. Verify: service tests assert URL, method, body, parsed answer, 403, 409 and 500.
+- [x] 2.3 Add `services/jobs/suggested-candidates.mock.ts` (session state, read overlay, both writes, 409 on second contact, a documented failure marker) and the `SUGGESTED_ACTIONS_MOCKED` switch in the service. Verify: unit tests cover overlay, 409 and failure.
+- [x] 2.4 Add `useSaveMatchCriteria` and `useContactSuggestedCandidate` to `services/jobs/hooks/useTeamApplicants.ts` (cache patch from the server's answer; 409 invalidates; no optimistic patch) and update the hook's "read-only" comment. Verify: hook tests check the cache after success, 409 and failure.
 
 ## 3. Edit criteria
 

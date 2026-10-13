@@ -117,9 +117,7 @@ export function TeamApplicantsView({
    * survives the list arriving late, which an effect-and-setState would have to
    * chase with a flag.
    */
-  const [pickedTab, setPickedTab] = useState<string | null>(() =>
-    initialSuggestedMemberUid ? SUGGESTED_TAB : null,
-  );
+  const [pickedTab, setPickedTab] = useState<string | null>(() => (initialSuggestedMemberUid ? SUGGESTED_TAB : null));
   const [query, setQuery] = useState('');
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [paneOpen, setPaneOpen] = useState(false);
@@ -173,6 +171,9 @@ export function TeamApplicantsView({
     viewerUid,
     enabled: SHOW_TEAM_APPLICANTS,
   });
+
+  /* The people; the role's criteria ride in the same answer (LAB-2847). */
+  const suggestedList = suggestions.data?.suggestions;
 
   const markSeen = useMarkApplicantSeen({ teamUid: teamId, roleUid: role?.uid, viewerUid });
   const toggleReviewed = useToggleApplicantReviewed({ teamUid: teamId, roleUid: role?.uid, viewerUid });
@@ -231,7 +232,7 @@ export function TeamApplicantsView({
     ? APPLIED_TAB
     : lists.data?.interests.length
       ? INTERESTED_TAB
-      : lists.data && suggestions.data?.length
+      : lists.data && suggestedList?.length
         ? SUGGESTED_TAB
         : APPLIED_TAB;
   const tab = pickedTab ?? derivedTab;
@@ -245,8 +246,8 @@ export function TeamApplicantsView({
   }, [lists.data, tab]);
 
   const suggestedRows: SuggestedCandidate[] = useMemo(
-    () => (tab === SUGGESTED_TAB ? (suggestions.data ?? []) : []),
-    [suggestions.data, tab],
+    () => (tab === SUGGESTED_TAB ? (suggestedList ?? []) : []),
+    [suggestedList, tab],
   );
 
   const term = query.trim().toLowerCase();
@@ -311,15 +312,15 @@ export function TeamApplicantsView({
      number the lead actually saw. */
   const suggestedViewedFor = useRef<string | null>(null);
   useEffect(() => {
-    if (!isSuggestedTab || !role || !suggestions.data) return;
+    if (!isSuggestedTab || !role || !suggestedList) return;
     if (suggestedViewedFor.current === role.uid) return;
     suggestedViewedFor.current = role.uid;
     analytics.onJobSuggestedCandidatesViewed({
       team_id: teamId,
       job_id: role.uid,
-      count: suggestions.data.length,
+      count: suggestedList.length,
     });
-  }, [analytics, isSuggestedTab, role, suggestions.data, teamId]);
+  }, [analytics, isSuggestedTab, role, suggestedList, teamId]);
 
   const select = (row: TeamApplicant) => {
     setSelectedUid(row.uid);
@@ -379,8 +380,8 @@ export function TeamApplicantsView({
 
   /* A shared `?suggested=` link: open that person once the list is in. */
   useEffect(() => {
-    if (!pendingSuggestedMemberUid || !suggestions.data) return;
-    const match = suggestions.data.find((row) => row.memberUid === pendingSuggestedMemberUid);
+    if (!pendingSuggestedMemberUid || !suggestedList) return;
+    const match = suggestedList.find((row) => row.memberUid === pendingSuggestedMemberUid);
     setPendingSuggestedMemberUid(null);
     if (match) {
       setSelectedUid(match.memberUid);
@@ -388,7 +389,7 @@ export function TeamApplicantsView({
     } else if (!isNarrow && suggestedRows.length) {
       setSelectedUid(suggestedRows[0].memberUid);
     }
-  }, [isNarrow, pendingSuggestedMemberUid, suggestions.data, suggestedRows]);
+  }, [isNarrow, pendingSuggestedMemberUid, suggestedList, suggestedRows]);
 
   /* The Suggested tab's version of the preselect above: two-column only, and
      with no unread state to clear. It sets the selection without the "opened"
@@ -509,7 +510,7 @@ export function TeamApplicantsView({
                 tabs={[
                   { name: APPLIED_TAB, count: lists.data?.applications.length },
                   { name: INTERESTED_TAB, count: lists.data?.interests.length },
-                  { name: SUGGESTED_TAB, count: suggestions.data?.length },
+                  { name: SUGGESTED_TAB, count: suggestedList?.length },
                 ]}
               />
             </div>

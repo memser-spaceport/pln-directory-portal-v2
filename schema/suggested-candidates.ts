@@ -79,6 +79,23 @@ export const suggestedCandidatesResponseSchema = z
   })
   .strict();
 
+/** `PUT /v1/job-openings/:roleUid/match-criteria` answers the role's criteria as saved. */
+export const matchCriteriaResponseSchema = z
+  .object({
+    criteria: z.array(roleCriterionSchema),
+  })
+  .strict();
+
+/** `POST …/suggested-candidates/:memberUid/contact` answers when the message went out. */
+export const contactSuggestedResponseSchema = z
+  .object({
+    contactedAt: z.string().min(1),
+  })
+  .strict();
+
+/** The message limit the contact endpoint enforces after trimming. */
+export const CONTACT_MESSAGE_MAX_LENGTH = 2000;
+
 /** The only two bands a team ever sees. A weak match is never shown. */
 export const SUGGESTION_LABELS = ['Strong match', 'Good match'] as const;
 export type SuggestionLabel = (typeof SUGGESTION_LABELS)[number];

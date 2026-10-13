@@ -28,7 +28,7 @@
 
 ## 6. Integration
 
-- [ ] 6.1 With `NEXT_PUBLIC_SHOW_TEAM_APPLICANTS=true` and the mock on, click through Edit criteria and Contact on `/teams/<id>/applicants?role=<uid>` at desktop and 360px width, including the 409 and failure paths. Verify: behaviour matches every scenario in `specs/job-board/spec.md`.
+- [x] 6.1 With `NEXT_PUBLIC_SHOW_TEAM_APPLICANTS=true` and the mock on, click through Edit criteria and Contact on `/teams/<id>/applicants?role=<uid>` at desktop and 360px width, including the 409 and failure paths. Verify: behaviour matches every scenario in `specs/job-board/spec.md`. — Done 2026-10-13 against the real local API (backend #3509) instead of the mock: Edit criteria, Contact, no-email toast, Contacted after reload.
 - [x] 6.2 Run `npm run lint` and `npm run test` and verify both pass. (Done: 469 suites / 4834 tests pass; `npm run lint` still reports the same 319 pre-existing errors elsewhere in the repo, none in the changed files.)
 - [x] 6.3 Run `OPENSPEC_TELEMETRY=0 DO_NOT_TRACK=1 npx -y @fission-ai/openspec@1.14.1 validate lab-2847-suggested-candidates-tab-actions --json` and verify it reports valid.
 

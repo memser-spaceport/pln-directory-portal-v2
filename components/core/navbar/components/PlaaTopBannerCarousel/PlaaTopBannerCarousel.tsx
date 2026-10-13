@@ -24,7 +24,8 @@ export function PlaaTopBannerCarousel() {
   const pathname = usePathname();
   const { canView } = usePlaaAccess();
 
-  if (!pathname?.includes('alignment-asset') || !canView) {
+  const isPlaaRoute = pathname === '/alignment-asset' || pathname?.startsWith('/alignment-asset/');
+  if (!isPlaaRoute || !canView) {
     return null;
   }
 

@@ -298,6 +298,7 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   FORUM_DIGEST_FORUM_ACTIVITY_TOGGLE_CLICKED: 'settings-forum-digest-forum-activity-toggle-clicked',
   SETTINGS_SUBSCRIBE_TO_DEMO_DAY_UPDATES_CHANGE: 'settings-subscribe-to-demo-day-updates-change',
   SETTINGS_DEMO_DAY_UPDATES_NOTIFICATION_TOGGLE_CLICKED: 'settings-demo-day-updates-notification-toggle-clicked',
+  SETTINGS_SUGGESTED_CANDIDATES_EMAIL_TOGGLE_CLICKED: 'settings-suggested-candidates-email-toggle-clicked',
 };
 
 export const JOIN_NETWORK_ANALYTICS_EVENTS = {

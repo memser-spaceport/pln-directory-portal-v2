@@ -6,7 +6,7 @@ import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analyt
 import type { PlaaHomeProps } from './home.types';
 import { formatNumber } from './home.types';
 import NavAreaChart from './nav-area-chart';
-import { activitiesData } from '../activities/data';
+import { activitiesData, isOpenActivity } from '../activities/data';
 import { UNDERUTILIZED_RATIO } from '../leaderboard/leaderboard.mapper';
 import PlaaProspectBanner from './plaa-prospect-banner';
 import PlaaDisclaimerBox from './plaa-disclaimer-box';
@@ -108,15 +108,8 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
     busiestCategory > 0 &&
     (categoryPoints.get(normaliseCategory(category)) ?? 0) < busiestCategory * UNDERUTILIZED_RATIO;
 
-  // Never promote the legacy restricted AI-app destination, even if its sunset flag changes.
   const teaserActivities = activitiesData.activities
-    .filter(
-      (activity) =>
-        !activity.isSunset &&
-        activity.id !== 'build-ai-app' &&
-        (activity.activity.trim().toLowerCase() !== 'build an ai app' ||
-          (activity.cta === 'submit' && activity.audience === 'all-plaa-participants')),
-    )
+    .filter(isOpenActivity)
     .sort((a, b) => {
       const boost = Number(isUnderutilised(b.category)) - Number(isUnderutilised(a.category));
       return boost !== 0 ? boost : parseInt(b.points, 10) - parseInt(a.points, 10);

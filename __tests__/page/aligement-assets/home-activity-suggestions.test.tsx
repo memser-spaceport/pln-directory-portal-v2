@@ -41,7 +41,7 @@ test('suggestions use the same current records as the production Activities page
     )!;
     expect(record).toBeDefined();
     expect(record.isSunset).not.toBe(true);
-    expect(record.id).not.toBe('build-ai-app');
+    expect(record.audience).toBeUndefined();
     expect(card).toHaveTextContent(record.category);
     expect(card.querySelector('.ph-teaser__pts')).toHaveTextContent(`${record.points} pts`);
     if (record.verificationType) expect(card).toHaveTextContent(modeLabels[record.verificationType]);
@@ -50,7 +50,7 @@ test('suggestions use the same current records as the production Activities page
   }
 });
 
-test('filters sunset and legacy AI entries before filling the three suggestion slots', () => {
+test('filters sunset and restricted entries before filling the three suggestion slots', () => {
   const legacy = source.find((activity) => activity.id === 'build-ai-app')!;
   jest.replaceProperty(activitiesData, 'activities', [
     { ...source[0], id: 'sunset-high-score', points: '99999', isSunset: true },
@@ -96,35 +96,11 @@ test('points, category, review label and destination follow changes to the sourc
 });
 
 test.each<[Partial<Activity>, boolean]>([
-  [{ audience: undefined }, false],
-  [{ audience: 'pl-infra-members' }, false],
-  [{ cta: 'confirm' }, false],
   [{ isSunset: true }, false],
-  [{ id: 'build-ai-app' }, false],
+  [{ audience: 'pl-infra-members' }, false],
   [{}, true],
-])(
-  'AI-app suggestions fail closed unless the current destination is public and submission-based: %j',
-  (overrides, visible) => {
-    const replacement: Activity = {
-      ...source[0],
-      id: 'build-ai-app-submission',
-      activity: 'Build an AI App',
-      points: '775',
-      category: 'Network Tooling',
-      verificationType: 'Submission',
-      cta: 'submit',
-      audience: 'all-plaa-participants',
-      popupContent: { title: 'Build an AI App', rules: ['Open to all PLAA participants.'] },
-      ...overrides,
-    };
-    jest.replaceProperty(activitiesData, 'activities', [replacement]);
-    const { container } = render(<PlaaHome {...props} />);
-    expect(cards(container)).toHaveLength(visible ? 1 : 0);
-    if (visible) {
-      expect(cards(container)[0]).toHaveTextContent('775 pts');
-      expect(cards(container)[0]).toHaveTextContent('Submission');
-      fireEvent.click(cards(container)[0]);
-      expect(mockPush).toHaveBeenLastCalledWith('/alignment-asset/activities#build-ai-app-submission');
-    }
-  },
-);
+])('only activities open to every participant are suggested: %j', (overrides, visible) => {
+  jest.replaceProperty(activitiesData, 'activities', [{ ...source[0], id: 'candidate', ...overrides }]);
+  const { container } = render(<PlaaHome {...props} />);
+  expect(cards(container)).toHaveLength(visible ? 1 : 0);
+});

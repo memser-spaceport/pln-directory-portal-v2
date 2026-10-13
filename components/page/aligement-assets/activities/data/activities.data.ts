@@ -408,6 +408,7 @@ export const activitiesData: ActivitiesData = {
       points: '1000',
       frequency: 'Recurring',
       isSunset: true,
+      audience: 'pl-infra-members',
       verificationType: 'Manual Review',
       cta: 'confirm',
       popupContent: {

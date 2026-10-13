@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { Fragment, useId, useState } from 'react';
 import Image from 'next/image';
 import {
   Bar,
@@ -21,6 +21,8 @@ import { BuybackMetric, DonutSlice, NavPoint, TrustHoldingsData } from '@/servic
 import NavSummaryCard from '../nav-summary-card/nav-summary-card';
 import { BuybackSimulationSectionData } from '../rounds/types/current-round.types';
 import { MONTHLY_WINDOW, takeRecentMonths } from './nav-window';
+import MonthlyActivity from './monthly-activity';
+import { MONTHLY_RECONCILIATION } from './reconciliation/monthly-reconciliation';
 
 // This component renders whatever it's handed — it doesn't know which
 // rounds ran an auction.
@@ -505,10 +507,18 @@ function BuybackResultsAccordion({ buybacks }: { buybacks: TrustBuyback[] }) {
 const assetCell = (value: number) =>
   value ? formatAsset(value) : <span className="th-table__dash">—</span>;
 
+const NAV_TABLE_COLUMNS = 9;
+
+// Each month expands into its Contributions & Expenses breakdown, one at a
+// time. The panel row stays mounted so it can animate; collapsed, it has no
+// height or border, so the table reads exactly as before.
 function NavTable({ data }: { data: NavPoint[] }) {
+  const [openDate, setOpenDate] = useState<string | null>(null);
+  const tableId = useId();
+
   return (
     <div className="th-table-wrapper">
-      <table className="th-table">
+      <table className="th-table th-table--expandable">
         <thead>
           <tr>
             <th>DATE</th>
@@ -523,19 +533,52 @@ function NavTable({ data }: { data: NavPoint[] }) {
           </tr>
         </thead>
         <tbody>
-          {data.map((row) => (
-            <tr key={row.date}>
-              <td className="th-table__date">{row.date}</td>
-              <td>{formatCount(row.totalPlaa)}</td>
-              <td className="th-table__nav">{formatCurrency(row.nav)}</td>
-              <td className="th-table__perplaa">{formatPerPlaa(row.navPerPlaa)}</td>
-              <td>{formatCurrency(row.treasuries)}</td>
-              <td>{assetCell(row.btc)}</td>
-              <td>{assetCell(row.eth)}</td>
-              <td>{assetCell(row.fil)}</td>
-              <td>{assetCell(row.plvh)}</td>
-            </tr>
-          ))}
+          {data.map((row, index) => {
+            const open = openDate === row.date;
+            const panelId = `${tableId}-activity-${index}`;
+            const toggle = () => setOpenDate(open ? null : row.date);
+            return (
+              <Fragment key={row.date}>
+                {/* The whole row toggles; the button in the date cell is the
+                    keyboard/AT control and its click bubbles up to here. */}
+                <tr className={`th-nav-row ${open ? 'th-nav-row--open' : ''}`} onClick={toggle}>
+                  <td className="th-table__date">
+                    <button type="button" className="th-nav-row__toggle" aria-expanded={open} aria-controls={panelId}>
+                      <span>{row.date}</span>
+                      <Image
+                        className="th-nav-row__chevron"
+                        src="/icons/arrow-down-light.svg"
+                        alt=""
+                        width={10}
+                        height={10}
+                        aria-hidden="true"
+                      />
+                    </button>
+                  </td>
+                  <td>{formatCount(row.totalPlaa)}</td>
+                  <td className="th-table__nav">{formatCurrency(row.nav)}</td>
+                  <td className="th-table__perplaa">{formatPerPlaa(row.navPerPlaa)}</td>
+                  <td>{formatCurrency(row.treasuries)}</td>
+                  <td>{assetCell(row.btc)}</td>
+                  <td>{assetCell(row.eth)}</td>
+                  <td>{assetCell(row.fil)}</td>
+                  <td>{assetCell(row.plvh)}</td>
+                </tr>
+                <tr className={`th-activity-row ${open ? 'th-activity-row--open' : ''}`}>
+                  <td colSpan={NAV_TABLE_COLUMNS}>
+                    <div id={panelId} className="th-activity-row__collapse" aria-hidden={!open}>
+                      <div className="th-activity-row__inner">
+                        <MonthlyActivity
+                          month={row.date}
+                          reconciliation={MONTHLY_RECONCILIATION[periodKey(row.date) ?? '']}
+                        />
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </Fragment>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -987,7 +1030,10 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
         }
 
         /* Table */
+        /* Inline-size container so the activity panel can cap itself at the
+           visible width (cqw) while the table scrolls under it. */
         .th-table-wrapper {
+          container-type: inline-size;
           width: 100%;
           overflow-x: auto;
           margin-top: 8px;
@@ -1026,7 +1072,9 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           text-align: left;
         }
 
-        .th-table tbody tr:last-child td {
+        /* Child combinators keep this off the tables nested in the
+           activity panel. */
+        .th-table > tbody > tr:last-child > td {
           border-bottom: none;
         }
 
@@ -1047,6 +1095,300 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
 
         .th-table__dash {
           color: #cbd5e1;
+        }
+
+        /* Expandable monthly rows. Collapsed, a row looks as it always has —
+           just a pointer cursor, a hover tint and a small chevron. */
+        .th-nav-row {
+          cursor: pointer;
+        }
+
+        .th-nav-row:hover td,
+        .th-nav-row--open td {
+          background-color: #f8fafc;
+        }
+
+        .th-table .th-nav-row--open td {
+          border-bottom-color: transparent;
+        }
+
+        /* The last month would otherwise draw a line against the wrapper's own
+           border now that the (empty) panel row is the tbody's last child. */
+        .th-table--expandable tbody tr.th-nav-row:nth-last-child(2):not(.th-nav-row--open) td {
+          border-bottom: none;
+        }
+
+        .th-nav-row__toggle {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 0;
+          border: none;
+          background: none;
+          font: inherit;
+          color: inherit;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+
+        .th-nav-row__toggle:focus-visible {
+          outline: 2px solid #156ff7;
+          outline-offset: 4px;
+          border-radius: 4px;
+        }
+
+        .th-nav-row__chevron {
+          opacity: 0.55;
+          transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .th-nav-row:hover .th-nav-row__chevron {
+          opacity: 0.9;
+        }
+
+        .th-nav-row--open .th-nav-row__chevron {
+          transform: rotate(180deg);
+          opacity: 0.9;
+        }
+
+        .th-table .th-activity-row td {
+          padding: 0;
+          border-bottom: none;
+          background-color: #f8fafc;
+        }
+
+        .th-table .th-activity-row--open td {
+          border-bottom: 1px solid #eef1f5;
+        }
+
+        /* Height animates via grid rows (0fr → 1fr), no measuring. Visibility
+           flips after the close finishes so collapsed content isn't read out. */
+        .th-activity-row__collapse {
+          display: grid;
+          grid-template-rows: 0fr;
+          visibility: hidden;
+          transition: grid-template-rows 0.22s ease, visibility 0s linear 0.22s;
+        }
+
+        .th-activity-row--open .th-activity-row__collapse {
+          grid-template-rows: 1fr;
+          visibility: visible;
+          transition: grid-template-rows 0.22s ease;
+        }
+
+        /* clip, not hidden — hidden would make this the sticky panel's
+           scroll container and it would stop pinning on horizontal scroll. */
+        .th-activity-row__inner {
+          min-height: 0;
+          overflow: clip;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .th-activity-row__collapse,
+          .th-activity-row--open .th-activity-row__collapse,
+          .th-nav-row__chevron {
+            transition: none;
+          }
+        }
+
+        /* NAV reconciliation + Contributions & Expenses. Sticky-left keeps it
+           in view when the wide table is scrolled sideways on small screens. */
+        .th-ce {
+          position: sticky;
+          left: 0;
+          box-sizing: border-box;
+          max-width: min(1040px, 100cqw);
+          padding: 4px 24px 20px 42px;
+        }
+
+        .th-ce__title {
+          margin: 0 0 6px;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: #156ff7;
+        }
+
+        /* Stacked by default; side by side once the table area can fit both. */
+        .th-ce__sections {
+          display: grid;
+          gap: 20px 48px;
+        }
+
+        @container (min-width: 820px) {
+          .th-ce__sections {
+            grid-template-columns: 1fr 1fr;
+            align-items: start;
+          }
+        }
+
+        .th-ce__review {
+          margin: 0 0 10px;
+          font-size: 12px;
+          line-height: 17px;
+          color: #b45309;
+        }
+
+        .th-ce__marker {
+          margin-left: 2px;
+          font-size: 9px;
+          font-weight: 700;
+          color: #b45309;
+        }
+
+        .th-ce__caption {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip: rect(0 0 0 0);
+          white-space: nowrap;
+        }
+
+        .th-ce__table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 13px;
+        }
+
+        .th-table .th-ce__table th,
+        .th-table .th-ce__table td {
+          padding: 9px 0;
+          border-bottom: 1px solid #e2e8f0;
+          background: none;
+          text-align: left;
+        }
+
+        .th-table .th-ce__table thead th {
+          padding: 6px 0;
+          font-size: 10px;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: #94a3b8;
+        }
+
+        .th-table .th-ce__table thead th:last-child,
+        .th-table .th-ce__table td {
+          text-align: right;
+        }
+
+        .th-table .th-ce__table tbody th {
+          padding-right: 16px;
+          font-size: 13px;
+          font-weight: 500;
+          letter-spacing: normal;
+          text-transform: none;
+          color: #475569;
+        }
+
+        .th-table .th-ce__table td {
+          font-weight: 600;
+          font-variant-numeric: tabular-nums;
+          white-space: nowrap;
+        }
+
+        .th-table .th-ce__table tbody tr:last-child th,
+        .th-table .th-ce__table tbody tr:last-child td {
+          border-bottom: none;
+        }
+
+        .th-table td.th-ce__amount--in {
+          color: #16a34a;
+        }
+
+        .th-table td.th-ce__amount--out {
+          color: #b42318;
+        }
+
+        .th-table td.th-ce__amount--none {
+          font-weight: 400;
+          color: #94a3b8;
+        }
+
+        /* Bridge groups: a subtotal row, its movements indented beneath. */
+        .th-table .th-ce__table tr.th-ce__row--group th,
+        .th-table .th-ce__table tr.th-ce__row--group td {
+          padding-top: 12px;
+          font-weight: 600;
+          color: #0f172a;
+        }
+
+        .th-table .th-ce__table tr.th-ce__row--item th {
+          padding-left: 14px;
+        }
+
+        .th-table .th-ce__table tr.th-ce__row--context td {
+          padding: 6px 0 9px 14px;
+          text-align: left;
+          white-space: normal;
+          font-size: 12px;
+          font-weight: 400;
+          color: #64748b;
+        }
+
+        /* Opening/closing NAV and subtotals. */
+        .th-table .th-ce__table tr.th-ce__row--balance th,
+        .th-table .th-ce__table tr.th-ce__row--balance td {
+          font-weight: 700;
+          color: #0f172a;
+        }
+
+        /* An inset shadow, not border-top — in a collapsed table the row
+           above's border-bottom wins the shared edge. */
+        .th-table .th-ce__table tr.th-ce__row--close th,
+        .th-table .th-ce__table tr.th-ce__row--close td {
+          box-shadow: inset 0 1px 0 #94a3b8;
+        }
+
+        .th-table .th-ce__table tr.th-ce__row--flag th,
+        .th-table .th-ce__table tr.th-ce__row--flag td {
+          color: #b45309;
+        }
+
+        .th-ce__footnotes {
+          margin: 12px 0 0;
+          padding-left: 16px;
+          font-size: 12px;
+          line-height: 17px;
+          color: #64748b;
+        }
+
+        .th-ce__footnotes li::marker {
+          color: #b45309;
+          font-weight: 700;
+        }
+
+        .th-ce__note {
+          margin: 10px 0 0;
+          font-size: 12px;
+          line-height: 17px;
+          color: #94a3b8;
+        }
+
+        @media (max-width: 768px) {
+          .th-ce {
+            padding: 4px 16px 16px 24px;
+          }
+        }
+
+        /* Sized to the visible table area, not the viewport — the page's own
+           gutters leave far less than 100vw on a phone. */
+        @container (max-width: 360px) {
+          .th-ce {
+            padding: 4px 12px 14px;
+          }
+
+          .th-table .th-ce__table th,
+          .th-table .th-ce__table td,
+          .th-table .th-ce__table tbody th {
+            font-size: 12px;
+          }
+
+          .th-table .th-ce__table tbody th {
+            padding-right: 8px;
+          }
         }
 
         /* Metrics */

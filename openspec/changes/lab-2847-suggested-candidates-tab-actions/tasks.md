@@ -2,8 +2,8 @@
 
 ## 1. Schema tolerance (merge first)
 
-- [ ] 1.1 In `schema/suggested-candidates.ts`, add `contactedAt: z.string().nullable().optional()` to `suggestedCandidateSchema`, add `roleCriterionSchema` (`{ text, enabled }`, `.strict()`) and an optional top-level `criteria` on `suggestedCandidatesResponseSchema`, keeping `.strict()`; export `RoleCriterion`. Verify: new cases in `__tests__/services/jobs/suggested-candidates-service.test.ts` pass for a response without the fields, with them, and still fail on an unknown field.
-- [ ] 1.2 Run `npm run lint` and `npm run test`, and verify both pass before opening this as its own PR to develop.
+- [x] 1.1 In `schema/suggested-candidates.ts`, add `contactedAt: z.string().nullable().optional()` to `suggestedCandidateSchema`, add `roleCriterionSchema` (`{ text, enabled }`, `.strict()`) and an optional top-level `criteria` on `suggestedCandidatesResponseSchema`, keeping `.strict()`; export `RoleCriterion`. Verify: new cases in `__tests__/services/jobs/suggested-candidates-service.test.ts` pass for a response without the fields, with them, and still fail on an unknown field.
+- [x] 1.2 Run `npm run lint` and `npm run test`, and verify both pass before opening this as its own PR to develop. (Done: tests 465 suites pass; `npm run lint` reports 319 pre-existing errors elsewhere in the repo, none in the changed files. Committed alone; no PR opened.)
 
 ## 2. Service, mock and hooks
 

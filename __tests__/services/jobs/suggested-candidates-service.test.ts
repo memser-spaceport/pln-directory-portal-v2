@@ -3,7 +3,7 @@ jest.mock('@/utils/fetch-wrapper', () => ({
   customFetch: (...args: unknown[]) => mockFetch(...args),
 }));
 
-import { selectShownSuggestions } from '@/schema/suggested-candidates';
+import { selectShownSuggestions, suggestedCandidatesResponseSchema } from '@/schema/suggested-candidates';
 import {
   fetchSuggestedCandidates,
   isApplicantsForbiddenError,
@@ -119,6 +119,52 @@ describe('fetchSuggestedCandidates', () => {
     mockFetch.mockResolvedValue(ok({ suggestions: [suggestion(1, 'Strong match', { surprise: true })] }));
 
     await expect(fetchSuggestedCandidates('role-1')).rejects.toThrow();
+  });
+});
+
+/**
+ * LAB-2847: the backend (LAB-2846) adds `contactedAt` per person and the
+ * role's `criteria` list. The page must read both the older and the newer
+ * response, and still refuse a field it has never heard of.
+ */
+describe('suggestedCandidatesResponseSchema with the LAB-2846 fields', () => {
+  it('reads an older response without contactedAt or criteria', () => {
+    const parsed = suggestedCandidatesResponseSchema.parse({ suggestions: [suggestion(1)] });
+
+    expect(parsed.criteria).toBeUndefined();
+    expect(parsed.suggestions[0].contactedAt).toBeUndefined();
+  });
+
+  it('reads a newer response with contactedAt and the role’s criteria', () => {
+    const parsed = suggestedCandidatesResponseSchema.parse({
+      suggestions: [
+        suggestion(1, 'Strong match', { contactedAt: '2026-10-12T09:00:00.000Z' }),
+        suggestion(2, 'Good match', { contactedAt: null }),
+      ],
+      criteria: [
+        { text: 'Five years of Rust', enabled: true },
+        { text: 'Based in Europe', enabled: false },
+      ],
+    });
+
+    expect(parsed.suggestions.map((row) => row.contactedAt)).toEqual(['2026-10-12T09:00:00.000Z', null]);
+    expect(parsed.criteria).toEqual([
+      { text: 'Five years of Rust', enabled: true },
+      { text: 'Based in Europe', enabled: false },
+    ]);
+  });
+
+  it('still fails on an unknown field, on a person or on a criterion', () => {
+    expect(() =>
+      suggestedCandidatesResponseSchema.parse({ suggestions: [suggestion(1, 'Strong match', { surprise: 1 })] }),
+    ).toThrow();
+    expect(() =>
+      suggestedCandidatesResponseSchema.parse({
+        suggestions: [],
+        criteria: [{ text: 'Five years of Rust', enabled: true, id: 'c1' }],
+      }),
+    ).toThrow();
+    expect(() => suggestedCandidatesResponseSchema.parse({ suggestions: [], surprise: true })).toThrow();
   });
 });
 

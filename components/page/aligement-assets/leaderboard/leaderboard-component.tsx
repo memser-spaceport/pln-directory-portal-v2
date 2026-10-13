@@ -84,7 +84,7 @@ export default function LeaderboardComponent({
           <h3 className="lb-cta-title">The network grows because people contribute.</h3>
           <p className="lb-cta-copy">
             Every introduction, tool and shared lesson compounds — more contribution means a stronger network, and a
-            stronger network rewards every contributor. Find your next way to climb the leaderboard.
+            stronger network rewards every contributor. Take the next step, contribute, climb the leaderboard.
           </p>
         </div>
         <button type="button" className="lb-cta-btn" onClick={() => router.push('/alignment-asset/activities')}>

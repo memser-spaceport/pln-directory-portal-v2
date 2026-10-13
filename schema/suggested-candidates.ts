@@ -45,14 +45,56 @@ export const suggestedCandidateSchema = z
     interested: z.boolean().optional(),
     /** The note the member wrote with their interest, when they wrote one (LAB-2789). Optional until the backend sends it. */
     note: z.string().nullable().optional(),
+    /**
+     * When a lead of this team contacted the member about this role through the
+     * platform (LAB-2846), or null. Optional so an older backend without it
+     * still parses.
+     */
+    contactedAt: z.string().nullable().optional(),
+  })
+  .strict();
+
+/**
+ * One of the ROLE's requirements and whether the team counts it when matching
+ * (LAB-2846). Not the same thing as `suggestedCriterionSchema`, which says
+ * whether one person meets a requirement. Keyed by its text: the contract
+ * sends no ids, and `PUT match-criteria` names the switched-off ones by text.
+ */
+export const roleCriterionSchema = z
+  .object({
+    text: z.string().min(1),
+    enabled: z.boolean(),
   })
   .strict();
 
 export const suggestedCandidatesResponseSchema = z
   .object({
     suggestions: z.array(suggestedCandidateSchema),
+    /**
+     * The role's requirements with their on/off switch. `[]` for a role that is
+     * not live or a posting with no extracted criteria; absent on an older
+     * backend. Optional, so both backends parse.
+     */
+    criteria: z.array(roleCriterionSchema).optional(),
   })
   .strict();
+
+/** `PUT /v1/job-openings/:roleUid/match-criteria` answers the role's criteria as saved. */
+export const matchCriteriaResponseSchema = z
+  .object({
+    criteria: z.array(roleCriterionSchema),
+  })
+  .strict();
+
+/** `POST …/suggested-candidates/:memberUid/contact` answers when the message went out. */
+export const contactSuggestedResponseSchema = z
+  .object({
+    contactedAt: z.string().min(1),
+  })
+  .strict();
+
+/** The message limit the contact endpoint enforces after trimming. */
+export const CONTACT_MESSAGE_MAX_LENGTH = 2000;
 
 /** The only two bands a team ever sees. A weak match is never shown. */
 export const SUGGESTION_LABELS = ['Strong match', 'Good match'] as const;
@@ -62,6 +104,7 @@ export type SuggestionLabel = (typeof SUGGESTION_LABELS)[number];
 export const SUGGESTED_LIMIT = 5;
 
 export type SuggestedCriterion = z.infer<typeof suggestedCriterionSchema>;
+export type RoleCriterion = z.infer<typeof roleCriterionSchema>;
 export type SuggestedCandidate = Omit<z.infer<typeof suggestedCandidateSchema>, 'label'> & { label: SuggestionLabel };
 
 export const isSuggestionLabel = (label: string): label is SuggestionLabel =>

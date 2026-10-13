@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Select, { type StylesConfig } from 'react-select';
 
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
+import { toast } from '@/components/core/ToastContainer';
 import { BackButton } from '@/components/ui/BackButton';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { Tabs } from '@/components/ui/tabs/Tabs';
@@ -20,16 +21,22 @@ import type { TeamApplicant } from '@/schema/team-applicants';
 import { SHOW_TEAM_APPLICANTS } from '@/services/jobs/constants';
 import {
   useApplicantCounts,
+  useContactSuggestedCandidate,
   useMarkApplicantSeen,
   useRoleApplicants,
+  useSaveMatchCriteria,
   useSuggestedCandidates,
   useToggleApplicantReviewed,
 } from '@/services/jobs/hooks/useTeamApplicants';
+import { isAlreadyContactedError, TeamApplicantsError } from '@/services/jobs/team-applicants.service';
 import type { IJobRole } from '@/types/jobs.types';
+import { stripHtmlPreservingBreaks } from '@/utils/forum/stripHtml';
 import { formatRelativeDays, getJobDate, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
 import { ApplicantPane, MemberProfilePane } from './components/ApplicantPane';
 import { ApplicantRow } from './components/ApplicantRow';
+import { ContactSuggestedModal } from './components/ContactSuggestedModal';
+import { EditCriteriaModal } from './components/EditCriteriaModal';
 import { SuggestedPaneBar } from './components/SuggestedPaneBar';
 import { SuggestedRow } from './components/SuggestedRow';
 import { SuggestedWhy } from './components/SuggestedWhy';
@@ -79,6 +86,10 @@ interface Props {
 
 type RoleOption = Option & { newCount: number };
 
+/** The server's own words when it sent some, else the page's. */
+const failureMessage = (error: unknown, fallback: string) =>
+  error instanceof TeamApplicantsError && error.message ? error.message : fallback;
+
 /**
  * The team's applicants: the list on the left, the selected person beside it.
  *
@@ -117,9 +128,7 @@ export function TeamApplicantsView({
    * survives the list arriving late, which an effect-and-setState would have to
    * chase with a flag.
    */
-  const [pickedTab, setPickedTab] = useState<string | null>(() =>
-    initialSuggestedMemberUid ? SUGGESTED_TAB : null,
-  );
+  const [pickedTab, setPickedTab] = useState<string | null>(() => (initialSuggestedMemberUid ? SUGGESTED_TAB : null));
   const [query, setQuery] = useState('');
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [paneOpen, setPaneOpen] = useState(false);
@@ -155,6 +164,16 @@ export function TeamApplicantsView({
 
   const role = roles.find((r) => r.uid === roleUid) ?? roles[0] ?? null;
 
+  /* LAB-2847: the role's posting as one plain-text run, clamped to two lines
+     in CSS. From the role the page already loaded — no request — and nothing
+     at all for a role whose posting has no body. The break-preserving strip,
+     then flattened: plain `stripHtml` fuses "<h2>About</h2><p>Build" into
+     "AboutBuild". */
+  const roleSummary = useMemo(
+    () => (role?.descriptionHtml ? stripHtmlPreservingBreaks(role.descriptionHtml).replace(/\s+/g, ' ').trim() : ''),
+    [role],
+  );
+
   const counts = useApplicantCounts({
     teamUid: teamId,
     viewerUid,
@@ -173,6 +192,26 @@ export function TeamApplicantsView({
     viewerUid,
     enabled: SHOW_TEAM_APPLICANTS,
   });
+
+  /* The people; the role's criteria ride in the same answer (LAB-2847). */
+  const suggestedList = suggestions.data?.suggestions;
+  const roleCriteria = suggestions.data?.criteria ?? null;
+  /* Nothing to switch on an older backend (null) or a role whose posting has
+     no extracted criteria ([]) — the PUT would only answer 409. */
+  const canEditCriteria = !!roleCriteria?.length;
+  const [criteriaOpen, setCriteriaOpen] = useState(false);
+  const saveCriteria = useSaveMatchCriteria({ roleUid: role?.uid, viewerUid });
+
+  /* Contact (LAB-2847): the member the modal is open for, and every draft the
+     lead has started while the page is open, keyed `roleUid:memberUid`, so a
+     close or a failed send never costs the text. */
+  const [contactMemberUid, setContactMemberUid] = useState<string | null>(null);
+  const [contactDrafts, setContactDrafts] = useState<Record<string, string>>({});
+  const contactSuggested = useContactSuggestedCandidate({ roleUid: role?.uid, viewerUid });
+  const contactTarget = contactMemberUid
+    ? (suggestedList?.find((row) => row.memberUid === contactMemberUid) ?? null)
+    : null;
+  const draftKey = (memberUid: string) => `${role?.uid ?? ''}:${memberUid}`;
 
   const markSeen = useMarkApplicantSeen({ teamUid: teamId, roleUid: role?.uid, viewerUid });
   const toggleReviewed = useToggleApplicantReviewed({ teamUid: teamId, roleUid: role?.uid, viewerUid });
@@ -231,7 +270,7 @@ export function TeamApplicantsView({
     ? APPLIED_TAB
     : lists.data?.interests.length
       ? INTERESTED_TAB
-      : lists.data && suggestions.data?.length
+      : lists.data && suggestedList?.length
         ? SUGGESTED_TAB
         : APPLIED_TAB;
   const tab = pickedTab ?? derivedTab;
@@ -245,8 +284,8 @@ export function TeamApplicantsView({
   }, [lists.data, tab]);
 
   const suggestedRows: SuggestedCandidate[] = useMemo(
-    () => (tab === SUGGESTED_TAB ? (suggestions.data ?? []) : []),
-    [suggestions.data, tab],
+    () => (tab === SUGGESTED_TAB ? (suggestedList ?? []) : []),
+    [suggestedList, tab],
   );
 
   const term = query.trim().toLowerCase();
@@ -270,6 +309,8 @@ export function TeamApplicantsView({
     setQuery('');
     setPaneOpen(false);
     setPendingSuggestedMemberUid(null);
+    setCriteriaOpen(false);
+    setContactMemberUid(null);
     replaceApplicantsSearch({ roleUid: next, suggestedUid: null, candidateUid: null });
   };
 
@@ -311,15 +352,15 @@ export function TeamApplicantsView({
      number the lead actually saw. */
   const suggestedViewedFor = useRef<string | null>(null);
   useEffect(() => {
-    if (!isSuggestedTab || !role || !suggestions.data) return;
+    if (!isSuggestedTab || !role || !suggestedList) return;
     if (suggestedViewedFor.current === role.uid) return;
     suggestedViewedFor.current = role.uid;
     analytics.onJobSuggestedCandidatesViewed({
       team_id: teamId,
       job_id: role.uid,
-      count: suggestions.data.length,
+      count: suggestedList.length,
     });
-  }, [analytics, isSuggestedTab, role, suggestions.data, teamId]);
+  }, [analytics, isSuggestedTab, role, suggestedList, teamId]);
 
   const select = (row: TeamApplicant) => {
     setSelectedUid(row.uid);
@@ -379,8 +420,8 @@ export function TeamApplicantsView({
 
   /* A shared `?suggested=` link: open that person once the list is in. */
   useEffect(() => {
-    if (!pendingSuggestedMemberUid || !suggestions.data) return;
-    const match = suggestions.data.find((row) => row.memberUid === pendingSuggestedMemberUid);
+    if (!pendingSuggestedMemberUid || !suggestedList) return;
+    const match = suggestedList.find((row) => row.memberUid === pendingSuggestedMemberUid);
     setPendingSuggestedMemberUid(null);
     if (match) {
       setSelectedUid(match.memberUid);
@@ -388,7 +429,7 @@ export function TeamApplicantsView({
     } else if (!isNarrow && suggestedRows.length) {
       setSelectedUid(suggestedRows[0].memberUid);
     }
-  }, [isNarrow, pendingSuggestedMemberUid, suggestions.data, suggestedRows]);
+  }, [isNarrow, pendingSuggestedMemberUid, suggestedList, suggestedRows]);
 
   /* The Suggested tab's version of the preselect above: two-column only, and
      with no unread state to clear. It sets the selection without the "opened"
@@ -415,6 +456,57 @@ export function TeamApplicantsView({
     }
     const next = shown[position + delta];
     if (next) select(next);
+  };
+
+  /* Not optimistic: the modal stays open on a pending Save and closes on the
+     server's answer, and a refusal leaves it open on the lead's draft. */
+  const onSaveCriteria = (disabled: string[]) => {
+    saveCriteria.mutate(
+      { disabled },
+      {
+        onSuccess: (criteria) => {
+          setCriteriaOpen(false);
+          analytics.onJobSuggestedCriteriaEdited({
+            team_id: teamId,
+            job_id: role?.uid ?? null,
+            enabled_count: criteria.filter((c) => c.enabled).length,
+            disabled_count: criteria.filter((c) => !c.enabled).length,
+          });
+        },
+        onError: (error) => {
+          toast.error(failureMessage(error, 'Could not save the criteria. Please try again.'));
+        },
+      },
+    );
+  };
+
+  /* The send is not optimistic either. Success patches `contactedAt` from the
+     server; a 409 means someone on the team already wrote to them, so it is
+     handled as done — closed, no toast, no event — and the hook re-reads. */
+  const onSendContact = (target: SuggestedCandidate, message: string) => {
+    contactSuggested.mutate(
+      { memberUid: target.memberUid, message },
+      {
+        onSuccess: () => {
+          setContactMemberUid(null);
+          setContactDrafts(({ [draftKey(target.memberUid)]: _sent, ...rest }) => rest);
+          analytics.onJobSuggestedCandidateContacted({
+            team_id: teamId,
+            job_id: role?.uid ?? null,
+            rank: target.rank,
+            label: target.label,
+            interested: target.interested === true,
+          });
+        },
+        onError: (error) => {
+          if (isAlreadyContactedError(error)) {
+            setContactMemberUid(null);
+            return;
+          }
+          toast.error(failureMessage(error, 'Could not send your message. Please try again.'));
+        },
+      },
+    );
   };
 
   const listLength = isSuggestedTab ? shownSuggested.length : shown.length;
@@ -509,7 +601,7 @@ export function TeamApplicantsView({
                 tabs={[
                   { name: APPLIED_TAB, count: lists.data?.applications.length },
                   { name: INTERESTED_TAB, count: lists.data?.interests.length },
-                  { name: SUGGESTED_TAB, count: suggestions.data?.length },
+                  { name: SUGGESTED_TAB, count: suggestedList?.length },
                 ]}
               />
             </div>
@@ -521,6 +613,11 @@ export function TeamApplicantsView({
               <p className={s.suggestedNote}>
                 The top {SUGGESTED_LIMIT} members matched to this role on their profile. They haven’t applied. People
                 who worked at {teamName || 'this team'} are not suggested.
+              </p>
+            )}
+            {isSuggestedTab && roleSummary && (
+              <p className={s.roleSummary} data-testid="suggested-role-summary">
+                {roleSummary}
               </p>
             )}
 
@@ -575,26 +672,21 @@ export function TeamApplicantsView({
               <>
                 <SuggestedPaneBar
                   suggestion={selectedSuggested}
-                  roleTitle={role?.roleTitle ?? ''}
-                  isLoggedIn={isLoggedIn}
                   position={suggestedPosition}
                   total={listLength}
                   onStep={step}
-                  onEmailClick={() =>
-                    analytics.onJobSuggestedCandidateContacted({
-                      team_id: teamId,
-                      job_id: role?.uid ?? null,
-                      rank: selectedSuggested.rank,
-                      label: selectedSuggested.label,
-                      interested: selectedSuggested.interested === true,
-                    })
-                  }
+                  onContact={() => setContactMemberUid(selectedSuggested.memberUid)}
                 />
                 <MemberProfilePane
                   key={selectedSuggested.memberUid}
                   memberUid={selectedSuggested.memberUid}
                   isLoggedIn={isLoggedIn}
-                  section={<SuggestedWhy suggestion={selectedSuggested} />}
+                  section={
+                    <SuggestedWhy
+                      suggestion={selectedSuggested}
+                      onEditCriteria={canEditCriteria ? () => setCriteriaOpen(true) : undefined}
+                    />
+                  }
                 />
               </>
             ) : !isSuggestedTab && selected ? (
@@ -641,6 +733,33 @@ export function TeamApplicantsView({
           </div>
         )}
       </div>
+
+      {isSuggestedTab && canEditCriteria && roleCriteria && (
+        <EditCriteriaModal
+          isOpen={criteriaOpen}
+          onClose={() => setCriteriaOpen(false)}
+          roleTitle={role?.roleTitle ?? ''}
+          criteria={roleCriteria}
+          isSaving={saveCriteria.isPending}
+          onSave={onSaveCriteria}
+        />
+      )}
+
+      {isSuggestedTab && contactTarget && (
+        <ContactSuggestedModal
+          isOpen={!contactTarget.contactedAt}
+          onClose={() => setContactMemberUid(null)}
+          personName={contactTarget.name}
+          roleTitle={role?.roleTitle ?? ''}
+          teamName={teamName}
+          draft={contactDrafts[draftKey(contactTarget.memberUid)]}
+          onDraftChange={(text) =>
+            setContactDrafts((drafts) => ({ ...drafts, [draftKey(contactTarget.memberUid)]: text }))
+          }
+          isSending={contactSuggested.isPending}
+          onSend={(message) => onSendContact(contactTarget, message)}
+        />
+      )}
     </div>
   );
 }

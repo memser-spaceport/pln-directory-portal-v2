@@ -1,6 +1,8 @@
 .headerRight {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -10,6 +12,31 @@
   line-height: 18px;
   color: var(--foreground-neutral-secondary, #455468);
   white-space: nowrap;
+}
+
+/* LAB-2847: a quiet text action at the end of the header — the band stays
+   the header's claim, and editing what counts is a lead's occasional chore. */
+.editCriteria {
+  padding: 2px 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }
 
 /* LAB-2789: the interested member's own words, whole, above the matcher's. */

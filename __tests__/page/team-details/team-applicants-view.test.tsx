@@ -94,7 +94,9 @@ jest.mock('@/services/jobs/hooks/useTeamApplicants', () => ({
   useRoleApplicants: (...args: unknown[]) => useRoleApplicants(...args),
   useMarkApplicantSeen: () => ({ mutate: markSeen }),
   useToggleApplicantReviewed: () => ({ mutate: toggleReviewed }),
-  useSuggestedCandidates: () => ({ data: [], isPending: false, isError: false }),
+  useSuggestedCandidates: () => ({ data: { suggestions: [], criteria: null }, isPending: false, isError: false }),
+  useSaveMatchCriteria: () => ({ mutate: jest.fn(), isPending: false }),
+  useContactSuggestedCandidate: () => ({ mutate: jest.fn(), isPending: false }),
 }));
 
 import { TeamApplicantsView } from '@/components/page/team-details/TeamApplicants';

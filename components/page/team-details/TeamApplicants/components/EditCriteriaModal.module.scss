@@ -1,0 +1,128 @@
+/* The product's standard modal shell (the deals dialog's header / close disc /
+ * content / footer on the gantry idea modal's card), written here rather than
+ * imported from those features (AGENTS.md rule 15). */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 560px;
+  max-width: calc(100vw - 32px);
+  max-height: min(98dvh, 960px);
+  border-radius: 24px;
+  background: var(--background-neutral-primary, #fff);
+  overflow: hidden;
+  box-shadow:
+    0 10px 20px -5px rgba(14, 15, 17, 0.06),
+    0 20px 65px -5px rgba(14, 15, 17, 0.06);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 16px;
+  border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+  flex-shrink: 0;
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 27px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 6px;
+  border: none;
+  border-radius: 9999px;
+  background: rgba(14, 15, 17, 0.04);
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.08);
+  }
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* One requirement: the tick and its text, the whole row the hit area. The DS
+ * Checkbox ships as a button, so it must not swallow the label's click. */
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+
+  button {
+    pointer-events: none;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+}
+
+.rowLocked {
+  cursor: default;
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.hint {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px 16px;
+  border-top: 1px solid rgba(27, 56, 96, 0.12);
+  flex-shrink: 0;
+}

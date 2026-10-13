@@ -217,3 +217,18 @@
   line-height: 18px;
   color: var(--foreground-neutral-secondary, #455468);
 }
+
+/* LAB-2847: what the role is, in two lines at most — enough to read the
+   suggestions against without leaving for the posting. */
+.roleSummary {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}

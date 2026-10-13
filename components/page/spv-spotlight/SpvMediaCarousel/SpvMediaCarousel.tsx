@@ -12,6 +12,7 @@ type Props = {
   /** Accessible name, e.g. "Netholabs, from its website". */
   label: string;
   sourceUrl: string;
+  onSourceClicked?: () => void;
 };
 
 /**
@@ -19,7 +20,7 @@ type Props = {
  * Spotlight's card had its pitch deck and video. Embla brings touch swipe;
  * prev/next, the counter, thumbnails and arrow keys are ours.
  */
-export function SpvMediaCarousel({ images, label, sourceUrl }: Props) {
+export function SpvMediaCarousel({ images, label, sourceUrl, onSourceClicked }: Props) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
   const [index, setIndex] = useState(0);
   const total = images.length;
@@ -112,7 +113,7 @@ export function SpvMediaCarousel({ images, label, sourceUrl }: Props) {
         {host && (
           <span className={s.source}>
             From{' '}
-            <a href={sourceUrl} target="_blank" rel="noopener noreferrer">
+            <a href={sourceUrl} target="_blank" rel="noopener noreferrer" onClick={onSourceClicked}>
               {host}
             </a>
           </span>

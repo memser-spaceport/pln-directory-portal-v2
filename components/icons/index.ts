@@ -42,3 +42,5 @@ export * from './MagicSparklesIcon';
 export * from './ThumbsDownIcon';
 export * from './ReviewCheckIcon';
 export * from './EnvelopeIcon';
+export * from './ShareIcon';
+export * from './TrashIcon';

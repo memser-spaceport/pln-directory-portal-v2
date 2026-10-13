@@ -32,7 +32,12 @@ export interface AddTeamInlineFormProps {
   showInvestorFields?: boolean;
   investorFieldsConfig?: InvestorFieldsConfig;
   fieldNames: AddTeamInlineFormFieldNames;
+  /** A wrapper class per investor field, e.g. to mark one that still needs filling. */
+  fieldClassNames?: { startupStages?: string; typicalCheckSize?: string };
 }
+
+const Wrap = ({ className, children }: { className?: string; children: React.ReactNode }) =>
+  className ? <div className={className}>{children}</div> : <>{children}</>;
 
 export const AddTeamInlineForm = ({
   onClose,
@@ -41,6 +46,7 @@ export const AddTeamInlineForm = ({
   showInvestorFields = false,
   investorFieldsConfig,
   fieldNames,
+  fieldClassNames,
 }: AddTeamInlineFormProps) => {
   const { setValue, watch } = useFormContext();
 
@@ -102,20 +108,24 @@ export const AddTeamInlineForm = ({
 
         {showInvestorFields && investorFieldsConfig && fieldNames.startupStages && fieldNames.typicalCheckSize && (
           <>
-            <FormMultiSelect
-              name={fieldNames.startupStages}
-              label="Startup stage(s) you invest in?"
-              placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A...)"
-              options={investorFieldsConfig.fundingStageOptions}
-              isRequired
-            />
-            <FormCurrencyField
-              name={fieldNames.typicalCheckSize}
-              label="Typical Check Size"
-              placeholder="Add check size"
-              currency="USD"
-              isRequired
-            />
+            <Wrap className={fieldClassNames?.startupStages}>
+              <FormMultiSelect
+                name={fieldNames.startupStages}
+                label="Startup stage(s) you invest in?"
+                placeholder="Select startup stages (e.g., Pre-seed, Seed, Series A...)"
+                options={investorFieldsConfig.fundingStageOptions}
+                isRequired
+              />
+            </Wrap>
+            <Wrap className={fieldClassNames?.typicalCheckSize}>
+              <FormCurrencyField
+                name={fieldNames.typicalCheckSize}
+                label="Typical Check Size"
+                placeholder="Add check size"
+                currency="USD"
+                isRequired
+              />
+            </Wrap>
             {fieldNames.investmentFocusAreas && (
               <FormTagsInput
                 selectLabel="Add Investment Focus"

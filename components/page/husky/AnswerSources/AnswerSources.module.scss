@@ -1,0 +1,34 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.title {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding-inline-start: 18px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.link {
+  color: #156ff7;
+  word-break: break-word;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

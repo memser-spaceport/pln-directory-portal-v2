@@ -251,6 +251,41 @@
   }
 }
 
+/* Hosted as AI Search mode: the bare bar carries Back to search, so it stands
+   on every width, with History pushed to the far end on phones. */
+.titleBarBack.titleBarBack {
+  justify-content: space-between;
+  padding-left: 12px;
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
+}
+
+/* The ai-mode back button, inset to line up with the title bar's own buttons. */
+.back.back {
+  flex-shrink: 0;
+  margin-left: -4px;
+}
+
+.barDivider {
+  flex-shrink: 0;
+  width: 1px;
+  height: 20px;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+/* The scope chip (a row's Ask AI) sits centred over the 602px field. */
+.scopeChip.scopeChip {
+  align-self: center;
+  max-width: 100%;
+  margin: 0;
+}
+
 .titleBlock {
   display: flex;
   flex: 1;

@@ -1,0 +1,37 @@
+/* The audience line takes the footer's free width; the two buttons keep theirs. */
+.footer {
+  align-items: center;
+  gap: 8px;
+}
+
+.audience {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* The feedback dialog's attach button and strip, compacted for a 340px card. */
+.attach {
+  height: 28px;
+  margin-top: 8px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+
+.strip {
+  margin-top: 8px;
+}
+
+/* While the page is grabbed and the area dragged: the card is not in its own
+   screenshot, and doesn't sit on the frozen page. Opacity, not visibility —
+   the DS Button sets its own visibility, so its buttons stayed in the shot.
+   Hidden, not unmounted, so the draft survives. */
+.stepAside.stepAside {
+  // The card's entrance animation fills forwards and pins opacity at 1, so it
+  // has to go too; it replays when the card comes back, which reads as returning.
+  animation: none;
+  opacity: 0;
+  pointer-events: none;
+}

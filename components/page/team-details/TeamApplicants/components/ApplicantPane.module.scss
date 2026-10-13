@@ -36,9 +36,12 @@
   }
 }
 
-/* What somebody typed had paragraphs in it; collapsing them misquotes them. */
+/* What somebody typed had paragraphs in it; collapsing them misquotes them.
+   A run with no spaces (a pasted link) still has to break, or it runs out of
+   the box (LAB-2747). */
 .note {
   white-space: pre-line;
+  overflow-wrap: anywhere;
   font-size: 14px;
   font-weight: 400;
   line-height: 22px;

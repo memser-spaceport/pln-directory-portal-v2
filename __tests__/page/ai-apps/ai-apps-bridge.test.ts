@@ -64,7 +64,7 @@ describe('AI Apps bridge', () => {
   it('announces itself to the exact LabOS origin, and again on hello', () => {
     ctx = setup();
     expect(ctx.posted).toEqual([expect.objectContaining({ type: 'ready', ns: BRIDGE_NS, v: BRIDGE_VERSION })]);
-    expect(ctx.posted[0].payload.capabilities).toEqual(['pick', 'describe', 'crop', 'locate', 'capture']);
+    expect(ctx.posted[0].payload.capabilities).toEqual(['pick', 'describe', 'crop', 'locate', 'capture', 'scroll']);
     ctx.command('hello');
     expect(ctx.posted.map((m) => m.type)).toEqual(['ready', 'ready']);
     /* Same page load, same session — LabOS tells an echo from a new document by it. */
@@ -235,6 +235,89 @@ describe('AI Apps bridge', () => {
       ctx.command('capture', { key: 'cap-1' }, { origin: 'https://evil.example' });
       await new Promise((r) => setTimeout(r, 0));
       expect(render).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('scroll (a wheel turned over LabOS’s Pick a part layer)', () => {
+    /* jsdom has no layout: an element "scrolls" when its overflow says so and its sizes leave room. */
+    const scroller = (
+      overflow: { x?: string; y?: string },
+      box: Partial<
+        Record<'scrollTop' | 'clientHeight' | 'scrollHeight' | 'scrollLeft' | 'clientWidth' | 'scrollWidth', number>
+      >,
+    ) => {
+      const el = ctx.doc.createElement('div');
+      el.style.overflowX = overflow.x ?? 'visible';
+      el.style.overflowY = overflow.y ?? 'visible';
+      for (const [k, v] of Object.entries(box)) Object.defineProperty(el, k, { value: v, configurable: true });
+      (el as any).scrollBy = jest.fn();
+      return el;
+    };
+    const windowScroll = () => ((ctx.win as any).scrollBy = jest.fn());
+
+    it('scrolls the nearest panel under the pointer that still has room, at once', () => {
+      ctx = setup();
+      const pageBy = windowScroll();
+      const panel = scroller({ y: 'auto' }, { scrollTop: 0, clientHeight: 300, scrollHeight: 900 });
+      const leaf = ctx.doc.createElement('span');
+      panel.appendChild(leaf);
+      ctx.doc.body.appendChild(panel);
+      ctx.place(leaf);
+
+      ctx.command('scroll', { x: 50, y: 50, dx: 0, dy: 120 });
+
+      expect(panel.scrollBy).toHaveBeenCalledWith({ left: 0, top: 120, behavior: 'instant' });
+      expect(pageBy).not.toHaveBeenCalled();
+    });
+
+    it('passes on to the page when the panel is at its end, or nothing under the pointer scrolls', () => {
+      ctx = setup();
+      const pageBy = windowScroll();
+      const panel = scroller({ y: 'scroll' }, { scrollTop: 600, clientHeight: 300, scrollHeight: 900 });
+      ctx.doc.body.appendChild(panel);
+      ctx.place(panel);
+
+      ctx.command('scroll', { x: 50, y: 50, dx: 0, dy: 120 });
+      expect(panel.scrollBy).not.toHaveBeenCalled();
+      expect(pageBy).toHaveBeenLastCalledWith({ left: 0, top: 120, behavior: 'instant' });
+
+      /* Going back up, the same panel has room again. */
+      ctx.command('scroll', { x: 50, y: 50, dx: 0, dy: -120 });
+      expect(panel.scrollBy).toHaveBeenCalledWith({ left: 0, top: -120, behavior: 'instant' });
+
+      (ctx.doc as any).elementFromPoint = () => null;
+      ctx.command('scroll', { x: 50, y: 50, dx: 0, dy: 40 });
+      expect(pageBy).toHaveBeenLastCalledWith({ left: 0, top: 40, behavior: 'instant' });
+    });
+
+    it('lets each axis find its own scroller: a sideways strip does not swallow a vertical wheel', () => {
+      ctx = setup();
+      const pageBy = windowScroll();
+      const strip = scroller({ x: 'auto' }, { scrollLeft: 0, clientWidth: 300, scrollWidth: 1200 });
+      ctx.doc.body.appendChild(strip);
+      ctx.place(strip);
+
+      ctx.command('scroll', { x: 50, y: 50, dx: 30, dy: 120 });
+
+      expect(strip.scrollBy).toHaveBeenCalledWith({ left: 30, top: 0, behavior: 'instant' });
+      expect(pageBy).toHaveBeenCalledWith({ left: 0, top: 120, behavior: 'instant' });
+    });
+
+    it('caps a huge delta, and ignores a malformed scroll or one from anyone but LabOS', () => {
+      ctx = setup();
+      const pageBy = windowScroll();
+      (ctx.doc as any).elementFromPoint = () => null;
+
+      ctx.command('scroll', { x: 50, y: 50, dx: 0, dy: 1e9 });
+      expect(pageBy).toHaveBeenLastCalledWith({ left: 0, top: 5000, behavior: 'instant' });
+
+      pageBy.mockClear();
+      ctx.command('scroll', { x: 50, y: 50, dx: 0, dy: Number.NaN });
+      ctx.command('scroll', { x: '50', y: 50, dx: 0, dy: 10 });
+      ctx.command('scroll');
+      ctx.command('scroll', { x: 50, y: 50, dx: 0, dy: 10 }, { origin: 'https://evil.example' });
+      ctx.command('scroll', { x: 50, y: 50, dx: 0, dy: 10 }, { source: ctx.win });
+      expect(pageBy).not.toHaveBeenCalled();
     });
   });
 });

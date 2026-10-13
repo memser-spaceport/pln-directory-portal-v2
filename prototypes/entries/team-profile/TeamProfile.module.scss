@@ -1310,13 +1310,17 @@
       }
     }
 
-    > .factDivider:has(+ .factLocation) {
-      display: none;
-    }
+  }
 
-    > .factLocation {
-      flex-basis: 100%;
-    }
+  /* Every width: the location takes a line of its own, with its divider gone.
+     Beside the header's action cluster the row wraps there anyway, and a
+     divider before a wrapped item hangs at the end of the first line. */
+  > .factDivider:has(+ .factLocation) {
+    display: none;
+  }
+
+  > .factLocation {
+    flex-basis: 100%;
   }
 }
 
@@ -1651,4 +1655,62 @@
    below it so it reads as the first field of the stack. */
 .postAsField {
   margin-bottom: 24px;
+}
+
+/* The industry tags always start a line of their own under the classification
+   badges, so no badge divider is ever left at the end of a wrapped line
+   (see TeamDetailsView). */
+.tagsOwnLine {
+  flex-basis: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The divider that leads the tags only shows when they share the badges'
+   line — never at the start of a line of their own. */
+.tagsLeadDivider {
+  display: none;
+}
+
+/* Everything fits on one line (measured in TeamDetailsView): the tags join
+   the badges' line after a divider instead of wrapping under a mostly empty
+   first line. Otherwise they keep their own line. */
+.tagsOwnLine.tagsInline {
+  flex-basis: auto;
+
+  .tagsLeadDivider {
+    display: contents;
+  }
+}
+
+/* Review band "Actions → Under bio": Request an intro and Follow as a row
+   under About, left-aligned with it, the primary first. The member page's
+   8px between pills; 16px from the About box. Phone: a full-width stack,
+   the header stack's order (intro, then Follow with its caption). */
+.bioActions {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+
+    > * {
+      width: 100%;
+    }
+
+    > .followCol {
+      align-items: stretch;
+    }
+
+    /* Full-width pills centre their label, as the header stack does. */
+    button {
+      justify-content: center;
+    }
+  }
 }

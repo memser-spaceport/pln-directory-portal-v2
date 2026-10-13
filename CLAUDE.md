@@ -29,7 +29,7 @@ Follow `AGENTS.md`'s pre-PR authentication check for every PR request: restore c
 Uses Next.js App Router with route groups. The root page (`/`) redirects to `/members`. Key routes:
 - `/members`, `/teams`, `/projects`, `/events`, `/forum` — main listing pages
 - `/members/[id]`, `/teams/[id]`, `/projects/[id]` — detail pages
-- `/settings`, `/notifications`, `/sign-up`, `/husky/chat` — utility pages
+- `/settings`, `/notifications`, `/sign-up`, `/ai-search` (AI Search; old `/husky` URLs redirect) — utility pages
 - `/demoday`, `/alignment-asset`, `/changelog` — feature pages
 - `/api/` — Next.js API routes (proxy-pdf, revalidate, contact-support, members-search, forum, teams)
 

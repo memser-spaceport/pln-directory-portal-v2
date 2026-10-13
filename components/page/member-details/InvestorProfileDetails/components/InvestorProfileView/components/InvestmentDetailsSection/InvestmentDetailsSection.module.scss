@@ -69,3 +69,14 @@
     background: rgba(14, 15, 17, 0.1);
   }
 }
+
+// A field that still needs filling (SPV Spotlight's drawer only).
+.addPillNeedsFill {
+  color: var(--foreground-warning-secondary, #d97706);
+  background: var(--background-warning-soft-surface, rgba(245, 158, 11, 0.1));
+
+  &:hover {
+    color: var(--foreground-warning-primary, #b45309);
+    background: var(--background-warning-soft-surface, rgba(245, 158, 11, 0.1));
+  }
+}

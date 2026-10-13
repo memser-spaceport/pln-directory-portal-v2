@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 .root {
   position: fixed;
   inset: 0;
@@ -148,5 +150,12 @@
   .cancel {
     min-height: 44px;
     padding: 0 16px;
+  }
+}
+
+/* On a touch-only device there is no Esc; the Cancel button says it. */
+.keyHint {
+  @include media.no-fine-pointer {
+    display: none;
   }
 }

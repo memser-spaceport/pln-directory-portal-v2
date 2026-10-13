@@ -9,6 +9,11 @@ import {
   roleApplicantsResponseSchema,
   TeamApplicant,
 } from '@/schema/team-applicants';
+import {
+  SuggestedCandidate,
+  selectShownSuggestions,
+  suggestedCandidatesResponseSchema,
+} from '@/schema/suggested-candidates';
 import { customFetch } from '@/utils/fetch-wrapper';
 
 /**
@@ -153,6 +158,25 @@ export async function fetchRoleApplicants(
     applications: applications.map((row) => ({ ...row, kind: 'application' as const })),
     interests: interests.map((row) => ({ ...row, kind: 'interest' as const })),
   };
+}
+
+/**
+ * A live role's suggested candidates (LAB-2771): the top matches the product
+ * proposes, best first. The server returns an empty list for a role that is
+ * not live and answers 403 to anyone outside the hiring team.
+ */
+export async function fetchSuggestedCandidates(roleUid: string): Promise<SuggestedCandidate[]> {
+  const response = await customFetch(
+    `${JOB_OPENINGS_API_URL}/${encodeURIComponent(roleUid)}/suggested-candidates`,
+    { method: 'GET' },
+    true,
+  );
+
+  if (!response?.ok) {
+    throw await errorFrom(response, 'Could not load suggested candidates');
+  }
+
+  return selectShownSuggestions(suggestedCandidatesResponseSchema.parse(await response.json()).suggestions);
 }
 
 /**

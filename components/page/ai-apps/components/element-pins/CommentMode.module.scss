@@ -123,7 +123,8 @@ $quiet: var(--foreground-neutral-secondary, #455468);
    beside its pin. Fixed in the window, so it can hang past the frame. */
 .card {
   position: fixed;
-  z-index: 11;
+  /* Above the feedback drawer (1000), which is the whole screen on a phone; below every Modal (9999). */
+  z-index: 1001;
   width: 340px;
   max-height: min(70vh, 520px);
   border: 1px solid $border;
@@ -191,8 +192,12 @@ $quiet: var(--foreground-neutral-secondary, #455468);
 
 /* The element that was pointed at, bordered (a white capture on a white card
    has no edge otherwise), contained on a capped height. */
+/* A button now: it opens the full-size viewer on the page (LAB-2768). Tall
+   enough to read the marked part without opening it. */
 .shot {
   display: block;
+  width: 100%;
+  padding: 0;
   overflow: hidden;
   border: 1px solid $border;
   border-radius: 8px;
@@ -203,10 +208,25 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   img {
     display: block;
     width: 100%;
-    max-height: 160px;
+    max-height: 240px;
     object-fit: contain;
     object-position: left top;
   }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.shotUnavailable {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px dashed $border;
+  border-radius: 8px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
 }
 
 /* ---------- the conversation under a comment (phase 2) ---------- */
@@ -302,42 +322,6 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   resize: none;
 }
 
-/* ---------- the dock ---------- */
-
-/* Open for as long as the mode is on, above the feedback button (the
-   prototype's DraftsPanel position). Only the middle scrolls. */
-.dock {
-  position: fixed;
-  right: 24px;
-
-  bottom: 88px;
-  z-index: 10;
-  gap: 12px;
-  width: min(420px, calc(100vw - 24px));
-  max-height: min(64vh, 560px);
-  padding: 16px;
-  border: 1px solid $border;
-  animation: threadIn 160ms ease-out both;
-
-  /* Beside the comments panel while it is open (hidden on phones). */
-  @include media.tablet-portrait {
-    right: calc(24px + var(--ai-app-comments-inset, 0px));
-  }
-
-  @include media.mobile-only {
-    right: 12px;
-    bottom: 72px;
-  }
-}
-
-.top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
 .hint {
   margin: 0;
   color: $quiet;
@@ -390,7 +374,8 @@ $quiet: var(--foreground-neutral-secondary, #455468);
 /* The small card beside a new pin (prototype PinComposer). */
 .composer {
   position: fixed;
-  z-index: 11;
+  /* Above the feedback drawer (1000), as the thread card is. */
+  z-index: 1001;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -461,19 +446,12 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   }
 
   .card,
-  .dock,
   .pinDraft {
     animation: none;
   }
 }
 
-/* ---------- the Comment tab's card and the composer (prototype ai-apps-comments) ---------- */
-
-.hintBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
+/* ---------- the composer (prototype ai-apps-comments) ---------- */
 
 .hintLead {
   margin: 0;
@@ -511,12 +489,61 @@ $quiet: var(--foreground-neutral-secondary, #455468);
   background: var(--background-neutral-secondary, #f8fafc);
   line-height: 0;
 
+  /* Never stretched past its own size: a small element's crop blown up to the
+     full width is a blur. The hairline shows where a light crop ends on the
+     frame's light background. */
   img {
     display: block;
-    width: 100%;
+    width: auto;
+    height: auto;
+    max-width: 100%;
     max-height: 120px;
-    object-fit: contain;
-    object-position: left top;
+    box-shadow: 0 0 0 1px $border;
+  }
+}
+
+/* The attached picture opens the annotate dialog (LAB-2768). The chip says so,
+   always, since nothing else hints that the picture can be drawn on.
+   The frame is at least 72px tall whatever the crop's shape: a short, wide one
+   (a single input) would otherwise leave a frame a few pixels tall that clips
+   the chip and the remove button (LAB-2795). */
+.composerShotOpen {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 72px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+}
+
+.composerShotHint {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: rgba(14, 15, 17, 0.72);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+
+  .composerShotOpen:hover &,
+  .composerShotOpen:focus-visible & {
+    background: var(--foreground-brand-primary, #1b4dff);
   }
 }
 
@@ -591,10 +618,10 @@ $quiet: var(--foreground-neutral-secondary, #455468);
 }
 
 /* Portalled to the body and placed beside its button (inline style): above the
-   thread card (z-index 11), whose scroll area used to clip it. */
+   thread card (z-index 1001), whose scroll area used to clip it. */
 .itemActionsMenu {
   position: fixed;
-  z-index: 12;
+  z-index: 1002;
   display: flex;
   flex-direction: column;
   min-width: 120px;

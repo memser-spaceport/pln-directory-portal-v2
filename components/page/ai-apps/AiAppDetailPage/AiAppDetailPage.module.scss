@@ -6,10 +6,19 @@
   height: calc(100vh - var(--app-header-height));
   width: 100%;
 
-  /* The app narrows beside the comments panel rather than sit under it. */
-  @include media.tablet-portrait {
+  /* The app narrows beside the narrow feedback drawer rather than sit under it (LAB-2767); below 960 the drawer overlays. */
+  @include media.tablet-landscape {
     padding-right: var(--ai-app-comments-inset, 0px);
   }
+}
+
+/* The feedback drawer's Comments tab body: comment mode portals the list in here. */
+.commentsListSlot {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .iframe {

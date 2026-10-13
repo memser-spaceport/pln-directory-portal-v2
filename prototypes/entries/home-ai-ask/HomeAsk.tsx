@@ -16,11 +16,16 @@ import ap from '../ai-search/AnswerPanel.module.scss';
 import Composer from '../ai-search-page/Composer';
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
 
+import { EnvelopeGlyph } from '../intro-shared/EnvelopeGlyph';
+
+import { readsAsRequest, TeamRequest } from './TeamRequest';
 import s from './HomeAsk.module.scss';
 
 export type AskMode = 'overview' | 'handoff';
 /** `box`: the one-line search box. `composer`: the AI Search page's own field. */
 export type FieldSize = 'box' | 'composer';
+/** LAB-2704: portfolio founders get the PL team door first; other members see AI Search only. */
+export type AskViewer = 'founder' | 'member';
 
 const PAGE = '/prototypes/ai-search-page';
 /** The overview shows this many directory results; the rest are one press away. */
@@ -33,9 +38,18 @@ const TRY: { label: string; question: string }[] = [
   { label: 'Lumen Storage vs Saturn Grid', question: SUGGESTED_PROMPTS[3].text },
 ];
 
+/** A founder's line swaps the comparison for the ask the ticket was raised with. */
+const TRY_FOUNDER: { label: string; question: string }[] = [
+  TRY[0],
+  TRY[1],
+  { label: 'Intros to climate investors', question: 'Help me get intros to investors in climate tech' },
+];
+
 interface Asked extends CannedAnswer {
   question: string;
   status: 'thinking' | 'done';
+  /** `request`: the PL team draft answers instead of AI Search. */
+  kind: 'answer' | 'request';
 }
 
 /**
@@ -51,7 +65,22 @@ interface Asked extends CannedAnswer {
  *  - `handoff`: Enter opens /ai-search with the question already answering;
  *    Back returns here.
  */
-export function HomeAsk({ mode, size, signedIn }: { mode: AskMode; size: FieldSize; signedIn: boolean }) {
+export function HomeAsk({
+  mode,
+  size,
+  signedIn,
+  viewer = 'member',
+}: {
+  mode: AskMode;
+  size: FieldSize;
+  signedIn: boolean;
+  viewer?: AskViewer;
+}) {
+  /* The PL team door is a signed-in founder's: a request needs someone to
+     reply to. The placeholder names both jobs, since it is the only thing on
+     screen before anyone types. */
+  const founder = signedIn && viewer === 'founder';
+  const placeholder = founder ? 'Ask AI Search, or send the PL team a request' : 'Ask AI Search about the network';
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
@@ -66,7 +95,7 @@ export function HomeAsk({ mode, size, signedIn }: { mode: AskMode; size: FieldSi
     setAsked(null);
     setValue('');
     setComposerKey((k) => k + 1);
-  }, [mode, size]);
+  }, [mode, size, founder]);
 
   /* The overview's wait: the AI Search loader, for the usual thinking time. */
   useEffect(() => {
@@ -86,11 +115,18 @@ export function HomeAsk({ mode, size, signedIn }: { mode: AskMode; size: FieldSi
     const question = text.trim();
     if (!question) return;
     setValue(question);
+    /* A founder's request gets the PL team draft in both modes: handing it to
+       the AI Search page would answer it with matches, which the request
+       doesn't need. */
+    if (founder && readsAsRequest(question)) {
+      setAsked({ question, status: 'done', kind: 'request', ...buildAnswer(question) });
+      return;
+    }
     if (mode === 'handoff') {
       router.push(pageUrl(question, false));
       return;
     }
-    setAsked({ question, status: 'thinking', ...buildAnswer(question) });
+    setAsked({ question, status: 'thinking', kind: 'answer', ...buildAnswer(question) });
   };
 
   const clear = () => {
@@ -126,8 +162,8 @@ export function HomeAsk({ mode, size, signedIn }: { mode: AskMode; size: FieldSi
             size="home"
             rows={1}
             value={value}
-            placeholder="Ask AI Search about the network"
-            aria-label="Ask AI Search about the network"
+            placeholder={placeholder}
+            aria-label={placeholder}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -153,8 +189,8 @@ export function HomeAsk({ mode, size, signedIn }: { mode: AskMode; size: FieldSi
             className={s.input}
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder="Ask AI Search about the network"
-            aria-label="Ask AI Search about the network"
+            placeholder={placeholder}
+            aria-label={placeholder}
             enterKeyHint="search"
           />
           {value && (
@@ -176,7 +212,7 @@ export function HomeAsk({ mode, size, signedIn }: { mode: AskMode; size: FieldSi
       {!asked && (
         <p className={s.try}>
           <span className={s.tryLabel}>Try</span>
-          {TRY.map((t) => (
+          {(founder ? TRY_FOUNDER : TRY).map((t) => (
             <button key={t.label} type="button" className={s.tryItem} onClick={() => ask(t.question)}>
               {t.label}
             </button>
@@ -184,23 +220,41 @@ export function HomeAsk({ mode, size, signedIn }: { mode: AskMode; size: FieldSi
         </p>
       )}
 
-      {asked && (
-        <div className={clsx(ap.card, s.overview)} aria-live="polite">
-          <div className={s.overviewHead}>
-            <span className={s.overviewName}>
-              <AiSearchIcon size={16} />
-              AI Search
-            </span>
-            <button type="button" className={s.dismiss} onClick={clear} aria-label="Close the answer">
-              <CloseIcon width={16} height={16} />
-            </button>
-          </div>
+      {asked?.kind === 'request' && (
+        <TeamRequest
+          key={asked.question}
+          request={asked.question}
+          onClose={clear}
+          onSearchInstead={() => {
+            if (mode === 'handoff') {
+              router.push(pageUrl(asked.question, false));
+              return;
+            }
+            setAsked({ ...asked, kind: 'answer', status: 'thinking' });
+          }}
+        />
+      )}
+
+      {asked?.kind === 'answer' && (
+        <div className={clsx(ap.card, s.overview, s.cornerCard)} aria-live="polite">
+          {/* No header: the field above names AI Search, so the card is the
+              answer and a ✕ in its corner. */}
+          <button
+            type="button"
+            className={clsx(s.dismiss, s.cornerClose)}
+            onClick={clear}
+            aria-label="Close the answer"
+          >
+            <CloseIcon width={16} height={16} />
+          </button>
 
           {asked.status === 'thinking' ? (
-            <AnswerStatus hits={asked.sql} sourceCount={asked.sources.length} />
+            <div className={s.clearOfClose}>
+              <AnswerStatus hits={asked.sql} sourceCount={asked.sources.length} />
+            </div>
           ) : (
             <>
-              <div className={clsx(ap.content, s.prose)}>
+              <div className={clsx(ap.content, s.prose, s.clearOfClose)}>
                 <Markdown>{asked.answer}</Markdown>
               </div>
               {asked.sql.length > 0 && <DirectoryResultsCards hits={asked.sql.slice(0, OVERVIEW_HITS)} />}
@@ -222,6 +276,18 @@ export function HomeAsk({ mode, size, signedIn }: { mode: AskMode; size: FieldSi
                 <span className={s.footNote}>
                   {signedIn ? 'Ask follow-ups and keep this chat in your history' : 'Ask follow-ups'}
                 </span>
+                {/* The other direction's door: the answer didn't cover it, so
+                    the same text goes to people instead. */}
+                {founder && (
+                  <button
+                    type="button"
+                    className={clsx(s.switchDoor, s.footDoor)}
+                    onClick={() => setAsked({ ...asked, kind: 'request' })}
+                  >
+                    <EnvelopeGlyph size={16} />
+                    Send to the PL team instead
+                  </button>
+                )}
               </div>
             </>
           )}

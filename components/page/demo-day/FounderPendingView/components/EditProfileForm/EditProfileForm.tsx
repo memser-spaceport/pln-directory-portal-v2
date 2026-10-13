@@ -52,7 +52,7 @@ const schema = yup.object().shape({
   shortDescription: yup
     .string()
     .required('Short description is required')
-    .max(100, 'Short description should not exceed 100 characters'),
+    .max(150, 'Short description should not exceed 150 characters'),
   tags: yup
     .array()
     .of(
@@ -259,7 +259,7 @@ export const EditProfileForm = ({ onClose, profileData: profileDataProp }: Props
                 name="shortDescription"
                 label="Short Description"
                 placeholder="Describe your team and what you do..."
-                max={100}
+                max={150}
               />
             </div>
 

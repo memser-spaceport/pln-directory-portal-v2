@@ -1,0 +1,170 @@
+// "Results from the directory" as one panel of rows (see EntityList.tsx).
+
+@use 'styles/media';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Section label: the same 14/600 primary every section head in the proposed
+   answer uses, count in tertiary. */
+.title {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.count {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-weight: 500;
+}
+
+/* One panel: card border, 12px radius (the answer's other panels — table,
+   feedback — share it), rows divided by hairlines. */
+.panel {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-neutral-primary, #fff);
+
+  > li + li {
+    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+/* 32px picture + two lines = 56px rows, above the 44px touch minimum. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 14px;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+
+    .go {
+      color: var(--foreground-neutral-secondary, #455468);
+      transform: translateX(2px);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -2px;
+  }
+}
+
+.picture {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.logo {
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  padding: 3px;
+  object-fit: contain;
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name,
+.meta {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.name {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+/* Secondary, not tertiary: 12px text has to clear 4.5:1 on white. */
+.meta {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* Production's OhBadge is absolutely positioned for the member card's top
+   edge; in a row it sits in flow. Only the position is overridden. */
+.badge {
+  flex-shrink: 0;
+  display: inline-flex;
+
+  > div {
+    position: static;
+    transform: none;
+  }
+}
+
+.go {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  transition:
+    color 0.15s ease,
+    transform 0.15s ease;
+}
+
+/* "Show all (N)" as the panel's last row: production's words, brand 12/500,
+   the panel's own hover. */
+.more {
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  background: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+/* Beside the text from 640 up; under the meta line on phones, where a 130px
+   badge beside the text would cut the role to a few letters. */
+.badgeUnder {
+  display: none;
+  margin-top: 4px;
+  align-self: flex-start;
+
+  @include media.mobile-only {
+    display: inline-flex;
+  }
+}
+
+.badgeBeside {
+  @include media.mobile-only {
+    display: none;
+  }
+}

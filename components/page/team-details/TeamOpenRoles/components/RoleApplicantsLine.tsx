@@ -42,7 +42,7 @@ interface Props {
  * Only what is there is named: no "0 interested" trailing a role nobody has
  * pressed interest on.
  */
-function Tally({ applicants, interested }: { applicants: number; interested: number }) {
+function Tally({ applicants, interested, suggested }: { applicants: number; interested: number; suggested: number }) {
   return (
     <>
       {applicants > 0 && (
@@ -56,12 +56,18 @@ function Tally({ applicants, interested }: { applicants: number; interested: num
           <strong>{interested}</strong> interested
         </>
       )}
+      {(applicants > 0 || interested > 0) && suggested > 0 && ' · '}
+      {suggested > 0 && (
+        <>
+          <strong>{suggested}</strong> suggested
+        </>
+      )}
     </>
   );
 }
 
 export function RoleApplicantsLine({ teamId, roleUid, count }: Props) {
-  const total = (count?.applicantCount ?? 0) + (count?.interestCount ?? 0);
+  const total = (count?.applicantCount ?? 0) + (count?.interestCount ?? 0) + (count?.suggestedCount ?? 0);
   if (!count || total === 0) return null;
 
   const faces = count.newestAvatars.slice(0, 3);
@@ -76,7 +82,7 @@ export function RoleApplicantsLine({ teamId, roleUid, count }: Props) {
         </span>
       )}
       <span className={s.count}>
-        <Tally applicants={count.applicantCount} interested={count.interestCount} />
+        <Tally applicants={count.applicantCount} interested={count.interestCount} suggested={count.suggestedCount} />
       </span>
       {count.newCount > 0 && <span className={s.newBadge}>● {count.newCount} new</span>}
     </Link>

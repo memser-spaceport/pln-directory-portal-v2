@@ -54,6 +54,18 @@ export type SpvTeam = {
   founders: SpvFounder[];
 };
 
+export type SpvDetails = {
+  fundName: string | null;
+  investment: string | null;
+  targetSpvSize: string | null;
+  minimumInvestment: string | null;
+  managementFee: string | null;
+  carriedInterest: string | null;
+  expenseReserve: string | null;
+  investorEligibility: string | null;
+  liquidity: string | null;
+};
+
 export type SpvSpotlight = {
   uid: string;
   slug: string;
@@ -62,6 +74,10 @@ export type SpvSpotlight = {
   /** Admin-configured hero copy, as HTML. */
   description: string;
   supportEmail: string;
+  /** When the SPV stops taking commitments (ISO datetime). Admin-set and optional: no date, no "Closes" line. */
+  closesAt?: string | null;
+  /** Admin-set SPV terms. Each value is display text. Null when unset. */
+  spvDetails: SpvDetails;
   /** Only sent when the viewer is APPROVED and the spotlight is OPEN; null otherwise. */
   docSendUrl: string | null;
   team: SpvTeam;

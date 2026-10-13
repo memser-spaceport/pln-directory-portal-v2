@@ -8,6 +8,8 @@ import RelatedResults from './related-results';
 import FollowupQuestions from './followup-questions';
 import ChatMessageActions from '@/components/page/husky/chat-actions';
 import DirectoryResults from './directory-results';
+import { AnswerSources } from './AnswerSources';
+import { AnswerThumbs } from './AnswerThumbs';
 interface PreviewMessageProps {
   message: {
     answer: string;
@@ -22,12 +24,16 @@ interface PreviewMessageProps {
   };
   isLastIndex: boolean;
   onFollowupClicked: (question: string) => void;
-  onFeedback: (question: string, answer: string) => Promise<void>;
-  onRegenerate: (question: string) => void;
+  onFeedback?: (question: string, answer: string) => Promise<void>;
+  onRegenerate?: (question: string) => void;
   onQuestionEdit: (question: string) => void;
   onCopyAnswer: (answer: string) => Promise<void>;
   isLoadingObject: boolean;
   isAnswerLoading: boolean;
+  layout?: 'dialog' | 'page';
+  isStreaming?: boolean;
+  showRating?: boolean;
+  canRate?: boolean;
 }
 
 const PreviewMessage: React.FC<PreviewMessageProps> = ({
@@ -40,7 +46,15 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
   onCopyAnswer,
   isLoadingObject,
   isAnswerLoading,
+  layout = 'dialog',
+  isStreaming = false,
+  showRating = true,
+  canRate = true,
 }) => {
+  const isPage = layout === 'page';
+  const hasSources = (message.sourceRefs?.length || message.sources?.length || 0) > 0;
+  const showThumbs = isPage && !isStreaming && !message.isError && showRating;
+
   return (
     <div className={`preview-message`}>
       {/* question */}
@@ -64,7 +78,7 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
           {message?.answer && (
             <>
               {/* sources */}
-              {(message.sourceRefs?.length || message.sources?.length || 0) > 0 && (
+              {!isPage && hasSources && (
                 <div className="preview-message__header">
                   <PopoverDp.Wrapper>
                     <InfoBox
@@ -99,6 +113,8 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
 
               {/* related results */}
               {message.actions?.length > 0 && <RelatedResults actions={message.actions} />}
+
+              {isPage && !isStreaming && <AnswerSources sources={message.sources} sourceRefs={message.sourceRefs} />}
             </>
           )}
 
@@ -109,10 +125,20 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
             onCopyAnswer={onCopyAnswer || (async () => {})}
             onRegenerate={onRegenerate}
             onQuestionEdit={onQuestionEdit || (() => {})}
-            onFeedback={onFeedback}
+            onFeedback={isPage ? undefined : onFeedback}
             question={message.question || ''}
             answer={message.answer || ''}
             hideActions={message.isError || false}
+            feedbackSlot={
+              showThumbs && (
+                <AnswerThumbs
+                  key={`${message.question}::${message.answer}`}
+                  question={message.question || ''}
+                  answer={message.answer || ''}
+                  disabled={!canRate}
+                />
+              )
+            }
           />
         </div>
       )}

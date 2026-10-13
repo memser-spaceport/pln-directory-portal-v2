@@ -3,6 +3,16 @@ import { useCallback } from 'react';
 
 import { AI_APPS_ANALYTICS } from '@/utils/constants';
 
+const STARTER_KIT_UPDATE_TRIGGER = 'starter_kit_updated';
+
+export function starterKitUpdateClick(notification: {
+  metadata?: Record<string, unknown> | null;
+}): { version?: string } | null {
+  if (notification.metadata?.trigger !== STARTER_KIT_UPDATE_TRIGGER) return null;
+  const version = notification.metadata.version;
+  return typeof version === 'string' ? { version } : {};
+}
+
 export function useAiAppsAnalytics() {
   const posthog = usePostHog();
 
@@ -19,6 +29,11 @@ export function useAiAppsAnalytics() {
     onCreateModalClosed: () => capture(AI_APPS_ANALYTICS.CREATE_MODAL_CLOSED),
     onStarterKitDownloaded: () => capture(AI_APPS_ANALYTICS.STARTER_KIT_DOWNLOADED),
     onStarterKitDownloadFailed: () => capture(AI_APPS_ANALYTICS.STARTER_KIT_DOWNLOAD_FAILED),
+    onStarterKitNotificationClicked: (params: { source: 'updates_panel' | 'recent_updates'; version?: string }) =>
+      capture(AI_APPS_ANALYTICS.STARTER_KIT_NOTIFICATION_CLICKED, {
+        source: params.source,
+        ...(params.version ? { version: params.version } : {}),
+      }),
     onCardClicked: (appUid: string, appName: string) => capture(AI_APPS_ANALYTICS.CARD_CLICKED, { appUid, appName }),
     onAuthorClicked: (appUid: string, memberUid: string, memberName: string) =>
       capture(AI_APPS_ANALYTICS.AUTHOR_CLICKED, { appUid, memberUid, memberName }),
@@ -65,6 +80,9 @@ export function useAiAppsAnalytics() {
       capture(AI_APPS_ANALYTICS.FEEDBACK_STATUS_CHANGED, params),
     onFeedbackDialogOpened: (params: { appUid?: string; appName?: string } = {}) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_DIALOG_OPENED, params),
+    /* The drawer's Comments tab was chosen (LAB-2767): with dialog_opened, the share of openers who use Comments. */
+    onFeedbackCommentsTabClicked: (params: { appUid: string }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_COMMENTS_TAB_CLICKED, params),
     onFeedbackScreenshotClicked: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_CLICKED),
     /* Element pins (bridge spike). `bridge_unavailable` fires when the feedback
        button falls back to screenshots because the app never said `ready` —
@@ -79,6 +97,9 @@ export function useAiAppsAnalytics() {
       capture(AI_APPS_ANALYTICS.FEEDBACK_REPLY_DELETED, params),
     onFeedbackReplyEdited: (params: { appUid: string; feedbackUid: string }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_REPLY_EDITED, params),
+    /* A comment posted from comment mode (`onFeedbackSubmitted` fires for it too, as for any item). */
+    onFeedbackCommentSubmitted: (params: { appUid: string; hasScreenshot: boolean; hasAnnotations: boolean }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_COMMENT_SUBMITTED, params),
     onFeedbackCommentEdited: (params: { appUid: string; feedbackUid: string }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_COMMENT_EDITED, params),
     /* `byAuthor` false: an admin removed someone else's comment (moderation). */
@@ -95,7 +116,12 @@ export function useAiAppsAnalytics() {
       outcome: 'succeeded' | 'failed';
       ms: number;
       error?: string;
+      /** The automatic one, taken when a bridge answered after the form opened. */
+      late?: boolean;
     }) => capture(AI_APPS_ANALYTICS.FEEDBACK_APP_CAPTURE, params),
+    /* Once per open, when no automatic screenshot is taken at once: a kept draft, or a bridge not ready yet. */
+    onFeedbackAutoShotSkipped: (params: { appUid?: string; reason: 'draft' | 'no-bridge' }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_AUTO_SHOT_SKIPPED, params),
     onFeedbackAutoShotRemoved: (params: { appUid?: string; whileCapturing: boolean }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_AUTO_SHOT_REMOVED, params),
     onFeedbackPickPartCancelled: () => capture(AI_APPS_ANALYTICS.FEEDBACK_PICK_PART_CANCELLED),
@@ -137,8 +163,10 @@ export function useAiAppsAnalytics() {
       capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_ADDED, params),
     onFeedbackScreenshotAnnotatorDiscarded: (params: { isEditing: boolean }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_ANNOTATOR_DISCARDED, params),
-    onFeedbackScreenshotEditOpened: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_EDIT_OPENED),
-    onFeedbackScreenshotEditSaved: (params: { hasAnnotations: boolean }) =>
+    /* `source: 'comment'`: a comment's screenshot, opened from the comment composer (LAB-2768). */
+    onFeedbackScreenshotEditOpened: (params?: { source: 'comment' }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_EDIT_OPENED, params),
+    onFeedbackScreenshotEditSaved: (params: { hasAnnotations: boolean; source?: 'comment' }) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_EDIT_SAVED, params),
     onFeedbackScreenshotRemoved: () => capture(AI_APPS_ANALYTICS.FEEDBACK_SCREENSHOT_REMOVED),
     onFeedbackScreenshotToolSelected: (params: { tool: 'draw' | 'comment' | 'rect' | 'ellipse' | 'arrow' | 'text' }) =>

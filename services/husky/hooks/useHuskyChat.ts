@@ -92,7 +92,7 @@ const THREAD_STORAGE_KEY = 'aiSearchThreadId';
 
 interface Options {
   isLoggedIn: boolean;
-  /** Read-only shared threads (`/husky/chat/[id]` viewed by a non-owner). */
+  /** Read-only shared threads (`/ai-search/[id]` viewed by a non-owner). */
   isOwnThread?: boolean;
   /** Where the thread was started, for analytics and host-specific params. */
   from?: string;
@@ -109,7 +109,7 @@ interface Options {
  * a stream that used to die with its modal now outlives navigation, thread
  * switches and everything else the person does next.
  *
- * Named for the domain rather than for this dialog on purpose: the `/husky/chat`
+ * Named for the domain rather than for this dialog on purpose: the `/ai-search`
  * page is a byte-level twin of the code this replaces, and should be able to
  * adopt this without a signature change.
  */

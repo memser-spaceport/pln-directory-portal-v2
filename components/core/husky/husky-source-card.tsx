@@ -1,28 +1,12 @@
 'use client';
 
 import { useHuskyAnalytics } from '@/analytics/husky.analytics';
+import { sourceItems } from '@/components/utils/sourceItems';
 import type { HuskySourceRef } from '@/services/husky/hooks/useHuskyChat';
-
-interface SourceItem {
-  key: string;
-  href: string;
-  title: string;
-}
 
 interface HuskySourceCardProps {
   sources?: string[];
   sourceRefs?: HuskySourceRef[];
-}
-
-function sourceItems(sources: string[] | undefined, sourceRefs: HuskySourceRef[] | undefined): SourceItem[] {
-  if (sourceRefs?.length) {
-    return sourceRefs.flatMap((ref) => {
-      const href = ref.directoryLink || ref.externalUrl;
-      if (!href) return [];
-      return [{ key: String(ref.index), href, title: ref.title || href }];
-    });
-  }
-  return (sources ?? []).map((source, index) => ({ key: String(index), href: source, title: source }));
 }
 
 function HuskySourceCard({ sources, sourceRefs }: HuskySourceCardProps) {

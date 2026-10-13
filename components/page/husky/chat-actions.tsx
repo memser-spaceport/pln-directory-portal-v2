@@ -3,7 +3,6 @@ import { memo, ReactNode } from 'react';
 
 type ChatMessageActions = {
   onQuestionEdit: (ques: string) => void;
-  onFeedback?: (ques: string, answer: string) => Promise<void>;
   onRegenerate?: (ques: string) => void;
   onCopyAnswer: (answer: string) => Promise<void>;
   answer: string;
@@ -17,7 +16,6 @@ type ChatMessageActions = {
 
 const ChatMessageActions = ({
   onQuestionEdit,
-  onFeedback,
   onRegenerate,
   onCopyAnswer,
   answer,
@@ -56,14 +54,6 @@ const ChatMessageActions = ({
                 src="/icons/copy.svg"
               />
             </CopyText>
-          )}
-          {onFeedback && (
-            <img
-              className="chat-message-actions__item"
-              title="Submit feedback"
-              onClick={() => onFeedback(question, answer)}
-              src="/icons/feedback.svg"
-            />
           )}
           {feedbackSlot}
         </div>

@@ -539,7 +539,6 @@ const Chat: React.FC<ChatProps> = ({
               onRegenerate={isSharedView ? undefined : onRegenerate}
               onCopyAnswer={onCopyAnswer}
               onQuestionEdit={onQuestionEdit}
-              layout="page"
               isStreaming={chatIsLoading}
               showRating={isLoggedIn}
               canRate={isOwnThread || from !== 'detail'}

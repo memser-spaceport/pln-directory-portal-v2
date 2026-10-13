@@ -64,12 +64,14 @@ function renderMessage(overrides: Record<string, unknown> = {}, message = baseMe
       message={message}
       isLastIndex
       onFollowupClicked={noop}
-      onFeedback={asyncNoop}
       onRegenerate={noop}
       onQuestionEdit={noop}
       onCopyAnswer={asyncNoop}
       isLoadingObject={false}
       isAnswerLoading={false}
+      isStreaming={false}
+      showRating
+      canRate
       {...overrides}
     />,
   );
@@ -85,7 +87,7 @@ describe('AI Search page answer: reading column layout', () => {
   });
 
   it('ends the actions row with an "N sources" pill that lists what the answer was read from', async () => {
-    renderMessage({ layout: 'page' });
+    renderMessage();
 
     expect(screen.queryByText('1 source(s)')).not.toBeInTheDocument();
     const pill = screen.getByRole('button', { name: /1 source$/ });
@@ -99,16 +101,8 @@ describe('AI Search page answer: reading column layout', () => {
     expect(source).toHaveTextContent('News');
   });
 
-  it('keeps the search dialog answer as it was (pill above, 1-5 feedback)', () => {
-    renderMessage();
-
-    expect(screen.getByText('1 source(s)')).toBeInTheDocument();
-    expect(screen.getByTitle('Submit feedback')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Good answer' })).not.toBeInTheDocument();
-  });
-
   it('shows inline thumbs instead of the 1-5 feedback dialog button', () => {
-    renderMessage({ layout: 'page' });
+    renderMessage();
 
     expect(screen.getByRole('button', { name: 'Good answer' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Not helpful' })).toBeInTheDocument();
@@ -116,7 +110,7 @@ describe('AI Search page answer: reading column layout', () => {
   });
 
   it('hides the thumbs and the sources while the answer streams', () => {
-    renderMessage({ layout: 'page', isStreaming: true });
+    renderMessage({ isStreaming: true });
 
     expect(screen.getByText('Saturn Grid works on storage.')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /source/ })).not.toBeInTheDocument();
@@ -124,7 +118,7 @@ describe('AI Search page answer: reading column layout', () => {
   });
 
   it('shows no sources pill for an answer without sources, but shows the thumbs', () => {
-    renderMessage({ layout: 'page' }, { ...baseMessage, sources: [], sourceRefs: [] });
+    renderMessage({}, { ...baseMessage, sources: [], sourceRefs: [] });
 
     expect(screen.queryByRole('button', { name: /source/ })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Good answer' })).toBeInTheDocument();
@@ -132,7 +126,7 @@ describe('AI Search page answer: reading column layout', () => {
 
   it('records a thumbs up once, shows the chosen state and blocks a second send', async () => {
     saveFeedback.mockResolvedValue({ isSaved: true });
-    renderMessage({ layout: 'page' });
+    renderMessage();
 
     const up = screen.getByRole('button', { name: 'Good answer' });
     fireEvent.click(up);
@@ -161,7 +155,7 @@ describe('AI Search page answer: reading column layout', () => {
 
   it('sends a thumbs down as rating 1', async () => {
     saveFeedback.mockResolvedValue({ isSaved: true });
-    renderMessage({ layout: 'page' });
+    renderMessage();
 
     const down = screen.getByRole('button', { name: 'Not helpful' });
     fireEvent.click(down);
@@ -173,7 +167,7 @@ describe('AI Search page answer: reading column layout', () => {
 
   it('shows an inline error when the save fails and lets the member tap again', async () => {
     saveFeedback.mockResolvedValueOnce({ isError: true, status: 500 }).mockResolvedValueOnce({ isSaved: true });
-    renderMessage({ layout: 'page' });
+    renderMessage();
 
     const up = screen.getByRole('button', { name: 'Good answer' });
     fireEvent.click(up);
@@ -190,7 +184,7 @@ describe('AI Search page answer: reading column layout', () => {
   });
 
   it('hides the thumbs for a signed-out viewer (the feedback call needs a token)', () => {
-    renderMessage({ layout: 'page', showRating: false });
+    renderMessage({ showRating: false });
 
     expect(screen.queryByRole('button', { name: 'Good answer' })).not.toBeInTheDocument();
     expect(screen.queryByTitle('Submit feedback')).not.toBeInTheDocument();
@@ -201,7 +195,7 @@ describe('AI Search page answer: reading column layout', () => {
     getMemberInfo.mockRejectedValue(new Error('member api down'));
     saveFeedback.mockResolvedValue({ isSaved: true });
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    renderMessage({ layout: 'page' });
+    renderMessage();
 
     const up = screen.getByRole('button', { name: 'Good answer' });
     fireEvent.click(up);
@@ -212,7 +206,7 @@ describe('AI Search page answer: reading column layout', () => {
 
   it('starts a different answer in the same list position with fresh thumbs', async () => {
     saveFeedback.mockResolvedValue({ isSaved: true });
-    const { rerender } = renderMessage({ layout: 'page' });
+    const { rerender } = renderMessage();
 
     fireEvent.click(screen.getByRole('button', { name: 'Good answer' }));
     await waitFor(() => expect(screen.getByRole('button', { name: 'Good answer' })).toBeDisabled());
@@ -222,13 +216,14 @@ describe('AI Search page answer: reading column layout', () => {
         message={{ ...baseMessage, question: 'Who funds storage?', answer: 'Acme funds storage.' }}
         isLastIndex
         onFollowupClicked={noop}
-        onFeedback={asyncNoop}
         onRegenerate={noop}
         onQuestionEdit={noop}
         onCopyAnswer={asyncNoop}
         isLoadingObject={false}
         isAnswerLoading={false}
-        layout="page"
+        isStreaming={false}
+        showRating
+        canRate
       />,
     );
 
@@ -237,7 +232,7 @@ describe('AI Search page answer: reading column layout', () => {
   });
 
   it('does not let a viewer rate an answer in a shared thread they do not own', () => {
-    renderMessage({ layout: 'page', canRate: false });
+    renderMessage({ canRate: false });
 
     const up = screen.getByRole('button', { name: 'Good answer' });
     expect(up).toBeDisabled();

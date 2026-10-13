@@ -1,9 +1,6 @@
 import { memo } from 'react';
 
-import InfoBox from '@/components/ui/info-box';
 import { Markdown } from '../../common/Markdown';
-import { PopoverDp } from '@/components/core/popover-dp';
-import HuskySourceCard from '@/components/core/husky/husky-source-card';
 import RelatedResults from './related-results';
 import FollowupQuestions from './followup-questions';
 import ChatMessageActions from '@/components/page/husky/chat-actions';
@@ -24,36 +21,30 @@ interface PreviewMessageProps {
   };
   isLastIndex: boolean;
   onFollowupClicked: (question: string) => void;
-  onFeedback?: (question: string, answer: string) => Promise<void>;
   onRegenerate?: (question: string) => void;
   onQuestionEdit: (question: string) => void;
   onCopyAnswer: (answer: string) => Promise<void>;
   isLoadingObject: boolean;
   isAnswerLoading: boolean;
-  layout?: 'dialog' | 'page';
-  isStreaming?: boolean;
-  showRating?: boolean;
-  canRate?: boolean;
+  isStreaming: boolean;
+  showRating: boolean;
+  canRate: boolean;
 }
 
 const PreviewMessage: React.FC<PreviewMessageProps> = ({
   message,
   onFollowupClicked,
   isLastIndex,
-  onFeedback,
   onRegenerate,
   onQuestionEdit,
   onCopyAnswer,
   isLoadingObject,
   isAnswerLoading,
-  layout = 'dialog',
-  isStreaming = false,
-  showRating = true,
-  canRate = true,
+  isStreaming,
+  showRating,
+  canRate,
 }) => {
-  const isPage = layout === 'page';
-  const hasSources = (message.sourceRefs?.length || message.sources?.length || 0) > 0;
-  const showThumbs = isPage && !isStreaming && !message.isError && showRating;
+  const showThumbs = !isStreaming && !message.isError && showRating;
 
   return (
     <div className={`preview-message`}>
@@ -77,21 +68,6 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
 
           {message?.answer && (
             <>
-              {/* sources */}
-              {!isPage && hasSources && (
-                <div className="preview-message__header">
-                  <PopoverDp.Wrapper>
-                    <InfoBox
-                      info={`${message.sourceRefs?.length || message.sources?.length || 0} source(s)`}
-                      imgUrl="/icons/globe-blue.svg"
-                    />
-                    <PopoverDp.Pane position="bottom">
-                      <HuskySourceCard sources={message.sources} sourceRefs={message.sourceRefs} />
-                    </PopoverDp.Pane>
-                  </PopoverDp.Wrapper>
-                </div>
-              )}
-
               {/* answer */}
               <div className="preview-message__content">
                 <Markdown sourceRefs={message.sourceRefs}>{message.answer}</Markdown>
@@ -123,7 +99,6 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
             onCopyAnswer={onCopyAnswer || (async () => {})}
             onRegenerate={onRegenerate}
             onQuestionEdit={onQuestionEdit || (() => {})}
-            onFeedback={isPage ? undefined : onFeedback}
             question={message.question || ''}
             answer={message.answer || ''}
             hideActions={message.isError || false}
@@ -137,9 +112,7 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
                 />
               )
             }
-            sourcesSlot={
-              isPage && !isStreaming && <AnswerSources sources={message.sources} sourceRefs={message.sourceRefs} />
-            }
+            sourcesSlot={!isStreaming && <AnswerSources sources={message.sources} sourceRefs={message.sourceRefs} />}
           />
         </div>
       )}
@@ -191,12 +164,6 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
           font-size: 14px;
           line-height: 26px;
           margin-bottom: 16px;
-        }
-
-        .preview-message__header {
-          display: flex;
-          justify-content: flex-start;
-          align-items: center;
         }
 
         @media (min-width: 1024px) {

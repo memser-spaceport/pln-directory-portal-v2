@@ -15,16 +15,14 @@ interface MessagesProps {
   }[];
   isAnswerLoading: boolean;
   statusLine?: string;
-  onFeedback?: (question: string, answer: string) => Promise<void>;
   onRegenerate?: (question: string) => void;
   onQuestionEdit: (question: string) => void;
   onCopyAnswer: (answer: string) => Promise<void>;
   onFollowupClicked: (question: string) => void;
   isLoadingObject: boolean;
-  layout?: 'dialog' | 'page';
-  isStreaming?: boolean;
-  showRating?: boolean;
-  canRate?: boolean;
+  isStreaming: boolean;
+  showRating: boolean;
+  canRate: boolean;
 }
 
 const Messages: React.FC<MessagesProps> = ({
@@ -32,15 +30,13 @@ const Messages: React.FC<MessagesProps> = ({
   onFollowupClicked,
   isAnswerLoading,
   statusLine,
-  onFeedback,
   onRegenerate,
   onQuestionEdit,
   onCopyAnswer,
   isLoadingObject,
-  layout = 'dialog',
-  isStreaming = false,
-  showRating = true,
-  canRate = true,
+  isStreaming,
+  showRating,
+  canRate,
 }) => {
   return (
     <>
@@ -51,13 +47,11 @@ const Messages: React.FC<MessagesProps> = ({
             message={message}
             isLastIndex={index === messages.length - 1}
             onFollowupClicked={onFollowupClicked}
-            onFeedback={onFeedback}
             onRegenerate={onRegenerate}
             onQuestionEdit={onQuestionEdit}
             onCopyAnswer={onCopyAnswer}
             isLoadingObject={isLoadingObject}
             isAnswerLoading={isAnswerLoading}
-            layout={layout}
             isStreaming={isStreaming && index === messages.length - 1}
             showRating={showRating}
             canRate={canRate}

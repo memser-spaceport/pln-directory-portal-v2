@@ -134,6 +134,7 @@ export const JOBS_ANALYTICS = {
   ON_JOB_SUGGESTED_CANDIDATES_VIEWED: 'job-suggested-candidates-viewed',
   ON_JOB_SUGGESTED_CANDIDATE_OPENED: 'job-suggested-candidate-opened',
   ON_JOB_SUGGESTED_CANDIDATE_CONTACTED: 'job-suggested-candidate-contacted',
+  ON_JOB_SUGGESTED_CRITERIA_EDITED: 'job-suggested-criteria-edited',
   ON_JOB_SAVED: 'job-saved',
   ON_JOB_UNSAVED: 'job-unsaved',
   ON_JOB_SAVE_FAILED: 'job-save-failed',

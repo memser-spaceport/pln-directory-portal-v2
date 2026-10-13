@@ -561,7 +561,8 @@ export const useJobsAnalytics = () => {
   };
 
   /* LAB-2789: `interested` compares the contact rate of members who said
-     "I'm interested" with the other suggestions. */
+     "I'm interested" with the other suggestions. LAB-2847: fires when the
+     server accepted a message sent through the platform (not on a 409). */
   const onJobSuggestedCandidateContacted = (args: {
     team_id: string;
     job_id: string | null;
@@ -570,6 +571,17 @@ export const useJobsAnalytics = () => {
     interested: boolean;
   }) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_SUGGESTED_CANDIDATE_CONTACTED, { ...args });
+  };
+
+  /* LAB-2847: a lead saved which of the role's requirements count, after the
+     server accepted it. */
+  const onJobSuggestedCriteriaEdited = (args: {
+    team_id: string;
+    job_id: string | null;
+    enabled_count: number;
+    disabled_count: number;
+  }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_SUGGESTED_CRITERIA_EDITED, { ...args });
   };
 
   const onJobSaved = (args: { job_id: string; team_id: string; source: JobSurface }) => {
@@ -659,6 +671,7 @@ export const useJobsAnalytics = () => {
     onJobSuggestedCandidatesViewed,
     onJobSuggestedCandidateOpened,
     onJobSuggestedCandidateContacted,
+    onJobSuggestedCriteriaEdited,
     onJobSaved,
     onJobUnsaved,
     onJobSaveFailed,

@@ -28,8 +28,18 @@ import s from './SuggestedWhy.module.scss';
  *
  * A member who said "I'm interested" carries the Interested mark beside the
  * band, and the whole of their note opens the body (LAB-2789).
+ *
+ * **Edit criteria** (LAB-2847) ends the header when the host passes
+ * `onEditCriteria` — only when the backend sent the role's criteria. The
+ * modal itself belongs to the view, which owns the role and the save.
  */
-export function SuggestedWhy({ suggestion }: { suggestion: SuggestedCandidate }) {
+export function SuggestedWhy({
+  suggestion,
+  onEditCriteria,
+}: {
+  suggestion: SuggestedCandidate;
+  onEditCriteria?: () => void;
+}) {
   const met = metCount(suggestion.criteria);
   const total = suggestion.criteria.length;
   const note = interestNote(suggestion);
@@ -45,6 +55,11 @@ export function SuggestedWhy({ suggestion }: { suggestion: SuggestedCandidate })
           )}
           {suggestion.interested && <InterestedBadge />}
           <SuggestionBadge label={suggestion.label} />
+          {onEditCriteria && (
+            <button type="button" className={s.editCriteria} onClick={onEditCriteria}>
+              Edit criteria
+            </button>
+          )}
         </span>
       </DetailsSectionHeader>
       <DetailsSectionGreyContentContainer>

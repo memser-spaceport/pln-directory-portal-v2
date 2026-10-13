@@ -251,7 +251,7 @@ export async function saveMatchCriteria(roleUid: string, disabled: string[]): Pr
   );
 
   if (!response?.ok) {
-    throw await errorFrom(response, 'Could not save the criteria');
+    throw await errorFrom(response, 'Could not save the criteria. Please try again.');
   }
 
   return matchCriteriaResponseSchema.parse(await response.json()).criteria;
@@ -282,7 +282,7 @@ export async function contactSuggestedCandidate(
   );
 
   if (!response?.ok) {
-    throw await errorFrom(response, 'Could not send your message');
+    throw await errorFrom(response, 'Could not send your message. Please try again.');
   }
 
   return contactSuggestedResponseSchema.parse(await response.json());

@@ -249,7 +249,7 @@ describe('the Suggested tab’s writes', () => {
 
       const error = await contactSuggestedCandidate('role-1', 'm-1', 'Hi').catch((e) => e);
 
-      expect(error.message).toBe('Could not send your message');
+      expect(error.message).toBe('Could not send your message. Please try again.');
     });
   });
 });

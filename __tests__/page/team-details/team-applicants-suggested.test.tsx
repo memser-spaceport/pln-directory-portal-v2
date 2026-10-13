@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 
@@ -76,10 +76,26 @@ const analytics = {
   onJobSuggestedCandidatesViewed: jest.fn(),
   onJobSuggestedCandidateOpened: jest.fn(),
   onJobSuggestedCandidateContacted: jest.fn(),
+  onJobSuggestedCriteriaEdited: jest.fn(),
 };
 jest.mock('@/analytics/jobs.analytics', () => ({
   useJobsAnalytics: () => analytics,
 }));
+
+const toastError = jest.fn();
+jest.mock('@/components/core/ToastContainer', () => ({
+  toast: { error: (...args: unknown[]) => toastError(...args), success: jest.fn(), info: jest.fn() },
+}));
+
+/* The two writes, scripted per test: each answers through the per-call
+   callbacks the view passes, as React Query would once the server answered. */
+type MutateOptions = { onSuccess?: (data: any) => void; onError?: (error: unknown) => void };
+const saveCriteriaMutate = jest.fn();
+const contactMutate = jest.fn();
+const answer = (outcome: { data?: unknown; error?: unknown }) => (_vars: unknown, options?: MutateOptions) => {
+  if (outcome.error) options?.onError?.(outcome.error);
+  else options?.onSuccess?.(outcome.data);
+};
 
 jest.mock('@/services/jobs/hooks/useTeamApplicants', () => ({
   useApplicantCounts: () => ({ data: [] }),
@@ -87,11 +103,12 @@ jest.mock('@/services/jobs/hooks/useTeamApplicants', () => ({
   useMarkApplicantSeen: () => ({ mutate: jest.fn() }),
   useToggleApplicantReviewed: () => ({ mutate: jest.fn() }),
   useSuggestedCandidates: (...args: unknown[]) => useSuggestedCandidates(...args),
-  useSaveMatchCriteria: () => ({ mutate: jest.fn(), isPending: false }),
-  useContactSuggestedCandidate: () => ({ mutate: jest.fn(), isPending: false }),
+  useSaveMatchCriteria: () => ({ mutate: saveCriteriaMutate, isPending: false }),
+  useContactSuggestedCandidate: () => ({ mutate: contactMutate, isPending: false }),
 }));
 
 import { TeamApplicantsView } from '@/components/page/team-details/TeamApplicants';
+import { TeamApplicantsError } from '@/services/jobs/team-applicants.service';
 import type { RoleCriterion, SuggestedCandidate } from '@/schema/suggested-candidates';
 import type { TeamApplicant } from '@/schema/team-applicants';
 import type { IJobRole } from '@/types/jobs.types';
@@ -183,6 +200,9 @@ beforeEach(() => {
   isNarrow = false;
   memberEmail = 'ana@example.com';
   routerReplace.mockReset();
+  toastError.mockReset();
+  saveCriteriaMutate.mockReset();
+  contactMutate.mockReset();
   Object.values(analytics).forEach((fn) => fn.mockReset());
   useSuggestedCandidates.mockReset();
   useRoleApplicants.mockReset();
@@ -468,5 +488,111 @@ describe('interested members on the Suggested tab', () => {
       label: 'Strong match',
       interested: true,
     });
+  });
+});
+
+/**
+ * LAB-2847: the lead switches the role's requirements on or off from the
+ * "Why suggested" pane.
+ */
+describe('Edit criteria on the Suggested tab', () => {
+  const CRITERIA: RoleCriterion[] = [
+    { text: 'Five years of Rust', enabled: true },
+    { text: 'Distributed systems experience', enabled: true },
+    { text: 'Based in Europe', enabled: true },
+  ];
+
+  const openEditCriteria = async () => {
+    renderView();
+    await openSuggested();
+    await userEvent.click(screen.getByRole('button', { name: 'Edit criteria' }));
+  };
+
+  it('offers Edit criteria when the backend sent the role’s criteria', async () => {
+    setSuggestions([ANA, BEN], {}, CRITERIA);
+
+    renderView();
+    await openSuggested();
+
+    expect(screen.getByRole('button', { name: 'Edit criteria' })).toBeInTheDocument();
+  });
+
+  it('offers no Edit criteria on an older backend that sent none', async () => {
+    setSuggestions([ANA, BEN], {}, null);
+
+    renderView();
+    await openSuggested();
+
+    expect(screen.getByText('Led a Rust consensus rewrite.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit criteria' })).not.toBeInTheDocument();
+  });
+
+  it('offers no Edit criteria for a role with no criteria to switch', async () => {
+    setSuggestions([ANA, BEN], {}, []);
+
+    renderView();
+    await openSuggested();
+
+    expect(screen.getByText('Led a Rust consensus rewrite.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit criteria' })).not.toBeInTheDocument();
+  });
+
+  it('saves, closes and records the event with the on and off counts', async () => {
+    setSuggestions([ANA, BEN], {}, CRITERIA);
+    const saved = CRITERIA.map((c) => ({ ...c, enabled: c.text !== 'Based in Europe' }));
+    saveCriteriaMutate.mockImplementation(answer({ data: saved }));
+
+    await openEditCriteria();
+    await userEvent.click(screen.getByRole('checkbox', { name: /^Based in Europe/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(saveCriteriaMutate).toHaveBeenCalledWith({ disabled: ['Based in Europe'] }, expect.anything());
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(analytics.onJobSuggestedCriteriaEdited).toHaveBeenCalledWith({
+      team_id: 'team-1',
+      job_id: 'role-1',
+      enabled_count: 2,
+      disabled_count: 1,
+    });
+    expect(toastError).not.toHaveBeenCalled();
+  });
+
+  it('leaves the requirement counts alone after a save', async () => {
+    setSuggestions([ANA, BEN], {}, CRITERIA);
+    saveCriteriaMutate.mockImplementation(
+      answer({ data: CRITERIA.map((c) => ({ ...c, enabled: c.text !== 'Based in Europe' })) }),
+    );
+
+    await openEditCriteria();
+    await userEvent.click(screen.getByRole('checkbox', { name: /^Based in Europe/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(within(rowFor('Ben Ito')!).getByText('2 of 3 requirements')).toBeInTheDocument();
+  });
+
+  it('toasts the server’s refusal, stays open on the draft and records nothing', async () => {
+    setSuggestions([ANA, BEN], {}, CRITERIA);
+    saveCriteriaMutate.mockImplementation(answer({ error: new TeamApplicantsError(500, 'The matcher is busy') }));
+
+    await openEditCriteria();
+    await userEvent.click(screen.getByRole('checkbox', { name: /^Based in Europe/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(toastError).toHaveBeenCalledWith('The matcher is busy');
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /^Based in Europe/ })).toHaveAttribute('aria-checked', 'false');
+    expect(analytics.onJobSuggestedCriteriaEdited).not.toHaveBeenCalled();
+  });
+
+  it('falls back to its own words when the failure carries none', async () => {
+    setSuggestions([ANA, BEN], {}, CRITERIA);
+    saveCriteriaMutate.mockImplementation(answer({ error: new Error('') }));
+
+    await openEditCriteria();
+    await userEvent.click(screen.getByRole('checkbox', { name: /^Based in Europe/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(toastError).toHaveBeenCalledWith('Could not save the criteria. Please try again.');
   });
 });

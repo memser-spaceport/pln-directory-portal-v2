@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Select, { type StylesConfig } from 'react-select';
 
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
+import { toast } from '@/components/core/ToastContainer';
 import { BackButton } from '@/components/ui/BackButton';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { Tabs } from '@/components/ui/tabs/Tabs';
@@ -22,14 +23,17 @@ import {
   useApplicantCounts,
   useMarkApplicantSeen,
   useRoleApplicants,
+  useSaveMatchCriteria,
   useSuggestedCandidates,
   useToggleApplicantReviewed,
 } from '@/services/jobs/hooks/useTeamApplicants';
+import { TeamApplicantsError } from '@/services/jobs/team-applicants.service';
 import type { IJobRole } from '@/types/jobs.types';
 import { formatRelativeDays, getJobDate, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
 import { ApplicantPane, MemberProfilePane } from './components/ApplicantPane';
 import { ApplicantRow } from './components/ApplicantRow';
+import { EditCriteriaModal } from './components/EditCriteriaModal';
 import { SuggestedPaneBar } from './components/SuggestedPaneBar';
 import { SuggestedRow } from './components/SuggestedRow';
 import { SuggestedWhy } from './components/SuggestedWhy';
@@ -78,6 +82,10 @@ interface Props {
 }
 
 type RoleOption = Option & { newCount: number };
+
+/** The server's own words when it sent some, else the page's. */
+const failureMessage = (error: unknown, fallback: string) =>
+  error instanceof TeamApplicantsError && error.message ? error.message : fallback;
 
 /**
  * The team's applicants: the list on the left, the selected person beside it.
@@ -174,6 +182,12 @@ export function TeamApplicantsView({
 
   /* The people; the role's criteria ride in the same answer (LAB-2847). */
   const suggestedList = suggestions.data?.suggestions;
+  const roleCriteria = suggestions.data?.criteria ?? null;
+  /* Nothing to switch on an older backend (null) or a role whose posting has
+     no extracted criteria ([]) — the PUT would only answer 409. */
+  const canEditCriteria = !!roleCriteria?.length;
+  const [criteriaOpen, setCriteriaOpen] = useState(false);
+  const saveCriteria = useSaveMatchCriteria({ roleUid: role?.uid, viewerUid });
 
   const markSeen = useMarkApplicantSeen({ teamUid: teamId, roleUid: role?.uid, viewerUid });
   const toggleReviewed = useToggleApplicantReviewed({ teamUid: teamId, roleUid: role?.uid, viewerUid });
@@ -271,6 +285,7 @@ export function TeamApplicantsView({
     setQuery('');
     setPaneOpen(false);
     setPendingSuggestedMemberUid(null);
+    setCriteriaOpen(false);
     replaceApplicantsSearch({ roleUid: next, suggestedUid: null, candidateUid: null });
   };
 
@@ -416,6 +431,28 @@ export function TeamApplicantsView({
     }
     const next = shown[position + delta];
     if (next) select(next);
+  };
+
+  /* Not optimistic: the modal stays open on a pending Save and closes on the
+     server's answer, and a refusal leaves it open on the lead's draft. */
+  const onSaveCriteria = (disabled: string[]) => {
+    saveCriteria.mutate(
+      { disabled },
+      {
+        onSuccess: (criteria) => {
+          setCriteriaOpen(false);
+          analytics.onJobSuggestedCriteriaEdited({
+            team_id: teamId,
+            job_id: role?.uid ?? null,
+            enabled_count: criteria.filter((c) => c.enabled).length,
+            disabled_count: criteria.filter((c) => !c.enabled).length,
+          });
+        },
+        onError: (error) => {
+          toast.error(failureMessage(error, 'Could not save the criteria. Please try again.'));
+        },
+      },
+    );
   };
 
   const listLength = isSuggestedTab ? shownSuggested.length : shown.length;
@@ -595,7 +632,12 @@ export function TeamApplicantsView({
                   key={selectedSuggested.memberUid}
                   memberUid={selectedSuggested.memberUid}
                   isLoggedIn={isLoggedIn}
-                  section={<SuggestedWhy suggestion={selectedSuggested} />}
+                  section={
+                    <SuggestedWhy
+                      suggestion={selectedSuggested}
+                      onEditCriteria={canEditCriteria ? () => setCriteriaOpen(true) : undefined}
+                    />
+                  }
                 />
               </>
             ) : !isSuggestedTab && selected ? (
@@ -642,6 +684,17 @@ export function TeamApplicantsView({
           </div>
         )}
       </div>
+
+      {isSuggestedTab && canEditCriteria && roleCriteria && (
+        <EditCriteriaModal
+          isOpen={criteriaOpen}
+          onClose={() => setCriteriaOpen(false)}
+          roleTitle={role?.roleTitle ?? ''}
+          criteria={roleCriteria}
+          isSaving={saveCriteria.isPending}
+          onSave={onSaveCriteria}
+        />
+      )}
     </div>
   );
 }

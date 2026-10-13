@@ -14,8 +14,8 @@
 
 ## 3. Edit criteria
 
-- [ ] 3.1 Add `EditCriteriaModal.tsx` + `EditCriteriaModal.module.scss` on `components/common/Modal`: one checkbox per requirement, last enabled one locked, "applies from next week's suggestions" copy, draft reset on open, Save disabled when unchanged or pending, error toast and open modal on failure. Verify: `__tests__/page/team-details/edit-criteria-modal.test.tsx` covers toggle, lock, cancel, save body, and failure keeping the draft.
-- [ ] 3.2 Add the "Edit criteria" action to `SuggestedWhy` (only when criteria is not null), mount the modal in the view, and fire `job-suggested-criteria-edited` (constant in `utils/constants.ts`, handler in `analytics/jobs.analytics.ts`) on success. Verify: view test shows the action with criteria, hides it without, and asserts the event on a successful save only.
+- [x] 3.1 Add `EditCriteriaModal.tsx` + `EditCriteriaModal.module.scss` on `components/common/Modal`: one checkbox per requirement, last enabled one locked, "applies from next week's suggestions" copy, draft reset on open, Save disabled when unchanged or pending, error toast and open modal on failure. Verify: `__tests__/page/team-details/edit-criteria-modal.test.tsx` covers toggle, lock, cancel, save body, and failure keeping the draft.
+- [x] 3.2 Add the "Edit criteria" action to `SuggestedWhy` (only when criteria is not null), mount the modal in the view, and fire `job-suggested-criteria-edited` (constant in `utils/constants.ts`, handler in `analytics/jobs.analytics.ts`) on success. Verify: view test shows the action with criteria, hides it without, and asserts the event on a successful save only.
 
 ## 4. Contact
 

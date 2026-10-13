@@ -24,7 +24,7 @@
 
 ## 5. Role description
 
-- [ ] 5.1 Render the selected role's `descriptionHtml` as plain text (`stripHtml`) under the Suggested note, clamped to two lines, and nothing when absent. Verify: view test asserts plain text with no tags for a role with a description and no line for one without.
+- [x] 5.1 Render the selected role's `descriptionHtml` as plain text (`stripHtml`) under the Suggested note, clamped to two lines, and nothing when absent. Verify: view test asserts plain text with no tags for a role with a description and no line for one without.
 
 ## 6. Integration
 

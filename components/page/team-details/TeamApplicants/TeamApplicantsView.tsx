@@ -30,6 +30,7 @@ import {
 } from '@/services/jobs/hooks/useTeamApplicants';
 import { isAlreadyContactedError, TeamApplicantsError } from '@/services/jobs/team-applicants.service';
 import type { IJobRole } from '@/types/jobs.types';
+import { stripHtmlPreservingBreaks } from '@/utils/forum/stripHtml';
 import { formatRelativeDays, getJobDate, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
 import { ApplicantPane, MemberProfilePane } from './components/ApplicantPane';
@@ -162,6 +163,16 @@ export function TeamApplicantsView({
   );
 
   const role = roles.find((r) => r.uid === roleUid) ?? roles[0] ?? null;
+
+  /* LAB-2847: the role's posting as one plain-text run, clamped to two lines
+     in CSS. From the role the page already loaded — no request — and nothing
+     at all for a role whose posting has no body. The break-preserving strip,
+     then flattened: plain `stripHtml` fuses "<h2>About</h2><p>Build" into
+     "AboutBuild". */
+  const roleSummary = useMemo(
+    () => (role?.descriptionHtml ? stripHtmlPreservingBreaks(role.descriptionHtml).replace(/\s+/g, ' ').trim() : ''),
+    [role],
+  );
 
   const counts = useApplicantCounts({
     teamUid: teamId,
@@ -602,6 +613,11 @@ export function TeamApplicantsView({
               <p className={s.suggestedNote}>
                 The top {SUGGESTED_LIMIT} members matched to this role on their profile. They haven’t applied. People
                 who worked at {teamName || 'this team'} are not suggested.
+              </p>
+            )}
+            {isSuggestedTab && roleSummary && (
+              <p className={s.roleSummary} data-testid="suggested-role-summary">
+                {roleSummary}
               </p>
             )}
 

@@ -689,3 +689,47 @@ describe('Contact on the Suggested tab', () => {
     expect(screen.queryByRole('button', { name: /^Contact/ })).not.toBeInTheDocument();
   });
 });
+
+/** LAB-2847: the selected role's description, as plain text, on the Suggested tab. */
+describe('the role description on the Suggested tab', () => {
+  const renderWithRole = (role: IJobRole) =>
+    render(
+      <TeamApplicantsView
+        teamId="team-1"
+        teamName="Filecoin Foundation"
+        roles={[role]}
+        initialRoleUid={null}
+        initialCandidateUid={null}
+        viewerUid="u1"
+        isLoggedIn
+      />,
+    );
+
+  it('shows the posting as plain text with no markup', async () => {
+    renderWithRole({
+      ...ROLE,
+      descriptionHtml:
+        '<h2>About</h2><p>Build <strong>consensus</strong> &amp; storage in Rust.</p><ul><li>Remote</li></ul>',
+    } as IJobRole);
+    await openSuggested();
+
+    const summary = screen.getByTestId('suggested-role-summary');
+    expect(summary).toHaveTextContent('About Build consensus & storage in Rust. Remote');
+    expect(summary.innerHTML).not.toMatch(/<|&lt;/);
+    expect(summary.className).toMatch(/roleSummary/);
+  });
+
+  it('shows no description line for a role without one', async () => {
+    renderWithRole({ ...ROLE, descriptionHtml: null } as IJobRole);
+    await openSuggested();
+
+    expect(screen.getByText(/People who worked at Filecoin Foundation are not suggested/)).toBeInTheDocument();
+    expect(screen.queryByTestId('suggested-role-summary')).not.toBeInTheDocument();
+  });
+
+  it('is not shown on the Applied tab', () => {
+    renderWithRole({ ...ROLE, descriptionHtml: '<p>Build consensus.</p>' } as IJobRole);
+
+    expect(screen.queryByTestId('suggested-role-summary')).not.toBeInTheDocument();
+  });
+});

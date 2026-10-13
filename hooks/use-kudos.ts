@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import {
   getKudosFeed,
@@ -36,6 +36,8 @@ export function useKudosFeed(params: IGetKudosFeedParams) {
     queryKey: kudosKeys.feed(params),
     queryFn: () => getKudosFeed(params),
     enabled: isAuthenticated && Boolean(params.roundId),
+    // Keep the current page on screen while the next one loads.
+    placeholderData: keepPreviousData,
   });
 }
 

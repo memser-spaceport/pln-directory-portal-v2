@@ -8,6 +8,7 @@ import { RecentSearch } from '@/components/core/application-search/components/Re
 import { AiSearchEntries } from '@/components/core/application-search/components/AiSearchEntries';
 import { RecentAiChats } from '@/components/core/application-search/components/RecentAiChats';
 import { openAiSearch } from '@/components/utils/openAiSearch';
+import { askAboutItem } from '@/components/core/application-search/utils/askAboutItem';
 import { REOPEN_HEADER_SEARCH_EVENT } from '@/components/constants/aiSearchHandoff';
 import { useFullApplicationSearch } from '@/services/search/hooks/useFullApplicationSearch';
 import { useRecordRecentSearch } from '@/services/search/hooks/useRecordRecentSearch';
@@ -86,6 +87,7 @@ export const AppSearchMobile = ({ isLoggedIn }: Props) => {
         <FullSearchResults
           searchTerm={searchTerm}
           onTryAiSearch={() => openAi({ question: searchTerm })}
+          onAskAi={(item) => openAi({ question: askAboutItem(item) })}
           activeCategory={activeCategory}
           setActiveCategory={setActiveCategory}
         />

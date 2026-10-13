@@ -330,7 +330,7 @@ describe('SpvSpotlightView — request flow (REQUEST_FLOW_ENABLED on)', () => {
     renderView('OPEN', 'NONE');
     const tile = screen.getByRole('link', { name: /Explore the PL network/ });
     expect(tile).toHaveAttribute('href', '/explore-pl-network');
-    expect(tile).toHaveTextContent('750+ organizations across AI, neurotech, digital rights and new economies');
+    expect(tile).toHaveTextContent('750+ teams across Neurotech, AI, Web3 and deep tech');
   });
 });
 

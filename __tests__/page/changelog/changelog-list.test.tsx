@@ -45,6 +45,14 @@ describe('ChangelogList Component', () => {
     ).toBeInTheDocument();
   });
 
+  test('shows the page heading text "Product changelog" with the same accessible label', () => {
+    render(<ChangelogList />);
+    const heading = screen.getByRole('heading', { level: 1 });
+    expect(heading).toHaveTextContent(/^Product changelog$/);
+    expect(heading).toHaveAttribute('aria-label', 'Changelog Title');
+    expect(heading).toHaveClass('changelog__hdr__txt');
+  });
+
   test('displays change log date, tag, and title', () => {
     render(<ChangelogList />);
     expect(screen.getByText('13, Aug 2024')).toBeInTheDocument();

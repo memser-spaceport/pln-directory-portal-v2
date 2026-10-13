@@ -8,7 +8,7 @@ const ChangelogList = () => {
       <section className="changelog" aria-label="Changelog Section">
         <header className="changelog__hdr">
           <h1 className="changelog__hdr__txt" aria-label="Changelog Title">
-            Changelog
+            Product changelog
           </h1>
         </header>
         <div className="change-logs-container" role="list" aria-label="List of changelogs">

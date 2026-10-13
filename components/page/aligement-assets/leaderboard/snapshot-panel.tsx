@@ -3,14 +3,13 @@
 import { useRouter } from 'next/navigation';
 import CategoryRadar from './category-radar';
 import { ArrowRight, CaretLeft, CaretRight, Coins, Star, TrendDown, TrendUp, UsersThree } from '@phosphor-icons/react';
-import { UNDERUTILIZED_RATIO } from './leaderboard.mapper';
+import { isUnderutilized, normalizeCategory } from './leaderboard.mapper';
 import type { LeaderboardCategoryWeight, LeaderboardSnapshot } from './leaderboard.types';
 import { activitiesData } from '../activities/data';
 
 const suggestionFor = (category: string): { title: string; points: string } | null => {
-  const normalise = (value: string) => value.toLowerCase().replace(/[^a-z]/g, '');
   const best = activitiesData.activities
-    .filter((activity) => normalise(activity.category) === normalise(category))
+    .filter((activity) => normalizeCategory(activity.category) === normalizeCategory(category))
     .sort((a, b) => parseInt(b.points, 10) - parseInt(a.points, 10))[0];
   return best ? { title: best.activity, points: best.points } : null;
 };
@@ -61,12 +60,10 @@ export default function SnapshotPanel({ snapshots, index, onIndexChange, categor
 
   const max = Math.max(...snapshot.categories.map((category) => category.value), 0);
   const weightFor = (name: string) =>
-    categoryWeights.find(
-      (weight) => weight.category.toLowerCase().replace(/[^a-z]/g, '') === name.toLowerCase().replace(/[^a-z]/g, ''),
-    );
+    categoryWeights.find((weight) => normalizeCategory(weight.category) === normalizeCategory(name));
 
   const under = snapshot.categories
-    .filter((category) => max > 0 && category.value < max * UNDERUTILIZED_RATIO)
+    .filter((category) => isUnderutilized(category.value, max))
     .sort((a, b) => a.value - b.value)
     .slice(0, MAX_UNDER_CARDS);
 

@@ -7,7 +7,7 @@ import type { PlaaHomeProps } from './home.types';
 import { formatNumber } from './home.types';
 import NavAreaChart from './nav-area-chart';
 import { activitiesData, isOpenActivity } from '../activities/data';
-import { UNDERUTILIZED_RATIO } from '../leaderboard/leaderboard.mapper';
+import { isUnderutilized, normalizeCategory } from '../leaderboard/leaderboard.mapper';
 import PlaaProspectBanner from './plaa-prospect-banner';
 import PlaaDisclaimerBox from './plaa-disclaimer-box';
 import {
@@ -39,7 +39,6 @@ const MODES: Record<string, { label: string; icon: Icon; tone: string }> = {
   'Manual Review': { label: 'Manual Review', icon: CheckCircle, tone: 'confirm' },
 };
 
-const normaliseCategory = (value: string) => value.toLowerCase().replace(/[^a-z]/g, '');
 const NAV_DELTA_MONTHS = 3;
 
 export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
@@ -102,11 +101,10 @@ export default function PlaaHome({ round, trust, variant }: PlaaHomeProps) {
   const prior = monthly.length > NAV_DELTA_MONTHS ? monthly[monthly.length - 1 - NAV_DELTA_MONTHS] : undefined;
   const navDelta = latest && prior && prior.nav !== 0 ? ((latest.nav - prior.nav) / prior.nav) * 100 : undefined;
 
-  const categoryPoints = new Map(round.chart.map((entry) => [normaliseCategory(entry.name), entry.value]));
+  const categoryPoints = new Map(round.chart.map((entry) => [normalizeCategory(entry.name), entry.value]));
   const busiestCategory = Math.max(...round.chart.map((entry) => entry.value), 0);
   const isUnderutilised = (category: string) =>
-    busiestCategory > 0 &&
-    (categoryPoints.get(normaliseCategory(category)) ?? 0) < busiestCategory * UNDERUTILIZED_RATIO;
+    isUnderutilized(categoryPoints.get(normalizeCategory(category)) ?? 0, busiestCategory);
 
   const teaserActivities = activitiesData.activities
     .filter(isOpenActivity)

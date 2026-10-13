@@ -2,7 +2,7 @@ import type { RoundStatsResponse } from '@/services/plaa/rounds.service';
 import type { MappedLeaderboardEntry } from '@/services/plaa/leaderboard.utils';
 import type { LeaderboardCategoryWeight, LeaderboardRow, LeaderboardSnapshot } from './leaderboard.types';
 
-const normalizeCategory = (value: string) => value.toLowerCase().replace(/[^a-z]/g, '');
+export const normalizeCategory = (value: string) => value.toLowerCase().replace(/[^a-z]/g, '');
 
 export const formatSnapshotPeriod = (stats: RoundStatsResponse): string => {
   const [year, month] = stats.period.split('-').map(Number);
@@ -45,6 +45,8 @@ export const toCategoryWeights = (
   }));
 
 export const UNDERUTILIZED_RATIO = 0.3;
+
+export const isUnderutilized = (value: number, max: number) => max > 0 && value < max * UNDERUTILIZED_RATIO;
 
 export const getInitials = (name: string): string =>
   name

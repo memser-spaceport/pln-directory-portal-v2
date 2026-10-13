@@ -44,7 +44,6 @@ export function isWithinFirstDaysOfMonth(daysThreshold = 5): boolean {
   return new Date().getDate() <= daysThreshold;
 }
 
-/** Same derivation as app/alignment-asset/page.tsx's mergeRoundStats, for snapshotProgress. */
 export function getSnapshotDatesFromPeriod(period: string): { startDate: Date; endDate: Date } {
   const [year, month] = period.split('-').map(Number);
   const lastDayOfMonth = new Date(year, month, 0).getDate();

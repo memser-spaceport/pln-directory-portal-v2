@@ -84,14 +84,19 @@ describe('AI Search page answer: reading column layout', () => {
     getUserCredentialsInfo.mockResolvedValue({ newAuthToken: 'token', newUserInfo: null });
   });
 
-  it('lists the sources after the answer text and drops the "N source(s)" pill', () => {
+  it('ends the actions row with an "N sources" pill that lists what the answer was read from', async () => {
     renderMessage({ layout: 'page' });
 
     expect(screen.queryByText('1 source(s)')).not.toBeInTheDocument();
-    const answer = screen.getByText('Saturn Grid works on storage.');
-    const source = screen.getByRole('link', { name: 'Acme raises Series A' });
-    expect(followsInDom(answer, source)).toBe(true);
-    expect(followsInDom(source, screen.getByRole('button', { name: 'Good answer' }))).toBe(true);
+    const pill = screen.getByRole('button', { name: /1 source$/ });
+    expect(followsInDom(screen.getByText('Saturn Grid works on storage.'), pill)).toBe(true);
+    expect(followsInDom(screen.getByRole('button', { name: 'Good answer' }), pill)).toBe(true);
+
+    fireEvent.click(pill);
+
+    const source = await screen.findByRole('link', { name: /Acme raises Series A/ });
+    expect(source).toHaveAttribute('href', '/home?news=news-1');
+    expect(source).toHaveTextContent('News');
   });
 
   it('keeps the search dialog answer as it was (pill above, 1-5 feedback)', () => {
@@ -114,14 +119,14 @@ describe('AI Search page answer: reading column layout', () => {
     renderMessage({ layout: 'page', isStreaming: true });
 
     expect(screen.getByText('Saturn Grid works on storage.')).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Acme raises Series A' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /source/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Good answer' })).not.toBeInTheDocument();
   });
 
-  it('shows no sources block for an answer without sources, but shows the thumbs', () => {
+  it('shows no sources pill for an answer without sources, but shows the thumbs', () => {
     renderMessage({ layout: 'page' }, { ...baseMessage, sources: [], sourceRefs: [] });
 
-    expect(screen.queryByText('Sources')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /source/ })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Good answer' })).toBeInTheDocument();
   });
 

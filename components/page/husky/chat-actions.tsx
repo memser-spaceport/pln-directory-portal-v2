@@ -12,6 +12,7 @@ type ChatMessageActions = {
   hideActions: boolean;
   isLoadingObject: boolean;
   feedbackSlot?: ReactNode;
+  sourcesSlot?: ReactNode;
 };
 
 const ChatMessageActions = ({
@@ -25,6 +26,7 @@ const ChatMessageActions = ({
   hideActions,
   isLoadingObject,
   feedbackSlot,
+  sourcesSlot,
 }: ChatMessageActions) => {
   return (
     <>
@@ -65,6 +67,7 @@ const ChatMessageActions = ({
           )}
           {feedbackSlot}
         </div>
+        {sourcesSlot}
       </div>
 
       <style jsx>{`

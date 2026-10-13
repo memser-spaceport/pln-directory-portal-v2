@@ -113,8 +113,6 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
 
               {/* related results */}
               {message.actions?.length > 0 && <RelatedResults actions={message.actions} />}
-
-              {isPage && !isStreaming && <AnswerSources sources={message.sources} sourceRefs={message.sourceRefs} />}
             </>
           )}
 
@@ -138,6 +136,9 @@ const PreviewMessage: React.FC<PreviewMessageProps> = ({
                   disabled={!canRate}
                 />
               )
+            }
+            sourcesSlot={
+              isPage && !isStreaming && <AnswerSources sources={message.sources} sourceRefs={message.sourceRefs} />
             }
           />
         </div>

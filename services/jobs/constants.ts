@@ -78,6 +78,21 @@ export const SHOW_JOB_BOARD_APPLY: boolean = process.env.NEXT_PUBLIC_SHOW_JOB_BO
  */
 export const SHOW_TEAM_APPLICANTS: boolean = process.env.NEXT_PUBLIC_SHOW_TEAM_APPLICANTS === 'true';
 
+/**
+ * The "Suggested Candidates" switch in Email Preferences (LAB-2849): a team
+ * lead's opt-out from the weekly suggested candidates email. The email's own
+ * unsubscribe link writes the same flag, through `/settings/email/unsubscribed`,
+ * which is NOT gated by this — an email already sent must keep a working link.
+ *
+ * Unset means off. NEXT_PUBLIC_ and so inlined at build time: a change needs a
+ * redeploy (or a dev server restart), not just a restart of a built app.
+ *
+ * Imported only by the host (`EmailPreferencesForm`); the switch's GET runs
+ * only when it is mounted, so with the flag off nothing is fetched.
+ */
+export const SHOW_SUGGESTED_CANDIDATES_EMAIL: boolean =
+  process.env.NEXT_PUBLIC_SHOW_SUGGESTED_CANDIDATES_EMAIL === 'true';
+
 /* (`SHOW_JOB_BOARD_INTEREST` lived here. It gated the "I'm interested" banner
     for two reasons and outlived both: the endpoints did not exist yet, and the
     logged-out layout was unreviewed. The endpoints landed and were verified

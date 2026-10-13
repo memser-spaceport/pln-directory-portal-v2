@@ -225,6 +225,10 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_DEMO_DAY_UPDATES_NOTIFICATION_TOGGLE_CLICKED, params);
   }
 
+  function onSuggestedCandidatesEmailToggleClicked(params: { suggestedCandidatesEmailEnabled: boolean }) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_SUGGESTED_CANDIDATES_EMAIL_TOGGLE_CLICKED, params);
+  }
+
   function onEmailChangePanelOpened() {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_EMAIL_CHANGE_PANEL_OPENED);
   }
@@ -264,6 +268,7 @@ export const useSettingsAnalytics = () => {
     onSubscribeToPlNewsletterChange,
     onSubscribeToDemoDayUpdatesChange,
     onDemoDayUpdatesNotificationToggleClicked,
+    onSuggestedCandidatesEmailToggleClicked,
     onEmailChangePanelOpened,
     onEmailChangeCancelled,
   };

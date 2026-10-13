@@ -69,6 +69,3 @@ design-canvas/comments.json.*
 
 # AI Apps bridge bundle — built from ai-apps-bridge/ by scripts/build-ai-apps-bridge.mjs
 /public/ai-apps/bridge/
-
-# OpenSpec planning artifacts stay local
-/openspec/

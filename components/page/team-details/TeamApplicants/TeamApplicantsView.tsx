@@ -21,18 +21,20 @@ import type { TeamApplicant } from '@/schema/team-applicants';
 import { SHOW_TEAM_APPLICANTS } from '@/services/jobs/constants';
 import {
   useApplicantCounts,
+  useContactSuggestedCandidate,
   useMarkApplicantSeen,
   useRoleApplicants,
   useSaveMatchCriteria,
   useSuggestedCandidates,
   useToggleApplicantReviewed,
 } from '@/services/jobs/hooks/useTeamApplicants';
-import { TeamApplicantsError } from '@/services/jobs/team-applicants.service';
+import { isAlreadyContactedError, TeamApplicantsError } from '@/services/jobs/team-applicants.service';
 import type { IJobRole } from '@/types/jobs.types';
 import { formatRelativeDays, getJobDate, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
 import { ApplicantPane, MemberProfilePane } from './components/ApplicantPane';
 import { ApplicantRow } from './components/ApplicantRow';
+import { ContactSuggestedModal } from './components/ContactSuggestedModal';
 import { EditCriteriaModal } from './components/EditCriteriaModal';
 import { SuggestedPaneBar } from './components/SuggestedPaneBar';
 import { SuggestedRow } from './components/SuggestedRow';
@@ -189,6 +191,17 @@ export function TeamApplicantsView({
   const [criteriaOpen, setCriteriaOpen] = useState(false);
   const saveCriteria = useSaveMatchCriteria({ roleUid: role?.uid, viewerUid });
 
+  /* Contact (LAB-2847): the member the modal is open for, and every draft the
+     lead has started while the page is open, keyed `roleUid:memberUid`, so a
+     close or a failed send never costs the text. */
+  const [contactMemberUid, setContactMemberUid] = useState<string | null>(null);
+  const [contactDrafts, setContactDrafts] = useState<Record<string, string>>({});
+  const contactSuggested = useContactSuggestedCandidate({ roleUid: role?.uid, viewerUid });
+  const contactTarget = contactMemberUid
+    ? (suggestedList?.find((row) => row.memberUid === contactMemberUid) ?? null)
+    : null;
+  const draftKey = (memberUid: string) => `${role?.uid ?? ''}:${memberUid}`;
+
   const markSeen = useMarkApplicantSeen({ teamUid: teamId, roleUid: role?.uid, viewerUid });
   const toggleReviewed = useToggleApplicantReviewed({ teamUid: teamId, roleUid: role?.uid, viewerUid });
 
@@ -286,6 +299,7 @@ export function TeamApplicantsView({
     setPaneOpen(false);
     setPendingSuggestedMemberUid(null);
     setCriteriaOpen(false);
+    setContactMemberUid(null);
     replaceApplicantsSearch({ roleUid: next, suggestedUid: null, candidateUid: null });
   };
 
@@ -455,6 +469,35 @@ export function TeamApplicantsView({
     );
   };
 
+  /* The send is not optimistic either. Success patches `contactedAt` from the
+     server; a 409 means someone on the team already wrote to them, so it is
+     handled as done — closed, no toast, no event — and the hook re-reads. */
+  const onSendContact = (target: SuggestedCandidate, message: string) => {
+    contactSuggested.mutate(
+      { memberUid: target.memberUid, message },
+      {
+        onSuccess: () => {
+          setContactMemberUid(null);
+          setContactDrafts(({ [draftKey(target.memberUid)]: _sent, ...rest }) => rest);
+          analytics.onJobSuggestedCandidateContacted({
+            team_id: teamId,
+            job_id: role?.uid ?? null,
+            rank: target.rank,
+            label: target.label,
+            interested: target.interested === true,
+          });
+        },
+        onError: (error) => {
+          if (isAlreadyContactedError(error)) {
+            setContactMemberUid(null);
+            return;
+          }
+          toast.error(failureMessage(error, 'Could not send your message. Please try again.'));
+        },
+      },
+    );
+  };
+
   const listLength = isSuggestedTab ? shownSuggested.length : shown.length;
   const hasSelection = isSuggestedTab ? !!selectedSuggested : !!selected;
 
@@ -613,20 +656,10 @@ export function TeamApplicantsView({
               <>
                 <SuggestedPaneBar
                   suggestion={selectedSuggested}
-                  roleTitle={role?.roleTitle ?? ''}
-                  isLoggedIn={isLoggedIn}
                   position={suggestedPosition}
                   total={listLength}
                   onStep={step}
-                  onEmailClick={() =>
-                    analytics.onJobSuggestedCandidateContacted({
-                      team_id: teamId,
-                      job_id: role?.uid ?? null,
-                      rank: selectedSuggested.rank,
-                      label: selectedSuggested.label,
-                      interested: selectedSuggested.interested === true,
-                    })
-                  }
+                  onContact={() => setContactMemberUid(selectedSuggested.memberUid)}
                 />
                 <MemberProfilePane
                   key={selectedSuggested.memberUid}
@@ -693,6 +726,22 @@ export function TeamApplicantsView({
           criteria={roleCriteria}
           isSaving={saveCriteria.isPending}
           onSave={onSaveCriteria}
+        />
+      )}
+
+      {isSuggestedTab && contactTarget && (
+        <ContactSuggestedModal
+          isOpen={!contactTarget.contactedAt}
+          onClose={() => setContactMemberUid(null)}
+          personName={contactTarget.name}
+          roleTitle={role?.roleTitle ?? ''}
+          teamName={teamName}
+          draft={contactDrafts[draftKey(contactTarget.memberUid)]}
+          onDraftChange={(text) =>
+            setContactDrafts((drafts) => ({ ...drafts, [draftKey(contactTarget.memberUid)]: text }))
+          }
+          isSending={contactSuggested.isPending}
+          onSend={(message) => onSendContact(contactTarget, message)}
         />
       )}
     </div>

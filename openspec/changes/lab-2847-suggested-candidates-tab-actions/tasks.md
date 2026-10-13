@@ -19,8 +19,8 @@
 
 ## 4. Contact
 
-- [ ] 4.1 Add `ContactSuggestedModal.tsx` + `ContactSuggestedModal.module.scss`: one message field, prefilled template, 2000-char limit with count, no subject, Send disabled when empty, too long or pending. Verify: `__tests__/page/team-details/contact-suggested-modal.test.tsx` covers prefill, limit, send body, and failure keeping the text.
-- [ ] 4.2 Replace the `mailto:` link in `SuggestedPaneBar` with "Contact {first name}" or "Contacted · {date}" from `contactedAt` (new `SuggestedPaneBar.module.scss` for the new styles), keep per-person drafts in the view, treat 409 as contacted, and move `job-suggested-candidate-contacted` to a successful send. Verify: view tests cover Contacted after reload (from the read), 409 with no toast, failure with toast, the event firing only on success, and Applied/Interested still showing "Email".
+- [x] 4.1 Add `ContactSuggestedModal.tsx` + `ContactSuggestedModal.module.scss`: one message field, prefilled template, 2000-char limit with count, no subject, Send disabled when empty, too long or pending. Verify: `__tests__/page/team-details/contact-suggested-modal.test.tsx` covers prefill, limit, send body, and failure keeping the text.
+- [x] 4.2 Replace the `mailto:` link in `SuggestedPaneBar` with "Contact {first name}" or "Contacted · {date}" from `contactedAt` (new `SuggestedPaneBar.module.scss` for the new styles), keep per-person drafts in the view, treat 409 as contacted, and move `job-suggested-candidate-contacted` to a successful send. Verify: view tests cover Contacted after reload (from the read), 409 with no toast, failure with toast, the event firing only on success, and Applied/Interested still showing "Email".
 
 ## 5. Role description
 

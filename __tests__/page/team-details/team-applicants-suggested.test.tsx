@@ -40,7 +40,6 @@ jest.mock('@/components/common/filters/SearchInput', () => ({
   ),
 }));
 
-let memberEmail: string | null = 'ana@example.com';
 jest.mock('@/components/page/team-details/TeamApplicants/components/ApplicantPane', () => ({
   ApplicantPane: ({ applicant }: any) => <div data-testid="pane">{applicant.name}</div>,
   MemberProfilePane: ({ memberUid, section }: any) => (
@@ -48,7 +47,6 @@ jest.mock('@/components/page/team-details/TeamApplicants/components/ApplicantPan
       {section}
     </div>
   ),
-  useCandidateMember: () => ({ data: { email: memberEmail } }),
 }));
 
 let isNarrow = false;
@@ -198,7 +196,6 @@ const rowFor = (name: string) =>
 
 beforeEach(() => {
   isNarrow = false;
-  memberEmail = 'ana@example.com';
   routerReplace.mockReset();
   toastError.mockReset();
   saveCriteriaMutate.mockReset();
@@ -344,30 +341,13 @@ describe('the Suggested tab', () => {
     });
   });
 
-  it('records a contact when the lead emails a suggested person', async () => {
+  it('offers Contact in place of a mailto: Email', async () => {
     renderView();
     await openSuggested();
 
-    const email = screen.getByRole('link', { name: /Email Ana/ });
-    expect(email).toHaveAttribute('href', expect.stringMatching(/^mailto:ana@example\.com\?subject=/));
-    await userEvent.click(email);
-
-    expect(analytics.onJobSuggestedCandidateContacted).toHaveBeenCalledWith({
-      team_id: 'team-1',
-      job_id: 'role-1',
-      rank: 1,
-      label: 'Strong match',
-      interested: false,
-    });
-  });
-
-  it('offers no Email press when the profile has no address', async () => {
-    memberEmail = null;
-
-    renderView();
-    await openSuggested();
-
+    expect(screen.getByRole('button', { name: 'Contact Ana' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Email/ })).not.toBeInTheDocument();
+    expect(analytics.onJobSuggestedCandidateContacted).not.toHaveBeenCalled();
   });
 
   it('steps to the next suggested person', async () => {
@@ -476,10 +456,12 @@ describe('interested members on the Suggested tab', () => {
 
   it('records whether the contacted member was interested', async () => {
     setSuggestions([interested(ANA), BEN]);
+    contactMutate.mockImplementation(answer({ data: { contactedAt: '2026-10-13T10:00:00.000Z' } }));
 
     renderView();
     await openSuggested();
-    await userEvent.click(screen.getByRole('link', { name: /Email Ana/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Contact Ana' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
 
     expect(analytics.onJobSuggestedCandidateContacted).toHaveBeenCalledWith({
       team_id: 'team-1',
@@ -594,5 +576,116 @@ describe('Edit criteria on the Suggested tab', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(toastError).toHaveBeenCalledWith('Could not save the criteria. Please try again.');
+  });
+});
+
+/**
+ * LAB-2847: Contact sends a message through the platform, and the pane reads
+ * "Contacted · <date>" from the server's `contactedAt` from then on.
+ */
+describe('Contact on the Suggested tab', () => {
+  const openContact = async () => {
+    renderView();
+    await openSuggested();
+    await userEvent.click(screen.getByRole('button', { name: 'Contact Ana' }));
+  };
+
+  it('opens on the prefilled message and records nothing for opening or closing', async () => {
+    await openContact();
+
+    expect(screen.getByRole('dialog', { name: 'Contact Ana' })).toBeInTheDocument();
+    expect((screen.getByRole('textbox', { name: 'Message' }) as HTMLTextAreaElement).value).toMatch(
+      /^Hi Ana, I lead hiring for Senior Rust Engineer at Filecoin Foundation\./,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(contactMutate).not.toHaveBeenCalled();
+    expect(analytics.onJobSuggestedCandidateContacted).not.toHaveBeenCalled();
+  });
+
+  it('sends the message for that person, closes, and records the contact', async () => {
+    contactMutate.mockImplementation(answer({ data: { contactedAt: '2026-10-13T10:00:00.000Z' } }));
+
+    await openContact();
+    const field = screen.getByRole('textbox', { name: 'Message' });
+    await userEvent.clear(field);
+    await userEvent.type(field, 'Hi Ana, fancy a chat?');
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(contactMutate).toHaveBeenCalledWith(
+      { memberUid: 'm-1', message: 'Hi Ana, fancy a chat?' },
+      expect.anything(),
+    );
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(analytics.onJobSuggestedCandidateContacted).toHaveBeenCalledWith({
+      team_id: 'team-1',
+      job_id: 'role-1',
+      rank: 1,
+      label: 'Strong match',
+      interested: false,
+    });
+    expect(toastError).not.toHaveBeenCalled();
+  });
+
+  it('shows Contacted with the date from the read, after a reload, with no way to send again', async () => {
+    setSuggestions([{ ...ANA, contactedAt: '2026-10-12T09:00:00.000Z' }, BEN]);
+
+    renderView();
+    await openSuggested();
+
+    expect(screen.getByTestId('suggested-contacted')).toHaveTextContent(/^Contacted\s·\sOct 12, 2026$/);
+    expect(screen.queryByRole('button', { name: /^Contact/ })).not.toBeInTheDocument();
+  });
+
+  it('treats a 409 as already contacted: closes, no toast, no event', async () => {
+    contactMutate.mockImplementation(answer({ error: new TeamApplicantsError(409, 'Already contacted') }));
+
+    await openContact();
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(toastError).not.toHaveBeenCalled();
+    expect(analytics.onJobSuggestedCandidateContacted).not.toHaveBeenCalled();
+  });
+
+  it('toasts any other failure, stays open on the text, and still offers Contact', async () => {
+    contactMutate.mockImplementation(answer({ error: new TeamApplicantsError(400, 'This member has no email') }));
+
+    await openContact();
+    const field = screen.getByRole('textbox', { name: 'Message' });
+    await userEvent.clear(field);
+    await userEvent.type(field, 'My own words');
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(toastError).toHaveBeenCalledWith('This member has no email');
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Message' })).toHaveValue('My own words');
+    expect(analytics.onJobSuggestedCandidateContacted).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(screen.getByRole('button', { name: 'Contact Ana' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Contact Ana' }));
+    expect(screen.getByRole('textbox', { name: 'Message' })).toHaveValue('My own words');
+  });
+
+  it('keeps Email on the Applied tab', async () => {
+    renderView();
+
+    expect(screen.getByRole('link', { name: /Email Devon/ })).toHaveAttribute(
+      'href',
+      expect.stringMatching(/^mailto:devon@example\.com/),
+    );
+    expect(screen.queryByRole('button', { name: /^Contact/ })).not.toBeInTheDocument();
+  });
+
+  it('keeps Email on the Interested tab', async () => {
+    setLists({ applications: [], interests: [{ ...APPLICANT, uid: 'i1', kind: 'interest' }] });
+
+    renderView();
+
+    expect(screen.getByRole('link', { name: /Email Devon/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Contact/ })).not.toBeInTheDocument();
   });
 });

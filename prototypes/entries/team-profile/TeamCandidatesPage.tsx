@@ -41,6 +41,7 @@ import { CvAttachmentLine } from '../profile-shared/StoredCv/CvAttachmentLine';
 import { EnvelopeIcon, ReviewCheckIcon } from './icons';
 import { CandidateRow } from './CandidateRow';
 import { CandidateMemberPage } from './CandidateMemberPage';
+import { ReachOutModal, type ReachOutSender } from './ReachOutModal';
 import { Tabs } from '@/components/ui/tabs/Tabs';
 
 import {
@@ -77,6 +78,12 @@ export interface CandidatesRole {
   meta?: string;
   /** ISO — when the role was posted, for "Posted 2d ago". */
   postedAt?: string;
+  /**
+   * A few sentences on the role, from the posting — the reminder a lead
+   * landing from an email needs before judging anyone (LAB-2819 review:
+   * "which role is this, again?", worst for a team with twenty open).
+   */
+  summary?: string;
   candidates: RoleCandidate[];
   /** Pressed "I'm interested" on this role instead of applying. */
   interested: RoleInterested[];
@@ -113,6 +120,8 @@ interface Props {
    * lead who came from the board is not going to the team's profile.
    */
   backLabel?: string;
+  /** The lead writing to a suggested member — their profile goes with the message. */
+  sender?: ReachOutSender;
 }
 
 /**
@@ -217,13 +226,12 @@ interface Props {
  *     What the network knows (an interest press, shared work) is *not* in the
  *     band: it is the row's last line and the pane's first block. See
  *     `suggestedMocks.ts`.
- *   - **Met and unmet, on the row and in the pane (2026-09-29, LAB-2687).**
- *     Each row carries its working under the role — "4 of 5 requirements"
- *     then, named behind a dash, what the profile doesn't show — and the pane
- *     lists every requirement with the profile fact that meets it or "Not on
- *     their profile". The role's criteria are said once, as "Matched on …"
- *     under the tab's note, with Edit criteria beside them. Criteria are the
- *     POC's own (LAB-2643: 4–6 checkable skill / seniority / location
+ *   - **The count on the row, the working in the pane (LAB-2687, trimmed in
+ *     LAB-2819).** Each row says "4 of 5 requirements"; the pane's Why we
+ *     suggested lists every requirement with the profile fact that meets it
+ *     or "Not on their profile", with Edit criteria in its header. The list
+ *     no longer repeats the criteria as a "Matched on …" line — the pane
+ *     names them where they can be checked. Criteria are the POC's own (LAB-2643: 4–6 checkable skill / seniority / location
  *     statements) plus a short label this design asks it to write.
  *   - **Landing.** The suggested-candidates email and the bell notification
  *     open this page on the role with Suggested open (`initialTab`), and a
@@ -235,13 +243,18 @@ interface Props {
  *     chose to be here, and re-ranking them by our guess would bury someone
  *     the founder owes a look.
  *   - **Rate, then contact — two separate acts (LAB-2819).** The bar carries
- *     **Good match** and **Not a match**, a pair of switches, and **Email**
- *     beside them past a divider. Rating tells the matcher whether it was
- *     right and writes to nobody; Email is the contact and records no rating.
- *     "Not a match" opens five optional reasons under the bar (Wrong skills,
- *     Wrong seniority, Wrong location, Already know them, Other). The rating
- *     is the team's working, never shown to the member. (This replaced
- *     **Invite to apply**, which was a contact and a verdict in one press.)
+ *     **Good match** and **Not a match**, a pair of switches, and **Contact
+ *     <name>** beside them past a divider. Rating tells the matcher whether it
+ *     was right and writes to nobody; Contact opens ReachOutModal —
+ *     the apply flow's message step run the other way, sent through the
+ *     platform) and records no rating. "Not a match" opens one optional
+ *     free-text "What didn't fit?" under the bar. The rating is the team's
+ *     working, never shown to the member. (Review 2026-10-13: Anuj would drop
+ *     the rating for v1; Polina kept it, optional, beside the one action.)
+ *   - **The short card.** A suggested person's pane is the profile card,
+ *     bio, Why we suggested, the CV if they stored one, and Experience —
+ *     no scroll to decide. Contact details and the rest are behind Full
+ *     profile ↗ (`CandidateMemberPage`'s `compact`).
  * The note under the tabs says the one thing nothing else on the page can:
  * these members are in the network and haven't applied.
  *
@@ -258,6 +271,7 @@ export function TeamCandidatesPage({
   initialSelectedId,
   onBack,
   backLabel,
+  sender,
 }: Props) {
   const isMobile = useIsMobile();
   const [roleUid, setRoleUid] = useState(initialRoleUid);
@@ -276,7 +290,7 @@ export function TeamCandidatesPage({
       else next.add(id);
       return next;
     });
-  // The lead's rating of each suggestion, and the optional reason for a miss —
+  // The lead's rating of each suggestion, and an optional note on a miss —
   // session-local, like `seenIds`. Pressing the pressed rating clears it.
   const [ratings, setRatings] = useState<Record<string, SuggestionRating>>({});
   const rate = (id: string, verdict: SuggestionRating['verdict']) =>
@@ -286,11 +300,13 @@ export function TeamCandidatesPage({
       else next[id] = { verdict };
       return next;
     });
-  const giveReason = (id: string, reason: NotAMatchReason) =>
-    setRatings((prev) => ({
-      ...prev,
-      [id]: { verdict: 'not', reason: prev[id]?.reason === reason ? undefined : reason },
-    }));
+  const setMissNote = (id: string, note: string) =>
+    setRatings((prev) => ({ ...prev, [id]: { verdict: 'not', note } }));
+  // Who the lead has messaged, and when; drafts kept per person so closing
+  // the modal never costs what was typed. Session-local, like `seenIds`.
+  const [messagedAt, setMessagedAt] = useState<Record<string, string>>({});
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [reachOutOpen, setReachOutOpen] = useState(false);
   // Mobile only: whether the pane is showing instead of the list.
   // A link to one person (the email's names) opens on their pane there too.
   const [paneOpen, setPaneOpen] = useState(Boolean(initialSelectedId));
@@ -298,6 +314,8 @@ export function TeamCandidatesPage({
   // would keep it on the listing.
   const [criteriaOff, setCriteriaOff] = useState<Record<string, ReadonlySet<string>>>({});
   const [criteriaOpen, setCriteriaOpen] = useState(false);
+  // The lead's free-text prompt for the matcher, per role (CriteriaModal).
+  const [criteriaPrompt, setCriteriaPrompt] = useState<Record<string, string>>({});
 
   const role = roles.find((r) => r.uid === roleUid) ?? roles[0];
   const criteria = role.criteria ?? [];
@@ -542,7 +560,26 @@ export function TeamCandidatesPage({
             </button>
           </div>
           <span className={s.actionsDivider} aria-hidden="true" />
-          {emailButton}
+          {/* The one thing to do with a suggestion: write to them through the
+              platform (ReachOutModal). Once sent it is a status, not a press. */}
+          {messagedAt[selected.id] ? (
+            <span
+              className={clsx(btn.root, btn.small, btn.border, btn.neutral, s.reviewBtn, s.isReviewed, s.sentStatus)}
+              role="status"
+            >
+              <ReviewCheckIcon size={16} state="filled" className={s.reviewIcon} />
+              Contacted
+            </span>
+          ) : (
+            <button
+              type="button"
+              className={clsx(btn.root, btn.small, btn.fill, btn.primary, fb.glossy, s.actionLink)}
+              onClick={() => setReachOutOpen(true)}
+            >
+              <EnvelopeIcon size={14} />
+              Contact {selected.name.split(' ')[0]}
+            </button>
+          )}
         </div>
       ) : (
         <div className={s.paneActions}>
@@ -571,29 +608,23 @@ export function TeamCandidatesPage({
     </div>
   );
 
-  /* Why not — optional, under the bar, only once "Not a match" is pressed.
-     Five reasons as one-tap chips; ignoring them is skipping, so there is no
-     Skip button to press. The picked one stays pressed and can be unpicked. */
-  const reasonStrip = selected && isSuggested(selected) && rating?.verdict === 'not' && (
-    <div className={s.reasonStrip} role="group" aria-label="Why not a match (optional)">
-      <span className={s.reasonLabel}>
-        Why not? <span className={s.reasonOptional}>Optional</span>
-      </span>
-      <div className={s.reasonChips}>
-        {NOT_A_MATCH_REASONS.map((r) => (
-          <button
-            key={r}
-            type="button"
-            className={clsx(btn.root, btn.xs, btn.border, btn.neutral, s.reasonChip, {
-              [s.reasonChipOn]: rating.reason === r,
-            })}
-            aria-pressed={rating.reason === r}
-            onClick={() => giveReason(selected.id, r)}
-          >
-            {r}
-          </button>
-        ))}
-      </div>
+  /* What didn't fit — optional, under the bar, only once "Not a match" is
+     pressed. Free text rather than five reason chips (design review
+     2026-10-13): the chips guessed the reasons for the lead, and a few words
+     of their own are what can actually change the criteria. Kept as typed. */
+  const missNote = selected && isSuggested(selected) && rating?.verdict === 'not' && (
+    <div className={s.reasonStrip}>
+      <label htmlFor="miss-note" className={s.reasonLabel}>
+        What didn’t fit? <span className={s.reasonOptional}>Optional</span>
+      </label>
+      <input
+        id="miss-note"
+        className={s.missInput}
+        value={rating.note ?? ''}
+        onChange={(e) => setMissNote(selected.id, e.target.value)}
+        placeholder="e.g. needs more protocol work"
+        maxLength={280}
+      />
     </div>
   );
 
@@ -623,12 +654,18 @@ export function TeamCandidatesPage({
         {showList && (
           <div className={s.listCol}>
             {/* The role heads the list of people who answered it. */}
-            {(roleFacts || postingButton) && (
-              <div className={s.listHead}>
+            {/* The role heads the list of people who answered it — its
+                title, its facts and a few sentences from the posting, so a
+                lead who arrives from an email knows which role this is before
+                judging anyone against it. */}
+            <div className={s.listHead}>
+              <div className={s.roleSummary}>
+                <h2 className={s.roleTitle}>{role.title}</h2>
                 {roleFacts && <p className={s.roleFacts}>{roleFacts}</p>}
-                {postingButton}
+                {role.summary && <p className={s.roleDesc}>{role.summary}</p>}
               </div>
-            )}
+              {postingButton}
+            </div>
             <div className={s.tabs}>
               <Tabs
                 variant="secondary"
@@ -649,21 +686,6 @@ export function TeamCandidatesPage({
                 <p className={s.tabNote}>
                   Members of the Protocol Labs network, matched to this role on their profile. They haven’t applied.
                 </p>
-                {/* What every row below was matched against, said once, so a
-                    lead reading "4 of 5 requirements" knows which five. Edit
-                    criteria is in the pane's Why we suggested header now
-                    (LAB-2819), beside the checklist it changes. */}
-                {criteria.length > 0 && (
-                  <div className={s.tabNoteRow}>
-                    <p className={s.tabNote}>
-                      <span className={s.matchedOnLabel}>Matched on</span>{' '}
-                      {criteria
-                        .filter((c) => !off.has(c.id))
-                        .map((c) => c.label)
-                        .join(' · ')}
-                    </p>
-                  </div>
-                )}
               </div>
             )}
             <div className={s.searchWrap}>
@@ -678,6 +700,7 @@ export function TeamCandidatesPage({
                     isNew={!isSuggested(a) && a.unseen && !seenIds.has(a.id)}
                     reviewed={reviewedIds.has(a.id)}
                     rating={isSuggested(a) ? ratings[a.id]?.verdict : undefined}
+                    messagedAt={messagedAt[a.id]}
                     match={isSuggested(a) ? suggestionMatch(a, criteria, off) : undefined}
                     last={index === shown.length - 1}
                     selected={!isMobile && a.id === selectedId}
@@ -704,10 +727,11 @@ export function TeamCandidatesPage({
         {showPane && selected && (
           <div className={s.paneCol}>
             {paneBar}
-            {reasonStrip}
+            {missNote}
             <CandidateMemberPage
               key={selected.id}
               candidate={selected}
+              compact={isSuggested(selected) ? { fullProfileHref: '/prototypes/member-profile' } : undefined}
               application={
                 isSuggested(selected) ? (
                   /* Why they are here, in full and strongest first — the
@@ -781,6 +805,24 @@ export function TeamCandidatesPage({
         )}
       </div>
 
+      {selected && isSuggested(selected) && sender && (
+        <ReachOutModal
+          open={reachOutOpen}
+          onClose={() => setReachOutOpen(false)}
+          personName={selected.name}
+          roleTitle={role.title}
+          teamName={teamName}
+          postingHref={role.postingHref}
+          sender={sender}
+          draft={drafts[selected.id]}
+          onDraftChange={(text) => setDrafts((prev) => ({ ...prev, [selected.id]: text }))}
+          onSend={() => {
+            setMessagedAt((prev) => ({ ...prev, [selected.id]: new Date().toISOString() }));
+            setReachOutOpen(false);
+          }}
+        />
+      )}
+
       {role.suggested && criteria.length > 0 && (
         <CriteriaModal
           open={criteriaOpen}
@@ -789,8 +831,10 @@ export function TeamCandidatesPage({
           criteria={criteria}
           people={role.suggested}
           off={off}
-          onSave={(next) => {
+          prompt={criteriaPrompt[role.uid] ?? ''}
+          onSave={(next, prompt) => {
             setCriteriaOff((prev) => ({ ...prev, [role.uid]: next }));
+            setCriteriaPrompt((prev) => ({ ...prev, [role.uid]: prompt }));
             // The person in the pane may have dropped below the floor.
             setSelectedId(null);
           }}
@@ -800,19 +844,10 @@ export function TeamCandidatesPage({
   );
 }
 
-/** The five reasons a lead can give for "Not a match" (LAB-2819), in this order. */
-const NOT_A_MATCH_REASONS = [
-  'Wrong skills',
-  'Wrong seniority',
-  'Wrong location',
-  'Already know them',
-  'Other',
-] as const;
-type NotAMatchReason = (typeof NOT_A_MATCH_REASONS)[number];
-/** A lead's rating of one suggestion; `reason` only on a miss, and optional there. */
+/** A lead's rating of one suggestion; `note` only on a miss, and optional there. */
 interface SuggestionRating {
   verdict: 'good' | 'not';
-  reason?: NotAMatchReason;
+  note?: string;
 }
 
 /* "Not a match"'s glyph — a ring with a dash, the counterpart of Good match's

@@ -116,22 +116,6 @@
   white-space: nowrap;
 }
 
-/* The match badge at the row's right end: "Strong match" / "Good match",
- * colour-coded by band (see SUGGESTION_BAND_VARIANT). */
-.matchBadge.matchBadge {
-  white-space: nowrap;
-  flex-shrink: 0;
-  /* Smaller than the DS Badge's 14/20 ("Make matches badges smaller"): 12/16
-     type in 2x6 padding, ~22px with the border, a tag's size beside the name
-     rather than a second heading. */
-  font-size: 12px;
-  line-height: 16px;
-  padding: 2px 6px;
-}
-
-/* "Invited today" beside the name: the row's clock + date in its own type, on
- * the name line so the right end is the match badge alone. `flex-shrink: 0` so
- * the name ellipsises before the date does. */
 /* Rated Not a match (LAB-2819): the row stays in its place — re-sorting under
  * the cursor loses the lead's position — and fades, the way Care.com and
  * Wrangle set passed people apart. The lead's verdict takes the band's slot. */

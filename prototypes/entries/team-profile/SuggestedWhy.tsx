@@ -4,7 +4,6 @@ import clsx from 'clsx';
 
 import btn from '@/components/common/Button/Button.module.scss';
 
-import { Badge } from '@/components/common/Badge';
 import {
   DetailsSection,
   DetailsSectionHeader,
@@ -14,12 +13,11 @@ import {
 import { ReviewCheckIcon } from './icons';
 import {
   CRITERION_GROUPS,
-  SUGGESTION_BAND_LABEL,
-  SUGGESTION_BAND_VARIANT,
   type RoleCriterion,
   type RoleSuggested,
   type SuggestionMatch,
 } from './mocks';
+import { MatchBadge } from './MatchBadge';
 import s from './SuggestedMatch.module.scss';
 
 interface Props {
@@ -82,9 +80,7 @@ export function SuggestedWhy({ person, criteria, off, match, onEditCriteria }: P
           <span className={s.count}>
             {match.met} of {match.total} requirements
           </span>
-          <Badge variant={SUGGESTION_BAND_VARIANT[match.band]} className={s.matchBadge}>
-            {SUGGESTION_BAND_LABEL[match.band]}
-          </Badge>
+          <MatchBadge band={match.band} />
           {onEditCriteria && (
             <button
               type="button"

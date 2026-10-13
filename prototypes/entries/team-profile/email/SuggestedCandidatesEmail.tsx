@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import clsx from 'clsx';
 
-import { Badge } from '@/components/common/Badge';
+import { MatchBadge } from '../MatchBadge';
 
 // The Monday digest's email shell, imported rather than rebuilt — the stage,
 // the client chrome with its subject budget, the white card, masthead, list,
@@ -16,8 +16,6 @@ import notes from '../../job-board/email/ApplicationEmailPreview.module.scss';
 import {
   suggestionMatch,
   suggestionWhy,
-  SUGGESTION_BAND_LABEL,
-  SUGGESTION_BAND_VARIANT,
   type RoleCriterion,
   type RoleSuggested,
 } from '../mocks';
@@ -39,6 +37,10 @@ interface Props {
   criteria: RoleCriterion[];
   /** The landing: the Candidates page on this role's Suggested tab, optionally on one person. */
   hrefFor: (personId?: string) => string;
+  /** The posting, so the role title is a link — a team can have several roles named alike. */
+  postingHref?: string;
+  /** One sentence from the posting: which role, in case the title alone doesn't say. */
+  roleSummary?: string;
 }
 
 /**
@@ -87,7 +89,16 @@ interface Props {
  * No sign-off: a notification, not a message from a person — the application
  * email's rule.
  */
-export function SuggestedCandidatesEmail({ teamName, recipientName, roleTitle, people, criteria, hrefFor }: Props) {
+export function SuggestedCandidatesEmail({
+  teamName,
+  recipientName,
+  roleTitle,
+  people,
+  criteria,
+  hrefFor,
+  postingHref,
+  roleSummary,
+}: Props) {
   const count = people.length;
   const noun = count === 1 ? 'candidate' : 'candidates';
   const subject = `${count} suggested ${noun} for ${roleTitle}`;
@@ -135,9 +146,19 @@ export function SuggestedCandidatesEmail({ teamName, recipientName, roleTitle, p
               that they haven't applied. */}
             <p className={s.lede}>
               {count} {count === 1 ? 'member' : 'members'} of the Protocol Labs network{' '}
-              {count === 1 ? 'matches' : 'match'} your <strong>{roleTitle}</strong> role at {teamName}. They haven’t
-              applied.
+              {count === 1 ? 'matches' : 'match'} your{' '}
+              {postingHref ? (
+                <a className={s.roleLink} href={postingHref}>
+                  {roleTitle}
+                </a>
+              ) : (
+                <strong>{roleTitle}</strong>
+              )}{' '}
+              role at {teamName}. They haven’t applied.
             </p>
+            {/* Which role, in a sentence from the posting (review 2026-10-13): a
+                team with several similar titles can't tell them apart by name. */}
+            {roleSummary && <p className={s.roleSummary}>{roleSummary}</p>}
 
             <ul className={s.cards}>
               {top.map((p) => {
@@ -149,9 +170,7 @@ export function SuggestedCandidatesEmail({ teamName, recipientName, roleTitle, p
                       <span className={s.personText}>
                         <span className={s.nameLine}>
                           <span className={s.name}>{p.name}</span>
-                          <Badge variant={SUGGESTION_BAND_VARIANT[match.band]} className={s.band}>
-                            {SUGGESTION_BAND_LABEL[match.band]}
-                          </Badge>
+                          <MatchBadge band={match.band} />
                         </span>
                         <span className={s.role}>{p.role}</span>
                         <span className={s.why}>{suggestionWhy(p, criteria)}</span>
